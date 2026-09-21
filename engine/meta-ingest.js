@@ -2,16 +2,11 @@
  * Aggregates both players in every public replay for the format:
  * true meta usage (team%, bring%, lead%), not just one account. */
 const https = require('https');
-/* S12: the active format lives in data/regulations.json and is never restated. The literal
- * survives only as a fallback for a corrupt config, where guessing beats crashing. */
-const FORMAT = (() => {
-  try {
-    const r = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'data', 'regulations.json'), 'utf8'));
-    const a = r.regulations[r.active] || {};
-    if (a.showdownFormat) return a.showdownFormat;
-  } catch (e) { /* fall through */ }
-  return 'gen9championsvgc2026regmb';
-})();
+/* S12: the format is READ, never restated — and since 2026-09-21 never re-implemented either. The
+ * inlined read and its copy of the fallback literal (one of nine) moved to engine/regulation.js,
+ * which honours --regulation / ABRA_REGULATION and announces any deviation from the config's
+ * active regulation. With neither set this is the id it always was. */
+const FORMAT = require('./regulation.js').FORMAT;
 const PAGES = 3;      // ~50 replays/page
 const get = u => new Promise((res,rej)=>{https.get(u,r=>{let d='';r.on('data',c=>d+=c);r.on('end',()=>res(d));}).on('error',rej);});
 const norm = s => (s||'').toLowerCase().replace(/[^a-z0-9]/g,'');

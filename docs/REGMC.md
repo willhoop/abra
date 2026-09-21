@@ -1,6 +1,6 @@
 # REG M-C — the ledger
 
-**Version: 0.11.0 — 2026-09-21.**
+**Version: 0.12.0 — 2026-09-21.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 A leading `0` means NOT USABLE YET (SemVer 2.0.0 clause 4). This line reaches **1.0.0 the day the M-C
@@ -102,6 +102,32 @@ M-B's published figures — the same failure as a measurement reading a live sto
 `gen9championsvgc2026regmb` is identical in both checkouts — 347 either way, 0 added, 0 removed
 (CHANGELOG-REGMC 0.1.0). So
 adding the second checkout disturbed nothing that 7.0.0 published.
+
+**AND CHOOSING BETWEEN THEM IS NOW A FLAG, NOT AN EDIT — 0.10.0, 2026-09-21.** Which checkout loads is
+part of which REGULATION a run is about, and both are stated in one place:
+
+```bash
+node <anything>                            # regmb — data/regulations.json `active`, the default
+node <anything> --regulation regmc         # regmc — and it brings pokemon-showdown-mc with it
+ABRA_REGULATION=regmc node <anything>      # same, for a script that refuses unknown flags
+```
+
+`engine/regulation.js` resolves it and `champions_sim.FORMAT` reads it, so every caller follows with
+no edit. `data/regulations.json` carries a `runtime` block naming each regulation's checkout and
+pinned commit, and `engine/showdown_path.js` tries the selected regulation's checkout first — an
+explicit `SHOWDOWN_PATH` still wins, for a checkout kept somewhere else. **Any deviation from the
+default prints itself on stderr**; an unresolvable `--regulation` REFUSES rather than falling back.
+
+**`regmc` lives in `runtime` and deliberately NOT in `regulations`.** `engine/next_regulation.js` walks
+the `regulations` map to decide what is already known, so an entry there would tell the hourly collector
+that M-C is known and stop it collecting. **Being selectable is not being active** — `active` is still
+`regmb`.
+
+**THE FLAG IS NECESSARY AND IT IS NOT SUFFICIENT.** Selecting M-C gets the right authority at the right
+format and a runtime that cannot field it: `data/engine-data.js` has no row for any of the added M-C
+species or moves, so `buildMon` returns null for all of them (`docs/_reports/2026-09-20-regmc-first-run.md`
+§3). That is a refit item. Counts, the before/after proof that Reg M-B is unmoved, and what remains:
+`CHANGELOG-REGMC.md` 0.10.0 and `docs/_reports/2026-09-21-regulation-runtime.md`.
 
 ---
 

@@ -188,7 +188,13 @@ data/diff-team-pool.json
 # the CURRENT living-document citations rest on it. A working release is not. 0d7b1d9db6d1 stays
 # because ABRA 7.0.0 rests on it and that line is closed; this one stays until the documents cite
 # a newer one.
-!data/releases/adb08f5360f1/**<id>
+# SUPERSEDED 2026-09-21 by 2e9db8bb11fd: the living documents now cite artifacts stamped with that
+# one instead. Left tracked rather than removed, because untracking recovers no bytes once a blob
+# is in the pack and the entry still documents which release the previous citations rested on.
+!data/releases/adb08f5360f1/**
+# 2026-09-21 — the release the CURRENT artifacts were measured on, after the regulation resolver
+# landed. Same rule as above: tracked because the living-document citations rest on it.
+!data/releases/2e9db8bb11fd/**<id>
 data/releases/
 
 # The frozen team pool is a LOCAL measurement pin, not repo content — the live stores it

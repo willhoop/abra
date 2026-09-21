@@ -44,11 +44,12 @@
  */
 'use strict';
 require('./showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
-/* fs WAS USED AND NEVER IMPORTED. The read of data/regulations.json below therefore threw on every
- * call, and the hardcoded format literal in the catch is the only path that has ever run. It happens
- * to be correct today; it becomes wrong the moment Reg M-B rotates, which is precisely what this
- * file's header says it exists to prevent. Whole-repo review, 2026-07-31. */
-const fs = require('fs');
+/* THE `fs` IMPORT IS GONE AND ITS STORY IS KEPT, because the story is the one this whole seam is
+ * about. It was USED AND NEVER IMPORTED: the read of data/regulations.json below therefore threw on
+ * every call, and the hardcoded format literal in the catch was the only path that had ever run
+ * (whole-repo review, 2026-07-31). A capability absent with everything reporting success, in the
+ * file that resolves which game we are playing. The read moved to `engine/regulation.js` on
+ * 2026-09-21 and nothing here opens a file any more. */
 const path = require('path');
 
 /* THE FORMAT ID LIVES IN ONE PLACE (S12) AND THIS IS NOT IT.
@@ -68,22 +69,39 @@ const path = require('path');
  * paying for. It has never fired (regulations.json parses), and if it ever does the run says so on
  * stderr and `FORMAT_FALLBACK` records why, so `verify()` can report it rather than a reader having to
  * guess. Guessing still beats crashing a collection job; guessing SILENTLY does not. */
-let FORMAT_FALLBACK = null;
-const FORMAT = (() => {
-  let why = null;
-  try {
-    const r = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'regulations.json'), 'utf8'));
-    const a = r.regulations[r.active] || {};
-    if (a.showdownFormat) return a.showdownFormat;
-    why = 'data/regulations.json names active="' + r.active + '" and that entry has no showdownFormat';
-  } catch (e) { why = 'could not read data/regulations.json: ' + ((e && e.message) || e); }
-  FORMAT_FALLBACK = why;
-  console.error('champions_sim: FALLING BACK to a hardcoded format id — ' + why);
-  return 'gen9championsvgc2026regmb';
-})();
-// Pinned, not floating: the mod lives only on master, so there is no version number to depend on.
-const PINNED_COMMIT = '20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4';
-const PINNED_DATE = '2026-07-22';
+/* AND IT IS A RUN-TIME CHOICE, 2026-09-21. The read above was inlined here and in eight other files,
+ * each with its own copy of the literal, and there was no way to say "this run is about a different
+ * regulation" other than editing the shared config — which the first Reg M-C smoke run had to do
+ * (`docs/_reports/2026-09-20-regmc-first-run.md` §1a). A run that rewrites shared config is a run
+ * that can corrupt another one beside it.
+ *
+ * `engine/regulation.js` is now the one resolver: `--regulation <id>`, then `ABRA_REGULATION`, then
+ * `data/regulations.json` active. `FORMAT` is still a module constant with 490 readings across 357
+ * files — that was never the problem. One constant with 490 readers follows its resolver with no
+ * edit, including a reader written tomorrow, which is the same argument `dexFor` makes about its 228
+ * through-seam call sites. WITH NO FLAG SET THIS RESOLVES EXACTLY WHAT THE INLINED READ RESOLVED,
+ * prints nothing, and touches no environment variable.
+ *
+ * The hardcoded fallback literal now lives in `regulation.js` and nowhere else, and it answers the
+ * DEFAULT path only. An explicit `--regulation` that cannot be resolved REFUSES — answering a
+ * request for one regulation with another regulation's format id is precisely the wrong-regulation
+ * figure this seam exists to prevent, and it would arrive wearing a successful exit code. */
+const REG = require('./regulation.js');
+const FORMAT = REG.FORMAT;
+const FORMAT_FALLBACK = REG.FALLBACK;
+/* Pinned, not floating: the mod lives only on master, so there is no version number to depend on.
+ * PER REGULATION, since 2026-09-21 — this was a literal here, and Reg M-C is served by a different
+ * checkout at a different commit, so one constant cannot pin two authorities. Both values are READ
+ * out of `data/regulations.json`'s `runtime` block, which in turn was read out of the checkouts
+ * themselves (`git rev-parse HEAD`). Null when the selected regulation declares no pin, and null is
+ * reported as UNKNOWN by `verify()` rather than as a match — an unverifiable pin must never read as
+ * a verified one, and borrowing another regulation's pin would be worse than having none. */
+const PINNED_COMMIT = REG.PINNED_COMMIT || null;
+const PINNED_DATE = REG.PINNED_DATE || null;
+if (!PINNED_COMMIT) {
+  console.error('champions_sim: regulation "' + REG.ID + '" declares NO pinned Showdown commit in '
+    + 'data/regulations.json runtime — every commit_matches on this run reads UNKNOWN.');
+}
 
 /* THE DEFAULT USED TO BE `/tmp/ps`, WHICH CANNOT EXIST ON THE MACHINE THIS PROJECT RUNS ON.
  *
@@ -248,6 +266,12 @@ function verify() {
     format: FORMAT,
     name: ok ? fmt.name : null,
     mod: ok ? fmt.mod : null,
+    /* WHICH REGULATION THIS PROCESS IS ABOUT, AND WHO CHOSE IT — 2026-09-21. An artifact that stamps
+     * verify() can no longer be silently about the wrong regulation: `regulation_source` says
+     * whether a caller NAMED one or whether the config decided. */
+    regulation: REG.ID,
+    regulation_source: REG.SOURCE,
+    regulation_explicit: REG.EXPLICIT,
     pinned_commit: PINNED_COMMIT,
     pinned_date: PINNED_DATE,
     /* null when data/regulations.json answered; a REASON string when the hardcoded literal was used
@@ -255,8 +279,10 @@ function verify() {
     format_fallback: FORMAT_FALLBACK,
     actual_commit: actualCommit(),
     /* true / false / null-for-unknown. A consumer that treats null as true is making the same
-     * mistake this field was added to expose. */
-    commit_matches: actualCommit() ? (actualCommit() === PINNED_COMMIT) : null,
+     * mistake this field was added to expose. AN ABSENT PIN IS ALSO UNKNOWN, not a mismatch: a
+     * regulation that declares no pinned commit has nothing to disagree with, and reporting `false`
+     * there would accuse a checkout of drifting from a pin that does not exist. */
+    commit_matches: (actualCommit() && PINNED_COMMIT) ? (actualCommit() === PINNED_COMMIT) : null,
     champions_formats: Dex.formats.all().filter(f => /champions/i.test(f.id)).length,
   };
 }
@@ -859,17 +885,23 @@ function moveCarriers(move) {
  * reads a require-call literal anywhere in a frozen source, comments included, as a dependency.)
  * `abilityCarriers` / `moveCarriers` stay: they answer WHICH BODIES. */
 
-module.exports = { FORMAT, FORMAT_FALLBACK, dexFor, PINNED_COMMIT, PINNED_DATE, actualCommit, verify, packTeam, battle, winProb, sim,
+module.exports = { FORMAT, BO3_FORMAT: REG.BO3_FORMAT, REGULATION: REG.ID, REG,
+                   FORMAT_FALLBACK, dexFor, PINNED_COMMIT, PINNED_DATE, actualCommit, verify, packTeam, battle, winProb, sim,
                    snapshot, forkBattle, checkLegal, firstLegalMove, LEGAL_SPREAD, INERT_MOVE,
                    legalRoster, abilityCarriers, moveCarriers, canLearn, learnCounters };
 
 if (require.main === module) {
   const v = verify();
   console.log('CHAMPIONS SIMULATOR');
+  console.log(`  regulation    ${v.regulation}  (by ${v.regulation_source})`);
   console.log(`  format        ${v.format}  ${v.ok ? 'FOUND' : 'NOT FOUND'}`);
   console.log(`  name          ${v.name}`);
   console.log(`  mod           ${v.mod}`);
+  console.log(`  checkout      ${showdownPath()}`);
   console.log(`  champions fmts ${v.champions_formats}`);
-  console.log(`  pinned        ${v.pinned_commit.slice(0, 12)} (${v.pinned_date})`);
+  /* UNPINNED IS PRINTED AS UNPINNED. This read `v.pinned_commit.slice(0, 12)` against a constant
+   * that could not be null; the pin is per-regulation since 2026-09-21 and a regulation may declare
+   * none, so an unguarded slice would turn a missing pin into a TypeError. */
+  console.log(`  pinned        ${v.pinned_commit ? v.pinned_commit.slice(0, 12) + ' (' + v.pinned_date + ')' : 'UNPINNED — this regulation declares no commit'}`);
   if (!v.ok) process.exit(1);
 }

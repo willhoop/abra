@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-21T07:46:16.379Z",
+ "generated": "2026-09-21T11:16:27.193Z",
  "by": "tests/roster.js",
  "stage": "abilities",
  "swap_leaf_correction": {
@@ -7,9 +7,9 @@
   "real_ability_rewrite_kept": 68,
   "control_arm_bookkeeping_dropped": 3934
  },
- "engine_release": "adb08f5360f1",
- "engine_release_cut": "2026-09-21T07:39:01.770Z",
- "engine_release_cuts": 3,
+ "engine_release": "2e9db8bb11fd",
+ "engine_release_cut": "2026-09-21T11:12:58.105Z",
+ "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
   "engine/medicham2-browser.js": "1e35c4df04aa",
@@ -17,19 +17,20 @@
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
   "engine/tags.js": "145a3cc9ce2f",
-  "engine/champions_sim.js": "276b2f752247",
+  "engine/champions_sim.js": "6a4596a4ac9c",
   "data/residual-order.json": "eff160ad1c5a",
   "data/switchin-order.json": "24a007a66b7d",
   "engine/mc_key.js": "f57c27a6bf38",
   "engine/lookup.js": "17f49e5aed43",
   "engine/set_priors.js": "f8a81445ee3a",
-  "engine/smogon_priors.js": "5c039f9ebdbc",
+  "engine/smogon_priors.js": "ebd062f756c8",
   "engine/quality.js": "ebc37c7c9d05",
-  "engine/showdown_path.js": "0efe29f4245d",
+  "engine/showdown_path.js": "271d0acb239b",
+  "engine/regulation.js": "ebab71cd2ba6",
   "data/move-effects.js": "f35ecd91ba86",
   "data/ability-blocks.json": "86741fd35452",
   "data/smogon-priors.json": "f2dc78cea6c5",
-  "data/regulations.json": "6c1995e9a9fb",
+  "data/regulations.json": "3a18e91e8699",
   "data/quality-filter.json": "042524dd1df7",
   "data/engine-data.js": "bbc417dfae0e",
   "data/abra-tags.js": "43bf7eb1bcc1",
@@ -153,7 +154,7 @@
   }
  },
  "plant_anchors": {
-  "release": "adb08f5360f1",
+  "release": "2e9db8bb11fd",
   "checked": 65,
   "dead": [],
   "reds_ran": true
@@ -3826,55 +3827,55 @@
    "sd_delta": [
     {
      "turn": 0,
-     "path": "p1.pp[0].gastroacid",
+     "path": "p1.pp[1].gastroacid",
      "with": null,
      "without": 0
     },
     {
      "turn": 1,
-     "path": "p1.pp[0].sleeptalk",
+     "path": "p1.pp[1].sleeptalk",
      "with": 1,
      "without": 0
     },
     {
      "turn": 1,
-     "path": "p1.pp[0].gastroacid",
+     "path": "p1.pp[1].gastroacid",
      "with": null,
      "without": 1
     },
     {
      "turn": 2,
-     "path": "p1.pp[0].sleeptalk",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p1.pp[0].gastroacid",
-     "with": null,
-     "without": 1
-    },
-    {
-     "turn": 3,
-     "path": "p1.pp[0].sleeptalk",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 3,
-     "path": "p1.pp[0].gastroacid",
-     "with": null,
-     "without": 1
-    },
-    {
-     "turn": 4,
-     "path": "p1.pp[0].sleeptalk",
+     "path": "p1.pp[1].sleeptalk",
      "with": 2,
      "without": 1
     },
     {
+     "turn": 2,
+     "path": "p1.pp[1].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].sleeptalk",
+     "with": 3,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
      "turn": 4,
-     "path": "p1.pp[0].gastroacid",
+     "path": "p1.pp[1].sleeptalk",
+     "with": 4,
+     "without": 3
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].gastroacid",
      "with": null,
      "without": 1
     }
@@ -6305,7 +6306,7 @@
    "name": "Hunger Switch",
    "rule": "ability/residual",
    "reads": "onResidual",
-   "note": "SUPPRESS carrier Morpeko; control = Gastro Acid suppression; staged as residual  [#318 restaged: p1[1] weavile pruned never-clicked dragonclaw; p2[1] venusaur pruned never-clicked dragonclaw,uturn; p2[2] morpeko pruned never-clicked dragonclaw]",
+   "note": "SUPPRESS carrier Morpeko; control = Gastro Acid suppression; staged as residual  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn; p2[2] morpeko pruned never-clicked dragonclaw]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -6331,19 +6332,19 @@
    "sd_delta": [
     {
      "turn": 0,
-     "path": "p1.pp[0].gastroacid",
+     "path": "p1.pp[1].gastroacid",
      "with": null,
      "without": 0
     },
     {
      "turn": 1,
-     "path": "p1.pp[0].sleeptalk",
+     "path": "p1.pp[1].sleeptalk",
      "with": 1,
      "without": 0
     },
     {
      "turn": 1,
-     "path": "p1.pp[0].gastroacid",
+     "path": "p1.pp[1].gastroacid",
      "with": null,
      "without": 1
     },
@@ -6355,37 +6356,37 @@
     },
     {
      "turn": 2,
-     "path": "p1.pp[0].sleeptalk",
+     "path": "p1.pp[1].sleeptalk",
      "with": 2,
      "without": 1
     },
     {
      "turn": 2,
-     "path": "p1.pp[0].gastroacid",
+     "path": "p1.pp[1].gastroacid",
      "with": null,
      "without": 1
     },
     {
      "turn": 3,
-     "path": "p1.pp[0].sleeptalk",
+     "path": "p1.pp[1].sleeptalk",
      "with": 3,
      "without": 2
     },
     {
      "turn": 3,
-     "path": "p1.pp[0].gastroacid",
+     "path": "p1.pp[1].gastroacid",
      "with": null,
      "without": 1
     },
     {
      "turn": 4,
-     "path": "p1.pp[0].sleeptalk",
+     "path": "p1.pp[1].sleeptalk",
      "with": 4,
      "without": 3
     },
     {
      "turn": 4,
-     "path": "p1.pp[0].gastroacid",
+     "path": "p1.pp[1].gastroacid",
      "with": null,
      "without": 1
     }
@@ -6791,7 +6792,7 @@
    "name": "Illusion",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "SUPPRESS carrier Zoroark; control = Gastro Acid suppression; staged as generic  [#318 restaged: p1[1] weavile pruned never-clicked dragonclaw; p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
+   "note": "SUPPRESS carrier Zoroark; control = Gastro Acid suppression; staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
    "verdict": "DEFERRED-BY-OWNER",
    "why": "SHELVED BY THE OWNER ON THE CARRIER, NOT MEASURED CLEAN. This row is staged on Zoroark, which holds illusion; the membership is derived from the ABILITY by engine/game_differential.js (zoroark, zoroarkhisui) and imported here, so a carrier added by a later regulation is shelved without an edit. Underlying verdict without the shelf: FIRED-AND-BOARDS-MATCH — AND THAT PASS IS VACUOUS, WHICH IS WHY THE SHELF IS NOT \"STALE\". medicham2-browser.js implements no Illusion at all, so the two engines agree here about the CONTROL arm's work and about nothing else. A green on a mechanic that is not written is the \"a green test can be asking nothing\" failure, not evidence. Still staged and still played against the authority every run; it does not hold the gate.",
    "arm": "top-tie-first",
@@ -6821,19 +6822,19 @@
    "sd_delta": [
     {
      "turn": 0,
-     "path": "p1.pp[0].gastroacid",
+     "path": "p1.pp[1].gastroacid",
      "with": null,
      "without": 0
     },
     {
      "turn": 1,
-     "path": "p1.pp[0].sleeptalk",
+     "path": "p1.pp[1].sleeptalk",
      "with": 1,
      "without": 0
     },
     {
      "turn": 1,
-     "path": "p1.pp[0].gastroacid",
+     "path": "p1.pp[1].gastroacid",
      "with": null,
      "without": 1
     },
@@ -6845,49 +6846,49 @@
     },
     {
      "turn": 2,
-     "path": "p1.pp[0].sleeptalk",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p1.pp[0].gastroacid",
-     "with": null,
-     "without": 1
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].vol.gastroacid",
-     "with": 0,
-     "without": 1
-    },
-    {
-     "turn": 3,
-     "path": "p1.pp[0].sleeptalk",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 3,
-     "path": "p1.pp[0].gastroacid",
-     "with": null,
-     "without": 1
-    },
-    {
-     "turn": 3,
-     "path": "p2.active[0].vol.gastroacid",
-     "with": 0,
-     "without": 1
-    },
-    {
-     "turn": 4,
-     "path": "p1.pp[0].sleeptalk",
+     "path": "p1.pp[1].sleeptalk",
      "with": 2,
      "without": 1
     },
     {
+     "turn": 2,
+     "path": "p1.pp[1].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].vol.gastroacid",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].sleeptalk",
+     "with": 3,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].vol.gastroacid",
+     "with": 0,
+     "without": 1
+    },
+    {
      "turn": 4,
-     "path": "p1.pp[0].gastroacid",
+     "path": "p1.pp[1].sleeptalk",
+     "with": 4,
+     "without": 3
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].gastroacid",
      "with": null,
      "without": 1
     },
@@ -15646,7 +15647,7 @@
    "name": "Stance Change",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "SUPPRESS carrier Aegislash; control = Gastro Acid suppression; staged as generic  [#318 restaged: p1[1] weavile pruned never-clicked thunderbolt; p2[1] venusaur pruned never-clicked thunderbolt,uturn]",
+   "note": "SUPPRESS carrier Aegislash; control = Gastro Acid suppression; staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked thunderbolt,uturn]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -15672,55 +15673,55 @@
    "sd_delta": [
     {
      "turn": 0,
-     "path": "p1.pp[0].gastroacid",
+     "path": "p1.pp[1].gastroacid",
      "with": null,
      "without": 0
     },
     {
      "turn": 1,
-     "path": "p1.pp[0].sleeptalk",
+     "path": "p1.pp[1].sleeptalk",
      "with": 1,
      "without": 0
     },
     {
      "turn": 1,
-     "path": "p1.pp[0].gastroacid",
+     "path": "p1.pp[1].gastroacid",
      "with": null,
      "without": 1
     },
     {
      "turn": 2,
-     "path": "p1.pp[0].sleeptalk",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p1.pp[0].gastroacid",
-     "with": null,
-     "without": 1
-    },
-    {
-     "turn": 3,
-     "path": "p1.pp[0].sleeptalk",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 3,
-     "path": "p1.pp[0].gastroacid",
-     "with": null,
-     "without": 1
-    },
-    {
-     "turn": 4,
-     "path": "p1.pp[0].sleeptalk",
+     "path": "p1.pp[1].sleeptalk",
      "with": 2,
      "without": 1
     },
     {
+     "turn": 2,
+     "path": "p1.pp[1].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].sleeptalk",
+     "with": 3,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].gastroacid",
+     "with": null,
+     "without": 1
+    },
+    {
      "turn": 4,
-     "path": "p1.pp[0].gastroacid",
+     "path": "p1.pp[1].sleeptalk",
+     "with": 4,
+     "without": 3
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[1].gastroacid",
      "with": null,
      "without": 1
     }

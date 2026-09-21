@@ -42,14 +42,12 @@ const CUTOFFS = [0, 1500, 1630, 1760];
 
 /* Formats come from data/regulations.json where possible, so a regulation change is a config edit
  * rather than a code edit — the same rule durable-ingest.js follows. */
+/* ONE RESOLVER since 2026-09-21. This inlined its own read and carried its own pair of fallback
+ * literals, one of nine such copies. engine/regulation.js honours --regulation / ABRA_REGULATION
+ * and falls back loudly; with neither set it returns the same two ids this function returned. */
 function formats() {
-  try {
-    const r = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'regulations.json'), 'utf8'));
-    const a = r.regulations[r.active] || {};
-    const out = [a.showdownFormat, a.bo3Format].filter(Boolean);
-    if (out.length) return out;
-  } catch (e) { /* fall through */ }
-  return ['gen9championsvgc2026regmb', 'gen9championsvgc2026regmbbo3'];
+  const R = require('./regulation.js');
+  return [R.FORMAT, R.BO3_FORMAT].filter(Boolean);
 }
 
 const get = (url) => new Promise((resolve) => {

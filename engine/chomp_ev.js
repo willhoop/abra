@@ -25,8 +25,10 @@
 'use strict';
 const fs = require('fs'), path = require('path');
 const S = require('./sets.js');
-/* The active format id, from data/regulations.json — never restated (S12). */
-const ACTIVE_FORMAT = (() => { try { const r = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'data', 'regulations.json'), 'utf8')); return (r.regulations[r.active] || {}).showdownFormat || 'gen9championsvgc2026regmb'; } catch (e) { return 'gen9championsvgc2026regmb'; } })();
+/* The format id of the regulation THIS RUN is about — never restated (S12), and since 2026-09-21
+ * never re-implemented either: engine/regulation.js is the one resolver and it honours
+ * --regulation / ABRA_REGULATION. With neither set it returns the same id this read returned. */
+const ACTIVE_FORMAT = require('./regulation.js').FORMAT;
 const M = S.M;
 const ROOT = path.join(__dirname, '..');
 const STORE = path.join(ROOT, 'data', 'games.ladder.jsonl');

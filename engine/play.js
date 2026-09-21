@@ -362,7 +362,9 @@ const hpOf = p => {
    * when the game ends, because that is when you know whether it was worth keeping. */
   console.log(`${C.b}ABRA — you vs MAG${C.r}`);
   console.log(`${C.dim}seed${C.r}  ${SEED}`);
-  console.log(`${C.dim}engine ${CS.PINNED_COMMIT.slice(0, 12)} · ${CS.FORMAT}`);
+  /* The pin is PER REGULATION since 2026-09-21 and a regulation may declare none, so this can be
+   * null where it used to be a constant. `unpinned` is printed rather than crashed on. */
+  console.log(`${C.dim}engine ${CS.PINNED_COMMIT ? CS.PINNED_COMMIT.slice(0, 12) : 'unpinned'} · ${CS.FORMAT}`);
   console.log(`${C.dim}MAG: ${GREEDY ? 'takes its best move' : 'weighted roll over its scores'}, switching ${SWITCHING ? 'ON' : 'off'}${C.r}\n`);
   console.log(`${C.b}your six:${C.r}   ${myPacked ? '(from your paste)' : mine.six.map(pretty).join(', ')}`);
   console.log(`${C.b}MAG's six:${C.r}  ${theirs.six.map(pretty).join(', ')}\n`);

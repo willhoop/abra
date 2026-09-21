@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.11.0 — 2026-09-21.**
+**Version: 0.12.0 — 2026-09-21.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -149,11 +149,39 @@ simulator at a format the pinned checkout may not carry.
 node engine/next_regulation.js --checklist   # the block to paste, the direct readers, the order
 ```
 
+**AND `active` IS NO LONGER THE ONLY WAY TO SAY WHICH REGULATION A RUN IS ABOUT — 2026-09-21.** It is
+the DEFAULT, and a run may now name one instead:
+
+```bash
+node <anything> --regulation regmc        # or ABRA_REGULATION=regmc; both bring the right checkout
+```
+
+`engine/regulation.js` is the single resolver and `champions_sim.FORMAT` reads it, so every caller
+follows with no edit. **This matters to the ORDER of this page**: flipping `active` used to be the
+only way to run the incoming regulation at all, so it had to happen early and it moved the whole
+repository at once. It can now happen when the outgoing regulation is genuinely finished, with both
+runnable side by side in the meantime. A run that rewrites shared config is a run that can corrupt
+another one beside it, and two agents on two regulations share one `active` key.
+
+Two things it does NOT change, and both are the point of the two maps:
+
+- **`data/regulations.json` has a second map, `runtime`, and the incoming regulation goes THERE
+  first.** `engine/next_regulation.js` walks `regulations` to decide what is already known, so adding
+  the incoming id to `regulations` reclassifies it from `candidate` to `known` and the hourly
+  collector quietly stops collecting it. **Being selectable is not being active.**
+- **Everything a MEASUREMENT pins is still separate** — step 9 below is unaffected. The flag selects a
+  format and a checkout; it does not select a pool, a census or a release.
+
 **Three things the config does NOT control, and each one is a separate decision:**
 
-- **Which Showdown checkout is the authority.** That is resolved by `engine/showdown_path.js` from a
+- **Which Showdown checkout is the authority.** ~~That is resolved by `engine/showdown_path.js` from a
   sibling directory, not from the config. A second checkout (step 2) therefore needs an explicit
-  `SHOWDOWN_PATH`, per run or per shell.
+  `SHOWDOWN_PATH`, per run or per shell.~~ **Superseded 2026-09-21**: the checkout is now part of the
+  regulation. `runtime.<id>.checkout` in `data/regulations.json` names it and
+  `engine/showdown_path.js` tries it first, so selecting a regulation selects its authority. An
+  explicit `SHOWDOWN_PATH` still wins over all of it, for a checkout kept somewhere else. **The
+  pinned commit moved with it** — `champions_sim.PINNED_COMMIT` was a literal and one constant cannot
+  pin two authorities.
 - **The silent fallbacks.** Several scripts read the config inside a `try` and fall back to a
   hardcoded format id when the read fails — deliberately, so a batch job guesses rather than crashes.
   `engine/champions_sim.js` ANNOUNCES its fallback on stderr and records why; the others are silent.
@@ -190,6 +218,15 @@ node engine/regulation_touchpoints.js --class hardcoded
 
 **This is the list worth shrinking, and it is NOT a find-and-replace.** Three kinds live in it and they
 want opposite treatment:
+
+*(Shrunk on 2026-09-21 — the counts are in `CHANGELOG-REGMC.md` 0.10.0 and the live list is PRINTED by
+the command above, never typed here. Every site closed was the FIRST kind below: an inlined
+`JSON.parse(readFileSync('data/regulations.json'))` in a `try`, with its own copy of the format
+literal in the `catch`, and all but one of them silent when it fell back. They read
+`engine/regulation.js` now, which carries the one surviving literal and answers the DEFAULT path only.
+What remains is the second and third kinds — workflows, UI pages, the M-C pool cutter and probe
+fixtures pinned to the format they were measured on, including a deliberate Reg M-A control.
+Full account: `docs/_reports/2026-09-21-regulation-runtime.md` §7.)*
 
 - **A fallback or a default in engine code** — should read the config, and should say so out loud when
   it cannot. This is the avoidable cost.

@@ -1,8 +1,8 @@
 {
   "what": "DIVERGING GAMES WITH THE LINES EITHER SIDE OF THE SPLIT. A debugging view, not a measurement. Both the RAW emitted line and the REDUCED line the comparator decides on are kept: the reduced form is what decided, the raw form is what has to be fixed.",
-  "generated": "2026-09-21T08:26:37.094Z",
+  "generated": "2026-09-21T11:51:47.316Z",
   "by": "engine/game_differential.js --dump-out data/divergence-turns.json",
-  "engine_release": "adb08f5360f1",
+  "engine_release": "2e9db8bb11fd",
   "team_store_pinned_to": "data/team-pool-frozen",
   "closet": {
     "ability": "illusion",

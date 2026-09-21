@@ -13,15 +13,23 @@ const https=require('https'), fs=require('fs'), path=require('path');
 // regulation), so switching regulations is a one-line config edit. FORMATS env
 // overrides; INCLUDE_BO3=1 also pulls the best-of-3 open-sheet ladder.
 //   FORMATS=gen9championsvgc2026regmb,gen9vgc2025reggbo3 node engine/durable-ingest.js ...
+/* ONE RESOLVER since 2026-09-21. This inlined its own read of data/regulations.json and carried its
+ * own copy of the fallback literal, one of nine such copies. engine/regulation.js honours
+ * --regulation / ABRA_REGULATION and falls back loudly; with neither set this collects exactly the
+ * formats it always collected. FORMATS= still overrides everything, unchanged. */
 function activeFormats(){
-  try{ const r=JSON.parse(fs.readFileSync(path.join(__dirname,'..','data','regulations.json'),'utf8'));
-    const a=r.regulations[r.active]||{}; const out=[a.showdownFormat].filter(Boolean);
-    if(process.env.INCLUDE_BO3 && a.bo3Format) out.push(a.bo3Format);
-    return out.length?out:null;
-  }catch(e){ return null; }
+  const R=require('./regulation.js');
+  const out=[R.FORMAT].filter(Boolean);
+  if(process.env.INCLUDE_BO3 && R.BO3_FORMAT) out.push(R.BO3_FORMAT);
+  return out.length?out:null;
 }
-const FORMATS=(process.env.FORMATS ? process.env.FORMATS.split(',') : (activeFormats()||['gen9championsvgc2026regmb']))
+const FORMATS=(process.env.FORMATS ? process.env.FORMATS.split(',') : (activeFormats()||[]))
   .map(s=>s.trim()).filter(Boolean);
+/* AN EMPTY FORMAT LIST IS A COLLECTOR THAT RUNS, EXITS 0 AND COLLECTS NOTHING. The literal that used
+ * to sit here made that impossible by guessing; the resolver makes it impossible by always answering.
+ * If both ever fail, say so rather than reporting a clean run over zero formats. */
+if(!FORMATS.length){ console.error('durable-ingest: REFUSING — no format to collect. '
+  + 'FORMATS= is empty and engine/regulation.js resolved none.'); process.exit(2); }
 const PAGES=+(process.env.PAGES||25), CONC=+(process.env.CONC||16);  // was 2 (~100 games/run); 25 exhausts the public pool (~1250/format), auto-stops when empty
 /* The store is the first NON-FLAG argument, so `--strict-gap` (below) can sit anywhere on the line
  * without being mistaken for a file name. */

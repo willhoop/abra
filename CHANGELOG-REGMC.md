@@ -21,6 +21,59 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.12.0] — 2026-09-21
+
+### Added
+- **The regulation is selectable at RUN TIME.** `engine/regulation.js` is the one resolver:
+  `--regulation <id>` on any script, then `ABRA_REGULATION=<id>`, then `data/regulations.json`
+  `active`. `<id>` may be a key or a full Showdown format id. `champions_sim.FORMAT` reads it, so all
+  **490 readings across 357 files** follow with no edit — the differential, the roster, the census and
+  the staged battery included, because each resolves through `CS.FORMAT`.
+- **Selecting a regulation selects its Showdown CHECKOUT.** `data/regulations.json` gains a `runtime`
+  block carrying each regulation's checkout and pinned commit; `engine/showdown_path.js` tries the
+  selected regulation's checkout first. An explicit `SHOWDOWN_PATH` still wins over everything.
+  `showdown_path.js` also gained the git-worktree anchor, so a worktree can now find a sibling checkout
+  at all.
+- **`tests/test-regulation-runtime.js`** — 35 clauses, every varying clause paired with a cleared
+  control. Shown RED at 17/35 on a deliberate one-line unwiring before being trusted.
+
+### Changed
+- **`PINNED_COMMIT` / `PINNED_DATE` are per regulation**, read from `data/regulations.json` `runtime`
+  rather than being literals in `engine/champions_sim.js`. One constant cannot pin two authorities.
+  Absent is reported as UNKNOWN by `verify().commit_matches`, never as a mismatch.
+- **`verify()` reports `regulation`, `regulation_source` and `regulation_explicit`**, so an artifact
+  that stamps it can say whether a caller NAMED a regulation or the config decided.
+- **`engine/engine_release.js` SOURCES gains `engine/regulation.js`** (the sixth growth, and the second
+  refused at the cut rather than found by a crash). Existing releases are untouched and nothing is
+  stranded; every future release id changes, which is correct.
+
+### Fixed
+- **Nine inlined reads of `data/regulations.json`, each with its own silent fallback literal, are
+  gone** — `analyze.js`, `chomp_ev.js`, `durable-ingest.js`, `fetch_smogon_stats.js`, `meta-ingest.js`,
+  `smogon_priors.js`, `validate_damage_sim.js`, `sim/champions-battle.js`, `champions_sim.js`.
+  Hardcoded regulation sites **26 → 19** — nine deleted, two created and both declared: the resolver's
+  one surviving literal, and `tests/test-regulation-runtime.js`'s independent re-reading of the
+  expression it replaced, which is the control that makes clause 1 mean anything.
+- **`engine/durable-ingest.js` refuses an empty format list** (exit 2) instead of running clean over
+  zero formats.
+- **`engine/regulation.js` was unpinned in `.gitattributes`** — caught by `tests/test-engine-release.js`
+  in the same pass it was written; an LF source with no pin moves the release id on a fresh checkout
+  with no code change. 79/1 → **80/0**.
+
+### Notes
+- **THIS IS A REFACTOR AND NOTHING MOVED.** Damage differential `--n 6000 --seed 20260804`:
+  byte-for-byte identical. Lattice `--games 1200 --team-store data/team-pool-frozen`, no `--regulation`
+  on either arm: 35,980 bytes, **two lines differ** — the release id and the wall clock. All 10
+  divergences, the pool digest `0d103fb9fa87` and the census digest are identical.
+  **The 10 is a fingerprint, not a gate reading**: these runs omit `--steering empirical --arm middle
+  --end-state` and answer a different question from `engine/quarantine.js`.
+- **`regmc` is in `runtime` and deliberately NOT in `regulations`.** `engine/next_regulation.js` walks
+  `regulations` to decide what is already known, so an entry there would tell the hourly collector that
+  M-C is known and stop it collecting. Being selectable is not being active; `active` is still `regmb`.
+- **NO REG M-C FIGURE IS PUBLISHED and none was measured.** MEDICHAM still cannot build an M-C team —
+  `data/engine-data.js` has no row for any of the 35 added species. The flag is necessary and not
+  sufficient. Full account: `docs/_reports/2026-09-21-regulation-runtime.md`.
+
 ## [0.11.0] — 2026-09-21
 
 ### Added

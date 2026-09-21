@@ -69,14 +69,12 @@ function latestMonth() {
  *
  * The two are written to SEPARATE outputs and never merged, for the same reason the game stores are
  * separate: they describe different populations, and a consumer must say which one it used. */
+/* ONE RESOLVER since 2026-09-21. This inlined its own read and carried its own pair of fallback
+ * literals, one of nine such copies. engine/regulation.js honours --regulation / ABRA_REGULATION
+ * and falls back loudly; with neither set it returns the same ids this function returned. */
 function activeFormat(bo3) {
-  try {
-    const r = JSON.parse(fs.readFileSync(D('data', 'regulations.json'), 'utf8'));
-    const a = r.regulations[r.active] || {};
-    if (bo3 && a.bo3Format) return a.bo3Format;
-    if (!bo3 && a.showdownFormat) return a.showdownFormat;
-  } catch (e) { /* fall through */ }
-  return bo3 ? 'gen9championsvgc2026regmbbo3' : 'gen9championsvgc2026regmb';
+  const R = require('./regulation.js');
+  return bo3 ? R.BO3_FORMAT : R.FORMAT;
 }
 
 /* Percentage rows look like:  | Kasib Berry 31.726%                    | */

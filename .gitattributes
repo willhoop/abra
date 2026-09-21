@@ -81,6 +81,10 @@ engine/lookup.js                 text eol=lf
 engine/quality.js                text eol=lf
 engine/showdown_path.js          text eol=lf
 engine/pp.js                     text eol=lf
+# engine/regulation.js joined SOURCES on 2026-09-21 when the regulation became a run-time choice.
+# tests/test-engine-release.js caught it UNPINNED in the same pass it was written — an LF file with
+# no pin is one a fresh checkout rewrites to CRLF, which moves the release id with no code change.
+engine/regulation.js             text eol=lf
 data/tags.json                   text eol=lf
 data/abra-tags.js                text eol=lf
 data/residual-order.json         text eol=lf

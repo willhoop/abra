@@ -3,8 +3,12 @@
 const fs=require('fs');
 const path=require('path');
 const Q=require(path.join(__dirname,'quality.js'));
-/* The active format id, from data/regulations.json — never restated (S12). */
-const ACTIVE_FORMAT = (() => { try { const r = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'data', 'regulations.json'), 'utf8')); return (r.regulations[r.active] || {}).showdownFormat || 'gen9championsvgc2026regmb'; } catch (e) { return 'gen9championsvgc2026regmb'; } })();
+/* The format id of the regulation THIS RUN is about — never restated (S12), and since 2026-09-21
+ * never re-implemented either. This was an inlined read of data/regulations.json carrying its own
+ * copy of the fallback literal, one of nine such copies across engine/ and sim/. engine/regulation.js
+ * is the one resolver and it honours --regulation / ABRA_REGULATION; with neither set it returns the
+ * same id this expression returned. */
+const ACTIVE_FORMAT = require(require('path').join(__dirname, 'regulation.js')).FORMAT;
 const STORE=process.argv[2]||null;
 const ME=(process.env.ME||'willhoop').split(',').map(x=>x.toLowerCase().replace(/[^a-z0-9]/g,''));
 

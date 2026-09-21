@@ -16,14 +16,12 @@ let PS;
 try { PS = require('pokemon-showdown'); }
 catch (e) { PS = null; }
 
-/* S12: the active format id lives in data/regulations.json and is read, never restated. The literal
- * below is the fallback for a corrupt or missing config — the one case where a sensible guess beats
- * crashing a batch job. */
+/* S12: the format id is READ, never restated — and since 2026-09-21 never re-implemented either.
+ * The inlined read and its copy of the fallback literal (one of nine across engine/ and sim/) moved
+ * to engine/regulation.js, which honours --regulation / ABRA_REGULATION and announces any deviation.
+ * With neither set this is the id it always was. */
 function activeFormat() {
-  try {
-    const r = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'data', 'regulations.json'), 'utf8'));
-    return (r.regulations[r.active] || {}).showdownFormat || 'gen9championsvgc2026regmb';
-  } catch (e) { return 'gen9championsvgc2026regmb'; }
+  return require(require('path').join(__dirname, '..', 'engine', 'regulation.js')).FORMAT;
 }
 
 // accept a plain function or a { agent, note } object

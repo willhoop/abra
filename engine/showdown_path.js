@@ -27,10 +27,29 @@
  * PRECEDENCE. An explicit env var always wins — a checkout kept somewhere else stays supported, and
  * this must never silently override what a person typed. Only then the sibling checkout, which is
  * where `git clone` beside this repo puts it and where it actually is.
+ *
+ * SELECTING A REGULATION SELECTS A CHECKOUT — added 2026-09-21.
+ *
+ * Reg M-B and Reg M-C are served by two different checkouts and both matter at once: M-B is the
+ * pinned authority every published figure rests on, M-C is the format being built. `Dex.forFormat`
+ * does not throw on an id a checkout has never heard of — `champions_sim.dexFor` refuses it — so
+ * getting the pairing wrong is loud rather than silent, and refusing is still not serving. The
+ * regulation has to bring its checkout with it.
+ *
+ * `engine/regulation.js` decides WHICH regulation and publishes the checkout that serves it as
+ * CANDIDATES. It deliberately does not check that any of them exists: `looksLikeShowdown` is a fact
+ * and this file owns it, so validation stays in one place. The dependency is one-way
+ * (showdown_path -> regulation) and regulation.js requires nothing from this repository, so there is
+ * no cycle to resolve in whichever order node happens to reach them.
+ *
+ * WITH NO REGULATION SELECTED THIS CHANGES NOTHING. The active regulation's checkout is
+ * `pokemon-showdown`, which resolves to the same directory the first hardcoded candidate below
+ * already resolved to, and it is still tried first.
  */
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const REG = require('./regulation.js');
 
 /* `sim/` rather than the directory itself: an empty folder, or a half-finished clone, would satisfy
  * an existsSync on the root and then fail deep inside a require with a confusing message. */
@@ -45,6 +64,9 @@ function looksLikeShowdown(p) {
 }
 
 const CANDIDATES = [
+  /* THE SELECTED REGULATION'S CHECKOUT, FIRST. Empty when the config names none, in which case this
+   * list is byte-for-byte what it has always been. */
+  ...REG.checkoutCandidates(),
   path.join(__dirname, '..', '..', 'pokemon-showdown'),
   path.join(__dirname, '..', 'pokemon-showdown'),
   '/tmp/ps',

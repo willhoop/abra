@@ -43,16 +43,10 @@ try {
   process.exit(2);
 }
 
-/* S12: the active format lives in data/regulations.json and is never restated. The literal
- * survives only as a fallback for a corrupt config, where guessing beats crashing. */
-const FORMAT = (() => {
-  try {
-    const r = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'data', 'regulations.json'), 'utf8'));
-    const a = r.regulations[r.active] || {};
-    if (a.showdownFormat) return a.showdownFormat;
-  } catch (e) { /* fall through */ }
-  return 'gen9championsvgc2026regmb';
-})();
+/* S12: the format is READ, never restated — and since 2026-09-21 never re-implemented either. The
+ * inlined read and its copy of the fallback literal (one of nine) moved to engine/regulation.js,
+ * which honours --regulation / ABRA_REGULATION. With neither set this is the id it always was. */
+const FORMAT = require('./regulation.js').FORMAT;
 /* Filler so both sides field a legal six and team preview can bring four. These never act — only
  * slot 1 of each side is ever asked for damage — but the format will not start without them. */
 const FILLER = ['Sylveon', 'Kingambit', 'Whimsicott', 'Basculegion'];

@@ -1,3 +1,78 @@
+## THE REGULATION IS A RUN-TIME CHOICE, AND REG M-B IS UNMOVED — RE-MEASURED CLEAN ON RELEASE `2e9db8bb11fd`. 2026-09-21
+
+Full account: `docs/_reports/2026-09-21-regulation-runtime.md`.
+
+**THE 490 READINGS WERE NEVER THE WORK.** The first Reg M-C run reported the format as a load-time
+constant read in 473 places and called that the cost. It is read in 490 places across 357 files — and
+they all read ONE constant, so giving that constant a resolver (`engine/regulation.js`) let the
+differential, the roster, the census and the staged battery honour a choice **without a line changing
+in any of them.** The estimate was not merely high, it was aimed at the wrong thing.
+
+**Selection:** `--regulation <id>` on any script, then `ABRA_REGULATION`, then `data/regulations.json`'s
+`active` — the default, unchanged. The CHECKOUT follows the regulation, because reading M-C's format id
+out of M-B's dex would answer confidently from the wrong data. Any deviation from the default PRINTS on
+stderr; an unresolvable id REFUSES rather than falling back.
+
+**Reg M-B is unmoved, and the bar for a refactor is that nothing moves:**
+
+| instrument | reading |
+|---|---|
+| damage differential | byte-for-byte identical to the pre-refactor run |
+| board-material, three lattices | 0 of 961, 0 of 1069, 0 of 1497 |
+| held-out `--games 12000` | 7,182 games, **0 board-material**, 75 protocol |
+| roster items / abilities / moves | 148 of 148, 196 of 200, 496 of 497 |
+| census | 1004 probed / 1004 live / 0 missing |
+| gate | **OPEN**, all ten clauses |
+
+**TWO THINGS THE PASS CAUGHT THAT ARE WORTH MORE THAN THE FEATURE.** The new regulation went into a
+`runtime` map rather than into `regulations` — putting it in the latter would have told the
+next-regulation collector that Reg M-C is already known and **silently stopped the hourly collection.**
+And the pass's own first comparison reported `IDENTICAL — 21008 lines` from three copies of a stale
+file, because the differential writes that artifact only under `--write`; it was caught by running the
+comparator against two arms that MUST differ. A comparator that cannot tell identical from unwritten is
+the same shape as a green check that verifies nothing.
+
+**THE FLAG IS NECESSARY AND NOT SUFFICIENT.** `data/engine-data.js` has no row for any added Reg M-C
+species, so MEDICHAM still cannot build an M-C team. That is the next piece of work, and it is a refit
+rather than a flag.
+
+## THE REGULATION IS A **RUN-TIME CHOICE**, AND REG M-B IS UNMOVED TO **TWO LINES OF 35,980**. 2026-09-21
+
+Full account: `docs/_reports/2026-09-21-regulation-runtime.md`.
+
+```bash
+node engine/champions_sim.js                      # regmb — the default, silent, unchanged
+node engine/champions_sim.js --regulation regmc   # regmc — ANNOUNCED, and it brings its own checkout
+ABRA_REGULATION=regmc node engine/game_differential.js --games 2   # any script, no edit to any of them
+```
+
+**`CS.FORMAT` was a load-time constant with 490 readings across 357 files and no flag**, so the only
+way to point ABRA at a second regulation was to edit `data/regulations.json` — which is what the first
+M-C run had to do. **A run that rewrites shared config is a run that can corrupt another one beside
+it.** The 490 readings were never the work: one constant with 490 readers follows a resolver with no
+edit, including a reader written tomorrow. The differential, the roster, the census and the staged
+battery all honour the flag without one line changing in any of them.
+
+| | |
+|---|---|
+| precedence | `--regulation <id>` → `ABRA_REGULATION` → `data/regulations.json` `active` (**the default, unchanged**) |
+| the checkout follows | `runtime.<id>.checkout` → `showdown_path.js`. Explicit `SHOWDOWN_PATH` still wins. |
+| loudness | any deviation prints on stderr; the DEFAULT is silent, because a line on every run is a line nobody reads |
+| refusal | an unresolvable `--regulation` REFUSES. The one fallback literal answers the DEFAULT path only. |
+| damage differential | **byte-for-byte identical**, `--n 6000 --seed 20260804` |
+| lattice `--games 1200` | **two lines of 35,980 differ**: the release id (`SOURCES` grew — required) and the wall clock |
+| hardcoded sites | **26 → 19**: nine inlined reads with silent fallback literals deleted, two declared fixtures created (the resolver's one literal, and the test's independent re-reading of the old expression) |
+| `tests/test-regulation-runtime.js` | 35 of 35, shown **RED at 17/35** on a deliberate one-line unwiring |
+
+**THE `10 OF 961` IN THAT REPORT IS A FINGERPRINT, NOT A GATE READING.** Those runs omit
+`--steering empirical --arm middle --end-state`; a different flag set is a different question. The
+gate's zeros are the section below and were not re-measured here.
+
+**AND THE FLAG IS NECESSARY, NOT SUFFICIENT.** Selecting M-C gets the right AUTHORITY at the right
+format and a runtime that cannot field it: `data/engine-data.js` still has no row for any of the 35
+added M-C species and none of the 15 added moves, so `buildMon` returns null for all of them. That is
+a refit item and ENGINE may not write that file.
+
 ## THE REFILL DEFECT IS FIXED AND **ZERO SURVIVES IT**: THE WHOLE BATTERY RE-MEASURED ON RELEASE `adb08f5360f1`, GATE **OPEN**, HELD-OUT **0 OF 7,182**. 2026-09-21
 
 `docs/_reports/2026-09-21-five-reds.md` has the defect; this is the re-measure it obliged.

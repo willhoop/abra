@@ -52,6 +52,37 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.12.0] — 2026-09-21 — the regulation is a RUN-TIME choice, and Reg M-B is unmoved to two lines of 35,980
+
+- **What changed.** `engine/regulation.js` — one resolver for which regulation a run is about.
+  `--regulation <id>` on ANY script, or `ABRA_REGULATION=<id>`, or nothing at all (`data/regulations.json`
+  `active`, unchanged). `champions_sim.FORMAT` now reads it, so all **490 readings across 357 files**
+  follow with no edit — the differential, the roster, the census and the staged battery included, because
+  every one of them resolves through `CS.FORMAT`. Selecting a regulation also selects its Showdown
+  CHECKOUT (`runtime.<id>.checkout` → `showdown_path.js`); explicit `SHOWDOWN_PATH` still wins. Any
+  deviation from the default PRINTS itself on stderr; an unresolvable `--regulation` REFUSES rather than
+  falling back. `PINNED_COMMIT`/`PINNED_DATE` are per-regulation, read from the checkouts. Nine inlined
+  `regulations.json` reads with their own silent fallback literals were deleted.
+- **Measured.** NO FIGURE MOVED, and that is the claim. Damage differential
+  `tests/test-engine-diff.js --n 6000 --seed 20260804`: **byte-for-byte identical**, `diff` returns
+  nothing. Lattice `--games 1200 --team-store data/team-pool-frozen`, no `--regulation` on either arm:
+  **35,980 bytes, two lines differ** — the release id (`adb08f5360f1` → `d8f3dc38a947`, required:
+  `SOURCES` gained `engine/regulation.js`) and the wall clock. `DIVERGED (primary arm middle): 10 of 961`
+  on both arms, same 10 rows, same pool digest `0d103fb9fa87`, same census digest.
+  **That 10 is a before/after FINGERPRINT and not a gate reading** — these runs omit
+  `--steering empirical --arm middle --end-state`, so they answer a different question from
+  `engine/quarantine.js` and may not be compared with it. Hardcoded regulation sites **26 → 19**: nine
+  inlined reads with silent fallback literals deleted, two declared fixtures created — the resolver's
+  one surviving literal, and the test's independent re-reading of the expression it replaced.
+  `tests/test-regulation-runtime.js`: 35 of 35, shown RED at **17/35** on a deliberate one-line unwiring.
+  `tests/test-engine-release.js` 79/1 → **80/0** after it caught `engine/regulation.js` unpinned in
+  `.gitattributes`. Full account: `docs/_reports/2026-09-21-regulation-runtime.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing. No published figure moves; the two that did are a release id and a duration.
+- **Owed to the next major.** `docs/REGULATION-ROTATION.md` step 11 — the hardcoded list is nine
+  shorter and the class composition changed; and step 8, which said the config controls the format id
+  and not the checkout. Both are now answered by one flag.
+
 ## [abra/regmc 0.11.0] — 2026-09-21 — 35 files reported a verdict that nothing ran and nothing named; now none do
 
 - **`tests/run-all.js`'s UNACCOUNTED-FOR clause is closed: 35 → 0.** Its own words are why it matters —

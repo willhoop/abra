@@ -1,8 +1,8 @@
 {
- "generated": "2026-09-21T07:47:12.591Z",
- "engine_release": "adb08f5360f1",
- "engine_release_cut": "2026-09-21T07:39:01.770Z",
- "engine_release_cuts": 4,
+ "generated": "2026-09-21T11:17:18.854Z",
+ "engine_release": "2e9db8bb11fd",
+ "engine_release_cut": "2026-09-21T11:12:58.105Z",
+ "engine_release_cuts": 2,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
   "engine/medicham2-browser.js": "1e35c4df04aa",
@@ -10,19 +10,20 @@
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
   "engine/tags.js": "145a3cc9ce2f",
-  "engine/champions_sim.js": "276b2f752247",
+  "engine/champions_sim.js": "6a4596a4ac9c",
   "data/residual-order.json": "eff160ad1c5a",
   "data/switchin-order.json": "24a007a66b7d",
   "engine/mc_key.js": "f57c27a6bf38",
   "engine/lookup.js": "17f49e5aed43",
   "engine/set_priors.js": "f8a81445ee3a",
-  "engine/smogon_priors.js": "5c039f9ebdbc",
+  "engine/smogon_priors.js": "ebd062f756c8",
   "engine/quality.js": "ebc37c7c9d05",
-  "engine/showdown_path.js": "0efe29f4245d",
+  "engine/showdown_path.js": "271d0acb239b",
+  "engine/regulation.js": "ebab71cd2ba6",
   "data/move-effects.js": "f35ecd91ba86",
   "data/ability-blocks.json": "86741fd35452",
   "data/smogon-priors.json": "f2dc78cea6c5",
-  "data/regulations.json": "6c1995e9a9fb",
+  "data/regulations.json": "3a18e91e8699",
   "data/quality-filter.json": "042524dd1df7",
   "data/engine-data.js": "bbc417dfae0e",
   "data/abra-tags.js": "43bf7eb1bcc1",
@@ -33,7 +34,7 @@
   "engine/pp.js": "30b12a4ef623",
   "data/rollout-switch-census.json": "b599f8d581b5"
  },
- "release": "adb08f5360f1",
+ "release": "2e9db8bb11fd",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -143561,7 +143562,7 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 76
    },
-   "seconds": 30.1
+   "seconds": 26.2
   },
   "abilities": {
    "exist": 316,
@@ -143657,7 +143658,7 @@
    "diverged_including_shelved": 1,
    "shelved_by_owner": 1,
    "shelved_by_owner_diverging": 1,
-   "seconds": 12.8,
+   "seconds": 11.7,
    "board_only": {
     "rows": 1,
     "staged": 1,
@@ -143707,7 +143708,7 @@
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 6,
    "board_state_fired": 5,
-   "seconds": 48.8,
+   "seconds": 7.3,
    "stones": {
     "rows": 0,
     "staged": 0,
@@ -143908,9 +143909,9 @@
  },
  "planner": {
   "meta": {
-   "generated": "2026-09-21T07:47:12.447Z",
+   "generated": "2026-09-21T11:17:18.737Z",
    "by": "engine/stage_planner.js",
-   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\adb08f5360f1\\data\\tags.json",
+   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\2e9db8bb11fd\\data\\tags.json",
    "tags_digest": "c34d6465c3b60371",
    "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown",
    "validator": {
@@ -143956,7 +143957,7 @@
     "stench: secondary (the handler assigns move.secondaries)",
     "kingsrock: secondary (the handler assigns move.secondaries)"
    ],
-   "ms": 15499
+   "ms": 14131
   },
   "summary": {
    "mechanics": 964,
@@ -144011,7 +144012,7 @@
    }
   },
   "played": {
-   "plan_ms": 15554,
+   "plan_ms": 14185,
    "rows": 347,
    "fixtures": 853,
    "variants": 1968,

@@ -1,0 +1,35 @@
+{
+ "_note": "Single source of truth for which Champions regulation ABRA is tracking. When a new regulation goes live: (1) run build/archive-regulation.js to snapshot the current store + models into data/archive/<id>/, (2) add the new regulation here and set 'active', (3) the ingest/analysis pick it up automatically. Every game is also tagged with its format, so old-reg data is never mixed in even before archiving.",
+ "active": "regmb",
+ "regulations": {
+  "regmb": {
+   "label": "Pok\u00e9mon Champions VGC 2026 \u2014 Reg M-B",
+   "showdownFormat": "gen9championsvgc2026regmb",
+   "bo3Format": "gen9championsvgc2026regmbbo3",
+   "openTeamSheets": true,
+   "started": "2026-06-17",
+   "started_evidence": "Smogon publishes gen9championsvgc2026regmb usage for 2026-06, and archived replays run 2026-06-17..20. The earlier value of '2026-07' was wrong by a month and would understate the regulation's age in any recency weighting.",
+   "status": "active"
+  }
+ },
+ "runtime": {
+  "_note": "WHICH REGULATIONS A RUN MAY BE POINTED AT, and which Showdown checkout serves each. Read by engine/regulation.js; selected with --regulation <id> or ABRA_REGULATION=<id>; with neither, 'active' above decides and behaviour is unchanged. THIS IS NOT THE SAME MAP AS 'regulations' AND MERGING THEM WOULD BREAK THE COLLECTOR: engine/next_regulation.js walks 'regulations' to decide what is already known, so an entry there reclassifies a format from 'candidate' to 'known' and the hourly next-regulation workflow quietly stops collecting it. 'regulations' is the set whose STORE this project owns; 'runtime' is the set a RUN may be about. An entry whose key also appears in 'regulations' INHERITS its showdownFormat/bo3Format and never restates them.",
+  "_provenance": "Every showdownFormat, bo3Format and pinnedCommit below was READ, never typed. Format ids and names: Dex.formats.all() on the named checkout, 2026-09-21, filtered to /champions/ doubles. Commits: git -C <checkout> rev-parse HEAD. pinnedDate: git -C <checkout> log -1 --format=%cd --date=short. Reg M-B's pin restates engine/champions_sim.js's PINNED_COMMIT/PINNED_DATE, which now READ from here instead of carrying literals.",
+  "regmb": {
+   "checkout": "pokemon-showdown",
+   "pinnedCommit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+   "pinnedDate": "2026-07-22",
+   "checkout_note": "THE PINNED AUTHORITY. Never pull it, never build it, never modify it — every figure ABRA published at 7.0.0 rests on these bytes (docs/REGULATION-ROTATION.md step 2)."
+  },
+  "regmc": {
+   "label": "[Gen 9 Champions] VGC 2026 Reg M-C",
+   "showdownFormat": "gen9championsvgc2026regmc",
+   "bo3Format": "gen9championsvgc2026regmcbo3",
+   "checkout": "pokemon-showdown-mc",
+   "pinnedCommit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+   "pinnedDate": "2026-09-20",
+   "checkout_note": "Reg M-C's authority. It is deliberately NOT in 'regulations' above: ABRA does not own an M-C store yet, and adding it there would tell engine/next_regulation.js that M-C is already known and stop the hourly collector. Being selectable is not being active."
+  }
+ },
+ "not_store_derived": "the FORMAT definition (which regulation is active and its Showdown id). Written from the official ruleset; no game in this project contributes to it."
+}

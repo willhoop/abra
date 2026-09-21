@@ -138,6 +138,18 @@ const SOURCES = [
   'engine/smogon_priors.js',
   'engine/quality.js',
   'engine/showdown_path.js',
+  /* THE SIXTH INSTANCE, 2026-09-21, AND IT WAS REFUSED AT THE CUT RATHER THAN FOUND BY A CRASH.
+   * `engine/regulation.js` became a require of `engine/showdown_path.js` and `engine/champions_sim.js`
+   * the moment the regulation stopped being a load-time constant and became a run-time choice. It
+   * meets this list's criterion by the widest margin of anything here: it decides WHICH FORMAT the
+   * whole engine is about, and therefore which dex, which legality, which checkout. A snapshot
+   * without it VERIFIES, OPENS, and throws `Cannot find module './regulation.js'` the first time
+   * anything loads the simulator.
+   *
+   * Existing releases are untouched and NOTHING IS STRANDED: their frozen `champions_sim.js` and
+   * `showdown_path.js` predate the edge and do not ask for this file. Every FUTURE release id
+   * changes, which is correct — the definition of the engine changed. */
+  'engine/regulation.js',
   /* THE LAZY DATA READS, found by RUNNING from a snapshot rather than by loading it. medicham2
    * requires data/move-effects.js relative to its own __dirname the first time a priority is asked
    * (the R1 smoke run crashed there); board.js reads ability-blocks.json and smogon-priors.json
