@@ -348,3 +348,64 @@ board-material game in this sample is headed by it. The lab moved; the pool did 
 
 sha256 of the three Reg M-B files unchanged; damage differential seed `20260804` identical to the base but for the
 output-path line; lattice on release `d276a79a2605`: **0 of 961**, 0 void, 0 threw.
+
+---
+
+## 6. Revival Blessing fails when nobody has fainted (abra/regmc 0.28.0)
+
+### The authority, read whole
+
+M-C checkout `data/moves.ts` revivalblessing :15110-15136 (the Champions mod names it only in learnsets): `onTryHit(source)
+{ if (!source.side.pokemon.filter(ally => ally.fainted).length) return false; }`, `slotCondition: 'revivalblessing'`,
+and `selfSwitch: true` under the comment "No this not a real switchout move / This is needed to trigger a switch
+protocol to choose a fainted party member". The revival is in the simulator: `sim/battle.ts` :2781-2797 (`runAction` case
+'revivalblessing': `sethp(maxhp / 2)`, `-heal ... [from] move: Revival Blessing`, an `instaswitch` when the body's
+position is an active slot), `sim/side.ts` :925-985 (the request must name a fainted body: "Can't switch: You have to
+pass to a fainted Pokémon").
+
+### Tag, membership printed before wiring
+
+`revivesFainted {slotCondition, failsWithoutFainted, hpFraction, instaswitchIfActiveSlot, from}`: a move with a
+`slotCondition`, a `selfSwitch` and an `onTryHit` testing `.fainted`; the fraction from `Battle.prototype.runAction`.
+Whole move dex: `pokemon-showdown-mc` Reg M-C `revivalblessing[legal]`, `pokemon-showdown` Reg M-B `revivalblessing[Past]`;
+both runActions read `sethp(action.target.maxhp / 2)`. `pivotStatus` now skips a `reviveShape` move. Spliced into
+`data/tags-regmc.json`: the Revival Blessing row and the `revivesFainted` / `pivotStatus` descriptors.
+
+### Engine
+
+`playerAction` returns `{kind:'switch', mv, revive:true}` for the tag (the kind is kept so every reader of a move-driven
+switch still sees one). At the top of the switch branch: when the user's roster (`sf.team`) holds no fainted body,
+`-fail|USER` and `continue`; otherwise `MEDFAILS.reviveUnmodelled` is counted and the old pivot road runs.
+
+### Probe — `tests/probe_regmc_revival_blessing.js --regulation regmc`
+
+| arm | staged | authority | 0.27.0 engine | after |
+|---|---|---|---|---|
+| FAIL | Pawmot clicks Revival Blessing with its whole team standing | `-fail|p1a: Pawmot`, stays in | `|switch|p1a: Snorlax ... [from] revivalblessing`; boards part on the slot's species, hp, types, ability | match, boards 0 |
+
+| run | exit | red |
+|---|---|---|
+| 0.27.0 engine bytes (release `ac2bfd957f10`) | 1 | the tag clause, FAIL (lines and boards), the counter clause |
+| clean, release `0bb19ac17b74` | 0 | none |
+| `MEDI_REVIVE_AS_PIVOT=1` | 1 | FAIL (lines and boards) |
+
+REVIVE (a fainted ally exists) is NOT STAGED: the harness answers the authority's request by mirroring this engine's
+slot, and `mirrorForcedSwitch` (`engine/game_differential.js`) looks only for a live bench body, so a revival request
+has no expression. The pinned run's refused choices are exactly that: `Can't switch: You have to pass to a fainted
+Pokémon`, 7 at 0.24.0 and 6 at 0.28.0. **Filed for MEASURE:** the mirror needs a revival branch (the request's
+`reviving` field) before the engine's revive road can be shown right or wrong.
+
+### Pinned Reg M-C differential
+
+| engine | release | state bar | void | threw |
+|---|---|---|---|---|
+| 0.27.0 | `ac2bfd957f10` | 43 / 953 | 2 | 4 |
+| 0.28.0 | `0bb19ac17b74` | **33 / 954** | 1 | 4 |
+
+Every "Revival Blessing with no fainted ally" game is gone. First BOARD divergences on this run (33 listed): the
+terrain clock `5/8` in 10, Normal Gem 3, White Herb 2, Infestation chip 2, and singles.
+
+### Reg M-B unmoved
+
+sha256 of the three Reg M-B files unchanged; damage differential seed `20260804` identical to the base but for the
+output-path line; lattice on release `e397d32dc184`: **0 of 961**, 0 void, 0 threw.

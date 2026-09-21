@@ -1280,11 +1280,23 @@
    "why": "Parting Shot (4,782 uses, the most common pivot in the format) and Chilly Reception. The switch is the point and the effect is the payment",
    "consumedBy": "partingshot",
    "used": true,
-   "n": 3,
-   "uses": 13573,
+   "n": 2,
+   "uses": 12950,
    "examples": [
     "Chilly Reception",
-    "Parting Shot",
+    "Parting Shot"
+   ]
+  },
+  {
+   "tag": "revivesFainted",
+   "kind": "move",
+   "param": "fails unless the user's party holds a fainted body; revives one at hpFraction of its max HP",
+   "why": "Revival Blessing (Pawmot, 767 Reg M-C uses): with no fainted ally the authority fails the move, and this engine switched a live bench body in as though it were Parting Shot",
+   "consumedBy": "revivesFainted",
+   "used": true,
+   "n": 1,
+   "uses": 775,
+   "examples": [
     "Revival Blessing"
    ]
   },
@@ -28881,7 +28893,7 @@
     "targetClass",
     "neverMisses",
     "noProtectFlag",
-    "pivotStatus",
+    "revivesFainted",
     "statusCategory",
     "healsSelf",
     "formatSecondaryCount",
@@ -28909,8 +28921,12 @@
      "target": "self",
      "category": "Status"
     },
-    "pivotStatus": {
-     "selfSwitch": true
+    "revivesFainted": {
+     "slotCondition": "revivalblessing",
+     "failsWithoutFainted": true,
+     "hpFraction": 0.5,
+     "instaswitchIfActiveSlot": true,
+     "from": "DERIVED:move.onTryHit + Battle.prototype.runAction case revivalblessing"
     },
     "statusCategory": {
      "status": true

@@ -2210,6 +2210,9 @@ const MEDSEEN = { floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepAct
   /* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- a per-turn-boost volatile with NO clock that ends at its own residual when
    * its source is gone (Octolock): ticked without a clock; ended at the residual; a switch it refused. */
   perTurnBoostUnclockedTick: 0, perTurnBoostResidualSourceEnd: 0, volTrapBlocked: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.28.0) -- `revivesFainted` (Revival Blessing) clicked with no fainted body in the
+   * user's party: it fails and nobody switches. */
+  reviveFailedNoFainted: 0,
   /* WIRE 119 -- a move REFUSED at execution time by a category-forbidding volatile (Taunt). This is
    * the half the interaction matrix was failing on: the holder clicks Taunt in the same turn, so the
    * target's already-chosen status move has to FAIL when it runs. A zero here after games with a
@@ -7446,6 +7449,9 @@ const SELF_EXPOSED_INERT=(typeof process!=='undefined'&&process.env&&process.env
 /* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- MEDI_PERTURN_BOOST_CLOCK_ALWAYS=1 reads every per-turn-boost volatile's `_vol`
  * entry as a clock again, so a member with no duration (Octolock) ends at its first residual (the pre-0.27.0 engine). */
 const PERTURN_BOOST_CLOCK_ALWAYS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PERTURN_BOOST_CLOCK_ALWAYS==='1');
+/* 2026-09-22 (Reg M-C, abra/regmc 0.28.0) -- MEDI_REVIVE_AS_PIVOT=1 plays a `revivesFainted` move as the status pivot it
+ * was classified as before 0.28.0: the user leaves and a live bench body comes in, whether or not anyone has fainted. */
+const REVIVE_AS_PIVOT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REVIVE_AS_PIVOT==='1');
 let _volExposed=null;
 function exposedVolatiles(){
   if(_volExposed) return _volExposed;
@@ -38837,6 +38843,26 @@ function battleTurn(S,rng,actsForA,actsForB){
          was built before the sort and the arrays can have been rewritten by an earlier switch this
          same turn. A switch with an empty bench does nothing and still costs the turn. */
       if(a.kind==='switch'){
+        /* 2026-09-22 (Reg M-C, abra/regmc 0.28.0) -- REVIVAL BLESSING FAILS WITHOUT A FAINTED BODY. `onTryHit(source) { if
+         * (!source.side.pokemon.filter(ally => ally.fainted).length) return false; }` -- the whole party (`sf.team`, the
+         * roster `fallenCount` reads), so `useMoveInner` writes a bare `-fail|USER` and nobody switches. This engine played
+         * it as Parting Shot and brought a live bench body in: the largest board-material family of the pinned Reg M-C
+         * differential at 0.27.0. WITH a fainted body the authority revives it (sim/battle.ts runAction case
+         * 'revivalblessing': half its max HP, `-heal ... [from] move: Revival Blessing`, an instaswitch if it lies in an
+         * active slot); that road is NOT modelled -- the differential's forced-switch mirror cannot answer a revival
+         * request, so nothing could show it right -- and it is counted (MEDFAILS.reviveUnmodelled) and still pivots.
+         * tests/probe_regmc_revival_blessing.js */
+        if(a.revive){
+          const _rsf=it.side==='A'?sfA:sfB;
+          const _rparty=(_rsf&&_rsf.team&&_rsf.team.length)?_rsf.team
+            :[...(it.side==='A'?actA:actB),...(it.side==='A'?benchA:benchB)];
+          if(!(_rsf&&_rsf.team&&_rsf.team.length))MEDFAILS.fallenNoRoster++;
+          if(!_rparty.some(x=>x&&x!==m&&x.fainted)){
+            m._lastMove=a.mv; mvFail(m); MEDSEEN.reviveFailedNoFainted++; continue;
+          }
+          MEDFAILS.reviveUnmodelled=(MEDFAILS.reviveUnmodelled||0)+1;
+          if(!MEDFAILS.reviveUnmodelledFirst)MEDFAILS.reviveUnmodelledFirst=String(a.mv);
+        }
         /* WIRE 65, the other half. Parting Shot (7,184 uses) is a STATUS move: blocked by Protect, it
            fails and the user STAYS. medicham2 switched anyway, so the single largest unmodelled move
            in the corpus was an unblockable pivot. Found by the same pair run -- Showdown kept Pangoro
@@ -53166,6 +53192,11 @@ function playerActionPrimary(me,moveId,target,field){
      artifact this engine reads carries the numbers (the lowersTarget param says "via onHit", and
      MOVE_EFFECTS has no boosts for it). So the switch is modelled and the drop is not. That is a
      known half, and it is the half that decides where the move is played. */
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.28.0) -- REVIVAL BLESSING IS NOT A PIVOT. Its `selfSwitch` only raises the switch
+   * request that names a FAINTED body (M-C checkout data/moves.ts :15126-15129), so `pivotStatus` no longer claims it
+   * (engine/tag_dex.js) and it arrives here as `revivesFainted`. It keeps the `switch` kind, so every reader of a
+   * move-driven switch (the |move| line, PP, the BeforeMove gate) still sees one, and carries `revive` for the branch. */
+  if(TAGS.has('move',id,'revivesFainted'))return REVIVE_AS_PIVOT?{kind:'switch',mv:id,target}:{kind:'switch',mv:id,target,revive:true};
   if(TAGS.has('move',id,'pivotStatus'))return {kind:'switch',mv:id,target};
   /* ROADMAP #81 WIRE 12 -- BATON PASS AND SHED TAIL, WHICH NEVER SWITCHED AND HAD NO BRANCH AT ALL.
    *

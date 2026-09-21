@@ -1259,6 +1259,30 @@ function ifClauses(src) {
   }
   return out;
 }
+/* 2026-09-22 (Reg M-C, abra/regmc 0.28.0) -- A MOVE THAT REVIVES A FAINTED PARTY MEMBER (Revival Blessing).
+ *
+ * M-C checkout data/moves.ts revivalblessing :15110-15136: `onTryHit(source) { if (!source.side.pokemon.filter(ally =>
+ * ally.fainted).length) return false; }`, `slotCondition: 'revivalblessing'`, and a `selfSwitch: true` that is only
+ * there to raise the switch request that names the fainted body. The revival itself is in the SIM, not on the move:
+ * sim/battle.ts `runAction` case 'revivalblessing' -- `sethp(maxhp / 2)` and `-heal ... [from] move: Revival Blessing`,
+ * and an `instaswitch` when the body's position is an active slot. So the fraction is read off `Battle.prototype.runAction`
+ * and the shape off the move; nothing is typed. */
+function reviveShape(m) {
+  if (!m || !m.slotCondition || !m.selfSwitch) return null;
+  if (!/\.fainted\)/.test(String(m.onTryHit || '').replace(/\s+/g, ' '))) return null;
+  let frac = null, inst = false;
+  try {
+    const { Battle } = require(path.join(process.env.SHOWDOWN_PATH, 'dist', 'sim', 'battle.js'));
+    const src = String(Battle.prototype.runAction).replace(/\s+/g, ' ');
+    const cs = src.indexOf('case "' + m.slotCondition + '":');
+    const body = cs >= 0 ? src.slice(cs, cs + 900) : '';
+    const fm = /sethp\(action\.target\.maxhp \/ (\d+)\)/.exec(body);
+    frac = fm ? 1 / +fm[1] : null;
+    inst = /choice: "instaswitch"/.test(body);
+  } catch (e) { console.error('tag_dex: reviveShape could not read Battle.prototype.runAction: ' + String((e && e.message) || e).slice(0, 120)); }
+  return { slotCondition: m.slotCondition, failsWithoutFainted: true, hpFraction: frac, instaswitchIfActiveSlot: inst,
+           from: 'DERIVED:move.onTryHit + Battle.prototype.runAction case ' + m.slotCondition };
+}
 const MOVE_TAGS = [
   /* ROADMAP #144 -- HOW MANY TIMES THIS MOVE CAN BE CLICKED, and until 2026-08-11 the engine had no
    * such number at all: zero mentions of PP in medicham2-browser.js and no `pp` field on a built
@@ -3694,6 +3718,10 @@ const MOVE_TAGS = [
      * The five unconditional status/string pivots keep the params they had, byte for byte. */
     of: m => {
       if (!(m.selfSwitch && m.category === 'Status' && typeof m.selfSwitch !== 'string')) return null;
+      /* 2026-09-22 (Reg M-C, abra/regmc 0.28.0) -- NOT A PIVOT: a `selfSwitch` that exists "to trigger a switch protocol
+       * to choose a fainted party member" (Revival Blessing's own comment, M-C checkout data/moves.ts :15126-15129). Its
+       * user never leaves; it is `revivesFainted` below, and a pivot consumer would switch a live bench body in. */
+      if (reviveShape(m)) return null;
       const out = { selfSwitch: m.selfSwitch };
       const src = (String(m.onHit || '') + String(m.onTryHit || '') + String(m.onAfterHit || ''))
         .replace(/\s+/g, ' ');
@@ -3712,6 +3740,11 @@ const MOVE_TAGS = [
         .map(x => x[1]))];
       return out;
     } },
+  { tag: 'revivesFainted', param: 'fails unless the user\'s party holds a fainted body; revives one at hpFraction of its max HP',
+    probe: 'revivesFainted',
+    why: 'Revival Blessing (Pawmot, 767 Reg M-C uses): with no fainted ally the authority fails the move, and this engine '
+       + 'switched a live bench body in as though it were Parting Shot',
+    of: m => reviveShape(m) },
   /* ROADMAP #81 WIRE 12 -- `passes: true` NAMED NOTHING A CONSUMER COULD APPLY, and the engine had
    * no consumer at all: Baton Pass and Shed Tail both resolved to a click that never switched, so
    * Heliolisk paid half its HP for a Substitute and then STOOD THERE. The two are not the same

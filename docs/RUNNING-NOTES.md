@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.28.0] — 2026-09-22 — **Revival Blessing fails when nobody has fainted, instead of switching a live body in**
+
+- **What changed.** Move tag `revivesFainted` (derived; Revival Blessing only; `pivotStatus` no longer claims it) and
+  its consumer in `engine/medicham2-browser.js`: `-fail|USER` and no switch when the user's roster holds no fainted
+  body. The revive itself is counted (`MEDFAILS.reviveUnmodelled`), not modelled: the differential cannot mirror a
+  revival request (filed for MEASURE). Knob `MEDI_REVIVE_AS_PIVOT`; probe `tests/probe_regmc_revival_blessing.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine.md` §6.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
 ## [abra/regmc 0.27.0] — 2026-09-22 — **Octolock drops Defence and Sp. Def every turn until its source is gone, and its leaf is compared**
 
 - **What changed.** `perTurnBoost` carries `residualSourceEnd` and `trapsWhileSourceActive`, read off Octolock's

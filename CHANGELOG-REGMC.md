@@ -21,6 +21,30 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.28.0] — 2026-09-22
+
+### Fixed
+- **Revival Blessing fails when nobody has fainted.** Its `selfSwitch` only raises the switch request that names a
+  fainted body (the move's own comment, M-C checkout `data/moves.ts` :15126-15129), and `onTryHit` fails the move when
+  the user's party holds no fainted body. This engine read the `selfSwitch` as a status pivot and switched a live bench
+  body in. New move tag `revivesFainted {slotCondition, failsWithoutFainted, hpFraction, instaswitchIfActiveSlot}`
+  (`engine/tag_dex.js`), the shape read off the move and the fraction off `Battle.prototype.runAction`; `pivotStatus`
+  no longer claims it. Membership, whole dex, both checkouts: Revival Blessing only; legal in Reg M-C, `Past` in Reg
+  M-B. The engine fails the move (`-fail|USER`, nobody switches) when the user's roster holds no fainted body. Knob
+  `MEDI_REVIVE_AS_PIVOT`.
+- `tests/probe_regmc_revival_blessing.js` (`--regulation regmc`): the move with no fainted ally fails and the user
+  stays. Exit 0 clean; exit 1 under the knob and on the 0.27.0 engine bytes.
+
+### Notes
+- **The revive itself is not modelled** (a fainted body exists): it is counted (`MEDFAILS.reviveUnmodelled`) and still
+  pivots. The differential's forced-switch mirror answers a switch request with a LIVE bench body, so it cannot express
+  a revival request, and the seven pinned choices the authority refused ("You have to pass to a fainted Pokémon") are
+  that. Filed for MEASURE; the engine half waits for an instrument that can show it right.
+- `data/tags-regmc.json`: the Revival Blessing row and the two descriptors (spliced). Reg M-B's tag file has no member.
+- Reg M-B unmoved: the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
 ## [0.27.0] — 2026-09-22
 
 ### Fixed

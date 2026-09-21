@@ -1,3 +1,32 @@
+## REG M-C: REVIVAL BLESSING FAILS WHEN NOBODY HAS FAINTED. 2026-09-22 (abra/regmc 0.28.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §6.
+
+- **Defect.** Revival Blessing's `selfSwitch` only raises the request that names a fainted body; its `onTryHit` fails
+  the move when nobody in the user's party has fainted. This engine played it as a status pivot and switched a live
+  bench body in.
+- **Tag.** `revivesFainted {slotCondition, failsWithoutFainted, hpFraction, instaswitchIfActiveSlot}`, shape off the
+  move, fraction off `Battle.prototype.runAction`. `pivotStatus` excludes it. Members: Revival Blessing only.
+- **Engine.** `-fail|USER` and no switch when the roster (`sf.team`) holds no fainted body. The revive road is counted
+  (`MEDFAILS.reviveUnmodelled`) and still pivots: the differential's forced-switch mirror cannot answer a revival
+  request (MEASURE).
+- **Probe** `tests/probe_regmc_revival_blessing.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_REVIVE_AS_PIVOT` and on the 0.27.0 engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after this pass
+
+Ranked on the PINNED Reg M-C differential, by first BOARD divergence (report §6):
+
+1. **Terrain Extender** (the terrain lasts 8 turns in the authority and 5 here) — the largest family now.
+2. **Normal Gem**, **White Herb** timing, the **Infestation** chip (a Binding Band shape), then singles: terrain end,
+   Seed Sower, Liquid Ooze, Berserk, Trace's pick, rain upkeep, two damage values, and the games hidden behind the
+   Sirfetch'd/Farfetch'd name.
+3. Revival Blessing's revive road (needs MEASURE's mirror first).
+4. The 17 census rows missing under Reg M-C.
+5. Carried: the `-start`/`-fieldstart` `[of]` fields, the Inner Focus stat label, the seed GAIN door, Emergency Exit's
+   residual and hazard doors; for MEASURE, `MEGA_PREFER_B` outside `driverSnap`.
 ## REG M-C: OCTOLOCK DROPS DEFENCE AND SP. DEF EVERY TURN UNTIL ITS SOURCE IS GONE; ITS LEAF IS COMPARED. 2026-09-22 (abra/regmc 0.27.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine.md` §5.
@@ -16,7 +45,7 @@ Full account: `docs/_reports/2026-09-22-regmc-engine.md` §5.
 - **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
   line; lattice `--games 1200` 0 of 961.
 
-### The Reg M-C hand list, after this pass
+### The Reg M-C hand list, after the 0.27.0 pass — SUPERSEDED by the 0.28.0 list above
 
 Ranked on the PINNED Reg M-C differential, by first BOARD divergence (report §5):
 
