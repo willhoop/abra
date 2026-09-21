@@ -1,3 +1,31 @@
+## THE REFILL DEFECT IS FIXED AND **ZERO SURVIVES IT**: THE WHOLE BATTERY RE-MEASURED ON RELEASE `adb08f5360f1`, GATE **OPEN**, HELD-OUT **0 OF 7,182**. 2026-09-21
+
+`docs/_reports/2026-09-21-five-reds.md` has the defect; this is the re-measure it obliged.
+
+| instrument | reading |
+|---|---|
+| gate | **OPEN**, all ten clauses |
+| board-material, three lattices | 0 of 961, 0 of 1069, 0 of 1497 |
+| narration (undeclared), three lattices | zero on every lattice |
+| **held-out `--games 12000`** | **7,182 games, 0 board-material**, 75 protocol |
+| damage differential | 0 of 6000 at the midpoint and every interior index |
+| roster items / abilities / moves | 148 of 148, 196 of 200, 496 of 497 |
+| mechanics staged | 0 diverge, 0 undeclared |
+| census | 1004 probed / 1004 live / 0 missing |
+
+Pins: release `adb08f5360f1`, census `data/verification/census-pin-c3affea174af.json`, team store
+`data/team-pool-frozen`, `--steering empirical --arm middle --end-state`.
+
+**THE POINT OF THIS SECTION IS NOT THE ZEROS.** It is that the engine reached them while carrying a
+defect neither the gate nor the held-out draw could see: a body that died on arrival stood in its slot
+for a turn, and a mirror test outside the gate found it. **An open gate and a correct engine are two
+different claims**, and the zeros above are worth exactly as much as the instruments that produced them.
+
+**REG M-B'S PUBLISHED RECORD IS NOT RESTATED.** `abra/regmb` is CLOSED at 7.0.0 and its closed-line
+clause refuses an entry above it — by design. 7.0.0 remains a dated record of what was true of the bytes
+it measured, which is how this project treats every dated claim. The re-measure lives here, where
+current state belongs.
+
 ## **ZERO ON THE WIDE SAMPLE AS WELL AS ON THE GATE.** THE HELD-OUT 12,000-GAME DRAW PARTS **0 BOARDS IN 7,182 GAMES**, AND `quarantine.js` READS **GATE: OPEN** ON RELEASE `0d7b1d9db6d1`. CENSUS **1002 / 1002 / 0 MISSING**. 2026-09-20
 
 Full account: `docs/_reports/2026-09-20-last-board-parting.md`.
@@ -719,12 +747,12 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  1002/1002 probed mechanics live, 0 missing   (census 2026-09-20 17:31)
+  1004/1004 probed mechanics live, 0 missing   (census 2026-09-21 03:41)
     the census probes what somebody thought to probe: 304 of 304 in-scope tags carry a probe, 0 carry none (9 of 313
     tags have no in-scope carrier); 0 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 2.0 h old). node engine/coverage.js
+    (all-mechanics-fire.json, 44 min old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/0d7b1d9db6d1/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "0d7b1d9db6d1".
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/adb08f5360f1/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "adb08f5360f1".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -733,15 +761,15 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0394e3673b5b now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 8af4bdbb88f4 now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 304/304 in-scope probed, 0 unprobed;  304/304 have an engine consumer on every in-scope row, 0 do not;  9 of 313 tags have no in-scope carrier
-    consumedBy comes from engine/tag_dex.js grepping board.js and medicham2-browser.js for a hint
-    string, which misses tags looked up by name — so "no consumer" over-states the gap.
+  tag coverage: WITHHELD — engine/provenance.js calls data/tags.json UNSAFE.
+    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
+    it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-09-20 19:38_
+_stamped 2026-09-21 04:30_
 
 <!-- /GENERATED -->
 

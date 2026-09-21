@@ -1,7 +1,8 @@
 {
   "what": "DIVERGING GAMES WITH THE LINES EITHER SIDE OF THE SPLIT. A debugging view, not a measurement. Both the RAW emitted line and the REDUCED line the comparator decides on are kept: the reduced form is what decided, the raw form is what has to be fixed.",
-  "generated": "2026-09-20T22:09:27.577Z",
-  "engine_release": "0d7b1d9db6d1",
+  "generated": "2026-09-21T08:26:37.094Z",
+  "by": "engine/game_differential.js --dump-out data/divergence-turns.json",
+  "engine_release": "adb08f5360f1",
   "team_store_pinned_to": "data/team-pool-frozen",
   "closet": {
     "ability": "illusion",
@@ -10211,7 +10212,7 @@
               "key": "grimmsnarl",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 27278,
+              "faintSeq": 27282,
               "where": "active"
             },
             {
@@ -10219,7 +10220,7 @@
               "key": "slowbro",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 27279,
+              "faintSeq": 27283,
               "where": "active"
             }
           ]
@@ -10392,7 +10393,7 @@
               "key": "kingambit",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 28243,
+              "faintSeq": 28247,
               "where": "active"
             },
             {
@@ -10400,7 +10401,7 @@
               "key": "sinistcha",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 28245,
+              "faintSeq": 28249,
               "where": "active"
             }
           ],
@@ -10579,7 +10580,7 @@
               "key": "talonflame",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 28353,
+              "faintSeq": 28357,
               "where": "active"
             },
             {
@@ -10587,7 +10588,7 @@
               "key": "machamp",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 28354,
+              "faintSeq": 28358,
               "where": "active"
             }
           ],
@@ -10771,7 +10772,7 @@
               "key": "chandelure",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 30536,
+              "faintSeq": 30540,
               "where": "active"
             },
             {
@@ -10779,7 +10780,7 @@
               "key": "clefable",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 30533,
+              "faintSeq": 30537,
               "where": "active"
             }
           ],
@@ -10797,7 +10798,7 @@
               "key": "sneasler",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 30535,
+              "faintSeq": 30539,
               "where": "active"
             }
           ]
@@ -10958,7 +10959,7 @@
               "key": "avalugghisui",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 32524,
+              "faintSeq": 32528,
               "where": "active"
             },
             {
@@ -10966,7 +10967,7 @@
               "key": "camerupt",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 32526,
+              "faintSeq": 32530,
               "where": "active"
             }
           ],
@@ -11161,7 +11162,7 @@
               "key": "garchomp",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 32790,
+              "faintSeq": 32794,
               "where": "active"
             },
             {
@@ -11169,7 +11170,7 @@
               "key": "kingambit",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 32789,
+              "faintSeq": 32793,
               "where": "active"
             }
           ]
@@ -11360,7 +11361,7 @@
               "key": "floetteeternal",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 33224,
+              "faintSeq": 33228,
               "where": "active"
             },
             {
@@ -11368,7 +11369,7 @@
               "key": "farigiraf",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 33225,
+              "faintSeq": 33229,
               "where": "active"
             }
           ]
@@ -11531,7 +11532,7 @@
               "key": "floetteeternal",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 34026,
+              "faintSeq": 34030,
               "where": "active"
             },
             {
@@ -11539,7 +11540,7 @@
               "key": "milotic",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 34025,
+              "faintSeq": 34029,
               "where": "active"
             }
           ],
@@ -11729,7 +11730,7 @@
               "key": "raichu",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 35728,
+              "faintSeq": 35732,
               "where": "active"
             },
             {
@@ -11747,7 +11748,7 @@
               "key": "raichu",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 35729,
+              "faintSeq": 35733,
               "where": "active"
             },
             {
@@ -11755,7 +11756,7 @@
               "key": "bellibolt",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 35730,
+              "faintSeq": 35734,
               "where": "active"
             }
           ]
@@ -11935,7 +11936,7 @@
               "key": "bellibolt",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 35836,
+              "faintSeq": 35840,
               "where": "active"
             },
             {
@@ -11943,7 +11944,7 @@
               "key": "raichu",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 35837,
+              "faintSeq": 35841,
               "where": "active"
             }
           ]
@@ -12114,7 +12115,7 @@
               "key": "gliscor",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 35907,
+              "faintSeq": 35911,
               "where": "active"
             },
             {
@@ -12122,7 +12123,7 @@
               "key": "bellibolt",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 35904,
+              "faintSeq": 35908,
               "where": "active"
             }
           ],
@@ -12132,7 +12133,7 @@
               "key": "talonflame",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 35906,
+              "faintSeq": 35910,
               "where": "active"
             },
             {
@@ -12320,7 +12321,7 @@
               "key": "torkoal",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 38829,
+              "faintSeq": 38833,
               "where": "active"
             },
             {
@@ -12328,7 +12329,7 @@
               "key": "venusaur",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 38830,
+              "faintSeq": 38834,
               "where": "active"
             }
           ]
@@ -12517,7 +12518,7 @@
               "key": "spiritomb",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 39328,
+              "faintSeq": 39332,
               "where": "active"
             },
             {
@@ -12525,7 +12526,7 @@
               "key": "musharna",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 39329,
+              "faintSeq": 39333,
               "where": "active"
             }
           ]
@@ -12690,7 +12691,7 @@
               "key": "pelipper",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 41030,
+              "faintSeq": 41034,
               "where": "active"
             },
             {
@@ -12698,7 +12699,7 @@
               "key": "mimikyu",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 41028,
+              "faintSeq": 41032,
               "where": "active"
             }
           ],
@@ -12708,7 +12709,7 @@
               "key": "manectric",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 41029,
+              "faintSeq": 41033,
               "where": "active"
             },
             {
@@ -12913,7 +12914,7 @@
               "key": "abomasnow",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 42040,
+              "faintSeq": 42044,
               "where": "active"
             },
             {
@@ -12921,7 +12922,7 @@
               "key": "mrrime",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 42041,
+              "faintSeq": 42045,
               "where": "active"
             }
           ]
@@ -13084,7 +13085,7 @@
               "key": "kangaskhan",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 42398,
+              "faintSeq": 42402,
               "where": "active"
             },
             {
@@ -13092,7 +13093,7 @@
               "key": "torkoal",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 42399,
+              "faintSeq": 42403,
               "where": "active"
             }
           ],
@@ -13276,7 +13277,7 @@
               "key": "kingambit",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 43147,
+              "faintSeq": 43151,
               "where": "active"
             },
             {
@@ -13294,7 +13295,7 @@
               "key": "infernape",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 43146,
+              "faintSeq": 43150,
               "where": "active"
             },
             {
@@ -13302,7 +13303,7 @@
               "key": "tyranitar",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 43148,
+              "faintSeq": 43152,
               "where": "active"
             }
           ]
@@ -13470,7 +13471,7 @@
               "key": "aerodactyl",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 44179,
+              "faintSeq": 44183,
               "where": "active"
             },
             {
@@ -13478,7 +13479,7 @@
               "key": "mamoswine",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 44178,
+              "faintSeq": 44182,
               "where": "active"
             }
           ],
@@ -13685,7 +13686,7 @@
               "key": "floetteeternal",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 44444,
+              "faintSeq": 44448,
               "where": "active"
             },
             {
@@ -13693,7 +13694,7 @@
               "key": "whimsicott",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 44442,
+              "faintSeq": 44446,
               "where": "active"
             }
           ],
@@ -13703,7 +13704,7 @@
               "key": "tyranitar",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 44443,
+              "faintSeq": 44447,
               "where": "active"
             },
             {
@@ -13889,7 +13890,7 @@
               "key": "sinistcha",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 44747,
+              "faintSeq": 44751,
               "where": "active"
             }
           ],
@@ -13899,7 +13900,7 @@
               "key": "aerodactyl",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 44748,
+              "faintSeq": 44752,
               "where": "active"
             },
             {
@@ -13907,7 +13908,7 @@
               "key": "ninetalesalola",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 44749,
+              "faintSeq": 44753,
               "where": "active"
             }
           ]
@@ -14080,7 +14081,7 @@
               "key": "raichu",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 51061,
+              "faintSeq": 51065,
               "where": "active"
             },
             {
@@ -14098,7 +14099,7 @@
               "key": "dragonite",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 51062,
+              "faintSeq": 51066,
               "where": "active"
             },
             {
@@ -14106,7 +14107,7 @@
               "key": "pelipper",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 51063,
+              "faintSeq": 51067,
               "where": "active"
             }
           ]
@@ -14278,7 +14279,7 @@
               "key": "blaziken",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 51354,
+              "faintSeq": 51358,
               "where": "active"
             },
             {
@@ -14286,7 +14287,7 @@
               "key": "sneasler",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 51355,
+              "faintSeq": 51359,
               "where": "active"
             }
           ],
@@ -14477,7 +14478,7 @@
               "key": "hippowdon",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 51377,
+              "faintSeq": 51381,
               "where": "active"
             },
             {
@@ -14485,7 +14486,7 @@
               "key": "snorlax",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 51379,
+              "faintSeq": 51383,
               "where": "active"
             }
           ],
@@ -14495,7 +14496,7 @@
               "key": "whimsicott",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 51378,
+              "faintSeq": 51382,
               "where": "active"
             },
             {
@@ -14694,7 +14695,7 @@
               "key": "glimmora",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 51739,
+              "faintSeq": 51743,
               "where": "active"
             },
             {
@@ -14702,7 +14703,7 @@
               "key": "incineroar",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 51740,
+              "faintSeq": 51744,
               "where": "active"
             }
           ]
@@ -14883,7 +14884,7 @@
               "key": "farigiraf",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 52738,
+              "faintSeq": 52742,
               "where": "active"
             }
           ],
@@ -14893,7 +14894,7 @@
               "key": "maushold",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 52741,
+              "faintSeq": 52745,
               "where": "active"
             },
             {
@@ -14901,7 +14902,7 @@
               "key": "torkoal",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 52740,
+              "faintSeq": 52744,
               "where": "active"
             }
           ]
@@ -15064,7 +15065,7 @@
               "key": "metagross",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 52960,
+              "faintSeq": 52964,
               "where": "active"
             },
             {
@@ -15072,7 +15073,7 @@
               "key": "talonflame",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 52963,
+              "faintSeq": 52967,
               "where": "active"
             }
           ],
@@ -15082,7 +15083,7 @@
               "key": "staraptor",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 52961,
+              "faintSeq": 52965,
               "where": "active"
             },
             {
@@ -15090,7 +15091,7 @@
               "key": "sinistcha",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 52962,
+              "faintSeq": 52966,
               "where": "active"
             }
           ]
@@ -15247,7 +15248,7 @@
               "key": "milotic",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 57356,
+              "faintSeq": 57360,
               "where": "active"
             },
             {
@@ -15255,7 +15256,7 @@
               "key": "sinistcha",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 57358,
+              "faintSeq": 57362,
               "where": "active"
             }
           ],
@@ -15468,7 +15469,7 @@
               "key": "sinistcha",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 57758,
+              "faintSeq": 57762,
               "where": "active"
             },
             {
@@ -15476,7 +15477,7 @@
               "key": "blaziken",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 57759,
+              "faintSeq": 57763,
               "where": "active"
             }
           ]
@@ -15649,7 +15650,7 @@
               "key": "kingambit",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 58727,
+              "faintSeq": 58731,
               "where": "active"
             },
             {
@@ -15657,7 +15658,7 @@
               "key": "talonflame",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 58729,
+              "faintSeq": 58733,
               "where": "active"
             }
           ],
@@ -15860,7 +15861,7 @@
               "key": "glimmora",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 59944,
+              "faintSeq": 59948,
               "where": "active"
             },
             {
@@ -15868,7 +15869,7 @@
               "key": "incineroar",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 59947,
+              "faintSeq": 59951,
               "where": "active"
             }
           ]
@@ -16032,7 +16033,7 @@
               "key": "kingambit",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 63112,
+              "faintSeq": 63116,
               "where": "active"
             },
             {
@@ -16040,7 +16041,7 @@
               "key": "lycanrocdusk",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 63113,
+              "faintSeq": 63117,
               "where": "active"
             }
           ],
@@ -16228,7 +16229,7 @@
               "key": "kingambit",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 64783,
+              "faintSeq": 64787,
               "where": "active"
             },
             {
@@ -16246,7 +16247,7 @@
               "key": "incineroar",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 64784,
+              "faintSeq": 64788,
               "where": "active"
             },
             {
@@ -16254,7 +16255,7 @@
               "key": "annihilape",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 64785,
+              "faintSeq": 64789,
               "where": "active"
             }
           ]
@@ -16425,7 +16426,7 @@
               "key": "liepard",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 65047,
+              "faintSeq": 65051,
               "where": "active"
             },
             {
@@ -16433,7 +16434,7 @@
               "key": "whimsicott",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 65048,
+              "faintSeq": 65052,
               "where": "active"
             }
           ],
@@ -16443,7 +16444,7 @@
               "key": "weavile",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 65045,
+              "faintSeq": 65049,
               "where": "active"
             },
             {
@@ -16608,7 +16609,7 @@
               "key": "sinistcha",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 69164,
+              "faintSeq": 69168,
               "where": "active"
             },
             {
@@ -16616,7 +16617,7 @@
               "key": "arcaninehisui",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 69165,
+              "faintSeq": 69169,
               "where": "active"
             }
           ],
@@ -16833,7 +16834,7 @@
               "key": "oranguru",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 69790,
+              "faintSeq": 69794,
               "where": "active"
             },
             {
@@ -16841,7 +16842,7 @@
               "key": "torkoal",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 69791,
+              "faintSeq": 69795,
               "where": "active"
             }
           ]
@@ -17023,7 +17024,7 @@
               "key": "clefable",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 70638,
+              "faintSeq": 70642,
               "where": "active"
             },
             {
@@ -17031,7 +17032,7 @@
               "key": "slowking",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 70639,
+              "faintSeq": 70643,
               "where": "active"
             }
           ]
@@ -17204,7 +17205,7 @@
               "key": "ninetalesalola",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 72510,
+              "faintSeq": 72514,
               "where": "active"
             },
             {
@@ -17212,7 +17213,7 @@
               "key": "talonflame",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 72511,
+              "faintSeq": 72515,
               "where": "active"
             }
           ],
@@ -17437,7 +17438,7 @@
               "key": "grimmsnarl",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 73381,
+              "faintSeq": 73385,
               "where": "active"
             },
             {
@@ -17445,7 +17446,7 @@
               "key": "annihilape",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 73382,
+              "faintSeq": 73386,
               "where": "active"
             }
           ]
@@ -17623,7 +17624,7 @@
               "key": "grimmsnarl",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 73943,
+              "faintSeq": 73947,
               "where": "active"
             },
             {
@@ -17631,7 +17632,7 @@
               "key": "camerupt",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 73944,
+              "faintSeq": 73948,
               "where": "active"
             }
           ]
@@ -17793,7 +17794,7 @@
               "key": "incineroar",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 74036,
+              "faintSeq": 74040,
               "where": "active"
             },
             {
@@ -17801,7 +17802,7 @@
               "key": "kangaskhan",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 74037,
+              "faintSeq": 74041,
               "where": "active"
             }
           ],
@@ -18016,7 +18017,7 @@
               "key": "grimmsnarl",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 75129,
+              "faintSeq": 75133,
               "where": "active"
             },
             {
@@ -18024,7 +18025,7 @@
               "key": "talonflame",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 75130,
+              "faintSeq": 75134,
               "where": "active"
             }
           ]
@@ -18184,7 +18185,7 @@
               "key": "snorlax",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 75182,
+              "faintSeq": 75186,
               "where": "active"
             },
             {
@@ -18192,7 +18193,7 @@
               "key": "clefable",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 75181,
+              "faintSeq": 75185,
               "where": "active"
             }
           ],
@@ -18414,7 +18415,7 @@
               "key": "klefki",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 75796,
+              "faintSeq": 75800,
               "where": "active"
             },
             {
@@ -18422,7 +18423,7 @@
               "key": "hydreigon",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 75797,
+              "faintSeq": 75801,
               "where": "active"
             }
           ]
@@ -18605,7 +18606,7 @@
               "key": "incineroar",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 81102,
+              "faintSeq": 81106,
               "where": "active"
             },
             {
@@ -18613,7 +18614,7 @@
               "key": "sneasler",
               "hp": 0,
               "fainted": true,
-              "faintSeq": 81104,
+              "faintSeq": 81108,
               "where": "active"
             }
           ]

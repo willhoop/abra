@@ -940,8 +940,20 @@ function builtStats(speciesId) {
      * engine bytes at all (the stats come from `MEDI.spreadL50` below), so the first binding is the
      * right one for the whole process. */
     if (!_BP) _BP = SB.harness(null).buildPair;
-    /* PRICED ON A LEGAL BODY: the spread does not read the move, but the validator reads the body */
-    const row = x => ({ species: x, item: '', ability: '',
+    /* PRICED ON A LEGAL BODY: the spread does not read the move, but the validator reads the body.
+     *
+     * ---- AND IT READS THE ITEM TOO, WHICH IS HOW A MEGA WAS PRICED ON A SET THE GAME REFUSES ----
+     * 2026-09-21. `maxRoll` prices a MEGA-tier carrier off the MEGA FORME's base stats, so this
+     * function is asked for `victreebelmega` — and a battle-only forme declared with an EMPTY item
+     * is two separate illegalities at once, both of which the authority says out loud:
+     *   "Victreebel-Mega transforms in-battle with Victreebelite, please fix its item."
+     *   "Victreebel-Mega can't have Innards Out."   (the ability the forme change writes)
+     * The forme's own `requiredItem` fixes BOTH — measured, the same set with the stone on it comes
+     * back with zero problems — and it changes NOTHING about the number this function returns: the
+     * species is unchanged, so `spreadFor` still reads the mega's own base stats and `spreadL50`
+     * still runs on them. Read off the species rather than listed, so a forme added later is priced
+     * on a legal set without editing this line. */
+    const row = x => ({ species: x, item: (dex.species.get(x) || {}).requiredItem || '', ability: '',
       moves: [learnsLegally(x, INERT) ? INERT
               : ((INERT_SUBS.find(m => learnsLegally(x, m.id)) || { id: INERT }).id)] });
     const pair = _BP([row(speciesId)].concat(_fillers(speciesId).map(row)), { hpBoost: 1 });
@@ -1102,6 +1114,43 @@ function swapperFor(arm, avoid) {
   return out;
 }
 const SWAPPER = swapperFor(null);
+/* ---- A BODY LENT INTO A SLOT CARRIES THE CONTROL CLICK AND NOTHING ELSE — 2026-09-21 -----------
+ *
+ * A body substituted into a slot USED to inherit the move list of the body it replaced. That list
+ * was chosen for the ORIGINAL species, so the substitute was handed moves its own species never
+ * learns: `proof/swap-control` gave Goodra-Hisui and Glimmora the aggressor's Bite, and the
+ * TeamValidator refuses both. A lent body never CLICKS the inherited move — the swapper idles until
+ * the control arm hands it Skill Swap — so the honest declaration is the scenario's own control
+ * click and nothing else.
+ *
+ * IT IS `INERT` AND NOT AN ALREADY-RESOLVED SUBSTITUTE, WHICH IS A DISTINCTION THAT COST A RUN.
+ * `inertChoice` resolves the control click ONCE PER SCENARIO against every body that carries it, and
+ * it refuses a substitute that some body already declares ("KEPT: a body already carries Sleep
+ * Talk"). Handing the lent body the substitute DIRECTLY therefore switched that refusal on and left
+ * the other five bodies holding a Focus Energy three of them cannot learn — five illegal sets in
+ * place of two. The lent body declares `INERT` like every other body and `withLegalInert` resolves
+ * the whole scenario together. */
+const lentMoves = () => [INERT];
+/* ---- AND A BODY THAT CAN LEGALLY CLICK GASTRO ACID — 2026-09-21 --------------------------------
+ *
+ * The suppression control clicks Gastro Acid at the carrier, and it used to click it off the
+ * AGGRESSOR — `CAST.ATTACKER()`, which does not learn it. Measured: SEVEN legal species in this
+ * format learn Gastro Acid and none of the three CAST bodies is one of them, so the control arm of
+ * `proof/gastro-control` was a set the game refuses. The lender is derived from the format and
+ * ranked by bulk for the same reason the swapper is — it stands in a slot that otherwise idles and
+ * must survive a stray hit. Lazy, so nothing here runs before `learnsLegally`'s validator exists. */
+const GASTRO_MOVE = 'gastroacid';
+let _GASTRO_LENDER;
+function gastroLender() {
+  if (_GASTRO_LENDER !== undefined) return _GASTRO_LENDER;
+  const used = new Set([CAST.ATTACKER().species, CAST.ATTACKER2().species, CAST.BAG().species,
+                        SWAPPER && SWAPPER.species].filter(Boolean).map(idOf));
+  const bulk = s => s.baseStats.hp + s.baseStats.def + s.baseStats.spd;
+  const pool = CANDIDATES.filter(s => !used.has(idOf(s.id)) && learnsLegally(s.id, GASTRO_MOVE))
+    .sort((a, b) => bulk(b) - bulk(a));
+  _GASTRO_LENDER = pool.length ? { species: pool[0].id, name: pool[0].name, pool: pool.map(s => s.name) } : null;
+  return _GASTRO_LENDER;
+}
 /* ABILITIES SHOWDOWN REFUSES TO SWAP. The flag is upstream's own (`flags.failskillswap`) and it is
  * read rather than listed; medicham2 states in its own source that the class is NOT modelled, so a
  * member staged this way would part the two engines IN THE CONTROL ARM and the row would accuse the
@@ -1504,10 +1553,19 @@ function play(sc0, src, armId) {
    * played before. Asked of the SCENARIO, never of the stage or the rule: the flag follows the bodies. */
   const gendered = sc.A.concat(sc.B).some(m => m && (m.gender === 'M' || m.gender === 'F'));
   let a, b;
+  /* WHICH SCENARIO BUILT AN ILLEGAL SET. `game_differential.js` prints the verdict and the building
+   * LINE, and every fixture this file stages is built at the same two lines — so the report named
+   * `play()` and nothing else, and five of the nine had to be attributed by hand. Off by default;
+   * `ROSTER_DEBUG_ILLEGAL=1` names the scenario and prints both sides. */
+  const _illegalBefore = process.env.ROSTER_DEBUG_ILLEGAL === '1' ? G.fixtureIllegal().length : -1;
   try {
     a = G.buildPair(sc.A, { hpBoost: sc.hpA || 1, declaredGender: gendered });
     b = G.buildPair(sc.B, { hpBoost: sc.hpB || 1, declaredGender: gendered });
   } catch (e) { return { bad: 'THREW-IN-BUILD', why: e.message }; }
+  if (_illegalBefore >= 0 && G.fixtureIllegal().length > _illegalBefore)
+    console.error('  ILLEGAL SET built by scenario ' + (sc.id || '?')
+      + '\n    A=' + JSON.stringify(sc.A) + '\n    B=' + JSON.stringify(sc.B)
+      + '\n    ' + G.fixtureIllegal().slice(_illegalBefore).map(x => x.problems.join(' | ')).join('\n    '));
   if (!a || !b) return { bad: 'NOT-STAGED',
     why: 'buildPair returned null for ' + (!a ? 'side A' : 'side B') + ' — fewer than four bodies '
        + 'on that side could be built, so the game was never played' };
@@ -1723,8 +1781,17 @@ function controlOf(sc, rank) {
      * control-by-alternate-ability and control-by-Gastro-Acid — and requires the two to move the same
      * board leaves in BOTH engines. If Gastro Acid did not suppress in this simulator, every entity
      * controlled this way would read DID-NOT-FIRE and the whole tier would be a fabrication. */
-    c.script[0].p1[0] = { m: 'gastroacid', t: +sc.subject[1] };
-    c.A[0] = { ...c.A[0], moves: c.A[0].moves.concat(['gastroacid']) };
+    /* THE CLICK COMES OFF A BODY THAT LEGALLY LEARNS IT, AND THE SLOT IS FOUND RATHER THAN ASSUMED
+     * (2026-09-21). This wrote slot 0 — the AGGRESSOR — which does not learn Gastro Acid, so the
+     * control arm was a set the TeamValidator refuses. `abilityScenario` puts the lender at slot 1
+     * whenever it chooses this control; the slot is located by ASKING the judge rather than by
+     * trusting that, and a side with no legal clicker is a THROW and never a silent slot 0. */
+    const gi = c.A.findIndex(b => b && b.species && learnsLegally(b.species, GASTRO_MOVE));
+    if (gi < 0) throw new Error('the Gastro Acid control was asked for on a side A whose bodies ('
+      + c.A.map(b => b && b.species).join(', ') + ') none of them legally learns Gastro Acid — the '
+      + 'control arm would be a set the game refuses. abilityScenario must place gastroLender().');
+    c.script[0].p1[gi] = { m: GASTRO_MOVE, t: +sc.subject[1] };
+    c.A[gi] = { ...c.A[gi], moves: c.A[gi].moves.concat([GASTRO_MOVE]) };
   } else if (sc.kind === 'ability' && sc.controlKind === 'piercer') {
     /* THE CARRIER IS NOT TOUCHED; THE THROWER'S ABILITY BECOMES A PIERCER (2026-09-18, Good as Gold).
      * For an ability whose whole content is a refusal, and which no in-play control can reach because
@@ -3559,8 +3626,25 @@ function critsLand() {
       + 'cannot be asked of it and the answer is UNKNOWN rather than no'; return _CL2; }
   const other = Object.values(tgt.abilities).find(a => !CRIT_ARMOUR.has(idOf(a)))
     || Object.values(tgt.abilities)[0];
+  /* THE THROWER IS ASKED OF THE JUDGE, NOT ASSUMED — 2026-09-21. `CAST.ATTACKER()` was handed `mv`
+   * unconditionally, and it learns NONE of the seven raised-crit-ratio 100-accuracy moves in this
+   * format ("Dragapult can't learn Night Slash"), so the answer this proof gates the whole
+   * `move/crit` family on was measured on a set the game refuses. `throwerFor` keeps the CAST body
+   * whenever it learns the click and otherwise hands back the fastest legal learner holding a
+   * non-interfering ability — the same helper every hand-written rule already uses.
+   *
+   * NOT `restageLegal`, AND THAT IS RE-ENTRANCY RATHER THAN TASTE. The #318 pass reaches `bodyTwin`,
+   * which reads `moveBodies(arm)` — and `moveBodies` asks `moveQuietAbilities`, which asks THIS
+   * FUNCTION. Called from inside `critsLand` it gets the provisional `_CL2` that is put in the cache
+   * on the first line, reads `armourShared` as absent, and MEMOISES a bottom-arm pool with the two
+   * crit armours missing: measured, `moveBodies('bottom-tie-first')` came back 0 species deep and
+   * the moves stage fell from 496 to 391 with 105 COULD-NOT-STAGE, on a `critsLand()` that then went
+   * on to answer correctly. `throwerFor` reads CANDIDATES and the validator and nothing else. */
+  const thrower = throwerFor(CAST.ATTACKER(), [mv.id]);
+  if (!thrower) { _CL2.why = 'no legal buildable body with a non-interfering ability learns '
+    + mv.name + ', so the crit question cannot be asked on a set the game accepts'; return _CL2; }
   const build = (ab) => { const sc = scaffold({ hpA: 4, hpB: 8,
-      a0: { ...CAST.ATTACKER(), moves: [mv.id] },
+      a0: thrower,
       b0: mon(tgt.id, '', ab, [INERT]),
       script: [turn([click(mv.id, 0), IDLE], [IDLE, IDLE])] });
     sc.id = 'proof/crit-lands/' + idOf(ab); sc.kind = 'move'; sc.entityId = mv.id; return sc; };
@@ -5448,12 +5532,25 @@ function gastroWorks() {
   if (!C || C.tier !== 'ALTERNATE') return _GASTRO;
   const built = abilityScenario(ab, C, 'generic');
   if (!built || !built.scenario) return _GASTRO;
+  /* THE THROWER IS A BODY THAT LEGALLY LEARNS GASTRO ACID, AND THE PROOF IS RESTAGED LIKE A ROW —
+   * 2026-09-21. This clicked Gastro Acid off side A slot 0, the aggressor, which does not learn it:
+   * the whole conclusion "suppression is dead in this simulator" rested on a set the game refuses.
+   * Seven legal species learn it; the lender takes slot 1, which idles in the `generic` kind, and it
+   * stands in BOTH arms so only the CLICK differs. `restageLegal` then repairs whatever the rest of
+   * the fixture declares illegally, exactly as it does for a staged row. */
+  const GL = gastroLender();
+  if (!GL) { _GASTRO.why = 'no legal species in this format learns Gastro Acid, so the suppression '
+    + 'control cannot be staged on a set the game accepts'; return _GASTRO; }
+  const gsA = built.scenario.A.map((m, i) => (i === 1
+    ? mon(GL.species, '', carrierAbility(dex.species.get(GL.species)) || '', lentMoves())
+    : m));
   const sc = { ...built.scenario, id: 'proof/gastro-suppression', kind: 'ability', entityId: 'roughskin',
-    script: [turn([IDLE, IDLE], [IDLE, IDLE])].concat(built.scenario.script) };
+    A: gsA, script: [turn([IDLE, IDLE], [IDLE, IDLE])].concat(built.scenario.script) };
+  restageLegal(sc, 'ability', ab);
   const subj = play(sc, null);
   const ctrl = play({ ...sc, id: 'proof/gastro-control',
-    A: sc.A.map((m, i) => (i === 0 ? { ...m, moves: m.moves.concat(['gastroacid']) } : m)),
-    script: sc.script.map((t, i) => (i === 0 ? { p1: [{ m: 'gastroacid', t: 0 }, t.p1[1]], p2: t.p2 } : t)) },
+    A: sc.A.map((m, i) => (i === 1 ? { ...m, moves: m.moves.concat([GASTRO_MOVE]) } : m)),
+    script: sc.script.map((t, i) => (i === 0 ? { p1: [t.p1[0], { m: GASTRO_MOVE, t: 0 }], p2: t.p2 } : t)) },
     null);
   if (subj.bad || ctrl.bad) { _GASTRO.why = 'the proof fixture did not play: '
     + (subj.bad || ctrl.bad) + ' ' + (subj.why || ctrl.why); return _GASTRO; }
@@ -5525,10 +5622,20 @@ function swapControlWorks(arm) {
   if (!built || !built.scenario) return done();
   /* the swapper takes side A slot 1 and the setup turn is prepended, exactly as a real swap-tier
    * scenario is built — the proof must exercise the code path that will actually be used */
+  /* AND IT CARRIES THE CONTROL CLICK RATHER THAN THE LIST IT INHERITED — 2026-09-21. This handed the
+   * swapper `m.moves.slice()`, the list belonging to the body it REPLACED, and the swapper never
+   * clicks any of them (it idles until the control arm gives it Skill Swap). Goodra-Hisui and
+   * Glimmora were each declared with the aggressor's Bite and the TeamValidator refused the set. */
   const A = built.scenario.A.map((m, i) => (i === 1
-    ? mon(SWAPPER.species, '', SWAPPER.ability, m.moves.slice()) : m));
+    ? mon(SWAPPER.species, '', SWAPPER.ability, lentMoves()) : m));
   const sc = { ...built.scenario, id: 'proof/swap-control', kind: 'ability', entityId: 'roughskin',
     A, script: [turn([IDLE, IDLE], [IDLE, IDLE])].concat(built.scenario.script) };
+  /* THE PROOF GOES THROUGH THE SAME JUDGE EVERY ROW GOES THROUGH — 2026-09-21. `restageOrHold` is
+   * applied to a scenario that becomes a ROW; this one never does, so the aggressor's hit sat on the
+   * carrier's PARTNER unchecked ("Venusaur can't learn Bite", and U-turn behind it — the authority
+   * reports one refused move per set, so a fixture's illegality is always a LOWER BOUND). Run before
+   * the control arm is derived, so both arms carry the identical repaired bodies. */
+  restageLegal(sc, 'ability', ab);
   const subj = play(sc, null);
   const ctrl = play({ ...sc, id: 'proof/swap-control-arm',
     A: sc.A.map((m, i) => (i === 1 ? { ...m, moves: m.moves.concat([SWAP_MOVE]) } : m)),
@@ -5785,8 +5892,15 @@ function abilityScenario(e, C, kind) {
     /* SIDE A SLOT 1 IS THE SWAPPER when the control is an in-play exchange, because whatever ability
      * that body carries is what the carrier ends up holding — so it has to be a QUIET one, and it is
      * present in BOTH arms so nothing about the fixture differs between them. */
+    /* AND IT IS THE GASTRO ACID LENDER when the control is the suppression click, for the same
+     * reason (2026-09-21): whoever throws Gastro Acid has to be a body that legally learns it, and
+     * the three CAST bodies do not. The lender stands in a slot that idles in every kind but
+     * `switchout`, and it is present in BOTH arms — only the click differs. */
     a1: controlKind === 'abilityswap'
       ? mon(SWAPPER.species, '', SWAPPER.ability, [hitThem.id])
+      : controlKind === 'suppress' && gastroLender()
+      ? mon(gastroLender().species, '', carrierAbility(dex.species.get(gastroLender().species)) || '',
+            lentMoves())
       : mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [hitThem.id]),
     b0: onBench ? mon(partnerId, '', carrierAbility(dex.species.get(partnerId)) || '', [INERT])
                 : carrier,

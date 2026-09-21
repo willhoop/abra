@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-21T02:41:49.477Z",
+  "generated": "2026-09-21T08:38:57.600Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
   "changelog_top_at_baseline": "7.0.0",
@@ -389,9 +389,6 @@
         "c4e868a53d|20",
         "c4e868a53d|60",
         "c6b69f1c9d|114",
-        "ca4fa95cc5|0.548",
-        "ca4fa95cc5|0.583",
-        "ca4fa95cc5|1.6%",
         "ca90cdbc3b|1,313",
         "cb7855d7a5|11.06",
         "cb7855d7a5|60.1",

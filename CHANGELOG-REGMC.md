@@ -21,6 +21,41 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.9.0] — 2026-09-21
+
+### Fixed
+- **Three classes of roster fixture never reached the legality judge.** `tests/roster.js` repairs only a
+  scenario that becomes a row, so the rig's own proof fixtures, the control arm's appended click and the
+  stat pricer were never judged. Illegal sets **152 → 141**; `probe_control_self_name` receipt **9 → 2**
+  and GREEN. No roster count moved: items 148/148, abilities 196/200, moves 496/497 over six runs.
+
+### Notes
+- **Two illegal fixtures remain and cannot be staged legally**: no Reg M-B set both carries a quiet
+  ability and clicks Skill Swap — 8 abilities, 9 carriers, 63 learners, intersection empty — and **84 of
+  the 200 ability rows rest on that control**. Nothing baselined; the baseline serves a static sweep and
+  this set is built at run time.
+- The 9 baselined staged-board fixtures are deferred repairs, all but one repairable. Carry them, do not
+  bless them.
+- `tests/test-roster-arm-pin.js` builds four sets and all four are illegal — same shapes, another file.
+  Reported, not repaired.
+
+## [0.8.0] — 2026-09-21
+
+### Changed
+- **`data/meta-usage.json` regenerated on the filtered corpus** — the file CHOMP reads. `usable`
+  33,539 → 28,454, with the custom-ruleset stage recorded (6,952 flagged, 5,085 removed) and the
+  18.57% untestable share carried through so the count is not mistaken for a census.
+- The division ledgers are restamped; `docs/ENGINE.md` records the re-measure.
+
+### Notes
+- **Whole battery on release `adb08f5360f1`: gate OPEN, board-material 0/0/0 across the lattices,
+  narration zero on every lattice, held-out 7,182 games with 0 board partings**, damage 0 of 6000 at
+  every corner, census 1004/1004/0.
+- The engine reached those zeros while carrying a defect neither the gate nor the held-out draw could
+  see. An open gate and a correct engine remain two different claims.
+- Reg M-B's record is not restated: `abra/regmb` is closed at 7.0.0 and its closed-line clause refuses
+  an entry above it.
+
 ## [0.7.0] — 2026-09-21
 
 ### Fixed

@@ -52,6 +52,60 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.9.0] — 2026-09-21 — three CLASSES of roster fixture never reached the legality judge, and one control cannot exist in this format
+
+- **The diagnosis was better than the hypothesis.** The coordinator guessed one move-picker was bypassing
+  `learnsLegally` (which is the real `checkCanLearn` and was never at fault). In fact `tests/roster.js`
+  has one judge and one repair pass, and **the repair pass runs only on a scenario that becomes a ROW** —
+  so three whole classes never reached it: the rig's own PROOF fixtures, which call `play()` directly
+  (7 of the 9); the CONTROL ARM's click, appended after the judge had finished (1); and the stat pricer
+  declaring a battle-only forme with an empty item (1).
+- **Fixed:** the ability-control proofs repair before the control arm is derived; a lent body carries the
+  control click instead of inheriting the replaced body's moves; the swap slot is LOCATED by asking the
+  judge and the deriver now **throws** rather than defaulting to slot 0; the pricer declares the forme's
+  own required item. **Illegal sets 152 → 141; the probe's receipt 9 → 2 and it is GREEN.**
+- **No roster count moved in either direction** — items 148 of 148, abilities 196 of 200, moves 496 of
+  497, over six runs. Nothing was weakened to make a fixture legal.
+- **THE TWO THAT REMAIN CANNOT BE STAGED, AND THAT IS A FACT ABOUT THE FORMAT.** No legal Reg M-B set
+  both carries a quiet ability and clicks Skill Swap: **8 quiet abilities, 9 legal carriers, 63 Skill
+  Swap learners, intersection EMPTY.** Across every legal move whose handler names an ability, the only
+  one any carrier learns is a recovery move. **84 of the 200 ability rows rest on that control.** The
+  legal route is a different ability-setting move off one carrier, which is a new control KIND and needs
+  its own proof. **Nothing was baselined** — the baseline file is read by a STATIC sweep that fails on an
+  entry it stops producing, and this set is built at run time, so a baseline would be the wrong
+  mechanism. It stays visible as `2 NOT baselined`.
+- **The 9 baselined fixtures in the staged board are deferred repairs, not declared isolations**, and the
+  file says so: all 15 entries read `PRE-EXISTING`, none `DELIBERATE`. Every one is repairable except a
+  single move with zero legal carriers. **Carry them; do not bless them.**
+- **New on the hand list:** `tests/test-roster-arm-pin.js` builds four distinct sets and **all four are
+  illegal** — the same two shapes, in another file. Reported, not repaired.
+- **Basis.** unchanged. No published figure moves.
+- **Supersedes.** Nothing.
+
+## [abra/regmc 0.8.0] — 2026-09-21 — the refill defect is fixed and ZERO survives it; `meta-usage.json` moves to the clean corpus
+
+- **The whole battery re-measured on release `adb08f5360f1`**, census pinned to
+  `data/verification/census-pin-c3affea174af.json`, team store `data/team-pool-frozen`: gate **OPEN**
+  on all ten clauses; board-material **0 of 961, 0 of 1069, 0 of 1497**; undeclared narration zero on
+  every lattice; **held-out `--games 12000`: 7,182 games, 0 board-material**, 75 protocol; damage
+  differential 0 of 6000 at every corner; roster 148 of 148, 196 of 200, 496 of 497; census
+  **1004 probed / 1004 live / 0 missing**.
+- **What that reading is worth, stated rather than implied.** The engine reached those zeros while
+  carrying a defect neither the gate nor the held-out draw could see — a body that died on arrival
+  stood in its slot for a turn — found by a mirror test outside the gate. The zeros are worth exactly
+  what the instruments producing them are worth, and tonight thirteen of seventeen red checks turned
+  out to be instruments.
+- **`data/meta-usage.json` is regenerated on the FILTERED corpus** — the file CHOMP reads. `usable`
+  moves **33,539 → 28,454**, and the funnel now records the custom-ruleset stage: 6,952 flagged, 5,085
+  removed from clean, **untestable share 18.57% carried through** so the count cannot be mistaken for a
+  census. `engine/analyze.js` needs more than the default 2 GB heap against the 471 MB store.
+- **Reg M-B's record is NOT restated.** `abra/regmb` is closed at 7.0.0 and its closed-line clause
+  refuses an entry above it, by design. 7.0.0 stays a dated record of what was true of the bytes it
+  measured; the re-measure lives in `docs/ENGINE.md`, where current state belongs. Will, asked whether
+  to restate: *"reg mb is done so i dont really care"*.
+- **Basis.** unchanged.
+- **Supersedes.** ~~`meta-usage.json` usable 33,539~~, now **28,454**.
+
 ## [abra/regmc 0.7.0] — 2026-09-21 — the gate read zero and a real engine defect was still there
 
 - **A body that dies on arrival was never replaced.** The refill list was built once and never rebuilt,
