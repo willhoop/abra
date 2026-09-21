@@ -79,6 +79,10 @@
     "SECURITY.md": {
       "version": "1.0",
       "reason": "OWN VERSION LINE — a policy document at the repository root. It asserts no measurement."
+    },
+    "docs/REGMC.md": {
+      "version": "0.1.0",
+      "reason": "OWN VERSION LINE — the Reg M-C engine is a separate line from ABRA's project releases, at Will's decision (2026-09-20: \"lets revert it to 1.0.0 for the new regulation\", and when asked how: \"i just want low numbers for when projects are actually done and usable\"). A leading 0 means NOT USABLE YET, per SemVer 2.0.0 clause 4; this reaches 1.0.0 the day the M-C gate opens, which engine/quarantine.js computes rather than anyone declaring. Pinning it is not a deferral of the major pass: ABRA's own documents are all at 7.0.0."
     }
   },
   "unversioned_exempt": [

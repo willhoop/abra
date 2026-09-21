@@ -10,6 +10,24 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [7.1.0] — 2026-09-20
+
+### Added
+- A second Showdown checkout for Reg M-C (`pokemon-showdown-mc`, `f10d679`, 2026-09-20), so pulling the
+  M-C authority can never move the bytes Reg M-B's published figures rest on.
+- `docs/REGMC.md`, the Reg M-C ledger, opening at **0.1.0** — a leading zero means not usable yet; it
+  reaches 1.0.0 when the M-C gate opens.
+
+### Notes
+- Delta against the PINNED M-B authority: species +35, moves +15, items +18, abilities +0, nothing
+  removed. The ruleset is identical. The real surface is 41 mechanics (15 abilities, 14 moves, 12 held
+  items), not 35 species.
+- Two moves legal in both regulations had PP cut 10 → 5, and Rocky Helmet is unbanned — changes no
+  added/removed list reveals.
+- The strict legality filter drops one live ability in M-C (1 of 317); M-C must re-admit validator-
+  accepted `Future` entries and print the list every run.
+- M-B's legal species set is identical in both checkouts — 347 either way — so nothing published at 7.0.0 moved.
+
 ## [7.0.0] — 2026-09-20
 
 ### Changed

@@ -52,6 +52,42 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [7.1.0] — 2026-09-20 — the Reg M-C line opens at 0.1.0: a second Showdown checkout, and the delta derived against the PINNED authority
+
+- **What changed.** No engine byte. A second Showdown checkout exists at
+  `C:/Users/willj/Projects/Pokemon/pokemon-showdown-mc` (`f10d679`, 2026-09-20, built), and the Reg M-C
+  ledger opens at **0.1.0** in `docs/REGMC.md`. The M-B authority stays pinned at `20ad99f`,
+  2026-07-22, and is never pulled — **every figure in 7.0.0 rests on those bytes.**
+- **M-B DID NOT DRIFT, MEASURED RATHER THAN ASSUMED.** `gen9championsvgc2026regmb`'s legal species set
+  is identical in both checkouts — 347 either way, 0 added, 0 removed — so adding the second checkout
+  disturbed nothing 7.0.0 published.
+- **The delta, derived against the pinned authority.** Species **+35**, moves **+15**, items **+18**,
+  abilities **+0**, nothing removed anywhere; M-C is a strict superset. **The ruleset is identical** —
+  same expanded rules, value rules, banlists and timer. **The real surface is 41 mechanics, not 35
+  species**: 15 abilities, 14 moves, 12 held items, and **13 of the added species bring nothing new.**
+- **THE CHANGES NO LEGALITY LIST REVEALS.** Two moves legal in BOTH regulations had their PP cut
+  **10 → 5** (verified directly against both checkouts), and one species loses two moves and gains one.
+  An engine built by assuming *M-B plus the new things* would carry the old values forever. **Rocky
+  Helmet is UNBANNED** — `isNonstandard` `"Past"` → `null` — so the umbrella ban list is right for M-B
+  and becomes wrong for M-C the day this line goes active.
+- **THE TRAP THAT WILL BITE FIRST.** The strict legality filter this project requires on every dex walk
+  **silently deletes one live ability** in M-C: it carries `isNonstandard: "Future"`, which the filter
+  rejects, yet the validator accepts a set carrying it and it has a real handler body. Measured: **316
+  abilities pass the filter and exactly 1 is dropped this way.** A generator built on the filter would
+  never stage it and would report full coverage — a capability absent with everything reporting
+  success. M-C must re-admit the `Future` entries the validator accepts and PRINT the re-admitted list
+  every run.
+- **The Eject Button fix landed 2026-09-13, four days AFTER M-C went live**, so M-C replays collected
+  2026-09-09 → 09-13 were played under the old rule. Any measurement over that store must exclude or
+  account for the window.
+- **Coordinator, at merge.** The coordinator's brief told the agent to compare M-B against M-C inside
+  the NEW checkout, same bytes, on the reasoning that it made the comparison clean. **The agent refused
+  it and was right:** that checkout's `championsregmb` is not a faithful M-B — 15 moves, 11 abilities
+  and 30 learnsets differ from the pinned authority — and the shortcut would have reported **moves +0**
+  for a regulation that adds fifteen. The delta above is against the pinned checkout.
+- **Basis.** unchanged. No M-C figure is published; nothing is simulated yet.
+- **Supersedes.** Nothing.
+
 ## [7.0.0] — 2026-09-20 — **the MEDICHAM quarantine gate is OPEN, and the living documents are rewritten to say so**
 
 - **Basis.** **CHANGED — every figure this project published about its simulator answered the question
