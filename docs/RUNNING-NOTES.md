@@ -52,6 +52,18 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.17.0] — 2026-09-21 — **The MEDICHAM gate answers per regulation, and a Reg M-C run can no longer move Reg M-B's evidence**
+
+- **What changed.** `engine/regulation.js` resolves every artifact in the gate's path per regulation
+  (`artifactFor`, an fs seam, deny-by-default writes onto existing `data/` files). `engine/quarantine.js
+  --regulation regmc` reads only `-regmc` artifacts and the `data/team-pool-frozen-regmc` pool, declares
+  its own lattice, and prints the regulation on its first line. New: `engine/lattice_walk.js`,
+  `tests/test-regulation-artifacts.js`. The open-defect clause no longer passes on absent verdicts.
+- **Measured.** NO FIGURE. Reg M-C lattice sizes 1200 / 1600 / 1900 are a declaration, derived by the walk;
+  the overlaps and the Reg M-C gate reading are in `docs/_reports/2026-09-21-regmc-gate.md` and are not
+  published. Reg M-B's gate output is byte-identical apart from its first line.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none; the runbook row is the document.
+
 ## [abra/regmc 0.16.0] — 2026-09-21 — **The terrain seeds fire, and the Grassy "heal order" card was a missing semi-invulnerable gate**
 
 - **What changed.** Item tag `consumedOnTerrain` (derived from the handler; members printed first) and its

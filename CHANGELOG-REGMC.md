@@ -21,6 +21,31 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.17.0] — 2026-09-21
+
+### Added
+- **The MEDICHAM gate answers per regulation.** `node engine/quarantine.js --regulation regmc` evaluates
+  the same ten clauses against Reg M-C's own artifacts, pool and releases, and names the regulation on its
+  first line. A missing Reg M-C artifact reads NO ARTIFACT or CANNOT-ANSWER; it never falls back to Reg M-B's.
+- `engine/regulation.js` gains `artifactFor` and an fs seam: under any regulation but Reg M-B, every
+  artifact the gate reads or its instruments write (`PER_REGULATION_ARTIFACTS`) is read and written as a
+  `-<id>` sibling, and a write onto any other existing file under `data/` is refused. Nothing is installed
+  under Reg M-B.
+- `engine/lattice_walk.js` — the 2026-09-12 lattice walk made repeatable. Reg M-C's lattice is
+  **1200 / 1600 / 1900**, derived on its own pool; the same rule reproduces Reg M-B's 1950.
+- `tests/test-regulation-artifacts.js` — the list against the gate's derived closure, the mapping both
+  ways, and the seam in a throwaway root with a Reg M-B control. Shown red on three deliberate breaks.
+
+### Changed
+- The open-defect clause reads CANNOT-ANSWER when the register verdicts are absent. It used to pass on
+  "0 verdicts read", which is how the first Reg M-C run passed it. Reg M-B has the file; its output is unchanged.
+
+### Notes
+- Reg M-B unmoved: its gate output is byte-identical apart from the new first line, and so are
+  `--selftest`, `--graph`, `--whole-game`, `--narration` and `--order-probe`. No tracked Reg M-B artifact moved.
+- No Reg M-C figure is published. Full account: `docs/_reports/2026-09-21-regmc-gate.md`.
+- **Supersedes.** Nothing. **Basis.** unchanged.
+
 ## [0.16.0] — 2026-09-21
 
 ### Added
