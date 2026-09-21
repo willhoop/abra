@@ -21564,8 +21564,20 @@ const SD_WILL_ACT=new Set(['move','switch','instaswitch','shift']);
  * Reading the one rulebook is what lets the contract test hold this engine and champ-model together.
  */
 let _FX=null;
+/* 2026-09-22 (ENGINE, abra/regmc 0.24.0) -- THE TABLE IS THE SELECTED REGULATION'S. The lazy require below goes through
+ * node's resolver, and engine/regulation.js maps `data/move-effects.js` to the regulation's own sibling
+ * (`runtime.<id>.moveEffects`, e.g. data/move-effects-regmc.js), live and out of a release. Before that map existed Reg M-C
+ * read Reg M-B's table and 15 legal moves had no row (tests/probe_regmc_move_effects.js).
+ * MEDI_MOVE_EFFECTS_OWNER_TABLE=1 restores the defect: it reads data/move-effects.js BY ITS BYTES, around the resolver. */
+const MOVE_EFFECTS_OWNER_TABLE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_MOVE_EFFECTS_OWNER_TABLE==='1');
 function moveFxTable(){
   if(_FX) return _FX;
+  if(MOVE_EFFECTS_OWNER_TABLE&&typeof require!=='undefined'){
+    const _p=require('path'), _w={};
+    new Function('window',require('fs').readFileSync(_p.join(__dirname,'..','data','move-effects.js'),'utf8'))(_w);
+    _FX=_w.MOVE_EFFECTS||null;
+    if(_FX) return _FX;
+  }
   _FX=(typeof window!=='undefined'&&window.MOVE_EFFECTS)||
       (typeof globalThis!=='undefined'&&globalThis.MOVE_EFFECTS)||null;
   /* In node the site's script tags do not exist, so load the generated file on first use. Without

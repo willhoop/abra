@@ -89,6 +89,9 @@ const ARM = `
   /* 2026-09-21 (abra/regmc 0.19.0) -- and the behaviour table, read through REL.read by the empirical arm. */
   out.frozenPriors = Object.keys(man.files).filter(k => /^data\\/move-priors/.test(k));
   out.relPriorsPath = path.basename(REL.path('data/move-priors.json'));
+  /* 2026-09-22 (abra/regmc 0.24.0) -- and the move-effects rulebook, which the engine requires lazily by path. */
+  out.frozenFx = Object.keys(man.files).filter(k => /^data\\/move-effects/.test(k));
+  out.relFxPath = path.basename(REL.path('data/move-effects.js'));
   out.relTagAbilities = Object.keys(JSON.parse(REL.read('data/tags.json')).abilities).length;
   out.relTagPath = path.basename(REL.path('data/tags.json'));
   console.log('RESULT ' + JSON.stringify(out));
@@ -121,10 +124,13 @@ if (mb && mc) {
     mc.table.redirects + ' redirect(s)');
   /* +2 since 2026-09-21: the table AND the tag file (engine/engine_release.js REGULATION_SOURCES).
    * +3 since abra/regmc 0.19.0: and the behaviour table, which REL.read then serves in place of Reg M-B's. */
-  ok('2  regmc: a cut freezes SOURCES plus the M-C table, tag file and behaviour table', mc.sourcesNow === mc.sources + 3
+  /* +4 since abra/regmc 0.24.0: and the move-effects rulebook (REL.path serves the regulation's copy). */
+  ok('2  regmc: a cut freezes SOURCES plus the M-C table, tag file, behaviour table and move-effects rulebook', mc.sourcesNow === mc.sources + 4
     && mc.frozenTags.includes('data/tags-regmc.json') && (mc.frozenPriors || []).includes('data/move-priors-regmc.json')
-    && mc.relPriorsPath === 'move-priors-regmc.json',
-    mc.sourcesNow + ' vs ' + mc.sources + '; ' + mc.frozenTags.join(',') + '; ' + (mc.frozenPriors || []).join(',') + '; REL.path -> ' + mc.relPriorsPath);
+    && mc.relPriorsPath === 'move-priors-regmc.json'
+    && (mc.frozenFx || []).includes('data/move-effects-regmc.js') && mc.relFxPath === 'move-effects-regmc.js',
+    mc.sourcesNow + ' vs ' + mc.sources + '; ' + mc.frozenTags.join(',') + '; ' + (mc.frozenPriors || []).join(',') + '; REL.path -> ' + mc.relPriorsPath
+    + '; ' + (mc.frozenFx || []).join(',') + '; REL.path -> ' + mc.relFxPath);
   ok('2  regmc: the release contains the M-C table and names its regulation',
     mc.frozen.includes('data/engine-data-regmc.js') && mc.regulation === 'regmc' && mc.engine_data === 'data/engine-data-regmc.js',
     mc.frozen.join(','));

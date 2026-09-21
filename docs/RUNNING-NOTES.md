@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.24.0] — 2026-09-22 — **The move-effects rulebook is per-regulation, so the 15 moves Reg M-C added have their secondaries, boosts and accuracy**
+
+- **What changed.** `data/move-effects.js` joins the per-regulation map (`engine/regulation.js`, `moveEffects`); Reg M-C
+  reads `data/move-effects-regmc.js`, derived by `build/build_browser_data.js --regulation regmc` from the Reg M-C
+  checkout, and an M-C release freezes it. Knob `MEDI_MOVE_EFFECTS_OWNER_TABLE`; probe
+  `tests/probe_regmc_move_effects.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine.md` §1.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
 ## [abra/regmc 0.22.0] — 2026-09-21 — **Emergency Exit switches its holder out, and the item pass is measured on the pinned differential**
 
 - **What changed.** Ability tag `switchesOutAtHalf` (derived; Golisopod is the only legal Reg M-C carrier; none in Reg

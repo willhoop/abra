@@ -151,18 +151,30 @@ function buildMegaFormes() {
   return { out, odd };
 }
 
+/* 2026-09-22 (ENGINE, abra/regmc 0.24.0) -- EACH OUTPUT GOES WHERE THE SELECTED REGULATION READS IT.
+ * `data/move-effects.js` is per-regulation (engine/regulation.js REG_FILE_KEYS `moveEffects`): under Reg M-C the engine
+ * reads `data/move-effects-regmc.js`, so that is what this writes (and what --check compares). `data/mega-formes.js` is
+ * NOT per-regulation: the engine reads it only in the browser (window.MEGA_FORMES), and writing the new regulation's
+ * stones onto it would overwrite the closed regulation's file with nothing to refuse it -- the write guard only guards
+ * MAPPED files. So under a regulation that does not map it, it is SKIPPED, and the skip is printed. Under Reg M-B
+ * fileFor is identity and both targets are exactly what they were. */
+const REGN = require(path.join(ABRA, 'engine', 'regulation.js'));
+const outFor = rel => path.join(ABRA, REGN.fileFor(rel));
+const OWNER = !Object.keys(REGN.FILES || {}).length;
 const mega = buildMegaFormes();
 const TARGETS = [
-  { out: path.join(ABRA, 'data', 'mega-formes.js'), global: 'MEGA_FORMES', payload: mega.out,
-    note: 'legal mega stones' },
-  { out: path.join(ABRA, 'data', 'move-effects.js'), global: 'MOVE_EFFECTS', payload: buildMoveEffects(),
+  { out: outFor('data/mega-formes.js'), global: 'MEGA_FORMES', payload: mega.out,
+    note: 'legal mega stones', skip: !OWNER && REGN.fileFor('data/mega-formes.js') === 'data/mega-formes.js' },
+  { out: outFor('data/move-effects.js'), global: 'MOVE_EFFECTS', payload: buildMoveEffects(),
     note: 'legal moves' },
 ];
+for (const t of TARGETS) if (t.skip) console.log(`  SKIPPED ${path.relative(ABRA, t.out)} — ${REGN.ID} has no file of its own for it, and this run may not write the closed regulation's`);
+const ACTIVE = TARGETS.filter(t => !t.skip);
 
 for (const line of mega.odd) console.error(`  MEGA STONE NOTE — ${line}`);
 
 let wrote = 0;
-for (const t of TARGETS) {
+for (const t of ACTIVE) {
   if (!t.payload || !Object.keys(t.payload).length) {
     console.error(`  EMPTY payload for ${t.global} — refusing to write an empty file`);
     process.exitCode = 1;
@@ -206,9 +218,9 @@ for (const t of TARGETS) {
   /* The targets are named on the write line -- data/move-effects.js, data/mega-formes.js -- because
    * tests/test-site-data-fresh.js pairs a filename with a write on ONE line, and writing through
    * t.out alone made this generator invisible. */
-  fs.writeFileSync(t.out, header + body, 'utf8');   // data/move-effects.js, data/mega-formes.js
+  fs.writeFileSync(t.out, header + body, 'utf8');   // data/move-effects.js, data/mega-formes.js, data/move-effects-regmc.js
   console.log(`  ${path.relative(ABRA, t.out)}  <- Champions dex  (${Object.keys(t.payload).length} ${t.note}, ${(fs.statSync(t.out).size / 1024).toFixed(0)} KB)`);
   wrote++;
 }
-console.log(`${CHECK ? 'checked' : 'generated'} ${wrote}/${TARGETS.length} browser data files ` +
+console.log(`${CHECK ? 'checked' : 'generated'} ${wrote}/${ACTIVE.length} browser data files ` +
   'against the Champions dex');

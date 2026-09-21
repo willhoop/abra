@@ -63,7 +63,6 @@ const NOT_YET = {
   [J('mega-dex-official')]: 'ENGINE — mega formes; source of the table, which is per regulation',
   [J('mega-dex')]: 'ENGINE — mega harvest; source of the table',
   [J('meta-usage')]: 'OPS — the CHOMP-facing usage model; engine/analyze.js has its own regulation handling',
-  [JS('move-effects')]: 'ENGINE — browser bundle built from the table',
   [J('regulations')]: 'CONFIG — the one file that names every regulation; shared by construction',
   [J('residual-order')]: 'ENGINE — residual order, derived from the format',
   [J('smogon-priors')]: 'OPS — Smogon usage priors for Reg M-B',

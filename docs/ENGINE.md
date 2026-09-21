@@ -1,3 +1,29 @@
+## REG M-C: THE MOVE-EFFECTS RULEBOOK IS PER-REGULATION. 2026-09-22 (abra/regmc 0.24.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §1.
+
+- **Defect.** `data/move-effects.js` (secondaries, certain boosts, accuracy; `moveFxTable`) was built for Reg M-B only,
+  so under Reg M-C the 15 legal moves Reg M-B lacks had no row: no secondary, no certain boost, accuracy falling back to
+  100 (`MEDFAILS.accuracyUnknown`).
+- **Fix.** `moveEffects` in `engine/regulation.js` `REG_FILE_KEYS`; `runtime.regmc.moveEffects` names
+  `data/move-effects-regmc.js`, built by `node build/build_browser_data.js --regulation regmc` (515 legal moves). The
+  lazy require resolves to it live and out of a release; an M-C cut freezes it. The builder skips `data/mega-formes.js`
+  under a regulation with no copy of its own.
+- **Probe** `tests/probe_regmc_move_effects.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_MOVE_EFFECTS_OWNER_TABLE` and on the 0.22.0 engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after this pass
+
+Ranked on the PINNED Reg M-C differential, by board-material first cause (report §1):
+
+1. **Aura Guard** (`damageReduce` with `onlyWhen: 'contact'` refused as unknown, so never applied) — the Lucario
+   damage-value cards. The "order-dependent" card is the DRIVER's mega alternation, not engine state (report §2).
+2. **Glaive Rush** (the user's double-damage volatile) — the Baxcalibur damage-value cards; and **Octolock**.
+3. Faint HP written `0fnt` on one side; terrain; the rest of `other`.
+4. The 17 census rows missing under Reg M-C.
+5. Carried: the Inner Focus stat label, the seed GAIN door, Emergency Exit's residual and hazard doors.
 ## REG M-C: EMERGENCY EXIT SWITCHES ITS HOLDER OUT; THE ITEM PASS ON THE PINNED DIFFERENTIAL. 2026-09-21 (abra/regmc 0.22.0)
 
 Full account: `docs/_reports/2026-09-21-regmc-items.md`.
@@ -17,7 +43,7 @@ Full account: `docs/_reports/2026-09-21-regmc-items.md`.
 - **Reg M-B unmoved:** tags and protocol-events untouched; damage differential identical but for its output-path line;
   lattice `--games 1200` 0 of 961 board-material.
 
-### The Reg M-C hand list, after this pass
+### The Reg M-C hand list, after the 0.22.0 pass — SUPERSEDED by the 0.24.0 list above
 
 Ranked on the PINNED Reg M-C differential (`docs/_reports/2026-09-21-regmc-items.md` §5), by board-material first cause:
 

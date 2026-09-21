@@ -21,6 +21,35 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.24.0] — 2026-09-22
+
+### Added
+- **The move-effects rulebook is per-regulation.** `data/move-effects.js` (a move's secondaries, certain boosts and
+  accuracy, read by `moveFxTable` in `engine/medicham2-browser.js`) joins the per-regulation map
+  (`engine/regulation.js` `REG_FILE_KEYS` `moveEffects`; `runtime.regmc.moveEffects` in `data/regulations.json`). Reg
+  M-C reads `data/move-effects-regmc.js`, built by `node build/build_browser_data.js --regulation regmc` from the Reg
+  M-C checkout: 515 legal moves, against Reg M-B's 500. An M-C release freezes it (`engine/engine_release.js`
+  `REGULATION_SOURCES`). Knob `MEDI_MOVE_EFFECTS_OWNER_TABLE` reads Reg M-B's file by its bytes, around the resolver.
+- `tests/probe_regmc_move_effects.js` (`--regulation regmc`): a 100% secondary stat drop and a certain self-boost, each
+  from a move Reg M-B's table has no row for, chosen from the dex; and a row for every legal move. Exit 0 clean; exit 1
+  under the knob and on the 0.22.0 engine bytes.
+
+### Changed
+- `build/build_browser_data.js` writes each output where the selected regulation reads it, and SKIPS
+  `data/mega-formes.js` (printed) under a regulation that has no copy of its own, so a Reg M-C run cannot overwrite
+  Reg M-B's file.
+- `tests/test-regulation-table.js` expects the move-effects copy in an M-C cut; `tests/test-regulation-artifacts.js`
+  drops it from `NOT_YET`.
+- `.gitattributes` pins `data/move-effects-regmc.js` to LF, like its Reg M-B twin: it is frozen into every M-C release,
+  and an unpinned LF file is rewritten CRLF by a checkout, which moves the release id with no code change.
+
+### Notes
+- The Reg M-C table differs from Reg M-B's on the 15 new moves and on one shared row: Curse carries no `volatile` in
+  the Reg M-C checkout.
+- Reg M-B unmoved: `data/tags.json`, `data/protocol-events.json` and `data/move-effects.js` byte-identical; damage
+  differential identical but for its output-path line (control seed differs); lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
 ## [0.22.0] — 2026-09-21
 
 ### Added
