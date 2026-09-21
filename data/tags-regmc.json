@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-21T21:01:28.775Z",
+ "generated": "2026-09-21T21:19:09.729Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -2987,8 +2987,8 @@
    "kind": "item",
    "param": "spent when a damaging move hits the holder; the attacker is dragged out at the end of the action",
    "why": "Red Card: a first cause of the Reg M-C smoke (the attacker stays in where the authority drags it out)",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "dragsAttackerOnHit",
+   "used": true,
    "n": 1,
    "uses": 61,
    "examples": [
@@ -3000,8 +3000,8 @@
    "kind": "item",
    "param": "spent when a damaging move hits the holder; the holder switches out at the end of the action",
    "why": "Eject Button (1,208 Reg M-C sheets); its rule changed mid-regulation (docs/REGMC.md, the Eject Button conjunction)",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "ejectsHolderOnHit",
+   "used": true,
    "n": 1,
    "uses": 1240,
    "examples": [
@@ -3134,6 +3134,19 @@
    "uses": 37,
    "examples": [
     "Disguise"
+   ]
+  },
+  {
+   "tag": "switchesOutAtHalf",
+   "kind": "ability",
+   "param": "the holder asks to switch out when a hit takes it from above half to at or below half",
+   "why": "Emergency Exit (Golisopod, 4,956 Reg M-C sheets): the authority switches the holder out, this engine kept it in",
+   "consumedBy": "switchesOutAtHalf",
+   "used": true,
+   "n": 1,
+   "uses": 5015,
+   "examples": [
+    "Emergency Exit"
    ]
   },
   {
@@ -40141,10 +40154,15 @@
   "emergencyexit": {
    "name": "Emergency Exit",
    "tags": [
-    "untagged"
+    "switchesOutAtHalf"
    ],
    "uses": 5015,
-   "params": {}
+   "params": {
+    "switchesOutAtHalf": {
+     "clearsOtherSwitches": false,
+     "announces": true
+    }
+   }
   },
   "firemane": {
    "name": "Fire Mane",

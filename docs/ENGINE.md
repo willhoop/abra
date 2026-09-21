@@ -1,3 +1,31 @@
+## REG M-C: EMERGENCY EXIT SWITCHES ITS HOLDER OUT; THE ITEM PASS ON THE PINNED DIFFERENTIAL. 2026-09-21 (abra/regmc 0.22.0)
+
+Full account: `docs/_reports/2026-09-21-regmc-items.md`.
+
+- **Tag.** Ability tag `switchesOutAtHalf {clearsOtherSwitches, announces}`, derived from `onEmergencyExit`. Members:
+  `emergencyexit`, `wimpout`; the only legal carrier in Reg M-C is Golisopod; none in Reg M-B. `clearsOtherSwitches` is
+  `false` under the M-C checkout's Champions override (a pivot into the holder switches too), `true` under mainline.
+- **Engine.** `emergencyExitAsk` at the TARGET door (a row that went from above half to at or below it on this move,
+  after the `AfterMoveSecondary` event, not under Sheer Force) and the ATTACKER door (after its own recoil, punishes and
+  Life Orb). The switch joins the end-of-action switches (`_ejectOwed`), faster leaver first. Residual and hazard
+  crossings are COUNTED (`MEDFAILS.emergencyExitOtherDoorUnmodelled`), not modelled.
+- **Probe** `tests/probe_regmc_emergency_exit.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_EMERGENCY_EXIT_INERT`, `MEDI_EMERGENCY_EXIT_MAINLINE`, and on the pre-fix engine.
+- **Classified, not fixed (narration by the differential's own board comparison):** the Double Shock `-fail` field, the
+  Inner Focus stat name (`atk`/`Attack`) and the fallen counter (`-end …fallenundefined|[silent]`). Where one of them
+  heads a board-material game, the board parts turns later on a Lucario's HP — a damage value, next pass.
+- **Reg M-B unmoved:** tags and protocol-events untouched; damage differential identical but for its output-path line;
+  lattice `--games 1200` 0 of 961 board-material.
+
+### The Reg M-C hand list, after this pass
+
+Ranked on the PINNED Reg M-C differential (`docs/_reports/2026-09-21-regmc-items.md` §5), by board-material first cause:
+
+1. **Damage values** and **faint HP written `0fnt` on one side** — the next pass (the coordinator's call).
+2. The **Aura Guard** damage card that depends on the games played before it (§1 of the report) — likely the same family.
+3. Terrain, the rest of `other`, and the narration items above.
+4. Carried: Curse under Reg M-C, the seed GAIN door, Emergency Exit's residual and hazard doors.
+
 ## REG M-C: RED CARD DRAGS THE ATTACKER; EJECT BUTTON SWITCHES ITS HOLDER OUT BESIDE A PIVOT. 2026-09-21 (abra/regmc 0.21.0)
 
 Full account: `docs/_reports/2026-09-21-regmc-items.md`.
@@ -17,7 +45,7 @@ Full account: `docs/_reports/2026-09-21-regmc-items.md`.
 - **Reg M-B unmoved:** tags and protocol-events untouched; damage differential identical but for its output-path line;
   lattice `--games 1200` 0 of 961 board-material.
 
-### The Reg M-C hand list, after this pass
+### The Reg M-C hand list, after the 0.21.0 pass — SUPERSEDED by the 0.22.0 list above
 
 The smoke's two board-material games are listed first, by what parts the BOARD, not the first protocol line:
 

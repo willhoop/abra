@@ -27,6 +27,9 @@ const ROOT = path.join(__dirname, '..');
  * that passes its own `--census` is left alone. */
 function scriptedCensusPin(name) {
   if (process.argv.includes('--census')) return null;
+  /* abra/regmc 0.19.0 (MEASURE) built the Reg M-C census; once the regulation has its own, the steering reads it and no
+   * stub is needed. The stub stays for a regulation that has none yet. */
+  if (fs.existsSync(path.join(ROOT, 'data', 'mechanics-census-regmc.json'))) return null;
   const os = require('os');
   const p = path.join(os.tmpdir(), 'abra-scripted-probe-census-' + process.pid + '.json');
   fs.writeFileSync(p, JSON.stringify({ generated: 'STUB -- ' + name + ' is scripted; no row of this file is read for a verdict',
@@ -107,7 +110,7 @@ function open(name, knobNames) {
     'terashift', 'teraformzero', 'sharpness', 'toughclaws', 'ironfist', 'reckless', 'rockhead', 'technician',
     'parentalbond', 'skilllink', 'hustle', 'compoundeyes', 'fluffy', 'furcoat', 'thickfat', 'heatproof',
     'filter', 'solidrock', 'prismarmor', 'shadowshield', 'icescales', 'punkrock', 'waterbubble', 'suctioncups',
-    'guarddog', 'shieldsdown', 'eelevate']);
+    'guarddog', 'shieldsdown', 'eelevate', 'poisontouch', 'toxicchain', 'stench', 'pickup', 'ballfetch']);
   const quiet = s => abil(s).find(a => !LOUD.has(a)) || null;
   const sure = m => m.accuracy === true || m.accuracy === 100;
   /* a plain single-target damaging move: no secondary, no self effect, no priority, no charge, no custom power */

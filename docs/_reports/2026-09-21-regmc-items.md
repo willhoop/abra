@@ -20,6 +20,18 @@ C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --steering empi
 Board-material is `state.games − state.games_board_never_diverged`. First causes are bucketed by my own script over
 the FULL `--dump-games` output, never the capped lists.
 
+
+## 0. The verdict
+
+| | |
+|---|---|
+| **now matches** | Rocky Helmet (`tests/probe_regmc_rocky_helmet.js`), Air Balloon (`tests/probe_regmc_air_balloon.js`), Red Card and Eject Button including the Champions pivot rule and each other (`tests/probe_regmc_eject_items.js`), Emergency Exit including the pivot rule (`tests/probe_regmc_emergency_exit.js`). Every probe: exit 0 clean, exit 1 under each of its knobs and on the engine bytes before its commit. |
+| **pinned Reg M-C differential** (§5, not published) | state bar **215 / 941 → 127 → 120 → 108 → 78 / 941**; every item family at 0 |
+| **Reg M-B** (§7) | `data/tags.json` and `data/protocol-events.json` byte-identical; damage differential identical but for its output-path line at every commit (control seed differs); M-B lattice at `--games 1200` 0 of 961 at every commit |
+| **item 5** (§6) | Double Shock `-fail` field, the Inner Focus stat name and the fallen counter are all **narration**, by the pinned differential's own per-cause board accounting |
+| **left** | damage values (incl. an order-dependent Aura Guard card), faint HP `0fnt`, terrain, `other`; `data/move-effects.js` is not per-regulation (§8) |
+| **versions** | 0.18.0, 0.20.0, 0.21.0, 0.22.0 — MEASURE took 0.19.0 in parallel; the later three were renumbered in a rebase |
+
 ---
 
 ## 1. Rocky Helmet (abra/regmc 0.18.0)
@@ -299,3 +311,160 @@ for the output-path line. Lattice `--games 1200` (same flags and pins as §1), r
 
 The board-material list is `state.first_board_divergences` (2 rows, so not truncated): `pair-speedctrl …2682837890`
 turn 5 (`p1.party.lucario.hp` 39 / 69), and `pair-speedctrl …2684673849` turn 3 (`p2.party.lucario.hp` 140 / 145).
+
+---
+
+## 4. Emergency Exit (abra/regmc 0.22.0)
+
+### The authority, read whole
+
+- `data/mods/champions/abilities.ts` emergencyexit :22-29 (and wimpout :96-103), overriding `data/abilities.ts`
+  :1250-1266: `if (!canSwitch(target.side) || target.forceSwitchFlag || target.switchFlag) return; target.switchFlag =
+  true; this.add('-activate', target, 'ability: Emergency Exit');`. Mainline also clears every active body's
+  `switchFlag` first; the Champions override does not, so a pivot into the holder switches too.
+- Raised by `data/mods/champions/scripts.ts:575-590` after `afterMoveSecondaryEvent`, unless Sheer Force boosted the
+  move, for every target still standing whose HP went from above half to at or below half on this move
+  (`hurtThisTurn + damage` is the HP before it); for the attacker after its recoil (`sim/battle-actions.ts:1395`), its
+  DamagingHit punishers (`scripts.ts:421`) and its AfterMoveSecondarySelf (`sim/battle-actions.ts:536-546`); and at
+  the residual and on a hazard entry (`sim/battle.ts:2863-2874`).
+
+### Tag, membership printed before wiring
+
+`switchesOutAtHalf {clearsOtherSwitches, announces}` from `onEmergencyExit`. Printed:
+
+```
+pokemon-showdown-mc  gen9championsvgc2026regmc   emergencyexit clearsOthers=false carriers=golisopod
+                                                 wimpout       clearsOthers=false carriers=(none)
+pokemon-showdown-mc  gen9championsvgc2026regmb   emergencyexit / wimpout: no legal carrier
+pokemon-showdown     (mainline handler)          clearsOthers=true
+```
+
+The structural diff of `data/tags-regmc.json` against 0.21.0 is the descriptor and the Emergency Exit row (it was
+`untagged`).
+
+### Engine
+
+`emergencyExitAsk(tg, box, owed, attacker)` is the handler. The TARGET door runs after the Red Card block (so after the
+whole AfterMoveSecondary event) over the rows, reading the HP each row had before this move (`R.hp0`, recorded at row
+creation). The ATTACKER door runs after the Life Orb toll, comparing with the attacker's HP before the action — one
+crossing over the action is the same question the authority asks three times; its line lands after the target-side
+events where a recoil crossing is announced above them in the authority (narration, said). The switch joins the owed
+end-of-action switches (the list Eject Button uses), so a U-turn into the holder switches both, faster leaver first.
+The residual and hazard doors are counted at the top of each turn (`MEDFAILS.emergencyExitOtherDoorUnmodelled`: a
+holder above half at the last look and at or below it now).
+
+### Probe — `tests/probe_regmc_emergency_exit.js --regulation regmc`
+
+| arm | staged | authority | this engine |
+|---|---|---|---|
+| CROSS | the attacker's strongest plain hit takes Golisopod from full to at or below half | `-activate`, then a bare `|switch|` | match, boards 0 |
+| STAY | its weakest plain hit leaves it above half | nothing | match, boards 0 |
+| UTURN | a weak hit on turn 1, then a U-turn that crosses on turn 2 | `-activate` right below the U-turn's damage; the pivot `[from] U-turn` AND the holder switch | match, boards 0 |
+
+| run | exit | red |
+|---|---|---|
+| clean | 0 | none |
+| `MEDI_EMERGENCY_EXIT_INERT=1` | 1 | CROSS, UTURN |
+| `MEDI_EMERGENCY_EXIT_MAINLINE=1` | 1 | UTURN (the pivot is cancelled; the authority keeps it) |
+| `--medi` the 0.21.0 engine bytes | 1 | CROSS, UTURN |
+
+The first UTURN cast was a Sneasler whose U-turn did NOT cross; the exit came at the end of the turn from a poison
+residual — the residual door this pass does not model. The arm now requires the `-activate` directly below the U-turn's
+own damage, and `poisontouch`, `toxicchain`, `stench`, `pickup` and `ballfetch` joined the kit's list of loud abilities.
+
+---
+
+## 5. The pinned Reg M-C differential, commit by commit
+
+Main moved to `f4f91de2` mid-pass (MEASURE's Reg M-C census, abra/regmc 0.19.0), so every item was re-measured on the
+scoreboard the gate reads. The command (`docs/_reports/2026-09-21-regmc-census.md` §6), each run on a Reg M-C release cut
+from that commit's engine bytes and `data/tags-regmc.json`:
+
+```
+node engine/game_differential.js --regulation regmc --steering empirical --arm middle --end-state \
+  --census data/verification/census-pin-regmc-98c69a4fee7f.json \
+  --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc \
+  --release <id> --games 1200 --write --out <scratch>                (via tools\lownode.cmd)
+```
+
+The team store is the main tree's (the worktree has none); the base run reproduces MEASURE's own reading exactly
+(215 of 941, 14 void, 6 threw), so the sample is the same one. The state bar is `state.games −
+state.games_board_never_diverged`. Families are my own grouping of `end_state[0].summary.by_cause` rows whose
+materiality is BOARD-MATERIAL, games = `board_parted`.
+
+| engine | release | state bar | void | threw | Rocky Helmet | Air Balloon | Red Card | Eject Button | Emergency Exit |
+|---|---|---|---|---|---|---|---|---|---|
+| main `f4f91de2` (no items) | `3abd3ccd6d63` | **215 / 941** | 14 | 6 | 89 | 10 | — | 13 | 28 |
+| + Rocky Helmet, 0.18.0 (`9fe1047f`) | `20bbe443aded` | **127 / 942** | 13 | 6 | 0 | 9 | 1 | 13 | 28 |
+| + Air Balloon, 0.20.0 (`25c3c7fa`) | `e41dd12afd8a` | **120 / 942** | 13 | 6 | 0 | 0 | 1 | 13 | 29 |
+| + Red Card / Eject Button, 0.21.0 (`2bec9d42`) | `ed2591d7fb99` | **108 / 942** | 13 | 7 | 0 | 0 | 0 | 0 | 29 |
+| + Emergency Exit, 0.22.0 (before the guard) | `31367487ac11` | **78 / 941** | 14 | 7 | 0 | 0 | 0 | 0 | 0 |
+| + the `move-effects` null guard, 0.22.0 as committed | `c2cce00ddfc8` | **78 / 941** | 14 | 5 | 0 | 0 | 0 | 0 | 0 |
+
+What is left, by the same grouping on the last run: damage values 31, `other` 28, faint HP written `0fnt` on one side
+14, terrain 8, games headed by the Inner Focus stat name 7 (narration at the line; see §6).
+
+The Red Card game that appears after Rocky Helmet had been hidden behind an earlier helmet divergence. The THREW column:
+the 0.21.0 build lost two games to a null read that its changed paths reached (§8); the guard recovered them.
+
+The unpinned 100-game smoke, for the record, read 16/86 → 6/87 → 3/87 → 2/87 → 2/87 across the same four passes
+(release ids and first-cause tables in §1-§3); it held one Eject Button game and no Emergency Exit game by the end, which
+is why the pinned run, not the smoke, is the scoreboard.
+
+---
+
+## 6. Item 5 — classified, not fixed: all three are narration
+
+**The instrument that decided** is the pinned differential's own per-cause board accounting,
+`end_state[0].summary.by_cause` (`board_parted`, `board_parted_same_turn` / `_later` / `_earlier`, `materiality`),
+read on the 0.21.0 pinned run (release `ed2591d7fb99`). A cause is narration when its line writes no board leaf: every
+game it heads either never parts a board, or parts it on a LATER turn for another reason.
+
+| cause | games headed | board parted | same turn | later / earlier | verdict |
+|---|---|---|---|---|---|
+| Double Shock `-fail` field (`-fail|X|move: Double Shock` vs bare `-fail|X`) | 5 | 0 | 0 | 0 / 0 | **narration** (1 of the 5 threw for another reason) |
+| Inner Focus stat name (`unboost|atk` vs `unboost|Attack`) | 22 | 8 | 0 | 7 / 1 | **narration**: the line never parts a board; the 8 part turns later |
+| the fallen counter (`-end|X|fallenundefined|[silent]`, the authority's own unset field) | 2 | 0 | 0 | 0 / 0 | **narration** |
+
+The unpinned smoke says the same: on the post-Eject smoke the two board-material games are a fallen-counter game whose
+board parts at turn 5 (protocol parted at turn 3) and an Inner Focus game whose board parts at turn 3 (protocol parted at
+turn 0) — both on a Lucario's HP, the damage-value family the coordinator has assigned to the next pass.
+
+**A finding on the way, not fixed:** the Inner Focus label is a typed table (`STAT_LABEL`, `Attack`) that was right for
+the Reg M-B checkout (`data/abilities.ts` innerfocus writes `'Attack'` there) and is wrong for the Reg M-C one (it writes
+`'atk'`, :2160). The fix is to derive the label from the handler into `preventsStatDrop`, which only the new
+regulation's tag file would carry.
+
+## 7. Reg M-B unmoved, every commit
+
+| commit | `tags.json` / `protocol-events.json` sha256 | damage differential `--n 6000 --seed 20260804` vs base | M-B lattice `--games 1200` |
+|---|---|---|---|
+| 0.18.0 Rocky Helmet | unchanged | identical but for the output-path line | release `7282513b2123`: 0 of 961 |
+| 0.20.0 Air Balloon | unchanged | identical but for the output-path line | release `6b729c1e1ebc`: 0 of 961 |
+| 0.21.0 Red Card / Eject Button | unchanged | identical but for the output-path line | release `797c246b186d`: 0 of 961 |
+| 0.22.0 Emergency Exit + guard | unchanged | identical but for the output-path line | release `03ed288569bd`: 0 of 961 (and `7158c5f8ae94` before the guard) |
+
+Control for the comparator: seed `20260805` on the base bytes differs from the base on 154 diff lines. The base is
+`f199efb2`'s engine; `tests/test-engine-diff.js` was run with `SHOWDOWN_PATH` = the M-B checkout and `--out` under
+`data/verification/` (never the published artifact). Every lattice: `--steering empirical --arm middle --end-state
+--census <a copy of HEAD's census> --team-store <main tree>/data/team-pool-frozen --games 1200`, 0 VOID, 0
+protocol-parted. No Reg M-B census or roster row was added.
+
+## 8. Found on the way, not fixed
+
+1. **`data/move-effects.js` is not per-regulation.** 15 legal Reg M-C moves have no row, so their secondaries and self
+   effects are not modelled — Glaive Rush, Double Shock, Revival Blessing, Drum Beating (a secondary), Meteor Assault,
+   Overdrive, Pyro Ball (a secondary), Snipe Shot, Slash, Milk Drink, Octolock, Zing Zap (a secondary), Court Change,
+   Jaw Lock, Shift Gear. One reader assumed a row and threw (fixed with a guard and a counter, 0.22.0). The table needs a
+   Reg M-C build and a `fileFor` key, like the tag file.
+2. **The Aura Guard damage card depends on the games before it.** §1: the Wave Crash into a Lucario-Mega-Z agreed in
+   isolation and parted in the full run. The two remaining board-material games of the late smoke part on a Lucario's
+   HP too. Likely the same cause; the damage-value family is the next pass.
+3. **Emergency Exit's residual and hazard doors** are counted, not modelled.
+4. **The Inner Focus label** is a typed table right for Reg M-B's checkout and wrong for Reg M-C's (§6).
+5. **The staged harness cannot show a switch this engine does not make** (§3). And the pivot `[from]` spelling
+   (`U-turn` vs `uturn`) is folded in the kit's comparison; the driver already declares it.
+6. **Unchanged from 0.16.0:** the seed GAIN door, Curse under Reg M-C, species names with an apostrophe.
+7. **Scratch artifacts:** the damage-differential runs wrote `data/verification/_items-a37b-ediff-*.json`
+   (untracked, mine) and the smokes `data/_scratch-items-smoke-*.json` (git-ignored, mine). Nothing else was written
+   under `data/` except `data/tags-regmc.json` (committed) and the release store.

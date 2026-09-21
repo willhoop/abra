@@ -2201,6 +2201,8 @@ const MEDSEEN = { floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepAct
    * ability; Eject Button spent / its holder switched out / a pivot that switched as well (Champions' rule). */
   redCardSpent: 0, redCardDragged: 0, redCardDragRefused: 0,
   ejectButtonSpent: 0, ejectButtonSwitched: 0, ejectButtonKeptPivot: 0, ejectButtonCancelledPivot: 0,
+  /* 2026-09-21 (Reg M-C, abra/regmc 0.22.0) -- Emergency Exit asked / switched / cleared the other switches (mainline). */
+  emergencyExitAsked: 0, emergencyExitSwitched: 0, emergencyExitClearedOthers: 0,
   /* WIRE 119 -- a move REFUSED at execution time by a category-forbidding volatile (Taunt). This is
    * the half the interaction matrix was failing on: the holder clicks Taunt in the same turn, so the
    * target's already-chosen status move has to FAIL when it runs. A zero here after games with a
@@ -5156,6 +5158,13 @@ const MEDFAILS = { encoreAction: 0, anticipationNoState: 0, anticipationMoveUnkn
    * Red Card on a spread move whose two holders both qualify (only the first can drag -- `source.forceSwitchFlag`); a
    * Red Card drag refused by Ingrain (a volatile this lookup does not read). */
   ejectSwitchOrderTie: 0, redCardIngrainUnmodelled: 0,
+  /* 2026-09-21 (Reg M-C, abra/regmc 0.22.0) -- an Emergency Exit holder found at or below half at the top of a turn having
+   * been above it at the last look, without the hit door having asked: the residual or the hazard door, not modelled. */
+  emergencyExitOtherDoorUnmodelled: 0,
+  /* 2026-09-21 (Reg M-C, abra/regmc 0.22.0) -- a move with no row in data/move-effects.js reached the statusInflict
+   * volatile read. That table is built for one regulation; under another, a move new to the format has no row and its
+   * secondaries are not modelled. Counted, with the first id. */
+  moveFxMissing: 0, moveFxMissingFirst: '',
   /* ROADMAP #242 -- a terrain that IS up and for which `data/residual-order.json` publishes no
    * `expiry:` row, so its clock has no position in the walk to be spent at. Non-zero means the
    * terrain never comes down, which is the exact shape the first draft of `residualExpireAt` shipped
@@ -13688,6 +13697,31 @@ function balloonAnnounce(m,field){
  * KNOBS. MEDI_RED_CARD_INERT=1 and MEDI_EJECT_BUTTON_INERT=1 do nothing (the pre-0.21.0 engine held both forever).
  * MEDI_EJECT_BUTTON_MAINLINE=1 applies mainline's rule (the button cancels the attacker's pivot). Each stamps MEDFAILS. */
 const RED_CARD_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_RED_CARD_INERT==='1');
+/* 2026-09-21 (Reg M-C, abra/regmc 0.22.0) -- EMERGENCY EXIT (`switchesOutAtHalf`). The Champions handler
+ * (data/mods/champions/abilities.ts :22-29): `canSwitch`, not dragged, not already switching -> `switchFlag = true` and
+ * `-activate|HOLDER|ability: Emergency Exit`. Raised (data/mods/champions/scripts.ts:575-590) after the AfterMoveSecondary
+ * event for every target still standing that went from above half to at or below half on this move (not under a Sheer
+ * Force-boosted move), and for the ATTACKER after its own recoil, punishes and AfterMoveSecondarySelf
+ * (sim/battle-actions.ts:530-546, :1395; scripts.ts:421). The switch is one of the end-of-action switches, beside an
+ * Eject Button's and a pivot's. The residual and hazard doors (sim/battle.ts:2863-2874) are COUNTED, not modelled.
+ * MEDI_EMERGENCY_EXIT_INERT=1 never exits; MEDI_EMERGENCY_EXIT_MAINLINE=1 clears the other switches (mainline's rule). */
+const EMERGENCY_EXIT_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_EMERGENCY_EXIT_INERT==='1');
+const EMERGENCY_EXIT_MAINLINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_EMERGENCY_EXIT_MAINLINE==='1');
+if(EMERGENCY_EXIT_INERT)MEDFAILS.emergencyExitInertRestored=1;
+if(EMERGENCY_EXIT_MAINLINE)MEDFAILS.emergencyExitMainlineRestored=1;
+/* the ability's own handler, once a crossing has been seen: returns true when the holder now owes a switch */
+function emergencyExitAsk(tg,bx,owed,m){
+  const p=TAGS.param('ability',tg.ability,'switchesOutAtHalf');
+  if(!p||EMERGENCY_EXIT_INERT)return false;
+  if(!canDragIn(bx.bench))return false;                                      // canSwitch(target.side)
+  if(owed.some(e=>e.tg===tg))return false;                                   // target.switchFlag
+  if(p.clearsOtherSwitches||EMERGENCY_EXIT_MAINLINE){ owed.length=0; if(m)m._pivotCancelledByEject=true; MEDSEEN.emergencyExitClearedOthers++; }
+  if(TR&&p.announces)TR.act(tg,'ability: '+abilityLabel(tg.ability));
+  owed.push({tg,bx,ee:true});
+  tg._eeHP=tg.curHP;
+  MEDSEEN.emergencyExitAsked++;
+  return true;
+}
 const EJECT_BUTTON_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_EJECT_BUTTON_INERT==='1');
 const EJECT_BUTTON_MAINLINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_EJECT_BUTTON_MAINLINE==='1');
 if(RED_CARD_INERT)MEDFAILS.redCardInertRestored=1;
@@ -31298,6 +31332,14 @@ function payItemPunish(m,tg,n,moveId,use){
   return _paid;
 }
 function battleTurn(S,rng,actsForA,actsForB){
+  /* 2026-09-21 (Reg M-C, abra/regmc 0.22.0) -- the Emergency Exit doors this engine does not model (the residual and the
+   * hazards, sim/battle.ts:2863-2874) are COUNTED: a holder above half at the last look and at or below it now. */
+  for(const _b of [...((S&&S.actA)||[]),...((S&&S.actB)||[])]){
+    if(!_b||_b.fainted||_b.curHP<=0||!TAGS.param('ability',_b.ability,'switchesOutAtHalf'))continue;
+    const _h=_b.st.hp/2;
+    if(_b._eeHP!=null&&_b._eeHP>_h&&_b.curHP<=_h)MEDFAILS.emergencyExitOtherDoorUnmodelled++;
+    _b._eeHP=_b.curHP;
+  }
   /* ROADMAP #262 -- the event address's outer two fields. Showdown prints `|turn|N` for the turn it is
    * about to play and `S.turn` is incremented at the BOTTOM of this function, so the turn now running
    * is `S.turn + 1` -- the same arithmetic the trace on the next few lines already uses. */
@@ -42108,7 +42150,8 @@ function battleTurn(S,rng,actsForA,actsForB){
        * after the secondaries; the resist berry is still spent in the apply step and Showdown spends it
        * inside getDamage. Both are ordering divergences WITHIN a step, they are filed in docs/ENGINE.md,
        * and folding them in here would make it impossible to say which change moved the ladder. */
-      const _rows=[]; for(const tg of targets){ if(!tg||tg.fainted)continue; _rows.push({tg}); }
+      const _rows=[]; for(const tg of targets){ if(!tg||tg.fainted)continue; _rows.push({tg,hp0:tg.curHP}); }
+      const _mHp0=m.curHP;   // 2026-09-21 (Reg M-C) -- the attacker's HP before this action, for Emergency Exit
       /* ================= ROADMAP #262 -- A SECONDARY IS NOT ADDRESSED TO THE BODY IT HITS =========
        *
        * THIS IS AN INSTRUMENT LINE, NOT A GAME LINE, and saying so first matters: `MID_TGT` is read
@@ -47196,7 +47239,12 @@ function battleTurn(S,rng,actsForA,actsForB){
            * with a real roll must not become guaranteed by arriving through this door. */
           {const _pv=TAGS.param('move',a.move.id,'statusInflict');
            if(_pv&&Array.isArray(_pv.effects)&&tg&&!tg.fainted){
-             const _secVol=new Set((fx.secondary||[]).map(s=>s&&s.volatile).filter(Boolean));
+             /* 2026-09-21 (Reg M-C, abra/regmc 0.22.0) -- `fx` IS NULL FOR A MOVE WITH NO ROW IN data/move-effects.js,
+              * and that table is NOT per-regulation: Octolock and Zing Zap (and 13 other legal Reg M-C moves) have
+              * none, so this line threw and the game was lost (two pinned games, once the Eject Button pass changed
+              * what they played). Guarded, and COUNTED: a missing row also means the move's secondaries are unmodelled. */
+             if(!fx){ MEDFAILS.moveFxMissing++; if(!MEDFAILS.moveFxMissingFirst)MEDFAILS.moveFxMissingFirst=String(a.move.id); }
+             const _secVol=new Set(((fx&&fx.secondary)||[]).map(s=>s&&s.volatile).filter(Boolean));
              for(const _e of _pv.effects){
                if(!_e||!_e.volatile)continue;
                if(_e.to!=null&&_e.to!=='target')continue;
@@ -49131,6 +49179,23 @@ function battleTurn(S,rng,actsForA,actsForB){
           _redCardDrag=true;
         }
       }
+      /* 2026-09-21 (Reg M-C, abra/regmc 0.22.0) -- EMERGENCY EXIT, THE TARGET DOOR: every target still standing whose HP went
+       * from above half to at or below half on this move, unless Sheer Force boosted it. See `emergencyExitAsk`. */
+      {
+        const _rosE=TAGS.param('ability',m.ability,'removesOwnSecondaries');
+        const _sfE=_rosE&&(()=>{const f=moveFx(a.move.id);return !!(f&&f.secondary&&f.secondary.length);})();
+        if(!_sfE&&!TAGS.has('move',a.move.id,'statusCategory'))for(const R of _rows){
+          const tg=R.tg;
+          if(R.out||!tg||tg===m||tg.fainted||tg.curHP<=0||R.hp0==null)continue;
+          if(!TAGS.param('ability',tg.ability,'switchesOutAtHalf'))continue;
+          const _half=tg.st.hp/2;
+          const _crossed=R.hp0>_half&&tg.curHP<=_half;
+          tg._eeHP=tg.curHP;
+          if(!_crossed)continue;
+          {const _fsX=TAGS.param('move',a.move.id,'forcesSwitch'); if(_fsX&&_fsX.forceSwitch)continue;}   // target.forceSwitchFlag
+          emergencyExitAsk(tg,sideBoxOf(tg,it,actA,actB,benchA,benchB,sfA,sfB),_ejectOwed,m);
+        }
+      }
       /* ==== 2026-09-19 -- `onAfterMove`: THE BODIES THIS MOVE HIT ARE CURED OF A NAMED STATUS =====
        *
        * SPARKLING ARIA'S WHOLE POINT, AND THIS ENGINE HAD NONE OF IT. The move's 100% secondary marks
@@ -49397,6 +49462,16 @@ function battleTurn(S,rng,actsForA,actsForB){
          * with one at all. */
         if(!_sfB)payOrbToll(m,_loC);
       }
+      /* 2026-09-21 (Reg M-C, abra/regmc 0.22.0) -- EMERGENCY EXIT, THE ATTACKER DOOR: its recoil, a punisher and its own
+       * AfterMoveSecondarySelf (Life Orb) each ask; one crossing over the whole action is the same question. The line is
+       * paid here, after the toll -- a crossing on the recoil is announced below the target-side events where the
+       * authority announces it above them (narration; counted as `emergencyExitAttackerLatePosition` is not attempted). */
+      if(!m.fainted&&m.curHP>0&&TAGS.param('ability',m.ability,'switchesOutAtHalf')){
+        const _cross=_mHp0>m.st.hp/2&&m.curHP<=m.st.hp/2;
+        m._eeHP=m.curHP;
+        if(_cross&&!TAGS.has('move',a.move.id,'statusCategory')&&!_redCardDrag)
+          emergencyExitAsk(m,sideBoxOf(m,it,actA,actB,benchA,benchB,sfA,sfB),_ejectOwed,null);
+      }
       /* ROADMAP #175 -- MAGICIAN. The `takesFrom:'target'` HALF of `stealsItem`.
        *
        * data/abilities.ts:2467-2485, no Champions override. It hangs off `AfterMoveSecondarySelf`,
@@ -49524,7 +49599,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * ordered by speed with it below the drags (`_ejectOwed`). */
         if(_redCardDrag){MEDSEEN.pivotRefusedByRedCard=(MEDSEEN.pivotRefusedByRedCard|0)+1;}
         else if(m._pivotCancelledByEject){MEDSEEN.ejectButtonCancelledPivot++;}
-        else if(_ejectOwed.length){ if(idx>=0)_ejectOwed.push({pivot:true,tg:m,own,idx,bench,foes,sf}); }
+        else if(_ejectOwed.length){ if(idx>=0&&!_ejectOwed.some(e=>e.tg===m))_ejectOwed.push({pivot:true,tg:m,own,idx,bench,foes,sf}); }
         else if(idx>=0)pivotFrom(a.move.id,()=>switchOut(own,idx,bench,foes,sf,field,a.pivotTo));
       }
       /* WIRE 40 -- DRAGON TAIL AND CIRCLE THROW, the DAMAGING half of forcesSwitch. They carry base
@@ -49661,7 +49736,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           const tg=e.tg, _i=e.bx.own.indexOf(tg);
           if(_i<0||tg.fainted||tg.curHP<=0||!canDragIn(e.bx.bench))continue;
           const _want=(S&&S.replaceWith)?S.replaceWith[sideOfBody(tg,actA)]:undefined;
-          if(switchOut(e.bx.own,_i,e.bx.bench,e.bx.foes,e.bx.sf,field,_want))MEDSEEN.ejectButtonSwitched++;
+          if(switchOut(e.bx.own,_i,e.bx.bench,e.bx.foes,e.bx.sf,field,_want)){ if(e.ee)MEDSEEN.emergencyExitSwitched++; else MEDSEEN.ejectButtonSwitched++; }
         }
         if(_hadPivot)MEDSEEN.ejectButtonKeptPivot++;
       }

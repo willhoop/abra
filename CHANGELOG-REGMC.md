@@ -21,6 +21,39 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.22.0] — 2026-09-21
+
+### Added
+- **Emergency Exit.** Ability tag `switchesOutAtHalf` (`engine/tag_dex.js`), derived from `onEmergencyExit`; its members
+  are Emergency Exit and Wimp Out, and the only legal carrier in Reg M-C is Golisopod (none in Reg M-B).
+  `clearsOtherSwitches` is read off the handler the format resolves: `false` under the Champions override in the M-C
+  checkout, so a pivot into the holder switches too; `true` under mainline.
+- The engine asks at the two move doors: a target the move took from above half to at or below it (after the
+  `AfterMoveSecondary` event, not under a Sheer Force-boosted move), and the attacker after its own recoil, punishes and
+  Life Orb. The switch is one of the end-of-action switches beside an Eject Button's and a pivot's. Knobs
+  `MEDI_EMERGENCY_EXIT_INERT` and `MEDI_EMERGENCY_EXIT_MAINLINE`.
+- `tests/probe_regmc_emergency_exit.js` (`--regulation regmc`): a crossing hit (announce, switch), a hit that stays
+  above half (nothing), a U-turn that crosses (both switch). Exit 0 clean, 1 under each knob and on the pre-fix engine.
+
+### Changed
+- `tests/regmc_probe_kit.js` pins its census stub only while the regulation has no census of its own; Reg M-C has one
+  since 0.19.0.
+
+### Fixed
+- **Two pinned Reg M-C games threw** (`Cannot read properties of null (reading 'secondary')`) once the Eject Button pass
+  changed what they played: the statusInflict volatile read assumed every move has a row in `data/move-effects.js`, and
+  that table is not per-regulation. Guarded and counted (`MEDFAILS.moveFxMissing`). The missing rows themselves are a
+  finding for the next pass: 15 legal Reg M-C moves have none, so their secondaries are not modelled.
+
+### Notes
+- Counted, not modelled: the residual and hazard doors (`MEDFAILS.emergencyExitOtherDoorUnmodelled`). An attacker's
+  crossing on its recoil is announced after the target-side events rather than above them (narration).
+- The Double Shock `-fail` field, the Inner Focus stat name and the fallen counter were classified, not fixed: all
+  three are narration by the differential's own board comparison. See the report.
+- Reg M-B unmoved: tags and protocol-events byte-identical; the damage differential identical but for its output-path
+  line; the Reg M-B lattice at `--games 1200` reads 0 board-material.
+- Pinned Reg M-C readings are in the report and are not published. **Supersedes.** Nothing. **Basis.** unchanged.
+
 ## [0.21.0] — 2026-09-21
 
 ### Added

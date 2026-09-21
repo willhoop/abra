@@ -53,6 +53,17 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.22.0] — 2026-09-21 — **Emergency Exit switches its holder out, and the item pass is measured on the pinned differential**
+
+- **What changed.** Ability tag `switchesOutAtHalf` (derived; Golisopod is the only legal Reg M-C carrier; none in Reg
+  M-B) and its consumer `emergencyExitAsk` at the target and attacker doors in `engine/medicham2-browser.js`. Probe
+  `tests/probe_regmc_emergency_exit.js`. The Double Shock `-fail` field, the Inner Focus stat name and the fallen counter
+  are classified as narration. The four item passes (0.18.0, 0.20.0, 0.21.0 and this one) are each measured on the
+  PINNED Reg M-C differential (`--games 1200`, census pin `census-pin-regmc-98c69a4fee7f`).
+- **Measured.** NO FIGURE published. The pinned readings, commit by commit, are in
+  `docs/_reports/2026-09-21-regmc-items.md` §5. Reg M-B is unmoved (damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.21.0] — 2026-09-21 — **Red Card drags the attacker, and Eject Button switches its holder out beside a pivot**
 
 - **What changed.** Item tags `dragsAttackerOnHit` and `ejectsHolderOnHit` (derived; membership printed first: Red Card

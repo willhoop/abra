@@ -7108,6 +7108,23 @@ const ABILITY_TAGS = [
    * members in the format, printed before it was wired: `suctioncups` and `guarddog`. Guard Dog has no
    * legal carrier in this regulation, which is a fact about the SPECIES POOL and not a reason to match
    * on the one name that does -- a later regulation adding a carrier needs no edit here. */
+  /* 2026-09-21 (Reg M-C, abra/regmc 0.22.0) -- EMERGENCY EXIT. Champions overrides it (data/mods/champions/abilities.ts
+   * emergencyexit :22-29 and wimpout :96-103 in the M-C checkout):
+   *     onEmergencyExit(target) { if (!this.canSwitch(target.side) || target.forceSwitchFlag || target.switchFlag) return;
+   *                               target.switchFlag = true; this.add('-activate', target, 'ability: Emergency Exit'); }
+   * Mainline (data/abilities.ts :1250-1266) ALSO clears every active body's switchFlag first, so a pivot into the holder
+   * does not switch there. DERIVED FROM THE HANDLER: `onEmergencyExit` sets `target.switchFlag = true`;
+   * `clearsOtherSwitches` is read off the handler the format resolves (false in the M-C checkout's mod, true in the
+   * mainline one). Membership, printed before wiring: `emergencyexit` and `wimpout`; the only legal carrier in
+   * gen9championsvgc2026regmc is Golisopod (Emergency Exit); neither has a legal carrier in gen9championsvgc2026regmb. */
+  { tag: 'switchesOutAtHalf', param: 'the holder asks to switch out when a hit takes it from above half to at or below half',
+    probe: 'switchesOutAtHalf',
+    why: 'Emergency Exit (Golisopod, 4,956 Reg M-C sheets): the authority switches the holder out, this engine kept it in',
+    of: a => {
+      const s = String(a.onEmergencyExit || '').replace(/\s+/g, ' ');
+      if (!/target\.switchFlag\s*=\s*true/.test(s)) return null;
+      return { clearsOtherSwitches: /active\.switchFlag\s*=\s*false/.test(s), announces: /this\.add\(\s*["']-activate["']/.test(s) };
+    } },
   { tag: 'refusesForcedSwitch', param: 'the holder cannot be dragged out by a move or an item',
     probe: 'onDragOut',
     why: 'Suction Cups: Showdown drags the body out and this engine did not move the board, because '
