@@ -1,3 +1,33 @@
+## REG M-C: ROCKY HELMET TOLLS THE ATTACKER. 2026-09-21 (abra/regmc 0.18.0)
+
+Full account: `docs/_reports/2026-09-21-regmc-items.md`.
+
+- **Tag.** Item tag `punishesAttackerItem {trigger, fraction, order}`, derived from `onDamagingHit` (the attacker
+  damaged by a fraction of its own `baseMaxhp`, behind `checkMoveMakesContact`). Membership printed before wiring,
+  whole dex, both checkouts: `rockyhelmet` only; legal in Reg M-C, `Past` in Reg M-B.
+- **Engine.** `payItemPunish` (one arrival at a time from the packet loop, the rest from `_stepDamagingHitItem`),
+  a new ORDER-2 pass between `_stepDamagingHitEarly` and `_stepDamagingHitBody`, so Rough Skin (order 1) pays first
+  and an undeclared ability after. A doll that ate the hit pays nothing; Magic Guard refuses it
+  (`refusesIndirect`); an attacker already on 0 HP pays nothing; a holder the hit knocked out still tolls.
+- **Probe** `tests/probe_regmc_rocky_helmet.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_ROCKY_HELMET_INERT`, `MEDI_ROCKY_HELMET_ONCE`, and on the pre-fix engine bytes.
+- **Reg M-B unmoved:** tags and protocol-events untouched; damage differential identical but for its output-path
+  line (control seed differs); lattice `--games 1200` 0 of 961 board-material.
+
+### The Reg M-C hand list, after this pass
+
+Ranked by first cause in the smoke's full dump. Rocky Helmet has left the list;
+`tests/probe_regmc_rocky_helmet.js` carries it now.
+
+1. **Air Balloon** — 3 games: no `-item` announce on entry and no pop on a hit.
+2. **Double Shock `-fail` field** — 3 games.
+3. **Inner Focus stat name** `atk`/`attack` — 2 games.
+4. **Red Card / Eject Button** — 1 game. **Emergency Exit** — carried (its one game is absent from the after dump, unexplained). **The fallen
+   counter** — 1 game.
+5. A damage value on one game that was VOID before this pass (Wave Crash into a Lucario), not yet opened.
+6. Carried: Curse under Reg M-C (`statChangeInCode {on:'target'}`), species names with an apostrophe, the seed
+   GAIN door.
+
 ## REG M-C: THE TERRAIN SEEDS FIRE, AND THE GRASSY "HEAL ORDER" CARD WAS A MISSING SEMI-INVULNERABLE GATE. 2026-09-21 (abra/regmc 0.16.0)
 
 Full account: `docs/_reports/2026-09-21-regmc-seeds.md`.
@@ -16,7 +46,7 @@ Full account: `docs/_reports/2026-09-21-regmc-seeds.md`.
   launcher line (control seed differs); M-B lattice `--games 1200` 0 of 961 board-material.
 - Smoke, same sample (unpinned, not published): board-material 43/86 → 16/86; seed causes 30 → 0.
 
-### The Reg M-C hand list, after this pass
+### The Reg M-C hand list, after the 0.16.0 pass — SUPERSEDED by the 0.18.0 list above
 
 Ranked by first cause in the 0.16.0 smoke's dump (the full dump, not the capped lists). The seeds and the
 Grassy heal have left the list; `tests/probe_regmc_terrain_seeds.js` carries them now.

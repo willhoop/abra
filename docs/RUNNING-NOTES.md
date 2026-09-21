@@ -44,6 +44,7 @@ reads SemVer 2.0.0 clauses 6, 7 and 8 against an API that is the figures this pr
 Copy this shape. Four lines is a good row; a paragraph is a report and belongs in `docs/_reports/`.
 
 ```
+
 ## [5.267.0] — 2026-09-06 — one line naming what moved
 - **What changed.** The mechanic, the instrument, or the document. Name the file.
 - **Measured.** <figure> — `data/<artifact>.json`, n=<sample>, against <baseline>.  Or: NO FIGURE.
@@ -68,6 +69,18 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
   usage are identical to what HEAD's code produces. Its gate differs from HEAD in one line, the size of the
   artifact inventory, because the inventory counts every file in `data/`. Every clause is identical.
 - **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none; the runbook rows are the document.
+
+## [abra/regmc 0.18.0] — 2026-09-21 — **Rocky Helmet tolls the attacker**
+
+- **What changed.** Item tag `punishesAttackerItem` (derived from the handler; membership printed first: Rocky
+  Helmet only, legal in Reg M-C, `Past` in Reg M-B) and its consumer `payItemPunish` in
+  `engine/medicham2-browser.js`, paid in its own order-2 pass of the one `DamagingHit` event. Probe
+  `tests/probe_regmc_rocky_helmet.js`. No census row: no member is legal in Reg M-B. Also: every Reg M-C staged
+  probe died at load after 0.17.0 (no Reg M-C census for the steering); a scripted probe now pins a declared stub
+  (`tests/regmc_probe_kit.js`), and the seeds probe runs again.
+- **Measured.** NO FIGURE published. Reg M-B is unmoved (damage differential, lattice at 1200); the Reg M-C smoke is
+  unpinned, and its before/after on one sample is in `docs/_reports/2026-09-21-regmc-items.md`.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
 
 ## [abra/regmc 0.17.0] — 2026-09-21 — **The MEDICHAM gate answers per regulation, and a Reg M-C run can no longer move Reg M-B's evidence**
 
@@ -2317,6 +2330,7 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 - **Basis.** unchanged.
 - **Supersedes.** Nothing.
 - **Owed to the next major.** none — dated records.
+
 ## [5.274.0] — 2026-09-09 — batch X: an immunity priced as a zero chance still drew a die, and the substitute question turns out not to be about the step list
 - **What changed.** `engine/medicham2-browser.js`, three mechanisms, each shown RED first with a restoring knob. (1) **`hitStepAccuracy` `continue`s ABOVE its own `randomChance`**; this engine priced a type immunity as `hitChance -> 0`, and **zero is finite**, so it drew and missed — two defects in one return value, the wrong line AND an accuracy draw the authority never takes. (2) **`addVolatile` returns false on a condition with no `onRestart`**, and the redirect branch wrote both the mark and the line unconditionally; `attrStill()` is part of the fix rather than decoration. (3) **A charge move's pre-major line is owed at `onBeforeMove` priority 100**, the maximum of fifteen, and was written at the `|move|` line, which a refused body never reaches — **the engine's own comment had named this hole on 2026-08-24**.
 - **Measured.** **Gate narration 15 → 12 of 961, causes 16 → 13, zero transfers.** **BOARD-MATERIAL 0 of 958 after every one of the three edits, on three separate releases — not once at the end.** The cards' own games: **3 stopped, 0 started, 0 changed cause**. Census 830/830; roster 0 DIFFER / 0 DID-NOT-FIRE with anchors 18/44/36/17 live and **none dead**; `test-engine-diff` 6000/0; `test-resolution-order` still 26/26; `probe_red_demo` 200/0/0. Gate 1 of 9.
@@ -2774,6 +2788,7 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
   declared against an in-generator reader.
 
 ---
+
 ## [5.267.0] — 2026-09-06 — a major release is defined, and the counter that was to bound the deferral had never read a row
 
 - **What changed.** `CLAUDE.md` gained *What counts as a major*: ABRA's declared public API is the

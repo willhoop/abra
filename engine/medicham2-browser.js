@@ -2192,6 +2192,9 @@ const MEDSEEN = { floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepAct
   /* 2026-09-21 (Reg M-C) -- THE TERRAIN SEEDS (see `seedSpend`). `seedSpent` is every spend; the two roads are
    * counted apart because a run with a Surge lead in it where `OnTerrainChange` stays 0 is the change road missing. */
   seedSpent: 0, seedSpentOnEntry: 0, seedSpentOnTerrainChange: 0,
+  /* 2026-09-21 (Reg M-C, abra/regmc 0.17.0) -- Rocky Helmet tolls paid (`payItemPunish`), and the ones Magic Guard
+   * refused. A zero over a smoke with a helmet holder being touched means the item stopped firing. */
+  rockyHelmetPaid: 0, rockyHelmetRefusedIndirect: 0,
   /* WIRE 119 -- a move REFUSED at execution time by a category-forbidding volatile (Taunt). This is
    * the half the interaction matrix was failing on: the holder clicks Taunt in the same turn, so the
    * target's already-chosen status move has to FAIL when it runs. A zero here after games with a
@@ -5134,6 +5137,9 @@ const MEDFAILS = { encoreAction: 0, anticipationNoState: 0, anticipationMoveUnkn
   /* 2026-09-21 -- the terrain started at an entry site whose body carries no side back-reference, so the
    * TerrainChange walk over the four actives could not be run. Loud, never defaulted. */
   seedTerrainChangeNoSide: 0,
+  /* 2026-09-21 (Reg M-C) -- a `punishesAttackerItem` row whose trigger is not `contact`, or with no fraction or no
+   * display name. The consumer models the contact shape only; anything else is refused and counted, never guessed. */
+  itemPunishTriggerUnknown: 0, itemPunishTriggerUnknownFirst: '', itemPunishNoFraction: 0, itemPunishNoName: 0,
   /* ROADMAP #242 -- a terrain that IS up and for which `data/residual-order.json` publishes no
    * `expiry:` row, so its clock has no position in the walk to be spent at. Non-zero means the
    * terrain never comes down, which is the exact shape the first draft of `residualExpireAt` shipped
@@ -31125,6 +31131,60 @@ function payOrbToll(m,cost){
   if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);}
   return true;
 }
+/* 2026-09-21 (Reg M-C, abra/regmc 0.17.0) -- ROCKY HELMET: `punishesAttackerItem`, the ITEM half of the one
+ * `DamagingHit` event.
+ *
+ * THE AUTHORITY, read whole. M-C checkout data/items.ts rockyhelmet :5295-5309 (the Champions mod does not name it):
+ *     onDamagingHitOrder: 2,
+ *     onDamagingHit(damage, target, source, move) {
+ *       if (this.checkMoveMakesContact(move, source, target)) this.damage(source.baseMaxhp / 6, source, target);
+ *     },
+ * raised once per ARRIVAL by data/mods/champions/scripts.ts:399-410 over the targets that took a number (a doll's
+ * HIT_SUBSTITUTE does not), and paid through `Battle#spreadDamage` (sim/battle.ts:2091-2170): an attacker already on
+ * 0 HP takes nothing and writes nothing; the amount is floored and clamped to >= 1; Magic Guard's `onDamage` refuses a
+ * non-Move effect (`refusesIndirect`); the line is `-damage|ATTACKER|hp|[from] item: Rocky Helmet|[of] HOLDER`. A
+ * holder that the hit just put on 0 HP still tolls -- `faint()` only queues, and the handler has no hp test.
+ *
+ * ITS SLOT IN THE EVENT IS THE ORDER NUMBER, read off the tag: `compareLeftToRightOrder` puts every declared
+ * `onDamagingHitOrder: 1` (Rough Skin) first, then this `2`, then every undeclared handler (Stamina, Gooey, Cursed
+ * Body, the source's Poison Touch), each pass target-index-major. `_stepDamagingHitItem` is that middle pass.
+ *
+ * `n` is how many arrivals this call pays for -- the packet loop pays the interior ones one at a time and the step pays
+ * the rest, exactly as `_damagingHit` is paid.
+ *
+ * KNOBS. MEDI_ROCKY_HELMET_INERT=1 pays nothing (the pre-0.17.0 engine). MEDI_ROCKY_HELMET_ONCE=1 pays one toll per
+ * MOVE rather than per arrival, which is the volley half. Each stamps its MEDFAILS flag. */
+const ROCKY_HELMET_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ROCKY_HELMET_INERT==='1');
+const ROCKY_HELMET_ONCE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ROCKY_HELMET_ONCE==='1');
+if(ROCKY_HELMET_INERT)MEDFAILS.rockyHelmetInertRestored=1;
+if(ROCKY_HELMET_ONCE)MEDFAILS.rockyHelmetOnceRestored=1;
+function itemPunishOf(tg){ return tg&&tg.item?TAGS.param('item',tg.item,'punishesAttackerItem'):null; }
+function payItemPunish(m,tg,n,moveId,use){
+  const _ip=itemPunishOf(tg);
+  if(!_ip||!m||m===tg||!(n>0))return 0;
+  if(ROCKY_HELMET_INERT)return 0;
+  if(String(_ip.trigger)!=='contact'){
+    MEDFAILS.itemPunishTriggerUnknown++;
+    if(!MEDFAILS.itemPunishTriggerUnknownFirst)MEDFAILS.itemPunishTriggerUnknownFirst=String(tg.item)+':'+String(_ip.trigger);
+    return 0;
+  }
+  if(!mvMakesContact(moveId,m,use))return 0;
+  const _div=+_ip.fraction;
+  if(!(_div>0)){ MEDFAILS.itemPunishNoFraction++; return 0; }
+  const _rec=TAGS.tagsFor?TAGS.tagsFor('item',tg.item):null;
+  let _name=(_rec&&_rec.name)||'';
+  if(!_name){ MEDFAILS.itemPunishNoName++; _name=String(tg.item); }
+  let _paid=0;
+  for(let _k=0;_k<n;_k++){
+    if(m.fainted||m.curHP<=0)break;
+    if(refusesIndirect(m)){ MEDSEEN.rockyHelmetRefusedIndirect++; continue; }
+    m.curHP-=Math.max(1,Math.floor(m.st.hp/_div));
+    if(TR)TR.dmg(m,'[from] item: '+_name,tg);
+    MEDSEEN.rockyHelmetPaid++; _paid++;
+    if(m.curHP<=0)queueFaint(m,'punishesAttackerItem');
+  }
+  return _paid;
+}
 function battleTurn(S,rng,actsForA,actsForB){
   /* ROADMAP #262 -- the event address's outer two fields. Showdown prints `|turn|N` for the turn it is
    * about to play and `S.turn` is incremented at the BOTTOM of this function, so the turn now running
@@ -44581,7 +44641,16 @@ function battleTurn(S,rng,actsForA,actsForB){
                  * arrival is its own `spreadMoveHit` in the authority, and step 1 of that call is
                  * `getSpreadDamage` over the same target list -- so it leaves `activeTarget` on the
                  * same last body this move's damage step did. See `_reactAddr`. */
+                /* 2026-09-21 (Reg M-C, abra/regmc 0.17.0) -- AND THE ITEM'S TOLL FOR THIS ARRIVAL, in its order-number
+                 * slot against the ability's: Rocky Helmet (order 2) after an order-1 punisher (Rough Skin), before an
+                 * undeclared one. MEDI_ROCKY_HELMET_ONCE=1 skips the interior arrivals (one toll per move). */
+                /* (`R._dhItem` is not built yet -- it is stored below this loop, beside `R._dh` -- so the arrival is
+                 * paid through `payItemPunish` directly; `_subAte` is false on this road, the doll has its own.) */
+                const _ipI=ROCKY_HELMET_ONCE?null:itemPunishOf(tg);
+                const _ipBefore=!!_ipI&&(+_ipI.order||Infinity)<(+((TAGS.param('ability',tg.ability,'punishesAttacker')||{}).order)||Infinity);
+                if(_ipI&&_ipBefore)payItemPunish(m,tg,1,a.move.id,a.move.mv);
                 _reactAddr(()=>_damagingHit(1));
+                if(_ipI&&!_ipBefore)payItemPunish(m,tg,1,a.move.id,a.move.mv);
                 if(!_hitEvArr)_stepBuffOnHit(R,1);
                 /* 2026-09-19 -- AND THE LATE PAIR OF THE SAME EVENT, for this arrival: the target's
                  * Cursed Body, then the attacker's Poison Touch. See `_lateReactorsOf`. */
@@ -45012,6 +45081,15 @@ function battleTurn(S,rng,actsForA,actsForB){
         })();
         R.react=_react;   // WIRE 10 -- the effects step reads the same count, one step later
         R._dh=_damagingHit;
+        /* 2026-09-21 (Reg M-C, abra/regmc 0.17.0) -- THE ITEM HALF OF THE SAME EVENT (`punishesAttackerItem`, Rocky
+         * Helmet). Called with 1 for an interior arrival from the packet loop and with nothing by
+         * `_stepDamagingHitItem`, which pays the arrivals the loop did not -- the same arithmetic `_damagingHit` uses.
+         * A doll that ate the hit is not a damaged target (scripts.ts:399-406), so nothing is paid behind it. */
+        R._dhItem=itemPunishOf(tg)?((_n)=>{
+          if(_subAte)return 0;
+          const _c=(_n==null?Math.max(0,(R.react|0)-(R._reactPaid|0)):_n);
+          return payItemPunish(m,tg,_c,a.move.id,a.move.mv);
+        }):null;
         /* ROADMAP #81 WIRE 11 -- THE CONTACT PUNISH IS PAID *AFTER* THE DAMAGE, AND THE WHOLE BLOCK
          * BELOW USED TO SIT ABOVE THIS LINE.
          *
@@ -47709,6 +47787,9 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_o.pun===1&&R._dh){const _f=R._dh;R._dh=null;MEDSEEN.dhOrder1Early++;_reactAddr(_f);}
         if(_o.buff===1&&!R._buffDone){R._buffDone=true;MEDSEEN.dhOrder1Early++;_stepBuffOnHit(R);}
       };
+      /* 2026-09-21 (Reg M-C, abra/regmc 0.17.0) -- THE ORDER-2 PASS: every row's item punisher (Rocky Helmet), after
+       * every row's order-1 handler and before every row's undeclared one. See `payItemPunish`. */
+      const _stepDamagingHitItem=(R)=>{ if(!R._dhItem)return; const _f=R._dhItem; R._dhItem=null; _f(); };
       const _stepDamagingHitBody=(R)=>{
         _stepThawDamagingHit(R);                          // the STATUS handler is collected first within a body
         _stepDamagingHit(R);                              // the ability, undeclared order (null if paid early)
@@ -48277,8 +48358,8 @@ function battleTurn(S,rng,actsForA,actsForB){
                     /* NARRATION BATCH Y, 2026-09-09 -- ONE `DamagingHit`, in the authority's sort order: every
                      * order-1 handler index-major, then every undeclared-order handler index-major. See
                      * `_stepDamagingHitEarly`. The knob restores the 2026-08-22 / BATCH Q2 four-step layout. */
-                    ...(DH_STEPS_SPLIT?[_stepDamagingHit,_stepThawDamagingHit,_stepBuffOnHit,_stepDamagingHitLate]
-                                      :[_stepDamagingHitEarly,_stepDamagingHitBody]),
+                    ...(DH_STEPS_SPLIT?[_stepDamagingHit,_stepDamagingHitItem,_stepThawDamagingHit,_stepBuffOnHit,_stepDamagingHitLate]
+                                      :[_stepDamagingHitEarly,_stepDamagingHitItem,_stepDamagingHitBody]),
                     _stepAfterHit,
                     _stepAfterHitField,                // 2026-08-23 -- the other two onAfterHit families
                     _stepUpdate,                       // 2026-08-23 -- eachEvent('Update'), :967

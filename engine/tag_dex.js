@@ -6880,6 +6880,31 @@ const ITEM_TAGS = [
         switchInPriority: typeof it.onSwitchInPriority === 'number' ? it.onSwitchInPriority : 0,
       };
     } },
+  /* 2026-09-21 (Reg M-C, abra/regmc 0.17.0) -- ROCKY HELMET. The largest first cause of the Reg M-C smoke after the
+   * seeds (docs/_reports/2026-09-21-regmc-items.md). The handler, M-C checkout data/items.ts rockyhelmet :5295-5309
+   * (the Champions mod does not name it):
+   *
+   *     onDamagingHitOrder: 2,
+   *     onDamagingHit(damage, target, source, move) {
+   *       if (this.checkMoveMakesContact(move, source, target)) this.damage(source.baseMaxhp / 6, source, target);
+   *     },
+   *
+   * DERIVED FROM THE HANDLER: an item whose `onDamagingHit` damages the SOURCE by a fraction of the source's own
+   * `baseMaxhp`, behind the contact check. The ability family (`punishesAttacker`) is a different kind and a different
+   * slot in the one DamagingHit event (`order` is carried because the event sorts on it). Membership, printed before
+   * wiring, whole dex, both checkouts: exactly `rockyhelmet` -- legal in gen9championsvgc2026regmc, `isNonstandard:
+   * 'Past'` in gen9championsvgc2026regmb, so Reg M-B's table carries no member and nothing there can move. */
+  { tag: 'punishesAttackerItem', param: 'chips a contact attacker a fraction of ITS max HP each time the holder is hit',
+    probe: 'punishesAttackerItem',
+    why: 'Rocky Helmet (4,161 Reg M-C sheets) is the largest first cause of the Reg M-C smoke after the seeds: '
+       + '11 of 22 dumped games part on the missing toll',
+    of: it => {
+      const s = fnsrc(it.onDamagingHit);
+      const m = s.match(/this\.damage\(\s*source\.baseMaxhp\s*\/\s*(\d+)\s*,\s*source\s*,\s*target\s*\)/);
+      if (!m || !/checkMoveMakesContact\(/.test(s)) return null;
+      return { trigger: 'contact', fraction: +m[1],
+        order: typeof it.onDamagingHitOrder === 'number' ? it.onDamagingHitOrder : null };
+    } },
   /* Will: "damp rock is like light clay for setting the weather. same with the other weather
    * extenders." One mechanic -- hold this, your field effect lasts 8 turns instead of 5 -- and only
    * Light Clay had a tag. Damp Rock (200 sheets), Heat Rock (52), Smooth Rock and Icy Rock were all

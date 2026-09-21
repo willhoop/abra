@@ -69,6 +69,8 @@ console.log(NL + 'tests/probe_regmc_terrain_seeds.js — terrain seeds and the G
 console.log('  knobs armed: ' + (KNOBS.length ? KNOBS.join(', ') + '   (the defect is RESTORED; this must exit 1)' : 'none'));
 if (REGN.ID !== 'regmc') { console.log('  NOT RUN — this probe is a Reg M-C probe and ' + REGN.ID + ' is selected.'); process.exit(2); }
 
+/* abra/regmc 0.18.0 -- a Reg M-C run needs a census pin to load the driver; see tests/regmc_probe_kit.js */
+require(path.join(ROOT, 'tests', 'regmc_probe_kit.js')).scriptedCensusPin('probe_regmc_terrain_seeds');
 const SB = require(path.join(ROOT, 'tests', 'staged_board.js'));
 const G = SB.harness(MEDI_SRC_PATH ? fs.readFileSync(MEDI_SRC_PATH, 'utf8') : undefined);
 {

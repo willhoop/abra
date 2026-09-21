@@ -179,7 +179,8 @@ both directions by the validator.
 
 **Rocky Helmet is UNBANNED in M-C** — `isNonstandard` moves from `"Past"` to `null`. The umbrella
 `CLAUDE.md` ban list is correct for M-B and becomes wrong for M-C the day this line goes active. The
-other six banned items and all three banned moves are unchanged.
+other six banned items and all three banned moves are unchanged. The engine models it from 0.18.0 (item tag `punishesAttackerItem`,
+`tests/probe_regmc_rocky_helmet.js`); before that it was tagged `flingable` only and did nothing.
 
 **A pivot move plus Eject Button behaves differently.** Showdown commit `aa6d5f0856` (2026-09-13,
 *"Champions: Allow self-switches even if Eject Button is triggered"*) adds an Eject Button override that

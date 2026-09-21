@@ -64,6 +64,30 @@ rewritten; what changed and why is stated.
 - The first pinned Reg M-C differential (`--games 1200`, release `2d3d1f48b940`, cut in a worktree) is a
   reading, not a published figure or a gate verdict. Full account: `docs/_reports/2026-09-21-regmc-census.md`.
 - Version 0.19.0 was taken because ENGINE is working on items in parallel and may take 0.18.0.
+
+## [0.18.0] — 2026-09-21
+
+### Added
+- **Rocky Helmet.** Item tag `punishesAttackerItem` (`engine/tag_dex.js`), derived from the handler: an item whose
+  `onDamagingHit` damages the attacker by a fraction of its own max HP behind the contact check. Its one member is
+  Rocky Helmet, legal in Reg M-C and not in Reg M-B. The engine pays the toll once per landed arrival, after an
+  order-1 ability punisher (Rough Skin) and before an undeclared one, not behind a doll, not through Magic Guard,
+  and still on the blow that knocks the holder out. Knobs `MEDI_ROCKY_HELMET_INERT` and `MEDI_ROCKY_HELMET_ONCE`.
+- `tests/probe_regmc_rocky_helmet.js` (`--regulation regmc`): five staged arms (contact, non-contact control,
+  Rough Skin order, a two-arrival volley, the holder knocked out). Exit 0 clean, 1 under each knob and on the
+  pre-fix engine.
+- `tests/regmc_probe_kit.js`, the shared scaffolding of the Reg M-C staged probes.
+
+### Fixed
+- **Every Reg M-C staged probe died at load after 0.17.0**, the 0.16.0 seeds probe included: the steering needs a census,
+  and under Reg M-C it now reads `data/mechanics-census-regmc.json`, which does not exist yet. A scripted probe now pins a
+  declared one-row stub outside `data/` (`scriptedCensusPin`); its games never consult the census.
+
+### Notes
+- Reg M-B unmoved: `data/tags.json` and `data/protocol-events.json` byte-identical; the damage differential
+  (`--n 6000 --seed 20260804`) identical but for its own output-path line, with a control seed that differs; the
+  Reg M-B lattice at `--games 1200` reads 0 board-material.
+- The Reg M-C smoke is unpinned and is not published. Full account: `docs/_reports/2026-09-21-regmc-items.md`.
 - **Supersedes.** Nothing. **Basis.** unchanged.
 
 ## [0.17.0] — 2026-09-21
