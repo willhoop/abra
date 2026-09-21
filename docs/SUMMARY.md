@@ -69,7 +69,7 @@ All of it on engine release `0d7b1d9db6d1`, with the census pinned and the team 
 | the staged harness | **4,632 games played, 0 threw**; 497 moves, 200 abilities and 148 items in scope, 0 diverging | `data/all-mechanics-fire.json` |
 | the store | **94,360 games recorded, 33,539 usable (35.5%), 28,681 teams** | `data/live.js` |
 | META-USAGE | **94,360 collected**, a funnel ending at **33,539** clean games, 67,078 sampled teams | `data/meta-usage.json` |
-| the Reg M-C corpus | **32,997** singles games and **23,616** bo3 games held | `data/next-regulation.json` |
+| the Reg M-C corpus | collected, not simulated — the counts are a live derivation over untracked store files and are quoted in `docs/REGMC.md`, not claimed here | — |
 
 The held-out sample is drawn by a stride the gate does not use, so it is a different lattice rather
 than a larger one. Its artifact is not a top-level `data/*.json` file, so its readout is quoted here

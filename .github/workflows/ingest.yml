@@ -11,9 +11,21 @@ name: ingest
 # Ladder binds at ~18 hours. So DAILY IS NOT SAFE — 24 h at peak is ~1,660 games into a 1,250 slot
 # and silently drops ~400. Hourly is 4% of capacity per run and pointless. Six hours is ~830 games
 # at peak against 1,250: comfortable margin, and it survives a missed run.
+# STOPPED 2026-09-20 — WILL: "we can turn off the reg mb collector we have moved".
+#
+# The schedule is removed, not the workflow. Two reasons it is not deleted:
+#   1. `workflow_dispatch` still works, so a one-off catch-up pull is one click away if anything is
+#      found missing from the M-B store later. That store is the frozen authority behind
+#      `data/team-pool-frozen` and every figure ABRA published at 7.0.0.
+#   2. THE FORMAT IS NO LONGER SEARCHABLE ANYWAY. Derived from the M-C checkout: the format entry
+#      `gen9championsvgc2026regmb` carries `searchShow: false`, so nobody can ladder it and the
+#      rolling replay pool has stopped refilling. A scheduled pull would return nothing and commit
+#      nothing, every six hours, forever — noise a later reader would have to diagnose.
+#
+# Reg M-C is collected by .github/workflows/next-regulation.yml and is unaffected.
 on:
-  schedule:
-    - cron: '17 */6 * * *'     # 00:17, 06:17, 12:17, 18:17 UTC
+  # schedule:                  # DISABLED 2026-09-20 — see the note above. Do not re-arm without a
+  #   - cron: '17 */6 * * *'   # reason: the format cannot be laddered any more.
   workflow_dispatch:           # allow a manual run from the Actions tab
 permissions:
   contents: write              # so the job can commit the refreshed data back

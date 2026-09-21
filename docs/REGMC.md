@@ -113,6 +113,55 @@ exists and whether the validator accepts a set carrying it.
 
 ---
 
+## THE THREE DECISIONS WILL TOOK, 2026-09-20
+
+**1. THE REG M-B COLLECTOR IS OFF.** *"we can turn off the reg mb collector we have moved".*
+`.github/workflows/ingest.yml` has its schedule commented out; `workflow_dispatch` is kept so a
+catch-up pull is one click away, because that store is the frozen authority behind
+`data/team-pool-frozen` and every figure ABRA published at 7.0.0. It would have gone quiet anyway:
+the M-B format carries `searchShow: false` in the M-C checkout, so it cannot be laddered and its
+rolling replay pool has stopped refilling. Reg M-C's collector is a different workflow and is
+untouched.
+
+**2. THE SCOPE IS THE SAME AS REG M-B, FOR NOW.** *"yes lets do the same scope as mb for now".*
+Open team sheets only; Illusion remains the one declared exclusion; closed sheets and bo1 stay out of
+scope. This is a decision to revisit once the format is understood, not a permanent boundary — the
+added mechanics may change what is worth modelling.
+
+**3. ONLY THE GAMES THE RULE COULD HAVE TOUCHED COME OUT.** Will: *"sure remove the old eject button
+rule game"*, and then, when the first cut was by DATE: *"i mean can we just remove the games that have
+an eject button on the team sheet"*.
+
+**The exclusion is a CONJUNCTION, not a date range:** a game leaves the pool only if it was played
+before the fix AND an Eject Button is declared on a team sheet. The rule change cannot have altered a
+game in which the item never appears, so excluding such a game discards evidence for nothing.
+
+```
+$ count bo3 games by (date < 2026-09-14) x (Eject Button on either sheet)    (2026-09-20)
+  total                                23808
+  played before the fix                 8352   (35.1%)
+  Eject Button on a sheet, any date     1516   ( 6.4%)
+  BOTH -> excluded                       335   ( 1.4%)
+  kept                                 23473
+```
+
+**A CUT BY DATE ALONE WOULD HAVE COST 8,352 GAMES TO PROTECT AGAINST 335** (CHANGELOG 7.2.0)**.** The coordinator proposed
+the date cut, called it cheap without measuring it, measured it at 35% of the store, and was still
+proposing it when Will replaced it with the conjunction. **Twenty-five times more evidence was about to
+be thrown away than the change could possibly have affected.**
+
+**AND THE CONJUNCTION IS EXACT, NOT AN APPROXIMATION — WILL'S ARGUMENT, THEN MEASURED.** The obvious
+objection is an item acquired mid-battle, which a holder's own sheet would not show. Will: *"we would
+know if it acquires one because the opposing team sheet would contain it"* — under open team sheets
+every item on the field is declared by one of the two players, so scanning BOTH sheets catches a
+transferred item whoever ends up holding it. Measured over the old-rule window (CHANGELOG 7.2.0): **335 games carry the
+item on a sheet, 335 name it anywhere in the record, and 0 name it outside a sheet.** There is no
+hidden case.
+
+**The cut is applied when the frozen M-C pool is built, and both sheets are scanned.**
+
+---
+
 ## WHAT EXISTS TODAY, AND WHAT DOES NOT
 
 **The store is ready and collecting**, hourly since 2026-09-09. These counts are a LIVE DERIVATION over

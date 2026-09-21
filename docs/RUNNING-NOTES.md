@@ -52,6 +52,38 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [7.2.0] — 2026-09-20 — Will's three Reg M-C decisions, and the exclusion cost measured after it was called cheap
+
+- **THE REG M-B COLLECTOR IS OFF.** Will: *"we can turn off the reg mb collector we have moved".*
+  `.github/workflows/ingest.yml` keeps `workflow_dispatch` and loses its schedule — no live cron
+  remains. The store stays: it is the frozen authority behind `data/team-pool-frozen` and every figure
+  published at 7.0.0. **It would have gone quiet on its own anyway** — the M-B format carries
+  `searchShow: false` in the M-C checkout, so it cannot be laddered and its rolling replay pool has
+  stopped refilling; a scheduled pull would have committed nothing every six hours forever. Reg M-C's
+  collector is a different workflow and is untouched.
+- **SCOPE FOR M-C IS THE SAME AS M-B, FOR NOW.** Will: *"yes lets do the same scope as mb for now".*
+  Open team sheets only, Illusion the one declared exclusion, closed sheets and bo1 out of scope —
+  to be revisited once the format is understood rather than treated as permanent.
+- **ONLY THE GAMES THE RULE COULD HAVE TOUCHED COME OUT — WILL'S CUT, NOT THE COORDINATOR'S.** Will
+  first said *"sure remove the old eject button rule game"*, and when the coordinator cut by DATE he
+  replaced it: *"i mean can we just remove the games that have an eject button on the team sheet"*.
+  The exclusion is a CONJUNCTION — played before the fix AND the item declared on a team sheet — because
+  the rule change cannot have altered a game in which the item never appears. Measured on the bo3 store:
+  **23,808 total; 8,352 played before the fix; 1,516 carry the item on a sheet at any date; 335 are
+  both, and 335 is the exclusion. 23,473 kept.**
+- **A DATE CUT WOULD HAVE DISCARDED 8,352 GAMES TO PROTECT AGAINST 335.** The coordinator proposed it,
+  called it cheap without measuring, measured it at 35.1% of the store, and was still proposing it when
+  Will replaced it. **Twenty-five times more evidence than the change could possibly have affected.**
+- **THE CONJUNCTION IS EXACT, AND THE ARGUMENT WAS WILL'S BEFORE IT WAS MEASURED.** The obvious hole is
+  an item acquired mid-battle, which the holder's own sheet would not show. Will: *"we would know if it
+  acquires one because the opposing team sheet would contain it"* — under open team sheets every item on
+  the field is declared by one of the two players, so scanning BOTH sheets catches a transferred item
+  whoever ends up holding it. Measured over the old-rule window: **335 games carry it on a sheet, 335
+  name it anywhere in the record, 0 name it outside a sheet.** No hidden case.
+- **Basis.** unchanged. No M-C figure is published; nothing is simulated yet.
+- **Supersedes.** ~~"a few days of games out of 23,554"~~ then ~~the 8,352-game date cut~~, now
+  **335 games excluded by the conjunction**.
+
 ## [7.1.0] — 2026-09-20 — the Reg M-C line opens at 0.1.0: a second Showdown checkout, and the delta derived against the PINNED authority
 
 - **What changed.** No engine byte. A second Showdown checkout exists at

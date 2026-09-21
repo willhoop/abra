@@ -10,6 +10,22 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [7.2.0] — 2026-09-20
+
+### Changed
+- The Reg M-B ingest workflow loses its schedule (Will: "we can turn off the reg mb collector we have
+  moved"). `workflow_dispatch` is kept and the store is untouched. The format carries
+  `searchShow: false` and can no longer be laddered, so the pull would have returned nothing anyway.
+
+### Notes
+- Reg M-C scope is the same as Reg M-B for now: open team sheets only, Illusion excluded, closed sheets
+  and bo1 out of scope.
+- The frozen M-C pool excludes a game only when it was played before the Eject Button fix AND the item
+  is declared on a team sheet — Will's cut, replacing a coordinator proposal to drop the whole date
+  range. **335 bo3 games (1.4%) rather than 8,352 (35.1%); 23,473 kept.** The conjunction is exact:
+  under open team sheets every item on the field is declared by one of the two players, and over the
+  old-rule window 335 games carry the item on a sheet, 335 name it anywhere, and 0 name it outside one.
+
 ## [7.1.0] — 2026-09-20
 
 ### Added
