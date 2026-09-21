@@ -8301,6 +8301,70 @@ probe('move', 'halvesDamage', 'Reflect halves physical damage', () => {
            detail: 'took ' + off + ' with no screen  ->  ' + on + ' behind Reflect' };
 });
 
+/* 2026-09-20 -- REFLECT DOES NOT TOUCH A SPECIAL ATTACK, AND UNTIL TODAY NOTHING ASSERTED IT HERE.
+ *
+ * THE AUTHORITY, quoted literally. `dist/data/moves.js` `reflect.condition.onAnyModifyDamage`
+ * (inherited unchanged by `data/mods/champions/moves.ts`, which sets only `isNonstandard`):
+ *
+ *     onAnyModifyDamage(damage, source, target, move) {
+ *       if (target !== source && this.effectState.target.hasAlly(target)
+ *           && this.getCategory(move) === "Physical") {
+ *         if (!target.getMoveHitData(move).crit && !move.infiltrates) {
+ *           this.debug("Reflect weaken");
+ *           if (this.activePerHalf > 1) return this.chainModify([2732, 4096]);
+ *           return this.chainModify(0.5); } } }
+ *
+ * `=== "Physical"` is the whole mechanic, and the engine reaches it through
+ * `TAGS.param('move', id, 'halvesDamage').category` (`screenCat` / `screenUp` in
+ * engine/medicham2-browser.js) — no screen is named in that file.
+ *
+ * WHY IT IS A ROW NOW. `data/tags.json` derived that category from `move.shortDesc`, and the first
+ * Reg M-C run found the checkout ships with every Champions description removed, so both screens fell
+ * through to the `'both'` DEFAULT and a Reflect halved a Moonblast in a real game
+ * (docs/_reports/2026-09-20-regmc-first-run.md §5). The derivation is now structural
+ * (engine/screen_tags.js, tests/probe_tag_derivation_without_prose.js). This row is the BEHAVIOURAL
+ * half: it asks the engine, not the artifact.
+ *
+ * THREE ARMS, because two would not clear the control. Arm 3 hits the identical body with the
+ * identical type from the identical attacker and differs only in CATEGORY — so an engine that
+ * ignored screens altogether, or one whose screen never went up, fails here rather than passing arm 2
+ * by doing nothing at all. The two moves' categories are read out of `MC.moves` rather than trusted,
+ * because a probe that picked two physical moves would report the mechanic live while asking nothing. */
+probe('move', 'halvesDamage', 'Reflect does NOT halve a SPECIAL attack', () => {
+  const SPE = 'earthpower', PHY = 'earthquake';
+  const mS = MC.moves[SPE], mP = MC.moves[PHY];
+  if (!mS || !mP || mS.c !== 'S' || mP.c !== 'P' || mS.t !== mP.t)
+    return { works: false, detail: 'THE FIXTURE IS WRONG, not the engine: this probe needs one '
+      + 'Special and one Physical move of the SAME type. ' + SPE + '=' + JSON.stringify(mS)
+      + ' ' + PHY + '=' + JSON.stringify(mP) };
+  const run = (screen, mv) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'garchomp', 'garchomp');
+    M.battleTurn(S, rng5,
+      new Map([[me, screen ? M.playerAction(me, 'reflect', null, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const up = Object.keys((me._sf && me._sf.sc) || {});
+    me.curHP = me.st.hp;
+    const before = me.curHP;
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, mv, me, S.field)], [f2, { kind: 'pass' }]]));
+    return { took: before - me.curHP, up };
+  };
+  const specialOff = run(false, SPE), specialOn = run(true, SPE);
+  const physOff = run(false, PHY), physOn = run(true, PHY);
+  /* THE ARMS ARE THE PHYSICAL PAIR, DELIBERATELY. This file's own hollow detector flags a LIVE probe
+   * whose arms agree, and it is right to: two equal numbers satisfy an engine that does nothing. Here
+   * the equality is the CLAIM (special damage must not move), so the arms carry the pair that must
+   * MOVE — the same attacker, the same type, the same Reflect, one category over. A probe whose
+   * screen never went up fails there instead of passing by inaction. */
+  return { works: specialOff.took > 0 && specialOn.took === specialOff.took
+                  && specialOn.up.length === 1 && physOn.took < physOff.took,
+           arms: { control: physOff.took, test: physOn.took },
+           detail: 'SPECIAL (' + SPE + '): ' + specialOff.took + ' with no screen -> ' + specialOn.took
+                 + ' behind Reflect — it must NOT move.  CONTROL, same attacker and type, PHYSICAL ('
+                 + PHY + '): ' + physOff.took + ' -> ' + physOn.took + ' — it must.  screens up on the '
+                 + 'special arm: [' + specialOn.up.join(',') + ']' };
+});
+
 /* ROADMAP #81 WIRE 8 -- A SECOND REFLECT DOES NOT EXTEND THE FIRST, AND THE PROOF IS THE DAMAGE ON
  * TURN SIX. Same rule as the Tailwind probe above (sim/side.ts:420) and the same three-arm shape,
  * for the same reason: the claim is an EQUALITY, so a third arm plays the identical turn-2 click on

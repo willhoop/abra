@@ -1,5 +1,14 @@
 # Changelog — ABRA
 
+<!-- LINE: id=abra/regmb; label=ABRA on Champions Reg M-B; format=gen9championsvgc2026regmb; closed=7.0.0 -->
+
+**THIS LINE IS CLOSED AT 7.0.0.** Reg M-B's record is published and cited: its documents name each
+other at 7.0.0 and figures in it are referenced by commit hash. **Nothing here is renumbered,
+rewritten or restated, ever.** Work on the next regulation is a NEW line — see
+`CHANGELOG-REGMC.md` and `docs/REGMC.md`. Two entries first published here as `7.1.0` and `7.2.0`
+were Reg M-C setup work carrying Reg M-B numbers; they were moved to that line, word for word,
+before this declaration was added.
+
 All notable changes to ABRA are recorded here, newest first.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -9,40 +18,6 @@ updates to the white paper, the deck, and the technical documentation. A prior c
 silently rewritten; what changed and why is stated.
 
 ---
-
-## [7.2.0] — 2026-09-20
-
-### Changed
-- The Reg M-B ingest workflow loses its schedule (Will: "we can turn off the reg mb collector we have
-  moved"). `workflow_dispatch` is kept and the store is untouched. The format carries
-  `searchShow: false` and can no longer be laddered, so the pull would have returned nothing anyway.
-
-### Notes
-- Reg M-C scope is the same as Reg M-B for now: open team sheets only, Illusion excluded, closed sheets
-  and bo1 out of scope.
-- The frozen M-C pool excludes a game only when it was played before the Eject Button fix AND the item
-  is declared on a team sheet — Will's cut, replacing a coordinator proposal to drop the whole date
-  range. **335 bo3 games (1.4%) rather than 8,352 (35.1%); 23,473 kept.** The conjunction is exact:
-  under open team sheets every item on the field is declared by one of the two players, and over the
-  old-rule window 335 games carry the item on a sheet, 335 name it anywhere, and 0 name it outside one.
-
-## [7.1.0] — 2026-09-20
-
-### Added
-- A second Showdown checkout for Reg M-C (`pokemon-showdown-mc`, `f10d679`, 2026-09-20), so pulling the
-  M-C authority can never move the bytes Reg M-B's published figures rest on.
-- `docs/REGMC.md`, the Reg M-C ledger, opening at **0.1.0** — a leading zero means not usable yet; it
-  reaches 1.0.0 when the M-C gate opens.
-
-### Notes
-- Delta against the PINNED M-B authority: species +35, moves +15, items +18, abilities +0, nothing
-  removed. The ruleset is identical. The real surface is 41 mechanics (15 abilities, 14 moves, 12 held
-  items), not 35 species.
-- Two moves legal in both regulations had PP cut 10 → 5, and Rocky Helmet is unbanned — changes no
-  added/removed list reveals.
-- The strict legality filter drops one live ability in M-C (1 of 317); M-C must re-admit validator-
-  accepted `Future` entries and print the list every run.
-- M-B's legal species set is identical in both checkouts — 347 either way — so nothing published at 7.0.0 moved.
 
 ## [7.0.0] — 2026-09-20
 

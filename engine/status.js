@@ -1421,6 +1421,35 @@ if (QS && !QS.ok) {
   console.log('  Full derivation and the withheld set: node engine/quarantine.js');
   console.log('');
 }
+/* ---- THE VERSION OF EACH MODEL ON EACH REGULATION — 2026-09-20 --------------------------------
+ *
+ * WILL: *"i just want low numbers for when projects are actually done and usable"*, and *"lets do it
+ * per model inside of abra"*. So the version is a STATE of a (model, regulation) pair — 0.x is not
+ * usable yet, 1.0.0 is certified by a gate — and it is COMPUTED here rather than typed anywhere.
+ *
+ * IT IS PRINTED BESIDE THE GATE BECAUSE THE GATE IS WHAT DECIDES IT. A version that lives only in a
+ * document is a number somebody has to remember to lower, and this repository has fourteen stale
+ * handoffs saying how that ends. Wrapped, because status.js is the one command every session runs
+ * and a new reader must never be able to stop it printing the rest. */
+try {
+  const MV = require('./model_versions.js');
+  const t = MV.table();
+  const one = t.rows.filter(r => r.version === '1.0.0');
+  console.log('MODEL VERSIONS — how done is each model, on each regulation (derived, never typed)');
+  console.log(`  gate ${t.gate.file} -> ${t.gate.model || 'NO MODEL MATCHED'}: ${t.gate.state}`
+    + (t.gate.state === 'OPEN' ? '' : '   (never a pass)'));
+  console.log(`  USABLE (1.0.0): ${one.length ? one.map(r => r.model + ' / ' + r.line).join(', ') : 'NONE'}`);
+  for (const r of t.rows) if (r.version !== '1.0.0' && r.withheld && r.withheld.length) {
+    console.log(`  ${r.version} ${r.model} / ${r.line} — ${r.withheld.length} published artifact(s) WITHHELD`);
+  }
+  console.log('  Full table and every reason: node engine/model_versions.js');
+  console.log('');
+} catch (e) {
+  console.log('MODEL VERSIONS — NOT DERIVED. engine/model_versions.js would not run: '
+            + String((e && e.message) || e).split('\n')[0]);
+  console.log('  Read this as UNKNOWN, not as "every model is current".');
+  console.log('');
+}
 /* ---- THE FINISH LINE, AS COUNTS ---------------------------------------------------------------
  * "Is MEDICHAM done" answered as a measurement rather than a judgement, and printed whether the gate
  * is open or shut — an OPEN gate with a comparator reading 33 of 80 leaves is exactly the state this

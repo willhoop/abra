@@ -1,8 +1,8 @@
 {
-  "generated": "2026-09-21T00:43:49.775Z",
+  "generated": "2026-09-21T02:41:49.477Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "7.2.0",
+  "changelog_top_at_baseline": "7.0.0",
   "version_pins": {
     "docs/ADR-002-showdown-is-the-authority.md": {
       "version": "3.50.0",
@@ -55,10 +55,6 @@
     "docs/PRIOR-ART.md": {
       "version": "3.71.0",
       "reason": "A LITERATURE SURVEY. It moves when a paper is added or a claim about one is corrected. ROADMAP #92 is an internal correctness fix against Showdown and cites no external work."
-    },
-    "docs/REGMC.md": {
-      "version": "0.1.0",
-      "reason": "OWN VERSION LINE — the Reg M-C engine is a separate line from ABRA's project releases, at Will's decision (2026-09-20: \"lets revert it to 1.0.0 for the new regulation\", and when asked how: \"i just want low numbers for when projects are actually done and usable\"). A leading 0 means NOT USABLE YET, per SemVer 2.0.0 clause 4; this reaches 1.0.0 the day the M-C gate opens, which engine/quarantine.js computes rather than anyone declaring. Pinning it is not a deferral of the major pass: ABRA's own documents are all at 7.0.0."
     },
     "docs/ROLE-FAMILY.md": {
       "version": "2.6.0",

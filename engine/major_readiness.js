@@ -150,12 +150,16 @@ function main() {
 
   /* ---- 4. the backlog, which BLOCKS rather than prompts ---------------------------------------- */
   try {
-    const owed = DS.owedToNextMajor();
-    if (owed && owed.missing) {
-      say('  NOTES ROWS OWED — ' + owed.notes + ' is MISSING, which fails the gate on its own.');
-      say();
-    } else if (owed) {
-      say('  NOTES ROWS OWED TO THE MAJOR   ' + owed.owed.length + ' of ' + owed.cap
+    /* PER VERSION LINE — 2026-09-20. The cap is per line, so the backlog is printed per line. A
+     * single total would let one series' slack cover another's debt, and would compare a 0.x row
+     * against a 7.0.0 floor and call it already folded in. */
+    for (const owed of DS.owedByLine()) {
+      if (owed && owed.missing) {
+        say('  NOTES ROWS OWED — ' + owed.notes + ' is MISSING, which fails the gate on its own.');
+        say();
+        break;
+      }
+      say('  NOTES ROWS OWED TO THE MAJOR   [' + owed.line + ']   ' + owed.owed.length + ' of ' + owed.cap
         + (owed.over ? '   OVER CAP — the build FAILS until these fold in'
           : owed.warning ? '   approaching the cap' : ''));
       if (owed.documents_behind_last_major) {
@@ -163,7 +167,13 @@ function main() {
       }
       say('        oldest owed row: ' + (owed.oldest_owed || 'none')
         + ' | documents last folded at ' + (owed.documented_at ? owed.documented_at.version : 'unknown')
-        + ' | CHANGELOG top ' + owed.top);
+        + ' | ' + (owed.changelog || 'changelog') + ' top ' + owed.top
+        + (owed.closed ? ' | LINE CLOSED AT ' + owed.closed : ''));
+      say();
+    }
+    for (const b of DS.closedLineBreaches()) {
+      say('  CLOSED-LINE BREACH   ' + b.line + ' ' + b.version + '   ' + b.file);
+      say('        ' + b.why);
       say();
     }
   } catch (e) { say('  (owed backlog could not be read: ' + e.message + ')'); say(); }

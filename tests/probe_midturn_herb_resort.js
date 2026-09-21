@@ -87,6 +87,13 @@
  *     MEDI_PIVOT_HERB_AFTER_ENTRY=1                      holder
  *     both                                               ALLY        <- the defect, reproduced
  *
+ * FOR tests/test-knob-control-arm.js, WHICH OTHERWISE READS THE SINGLE-KNOB GREEN AS AN UNWIRED KNOB:
+ *   MEDI_RESORT_BEFORE_UPDATE   PAIRED WITH MEDI_PIVOT_HERB_AFTER_ENTRY
+ *   MEDI_PIVOT_HERB_AFTER_ENTRY PAIRED WITH MEDI_RESORT_BEFORE_UPDATE
+ * Neither knob alone restores the defect, because two independent guards each suppress it; the
+ * guard must set BOTH and require exit 1. This is NOT a silent control — a silent control is an
+ * unrelated knob that must leave the probe green, and these two are each half of one defect.
+ *
  * So the file spawns THREE children and asserts each separately. The two singles must NOT move the
  * board AND must stamp their own `MEDFAILS` counter — that pairing is what separates "this guard is
  * redundant while the other stands" from "this knob is unwired", which read identically at the board

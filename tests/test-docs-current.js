@@ -381,48 +381,87 @@ function ratchet(name, current, baseline, describe) {
  * raises this floor in the same instant, so that commit FAILS unless it also carries the white paper,
  * the deck, the technical docs, SUMMARY and MODELS. "We will do the documents at the next major"
  * cannot be deferred past the next major. */
+/* PER LINE — 2026-09-20. A version is only comparable inside its own series, so this asks WHICH LINE
+ * a document is on before it asks whether the document is current. Reg M-B's documents are measured
+ * against 7.0.0 exactly as they were yesterday; a Reg M-C document is measured against Reg M-C's
+ * floor, which is that line's TOP while it is still 0.x (documentFloor(): a line that has never
+ * shipped a major has no deferred pass, so it is STRICTER, not weaker).
+ *
+ * WHAT THIS REPLACED WAS A PIN, AND A PIN WOULD HAVE GONE RED ON THE NEXT M-C RELEASE.
+ * `docs/REGMC.md` was pinned at 0.1.0 with the reason "OWN VERSION LINE". The reason was right and
+ * the instrument was wrong: a pin is a declared FREEZE, and the `movedPins` clause four lines down
+ * fails the moment a pinned document's header moves — which that one is going to do every release. */
 function versionRule(base, next) {
-  console.log('\n== 2. every version-headed doc is at or past the LAST MAJOR release ==');
-  const top = S.changelogTop();
-  ok(!!top, `CHANGELOG has a top version (${top || 'none found'})`);
-  if (!top) return;
-  const maj = S.lastMajor();
-  ok(!!maj, `CHANGELOG has a major release to measure against (${maj ? maj.version : 'none found'})`);
-  if (!maj) return;
-  const floor = maj.version;
+  console.log('\n== 2. every version-headed doc is at or past ITS OWN LINE\'s floor ==');
+  const lineIds = S.lineIds();
+  ok(lineIds.length > 0, `at least one version line is declared (${lineIds.join(', ') || 'none found'})`);
+  if (!lineIds.length) return;
 
-  const living = S.livingDocs();
   const pins = base.version_pins || {};
-  const stale = [], movedPins = [], nowCurrent = [];
+  const stale = [], movedPins = [], nowCurrent = [], noFloor = [];
   const nextPins = {};
-  for (const rel of living) {
-    const v = S.versionHeader(S.readDoc(rel)).version;
-    if (S.cmpVersion(v, floor) >= 0) { if (pins[rel]) nowCurrent.push(rel); continue; }
-    if (!pins[rel]) {
-      stale.push(`${rel} @ ${v}`);
-      if (UPDATE) nextPins[rel] = { version: v, reason: 'ADOPTED AT BASELINE — give this a real reason or bring the document current' };
-      continue;
+  let living = [];
+  for (const id of lineIds) {
+    const f = S.documentFloor(id);
+    const docs = S.lineDocs(id);
+    living = living.concat(docs);
+    if (!f) { noFloor.push(`${id} (${S.lineChangelog(id)}) has no version at all to measure against`); continue; }
+    console.log(`         line ${id.padEnd(12)} floor ${String(f.version).padEnd(9)} ${f.kind.padEnd(19)}`
+      + `${docs.length} versioned document(s)   [${S.lineChangelog(id)}]`);
+    for (const rel of docs) {
+      const v = S.versionHeader(S.readDoc(rel)).version;
+      if (S.cmpVersion(v, f.version) >= 0) { if (pins[rel]) nowCurrent.push(rel); continue; }
+      if (!pins[rel]) {
+        stale.push(`${rel} @ ${v}  (line ${id}, floor ${f.version})`);
+        if (UPDATE) nextPins[rel] = { version: v, reason: 'ADOPTED AT BASELINE — give this a real reason or bring the document current' };
+        continue;
+      }
+      /* A PIN IS A VERSION, NOT A LICENCE. If a pinned document's header MOVES and still does not
+       * reach the floor, somebody edited it in a pass that skipped the changelog — which is the
+       * original 3.3.0-vs-2.6.0 failure wearing a different number. */
+      if (pins[rel].version !== v) { movedPins.push(`${rel}: pinned at ${pins[rel].version}, now ${v}, floor is ${f.version} on line ${id}`); continue; }
+      nextPins[rel] = pins[rel];
     }
-    /* A PIN IS A VERSION, NOT A LICENCE. If a pinned document's header MOVES and still does not
-     * reach the floor, somebody edited it in a pass that skipped the changelog — which is the
-     * original 3.3.0-vs-2.6.0 failure wearing a different number. */
-    if (pins[rel].version !== v) { movedPins.push(`${rel}: pinned at ${pins[rel].version}, now ${v}, floor is ${floor}`); continue; }
-    nextPins[rel] = pins[rel];
   }
+  ok(noFloor.length === 0, 'every version line has a floor its documents can be measured against'
+    + (noFloor.length ? `:\n         ` + noFloor.join('\n         ') : ''));
+  const floor = lineIds.map(id => { const f = S.documentFloor(id); return `${id} ${f ? f.version : '?'}`; }).join(', ');
   ok(stale.length === 0 || UPDATE,
-    `every version-headed document is at or past ${floor} or is a declared pin (${living.length} versioned, ${Object.keys(pins).length} pinned, CHANGELOG top ${top})` +
+    `every version-headed document is at or past its line's floor or is a declared pin (${living.length} versioned, ${Object.keys(pins).length} pinned, floors ${floor})` +
     (stale.length ? ` — undeclared and stale:\n         ` + stale.join('\n         ') : ''));
   ok(movedPins.length === 0,
-    'no pinned document moved to a version that is neither its pin nor at the major floor' +
+    'no pinned document moved to a version that is neither its pin nor at its line\'s floor' +
     (movedPins.length ? `:\n         ` + movedPins.join('\n         ') : ''));
+
+  /* A MASTHEAD NAMING A LINE NOTHING DECLARES IS A TYPO THAT WOULD SILENTLY DEFAULT TO THE MAIN LINE.
+   * Defaulting is the right behaviour for a document that says nothing; for one that tries to say
+   * something and misspells it, silence is how a document escapes the floor it meant to be held to. */
+  /* AND A FAILED READ IS IN THE SAME CLAUSE, because it has the same consequence. `docLineId()`
+   * defaults an unreadable document to the main line and `versionLines()` keeps an unreadable
+   * changelog rather than dropping its line; both are the strict direction and neither is visible on
+   * its own. This is where they become visible. */
+  const unknown = S.unknownLineDeclarations();
+  ok(unknown.length === 0, "every document's version line is knowable — named and declared, or "
+    + 'absent and defaulted; nothing here was decided by a failed read'
+    + (unknown.length ? `:\n         ` + unknown.join('\n         ') : ''));
+
+  /* A CLOSED LINE IS CLOSED. Reg M-B's record is published — six documents cite each other at 7.0.0
+   * and 271 commit hashes resolve from tracked markdown — so an entry above the close version means
+   * somebody kept typing on a series that was finished. The fix is NEVER to renumber history; it is
+   * to move the entry to the line that is actually open. */
+  const breaches = S.closedLineBreaches();
+  ok(breaches.length === 0, `no changelog entry or notes row sits above the version its line is `
+    + `declared CLOSED at (${lineIds.filter(id => S.lineOf(id).closed).map(id => id + ' @ ' + S.lineOf(id).closed).join(', ') || 'no line is closed'})`
+    + (breaches.length ? `:\n         ` + breaches.map(b => `${b.kind}  ${b.line} ${b.version}  ${b.file}\n           ${b.why}`).join('\n         ') : ''));
+
   if (stale.length) {
-    console.log(`         A MAJOR RELEASE IS THE FULL PASS. These trail ${floor}, so the pass that was`);
+    console.log(`         A MAJOR RELEASE IS THE FULL PASS. These trail their line's floor, so the pass that was`);
     console.log('         due at that release did not happen for them. Fold in the rows of');
     console.log('         docs/RUNNING-NOTES.md, rebuild the PDF, and bump the header.');
     console.log('         Bumping the header alone is NOT the fix — the content has to be brought current,');
     console.log('         or the version becomes another asserted number.');
   }
-  for (const rel of nowCurrent) console.log(`         pin retired (now at or past the ${floor} floor): ${rel}`);
+  for (const rel of nowCurrent) console.log(`         pin retired (now at or past its line's floor): ${rel}`);
   /* Pins for documents that are current, gone, or no longer version-headed drop out automatically. */
   next.version_pins = nextPins;
 
@@ -863,19 +902,29 @@ function notesRule() {
     }
   }
 
-  const o = S.owedToNextMajor();
+  /* THE CAP IS PER LINE, AND THAT IS THE POINT OF COUNTING IT PER LINE. One counter over every line
+   * would let a young line's slack pay an old line's debt — and worse, it would compare a `0.2.0` row
+   * against a `7.0.0` floor and find it OLDER, so every Reg M-C row would read as already folded in
+   * and the backlog would be structurally incapable of counting them. That is the CRLF failure
+   * again: a counter stuck at zero can never reach the cap, so the cap can never fire. */
+  const byLine = S.owedByLine();
   console.log(S.owedReport());
-  ok(!o.over,
-    `the backlog owed to the next major is under the cap (${o.owed ? o.owed.length : '?'} of ${o.cap})`);
-  if (o.over) {
+  const o = byLine.find(x => x.line === S.mainLineId()) || byLine[0];
+  const over = byLine.filter(x => x.over);
+  ok(over.length === 0,
+    `the backlog owed to the next major is under the cap on every line (`
+    + byLine.map(x => `${x.line} ${x.owed ? x.owed.length : '?'} of ${x.cap}`).join('; ') + ')');
+  if (over.length) {
     console.log('         THE DEFERRAL HAS BECOME AN ABANDONMENT. Fold the rows into the white paper, the');
     console.log('         deck, the technical docs, SUMMARY and MODELS — at ANY version; the cap owes a');
     console.log('         DOCUMENT PASS, not a major. Or raise OWED_CAP in engine/docs_scan.js, in a diff,');
     console.log('         with a reason, deliberately. Do NOT bump to X.0.0 to clear a backlog: a major is');
     console.log('         declared by a basis change and nothing else (clause 5d).');
   }
-  ok(!o.documents_behind_last_major,
-    'no living document trails the last major release (clause 2 names them if any do)');
+  const behind = byLine.filter(x => x.documents_behind_last_major);
+  ok(behind.length === 0,
+    "no living document trails its line's last major release (clause 2 names them if any do)"
+    + (behind.length ? ': ' + behind.map(x => x.line).join(', ') : ''));
 
   /* ---- 5d. THE RELEASE KIND AGREES WITH WHAT THE ROW SAYS HAPPENED ----------------------------
    *
@@ -909,21 +958,27 @@ function notesRule() {
   ok(proof.every(c => c.holds), `the major/minor/patch rule holds in both directions `
     + `(${proof.filter(c => c.holds).length}/${proof.length} demonstration cases)`);
 
-  const pol = S.majorPolicy();
-  if (pol.missing) {
+  /* ONE POLICY RUN PER LINE. A row is judged against the releases of the line it declares, and a
+   * line with no rows reports the honest nought rather than borrowing another line's green. */
+  const pols = S.majorPolicyByLine();
+  if (pols.some(p => p.missing)) {
     ok(false, 'the notes page could not be read, so the release-kind clause checked nothing');
   } else {
-    ok(pol.violations.length === 0,
-      `every released row's version agrees with the basis and supersession it declares ` +
-      `(${pol.checked} of ${pol.entries} row(s) matched a CHANGELOG release; top ${pol.top} is a ` +
-      `${pol.top_bump || 'first'} bump)`);
-    for (const v of pol.violations) {
-      console.log(`         ${v.kind}  ${v.version}  ${S.NOTES_LOG}:${v.line}`);
+    /* `v.line` IS THE ROW'S LINE NUMBER IN THE NOTES PAGE and `p.line` is the version line's id.
+     * Spreading the second over the first would have overwritten the only thing that locates the
+     * offending row, so the id goes in under its own name. */
+    const viol = pols.flatMap(p => p.violations.map(v => ({ ...v, line_id: p.line })));
+    ok(viol.length === 0,
+      `every released row's version agrees with the basis and supersession it declares (`
+      + pols.map(p => `${p.line}: ${p.checked} of ${p.entries} row(s) matched a release, top `
+                    + `${p.top} is a ${p.top_bump || 'first'} bump`).join('; ') + ')');
+    for (const v of viol) {
+      console.log(`         ${v.kind}  ${v.line_id} ${v.version}  ${S.NOTES_LOG}:${v.line}`);
       console.log('           ' + v.why);
     }
-    if (pol.unmatched.length) {
-      console.log(`         NOT CHECKABLE — ${pol.unmatched.length} row version(s) are not in the `
-        + `CHANGELOG yet: ${pol.unmatched.slice(0, 6).join(', ')}`);
+    for (const p of pols) if (p.unmatched.length) {
+      console.log(`         NOT CHECKABLE on ${p.line} - ${p.unmatched.length} row version(s) are not in `
+        + `${S.lineChangelog(p.line)} yet: ${p.unmatched.slice(0, 6).join(', ')}`);
       console.log('           A row written ahead of its release is normal. It becomes checkable on');
       console.log('           the commit that publishes the version, and is counted as nothing until then.');
     }

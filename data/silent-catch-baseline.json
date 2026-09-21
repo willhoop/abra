@@ -1,6 +1,6 @@
 {
- "generated": "2026-09-09",
- "by": "tests/test-no-silent-failure.js --accept engine/docs_scan.js#4d8ca8459f0e",
+ "generated": "2026-09-21",
+ "by": "tests/test-no-silent-failure.js --accept engine/docs_scan.js#18d7162c3b90 (reason corrected)",
  "note": "GENERATED. Never hand-edit. `entries` is the ratchet floor: the silent catch blocks that existed when it was set. `--update` is MONOTONE — it writes min(baseline, current) per key, so it locks in FIXES and structurally cannot launder a new offender into the floor (ROADMAP #258). `accepted` is separate and is the ONLY door in: one block at a time, named by <file>#<hash of the catch body>, each carrying the reason a person wrote after reading that block. An accepted block that is EDITED hashes differently and fails again.",
  "count": 201,
  "entries": {
@@ -171,7 +171,7 @@
   "tests/test-tag-wire.js#db2eeaf2f910": 1,
   "tests/test-wiring.js#da39a3ee5e6b": 1
  },
- "acceptedCount": 74,
+ "acceptedCount": 86,
  "accepted": {
   "engine/orient.js#604a40a7c4d6": {
    "at": "2026-08-23",
@@ -801,6 +801,98 @@
     482
    ],
    "body": "got = null;"
+  },
+  "engine/model_versions.js#f26825af4813": {
+   "at": "2026-09-21",
+   "why": "AN UNREADABLE SIMULATOR IS NOT 'SIMULATES NOTHING'. The error is KEPT in simReadError, simulatorNames() then answers false for every format, and versionOf() prints 'whether <format> is simulated CANNOT BE ANSWERED - <error>' instead of 'nothing is simulated'. Fail-closed AND named: the two states are distinguishable on the screen, which is the whole complaint this gate makes.",
+   "count": 1,
+   "lines": [
+    135
+   ],
+   "body": "simSource = ''; simReadError = 'could not read ' + f + ': ' + one(e);"
+  },
+  "engine/model_versions.js#f39109e2cb07": {
+   "at": "2026-09-21",
+   "why": "NO FALLBACK FILENAME, BY DESIGN. If engine/quarantine.js will not load, nothing here knows what the gate measures, so this returns null rather than the typed path a first draft returned - a Pokemon-adjacent fact from memory standing in for one that was read. gatedModel() then answers null, every model reads NO GATE, and no pair can reach 1.0.0. The error is kept in gateSimError.",
+   "count": 1,
+   "lines": [
+    155
+   ],
+   "body": "gateSimError = one(e); return null;"
+  },
+  "engine/model_versions.js#0c8ccbead900": {
+   "at": "2026-09-21",
+   "why": "THE RETURN VALUE IS THE REPORT. CANNOT-ANSWER carries the exception text into gate.why, status.js and the CLI both print it, and CANNOT-ANSWER is never a pass - a gate that cannot be loaded caps every model at 0.x. Swallowing would mean reporting OPEN, which is the inverse of this handler.",
+   "count": 1,
+   "lines": [
+    174
+   ],
+   "body": "return { state: 'CANNOT-ANSWER', why: 'engine/quarantine.js did not lo"
+  },
+  "engine/model_versions.js#612ec9eea19c": {
+   "at": "2026-09-21",
+   "why": "SAME SHAPE AS THE BLOCK ABOVE: a gate that THREW while computing is CANNOT-ANSWER, never OPEN, and the exception text is carried into gate.why and printed. A zero a clause cannot compute is not a zero - the rule the lattice gate already keeps.",
+   "count": 1,
+   "lines": [
+    177
+   ],
+   "body": "return { state: 'CANNOT-ANSWER', why: 'the gate did not compute: ' + o"
+  },
+  "engine/model_versions.js#5513a3618347": {
+   "at": "2026-09-21",
+   "why": "FAIL-CLOSED AND LOUD. A withholder that throws returns a TRUTHY withhold object, so the artifact counts as WITHHELD and its model cannot reach 1.0.0; the exception text rides in .because and is printed beside the version. Returning null here - 'nothing is withheld' - is the one answer that would be dangerous.",
+   "count": 1,
+   "lines": [
+    180
+   ],
+   "body": "return { why: 'withholder threw: ' + one(e) };"
+  },
+  "engine/docs_scan.js#8adf98dba67d": {
+   "at": "2026-09-21",
+   "why": "A CHANGELOG OR DOCUMENT THAT WILL NOT READ IS SKIPPED FOR THE LINE-DECLARATION SCAN ONLY, and skipping is the strict direction here: a file with no readable masthead declares no line, so it falls to the MAIN line, which is the line with a major floor to meet. Every content rule still reads the same file through the same reader and fails on it there. Absent from this scan means held to the stricter default, never exempted.",
+   "count": 2,
+   "lines": [
+    388,
+    448
+   ],
+   "body": "continue;"
+  },
+  "engine/docs_scan.js#18d7162c3b90": {
+   "at": "2026-09-21",
+   "why": "IT REPORTS UPWARD THROUGH unknownLineDeclarations(), WHICH NAMES IT. A document whose masthead will not read defaults to the MAIN line - the strict direction, since that is the line carrying a major floor - and the same failed read is pushed as 'X would not read (...), so its line could not be determined and it defaults to Y' by unknownLineDeclarations(), which tests/test-docs-current.js clause 2 asserts on. The default is a fallback that is announced, not a guess that is hidden.",
+   "count": 1,
+   "lines": [
+    435
+   ],
+   "body": "return mainLineId();"
+  },
+  "engine/docs_scan.js#afcc77770f0d": {
+   "at": "2026-09-21",
+   "why": "A LINE WHOSE CHANGELOG WILL NOT READ HAS NO TOP AND NO MAJOR, AND null IS WHAT SAYS SO. Both callers treat null as NOT DERIVED rather than as a satisfied floor: tests/test-docs-current.js clause 2 fails the assertion 'every version line has a floor its documents can be measured against' and names the line and its file. A thrown read here would take the whole gate down instead of reporting which line is unreadable.",
+   "count": 2,
+   "lines": [
+    462,
+    2930
+   ],
+   "body": "return null;"
+  },
+  "engine/docs_scan.js#96947880adf0": {
+   "at": "2026-09-21",
+   "why": "AN EMPTY RELEASE LIST FOR AN UNREADABLE CHANGELOG IS REPORTED, NOT PASSED. majorPolicy() then matches no row to a release, and every unmatched row is printed as NOT CHECKABLE with its version - the clause states how many rows it could actually judge in its own assertion text, so a count of nought reads as nought rather than as green.",
+   "count": 1,
+   "lines": [
+    2959
+   ],
+   "body": "return [];"
+  },
+  "engine/docs_scan.js#40876e4c8b12": {
+   "at": "2026-09-21",
+   "why": "PRE-EXISTING BEHAVIOUR, NOW PER LINE: with no changelog nothing dates, so every block is JUDGED rather than excused - fail-closed. The comment on the line says so and the clause that consumes it reports the undated blocks by name.",
+   "count": 1,
+   "lines": [
+    1436
+   ],
+   "body": "/* no changelog: nothing dates, everything is judged — fail-closed */"
   }
  }
 }

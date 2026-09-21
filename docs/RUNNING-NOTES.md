@@ -52,7 +52,7 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
-## [7.2.0] — 2026-09-20 — Will's three Reg M-C decisions, and the exclusion cost measured after it was called cheap
+## [abra/regmc 0.3.0] — 2026-09-20 — Will's three Reg M-C decisions, and the exclusion cost measured after it was called cheap
 
 - **THE REG M-B COLLECTOR IS OFF.** Will: *"we can turn off the reg mb collector we have moved".*
   `.github/workflows/ingest.yml` keeps `workflow_dispatch` and loses its schedule — no live cron
@@ -84,7 +84,7 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Supersedes.** ~~"a few days of games out of 23,554"~~ then ~~the 8,352-game date cut~~, now
   **335 games excluded by the conjunction**.
 
-## [7.1.0] — 2026-09-20 — the Reg M-C line opens at 0.1.0: a second Showdown checkout, and the delta derived against the PINNED authority
+## [abra/regmc 0.1.0] — 2026-09-20 — the Reg M-C line opens at 0.1.0: a second Showdown checkout, and the delta derived against the PINNED authority
 
 - **What changed.** No engine byte. A second Showdown checkout exists at
   `C:/Users/willj/Projects/Pokemon/pokemon-showdown-mc` (`f10d679`, 2026-09-20, built), and the Reg M-C

@@ -1,7 +1,7 @@
 {
- "generated": "2026-09-11T03:02:10.921Z",
+ "generated": "2026-09-21T02:24:36.754Z",
  "by": "engine/conformance.js",
- "files": 698,
+ "files": 812,
  "findings": [
   {
    "std": "convention",
@@ -110,6 +110,15 @@
    "detail": [
     "move:detect",
     "move:endure",
+    "move:protect"
+   ]
+  },
+  {
+   "std": "S12",
+   "file": "engine/human_protect_ruler.js",
+   "what": "names 1 Pokemon thing(s) in code: move:protect",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
     "move:protect"
    ]
   },
@@ -301,6 +310,17 @@
     "move:protect",
     "move:tailwind",
     "move:trickroom"
+   ]
+  },
+  {
+   "std": "S12",
+   "file": "engine/stage_planner.js",
+   "what": "names 3 Pokemon thing(s) in code: move:protect, move:auroraveil, ability:prankster",
+   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
+   "detail": [
+    "ability:prankster",
+    "move:auroraveil",
+    "move:protect"
    ]
   },
   {
@@ -508,6 +528,12 @@
   },
   {
    "std": "S13",
+   "file": "data/engine-release.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
    "file": "data/eval-report.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -629,7 +655,7 @@
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie",
    "detail": [
-    "named in the CODE of engine/censoring_value.js but never beside a write: those files READ it. Nothing in this repository can be shown to generate it."
+    "named in the CODE of engine/censoring_value.js, engine/quarantine.js but never beside a write: those files READ it. Nothing in this repository can be shown to generate it."
    ]
   },
   {

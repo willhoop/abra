@@ -178,6 +178,11 @@ data/releases/
 # them is 104 MB, over GitHub's hard limit. FROZEN.md IS tracked: it carries the line counts
 # and sha256 of both files, which is what makes the pin checkable rather than assumed.
 data/team-pool-frozen/*.jsonl
+# 2026-09-20 — the Reg M-C pool, same rule and for the same reason. Its games.bo3.jsonl is 236 MB
+# and GitHub hard-rejects any single file over 100 MB, so tracking it fails the PUSH rather than
+# the commit. FROZEN.md and pool-receipt.json ARE tracked: the contract and the digests are what
+# a later reader needs, and the games are re-cuttable from the store by engine/cut_regmc_pool.js.
+data/team-pool-frozen-regmc/*.jsonl
 
 # the divergence viewer default output — a RENDER, regenerable from
 # data/divergence-turns.json in one command, and stale the moment the differential re-runs.

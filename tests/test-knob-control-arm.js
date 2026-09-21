@@ -261,6 +261,20 @@ console.log('');
  * guessed from the numbers, and the classification is PRINTED for every pair. */
 const silentControl = (file, knob) => read(path.join(ROOT, file)).split('\n')
   .some(l => l.includes(knob) && /SILENT CONTROL/.test(l));
+
+/* A PAIRED KNOB IS HALF OF ONE DEFECT, AND THE PROBE DECLARES ITS OTHER HALF — 2026-09-20.
+ * Some defects are suppressed by TWO independent guards, so restoring one leaves the other correct
+ * and the probe stays green. Read bare, that is indistinguishable from an unwired knob, and this
+ * guard called a correct file broken on exactly that reading. The marker is read off the probe's own
+ * line, like SILENT CONTROL, and it is NOT the same thing: a silent control is an UNRELATED knob that
+ * must leave the probe green, whereas these are each half of the same defect and must restore it
+ * TOGETHER. The measurement sets both and still requires exit 1, so the claim this guard exists to
+ * make -- "this probe can fail" -- is preserved rather than waived. */
+const pairedWith = (file, knob) => {
+  const m = read(path.join(ROOT, file)).match(new RegExp(knob + '[ 	]+PAIRED WITH[ 	]+([A-Z0-9_]+)'));
+  return m ? m[1] : null;
+};
+
 const KEY = (file, knob) => file + ' :: ' + knob;
 
 const MEASURE = process.argv.includes('--measure');
@@ -292,11 +306,13 @@ if (MEASURE) {
     }
     const args = pin ? ['--release', pin] : [];
     const clean = r.status;
-    const knobbed = go({ [knob]: '1' }, args).status;
+    const mate = pairedWith(file, knob);
+    const knobbed = go(mate ? { [knob]: '1', [mate]: '1' } : { [knob]: '1' }, args).status;
     out.pairs[KEY(file, knob)] = { file, knob, clean, knob_exit: knobbed,
-      silent_control: silentControl(file, knob), release_pin: pin, sha256: digest(path.join(ROOT, file)) };
+      silent_control: silentControl(file, knob), paired_with: mate, release_pin: pin, sha256: digest(path.join(ROOT, file)) };
     console.log('  measured  ' + file + '  clean=' + clean + '  ' + knob + '=1 -> ' + knobbed
       + (pin ? '   [REFUSED without a release; re-run with --release ' + pin + ']' : '')
+      + (mate ? '   [PAIRED WITH ' + mate + ' — both set, 1 is still the pass]' : '')
       + (silentControl(file, knob) ? '   [declared SILENT CONTROL — 0 is the pass]' : ''));
   }
   fs.writeFileSync(ARTIFACT, JSON.stringify(out, null, 1) + '\n');

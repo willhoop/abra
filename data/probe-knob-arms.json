@@ -1,700 +1,702 @@
 {
- "generated": "2026-09-20T02:42:54.833Z",
- "note": "Measured exit codes for every (probe, engine knob) pair, keyed \"<file> :: <knob>\" because a probe may carry two knobs and a file-only key silently kept the last one. clean MUST be 0; the knob MUST be 1 unless the probe declares that knob a SILENT CONTROL, in which case it MUST be 0. Regenerate with `node tests/test-knob-control-arm.js --measure [file]`. `sha256` is the probe file, so an edited probe invalidates its own verdict.",
- "clean_red_allowed": {
-  "tests/probe_midturn_herb_resort.js :: MEDI_RESORT_BEFORE_UPDATE": "RED BEFORE THIS FILE EXISTED and not the knob class. Measured 2026-09-19: the knob REACHES its code (MEDFAILS.resortBeforeUpdateRestored = 1 on the control child) and the board does not move — the staged cast Morpeko/Slurpuff/Pidgeot reads holder-first in BOTH placements, so the two RED assertions are the probe telling the truth about its own fixture. The fixture is also ILLEGAL: game_differential`s own legality check says Slurpuff cannot learn Covet, 2 of 9 sets, NOT baselined. Owed: a fixture that still discriminates, or a measured finding that the two placements are now equivalent. NOT the knob-control-arm shape - its control arm was fixed in this pass and its knob arm still exits 0 for this reason.",
-  "tests/probe_trace_list.js :: MEDI_TRACE_SOLO_NODRAW": "RED BEFORE THIS FILE EXISTED and not the knob class. Measured 2026-09-19 over the pinned pool, 8778 teams / 222 Trace boards / 2442 joined draws: ONE draw shared a list with the authority and took a different INDEX (mirror board, t6/5, holder p1[1]; showdown idx 0, medicham idx 1). The knob arm is correct and moves the reading (idx 1 -> 8), so the probe is sound and the ENGINE is what is red. Owed: the Trace index defect, which belongs to whoever owns that die."
- },
- "pairs": {
-  "tests/probe_ability_flag_refusal.js :: MEDI_ABILITY_FLAG_REFUSAL_UNREAD": {
-   "file": "tests/probe_ability_flag_refusal.js",
-   "knob": "MEDI_ABILITY_FLAG_REFUSAL_UNREAD",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "d863165637a500b8"
-  },
-  "tests/probe_accuracy_modifier_chain.js :: MEDI_ACC_MOD_FLOAT": {
-   "file": "tests/probe_accuracy_modifier_chain.js",
-   "knob": "MEDI_ACC_MOD_FLOAT",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "79ff5c7c7324143a"
-  },
-  "tests/probe_accuracy_modifier_chain.js :: MEDI_WEATHER_FORME_SURVIVES_FAINT": {
-   "file": "tests/probe_accuracy_modifier_chain.js",
-   "knob": "MEDI_WEATHER_FORME_SURVIVES_FAINT",
-   "clean": 0,
-   "knob_exit": 0,
-   "silent_control": true,
-   "release_pin": null,
-   "sha256": "79ff5c7c7324143a"
-  },
-  "tests/probe_bond_reactor_ko.js :: MEDI_BOND_REACT_DRAWN": {
-   "file": "tests/probe_bond_reactor_ko.js",
-   "knob": "MEDI_BOND_REACT_DRAWN",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "d00d0cbd68cbb82b"
-  },
-  "tests/probe_damaginghit_order.js :: MEDI_DH_IN_EFFECTS": {
-   "file": "tests/probe_damaginghit_order.js",
-   "knob": "MEDI_DH_IN_EFFECTS",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "e075acae3aba1688"
-  },
-  "tests/probe_direclaw_attribution.js :: MEDI_PROCEDURAL_STATUS_NAMES_MOVE": {
-   "file": "tests/probe_direclaw_attribution.js",
-   "knob": "MEDI_PROCEDURAL_STATUS_NAMES_MOVE",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "9f857e0b2c79f26d"
-  },
-  "tests/probe_disguise_crit.js :: MEDI_FORMEONHIT_THROUGH_DOLL": {
-   "file": "tests/probe_disguise_crit.js",
-   "knob": "MEDI_FORMEONHIT_THROUGH_DOLL",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "21563fb884e80198"
-  },
-  "tests/probe_disguise_crit.js :: MEDI_PREVENTSCRIT_ABILITY_ONLY": {
-   "file": "tests/probe_disguise_crit.js",
-   "knob": "MEDI_PREVENTSCRIT_ABILITY_ONLY",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "21563fb884e80198"
-  },
-  "tests/probe_entry_update_before_mega.js :: MEDI_MEGA_BEFORE_UPDATE": {
-   "file": "tests/probe_entry_update_before_mega.js",
-   "knob": "MEDI_MEGA_BEFORE_UPDATE",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "c27a333cda95f8aa"
-  },
-  "tests/probe_fractional_priority_draw.js :: MEDI_FRACPRI_UNGATED_DRAW": {
-   "file": "tests/probe_fractional_priority_draw.js",
-   "knob": "MEDI_FRACPRI_UNGATED_DRAW",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "73589d55071ace9f"
-  },
-  "tests/probe_hazard_lay_order.js :: MEDI_HAZARD_FIXED_ORDER": {
-   "file": "tests/probe_hazard_lay_order.js",
-   "knob": "MEDI_HAZARD_FIXED_ORDER",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "b96c591c256a95d5"
-  },
-  "tests/probe_hazard_recap_fail.js :: MEDI_HAZARD_RECAP_SILENT": {
-   "file": "tests/probe_hazard_recap_fail.js",
-   "knob": "MEDI_HAZARD_RECAP_SILENT",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "72cffd3edbc0a898"
-  },
-  "tests/probe_hazard_sweep_order.js :: MEDI_SWEEP_LEGACY_ORDER": {
-   "file": "tests/probe_hazard_sweep_order.js",
-   "knob": "MEDI_SWEEP_LEGACY_ORDER",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "49189bed00b57cd7"
-  },
-  "tests/probe_healblock_clock.js :: MEDI_HEALBLOCK_CLOCK_LONG": {
-   "file": "tests/probe_healblock_clock.js",
-   "knob": "MEDI_HEALBLOCK_CLOCK_LONG",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "c5b72dd631bb7af7"
-  },
-  "tests/probe_healblock_clock.js :: MEDI_HEALBLOCK_REFRESH": {
-   "file": "tests/probe_healblock_clock.js",
-   "knob": "MEDI_HEALBLOCK_REFRESH",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "c5b72dd631bb7af7"
-  },
-  "tests/probe_magnetrise_clock.js :: MEDI_MAGNETRISE_NO_CLOCK": {
-   "file": "tests/probe_magnetrise_clock.js",
-   "knob": "MEDI_MAGNETRISE_NO_CLOCK",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "b98e64edb686dca8"
-  },
-  "tests/probe_mega_trace_entry.js :: MEDI_MEGA_TRACE_LATE": {
-   "file": "tests/probe_mega_trace_entry.js",
-   "knob": "MEDI_MEGA_TRACE_LATE",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "e6650f9b4a602c57"
-  },
-  "tests/probe_mental_herb_update.js :: MEDI_MENTAL_HERB_MOVE_ONLY": {
-   "file": "tests/probe_mental_herb_update.js",
-   "knob": "MEDI_MENTAL_HERB_MOVE_ONLY",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "01a7171cca1dd4a8"
-  },
-  "tests/probe_mental_herb_update.js :: MEDI_WEATHER_FORME_SURVIVES_FAINT": {
-   "file": "tests/probe_mental_herb_update.js",
-   "knob": "MEDI_WEATHER_FORME_SURVIVES_FAINT",
-   "clean": 0,
-   "knob_exit": 0,
-   "silent_control": true,
-   "release_pin": null,
-   "sha256": "01a7171cca1dd4a8"
-  },
-  "tests/probe_midturn_herb_resort.js :: MEDI_RESORT_BEFORE_UPDATE": {
-   "file": "tests/probe_midturn_herb_resort.js",
-   "knob": "MEDI_RESORT_BEFORE_UPDATE",
-   "clean": 1,
-   "knob_exit": 0,
-   "silent_control": false,
-   "sha256": "1bd498142612e27c"
-  },
-  "tests/probe_multihit_update.js :: MEDI_MULTIHIT_UPDATE_ONCE": {
-   "file": "tests/probe_multihit_update.js",
-   "knob": "MEDI_MULTIHIT_UPDATE_ONCE",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "d31894be8f5cfafd"
-  },
-  "tests/probe_perishsong_field.js :: MEDI_PERISH_ALWAYS_ACTIVATES": {
-   "file": "tests/probe_perishsong_field.js",
-   "knob": "MEDI_PERISH_ALWAYS_ACTIVATES",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "4e9a56ac4b6a6e18"
-  },
-  "tests/probe_pickpocket_event_position.js :: MEDI_PICKPOCKET_IN_HIT_LOOP": {
-   "file": "tests/probe_pickpocket_event_position.js",
-   "knob": "MEDI_PICKPOCKET_IN_HIT_LOOP",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "7cc44cfa38fe5c4a"
-  },
-  "tests/probe_pickpocket_on_a_corpse.js :: MEDI_PICKPOCKET_ON_A_CORPSE": {
-   "file": "tests/probe_pickpocket_on_a_corpse.js",
-   "knob": "MEDI_PICKPOCKET_ON_A_CORPSE",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "7dc6ee534bce764c"
-  },
-  "tests/probe_pivot_after_battle_end.js :: MEDI_PIVOT_AFTER_BATTLE_END": {
-   "file": "tests/probe_pivot_after_battle_end.js",
-   "knob": "MEDI_PIVOT_AFTER_BATTLE_END",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "91e1d94112c20f3d"
-  },
-  "tests/probe_pressure_terrain_target.js :: MEDI_PP_PRESSURE_STATIC_TARGET": {
-   "file": "tests/probe_pressure_terrain_target.js",
-   "knob": "MEDI_PP_PRESSURE_STATIC_TARGET",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "a23908e124417b9d"
-  },
-  "tests/probe_pressure_terrain_target.js :: MEDI_WEATHER_FORME_SURVIVES_FAINT": {
-   "file": "tests/probe_pressure_terrain_target.js",
-   "knob": "MEDI_WEATHER_FORME_SURVIVES_FAINT",
-   "clean": 0,
-   "knob_exit": 0,
-   "silent_control": true,
-   "sha256": "a23908e124417b9d"
-  },
-  "tests/probe_protect_stage_order.js :: MEDI_INVULN_BELOW_SHIELD": {
-   "file": "tests/probe_protect_stage_order.js",
-   "knob": "MEDI_INVULN_BELOW_SHIELD",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "3d0d243de5890b75"
-  },
-  "tests/probe_quick_claw_above_bracket_zero.js :: MEDI_FRACPRI_PRIORITY_GATE": {
-   "file": "tests/probe_quick_claw_above_bracket_zero.js",
-   "knob": "MEDI_FRACPRI_PRIORITY_GATE",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "71478c10336f4cc4"
-  },
-  "tests/probe_rampage_length.js :: MEDI_RAMPAGE_TWO_TURNS": {
-   "file": "tests/probe_rampage_length.js",
-   "knob": "MEDI_RAMPAGE_TWO_TURNS",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "650d108855c58ecd"
-  },
-  "tests/probe_random_target_die.js :: MEDI_TGT_ADDR_LEGACY": {
-   "file": "tests/probe_random_target_die.js",
-   "knob": "MEDI_TGT_ADDR_LEGACY",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "51109e7ef0f30625"
-  },
-  "tests/probe_recoil_after_clamp.js :: MEDI_DEALT_BEFORE_CLAMP": {
-   "file": "tests/probe_recoil_after_clamp.js",
-   "knob": "MEDI_DEALT_BEFORE_CLAMP",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "3c689450f7627a89"
-  },
-  "tests/probe_refill_entry_herb.js :: MEDI_REFILL_NO_HERB": {
-   "file": "tests/probe_refill_entry_herb.js",
-   "knob": "MEDI_REFILL_NO_HERB",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "3a19ba836dfad0bd"
-  },
-  "tests/probe_replacement_entry.js :: MEDI_ENTRY_HAZARD_INLINE": {
-   "file": "tests/probe_replacement_entry.js",
-   "knob": "MEDI_ENTRY_HAZARD_INLINE",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "d7a6290169c045e6"
-  },
-  "tests/probe_replacement_entry.js :: MEDI_REPLACE_SPEED_MODIFIED": {
-   "file": "tests/probe_replacement_entry.js",
-   "knob": "MEDI_REPLACE_SPEED_MODIFIED",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "d7a6290169c045e6"
-  },
-  "tests/probe_second_update_pass.js :: MEDI_NO_SECOND_INMOVE_UPDATE": {
-   "file": "tests/probe_second_update_pass.js",
-   "knob": "MEDI_NO_SECOND_INMOVE_UPDATE",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "a114e1bc993d7a48"
-  },
-  "tests/probe_selfboost_empty_foe_side.js :: MEDI_SELFBOOST_IGNORES_EMPTY_FOE_SIDE": {
-   "file": "tests/probe_selfboost_empty_foe_side.js",
-   "knob": "MEDI_SELFBOOST_IGNORES_EMPTY_FOE_SIDE",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "38b0ed420db888e0"
-  },
-  "tests/probe_selfdrop_through_sub.js :: MEDI_SELFPAY_SKIPPED_ON_SUB": {
-   "file": "tests/probe_selfdrop_through_sub.js",
-   "knob": "MEDI_SELFPAY_SKIPPED_ON_SUB",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "930dc249d266fc92"
-  },
-  "tests/probe_selfswitch_update_pass.js :: MEDI_NO_SELFSWITCH_UPDATE": {
-   "file": "tests/probe_selfswitch_update_pass.js",
-   "knob": "MEDI_NO_SELFSWITCH_UPDATE",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "e6ea5cd9ec6d12b0"
-  },
-  "tests/probe_simple_beam.js :: MEDI_SIMPLE_UNAMPLIFIED": {
-   "file": "tests/probe_simple_beam.js",
-   "knob": "MEDI_SIMPLE_UNAMPLIFIED",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "6033fa722885e3a3"
-  },
-  "tests/probe_smart_target_immune_line.js :: MEDI_SMART_IMMUNE_LINE": {
-   "file": "tests/probe_smart_target_immune_line.js",
-   "knob": "MEDI_SMART_IMMUNE_LINE",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "e2626861e532c52d"
-  },
-  "tests/probe_smart_target_redirect.js :: MEDI_SMART_TARGET_SURVIVES_REDIRECT": {
-   "file": "tests/probe_smart_target_redirect.js",
-   "knob": "MEDI_SMART_TARGET_SURVIVES_REDIRECT",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "f4c97a6d62128b61"
-  },
-  "tests/probe_smart_target_shield_line.js :: MEDI_SMART_PROTECT_LINE": {
-   "file": "tests/probe_smart_target_shield_line.js",
-   "knob": "MEDI_SMART_PROTECT_LINE",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "92569e8fd6a65628"
-  },
-  "tests/probe_smart_target_shield_line.js :: MEDI_SMART_SHIELD_ALL_SILENT": {
-   "file": "tests/probe_smart_target_shield_line.js",
-   "knob": "MEDI_SMART_SHIELD_ALL_SILENT",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "92569e8fd6a65628"
-  },
-  "tests/probe_sound_lock_restart.js :: MEDI_SOUND_LOCK_RESTARTS": {
-   "file": "tests/probe_sound_lock_restart.js",
-   "knob": "MEDI_SOUND_LOCK_RESTARTS",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "c9e3a228377402d6"
-  },
-  "tests/probe_stall_uncaused.js :: MEDI_STALL_LAPSE_AT_RESIDUAL_OPEN": {
-   "file": "tests/probe_stall_uncaused.js",
-   "knob": "MEDI_STALL_LAPSE_AT_RESIDUAL_OPEN",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "c4ecf76a5184a384"
-  },
-  "tests/probe_status_chip_scaled.js :: MEDI_STATUS_CHIP_UNSCALED": {
-   "file": "tests/probe_status_chip_scaled.js",
-   "knob": "MEDI_STATUS_CHIP_UNSCALED",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "86736cd85a4930a5"
-  },
-  "tests/probe_status_clock_dice.js :: MEDI_SLEEP_START_ANY_ADDR": {
-   "file": "tests/probe_status_clock_dice.js",
-   "knob": "MEDI_SLEEP_START_ANY_ADDR",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "d35f22f196a9ed64"
-  },
-  "tests/probe_sun_refuses_freeze.js :: MEDI_FRZ_IN_SUN": {
-   "file": "tests/probe_sun_refuses_freeze.js",
-   "knob": "MEDI_FRZ_IN_SUN",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "81743942e838284d"
-  },
-  "tests/probe_trace_list.js :: MEDI_TRACE_SOLO_NODRAW": {
-   "file": "tests/probe_trace_list.js",
-   "knob": "MEDI_TRACE_SOLO_NODRAW",
-   "clean": 1,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "222b8698cb57be48"
-  },
-  "tests/probe_trace_target.js :: MEDI_MID_RANGE_DRAWS": {
-   "file": "tests/probe_trace_target.js",
-   "knob": "MEDI_MID_RANGE_DRAWS",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "7bee574a1a09afc3"
-  },
-  "tests/probe_transform_copied_start.js :: MEDI_TRANSFORM_NO_COPIED_START": {
-   "file": "tests/probe_transform_copied_start.js",
-   "knob": "MEDI_TRANSFORM_NO_COPIED_START",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "dfa229a7ad4756e2"
-  },
-  "tests/probe_transform_faint_revert.js :: MEDI_TRANSFORM_SURVIVES_FAINT": {
-   "file": "tests/probe_transform_faint_revert.js",
-   "knob": "MEDI_TRANSFORM_SURVIVES_FAINT",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "2f179393cbc93666"
-  },
-  "tests/probe_trap_duration.js :: MEDI_TRAP_TICK_BEFORE_CLOCK": {
-   "file": "tests/probe_trap_duration.js",
-   "knob": "MEDI_TRAP_TICK_BEFORE_CLOCK",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "ef539c4bf3216a7f"
-  },
-  "tests/probe_trap_timing.js :: MEDI_TRAP_AT_EXECUTION": {
-   "file": "tests/probe_trap_timing.js",
-   "knob": "MEDI_TRAP_AT_EXECUTION",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": "18773c22878f",
-   "sha256": "6ff4ad7f4aa40714"
-  },
-  "tests/probe_weather_forme_faint.js :: MEDI_PP_PRESSURE_STATIC_TARGET": {
-   "file": "tests/probe_weather_forme_faint.js",
-   "knob": "MEDI_PP_PRESSURE_STATIC_TARGET",
-   "clean": 0,
-   "knob_exit": 0,
-   "silent_control": true,
-   "sha256": "e531524a232d7ecf"
-  },
-  "tests/probe_weather_forme_faint.js :: MEDI_WEATHER_FORME_SURVIVES_FAINT": {
-   "file": "tests/probe_weather_forme_faint.js",
-   "knob": "MEDI_WEATHER_FORME_SURVIVES_FAINT",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "sha256": "e531524a232d7ecf"
-  },
-  "tests/test-damage-roll-support.js :: MEDI_DAMAGE_SPAN_DRAW": {
-   "file": "tests/test-damage-roll-support.js",
-   "knob": "MEDI_DAMAGE_SPAN_DRAW",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "4f9748b8bf35b12a"
-  },
-  "tests/test-multihit-roll.js :: MEDI_MULTIHIT_ONE_INDEX": {
-   "file": "tests/test-multihit-roll.js",
-   "knob": "MEDI_MULTIHIT_ONE_INDEX",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "f07f9e4f076f9501"
-  },
-  "tests/probe_sec_addr_selfdrop.js :: MEDI_KINGSROCK_SKIPS_DEAD": {
-   "file": "tests/probe_sec_addr_selfdrop.js",
-   "knob": "MEDI_KINGSROCK_SKIPS_DEAD",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "f9ce0812928e925d"
-  },
-  "tests/probe_sec_addr_selfdrop.js :: MEDI_SEC_ADDR_IGNORES_SELFDROP": {
-   "file": "tests/probe_sec_addr_selfdrop.js",
-   "knob": "MEDI_SEC_ADDR_IGNORES_SELFDROP",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "f9ce0812928e925d"
-  },
-  "tests/probe_stall_sweep_order.js :: MEDI_STALL_SWEEP_UNORDERED": {
-   "file": "tests/probe_stall_sweep_order.js",
-   "knob": "MEDI_STALL_SWEEP_UNORDERED",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "edc2f8afa9c7bca9"
-  },
-  "tests/probe_aftermove_cure.js :: MEDI_AFTERMOVE_CURE_OFF": {
-   "file": "tests/probe_aftermove_cure.js",
-   "knob": "MEDI_AFTERMOVE_CURE_OFF",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "3616f0fe8715b565"
-  },
-  "tests/probe_partial_trap_source_returns.js :: MEDI_PARTIAL_TRAP_OUTLIVES_SOURCE": {
-   "file": "tests/probe_partial_trap_source_returns.js",
-   "knob": "MEDI_PARTIAL_TRAP_OUTLIVES_SOURCE",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "37fa8e5cc6f452d6"
-  },
-  "tests/probe_recoil_on_a_whiff.js :: MEDI_RECOIL_ON_A_WHIFF": {
-   "file": "tests/probe_recoil_on_a_whiff.js",
-   "knob": "MEDI_RECOIL_ON_A_WHIFF",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "3bd8d0877ab1e6aa"
-  },
-  "tests/probe_bounced_move_redirect.js :: MEDI_BOUNCE_IGNORES_REDIRECT": {
-   "file": "tests/probe_bounced_move_redirect.js",
-   "knob": "MEDI_BOUNCE_IGNORES_REDIRECT",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "16329dce09b68951"
-  },
-  "tests/probe_fickle_beam_die.js :: MEDI_CONDPOWER_OFF_ANY": {
-   "file": "tests/probe_fickle_beam_die.js",
-   "knob": "MEDI_CONDPOWER_OFF_ANY",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "0152946d6741af4b"
-  },
-  "tests/probe_multihit_reaction_per_arrival.js :: MEDI_MULTIACC_UPFRONT": {
-   "file": "tests/probe_multihit_reaction_per_arrival.js",
-   "knob": "MEDI_MULTIACC_UPFRONT",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "c1f2e6ce1a78cd9c"
-  },
-  "tests/probe_multihit_reaction_per_arrival.js :: MEDI_REACT_LATE_ONCE": {
-   "file": "tests/probe_multihit_reaction_per_arrival.js",
-   "knob": "MEDI_REACT_LATE_ONCE",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "c1f2e6ce1a78cd9c"
-  },
-  "tests/probe_multihit_reaction_per_arrival.js :: MEDI_SPORE_DIE_UNGATED": {
-   "file": "tests/probe_multihit_reaction_per_arrival.js",
-   "knob": "MEDI_SPORE_DIE_UNGATED",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "c1f2e6ce1a78cd9c"
-  },
-  "tests/probe_multihit_reaction_per_arrival.js :: MEDI_VOLLEY_IGNORES_SLEEP": {
-   "file": "tests/probe_multihit_reaction_per_arrival.js",
-   "knob": "MEDI_VOLLEY_IGNORES_SLEEP",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "c1f2e6ce1a78cd9c"
-  },
-  "tests/probe_redirect_onto_the_aim.js :: MEDI_REDIRECT_NEEDS_AIM_CHANGE": {
-   "file": "tests/probe_redirect_onto_the_aim.js",
-   "knob": "MEDI_REDIRECT_NEEDS_AIM_CHANGE",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "95fbd461dbd916f2"
-  },
-  "tests/probe_narration_a.js :: MEDI_COACHING_NOALLY_SILENT": {
-   "file": "tests/probe_narration_a.js",
-   "knob": "MEDI_COACHING_NOALLY_SILENT",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "52acdcc6d0a71e72"
-  },
-  "tests/probe_narration_a.js :: MEDI_ITEMMOVE_NOTARGET_SILENT": {
-   "file": "tests/probe_narration_a.js",
-   "knob": "MEDI_ITEMMOVE_NOTARGET_SILENT",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "52acdcc6d0a71e72"
-  },
-  "tests/probe_narration_a.js :: MEDI_ROOST_ANNOUNCE_FLYING_ONLY": {
-   "file": "tests/probe_narration_a.js",
-   "knob": "MEDI_ROOST_ANNOUNCE_FLYING_ONLY",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "52acdcc6d0a71e72"
-  },
-  "tests/probe_narration_a.js :: MEDI_SPREAD_NOFOE_FAILS": {
-   "file": "tests/probe_narration_a.js",
-   "knob": "MEDI_SPREAD_NOFOE_FAILS",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "52acdcc6d0a71e72"
-  },
-  "tests/probe_narration_a.js :: MEDI_SYNC_IMMUNE_SILENT": {
-   "file": "tests/probe_narration_a.js",
-   "knob": "MEDI_SYNC_IMMUNE_SILENT",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "52acdcc6d0a71e72"
-  },
-  "tests/probe_narration_c.js :: MEDI_CHILLY_NOBENCH_SILENT": {
-   "file": "tests/probe_narration_c.js",
-   "knob": "MEDI_CHILLY_NOBENCH_SILENT",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "19c5ad2505e5d2f1"
-  },
-  "tests/probe_narration_c.js :: MEDI_FOREWARN_SILENT": {
-   "file": "tests/probe_narration_c.js",
-   "knob": "MEDI_FOREWARN_SILENT",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "19c5ad2505e5d2f1"
-  },
-  "tests/probe_narration_c.js :: MEDI_HARVEST_COIN_GATED": {
-   "file": "tests/probe_narration_c.js",
-   "knob": "MEDI_HARVEST_COIN_GATED",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "19c5ad2505e5d2f1"
-  },
-  "tests/probe_narration_c.js :: MEDI_STATUS_HELD_AFTER_FIELD": {
-   "file": "tests/probe_narration_c.js",
-   "knob": "MEDI_STATUS_HELD_AFTER_FIELD",
-   "clean": 0,
-   "knob_exit": 1,
-   "silent_control": false,
-   "release_pin": null,
-   "sha256": "19c5ad2505e5d2f1"
-  }
- }
+  "generated": "2026-09-21T02:06:59.352Z",
+  "note": "Measured exit codes for every (probe, engine knob) pair, keyed \"<file> :: <knob>\" because a probe may carry two knobs and a file-only key silently kept the last one. clean MUST be 0; the knob MUST be 1 unless the probe declares that knob a SILENT CONTROL, in which case it MUST be 0. Regenerate with `node tests/test-knob-control-arm.js --measure [file]`. `sha256` is the probe file, so an edited probe invalidates its own verdict.",
+  "clean_red_allowed": {},
+  "pairs": {
+    "tests/probe_ability_flag_refusal.js :: MEDI_ABILITY_FLAG_REFUSAL_UNREAD": {
+      "file": "tests/probe_ability_flag_refusal.js",
+      "knob": "MEDI_ABILITY_FLAG_REFUSAL_UNREAD",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "d863165637a500b8"
+    },
+    "tests/probe_accuracy_modifier_chain.js :: MEDI_ACC_MOD_FLOAT": {
+      "file": "tests/probe_accuracy_modifier_chain.js",
+      "knob": "MEDI_ACC_MOD_FLOAT",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "79ff5c7c7324143a"
+    },
+    "tests/probe_accuracy_modifier_chain.js :: MEDI_WEATHER_FORME_SURVIVES_FAINT": {
+      "file": "tests/probe_accuracy_modifier_chain.js",
+      "knob": "MEDI_WEATHER_FORME_SURVIVES_FAINT",
+      "clean": 0,
+      "knob_exit": 0,
+      "silent_control": true,
+      "release_pin": null,
+      "sha256": "79ff5c7c7324143a"
+    },
+    "tests/probe_bond_reactor_ko.js :: MEDI_BOND_REACT_DRAWN": {
+      "file": "tests/probe_bond_reactor_ko.js",
+      "knob": "MEDI_BOND_REACT_DRAWN",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "d00d0cbd68cbb82b"
+    },
+    "tests/probe_damaginghit_order.js :: MEDI_DH_IN_EFFECTS": {
+      "file": "tests/probe_damaginghit_order.js",
+      "knob": "MEDI_DH_IN_EFFECTS",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "e075acae3aba1688"
+    },
+    "tests/probe_direclaw_attribution.js :: MEDI_PROCEDURAL_STATUS_NAMES_MOVE": {
+      "file": "tests/probe_direclaw_attribution.js",
+      "knob": "MEDI_PROCEDURAL_STATUS_NAMES_MOVE",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "9f857e0b2c79f26d"
+    },
+    "tests/probe_disguise_crit.js :: MEDI_FORMEONHIT_THROUGH_DOLL": {
+      "file": "tests/probe_disguise_crit.js",
+      "knob": "MEDI_FORMEONHIT_THROUGH_DOLL",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "21563fb884e80198"
+    },
+    "tests/probe_disguise_crit.js :: MEDI_PREVENTSCRIT_ABILITY_ONLY": {
+      "file": "tests/probe_disguise_crit.js",
+      "knob": "MEDI_PREVENTSCRIT_ABILITY_ONLY",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "21563fb884e80198"
+    },
+    "tests/probe_entry_update_before_mega.js :: MEDI_MEGA_BEFORE_UPDATE": {
+      "file": "tests/probe_entry_update_before_mega.js",
+      "knob": "MEDI_MEGA_BEFORE_UPDATE",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "c27a333cda95f8aa"
+    },
+    "tests/probe_fractional_priority_draw.js :: MEDI_FRACPRI_UNGATED_DRAW": {
+      "file": "tests/probe_fractional_priority_draw.js",
+      "knob": "MEDI_FRACPRI_UNGATED_DRAW",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "73589d55071ace9f"
+    },
+    "tests/probe_hazard_lay_order.js :: MEDI_HAZARD_FIXED_ORDER": {
+      "file": "tests/probe_hazard_lay_order.js",
+      "knob": "MEDI_HAZARD_FIXED_ORDER",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "b96c591c256a95d5"
+    },
+    "tests/probe_hazard_recap_fail.js :: MEDI_HAZARD_RECAP_SILENT": {
+      "file": "tests/probe_hazard_recap_fail.js",
+      "knob": "MEDI_HAZARD_RECAP_SILENT",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "72cffd3edbc0a898"
+    },
+    "tests/probe_hazard_sweep_order.js :: MEDI_SWEEP_LEGACY_ORDER": {
+      "file": "tests/probe_hazard_sweep_order.js",
+      "knob": "MEDI_SWEEP_LEGACY_ORDER",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "49189bed00b57cd7"
+    },
+    "tests/probe_healblock_clock.js :: MEDI_HEALBLOCK_CLOCK_LONG": {
+      "file": "tests/probe_healblock_clock.js",
+      "knob": "MEDI_HEALBLOCK_CLOCK_LONG",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "c5b72dd631bb7af7"
+    },
+    "tests/probe_healblock_clock.js :: MEDI_HEALBLOCK_REFRESH": {
+      "file": "tests/probe_healblock_clock.js",
+      "knob": "MEDI_HEALBLOCK_REFRESH",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "c5b72dd631bb7af7"
+    },
+    "tests/probe_magnetrise_clock.js :: MEDI_MAGNETRISE_NO_CLOCK": {
+      "file": "tests/probe_magnetrise_clock.js",
+      "knob": "MEDI_MAGNETRISE_NO_CLOCK",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "b98e64edb686dca8"
+    },
+    "tests/probe_mega_trace_entry.js :: MEDI_MEGA_TRACE_LATE": {
+      "file": "tests/probe_mega_trace_entry.js",
+      "knob": "MEDI_MEGA_TRACE_LATE",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "e6650f9b4a602c57"
+    },
+    "tests/probe_mental_herb_update.js :: MEDI_MENTAL_HERB_MOVE_ONLY": {
+      "file": "tests/probe_mental_herb_update.js",
+      "knob": "MEDI_MENTAL_HERB_MOVE_ONLY",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "01a7171cca1dd4a8"
+    },
+    "tests/probe_mental_herb_update.js :: MEDI_WEATHER_FORME_SURVIVES_FAINT": {
+      "file": "tests/probe_mental_herb_update.js",
+      "knob": "MEDI_WEATHER_FORME_SURVIVES_FAINT",
+      "clean": 0,
+      "knob_exit": 0,
+      "silent_control": true,
+      "release_pin": null,
+      "sha256": "01a7171cca1dd4a8"
+    },
+    "tests/probe_midturn_herb_resort.js :: MEDI_RESORT_BEFORE_UPDATE": {
+      "file": "tests/probe_midturn_herb_resort.js",
+      "knob": "MEDI_RESORT_BEFORE_UPDATE",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "paired_with": "MEDI_PIVOT_HERB_AFTER_ENTRY",
+      "release_pin": null,
+      "sha256": "247de9be58aff87e"
+    },
+    "tests/probe_multihit_update.js :: MEDI_MULTIHIT_UPDATE_ONCE": {
+      "file": "tests/probe_multihit_update.js",
+      "knob": "MEDI_MULTIHIT_UPDATE_ONCE",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "d31894be8f5cfafd"
+    },
+    "tests/probe_perishsong_field.js :: MEDI_PERISH_ALWAYS_ACTIVATES": {
+      "file": "tests/probe_perishsong_field.js",
+      "knob": "MEDI_PERISH_ALWAYS_ACTIVATES",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "4e9a56ac4b6a6e18"
+    },
+    "tests/probe_pickpocket_event_position.js :: MEDI_PICKPOCKET_IN_HIT_LOOP": {
+      "file": "tests/probe_pickpocket_event_position.js",
+      "knob": "MEDI_PICKPOCKET_IN_HIT_LOOP",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "7cc44cfa38fe5c4a"
+    },
+    "tests/probe_pickpocket_on_a_corpse.js :: MEDI_PICKPOCKET_ON_A_CORPSE": {
+      "file": "tests/probe_pickpocket_on_a_corpse.js",
+      "knob": "MEDI_PICKPOCKET_ON_A_CORPSE",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "7dc6ee534bce764c"
+    },
+    "tests/probe_pivot_after_battle_end.js :: MEDI_PIVOT_AFTER_BATTLE_END": {
+      "file": "tests/probe_pivot_after_battle_end.js",
+      "knob": "MEDI_PIVOT_AFTER_BATTLE_END",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "91e1d94112c20f3d"
+    },
+    "tests/probe_pressure_terrain_target.js :: MEDI_PP_PRESSURE_STATIC_TARGET": {
+      "file": "tests/probe_pressure_terrain_target.js",
+      "knob": "MEDI_PP_PRESSURE_STATIC_TARGET",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "a23908e124417b9d"
+    },
+    "tests/probe_pressure_terrain_target.js :: MEDI_WEATHER_FORME_SURVIVES_FAINT": {
+      "file": "tests/probe_pressure_terrain_target.js",
+      "knob": "MEDI_WEATHER_FORME_SURVIVES_FAINT",
+      "clean": 0,
+      "knob_exit": 0,
+      "silent_control": true,
+      "sha256": "a23908e124417b9d"
+    },
+    "tests/probe_protect_stage_order.js :: MEDI_INVULN_BELOW_SHIELD": {
+      "file": "tests/probe_protect_stage_order.js",
+      "knob": "MEDI_INVULN_BELOW_SHIELD",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "3d0d243de5890b75"
+    },
+    "tests/probe_quick_claw_above_bracket_zero.js :: MEDI_FRACPRI_PRIORITY_GATE": {
+      "file": "tests/probe_quick_claw_above_bracket_zero.js",
+      "knob": "MEDI_FRACPRI_PRIORITY_GATE",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "71478c10336f4cc4"
+    },
+    "tests/probe_rampage_length.js :: MEDI_RAMPAGE_TWO_TURNS": {
+      "file": "tests/probe_rampage_length.js",
+      "knob": "MEDI_RAMPAGE_TWO_TURNS",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "650d108855c58ecd"
+    },
+    "tests/probe_random_target_die.js :: MEDI_TGT_ADDR_LEGACY": {
+      "file": "tests/probe_random_target_die.js",
+      "knob": "MEDI_TGT_ADDR_LEGACY",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "51109e7ef0f30625"
+    },
+    "tests/probe_recoil_after_clamp.js :: MEDI_DEALT_BEFORE_CLAMP": {
+      "file": "tests/probe_recoil_after_clamp.js",
+      "knob": "MEDI_DEALT_BEFORE_CLAMP",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "3c689450f7627a89"
+    },
+    "tests/probe_refill_entry_herb.js :: MEDI_REFILL_NO_HERB": {
+      "file": "tests/probe_refill_entry_herb.js",
+      "knob": "MEDI_REFILL_NO_HERB",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "3a19ba836dfad0bd"
+    },
+    "tests/probe_replacement_entry.js :: MEDI_ENTRY_HAZARD_INLINE": {
+      "file": "tests/probe_replacement_entry.js",
+      "knob": "MEDI_ENTRY_HAZARD_INLINE",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "d7a6290169c045e6"
+    },
+    "tests/probe_replacement_entry.js :: MEDI_REPLACE_SPEED_MODIFIED": {
+      "file": "tests/probe_replacement_entry.js",
+      "knob": "MEDI_REPLACE_SPEED_MODIFIED",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "d7a6290169c045e6"
+    },
+    "tests/probe_second_update_pass.js :: MEDI_NO_SECOND_INMOVE_UPDATE": {
+      "file": "tests/probe_second_update_pass.js",
+      "knob": "MEDI_NO_SECOND_INMOVE_UPDATE",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "a114e1bc993d7a48"
+    },
+    "tests/probe_selfboost_empty_foe_side.js :: MEDI_SELFBOOST_IGNORES_EMPTY_FOE_SIDE": {
+      "file": "tests/probe_selfboost_empty_foe_side.js",
+      "knob": "MEDI_SELFBOOST_IGNORES_EMPTY_FOE_SIDE",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "38b0ed420db888e0"
+    },
+    "tests/probe_selfdrop_through_sub.js :: MEDI_SELFPAY_SKIPPED_ON_SUB": {
+      "file": "tests/probe_selfdrop_through_sub.js",
+      "knob": "MEDI_SELFPAY_SKIPPED_ON_SUB",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "930dc249d266fc92"
+    },
+    "tests/probe_selfswitch_update_pass.js :: MEDI_NO_SELFSWITCH_UPDATE": {
+      "file": "tests/probe_selfswitch_update_pass.js",
+      "knob": "MEDI_NO_SELFSWITCH_UPDATE",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "e6ea5cd9ec6d12b0"
+    },
+    "tests/probe_simple_beam.js :: MEDI_SIMPLE_UNAMPLIFIED": {
+      "file": "tests/probe_simple_beam.js",
+      "knob": "MEDI_SIMPLE_UNAMPLIFIED",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "6033fa722885e3a3"
+    },
+    "tests/probe_smart_target_immune_line.js :: MEDI_SMART_IMMUNE_LINE": {
+      "file": "tests/probe_smart_target_immune_line.js",
+      "knob": "MEDI_SMART_IMMUNE_LINE",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "e2626861e532c52d"
+    },
+    "tests/probe_smart_target_redirect.js :: MEDI_SMART_TARGET_SURVIVES_REDIRECT": {
+      "file": "tests/probe_smart_target_redirect.js",
+      "knob": "MEDI_SMART_TARGET_SURVIVES_REDIRECT",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "f4c97a6d62128b61"
+    },
+    "tests/probe_smart_target_shield_line.js :: MEDI_SMART_PROTECT_LINE": {
+      "file": "tests/probe_smart_target_shield_line.js",
+      "knob": "MEDI_SMART_PROTECT_LINE",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "92569e8fd6a65628"
+    },
+    "tests/probe_smart_target_shield_line.js :: MEDI_SMART_SHIELD_ALL_SILENT": {
+      "file": "tests/probe_smart_target_shield_line.js",
+      "knob": "MEDI_SMART_SHIELD_ALL_SILENT",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "92569e8fd6a65628"
+    },
+    "tests/probe_sound_lock_restart.js :: MEDI_SOUND_LOCK_RESTARTS": {
+      "file": "tests/probe_sound_lock_restart.js",
+      "knob": "MEDI_SOUND_LOCK_RESTARTS",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "c9e3a228377402d6"
+    },
+    "tests/probe_stall_uncaused.js :: MEDI_STALL_LAPSE_AT_RESIDUAL_OPEN": {
+      "file": "tests/probe_stall_uncaused.js",
+      "knob": "MEDI_STALL_LAPSE_AT_RESIDUAL_OPEN",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "c4ecf76a5184a384"
+    },
+    "tests/probe_status_chip_scaled.js :: MEDI_STATUS_CHIP_UNSCALED": {
+      "file": "tests/probe_status_chip_scaled.js",
+      "knob": "MEDI_STATUS_CHIP_UNSCALED",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "86736cd85a4930a5"
+    },
+    "tests/probe_status_clock_dice.js :: MEDI_SLEEP_START_ANY_ADDR": {
+      "file": "tests/probe_status_clock_dice.js",
+      "knob": "MEDI_SLEEP_START_ANY_ADDR",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "d35f22f196a9ed64"
+    },
+    "tests/probe_sun_refuses_freeze.js :: MEDI_FRZ_IN_SUN": {
+      "file": "tests/probe_sun_refuses_freeze.js",
+      "knob": "MEDI_FRZ_IN_SUN",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "81743942e838284d"
+    },
+    "tests/probe_trace_list.js :: MEDI_TRACE_SOLO_NODRAW": {
+      "file": "tests/probe_trace_list.js",
+      "knob": "MEDI_TRACE_SOLO_NODRAW",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "paired_with": null,
+      "release_pin": null,
+      "sha256": "b38123c3deb5251a"
+    },
+    "tests/probe_trace_target.js :: MEDI_MID_RANGE_DRAWS": {
+      "file": "tests/probe_trace_target.js",
+      "knob": "MEDI_MID_RANGE_DRAWS",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "7bee574a1a09afc3"
+    },
+    "tests/probe_transform_copied_start.js :: MEDI_TRANSFORM_NO_COPIED_START": {
+      "file": "tests/probe_transform_copied_start.js",
+      "knob": "MEDI_TRANSFORM_NO_COPIED_START",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "dfa229a7ad4756e2"
+    },
+    "tests/probe_transform_faint_revert.js :: MEDI_TRANSFORM_SURVIVES_FAINT": {
+      "file": "tests/probe_transform_faint_revert.js",
+      "knob": "MEDI_TRANSFORM_SURVIVES_FAINT",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "2f179393cbc93666"
+    },
+    "tests/probe_trap_duration.js :: MEDI_TRAP_TICK_BEFORE_CLOCK": {
+      "file": "tests/probe_trap_duration.js",
+      "knob": "MEDI_TRAP_TICK_BEFORE_CLOCK",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "ef539c4bf3216a7f"
+    },
+    "tests/probe_trap_timing.js :: MEDI_TRAP_AT_EXECUTION": {
+      "file": "tests/probe_trap_timing.js",
+      "knob": "MEDI_TRAP_AT_EXECUTION",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": "18773c22878f",
+      "sha256": "6ff4ad7f4aa40714"
+    },
+    "tests/probe_weather_forme_faint.js :: MEDI_PP_PRESSURE_STATIC_TARGET": {
+      "file": "tests/probe_weather_forme_faint.js",
+      "knob": "MEDI_PP_PRESSURE_STATIC_TARGET",
+      "clean": 0,
+      "knob_exit": 0,
+      "silent_control": true,
+      "sha256": "e531524a232d7ecf"
+    },
+    "tests/probe_weather_forme_faint.js :: MEDI_WEATHER_FORME_SURVIVES_FAINT": {
+      "file": "tests/probe_weather_forme_faint.js",
+      "knob": "MEDI_WEATHER_FORME_SURVIVES_FAINT",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "sha256": "e531524a232d7ecf"
+    },
+    "tests/test-damage-roll-support.js :: MEDI_DAMAGE_SPAN_DRAW": {
+      "file": "tests/test-damage-roll-support.js",
+      "knob": "MEDI_DAMAGE_SPAN_DRAW",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "4f9748b8bf35b12a"
+    },
+    "tests/test-multihit-roll.js :: MEDI_MULTIHIT_ONE_INDEX": {
+      "file": "tests/test-multihit-roll.js",
+      "knob": "MEDI_MULTIHIT_ONE_INDEX",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "f07f9e4f076f9501"
+    },
+    "tests/probe_sec_addr_selfdrop.js :: MEDI_KINGSROCK_SKIPS_DEAD": {
+      "file": "tests/probe_sec_addr_selfdrop.js",
+      "knob": "MEDI_KINGSROCK_SKIPS_DEAD",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "a0a2b3e293c2873c"
+    },
+    "tests/probe_sec_addr_selfdrop.js :: MEDI_SEC_ADDR_IGNORES_SELFDROP": {
+      "file": "tests/probe_sec_addr_selfdrop.js",
+      "knob": "MEDI_SEC_ADDR_IGNORES_SELFDROP",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "a0a2b3e293c2873c"
+    },
+    "tests/probe_stall_sweep_order.js :: MEDI_STALL_SWEEP_UNORDERED": {
+      "file": "tests/probe_stall_sweep_order.js",
+      "knob": "MEDI_STALL_SWEEP_UNORDERED",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "88b3124c224dfd48"
+    },
+    "tests/probe_aftermove_cure.js :: MEDI_AFTERMOVE_CURE_OFF": {
+      "file": "tests/probe_aftermove_cure.js",
+      "knob": "MEDI_AFTERMOVE_CURE_OFF",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "fe0294d6c0be6d0e"
+    },
+    "tests/probe_partial_trap_source_returns.js :: MEDI_PARTIAL_TRAP_OUTLIVES_SOURCE": {
+      "file": "tests/probe_partial_trap_source_returns.js",
+      "knob": "MEDI_PARTIAL_TRAP_OUTLIVES_SOURCE",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "5a4112d901a8e22f"
+    },
+    "tests/probe_recoil_on_a_whiff.js :: MEDI_RECOIL_ON_A_WHIFF": {
+      "file": "tests/probe_recoil_on_a_whiff.js",
+      "knob": "MEDI_RECOIL_ON_A_WHIFF",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "b25556f911f69130"
+    },
+    "tests/probe_bounced_move_redirect.js :: MEDI_BOUNCE_IGNORES_REDIRECT": {
+      "file": "tests/probe_bounced_move_redirect.js",
+      "knob": "MEDI_BOUNCE_IGNORES_REDIRECT",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "a4c91f2fa785b9fe"
+    },
+    "tests/probe_fickle_beam_die.js :: MEDI_CONDPOWER_OFF_ANY": {
+      "file": "tests/probe_fickle_beam_die.js",
+      "knob": "MEDI_CONDPOWER_OFF_ANY",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "bfe728e1dd474fe0"
+    },
+    "tests/probe_multihit_reaction_per_arrival.js :: MEDI_MULTIACC_UPFRONT": {
+      "file": "tests/probe_multihit_reaction_per_arrival.js",
+      "knob": "MEDI_MULTIACC_UPFRONT",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "c1f2e6ce1a78cd9c"
+    },
+    "tests/probe_multihit_reaction_per_arrival.js :: MEDI_REACT_LATE_ONCE": {
+      "file": "tests/probe_multihit_reaction_per_arrival.js",
+      "knob": "MEDI_REACT_LATE_ONCE",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "c1f2e6ce1a78cd9c"
+    },
+    "tests/probe_multihit_reaction_per_arrival.js :: MEDI_SPORE_DIE_UNGATED": {
+      "file": "tests/probe_multihit_reaction_per_arrival.js",
+      "knob": "MEDI_SPORE_DIE_UNGATED",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "c1f2e6ce1a78cd9c"
+    },
+    "tests/probe_multihit_reaction_per_arrival.js :: MEDI_VOLLEY_IGNORES_SLEEP": {
+      "file": "tests/probe_multihit_reaction_per_arrival.js",
+      "knob": "MEDI_VOLLEY_IGNORES_SLEEP",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "c1f2e6ce1a78cd9c"
+    },
+    "tests/probe_redirect_onto_the_aim.js :: MEDI_REDIRECT_NEEDS_AIM_CHANGE": {
+      "file": "tests/probe_redirect_onto_the_aim.js",
+      "knob": "MEDI_REDIRECT_NEEDS_AIM_CHANGE",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "617b2c92c545b56b"
+    },
+    "tests/probe_narration_a.js :: MEDI_COACHING_NOALLY_SILENT": {
+      "file": "tests/probe_narration_a.js",
+      "knob": "MEDI_COACHING_NOALLY_SILENT",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "52acdcc6d0a71e72"
+    },
+    "tests/probe_narration_a.js :: MEDI_ITEMMOVE_NOTARGET_SILENT": {
+      "file": "tests/probe_narration_a.js",
+      "knob": "MEDI_ITEMMOVE_NOTARGET_SILENT",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "52acdcc6d0a71e72"
+    },
+    "tests/probe_narration_a.js :: MEDI_ROOST_ANNOUNCE_FLYING_ONLY": {
+      "file": "tests/probe_narration_a.js",
+      "knob": "MEDI_ROOST_ANNOUNCE_FLYING_ONLY",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "52acdcc6d0a71e72"
+    },
+    "tests/probe_narration_a.js :: MEDI_SPREAD_NOFOE_FAILS": {
+      "file": "tests/probe_narration_a.js",
+      "knob": "MEDI_SPREAD_NOFOE_FAILS",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "52acdcc6d0a71e72"
+    },
+    "tests/probe_narration_a.js :: MEDI_SYNC_IMMUNE_SILENT": {
+      "file": "tests/probe_narration_a.js",
+      "knob": "MEDI_SYNC_IMMUNE_SILENT",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "52acdcc6d0a71e72"
+    },
+    "tests/probe_narration_c.js :: MEDI_CHILLY_NOBENCH_SILENT": {
+      "file": "tests/probe_narration_c.js",
+      "knob": "MEDI_CHILLY_NOBENCH_SILENT",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "19c5ad2505e5d2f1"
+    },
+    "tests/probe_narration_c.js :: MEDI_FOREWARN_SILENT": {
+      "file": "tests/probe_narration_c.js",
+      "knob": "MEDI_FOREWARN_SILENT",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "19c5ad2505e5d2f1"
+    },
+    "tests/probe_narration_c.js :: MEDI_HARVEST_COIN_GATED": {
+      "file": "tests/probe_narration_c.js",
+      "knob": "MEDI_HARVEST_COIN_GATED",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "19c5ad2505e5d2f1"
+    },
+    "tests/probe_narration_c.js :: MEDI_STATUS_HELD_AFTER_FIELD": {
+      "file": "tests/probe_narration_c.js",
+      "knob": "MEDI_STATUS_HELD_AFTER_FIELD",
+      "clean": 0,
+      "knob_exit": 1,
+      "silent_control": false,
+      "release_pin": null,
+      "sha256": "19c5ad2505e5d2f1"
+    }
+  },
+  "clean_red_allowed_note": "EMPTIED 2026-09-20. Both entries were probes that failed their own clean run and were declared. They pass now: the herb probe because its knob is declared PAIRED WITH its other half and the guard sets both, and the Trace probe because the pivot entry address was fixed. A declaration kept past the thing it described is the failure this repository is named after, so the list is emptied rather than carried. It may grow again only with a reason in the diff."
 }

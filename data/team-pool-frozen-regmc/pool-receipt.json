@@ -1,0 +1,114 @@
+{
+  "generated": "2026-09-21T01:24:04.979Z",
+  "by": "engine/cut_regmc_pool.js",
+  "what": "The frozen Reg M-C team pool. Everything M-C is measured against is drawn from here.",
+  "format": "gen9championsvgc2026regmc",
+  "showdown_authority": "C:/Users/willj/Projects/Pokemon/pokemon-showdown-mc",
+  "predicate": {
+    "scope": "openSheet === true AND both sheets present",
+    "exclusion": "date < 2026-09-14 (UTC) AND an item with id ejectbutton is declared on EITHER sheet",
+    "exclusion_reason": "Showdown aa6d5f0856 (2026-09-13 20:13 UTC) changed what a pivot move does against Eject Button; the deploy time to the live server is unknown, hence a day of margin",
+    "conjunction": "both clauses, never the date alone — a game in which the item never appears cannot have been affected"
+  },
+  "sources": {
+    "data/games.gen9championsvgc2026regmcbo3.jsonl.gz": {
+      "sha256": "fd28b7e40dfb893c4fd320c7b54792c7a0475bd79520354fd031f508792b77a6",
+      "bytes": 24049522,
+      "mtime": "2026-09-21T00:50:32.016Z",
+      "lines": 23808
+    },
+    "data/games.gen9championsvgc2026regmc.jsonl.gz": {
+      "sha256": "2a16acdda210465b2f3c9b346f14ad1c6e295ba1480b6ad57c721635e6209db7",
+      "bytes": 25223652,
+      "mtime": "2026-09-21T00:50:31.800Z",
+      "lines": 33275
+    }
+  },
+  "files": {
+    "games.bo3.jsonl": {
+      "bytes": 236228023,
+      "sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+      "lines": 23473
+    },
+    "games.ots.jsonl": {
+      "bytes": 14018346,
+      "sha256": "4dcc2aa615626425ca95e4e4398be0591d48267687b6286d191304199dd39946",
+      "lines": 1359
+    }
+  },
+  "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709",
+  "counts": {
+    "bo3": {
+      "label": "bo3 (open-sheet by construction)",
+      "total": 23808,
+      "unreadable": 0,
+      "excl_not_open_sheet": 0,
+      "excl_eject_old_rule": 335,
+      "before_cutoff": 8352,
+      "declares_item_any_date": 1516,
+      "in_scope": 23808,
+      "in_scope_before_cutoff": 8352,
+      "names_item_anywhere_raw": 1516,
+      "names_item_anywhere_in_scope": 1516,
+      "in_scope_names_item_off_sheet": 0,
+      "in_scope_names_item_off_sheet_before": 0,
+      "dup_ids": 0,
+      "sides": 46946,
+      "sheets": 46946,
+      "teams": 10316,
+      "slots": 281676,
+      "slots_evs_null": 281676,
+      "date_min": "2026-09-09 08:08",
+      "date_max": "2026-09-21 00:29",
+      "kept": 23473,
+      "distinct_ids": 23473
+    },
+    "ots": {
+      "label": "ladder bo1 (open-sheet subset)",
+      "total": 33275,
+      "unreadable": 0,
+      "excl_not_open_sheet": 31888,
+      "excl_eject_old_rule": 28,
+      "before_cutoff": 638,
+      "declares_item_any_date": 83,
+      "in_scope": 1387,
+      "in_scope_before_cutoff": 638,
+      "names_item_anywhere_raw": 1047,
+      "names_item_anywhere_in_scope": 83,
+      "in_scope_names_item_off_sheet": 0,
+      "in_scope_names_item_off_sheet_before": 0,
+      "dup_ids": 0,
+      "sides": 2718,
+      "sheets": 2718,
+      "teams": 1611,
+      "slots": 16308,
+      "slots_evs_null": 16308,
+      "date_min": "2026-09-09 09:15",
+      "date_max": "2026-09-21 00:27",
+      "kept": 1359,
+      "distinct_ids": 1359
+    },
+    "distinct_teams_union": 11608
+  },
+  "validator": {
+    "item_confirmed": {
+      "game": "gen9championsvgc2026regmcbo3-2680772264",
+      "side": "p2",
+      "verdict": "ACCEPT"
+    },
+    "bo3": {
+      "sides": 46946,
+      "accept": 45190,
+      "only0sp": 1756,
+      "other": 0,
+      "reasons": {}
+    },
+    "ots": {
+      "sides": 2718,
+      "accept": 2672,
+      "only0sp": 46,
+      "other": 0,
+      "reasons": {}
+    }
+  }
+}

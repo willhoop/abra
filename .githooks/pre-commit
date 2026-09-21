@@ -185,7 +185,11 @@ fi
 # generator runs, and demanding a version bump for that would train everyone to pass --no-verify,
 # which is worse than no hook. Fire only when something a reader could read has changed.
 STAGED=$(git diff --cached --name-only --diff-filter=ACMR)
-echo "$STAGED" | grep -qE '^(docs/|engine/|tests/|web/|CHANGELOG\.md|README\.md|CLAUDE\.md)' || {
+# `CHANGELOG-<LINE>.md` IS A CHANGELOG (2026-09-20). Written as `CHANGELOG\.md` this matched the one
+# file with that exact name, so a commit touching only a second version line's changelog skipped the
+# whole hook. The shape is matched, and engine/docs_scan.js's RECORDABLE carries the same widening --
+# the two must never disagree about what a recordable change is.
+echo "$STAGED" | grep -qE '^(docs/|engine/|tests/|web/|CHANGELOG[A-Za-z0-9-]*\.md|README\.md|CLAUDE\.md)' || {
   exit 0
 }
 

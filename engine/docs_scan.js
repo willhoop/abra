@@ -35,12 +35,20 @@ const D = (...p) => path.join(ROOT, ...p);
  * and a retracted figure must remain in the entry that published it AND in the entry that withdrew
  * it or the retraction becomes unreadable. Everything else is fair game, INCLUDING docs/archive/ —
  * see archiveState() for why exempting the archive was a laundering route. */
-const EXEMPT_FILES = new Set(['CHANGELOG.md']);
+/* THE EXEMPTION IS A SHAPE, NOT A FILENAME — 2026-09-20, WITH THE SECOND VERSION LINE.
+ *
+ * It was `new Set(['CHANGELOG.md'])`, and the day a second changelog appeared that set was a
+ * hand-maintained list of one: `CHANGELOG-REGMC.md` would have been scanned as a living document,
+ * failed for carrying no version header, and then "fixed" by giving the historical record a version
+ * header of its own. That is the ban list of four in a new costume. A changelog is recognised by
+ * BEING one, so the third line costs nothing. */
+const CHANGELOG_FILE = /^CHANGELOG(?:-[A-Za-z0-9]+)?\.md$/;
+const EXEMPT_FILES = { has: (f) => CHANGELOG_FILE.test(String(f)) };
 
 function listMd(dir) {
   return listFiles(dir)
     .filter(f => f.endsWith('.md'))
-    .filter(f => !EXEMPT_FILES.has(f))
+    .filter(f => !(dir === '.' && EXEMPT_FILES.has(f)))
     .map(f => (dir === '.' ? f : dir + '/' + f))
     .sort();
 }
@@ -163,7 +171,8 @@ function useIndex() {
   SOURCE = 'index';
   INDEX = null;
   for (const c of [parsedCache, artifactCache, blameCache]) c.clear();
-  allNumsCache = null; changelogNumsCache = null; entriesCache = null; changelogDatesCache = null;
+  allNumsCache = null; changelogNumsCache.clear(); entriesCache.clear(); changelogDatesCache.clear();
+  linesCache = null;
   indexEntries();                               // fail loudly now if the index cannot be read
 }
 function source() { return SOURCE; }
@@ -334,9 +343,159 @@ function versionHeader(text) {
   return null;
 }
 
-/** The top version of the CHANGELOG — the one number every living document is measured against. */
-function changelogTop() {
-  const ch = readDoc('CHANGELOG.md');
+/* ---- VERSION LINES: a version is only comparable inside its own series -------------------------
+ *
+ * WILL, 2026-09-20: *"i dont want high abra numbers we have just been working on medicham"*, and the
+ * standing brief, *"i just want low numbers for when projects are actually done and usable"*. Then,
+ * on being shown the per-regulation scheme: *"much better and lets do it per model inside of abra if
+ * that makes sense"*.
+ *
+ * SO A VERSION ANSWERS ONE QUESTION — HOW DONE IS THIS THING ON THIS REGULATION — AND NOTHING ELSE.
+ * `7.0.0` did not mean that. It counted measurements: 266 releases in the 27 days to 2026-09-06, and
+ * the number climbed whether or not anything became usable. A reader cannot tell 7.0.0 from 3.0.0
+ * except by reading both.
+ *
+ * A LINE IS A VERSION SERIES WITH ITS OWN CHANGELOG, ITS OWN DOCUMENTS AND ITS OWN NOTES ROWS.
+ * Comparing across lines is meaningless — Reg M-C's `0.1.0` is not behind Reg M-B's `7.0.0`, it is a
+ * different question — and the parsers that compare versions therefore ask WHICH LINE first. Before
+ * this existed, `documentedAt()` took the minimum header over every living document, so one 0.1.0
+ * document pegged the whole repository's documentation floor at 0.1.0 and reported every notes row
+ * ever written as owed. `docs/REGMC.md` was pinned in the baseline to hide exactly that, and the pin
+ * would have gone RED on the very next M-C release (`movedPins`): a pin is a declared FREEZE, and
+ * that document is the opposite of frozen.
+ *
+ * NOTHING HERE IS TYPED. A line is discovered by its changelog existing, and it declares itself in
+ * its own masthead:
+ *
+ *   <!-- LINE: id=abra/regmb; label=ABRA on Reg M-B; format=gen9championsvgc2026regmb; closed=7.0.0 -->
+ *
+ * A document says which line it is on in ITS masthead (`**Line: abra/regmc**`), beside the version
+ * that the line scopes. An undeclared document reads as the MAIN line — the strict default, because
+ * the main line is the one with a major floor to meet, so a forgotten declaration fails LOUD rather
+ * than silently exempting a document from the floor.
+ *
+ * `closed=` IS THE IMMUTABILITY CLAUSE, MACHINE-READ. Reg M-B's record is published: six documents
+ * cite each other at 7.0.0 and 271 commit hashes resolve from tracked markdown. `closedLineBreaches()`
+ * refuses any changelog entry or notes row on a closed line above its close version, so "closed"
+ * cannot decay into a habit somebody remembers. */
+const LINE_DECL = /<!--\s*LINE:\s*([^>]*?)-->/i;
+let linesCache = null;
+function versionLines() {
+  if (linesCache) return linesCache;
+  const out = new Map();
+  for (const f of listFiles('.').filter(f => CHANGELOG_FILE.test(f)).sort()) {
+    /* AN UNREADABLE CHANGELOG STILL MAKES A LINE, AND THE READ FAILURE IS CARRIED ON IT.
+     *
+     * This `catch` was a `continue`, and that is the one failure in this whole change that would
+     * have been worse than the problem it solves: a changelog that would not read made its LINE
+     * VANISH. Every consequence is silent and every one of them is wrong. A vanished line's
+     * documents fall to the main line and are judged against the wrong floor; its notes rows stop
+     * being counted against any cap; and — worst — if the vanished line is the CLOSED one, then
+     * `closedLineBreaches()` iterates a set that no longer contains it and the immutability clause
+     * stops refusing anything, reporting green while checking nothing.
+     *
+     * The comment ten lines down already says this about a changelog with no DECLARATION ("dropping
+     * it would make its entries invisible, which is the failure mode this repository calls 'a
+     * capability absent, everything reporting success'"). The read failure is the same hole one step
+     * earlier. So the line is kept, `unreadable` carries the reason, and `documentFloor()` returns
+     * null for it — which `tests/test-docs-current.js` clause 2 fails on by name. */
+    let head = '', unreadable = null;
+    try { head = readDoc(f).split('\n').slice(0, HEADER_LINES).join('\n'); }
+    catch (e) { unreadable = String((e && e.message) || e).split('\n')[0]; }
+    const m = head.match(LINE_DECL);
+    const kv = {};
+    if (m) for (const part of m[1].split(';')) {
+      const p = part.split('=');
+      if (p.length >= 2) kv[p[0].trim().toLowerCase()] = p.slice(1).join('=').trim();
+    }
+    /* THE FALLBACK IS THE FILENAME AND IT IS ONLY A FALLBACK. A changelog with no declaration still
+     * gets a line rather than being dropped — dropping it would make its entries invisible, which is
+     * the failure mode this repository calls "a capability absent, everything reporting success". */
+    const id = kv.id || (f === 'CHANGELOG.md' ? 'main' : f.replace(/^CHANGELOG-/, '').replace(/\.md$/, '').toLowerCase());
+    out.set(id, {
+      id, changelog: f, main: f === 'CHANGELOG.md', declared: !!m,
+      label: kv.label || id, format: kv.format || null,
+      closed: kv.closed || null, unreadable,
+    });
+  }
+  linesCache = out;
+  return out;
+}
+/** The line ids, main first, then alphabetical — a stable print order. */
+function lineIds() {
+  return [...versionLines().values()].sort((a, b) => (b.main - a.main) || a.id.localeCompare(b.id)).map(l => l.id);
+}
+/** The main line: the one whose changelog is `CHANGELOG.md`. Every version function defaults to it. */
+function mainLineId() {
+  for (const l of versionLines().values()) if (l.main) return l.id;
+  return lineIds()[0] || 'main';
+}
+/** Resolve a line id to its record. An unknown id resolves to null — a caller must not guess. */
+function lineOf(id) {
+  const L = versionLines();
+  return L.get(id === undefined || id === null ? mainLineId() : id) || null;
+}
+/** The line still open for new releases — the regulation we are currently on. Null if 0 or >1. */
+function currentLineId() {
+  const open = [...versionLines().values()].filter(l => !l.closed);
+  return open.length === 1 ? open[0].id : null;
+}
+/** The changelog file a line's versions live in, or null for an unknown line. */
+function lineChangelog(id) { const l = lineOf(id); return l ? l.changelog : null; }
+
+/* A DOCUMENT DECLARES ITS LINE IN ITS MASTHEAD, in the same block as its version, because the line
+ * is what makes the version mean anything. Read from the masthead only, for the same reason
+ * `versionHeader` is: a sentence mentioning another line's name halfway down a page is prose. */
+function docLineId(rel) {
+  let text;
+  try { text = readDoc(rel); } catch (e) { return mainLineId(); }
+  const head = text.split('\n').slice(0, HEADER_LINES);
+  for (const L of head) {
+    const m = L.match(/^\s*[-*>]?\s*\*{0,2}Line:?\*{0,2}\s*:?\s*\*{0,2}\s*`?([A-Za-z0-9][A-Za-z0-9/_-]*)`?/);
+    if (m && versionLines().has(m[1])) return m[1];
+  }
+  return mainLineId();
+}
+/**
+ * Everything that makes a document's LINE unknowable: a masthead naming a line no changelog
+ * declares, a document whose masthead would not read, and a changelog whose own masthead would not
+ * read. Reported, never silently defaulted.
+ *
+ * THE UNREADABLE CASES ARE IN HERE BECAUSE `docLineId()` DEFAULTS THEM TO THE MAIN LINE. That
+ * default is the strict direction — the main line is the one carrying a major floor — but strict is
+ * not the same as visible, and a document assigned to the wrong line by a failed read is a document
+ * whose version is being measured against the wrong series. This is the one place that says so, and
+ * `tests/test-docs-current.js` clause 2 asserts on it, so `docLineId()`'s fallback reports upward
+ * through this function rather than not at all.
+ */
+function unknownLineDeclarations(docs) {
+  const out = [];
+  for (const l of versionLines().values()) {
+    if (l.unreadable) out.push(`${l.changelog} (line "${l.id}") would not read: ${l.unreadable} — its `
+      + 'top, its major and its close version are all NOT DERIVED, so nothing on this line can be judged');
+  }
+  for (const rel of docs || livingDocs()) {
+    let head;
+    try { head = readDoc(rel).split('\n').slice(0, HEADER_LINES); }
+    catch (e) {
+      out.push(`${rel} would not read (${String((e && e.message) || e).split('\n')[0]}), so its line `
+        + `could not be determined and it defaults to "${mainLineId()}"`);
+      continue;
+    }
+    for (const L of head) {
+      const m = L.match(/^\s*[-*>]?\s*\*{0,2}Line:?\*{0,2}\s*:?\s*\*{0,2}\s*`?([A-Za-z0-9][A-Za-z0-9/_-]*)`?/);
+      if (m && !versionLines().has(m[1])) out.push(`${rel} declares line "${m[1]}", which no changelog declares`);
+    }
+  }
+  return out;
+}
+
+/** The top version of a line's changelog — the number that line's documents are measured against. */
+function changelogTop(lineId) {
+  const f = lineChangelog(lineId);
+  if (!f) return null;
+  let ch;
+  try { ch = readDoc(f); } catch (e) { return null; }
   return (ch.match(/##\s*\[(\d+\.\d+\.\d+)\]/) || [])[1] || null;
 }
 
@@ -1298,18 +1457,22 @@ function resolveField(obj, field) {
  * in that artifact as a turn index. Nothing that reads the disk can adjudicate that sentence, right
  * or wrong; this rule now SAYS so instead of passing it silently, and catches the same mutation the
  * moment the block is current or the headline is bound to a field. */
-let changelogDatesCache = null;
-/** version -> ISO date, from `## [X.Y.Z] — YYYY-MM-DD` in CHANGELOG.md. */
-function changelogDates() {
-  if (changelogDatesCache) return changelogDatesCache;
-  changelogDatesCache = new Map();
+const changelogDatesCache = new Map();          // line id -> (version -> ISO date)
+/** version -> ISO date, from `## [X.Y.Z] — YYYY-MM-DD` in ONE LINE's changelog. */
+function changelogDates(lineId) {
+  const l = lineOf(lineId);
+  const key = l ? l.id : String(lineId);
+  if (changelogDatesCache.has(key)) return changelogDatesCache.get(key);
+  const map = new Map();
+  changelogDatesCache.set(key, map);
   try {
-    for (const m of readDoc('CHANGELOG.md').matchAll(/^##\s*\[(\d+\.\d+\.\d+)\][^\n]*?(\d{4}-\d{2}-\d{2})/gm))
-      if (!changelogDatesCache.has(m[1])) changelogDatesCache.set(m[1], m[2]);
-  } catch (e) { /* no CHANGELOG: nothing dates, everything is judged — fail-closed */ }
-  return changelogDatesCache;
+    if (!l) throw new Error('unknown version line "' + key + '"');
+    for (const m of readDoc(l.changelog).matchAll(/^##\s*\[(\d+\.\d+\.\d+)\][^\n]*?(\d{4}-\d{2}-\d{2})/gm))
+      if (!map.has(m[1])) map.set(m[1], m[2]);
+  } catch (e) { /* no changelog: nothing dates, everything is judged — fail-closed */ }
+  return map;
 }
-const changelogDate = (v) => changelogDates().get(v) || null;
+const changelogDate = (v, lineId) => changelogDates(lineId).get(v) || null;
 
 /** The date a heading or a block's first line stamps on what follows, or null. A heading is dated by
  *  an ISO date or a `[X.Y.Z]` anywhere in it; a paragraph by a version OPENING it (`**5.244.0 -`) or
@@ -1535,9 +1698,14 @@ function citationMismatches(docs, { read = readDoc, artifact = artifactObject, v
   };
   for (const rel of docs) {
     const text = read(rel);
+    /* A VERSION STAMP IS DATED BY ITS OWN LINE'S CHANGELOG. `5.266.0` means nothing in Reg M-C's
+     * series and `0.1.0` means nothing in Reg M-B's; dating a block from the wrong series would
+     * excuse or accuse it on a date it never had. The caller may still inject `versionDate`, and
+     * every existing caller that does is a demonstration case. */
+    const dateOf = versionDate === changelogDate ? (v => changelogDate(v, docLineId(rel))) : versionDate;
     const lines = text.split('\n');
-    const above = headingDates(lines, versionDate);
-    const pinned = pins[rel] && pins[rel].version ? versionDate(pins[rel].version) : null;
+    const above = headingDates(lines, dateOf);
+    const pinned = pins[rel] && pins[rel].version ? dateOf(pins[rel].version) : null;
     for (const b of paragraphs(text)) {
       const cites = citationsIn(b.lines);
       if (!cites.length) continue;
@@ -1550,7 +1718,7 @@ function citationMismatches(docs, { read = readDoc, artifact = artifactObject, v
       const stamps = new Map(judged.map(c => [c, artifactDate(artifact(c))]));
       /* The first three lines are joined for the title branch: the white paper hard-wraps at ~100
        * columns, so a `**...**` title that carries the record's date often closes on line two. */
-      const when = stampedDate(b.lines.slice(0, 3).join(' '), versionDate) || above[Math.max(0, b.start - 1)] || pinned || null;
+      const when = stampedDate(b.lines.slice(0, 3).join(' '), dateOf) || above[Math.max(0, b.start - 1)] || pinned || null;
       const head = b.lines[0].trim().slice(0, 100);
       let fenced = false;
       for (let i = 0; i < b.lines.length; i++) {
@@ -1845,24 +2013,32 @@ function allArtifactNumbers() {
  * is a different one -- the artifact says what is true now, the changelog says what was true and
  * when. It cannot launder an invented number either, because writing a figure into the changelog is
  * itself a recorded claim under a version and a date. */
-let changelogNumsCache = null;
-function changelogHas(f) {
-  if (!changelogNumsCache) {
-    changelogNumsCache = new Set();
+/* SCOPED TO THE DOCUMENT'S OWN LINE — 2026-09-20. A figure is traceable to the recorded history of
+ * the series it belongs to, not to any changelog in the repository. Reading the union would let a
+ * Reg M-B document borrow a trace from a Reg M-C entry that happens to share a digit run, which is
+ * strictly weaker than what this did yesterday. Per-line is the same check, narrower. */
+const changelogNumsCache = new Map();           // line id -> Set of figure values
+function changelogHas(f, lineId) {
+  const l = lineOf(lineId);
+  const key = l ? l.id : String(lineId);
+  if (!changelogNumsCache.has(key)) {
+    const set = new Set();
+    changelogNumsCache.set(key, set);
     try {
-      for (const g of figuresInText(rawText('CHANGELOG.md')))
-        changelogNumsCache.add(Number(g.value).toFixed(6));
+      if (!l) throw new Error('unknown version line "' + key + '"');
+      for (const g of figuresInText(rawText(l.changelog)))
+        set.add(Number(g.value).toFixed(6));
     } catch (e) {
       /* IT MUST SAY SO. Failing to read the changelog does not corrupt anything — the exemption just
        * stops applying, which is fail-closed and correct. But EVERY document's count then jumps at
        * once, and that reads as a documentation regression rather than as a missing file. The one
        * thing this must never do is look like the docs got worse. */
-      console.error('  docs_scan: CANNOT READ CHANGELOG.md (' + e.message + ') — the "recorded '
+      console.error('  docs_scan: CANNOT READ ' + (l ? l.changelog : key) + ' (' + e.message + ') — the "recorded '
         + 'history is traceable" exemption is OFF for this run, so every untraceable count below is '
         + 'inflated by its document\'s superseded figures. This is a missing file, not a regression.');
     }
   }
-  return changelogNumsCache.has(Number(f.value).toFixed(6));
+  return changelogNumsCache.get(key).has(Number(f.value).toFixed(6));
 }
 
 /** Figures in a document that appear in NO artifact under data/ and cite none. Report only: a
@@ -1989,18 +2165,24 @@ function entryHas(set, f) {
   if (!s) { s = new Set([...set].map(v => v.toFixed(f.dp))); byDp.set(f.dp, s); }
   return s.has(f.value.toFixed(f.dp));
 }
-let entriesCache = null;
-function changelogEntryIndex() {
-  if (entriesCache) return entriesCache;
-  try { entriesCache = changelogEntries(rawText('CHANGELOG.md')); }
-  catch (e) {
-    /* FAIL-CLOSED AND SAID OUT LOUD: with no CHANGELOG nothing binds to an entry, so every figure that
+const entriesCache = new Map();                 // line id -> (version -> figure values)
+function changelogEntryIndex(lineId) {
+  const l = lineOf(lineId);
+  const key = l ? l.id : String(lineId);
+  if (entriesCache.has(key)) return entriesCache.get(key);
+  let idx;
+  try {
+    if (!l) throw new Error('unknown version line "' + key + '"');
+    idx = changelogEntries(rawText(l.changelog));
+  } catch (e) {
+    /* FAIL-CLOSED AND SAID OUT LOUD: with no changelog nothing binds to an entry, so every figure that
      * would have is reported unbound — which must read as a missing file, not as the documents rotting. */
-    console.error('  docs_scan: CANNOT READ CHANGELOG.md (' + e.message + ') — no figure can bind to a '
+    console.error('  docs_scan: CANNOT READ ' + (l ? l.changelog : key) + ' (' + e.message + ') — no figure can bind to a '
       + 'CHANGELOG entry this run, so those figures read UNBOUND. A missing file, not a regression.');
-    entriesCache = new Map();
+    idx = new Map();
   }
-  return entriesCache;
+  entriesCache.set(key, idx);
+  return idx;
 }
 
 /** For one paragraph: a lookup from (block line, column) to the LOGICAL sentence at that position.
@@ -2056,11 +2238,17 @@ function untraceableCensus(docs, { read = readDoc, artifact = artifactObject, al
    * measurement of HOW MUCH a binding means is taken through this function rather than a copy of it. */
   const see = observe || (() => {});
   const universe = all || allArtifactNumbers();
-  const entries = changelog === null ? changelogEntryIndex() : changelogEntries(changelog);
-  let anywhereInChangelog = changelogHas;
+  /* THE CHANGELOG A FIGURE MAY TRACE TO IS ITS OWN DOCUMENT'S — resolved per document below, not
+   * once for the whole run. A Reg M-B document traces to CHANGELOG.md exactly as before; a document
+   * on another line traces to that line's changelog and to nothing else. Reading the UNION of every
+   * changelog would have been strictly WEAKER: two lines both carry a 0.1.0, and most three-digit
+   * integers occur in both, so a stale figure could borrow a trace from a series it has nothing to
+   * do with. An injected `changelog` (traceProof) still overrides everything, for every document. */
+  let injectedEntries = null, injectedAnywhere = null, injectedDate = null;
   if (changelog !== null) {
+    injectedEntries = changelogEntries(changelog);
     const s = new Set(figuresInText(changelog).map(g => Number(g.value).toFixed(6)));
-    anywhereInChangelog = f => s.has(Number(f.value).toFixed(6));
+    injectedAnywhere = f => s.has(Number(f.value).toFixed(6));
   }
   const gf = grandfathered === undefined ? grandfatheredTraces() : grandfathered;
   const local = new Map();
@@ -2075,11 +2263,10 @@ function untraceableCensus(docs, { read = readDoc, artifact = artifactObject, al
   const judgeable = c => isArtifactRel(c) && !!numsOf(c);
   /* Dating, exactly as citationMismatches dates a block — the same stamp, heading and pin rules — so a
    * dated block is excused or accused identically by both rules. */
-  let versionDate = changelogDate;
   if (changelog !== null) {
     const m = new Map();
     for (const x of stripCR(changelog).matchAll(/^##\s*\[(\d+\.\d+\.\d+)\][^\n]*?(\d{4}-\d{2}-\d{2})/gm)) if (!m.has(x[1])) m.set(x[1], x[2]);
-    versionDate = v => m.get(v) || null;
+    injectedDate = v => m.get(v) || null;
   }
   const pins = versionPins();
   const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -2090,6 +2277,10 @@ function untraceableCensus(docs, { read = readDoc, artifact = artifactObject, al
   let total = 0;
   for (const rel of docs) {
     const text = read(rel);
+    const lineId = docLineId(rel);
+    const entries = injectedEntries || changelogEntryIndex(lineId);
+    const anywhereInChangelog = injectedAnywhere || (f => changelogHas(f, lineId));
+    const versionDate = injectedDate || (v => changelogDate(v, lineId));
     const docLines = text.split('\n');
     const hv = headingVersions(docLines);
     const above = headingDates(docLines, versionDate);
@@ -2743,7 +2934,12 @@ const OWED_WARN = Math.floor(OWED_CAP / 2);
  *   docs/archive/    moving a file into history changes nothing a reader takes as current
  *   the notes page itself   or the rule would be that touching it obliges you to touch it
  *   data/            a generator re-running is not a documentation event; the hook already says so */
-const RECORDABLE = /^(?:engine|tests|web|build)\/|^docs\/|^(?:CHANGELOG|README|CLAUDE)\.md$/;
+/* `CHANGELOG-<LINE>.md` IS A CHANGELOG. Written as `CHANGELOG\.md` this said "the file literally
+ * called CHANGELOG.md", so the day a second version line appeared, a commit touching only that line's
+ * changelog was NOT a recordable change — no notes row owed, and the pre-commit hook skipped
+ * entirely. That is a gate getting quietly weaker as a side effect of a new file, which is the exact
+ * shape of every failure this repository keeps paying for. The shape is matched, not the name. */
+const RECORDABLE = /^(?:engine|tests|web|build)\/|^docs\/|^(?:CHANGELOG(?:-[A-Za-z0-9]+)?|README|CLAUDE)\.md$/;
 const NOT_RECORDABLE = /^docs\/(?:_reports|_inbox|_outbox|archive)\//;
 function recordableChanges(paths) {
   return [...new Set(paths.map(p => String(p).replace(/\\/g, '/').trim()).filter(Boolean))]
@@ -2762,17 +2958,72 @@ function cmpVersion(a, b) {
   return 0;
 }
 
-/** The most recent `## [X.0.0]` entry in the CHANGELOG — the last MAJOR release, read not typed. */
-function lastMajor() {
-  const ch = readDoc('CHANGELOG.md');
+/** The most recent `## [X.0.0]` entry in a line's changelog — its last MAJOR, read not typed. */
+function lastMajor(lineId) {
+  const f = lineChangelog(lineId);
+  if (!f) return null;
+  let ch;
+  try { ch = readDoc(f); } catch (e) { return null; }
   const m = ch.match(/^##\s*\[(\d+\.0\.0)\][^\n]*?(\d{4}-\d{2}-\d{2})?\s*$/m);
   return m ? { version: m[1], date: m[2] || null } : null;
 }
 
-/** Every released version in the CHANGELOG, newest first, as written. Read, never typed. */
-function changelogVersions() {
-  const ch = readDoc('CHANGELOG.md');
+/* THE FLOOR A LINE'S DOCUMENTS MUST MEET, AND A 0.x LINE HAS NO FLOOR TO DEFER TO.
+ *
+ * On a line that has shipped a major, the floor is that major: the full document pass is due at the
+ * major and the rows in between are the backlog. That is Will's 2026-09-06 trade and it is unchanged
+ * for Reg M-B.
+ *
+ * A 0.x LINE HAS NEVER SHIPPED ONE, so there is no pass to have deferred FROM — SemVer 2.0.0 clause 4
+ * says anything may change at any time below 1.0.0, and a document that could say anything is not a
+ * document a backlog can be measured against. The floor is therefore the line's TOP: its documents
+ * are current every release. That is STRICTER than the major rule, deliberately, and it is cheap
+ * because a young line has few documents. It relaxes to the major rule by itself on the day the line
+ * reaches 1.0.0, with nothing to remember to change. */
+function documentFloor(lineId) {
+  const maj = lastMajor(lineId);
+  if (maj) return { version: maj.version, kind: 'major', date: maj.date };
+  const top = changelogTop(lineId);
+  return top ? { version: top, kind: 'top-of-a-0.x-line', date: changelogDate(top, lineId) } : null;
+}
+
+/** Every released version in a line's changelog, newest first, as written. Read, never typed. */
+function changelogVersions(lineId) {
+  const f = lineChangelog(lineId);
+  if (!f) return [];
+  let ch;
+  try { ch = readDoc(f); } catch (e) { return []; }
   return [...ch.matchAll(/^##\s*\[(\d+\.\d+\.\d+)\]/gm)].map(m => m[1]);
+}
+
+/* ---- A CLOSED LINE IS CLOSED, AND THE MACHINE SAYS SO ------------------------------------------
+ *
+ * Reg M-B's record is published and immutable: its six documents cite each other at 7.0.0 and 271
+ * commit hashes resolve from tracked markdown. "Closed" written in prose is the ban list of four —
+ * it holds until somebody types the next entry without reading the paragraph. So the close version
+ * is DECLARED in the changelog's own masthead and refused here: no entry and no notes row may sit
+ * above it. The fix a breach asks for is never "renumber history"; it is "this belongs to the line
+ * we are actually on". */
+function closedLineBreaches({ entries: injEntries } = {}) {
+  const out = [];
+  for (const l of versionLines().values()) {
+    if (!l.closed) continue;
+    for (const v of changelogVersions(l.id)) if (cmpVersion(v, l.closed) > 0) out.push({
+      kind: 'entry_above_close', line: l.id, version: v, file: l.changelog,
+      why: `${l.changelog} carries ${v}, above the ${l.closed} this line is declared CLOSED at. `
+         + `Move the entry to the line that is open (${currentLineId() || 'none is'}) and renumber it `
+         + 'there. Do NOT renumber anything at or below the close version — that record is cited.',
+    });
+    for (const e of (injEntries || notesEntries() || [])) {
+      if (e.line_id !== l.id || !e.version) continue;
+      if (cmpVersion(e.version, l.closed) > 0) out.push({
+        kind: 'notes_row_above_close', line: l.id, version: e.version, file: NOTES_LOG, row: e.line,
+        why: `${NOTES_LOG}:${e.line} records ${e.version} on a line closed at ${l.closed}. Re-tag the `
+           + `row to the open line (\`## [<line> <version>]\`).`,
+      });
+    }
+  }
+  return out;
 }
 
 /**
@@ -2812,11 +3063,17 @@ function notesEntries({ read = readDoc } = {}) {
      * if it is not counted then a heading nobody remembers to rename is a debt that never appears —
      * which is the precise failure this whole clause exists to refuse. Counting it is the
      * conservative direction: the worst case is that the backlog reads one high for a few hours. */
-    const m = lines[i].match(/^##\s*\[(Unreleased|\d+\.\d+(?:\.\d+)?)\]\s*—?\s*(\d{4}-\d{2}-\d{2})?\s*—?\s*(.*)$/i);
+    /* THE ROW NAMES ITS LINE, AND A ROW THAT NAMES NONE IS ON THE MAIN ONE. `## [abra/regmc 0.2.0]`.
+     * The prefix is what stops a 0.2.0 row being compared against a 7.0.0 floor and silently reading
+     * as "already folded in" — which is a backlog counter that cannot count, the exact failure the
+     * CRLF bug produced and the cap exists to refuse. */
+    const m = lines[i].match(/^##\s*\[(?:([A-Za-z][A-Za-z0-9/_-]*)\s+)?(Unreleased|\d+\.\d+(?:\.\d+)?)\]\s*—?\s*(\d{4}-\d{2}-\d{2})?\s*—?\s*(.*)$/i);
     if (m) out.push({
-      version: /^unreleased$/i.test(m[1]) ? null : m[1],
-      unreleased: /^unreleased$/i.test(m[1]),
-      date: m[2] || null, title: m[3].trim(), line: i + 1,
+      line_id: m[1] && versionLines().has(m[1]) ? m[1] : mainLineId(),
+      line_declared: m[1] || null,
+      version: /^unreleased$/i.test(m[2]) ? null : m[2],
+      unreleased: /^unreleased$/i.test(m[2]),
+      date: m[3] || null, title: m[4].trim(), line: i + 1,
     });
   }
   /* THE BODY OF A ROW IS EVERYTHING UP TO THE NEXT ROW, so the two declared fields below are read
@@ -2867,11 +3124,17 @@ function supersedesOf(body) {
   };
 }
 
-/** The version the living documents were last brought current at: the lowest UNPINNED header. */
-function documentedAt() {
+/** Every living document on one line. A document declares its line in its masthead; absent = main. */
+function lineDocs(lineId) {
+  const id = lineOf(lineId) ? lineOf(lineId).id : String(lineId);
+  return livingDocs().filter(d => docLineId(d) === id);
+}
+
+/** The version ONE LINE's documents were last brought current at: the lowest UNPINNED header on it. */
+function documentedAt(lineId) {
   const pins = versionPins();
   let low = null;
-  for (const d of livingDocs()) {
+  for (const d of lineDocs(lineId)) {
     if (d.replace(/\\/g, '/') === NOTES_LOG) continue;    // the log tracks the top, not the pass
     if (pins[d]) continue;                                 // a pin is a declared freeze, not drift
     const v = versionHeader(readDoc(d));
@@ -2887,24 +3150,36 @@ function documentedAt() {
  *   owed             notes entries newer than the documents' floor
  *   over / warn      against OWED_CAP
  */
-function owedToNextMajor() {
-  const top = changelogTop();
-  const maj = lastMajor();
-  const entries = notesEntries();
-  if (entries === null) return { missing: true, notes: NOTES_LOG, top, lastMajor: maj, cap: OWED_CAP };
-  const floor = documentedAt();
+function owedToNextMajor(lineId) {
+  const l = lineOf(lineId);
+  const id = l ? l.id : mainLineId();
+  const top = changelogTop(id);
+  const maj = lastMajor(id);
+  const all = notesEntries();
+  if (all === null) return { missing: true, line: id, notes: NOTES_LOG, top, lastMajor: maj, cap: OWED_CAP };
+  const entries = all.filter(e => e.line_id === id);
+  /* THE FLOOR IS THE LINE'S, AND ON A 0.x LINE IT IS THE TOP. See documentFloor(): a line with no
+   * major has no deferred pass, so its documents are due every release and its backlog is the rows
+   * above its top — normally none. The cap still applies, so a line that starts deferring is caught
+   * by the same counter rather than by a second one. */
+  const docFloor = documentedAt(id);
+  const floor = docFloor || (top && !maj ? { version: top, doc: '(no document on this line)' } : null);
   const owed = entries.filter(e => e.unreleased || !floor || cmpVersion(e.version, floor.version) > 0);
   const dates = owed.map(e => e.date).filter(Boolean).sort();
-  const behind = floor && maj ? cmpVersion(floor.version, maj.version) < 0 : false;
+  const behind = docFloor && maj ? cmpVersion(docFloor.version, maj.version) < 0 : false;
   return {
-    missing: false, notes: NOTES_LOG, top, lastMajor: maj,
-    documented_at: floor, entries: entries.length, owed,
+    missing: false, line: id, label: l ? l.label : id, changelog: l ? l.changelog : null,
+    closed: l ? l.closed : null, notes: NOTES_LOG, top, lastMajor: maj,
+    floor_kind: maj ? 'major' : 'top-of-a-0.x-line',
+    documented_at: docFloor, entries: entries.length, owed,
     oldest_owed: dates[0] || null,
     documents_behind_last_major: behind,
     cap: OWED_CAP, warn: OWED_WARN,
     over: owed.length > OWED_CAP, warning: owed.length > OWED_WARN && owed.length <= OWED_CAP,
   };
 }
+/** Every line's backlog, main first. The cap is per line: a line may not hide behind another's slack. */
+function owedByLine() { return lineIds().map(id => owedToNextMajor(id)); }
 
 /* ---- WHAT MAKES A RELEASE MAJOR — THE POLICY, AS THREE REFUSALS ------------------------------
  *
@@ -2934,12 +3209,18 @@ function owedToNextMajor() {
  * A ROW THAT CANNOT BE MATCHED TO A RELEASE IS REPORTED, NEVER PASSED. `unmatched` carries the
  * versions this could not check, because a clause that quietly checks nothing is this repository's
  * signature failure and the point of `ok(!gitErr, ...)` one file over. */
-function majorPolicy({ entries: injEntries, versions: injVersions } = {}) {
-  const entries = injEntries || notesEntries();
-  if (entries === null) {
-    return { missing: true, violations: [], unmatched: [], top: null, top_bump: null, checked: 0 };
+function majorPolicy({ entries: injEntries, versions: injVersions, line: injLine } = {}) {
+  const l = lineOf(injLine);
+  const id = l ? l.id : mainLineId();
+  const all = injEntries || notesEntries();
+  if (all === null) {
+    return { missing: true, line: id, violations: [], unmatched: [], top: null, top_bump: null, checked: 0 };
   }
-  const versions = injVersions || changelogVersions();
+  /* ROWS ARE JUDGED AGAINST THEIR OWN LINE'S RELEASES. An injected row set is taken as given — the
+   * demonstration cases below build rows directly and must not be filtered out by a line they never
+   * declared. A row read from the page carries its line and is filtered by it. */
+  const entries = injEntries ? all : all.filter(e => e.line_id === id);
+  const versions = injVersions || changelogVersions(id);
   const released = new Set(versions);
   const top = versions[0] || null;
   const top_bump = bumpKind(versions[1], versions[0]);
@@ -2979,8 +3260,10 @@ function majorPolicy({ entries: injEntries, versions: injVersions } = {}) {
          + 'PATCH here means NO published figure moved. If one did, it is a MINOR.',
     });
   }
-  return { missing: false, violations, unmatched, top, top_bump, checked, entries: entries.length };
+  return { missing: false, line: id, violations, unmatched, top, top_bump, checked, entries: entries.length };
 }
+/** The release-kind policy on every line. One line's silence never clears another's violation. */
+function majorPolicyByLine() { return lineIds().map(id => majorPolicy({ line: id })); }
 
 /* ---- THE RED DEMONSTRATION FOR THE POLICY, one case per refusal and one against each ------------
  *
@@ -3056,10 +3339,26 @@ function majorPolicyProof() {
   });
 }
 
-/** The printable backlog. Never throws — a caller printing state must not die on a missing file. */
+/** The printable backlog, every line. Never throws — a caller printing state must not die on a
+ *  missing file. Each line is counted against the cap SEPARATELY: a young line's slack must never
+ *  pay for an old line's debt, which a single repository-wide counter would have let it do. */
 function owedReport() {
-  const o = owedToNextMajor();
+  const out = [];
+  for (const id of lineIds()) out.push(owedReportForLine(id));
+  const breaches = closedLineBreaches();
+  if (breaches.length) {
+    out.push('  A CLOSED VERSION LINE HAS AN ENTRY ABOVE ITS CLOSE VERSION — ' + breaches.length + ':');
+    for (const b of breaches.slice(0, 6)) out.push(`    ${b.line}  ${b.version}  ${b.file}\n      ${b.why}`);
+  }
+  return out.join('\n');
+}
+
+function owedReportForLine(lineId) {
+  const o = owedToNextMajor(lineId);
   const L = [];
+  const l = lineOf(lineId);
+  L.push(`  LINE ${o.line}${l && l.label && l.label !== o.line ? ' — ' + l.label : ''}`
+    + `  [${l ? l.changelog : '?'}]${l && l.closed ? '  CLOSED AT ' + l.closed : ''}`);
   if (o.missing) {
     L.push(`  DOCUMENTATION DEBT — ${o.notes} IS ABSENT.`);
     L.push('    The full living-doc set moves on a major release and the notes page carries every');
@@ -3070,7 +3369,7 @@ function owedReport() {
   L.push(`  DOCUMENTATION DEBT — ${o.owed.length} of ${o.cap} notes entries owed to the next major`
     + (o.over ? '   *** OVER CAP ***' : o.warning ? '   (past half the cap)' : ''));
   L.push(`    documents last folded at ${at}`);
-  L.push(`    CHANGELOG top ${o.top}; last major ${o.lastMajor ? o.lastMajor.version + (o.lastMajor.date ? ' — ' + o.lastMajor.date : '') : 'NOT DERIVED'}`);
+  L.push(`    changelog top ${o.top}; last major ${o.lastMajor ? o.lastMajor.version + (o.lastMajor.date ? ' — ' + o.lastMajor.date : '') : 'NONE — this line is 0.x, so its documents are due EVERY release'}`);
   if (o.documents_behind_last_major) {
     L.push('    THE DOCUMENTS ARE BEHIND THE LAST MAJOR RELEASE. A major is exactly when the full set');
     L.push('    is due, so this is the pass that was skipped, not drift that is allowed to accumulate.');
@@ -3096,6 +3395,9 @@ function owedReport() {
 
 module.exports = {
   D, liveDocs, livingDocs, archiveDocs, readDoc, versionHeader, changelogTop,
+  versionLines, lineIds, lineOf, mainLineId, currentLineId, lineChangelog, docLineId, lineDocs,
+  unknownLineDeclarations, documentFloor, closedLineBreaches, owedByLine, majorPolicyByLine,
+  owedReportForLine, CHANGELOG_FILE,
   NOTES_LOG, OWED_CAP, OWED_WARN, cmpVersion, lastMajor, versionPins, recordableChanges,
   notesEntries, documentedAt, owedToNextMajor, owedReport,
   changelogVersions, bumpKind, basisOf, supersedesOf, majorPolicy,
@@ -3136,11 +3438,32 @@ if (require.main === module) {
     if (need.length > 10) console.log(`    ... and ${need.length - 10} more`);
     process.exit(1);
   }
+  /* `--lines` — the version series this repository keeps, and which is open. Cheapest question here. */
+  if (process.argv.includes('--lines')) {
+    const L = lineIds().map(id => versionLines().get(id));
+    if (process.argv.includes('--json')) { console.log(JSON.stringify({ lines: L, current: currentLineId() }, null, 2)); process.exit(0); }
+    console.log('VERSION LINES — a version is only comparable inside its own series\n');
+    for (const l of L) {
+      console.log(`  ${l.id.padEnd(14)} ${l.changelog.padEnd(22)} top ${String(changelogTop(l.id)).padEnd(9)}`
+        + `${l.closed ? 'CLOSED AT ' + l.closed : 'OPEN'}`);
+      console.log(`  ${''.padEnd(14)} ${l.label}${l.format ? '   format ' + l.format : ''}`);
+      const f = documentFloor(l.id);
+      console.log(`  ${''.padEnd(14)} document floor ${f ? f.version + ' (' + f.kind + ')' : 'NOT DERIVED'}`
+        + `; documents on this line: ${lineDocs(l.id).length}`);
+      if (!l.declared) console.log(`  ${''.padEnd(14)} NO <!-- LINE: ... --> DECLARATION — the id above is a filename fallback.`);
+    }
+    console.log(`\n  currently open: ${currentLineId() || 'NONE (zero or more than one line is open — say which)'}`);
+    const bad = unknownLineDeclarations();
+    for (const b of bad) console.log('  UNKNOWN LINE: ' + b);
+    const breaches = closedLineBreaches();
+    for (const b of breaches) console.log(`  CLOSED-LINE BREACH  ${b.line} ${b.version}  ${b.file}\n    ${b.why}`);
+    process.exit(bad.length || breaches.length ? 1 : 0);
+  }
   if (process.argv.includes('--owed')) {
-    const o = owedToNextMajor();
-    if (process.argv.includes('--json')) console.log(JSON.stringify(o, null, 2));
+    const all = owedByLine();
+    if (process.argv.includes('--json')) console.log(JSON.stringify({ lines: all, breaches: closedLineBreaches() }, null, 2));
     else console.log(owedReport());
-    process.exit(o.missing || o.over ? 1 : 0);
+    process.exit(all.some(o => o.missing || o.over) || closedLineBreaches().length ? 1 : 0);
   }
   const docs = liveDocs();
   const living = livingDocs();

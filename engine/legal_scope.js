@@ -185,7 +185,62 @@ function derive(opts = {}) {
   const failures = [];
   const V = { move: new Map(), ability: new Map(), item: new Map() };
 
-  const species = dex.species.all().filter(legal);
+  /* ---- THE STRICT FILTER IS A CANDIDATE LIST. THE TeamValidator DECIDES. (2026-09-20) ------------
+   *
+   * WILL, 2026-09-20: *"lets use the showdown team validator again for reg mc"*. Legality is what
+   * `TeamValidator` accepts, and `isNonstandard: 'Future'` is a RELEASE MARKER on the upstream row,
+   * not a verdict about this regulation. Reg M-C ships `auraguard` — a real handler body,
+   * `onSourceModifyDamage(damage, source, target, move) { if (move.flags["contact"]) return
+   * this.chainModify(0.5); }` (dist/data/mods/champions/abilities.js) — carried by `lucariomegaz`,
+   * which the M-C validator accepts as Lucario @ Lucarionite Z. The strict filter dropped it, so it
+   * got no row in data/tags.json, no probe and no roster stage WHILE COVERAGE REPORTED FULL: a
+   * capability absent with everything reporting success, which is the failure this project is
+   * organised against (CLAUDE.md, 2026-07-28).
+   *
+   * THE STRICT FILTER STAYS AND IS STILL RIGHT for a bulk walk — it exists because an unfiltered walk
+   * invented five exceptions to a rule that has none. What changes is that its output is a CANDIDATE
+   * list: every `Future`-flagged entry is put to the validator, in a set the way it is actually
+   * reached, and re-admitted only on an accept. This is ONE implementation in the ONE scope authority,
+   * so tag_dex, coverage and the stage planner inherit it rather than each growing a rule.
+   *
+   * MEASURED BEFORE IT WAS WIRED, per docs/LESSONS §4, because a new admission rule over-matches every
+   * time. On the PINNED M-B authority `20ad99ff` there are 20 Future candidates — 11 mega species, 8
+   * mega stones, 1 move (`nihillight`), 0 abilities — and the validator refuses EVERY ONE ("Heatran
+   * (Heatran-Mega) does not exist in Gen 9", "Darkrai (Darkrai-Mega) is tagged Mythical, which is
+   * banned by Flat Rules"). So M-B is unchanged, by measurement and not by hope, and the re-admitted
+   * list is PRINTED on every derive so it can never be silently empty.
+   *
+   * `ABRA_SCOPE_STRICT_FUTURE=1` restores the pre-fix filter for a before/after. */
+  const STRICT_FUTURE = process.env.ABRA_SCOPE_STRICT_FUTURE === '1';
+  const isFuture = x => !!(x && x.exists && x.isNonstandard === 'Future');
+  const futureRows = [];
+  const askFuture = (kind, id, name, ask) => {
+    /* `ask` is the set the entity is actually reached through — never the entity asked as itself. */
+    /* `ask` is carried on the row, not just its rendering, so a probe can re-put the identical set to
+     * the validator itself rather than parsing a display string back into a team. */
+    const row = { kind, id, name, ask: ask || null, asked: ask ? (ask.species + (ask.item ? ' @ ' + ask.item : '')
+                   + (ask.ability ? ' with ' + ask.ability : '') + (ask.moves ? ' with ' + ask.moves.join('/') : '')) : null,
+                  accepted: false, problem: null };
+    if (STRICT_FUTURE) row.problem = 'ABRA_SCOPE_STRICT_FUTURE=1 — re-admission is OFF';
+    else if (!ask) row.problem = 'nothing in the regulation carries, learns or holds it, so there is no set to ask about';
+    else {
+      const v = CS.checkLegal(ask);
+      row.accepted = !!(v && v.legal);
+      if (!row.accepted) row.problem = ((v && v.problems) || [])[0] || 'refused with no stated problem';
+      if (v && v.unavailable) failures.push('the TeamValidator was unavailable while asking about ' + kind + ':' + id);
+    }
+    futureRows.push(row);
+    return row.accepted;
+  };
+
+  /* SPECIES FIRST — a carrier and a learner are both read off this list. */
+  const futureSpeciesOk = new Set();
+  for (const sp of dex.species.all().filter(isFuture)) {
+    const e = teamEntryFor(dex, { species: sp.id }, null);
+    if (askFuture('species', sp.id, sp.name, { species: e.species, item: e.item })) futureSpeciesOk.add(sp.id);
+  }
+  const speciesOk = s => legal(s) || futureSpeciesOk.has(s && s.id);
+  const species = dex.species.all().filter(speciesOk);
 
   /* abilities — carriers, then the validator */
   const abCarriers = new Map();
@@ -196,6 +251,16 @@ function derive(opts = {}) {
   }
   const abilityIn = new Map(), refused = [];
   const legalAbilities = dex.abilities.all().filter(a => a.exists && !a.isNonstandard).map(a => a.id);
+  for (const A of dex.abilities.all().filter(isFuture)) {
+    const list = abCarriers.get(A.id) || [];
+    let ok = false;
+    for (const c of list) {
+      const e = teamEntryFor(dex, c, A.id);
+      if (askFuture('ability', A.id, A.name, { species: e.species, ability: e.ability, item: e.item })) { ok = true; break; }
+    }
+    if (!list.length) askFuture('ability', A.id, A.name, null);
+    if (ok) legalAbilities.push(A.id);
+  }
   for (const a of legalAbilities) {
     const list = abCarriers.get(a) || [];
     if (!list.length) { V.ability.set(a, { inScope: false, code: 'NO-LEGAL-CARRIER', why: 'no legal species carries it' }); continue; }
@@ -221,6 +286,22 @@ function derive(opts = {}) {
     for (const mv of pool) { if (!learners.has(mv)) learners.set(mv, []); learners.get(mv).push(s.id); }
   }
   const legalMoves = dex.moves.all().filter(m => m.exists && !m.isNonstandard).map(m => m.id);
+  /* A FUTURE MOVE IS GATED ON THE VALIDATOR, NOT ON THE LEARNSET. `LEARNED` above admits on
+   * `getMovePool` alone, which is sound for a strict-legal move (checked at 0 exceptions against
+   * `champions_sim.canLearn`, 2026-09-11) and is NOT sound here: "does not exist in Gen 9" is a
+   * refusal the learnset cannot see. Both checkouts carry exactly one — `nihillight` — with no legal
+   * learner at all, so nothing is admitted on either and the row says why. */
+  for (const M of dex.moves.all().filter(isFuture)) {
+    const ls = (learners.get(M.id) || []).map(sid => dex.species.get(sid))
+      .sort((x, y) => (!!x.isMega - !!y.isMega) || (!!x.battleOnly - !!y.battleOnly));
+    let ok = false;
+    for (const sp of ls) {
+      const e = teamEntryFor(dex, { species: sp.id }, null);
+      if (askFuture('move', M.id, M.name, { species: e.species, item: e.item, moves: [M.name] })) { ok = true; break; }
+    }
+    if (!ls.length) askFuture('move', M.id, M.name, null);
+    if (ok) legalMoves.push(M.id);
+  }
   /* only an injected LEGAL move matters; the fallback also names moves this dex does not carry */
   const injectedAll = simInjectedMoves(simDir, failures);
   const injected = injectedAll.filter(x => legalMoves.includes(x.id));
@@ -233,10 +314,29 @@ function derive(opts = {}) {
 
   /* items */
   const legalItems = dex.items.all().filter(i => i.exists && !i.isNonstandard);
+  /* A FUTURE ITEM IS GATED ON THE VALIDATOR TOO, and for the same reason the move above is: `HELD`
+   * admits any legal item whose mega forme or `itemUser` is legal, with no validator in the path. On
+   * the pinned M-B authority `absolmegaz` and `garchompmegaz` ARE legal species, so an ungated
+   * re-admission would have put Absolite Z and Garchompite Z in scope while the validator answers
+   * "Absol's item Absolite Z does not exist in Gen 9" — an over-match that would have changed M-B on
+   * the strength of a marker rather than a verdict. Measured before this was wired. */
+  for (const it of dex.items.all().filter(isFuture)) {
+    let ask = null;
+    if (it.megaStone) {
+      const b = Object.keys(it.megaStone).find(x => speciesOk(dex.species.get(x))) || Object.keys(it.megaStone)[0];
+      if (b) ask = { species: dex.species.get(b).name, item: it.name };
+    } else if (it.itemUser && it.itemUser.length) {
+      ask = { species: (it.itemUser.find(u => speciesOk(dex.species.get(u))) || it.itemUser[0]), item: it.name };
+    } else {
+      const any = species[0];
+      if (any) ask = { species: any.name, item: it.name };
+    }
+    if (askFuture('item', it.id, it.name, ask)) legalItems.push(it);
+  }
   for (const it of legalItems) {
-    if (it.megaStone && !Object.entries(it.megaStone).some(([b, f]) => legal(dex.species.get(b)) && legal(dex.species.get(f))))
+    if (it.megaStone && !Object.entries(it.megaStone).some(([b, f]) => speciesOk(dex.species.get(b)) && speciesOk(dex.species.get(f))))
       V.item.set(it.id, { inScope: false, code: 'NO-LEGAL-CARRIER', why: 'a mega stone with no legal mega forme' });
-    else if (it.itemUser && !it.itemUser.some(u => legal(dex.species.get(u))))
+    else if (it.itemUser && !it.itemUser.some(u => speciesOk(dex.species.get(u))))
       V.item.set(it.id, { inScope: false, code: 'NO-LEGAL-CARRIER', why: 'no legal species can use it (' + it.itemUser.join(', ') + ')' });
     else V.item.set(it.id, { inScope: true, code: 'HELD', why: null });
   }
@@ -260,7 +360,9 @@ function derive(opts = {}) {
   for (const w of writes) for (const a of (w.abilities || [])) {
     if (!a || abilityIn.has(a)) continue;
     const A = dex.abilities.get(a);
-    if (!conferredMap.has(a)) conferredMap.set(a, { ability: a, name: A.name, legalInDex: !!(A.exists && !A.isNonstandard),
+    /* `legalInDex` means "a candidate of this regulation", which since 2026-09-20 includes a
+     * `Future`-flagged ability the TeamValidator accepted on a carrier — never the strict marker alone. */
+    if (!conferredMap.has(a)) conferredMap.set(a, { ability: a, name: A.name, legalInDex: !!(A.exists && (!A.isNonstandard || V.ability.has(a))),
       reason: (V.ability.get(a) || {}).why || 'not a legal ability', via: [] });
     const c = conferredMap.get(a);
     if (!c.via.some(v => v.kind === w.kind && v.id === w.id))
@@ -297,6 +399,7 @@ function derive(opts = {}) {
   const srcOf = new Map();
   const text = x => { if (!srcOf.has(x)) srcOf.set(x, fnSources(x).map(f => f.src).join('\n')); return srcOf.get(x); };
   const noReader = [];
+  const futureAdmittedIds = new Set(futureRows.filter(r => r.accepted).map(r => r.id));
   for (const [kind, list] of [['ability', legalAbilities.map(a => dex.abilities.get(a))], ['item', legalItems]]) for (const e of list) {
     if (!V[kind].get(e.id).inScope) continue;
     const keys = stateOnlyKeys(e);
@@ -304,8 +407,12 @@ function derive(opts = {}) {
     const per = keys.map(k => {
       const reads = new RegExp('abilityState\\.' + k + '\\b(?!\\s*=[^=])');
       const readers = everyEntry.filter(x => x.id !== e.id && reads.test(text(x)));
-      return { key: k, legalReaders: readers.filter(x => !x.isNonstandard).map(x => x.id),
-               illegalReaders: readers.filter(x => x.isNonstandard).map(x => x.id), sim: reads.test(simSrc) };
+      /* "OUT OF THE REGULATION" IS THE CANDIDATE SET, NOT THE MARKER. A `Future` entry the validator
+       * accepted is IN the regulation, so counting it among the illegal readers would put a live
+       * mechanic out of scope for having been read by another live mechanic. */
+      const inReg = x => !x.isNonstandard || futureAdmittedIds.has(x.id);
+      return { key: k, legalReaders: readers.filter(inReg).map(x => x.id),
+               illegalReaders: readers.filter(x => !inReg(x)).map(x => x.id), sim: reads.test(simSrc) };
     });
     if (per.every(p => !p.legalReaders.length && !p.sim) && per.some(p => p.illegalReaders.length)) {
       const ill = [...new Set(per.flatMap(p => p.illegalReaders))];
@@ -326,6 +433,9 @@ function derive(opts = {}) {
     legal: { move: legalMoves.length, ability: legalAbilities.length, item: legalItems.length },
     inScopeCount: { move: inIds('move').length, ability: inIds('ability').length, item: inIds('item').length },
     codes: { move: count('move'), ability: count('ability'), item: count('item') },
+    strictFutureKnob: STRICT_FUTURE,
+    future: futureRows,
+    futureReadmitted: futureRows.filter(r => r.accepted).map(r => r.kind + ':' + r.id),
     injected, refused, writers: [...writers].sort(), noReader,
     copies: writes.filter(w => !w.abilities).map(w => w.kind + ':' + w.id + ' ' + w.via + '(' + w.arg + ')'),
     conferred: [...conferredMap.values()],
@@ -337,6 +447,21 @@ function derive(opts = {}) {
     why: (kind, id) => { const v = V[kind] && V[kind].get(idOf(id)); return v && !v.inScope ? v.why : null; },
     outOfScope: kind => ids(kind).filter(([, v]) => !v.inScope).map(([id, v]) => ({ id, code: v.code, why: v.why })),
   };
+
+  /* PRINTED ON EVERY DERIVE, NOT ONLY WHEN THIS FILE IS RUN AS MAIN. A re-admission list that is
+   * silently empty is indistinguishable from a re-admission that never ran, which is the shape of
+   * every bug this module exists to refuse. `derive()` is memoised, so this is once per process. */
+  {
+    const by = k => futureRows.filter(r => r.kind === k).length;
+    const ok = futureRows.filter(r => r.accepted), no = futureRows.filter(r => !r.accepted);
+    console.error('legal_scope: ' + futureRows.length + ' `Future`-flagged candidate(s) in ' + CS.FORMAT
+      + ' put to the TeamValidator (species ' + by('species') + ', ability ' + by('ability')
+      + ', move ' + by('move') + ', item ' + by('item') + ')'
+      + (STRICT_FUTURE ? '  [ABRA_SCOPE_STRICT_FUTURE=1 — RE-ADMISSION IS OFF]' : '')
+      + '\n  RE-ADMITTED: ' + (ok.map(r => r.kind + ':' + r.id + ' <- ' + r.asked).join('; ')
+        || 'none' + (no.length ? ' — all ' + no.length + ' refused, first: ' + no[0].kind + ':' + no[0].id
+            + ' "' + no[0].problem + '"' : '')));
+  }
   return MEMO;
 }
 
@@ -356,6 +481,11 @@ if (require.main === module) {
     console.log(`  ${{ move: 'moves', ability: 'abilities', item: 'items' }[k]}: ${S.inScopeCount[k]} in scope of ${S.legal[k]} legal (${tally(S.codes[k])})`
       + (o.length && o.length <= 12 ? ' — out: ' + o.map(x => x.id + ' [' + x.code + ']').join(', ') : ''));
   }
+  console.log('  FUTURE-FLAGGED CANDIDATES (' + S.future.length + '), every one put to the TeamValidator'
+    + (S.strictFutureKnob ? '  [ABRA_SCOPE_STRICT_FUTURE=1 — re-admission is OFF]' : '') + ':');
+  for (const r of S.future) console.log('    ' + (r.accepted ? 'RE-ADMITTED' : 'refused    ') + '  '
+    + (r.kind + ':' + r.id).padEnd(34) + (r.asked ? 'asked as ' + r.asked : '') + (r.accepted ? '' : '  — ' + r.problem));
+  if (!S.future.length) console.log('    (none — this regulation flags nothing `Future`)');
   console.log('  injected by the sim: ' + (S.injected.map(x => x.id + ' ' + x.cite).join(', ') || 'none'));
   console.log('  validator refusals: ' + (S.refused.map(r => r.species + '/' + r.ability + ' slot ' + r.slot + ': '
     + (r.problems[0] || '')).join(' | ') || 'none'));

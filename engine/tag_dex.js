@@ -185,6 +185,9 @@ const dex = Dex.forFormat(CS.FORMAT);
 /* THE SIM'S OWN `Pokemon` CLASS, for the one derivation that reads a METHOD rather than a data row
  * (`suppressesAbility` reads `ignoringAbility`). `CS.sim()` does not hand it out. */
 const SIM_POKEMON = require(process.env.SHOWDOWN_PATH + '/dist/sim').Pokemon;
+/* THE SCREEN DERIVATIONS, in their own module because a probe has to run the identical rule with the
+ * authority's descriptions blanked and this file exports nothing. See engine/screen_tags.js. */
+const SCREEN_TAGS = require('./screen_tags.js');
 
 /* ---- ROADMAP #236 -- THE NEVER-MISS CLAUSES THAT LIVE IN THE STEP LIST, NOT ON THE MOVE ---------
  *
@@ -1842,8 +1845,12 @@ const MOVE_TAGS = [
   { tag: 'clearsScreens', param: 'destroys Reflect, Light Screen and Aurora Veil on their side', probe: 'removeSideCondition',
     why: 'Psychic Fangs (1,352 uses), Brick Break (289), Raging Bull. The answer to 5,187 uses of '
        + 'screens, and it lands as a damaging move rather than costing a turn',
-    of: m => (/removeSideCondition/i.test(String(m.onTryHit || '') + String(m.onHit || ''))
-              && /reflect|screen|veil/i.test(String(m.shortDesc || ''))) ? { clears: 'screens' } : null },
+    /* DERIVED FROM THE HANDLER, NOT FROM THE SENTENCE (2026-09-20). This read
+     * `/reflect|screen|veil/i.test(m.shortDesc)` on top of the `removeSideCondition` probe, and Reg
+     * M-C ships with every Champions description removed, so all three members silently lost the tag.
+     * `engine/screen_tags.js` is the one implementation — it also answers `halvesDamage` below and is
+     * what tests/probe_tag_derivation_without_prose.js runs with the descriptions blanked. */
+    of: m => SCREEN_TAGS.clearsScreens(m, dex) },
   { tag: 'conditionalPower', param: 'WHICH condition doubles it, and by how much -- not a boolean', probe: 'onBasePower',
     why: 'Knock Off x1.5 if they hold an item (1,640 uses, and the SHEET tells you), Facade x2 if '
        + 'statused, Venoshock x2 if poisoned, Expanding Force x1.5 on Psychic Terrain. The engine '
@@ -3851,11 +3858,15 @@ const MOVE_TAGS = [
   { tag: 'halvesDamage', param: 'incoming damage of ONE category is halved for my side', probe: 'screens',
     why: 'Reflect (1,988) physical only, Light Screen (2,346) special only, Aurora Veil (853) both '
        + 'and snow-only. 5,187 uses that change NO damage number anywhere in MAG today',
+    /* "Derived from the dex TEXT so it cannot be mistyped" was the old sentence here, and the text is
+     * exactly what went away: Reg M-C's checkout carries no Champions descriptions, both screens read
+     * `''`, and both fell through to the `'both'` default — so Reflect halved a Moonblast in the smoke
+     * run, which is the error the paragraph above says this split exists to prevent. The category is
+     * now read off the condition's OWN gate (`this.getCategory(move) === "Physical"`) by
+     * engine/screen_tags.js. WHICH SCREENS is still the `sideCondition` test, unchanged. */
     of: m => {
       if (!(m.sideCondition && /reflect|lightscreen|auroraveil/.test(norm(m.sideCondition)))) return null;
-      const d = String(m.shortDesc || m.desc || '');
-      const cat = /physical/i.test(d) ? 'Physical' : /special/i.test(d) ? 'Special' : 'both';
-      return { mult: 0.5, category: cat };
+      return { mult: 0.5, category: SCREEN_TAGS.screenCategory(m) };
     } },
   /* Will: "can we tag sucker as need opponent to attack". Sucker Punch is 3,909 uses and it is a
    * pure READ -- it fails outright unless they are attacking, which makes it the one move whose
@@ -10499,7 +10510,15 @@ function collect(kind, all, tags, usageMap) {
     descriptive: (DESCRIPTIVE[t.tag] && DESCRIPTIVE[t.tag].kind === kind) ? DESCRIPTIVE[t.tag] : undefined,
     n: 0, uses: 0, examples: [] };
   for (const o of all) {
-    if (!o || !o.exists || o.isNonstandard) continue;
+    /* 2026-09-20 -- SCOPE IS ASKED, NOT RE-DECIDED HERE. This read `o.isNonstandard` directly, which
+     * is a SECOND scope rule living in a caller, and it is the third place Reg M-C's `auraguard` was
+     * dropped (engine/legal_scope.js was the first, LEGAL_CARRIED below the second). `isLegal` means
+     * "a candidate of this regulation" -- the strict filter, PLUS a `Future`-flagged entry the
+     * TeamValidator accepted on a carrier. Measured identical to the old test on the pinned M-B
+     * authority for all 500 moves, 148 items and 316 abilities
+     * (tests/probe_future_scope_readmission.js clause 3), so this widens nothing in Reg M-B. */
+    if (!o || !o.exists) continue;
+    if (!SCOPE_V.isLegal(kind, o.id || o.name)) continue;
     const id = norm(o.id || o.name);
     const hit = [], params = {};
     for (const t of tags) {
@@ -10567,7 +10586,11 @@ const SCOPE_V = require('./legal_scope.js').derive();
 const LEGAL_CARRIED = (() => {
   const set = new Set();
   for (const a of dex.abilities.all()) {
-    if (!a || !a.exists || a.isNonstandard) continue;
+    /* 2026-09-20 -- THE `a.isNonstandard` PRE-FILTER IS GONE. It ran BEFORE the scope authority was
+     * asked, so a `Future`-flagged ability could never reach a verdict however the authority ruled --
+     * Reg M-C's Aura Guard was dropped here a second time. The verdict below already excludes a Past
+     * ability (it is not a candidate, so `verdict` answers NOT-LEGAL), so nothing widens. */
+    if (!a || !a.exists) continue;
     const v = SCOPE_V.verdict('ability', a.id);
     if (v.code === 'CARRIED' || v.code === 'NO-LEGAL-READER') set.add(norm(a.id || a.name));
   }
@@ -10957,6 +10980,34 @@ if (emptyTags.length) {
   console.log('');
   console.log(`  ${emptyTags.length} TAG(S) MATCHED NOTHING -- a bug, not an empty category:`);
   for (const r of emptyTags) console.log(`    ${r.tag}  (${r.kind})  -- wrong list, broken probe, or delete it`);
+}
+
+/* ---- A DELIBERATELY BROKEN DERIVATION MAY NOT WRITE data/tags.json --------------------------------
+ *
+ * The census has this guard (`DELIBERATE_BREAK` in tests/test-mechanics.js) and it was added there
+ * four separate times AFTER a knob run had already overwritten the artifact. THAT LIST CANNOT COVER
+ * THIS FILE: it is `.filter(k => M.fails[k])` over `MEDFAILS`, the SIMULATOR's stamp object, and a
+ * restore knob in the tag derivation sets nothing in it. So the refusal lives where the write does.
+ *
+ * Five files read `data/tags.json` and `engine/engine_release.js` freezes it, so a knob run that
+ * published it would turn a demonstration into a regression nobody made — the identical cost the
+ * census paid. Each knob is named with the probe that exercises it. */
+const TAGDEX_BREAK = [
+  /* 2026-09-20 -- tests/probe_tag_derivation_without_prose.js. Restores the two `move.shortDesc`
+   * reads that Reg M-C's description-free checkout silently defaulted (screens to category `both`,
+   * three screen-breakers to no tag at all). */
+  { env: 'ABRA_TAGDEX_SCREENS_FROM_PROSE', why: 'the screen derivations are reading move.shortDesc again' },
+  /* 2026-09-11 -- ROADMAP #529, the quote-agnostic `Eat` probe (see takesTargetItem above). */
+  { env: 'ABRA_TAGDEX_EATS_SINGLE_QUOTE', why: 'takesTargetItem is matching single-quoted singleEvent(\'Eat\') only' },
+  /* 2026-09-20 -- engine/legal_scope.js, the scope authority this file asks. Under it every
+   * `Future`-flagged entry is refused unasked, which drops rows from the artifact. */
+  { env: 'ABRA_SCOPE_STRICT_FUTURE', why: 'legal_scope is refusing every Future-flagged candidate without asking the TeamValidator' },
+].filter(k => process.env[k.env] === '1');
+if (TAGDEX_BREAK.length) {
+  console.error('\ntag_dex: REFUSED to write data/tags.json — this run is under a deliberate break ('
+    + TAGDEX_BREAK.map(k => k.env + '=1: ' + k.why).join('; ') + '). The counts above are a '
+    + 'demonstration, not a derivation.');
+  process.exit(0);
 }
 
 fs.writeFileSync(D('data', 'tags.json'), JSON.stringify({
