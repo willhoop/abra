@@ -52,6 +52,27 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.10.0] — 2026-09-21 — the full suite on the fixed tree: **172 pass, 9 waived, 4 fail** from seventeen
+
+- **The 184-check suite re-run end to end.** 172 ok, 9 WAIVED by Will, **4 failing** where a run at the
+  start of this session found 17. Two of the four are closed in this row, one is delegated, and one is
+  MAG, which Will has waived and intends to rebuild.
+- **`test-knob-control-arm`** — the three probes that gained a `mc_key` seal line had their recorded
+  knob verdicts invalidated by that edit, which is the guard working: a recorded verdict may not outlive
+  the bytes it described. Re-measured, green, 81 of 81.
+- **`engine/provenance`** — the living documents cite artifacts stamped with release `adb08f5360f1`, and
+  that release was gitignored, so **the citation chain ended at a string**. Tracked (29 files, 7.5 MB;
+  80 releases are already tracked from before the ignore rule, so this is consistent with practice).
+  **The rule is now written into `.gitignore` so it cannot grow without bound:** a release is tracked
+  when a PUBLISHED record or the CURRENT living-document citations rest on it, and a working release is
+  not. `0d7b1d9db6d1` stays because ABRA 7.0.0 rests on it and that line is closed.
+- **Still failing, and named rather than filed:** `engine/conformance.js` (10 S13 artifact-provenance
+  findings, 5 of which need a refit or move a published figure and therefore wait on the model rebuild);
+  the UNACCOUNTED-FOR clause (**35 files report a verdict that nothing runs and nothing names — it was
+  30 before this session and five are ours**, delegated); and `test-mag-page`.
+- **Basis.** unchanged. No published figure moves.
+- **Supersedes.** Nothing.
+
 ## [abra/regmc 0.9.0] — 2026-09-21 — three CLASSES of roster fixture never reached the legality judge, and one control cannot exist in this format
 
 - **The diagnosis was better than the hypothesis.** The coordinator guessed one move-picker was bypassing

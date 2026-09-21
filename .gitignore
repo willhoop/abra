@@ -177,7 +177,18 @@ data/diff-team-pool.json
 # force-added (29 files, 7.5 MB). Tracking EVERY release is not the fix — there are 646 of them at
 # ~6.8 MB each. The rule is: the release behind a published figure is tracked; a working release is
 # not.
-!data/releases/0d7b1d9db6d1/**<id>
+!data/releases/0d7b1d9db6d1/**
+# 2026-09-21 — and the release the CURRENT artifacts were measured on. The living documents cite
+# data/roster.*.json, data/engine-diff.json and the three lattice artifacts, all of which stamp
+# this release, and engine/provenance.js reported it ABSENT: a citation chain that ends at a
+# string is not a chain. 29 files, 7.5 MB; 80 releases are already tracked from before the ignore
+# rule existed, so this is consistent with practice rather than a new habit.
+#
+# THE RULE, so this does not grow without bound: a release is tracked when a PUBLISHED record or
+# the CURRENT living-document citations rest on it. A working release is not. 0d7b1d9db6d1 stays
+# because ABRA 7.0.0 rests on it and that line is closed; this one stays until the documents cite
+# a newer one.
+!data/releases/adb08f5360f1/**<id>
 data/releases/
 
 # The frozen team pool is a LOCAL measurement pin, not repo content — the live stores it

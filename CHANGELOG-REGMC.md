@@ -21,6 +21,21 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.10.0] — 2026-09-21
+
+### Fixed
+- `tests/test-knob-control-arm.js` — three probes that gained a seal line had their recorded knob
+  verdicts invalidated by the edit. Re-measured; 81 of 81 green.
+- `engine/provenance.js` — the release the current artifacts were measured on (`adb08f5360f1`) was
+  gitignored while the living documents cited artifacts stamped with it, so the citation chain ended at
+  a string. Tracked, and **the rule written into `.gitignore`**: a release is tracked when a published
+  record or the current living-document citations rest on it; a working release is not.
+
+### Notes
+- **Full 184-check suite: 172 pass, 9 waived, 4 fail** — from 17 at the start of this session.
+- Remaining: `engine/conformance.js` (10 findings, 5 waiting on the model rebuild), the UNACCOUNTED-FOR
+  clause (35 files nothing runs and nothing names, 30 of them pre-existing), and `test-mag-page`.
+
 ## [0.9.0] — 2026-09-21
 
 ### Fixed
