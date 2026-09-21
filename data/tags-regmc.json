@@ -2357,6 +2357,19 @@
    ]
   },
   {
+   "tag": "exposesUser",
+   "kind": "move",
+   "param": "after it lands, the user takes `damageTakenMult` x damage (and cannot dodge) until it next acts",
+   "why": "Glaive Rush (Baxcalibur, 1,128 Reg M-C uses): the authority doubles the next hit into the user, this engine did not",
+   "consumedBy": "exposesUser",
+   "used": true,
+   "n": 1,
+   "uses": 1134,
+   "examples": [
+    "Glaive Rush"
+   ]
+  },
+  {
    "tag": "locksIntoMove",
    "kind": "move",
    "param": "the user is forced to repeat this move for `turns` turns",
@@ -21106,6 +21119,7 @@
     "targetClass",
     "contact",
     "formatSecondaryCount",
+    "exposesUser",
     "volatileRestart"
    ],
    "uses": 1128,
@@ -21126,6 +21140,14 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "exposesUser": {
+     "volatile": "glaiverush",
+     "damageTakenMult": 2,
+     "alwaysHitBy": true,
+     "endsBeforeOwnMove": true,
+     "silentStart": true,
+     "from": "DERIVED:dex.conditions.get(glaiverush).onSourceModifyDamage"
     },
     "volatileRestart": {
      "byVolatile": {

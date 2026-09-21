@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.26.0] — 2026-09-22 — **Glaive Rush leaves its user exposed, and the leaf it writes is compared**
+
+- **What changed.** Move tag `exposesUser` (derived from the self volatile's condition; Glaive Rush only) and its
+  consumers in `engine/medicham2-browser.js` (armed at the self-drop step, doubled damage, never missed, ended at the
+  holder's BeforeMove). `engine/board_state.js` compares `vol.glaiverush`. Knob `MEDI_SELF_EXPOSED_INERT`; probe
+  `tests/probe_regmc_glaive_rush.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine.md` §4.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
 ## [abra/regmc 0.25.0] — 2026-09-22 — **Aura Guard halves contact damage; the "order-dependent" card was the driver's mega choice**
 
 - **What changed.** `engine/medicham2-browser.js`: the `damageReduce` reader evaluates `onlyWhen: 'contact'` (it was

@@ -204,3 +204,73 @@ after a Glaive Rush), a Golisopod, a Basculegion and two Infestation ticks.
 
 sha256 of the three Reg M-B files unchanged; damage differential seed `20260804` identical to the base but for the
 output-path line; lattice on release `79ba77f8744d`: **0 of 961**, 0 void, 0 threw.
+
+---
+
+## 4. Glaive Rush leaves its user exposed (abra/regmc 0.26.0)
+
+### The authority, read whole
+
+M-C checkout `data/moves.ts` glaiverush :6647-6678 (the Champions mod names it only in learnsets): `self: {
+volatileStatus: 'glaiverush' }`; the condition's `onStart` writes `-singlemove … [silent]`, `onAccuracy()` returns true,
+`onSourceModifyDamage()` returns `chainModify(2)`, and `onBeforeMove` (priority 100) removes it. `sim/battle-actions.ts`
+:1317-1335 `selfDrops` applies `self` once per target still in the list after the damage step.
+
+### Tag, membership printed before wiring
+
+`exposesUser {volatile, damageTakenMult, alwaysHitBy, endsBeforeOwnMove, silentStart, from}` from the self volatile's
+condition. Whole move dex:
+
+```
+pokemon-showdown-mc gen9championsvgc2026regmc   glaiverush[legal]
+pokemon-showdown-mc gen9championsvgc2026regmb   glaiverush[legal]      (the M-C checkout reads the old format too)
+pokemon-showdown    gen9championsvgc2026regmb   glaiverush[Past]
+```
+
+`data/tags-regmc.json` was regenerated with `node engine/tag_dex.js --regulation regmc`; a structural diff that ignores
+usage and stamps showed 14 `linkage` blocks and `sheet_entries` moving with the worktree's stores and no rule change, so
+only the new descriptor and the Glaive Rush row were SPLICED onto the committed file (its CRLF kept). Runbook row.
+
+### Engine
+
+Armed in `_stepSelfPay` beside the recharge, on the same clause (`!m.fainted && _reached > 0`). `exposedVolatiles()` maps
+volatile to params off the tag. The damage chain multiplies by `damageTakenMult` beside `damageReduce` (x2 is exact in the
+4096ths chain, so its position cannot move a number). `hitChance` returns a certain hit beside Lock-On. The BeforeMove
+gate drops it at its top, above recharge. A switch clears it with every volatile.
+
+### Board leaf
+
+`engine/board_state.js` compares `vol.glaiverush` on both sides (presence). `tests/probe_uncompared_leaves.js
+--regulation regmc` listed `volatile:glaiverush` and `volatile:octolock` before; after, only `volatile:octolock`.
+
+### Probe — `tests/probe_regmc_glaive_rush.js --regulation regmc`
+
+| arm | staged | authority (user's damage taken, turn 1 / turn 2) | 0.25.0 engine | after |
+|---|---|---|---|---|
+| EXPOSED | Baxcalibur Glaive Rushes Aggron; a slower Snorlax Seed Bombs Baxcalibur; turn 2 Baxcalibur moves first | 66 / 33 | 33 / 33; board `hp 157/124`, `vol.glaiverush 0/1` | match, boards 0 |
+| CONTROL | the same with Dragon Claw | 33 / 33 | match | match |
+
+| run | exit | red |
+|---|---|---|
+| 0.25.0 engine bytes (`--medi`) | 1 | EXPOSED (lines and boards) |
+| clean, release `3c2625e09826` | 0 | none |
+| `MEDI_SELF_EXPOSED_INERT=1` | 1 | EXPOSED (lines and boards) |
+
+The dex check in the probe asserts every legal move whose self volatile raises the damage its user takes carries the
+tag. 7 staged sets, 0 illegal.
+
+### Pinned Reg M-C differential
+
+| engine | release | state bar | void | threw |
+|---|---|---|---|---|
+| 0.25.0 | `37942009a577` | 56 / 952 | 3 | 4 |
+| 0.26.0 | `3c2625e09826` | **43 / 953** | 2 | 4 |
+
+Every Baxcalibur damage-value card is gone. (`84b4be6731ec` was cut from a syntactically broken intermediate and never
+measured anything; it is an untracked worktree release.)
+
+### Reg M-B unmoved
+
+sha256 of the three Reg M-B files unchanged; damage differential seed `20260804` identical to the base but for the
+output-path line; lattice on release `2227f14a9d2e` (whose board reader now compares `vol.glaiverush`): **0 of 961**, 0
+void, 0 threw.

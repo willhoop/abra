@@ -21,6 +21,29 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.26.0] — 2026-09-22
+
+### Added
+- **Glaive Rush leaves its user exposed.** Move tag `exposesUser {volatile, damageTakenMult, alwaysHitBy,
+  endsBeforeOwnMove, silentStart}` (`engine/tag_dex.js`), derived from the condition of the move's own
+  `self.volatileStatus`: an `onSourceModifyDamage` that `chainModify`s the damage its holder takes, an `onAccuracy`
+  that returns true, an `onBeforeMove` that removes it. Membership, whole dex, both checkouts: Glaive Rush only; legal
+  in Reg M-C, `Past` in Reg M-B. `data/tags-regmc.json` carries the descriptor and the Glaive Rush row (spliced; no
+  other row moved).
+- The engine arms the volatile at the self-drop step when the move reached a target, doubles every damage calc into
+  the holder, makes every move into it hit, and drops it at the top of the holder's own BeforeMove gate (priority 100,
+  above recharge). Knob `MEDI_SELF_EXPOSED_INERT`.
+- `engine/board_state.js` compares `vol.glaiverush` (presence), which stands across the turn boundary. It was listed
+  by `tests/probe_uncompared_leaves.js` as written and uncompared; it no longer is. No Reg M-B move writes it.
+- `tests/probe_regmc_glaive_rush.js` (`--regulation regmc`): an exposed user takes a doubled hit from a slower foe on
+  the same turn and a normal one after it moves again; a control with a plain contact move. Exit 0 clean; exit 1 under
+  the knob and on the 0.25.0 engine bytes.
+
+### Notes
+- Reg M-B unmoved: the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
 ## [0.25.0] — 2026-09-22
 
 ### Fixed

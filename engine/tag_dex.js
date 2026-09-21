@@ -5668,6 +5668,34 @@ const MOVE_TAGS = [
   { tag: 'recharge', param: 'costs the turn AFTER it lands', probe: 'rechargeTurn',
     why: 'Hyper Beam. A free turn for the opponent',
     of: m => (m.self && m.self.volatileStatus === 'mustrecharge') ? { recharge: true } : null },
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.26.0) -- A MOVE THAT LEAVES ITS USER EXPOSED. Glaive Rush, M-C checkout
+   * data/moves.ts :6647-6678 (the Champions mod names it only in learnsets):
+   *     self: { volatileStatus: 'glaiverush' },
+   *     condition: { onStart(pokemon) { this.add('-singlemove', pokemon, 'Glaive Rush', '[silent]'); },
+   *                  onAccuracy() { return true; }, onSourceModifyDamage() { return this.chainModify(2); },
+   *                  onBeforeMovePriority: 100, onBeforeMove(pokemon) { pokemon.removeVolatile('glaiverush'); } }
+   * DERIVED FROM THE SELF VOLATILE'S CONDITION: a `self.volatileStatus` whose condition answers `onSourceModifyDamage` with
+   * a `chainModify(N)` -- the damage the USER takes is multiplied (the `Source` prefix is the defender's side of
+   * ModifyDamage) -- plus whether it makes every move against the user hit (`onAccuracy` returning true) and whether it
+   * ends at the user's own next action (`onBeforeMove` removing it). Membership, printed before wiring, whole dex, both
+   * checkouts: `glaiverush` only; legal in gen9championsvgc2026regmc, `Past` in gen9championsvgc2026regmb. */
+  { tag: 'exposesUser', param: 'after it lands, the user takes `damageTakenMult` x damage (and cannot dodge) until it next acts',
+    probe: 'exposesUser',
+    why: 'Glaive Rush (Baxcalibur, 1,128 Reg M-C uses): the authority doubles the next hit into the user, this engine did not',
+    of: m => {
+      const vol = m.self && m.self.volatileStatus;
+      if (!vol) return null;
+      let c; try { c = dex.conditions.get(vol); } catch (e) {
+        console.error('tag_dex: exposesUser could not read condition "' + vol + '" for ' + m.id + ': ' + String((e && e.message) || e).slice(0, 120));
+        return null; }
+      const src = f => String((c && c[f]) || '').replace(/\s+/g, ' ');
+      const mm = /this\.chainModify\(\s*([0-9.]+)\s*\)/.exec(src('onSourceModifyDamage'));
+      if (!mm) return null;
+      return { volatile: vol, damageTakenMult: +mm[1], alwaysHitBy: /return true/.test(src('onAccuracy')),
+               endsBeforeOwnMove: /removeVolatile\(/.test(src('onBeforeMove')),
+               silentStart: /\[silent\]/.test(src('onStart')),
+               from: 'DERIVED:dex.conditions.get(' + vol + ').onSourceModifyDamage' };
+    } },
   /* THE LOCK-IN FAMILY -- Outrage, Petal Dance, Raging Fury, Thrash and Uproar. Sibling of `recharge`
    * one line up and derived from the same field, which is why it sits here: both are a move that
    * writes a volatile ONTO ITS OWN USER and both of those volatiles answer `onLockMove`. They are

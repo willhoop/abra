@@ -1,3 +1,28 @@
+## REG M-C: GLAIVE RUSH LEAVES ITS USER EXPOSED, AND ITS LEAF IS COMPARED. 2026-09-22 (abra/regmc 0.26.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §4.
+
+- **Tag.** `exposesUser {volatile, damageTakenMult, alwaysHitBy, endsBeforeOwnMove, silentStart}`, derived from the
+  condition of the move's `self.volatileStatus`. Members: Glaive Rush only (legal in Reg M-C, `Past` in Reg M-B).
+- **Engine.** Armed at the self-drop step when the move reached a target (the recharge's clause); every damage calc
+  into the holder x2 (a power of two, exact in the 4096ths chain); every move into it hits (beside Lock-On); dropped at
+  the top of the holder's BeforeMove gate (priority 100, above recharge's 11). Switching out clears it with every
+  volatile.
+- **Board.** `engine/board_state.js` compares `vol.glaiverush`; `tests/probe_uncompared_leaves.js --regulation regmc`
+  no longer lists it.
+- **Probe** `tests/probe_regmc_glaive_rush.js --regulation regmc`: exit 0 clean; exit 1 under `MEDI_SELF_EXPOSED_INERT`
+  and on the 0.25.0 engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after this pass
+
+1. **Octolock** — the engine ends it at the first residual (its `_vol` entry is read as a clock and it has none); the
+   authority drops Defence and Sp. Def every turn until the source leaves. And its uncompared leaf.
+2. Faint HP written `0fnt` on one side; terrain; the rest of `other`.
+3. The 17 census rows missing under Reg M-C.
+4. Carried: the Inner Focus stat label, the seed GAIN door, Emergency Exit's residual and hazard doors; for MEASURE,
+   `MEGA_PREFER_B` outside `driverSnap`.
 ## REG M-C: AURA GUARD HALVES CONTACT DAMAGE; THE "ORDER-DEPENDENT" CARD IS THE DRIVER'S MEGA CHOICE. 2026-09-22 (abra/regmc 0.25.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine.md` §2-§3.
@@ -14,7 +39,7 @@ Full account: `docs/_reports/2026-09-22-regmc-engine.md` §2-§3.
 - **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
   line; lattice `--games 1200` 0 of 961.
 
-### The Reg M-C hand list, after this pass
+### The Reg M-C hand list, after the 0.25.0 pass — SUPERSEDED by the 0.26.0 list above
 
 Ranked on the PINNED Reg M-C differential, by board-material first cause (report §3):
 

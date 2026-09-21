@@ -2203,6 +2203,10 @@ const MEDSEEN = { floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepAct
   ejectButtonSpent: 0, ejectButtonSwitched: 0, ejectButtonKeptPivot: 0, ejectButtonCancelledPivot: 0,
   /* 2026-09-21 (Reg M-C, abra/regmc 0.22.0) -- Emergency Exit asked / switched / cleared the other switches (mainline). */
   emergencyExitAsked: 0, emergencyExitSwitched: 0, emergencyExitClearedOthers: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.26.0) -- `exposesUser` (Glaive Rush): armed on the user at the self-drop step;
+   * a damage calc into a holder multiplied; a move into a holder that could not miss; the volatile dropped at the
+   * holder's own BeforeMove gate. */
+  selfExposedArmed: 0, selfExposedDoubled: 0, selfExposedHit: 0, selfExposedEndedBeforeMove: 0,
   /* WIRE 119 -- a move REFUSED at execution time by a category-forbidding volatile (Taunt). This is
    * the half the interaction matrix was failing on: the holder clicks Taunt in the same turn, so the
    * target's already-chosen status move has to FAIL when it runs. A zero here after games with a
@@ -7425,6 +7429,35 @@ function guaranteeVolatiles(){
     if(!MEDFAILS.volGuaranteeTableFailedFirst) MEDFAILS.volGuaranteeTableFailedFirst=String((e&&e.message)||e);
   }
   return _volGuarantee;
+}
+/* 2026-09-22 (Reg M-C, abra/regmc 0.26.0) -- A MOVE THAT LEAVES ITS USER EXPOSED (`exposesUser`, Glaive Rush).
+ * The M-C checkout's data/moves.ts glaiverush :6647-6678: `self: { volatileStatus: 'glaiverush' }`, and its condition
+ * answers `onAccuracy() { return true; }`, `onSourceModifyDamage() { return this.chainModify(2); }` and, at
+ * `onBeforeMovePriority: 100`, `onBeforeMove(pokemon) { pokemon.removeVolatile('glaiverush'); }`. The tag carries all
+ * three off the condition (engine/tag_dex.js). VOLATILE -> params, like `guaranteeVolatiles` above, so the consumers
+ * match on the volatile and no move name reaches them. MEDI_SELF_EXPOSED_INERT=1 never arms it (the pre-0.26.0 engine).
+ * tests/probe_regmc_glaive_rush.js */
+const SELF_EXPOSED_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SELF_EXPOSED_INERT==='1');
+let _volExposed=null;
+function exposedVolatiles(){
+  if(_volExposed) return _volExposed;
+  _volExposed=new Map();
+  try{
+    for(const id of (TAGS.withTag?TAGS.withTag('move','exposesUser'):[])){
+      const p=TAGS.param('move',id,'exposesUser');
+      if(p&&p.volatile)_volExposed.set(p.volatile,p);
+    }
+  }catch(e){
+    MEDFAILS.volExposedTableFailed=(MEDFAILS.volExposedTableFailed||0)+1;
+    if(!MEDFAILS.volExposedTableFailedFirst) MEDFAILS.volExposedTableFailedFirst=String((e&&e.message)||e);
+  }
+  return _volExposed;
+}
+/* The exposing params a body is standing under, or null. */
+function exposedBy(body){
+  if(!body||!body._vol)return null;
+  for(const [v,p] of exposedVolatiles()) if(body._vol[v]>0) return p;
+  return null;
 }
 /* Is THIS attacker's next-move guarantee live against THIS defender? One predicate, called by the
  * accuracy path and by the semi-invulnerability step, because the authority's condition answers both
@@ -14348,6 +14381,9 @@ function hitChance(att,def,id,field,ctx){
    * attacker and names one defender, so `guaranteedAgainst(def,att)` would be a different, invented
    * mechanic and is deliberately not asked. */
   if(guaranteedAgainst(att,def)){MEDSEEN.guaranteedHit++;return Infinity;}
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.26.0) -- AND A BODY STANDING UNDER AN EXPOSING VOLATILE CANNOT BE MISSED: the
+   * condition's own `onAccuracy() { return true; }` is on the TARGET, in the same Accuracy event as Lock-On's. */
+  {const _xp=exposedBy(def); if(_xp&&_xp.alwaysHitBy){MEDSEEN.selfExposedHit++;return Infinity;}}
   /* ROADMAP #236 -- A POISON-TYPE'S TOXIC CANNOT MISS, AND THE FACT IS NOT ON THE MOVE.
    *
    * `dex.moves.get('toxic').accuracy` is 90 and that is correct -- the exemption lives in the STEP
@@ -16720,6 +16756,10 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
       else if(_ok)MODMUL(_dr.damageMult);
     }
   }
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.26.0) -- THE EXPOSED DEFENDER. `onSourceModifyDamage() { return this.chainModify(2); }`
+   * on the defender's own volatile: the same ModifyDamage event, and a power of two commutes exactly through the
+   * 4096ths chain, so its position among the other final modifiers cannot move a number. */
+  {const _xp=exposedBy(def); if(_xp&&+_xp.damageTakenMult>0){MODMUL(+_xp.damageTakenMult);MEDSEEN.selfExposedDoubled++;}}
   /* ROADMAP #212 -- FLUFFY, THE ONLY MULTI-CLAUSE MEMBER, AND EVERY CLAUSE IS APPLIED.
    *
    * `damageByMoveTrait` carries a LIST because Fluffy's handler accumulates: Fire x2, contact x0.5,
@@ -33947,6 +33987,9 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * THE BACKSTOP BELOW THE GATE STAYS, and it is not a second answer: both roads call
        * `spendRecharge`, which is the only place the refusal is spelled. See the counter pair. */
+      /* 2026-09-22 (Reg M-C, abra/regmc 0.26.0) -- AN EXPOSING VOLATILE ENDS HERE, at `onBeforeMovePriority: 100`, the top
+       * of the list and above recharge's 11: the holder's own next action removes it before anything can refuse it. */
+      {const _xp=exposedBy(m); if(_xp&&_xp.endsBeforeOwnMove){delete m._vol[_xp.volatile];MEDSEEN.selfExposedEndedBeforeMove++;}}
       if(m._recharge&&!RECHARGE_BELOW_STATUS){
         MEDSEEN.rechargeSpentAtBeforeMove++; spendRecharge(m); continue;
       }
@@ -48519,6 +48562,12 @@ function battleTurn(S,rng,actsForA,actsForB){
           m._recharge=true;_rechargeArmed=true;MEDSEEN.rechargeArmedAtSelfDrops++;if(TR)TR.recharge(m);}
         else if(!m.fainted&&TAGS.has('move',a.move.id,'recharge')){
           MEDSEEN.rechargeSkippedNoTarget++;_rechargeArmed=true;}
+        /* 2026-09-22 (Reg M-C, abra/regmc 0.26.0) -- AND `self: { volatileStatus }` WHEN IT EXPOSES THE USER. Same
+         * clause as the recharge above: `selfDrops` runs only over targets still standing in the list (`_reached`).
+         * Its onStart line is `[silent]`. */
+        {const _ex=TAGS.param('move',a.move.id,'exposesUser');
+         if(_ex&&_ex.volatile&&!m.fainted&&_reached>0&&!SELF_EXPOSED_INERT){
+           m._vol=m._vol||{}; m._vol[_ex.volatile]=1; MEDSEEN.selfExposedArmed++;}}
       };
       /* ---- THE STEP LIST, IN SHOWDOWN'S ORDER, AND THE DRIVER UNDER IT ----------------------------
        *
