@@ -21,6 +21,17 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.23.1] — 2026-09-21
+
+### Added
+- A row in `docs/REGULATION-ROTATION.md`: `engine/status.js --write` stamps the default regulation's
+  live gate into every ledger, and the default is still the closed Reg M-B. A restamp after today's
+  Reg M-C engine fixes would have written the Reg M-B gate as CLOSED and raised the `mtime_only`
+  provenance ratchet. The restamp was reverted and not committed.
+
+### Notes
+- **Supersedes.** Nothing. **Basis.** unchanged.
+
 ## [0.23.0] — 2026-09-21
 
 ### Added

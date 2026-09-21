@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.23.1] — 2026-09-21 — **A ledger restamp would have written the closed Reg M-B gate as CLOSED; not committed**
+
+- `engine/status.js --write` reads the DEFAULT regulation, which is still Reg M-B. Today's Reg M-C fixes
+  moved Reg M-B's live engine bytes, so its artifacts read as measured against another engine. The
+  published 7.0.0 record rests on its own frozen release and is unchanged. The restamp was reverted. A
+  runbook row records the trap and the two ways out: flip `active`, or make the status script report per
+  regulation.
+- **Supersedes.** Nothing. **Basis.** unchanged. **Owes.** A decision on flipping `active`, and the ledger restamp after it.
+
 ## [abra/regmc 0.23.0] — 2026-09-21 — **Reg M-C gets its own usage model, the file CHOMP reads**
 
 - **What changed.** `engine/analyze.js --regulation regmc` writes `data/meta-usage-regmc.json` through
