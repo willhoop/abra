@@ -59,8 +59,17 @@ const path = require('path');
 const readline = require('readline');
 const crypto = require('crypto');
 const QB = require('./quality_bots.js');
+/* 2026-09-21 (MEASURE, abra/regmc 0.19.0) -- THE SELECTED REGULATION DECIDES THE STORE. Under a non-owner
+ * regulation this counts the raw logs of the games its frozen pool KEPT (engine/regulation_stores.js):
+ * the tracked shards under data/raw/games.<format>/, joined to the pool by game id, so the switch rate
+ * the empirical driver prices with describes the same population the differential draws its teams
+ * from. The pool's predicate is the filter; quality_bots.js (Reg M-B's bot rule) is not applied on top.
+ * The artifact lands on its `-<id>` sibling through the seam. Under Reg M-B nothing here changes. */
+const REGN = require('./regulation.js');
+const RSTORES = require('./regulation_stores.js');
 
 const D = (...p) => path.join(__dirname, '..', ...p);
+const ROOT_DIR = path.join(__dirname, '..');
 
 /* Both human stores, named rather than picked. MEMORY: reading only games.ladder.jsonl cost a whole
  * session — the bo3 store IS the open-sheet ladder and is the population MILTANK actually plays. */
@@ -186,9 +195,10 @@ function digestOf(f) {
 }
 
 async function censusOne(store) {
-  if (!fs.existsSync(store.raw)) return { key: store.key, error: 'missing: ' + store.raw };
-  const rs = fs.createReadStream(store.raw);
-  const rl = readline.createInterface({ input: rs, crlfDelay: Infinity });
+  const POOLED = !!store.rawFiles;   /* a non-owner regulation's pool half, see the header */
+  if (!POOLED && !fs.existsSync(store.raw)) return { key: store.key, error: 'missing: ' + store.raw };
+  const rs = POOLED ? null : fs.createReadStream(store.raw);
+  const rl = POOLED ? null : readline.createInterface({ input: rs, crlfDelay: Infinity });
   const lens = [], lensNoForfeit = [];
   const volPerGame = [], repPerGame = [], midPerGame = [];
   const volTurnHist = new Map();
@@ -200,19 +210,24 @@ async function censusOne(store) {
   let forfeits = 0;
   /* Bot games out, by quality.js's reasons — see the header. No judged ids means the filter could
      not run, and that is an error rather than a census of everyone. */
-  const J = QB.botGameIds(store.parsed);
+  const J = POOLED ? { judged: store.ids, bot: new Set(), games: store.ids.size } : QB.botGameIds(store.parsed);
   if (!J.judged.size) {
-    rl.close(); rs.destroy();
-    return { key: store.key, error: 'engine/quality_bots.js judged no games in '
-      + path.basename(store.parsed) + ' — the bot filter cannot run, so this store is not counted' };
+    if (rl) { rl.close(); rs.destroy(); }
+    return { key: store.key, error: (POOLED ? store.parsed + ' kept no games' : 'engine/quality_bots.js judged no games in '
+      + path.basename(store.parsed) + ' — the bot filter cannot run') + ', so this store is not counted' };
   }
-  const excluded = { rule: 'engine/quality_bots.js: ' + QB.BOT_REASONS.join(', '), bot: 0, unjudged: 0,
-                     parsed_store_games: J.games };
+  const excluded = POOLED
+    ? { rule: 'membership of ' + store.parsed + ' (the frozen pool; its FROZEN.md states the predicate)',
+        bot: 0, unjudged: 0, duplicate_raw: 0, parsed_store_games: J.games }
+    : { rule: 'engine/quality_bots.js: ' + QB.BOT_REASONS.join(', '), bot: 0, unjudged: 0,
+        parsed_store_games: J.games };
+  const seenRaw = POOLED ? new Set() : null;
 
-  for await (const line of rl) {
+  for await (const line of (POOLED ? RSTORES.lines(store.rawFiles) : rl)) {
     if (!line) continue;
     let o; try { o = JSON.parse(line); } catch (e) { skipped++; continue; }
     if (!o || !J.judged.has(o.id)) { excluded.unjudged++; continue; }
+    if (seenRaw) { if (seenRaw.has(o.id)) { excluded.duplicate_raw++; continue; } seenRaw.add(o.id); }
     if (J.bot.has(o.id)) { excluded.bot++; continue; }
     const r = walk(o.log);
     if (!r) { skipped++; continue; }
@@ -256,7 +271,11 @@ async function censusOne(store) {
   return {
     remaining_turns_occurrence_weighted: summarise(remAll),
     cap_coverage: coverage,
-    key: store.key, note: store.note, file: path.basename(store.raw), digest: digestOf(store.raw),
+    key: store.key, note: store.note,
+    file: POOLED ? store.rawDir : path.basename(store.raw),
+    digest: POOLED ? store.rawDigest : digestOf(store.raw),
+    ...(POOLED ? { raw_shards: store.rawFiles.length, pool_file: store.parsed, pool_file_sha256: store.parsedSha256,
+                   pool_ids_without_a_raw_log: J.games - seenRaw.size } : {}),
     games, skipped, forfeits, excluded,
     length_all: summarise(lens),
     length_no_forfeit: summarise(lensNoForfeit),
@@ -294,8 +313,26 @@ async function censusOne(store) {
                 why_not_quarantined: 'the store is upstream of MEDICHAM; nothing here reads the simulator, board.js, the weights or any leaf',
                 method: 'voluntary = a |switch| ahead of the first |move| of its turn block; midturn = after a |move| (pivot move, Eject Button, Emergency Exit); replacement = after |upkeep|; |drag| counted apart; |replace| is an Illusion reveal and is not a switch',
                 stores: [] };
-  for (const s of STORES) {
-    process.stderr.write('  reading ' + path.basename(s.raw) + ' ...\n');
+  /* A non-owner regulation: its frozen pool's two halves and their raw-log shards. pool() and
+   * rawShards() THROW on an absent or altered input -- never a census of nobody. */
+  const POOL = RSTORES.pool();
+  let RUN_STORES = STORES;
+  if (POOL) {
+    RUN_STORES = [];
+    for (const h of POOL.files) {
+      const raw = RSTORES.rawShards(h);
+      const dg = crypto.createHash('sha256');
+      for (const f of raw.files) dg.update(path.basename(f) + ' ' + (digestOf(f) || 'null') + '\n');
+      RUN_STORES.push({ key: h.key, note: h.note + ' (' + REGN.ID + ' frozen pool)', rawFiles: raw.files, rawDir: raw.dir,
+        rawDigest: dg.digest('hex').slice(0, 16), parsed: h.file, parsedSha256: h.sha256, ids: await RSTORES.idsOf(h) });
+    }
+    out.what += ' — ' + REGN.ID + ': the raw logs of the games its frozen pool kept';
+    /* `by`: the -<id> file is written through the seam, so no literal names it; provenance.js reads this. */
+    Object.assign(out, { by: 'engine/rollout_switch_census.js', regulation: REGN.ID, format: REGN.FORMAT, scope: POOL.scope,
+      pool: { dir: POOL.dir, receipt: POOL.receipt, pool_digest: POOL.pool_digest } });
+  }
+  for (const s of RUN_STORES) {
+    process.stderr.write('  reading ' + (s.rawFiles ? s.rawDir + ' (' + s.rawFiles.length + ' shards)' : path.basename(s.raw)) + ' ...\n');
     out.stores.push(await censusOne(s));
   }
   /* Pooled, because the cap and the switch rate are one decision for one rollout. */
@@ -347,7 +384,7 @@ async function censusOne(store) {
 
   const f = D('data', 'rollout-switch-census.json');
   fs.writeFileSync(f, JSON.stringify(out, null, 2));
-  console.log('wrote ' + f);
+  console.log('wrote ' + (POOL ? path.join(ROOT_DIR, REGN.artifactFor('data/rollout-switch-census.json')) : f));
   for (const s of out.stores) {
     if (s.error) { console.log(s.key + ': ' + s.error); continue; }
     console.log(`\n${s.key} (${s.note}) — ${s.games} games, ${s.skipped} skipped, ${s.forfeits} forfeits`);

@@ -131,6 +131,9 @@ function entryFor(id) {
      * same sibling rule as the table. null = the Reg M-B file. */
     tags: (rt && rt.tags) || null,
     protocolEvents: (rt && rt.protocolEvents) || null,
+    /* 2026-09-21 (MEASURE, abra/regmc 0.19.0) -- the behaviour table the empirical driver clicks out of,
+     * P(move | species). null = the Reg M-B file. */
+    movePriors: (rt && rt.movePriors) || null,
     in_regulations: !!base,
     in_runtime: !!rt,
   };
@@ -331,6 +334,13 @@ const REG_FILE_KEYS = [
   ['engineData', 'data/engine-data.js'],
   ['tags', 'data/tags.json'],
   ['protocolEvents', 'data/protocol-events.json'],
+  /* 2026-09-21 (MEASURE, abra/regmc 0.19.0) -- THE BEHAVIOUR TABLE. `data/move-priors.json` is P(move |
+   * species) over recorded human clicks, and it is what the empirical arm of the differential CLICKS
+   * (game_differential.js reads it out of the release). It is an engine SOURCE, so it belongs in this
+   * map rather than the artifact list below: an M-C release freezes M-C's copy beside M-B's
+   * (engine_release.js REGULATION_SOURCES), and a Reg M-C run steered off Reg M-B clicks would be a
+   * Reg M-C measurement of Reg M-B behaviour that exited 0. */
+  ['movePriors', 'data/move-priors.json'],
 ];
 const FILES = {};   /* default rel -> this regulation's rel, only where they differ */
 for (const [key, def] of REG_FILE_KEYS) {
@@ -351,6 +361,7 @@ const DEFAULT_ENGINE_DATA = 'data/engine-data.js';
 const ENGINE_DATA = fileFor(DEFAULT_ENGINE_DATA);
 const TAGS_FILE = fileFor('data/tags.json');
 const PROTOCOL_EVENTS_FILE = fileFor('data/protocol-events.json');
+const MOVE_PRIORS_FILE = fileFor('data/move-priors.json');
 /* basename of a Reg M-B file -> basename of this regulation's */
 const BASE_MAP = {};
 for (const def of Object.keys(FILES)) BASE_MAP[path.basename(def)] = path.basename(FILES[def]);
@@ -503,6 +514,13 @@ const PER_REGULATION_ARTIFACTS = Object.freeze([
   [/^sheet-usage\.json$/, 'engine/sheet_usage.js', 'sheet usage (reach)'],
   [/^diff-team-pool\.json$/, 'engine/diff_swarm.js', 'the team-pool cache the differential draws from'],
   [/^diff-swarm\.json$/, 'engine/diff_swarm.js --write', 'the swarm report'],
+  /* 2026-09-21 (MEASURE, abra/regmc 0.19.0) -- THE EMPIRICAL DRIVER'S LIVE INPUTS. Both are facts about
+   * HUMAN play read off the regulation's own replays, both are read LIVE by the differential, and until
+   * this line a Reg M-C run read Reg M-B's. Declared, so under Reg M-C an absent sibling is ENOENT and
+   * the run refuses rather than steering off the other regulation. */
+  [/^rollout-switch-census\.json$/, 'engine/rollout_switch_census.js', 'the voluntary-switch rate the empirical driver prices a switch with'],
+  [/^joint-click-census\.json$/, 'engine/joint_click_census.js', 'the joint arm target draw and switch-by-context table'],
+  [/^move-priors\.observed\.json$/, 'engine/policy.js', 'the behaviour table as derived, before a person promotes it into the engine'],
 ]);
 const POOL_DIR = 'data/team-pool-frozen';
 const isPerRegulation = base => PER_REGULATION_ARTIFACTS.some(([re]) => re.test(String(base)));
@@ -682,6 +700,9 @@ module.exports = {
    * the one answer to "which file does this regulation read in place of rel"; FILES is the whole map
    * (empty for Reg M-B). */
   TAGS_FILE, PROTOCOL_EVENTS_FILE, fileFor, FILES: Object.assign({}, FILES),
+  /* 2026-09-21 (MEASURE): the behaviour table, by the same rule; and every Reg M-B file this map can
+   * replace, whichever regulation is selected (FILES above is empty under Reg M-B). */
+  MOVE_PRIORS_FILE, FILE_DEFAULTS: REG_FILE_KEYS.map(([, def]) => def),
   /* 2026-09-21 (MEASURE): the gate's artifacts by the sibling rule. artifactFor(rel) is the one answer to
    * "which file does this regulation's measurement read or write in place of rel"; identity under
    * ARTIFACT_OWNER. artifacts() reports whether the fs seam is installed and what it redirected/refused. */

@@ -42,6 +42,33 @@ _stamped 2026-09-21 04:30_
 
 <!-- /GENERATED -->
 
+## REG M-C HAS ITS OWN CENSUS, AND A REG M-C RUN IS STEERED BY REG M-C HUMANS. THE FIRST PINNED REG M-C DIFFERENTIAL RAN. 2026-09-21 (abra/regmc 0.19.0)
+
+- **The census.** `tests/test-mechanics.js --regulation regmc` needed no new instrument: since 0.17.0 its
+  writer lands on `data/mechanics-census-regmc.json`. It is pinned with a `regmc-` infix in
+  `data/verification/` so a Reg M-C pin cannot be read as a Reg M-B one. Some rows that are LIVE for Reg M-B
+  read MISSING on Reg M-C's table and tags. That list is ENGINE's, and it is in the report.
+- **Rows for one regulation only.** The seed rows register only when the selected tag file carries a legal
+  seed. The Grassy semi-invulnerable row registers only for a non-owner regulation. So Reg M-B's `probed`
+  count, which the closed line published, cannot move by accident.
+- **Which humans.** `engine/regulation_stores.js`: Reg M-B keeps its literal stores. Any other regulation is
+  counted from its frozen pool, checked by size and sha256 against the receipt, and it refuses by name when a
+  file is absent. That covers the click counts, the sheet usage, the behaviour table and the switch census,
+  and the switch census joins the tracked raw-log shards to the pool by id. The behaviour table is a
+  per-regulation ENGINE file and an M-C release freezes it. The joint census refuses until it is converted.
+- **Found by reading code, not by the brief.** The two named builders were not the whole steered path. The
+  empirical arm CLICKS out of the behaviour table and PRICES a switch off the switch census. Both were Reg
+  M-B's, and neither was named in the brief. `data/meta-usage.json` is still Reg M-B's; it only ranks
+  bodies in the report.
+- **Reg M-B unmoved.** HEAD's census code and this commit's code produce identical rows. The one exception
+  is a sampled probe, and it differs the same way between HEAD's code and the committed census. HEAD's and
+  this commit's builders give identical click counts and sheet usage on the same stores. **The one line that
+  moved** is the default gate's artifact-inventory size, because the inventory counts every file in `data/`,
+  new Reg M-C files included. Every clause is identical. Making the inventory regulation-aware is owed. It is
+  a change to what the Reg M-B gate prints, so it is a decision and not a side effect. The first pinned
+  Reg M-C reading is a worktree reading, not a verdict. Full account:
+  `docs/_reports/2026-09-21-regmc-census.md`.
+
 ## THE GATE ANSWERS PER REGULATION. A REG M-C RUN READS AND WRITES ONLY `-regmc` ARTIFACTS, AND REG M-B'S EVIDENCE CANNOT BE WRITTEN FROM ONE. 2026-09-21 (abra/regmc 0.17.0)
 
 - **The hazard.** Every instrument in the gate's path wrote one fixed `data/<name>`. A Reg M-C run with

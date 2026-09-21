@@ -28,6 +28,12 @@ const path = require('path');
 const readline = require('readline');
 
 const ROOT = path.resolve(__dirname, '..');
+/* 2026-09-21 (MEASURE, abra/regmc 0.19.0) -- THE SELECTED REGULATION DECIDES THE STORE. Loaded first so
+ * the artifact seam is in place before OUT is written: under a non-owner regulation OUT lands on its
+ * `-<id>` sibling, and the games are that regulation's frozen pool (engine/regulation_stores.js), never
+ * the Reg M-B stores named below. Under Reg M-B nothing here changes. */
+const REGN = require('./regulation.js');
+const RSTORES = require('./regulation_stores.js');
 /* BOTH HUMAN STORES, AND READING ONLY ONE OF THEM WAS THE ERROR THIS FILE WAS BORN WITH.
  *
  * `games.ladder.jsonl` is the bo1 ladder. `games.bo3.jsonl` is a SEPARATE Showdown format
@@ -78,11 +84,11 @@ function readOne(file, acc) {
   });
 }
 
-async function build() {
+async function build(files) {
   const moves = Object.create(null);
   const per = [];
   let games = 0, clicks = 0, turns = 0, badLines = 0;
-  for (const f of STORES) {
+  for (const f of (files || STORES)) {
     const r = await readOne(f, moves);
     per.push({ store: path.basename(f), games: r.games, clicks: r.clicks, turns: r.turns });
     games += r.games; clicks += r.clicks; turns += r.turns; badLines += r.badLines;
@@ -91,20 +97,25 @@ async function build() {
 }
 
 async function main() {
-  if (!fs.existsSync(STORE)) { console.error('  no store at ' + STORE); process.exit(1); }
-  const r = await build();
+  /* A non-owner regulation counts its frozen pool, verified against the pool's receipt; pool() THROWS on
+   * an absent or altered file, so a missing store cannot become an artifact of zero clicks. */
+  const POOL = RSTORES.pool();
+  if (!POOL && !fs.existsSync(STORE)) { console.error('  no store at ' + STORE); process.exit(1); }
+  const r = await build(POOL ? POOL.files.map(f => f.abs) : STORES);
   const art = {
     generated: new Date().toISOString(),
     by: 'engine/click_counts.js',
     what: 'How many times each move RESOLVED across every stored game. The authoritative click count; '
         + 'the MEDICHAM gate\'s usage deferral reads this and not data/tags.json, which undercounts by '
         + 'up to 8.6x on the rows that matter (ROADMAP #70).',
-    scope: 'every game in BOTH human stores — the bo1 ladder and the bo3 ladder, which is a separate '
+    scope: POOL ? POOL.scope : 'every game in BOTH human stores — the bo1 ladder and the bo3 ladder, which is a separate '
          + 'Showdown format running in parallel over the same window. No rating or bot filter: a move '
          + 'the engine must simulate correctly does not care who clicked it. Our own h2h and self-play '
          + 'stores are excluded, because "how often is this clicked" means by players, not by us.',
-    stores: STORES.map(p => path.relative(ROOT, p).replace(/\\/g, '/')),
+    stores: POOL ? POOL.files.map(f => f.file) : STORES.map(p => path.relative(ROOT, p).replace(/\\/g, '/')),
     per_store: r.per,
+    ...(POOL ? { regulation: REGN.ID, format: REGN.FORMAT, pool: { dir: POOL.dir, receipt: POOL.receipt,
+      pool_digest: POOL.pool_digest, files: POOL.files.map(f => ({ file: f.file, sha256: f.sha256, verified: f.verified })) } } : {}),
     stores_note: 'READING ONLY THE BO1 LADDER WAS THIS FILE\'S ORIGINAL DEFECT, and it is the same '
                + 'shape as the tags.json undercount it was written to fix: a usage figure taken from '
                + 'part of the corpus, used to decide what may be shelved. The bo3 store is roughly a '
@@ -128,7 +139,7 @@ async function main() {
     for (const [k, v] of Object.entries(art.moves).slice(0, TOP))
       console.log('    ' + String(v).padStart(7) + '  ' + k);
   }
-  console.log('\n  wrote ' + path.relative(ROOT, OUT).replace(/\\/g, '/'));
+  console.log('\n  wrote ' + REGN.artifactFor(path.relative(ROOT, OUT).replace(/\\/g, '/')));
 }
 
 /* Exported so the roster reads the SAME numbers rather than re-deriving them — one implementation of
@@ -154,5 +165,11 @@ function clicksFor(moveId) {
   return a.moves[id(moveId)] || 0;
 }
 
-module.exports = { load, clicksFor, OUT_PATH: OUT };
+/* The stores a build under the selected regulation would read, repo-relative. For the regulation test. */
+function storesSelected(opts) {
+  const P = RSTORES.pool(opts);
+  return P ? P.files.map(f => f.file) : STORES.map(p => path.relative(ROOT, p).replace(/\\/g, '/'));
+}
+
+module.exports = { load, clicksFor, OUT_PATH: OUT, storesSelected };
 if (require.main === module) main().catch(e => { console.error(e); process.exit(1); });

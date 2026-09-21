@@ -86,6 +86,9 @@ const ARM = `
   out.tagsLoaded = liveTags.map(k => path.basename(k));
   out.tagAbilities = liveTags.length === 1 ? Object.keys(require.cache[liveTags[0]].exports.abilities).length : -1;
   out.frozenTags = Object.keys(man.files).filter(k => /^data\\/tags/.test(k));
+  /* 2026-09-21 (abra/regmc 0.19.0) -- and the behaviour table, read through REL.read by the empirical arm. */
+  out.frozenPriors = Object.keys(man.files).filter(k => /^data\\/move-priors/.test(k));
+  out.relPriorsPath = path.basename(REL.path('data/move-priors.json'));
   out.relTagAbilities = Object.keys(JSON.parse(REL.read('data/tags.json')).abilities).length;
   out.relTagPath = path.basename(REL.path('data/tags.json'));
   console.log('RESULT ' + JSON.stringify(out));
@@ -116,9 +119,12 @@ if (mb && mc) {
     mc.rows + ' rows, loaded ' + mc.loaded.join(','));
   ok('2  regmc: the resolver is installed and counted its redirects', mc.table.installed === true && mc.table.redirects >= 1,
     mc.table.redirects + ' redirect(s)');
-  /* +2 since 2026-09-21: the table AND the tag file (engine/engine_release.js REGULATION_SOURCES). */
-  ok('2  regmc: a cut freezes SOURCES plus the M-C table and the M-C tag file', mc.sourcesNow === mc.sources + 2
-    && mc.frozenTags.includes('data/tags-regmc.json'), mc.sourcesNow + ' vs ' + mc.sources + '; ' + mc.frozenTags.join(','));
+  /* +2 since 2026-09-21: the table AND the tag file (engine/engine_release.js REGULATION_SOURCES).
+   * +3 since abra/regmc 0.19.0: and the behaviour table, which REL.read then serves in place of Reg M-B's. */
+  ok('2  regmc: a cut freezes SOURCES plus the M-C table, tag file and behaviour table', mc.sourcesNow === mc.sources + 3
+    && mc.frozenTags.includes('data/tags-regmc.json') && (mc.frozenPriors || []).includes('data/move-priors-regmc.json')
+    && mc.relPriorsPath === 'move-priors-regmc.json',
+    mc.sourcesNow + ' vs ' + mc.sources + '; ' + mc.frozenTags.join(',') + '; ' + (mc.frozenPriors || []).join(',') + '; REL.path -> ' + mc.relPriorsPath);
   ok('2  regmc: the release contains the M-C table and names its regulation',
     mc.frozen.includes('data/engine-data-regmc.js') && mc.regulation === 'regmc' && mc.engine_data === 'data/engine-data-regmc.js',
     mc.frozen.join(','));

@@ -83,6 +83,20 @@ const QB = require('./quality_bots.js');
 require('./showdown_path.js');
 const D = (...p) => path.join(__dirname, '..', ...p);
 
+/* 2026-09-21 (MEASURE, abra/regmc 0.19.0) -- NOT YET PER REGULATION, AND IT SAYS SO. Its stores below are
+ * Reg M-B's by literal and its format is read off `active`, so under another regulation it would write
+ * Reg M-B's clicks into that regulation's `-<id>` sibling (declared in engine/regulation.js) and exit 0.
+ * Only the `joint` arm of the differential reads its output. Refused until its stores follow the
+ * regulation the way engine/rollout_switch_census.js's do (engine/regulation_stores.js). */
+{
+  const REGN = require('./regulation.js');
+  if (REGN.ARTIFACT_TAG) {
+    console.error('joint_click_census: REFUSING -- ' + REGN.ID + ' is selected and this census reads Reg M-B\'s '
+      + 'stores by literal. It is not per-regulation yet (see the comment above this line).');
+    process.exit(2);
+  }
+}
+
 const FORMAT = (() => {
   const r = JSON.parse(fs.readFileSync(D('data', 'regulations.json'), 'utf8'));
   const a = r.regulations[r.active] || {};
