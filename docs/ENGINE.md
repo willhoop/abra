@@ -1,3 +1,34 @@
+## REG M-C HAS ITS OWN TAG FILE AND PROTOCOL-EVENTS FILE, AND TERRAIN ON ENTRY IS CLOSED. 2026-09-21 (abra/regmc 0.15.0)
+
+Full account: `docs/_reports/2026-09-21-regmc-tags.md`.
+
+- `data/tags-regmc.json` and `data/protocol-events-regmc.json` are selected by `runtime.regmc.tags` and
+  `runtime.regmc.protocolEvents`. `engine/regulation.js` `fileFor(rel)` is the one answer for all three
+  Reg M-C files. While Reg M-C is selected, a write onto a Reg M-B file is REFUSED.
+- **Reg M-B unmoved:** `data/tags.json` `c34d6465c3b6` and `data/protocol-events.json` `829e525dfb52` are
+  byte-identical, and the damage differential differs only on the launcher's pid line.
+- On the SAME smoke sample: terrain on entry went from the first cause of 45 dumped games to 0, and mega
+  evolution from 8 to 0. Board-material fell from 65 of 77 to 45 of 85. This is a smoke reading and is
+  not published.
+
+### The Reg M-C hand list, after this pass
+
+The tags do not exist yet AND the engine does not implement these. They are ranked by the corrected
+smoke (`names.js` fixed), counted by first cause:
+
+1. **Grassy Seed / Psychic Seed**, consumed when their terrain starts, for a stat boost — **30 games**.
+   The Electric and Misty seeds are the same shape.
+2. **Rocky Helmet** — 7 games. It was banned in Reg M-B, so it has never been modelled.
+3. **Air Balloon** — 3 games: no ground immunity and no announce.
+4. **Emergency Exit** — 1 game. tag_dex reports it UNTAGGED at 2.33% usage.
+5. **Red Card / Eject Button** — 1 game.
+6. **The order of the Grassy Terrain end-of-turn heal** — 1 game. This is a residual-order question, not
+   a tag question.
+7. **Curse under Reg M-C** carries `statChangeInCode {on:'target'}` and `lowersTarget`. That misreads
+   `this.boost({…}, source, source)` as a boost on the target. It has not been measured in a game.
+8. Carried from 0.14.0: the Inner Focus stat name `atk`/`attack`, and species names that contain an
+   apostrophe.
+
 ## THE REGULATION IS A RUN-TIME CHOICE, AND REG M-B IS UNMOVED — RE-MEASURED CLEAN ON RELEASE `2e9db8bb11fd`. 2026-09-21
 
 Full account: `docs/_reports/2026-09-21-regulation-runtime.md`.

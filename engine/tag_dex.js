@@ -59,6 +59,12 @@ require('./showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checko
 const fs = require('fs');
 const path = require('path');
 const CS = require('./champions_sim.js');
+/* 2026-09-21 (ENGINE) -- WHERE THE ARTIFACT GOES IS THE REGULATION'S ANSWER, NOT A LITERAL. Reg M-B
+ * (and nothing selected) writes data/tags.json exactly as before; a regulation that names its own tag
+ * file in data/regulations.json (`runtime.<id>.tags`) writes that, and engine/regulation.js REFUSES a
+ * write onto data/tags.json while it is selected, so an M-C run cannot overwrite M-B's catalogue. */
+const REGN = require('./regulation.js');
+const TAGS_OUT = REGN.TAGS_FILE;
 /* "does this move carry this linkage key" — one implementation, shared with the interaction-matrix
  * generator, which used to ask the usage-gated ARTIFACT this question instead. See the file. */
 const { carriesLinkageKey } = require('./linkage_carrier.js');
@@ -621,7 +627,15 @@ function usage() {
    * The catch stays because a missing corpus must not stop the dex being derived from Showdown — but
    * it now says so instead of returning an empty usage map that reads like "nothing is used". */
   let games;
-  try { games = F.loadCorpus({ scope: 'all' }).games; }
+  /* 2026-09-21 (ENGINE) -- A REGULATION WITH ITS OWN TAG FILE IS WEIGHTED BY ITS OWN STORES. Reg M-B's
+   * catalogue reads Reg M-B's three stores (scope 'all', unchanged). Reg M-C's reads the two stores the
+   * next-regulation collector writes, named the way it names them (`storeFor = id => 'games.' + id +
+   * '.jsonl'`, engine/next_regulation_ingest.js:73), off the format ids data/regulations.json holds.
+   * Weighting M-C by M-B's corpus would zero every new entity and credit every dropped one. */
+  const OWN = TAGS_OUT !== 'data/tags.json'
+    ? [REGN.FORMAT, REGN.BO3_FORMAT].filter(Boolean).map(id => D('data', 'games.' + id + '.jsonl'))
+    : null;
+  try { games = OWN ? F.loadCorpus({ files: OWN }).games : F.loadCorpus({ scope: 'all' }).games; }
   catch (e) {
     console.error('tag_dex: loadCorpus({scope:"all"}) failed, so USAGE COUNTS WILL BE ZERO for every '
       + 'entry in this run — the tag SHAPES are still derived from Showdown and are unaffected. '
@@ -629,6 +643,11 @@ function usage() {
     return out;
   }
   F_GAMES = games;
+  if (OWN) {
+    out.from = OWN.map(p => path.relative(ROOT, p).replace(/\\/g, '/'));
+    console.log('tag_dex: ' + REGN.ID + ' usage weighted by its own stores: ' + out.from.join(', ')
+      + ' -> ' + games.length + ' clean open-sheet games');
+  }
   for (const g of games) {
     for (const side of ['p1', 'p2']) {
       for (const e of (g.sheets && g.sheets[side]) || []) {
@@ -4435,9 +4454,31 @@ const MOVE_TAGS = [
     why: 'Curse (1,058 uses). A non-Ghost gets +1 Atk / +1 Def / -1 Spe on ITSELF; a Ghost pays half '
        + 'its own max HP and hangs a 1/4-per-turn chip on the foe. One move id, two moves',
     of: m => {
-      if (!m.nonGhostTarget) return null;
-      const p = { splitsOnType: 'Ghost', elseTarget: m.nonGhostTarget, elseBoosts: null,
-                  hasTypeVolatile: m.volatileStatus || null, hasTypeCostFraction: null };
+      /* 2026-09-21 -- REG M-C'S CHECKOUT HAS NO `nonGhostTarget` FIELD. Upstream Showdown dropped it
+       * from data/moves.ts and the Champions mod rewrote Curse (pokemon-showdown-mc
+       * data/mods/champions/moves.ts:165-194): `onModifyMove` sets `move.target = 'self'` when
+       * `!source.hasType('Ghost')`, the non-Ghost boosts moved into `onHit` as
+       * `this.boost({ spe: -1, atk: 1, def: 1 }, source, source)`, `volatileStatus` is `undefined`
+       * and the volatile is added by `target.addVolatile('curse')`. So the split is read off the
+       * handler when the field is absent -- the same fact, in the form this checkout states it. The
+       * field path is untouched, so Reg M-B's reading of Curse cannot move. */
+      const mod = String(m.onModifyMove || '').replace(/\s+/g, ' ');
+      const split = m.nonGhostTarget ? null
+        : mod.match(/if \(\s*!\s*source\.hasType\(\s*["'](\w+)["']\s*\)\s*\)\s*\{?\s*move\.target\s*=\s*["'](\w+)["']/);
+      if (!m.nonGhostTarget && !split) return null;
+      const hitSrc = String(m.onHit || '').replace(/\s+/g, ' ');
+      const volLit = hitSrc.match(/addVolatile\(\s*["'](\w+)["']\s*\)/);
+      const p = { splitsOnType: split ? split[1] : 'Ghost', elseTarget: m.nonGhostTarget || split[2], elseBoosts: null,
+                  hasTypeVolatile: m.volatileStatus || (split && volLit ? volLit[1] : null), hasTypeCostFraction: null };
+      if (split) {
+        /* the non-type branch's boosts: `this.boost({...}, source, source)` inside `!source.hasType(...)` */
+        const hb = hitSrc.match(/if \(\s*!\s*source\.hasType\([^)]*\)\s*\)\s*\{\s*return\s*!!\s*this\.boost\(\s*\{([^}]*)\}\s*,\s*source\s*,\s*source\s*\)/);
+        if (hb) {
+          const b = {};
+          for (const kv of hb[1].split(',')) { const mm = kv.match(/([a-z]+)\s*:\s*(-?\d+)/); if (mm) b[mm[1]] = +mm[2]; }
+          if (Object.keys(b).length) p.elseBoosts = b;
+        }
+      }
       /* `move.self = { boosts: {...} }` -- the NON-Ghost branch, assigned inside onTryHit. */
       const h = String(m.onTryHit || '').replace(/\s+/g, ' ');
       const bo = h.match(/move\.self\s*=\s*\{\s*boosts:\s*\{([^}]*)\}/);
@@ -11010,7 +11051,18 @@ if (TAGDEX_BREAK.length) {
   process.exit(0);
 }
 
-fs.writeFileSync(D('data', 'tags.json'), JSON.stringify({
+/* 2026-09-21 -- A REGULATION'S OWN CATALOGUE IS NOT WRITTEN WITH ZERO USAGE. An unreadable store makes
+ * usage() return zeros and carry on (for Reg M-B, deliberately, unchanged), and in a worktree the
+ * stores are routinely absent: an agent watched sheet_entries go 316,656 -> 0 with exit 0. A new file
+ * has no previous version to be compared against, so the zero would go unnoticed. Refuse instead. */
+if (TAGS_OUT !== 'data/tags.json' && !U.entries) {
+  console.error('\ntag_dex: REFUSED to write ' + TAGS_OUT + ' — ' + REGN.ID + '\'s stores yielded 0 sheet entries, '
+    + 'so every usage figure would be zero. Read from: ' + (U.from || ['(nothing readable)']).join(', '));
+  process.exit(1);
+}
+/* The Reg M-B literal stays on the write line: engine/provenance.js attributes data/tags.json to this
+ * script by the path spelled at the write, and a computed path alone would leave it with no writer. */
+fs.writeFileSync(TAGS_OUT === 'data/tags.json' ? D('data', 'tags.json') : D(TAGS_OUT), JSON.stringify({
   generated: new Date().toISOString(),
   by: 'engine/tag_dex.js',
   what: 'Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature '
@@ -11026,9 +11078,12 @@ fs.writeFileSync(D('data', 'tags.json'), JSON.stringify({
             + '(engine/tag_lookups.js sourceConsumers, balanced parentheses; value prefixed "TAGS lookup: "). '
             + 'A tag that neither reaches is reported NOT READ regardless of intent.',
   sheet_entries: U.entries,
+  /* 2026-09-21: which regulation this catalogue describes and which stores weighted it. Present only
+   * on a regulation's own file, so Reg M-B's artifact carries exactly the keys it always has. */
+  ...(TAGS_OUT !== 'data/tags.json' ? { regulation: REGN.ID, format: REGN.FORMAT, usage_from: U.from || null } : {}),
   tags: all, linkage, moves: moves.entries, items: items.entries, abilities: abils.entries,
 }, null, 1));
-console.log('\nwrote data/tags.json');
+console.log('\nwrote ' + TAGS_OUT);
 if (emptyTags.length) {
   console.error(`
 tag_dex: ${emptyTags.length} tag(s) matched nothing. Fix the predicate or add to EXPECTED_EMPTY.`);

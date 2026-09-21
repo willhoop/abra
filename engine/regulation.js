@@ -127,6 +127,10 @@ function entryFor(id) {
     /* The damage table this regulation's bodies are built from. null = `data/engine-data.js`. A
      * `runtime` key only — `regulations` is the STORE map and says nothing about the engine. */
     engineData: (rt && rt.engineData) || null,
+    /* 2026-09-21 (ENGINE) -- the tag file and the protocol-events file follow the regulation by the
+     * same sibling rule as the table. null = the Reg M-B file. */
+    tags: (rt && rt.tags) || null,
+    protocolEvents: (rt && rt.protocolEvents) || null,
     in_regulations: !!base,
     in_runtime: !!rt,
   };
@@ -225,7 +229,8 @@ function select(opts) {
   return {
     id: CONFIG_FALLBACK_ID,
     entry: { id: CONFIG_FALLBACK_ID, label: null, showdownFormat: CONFIG_FALLBACK_FORMAT, bo3Format: null,
-      checkout: null, pinnedCommit: null, pinnedDate: null, engineData: null, in_regulations: false, in_runtime: false },
+      checkout: null, pinnedCommit: null, pinnedDate: null, engineData: null, tags: null, protocolEvents: null,
+      in_regulations: false, in_runtime: false },
     source: 'HARDCODED FALLBACK',
     explicit: false,
     fallback: why,
@@ -303,40 +308,78 @@ if (SEL.explicit && !process.env.ABRA_REGULATION) process.env.ABRA_REGULATION = 
  * table-loading file must also load (tests/test-mc-key.js clause 4), and the first thing a body build
  * touches — requires this module for exactly that reason: whatever the load order, a process that
  * builds a body under the wrong table is refused before it builds one. */
-const DEFAULT_ENGINE_DATA = 'data/engine-data.js';
-const ENGINE_DATA = (() => {
-  const t = SEL.entry.engineData;
-  if (!t) return DEFAULT_ENGINE_DATA;
-  /* The table is a sibling of engine-data.js in `data/`, so the same rule finds it in a release. */
-  if (!/^data\/[A-Za-z0-9._-]+\.js$/.test(String(t))) {
-    throw new Error('regulation: REFUSING — ' + ID + ' names engineData "' + t + '" in data/regulations.json.\n'
-      + '  It must be a data/<file>.js path: the table is resolved as a SIBLING of data/engine-data.js,\n'
+/* ---- 2026-09-21 (ENGINE) -- AND SO DO THE TAG FILE AND THE PROTOCOL-EVENTS FILE --------------------
+ *
+ * The first Reg M-C smoke parted 53 of 73 games on terrain set on entry by two abilities that are
+ * simply ABSENT from Reg M-B's data/tags.json: tags are derived from the format, and nothing had
+ * derived them for M-C. The tag file is the table's twin -- the engine loads it BY PATH
+ * (engine/tags.js requires data/tags.json relative to its own __dirname, live and out of a release),
+ * so the same sibling rule serves it with no reader edited. The protocol-events file is the
+ * differential's alignment rule and is DERIVED off a Showdown checkout, so it is per regulation too.
+ *
+ * THE MAP. `runtime.<id>.<key>` in data/regulations.json names the regulation's own file; absent means
+ * the Reg M-B file, and a regulation that names none of them installs nothing. Each must be a
+ * `data/<file>` SIBLING of the default with the same extension, so one rule finds it in a release.
+ *
+ * WRITES ARE GUARDED AS WELL AS READS. A generator run under M-C that forgot to ask this module where
+ * to write would overwrite Reg M-B's file and exit 0 -- tag_dex.js and derive_protocol_events.js both
+ * default to the M-B path. So while such a regulation is selected a write, rename or copy ONTO the
+ * live tree's Reg M-B file is REFUSED by name. Only the live tree's `data/` is guarded: a release cut
+ * copies M-B's file into `data/releases/<id>/data/`, which is a different directory and correct. */
+const REG_FILE_KEYS = [
+  /* [entry key, the Reg M-B file it replaces] */
+  ['engineData', 'data/engine-data.js'],
+  ['tags', 'data/tags.json'],
+  ['protocolEvents', 'data/protocol-events.json'],
+];
+const FILES = {};   /* default rel -> this regulation's rel, only where they differ */
+for (const [key, def] of REG_FILE_KEYS) {
+  const t = SEL.entry[key];
+  if (!t || t === def) continue;
+  const ext = path.extname(def);
+  const shape = /^data\/[A-Za-z0-9._-]+$/.test(String(t)) && path.extname(String(t)) === ext;
+  if (!shape) {
+    throw new Error('regulation: REFUSING — ' + ID + ' names ' + key + ' "' + t + '" in data/regulations.json.\n'
+      + '  It must be a data/<file>' + ext + ' path: it is resolved as a SIBLING of ' + def + ',\n'
       + '  which is what lets the same rule find it inside a frozen release.');
   }
-  return t;
-})();
-const TABLE_BASENAME = path.basename(DEFAULT_ENGINE_DATA);
-const isDefaultTable = abs => path.basename(String(abs)) === TABLE_BASENAME
+  FILES[def] = String(t);
+}
+/** The repo-relative file this regulation reads in place of `rel`. Identity for anything unmapped. */
+const fileFor = rel => FILES[String(rel).replace(/\\/g, '/')] || rel;
+const DEFAULT_ENGINE_DATA = 'data/engine-data.js';
+const ENGINE_DATA = fileFor(DEFAULT_ENGINE_DATA);
+const TAGS_FILE = fileFor('data/tags.json');
+const PROTOCOL_EVENTS_FILE = fileFor('data/protocol-events.json');
+/* basename of a Reg M-B file -> basename of this regulation's */
+const BASE_MAP = {};
+for (const def of Object.keys(FILES)) BASE_MAP[path.basename(def)] = path.basename(FILES[def]);
+const mappedDefault = abs => Object.prototype.hasOwnProperty.call(BASE_MAP, path.basename(String(abs)))
   && path.basename(path.dirname(String(abs))) === 'data';
-/* A capability that cannot prove it ran is assumed broken: every redirect is counted. */
-const TABLE = { table: ENGINE_DATA, default: ENGINE_DATA === DEFAULT_ENGINE_DATA, installed: false, redirects: 0 };
+/* A capability that cannot prove it ran is assumed broken: every redirect is counted, per file. */
+const TABLE = { table: ENGINE_DATA, default: !Object.keys(FILES).length, installed: false, redirects: 0,
+  files: Object.assign({}, FILES), byFile: {}, writesRefused: 0 };
 
-/** The file a request for the table should load under the selected regulation. Identity when the
- *  regulation uses the default table, or when `abs` is not a `data/engine-data.js`. */
+/** The file a request should load under the selected regulation. Identity when the regulation maps
+ *  nothing, or when `abs` is not one of the mapped `data/<file>`s. Named for its first use, the table. */
 function tableFor(abs) {
-  if (TABLE.default || !isDefaultTable(abs)) return abs;
-  const alt = path.join(path.dirname(String(abs)), path.basename(ENGINE_DATA));
+  if (TABLE.default || !mappedDefault(abs)) return abs;
+  const base = path.basename(String(abs));
+  const alt = path.join(path.dirname(String(abs)), BASE_MAP[base]);
   if (!fs.existsSync(alt)) {
     const inRelease = /[\\/]releases[\\/][0-9a-f]{12}[\\/]data$/.test(path.dirname(String(abs)));
-    throw new Error('regulation: REFUSING to load the damage table — this run selected ' + ID + ', whose table is '
-      + ENGINE_DATA + ',\n  and ' + alt + ' does not exist.\n'
+    const own = 'data/' + BASE_MAP[base];
+    throw new Error('regulation: REFUSING to load ' + base + ' — this run selected ' + ID + ', whose file is '
+      + own + ',\n  and ' + alt + ' does not exist.\n'
       + (inRelease
-        ? '  That path is inside a frozen release, so the release was cut WITHOUT this regulation\'s table.\n'
+        ? '  That path is inside a frozen release, so the release was cut WITHOUT this regulation\'s file.\n'
           + '  Cut one with ' + ID + ' selected (node engine/engine_release.js cut "<why>" --regulation ' + ID + ').\n'
-        : '  Build it with its builder (build/build_engine_data_regmc.js for regmc).\n')
-      + '  Loading ' + DEFAULT_ENGINE_DATA + ' instead would build ' + ID + '\'s bodies from another regulation\'s table.');
+        : '  Build it with its builder (build/build_engine_data_regmc.js for the table; engine/tag_dex.js\n'
+          + '  --regulation ' + ID + ' for the tags; engine/derive_protocol_events.js --out ' + PROTOCOL_EVENTS_FILE + ').\n')
+      + '  Loading data/' + base + ' instead would run ' + ID + ' on another regulation\'s ' + base + '.');
   }
   TABLE.redirects++;
+  TABLE.byFile[base] = (TABLE.byFile[base] || 0) + 1;
   return alt;
 }
 
@@ -344,10 +387,10 @@ const HOOK = Symbol.for('abra.regulation.engineDataResolver');
 function installTableResolver() {
   if (TABLE.default) return false;
   const Module = require('module');
-  const early = Object.keys(Module._cache || {}).filter(isDefaultTable);
+  const early = Object.keys(Module._cache || {}).filter(mappedDefault);
   if (early.length) {
     throw new Error('regulation: REFUSING — this run selected ' + ID + ' (table ' + ENGINE_DATA + '), and Reg M-B\'s\n'
-      + '  table was ALREADY LOADED before the regulation resolver was:\n    ' + early.join('\n    ') + '\n'
+      + '  file(s) were ALREADY LOADED before the regulation resolver was:\n    ' + early.join('\n    ') + '\n'
       + '  globalThis.MC is therefore the wrong regulation\'s table. Load engine/regulation.js (or anything\n'
       + '  that requires it: champions_sim, showdown_path, engine_release, mc_key) BEFORE the table in\n'
       + '  the entry point that loads it.');
@@ -368,7 +411,32 @@ function installTableResolver() {
   };
   globalThis[HOOK] = { table: ENGINE_DATA, id: ID, stats: TABLE };
   TABLE.installed = true;
+  guardWrites();
   return true;
+}
+
+/* THE WRITE GUARD -- see the block above FILES. Installed once, with the resolver, only when this
+ * regulation maps a file. It guards the LIVE tree's Reg M-B files and nothing else. */
+function guardWrites() {
+  const guarded = new Set(Object.keys(FILES).map(def => path.resolve(ROOT, def).toLowerCase()));
+  /* A non-string destination (a file descriptor, a Buffer or URL path) is not one of the guarded names
+   * as spelled here and passes through untouched; a string is resolved, which cannot throw. */
+  const hit = dest => typeof dest === 'string' && guarded.has(path.resolve(dest).toLowerCase());
+  const refuse = (how, dest) => {
+    TABLE.writesRefused++;
+    throw new Error('regulation: REFUSING to ' + how + ' ' + dest + ' — this run selected ' + ID
+      + ', which has its own\n  ' + path.basename(dest) + ' (' + FILES['data/' + path.basename(dest)] + '). That file is Reg M-B\'s and a run about '
+      + ID + ' may not overwrite it.\n  Write to the path engine/regulation.js fileFor() gives.');
+  };
+  const wrap = (name, destArg, how) => {
+    const orig = fs[name];
+    if (typeof orig !== 'function') return;
+    fs[name] = function () { if (hit(arguments[destArg])) refuse(how, arguments[destArg]); return orig.apply(this, arguments); };
+  };
+  wrap('writeFileSync', 0, 'write');
+  wrap('appendFileSync', 0, 'append to');
+  wrap('renameSync', 1, 'rename onto');
+  wrap('copyFileSync', 1, 'copy onto');
 }
 installTableResolver();
 
@@ -392,7 +460,7 @@ function describe() {
       ? '  OVERRIDDEN by SHOWDOWN_PATH=' + env + ' -- THAT is the checkout this run reads'
       : ''));
   }
-  if (!TABLE.default) bits.push('| table ' + ENGINE_DATA);
+  if (!TABLE.default) bits.push('| files ' + Object.values(FILES).join(', '));
   if (SEL.fallback) bits.push('| FALLBACK: ' + SEL.fallback);
   return bits.join('  ');
 }
@@ -424,6 +492,10 @@ module.exports = {
   /* The damage table: ENGINE_DATA is the repo-relative path this regulation's bodies are built from.
    * table() reports whether the resolver is installed and how many requires it has redirected. */
   ENGINE_DATA, DEFAULT_ENGINE_DATA, tableFor, table: () => Object.assign({}, TABLE),
+  /* 2026-09-21 (ENGINE): the tag file and the protocol-events file, by the same rule. fileFor(rel) is
+   * the one answer to "which file does this regulation read in place of rel"; FILES is the whole map
+   * (empty for Reg M-B). */
+  TAGS_FILE, PROTOCOL_EVENTS_FILE, fileFor, FILES: Object.assign({}, FILES),
   /* Exported for the test, so the selection rule can be exercised against a varied knob rather than
    * against whatever this process happened to be started with. An identical result across a varied
    * knob means the knob is unwired. */

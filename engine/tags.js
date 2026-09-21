@@ -52,6 +52,13 @@ function load() {
     if (!DB) throw new Error('engine/tags.js: no data/abra-tags.js loaded — include it before board.js');
     return DB;
   }
+  /* 2026-09-21 -- THE REGULATION DECIDES WHICH TAG FILE THIS IS. engine/regulation.js resolves the
+   * require below to the selected regulation's own file (`runtime.<id>.tags`, e.g.
+   * data/tags-regmc.json) -- live, and out of a frozen release by the sibling rule. It must be loaded
+   * FIRST for the redirect to apply, so it is required here rather than trusted to a caller. With Reg
+   * M-B selected it installs nothing and this is the same require as before. Outside the try: a
+   * refusal from it (a missing M-C tag file) must surface, not read as "no tags". */
+  require('./regulation.js');
   try {
     DB = require(path.join(__dirname, '..', 'data', 'tags.json'));
   } catch (e) {

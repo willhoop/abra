@@ -21,6 +21,40 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.15.0] — 2026-09-21
+
+### Added
+- `data/tags-regmc.json` and `data/protocol-events-regmc.json`. Both are derived from the Reg M-C checkout
+  and selected by `runtime.regmc.tags` and `runtime.regmc.protocolEvents` in `data/regulations.json`,
+  using the same sibling rule as the species table. Reg M-C usage is weighted by Reg M-C's own stores:
+  212,856 sheet entries.
+- The six Reg M-C mega stones now carry their mega tag. The first cause "mega forme did not evolve" fell
+  from 8 games to 0.
+- While Reg M-C is selected, a write onto Reg M-B's tag, protocol-events or species file is refused by
+  name.
+- `tests/test-regulation-table.js` rises from 18 to 24 clauses. They were shown failing on a deliberate
+  break first.
+
+### Fixed
+- Under Reg M-C, the differential chose its teams by Reg M-B tag membership, through `engine/names.js`.
+  That file now reads the selected regulation's tag file.
+- Curse had no `typeSplitMove` tag under Reg M-C, because the Reg M-C checkout has no `nonGhostTarget`
+  field. The tag is now read from the handler when the field is absent. Reg M-B is unchanged.
+- **The pre-commit hook's staged audit copied whole directory trees into `%TEMP%`.**
+  `engine/regulation.js` spells `'..', '..', '..', '..'`, and `engine/artifact_audit.js` read that as a
+  sibling checkout called `..`. So every commit copied the Projects directory (from the main tree), or
+  every agent worktree (from a worktree), into `%TEMP%`, and hung silently. A name made only of dots is no
+  longer treated as a sibling.
+
+### Notes
+- **Terrain set on entry is closed.** It was the first cause of 45 of the 65 dumped games; after the
+  change it is the first cause of none. Of those 45 games, 19 no longer diverge. Most of the rest now part
+  on the terrain seeds, which have no tag and no engine code. The seeds are the next job, and it is
+  engine work. A smoke reading: board-material fell from 65 of 77 to 45 of 85 on the same sample. Not
+  published.
+- Reg M-B unmoved: `data/tags.json` and `data/protocol-events.json` are byte-identical, and the damage
+  differential is identical apart from the launcher's pid line.
+
 ## [0.14.0] — 2026-09-21
 
 ### Added

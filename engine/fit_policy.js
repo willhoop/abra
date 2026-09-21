@@ -252,7 +252,16 @@ function loadCorpus(opts) {
    * It let one game through out of 3,260 here, because those accounts' other games were already
    * being rejected as forfeits or partial brings. One game is nothing. A disabled check is not --
    * it would have gone on being disabled as the corpus grew. */
-  const bots = Q.behaviouralBots(Q.readStore());
+  /* 2026-09-21 (ENGINE) -- `opts.files`: an explicit list of store paths, read through Q.readStore (so
+   * a tracked `.gz` serves when the plain file is absent). Used by engine/tag_dex.js to weight a Reg M-C
+   * catalogue by Reg M-C's own stores. The behavioural-bot set is then computed over THOSE games, not
+   * over Reg M-B's ladder store, which says nothing about who botted another regulation. Without
+   * `opts.files` nothing below changes. */
+  const EXPLICIT = (opts && Array.isArray(opts.files) && opts.files.length) ? opts.files : null;
+  const explicitGames = EXPLICIT ? EXPLICIT.map(p => ({ p, games: Q.readStore(p) })) : null;
+  const bots = EXPLICIT
+    ? Q.behaviouralBots([].concat(...explicitGames.map(x => x.games)))
+    : Q.behaviouralBots(Q.readStore());
   const seen = new Set();
   const games = [];
   const rejected = {};
@@ -384,6 +393,10 @@ function loadCorpus(opts) {
     fit: ['games.bo3.jsonl'],                                          /* the default: see the reasoning above */
     all: ['games.bo3.jsonl', 'games.ots.jsonl', 'games.ladder.jsonl'], /* everything on disk — for CATALOGUES, not fits */
   };
+  if (EXPLICIT) {
+    for (const x of explicitGames) for (const g of x.games) add(g);
+    return { games, rejected, scope: 'explicit', files: EXPLICIT.slice() };
+  }
   const scope = (opts && opts.scope) || 'fit';
   const files = SCOPES[scope];
   if (!files) throw new Error(`fit_policy.loadCorpus: unknown scope "${scope}". Known: ${Object.keys(SCOPES).join(', ')}`);

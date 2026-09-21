@@ -29,6 +29,9 @@
    "pinnedCommit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
    "pinnedDate": "2026-09-20",
    "engineData": "data/engine-data-regmc.js",
+   "tags": "data/tags-regmc.json",
+   "protocolEvents": "data/protocol-events-regmc.json",
+   "tags_note": "The tag file and the protocol-events file, by the same sibling rule as engineData (engine/regulation.js fileFor). tags: written by `node engine/tag_dex.js --regulation regmc`, usage-weighted by this regulation's own stores. protocolEvents: `node engine/derive_protocol_events.js --regulation regmc --write --out data/protocol-events-regmc.json`. While regmc is selected, every require of data/tags.json reads the sibling, and a write onto the live data/tags.json or data/protocol-events.json is REFUSED.",
    "engineData_note": "The damage table MEDICHAM builds M-C bodies from, written by build/build_engine_data_regmc.js. engine/regulation.js resolves every require of data/engine-data.js to this sibling while regmc is selected, and engine/engine_release.js freezes it into a release cut with regmc selected. Absent (as for regmb) means data/engine-data.js.",
    "checkout_note": "Reg M-C's authority. It is deliberately NOT in 'regulations' above: ABRA does not own an M-C store yet, and adding it there would tell engine/next_regulation.js that M-C is already known and stop the hourly collector. Being selectable is not being active."
   }

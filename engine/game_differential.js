@@ -706,7 +706,9 @@ const EARLY_BOUNDARIES = 3;
 /* tags.json is IN the release, so the coverage sets and the swarm's feature sets are the same bytes
  * the engine was frozen with. Asserted rather than assumed — if a tag file moved under the run the
  * coverage report would be describing a different corpus from the engine. */
-const TAGS_LIVE = fs.readFileSync(D('data', 'tags.json'), 'utf8');
+/* 2026-09-21 -- the SELECTED regulation's tag file (engine/regulation.js fileFor): data/tags.json for
+ * Reg M-B, data/tags-regmc.json for Reg M-C. REL.read maps the same name to the same file. */
+const TAGS_LIVE = fs.readFileSync(D(require('./regulation.js').TAGS_FILE), 'utf8');
 const TAGS_REL = REL.read('data/tags.json');
 const TAGS_MATCH = TAGS_LIVE === TAGS_REL;
 
@@ -2529,10 +2531,12 @@ const MODE = 'A/' + RUN_PRIMARY.id + '/pins:' + PIN_DIGEST + '/credit:' + CREDIT
  * inside the one function built to avoid typed lists) or into the engine release (a before-arm run on
  * an old release would then take the OLD alignment rule, so the two arms would be measured with
  * different rules by construction — steering.js's rejected option (1)). */
-const PROTO_PATH = flag('--protocol-events', null) || D('data', 'protocol-events.json');
+/* 2026-09-21 -- the default follows the regulation: data/protocol-events.json for Reg M-B, the
+ * regulation's own file (`runtime.<id>.protocolEvents`) otherwise. An explicit flag still wins. */
+const PROTO_PATH = flag('--protocol-events', null) || D(require('./regulation.js').PROTOCOL_EVENTS_FILE);
 const PROTO = JSON.parse(fs.readFileSync(PROTO_PATH, 'utf8'));
 const PROTO_INPUT = {
-  file: 'data/protocol-events.json',
+  file: require('./regulation.js').PROTOCOL_EVENTS_FILE,
   read_from: path.relative(D('.'), PROTO_PATH).replace(/\\/g, '/'),
   /* CONTENT DIGEST, WITH THE BYTES BESIDE IT — 2026-09-08. `arms_comparable.js` reads this field
    * UNCONDITIONALLY, and on the day the field landed a `git` checkout took this file from

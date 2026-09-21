@@ -78,8 +78,20 @@ const ARM = `
   REL.require('data/engine-data.js');
   out.relRows = Object.keys(globalThis.MC.moves).length;
   out.relLoaded = Object.keys(require.cache).filter(k => /releases/.test(k) && /engine-data/.test(k)).map(k => path.basename(k));
+  /* THE TAG FILE, the way the engine reads it (engine/tags.js requires data/tags.json by path), live
+   * and out of the release through both REL.require and REL.read. */
+  const T = require('./engine/tags.js');
+  T.tagsFor('ability', 'intimidate');   /* forces the load */
+  const liveTags = Object.keys(require.cache).filter(k => /[\\\\/]data[\\\\/]tags(-\\w+)?\\.json$/.test(k) && !/releases/.test(k));
+  out.tagsLoaded = liveTags.map(k => path.basename(k));
+  out.tagAbilities = liveTags.length === 1 ? Object.keys(require.cache[liveTags[0]].exports.abilities).length : -1;
+  out.frozenTags = Object.keys(man.files).filter(k => /^data\\/tags/.test(k));
+  out.relTagAbilities = Object.keys(JSON.parse(REL.read('data/tags.json')).abilities).length;
+  out.relTagPath = path.basename(REL.path('data/tags.json'));
   console.log('RESULT ' + JSON.stringify(out));
 `;
+/* The tag files compiled directly — the independent reading the arms are held to. */
+const tagAbilitiesOf = rel => Object.keys(JSON.parse(fs.readFileSync(path.join(ROOT, rel), 'utf8')).abilities).length;
 
 console.log('\nTHE DAMAGE TABLE FOLLOWS THE REGULATION\n');
 const MB_ROWS = rowsOf('data/engine-data.js');
@@ -104,12 +116,26 @@ if (mb && mc) {
     mc.rows + ' rows, loaded ' + mc.loaded.join(','));
   ok('2  regmc: the resolver is installed and counted its redirects', mc.table.installed === true && mc.table.redirects >= 1,
     mc.table.redirects + ' redirect(s)');
-  ok('2  regmc: a cut freezes SOURCES plus the M-C table', mc.sourcesNow === mc.sources + 1, mc.sourcesNow + ' vs ' + mc.sources);
+  /* +2 since 2026-09-21: the table AND the tag file (engine/engine_release.js REGULATION_SOURCES). */
+  ok('2  regmc: a cut freezes SOURCES plus the M-C table and the M-C tag file', mc.sourcesNow === mc.sources + 2
+    && mc.frozenTags.includes('data/tags-regmc.json'), mc.sourcesNow + ' vs ' + mc.sources + '; ' + mc.frozenTags.join(','));
   ok('2  regmc: the release contains the M-C table and names its regulation',
     mc.frozen.includes('data/engine-data-regmc.js') && mc.regulation === 'regmc' && mc.engine_data === 'data/engine-data-regmc.js',
     mc.frozen.join(','));
   ok('2  regmc: REL.require of the table out of that release reads the FROZEN M-C table',
     mc.relRows === MC_ROWS && J(mc.relLoaded) === J(['engine-data-regmc.js']), mc.relRows + ' rows from ' + mc.relLoaded.join(','));
+
+  /* 2b. THE TAG FILE FOLLOWS THE SAME RULE (2026-09-21, ENGINE). Varied knob, and the arms must differ. */
+  const MB_TAB = tagAbilitiesOf('data/tags.json'), MC_TAB = tagAbilitiesOf('data/tags-regmc.json');
+  ok('2b the two tag files differ, so the arms CAN be told apart', MB_TAB !== MC_TAB, MB_TAB + ' vs ' + MC_TAB + ' ability rows');
+  ok('2b default: engine/tags.js reads data/tags.json, live and out of the release',
+    mb.tagAbilities === MB_TAB && J(mb.tagsLoaded) === J(['tags.json']) && mb.relTagAbilities === MB_TAB
+    && mb.relTagPath === 'tags.json' && J(mb.frozenTags) === J(['data/tags.json']),
+    mb.tagAbilities + ' / ' + mb.relTagAbilities + ' rows, ' + mb.tagsLoaded.join(','));
+  ok('2b regmc: the SAME reads give data/tags-regmc.json, live (require) and out of the release (REL.read / REL.path)',
+    mc.tagAbilities === MC_TAB && J(mc.tagsLoaded) === J(['tags-regmc.json']) && mc.relTagAbilities === MC_TAB
+    && mc.relTagPath === 'tags-regmc.json',
+    mc.tagAbilities + ' / ' + mc.relTagAbilities + ' rows, ' + mc.tagsLoaded.join(',') + ', REL.path -> ' + mc.relTagPath);
 
   /* 3. One tree, two regulations, two releases — never one id serving both. */
   ok('3  the same tree cut under each regulation yields two DIFFERENT release ids', mb.id !== mc.id, mb.id + ' vs ' + mc.id);
@@ -142,6 +168,40 @@ ok('5  regmc: M-B\'s table loaded before the door is REFUSED when the door loads
   !!(late && late.err && /REFUSING/.test(late.err)), late && late.err);
 ok('5  CONTROL: door first, then the table — no refusal, and the M-C table loads',
   !!(early && early.err === null && early.rows === MC_ROWS), early && (early.err || early.rows + ' rows'));
+
+/* 6. THE WRITE GUARD (2026-09-21, ENGINE). Under regmc a write onto the live tree's Reg M-B tag file or
+ * protocol-events file is REFUSED and the file is untouched; the CONTROL writes a same-named file in a
+ * throwaway `data/` directory (the shape a release copy has) and is allowed, so the guard is scoped to
+ * the live tree and is not simply refusing every file called tags.json. Nothing here writes the real
+ * Reg M-B file: the refused write never reaches the disk, and its bytes are compared before and after. */
+const GUARD_TMP = path.join(TMP, 'guard', 'data');
+const guard = child('regmc', `
+  const fs = require('fs'), path = require('path'), crypto = require('crypto');
+  const REG = require('./engine/regulation.js');
+  const sha = p => crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
+  const out = {};
+  for (const f of ['tags.json', 'protocol-events.json']) {
+    const live = path.join(process.cwd(), 'data', f);
+    const before = sha(live);
+    /* THE PROBE WRITES THE FILE'S OWN BYTES BACK, so a broken guard costs an mtime and never the file.
+     * The first version of this clause wrote '{}' and, run against a deliberate break, emptied Reg
+     * M-B's data/tags.json — restored from git, and the reason for this line. */
+    const same = fs.readFileSync(live);
+    let err = null; try { fs.writeFileSync(live, same); } catch (e) { err = String(e.message).split('\\n')[0]; }
+    out[f] = { err, unchanged: sha(live) === before };
+  }
+  fs.mkdirSync(${J(GUARD_TMP)}, { recursive: true });
+  let cerr = null; try { fs.writeFileSync(path.join(${J(GUARD_TMP)}, 'tags.json'), '{}'); } catch (e) { cerr = e.message; }
+  out.control = cerr; out.refused = REG.table().writesRefused;
+  console.log('RESULT ' + JSON.stringify(out));`);
+ok('6  regmc: a write onto the live data/tags.json is REFUSED and the file is byte-identical',
+  !!(guard && guard['tags.json'].err && /REFUSING/.test(guard['tags.json'].err) && guard['tags.json'].unchanged),
+  guard && guard['tags.json'].err);
+ok('6  regmc: a write onto the live data/protocol-events.json is REFUSED and the file is byte-identical',
+  !!(guard && guard['protocol-events.json'].err && /REFUSING/.test(guard['protocol-events.json'].err) && guard['protocol-events.json'].unchanged),
+  guard && guard['protocol-events.json'].err);
+ok('6  CONTROL: a tags.json in another data/ directory is written, and the refusals were counted',
+  !!(guard && guard.control === null && guard.refused === 2), guard && ('control ' + guard.control + ', refused ' + guard.refused));
 
 try { fs.rmSync(TMP, { recursive: true, force: true }); }
 catch (e) { console.log('  (could not remove the throwaway store ' + TMP + ': ' + e.message + ')'); }

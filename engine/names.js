@@ -57,7 +57,11 @@ const D = (...p) => path.join(ROOT, ...p);
 const id = s => String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]/g, '');
 
 let _T = null;
-const tags = () => (_T = _T || JSON.parse(fs.readFileSync(D('data', 'tags.json'), 'utf8')));
+/* 2026-09-21 -- THE SELECTED REGULATION'S TAG FILE (engine/regulation.js fileFor). This read is by
+ * fs, not require, so the regulation's require resolver never saw it: under Reg M-C every byTag set
+ * was Reg M-B's membership — found by tracing every read of the M-B name during an M-C smoke run.
+ * Identity (data/tags.json) under Reg M-B. */
+const tags = () => (_T = _T || JSON.parse(fs.readFileSync(D(require('./regulation.js').TAGS_FILE), 'utf8')));
 
 /* Every tag name that actually exists, per section. A typo is caught HERE, at the call, instead of
  * becoming an empty set that reads as a measurement. */

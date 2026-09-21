@@ -118,7 +118,12 @@ function auditStaged() {
     for (const rel of rels) {
       if (!/^(?:engine|build)\/[^/]+\.js$/.test(rel)) continue;
       const txt = fs.readFileSync(path.join(stage, ...rel.split('/')), 'utf8');
-      for (const mm of txt.matchAll(/'\.\.',\s*'\.\.',\s*'([A-Za-z0-9_.-]+)'/g)) siblings.add(mm[1]);
+      /* 2026-09-21 -- A NAME MADE OF DOTS IS NOT A SIBLING. engine/regulation.js:261 spells
+       * `path.join(ROOT, '..', '..', '..', '..', c)`, which this pattern read as a sibling called `..`.
+       * The copy below then ran `fs.cpSync(<the checkout's grandparent>, <tmp>/..)`: from the main tree
+       * it copied the whole Projects directory into %TEMP%, and from a worktree it copied
+       * ABRA/.claude (every agent worktree) there. Every commit's hook stalled on it with no output. */
+      for (const mm of txt.matchAll(/'\.\.',\s*'\.\.',\s*'([A-Za-z0-9_.-]+)'/g)) if (!/^\.+$/.test(mm[1])) siblings.add(mm[1]);
     }
     /* 2026-09-20 -- A SIBLING IS LOOKED FOR BESIDE THE MAIN CHECKOUT TOO, NOT ONLY BESIDE `ROOT`.
      *

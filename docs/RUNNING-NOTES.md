@@ -52,6 +52,44 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.15.0] — 2026-09-21 — **Reg M-C gets its own tag file and protocol-events file, and terrain on entry is closed**
+
+- **Two new files, selected the same way as the species table.** `data/tags-regmc.json` and
+  `data/protocol-events-regmc.json` are named in `data/regulations.json` (`runtime.regmc.tags`,
+  `runtime.regmc.protocolEvents`). `engine/regulation.js` now keeps one map for all three Reg M-C files.
+  The engine reads its tags by `require`, so it follows with no reader edit. A release cut under Reg M-C
+  freezes the tag file. **Reg M-C usage is weighted by Reg M-C's own stores: 212,856 sheet entries.**
+- **Reg M-B cannot be overwritten by a Reg M-C run.** While Reg M-C is selected, a write onto Reg M-B's
+  tag, protocol-events or species file is refused by name. Shown on the real deriver: run without `--out`,
+  it refused, and Reg M-B's file stayed byte-identical.
+- **The six Reg M-C mega stones now carry their mega tag.** The first cause "mega forme did not evolve"
+  fell from 8 games to 0.
+- **Terrain set on entry is closed.** The smoke was run before and after on the same sample. Board-material
+  fell from **65 of 77 to 45 of 85**, and terrain on entry went from the first cause of 45 dumped games to
+  none. Of those 45 games, **19 no longer diverge**, 18 now part on the terrain seeds, 6 on Rocky Helmet
+  and 1 on the order of the Grassy Terrain heal. **The seeds are the largest remaining cause, and they
+  are engine work**: neither the tag nor the engine code exists. A smoke reading, unpinned, not published.
+- **A second silent default is found and fixed.** `engine/names.js` read Reg M-B's tag file by path, so
+  under Reg M-C the differential chose teams by Reg M-B membership. Fixing it changes the sample, so its
+  reading is reported separately: 43 of 86 board-material, with terrain on entry and mega still at 0.
+- Curse had no type-split tag under Reg M-C, because the Reg M-C checkout drops the field the tag was
+  read from. The tag is now read from the handler; which moves match was checked in both regulations
+  before it was wired.
+- Reg M-B unmoved: `data/tags.json` and `data/protocol-events.json` are byte-identical, and the damage
+  differential (`--n 6000 --seed 20260804`) differs only on the launcher's pid line. The control seed
+  differs on 128 lines. `tests/test-regulation-table.js` is 24 of 24; it was shown red at 4 on a
+  deliberate break first.
+- **The commit hook was copying whole directory trees into `%TEMP%` and hanging.** The staged audit
+  (`engine/artifact_audit.js`) looks for sibling checkouts by the spelling `'..', '..', '<name>'`, and
+  `engine/regulation.js:261` spells `'..', '..', '..', '..'`. The audit therefore copied a "sibling"
+  called `..`: the whole Projects directory from the main tree (`%TEMP%/Pokemon`, dated 13:41), or
+  `ABRA/.claude` with every agent worktree from a worktree. It did this with no output. Names made only of
+  dots are now skipped. **The copies already in `%TEMP%` were left in place for the coordinator to
+  review.**
+- Full account: `docs/_reports/2026-09-21-regmc-tags.md`.
+- **Basis.** unchanged. No published figure moves, and no Reg M-C figure is published.
+- **Supersedes.** Nothing.
+
 ## [abra/regmc 0.14.0] — 2026-09-21 — **the first Reg M-C games play end to end**, and the work list they produce is mostly terrain
 
 - **Selecting Reg M-C now loads the Reg M-C species table everywhere.** `engine/regulation.js` redirects

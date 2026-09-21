@@ -248,7 +248,17 @@ const SOURCES = [
  * The pointer is per regulation for the same reason: `data/engine-release.json` is M-B's and is
  * untouched by an M-C cut, which writes `data/engine-release-<id>.json`. One shared pointer is one
  * shared `active` key, and the runtime pass already paid to get rid of that. */
-const REGULATION_SOURCES = REGN.ENGINE_DATA === REGN.DEFAULT_ENGINE_DATA ? [] : [REGN.ENGINE_DATA];
+/* 2026-09-21 (ENGINE) -- AND THE REGULATION'S OWN TAG FILE, by the identical argument: the engine
+ * reads it by path (engine/tags.js), so an M-C release that froze M-B's tags and not M-C's would be a
+ * photograph with the tag half out of frame. The protocol-events file is NOT frozen here: it is an
+ * alignment INPUT to the differential, deliberately kept out of the release (game_differential.js,
+ * PROTO_PATH), and the same holds for M-C's. Reg M-B maps nothing, so this list stays empty for it. */
+const REGULATION_SOURCES = [REGN.ENGINE_DATA, REGN.TAGS_FILE]
+  .filter(f => f !== REGN.DEFAULT_ENGINE_DATA && f !== 'data/tags.json');
+/* A relative path as the SELECTED regulation reads it: the M-B name of a file this release froze a
+ * regulation-own copy of maps to that copy; everything else is itself. For REL.path / REL.read, which
+ * do not pass through the require resolver. Identity under Reg M-B. */
+const regulationRel = rel => (REGULATION_SOURCES.includes(REGN.fileFor(rel)) ? REGN.fileFor(rel) : rel);
 /** The files a release cut NOW freezes: SOURCES, plus the selected regulation's own table. */
 function sourcesNow() { return REGULATION_SOURCES.length ? SOURCES.concat(REGULATION_SOURCES) : SOURCES; }
 
@@ -742,7 +752,8 @@ function cut(why, opts) {
     files,
     /* Only on a release cut for a regulation with its own table (see REGULATION_SOURCES). Absent means
      * `data/engine-data.js`, which is every release before 2026-09-21 and every Reg M-B release after. */
-    ...(REGULATION_SOURCES.length ? { regulation: REGN.ID, engine_data: REGN.ENGINE_DATA } : {}),
+    ...(REGULATION_SOURCES.length ? { regulation: REGN.ID, engine_data: REGN.ENGINE_DATA,
+      regulation_files: REGULATION_SOURCES.slice() } : {}),
     /* WHAT THIS SNAPSHOT CAN SERVE, RECORDED AT CUT TIME — 2026-08-12.
      *
      * A release freezes the ENGINE and not the READER. Every symbol a caller later adds to its `need`
@@ -1647,8 +1658,10 @@ function open(id, opts) {
       }
       return mod;
     },
-    path(rel) { return frozen(rel); },
-    read(rel) { return fs.readFileSync(frozen(rel), 'utf8'); },
+    /* Under a regulation with its own files, `data/tags.json` names the regulation's frozen copy —
+     * the same answer the require resolver gives REL.require. Identity under Reg M-B. */
+    path(rel) { return frozen(regulationRel(rel)); },
+    read(rel) { return fs.readFileSync(frozen(regulationRel(rel)), 'utf8'); },
     /* Goes straight into the artifact. `engine/provenance.js` reads `source_digests` and will now
      * verify it by CONTENT rather than by mtime.
      *
