@@ -157,6 +157,12 @@ function auditStaged() {
     }
     const env = { ...process.env };
     if (SP) env.SHOWDOWN_PATH = SP;
+    /* 2026-09-21 -- AN UNTRACKED INPUT IS TAKEN FROM WHERE IT LIVES, THE SAME AS A SIBLING. A builder
+     * whose source is an untracked data directory (build/build_engine_data_regmc.js reads the frozen
+     * Reg M-C pool, 250 MB, never committed) found nothing in this copy and the first commit of it was
+     * BLOCKED on a false GAP. The copy's origin is named here, not the pool: each builder decides what
+     * it needs from those roots, so this line does not grow a list. */
+    env.ABRA_AUDIT_SOURCE_ROOTS = [ROOT, MAIN].filter(Boolean).join(path.delimiter);
     const nm = D('node_modules');
     if (fs.existsSync(nm)) env.NODE_PATH = nm + (env.NODE_PATH ? path.delimiter + env.NODE_PATH : '');
     const r = spawnSync(process.execPath, [path.join(stage, 'engine', 'artifact_audit.js')], { env, stdio: 'inherit' });
@@ -166,7 +172,8 @@ function auditStaged() {
       `working tree and were read from the index` +
       (rr.from_index.length ? ': ' + rr.from_index.slice(0, 12).join(', ') +
         (rr.from_index.length > 12 ? ', … +' + (rr.from_index.length - 12) : '') : '') +
-      `; copied from disk, not in the commit: ${copied.join(', ') || 'nothing'}; SHOWDOWN_PATH ${SP || 'unresolved'})`);
+      `; copied from disk, not in the commit: ${copied.join(', ') || 'nothing'}; SHOWDOWN_PATH ${SP || 'unresolved'}` +
+      `; untracked inputs resolvable under ABRA_AUDIT_SOURCE_ROOTS ${env.ABRA_AUDIT_SOURCE_ROOTS})`);
     if (r.error) { console.error('artifact_audit --staged: the audit on the staged copy could not run — ' + r.error.message); return 1; }
     if (r.status === null) { console.error('artifact_audit --staged: the audit on the staged copy died on ' + r.signal); return 1; }
     return r.status;

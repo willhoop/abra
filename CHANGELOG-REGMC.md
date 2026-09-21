@@ -21,6 +21,23 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.13.0] — 2026-09-21
+
+### Added
+- `data/engine-data-regmc.js` and its builder `build/build_engine_data_regmc.js` — MEDICHAM can build
+  **all 382 legal Reg M-C species, including all 35 added ones**, in a table separate from Reg M-B's.
+- `tests/test-engine-data-regmc.js` — every species through `buildMon`, 15 of 15, shown red on a broken
+  table first.
+
+### Fixed
+- Under the test runner, a Reg M-C run announced the M-C checkout while reading Reg M-B's. The
+  announcement now names the checkout that actually runs.
+
+### Notes
+- Reg M-B unmoved: damage differential byte-for-byte identical; `data/engine-data.js` not written.
+- **Still not playable**: about fifty callers load the Reg M-B table by path, and adding the new one to
+  frozen releases is MEASURE's call. Six M-C stones lack a mega tag.
+
 ## [0.12.0] — 2026-09-21
 
 ### Added

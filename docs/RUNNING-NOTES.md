@@ -52,6 +52,37 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.13.0] — 2026-09-21 — MEDICHAM can build all 382 Reg M-C species, in a table of its own
+
+- **A separate table, so Reg M-B's cannot move.** `build/build_engine_data_regmc.js` writes
+  `data/engine-data-regmc.js` from the M-C dex, the frozen M-C pool's open team sheets and
+  `engine/legal_scope.js`. It reads no CHOMP data and never reads its own output, so `--check` verifies
+  every field. **`data/engine-data.js` is not written.**
+- **All 382 legal M-C species build, including all 35 added ones.** 350 rows come from observed sets; 25
+  take the set of the forme they change from; 7 are built from their own move pool and accepted by the
+  M-C validator (one added species has no sheet in the pool at all). All 82 mega formes are covered
+  through the stone that names them.
+- **The ability the strict legality filter drops reaches the table**, and the body built from it carries
+  it. **A real six-body M-C team** drawn from the table passes the M-C `TeamValidator`, and every body
+  `buildMon` returns has four moves and a real ability. As a control, the same 35 species build **zero**
+  times against the Reg M-B table.
+- **Reg M-B is unmoved**: the damage differential is byte-for-byte identical before and after, and no
+  frozen engine file changed. `engine/artifact_audit.js` reads the new table `ok`.
+- `tests/test-engine-data-regmc.js` checks every species through `buildMon` — **15 of 15**, and shown
+  failing on a deliberately broken copy of the table first.
+- **An announcement that named the wrong checkout is fixed.** Under `tests/run-all.js` an M-C run
+  announced the M-C Showdown checkout while actually reading Reg M-B's, because the runner resolves
+  `SHOWDOWN_PATH` once and propagates it into every child, and an explicit path deliberately wins. The
+  simulator refused rather than playing the wrong format, so no figure was wrong — but a message that
+  disagrees with what the code does is the shape of instrument failure this project keeps finding. It
+  now reads `OVERRIDDEN by SHOWDOWN_PATH=... -- THAT is the checkout this run reads`.
+- **STILL NOT PLAYABLE.** About fifty callers load `data/engine-data.js` BY PATH, including `board.js`,
+  so nothing reads the new table yet; making it part of every frozen engine release is MEASURE's
+  decision. Six M-C mega stones carry no mega tag, so a base forme holding one builds but cannot mega
+  evolve. M-C opponent move priors are empty on purpose.
+- **Basis.** unchanged. No published figure moves, and no M-C figure is published.
+- **Supersedes.** Nothing.
+
 ## [abra/regmc 0.12.0] — 2026-09-21 — the regulation is a RUN-TIME choice, and Reg M-B is unmoved to two lines of 35,980
 
 - **What changed.** `engine/regulation.js` — one resolver for which regulation a run is about.

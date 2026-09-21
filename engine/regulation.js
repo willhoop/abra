@@ -276,7 +276,20 @@ function describe() {
     FORMAT ? '(' + FORMAT + ')' : '(NO FORMAT ID)',
     'by ' + SEL.source,
   ];
-  if (SEL.entry.checkout) bits.push('| checkout ' + SEL.entry.checkout);
+  /* THE ANNOUNCEMENT MUST NAME THE CHECKOUT THAT ACTUALLY RUNS — 2026-09-21. An explicit
+   * SHOWDOWN_PATH wins over the regulation's checkout, deliberately, and tests/run-all.js resolves
+   * that path ONCE and propagates it into every child. So a child that selected Reg M-C was
+   * announcing the M-C checkout while reading Reg M-B's: the simulator refused rather than running
+   * the wrong format, so no figure was wrong, but a message that disagrees with what the code does
+   * is the same shape as a green check that verifies nothing. It now says which one wins. */
+  if (SEL.entry.checkout) {
+    const env = process.env.SHOWDOWN_PATH;
+    const norm = x => path.resolve(String(x)).toLowerCase();  /* resolve() normalises separators */
+    const overridden = !!env && !checkoutCandidates().some(c => norm(c) === norm(env));
+    bits.push('| checkout ' + SEL.entry.checkout + (overridden
+      ? '  OVERRIDDEN by SHOWDOWN_PATH=' + env + ' -- THAT is the checkout this run reads'
+      : ''));
+  }
   if (SEL.fallback) bits.push('| FALLBACK: ' + SEL.fallback);
   return bits.join('  ');
 }
