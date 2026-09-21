@@ -70,7 +70,7 @@ METHOD, held identical across every arm so only the named thing varies
     python engine/pory_nn.py --selfplay          # ladder + self-play corpus
     python engine/pory_nn.py --selfplay-only
 """
-import os, sys, json, math, argparse
+import os, sys, json, math, argparse, datetime
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -519,6 +519,13 @@ def main():
     print(f"  the bar (B2, two material features)          : {b2['logloss']:.4f}")
 
     json.dump({
+        # THE ARTIFACT SAYS WHO WROTE IT. Until 2026-09-21 it did not, and engine/conformance.js's
+        # S13 header clause passed it anyway because the phrase "engine/provenance.js" happens to
+        # appear in `population_ceiling_note` inside the first 400 bytes the check read. A green that
+        # rests on a footnote is not a green; the check now asks the declaration keys, and these two
+        # are the declaration.
+        "by": "engine/pory_nn.py",
+        "generated": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "encoder_version": ENCODER_VERSION,
         "n_features": len(FEATURE_NAMES),
         "sources": [os.path.relpath(p, ROOT) for p in paths if os.path.exists(p)],

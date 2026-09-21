@@ -52,6 +52,36 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.5.0] — 2026-09-21 — a certificate that proved nothing, a ratchet that forgave itself, and a withdrawn figure still in print
+
+- **The worst of these reported fine.** `probe_red_demo`'s mega-stone demonstration applied its patch,
+  matched once — in the arm where the stone is never taken — and so **reverted nothing**. Its fixture
+  had also gone unreachable: the body faints to the click now, so the step under test never ran. A
+  vacuous certificate is worse than a failing one, because nothing says so. Four more demonstrations
+  could not apply at all after last night's engine work. Now **197: 0 HOLLOW, 0 COULD NOT BE APPLIED**,
+  with one assertion re-stated stricter rather than weaker, and no engine byte changed.
+- **`engine/conformance.js`'s ratchet forgave its own old findings whenever a standard was edited** —
+  `classify()` asked *did the rule move* before *was this already outstanding*, and a seeded finding is
+  on an unchanged subject by definition. **The first clean run would have adopted four six-week-old
+  findings permanently.** Reproduced by restoring the old order before fixing it.
+- Two more conformance checks measured something other than what they claimed: a declaration test that
+  actually measured **key order** (a digest block pushed 5 of 8 subjects out of its 400-byte window),
+  and a subject digest blind to line endings, which made every `data/` subject read CHANGED from a
+  worktree and gave four findings a reason that was fiction.
+- **A withdrawn figure was still in print.** The white paper carried PORY's held-out log-loss, interval
+  and calibration error. 7.0.0 withdrew every non-MEDICHAM figure; that pass missed this one. Deleted.
+- **And the check that caught it was enforcing the opposite of the policy.** It REQUIRED the figure in
+  two documents. Will, 2026-09-21: *"dont take the previous models not named medicham as gospel i will
+  likely have to change them all."* Inverted to assert absence, and it flips back by itself when PORY
+  is re-run.
+- **Basis.** unchanged. No published figure moves; one withdrawn figure stops being published.
+- **Supersedes.** Nothing. The coordinator's reading of "38 conformance regressions" was **wrong** — it
+  counted printed subject lines, and the gating count was 11. Corrected by the agent, verified, now 10.
+- **Still red: 6 of 17.** `test-end-state`, `test-forced-switch-mirror`, `test-mag-page`,
+  `test-stadium-roster`, `probe_control_self_name`, `staged_board`, and `sanity_check`'s one remaining
+  clause — a single game in 94,360 where both sides brought six, under diagnosis rather than declared,
+  because the store's exclusion mechanism demands evidence per id and an anomaly is not evidence.
+
 ## [abra/regmc 0.4.0] — 2026-09-21 — eight of the seventeen reds close, and one of them was a check that went silent because it succeeded
 
 - **What changed.** No engine mechanic. Five gates closed, on top of the two closed earlier.

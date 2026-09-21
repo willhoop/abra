@@ -2207,11 +2207,17 @@ set an order of magnitude smaller, is superseded by this one. Output: `data/xatu
 `engine/eval_policy.py` → `data/policy-eval.json`.
 
 ### 4.3 PORY — mid-game win probability (RETRACTED as a value net; it is material arithmetic)
-The pivot's proof. `engine/pory.py` reconstructs per-turn board state (mons alive out of four, mean
-active HP, turn) and fits a logistic value net. Held-out, clustered by game: **log-loss 0.6236** 95% CI [0.6070, 0.6387] vs coin
-0.693**, beating a material-sign heuristic, **calibrated to ECE 1.6%**, CI **[0.548, 0.583]**. The
-*live board is predictable even though the pre-game sheets are not* — the thesis, demonstrated. PORY is
-wired into KADABRA as a per-turn "you're at X%". Output: `data/pory.js`; report `data/pory-eval.json`.
+`engine/pory.py` reconstructs per-turn board state (mons alive out of four, mean active HP, turn) and
+fits a logistic value net, wired into KADABRA as a per-turn "you're at X%". Output: `data/pory.js`;
+report `data/pory-eval.json`.
+
+**EVERY FIGURE THIS SECTION CARRIED IS WITHDRAWN AT 7.0.0, AND THE RE-RUN IS OWED.** PORY reads a
+rollout, so its held-out log-loss, its interval, its calibration error and its margin over the
+baselines were all measured under a simulator that has since been corrected many times. The gate
+opening makes them **re-runnable, not true**, and this document publishes no number for them until
+they are re-run. The structural claim the section was making — that the live board is predictable
+where the pre-game sheets are not — is a claim this paper is **no longer entitled to make from these
+measurements**, and it is not restated here on the strength of them.
 
 ### 4.4 CHOMP-EV — do CHOMP's brings beat humans'? (honest NULL)
 The winnable team-preview test. For each held-out game (both full sixes, both actual brings, the

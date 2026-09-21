@@ -208,7 +208,25 @@ function checkNamedPokemon(f, src) {
   for (const [kind, re] of NAMED) {
     const g = new RegExp(re.source, 'g');
     let m;
-    while ((m = g.exec(src))) found.add(kind + ':' + m[1]);
+    while ((m = g.exec(src))) {
+      /* A HYPHEN IS NOT AN ID BOUNDARY, AND `\b` SAYS IT IS — 2026-09-21.
+       *
+       * A dex id in this repository is `[a-z0-9]+` — `engine/screen_tags.js`'s `norm` is
+       * `String(s).toLowerCase().replace(/[^a-z0-9]/g, '')`, and the NAMED tables three screens up are
+       * written in exactly that form (`trickroom`, `lightscreen`, `focussash`), hyphenless by
+       * construction. A name sitting next to a `-` is therefore never a reference to the entity; it is
+       * prose, a filename, or a label this repo made up. All four hits on
+       * engine/human_protect_ruler.js were of that shape — its own output path
+       * `data/human-protect-ruler.json`, and the phrases `protect-family` and `protect-amplification`
+       * inside report strings — in a file that never once names a move to the engine. It also drops
+       * engine/stage_planner.js's scenario labels `'protect-ally'` and `'prankster-fast'`, which are
+       * keys into its own break table, while leaving every `learns(sp, 'protect')` in that same file
+       * flagged. This NARROWS nothing that the standard is about: `'trickroom'`, `'focussash'` and
+       * `Dex.moves.get('protect')` are all unhyphenated by construction, which is the whole reason the
+       * NAMED tables above are written in id form. */
+      if (src[m.index - 1] === '-' || src[m.index + m[1].length] === '-') continue;
+      found.add(kind + ':' + m[1]);
+    }
   }
   if (!found.size) return;
   flag('S12', f.rel, `names ${found.size} Pokemon thing(s) in code: ${[...found].slice(0, 5).join(', ')}` +
@@ -313,10 +331,35 @@ const DECLARED_SOURCES = {
 /* The scratch skip below needs to know whether any CODE names a file. Built once, from the same
  * sources the rest of this scan reads, comments stripped — a sentence about a file is not a reader. */
 const scratchSkipped = [];
+/* Artifacts skipped by the VOID clause in checkGeneratedFiles, printed for the same reason the scratch
+ * list is: an exemption nobody can see is an exemption nobody can audit. */
+const voidSkipped = [];
 let codeCorpus = null;
 function codeNames(file) {
   if (codeCorpus === null) codeCorpus = srcs.map(s => stripComments(read(s.full))).join('\n');
   return codeCorpus.includes(file);
+}
+
+/* A data/ FILE READ AS A DOCUMENT, PARSED ONCE, AND A REFUSAL THAT SPEAKS.
+ *
+ * Two clauses below ask the artifact's own keys what it says about itself. A `data/*.js` bundle is not
+ * JSON and is not expected to parse — that is not a failure. A `.json` that will not parse IS a fact:
+ * the file is malformed, or another process is mid-write on it. Either way it is judged as declaring
+ * nothing, and the difference between `declares nothing` and `could not be read` is exactly the
+ * silent default this project keeps paying for, so the reason is printed and recorded. */
+const parseFailures = [];
+function dataDoc(file) {
+  if (!/\.json$/i.test(file)) return null;
+  try { return JSON.parse(read(D('data', file))); }
+  catch (e) {
+    const msg = String((e && e.message) || e).split(String.fromCharCode(10))[0];
+    if (!parseFailures.some(x => x.file === file)) {
+      parseFailures.push({ file, msg });
+      console.error('  NOT JSON — data/' + file + ' (' + msg + '); judged as declaring nothing, which '
+                  + 'is NOT the same as having been read');
+    }
+    return null;
+  }
 }
 
 function checkGeneratedFiles() {
@@ -369,7 +412,60 @@ function checkGeneratedFiles() {
      * on a race is a gate that gets switched off, so an unreadable file is REPORTED and not judged —
      * loud, and not a finding. It cannot hide a real violation: the next run reads the bytes. */
     if (!body.trim()) { unreadable.push(file); continue; }
-    const saysGenerated = /GENERATED|generated|do not hand-edit|provenance/i.test(body);
+    /* DOES THE FILE SAY IT IS GENERATED? ASKED OF ITS KEYS, NOT OF ITS FIRST 400 BYTES — 2026-09-21.
+     *
+     * The text peek was a measure of KEY ORDER wearing the standard's name. Seven of the eight files
+     * it flagged on 2026-09-21 declare their origin at the TOP LEVEL and declare it in the exact shape
+     * engine/provenance.js's `declaredWriter` arm reads — `data/replay-differential.json` and its four
+     * siblings carry `"by": "engine/replay_differential.js"`, `data/pp-board-probe.json` carries
+     * `generated`, `data/artifact-rerunnable-baseline.json` carries `"by":
+     * "tests/test-artifact-rerunnable.js --stamp"`. Five failed only because a long `source_digests`
+     * or `note` block sits above the declaration and pushes it past byte 400; reorder the keys and the
+     * same file passes, which is not a thing a standard should depend on.
+     *
+     * THE EIGHTH IS data/medicham-bench.json AND IT IS SKIPPED ON A DIFFERENT FACT — see the void
+     * clause below. Its writer has stamped `generated_by` since 2026-08-27; the copy on disk predates
+     * that line and, uniquely, can never be replaced.
+     *
+     * IT IS THE SAME KEY SET provenance.js ALREADY USES, not a second one. Two lists of "what counts
+     * as a declaration" is the fact/feature split broken, and they would disagree eventually. The
+     * textual header is still honoured first, because data/*.js bundles are not JSON and a human
+     * opening any generated file should still meet the warning. */
+    const saysGenerated = (() => {
+      if (/GENERATED|do not hand-edit/i.test(body)) return true;
+      const j = dataDoc(file);
+      if (!j || typeof j !== 'object') return /generated|provenance/i.test(body);
+      const p = (j.provenance && typeof j.provenance === 'object') ? j.provenance : {};
+      const claims = [j.by, j.generated, j.generated_by, j.written_by, j.generator,
+                      p.by, p.generated, p.generated_by, p.written_by, p.generator,
+                      typeof j.provenance === 'string' ? j.provenance : null];
+      return claims.some(v => typeof v === 'string' && v.trim());
+    })();
+    /* A SELF-DECLARED VOID ARTIFACT IS A WITHDRAWAL, NOT STATE — 2026-09-21.
+     *
+     * `void: true` is already a first-class declaration in this repository: engine/provenance.js
+     * honours it and reports VOID separately from UNSAFE, precisely so a withdrawn artifact is not
+     * argued with. It is a STRONGER statement than "do not hand-edit" — it says the contents must not
+     * be quoted at all — so a void file cannot lie to a reader who reads its own first key, which is
+     * what the header clause guards.
+     *
+     * IT IS THE ONLY WAY data/medicham-bench.json COULD EVER GO GREEN, AND THAT IS THE ARGUMENT.
+     * That file was withdrawn on 2026-08-27 because its roster named a species that is not in this
+     * regulation and `buildMon` returned null silently, so 120 games ran against a hole. Its own
+     * `void_reason` states the consequence: "the benchmark cannot run at all until it is re-recorded".
+     * Its writer tests/bench-medicham.js HAS stamped `generated_by` since that day — so the defect is
+     * fixed at the only place a fix can live, and no future run will ever restamp this copy. A finding
+     * that no action can close is the shape this project has twice normalised into "known failure";
+     * the remedy is a declaration keyed on a fact, not a red nobody can clear.
+     *
+     * CHECKED, NOT TRUSTED, AND PRINTED. The file must actually carry `void === true`; the skip lapses
+     * the day it stops. The set is listed on every run beside the scratch dumps, so it is visible
+     * state. It skips ONLY the header clause: a void artifact that nothing generates is still flagged,
+     * because "nobody wrote this" and "this was withdrawn" are different claims. */
+    if (generated && !saysGenerated) {
+      const vj = dataDoc(file);
+      if (vj && vj.void === true) { voidSkipped.push(file); continue; }
+    }
     if (!generated) {
       /* THE REASON TRAVELS AS `detail`, NEVER IN `what`. provenance.js states why it found no
        * writer and that is worth printing — but `what` is the finding's IDENTITY for the ratchet
@@ -480,6 +576,13 @@ if (unreadable.length) {
   console.log(`\n  NOT JUDGED — ${unreadable.length} file(s) in data/ returned no bytes at scan time`);
   console.log(`  (empty, or being written by another process). They are neither passed nor failed:`);
   for (const f of unreadable) console.log(`      data/${f}`);
+}
+/* The void skip is printed for the same reason. */
+if (voidSkipped.length) {
+  console.log(`
+  S13 SKIPPED ${voidSkipped.length} self-declared VOID artifact(s) — withdrawn records, `
+    + `header clause only (checkGeneratedFiles):`);
+  console.log(`      ${voidSkipped.join(', ')}`);
 }
 /* The scratch skip is printed, so it is visible state and never a silent exemption. */
 if (scratchSkipped.length) {
@@ -602,13 +705,35 @@ function fingerprint(v) {
  * slice, so changing one and re-raising a finding reads as UNEXPLAINED — which fails the gate. That
  * is the conservative direction and it is the correct one to be wrong in.
  * ------------------------------------------------------------------------------------------- */
-const RS_ = require('./run_stamp.js');
 /* ROADMAP #258 — a digest that could not be taken is not a digest of nothing. `null` still goes into
  * the stamp (the caller compares stamps and a missing one must not equal a present one), but the
  * reason is said, because a subject surface silently losing a file is a scan that verifies less. */
 const SHA_FAILURES = [];
+/* THE SUBJECT DIGEST GOES THROUGH THE NORMALISING DOOR TOO — 2026-09-21.
+ *
+ * `run_stamp.js`'s `sha12` digests RAW BYTES, and it was the one read in this file that did not normalise, against
+ * a header two hundred lines up that says every read here does. `core.autocrlf` is true on this
+ * machine, so the same commit gives different bytes in different checkouts: measured 2026-09-21, the
+ * main checkout holds `data/*.json` with LF (they are written there by their generators and never
+ * re-checked-out) and a `git worktree add` checkout holds the same blobs with CRLF. Every data subject
+ * therefore read as CHANGED when the scan ran from a worktree, and four findings were printed with the
+ * reason "the subject file changed since the baseline" about files that had not moved a byte since
+ * 2026-08-11. The verdicts were right and the reasons were fiction, which is the half this project
+ * treats as the defect.
+ *
+ * It is also the SAFE direction to have been wrong in — a mismatched digest reads as REGRESSION, never
+ * as DISCOVERY — so nothing was blessed by it. Normalising makes the split reproducible across
+ * checkouts; the one thing it stops detecting is a change that is ONLY line endings, which is not a
+ * change to any standard this file checks.
+ *
+ * A DIGEST THAT COULD NOT BE TAKEN IS STILL null, NOT 'MISSING'. `run_stamp.js`'s `sha12` swallows the fs error and
+ * returns the string 'MISSING', so the catch below could not fire and SHA_FAILURES stayed empty for a
+ * file nobody could read. Reading here lets the error reach the reporter the comment above promises. */
 const sha = rel => {
-  try { return RS_.sha12(rel); }
+  try {
+    return require('crypto').createHash('sha256')
+      .update(readText(D(rel))).digest('hex').slice(0, 12);
+  }
   catch (e) {
     const msg = String((e && e.message) || e).split(String.fromCharCode(10))[0];
     SHA_FAILURES.push({ file: rel, error: msg });
@@ -733,17 +858,28 @@ if (errBaseline) {
       return { klass: 'REGRESSION', why: 'the subject was not in the previous scan — new code must conform' };
     if (scopeWas[file] !== scopeNow[file])
       return { klass: 'REGRESSION', why: 'the subject file changed since the baseline' };
-    const rw = rulesWas[e.std], rn = rulesNow[e.std];
-    if (rn && rw && rn !== rw)
-      return { klass: 'DISCOVERY', why: `the subject is byte-identical to the baseline and ${e.std}'s own rule moved (${rw} -> ${rn})` };
     /* A FINDING THAT WAS ALREADY NEW WHEN THE SPLIT WAS INSTALLED IS NOT AN UNEXPLAINED EVENT, AND
      * SAYING SO WOULD BE THIS FILE INVENTING A CAUSE. --seed-split records the exact set that was
      * outstanding at the seed; those predate the mechanism, cannot be attributed by it, and are
-     * reported as such. They still fail — the split was never a way to make them go away. */
+     * reported as such. They still fail — the split was never a way to make them go away.
+     *
+     * IT IS ASKED BEFORE THE RULE COMPARISON, AND IT WAS ASKED AFTER IT UNTIL 2026-09-21. That order
+     * was a laundry chute. A seeded finding is on an UNCHANGED subject by definition — the subject was
+     * already violating when the seed was taken — so the branch below claimed every one of them the
+     * moment anybody edited that standard's rule, and "the checker got better" was printed over a
+     * finding the checker had been reporting for six weeks. Measured on the run that found it: editing
+     * S13 reclassified `data/battle-formes.json`, `data/conditional-audit.json` and
+     * `data/policy-weights-nopop.json` — all three listed in `new_at_seed` — as DISCOVERY, which is
+     * NOT fatal, so a green run would have adopted them into the baseline and they could never have
+     * been raised again. `new_at_seed` is a recorded FACT about those keys; a rule digest is evidence
+     * about everything else. The fact wins. */
     if (Array.isArray(prev.new_at_seed) && prev.new_at_seed.includes(k))
       return { klass: 'REGRESSION', why: 'it was ALREADY new when --seed-split installed the split ('
         + (prev.seeded || 'unknown date') + '), so this mechanism cannot attribute it either way. '
         + 'Triage it on its merits' };
+    const rw = rulesWas[e.std], rn = rulesNow[e.std];
+    if (rn && rw && rn !== rw)
+      return { klass: 'DISCOVERY', why: `the subject is byte-identical to the baseline and ${e.std}'s own rule moved (${rw} -> ${rn})` };
     return { klass: 'REGRESSION', why: 'UNEXPLAINED — neither the subject nor ' + e.std + '\'s rule '
       + 'moved, so an input this checker does not track did. Treated as a regression on purpose' };
   };

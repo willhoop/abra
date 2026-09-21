@@ -1,0 +1,365 @@
+{
+  "id": "0d7b1d9db6d1",
+  "cut": "2026-09-20T21:32:09.495Z",
+  "why": "\"6.83.0",
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "cuts": [
+    {
+      "at": "2026-09-20T21:32:09.495Z",
+      "why": "\"6.83.0",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 7420,
+        "entry": "engine/engine_release.js"
+      }
+    },
+    {
+      "at": "2026-09-20T21:36:06.703Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 8460,
+        "entry": "engine/all_mechanics_fire.js"
+      }
+    },
+    {
+      "at": "2026-09-21T01:01:08.696Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 18192,
+        "entry": "tests/test-assert-mode.js"
+      }
+    },
+    {
+      "at": "2026-09-21T01:02:39.128Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 4964,
+        "entry": "tests/test-coverage-stop.js"
+      }
+    },
+    {
+      "at": "2026-09-21T01:02:44.997Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 15100,
+        "entry": "tests/test-damage-roll-support.js"
+      }
+    },
+    {
+      "at": "2026-09-21T01:04:37.414Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 9232,
+        "entry": "tests/test-effect-credit.js"
+      }
+    },
+    {
+      "at": "2026-09-21T01:06:01.076Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 15836,
+        "entry": "tests/test-end-state-severity.js"
+      }
+    },
+    {
+      "at": "2026-09-21T01:06:22.014Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 19752,
+        "entry": "tests/test-end-state.js"
+      }
+    },
+    {
+      "at": "2026-09-21T01:38:00.347Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 16832,
+        "entry": "tests/test-fixture-runtime-check.js"
+      }
+    },
+    {
+      "at": "2026-09-21T01:41:46.558Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 1264,
+        "entry": "tests/test-forme-assert.js"
+      }
+    },
+    {
+      "at": "2026-09-21T01:41:56.083Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 13336,
+        "entry": "tests/test-game-differential.js"
+      }
+    },
+    {
+      "at": "2026-09-21T01:46:32.290Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 8752,
+        "entry": "tests/test-middle-damage-roll.js"
+      }
+    },
+    {
+      "at": "2026-09-21T01:46:35.316Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 10168,
+        "entry": "tests/test-middle-draw-scope.js"
+      }
+    },
+    {
+      "at": "2026-09-21T01:46:38.696Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 7656,
+        "entry": "tests/test-middle-identity.js"
+      }
+    },
+    {
+      "at": "2026-09-21T01:58:30.352Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 4956,
+        "entry": "tests/test-middle-stall-address.js"
+      }
+    },
+    {
+      "at": "2026-09-21T01:59:00.214Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 3468,
+        "entry": "tests/test-nature-differential.js"
+      }
+    },
+    {
+      "at": "2026-09-21T01:59:15.089Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 13116,
+        "entry": "tests/test-perish-song.js"
+      }
+    },
+    {
+      "at": "2026-09-21T01:59:16.102Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 9884,
+        "entry": "tests/test-pin-arms.js"
+      }
+    },
+    {
+      "at": "2026-09-21T02:03:36.256Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 4892,
+        "entry": "tests/test-roster-identity.js"
+      }
+    },
+    {
+      "at": "2026-09-21T02:11:10.293Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 12420,
+        "entry": "tests/test-speed-tie.js"
+      }
+    },
+    {
+      "at": "2026-09-21T02:12:09.683Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 17004,
+        "entry": "tests/test-state-differential.js"
+      }
+    },
+    {
+      "at": "2026-09-21T02:15:33.249Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 17532,
+        "entry": "tests/test-switch-back-renamed.js"
+      }
+    },
+    {
+      "at": "2026-09-21T02:15:34.129Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 4812,
+        "entry": "tests/test-switch-carry.js"
+      }
+    },
+    {
+      "at": "2026-09-21T02:15:45.383Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 20020,
+        "entry": "tests/test-volatile-duration.js"
+      }
+    },
+    {
+      "at": "2026-09-21T02:31:58.247Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+      "by": {
+        "pid": 7492,
+        "entry": "tests/staged_board.js"
+      }
+    }
+  ],
+  "files": {
+    "engine/medicham2-browser.js": "3c6f082ecafa",
+    "engine/board.js": "c85a3b756c98",
+    "engine/rollout_leaf.js": "d00e77a7ac26",
+    "engine/position_features.js": "bb71676d3669",
+    "engine/tags.js": "145a3cc9ce2f",
+    "engine/champions_sim.js": "276b2f752247",
+    "data/residual-order.json": "eff160ad1c5a",
+    "data/switchin-order.json": "24a007a66b7d",
+    "engine/mc_key.js": "f57c27a6bf38",
+    "engine/lookup.js": "17f49e5aed43",
+    "engine/set_priors.js": "f8a81445ee3a",
+    "engine/smogon_priors.js": "5c039f9ebdbc",
+    "engine/quality.js": "c6de8fb66ea3",
+    "engine/showdown_path.js": "0efe29f4245d",
+    "data/move-effects.js": "f35ecd91ba86",
+    "data/ability-blocks.json": "86741fd35452",
+    "data/smogon-priors.json": "f2dc78cea6c5",
+    "data/regulations.json": "6c1995e9a9fb",
+    "data/quality-filter.json": "771c3bd3e544",
+    "data/engine-data.js": "bbc417dfae0e",
+    "data/abra-tags.js": "43bf7eb1bcc1",
+    "data/tags.json": "c34d6465c3b6",
+    "data/policy-weights.json": "626c1d240782",
+    "data/policy-weights-joint.json": "e2aca467ff04",
+    "data/move-priors.json": "e667fe8ab457",
+    "engine/pp.js": "30b12a4ef623",
+    "data/rollout-switch-census.json": "b599f8d581b5"
+  },
+  "provides": [
+    "ACCMOD",
+    "CH_EXACT",
+    "CH_ONE",
+    "CODE_OF_STATUS",
+    "EXPOSURE_HORIZON",
+    "MEDFAILS",
+    "MEDI_SPREAD",
+    "MEDSEEN",
+    "MID_EVENT_SEED",
+    "NATURE_SHIFT",
+    "PROTECTMOVES",
+    "RESIDUAL_CLOCK_ORDER",
+    "RESIDUAL_EXPIRY",
+    "RESIDUAL_GROUPS",
+    "RNG_STREAMS",
+    "STALL_SHARED",
+    "SUBPASS",
+    "TRACE_EVENTS",
+    "TURN_ORDER",
+    "WEATHER_REFUSES_STATUS",
+    "accStageMul",
+    "actionPriority",
+    "applyEntryEffects",
+    "applyIntimidate",
+    "applyStatus",
+    "auraStateOf",
+    "battle",
+    "battleInit",
+    "battleOver",
+    "battleResult",
+    "battleTurn",
+    "bestMoveVs",
+    "buildMon",
+    "buildMonFromSet",
+    "canMegaNow",
+    "canTakeStatus",
+    "ch4096",
+    "clickFragility",
+    "compareTurnOrder",
+    "dmgRange",
+    "effSpeed",
+    "fails",
+    "foeThreatensGuardClass",
+    "futureSight",
+    "guardMoveAimedAtFoes",
+    "hitChance",
+    "hitProb",
+    "isGrounded",
+    "md4096",
+    "mdChain",
+    "megaEvolveNow",
+    "megaTargetFor",
+    "midEventBase",
+    "midEventDice",
+    "midEventHash",
+    "midEventLog",
+    "midEventValue",
+    "moveAccuracy",
+    "moveDisabledBy",
+    "moveFx",
+    "movePriority",
+    "natureL50",
+    "natureShift",
+    "natureStat",
+    "parsePaste",
+    "physicalShare",
+    "playerAction",
+    "powderBlocked",
+    "ppMax",
+    "ppSpentMap",
+    "pranksterBlocked",
+    "printedAccuracy",
+    "priorityRefusedAbove",
+    "punishExposure",
+    "residualClockPlacement",
+    "residualExpiryDeferred",
+    "residualFollowerReport",
+    "residualFollowerRuns",
+    "residualShadowProbe",
+    "residualShadowSortForTest",
+    "rngStreams",
+    "seen",
+    "setPurePriors",
+    "sideGuardClickRate",
+    "sortTurnOrder",
+    "speedFlipShare",
+    "spreadL50",
+    "stallBoardCounter",
+    "stallCounter",
+    "statusCostOf",
+    "switchTrapVerdict",
+    "terrainId",
+    "traceCanon",
+    "traceCounts",
+    "traceListSink",
+    "turnOrderKey",
+    "weatherId",
+    "weatherTurns",
+    "winProb2"
+  ],
+  "provides_by": "engine_release.js exportedNames — static parse of module.exports, comments stripped",
+  "note": "IMMUTABLE. A measurement reads these bytes, not the live tree, so other divisions may keep working while it runs. Re-cutting an identical tree returns this same id and APPENDS to cuts[]; `cut` and `why` are the FIRST freeze of these bytes and are never overwritten. The event log is cuts.jsonl beside this file and is the source of truth for cuts[]."
+}

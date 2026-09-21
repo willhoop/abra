@@ -3087,10 +3087,12 @@ const W7 = {
       W7.pass2(f1, f2));
     return { lines: trace.filter(l => /^\|-(heal|ability)\|/.test(l)), hp: ally.curHP, max: ally.st.hp };
   },
-  /* one Knock Off from a full-HP body; returns what the target has left and what it is holding */
-  knock(E, target, item) {
+  /* one Knock Off from a full-HP body; returns what the target has left and what it is holding.
+   * `survive` inflates the target's HP through `W7.big` — see the mega-stone case below for why a
+   * body that FAINTS to this click cannot demonstrate an item rule at all. */
+  knock(E, target, item, survive) {
     const { me, ally, f1, f2, S } = W7.board(E, 'incineroar', 'corviknight', target, 'garchomp');
-    f1.item = item; f1.curHP = f1.st.hp;
+    f1.item = item; if (survive) W7.big(f1); f1.curHP = f1.st.hp;
     E.battleTurn(S, rng5,
       new Map([[me, E.playerAction(me, 'knockoff', f1, S.field)], [ally, { kind: 'pass' }]]), W7.pass2(f1, f2));
     return { hp: f1.curHP, dead: !!f1.fainted, item: f1.item };
@@ -3140,8 +3142,18 @@ demoSource('ROADMAP #81 WIRE 7  Knock Off cannot take the Sash that just saved t
    * stale on a line added inside it. The step is now neutered at its first statement, which cannot go
    * stale on the fourth. The MOVED copy below is unchanged and deliberately carries both refusal
    * guards, so what is reverted is only the ORDER. */
-  [["      const _stepAfterHit=(R)=>{const tg=R.tg;",
-    "      const _stepAfterHit=(R)=>{if(1){void R;return;}const tg=R.tg;"],
+  /* RE-AIMED AGAIN 2026-09-21, ENGINE, AND THE BODY IS NO LONGER THE DOOR. The 2026-09-20 steal-eat
+   * split lifted the step's WHOLE BODY out into a shared `_itemStripStep(R)` called by two wrappers
+   * (`_stepStealEatAtHit` for Bug Bite / Pluck at `onHit`, `_stepAfterHit` for Thief / Covet /
+   * Knock Off at `onAfterHit`), so `const _stepAfterHit=(R)=>{const tg=R.tg;` — which quoted the
+   * first line of the body as well as the door — stopped matching. The anchor is now the door ALONE,
+   * up to its opening brace: it carries no statement of the body, so neither a line added inside the
+   * block nor the body being moved out of it again can stale it. Knock Off is an `onAfterHit` move
+   * (`_stripAtOnHit()` is false for it), so neutering this wrapper is exactly "the late strip does
+   * not happen" and leaves Bug Bite's `onHit` road alone. The MOVED copy below is unchanged and
+   * still carries both refusal guards, so what is reverted is only the ORDER. */
+  [["      const _stepAfterHit=(R)=>{",
+    "      const _stepAfterHit=(R)=>{if(1){void R;return;}"],
    /* RE-AIMED AGAIN 2026-08-30. The resist berry's SPEND moved out of `_stepApply` and up into
     * `_stepDamage`, where the authority raises it (`onSourceModifyDamage` inside `getDamage`), so the
     * line this pattern quoted is no longer in this step at all. WHAT THE DEMONSTRATION CLAIMS HAS NOT
@@ -3168,9 +3180,28 @@ demoSource('ROADMAP #81 WIRE 7  a mega stone cannot be knocked off the body it b
    * conjunct is the entire reversal, and the sibling refusal (`abilityRefusesItemLoss`, ROADMAP #175)
    * is still carried across, so the known-bad engine is "Knock Off ignores the stone rule" and not
    * "Knock Off refuses nothing". Verified to match exactly once in the engine source. */
-  [['!itemRefusesTake(tg)&&', '']],
-  (E) => { const owner = W7.knock(E, 'gengar', 'gengarite'), other = W7.knock(E, 'garchomp', 'gengarite');
-           return other.item === '' && owner.item === 'gengarite'; });
+  /* RE-AIMED AGAIN 2026-09-21, ENGINE — AND IT WAS THE FIXTURE, NOT THE PATTERN. The pattern applied
+   * and the case still did not flip, which is the shape this file's own Knock Off header warns about
+   * one demonstration up: A REVERSAL THAT LEAVES THE DEFECT UNREACHABLE PROVES NOTHING. Measured on
+   * the shipped engine, `|-damage|p2a: gengar|0 fnt` — a full-HP Gengar DIES to this Knock Off, so
+   * the strip step never runs and `owner.item` reads `gengarite` on both arms for a reason that has
+   * nothing to do with the mega-stone rule. The body is given `W7.big` so it survives the click; the
+   * claim and the control are untouched, and the shipped arm now refuses a stone it was actually
+   * asked for (`hp 892, item gengarite`) while the control loses it (`hp 1367, item ''`).
+   *
+   * AND THE PATTERN WAS LANDING IN THE WRONG ARM, WHICH IS WHY IT APPLIED AND DID NOTHING. The
+   * 2026-09-19 Sticky Hold announcement split the strip into TWO arms — an announce-and-refuse arm
+   * (`…&&!itemRefusesTake(tg)&&abilityRefusesItemLoss(tg,m)`) and the take arm
+   * (`…&&!itemRefusesTake(tg)){`). Only the first still ends the conjunct with `&&`, so
+   * `'!itemRefusesTake(tg)&&' -> ''` matched ONCE, in the Sticky Hold arm, and left the stone rule
+   * standing on the road the stone actually takes: a reversal that applies and reverts nothing, which
+   * is worse than one that throws. The anchor is now the TERM alone, turned into `true` rather than
+   * deleted, so it neutralises the stone rule in BOTH arms and cannot land in the wrong one however
+   * the branch is split again. The sibling refusal (`abilityRefusesItemLoss`, ROADMAP #175) is
+   * untouched, so the known-bad engine is still "Knock Off ignores the stone rule". */
+  [['!itemRefusesTake(tg)', 'true']],
+  (E) => { const owner = W7.knock(E, 'gengar', 'gengarite', true), other = W7.knock(E, 'garchomp', 'gengarite', true);
+           return !owner.dead && !other.dead && other.item === '' && owner.item === 'gengarite'; });
 
 /* 5. THE PINCH BERRY IS AN `onUpdate`. The revert removes both Update passes, which puts the berry
  *    back where this engine had it — the residual. STATE CLAIM, and the state is a life: two Scalds
@@ -3312,7 +3343,16 @@ demoSource('ROADMAP #81 WIRE 7  Protean gives the move it converts into its STAB
  *    it writes silence. STREAM CLAIM — the redirect itself has been live since WIRE 25 and the draw is
  *    right in both engines, which is why the case reads announcement lines and not damage. */
 demoSource('ROADMAP #81 WIRE 7  Follow Me announces nothing when it draws, Lightning Rod announces an -activate',
-  [['if(TR)TR.retarget(drawer);}', "if(TR){TR.act(drawer,'move: '+drawer._redirect);TR.retarget(drawer);}}"],
+  /* RE-AIMED 2026-09-21, ENGINE. `if(TR)TR.retarget(drawer);}` grew a second condition on 2026-09-19
+   * (`!_dr.aimAlready` — Showdown only re-writes the move line when the aim actually moved), so an
+   * anchor on the ANNOUNCEMENT's neighbour died on a change about something else, for the third time
+   * on this pair. The anchor is now `targets=[drawer]; _aimRedirected=true;` — the one statement that
+   * must exist for the volatile draw to happen at all — and the old announcement is APPENDED after
+   * it, above the retarget exactly as it used to sit. Nothing about the retarget line is quoted, so
+   * it can grow further conditions without staling this. */
+  [['            targets=[drawer]; _aimRedirected=true;',
+    "            targets=[drawer]; _aimRedirected=true;\n"
+  + "            if(TR)TR.act(drawer,'move: '+drawer._redirect);"],
    /* RE-AIMED 2026-08-26 (ROADMAP #449): the label is not pasted from the ability id at this site any more —
     * it comes off `_dr.announce`, which `redirectOf` built. The reversal is the same swap it always
     * was: the `|-activate|` becomes the `|-ability|` this engine used to write. */
@@ -3334,8 +3374,22 @@ demoSource('ROADMAP #81 WIRE 7  Follow Me announces nothing when it draws, Light
       return trace.filter(l => /^\|-(activate|ability)\|/.test(l));
     };
     const plain = run(null, null), drawn = run(null, 'followme'), rod = run('lightningrod', null);
+    /* RE-AIMED 2026-09-21, ENGINE, AND THE ASSERTION MOVED RATHER THAN THE PATTERN. `rod.length === 1`
+     * was written when the ABSORB announced nothing, and the absorb now writes its own line — which is
+     * the authority's, not a defect: `lightningrod.onTryHit` calls `this.boost({spa: 1})` with the
+     * ABILITY as `this.effect` (data/abilities.ts:2336, no Champions row), and `Battle#boost` answers
+     * an ability effect with `this.add('-ability', target, effect.name, 'boost')` before the `-boost`
+     * (sim/battle.ts:2066). So the family now legitimately holds TWO lines and a count of one could
+     * only ever go red. The claim is UNCHANGED and is now stated line by line instead of by a total:
+     * the REDIRECT announcement is an `|-activate|`, it is the FIRST of the family (above the absorb),
+     * and the only `|-ability|` present is the absorb's own — the one carrying `boost`. Both reverted
+     * arms still flip it: the Follow Me revert puts an `|-activate|` into `drawn`, and the rod revert
+     * turns the redirect line into a second, boost-less `|-ability|`. */
+    const acts = rod.filter(l => /^\|-activate\|/.test(l));
+    const abis = rod.filter(l => /^\|-ability\|/.test(l));
     return plain.length === 0 && drawn.length === 0
-        && rod.length === 1 && /^\|-activate\|/.test(rod[0]) && /lightningrod/.test(rod[0]);
+        && acts.length === 1 && /lightningrod/.test(acts[0]) && rod[0] === acts[0]
+        && abis.length === 1 && /\|boost$/.test(abis[0]);
   });
 
 /* ---- ROADMAP #81 WIRE 8 -------------------------------------------------------------------------
@@ -3360,15 +3414,17 @@ const W8_CHARGE = [
    * writes `-boost|spa|0`, CHANGELOG narration pass) and the counter line above it, so the old block matched
    * nothing and all three WIRE 8 charge certificates had stopped running. The block is removed whole, as
    * before; the zero flag goes with it into the branch below in its OLD form. */
-  ["          const _cp=TAGS.param('move',a.move.id,'chargeTurn'), _b=_cp&&_cp.boosts;\n"
- + '          if(_b)for(const _k of Object.keys(_b)){\n'
- + "            const _kk={spa:'sa',spd:'sd',atk:'at',def:'df',spe:'sp'}[_k]||_k;\n"
- + '            if(m.boosts&&_kk in m.boosts){const _b0=m.boosts[_kk];\n'
- + '              m.boosts[_kk]=Math.max(-6,Math.min(6,m.boosts[_kk]+_b[_k]));\n'
- + '              const _zeroOk=!CHARGE_BOOST_ZERO_SILENT;\n'
- + '              if(_zeroOk&&m.boosts[_kk]===_b0)MEDSEEN.chargeBoostZeroAnnounced++;\n'
- + '              if(TR)TR.bst(m,_kk,m.boosts[_kk]-_b0,undefined,_zeroOk);}\n'
- + '          }\n', ''],
+  /* RE-AIMED AGAIN 2026-09-21, ENGINE, AND THIS TIME DOWN TO THE LOOP HEAD. The 2026-09-20 pass
+   * routed the charge-turn self-boost through `invSign` (Contrary / Simple), inserting a `_csign`
+   * declaration and a counter line into the middle of the block and multiplying inside the clamp —
+   * so quoting the block whole died on a change about WHOSE SIGN the boost takes, not about where it
+   * sits. The anchor is now the loop head alone, which is the one statement that must exist for the
+   * boost to be paid at this UNCONDITIONAL position; the body can be rewritten line by line without
+   * staling it, and the reversal still says exactly "the boost is not taken here". The copy put back
+   * inside the charging branch below is unchanged and deliberately does the arithmetic RAW, because
+   * that is the engine that actually existed. Verified to match exactly once. */
+  ['          if(_b)for(const _k of Object.keys(_b)){',
+   '          if(0&&_b)for(const _k of Object.keys(_b)){'],
   /* RE-AIMED 2026-09-08, MEASURE. The third edit used to quote `_charging`, `_invuln` and `_lastMove`
    * as three adjacent lines; the `_ttmTgtSlot` block (2026-09-05) and the `_ttmWrap` wrapper landed
    * between them, so it matched nothing and both WIRE 8 certificates had stopped running.

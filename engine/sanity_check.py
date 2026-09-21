@@ -98,8 +98,18 @@ if pory:
     if _ps is None:
         ok(False, "data/pory-eval.json carries no log_loss.pory to check the docs against")
     else:
-        ok(_ps in wp and _ps in sm,
-           f"PORY log-loss {_ps} (from data/pory-eval.json) appears in white paper AND summary")
+        # INVERTED 2026-09-21. This clause used to REQUIRE the figure in the white paper and the
+        # summary, and it was right to while PORY published one. At 7.0.0 every model except MEDICHAM
+        # had its figures WITHDRAWN -- each reads a rollout, so each was measured under a simulator
+        # corrected many times since, and the gate opening makes them re-runnable rather than true.
+        # Will, 2026-09-21: "dont take the previous models not named medicham as gospel i will likely
+        # have to change them all." A check demanding a withdrawn figure be published enforces the
+        # opposite of the policy, so it now asserts ABSENCE. It flips back by itself the day PORY is
+        # re-run and its section republished: restore the `in` test and delete this block.
+        _where = [n for n, d in (("white paper", wp), ("summary", sm)) if _ps in d]
+        ok(not _where,
+           f"PORY log-loss {_ps} (data/pory-eval.json) is WITHDRAWN and appears in no living document"
+           + (f" -- still in: {', '.join(_where)}" if _where else ""))
 # Sun count: playstyle matrix vs site mixture presence
 if psm:
     # A COUNT WAS ASSERTED WHERE A DIRECTION WAS MEANT. The threshold was a typed 1000; Sun stood at

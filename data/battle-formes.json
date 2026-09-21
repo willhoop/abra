@@ -1,7 +1,8 @@
 {
- "generated": "2026-07-24",
- "source": "https://play.pokemonshowdown.com/data/pokedex.json",
- "note": "Formes that only exist DURING a battle (mega, primal, Palafin-Hero, Mimikyu-Busted...). Team preview never shows these, so six/brought/lead must use the base species or they disagree.",
+ "generated": "2026-09-21T05:46:23.811Z",
+ "by": "engine/build_battle_formes.js",
+ "source": "species.battleOnly, gen9championsvgc2026regmb, Showdown checkout 20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+ "note": "Formes that only exist DURING a battle (mega, primal, Palafin-Hero, Mimikyu-Busted...). Team preview never shows these, so six/brought/lead must use the base species or they disagree. The walk is UNFILTERED on purpose: this answers \"a log said this name, what species is that\" for a store that spans regulations. Filtering to the regulation drops 48 of these rows. See the header of engine/build_battle_formes.js.",
  "n": 131,
  "base_of": {
   "venusaurmega": "venusaur",

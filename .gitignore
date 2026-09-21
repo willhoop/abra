@@ -170,7 +170,14 @@ data/diff-team-pool.json
 # that it must be a COPY rather than a checksum — "verifying digests afterwards only tells you the run
 # was wasted". Ignoring a directory does NOT untrack files already in the index, so the 26 releases an
 # artifact or an arm table names are unaffected. When a NEW release becomes evidence for a published
-# number, add it deliberately:  git add -f data/releases/<id>
+# number, add it deliberately:  git add -f data/releases/
+# 2026-09-21 — EXCEPT the release a PUBLISHED MAJOR rests on. ABRA 7.0.0's figures were all
+# measured on 0d7b1d9db6d1, and engine/provenance.js reported it ABSENT: the documents cited a
+# release that a fresh clone could not resolve, so the evidence chain ended at the string. It is
+# force-added (29 files, 7.5 MB). Tracking EVERY release is not the fix — there are 646 of them at
+# ~6.8 MB each. The rule is: the release behind a published figure is tracked; a working release is
+# not.
+!data/releases/0d7b1d9db6d1/**<id>
 data/releases/
 
 # The frozen team pool is a LOCAL measurement pin, not repo content — the live stores it

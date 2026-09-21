@@ -1,7 +1,7 @@
 {
- "generated": "2026-09-21T02:24:36.754Z",
+ "generated": "2026-09-21T05:53:02.745Z",
  "by": "engine/conformance.js",
- "files": 812,
+ "files": 817,
  "findings": [
   {
    "std": "convention",
@@ -115,15 +115,6 @@
   },
   {
    "std": "S12",
-   "file": "engine/human_protect_ruler.js",
-   "what": "names 1 Pokemon thing(s) in code: move:protect",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "move:protect"
-   ]
-  },
-  {
-   "std": "S12",
    "file": "engine/ko_calibration.js",
    "what": "names 7 Pokemon thing(s) in code: move:protect, move:followme, move:ragepowder, move:reflect, move:lightscreen, ...",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
@@ -231,16 +222,6 @@
   },
   {
    "std": "S12",
-   "file": "engine/pp_board_probe.js",
-   "what": "names 2 Pokemon thing(s) in code: move:protect, ability:levitate",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "ability:levitate",
-    "move:protect"
-   ]
-  },
-  {
-   "std": "S12",
    "file": "engine/preflight.js",
    "what": "names 1 Pokemon thing(s) in code: move:protect",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
@@ -314,19 +295,8 @@
   },
   {
    "std": "S12",
-   "file": "engine/stage_planner.js",
-   "what": "names 3 Pokemon thing(s) in code: move:protect, move:auroraveil, ability:prankster",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "ability:prankster",
-    "move:auroraveil",
-    "move:protect"
-   ]
-  },
-  {
-   "std": "S12",
    "file": "engine/tag_dex.js",
-   "what": "names 14 Pokemon thing(s) in code: move:reflect, move:protect, move:followme, move:ragepowder, move:trickroom, ...",
+   "what": "names 14 Pokemon thing(s) in code: move:protect, move:followme, move:ragepowder, move:trickroom, move:tailwind, ...",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
    "detail": [
     "ability:friendguard",
@@ -478,22 +448,7 @@
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie",
    "detail": [
-    "named ONLY in a comment, by engine/conformance.js — the write path is supplied at runtime (a flag or an environment variable), so no literal reaches a write call."
-   ]
-  },
-  {
-   "std": "S13",
-   "file": "data/artifact-rerunnable-baseline.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/battle-formes.json",
-   "what": "no generator writes it",
-   "why": "a file nobody generates is a file that will lie",
-   "detail": [
-    "the artifact DECLARES its origin and the declaration names no script on disk: \"https://play.pokemonshowdown.com/data/pokedex.json\""
+    "named ONLY in a comment, by engine/all_mechanics_fire.js, engine/conformance.js — the write path is supplied at runtime (a flag or an environment variable), so no literal reaches a write call."
    ]
   },
   {
@@ -508,7 +463,7 @@
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie",
    "detail": [
-    "named ONLY in a comment, by engine/conditional_audit.js — the write path is supplied at runtime (a flag or an environment variable), so no literal reaches a write call."
+    "named ONLY in a comment, by engine/conditional_audit.js, engine/conformance.js — the write path is supplied at runtime (a flag or an environment variable), so no literal reaches a write call."
    ]
   },
   {
@@ -523,7 +478,7 @@
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie",
    "detail": [
-    "named ONLY in a comment, by engine/conformance.js — the write path is supplied at runtime (a flag or an environment variable), so no literal reaches a write call."
+    "named ONLY in a comment, by engine/conformance.js, engine/game_differential.js — the write path is supplied at runtime (a flag or an environment variable), so no literal reaches a write call."
    ]
   },
   {
@@ -577,12 +532,6 @@
   {
    "std": "S13",
    "file": "data/mc-key-baseline.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/medicham-bench.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
   },
@@ -669,6 +618,12 @@
   },
   {
    "std": "S13",
+   "file": "data/pory-nn.json",
+   "what": "generated but does not say so",
+   "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
    "file": "data/pory.js",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -687,66 +642,12 @@
   },
   {
    "std": "S13",
-   "file": "data/pp-board-probe.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/provenance-stamp.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
    "file": "data/raw-log-census.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie",
    "detail": [
     "the artifact DECLARES its origin and the declaration names no script on disk: \"ROADMAP #134 — written so the frequencies in the sprint notes are checkable, not trusted\""
    ]
-  },
-  {
-   "std": "S13",
-   "file": "data/replay-differential-bo3-freezes.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/replay-differential-bo3.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/replay-differential-sheets-freezes.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/replay-differential-sheets.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/replay-differential.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/rollout-r1-withdrawn-join.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/sheet-channel-value.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
   },
   {
    "std": "S13",
@@ -768,12 +669,6 @@
    "detail": [
     "the artifact DECLARES its origin and the declaration names no script on disk: \"smogon 2026-08 gen9championsvgc2026regmb-1630\""
    ]
-  },
-  {
-   "std": "S13",
-   "file": "data/tag-consumption.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
   },
   {
    "std": "S13",

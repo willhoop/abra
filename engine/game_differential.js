@@ -10401,6 +10401,16 @@ if (DUMP_GAMES && DUMP_POOL.length) {
         + 'measurement. Both the RAW emitted line and the REDUCED line the comparator decides on are '
         + 'kept: the reduced form is what decided, the raw form is what has to be fixed.',
     generated: new Date().toISOString(),
+    /* THE DUMP NAMES ITS OWN WRITER, BECAUSE NOTHING ELSE CAN — 2026-09-21.
+     *
+     * `DUMP_OUT` comes from `--dump-out`, so no literal path reaches this write call for any target
+     * other than the default. engine/provenance.js therefore cannot attribute a dump taken to any
+     * other name, and engine/conformance.js reports it as "no generator writes it" — which is false,
+     * and indistinguishable from the case where no script exists. `by` is the declaration arm
+     * provenance.js already reads, and it carries the FLAG as well as the script, because
+     * `--dump-out` is part of what produced these bytes. data/divergence-middle.json is the artifact
+     * on disk that has no way to say this: it predates the line and clears on its next run. */
+    by: 'engine/game_differential.js --dump-out ' + DUMP_OUT,
     engine_release: REL.id, team_store_pinned_to: TEAM_STORE || null,
     /* THE EXCLUSION IS DECLARED, NEVER SILENT. A narrowed sample that does not say it was narrowed is
      * indistinguishable from a mechanic that simply never came up — which is the failure mode this

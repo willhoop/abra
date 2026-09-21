@@ -21,6 +21,47 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.5.0] — 2026-09-21
+
+### Fixed
+- **A certificate that applied and reverted nothing.** `probe_red_demo`'s mega-stone demonstration
+  matched its pattern exactly once — in the arm where the stone is never taken — so it proved nothing
+  while reporting fine, and its fixture had gone unreachable because the body now faints before the
+  step under test runs. Four further demonstrations could not apply their patch at all after last
+  night's engine work. **197 demonstrations: 0 HOLLOW, 0 COULD NOT BE APPLIED** (was 1 and 4). One
+  assertion that had gone stale is now stricter, not weaker. No engine byte changed.
+- **`engine/conformance.js`'s ratchet was laundering findings.** `classify()` asked *did the rule move*
+  before *was this already outstanding at the seed*, and a seeded finding sits on an unchanged subject
+  by definition — so editing a standard turned that standard's old findings into non-fatal DISCOVERIES,
+  which **the first clean run would have adopted permanently.** Demonstrated by restoring the old order
+  and reproducing it. The recorded fact now outranks the digest.
+- Two further conformance checks measured the wrong thing: *"declares its generator"* read the first 400
+  bytes for a word, which measures **key order** — 5 of 8 subjects were pushed past the window by a
+  digest block — and the subject digest did not normalise line endings, so from a worktree every `data/`
+  subject read as CHANGED and four findings carried a fictional reason.
+- **`data/battle-formes.json` gets a generator, and it was derivable exactly**: `species.battleOnly`
+  reproduces the hand-built map **131/131, zero missing, zero extra, zero disagreements**. The walk is
+  deliberately unfiltered — filtering to the regulation drops 48 entries, which in a store spanning
+  regulations are 48 silent mis-keys.
+- **A withdrawn figure was still published.** `docs/ABRA-whitepaper.md` carried PORY's held-out
+  log-loss with its interval and calibration error; 7.0.0 withdrew every non-MEDICHAM figure and the
+  pass missed this one. Deleted, not captioned.
+
+### Changed
+- `engine/sanity_check.py`'s cross-consistency clause **REQUIRED** PORY's log-loss in the white paper
+  and the summary. Will, 2026-09-21: *"dont take the previous models not named medicham as gospel i
+  will likely have to change them all."* A check demanding a withdrawn figure enforces the opposite of
+  the policy, so it now asserts ABSENCE, and carries the note that it flips back the day PORY is re-run.
+
+### Notes
+- `sanity_check` 94 → 95 passing. Conformance 11 → 10, all S13 artifact provenance, none exempted
+  beyond a `void: true` artifact whose writer can never restamp it. **Five of the ten need a decision
+  rather than a cleanup** — each requires a refit or moves a published figure — and they wait on the
+  model rebuild.
+- **A second tool writes absence as fact from a worktree**: `provenance.js --strict` ratcheted its stamp
+  down because the worktree lacked three files main has. Reverted. Same hazard as `status.js --write`.
+- **Eleven of the seventeen reds are now closed.**
+
 ## [0.4.0] — 2026-09-21
 
 ### Fixed

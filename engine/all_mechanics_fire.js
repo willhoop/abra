@@ -5845,6 +5845,17 @@ if (/abilities|all/.test(KIND) && !RED && !AB_BOARD.rows) console.log('  THE A/B
 console.log('\n  ' + GAMES + ' games played, ' + THREW + ' threw, ' + SHEET_FAILS + ' sheets could not be assembled');
 if (WRITE) {
   const f = OUT || D('data', 'all-mechanics-fire.json');
+  /* THE REPORT NAMES ITS OWN WRITER, BECAUSE UNDER `--out` NOTHING ELSE CAN — 2026-09-21.
+   *
+   * The default path is a literal here and engine/provenance.js attributes it. Any `--out` target is
+   * a runtime string, so no literal reaches the write and the graph reports "no generator writes it"
+   * — false, and indistinguishable from "no script exists". data/all-mechanics-fire.boardstate.json
+   * is the artifact on disk that has no way to say this; it predates the line and clears on its next
+   * run. `by` is the declaration arm provenance.js already reads, and it carries the flag because the
+   * flag is part of what produced these bytes. */
+  if (report && typeof report === 'object' && !Array.isArray(report)) {
+    report.by = 'engine/all_mechanics_fire.js' + (OUT ? ' --out ' + OUT : '');
+  }
   fs.writeFileSync(f, JSON.stringify(report, null, 1));
   console.log('  wrote ' + f);
 }

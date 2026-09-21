@@ -516,6 +516,12 @@ function main() {
   report.human = { moves: human.moves, games: real.logGames };
   if (JSON_OUT) {
     const out = path.isAbsolute(JSON_OUT) ? JSON_OUT : D(JSON_OUT);
+    /* THE REPORT NAMES ITS OWN WRITER — 2026-09-21. `--json` is the ONLY way this file is ever
+     * written, so no literal path reaches the write call at all and engine/provenance.js has no way
+     * to attribute data/conditional-audit.json; engine/conformance.js reads that as "no generator
+     * writes it", which is false. `by` is the declaration arm provenance.js already reads. The copy
+     * on disk predates this line and clears on its next run. */
+    report.by = 'engine/conditional_audit.js --json ' + JSON_OUT;
     fs.writeFileSync(out, JSON.stringify(report, null, 1));
     console.log('  wrote ' + path.relative(ROOT, out));
   }

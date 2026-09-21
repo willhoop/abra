@@ -1,6 +1,6 @@
 # REG M-C — the ledger
 
-**Version: 0.4.0 — 2026-09-21.**
+**Version: 0.5.0 — 2026-09-21.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 A leading `0` means NOT USABLE YET (SemVer 2.0.0 clause 4). This line reaches **1.0.0 the day the M-C

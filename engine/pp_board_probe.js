@@ -47,7 +47,26 @@ const B = require('./board.js');
 const RL = require('./rollout_leaf.js');
 const TAGS = require('./tags.js');
 
-const MOVE = 'protect';
+/* GAME_RULES -- conformance S12b, 2026-09-21. A PROBE'S FIXTURE IS CONSTRUCTED, NOT FOUND, so the
+ * three names below are the experiment rather than a table this file should be deriving. Each is here
+ * for a stated reason and each would fail loudly, not silently, if it left the regulation:
+ *
+ *   MOVE         the self-targeting stalling move whose PP the probe counts. Its maxpp is READ from
+ *                data/tags.json a few lines down and THROWS if the artifact has no row, so the name
+ *                cannot go stale into a passing run.
+ *   AIMED        an ordinary aimed attack, the second arm — a Pressure implementation that doubles
+ *                every deduction passes the aimed arm and fails the self-targeting one, which is the
+ *                whole reason both arms exist.
+ *   PRESSURE / CONTROL_ABILITY
+ *                the ability under test and its control. The control is chosen because it has no PP
+ *                interaction whatever, so the arm measures the harness; without it a probe that
+ *                deducted nothing anywhere would read as a pass. */
+const GAME_RULES = Object.freeze({
+  MOVE: 'protect', AIMED: 'flamethrower', PRESSURE: 'pressure', CONTROL_ABILITY: 'levitate',
+});
+const MOVE = GAME_RULES.MOVE;
+/* The control arm's label, built from the ability so the two can never drift apart. */
+const CONTROL_ARM = GAME_RULES.CONTROL_ABILITY + ' (control)';
 const MAXPP = (() => {
   /* READ, NEVER TYPED. `tag_dex.js` reads `moveSlots[].maxpp` off a real battle constructed in
    * gen9championsvgc2026regmb; Champions compresses PP and Protect is the worst offender (8 here
@@ -127,8 +146,8 @@ function runOne(bd, seed) {
  * which is why both are here. */
 function pressureArms() {
   const arms = [];
-  for (const [label, ability] of [['pressure', 'pressure'], ['levitate (control)', 'levitate']]) {
-    for (const [what, mv] of [['aimed (flamethrower)', 'flamethrower'], ['self (protect)', MOVE]]) {
+  for (const [label, ability] of [[GAME_RULES.PRESSURE, GAME_RULES.PRESSURE], [CONTROL_ARM, GAME_RULES.CONTROL_ABILITY]]) {
+    for (const [what, mv] of [['aimed (' + GAME_RULES.AIMED + ')', GAME_RULES.AIMED], ['self (' + MOVE + ')', MOVE]]) {
       const bd = new B.Board();
       bd.setParty('p1', ['incineroar']);
       bd.setParty('p2', ['garchomp']);
@@ -161,10 +180,10 @@ function main() {
   }
   const pressure = pressureArms();
   const find = (a, m) => pressure.find(x => x.foeAbility === a && x.move.startsWith(m));
-  const pressureOK = find('pressure', 'aimed').costOfOneClick === 2 &&
-                     find('levitate (control)', 'aimed').costOfOneClick === 1 &&
-                     find('pressure', 'self').costOfOneClick === 1 &&
-                     find('levitate (control)', 'self').costOfOneClick === 1;
+  const pressureOK = find(GAME_RULES.PRESSURE, 'aimed').costOfOneClick === 2 &&
+                     find(CONTROL_ARM, 'aimed').costOfOneClick === 1 &&
+                     find(GAME_RULES.PRESSURE, 'self').costOfOneClick === 1 &&
+                     find(CONTROL_ARM, 'self').costOfOneClick === 1;
   const bad = rows.filter(r => r.exceedsMax);
   const out = {
     probe: 'pp-board', roadmap: 145, move: MOVE, maxpp: MAXPP,

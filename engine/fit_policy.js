@@ -1380,6 +1380,20 @@ function main() {
    * data/policy-weights.json has been carried in data/site-data-orphans.json as "no generator" ever
    * since OUT_WEIGHTS was added. The shipped model file having no discoverable way to rebuild it is
    * exactly the condition that guard exists to report. */
+  /* A NON-DEFAULT PATH NAMES ITS OWN WRITER, BECAUSE NOTHING ELSE CAN — 2026-09-21.
+   *
+   * `OUT_WEIGHTS` is an environment variable, so under it NO literal path reaches a write call and
+   * engine/provenance.js cannot attribute the result. Seven `data/policy-weights-*.json` on disk are
+   * in exactly that state, and engine/conformance.js reports them as "no generator writes it" — which
+   * is FALSE, and indistinguishable from "no script exists". The scan offers the sibling name as a
+   * SUGGESTION and correctly refuses to call it an attribution; this is what turns the suggestion into
+   * evidence the graph can read. Stamped ONLY on the flagged path: the default path is attributed by
+   * the literal below and must keep the key set the shipped model's readers expect.
+   *
+   * The seven already on disk predate this line. Each is a dated arm of an August ablation and will
+   * clear only if that arm is re-fitted to that path; none was hand-stamped.
+   */
+  if (process.env.OUT_WEIGHTS) out.by = 'engine/fit_policy.js (OUT_WEIGHTS=' + process.env.OUT_WEIGHTS + ')';
   const payload = JSON.stringify(out, null, 1);
   if (process.env.OUT_WEIGHTS) fs.writeFileSync(OUT, payload);
   else fs.writeFileSync(D('data', 'policy-weights.json'), payload);

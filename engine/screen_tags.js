@@ -46,6 +46,19 @@
 'use strict';
 
 const PROSE = () => process.env.ABRA_TAGDEX_SCREENS_FROM_PROSE === '1';
+
+/* GAME_RULES -- conformance S12b, 2026-09-21. ONE name is typed in this file and it is not a rule of
+ * the game at all: it is a QUOTATION of the retired derivation, kept verbatim so
+ * `ABRA_TAGDEX_SCREENS_FROM_PROSE=1` reproduces the pre-fix reads exactly. Deriving it would defeat
+ * the purpose — a knob that restores "what the old code did" must restore what the old code did,
+ * including its word list, or the before/after is a comparison against something nobody shipped.
+ *
+ * Nothing on the LIVE path below names a screen: `screenSideConditions` finds them by handler shape
+ * and `clearsScreens` reads the literal arguments of `removeSideCondition`. If this constant is ever
+ * reachable without the knob, that is the defect, not the name. */
+const GAME_RULES = Object.freeze({
+  RETIRED_PROSE_SCREEN_WORDS: /reflect|screen|veil/i,
+});
 const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
 /* WHICH SIDE CONDITIONS ARE SCREENS, derived: a side condition is a screen when its own `condition`
@@ -101,7 +114,7 @@ const LITERAL_REMOVE = /removeSideCondition\(\s*(['"`])([A-Za-z0-9]+)\1\s*\)/g;
 function clearsScreens(m, dex) {
   const src = String((m && m.onTryHit) || '') + '\n' + String((m && m.onHit) || '');
   if (PROSE()) {
-    return (/removeSideCondition/i.test(src) && /reflect|screen|veil/i.test(String((m && m.shortDesc) || '')))
+    return (/removeSideCondition/i.test(src) && GAME_RULES.RETIRED_PROSE_SCREEN_WORDS.test(String((m && m.shortDesc) || '')))
       ? { clears: 'screens' } : null;
   }
   const screens = screenSideConditions(dex);

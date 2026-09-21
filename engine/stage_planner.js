@@ -42,6 +42,31 @@
  * mandates. The Champions mod is read first because `Dex.forFormat` IS the mod dex; every entity also
  * records whether the mod overrides mainline (`modOverride`). */
 'use strict';
+/* GAME_RULES -- conformance S12b, 2026-09-21. THE PLANNER DERIVES ITS FIXTURES; these four names are
+ * what is left over when the derivation runs out, and they are collected here so the exceptions are
+ * visible and counted rather than scattered through 3,400 lines. Each says why it cannot be derived:
+ *
+ *   GUARD      the IDLE CLICK. Every staged turn needs a body that can do nothing on purpose, and the
+ *              planner picks bodies by `learns(species, GUARD)` — so it has to name one move before it
+ *              has a board to derive from. The derived form already sits beside it at the two
+ *              `guardLike` sites (`Status` + `target: 'self'` + an `onTry` reading `.status`), and this
+ *              is the member of that class the whole pool learns. It is CHECKED, not assumed: every
+ *              use is guarded by `learns(...)` and a body that does not learn it is skipped.
+ *   INERT      a second do-nothing click for a body that already carries GUARD, so a two-turn plan does
+ *              not have to repeat it into the consecutive-use roll.
+ *   HAIL_SCREEN the one screen that needs its weather up. The screen CLASS is derived from the
+ *              authority (engine/screen_tags.js reads the handler shapes); this member is excluded by
+ *              name because staging it needs a setter the rest of the class does not, which is a fact
+ *              about the fixture and not about the class.
+ *   PRIORITY_STATUS_ABILITY
+ *              the option KEY, not a lookup. `ctx.prankster` carries "this carrier gives its status
+ *              moves priority", which is a CONDITION the masks reason about; the ability itself is
+ *              found from the tags.
+ */
+const GAME_RULES = Object.freeze({
+  GUARD: 'protect', INERT: 'recycle', HAIL_SCREEN: 'auroraveil',
+  PRIORITY_STATUS_ABILITY: 'prankster',
+});
 const fs = require('fs');
 const path = require('path');
 const cp = require('child_process');
@@ -871,7 +896,7 @@ function masksFor(move, user, target, ctx) {
   if (!self) {
     if (mv.ignoreImmunity !== true && !D.getImmunity(mv.type, tt) && !ex.has('type')) r.push('type-immunity: ' + mv.type + ' into ' + tt.join('/'));
     if (mv.flags && mv.flags.powder && tt.includes('Grass') && !ex.has('powder')) r.push('powder into Grass');
-    if (ctx && ctx.prankster && mv.category === 'Status' && ctx.foe && tt.includes('Dark') && !ex.has('prankster')) r.push('Prankster status into Dark');
+    if (ctx && ctx.prankster && mv.category === 'Status' && ctx.foe && tt.includes('Dark') && !ex.has(GAME_RULES.PRIORITY_STATUS_ABILITY)) r.push('Prankster status into Dark');
     const at = tagsOf('abilities', target.ability);
     const p = at.params || {};
     if (!ex.has('ability')) {
@@ -1052,12 +1077,12 @@ function padFor(rc, role, moves) {
   for (const sid of speciesOrder()) {
     const sp = D.species.get(sid);
     if (rc.used.has(id(sp.baseSpecies || sp.name))) continue;
-    if (!(moves || ['protect']).every(m => learns(sp.name, m))) continue;
+    if (!(moves || [GAME_RULES.GUARD]).every(m => learns(sp.name, m))) continue;
     const ab = uniq(Object.values(sp.abilities || {})).filter(a => abilityAccepted(sp.name, a)).sort((x, y) => padNoise(x) - padNoise(y) || abilityNoise(x) - abilityNoise(y) || (x < y ? -1 : 1))[0];
     if (!ab || padNoise(ab) > 0) continue;
     useSpecies(rc, sp.name);
     setBody(rc, role, { species: sp.name, ability: ab });
-    for (const m of (moves || ['protect'])) addMove(rc, role, m);
+    for (const m of (moves || [GAME_RULES.GUARD])) addMove(rc, role, m);
     return rc.bodies[role];
   }
   refuse('PLANNER-CANNOT-CONSTRUCT', 'no quiet pad left for ' + role);
@@ -1068,7 +1093,7 @@ function padFor(rc, role, moves) {
 function inertFor(rc, role, opt) {
   const b = rc.bodies[role];
   const inert = id(CS.INERT_MOVE);
-  if (!(opt && opt.noGuard) && learns(b.species, 'protect')) return { m: addMove(rc, role, 'protect') };
+  if (!(opt && opt.noGuard) && learns(b.species, GAME_RULES.GUARD)) return { m: addMove(rc, role, GAME_RULES.GUARD) };
   if (learns(b.species, inert) && !(opt && opt.consumes)) return { m: addMove(rc, role, inert) };
   /* A SELF MOVE WHOSE OWN `onTry` FAILS FOR A HEALTHY BODY — read off the handler (it returns a test of
    * the user's status), so it cannot copy, call or change anything on a board where nobody sleeps. */
@@ -1951,7 +1976,7 @@ function composeEntity(rc, x) {
   if (T('target-protects').length) {
     if (acts.some(a => a.role === 'R' && a.phase === 1)) refuse('PLANNER-CANNOT-CONSTRUCT', 'the receiver must shield on the trigger turn and already has a trigger click');
     /* the plain shield only — the one every pad in this file already clicks — so no contact punisher rides in */
-    const g = ['protect'].find(m => legal(D.moves.get(m)) && learns(rc.bodies.R.species, m));
+    const g = [GAME_RULES.GUARD].find(m => legal(D.moves.get(m)) && learns(rc.bodies.R.species, m));
     if (!g) refuse('NO-TRIGGER-SUPPLIER', 'the receiver ' + rc.bodies.R.species + ' does not learn Protect for the holder to hit through');
     acts.push({ role: 'R', click: { m: addMove(rc, 'R', g) }, phase: 1 });
     rc.conditions.push({ kind: 'click', role: 'R', move: g, phase: 1 });
@@ -2312,7 +2337,7 @@ function stageMove(mv, carrier) {
   const failsHealthy = [...(U.POOL.get(spOf(carrier).id) || [])].map(k => D.moves.get(k)).find(d => legal(d) && d.category === 'Status' && d.target === 'self'
     && typeof d.onTry === 'function' && /return\s+[^;]*\.status\s*===/.test(String(d.onTry)) && d.id !== mv.id);
   const inert = learns(carrier, CS.INERT_MOVE) ? D.moves.get(CS.INERT_MOVE) : failsHealthy ? failsHealthy
-    : (learns(carrier, 'protect') && !rc.guards.includes(mv.id) ? D.moves.get('protect') : null);
+    : (learns(carrier, GAME_RULES.GUARD) && !rc.guards.includes(mv.id) ? D.moves.get(GAME_RULES.GUARD) : null);
   if (inert && inert.id !== mv.id) rc.controlMove = addMove(rc, 'C', inert.id);
   layTurnsPhased(rc, acts);
   return rc;
@@ -2444,7 +2469,7 @@ function stageConferred(e, src) {
       rc.triggerClicks.push({ role: 'CA', at: 'C', move: moveId, phase: 0, ctx: {} });
       rc.observe = { role: 'C', leaf: 'boosts', channel: 'board', leaves: ['boosts'] };
       rc.notes.push('no legal species carries ' + e.name + '; ' + mv.name + ' (' + beamers.length + ' legal learners) confers it — the partner beams the subject, which then boosts');
-      const inert = ['recycle', 'protect'].find(x => learns(b, x));
+      const inert = [GAME_RULES.INERT, GAME_RULES.GUARD].find(x => learns(b, x));
       if (inert) rc.controlMove = addMove(rc, 'CA', inert);
       layTurns(rc, acts);
       return rc;
@@ -2480,7 +2505,7 @@ function stageHalf(kind, e, bearer, tag, half) {
   for (const sid of speciesOrder(RECEIVER_FIRST)) {
     const sp = D.species.get(sid);
     if (rc.used.has(id(sp.baseSpecies || sp.name))) continue;
-    const st = cls.find(d => learns(sp.name, d.id) && !(d.id === 'auroraveil'));
+    const st = cls.find(d => learns(sp.name, d.id) && !(d.id === GAME_RULES.HAIL_SCREEN));
     if (!st) continue;
     const cat = (/getCategory\(move\)\s*===\s*["'](Physical|Special)["']/.exec(handlersOf(st).map(h => h.src).join(' ')) || [])[1] || null;
     const body = { species: sp.name, field: sp.name, ability: quietAbility(sp.name) };
@@ -2655,7 +2680,7 @@ function buildControl(rc, kind, e, bearer, trig) {
   if (BRK === 'control-two-vars' || BRK === 'control-two-reasons') void 0;
   const done = (k, variable, why, stamp) => {
     if (BRK === 'control-two-vars') k.bodies.C.nature = D.natures.get('adamant').name;
-    if (BRK === 'control-two-reasons') { const c = rc.conditions.find(x => x.kind === 'click' && x.move); if (c) { const t = k.turns[c.turn - 1]; if (t && t[c.role]) t[c.role] = { m: 'protect' }; } }
+    if (BRK === 'control-two-reasons') { const c = rc.conditions.find(x => x.kind === 'click' && x.move); if (c) { const t = k.turns[c.turn - 1]; if (t && t[c.role]) t[c.role] = { m: GAME_RULES.GUARD }; } }
     return Object.assign({ rc: k, variable, why }, stamp || {});
   };
   if (kind === 'items') {
@@ -2864,7 +2889,7 @@ function secondChainControl(rc, kind, e, bearer, trig, done) {
   const idleCands = (role, turn, notId) => {
     const aimed = clicks.some(c => c.turn === turn && c.lands.includes(role));
     return [...(U.POOL.get(spOf(rc.bodies[role].species).id) || [])].map(k => D.moves.get(k)).filter(d => legal(d) && d.id !== notId && !d.weather && !d.terrain
-      && ((d.id === 'protect' && !aimed) || (d.category === 'Status' && d.target === 'self' && typeof d.onTry === 'function' && /return\s+[^;]*\.status\s*===/.test(String(d.onTry)))))
+      && ((d.id === GAME_RULES.GUARD && !aimed) || (d.category === 'Status' && d.target === 'self' && typeof d.onTry === 'function' && /return\s+[^;]*\.status\s*===/.test(String(d.onTry)))))
       .map(d => d.id);
   };
   const tryTwin = (role, turn, next, why, addCond) => {
@@ -2888,11 +2913,11 @@ function secondChainControl(rc, kind, e, bearer, trig, done) {
   if (entrySets.length === 1 && rc.megaRole === 'C' && rc.turns.length && rc.turns[0].C && rc.turns[0].C.mega) {
     const [fk, fid] = entrySets[0].split(':');
     const setterOf = sp => [...(U.POOL.get(spOf(sp).id) || [])].map(k => D.moves.get(k)).find(d => legal(d) && id(d[fk]) === fid);
-    const caOnlyIdle = rc.turns.every(t => !t.CA || (t.CA.m && id(t.CA.m) === 'protect'));
+    const caOnlyIdle = rc.turns.every(t => !t.CA || (t.CA.m && id(t.CA.m) === GAME_RULES.GUARD));
     let body = null;
     if (caOnlyIdle) for (const sid of speciesOrder()) {
       const sp = D.species.get(sid);
-      if (rc.used.has(id(sp.baseSpecies || sp.name)) || !learns(sp.name, 'protect')) continue;
+      if (rc.used.has(id(sp.baseSpecies || sp.name)) || !learns(sp.name, GAME_RULES.GUARD)) continue;
       const setter = setterOf(sp.name); if (!setter) continue;
       const ab = uniq(Object.values(sp.abilities || {})).filter(a => abilityAccepted(sp.name, a)).sort((x, y) => padNoise(x) - padNoise(y) || abilityNoise(x) - abilityNoise(y) || (x < y ? -1 : 1))[0];
       if (!ab || padNoise(ab) > 0) continue;
@@ -2907,7 +2932,7 @@ function secondChainControl(rc, kind, e, bearer, trig, done) {
       rc.used.delete(id(spOf(oldCA.species).baseSpecies || oldCA.species));
       useSpecies(rc, body.sp.name);
       setBody(rc, 'CA', { species: body.sp.name, ability: body.ab });
-      for (const m of ['protect', body.idle.id, body.setter.id]) addMove(rc, 'CA', m);
+      for (const m of [GAME_RULES.GUARD, body.idle.id, body.setter.id]) addMove(rc, 'CA', m);
       const t0 = {};
       const o = onFieldAt(rc, 0);
       for (const s of ['p1', 'p2']) for (const role of o[s]) t0[role] = role === 'CA' ? { m: body.idle.name } : role === 'C' ? inertFor(rc, 'C', { noGuard: true }) : inertFor(rc, role, {});
@@ -2988,7 +3013,7 @@ function secondChainControl(rc, kind, e, bearer, trig, done) {
        * move whose own onTry fails for a healthy body (the same rule `inertFor` uses) */
       const aimed = clicks.some(c => c.turn === tc.turn && c.lands.includes(tc.role));
       cands = [...(U.POOL.get(spOf(b.species).id) || [])].map(k => D.moves.get(k)).filter(d => legal(d) && d.id !== d0.id && !d.weather && !d.terrain
-        && ((d.id === 'protect' && !aimed) || (d.category === 'Status' && d.target === 'self' && typeof d.onTry === 'function' && /return\s+[^;]*\.status\s*===/.test(String(d.onTry)))))
+        && ((d.id === GAME_RULES.GUARD && !aimed) || (d.category === 'Status' && d.target === 'self' && typeof d.onTry === 'function' && /return\s+[^;]*\.status\s*===/.test(String(d.onTry)))))
         .map(d => d.id);
     } else {
       cands = rankMoves([...(U.POOL.get(spOf(b.species).id) || [])].filter(k => {
@@ -3168,7 +3193,7 @@ function buildOne(kind, e, trig, bearer, branch, stager) {
   }
   finish(rc);
   declareGenders(rc, kind, e, trig);
-  if (BRK === 'protect-ally') for (const t of rc.turns) if (t.CA && !t.CA.sw && learns(rc.bodies.CA.species, 'protect')) t.CA = { m: addMove(rc, 'CA', 'protect') };
+  if (BRK === 'protect-ally') for (const t of rc.turns) if (t.CA && !t.CA.sw && learns(rc.bodies.CA.species, GAME_RULES.GUARD)) t.CA = { m: addMove(rc, 'CA', GAME_RULES.GUARD) };
   if (BRK === 'illegal-team') rc.bodies.C.evs.spe = 40;
   const obs = rc.observe && rc.observe.leaves ? rc.observe : Object.assign({}, observeOf(kind, e), rc.observe || {});
   const control = buildControl(rc, kind, e, bearer, trig);
