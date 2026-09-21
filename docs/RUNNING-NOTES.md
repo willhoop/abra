@@ -52,6 +52,26 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.11.0] — 2026-09-21 — 35 files reported a verdict that nothing ran and nothing named; now none do
+
+- **`tests/run-all.js`'s UNACCOUNTED-FOR clause is closed: 35 → 0.** Its own words are why it matters —
+  *"a check nothing runs reads as coverage in a review."* It stood at 30 before this session and five
+  were added by tonight's new tools, so a third of the fix was clearing up after ourselves.
+- **Nine were WIRED IN** — three selftests (exit codes 11/11, model versions 7/7, the battle-forme
+  builder 131/131 with no row moved) and six game-free probes. Each run alone and then through the
+  runner: 9 passed, 0 failed, about 36 seconds added.
+- **Twenty-six were NAMED `PENDING_WIRE` with a reason, and NONE was called `NOT_A_CHECK`**, because
+  every one asserts a contract and calling it otherwise would have been the failure this clause exists
+  to catch. Twenty of them play a game and own no ledger row yet.
+- **NO CHECK WENT RED ONCE IT ACTUALLY RAN, and that is the weaker result rather than the better one.**
+  Wiring a silent check in is only worth something if a red can come out of it; none did here.
+- **One real defect, named and not fixed:** a usage probe throws `ENOENT` on an absent gitignored store
+  instead of exiting 2, so wiring it as-is would redden the suite on a missing INPUT rather than a
+  finding. It needs the guard its sibling already has.
+- **Owed to ENGINE:** twenty one-line ledger rows, each of which deletes a hand-maintained entry.
+- **Basis.** unchanged. No published figure moves.
+- **Supersedes.** Nothing.
+
 ## [abra/regmc 0.10.0] — 2026-09-21 — the full suite on the fixed tree: **172 pass, 9 waived, 4 fail** from seventeen
 
 - **The 184-check suite re-run end to end.** 172 ok, 9 WAIVED by Will, **4 failing** where a run at the

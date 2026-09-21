@@ -352,7 +352,92 @@ const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_a
    * 2 descriptive tags, 0 failing clauses, exit 0. SHOWN RED FIRST: under
    * `TAG_DESCRIPTIVE_BREAK=needsUntrackedState` it reports 4 failing clauses by carrier name and
    * exits 1. */
-  'tests/probe_descriptive_tags.js'];
+  'tests/probe_descriptive_tags.js',
+
+  /* ============ WIRED IN 2026-09-21 BY MEASURE, AGAINST THE UNACCOUNTED-FOR LIST ================
+   *
+   * Nine files out of the thirty-five this runner was naming. EVERY ONE WAS RUN ALONE FIRST and its
+   * exit code recorded here; none of them plays a game against the authority, none writes into data/
+   * in the mode it is registered in, and none opens a frozen release for a mechanic verdict — which
+   * is why these nine could be certified in a pass where the other twenty-six could not. The list
+   * below states the measured cost as well as the verdict, because a gate nobody can afford is the
+   * next reason one gets removed.
+   *
+   * engine/exit_codes.js --selftest — WHAT AN EXIT CODE MEANS, decided in one place. This runner
+   * requires it at line 40 and reads EVERY child's verdict through it, so a defect here mis-reports
+   * the whole suite at once — a red read as a skip, or a crash read as a pass. It was the single
+   * most load-bearing unaccounted file in the list. Pure synthetic input: no filesystem, no dex, no
+   * child. Measured 2026-09-21: 11 passed, 0 failed, exit 0, ~0.1 s. Bare (no --selftest) it is a
+   * library that exits 0 having asked nothing, which is why the argument is in EXTRA below — the
+   * registered no-op this file rates worse than an unregistered check.
+   *
+   * engine/model_versions.js --selftest — the per-model, per-regulation version rule. Its central
+   * clause is the one this repository keeps paying for: a model whose artifacts are WITHHELD cannot
+   * read 1.0.0 however open its gate is. The seven cases are entirely synthetic — each passes its own
+   * fake gate object, so nothing here reads the tree or runs engine/quarantine.js — and they include
+   * the positive control, without which a function that always answers 0.1.0 satisfies every clause.
+   * Measured 2026-09-21: 7 passed, 0 failed, exit 0, ~1 s.
+   *
+   * engine/build_battle_formes.js --check — data/battle-formes.json against Showdown's own
+   * `battleOnly`. The artifact was derived by hand once, on 2026-07-24, and nothing regenerated it;
+   * engine/durable-ingest.js maps a battle forme back to the species team preview shows through it,
+   * so a forme Showdown adds desynchronises `six`, `brought` and `lead` silently. --check is the
+   * argument-is-the-question case: bare, this file REWRITES the artifact, and a suite that rewrites
+   * an artifact its own children read is the generated_audit hazard. With --check it writes nothing
+   * and exits 1 on any moved row. Measured 2026-09-21: 131 previous, 131 derived, no row moved,
+   * exit 0, ~8 s. It loads the dex, so plan() skips it visibly when SHOWDOWN_PATH is unset.
+   *
+   * tests/probe_format_id_derivation.js — is any LIVE format id still typed instead of derived? A
+   * hardcoded id keeps working after a rotation and opens the PREVIOUS regulation's dex, which is the
+   * absent-capability-reporting-success shape CLAUDE.md opens with. Its predicate is DERIVED — an id
+   * on a line that hands it to Dex.forFormat or to the replay search endpoint — not a list of files,
+   * so a file written tomorrow is scanned with no edit. THE MOST EXPENSIVE OF THE NINE at ~24 s,
+   * because it opens both Champions regulations to price the consequence. Measured 2026-09-21: 0 live
+   * call sites under engine/ and build/ fail to derive, exit 0.
+   *
+   * tests/probe_future_scope_readmission.js — engine/legal_scope.js is the ONE authority on what is
+   * in scope, and engine/coverage.js takes its denominator from it. It answered NOT-LEGAL for an
+   * entity marked `isNonstandard: 'Future'`, so a live ability could leave the denominator and every
+   * coverage report would read FULL. A shrinking denominator that reports completeness is the worst
+   * available direction. No game, no release; it reads the format. Measured 2026-09-21: all checks
+   * passed, exit 0, ~0.8 s. The red arm is ABRA_SCOPE_STRICT_FUTURE=1.
+   *
+   * tests/probe_tag_derivation_without_prose.js — a tag derived from a move's DESCRIPTION rather than
+   * from its handlers. Prose moves; a derivation that reads it is a silent mis-tag, and this one
+   * halved a special attack under a screen that does not halve it. The probe blanks both description
+   * fields across all 500 legal moves and asserts the derivation does not move, WITH a control that
+   * proves the derivation separates the screens rather than answering one value for all — identical
+   * output across a varied input is an unwired derivation, not agreement. Measured 2026-09-21: all
+   * checks passed, exit 0, ~0.5 s. The red arm is ABRA_TAGDEX_SCREENS_FROM_PROSE=1.
+   *
+   * tests/probe_rotated_ladder.js — can the ingest tell a ROTATED ladder from a quiet one? The
+   * zero-gain guard keys on `idsSeen===0`, and a rotated ladder keeps offering its stale ids forever,
+   * so the store stops growing while every guard stays green. THE FIXTURE IS SYNTHETIC AND TOUCHES
+   * NOTHING: https.get is replaced in a preload module and the store is an os.tmpdir() scratch
+   * directory, so there is no network and data/ is not read or written. Measured 2026-09-21: rotated
+   * refused by name, quiet still exits 0, dead endpoint still ZERO-GAIN, exit 0, ~0.3 s.
+   *
+   * tests/probe_release_drift_diagnosis.js — when a release digest moves, does anything say WHY? A
+   * line-ending change moved a release id twice in one fortnight and cost five heavy re-runs that
+   * discovered nothing had changed. It overrides BOTH the release store and the live tree to
+   * temporary directories and prints that it has done so, so data/releases/ is untouched. Measured
+   * 2026-09-21: 17 of 17 checks passed, exit 0, ~0.1 s.
+   *
+   * tests/probe_instrument_digest.js — does engine/arms_comparable.js REFUSE a pair that played
+   * different INSTRUMENT code, and still pass a pair that did not? Six runs on one identical set of
+   * pins read 121, 121, 138, 167, 167 and 147 because the pins freeze every INPUT and freeze none of
+   * the code that reads them. Both directions are asserted, which is what stops it passing by
+   * refusing everything. It builds its comparison copies under os.tmpdir(). Measured 2026-09-21: all
+   * expectations met, exit 0, ~1.2 s. */
+  'engine/exit_codes.js',
+  'engine/model_versions.js',
+  'engine/build_battle_formes.js',
+  'tests/probe_format_id_derivation.js',
+  'tests/probe_future_scope_readmission.js',
+  'tests/probe_tag_derivation_without_prose.js',
+  'tests/probe_rotated_ladder.js',
+  'tests/probe_release_drift_diagnosis.js',
+  'tests/probe_instrument_digest.js'];
 
 /* COVERAGE ASSERTION. Any file in tests/ or engine/ that reports its own pass/fail verdict is a
  * check, and a check that nothing runs is worse than no check — it reads as coverage in a review. If
@@ -627,6 +712,52 @@ const PENDING_WIRE = {
   'tests/probe_census_reproduces.js': 'REGISTERED 2026-09-11 — the owed instrument for ROADMAP #442, red by design until that row is fixed; runner: engine/register_reality.js via the row\'s VERIFIED BY marker. HEAVY: it regenerates the whole census inside a git-archive of HEAD in a temp tree (writes nothing in the repository); --dry checks preconditions only.',
   'tests/probe_differential_void_attribution.js': 'REGISTERED 2026-09-11 — the owed instrument for ROADMAP #467, red by design until that row is fixed; runner: engine/register_reality.js via the row\'s VERIFIED BY marker. It reads data/game-differential.json (or --artifact), so its verdict moves with that artifact.',
   'tests/probe_couldnotstage_exit_zero.js': 'REGISTERED 2026-09-11 — the owed instrument for ROADMAP #524, red by design until that row is fixed; runner: engine/register_reality.js via the row\'s VERIFIED BY marker. A static scan of tests/probe_*.js; --plant adds a site and must go red.',
+
+  /* ================ REGISTERED 2026-09-21 BY MEASURE — THE OTHER TWENTY-SIX ======================
+   *
+   * Thirty-five files were unaccounted for. Nine were WIRED IN above after being run alone; these are
+   * the rest, and each was classified by reading that file's own header in this pass. */
+  'engine/docs_scan.js': 'A REAL CHECK WITH RUNNERS THIS SUITE ALREADY REACHES, so wiring it here buys a second execution and a second place for one verdict to be decided — engine/derive_protocol_events.js\'s reasoning above, applied to a second file. It is primarily the LIBRARY that derives the documentation surface, and tests/test-docs-current.js requires it directly and is DISCOVERED by the tests/test-*.js glob: that file re-decides recordableChanges() and the owed-backlog cap through this module on every suite run. Its --note-check verdict has a second runner in .githooks/pre-commit. Bare, it prints the census and exits 0. If tests/test-docs-current.js ever stops asking it, wire it here that day.',
+
+  /* THE FIVE BELOW PLAY GAMES OR READ THE REAL STORE THROUGH A **CHILD PROCESS**, so they load no
+   * game module themselves and the derived PENDING-WIRE rule cannot classify them — the
+   * tests/probe_amf_default_populations.js case above, four more times. The cost is in the child. */
+  'tests/probe_corner_arm_measures.js': 'AN INSTRUMENT PROBE — engine/game_differential.js\'s --arm moved ARMS_RUN and did NOT move the arm whose games become `results`, so a run asking for a corner arm alone played its games, assigned none of them to results, and published a clean zero. Blocker: it spawns a whole engine/game_differential.js run as a child with --release, --census, --team-store and --games, which is hundreds of games and three pins this runner must not choose. It carries a VERIFIED BY marker in docs/ROADMAP.md, so engine/register_reality.js reaches it.',
+  'tests/probe_state_void_exclusion.js': 'AN INSTRUMENT PROBE — engine/game_differential.js publishes a protocol number over FILTERED usable games and a board number over UNFILTERED ones, so the board clause charged the engine for games the ruler itself could not read. Blocker: it spawns a whole engine/game_differential.js run as a child with --release, --census, --team-store and --games. It carries no VERIFIED BY marker in docs/ROADMAP.md and nothing in this repository executes it: no runner anywhere.',
+  'tests/probe_state_credit_red.js': 'BOTH DIRECTIONS OF `stateCredit` — does engine/all_mechanics_fire.js see our engine act, and ONLY when it acts? Eight moves read unresolved on a release where the boards agreed, because the reader keyed on protocol lines our trace never writes. Blocker: it spawns engine/all_mechanics_fire.js children at --max-old-space-size=6144 with a 900 s timeout, and it is RELEASE-PINNED — it refuses a release that predates the knobs its red arm needs, so this runner would have to choose a release. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_protect_amplification.js': 'DOES THE EMPIRICAL DRIVER CLICK PROTECT AT THE RATE IT CLAIMS? `empirical-click/v1` is a behaviour clone whose whole claim is that its click distribution is the one in data/move-priors.json, and the table states its own protect-family share, so the claim is checkable without a second measurement. Blocker: it spawns a full engine/game_differential.js run through tools/lownode.cmd to get a trace dump — real games, every core, and a census/pool/release choice this runner must not make. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_usage_regulation_pool.js': 'DOES data/meta-usage.json POOL TWO REGULATIONS UNDER ONE LABEL? engine/analyze.js writes the format as a LABEL and loads its corpus without reading g.format, so a rotation pools the new regulation onto the old corpus under the new name — and CHOMP reads that file. Blocker, and it is fixable rather than structural: it reads the real ladder store, which is gitignored, and it THROWS on ENOENT instead of exiting 2, so on any checkout without the store the suite goes red for a missing input rather than skipping. Give it engine/validate_selfplay.js\'s guard — absent store, exit 2 — and wire it. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+
+  /* THE TWENTY BELOW ALL PLAY A GAME — each loads engine/champions_sim.js, engine/medicham2-browser.js,
+   * tests/staged_board.js, tests/_live_release.js or engine/engine_release.js — which is the blocker
+   * every tests/ entry here shares, and none of them could be certified in a pass where an agent was
+   * live in the simulator. THEY ARE HAND ENTRIES ONLY BECAUSE THE DERIVED RULE CANNOT SEE THEM: that
+   * rule needs BOTH halves, a game module AND a backticked name in docs/ENGINE.md, and no ledger row
+   * names any of these twenty. So the owed work is ENGINE\'s ledger row describing what each measures,
+   * after which the derived rule classifies it and the hand entry goes. Three of the twenty carry a
+   * VERIFIED BY marker and are reached by engine/register_reality.js; the other seventeen are reached
+   * by nothing, and that is stated per entry rather than shared, because "covered elsewhere" read
+   * where "covered nowhere" is true is how a check goes missing. */
+  'tests/probe_accuracy_roads.js': 'DO THE THREE ROADS THAT GOT STEP 4 WRONG ROLL ACCURACY THE AUTHORITY\'S WAY? Every move that reaches a target draws at hitStepAccuracy — which still DRAWS for a printed 100 — and three roads in the simulator skipped or localised it. The parent re-runs itself in a child under each of three knobs and judges the child, so a knob that has stopped working is caught too. Blocker: plays a game. It carries a VERIFIED BY marker in docs/ROADMAP.md, so engine/register_reality.js reaches it.',
+  'tests/probe_disguise_crit.js': 'DOES DISGUISE REFUSE A CRIT EXACTLY WHERE THE AUTHORITY\'S HANDLER DOES, AND STAY OUT OF A HIT THAT LANDS ON ITS OWN DOLL? Two knobs, each run in its own child which asserts that knob\'s defect is PRESENT, so a working knob exits 0. Blocker: plays a game. It carries a VERIFIED BY marker in docs/ROADMAP.md, so engine/register_reality.js reaches it.',
+  'tests/probe_protect_stall_lifecycle.js': 'THE PROTECT STALL COUNTER, BOTH ENGINES, STAGED — the family of whole-game divergences in which the authority raises a Protect where this engine writes -fail. --red also plays every scenario against an in-memory engine whose willAct() analogue always answers "someone acts after me", which is the demonstration that it can see a stall-gate defect at all; nothing on disk is patched. Blocker: plays a game, through tests/_live_release.js. It carries a VERIFIED BY marker in docs/ROADMAP.md, so engine/register_reality.js reaches it.',
+  'tests/probe_ally_safeguard.js': 'SAFEGUARD PROTECTS A SIDE, AND THIS ENGINE ONLY EVER ASKED IT ABOUT THE OTHER SIDE — the third site of the ally-side class, and what the three sites share is a SENTENCE rather than a function, which is why a shared fix could not close it. Red arm: MEDI_SIDEBUFF_FOE_SIDE_ONLY=1. Blocker: plays a game. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_apparent_type_broadcast.js': 'THE BOTTOM-SCREEN TYPE LINE, which this engine had never emitted and which exactly one legal move can cause. Measured off a named row of data/all-mechanics-fire.json before anything was written. Red arm: MEDI_APPARENT_TYPE_BLIND=1. Blocker: plays a game. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_berserk_switcheroo.js': 'DIAGNOSTIC — is Berserk\'s leaf comparable at all? A census row read end_reason THREW on the arm AND on the control arm, and a scout read that as "the comparison produced nothing". It answers the only way that question can be answered, with a RED PLANT that shows the comparator catching a difference it is accused of missing. Nothing under engine/ is edited by it. Blocker: plays a game. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_corpse_priority_galewings.js': 'A CORPSE\'S QUEUED GALE WINGS ACTION, RE-PRICED — the authority re-prices and re-sorts the whole remaining queue after every action, so an ability on a body that is already dead can still move the order. Release-pinned, with a --red arm. Blocker: plays a game. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_heal_bell_party.js': 'HEAL BELL WAS AN UNMODELLED CLICK, and its row is the ONE move row in data/all-mechanics-fire.json whose board verdict was STATE rather than announcement-only — so it is the one that could not be waved off as narration. Red arm: MEDI_PARTY_CURE_UNMODELLED=1. Blocker: plays a game. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_heldout_board_partings.js': 'THREE OF THE NINE BOARD PARTINGS IN THE WIDER HELD-OUT DRAW, each replayed line by line with engine/replay_one.js under the same pins before a byte moved. Three red arms, one per parting. Blocker: plays a game, through tests/_live_release.js, and it is the held-out draw — a sample this runner must not pick for itself. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_mental_herb_update.js': 'MENTAL HERB IS AN `onUpdate` ITEM AND HAD ONLY EVER BEEN REACHED FROM THE MOVE THAT WROTE THE VOLATILE, which is one of the board-material games on a named release. PROBE_RELEASE=<id> opens a FROZEN release instead of the live tree, which is the red-first arm. Blocker: plays a game. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_metronome_game.js': 'THE METRONOME LADDER IN A PLAYED GAME, six turns deep, against the authority. Its companion proves the CONSUMER by setting the counter by hand, which is the easy half and says nothing about whether the turn loop ever advances it — the part the item roster was actually failing on. --broken is the red demonstration. Blocker: plays a game. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_pivot_magic_bounce.js': 'DOES A REFLECTABLE **PIVOT** STATUS MOVE COME BACK AT ITS USER? The one door bounceOff was never fitted to, read off the authority\'s own onTryHit rather than re-aimed at a symptom. Blocker: plays a game. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_refill_second_wave.js': 'A FAINT REPLACEMENT THAT DIES ON ARRIVAL IS ITSELF REPLACED — the authority raises a NEW switch request for every wave of corpses, read in order out of runAction. --red is the demonstration arm. Blocker: plays a game. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_resist_berry_resolved_type.js': 'WHEN A MOVE\'S TYPE IS REWRITTEN BEFORE IT LANDS, DOES THE TYPE-RESIST BERRY STILL GET EATEN? Every member of the family is one handler with the halve INSIDE the spend, so eating and halving cannot be separated — which is exactly what an engine that resolves the type too late does. --red is the restore arm. Blocker: plays a game. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_spread_item_order.js': 'A SPREAD MOVE SAYS EVERY REFUSAL BEFORE IT SAYS ANY EFFECT — measured off a named row of data/all-mechanics-fire.json whose divergence is an ordering one, not a missing line. Red arm: MEDI_SPREAD_ITEM_INTERLEAVED=1. Blocker: plays a game. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_spread_target_die.js': 'WHEN THE PLAYER WAS NEVER ALLOWED TO NAME A TARGET, DO THE TWO ENGINES NAME THE SAME BODY? The authority refuses a target for any class outside CHOOSABLE_TARGETS, so a spread move arrives with no target location and the choice is made downstream — a shared die, not a free pick. --red is the restore arm. Blocker: plays a game. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_stat_pick.js': 'THE RANDOM STAT PICK — do the two engines choose the SAME stat? It exists for a named first_board_divergences row in which three boost fields disagree on one body at one turn, which is the signature of two engines drawing from one die differently rather than of a missing mechanic. Blocker: plays a game. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_status_blocksstatus.js': 'THE STATUS ROAD ASKS `t.protect` AND NEVER ASKS `blocksStatus` — the authority\'s checkMoveBypassesProtect takes a blockStatus argument that this engine had no analogue for, so a shield that refuses status moves and one that does not were the same object here. --only <id> narrows it to one shield. Blocker: plays a game. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_thaw_after_secondary.js': 'A MOVE THAT THAWS ITS TARGET: DOES THE TARGET GET TO BE FROZEN WHILE THE MOVE\'S OWN SECONDARY IS APPLIED? Both thaw routes are handlers on the frz CONDITION and Champions overrides only two of them, so the ordering question is mainline\'s and is read at the line rather than recalled. --red is the restore arm. Blocker: plays a game. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
+  'tests/probe_weather_forme_faint.js': 'A WEATHER FORME COMES OFF A CORPSE, AND THE REVERT LIVED ON THE SWITCH ROAD ONLY. It is one of the two board-material games on a named release that part a board while the two protocol streams are identical from the first line to the last — the case a protocol-keyed triage list cannot see. PROBE_RELEASE=<id> opens a frozen release, which is the red-first arm. Blocker: plays a game. No runner anywhere: no VERIFIED BY marker and nothing executes it.',
 };
 
 /* ---- the coverage scan, over BOTH directories ------------------------------------------------ */
@@ -863,7 +994,16 @@ function plan(rel) {
                    * moved. It also runs `allowProof()`, the declared-divergence machinery in both
                    * directions. Eleven of the breaks had stopped applying by 2026-09-19 and nothing
                    * was running the file to say so. It roughly doubles the cost, 22 s against ~12. */
-                  'tests/staged_board.js': ['--reds'] };
+                  'tests/staged_board.js': ['--reds'],
+                  /* ADDED 2026-09-21, and all three are the argument-is-the-question case. Bare,
+                   * engine/exit_codes.js and engine/model_versions.js are libraries that run nothing
+                   * (model_versions prints a table and exits 0) — the registered no-op that reads as
+                   * coverage while asking no question. Bare, engine/build_battle_formes.js REWRITES
+                   * data/battle-formes.json, so the suite would rewrite an artifact its own children
+                   * read; --check derives, compares, writes nothing, and exits 1 on a moved row. */
+                  'engine/exit_codes.js': ['--selftest'],
+                  'engine/model_versions.js': ['--selftest'],
+                  'engine/build_battle_formes.js': ['--check'] };
   /* THE HEAP IS DECLARED BY THE CHECK, NOT LISTED BY THE RUNNER. ROADMAP #446.
    *
    * tests/test-resolution-order.js dies at node's default heap — exit 134, `Reached heap limit

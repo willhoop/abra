@@ -21,6 +21,22 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.11.0] — 2026-09-21
+
+### Added
+- Nine checks wired into `tests/run-all.js` that nothing ran before: three selftests and six game-free
+  probes. 9 passed, 0 failed, ~36 s added.
+
+### Changed
+- Twenty-six files named `PENDING_WIRE` with a reason. **None was named `NOT_A_CHECK`** — each asserts a
+  contract, and calling one otherwise would be the failure the clause catches.
+
+### Notes
+- **The UNACCOUNTED-FOR clause is closed: 35 → 0**, from 30 before this session plus five of our own.
+- No check went red once it ran — the weaker result, not the better one.
+- One real defect named and not fixed: a usage probe throws `ENOENT` on an absent store instead of
+  exiting 2. Twenty ledger rows are owed to ENGINE.
+
 ## [0.10.0] — 2026-09-21
 
 ### Fixed
