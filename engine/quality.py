@@ -19,6 +19,7 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 STORE = os.path.join(_HERE, '..', 'data', 'games.ladder.jsonl')
 CONFIG = os.path.join(_HERE, '..', 'data', 'quality-filter.json')
 VALIDATION = os.path.join(_HERE, '..', 'data', 'store-validation.json')
+CUSTOM_RULESET = os.path.join(_HERE, '..', 'data', 'custom-ruleset-ids.json')
 
 
 _CFG = None
@@ -176,6 +177,58 @@ def illegal_teams():
     return out
 
 
+_CUSTOM = None
+
+
+def custom_ruleset():
+    """Game ids whose RAW log carries Showdown's `N custom rule(s):` infobox.
+
+    A DETECTOR, not a declaration: the set is DERIVED by engine/scan_custom_rulesets.js from the log
+    Showdown broadcast, and nothing here re-derives the rule text. Both kinds are excluded - the 129
+    that alter what a team may legally contain or how many are picked, AND the ~6,800 that set a
+    different information regime (overwhelmingly `Best of = 3`, i.e. bo3 tournament games misfiled in
+    the bo1 ladder store).
+
+    IT IS A FLOOR. The infobox is in the raw log and 18.6% of store rows have no raw log on disk, so
+    `untestable_share` travels to funnel() and is printed. A missing verdict is a rule that did not
+    run and says so, exactly as illegal_teams() does.
+
+    Must stay selection-identical to customRuleset() in engine/quality.js - tests/test-quality.js
+    compares the two implementations' chosen ids by hash."""
+    global _CUSTOM
+    if _CUSTOM is not None:
+        return _CUSTOM
+    r = config()['rules'].get('exclude_custom_ruleset')
+    out = {'on': bool(r and r.get('on')), 'ids': set(),
+           'source': (r or {}).get('source') or 'data/custom-ruleset-ids.json',
+           'generated': None, 'raw_logs_scanned': 0, 'untestable': 0, 'untestable_share': 0,
+           'alter_legality': 0, 'missing': False}
+    if not out['on']:
+        _CUSTOM = out
+        return out
+    try:
+        with open(CUSTOM_RULESET, encoding='utf-8') as fh:
+            v = json.load(fh)
+    except Exception as e:                                   # noqa: BLE001 - reported, not swallowed
+        import sys
+        out['missing'] = True
+        print("quality: exclude_custom_ruleset is ON but %s would not read (%s); NO game is excluded "
+              "for a custom ruleset. Run: node engine/scan_custom_rulesets.js" % (out['source'], e),
+              file=sys.stderr)
+        _CUSTOM = out
+        return out
+    out['ids'] = set((v.get('ids') or {}).keys())
+    out['generated'] = v.get('generated')
+    c = v.get('counts') or {}
+    u = v.get('untestable') or {}
+    out['raw_logs_scanned'] = c.get('raw_logs_scanned') or 0
+    out['alter_legality'] = c.get('joined_alter_legality_or_pick') or 0
+    out['untestable'] = u.get('store_ids_with_no_raw_log') or 0
+    out['untestable_share'] = u.get('share') or 0
+    _CUSTOM = out
+    return out
+
+
 def had_action(g):
     """Did anything actually happen? One move or one switch is enough.
 
@@ -218,6 +271,16 @@ def reasons(g, cfg=None, bots=None):
     cw = r.get('exclude_corrupt_winner')
     if cw and cw.get('on') and g.get('id') in (cw.get('declared') or {}):
         bad.append('corrupt_winner')
+    # DECLARED, NEVER DETECTED - the sibling of the rule below and NOT redundant with it. The one id it
+    # names has no raw log on disk, so the detector cannot see it and never will. It sat in the config
+    # from 1.5.0 with no reader in either language; it is read now.
+    nsr = r.get('exclude_nonstandard_ruleset')
+    if nsr and nsr.get('on') and g.get('id') in (nsr.get('declared') or {}):
+        bad.append('nonstandard_ruleset')
+    # DETECTED, NOT DECLARED - see custom_ruleset() above.
+    cr = r.get('exclude_custom_ruleset')
+    if cr and cr.get('on') and g.get('id') in custom_ruleset()['ids']:
+        bad.append('custom_ruleset')
     return bad
 
 
@@ -246,6 +309,10 @@ FUNNEL_STEPS = [
     ('after_legality', 'illegal_team'),
     # APPENDED after legality, for the same reason. ROADMAP #558, a declared exclusion.
     ('after_corrupt_winner', 'corrupt_winner'),
+    # APPENDED, for the reason every rule before them was appended: every historical stage keeps
+    # meaning what it meant. The declared row first, then the detector.
+    ('after_nonstandard_ruleset', 'nonstandard_ruleset'),
+    ('after_custom_ruleset', 'custom_ruleset'),
 ]
 
 
@@ -291,6 +358,24 @@ def funnel(path=None):
         'removed_from_clean': sum(1 for rs in all_reasons if rs == ['corrupt_winner']),
         'flagged_anywhere': sum(1 for rs in all_reasons if 'corrupt_winner' in rs),
     }
+    nsr = cfg['rules'].get('exclude_nonstandard_ruleset') or {}
+    nsr_declared = nsr.get('declared') or {}
+    out['nonstandard_ruleset'] = {
+        'on': bool(nsr.get('on')), 'register': nsr.get('register'), 'declared': len(nsr_declared),
+        'found': [g.get('id') for g in games if g.get('id') in nsr_declared],
+        'removed_from_clean': sum(1 for rs in all_reasons if rs == ['nonstandard_ruleset']),
+        'flagged_anywhere': sum(1 for rs in all_reasons if 'nonstandard_ruleset' in rs),
+    }
+    # Count, rate and reason - AND the untestable share, which is what stops this reading as a census.
+    cr = custom_ruleset()
+    out['custom_ruleset'] = {
+        'on': cr['on'], 'source': cr['source'], 'generated': cr['generated'],
+        'verdict_missing': cr['missing'], 'ids': len(cr['ids']),
+        'raw_logs_scanned': cr['raw_logs_scanned'], 'alter_legality': cr['alter_legality'],
+        'untestable': cr['untestable'], 'untestable_share': cr['untestable_share'],
+        'removed_from_clean': sum(1 for rs in all_reasons if rs == ['custom_ruleset']),
+        'flagged_anywhere': sum(1 for rs in all_reasons if 'custom_ruleset' in rs),
+    }
     return out
 
 
@@ -305,7 +390,9 @@ if __name__ == '__main__':
               ('after_min_turns', 'after removing games under 3 turns'),
               ('after_full_bring', 'after requiring all four brought to be revealed'),
               ('after_legality', 'after removing teams Showdown rejects (species/item)'),
-              ('after_corrupt_winner', 'after removing DECLARED corrupt-winner rows')]
+              ('after_corrupt_winner', 'after removing DECLARED corrupt-winner rows'),
+              ('after_nonstandard_ruleset', 'after removing DECLARED nonstandard-ruleset rows'),
+              ('after_custom_ruleset', 'after removing games played under a CUSTOM RULESET')]
     prev = total
     for key, label in labels:
         if key not in f:
@@ -353,3 +440,35 @@ if __name__ == '__main__':
         print(f"  in store     {len(found)} of {cw['declared']}" + (f": {', '.join(found)}" if found else ''))
         print(f"  removed      {cw['removed_from_clean']} games that passed every other rule; "
               f"{cw['flagged_anywhere']} flagged in all")
+    nsr = f.get('nonstandard_ruleset') or {}
+    print(f"\nDECLARED EXCLUSION - nonstandard_ruleset ({nsr.get('register') or 'no register row'})")
+    if not nsr.get('on'):
+        print('  OFF - no game is excluded as a declared nonstandard ruleset.')
+    else:
+        found = nsr.get('found') or []
+        print(f"  declared     {nsr['declared']} ids in data/quality-filter.json "
+              f"rules.exclude_nonstandard_ruleset, each with its evidence")
+        print(f"  in store     {len(found)} of {nsr['declared']}" + (f": {', '.join(found)}" if found else ''))
+        print(f"  removed      {nsr['removed_from_clean']} games that passed every other rule; "
+              f"{nsr['flagged_anywhere']} flagged in all")
+    # The detector says what it removed AND what it could not see. The second line is the one that
+    # matters: without it a scan that read 81% of the store reads as a clean corpus.
+    cr = f.get('custom_ruleset') or {}
+    print('\nCUSTOM-RULESET EXCLUSION (detected, not declared)')
+    if not cr.get('on'):
+        print('  OFF - no game is excluded for a custom ruleset.')
+    elif cr.get('verdict_missing'):
+        print(f"  NOT APPLIED - {cr['source']} would not read. Run: node engine/scan_custom_rulesets.js")
+    else:
+        base = max(1, f.get('after_full_bring', 1))
+        print(f"  verdict      {cr['source']}  generated {cr['generated']}  "
+              f"({cr['raw_logs_scanned']:,} raw logs scanned)")
+        print(f"  ids          {cr['ids']:,} game ids carry Showdown's custom-rule infobox; "
+              f"{cr['alter_legality']} of them alter legality or the pick count, the rest change the "
+              f"information regime (mostly Best of = 3)")
+        print(f"  removed      {cr['removed_from_clean']} games that passed every other rule "
+              f"({100*cr['removed_from_clean']/base:.3f}% of the previously-clean corpus)")
+        print(f"  flagged      {cr['flagged_anywhere']} of {total:,} collected "
+              f"({100*cr['flagged_anywhere']/total:.3f}%) - the rest were already excluded by another rule")
+        print(f"  UNTESTABLE   {cr['untestable']:,} rows ({100*cr['untestable_share']:.2f}%) have no raw "
+              f"log on disk and were never asked. This filter is a FLOOR, not a census.")

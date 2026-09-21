@@ -1,6 +1,6 @@
 # REG M-C — the ledger
 
-**Version: 0.5.0 — 2026-09-21.**
+**Version: 0.6.0 — 2026-09-21.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 A leading `0` means NOT USABLE YET (SemVer 2.0.0 clause 4). This line reaches **1.0.0 the day the M-C
@@ -316,6 +316,55 @@ quoting any number written here.
 
 **Nothing is simulated yet.** No M-C engine, no census, no roster, no gate. The checkout exists, the
 delta is derived, and that is the whole of it.
+
+## THE M-C POOL CARRIES CUSTOM-RULE ROOMS, AND THE M-B ANSWER DOES NOT TRANSFER — 0.6.0, 2026-09-21
+
+A tournament room played under Showdown's custom rules is indexed under the **base format id**, so
+`search.json?format=` collects it like any other game and `engine/durable-ingest.js` cannot tell the
+difference — a format id does not encode custom rules. On the Reg M-B ladder that share is stated in `data/quality-filter.json:provenance.funnel.after_custom_ruleset` against `.collected` (the
+same file), and all of it is out of scope; `data/quality-filter.json` 1.6.0 excludes it
+(`docs/_reports/2026-09-21-custom-ruleset-filter.md`).
+
+**On Reg M-C the same instrument gives the opposite answer, so the rule is NOT copied across.** These
+counts are a LIVE DERIVATION over untracked store files, not a row in a `data/*.json` artifact, so
+they carry no artifact citation and are quoted as the readout that produced them:
+
+```
+$ node engine/scan_custom_rulesets.js --raw data/games.gen9championsvgc2026regmc.raw-logs.jsonl \
+      --store data/games.gen9championsvgc2026regmc.jsonl.gz --out <scratch>
+  raw logs             1,412 records  (2026-09-09T20:52:08Z)
+  custom-rule infobox  57 (4.04%)  in 2 distinct rule strings  -- 41 Force Open Team Sheets, 16 Best of = 3
+  alters legality/pick 0
+  store                33,743 unique ids
+  JOINED               57 = 0.17% of the store
+  UNTESTABLE           32,331 store ids have no raw log on disk (95.82%) -- a FLOOR, not a census
+
+$ (the same id set, joined against the frozen pool)
+  data/team-pool-frozen-regmc/games.bo3.jsonl   23,473 rows    0 custom-rule games
+  data/team-pool-frozen-regmc/games.ots.jsonl    1,359 rows   44 custom-rule games (3.24%)
+      39  Force Open Team Sheets
+       5  Best of = 3
+```
+
+**`Force Open Team Sheets` is the rule that MAKES a ladder game open-sheet, and open sheets are this
+line's scope.** Excluding those rows would delete the evidence the scope was chosen to collect. The
+`Best of = 3` handful is a different information regime sitting in the ladder half of the pool and is
+the only candidate for exclusion. **This is a judgement and it has not been taken** — the pool is
+frozen and cut, and nothing is changed here on the strength of five games.
+
+**AND THE M-C ANSWER IS MOSTLY UNASKED.** The infobox lives in the RAW log, the M-C raw-log files stop
+on 2026-09-09, and the stores run to 2026-09-21 — so the scan reached about four percent of the store.
+That is not *"M-C is nearly clean"*; it is *"M-C has barely been asked"*. The scan prints that share on
+every run for exactly this reason. Full account:
+[`docs/_reports/2026-09-21-custom-ruleset-filter.md`](_reports/2026-09-21-custom-ruleset-filter.md).
+
+**One thing found on the way, not fixed here, OPS's:**
+`data/games.gen9championsvgc2026regmc.jsonl` on disk is a stale snapshot of 2026-09-09 while
+`data/games.gen9championsvgc2026regmc.jsonl.gz` beside it is current and far larger.
+`engine/quality.js` and `engine/quality.py` both prefer the PLAIN file when both exist — correct for
+the ladder store, which a local collector appends to, and **wrong here**, where the next-regulation
+collector produces the compressed one. Any reader of the M-C store today silently gets a fraction of
+it, which is a capability absent with everything reporting success.
 
 **Not started, in the order they unblock each other:** a frozen M-C team pool cut from the store; the
 41 new mechanics staged (CHANGELOG-REGMC 0.1.0); the census extended; the differential run against the M-C authority; the gate's

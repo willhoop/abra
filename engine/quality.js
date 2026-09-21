@@ -16,6 +16,7 @@ const path = require('path');
 const STORE = path.join(__dirname, '..', 'data', 'games.ladder.jsonl');
 const CONFIG = path.join(__dirname, '..', 'data', 'quality-filter.json');
 const VALIDATION = path.join(__dirname, '..', 'data', 'store-validation.json');
+const CUSTOM_RULESET = path.join(__dirname, '..', 'data', 'custom-ruleset-ids.json');
 
 /* Memoised. `reasons()` is called once per game, and re-reading + re-parsing the config file on each
  * call turned a 1-second filter into a multi-minute one. Cached after the first read. */
@@ -237,6 +238,56 @@ function illegalTeams() {
   _legal = out; return out;
 }
 
+/* THE CUSTOM-RULESET VERDICT — A DETECTOR, AND ITS EVIDENCE IS SHOWDOWN'S OWN INFOBOX.
+ *
+ * engine/scan_custom_rulesets.js streams data/games.ladder.raw-logs.jsonl, matches the `N custom
+ * rule(s):` infobox Showdown emits whenever a room deviates from the format, and writes the id set to
+ * data/custom-ruleset-ids.json. This reads it. Nothing here re-derives the rule text: one
+ * implementation, everyone calls it.
+ *
+ * WHY BOTH KINDS ARE EXCLUDED AND NOT ONLY THE ILLEGAL ONES. 129 of the 6,952 alter what a team may
+ * legally CONTAIN or how many are picked (`!obtainable`, `+past`, `+jirachi`, a stone unban,
+ * `!Picked Team Size`). The other ~6,800 set a different INFORMATION REGIME — overwhelmingly
+ * `Best of = 3`, i.e. bo3 tournament games sitting in the bo1 ladder store. This project keeps TWO
+ * human stores and treats bo3 as a different metagame with a different information regime, so those
+ * rows are MISFILED. Neither kind is evidence about the bo1 ladder.
+ *
+ * IT IS A FLOOR, NOT A CENSUS, AND THAT IS CARRIED OUT TO funnel() RATHER THAN LEFT IN THE HEADER.
+ * The infobox lives in the RAW log; 18.6% of store rows have no raw log on disk and were never asked
+ * the question. A filter that cannot see part of its population must say how much, or "we cleaned the
+ * corpus" quietly becomes "we cleaned the part of the corpus we could read".
+ *
+ * A MISSING VERDICT IS A RULE THAT DID NOT RUN — same contract as illegalTeams() above. It is
+ * reported loudly and `missing` reaches funnel(), which prints NOT APPLIED instead of a zero.
+ *
+ * READ ONCE PER PROCESS, for the reason the legality verdict is: a filter that changed halfway
+ * through a run would produce a corpus no stamp describes. */
+let _custom = null;
+function customRuleset() {
+  if (_custom) return _custom;
+  const r = (config().rules || {}).exclude_custom_ruleset;
+  const out = { on: !!(r && r.on), ids: new Set(), source: (r && r.source) || 'data/custom-ruleset-ids.json',
+                generated: null, raw_logs_scanned: 0, untestable: 0, untestable_share: 0,
+                alter_legality: 0, missing: false };
+  if (!out.on) { _custom = out; return out; }
+  let v;
+  try { v = JSON.parse(fs.readFileSync(CUSTOM_RULESET, 'utf8')); }
+  catch (e) {
+    out.missing = true;
+    console.error(`quality: exclude_custom_ruleset is ON but ${out.source} would not read (${e.message}); `
+      + `NO game is excluded for a custom ruleset. Run: node engine/scan_custom_rulesets.js`);
+    _custom = out; return out;
+  }
+  for (const id of Object.keys(v.ids || {})) out.ids.add(id);
+  out.generated = v.generated || null;
+  const c = v.counts || {}, u = v.untestable || {};
+  out.raw_logs_scanned = c.raw_logs_scanned || 0;
+  out.alter_legality = c.joined_alter_legality_or_pick || 0;
+  out.untestable = u.store_ids_with_no_raw_log || 0;
+  out.untestable_share = u.share || 0;
+  _custom = out; return out;
+}
+
 /* Did anything actually happen? One move or one switch is enough. Deliberately NOT a turn count:
  * a game can carry turn objects with no action in them, and the question the forfeit rule asks is
  * whether the players produced evidence, not how far the clock got. */
@@ -296,6 +347,17 @@ function reasons(g, cfg, bots) {
    * id whose winner has since been corrected, so a declaration cannot outlive its defect. */
   const cw = r.exclude_corrupt_winner;
   if (cw && cw.on && Object.prototype.hasOwnProperty.call(cw.declared || {}, g.id)) bad.push('corrupt_winner');
+  /* DECLARED, NEVER DETECTED — the sibling of the rule below, and it is not redundant with it. The one
+   * id it names has NO raw log on disk, so the detector cannot see it and never will; a declaration is
+   * the only thing that can cover a row whose evidence was fetched by hand. It was in the config from
+   * 1.5.0 with NO reader — a rule that is written down and honoured by nobody, which is this project's
+   * signature failure. It is read here. */
+  const nsr = r.exclude_nonstandard_ruleset;
+  if (nsr && nsr.on && Object.prototype.hasOwnProperty.call(nsr.declared || {}, g.id)) bad.push('nonstandard_ruleset');
+  /* DETECTED, NOT DECLARED — see customRuleset() above. Showdown's own custom-rule infobox, read out
+   * of the raw log by engine/scan_custom_rulesets.js. */
+  const cr = r.exclude_custom_ruleset;
+  if (cr && cr.on && customRuleset().ids.has(g.id)) bad.push('custom_ruleset');
   return bad;
 }
 
@@ -353,6 +415,10 @@ const FUNNEL_STEPS = [
   /* APPENDED after legality for the reason legality was appended after the bring rule: every
    * historical stage keeps meaning what it meant. ROADMAP #558, a declared exclusion. */
   ['after_corrupt_winner', 'corrupt_winner'],
+  /* APPENDED, for the reason every rule before them was appended: every historical stage keeps
+   * meaning what it meant. The declared row first, then the detector. */
+  ['after_nonstandard_ruleset', 'nonstandard_ruleset'],
+  ['after_custom_ruleset', 'custom_ruleset'],
 ];
 function funnel(p) {
   const games = readStore(p), cfg = config();
@@ -394,10 +460,29 @@ function funnel(p) {
     removed_from_clean: all.filter(rs => rs.length === 1 && rs[0] === 'corrupt_winner').length,
     flagged_anywhere: all.filter(rs => rs.includes('corrupt_winner')).length,
   };
+  const NSR = cfg.rules.exclude_nonstandard_ruleset || {};
+  const nsrDeclared = NSR.declared || {};
+  out.nonstandard_ruleset = {
+    on: !!NSR.on, register: NSR.register || null, declared: Object.keys(nsrDeclared).length,
+    found: games.filter(g => Object.prototype.hasOwnProperty.call(nsrDeclared, g.id)).map(g => g.id),
+    removed_from_clean: all.filter(rs => rs.length === 1 && rs[0] === 'nonstandard_ruleset').length,
+    flagged_anywhere: all.filter(rs => rs.includes('nonstandard_ruleset')).length,
+  };
+  /* COUNT, RATE AND REASON — and the UNTESTABLE SHARE, which is the one number that stops this rule
+   * reading as a census. A silent zero there is how a partial scan becomes "the corpus is clean". */
+  const CR = customRuleset();
+  out.custom_ruleset = {
+    on: CR.on, source: CR.source, generated: CR.generated, verdict_missing: CR.missing,
+    ids: CR.ids.size, raw_logs_scanned: CR.raw_logs_scanned, alter_legality: CR.alter_legality,
+    untestable: CR.untestable, untestable_share: CR.untestable_share,
+    removed_from_clean: all.filter(rs => rs.length === 1 && rs[0] === 'custom_ruleset').length,
+    flagged_anywhere: all.filter(rs => rs.includes('custom_ruleset')).length,
+  };
   return out;
 }
 
-module.exports = { config, readStore, reasons, isClean, loadGames, funnel, behaviouralBots, illegalTeams, STORE, CONFIG, VALIDATION };
+module.exports = { config, readStore, reasons, isClean, loadGames, funnel, behaviouralBots, illegalTeams,
+                   customRuleset, FUNNEL_STEPS, STORE, CONFIG, VALIDATION, CUSTOM_RULESET };
 
 if (require.main === module) {
   const f = funnel(), t = f.collected;
@@ -409,7 +494,9 @@ if (require.main === module) {
                 ['after_min_turns', 'after removing games under 3 turns'],
                 ['after_full_bring', 'after requiring all four brought to be revealed'],
                 ['after_legality', 'after removing teams Showdown rejects (species/item)'],
-                ['after_corrupt_winner', 'after removing DECLARED corrupt-winner rows']];
+                ['after_corrupt_winner', 'after removing DECLARED corrupt-winner rows'],
+                ['after_nonstandard_ruleset', 'after removing DECLARED nonstandard-ruleset rows'],
+                ['after_custom_ruleset', 'after removing games played under a CUSTOM RULESET']];
   let prev = t;
   for (const [k, label] of rows) {
     if (!(k in f)) continue;
@@ -447,5 +534,32 @@ if (require.main === module) {
     console.log(`  declared     ${C.declared} ids in data/quality-filter.json rules.exclude_corrupt_winner, each with its evidence`);
     console.log(`  in store     ${C.found.length} of ${C.declared}` + (C.found.length ? `: ${C.found.join(', ')}` : ''));
     console.log(`  removed      ${C.removed_from_clean} games that passed every other rule; ${C.flagged_anywhere} flagged in all`);
+  }
+
+  const N = f.nonstandard_ruleset || {};
+  console.log(`\nDECLARED EXCLUSION — nonstandard_ruleset (${N.register || 'no register row'})`);
+  if (!N.on) console.log('  OFF — no game is excluded as a declared nonstandard ruleset.');
+  else {
+    console.log(`  declared     ${N.declared} ids in data/quality-filter.json rules.exclude_nonstandard_ruleset, each with its evidence`);
+    console.log(`  in store     ${N.found.length} of ${N.declared}` + (N.found.length ? `: ${N.found.join(', ')}` : ''));
+    console.log(`  removed      ${N.removed_from_clean} games that passed every other rule; ${N.flagged_anywhere} flagged in all`);
+  }
+
+  /* THE DETECTOR SAYS WHAT IT REMOVED **AND WHAT IT COULD NOT SEE**. The second line is the one that
+   * matters: without it a scan that read 81% of the store reads as a clean corpus. */
+  const R = f.custom_ruleset || {};
+  console.log('\nCUSTOM-RULESET EXCLUSION (detected, not declared)');
+  if (!R.on) console.log('  OFF — no game is excluded for a custom ruleset.');
+  else if (R.verdict_missing) console.log(`  NOT APPLIED — ${R.source} would not read. Run: node engine/scan_custom_rulesets.js`);
+  else {
+    console.log(`  verdict      ${R.source}  generated ${R.generated}  (${R.raw_logs_scanned.toLocaleString()} raw logs scanned)`);
+    console.log(`  ids          ${R.ids.toLocaleString()} game ids carry Showdown's custom-rule infobox; `
+      + `${R.alter_legality} of them alter legality or the pick count, the rest change the information regime (mostly Best of = 3)`);
+    console.log(`  removed      ${R.removed_from_clean} games that passed every other rule `
+      + `(${(100 * R.removed_from_clean / Math.max(1, f.after_full_bring)).toFixed(3)}% of the previously-clean corpus)`);
+    console.log(`  flagged      ${R.flagged_anywhere} of ${t.toLocaleString()} collected `
+      + `(${(100 * R.flagged_anywhere / t).toFixed(3)}%) — the rest were already excluded by another rule`);
+    console.log(`  UNTESTABLE   ${R.untestable.toLocaleString()} rows (${(100 * R.untestable_share).toFixed(2)}%) have no raw log on disk `
+      + `and were never asked. This filter is a FLOOR, not a census.`);
   }
 }

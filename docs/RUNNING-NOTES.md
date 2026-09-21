@@ -52,6 +52,39 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.6.0] — 2026-09-21 — 7.37% of the ladder store was played under custom rules, and the first count of it was six times too low
+
+- **What changed.** `engine/scan_custom_rulesets.js` (new) derives the id set from Showdown's own
+  `N custom rule(s):` infobox in `data/games.ladder.raw-logs.jsonl`; `data/quality-filter.json` 1.6.0
+  adds `exclude_custom_ruleset` reading it, and gives `exclude_nonstandard_ruleset` the reader it
+  never had — **that rule was switched on at 1.5.0 and honoured by NEITHER `engine/quality.js` nor
+  `engine/quality.py`.** `engine/sanity_check.py`'s `nobody brings more than four` now honours the
+  declaration the way its winner clause does, and fails both on an undeclared breach and on a
+  declaration whose row no longer breaches. **The store is not edited.**
+- **Measured.** 6,978 raw logs carry the infobox, 6,952 distinct ids, **all 6,952 in the store =
+  7.37% of 94,360** — `data/custom-ruleset-ids.json`. 129 alter legality or the pick count; the rest
+  set a different information regime, **5,210 of them a bare `Best of = 3`**. The clean ladder corpus
+  moves **33,539 → 28,454 (−5,085, −15.16%)**, measured before and after on ONE store read —
+  `data/quality-filter.json` `provenance.funnel`. Contamination is **2.06× denser** in the clean
+  corpus than in the store, the same enrichment `exclude_illegal_teams` found. JS and Python select
+  the identical 28,454 (`sha 41229c4830fc9d7c`, `tests/test-quality.js`, 42 of 42).
+- **It is a FLOOR, not a census.** 17,527 rows (**18.57%**) have no local raw log and were never asked
+  the question. Both readers carry that share to `funnel()` and print it on every run.
+- **Basis.** unchanged. A reader can be told 33,539 became 28,454 and why.
+- **Supersedes.** ~~1,176 store rows with a custom ruleset, 19 rule strings~~ —
+  `docs/_reports/2026-09-21-six-bring-game.md` §5b. Its regex required the PLURAL `custom rules:`, so
+  every one-rule room was invisible and a one-rule room is overwhelmingly `Best of = 3`. Reconciled to
+  the unit: its per-string joined counts (691 / 170 / 101 / 56) reproduce exactly, and the residue is
+  5,768 single-rule rows plus one 8-row string it did not hold. ~~33,539 usable (35.5%), 28,681
+  teams~~ has been DELETED from `docs/SUMMARY.md`; the team counts are WITHHELD, not restated,
+  because they have not been re-derived.
+- **No published Reg M-B figure rests on a contaminated game.** `data/team-pool-frozen` is
+  `games.bo3.jsonl` + `games.ots.jsonl`, and **those two stores share zero ids with the ladder store**
+  — measured 2026-09-21. This is a cleanup, not a retraction.
+- **Owed.** `data/live.js` (`usable 33539`, `usablePct 35.5`, `teams 28681`) and `data/meta-usage.json`
+  are now STALE and owe an OPS regeneration; they are no longer cited for the usable count.
+- **Owed to the next major.** `docs/SUMMARY.md` (done in this pass), `docs/MEASURE.md`.
+
 ## [abra/regmc 0.5.0] — 2026-09-21 — a certificate that proved nothing, a ratchet that forgave itself, and a withdrawn figure still in print
 
 - **The worst of these reported fine.** `probe_red_demo`'s mega-stone demonstration applied its patch,

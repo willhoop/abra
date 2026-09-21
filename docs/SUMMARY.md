@@ -67,8 +67,8 @@ All of it on engine release `0d7b1d9db6d1`, with the census pinned and the team 
 | deliberate roster, moves | **496 of 497 in scope tested**, 0 differ, 0 did-not-fire | `data/roster.moves.json` |
 | the mechanics census | **1,002 probed / 1,002 live / 0 missing** | `data/mechanics-census.json` |
 | the staged harness | **4,632 games played, 0 threw**; 497 moves, 200 abilities and 148 items in scope, 0 diverging | `data/all-mechanics-fire.json` |
-| the store | **94,360 games recorded, 33,539 usable (35.5%), 28,681 teams** | `data/live.js` |
-| META-USAGE | **94,360 collected**, a funnel ending at **33,539** clean games, 67,078 sampled teams | `data/meta-usage.json` |
+| the store | **94,360 games recorded, 28,454 usable** — the ratio is arithmetic over those two, not a stored figure | `data/quality-filter.json:provenance.funnel.collected` / `:provenance.funnel.after_custom_ruleset` |
+| META-USAGE | **94,360 collected**, a funnel ending at **28,454** clean games | `data/quality-filter.json` |
 | the Reg M-C corpus | collected, not simulated — the counts are a live derivation over untracked store files and are quoted in `docs/REGMC.md`, not claimed here | — |
 
 The held-out sample is drawn by a stride the gate does not use, so it is a different lattice rather

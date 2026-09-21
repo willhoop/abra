@@ -148,9 +148,20 @@ print("== 6. store integrity ==")
 # #558). Every bad winner is still counted. A declared one is attributed to that rule. An undeclared one
 # FAILS. A declared id whose winner is now one of the players also FAILS: the correction landed and the
 # declaration must come out, or it becomes a silent filter on a good game.
+# THE BRING CLAUSE HONOURS A DECLARATION THE SAME WAY, AND IS NOT LOOSENED EITHER. `max(_brought_len)`
+# was a bare bound: one contaminated row took it to 6 and the check went red with nothing to do about
+# it except delete a game the store is right to keep. data/quality-filter.json declares, by id and with
+# evidence, the rows played under a ruleset that removed pick-4 (rule exclude_nonstandard_ruleset).
+# Every over-four bring is still COUNTED. A declared one is attributed to that rule. An UNDECLARED one
+# FAILS - a new contaminated row must be investigated and declared, never absorbed. And a DECLARED id
+# that no longer brings more than four FAILS too: the declaration would have outlived its defect and
+# become a silent filter on a good game, which is exactly what killed the fourteen stale handoffs.
 _qf = load("data", "quality-filter.json") or {}
 _cw = (_qf.get("rules") or {}).get("exclude_corrupt_winner") or {}
 _cw_declared = set((_cw.get("declared") or {}).keys()) if _cw.get("on") else set()
+_nsr = (_qf.get("rules") or {}).get("exclude_nonstandard_ruleset") or {}
+_nsr_declared = set((_nsr.get("declared") or {}).keys()) if _nsr.get("on") else set()
+_nsr_bad, _nsr_stale, _bad_brought = [], [], []
 _cw_bad, _cw_stale = [], []
 _bad_subset = _bad_lead = _bad_winner = _missing = 0
 _seen_ids, _dup_ids, _bad_json = set(), 0, 0
@@ -167,13 +178,18 @@ with open(D("data","games.ladder.jsonl"), encoding="utf-8") as fh:
         _seen_ids.add(g.get("id"))
         for _f in ("id","date","format","p1","p2","six","brought","lead","sets","turns"):
             if _f not in g: _missing += 1
+        _big = False
         for _s in ("p1","p2"):
             six = set((g.get("six") or {}).get(_s, []))
             br  = (g.get("brought") or {}).get(_s, [])
             ld  = (g.get("lead") or {}).get(_s, [])
             _brought_len[len(br)] = _brought_len.get(len(br), 0) + 1
+            if len(br) > 4: _big = True
             if not set(br) <= six: _bad_subset += 1
             if not set(ld) <= set(br): _bad_lead += 1
+        if g.get("id") in _nsr_declared:
+            (_nsr_bad if _big else _nsr_stale).append(g.get("id"))
+        elif _big: _bad_brought.append(g.get("id"))
         w = g.get("winner")
         _names = (g["p1"].get("name"), g["p2"].get("name"))
         if g.get("id") in _cw_declared:
@@ -189,7 +205,13 @@ ok(_bad_winner == 0 and not _cw_stale,
    + (f"; STALE DECLARATION - winner now valid, remove from `declared`: {', '.join(_cw_stale)}" if _cw_stale else "")
    + ")")
 ok(_missing == 0,    f"store shape: every record carries every field ({_missing} missing)")
-ok(max(_brought_len) <= 4, f"store shape: nobody brings more than four ({dict(sorted(_brought_len.items()))})")
+ok(not _bad_brought and not _nsr_stale,
+   f"store shape: nobody brings more than four ({dict(sorted(_brought_len.items()))}; "
+   f"{len(_bad_brought)} undeclared; {len(_nsr_bad)} declared nonstandard_ruleset, excluded by "
+   f"data/quality-filter.json"
+   + (f"; UNDECLARED: {', '.join(_bad_brought[:5])}" if _bad_brought else "")
+   + (f"; STALE DECLARATION - brings four or fewer now, remove from `declared`: {', '.join(_nsr_stale)}" if _nsr_stale else "")
+   + ")")
 
 print("== 7. every engine + report file is present ==")
 engines = ["guru.py","xatu.py","pory.py","chomp_ev.js","slowking_preview.py","playstyle.js","cores.js",

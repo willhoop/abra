@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.5.0 — 2026-09-21.**
+**Version: 0.6.0 — 2026-09-21.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -237,6 +237,27 @@ A runbook that pretends judgement is mechanical is worse than none. These do not
 5. **When to flip.** Collectable, simulatable and *worth switching to* are three different dates.
 6. **What a divergence MEANS in a format nobody has played yet.** The new mechanics have no baseline,
    so the first runs have nothing to be a regression against.
+7. **Which CUSTOM-RULE rooms are contamination and which are the target population** — added 0.6.0,
+   and it is a genuinely different answer per regulation. A tournament room played under Showdown's
+   custom rules is indexed under the BASE format id, so `search.json?format=` pulls it into the
+   ordinary store; `engine/durable-ingest.js` filters on the format id and a format id does not encode
+   custom rules. On the Reg M-B ladder that is a twentieth of the store and all of it is out of scope
+   (`data/quality-filter.json` `exclude_custom_ruleset`). **On Reg M-C the same scan gives the opposite
+   answer**: nearly every custom-rule game in `data/team-pool-frozen-regmc/games.ots.jsonl` is a
+   `Force Open Team Sheets` room — and that rule is what makes a ladder game open-sheet, which is the
+   M-C scope. Copying the M-B rule across would delete the evidence the scope was chosen to collect.
+   The counts are in [`docs/REGMC.md`](REGMC.md) and the full account in
+   [`docs/_reports/2026-09-21-custom-ruleset-filter.md`](_reports/2026-09-21-custom-ruleset-filter.md).
+   **DERIVED** for the counts, **JUDGEMENT** for the cut:
+
+   ```bash
+   node engine/scan_custom_rulesets.js \
+     --raw data/games.<store>.raw-logs.jsonl --store data/games.<store>.jsonl --out /tmp/scan.json
+   ```
+
+   Read the UNTESTABLE line before reading anything else: the infobox is in the RAW log, so the answer
+   is always a floor. On Reg M-C that line says the great majority of the store has no local raw log —
+   which does not mean *M-C is nearly clean*, it means *M-C has barely been asked*.
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

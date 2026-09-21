@@ -42,6 +42,55 @@ _stamped 2026-09-20 19:38_
 
 <!-- /GENERATED -->
 
+## 7.37% OF THE LADDER STORE WAS PLAYED UNDER CUSTOM RULES, AND THE FIRST COUNT OF IT WAS SIX TIMES TOO LOW. 2026-09-21 (abra/regmc 0.6.0)
+
+Will: *"yes clean the store filter it all out"*. **The store is not edited** — `store raw, analyze on
+top`. `engine/scan_custom_rulesets.js` derives the id set from Showdown's own `N custom rule(s):`
+infobox in `data/games.ladder.raw-logs.jsonl`; `data/quality-filter.json` 1.6.0's
+`exclude_custom_ruleset` reads it. **6,978 raw logs carry it, 6,952 distinct ids, all 6,952 in the
+store = 7.37% of 94,360.**
+
+**The clean ladder corpus moves 33,539 → 28,454 (−5,085, −15.16%)**, measured before and after on ONE
+store read so the two halves are the same question. Contamination is **2.06× denser in the clean
+corpus than in the store**, the same enrichment `exclude_illegal_teams` found and for the same reason:
+bots do not play custom-rules rooms. JS and Python select the identical 28,454, `sha 41229c4830fc9d7c`.
+
+**Both kinds are excluded, and the majority is the misfiling rather than the illegality.** 129 rows
+alter what a team may legally contain or how many are picked (`!obtainable`, `+past`, `+jirachi`, a
+stone unban, `!Picked Team Size`). The other 6,823 set a different INFORMATION REGIME — **5,210 are a
+bare `Best of = 3`** — i.e. bo3 tournament games sitting in the bo1 ladder store, which this project
+treats as a different metagame under a different information regime.
+
+**IT IS A FLOOR, NOT A CENSUS, AND THE RUN SAYS SO EVERY TIME.** The infobox is in the RAW log and
+**17,527 store rows (18.57%) have no local raw log** — they were never asked the question. The share
+travels out of `customRuleset()` into `funnel()` and is printed by both readers, because a filter that
+cannot see part of its population must say how much or *"we cleaned the corpus"* quietly becomes
+*"we cleaned the part we could read"*.
+
+**THE 1,176 IS SUPERSEDED AND THE DIFFERENCE IS ONE CHARACTER.**
+`docs/_reports/2026-09-21-six-bring-game.md` §5b matched `(\d+) custom rules:` — plural only — and
+Showdown writes `1 custom rule:` when a room sets exactly one. Reconciled to the unit: its per-string
+joined counts (691 / 170 / 101 / 56) reproduce here exactly, and the residue is 5,768 single-rule rows
+plus one 8-row string it did not hold. `counts.plural_only` asks the old question on the same bytes
+and returns 1,186 raw / 1,184 joined.
+
+**A RULE THAT WAS SWITCHED ON AND READ BY NOBODY.** `exclude_nonstandard_ruleset` entered the config
+at 1.5.0 and neither `engine/quality.js` nor `engine/quality.py` looked at it — the project's
+signature failure, a capability absent with everything reporting success. Both honour it now, and
+`tests/test-quality.js` asks every enabled rule for a reason code a reader emits, so the next one
+fails by name instead of by a rule count.
+
+**NO PUBLISHED Reg M-B FIGURE RESTS ON A CONTAMINATED GAME.** `data/team-pool-frozen` is
+`games.bo3.jsonl` + `games.ots.jsonl`, and those two stores share **zero** ids with the ladder store
+(measured). A cleanup, not a retraction. What DID move is the usable count in `docs/SUMMARY.md`:
+~~33,539 usable (35.5%), 28,681 teams~~ is deleted, the usable figure re-cited to
+`data/quality-filter.json`, and the team counts WITHHELD because they have not been re-derived.
+`data/live.js` and `data/meta-usage.json` still carry the old figure and owe an OPS regeneration.
+
+- `node engine/status.js --write` was NOT run by this pass — it ran from a worktree, where that
+  command writes the absence of untracked files as fact. The `<!-- GENERATED -->` block above is
+  stamped to an earlier pass and was not hand-edited.
+
 ## EVERY NARRATION FIGURE THIS PROJECT HAS PUBLISHED WAS TAKEN WITH `|-ability|` INVISIBLE. 2026-09-19 (6.72.0)
 
 **WHY.** `engine/game_differential.js`'s `ability-announcement` equivalence dropped every
