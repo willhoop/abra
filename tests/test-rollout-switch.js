@@ -20,6 +20,7 @@
 const path = require('path');
 const fs = require('fs');
 const D = (...p) => path.join(__dirname, '..', ...p);
+require('../engine/regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(D('data', 'engine-data.js'));
 /* THE ONE DOOR into the species table, engine/mc_key.js. Requiring it also installs the SEAL, so
  * a raw miss anywhere in this process throws instead of quietly reading undefined. */

@@ -56,6 +56,7 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 const D = (...p) => path.join(__dirname, '..', ...p);
+require('./regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(D('data', 'engine-data.js'));                    // globalThis.MC — the dataset's movesets
 const TAGS = require('./tags.js');
 const { mcKey } = require('./mc_key.js');                 // the ONE door into MC.mons — see that file

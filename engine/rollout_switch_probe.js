@@ -46,6 +46,7 @@ const GAME_RULES = Object.freeze({ REVERSES_SPEED_FIELD: 'trickroom', DOUBLES_SP
 const path = require('path');
 const fs = require('fs');
 const D = (...p) => path.join(__dirname, '..', ...p);
+require('./regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(D('data', 'engine-data.js'));
 const MEDI = require('./medicham2-browser.js');
 const CS = require('./champions_sim.js');

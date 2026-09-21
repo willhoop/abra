@@ -20,6 +20,7 @@ const path = require('path');
 const D = (...p) => path.join(__dirname, '..', ...p);
 /* engine-data.js sets the global `MC` that printedAccuracy reads, and it must be required BEFORE the
  * simulator or every call throws `MC is not defined`. Same order as tests/test-engine-consistency.js. */
+require('../engine/regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(D('data', 'engine-data.js'));
 const MEDI = require(D('engine', 'medicham2-browser.js'));
 

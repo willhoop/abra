@@ -214,13 +214,25 @@ const HOLDERS = {
     'BUILDS data/engine-data.js from open team sheets, parsing it as TEXT into a private object like '
     + 'merge_mega_into_engine.js. Routing it through mcKey would read the loaded table instead of the '
     + 'one being rewritten — a different object, silently.',
+  /* THE SECOND REGULATION'S PAIR, added 2026-09-21 (MEASURE). Both files landed in 0.13.0 and this
+   * clause was red from that commit on; they are the Reg M-C twins of build/build_engine_data.js and
+   * of this file's own key-collision check, so they are holders for the same reasons those are. */
+  'build/build_engine_data_regmc.js':
+    'WRITES data/engine-data-regmc.js from the M-C dex. Its `mons` is the output being constructed, as in build_engine_data.js.',
+  'tests/test-engine-data-regmc.js':
+    'AUDITS the whole M-C table (every row builds, no two keys flatten alike) while holding it beside Reg M-B\'s '
+    + 'as a control in one process. `globalThis.MC` is swapped mid-test, so the door would answer for the '
+    + 'wrong table; it holds the M-C object explicitly instead.',
 };
 /* A HOLDER MUST STILL EXIST. A stale entry would silently widen the exemption to a file somebody
  * later creates with that name, which is exactly the shape of hazard this whole file is about. */
 const ghosts = Object.keys(HOLDERS).filter(f => !fs.existsSync(D(f)));
 ok(ghosts.length === 0, `every named holder is a real file (${ghosts.join(', ') || `${Object.keys(HOLDERS).length} of them`})`);
-ok(Object.keys(HOLDERS).length <= 10,
-  `the holder list is short and may only get shorter (${Object.keys(HOLDERS).length} of a ceiling of 10)`);
+/* THE CEILING WAS 10 UNTIL 2026-09-21 AND WAS RAISED TO 12, IN THIS DIFF, FOR ONE REASON: a second
+ * regulation brought a second table, and with it a second builder and a second whole-table audit —
+ * the two entries directly above. It is not a licence for anything else. */
+ok(Object.keys(HOLDERS).length <= 12,
+  `the holder list is short and may only get shorter (${Object.keys(HOLDERS).length} of a ceiling of 12)`);
 
 /* ---- 2. THE BAN ------------------------------------------------------------------------------- */
 

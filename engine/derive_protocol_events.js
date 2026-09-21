@@ -368,7 +368,11 @@ const out = {
   gates: { invented, undeclared },
 };
 
-const dest = D('data', 'protocol-events.json');
+/* `--out <path>` — 2026-09-21: a second regulation plays against a second Showdown checkout, so its
+ * alignment rule is a second derivation. game_differential.js takes it with `--protocol-events <path>`;
+ * data/protocol-events.json stays Reg M-B's. */
+const outAt = process.argv.indexOf('--out');
+const dest = outAt > -1 && process.argv[outAt + 1] ? path.resolve(process.argv[outAt + 1]) : D('data', 'protocol-events.json');
 if (process.argv.includes('--write')) {
   fs.writeFileSync(dest, JSON.stringify(out, null, 2));
   console.log('wrote ' + dest);

@@ -21,6 +21,28 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.14.0] — 2026-09-21
+
+### Added
+- **Selecting Reg M-C loads the Reg M-C species table everywhere**, live and inside a frozen release.
+  135 files load the table; 70 needed no edit and 61 got one line.
+- `tests/test-regulation-table.js` — 18 of 18, shown failing on a deliberate break first.
+
+### Changed
+- A frozen release carries the M-C table only when Reg M-C is selected; the same tree yields two release
+  ids and a release refuses to open under the other regulation.
+
+### Fixed
+- `tests/test-mc-key.js`, which the coordinator shipped red in 0.13.0 — the new table files were never
+  declared to it and the pre-commit hook does not run it.
+
+### Notes
+- **The first Reg M-C games play end to end: 87 of 87, none crashed.** 65 of 77 usable games part
+  boards; **53 of those are terrain set on entry**, ~9 are mega formes that cannot evolve, 11 are
+  leftovers. A smoke reading, not published.
+- Reg M-B unmoved: damage differential byte-identical, lattice 0 of 961 before and after. No gate
+  reading is claimed for this tree.
+
 ## [0.13.0] — 2026-09-21
 
 ### Added

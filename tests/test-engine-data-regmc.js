@@ -141,8 +141,19 @@ if (process.argv[2] === '--child-mc') {
   out.stonesUntagged = stones.filter(it => !TAGS.has('item', it.id, 'megaStone')).map(it => it.id);
   out.stones = stones.length;
 
-  /* 5 — CONTROL: the Reg M-B table, same process, same engine, same added species */
-  require(path.join(ROOT, 'data', 'engine-data.js'));    // re-assigns globalThis.MC
+  /* 5 — CONTROL: the Reg M-B table, same process, same engine, same added species.
+   * COMPILED DIRECTLY, NOT REQUIRED: with Reg M-C selected, engine/regulation.js resolves every
+   * require of data/engine-data.js to the M-C table (2026-09-21), so a require here would load the
+   * M-C table a second time and the control would silently measure the arm it is meant to contrast.
+   * This control is the one place that must read M-B's table under M-C, and it says so. */
+  {
+    const Mod = require('module');
+    const p = path.join(ROOT, 'data', 'engine-data.js');
+    const m = new Mod(p, module);
+    m.filename = p;
+    m.paths = Mod._nodeModulePaths(path.dirname(p));
+    m._compile(fs.readFileSync(p, 'utf8'), p);           // re-assigns globalThis.MC
+  }
   out.controlSwapped = globalThis.MC !== MCmc;
   out.addedBuiltUnderMB = added.filter(id => { const s = D.species.get(id); const b = s.exists && M.buildMon(s.name);
     return !!(b && (b.moves || []).length && b.ability); });

@@ -33,6 +33,7 @@
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
+require('./regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(path.join(ROOT, 'data', 'engine-data.js'));
 const { mcKey } = require(path.join(ROOT, 'engine', 'mc_key.js'));   // the ONE species -> MC.mons resolver
 

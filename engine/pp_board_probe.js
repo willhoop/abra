@@ -41,6 +41,7 @@
 const path = require('path');
 const fs = require('fs');
 const D = (...p) => path.join(__dirname, '..', ...p);
+require('./regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(D('data', 'engine-data.js'));                 // globalThis.MC / mcEff, for MEDICHAM
 const MEDI = require('./medicham2-browser.js');
 const B = require('./board.js');

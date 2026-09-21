@@ -24,6 +24,7 @@
 const path = require('path');
 /* engine-data FIRST: medicham2 reads the global `MC` at call time, so `buildMon` throws without it
  * and the behavioural half below cannot run at all. */
+require('../engine/regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(path.join(__dirname, '..', 'data', 'engine-data.js'));
 const MEDI = require(path.join(__dirname, '..', 'engine', 'medicham2-browser.js'));
 const TAGS = require(path.join(__dirname, '..', 'engine', 'tags.js'));

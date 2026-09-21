@@ -39,6 +39,7 @@ const ok = (c, m) => { if (c) { P++; console.log('  ok   ' + m); } else { F++; c
 
 console.log('MC SEAL — a wrong species spelling throws; a right one is found however it is written\n');
 
+require('../engine/regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(D('data', 'engine-data.js'));
 const { mcKey } = require(D('engine', 'mc_key.js'));
 

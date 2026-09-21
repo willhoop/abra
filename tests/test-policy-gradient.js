@@ -20,6 +20,7 @@
  */
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
+require('../engine/regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(path.join(ROOT, 'data', 'engine-data.js'));
 /* THE DOOR IS LOADED BESIDE THE TABLE, ALWAYS. engine/mc_key.js installs the SEAL on MC.mons --
  * a raw read of a key the table does not have then THROWS instead of returning undefined, which

@@ -23,6 +23,7 @@
 'use strict';
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
+require('../engine/regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(path.join(ROOT, 'data', 'engine-data.js'));          // sets globalThis.MC and mcEff
 /* THE ONE DOOR into the species table, engine/mc_key.js. Requiring it also installs the SEAL, so
  * a raw miss anywhere in this process throws instead of quietly reading undefined. */

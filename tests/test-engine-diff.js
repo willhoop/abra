@@ -28,6 +28,7 @@
 const fs = require('fs');
 const path = require('path');
 const D = (...p) => path.join(__dirname, '..', ...p);
+require('../engine/regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(D('data', 'engine-data.js'));
 const CS = require(D('engine', 'champions_sim.js'));
 const MEDI = require(D('engine', 'medicham2-browser.js'));

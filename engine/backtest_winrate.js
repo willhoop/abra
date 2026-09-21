@@ -45,6 +45,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const D = (...p) => path.join(__dirname, '..', ...p);
+require('./regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(D('data', 'engine-data.js'));                       // globalThis.MC / mcEff
 
 const CS = require('./champions_sim.js');

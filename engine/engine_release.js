@@ -53,6 +53,10 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+/* The selected regulation decides one extra frozen file and the pointer name — see
+ * REGULATION_SOURCES below SOURCES. Required first so its table resolver is in place before any
+ * caller REL.requires the table. */
+const REGN = require('./regulation.js');
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
@@ -72,9 +76,14 @@ const POINTER = D('data', 'engine-release.json');
  * look exactly like a working release store while writing somewhere nobody reads. */
 function store(opts) {
   const s = opts && opts.store;
+  /* ONE POINTER PER REGULATION THAT HAS ITS OWN TABLE — see REGULATION_SOURCES below. With Reg M-B
+   * (or nothing) selected this is `engine-release.json`, exactly as before. `pointer: POINTER` stays
+   * spelled exactly so: engine/provenance.js attributes data/engine-release.json to this file by it. */
+  const own = REGULATION_SOURCES.length ? 'engine-release-' + REGN.ID + '.json' : null;
+  if (!s && own) return { releases: RELEASES, pointer: D('data', own) };
   if (!s) return { releases: RELEASES, pointer: POINTER };
   console.error('  (release store OVERRIDDEN -> ' + s + '  — the real store at ' + RELEASES + ' is untouched)');
-  return { releases: path.join(s, 'releases'), pointer: path.join(s, 'engine-release.json') };
+  return { releases: path.join(s, 'releases'), pointer: path.join(s, own || 'engine-release.json') };
 }
 
 /* WHAT AN ENGINE IS, FOR THE PURPOSE OF A MEASUREMENT.
@@ -210,6 +219,38 @@ const SOURCES = [
    * file — those bytes cannot be changed, which is why the refusal below exists as well. */
   'data/rollout-switch-census.json',
 ];
+
+/* ---- A REGULATION'S OWN DAMAGE TABLE ENTERS THE RELEASE CUT WHILE IT IS SELECTED — 2026-09-21 ----
+ *
+ * `engine/regulation.js` resolves every require of `data/engine-data.js` to the selected
+ * regulation's own table (`runtime.<id>.engineData`), in the live tree AND inside a release. So an
+ * M-C measurement reads `data/engine-data-regmc.js`, and a release that does not freeze it is either
+ * unopenable for M-C (the resolver refuses — good) or, if the file were read live, a photograph with
+ * the one file that differs between the two regulations left out of frame.
+ *
+ * THE DECISION: THE TABLE IS FROZEN ONLY WHEN ITS REGULATION IS SELECTED. The file set — and so the
+ * id — is a function of the tree AND the regulation. Three reasons, each measured or checkable:
+ *
+ *   1. A REG M-B RELEASE IS UNCHANGED. With M-B selected this list is empty, so the id, the manifest
+ *      and every digest are exactly what they were. The alternative — always freezing the M-C table —
+ *      moves every M-B release id and puts a file into every M-B stamp's `source_digests` that the M-B
+ *      run never read. That is ROADMAP #547's shape in reverse (a receipt naming a file the run did
+ *      not open), and it would have `engine/provenance.js` call every M-B artifact COMPUTED FROM
+ *      DIFFERENT CONTENT each time the M-C table is rebuilt — which during M-C work is daily.
+ *   2. AN M-C RELEASE CANNOT COLLIDE WITH AN M-B ONE over the same tree: its source set is longer, so
+ *      its digest-of-digests differs. "Identical tree -> identical id" becomes "identical tree and
+ *      regulation -> identical id", and the manifest says which (`regulation`, `engine_data`).
+ *   3. A RELEASE SERVES THE REGULATION IT WAS CUT FOR, AND `open()` REFUSES THE OTHER. Opening an M-B
+ *      release under M-C would load the M-B table through the resolver's refusal anyway; opening an
+ *      M-C release under M-B would run an M-B measurement on a stamp that names an M-C table. Both are
+ *      refused at open, by name, before a game is played.
+ *
+ * The pointer is per regulation for the same reason: `data/engine-release.json` is M-B's and is
+ * untouched by an M-C cut, which writes `data/engine-release-<id>.json`. One shared pointer is one
+ * shared `active` key, and the runtime pass already paid to get rid of that. */
+const REGULATION_SOURCES = REGN.ENGINE_DATA === REGN.DEFAULT_ENGINE_DATA ? [] : [REGN.ENGINE_DATA];
+/** The files a release cut NOW freezes: SOURCES, plus the selected regulation's own table. */
+function sourcesNow() { return REGULATION_SOURCES.length ? SOURCES.concat(REGULATION_SOURCES) : SOURCES; }
 
 /* WHAT THE LIST ABOVE CANNOT KNOW ABOUT ITSELF, DERIVED RATHER THAN REMEMBERED.
  *
@@ -502,13 +543,14 @@ function authorityDrift(inject) {
 function treeDigest() {
   const files = {};
   const missing = [];
-  for (const rel of SOURCES) {
+  const src = sourcesNow();
+  for (const rel of src) {
     const abs = D(rel);
     if (!fs.existsSync(abs)) { missing.push(rel); continue; }
     files[rel] = sha12(abs);
   }
   const id = missing.length ? null : crypto.createHash('sha256')
-    .update(SOURCES.map(r => r + ':' + files[r]).join('\n')).digest('hex').slice(0, 12);
+    .update(src.map(r => r + ':' + files[r]).join('\n')).digest('hex').slice(0, 12);
   return { id, files, missing };
 }
 
@@ -593,7 +635,7 @@ function cut(why, opts) {
    * The refusal names the file and the requirer, so the fix is a one-line addition to SOURCES.
    * CUT_ESCAPES counts how many times it has fired this process — a guard that cannot prove it ran
    * is assumed broken, and this one is expected to sit at zero forever. */
-  const clo = requireClosure(SOURCES);
+  const clo = requireClosure(sourcesNow());
   CUT_COUNTERS.closure_scans++;
   if (clo.unresolved.length) {
     CUT_COUNTERS.closure_unresolved += clo.unresolved.length;
@@ -626,7 +668,7 @@ function cut(why, opts) {
    * frozen ones by construction here (that is what makes the id equal), so restoring is safe; doing
    * it QUIETLY would not be, because a rotted snapshot means any measurement that read it is void. */
   const repaired = [];
-  for (const rel of SOURCES) {
+  for (const rel of sourcesNow()) {
     const dst = path.join(dir, rel);
     const have = fs.existsSync(dst) ? sha12(dst) : null;
     if (have === files[rel]) continue;
@@ -655,7 +697,7 @@ function cut(why, opts) {
      * hand-edited (or SOURCES changed under a stored release), and writing over it would launder
      * that away in exactly the manner this whole fix exists to stop. */
     const pf = prev.files || {};
-    const disagree = SOURCES.filter(k => pf[k] !== files[k]).concat(Object.keys(pf).filter(k => !(k in files)));
+    const disagree = sourcesNow().filter(k => pf[k] !== files[k]).concat(Object.keys(pf).filter(k => !(k in files)));
     if (disagree.length) {
       throw new Error('release ' + id + ' already exists and its manifest digests DISAGREE with the tree just '
         + 'hashed: ' + disagree.join(', ') + '\nThe id is the digest of the digests, so this cannot happen by '
@@ -698,6 +740,9 @@ function cut(why, opts) {
     showdown_commit: first.showdown_commit || null,
     cuts: events,
     files,
+    /* Only on a release cut for a regulation with its own table (see REGULATION_SOURCES). Absent means
+     * `data/engine-data.js`, which is every release before 2026-09-21 and every Reg M-B release after. */
+    ...(REGULATION_SOURCES.length ? { regulation: REGN.ID, engine_data: REGN.ENGINE_DATA } : {}),
     /* WHAT THIS SNAPSHOT CAN SERVE, RECORDED AT CUT TIME — 2026-08-12.
      *
      * A release freezes the ENGINE and not the READER. Every symbol a caller later adds to its `need`
@@ -1540,6 +1585,20 @@ function open(id, opts) {
   }
   const v = verify(id, opts);
   if (!v.ok) throw new Error('release ' + id + ' has been MODIFIED since it was cut:\n  ' + v.bad.join('\n  '));
+  /* A RELEASE SERVES THE REGULATION IT WAS CUT FOR — see REGULATION_SOURCES. Checked here, before a
+   * byte is loaded, so the refusal names both sides instead of surfacing as a missing-file error from
+   * the table resolver half-way into a caller's prologue. */
+  {
+    const relTable = v.manifest.engine_data || REGN.DEFAULT_ENGINE_DATA;
+    if (relTable !== REGN.ENGINE_DATA) {
+      throw new Error('release ' + id + ' was cut for the damage table ' + relTable
+        + (v.manifest.regulation ? ' (regulation ' + v.manifest.regulation + ')' : ' (Reg M-B\'s — no regulation named)')
+        + ',\n  and this run selected ' + REGN.ID + ', whose table is ' + REGN.ENGINE_DATA + '.\n'
+        + '  A release is a photograph of the engine FOR one regulation; measuring the other through it\n'
+        + '  would stamp a table the run did not read. Cut a release with ' + REGN.ID + ' selected, or run\n'
+        + '  under the regulation this release was cut for.');
+    }
+  }
   const dir = path.join(S.releases, id);
   /* EVERY WAY INTO THE SNAPSHOT GOES THROUGH THE SAME GUARD. `require` was the one that broke, but
    * `path` and `read` reach the same missing file and would answer ENOENT from somewhere else. */
@@ -1675,6 +1734,8 @@ module.exports = { cut, list, verify, drift, open, rerender, surface, compat, sh
                    sha12Content, RELEASE_FIELDS, releaseOf, currentId, measuredOnCurrentEngine,
                    requireClosure, census, callerNeeds, exportedNames, PROVIDES_BY,
                    CUT_COUNTERS, SOURCES, POINTER, RELEASES,
+                   /* SOURCES plus the selected regulation's own table, which is what a cut freezes */
+                   REGULATION_SOURCES, sourcesNow,
                    /* the pin vocabulary and the live-tree stamp — see STAMP_SHAPE and liveStamp */
                    STAMP_SHAPE, treeDigest, liveStamp,
                    /* WHY a digest moved — a DIAGNOSIS, never an exemption. `classifyChange` is

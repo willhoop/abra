@@ -36,6 +36,7 @@ const { spawnSync } = require('child_process');
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
 
+require('./regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(D('data', 'engine-data.js'));
 /* THE DOOR IS LOADED BESIDE THE TABLE, ALWAYS. engine/mc_key.js installs the SEAL on MC.mons --
  * a raw read of a key the table does not have then THROWS instead of returning undefined, which

@@ -124,6 +124,9 @@ function entryFor(id) {
     checkout: (rt && rt.checkout) || null,
     pinnedCommit: (rt && rt.pinnedCommit) || null,
     pinnedDate: (rt && rt.pinnedDate) || null,
+    /* The damage table this regulation's bodies are built from. null = `data/engine-data.js`. A
+     * `runtime` key only — `regulations` is the STORE map and says nothing about the engine. */
+    engineData: (rt && rt.engineData) || null,
     in_regulations: !!base,
     in_runtime: !!rt,
   };
@@ -222,7 +225,7 @@ function select(opts) {
   return {
     id: CONFIG_FALLBACK_ID,
     entry: { id: CONFIG_FALLBACK_ID, label: null, showdownFormat: CONFIG_FALLBACK_FORMAT, bo3Format: null,
-      checkout: null, pinnedCommit: null, pinnedDate: null, in_regulations: false, in_runtime: false },
+      checkout: null, pinnedCommit: null, pinnedDate: null, engineData: null, in_regulations: false, in_runtime: false },
     source: 'HARDCODED FALLBACK',
     explicit: false,
     fallback: why,
@@ -270,6 +273,105 @@ const PINNED_DATE = SEL.entry.pinnedDate;
  * "the environment chose", which is a different fact. */
 if (SEL.explicit && !process.env.ABRA_REGULATION) process.env.ABRA_REGULATION = ID;
 
+/* ---- THE DAMAGE TABLE FOLLOWS THE REGULATION — 2026-09-21 (MEASURE) ---------------------------
+ *
+ * ~130 call sites load the table BY PATH — a plain require of the data file, `REL.require` and
+ * `REL.path` of it out of a release, board.js's lazy require. They load
+ * it for its side effect (`globalThis.MC`, `mcEff`), and every consumer reads the global. So the
+ * same argument as `CS.FORMAT`'s 490 readings applies one layer down: the readers were never the
+ * work, the PATH was. Resolve the path once and every reader follows with no edit, including one
+ * written tomorrow.
+ *
+ * THE MECHANISM IS NODE'S OWN RESOLVER. When the selected regulation names a table of its own
+ * (`runtime.<id>.engineData` in data/regulations.json), `Module._resolveFilename` is wrapped so that
+ * a request that resolves to `<dir>/data/engine-data.js` returns `<dir>/<that table>` instead — the
+ * SIBLING in the same `data/` directory. That one rule serves the live tree and a frozen release
+ * alike: out of `data/releases/<id>/` it finds the table the release froze, or finds nothing.
+ *
+ * FINDING NOTHING REFUSES. A regulation that names a table and cannot load it throws, by name. The
+ * alternative — carrying on with `data/engine-data.js` — builds one regulation's teams from another
+ * regulation's table, which is the exact failure this exists to prevent, and it would exit 0.
+ *
+ * WITH REG M-B SELECTED (or nothing selected) NOTHING IS INSTALLED. No wrapper, no redirect, no
+ * lookup: the default path is the code that ran before this block existed, byte for byte, which is
+ * what makes "Reg M-B unmoved" true by construction before any run confirms it.
+ *
+ * ORDER, AND WHAT HAPPENS WHEN IT IS WRONG. The wrapper can only redirect a require that happens
+ * AFTER this module loads. A caller that loads Reg M-B's table first and this module later would run
+ * the wrong table silently, so this module REFUSES at load if it finds Reg M-B's table already in the
+ * require cache under a regulation that names another. `engine/mc_key.js` — the one door every
+ * table-loading file must also load (tests/test-mc-key.js clause 4), and the first thing a body build
+ * touches — requires this module for exactly that reason: whatever the load order, a process that
+ * builds a body under the wrong table is refused before it builds one. */
+const DEFAULT_ENGINE_DATA = 'data/engine-data.js';
+const ENGINE_DATA = (() => {
+  const t = SEL.entry.engineData;
+  if (!t) return DEFAULT_ENGINE_DATA;
+  /* The table is a sibling of engine-data.js in `data/`, so the same rule finds it in a release. */
+  if (!/^data\/[A-Za-z0-9._-]+\.js$/.test(String(t))) {
+    throw new Error('regulation: REFUSING — ' + ID + ' names engineData "' + t + '" in data/regulations.json.\n'
+      + '  It must be a data/<file>.js path: the table is resolved as a SIBLING of data/engine-data.js,\n'
+      + '  which is what lets the same rule find it inside a frozen release.');
+  }
+  return t;
+})();
+const TABLE_BASENAME = path.basename(DEFAULT_ENGINE_DATA);
+const isDefaultTable = abs => path.basename(String(abs)) === TABLE_BASENAME
+  && path.basename(path.dirname(String(abs))) === 'data';
+/* A capability that cannot prove it ran is assumed broken: every redirect is counted. */
+const TABLE = { table: ENGINE_DATA, default: ENGINE_DATA === DEFAULT_ENGINE_DATA, installed: false, redirects: 0 };
+
+/** The file a request for the table should load under the selected regulation. Identity when the
+ *  regulation uses the default table, or when `abs` is not a `data/engine-data.js`. */
+function tableFor(abs) {
+  if (TABLE.default || !isDefaultTable(abs)) return abs;
+  const alt = path.join(path.dirname(String(abs)), path.basename(ENGINE_DATA));
+  if (!fs.existsSync(alt)) {
+    const inRelease = /[\\/]releases[\\/][0-9a-f]{12}[\\/]data$/.test(path.dirname(String(abs)));
+    throw new Error('regulation: REFUSING to load the damage table — this run selected ' + ID + ', whose table is '
+      + ENGINE_DATA + ',\n  and ' + alt + ' does not exist.\n'
+      + (inRelease
+        ? '  That path is inside a frozen release, so the release was cut WITHOUT this regulation\'s table.\n'
+          + '  Cut one with ' + ID + ' selected (node engine/engine_release.js cut "<why>" --regulation ' + ID + ').\n'
+        : '  Build it with its builder (build/build_engine_data_regmc.js for regmc).\n')
+      + '  Loading ' + DEFAULT_ENGINE_DATA + ' instead would build ' + ID + '\'s bodies from another regulation\'s table.');
+  }
+  TABLE.redirects++;
+  return alt;
+}
+
+const HOOK = Symbol.for('abra.regulation.engineDataResolver');
+function installTableResolver() {
+  if (TABLE.default) return false;
+  const Module = require('module');
+  const early = Object.keys(Module._cache || {}).filter(isDefaultTable);
+  if (early.length) {
+    throw new Error('regulation: REFUSING — this run selected ' + ID + ' (table ' + ENGINE_DATA + '), and Reg M-B\'s\n'
+      + '  table was ALREADY LOADED before the regulation resolver was:\n    ' + early.join('\n    ') + '\n'
+      + '  globalThis.MC is therefore the wrong regulation\'s table. Load engine/regulation.js (or anything\n'
+      + '  that requires it: champions_sim, showdown_path, engine_release, mc_key) BEFORE the table in\n'
+      + '  the entry point that loads it.');
+  }
+  const prior = globalThis[HOOK];
+  if (prior) {
+    /* A frozen release carries its own copy of this file. One wrapper per process, and two copies
+     * that disagree about the table cannot both be right. */
+    if (prior.table !== ENGINE_DATA) {
+      throw new Error('regulation: REFUSING — two copies of engine/regulation.js in one process disagree about\n'
+        + '  the damage table: ' + prior.table + ' (installed first) vs ' + ENGINE_DATA + ' (this copy).');
+    }
+    return false;
+  }
+  const orig = Module._resolveFilename;
+  Module._resolveFilename = function (request, parent, isMain, options) {
+    return tableFor(orig.call(this, request, parent, isMain, options));
+  };
+  globalThis[HOOK] = { table: ENGINE_DATA, id: ID, stats: TABLE };
+  TABLE.installed = true;
+  return true;
+}
+installTableResolver();
+
 function describe() {
   const bits = [
     'ABRA REGULATION: ' + ID,
@@ -290,6 +392,7 @@ function describe() {
       ? '  OVERRIDDEN by SHOWDOWN_PATH=' + env + ' -- THAT is the checkout this run reads'
       : ''));
   }
+  if (!TABLE.default) bits.push('| table ' + ENGINE_DATA);
   if (SEL.fallback) bits.push('| FALLBACK: ' + SEL.fallback);
   return bits.join('  ');
 }
@@ -318,6 +421,9 @@ module.exports = {
   entry: SEL.entry,
   checkoutCandidates,
   describe, announce,
+  /* The damage table: ENGINE_DATA is the repo-relative path this regulation's bodies are built from.
+   * table() reports whether the resolver is installed and how many requires it has redirected. */
+  ENGINE_DATA, DEFAULT_ENGINE_DATA, tableFor, table: () => Object.assign({}, TABLE),
   /* Exported for the test, so the selection rule can be exercised against a varied knob rather than
    * against whatever this process happened to be started with. An identical result across a varied
    * knob means the knob is unwired. */

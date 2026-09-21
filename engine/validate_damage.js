@@ -40,6 +40,7 @@ const TC={Normal:{Rock:.5,Ghost:0,Steel:.5},Fire:{Fire:.5,Water:.5,Grass:2,Ice:2
  * The type chart is still this file's own TC, assigned AFTER the require so it wins - engine-data
  * exports an `mcEff` of its own and the point of this file is to isolate the damage MATH against a
  * chart that is known good, not to co-test the chart. */
+require('./regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(path.join(__dirname,'..','data','engine-data.js'));
 globalThis.mcEff=function(atk,defTypes){let m=1;for(const d of (defTypes||[])){const e=TC[atk]&&TC[atk][d];m*=(e===undefined?1:e);}return m;};
 const MEDI=require(path.join(__dirname,'medicham2-browser.js'));   // exports {dmgRange,...}

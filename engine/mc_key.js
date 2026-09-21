@@ -34,6 +34,14 @@
 (function (root) {
   'use strict';
 
+  /* THE DOOR CHECKS WHICH REGULATION'S TABLE IS BEHIND IT — 2026-09-21. Every file that loads the
+   * table must also load this file (tests/test-mc-key.js clause 4), and every body build goes through
+   * it, so this is the one place a wrong-regulation table can be refused whatever order the caller
+   * loaded things in. Requiring engine/regulation.js installs the table resolver when the selected
+   * regulation has its own table, and REFUSES if Reg M-B's table was loaded first. With Reg M-B (or
+   * nothing) selected it installs nothing. Node only: the browser has no regulation to select. */
+  if (typeof require === 'function' && typeof module !== 'undefined') require('./regulation.js');
+
   /* The table's keys are compared with punctuation removed, so the caller may pass 'Rotom-Wash',
    * 'rotom-wash', 'Rotom Wash' or 'rotomwash' and get the same answer. Nothing here knows the name
    * of a single Pokemon: the index is built from whatever keys the artifact actually contains, so a

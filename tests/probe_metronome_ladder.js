@@ -24,6 +24,7 @@
 'use strict';
 const path = require('path');
 const D = (...p) => path.join(__dirname, '..', ...p);
+require('../engine/regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(D('data', 'engine-data.js'));
 const MEDI = require(D('engine', 'medicham2-browser.js'));
 const TAGS = require(D('data', 'tags.json'));

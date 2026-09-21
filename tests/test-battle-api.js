@@ -10,6 +10,7 @@
 'use strict';
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
+require('../engine/regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(path.join(ROOT, 'data', 'engine-data.js'));
 const M = require(path.join(ROOT, 'engine', 'medicham2-browser.js'));
 

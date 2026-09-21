@@ -22,6 +22,7 @@ const path=require('path');
  * "in node tests they're injected". board.js does the same injection at its damage-engine entry
  * point. Without this the module loads fine and then throws `MC is not defined` on the first real
  * call, which is a failure that looks like a broken test rather than a missing setup line. */
+require('../engine/regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(path.join(__dirname,'../data/engine-data.js'));
 const S=require(path.join(__dirname,'../engine/sets.js'));
 const {winProb2}=require(path.join(__dirname,'../engine/medicham2-browser.js'));

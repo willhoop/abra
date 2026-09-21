@@ -30,6 +30,7 @@ const fs = require('fs');
 const os = require('os');
 const D = (...p) => path.join(__dirname, '..', ...p);
 
+require('../engine/regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(D('data', 'engine-data.js'));
 const ER = require(D('engine', 'engine_release.js'));
 

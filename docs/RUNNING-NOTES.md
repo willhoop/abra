@@ -52,6 +52,37 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.14.0] — 2026-09-21 — **the first Reg M-C games play end to end**, and the work list they produce is mostly terrain
+
+- **Selecting Reg M-C now loads the Reg M-C species table everywhere.** `engine/regulation.js` redirects
+  every load of `data/engine-data.js` to `data/engine-data-regmc.js` when Reg M-C is selected, in the
+  live tree and inside a frozen release; the mapping lives in `data/regulations.json`
+  (`runtime.regmc.engineData`). With Reg M-B selected, or nothing selected, the redirect is never
+  installed. **135 files load the table: 70 needed no edit, 61 got one line** so the regulation is chosen
+  before they load, and one test's Reg M-B control arm deliberately bypasses the redirect. If a file
+  loads the M-B table too early under Reg M-C, `mc_key.js` refuses by name rather than running on the
+  wrong table.
+- **Release decision (MEASURE's call):** the M-C table is frozen only when Reg M-C is selected, so a Reg
+  M-B release is exactly as before and an M-B receipt never lists a file its run did not read. The same
+  tree yields two release ids, a release will not open under the other regulation, and Reg M-C keeps its
+  own release pointer. `tests/test-engine-release.js` 80 of 80; the new `tests/test-regulation-table.js`
+  18 of 18, shown failing on five clauses under a deliberate break first.
+- **Reg M-B unmoved.** Damage differential byte-for-byte identical; the 1200-game lattice reads 0 of 961
+  diverged before and after with every counter equal. The release id moved because four frozen files
+  changed, and no game result did. **No gate reading is claimed for this tree** — the gate describes the
+  bytes it measured, and these are new.
+- **THE FIRST REG M-C GAMES: 87 of 87 played, none crashed.** A SMOKE reading — unpinned, not published.
+  **65 of 77 usable games parted boards**, 10 void. By first cause: **53 are terrain set on entry by the
+  two new terrain-setting abilities**, about 9 are M-C mega formes that never evolve because six stones
+  carry no mega tag, and 11 are small leftovers. The terrain abilities are simply absent from Reg M-B's
+  tag file. **Will said at the start that Reg M-C is "mostly terrain setters", and the differential
+  agrees.** The next job is a Reg M-C tag file and a Reg M-C protocol-events file.
+- **A red the coordinator shipped is fixed.** 0.13.0 added the M-C table files without declaring them to
+  `tests/test-mc-key.js`, and the pre-commit hook does not run that test, so it went out RED. Both files
+  are now declared and the exception ceiling raised 10 → 12, visibly in the diff.
+- **Basis.** unchanged. No published figure moves, and no Reg M-C figure is published.
+- **Supersedes.** Nothing.
+
 ## [abra/regmc 0.13.0] — 2026-09-21 — MEDICHAM can build all 382 Reg M-C species, in a table of its own
 
 - **A separate table, so Reg M-B's cannot move.** `build/build_engine_data_regmc.js` writes

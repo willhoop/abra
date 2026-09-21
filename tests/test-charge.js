@@ -22,6 +22,7 @@
  * cannot change the weather, and cannot absorb the move under test.
  */
 const path = require('path');
+require('../engine/regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(path.join(__dirname, '../data/engine-data.js'));
 const M = require(path.join(__dirname, '../engine/medicham2-browser.js'));
 

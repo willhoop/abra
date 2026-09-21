@@ -25,6 +25,7 @@
  */
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
+require('../engine/regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(path.join(ROOT, 'data', 'engine-data.js'));
 /* THE ONE DOOR into the species table, engine/mc_key.js. Enumerating and indexing MC.mons by
  * hand is what made 101 of 308 keys unreachable in four files at once; requiring this file also

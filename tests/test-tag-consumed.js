@@ -44,6 +44,7 @@ const path = require('path');
 const fs0 = require('fs');
 const fs = fs0;
 const ROOT = path.join(__dirname, '..');
+require('../engine/regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(path.join(ROOT, 'data', 'engine-data.js'));
 const TAGS = require(path.join(ROOT, 'engine', 'tags.js'));
 const MEDI = require(path.join(ROOT, 'engine', 'medicham2-browser.js'));

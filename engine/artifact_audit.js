@@ -183,6 +183,7 @@ function auditStaged() {
   }
 }
 
+require('./regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(D('data', 'engine-data.js'));
 
 const rd = f => { try { return JSON.parse(fs.readFileSync(D('data', f), 'utf8')); } catch (e) { return null; } };
