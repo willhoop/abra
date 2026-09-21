@@ -52,6 +52,28 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.4.0] — 2026-09-21 — eight of the seventeen reds close, and one of them was a check that went silent because it succeeded
+
+- **What changed.** No engine mechanic. Five gates closed, on top of the two closed earlier.
+- **`test-unmodelled-clicks` is the one worth reading.** It hunts moves that resolve to a whole no-op
+  turn, and it proved it was working by pointing at one. The last one became modelled, the sweep went
+  **1 → 0**, and three of its clauses went red — **a check whose only evidence is the defect it hunts
+  goes silent exactly when the hunt succeeds.** The proof of life is now a planted click that cannot be
+  modelled by construction; the real sweep is asserted EMPTY on its own. **Every move in this format now
+  resolves to something.**
+- **A false claim inside the test runner's own notes.** It asserted a probe had never been measured and
+  carried no marker; `docs/ROADMAP.md` names it. Corrected, not deleted — and while correcting it the
+  matcher flagged the correction twice, because it cannot tell a live claim from a quotation of a
+  retracted one. That limitation is now written where the next editor will hit it.
+- **Three probes had the mon table unsealed**, where a mistyped key reads `undefined` instead of
+  throwing — the 2026-07-30 shape that let a builder's 67 writes silently miss. One require line each.
+- **Six counters counted nothing** because they incremented fields no object declared.
+- **Basis.** unchanged. No published figure moves.
+- **Supersedes.** Nothing.
+- **Still red: 9 of 17.** `test-end-state`, `test-forced-switch-mirror`, `test-mag-page`,
+  `test-stadium-roster`, `probe_red_demo`, `probe_control_self_name`, `staged_board`,
+  `engine/conformance`, `engine/provenance`, `engine/sanity_check.py`. Not triaged yet, not waived.
+
 ## [abra/regmc 0.3.0] — 2026-09-20 — Will's three Reg M-C decisions, and the exclusion cost measured after it was called cheap
 
 - **THE REG M-B COLLECTOR IS OFF.** Will: *"we can turn off the reg mb collector we have moved".*

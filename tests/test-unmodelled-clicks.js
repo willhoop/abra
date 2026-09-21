@@ -64,12 +64,37 @@ console.log('  THE LIST — every move in this format that resolves to a whole n
 for (const r of rows) console.log('    ' + String(r.uses).padStart(6) + '  ' + r.id);
 console.log('    ' + String(clicks).padStart(6) + '  TOTAL over ' + rows.length + ' move(s)\n');
 
-ok(M.MEDFAILS.unmodelledClick > before, 'the counter fires at all',
-   before + ' -> ' + M.MEDFAILS.unmodelledClick);
-ok(!!M.MEDFAILS.unmodelledClickFirst, 'and it names its first offender',
-   M.MEDFAILS.unmodelledClickFirst);
-ok(rows.length > 0 && rows.every(r => !!MC.moves[r.id]),
-   'every id it recorded is a real move in the compact table');
+/* THE SET REACHED ZERO ON 2026-09-21, AND THAT BROKE THIS FILE'S PROOF OF LIFE.
+ * These three clauses read the REAL sweep: the counter had moved, it named an offender, and every id
+ * it recorded was a real move. All three depended on at least one unmodelled move EXISTING. The last
+ * one became modelled, the sweep went 1 -> 0, and a check whose only evidence is the defect it hunts
+ * goes silent exactly when the hunt succeeds — this repository's signature failure, arriving as a
+ * reward for fixing something.
+ *
+ * The proof of life is now a PLANT: a click that cannot be modelled by construction, because no such
+ * move exists in the compact table. The counter must move for it and must name it. The real sweep is
+ * asserted EMPTY separately, and a regression that re-fills it is caught by the no-growth clause
+ * below, which is where that job always belonged. */
+{
+  const n0 = M.MEDFAILS.unmodelledClick;
+  const planted = 'abra_planted_unmodelled_click';
+  ok(!MC.moves[planted], 'the plant is not a real move, so the fall-through is the only road it has');
+  /* THE SWEEP ABOVE SWALLOWS A THROW BECAUSE IT CLICKS 500 MOVES AND A THROW THERE IS A DIFFERENT
+   * DEFECT. Here there is ONE click, and if it throws the counter cannot move — the reader would see
+   * the assertion below fail and reach for the classifier, when the cause was an exception. So it is
+   * caught, NAMED, and asserted absent. */
+  let plantThrew = null;
+  try { M.playerAction(me, planted, f1, S.field); } catch (e) { plantThrew = (e && e.message) || String(e); }
+  ok(!plantThrew, 'the planted click does not throw — a throw here would hide the clause below',
+     plantThrew || 'no exception');
+  ok(M.MEDFAILS.unmodelledClick > n0, 'the counter fires at all — proven on a PLANT, not on a real defect',
+     n0 + ' -> ' + M.MEDFAILS.unmodelledClick);
+  ok(!!M.MEDFAILS.unmodelledClickFirst, 'and it names its first offender',
+     String(M.MEDFAILS.unmodelledClickFirst));
+}
+ok(rows.every(r => !!MC.moves[r.id]),
+   'every id the REAL sweep recorded is a real move in the compact table',
+   rows.length ? rows.length + ' row(s)' : 'the sweep is EMPTY — every move in this format is modelled');
 
 /* ---- 2. IT DOES NOT OVER-FIRE ------------------------------------------------------------------- */
 {

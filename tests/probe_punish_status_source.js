@@ -97,6 +97,13 @@ require(D('data', 'engine-data.js'));
 const M = require(D('engine', 'medicham2-browser.js'));
 const T = require(D('data', 'tags.json'));
 const MC = globalThis.MC;
+/* THE FIXTURE IS SEARCHED FOR, NOT LOOKED UP, SO IT TAKES THE TABLE THROUGH THE RECORDED DOOR.
+ * `mcKey` resolves a KEY; this file has no key to resolve — it scans for a body carrying a given
+ * ability, type and damaging move, which is the project's own rule that a fixture is derived rather
+ * than typed. `mcKey.rawTable(why)` is the sanctioned road for a raw question: the reason is
+ * greppable and `mcKey.rawTable.reasons()` lists every one taken in a run, so the exemption is
+ * recorded at RUN TIME rather than resting on a name in a list. */
+const MONS = require('../engine/mc_key.js').mcKey.rawTable('probe_punish_status_source SEARCHES for its fixture -- a body with a given ability, a Grass body, and a non-Grass non-Fire attacker with a damaging move -- so it has no key to resolve and must read the table itself');
 
 const OFF = process.env.MEDI_PUNISH_STATUS_SOURCELESS === '1';
 const LINE_OFF = process.env.MEDI_SIDEBUFF_LINE_UNGATED === '1';
@@ -150,13 +157,13 @@ console.log('  DERIVED — staged: punisher=' + PUN + ' (chance 1, no die)   vei
 if (!PUN || !VEIL) { console.log('  FIXTURE — the format no longer carries both halves; nothing was measured.'); process.exit(1); }
 
 /* The BODIES are looked up by the ability they carry in this engine's own data, never typed. */
-const byAb = (ab) => Object.keys(MC.mons).filter(s => String(MC.mons[s].ab || '').toLowerCase().replace(/[^a-z0-9]/g, '') === ab);
+const byAb = (ab) => Object.keys(MONS).filter(s => String(MONS[s].ab || '').toLowerCase().replace(/[^a-z0-9]/g, '') === ab);
 const PUNMON = byAb(PUN)[0], VEILMON = byAb(VEIL)[0];
-const isGrass = (s) => (MC.mons[s].t || []).some(x => String(x).toLowerCase() === 'grass');
-const dmgMove = (s) => (MC.mons[s].mv || []).find(id => MC.moves[id] && MC.moves[id].bp > 0);
-const GRASSMON = Object.keys(MC.mons).find(s => isGrass(s) && dmgMove(s) && s !== PUNMON && s !== VEILMON);
-const PLAINMON = Object.keys(MC.mons).find(s => !isGrass(s) && dmgMove(s) && s !== PUNMON && s !== VEILMON
-  && !(MC.mons[s].t || []).some(x => String(x).toLowerCase() === 'fire'));
+const isGrass = (s) => (MONS[s].t || []).some(x => String(x).toLowerCase() === 'grass');
+const dmgMove = (s) => (MONS[s].mv || []).find(id => MC.moves[id] && MC.moves[id].bp > 0);
+const GRASSMON = Object.keys(MONS).find(s => isGrass(s) && dmgMove(s) && s !== PUNMON && s !== VEILMON);
+const PLAINMON = Object.keys(MONS).find(s => !isGrass(s) && dmgMove(s) && s !== PUNMON && s !== VEILMON
+  && !(MONS[s].t || []).some(x => String(x).toLowerCase() === 'fire'));
 console.log('  DERIVED — bodies: punisher=' + PUNMON + '  veil=' + VEILMON
   + '  grass attacker=' + GRASSMON + ' (' + dmgMove(GRASSMON) + ')'
   + '  non-grass attacker=' + PLAINMON + ' (' + dmgMove(PLAINMON) + ')');
@@ -234,7 +241,7 @@ ok(plain.status !== veiled.status || OFF,
 const nonGrass = stage({ attacker: PLAINMON, allyAb: VEIL });
 ok(nonGrass.hurt && nonGrass.status === 'brn',
   'a NON-Grass body beside the same veil is still burned — the type gate survives',
-  show(nonGrass) + '  attacker ' + PLAINMON + ' types ' + JSON.stringify(MC.mons[PLAINMON].t));
+  show(nonGrass) + '  attacker ' + PLAINMON + ' types ' + JSON.stringify(MONS[PLAINMON].t));
 
 /* ---- 6. THE VEIL BELONGS TO A SIDE — the punisher's own partner does not shield the attacker --- */
 const farVeil = (() => {

@@ -39,10 +39,20 @@ G.buildPair([{ species: A.name, item: '', ability: '', moves: [cannot.name, 'Pro
 G.buildPair([{ species: male.name, item: '', ability: '', moves: ['Protect'], gender: 'F' }]);
 const seen = G.fixtureIllegal();
 ok(G.seamCounters().fixtureSetsChecked - before === 3, 'the hook checked all three sets built from under tests/ (' + (G.seamCounters().fixtureSetsChecked - before) + ')');
+/* WHY THE THREE READS BELOW DO NOT GO THROUGH THE DOOR. They read `x.set.species` on the REPORTED
+ * SET — the literal input this file built a few lines above — so they are matching their own plants
+ * by the name chosen for them, not asking "which roster body is this". Routing them through the
+ * resolver would be wrong twice over: the door resolves a LIVE body and these are inert set objects,
+ * and a test of the reporting hook that used the resolver to find its own plants could pass while the
+ * hook reported nothing at all. Each read carries its own marker because the audit looks three lines
+ * up, and a declaration further away than that silently stops applying. */
+/* IDENTITY-OK: matching this file's own plant by the name it chose — see the block above. */
 const learn = seen.find(x => x.set.species === A.name && x.set.moves.includes(cannot.name));
 ok(!!learn && /test-fixture-runtime-check\.js:\d+/.test(learn.site), 'the illegal learnset pair is reported, with the building line: ' + (learn ? learn.site + ' — ' + learn.problems.join(' | ') : '(not reported)'));
+/* IDENTITY-OK: matching this file's own plant by the name it chose — see the block above. */
 const gen = seen.find(x => x.set.species === male.name && x.set.gender === 'F');
 ok(!!gen && gen.problems.some(p => /declared female/.test(p)), 'the impossible gender is reported: ' + (gen ? gen.problems.join(' | ') : '(not reported)'));
+/* IDENTITY-OK: matching this file's own plant by the name it chose — see the block above. */
 ok(!seen.some(x => x.set.species === A.name && !x.set.moves.includes(cannot.name)), 'the legal control is NOT reported');
 
 console.log('\nFIXTURE RUNTIME CHECK: ' + (fails ? fails + ' FAILED' : 'ALL GREEN'));

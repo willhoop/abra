@@ -70,6 +70,10 @@ if (!process.argv.includes('--state')) process.argv.push('--state');
 const G = require(D('engine', 'game_differential.js'));
 const CS = require(D('engine', 'champions_sim.js'));
 require(D('data', 'engine-data.js'));
+/* THE SEAL. Loading the mon table without the door leaves MC.mons unsealed in this process, so a
+ * typo'd key would read `undefined` instead of throwing — the 2026-07-30 shape. One require line is
+ * the whole cost; tests/test-mc-key.js checks every file that loads the table carries it. */
+require(D('engine', 'mc_key.js'));
 const TAGS = require(D('data', 'tags.json'));
 const { Dex } = CS.sim();
 const DEX = Dex.forFormat(CS.FORMAT);

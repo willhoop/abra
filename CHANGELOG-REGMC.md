@@ -21,6 +21,36 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.4.0] — 2026-09-21
+
+### Fixed
+- **Six counters incremented a field they never declared**, so each `++` yielded NaN and the counter
+  counted nothing — a capability unable to prove it ran. Declared on the objects that own them.
+- **`tests/test-unmodelled-clicks.js` proved itself on a real defect, and the defect ran out.** Every
+  move in this format is now modelled — the sweep is EMPTY — so the three clauses that asserted the
+  counter had fired went red exactly when the hunt succeeded. The proof of life is now a PLANT (a click
+  that cannot be modelled by construction); the real sweep is asserted empty separately, and a
+  regression is caught by the no-growth clause where that job always belonged.
+- **A record in the test runner's own notes had outlived what it described.** It said a probe had never
+  been measured and carried no marker; `docs/ROADMAP.md` names it, so both halves were false. Corrected
+  rather than deleted. Note left for the next editor: the matcher reads a sentence as an assertion and
+  cannot tell a live claim from a quotation of a retracted one — describe old wording, do not repeat it.
+- **Three probes loaded the mon table without loading the door**, leaving `MC.mons` unsealed in their
+  process, where a mistyped key reads `undefined` instead of throwing — the 2026-07-30 shape. One
+  require line each.
+- **A probe hand-rolled a species scan.** It SEARCHES for its fixture rather than resolving a key, which
+  is legitimate, so it now takes the table through `mcKey.rawTable(<why>)` — the reason is greppable and
+  recorded at run time rather than resting on a name in an exemption list.
+- **Three identity reads went around the door.** Declared with their reason: they match this file's own
+  plants by the name it chose, on inert set objects, so routing them through the resolver would be wrong
+  twice over.
+
+### Notes
+- Five gates closed: `test-counter-init`, `test-unmodelled-clicks`, `test-claim-truth`, `test-mc-key`,
+  `engine/identity_audit`. With `test-knob-control-arm` and `test-workflow-paths` earlier, **8 of the
+  17 reds found by the full suite are now green.**
+- The finding underneath the unmodelled-clicks fix: **every move in this format resolves to something.**
+
 ## [0.3.0] — 2026-09-20
 
 ### Added
