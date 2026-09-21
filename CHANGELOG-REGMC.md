@@ -21,6 +21,25 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.29.0] — 2026-09-22
+
+### Fixed
+- **Terrain Extender makes its holder's terrain last eight turns.** Every terrain condition in the M-C checkout answers
+  `durationCallback(source) { if (source?.hasItem('terrainextender')) return 8; return 5; }`, and both terrain
+  writers in `engine/medicham2-browser.js` (the move and the Surge ability on entry) wrote a literal 5. `terrainTurns`
+  reads the setter's item's `extendsDuration` tag, as `weatherTurns` does for the rocks; nothing about 8 is typed.
+  Terrain Extender is `Past` in Reg M-B, so no Reg M-B item names a terrain. Knob `MEDI_TERRAIN_FIVE_ALWAYS`.
+- `tests/probe_regmc_terrain_extender.js` (`--regulation regmc`): a terrain move and a Surge ability, each from a holder,
+  and a control with no item; the terrain clock is a compared board leaf. Exit 0 clean; exit 1 under the knob and on
+  the 0.28.0 engine bytes.
+
+### Notes
+- The move road's `-fieldstart` carries `[of] <user>` here and nothing on the authority; the differential's reducer
+  folds it (narration, recorded).
+- Reg M-B unmoved: the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
 ## [0.28.0] — 2026-09-22
 
 ### Fixed

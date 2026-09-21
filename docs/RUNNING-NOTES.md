@@ -53,6 +53,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.29.0] — 2026-09-22 — **Terrain Extender makes its holder's terrain last eight turns**
+
+- **What changed.** `engine/medicham2-browser.js` `terrainTurns` reads the setter's item's `extendsDuration` tag; both
+  terrain writers (move, Surge ability) use it instead of a literal 5. Knob `MEDI_TERRAIN_FIVE_ALWAYS`; probe
+  `tests/probe_regmc_terrain_extender.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine.md` §7.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
 ## [abra/regmc 0.28.0] — 2026-09-22 — **Revival Blessing fails when nobody has fainted, instead of switching a live body in**
 
 - **What changed.** Move tag `revivesFainted` (derived; Revival Blessing only; `pivotStatus` no longer claims it) and

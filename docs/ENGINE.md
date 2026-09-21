@@ -1,3 +1,29 @@
+## REG M-C: TERRAIN EXTENDER MAKES ITS HOLDER'S TERRAIN LAST EIGHT TURNS. 2026-09-22 (abra/regmc 0.29.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §7.
+
+- **Defect.** Both terrain writers (the move and the Surge ability) wrote a literal 5; the authority's
+  `durationCallback` returns 8 for a setter holding Terrain Extender.
+- **Fix.** `terrainTurns(terrain, item)` reads the setter's item's `extendsDuration` (the tag already named the four
+  terrains), as `weatherTurns` does for the rocks.
+- **Probe** `tests/probe_regmc_terrain_extender.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_TERRAIN_FIVE_ALWAYS` and on the 0.28.0 engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after this pass
+
+Ranked on the PINNED Reg M-C differential, by first BOARD divergence (report §7):
+
+1. **Binding Band** (the partial trap's chip is a sixth for its holder; the tag already carries `chipItem`),
+   **Normal Gem** (untagged: consumed on a Normal move, x5325/4096 power), **White Herb** timing.
+2. Singles: Grassy Terrain end, Seed Sower, Liquid Ooze, Berserk, Trace's pick, rain upkeep, two damage values, and the
+   games whose first protocol divergence is the Sirfetch'd/Farfetch'd display name (the M-C table keys the species
+   `sirfetch-d`).
+3. Revival Blessing's revive road (needs MEASURE's mirror first).
+4. The 17 census rows missing under Reg M-C: every one classified as a STAGING gap (report §8).
+5. Carried: the `-start`/`-fieldstart` `[of]` fields, the Inner Focus stat label, the seed GAIN door, Emergency Exit's
+   residual and hazard doors; for MEASURE, `MEGA_PREFER_B` outside `driverSnap`.
 ## REG M-C: REVIVAL BLESSING FAILS WHEN NOBODY HAS FAINTED. 2026-09-22 (abra/regmc 0.28.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine.md` §6.
@@ -15,7 +41,7 @@ Full account: `docs/_reports/2026-09-22-regmc-engine.md` §6.
 - **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
   line; lattice `--games 1200` 0 of 961.
 
-### The Reg M-C hand list, after this pass
+### The Reg M-C hand list, after the 0.28.0 pass — SUPERSEDED by the 0.29.0 list above
 
 Ranked on the PINNED Reg M-C differential, by first BOARD divergence (report §6):
 

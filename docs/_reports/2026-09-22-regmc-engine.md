@@ -409,3 +409,93 @@ terrain clock `5/8` in 10, Normal Gem 3, White Herb 2, Infestation chip 2, and s
 
 sha256 of the three Reg M-B files unchanged; damage differential seed `20260804` identical to the base but for the
 output-path line; lattice on release `e397d32dc184`: **0 of 961**, 0 void, 0 threw.
+
+---
+
+## 7. Terrain Extender (abra/regmc 0.29.0)
+
+### The authority, read whole
+
+Every terrain condition in the M-C checkout's `data/moves.ts` (electricterrain :4511, grassyterrain :7687, mistyterrain
+:12165, psychicterrain :14109): `durationCallback(source, effect) { if (source?.hasItem('terrainextender')) return 8;
+return 5; }` — the setter's item, whether it clicked the move or walked in with a Surge ability. The M-C tag file
+already carried `extendsDuration {extends: [the four terrains], toTurns: 8, insteadOf: 5}` on `terrainextender` (80
+sheet uses); nothing consumed it for a terrain. `data/tags.json` (Reg M-B) has no terrain extender row (`Past`).
+
+### The fix
+
+`terrainTurns(terrain, item)` beside `weatherTurns`, reading the item's tag through `terrainId`; both writers (the
+`kind:'terrain'` branch and the entry ability) call it with the setter's item. Knob `MEDI_TERRAIN_FIVE_ALWAYS`.
+
+### Probe — `tests/probe_regmc_terrain_extender.js --regulation regmc`
+
+| arm | staged | 0.28.0 engine | after |
+|---|---|---|---|
+| MOVE | Ampharos @ Terrain Extender clicks Electric Terrain | `field.terrain_turns` 4/7, 3/6, 2/5 at the boundaries | match, boards 0 |
+| ABILITY | Rillaboom (Grassy Surge) @ Terrain Extender leads | `field.terrain_turns` 5/8 at turn 0, then 4/7, 3/6 | match, boards 0 |
+| CONTROL | the MOVE arm with no item | match | match |
+
+| run | exit | red |
+|---|---|---|
+| 0.28.0 engine bytes (`--medi`) | 1 | MOVE and ABILITY boards |
+| clean, release `2ed8f7966fdf` | 0 | none |
+| `MEDI_TERRAIN_FIVE_ALWAYS=1` | 1 | MOVE and ABILITY boards |
+
+The move road's `-fieldstart` carries `[of] <user>` here and nothing on the authority (its `[from]`/`[of]` pair is
+written only for an ability effect); the differential's reducer folds `[of]`, so the probe compares the line without it
+(narration, recorded).
+
+### Pinned Reg M-C differential
+
+| engine | release | state bar | void | threw |
+|---|---|---|---|---|
+| 0.28.0 | `0bb19ac17b74` | 33 / 954 | 1 | 4 |
+| 0.29.0 | `2ed8f7966fdf` | **25 / 954** | 1 | 4 |
+
+First BOARD divergences on this run (all 25 listed): Infestation chip (Binding Band) 3, Normal Gem 3, White Herb 3,
+games whose first protocol divergence is the Sirfetch'd / Farfetch'd name 5, and one each of Grassy Terrain's end, Seed
+Sower, Liquid Ooze, Berserk, Trace's pick, rain upkeep, Psychic Fangs after the authority stopped, a switch after the
+authority stopped, Psychic Terrain on a different body, and two damage values.
+
+### Reg M-B unmoved
+
+sha256 of the three Reg M-B files unchanged; damage differential seed `20260804` identical to the base but for the
+output-path line; lattice on release `f5e8a0f68e2b`: **0 of 961**, 0 void, 0 threw.
+
+---
+
+## 8. The 17 census rows LIVE under Reg M-B and MISSING under Reg M-C: all staging gaps
+
+Read from `data/mechanics-census-regmc.json` (each row's `detail`) and from each probe's pass condition in
+`tests/test-mechanics.js`. **No row is an engine gap.** Every one asserts a Reg M-B fact about the FIXTURE — a stat, a
+damage number, a move a body was built with, a key spelling, or an authority line the Reg M-C checkout no longer writes —
+and the Reg M-C table (`data/engine-data-regmc.js`) builds the same species differently.
+
+| # | row | why it is MISSING under Reg M-C | class |
+|---|---|---|---|
+| 1 | item/megaStone | pass condition hard-codes the Reg M-B build's SpA (`gengar,cursedbody,200`); the M-C build reads 220, and the stone-holder is still built base-forme and evolves on the choice (`gengar-mega,shadowtag,260`) | staging: typed M-B stat |
+| 2 | ability/speedCond (Quick Feet) | hard-codes Speeds 192 / 205 / 288; the M-C build reads 175 / 187 / 262 = 175 x 1.5, and the order flips exactly as it must | staging: typed M-B stats |
+| 3 | move/forbidsStatusMoves (use) | the untaunted foe must click a status move and clicks Moonblast: the arm cannot show a refusal | staging: fixture choice |
+| 4 | move/forbidsStatusMoves (menu) | 0 status clicks in 40 draws untaunted, so there is nothing for Taunt to remove | staging: fixture choice |
+| 5 | ability/disablesAttacker (Cursed Body) | `sealed="earthquake"` is written, but the free pick is Draco Meteor in both arms | staging: fixture choice |
+| 6 | move/spreadFoes | hard-codes the Reg M-B authority's index-7 damage (64 / 52) | staging: typed M-B damage |
+| 7 | item/survivesFromFull (Focus Sash) | the hit leaves 33 HP with no item under the M-C build, so the Sash has nothing to do | staging: fixture damage |
+| 8 | move/sealsMoves (Disable) | the free choice is Flamethrower in both arms, never the disabled move | staging: fixture choice |
+| 9 | move/drain (spread) | the probe's own NOT STAGED: both damages are 14, so per-body and lumped rounding agree | staging: fixture damage |
+| 10 | ability/priorityModFlying (Gale Wings) | 0 damage taken before acting in every arm, the control included: nothing hits the M-C build's Talonflame before it acts, with or without the ability | staging: fixture speed |
+| 11 | item/healsAtThreshold (Sitrus) | the no-item control survives both hits (24 HP), so the berry's timing cannot decide anything | staging: fixture damage |
+| 12 | ability/hitsTwice (Parental Bond) | hard-codes the Reg M-B authority's 42; the M-C build's blank is 38 | staging: typed M-B damage |
+| 13 | ability/clearsScreensOnEntry (Screen Cleaner) | the screens read 4 and 4 without the ability and 0 and 0 with it, exactly right; the pass condition wants the slot-0 key `mrrime` and the M-C table keys the species `mr-rime` | staging: key spelling (a table finding, below) |
+| 14 | ability/speedCond (Slush Rush) | hard-codes Speeds 70 / 140; the M-C Beartic is 104 and outspeeds the foe without snow | staging: typed M-B stats |
+| 15 | ability/protectsAllyFromStatus (Aroma Veil) | the no-ability control's Encore on the ally does not land: the fixture sets the ally's last move to Twin Beam, which is in the M-B build's Farigiraf set and not the M-C build's (`psychic, thunderbolt, protect, trickroom`) | staging: fixture moveset |
+| 16 | move/weatherSetter (sand order) | hard-codes Speeds 205 / 101 / 80 | staging: typed M-B stats |
+| 17 | ability/punishesAttacker (Spicy Spray) | asserts the bare `-immune` line; the M-C checkout's handler is `onDamagingHit(...) { source.trySetStatus("brn", target); }` and writes no line (M-B's wrote one), the M-C tag file's `attackerImmune` is null, and this engine writes nothing: it matches the M-C authority | staging: asserts the M-B authority |
+
+**What would fix them** is test work, not engine work: derive each expected value from the build and the authority on
+the run (as the Reg M-C staged probes do), or gate the row on the regulation. Reg M-B is closed at 7.0.0 and its census
+rows are not to be moved, so this is recorded, not done here.
+
+**One table finding on the way, not fixed:** the M-C table keys species with punctuation by a hyphenated id (`mr-rime`,
+`sirfetch-d`, `farfetch-d`) where the Reg M-B table uses the bare id. That is also why this engine writes `sirfetch-d`
+as the species field of a `|switch|` line, which heads five board-material games at 0.29.0 (their board causes are
+later and hidden behind it). It belongs to `build/build_engine_data_regmc.js`.

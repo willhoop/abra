@@ -9420,6 +9420,21 @@ function applyMoveWeather(m,mvId,field){
   if(TR)TR.wx(w);
   return true;
 }
+/* 2026-09-22 (Reg M-C, abra/regmc 0.29.0) -- AND THE TERRAIN'S CLOCK, BY THE SAME RULE AS THE SKY'S. Every terrain condition
+ * in the M-C checkout (data/moves.ts electricterrain :4511, grassyterrain :7687, mistyterrain :12165, psychicterrain
+ * :14109) answers `durationCallback(source, effect) { if (source?.hasItem('terrainextender')) return 8; return 5; }` -- the
+ * SETTER's item, whether the setter clicked the move or walked in with the Surge ability. Both writers in this file wrote a
+ * literal 5. The item's own `extendsDuration` tag names the terrains it extends and the new length, as it does for the
+ * weather rocks; nothing about 8 is typed here. Terrain Extender is `Past` in Reg M-B, so no Reg M-B item carries a
+ * terrain in its `extends`. MEDI_TERRAIN_FIVE_ALWAYS=1 writes the literal 5 again. tests/probe_regmc_terrain_extender.js */
+const TERRAIN_FIVE_ALWAYS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TERRAIN_FIVE_ALWAYS==='1');
+function terrainTurns(terrain, item){
+  const t=terrainId(terrain);
+  if(!t||TERRAIN_FIVE_ALWAYS)return 5;
+  const ext=TAGS.param('item',item,'extendsDuration');
+  if(ext&&ext.toTurns&&(ext.extends||[]).some(nm=>terrainId(nm)===t)){MEDSEEN.terrainExtended=(MEDSEEN.terrainExtended||0)+1;return +ext.toTurns;}
+  return 5;
+}
 function weatherTurns(weather, item, TAGSMOD){
   const w=weatherId(weather);
   if(!w)return 0;
@@ -26095,7 +26110,7 @@ function applyEntryEffects(m,field,ally){
   /* AND THE SAME RULE FOR TERRAIN, from the same file: `setTerrain()` opens with
    * `if (this.terrain === status.id) return false;` -- unconditionally, no gen check. */
   const t=TAGS.param('ability',m.ability,'terrainSetter');
-  if(t&&t.terrain){const _t=terrainId(t.terrain);if(_t&&field.terrain!==_t){field.terrain=_t;field.terrainT=5;
+  if(t&&t.terrain){const _t=terrainId(t.terrain);if(_t&&field.terrain!==_t){field.terrain=_t;field.terrainT=terrainTurns(_t,m.item);
     if(TR)TR.terrainStart(_t,'[from] ability: '+m.ability,m);
     /* 2026-09-21 (Reg M-C) -- `setTerrain` ends `eachEvent('TerrainChange')`, INSIDE this handler: every active
      * body's seed is spent now, before the next entrant's ability runs. See `seedTerrainChange`. */
@@ -38719,7 +38734,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* WIRE 64, the terrain half. Same rule and landed in the same pass rather than waiting for the
            game differential to find it a second time: Showdown fails a terrain move whose terrain is
            already up, so refreshing the clock here would be the same wrong number one field over. */
-        if(_t&&terrainId(field.terrain)!==_t){field.terrain=_t;field.terrainT=5;if(TR)TR.terrainStart(_t,null,m);
+        if(_t&&terrainId(field.terrain)!==_t){field.terrain=_t;field.terrainT=terrainTurns(_t,m.item);if(TR)TR.terrainStart(_t,null,m);
           syncFieldTypes(field,[...actA,...actB]);   // ROADMAP #175 -- the sky changed, so the type does
           seedTerrainChange(field,actA,actB);}       // 2026-09-21 (Reg M-C) -- and every seed holder spends, in eachEvent order
         else mvFail(m);
