@@ -1,3 +1,24 @@
+## REG M-C: BINDING BAND DEEPENS ITS HOLDER'S PARTIAL TRAP TO A SIXTH. 2026-09-22 (abra/regmc 0.30.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §9.
+
+- **Defect.** The partial trap's `chipItem` (Binding Band, a sixth) and `durationItem` (Grip Claw, eight turns) were on
+  the tag and read by nothing.
+- **Fix.** Read off the trapper's item when the trap lands; the tick is `floor(maxhp / divisor)`.
+- **Probe** `tests/probe_regmc_binding_band.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_TRAP_CHIP_ITEM_BLIND` and on the 0.29.0 engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after this pass
+
+1. **Normal Gem** (untagged: consumed on a Normal move, x5325/4096 power), **White Herb** timing.
+2. Singles: Grassy Terrain end, Seed Sower, Liquid Ooze, Berserk, Trace's pick, rain upkeep, two damage values, and the
+   games whose first protocol divergence is the Sirfetch'd/Farfetch'd display name (the M-C table keys `sirfetch-d`).
+3. Revival Blessing's revive road (needs MEASURE's mirror first).
+4. The 17 census rows missing under Reg M-C: all staging gaps (report §8).
+5. Carried: the `-start`/`-fieldstart` `[of]` fields, the Inner Focus stat label, the seed GAIN door, Emergency Exit's
+   residual and hazard doors; for MEASURE, `MEGA_PREFER_B` outside `driverSnap`.
 ## REG M-C: TERRAIN EXTENDER MAKES ITS HOLDER'S TERRAIN LAST EIGHT TURNS. 2026-09-22 (abra/regmc 0.29.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine.md` §7.
@@ -11,7 +32,7 @@ Full account: `docs/_reports/2026-09-22-regmc-engine.md` §7.
 - **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
   line; lattice `--games 1200` 0 of 961.
 
-### The Reg M-C hand list, after this pass
+### The Reg M-C hand list, after the 0.29.0 pass — SUPERSEDED by the 0.30.0 list above
 
 Ranked on the PINNED Reg M-C differential, by first BOARD divergence (report §7):
 

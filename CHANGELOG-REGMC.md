@@ -21,6 +21,22 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.30.0] — 2026-09-22
+
+### Fixed
+- **Binding Band deepens its holder's partial trap to a sixth.** `partiallytrapped.onStart` sets `boundDivisor =
+  source.hasItem("bindingband") ? 6 : 8` (M-C checkout, read from the dist dex), and the `partialTrap` tag has carried
+  that as `chipItem` (and Grip Claw's eight turns as `durationItem`) since the trap was derived; nothing read either, so
+  a holder chipped an eighth. The trap now reads the trapper's item when it lands and keeps the divisor as a divisor, so
+  the tick is `floor(maxhp / 6)`. Both items are `Past` in Reg M-B. Knob `MEDI_TRAP_CHIP_ITEM_BLIND`.
+- `tests/probe_regmc_binding_band.js` (`--regulation regmc`): a holder's Infestation chips a sixth at two residuals, and
+  the no-item control an eighth. Exit 0 clean; exit 1 under the knob and on the 0.29.0 engine bytes.
+
+### Notes
+- Reg M-B unmoved: the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
 ## [0.29.0] — 2026-09-22
 
 ### Fixed

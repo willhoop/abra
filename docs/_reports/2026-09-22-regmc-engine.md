@@ -499,3 +499,54 @@ rows are not to be moved, so this is recorded, not done here.
 `sirfetch-d`, `farfetch-d`) where the Reg M-B table uses the bare id. That is also why this engine writes `sirfetch-d`
 as the species field of a `|switch|` line, which heads five board-material games at 0.29.0 (their board causes are
 later and hidden behind it). It belongs to `build/build_engine_data_regmc.js`.
+
+---
+
+## 9. Binding Band (abra/regmc 0.30.0)
+
+### The authority, read whole
+
+`partiallytrapped` (M-C checkout, read from the dist dex): `durationCallback(target, source) { if
+(source?.hasItem("gripclaw")) return 8; return this.random(5, 7); }`; `onStart(pokemon, source) { ...;
+this.effectState.boundDivisor = source.hasItem("bindingband") ? 6 : 8; }`; `onResidual` ends the trap when the source is
+gone and otherwise `this.damage(pokemon.baseMaxhp / this.effectState.boundDivisor)`. The `partialTrap` tag on every
+trapping move already carries `chipItem {item: bindingband, chipPerTurn: 1/6}` and `durationItem {item: gripclaw,
+duration: 8}`, in both tag files. Binding Band is legal in Reg M-C; Grip Claw is `Past` in both.
+
+### The fix
+
+At the trap's landing (`engine/medicham2-browser.js`, the partial-trap block), `frac` and `turns` come from the item
+fields when the trapper holds the named item, and a `div` is kept; the two tick sites compute `floor(maxhp / div)` when
+there is one, and the old `floor(maxhp * frac)` otherwise, so an eighth (exact in binary) is untouched. Knob
+`MEDI_TRAP_CHIP_ITEM_BLIND`.
+
+### Probe — `tests/probe_regmc_binding_band.js --regulation regmc`
+
+| arm | staged | authority | 0.29.0 engine | after |
+|---|---|---|---|---|
+| BAND | Ariados @ Binding Band, Infestation into Kingambit (175 HP) | 131, then 102 (29 a tick) | 139, then 118 (21 a tick) | match, boards 0 |
+| CONTROL | no item | 139, then 118 | match | match |
+
+| run | exit | red |
+|---|---|---|
+| 0.29.0 engine bytes (release `2ed8f7966fdf`) | 1 | BAND (lines and boards) |
+| clean, release `fa4072a17835` | 0 | none |
+| `MEDI_TRAP_CHIP_ITEM_BLIND=1` | 1 | BAND (lines and boards) |
+
+### Pinned Reg M-C differential
+
+| engine | release | state bar | void | threw |
+|---|---|---|---|---|
+| 0.29.0 | `2ed8f7966fdf` | 25 / 954 | 1 | 4 |
+| 0.30.0 | `fa4072a17835` | **22 / 954** | 1 | 4 |
+
+The three Infestation-chip games are gone.
+
+The measured release `fa4072a17835` and the committed bytes (`2c2119c13dcc`) differ only in a comment: a sentence
+claiming the float product is one short on a multiple of six was checked (every multiple of six to 400 agrees) and
+removed before commit.
+
+### Reg M-B unmoved
+
+sha256 of the three Reg M-B files unchanged; damage differential seed `20260804` identical to the base but for the
+output-path line; lattice on release `8abdc33a57a2`: **0 of 961**, 0 void, 0 threw.

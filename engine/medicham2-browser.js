@@ -9428,6 +9428,8 @@ function applyMoveWeather(m,mvId,field){
  * weather rocks; nothing about 8 is typed here. Terrain Extender is `Past` in Reg M-B, so no Reg M-B item carries a
  * terrain in its `extends`. MEDI_TERRAIN_FIVE_ALWAYS=1 writes the literal 5 again. tests/probe_regmc_terrain_extender.js */
 const TERRAIN_FIVE_ALWAYS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TERRAIN_FIVE_ALWAYS==='1');
+/* 2026-09-22 (Reg M-C, abra/regmc 0.30.0) -- MEDI_TRAP_CHIP_ITEM_BLIND=1: the partial trap ignores its trapper's item again. */
+const TRAP_CHIP_ITEM_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TRAP_CHIP_ITEM_BLIND==='1');
 function terrainTurns(terrain, item){
   const t=terrainId(terrain);
   if(!t||TERRAIN_FIVE_ALWAYS)return 5;
@@ -47346,7 +47348,19 @@ function battleTurn(S,rng,actsForA,actsForB){
               * line is the MOVE. This engine wrote the literal "[from] partiallytrapped", so Bind, Fire
               * Spin, Infestation, Sand Tomb, Snap Trap, Whirlpool and Wrap all printed the same string
               * and every one of the seven parted from the authority on it. */
-             tg._trap={frac:+_pt2.chipPerTurn,turns:+_pt2.duration,by:m,mv:a.move.id};
+             /* 2026-09-22 (Reg M-C, abra/regmc 0.30.0) -- THE TRAPPER'S ITEM. `partiallytrapped.onStart` sets
+              * `boundDivisor = source.hasItem("bindingband") ? 6 : 8` and `durationCallback` returns 8 for a Grip Claw
+              * source (M-C checkout, read from the dist dex), and the tag has carried both as `chipItem` / `durationItem`
+              * since the partial-trap derivation: nothing read them, so a Binding Band holder chipped an eighth. The
+              * divisor is kept as a DIVISOR (`div`) so the tick is the authority's own `floor(maxhp / 6)` rather than a float
+              * product (checked equal for every multiple of six to 400; kept as the division anyway). Both items are `Past` in
+              * Reg M-B, so no Reg M-B trapper holds one.
+              * MEDI_TRAP_CHIP_ITEM_BLIND=1 reads neither. tests/probe_regmc_binding_band.js */
+             const _ci=_pt2.chipItem, _di=_pt2.durationItem;
+             const _cHit=!TRAP_CHIP_ITEM_BLIND&&_ci&&_ci.item&&m.item===_ci.item&&+_ci.chipPerTurn>0;
+             const _dHit=!TRAP_CHIP_ITEM_BLIND&&_di&&_di.item&&m.item===_di.item&&+_di.duration>0;
+             tg._trap={frac:_cHit?+_ci.chipPerTurn:+_pt2.chipPerTurn,turns:_dHit?+_di.duration:+_pt2.duration,by:m,mv:a.move.id};
+             if(_cHit){tg._trap.div=Math.round(1/+_ci.chipPerTurn);MEDSEEN.trapChipItem=(MEDSEEN.trapChipItem||0)+1;}
              if(TR)TR.actOf(tg,'move: '+a.move.id,m);
            }}
           /* ROADMAP #147 -- A DAMAGING MOVE'S OWN VOLATILE, WHICH REACHED NOTHING AT ALL.
@@ -51408,7 +51422,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * volatile's presence) and was RED here at `medi 4 chip(s), authority 3` before this moved.
            * `MEDI_TRAP_TICK_BEFORE_CLOCK=1` restores the chip-then-decrement order. */
           if(TRAP_TICK_BEFORE_CLOCK){
-            if(!refusesIndirect(m)){m.curHP-=Math.floor(m.st.hp*m._trap.frac);MEDSEEN.partialTrapTick++;
+            if(!refusesIndirect(m)){m.curHP-=(m._trap.div?Math.floor(m.st.hp/m._trap.div):Math.floor(m.st.hp*m._trap.frac));MEDSEEN.partialTrapTick++;
               if(TR){
                 if(!m._trap.mv){MEDFAILS.trapSourceUnknown++;
                   if(!MEDFAILS.trapSourceUnknownFirst)MEDFAILS.trapSourceUnknownFirst=String(m.name||'?');}
@@ -51424,7 +51438,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(TR)TR.vend(m,_tmv||'partiallytrapped',_tmv?'[partiallytrapped]':'');
           }
           else{
-            if(!refusesIndirect(m)){m.curHP-=Math.floor(m.st.hp*m._trap.frac);MEDSEEN.partialTrapTick++;
+            if(!refusesIndirect(m)){m.curHP-=(m._trap.div?Math.floor(m.st.hp/m._trap.div):Math.floor(m.st.hp*m._trap.frac));MEDSEEN.partialTrapTick++;
               if(TR){
                 /* A trap with no recorded move cannot name one, and that is LOUD rather than papered
                  * over with the old literal: the fallback prints a string the authority never writes. */
