@@ -52,6 +52,29 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.7.0] — 2026-09-21 — the gate read zero and a real engine defect was still there
+
+- **A body that dies on arrival was never replaced.** The refill list was built once and never rebuilt,
+  so a fainted replacement stood in its slot until the next turn, where the authority loops until the
+  board settles. Found at turn 13 of a real game whose streams had agreed for 13 turns.
+  **The gate did not catch it** — board-material zero on three lattices and on a 7,182-game held-out
+  draw, and a mirror test OUTSIDE the gate found it. That is the clearest evidence yet that an open
+  gate and a correct engine are two different claims. Knob `MEDI_REFILL_ONE_WAVE`; probe 0 clean / 1
+  under it.
+- **Three more checks were green while asserting nothing** — a plant whose anchor a later wire had
+  split in two, a clause iterating an emptied array, and a fixture starved to zero. Each now proves
+  itself on a PLANT, the only form that survives the defect it hunts being fixed.
+- **Of the seventeen reds a full-suite run found, all seventeen are closed, and thirteen were the
+  INSTRUMENT rather than the engine.** That ratio is the finding: the engine was in better shape than
+  the things measuring it.
+- **Basis.** unchanged. No published figure moves.
+- **Supersedes.** ~~1002 live~~, now **1004 live / 1004 probed / 0 missing**.
+- **Owed.** The gate, the three lattices and the held-out draw on the new engine bytes — running.
+  `data/meta-usage.json` and `data/live.js` still carry the PRE-FILTER corpus (`usable: 33,539` where
+  the clean count is now 28,454); `engine/analyze.js` exhausted a 2 GB heap on the 471 MB store and was
+  deferred rather than run beside the differential, because competing for RAM is how this machine has
+  frozen before.
+
 ## [abra/regmc 0.6.0] — 2026-09-21 — 7.37% of the ladder store was played under custom rules, and the first count of it was six times too low
 
 - **What changed.** `engine/scan_custom_rulesets.js` (new) derives the id set from Showdown's own

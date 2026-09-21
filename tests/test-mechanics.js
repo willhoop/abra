@@ -29107,6 +29107,56 @@ probe('move', 'rewritesStoredStats', "a Speed-Swapped corpse is refilled on its 
                  + 'Knob MEDI_CORPSE_SPEED_KEEPS_REWIRE' };
 });
 
+/* A REPLACEMENT THAT DIES ON ARRIVAL IS ITSELF REPLACED, IN THE SAME TURN. The authority closes the
+ * replacement's own `instaswitch` action with `this.faintMessages(); ... this.checkFainted();`
+ * (sim/battle.ts:2832-2840) -- which sets `switchFlag = true` on the body that just died to the rocks --
+ * and then raises the next request at `for (const playerSwitch of switches) { this.makeRequest('switch');
+ * return true; }` (:2905-2910). Its own protocol, on the live pool at `...bo3-2671680205` t13:
+ *     |switch|p2b: Dragonite|Dragonite-Mega, L50|2/166
+ *     |-damage|p2b: Dragonite|0 fnt|[from] Stealth Rock
+ *     |faint|p2b: Dragonite
+ * and then a THIRD `|switch|` for the same slot, which this engine never wrote. CONTROL: the identical
+ * game with the same entrant above the rock's chip, which survives and is replaced by nobody. Knob
+ * MEDI_REFILL_ONE_WAVE. Probe: tests/probe_refill_second_wave.js. */
+probe('move', 'hazard', 'a faint replacement that dies to the rocks on arrival is itself replaced', () => {
+  const run = (lethal) => {
+    const trace = [];
+    const me = bare('alakazam'), ally = bare('aggron');
+    const f1 = bare('clefable'), f2 = bare('gallade');
+    const benchOne = bare('ampharos'), benchTwo = bare('annihilape');
+    const S = M.battleInit([me, ally, bare('arbok'), bare('arcanine')], [f1, f2, benchOne, benchTwo],
+      { seeded: true, trace });
+    /* THE ROCKS ARE PLANTED RATHER THAN CLICKED, exactly as `perishClock`'s row plants its counter: the
+     * setter is not the thing under test and a click would add a whole move's resolution to the arm. */
+    if (!f1._sf.hz) f1._sf.hz = {};
+    f1._sf.hz.stealthrock = 1;
+    /* THE ONE VARIED THING. `lethal` puts the first bench body BELOW the chip it is about to take, which
+     * is the only difference between the two arms -- same bodies, same rocks, same kill. */
+    benchOne.curHP = lethal ? 1 : benchOne.st.hp;
+    f1.curHP = 1;   /* so any hit at all opens the slot */
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'psychic', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const L = trace.map(M.traceCanon), up = L.indexOf('|upkeep');
+    /* FIELD 3 IS `species, Lnn` AND THE LEVEL HAS TO COME OFF — joined raw it reads
+     * "ampharos,l50,annihilape,l50", which is a fault in the RULER that looks exactly like the
+     * mechanic being wrong. */
+    return { entries: L.slice(up < 0 ? 0 : up).filter(l => /^\|switch\|p2/.test(l))
+                       .map(l => String(l.split('|')[3] || '').split(',')[0].trim()).join(','),
+             faints: L.slice(up < 0 ? 0 : up).filter(l => /^\|faint\|p2/.test(l)).length };
+  };
+  const control = run(false), test = run(true);
+  /* THE CONTROL MUST BRING IN EXACTLY ONE BODY AND BURY NOBODY AFTER THE UPKEEP; the test must bring in
+   * TWO and bury the first of them. A blanket second wave would give the control two entries as well. */
+  const ok = control.entries === 'ampharos' && control.faints === 0
+          && test.entries === 'ampharos,annihilape' && test.faints === 1;
+  return { works: ok, arms: { control: [control.entries, control.faints], test: [test.entries, test.faints] },
+           detail: 'the bodies p2 sent in after |upkeep| — the entrant ABOVE the chip ' + JSON.stringify(control)
+                 + ' (one arrival, nobody dies); the same entrant BELOW it ' + JSON.stringify(test)
+                 + ' (it arrives, the rock kills it, and the authority asks again). Knob MEDI_REFILL_ONE_WAVE' };
+});
+
 /* A BROKEN SHIELD DELETES `stall` (sim/battle-actions.ts:775), so it is no follower of a perish expiry and the
  * faints land below `|upkeep|`. The clock is planted at 1, as `perishClock`'s placement row does. CONTROL: the
  * same Protect left standing, whose `stall` survives the residual and pays the drain above. Knob
@@ -38293,7 +38343,11 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                            * tests/probe_charge_boost_contrary.js, tests/probe_sub_secondary_die.js,
                            * tests/probe_encore_override_no_live_foe.js — all stamped at LOAD. */
                           'chargeBoostRawRestored', 'subSkipsSecondaryDieRestored',
-                          'encoreOverrideNeedsLiveFoeRestored']
+                          'encoreOverrideNeedsLiveFoeRestored',
+                          /* 2026-09-21 -- tests/probe_refill_second_wave.js --red. MEDI_REFILL_ONE_WAVE
+                           * leaves a replacement that dies on arrival standing in its slot, which is
+                           * the state this engine was in until today. */
+                          'refillOneWave']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

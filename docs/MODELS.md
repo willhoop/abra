@@ -17,7 +17,7 @@
 | damage differential | **0 of 6000** at the midpoint and at every interior index | `data/engine-diff.json` |
 | roster items / abilities / moves | **148 of 148, 196 of 200, 496 of 497** | `data/roster.items.json`, `data/roster.abilities.json`, `data/roster.moves.json` |
 | mechanics staged | 0 diverge, 0 undeclared | `data/all-mechanics-fire.json` |
-| census | **1002 probed / 1002 live / 0 missing** | `data/mechanics-census.json` |
+| census | **1004 probed / 1004 live / 0 missing** | `data/mechanics-census.json` |
 | gate | **OPEN**, all ten clauses | `node engine/quarantine.js` |
 
 **AND THE HELD-OUT DRAW, WHICH IS THE SAMPLE THE GATE DOES NOT SEE.** It is written under

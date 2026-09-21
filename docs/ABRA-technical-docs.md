@@ -120,7 +120,7 @@ receipt and one row DEFERRED-BY-OWNER. `data/roster.moves.json` reads 496 of 497
 DEFERRED-BY-OWNER. Each stage reads zero FIRED-AND-BOARDS-DIFFER, zero DID-NOT-FIRE, zero
 COULD-NOT-STAGE and zero CONTROL-NOT-QUIET.
 
-**The census.** Read `data/mechanics-census.json`. It records `probed` 1002, `live` 1002, `armed` 1002,
+**The census.** Read `data/mechanics-census.json`. It records `probed` 1004, `live` 1004, `armed` 1004,
 `missing` 0, `unarmed` 0, `hollow` 0, `threw` 0 and `run_ok` true. `node tests/test-mechanics.js`
 writes it.
 

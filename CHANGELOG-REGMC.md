@@ -21,6 +21,74 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.7.0] — 2026-09-21
+
+### Fixed
+- **A body that dies the moment it arrives was never replaced.** The refill list was built once and
+  never rebuilt, so a fainted replacement stood in its slot until the next turn; the authority loops
+  until the board is settled. Found at turn 13 of a real game whose streams had been identical for 13
+  turns. **This is a MEDICHAM defect the gate did not catch** — it reads zero on three lattices and on
+  a 7,182-game held-out draw, and a mirror test outside the gate found it. Knob
+  `MEDI_REFILL_ONE_WAVE`, probe `tests/probe_refill_second_wave.js` — 0 clean / 1 under the knob.
+- **Three checks were passing vacuously**: a staged-board plant whose anchor a later wire had split in
+  two, a control clause iterating an emptied array, and an end-state fixture starved to zero. Each now
+  proves itself on a PLANT rather than on a defect that may cease to exist.
+- A coverage driver was **stateful across games**, so one part's game count moved another part's
+  verdict. Proved not-the-engine under the revert knob, then frozen and restored.
+- `engine/scan_custom_rulesets.js` declared NOT_A_MODEL with its reason.
+
+### Notes
+- Census **1002 → 1004 live / 1004 probed / 0 missing**.
+- **All seventeen reds a full-suite run found are closed, and thirteen of them were the instrument
+  rather than the engine.**
+- The engine moved, so the gate, the lattices and the held-out draw are owed a re-run, and no figure
+  from the previous release is restated here.
+
+## [0.6.0] — 2026-09-21
+
+### Added
+- **`exclude_custom_ruleset` — the ladder corpus is filtered of games played under custom rules.**
+  Will: *"yes clean the store filter it all out"*. `engine/scan_custom_rulesets.js` streams
+  `data/games.ladder.raw-logs.jsonl` and reads the `N custom rule(s):` infobox Showdown itself emits,
+  writing the id set to `data/custom-ruleset-ids.json`; `data/quality-filter.json` 1.6.0 reads it.
+  **The store is not edited** — `store raw, analyze on top`. **6,978 raw logs carry the infobox,
+  6,952 distinct ids, all 6,952 present in the store = 7.37% of 94,360.** 129 alter what a team may
+  legally contain or how many are picked; the other 6,823 set a different information regime, **5,210
+  of them a bare `Best of = 3`** — bo3 tournament games misfiled in the bo1 ladder store. The clean
+  ladder corpus moves **33,539 → 28,454 (−5,085, −15.16%)**, before and after on one store read.
+  Contamination is **2.06× denser** in the clean corpus than in the store, because bots do not play
+  custom-rules rooms.
+- **The run prints the UNTESTABLE SHARE every time.** The infobox is in the raw log and **17,527 rows
+  (18.57%)** have no local raw log, so the count is a **FLOOR, never a census**. Both readers carry
+  that share out to `funnel()`.
+
+### Fixed
+- **`exclude_nonstandard_ruleset` had NO READER.** It was added and switched on at
+  `data/quality-filter.json` 1.5.0 and neither `engine/quality.js` nor `engine/quality.py` looked at
+  it — a rule written down, switched on, honoured by nobody, with every funnel printing a plausible
+  number. Both readers honour it now, and `tests/test-quality.js` asks each enabled rule for a reason
+  code a reader emits and a funnel stage that counts it, so a rule added without a reader fails by
+  name rather than by a rule count.
+- **`engine/sanity_check.py`'s `nobody brings more than four` honours the declaration** the way its
+  winner clause already did: every over-four bring is counted, a declared one is attributed, an
+  **undeclared one FAILS**, and a **declaration whose row no longer breaches FAILS** so it cannot
+  outlive its defect. Shown red on both breaks before being trusted. `SANITY: 96 passed, 0 failed`.
+- `engine/provenance.js` attributed `data/custom-ruleset-ids.json` to `engine/quality.py`, which only
+  READS it — the reader's `open(CUSTOM_RULESET, ...)` outranked the writer's flag-bound path. The
+  scanner now spells the name on its own write line and the graph says `write line`.
+
+### Notes
+- **Basis unchanged**, and **no published Reg M-B figure is affected**: `data/team-pool-frozen` holds
+  `games.bo3.jsonl` and `games.ots.jsonl`, and **those two stores share zero ids with the ladder
+  store** (measured 2026-09-21). This is a cleanup, not a retraction.
+- **The 1,176 in `docs/_reports/2026-09-21-six-bring-game.md` §5b is superseded.** That scan's regex
+  required the PLURAL `custom rules:`, so every one-rule room was invisible. Reconciled to the unit:
+  its per-string joined counts (691 / 170 / 101 / 56) reproduce exactly, and the residue is 5,768
+  single-rule rows plus one 8-row string.
+- `data/live.js` and `data/meta-usage.json` still carry `usable 33539 / 35.5%` and are now STALE; they
+  owe an OPS regeneration. `docs/SUMMARY.md` no longer cites them for that figure.
+- Full account: `docs/_reports/2026-09-21-custom-ruleset-filter.md`.
+
 ## [0.5.0] — 2026-09-21
 
 ### Fixed

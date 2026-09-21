@@ -10,7 +10,7 @@ Full account: `docs/_reports/2026-09-20-last-board-parting.md`.
 | damage differential | 0 of 6000 at the midpoint and every interior index |
 | roster items / abilities / moves | 148 of 148, 196 of 200, 496 of 497 |
 | mechanics staged | 0 diverge, 0 undeclared |
-| census | 1002 probed / 1002 live / 0 missing |
+| census | 1004 probed / 1004 live / 0 missing |
 
 Pins: release `0d7b1d9db6d1`, census `data/verification/census-pin-b6df14beff8d.json`, team store
 `data/team-pool-frozen`, `--steering empirical --arm middle --end-state`.

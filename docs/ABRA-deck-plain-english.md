@@ -109,7 +109,7 @@ The games above tell you whether the simulator is right about what people brough
 about a mechanic nobody happened to use that week.
 
 So there is a second, separate lab: one deliberately built situation per mechanic, staged on purpose
-and compared with the official engine one at a time. It reads **1002 probed, 1002 live, 0 missing**
+and compared with the official engine one at a time. It reads **1004 probed, 1004 live, 0 missing**
 (`data/mechanics-census.json`). Nothing in scope is going untested because nobody thought to look
 at it.
 

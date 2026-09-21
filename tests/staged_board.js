@@ -585,8 +585,15 @@ const SCENARIOS = [
     break: { why: 'the entry gate is removed and the per-turn boost fires unconditionally — which is '
                 + 'exactly the defect this scenario was written against, so a green above it is '
                 + 'vacuous unless this goes red',
-      patch: [['if(_be&&_be.boosts&&m.boosts&&!m._newlySwitched)for(const k in _be.boosts){',
-               'if(_be&&_be.boosts&&m.boosts)for(const k in _be.boosts){']] } },
+      /* THE ANCHOR WENT STALE ON 2026-09-19 AND THE ROW THEN ASSERTED NOTHING — re-aimed 2026-09-21.
+       * The plant used to read `...&&!m._newlySwitched)for(const k in _be.boosts){`, one string. The
+       * announce wire (`abilityBoostRun`, WIRE for `|-ability|HOLDER|Speed Boost|boost`) opened a
+       * block between the gate and the loop, so the `for` no longer follows the `)` and the anchor
+       * matched ZERO times. `patchedSource` reported PATCH NOT APPLIED — which is the harness doing
+       * its job — but the scenario's green above it had been vacuous since that wire landed. Anchored
+       * on the gate alone now, which is the condition under test and cannot be split by a body edit. */
+      patch: [['if(_be&&_be.boosts&&m.boosts&&!m._newlySwitched){',
+               'if(_be&&_be.boosts&&m.boosts){']] } },
 
   /* ------------------------------------------- 14. move / A MOVE TARGETS A SLOT, NOT A POKEMON */
   { id: 'pivot-then-the-slot-is-hit',

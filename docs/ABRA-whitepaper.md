@@ -32,8 +32,8 @@ index, seed 20260804 (`data/engine-diff.json`). **Deliberate roster**, one mecha
 496 moves of 497 in scope (`data/roster.moves.json`).
 Zero FIRED-AND-BOARDS-DIFFER, zero DID-NOT-FIRE and zero COULD-NOT-STAGE on all three stages. **Staged
 mechanics** — `data/all-mechanics-fire.json`: 4632 games played, none threw, no sheet failed to
-assemble, every in-scope row proven or excused by the owner on a receipt. **Census** — 1002 rows
-probed, 1002 live, 0 missing, 0 unarmed, 0 hollow, 0 threw (`data/mechanics-census.json`).
+assemble, every in-scope row proven or excused by the owner on a receipt. **Census** — 1004 rows
+probed, 1004 live, 0 missing, 0 unarmed, 0 hollow, 0 threw (`data/mechanics-census.json`).
 **Coverage** — every move above the usage shelf is measured by the roster or by the census. **Board
 leaves** — no leaf a legal mechanic writes can stand at a turn boundary uncompared. **Open defects** —
 no open register row names an instrument that reads red. The gate's own words *nothing is withheld*
@@ -164,8 +164,8 @@ and 1 DEFERRED-BY-OWNER, of 497 in scope. An in-scope row that cannot be staged 
 shut, on Will's ruling of 2026-09-11 — *"stop trying to close medicham out with all these untested
 mechanics"* — and all three stages read zero of them.
 
-**THE CENSUS AND THE STAGED GAMES.** `data/mechanics-census.json` reads `probed` 1002, `live` 1002,
-`armed` 1002, `missing` 0, `unarmed` 0, `hollow` 0, `threw` 0 and `run_ok` true. **That figure moved
+**THE CENSUS AND THE STAGED GAMES.** `data/mechanics-census.json` reads `probed` 1004, `live` 1004,
+`armed` 1004, `missing` 0, `unarmed` 0, `hollow` 0, `threw` 0 and `run_ok` true. **That figure moved
 for an instrument reason worth stating**: the census used to snapshot its counts at a point in the file
 with twelve probes registered below it, so `live` meant "the rows above that line" and a MISSING row
 registered late could never have failed the run — the same silent-capability shape this repository is

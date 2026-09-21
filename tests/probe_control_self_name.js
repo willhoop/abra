@@ -21,9 +21,13 @@
  *
  * THREE CLAUSES, AND EACH ONE HAS TO BE ABLE TO GO BOTH WAYS:
  *
- *   A  LEAF GUARD on Meganium is FIRED-AND-BOARDS-MATCH today on 8 leaves, ALL of them the swap.
- *      Leaf Guard blocks status in sun; the generic fixture has no sun and no status, so the fixture
- *      is inert and the row is a green about nothing. It must stop being FIRED.
+ *   A  LEAF GUARD on Meganium. WRITTEN when the generic fixture raised no sun and inflicted no status,
+ *      so the row was FIRED on 8 leaves ALL of which were the swap — a green about nothing — and the
+ *      clause demanded it stop being FIRED. RE-AIMED 2026-09-21: the 2026-09-12 status-family staging
+ *      gave it a real fixture, the delta is now status and hp and NO ability leaf, and the clause asks
+ *      instead that the green rest on those real leaves — with a PLANT (the correction's restore knob)
+ *      proving the missing ability leaves are the correction and not an unstaged row. The full reason
+ *      is beside the clause; the population of swap-only greens is now zero across the ability stage.
  *   B  CONTRARY on Serperior is FIRED-AND-BOARDS-MATCH today on 24 leaves that are Attack stages.
  *      It must STAY FIRED. Clause A without clause B is satisfied by deleting the ability stage.
  *   C  TRACE on Gardevoir is CONTROL-NOT-QUIET today, and its delta contains
@@ -50,12 +54,14 @@ if (!process.env.SHOWDOWN_PATH) {
   process.exit(1);
 }
 
-/* One roster run per row, `--json` so nothing is written to data/. */
-function row(id) {
+/* One roster run per row, `--json` so nothing is written to data/. `extraEnv` is how the PLANT arm
+ * turns the correction off — see clause A. */
+function row(id, extraEnv) {
   const out = execFileSync(process.execPath,
     [path.join(ROOT, 'tests', 'roster.js'), '--stage', 'abilities', '--only', id,
      '--json', '--release', REL],
-    { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 28, env: process.env });
+    { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 28,
+      env: extraEnv ? Object.assign({}, process.env, extraEnv) : process.env });
   const i = out.lastIndexOf('\n{');
   if (i < 0) throw new Error('roster.js --json printed no artifact for ' + id);
   const art = JSON.parse(out.slice(i + 1));
@@ -104,23 +110,61 @@ console.log('probe_control_self_name — release ' + REL);
 console.log('');
 
 /* ---- A ---------------------------------------------------------------------------------------- */
+/* RE-AIMED 2026-09-21, AND THE OLD AIM IS RECORDED RATHER THAN QUIETLY REPLACED. Clause A used to
+ * assert `A.verdict !== 'FIRED-AND-BOARDS-MATCH'` — Leaf Guard must not be counted as tested, because
+ * the generic staging raised no sun and inflicted no status, so its whole delta was the swap. THE
+ * FIXTURE WAS FIXED ON 2026-09-12: `ability/a-status-is-refused-cured-or-reflected` stages a real
+ * status under a partner-raised sun, and Leaf Guard's delta is now twelve `status` and `hp` leaves and
+ * ZERO ability leaves. The row is genuinely tested, so FIRED is the right answer and the old assertion
+ * had become a demand that a working row be refused.
+ *
+ * THE POPULATION IT HUNTED IS EXTINCT, WHICH IS WHY THIS IS A PLANT NOW. Over the whole ability stage
+ * (data/roster.abilities.json, 200 rows) no released row's evidence is the swap: five rows are
+ * ability-only and all five are real rewrites the value condition preserves (Mummy, Natural Cure,
+ * Receiver, Trace, Wandering Spirit), and the only empty-delta green is Shadow Tag, which is a REFUSAL
+ * comparison and never had a board delta to lose.
+ *
+ * AND THE OLD A1 COULD NOT SEE ANY OF THAT HAPPEN. It read `AL.every(...)` over an array the
+ * correction had just emptied, so it passed VACUOUSLY on zero leaves — the exact "a green test can be
+ * asking nothing" shape — while the premise under it died. A1 now demands the zero AND real evidence
+ * beside it, and A2 is a PLANT: with the correction switched off by its restore knob the swap leaves
+ * must come back, which is the only way a zero can be told from a row that was never staged. */
 const A = row('leafguard');
-const AL = abilityLeaves(leaves(A));
+const ALL_A = leaves(A);
+const AL = abilityLeaves(ALL_A);
+const Areal = ALL_A.filter(x => !/\.ability$/.test(x.path));
 console.log('A  Leaf Guard / ' + A.carrier + '   verdict=' + A.verdict);
 console.log('     ability leaves inspected: ' + AL.length + '  of which the swap itself: '
-            + AL.filter(x => selfName(x, 'leafguard')).length);
+            + AL.filter(x => selfName(x, 'leafguard')).length
+            + '   real (non-ability) leaves: ' + Areal.length
+            + (Areal[0] ? '   e.g. ' + Areal[0].path + ' ' + Areal[0].with + '/' + Areal[0].without : ''));
 console.log('     correction counter: ' + A._k.self_describing_dropped + ' swap leaves dropped, '
             + A._k.real_ability_rewrite_kept + ' real rewrites kept');
 say(A._k.self_describing_dropped > 0, 'A0',
     'the assertion is REACHED — the correction inspected and dropped ' + A._k.self_describing_dropped
     + ' swap leaf/leaves on this row. Zero would mean the row was never staged, or the correction '
-    + 'never reached a leaf, and clause A2 below would be vacuous.');
-say(A._k.real_ability_rewrite_kept === 0 && AL.every(x => selfName(x, 'leafguard')), 'A1',
-    'NOTHING on this row is a real ability rewrite, so the fixture offers no ability-change evidence '
-    + 'at all and A2 is aimed at a genuinely vacuous row. If this goes false the fixture changed.');
-say(A.verdict !== 'FIRED-AND-BOARDS-MATCH', 'A2',
-    'Leaf Guard is NOT counted as tested. Its whole delta is the control arm describing itself; a '
-    + 'green here is agreement that both engines write the ability name we set. Got ' + A.verdict + '.');
+    + 'never reached a leaf, and the clauses below would be vacuous.');
+say(AL.length === 0 && A._k.real_ability_rewrite_kept === 0 && Areal.length > 0, 'A1',
+    'NO ability leaf survives the correction on this row (' + AL.length + ') and none of them was a '
+    + 'real rewrite (' + A._k.real_ability_rewrite_kept + ') — AND the row still carries '
+    + Areal.length + ' leaf/leaves that are not an ability field. So the green below rests on Leaf '
+    + 'Guard refusing the status, never on the control arm naming itself. A zero on the last term is '
+    + 'the fixture having gone inert again.');
+say(A.verdict === 'FIRED-AND-BOARDS-MATCH', 'A2',
+    'and Leaf Guard is released on that real evidence. Got ' + A.verdict + '.');
+/* THE PLANT. `ROSTER_SWAP_SELF_LEAVES_COUNT=1` is the restore knob on `swapLeaf` (tests/roster.js):
+ * the correction is off and the swap leaves are counted as evidence exactly as they were before it
+ * existed. A1's zero above is only readable because this arm is not zero. */
+const AP = row('leafguard', { ROSTER_SWAP_SELF_LEAVES_COUNT: '1' });
+const APL = abilityLeaves(leaves(AP));
+console.log('     PLANT (ROSTER_SWAP_SELF_LEAVES_COUNT=1, the correction off): ' + APL.length
+            + ' ability leaf/leaves back, ' + APL.filter(x => selfName(x, 'leafguard')).length
+            + ' of them the swap; correction counter ' + AP._k.self_describing_dropped);
+say(APL.length > 0 && APL.every(x => selfName(x, 'leafguard')) && AP._k.self_describing_dropped === 0,
+    'A3', 'THE PLANT: with the correction switched off the row is handed ' + APL.length + ' ability '
+    + 'leaf/leaves and every one of them is the swap (`with=leafguard without=<the control\'s '
+    + 'ability>`). A1\'s zero is therefore the correction working, and not a row that was never '
+    + 'staged — which is the only reading a bare zero allows.');
 
 /* ---- B ---------------------------------------------------------------------------------------- */
 const B = row('contrary');

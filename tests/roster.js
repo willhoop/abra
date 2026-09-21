@@ -1873,7 +1873,17 @@ function controlOf(sc, rank) {
 /* Does this diff read as the ability swap and nothing else? Path AND both values, on the subject's
  * own side. `armDelta` pushes `with: d.medicham` (the SUBJECT arm) and `without: d.showdown` (the
  * CONTROL arm) — the names come from `BS.compare`'s two operands, not from the two engines. */
+/* THE RESTORE KNOB, ADDED 2026-09-21 AND EXACTLY SYMMETRIC TO `ROSTER_SWAP_ARM_LEAVES_COUNT` BELOW.
+ * `tests/probe_control_self_name.js` clause A used to prove this correction bites by pointing at a row
+ * whose WHOLE delta was the swap — and that population is now empty (the 2026-09-12 status-family
+ * staging gave Leaf Guard a real fixture, and the ability stage carries no swap-only green at all).
+ * With nothing left to find, the clause can only be proved on a PLANT: set this and the correction is
+ * off, the 16 swap leaves come back onto the row, and a clause asserting they are absent goes red.
+ * Without it a zero is unreadable — an unstaged row and a corrected one look identical. */
+const SWAP_SELF_LEAVES_COUNT = (typeof process !== 'undefined' && process.env
+                                && process.env.ROSTER_SWAP_SELF_LEAVES_COUNT === '1');
 function swapLeaf(swap, path, subjVal, ctrlVal) {
+  if (SWAP_SELF_LEAVES_COUNT) return 0;
   if (!swap || !swap.controls.size || !/\.ability$/.test(path)) return 0;
   const own = new RegExp('^' + swap.side + '\\.(active\\[\\d+\\]|party\\.(?:'
     + swap.species.map(s => s.replace(/[^a-z0-9]/g, '')).join('|') + '))\\.ability$');

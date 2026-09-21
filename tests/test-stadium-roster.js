@@ -141,6 +141,15 @@ const NOT_A_CABINET = {
  *   evidence about IMPORTANCE, never about whether something needs writing down.
  * ============================================================================================== */
 const NOT_A_MODEL = {
+  /* --- DECLARED 2026-09-21, in the pass that added it. --- */
+  'engine/scan_custom_rulesets.js':
+    'a SCANNER over the archived raw logs. It reads each log for the custom-rule infobox that Showdown '
+    + 'writes into a room, and '
+    + 'writes the id set that data/quality-filter.json excludes. It decides nothing and predicts '
+    + 'nothing — a game either carries the infobox or it does not, and the artifact is a list of ids '
+    + 'with the rule string each one carried. It exists because a ladder game played under custom '
+    + 'rules is not the game this project models, and 7.37% of the Reg M-B ladder store is one: see '
+    + 'docs/_reports/2026-09-21-custom-ruleset-filter.md. A model chooses; this describes.',
   /* --- SIX INSTRUMENTS DECLARED 2026-08-13. None of them decides anything: each reads the format,
    *     the store or the register and reports. A model chooses; these describe. --- */
   'engine/divergence_report.js':
@@ -283,7 +292,13 @@ const NOT_A_MODEL = {
    *     statements ABOUT CHAMPIONS, so none of them could be given a truthful entry in this table.
    *     MEASURE closed them the right way, with ledger entries (META-USAGE, PORYGON2, MOVE PRIORS,
    *     SPECIES SETS, COUNTERS), and arm (a) accounts for them now. --- */
-  'engine/em_validation.js':         'plants a known weight vector, censors it the way the real corpus is censored, and asks whether EM recovers it (Stage C). A validation of OUR fitting procedure against a synthetic truth — its own `reading` field says neither number is a win rate or a held-out accuracy',
+  /* engine/em_validation.js WAS declared here — 'a validation of OUR fitting procedure against a
+   * synthetic truth (Stage C)'. REMOVED 2026-09-21 for the same reason engine/tag_dex.js was removed
+   * on 2026-08-10 and build/build_guru_js.js the evening it was added: docs/MODELS.md now names it,
+   * in the CLICK-CENSORING re-run list, so arm (a) accounts for it and check 7 was firing on the
+   * leftover excuse. An exception the ledger has overtaken is not a judgement, it is a contradiction
+   * — the next reader would believe the project decided it was not a model while the ledger said the
+   * opposite. The judgement itself is not being reversed here; it is being retired as redundant. */
   /* --- Added 2026-08-05 (docs/MEASURE.md §17). It asks whether two BUILDS OF OUR OWN CODE are the
    *     same function on our own corpus, which is the question that decides whether an artifact
    *     computed through an older engine may still be quoted. It fits nothing, predicts nothing and
@@ -331,6 +346,20 @@ const NOT_A_MODEL = {
   'engine/next_regulation_ingest.js': 'a COLLECTOR, not a model — its own header: "COLLECT THE NEXT REGULATION FROM DAY ONE, WITH NO CODE EDIT". data/next-regulation.json is the receipt of what the six-hourly pull has stored for the format that has not started yet; a corpus-bookkeeping figure about OUR store, and if it is wrong the only people misled are us, about what we collected',
   'engine/side_selection_census.js': 'a CENSUS of OUR SIMULATOR\'s own source — its own header: "EVERY PLACE THIS ENGINE WRITES DOWN A SIDE, AND WHICH QUESTION IT IS ANSWERING" — ratcheted so a new undeclared site fails by name. It reads code, not games; it asserts nothing about who should be chosen and a model that decided a bring would own its own ledger entry',
   'engine/smogon_coverage.js':       'writes data/smogon-coverage-<month>.json (the month is a PARAMETER — `--month`, defaulting to the latest archived month under data/smogon-stats/; data/smogon-coverage-2026-08.json on disk is one run of it, and the sentence named that one run until 2026-09-10) — what fraction of the species in OUR corpus the Smogon priors we consume actually cover. A coverage reading of one external input over our own store; the priors themselves are the SMOGON PRIORS ledger entry and this file only measures their reach',
+
+  /* --- Added 2026-09-21. Five generators landed in neither file and this gate went red on all five
+   *     at once. Each is settled by this table's own question — "if this number is wrong, who is
+   *     misled?" — and each reason is read out of the file's OWN header rather than inferred from
+   *     its name, with the reversal condition attached, because a wrong declaration stops this gate
+   *     asking permanently and silently. They divide three ways and the division is why they are
+   *     written out separately instead of sharing one shape-based excuse: a FACT about the dex, two
+   *     DIAGNOSES of our own fit, a CENSUS of the store, and an arithmetic RESTATEMENT of a gate that
+   *     has already run. --- */
+  'engine/build_battle_formes.js':   'a FACT ABOUT THE DEX, not a model, and the same class as build_ability_blocks.js and build_species_abilities.js above: `species.battleOnly` is Showdown\'s own answer to "a replay log just said this forme name, what species does team preview show?", and this file derives data/battle-formes.json from it instead of leaving the 2026-07-24 hand-built copy to rot. Its own header calls the result a RESTAMP — it reproduced the hand-built artifact 131 of 131 with zero disagreements, so no figure moves. More games do not change the answer; a new forme in the dex does. REVERSAL CONDITION: false the day the mapping is ESTIMATED from the store rather than read off the dex, because a guess about which species a forme belongs to is a claim somebody could be wrong about',
+  'engine/collinearity_joint.js':    'the audit engine/collinearity_audit.js runs on the 56 single-move features, run on the 18 PAIR features that had never been audited — each fitted alone, then beside the sum of the two single-move vectors, and compared with its weight in company. A DIAGNOSIS OF MAG in exactly the sense the entry above it is: it exists because nine of the eighteen pair weights changed sign on one refit, and it says whether an individual coefficient is a statement about the game or a split credit. It fits no model anybody plays. REVERSAL CONDITION: false the day anything READS data/collinearity-joint.json to choose a weight rather than to distrust one',
+  'engine/sheet_channel_value.js':   'a PAIRED HELD-OUT EVALUATION of our own fitting environment, same class as leaf_position_contrast.js and feature_engine_contrast.js above: does a model that can see the declared ability and the declared moves predict a human click better than one that cannot? Every arm is a build that already exists and the model being scored is MAG, which owns its own ledger entry. Settling question — if the number is wrong, the people misled are US, deciding whether the fit-time board owes a refit to match the play-time board. REVERSAL CONDITION: false the day it reports a WIN RATE rather than a held-out likelihood gap, because a run that says which arm PLAYS better is an SPRT and owes docs/MODELS.md an entry',
+  'engine/human_protect_ruler.js':   'a CENSUS of the frozen open-sheet store — its own header: "THE RULER, NOT A MODEL. Store-derived, no simulator anywhere in the path". It counts protect-family clicks against total clicks and publishes the share, on the family DERIVED from every move data/tags.json tags `shieldsUser`. Same standing as click_counts.js and sheet_usage.js above: it states what players did and decides nothing, and it is upstream of MEDICHAM so it is not quarantined. It exists because the published 14.757% was measured by a script nobody kept, so docs_scan.js attributed it to the one artifact whose digits matched. REVERSAL CONDITION: false the day a fitted model takes this share as a FEATURE rather than as a ruler to compare our own bot against',
+  'engine/rollout_r1_artifact.js':   'ARITHMETIC OVER A FROZEN DUMP, and the gate it restates is GATE R1, whose siblings rollout_r2.js and rollout_r1_join.py are declared above for the same reason. It re-runs no rollout, opens no Dex and needs no engine: it recomputes acc, brier, logloss and McNemar from the rows engine/rollout_r1.js already produced, using that file\'s own formulas, because R1 published a headline through console.log and wrote no artifact for it while status.js read a WITHDRAWN cross-language join under the name "R1 leaf accuracy". The model being evaluated is the rollout leaf and it carries its own ledger entry; an evaluation of a model is not itself a model. REVERSAL CONDITION: false the day it computes a score from a rollout it RAN rather than from a dump it was handed',
 };
 
 /* MODELS.md headings look like "## NAME — long description (added ...)". Take the part

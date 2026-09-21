@@ -143,35 +143,98 @@ console.log('\nPART 1 — the verdict function, every branch, on fabricated rows
  * now takes the EARLIEST-parting pair in the whole pool and prints which turn that was, so a reader
  * can see the demonstration weakening rather than have it disappear.
  *
- * IT IS STILL A FOUND FIXTURE AND THAT IS DECLARED, NOT HIDDEN. The proper repair is to PLANT a
- * protocol divergence at a named line the way `statePlant` plants a board one — the driver already
- * does exactly that for its own `--proof` arm — but there is no `protoPlant` hook on `playGame`, so
- * building one is a change to `engine/game_differential.js` and belongs in its own pass with its own
- * red. Until then, "no pair parted at all" is still a LOUD failure and never a pass. */
+ * ---- AND THEN IT STARVED COMPLETELY — 2026-09-21. THE FIXTURE IS NOW PLANTED --------------------
+ *
+ * The paragraph above predicted this in its own words and then waited two days for it: *"an instrument
+ * whose fixture is FOUND rather than CONSTRUCTED starves as its subject improves"*. On 2026-09-21 the
+ * pool's five baseline pairs held **no protocol divergence at all** — not at turn 1, not anywhere —
+ * and the clause reported `PART 2 COULD NOT BE STAGED`. That is the good kind of red: the thing it
+ * hunts reached zero. A COULD-NOT-STAGE VERDICT IS A CLAIM ABOUT THE FIXTURE AND NEVER ABOUT THE
+ * MECHANIC, so the answer is to BUILD one, exactly as PART 3 below already did on 2026-08-18.
+ *
+ * THE HOOK EXISTED ALL ALONG AND THE PARAGRAPH ABOVE WAS WRONG ABOUT IT. It said *"there is no
+ * `protoPlant` hook on `playGame`"*; `opts.plant` is that hook, and `alignAndCheck` has always applied
+ * it — `const raw = opts.plant ? opts.plant(trace.slice()) : trace;`. It corrupts the MEDICHAM copy of
+ * the stream and ONLY the copy, so the battle itself plays byte-identically to the control: the two
+ * arms below are the same game, and the only difference between them is one line of narration.
+ *
+ * THE PLANT IS AN INSERT, NOT A BEND, for the reason `plantsFor` gives about its own fourth plant: a
+ * bend has to find a line that carries a bendable field AND survives the normaliser, so it is SKIPPED
+ * on streams that hold no such line — a plant that quietly does not run is the silence this file
+ * exists to refuse. An insert lands on any stream long enough to have an agreeing prefix.
+ *
+ * AND THE CONTROL IS THE SAME PAIR UNPLANTED. Without it a caught divergence could be the game's own,
+ * which is precisely the state the found fixture was in for a month. */
 console.log('\nPART 2 — a game whose protocol parts must keep playing past the mismatched line');
 const PAIRS = G.pairsFor('baseline');
 if (!PAIRS.length) fail('no baseline pairs could be built — nothing below ran');
-let usedPair = null, endRow = null;
+/* THE LINE IS NOT A REAL ONE AND IT IS NOT MEANT TO BE. What is being measured is the STOP RULE — does
+ * the driver keep playing past a mismatched line — and any mismatched line answers that. It is written
+ * as an `-ability` because that family is compared leaf for leaf (the `ability-announcement`
+ * equivalence was RETIRED 2026-09-19), so the normaliser cannot erase it. */
+const PLANT_AT = 6;
+const PLANT_LINE = '|-ability|p9z: PLANTED|Pressure';
+let plantApplied = 0;
+const protoPlant = (lines) => {
+  if (lines.length <= PLANT_AT) return lines;          /* the stream is not that long YET — see plantsFor */
+  plantApplied++;
+  return lines.slice(0, PLANT_AT).concat([PLANT_LINE], lines.slice(PLANT_AT));
+};
+/* THE TWO ARMS MUST BE THE SAME GAME, AND PART 3 MUST NOT INHERIT WHATEVER THIS PART HAPPENED TO PLAY.
+ *
+ * `plantedProof`'s own header says the first half: the driver is COVERAGE-SEEKING and therefore
+ * STATEFUL, so the second run of one team pair deliberately clicks something else — right for the
+ * swarm, fatal for a proof. Both arms are played inside a snapshot.
+ *
+ * THE SECOND HALF WAS MEASURED HERE ON 2026-09-21 AND IS THE NASTIER ONE. This part used to play FIVE
+ * games (one per pair, hunting); the planted version accepts the first pair and plays TWO. That alone
+ * moved PART 3's fixture from a 50-turn pair at the cap to a 7-turn one, and PART 3 went red on a
+ * localisation clause — a red in the part BELOW, caused entirely by how many games the part ABOVE
+ * happened to play. The same reading under `MEDI_REFILL_ONE_WAVE=1` proved it was not the engine.
+ * A part whose verdict depends on its neighbour's game count is not measuring what it says it is, so
+ * the driver is put back exactly as PART 2 found it. */
+const snapBefore = G.driverSnap();
+const frozen = (fn) => { const s = G.driverSnap(); try { return fn(); } finally { G.driverRestore(s); } };
+let usedPair = null, endRow = null, controlRow = null;
 for (const pr of PAIRS) {
-  const r = G.playGame(pr.a, pr.b, 'baseline', 'endstate/' + pr.tag.slice(0, 24));
-  if (r.err) continue;
-  if (r.div && r.divTurn != null && (!endRow || r.divTurn < endRow.divTurn)) { usedPair = pr; endRow = r; }
-  if (endRow && endRow.divTurn <= 1) break;
+  const c = frozen(() => G.playGame(pr.a, pr.b, 'baseline', 'endstate/control/' + pr.tag.slice(0, 16)));
+  if (c.err) continue;
+  /* A PAIR WHOSE CLEAN ARM ALREADY PARTS CANNOT PROVE THE PLANT WAS CAUGHT, exactly as PART 3's first
+   * screen says about its item. It is rejected by NAME rather than silently skipped. */
+  if (c.div) { note('rejected ' + pr.tag.slice(0, 26) + ' — its CLEAN arm already parts at line '
+                    + c.div.index + ', so a catch could be the game'); continue; }
+  const r = frozen(() => G.playGame(pr.a, pr.b, 'baseline', 'endstate/planted/' + pr.tag.slice(0, 16),
+                                    { plant: protoPlant }));
+  if (r.err) { note('rejected ' + pr.tag.slice(0, 26) + ' — the PLANTED arm threw: ' + r.err); continue; }
+  usedPair = pr; endRow = r; controlRow = c; break;
 }
+G.driverRestore(snapBefore);
 if (!endRow) {
-  note('NO pair in the pool of ' + PAIRS.length + ' parted on the protocol at all without throwing —');
-  note('PART 2 could not be staged, which is a claim about the FIXTURE and not about the stop rule.');
+  note('NO pair in the pool of ' + PAIRS.length + ' could carry the plant without its clean arm');
+  note('already parting or its planted arm throwing. That is a claim about the FIXTURE and not about');
+  note('the stop rule — but it is still not a pass.');
   fail('PART 2 COULD NOT BE STAGED — see the note above; it is not a pass');
 } else {
   note(usedPair.tag);
-  note('the earliest protocol divergence in a pool of ' + PAIRS.length + ' pairs is turn '
-       + endRow.divTurn + '. This clause used to demand turn 1 and the engine stopped supplying one;'
-       + ' see the header.');
+  note('the plant: "' + PLANT_LINE + '" inserted at line ' + PLANT_AT + ' of medicham2\'s stream, '
+       + plantApplied + ' time(s) placed');
   note('protocol parted at turn ' + endRow.divTurn + ', the game ran ' + endRow.turns + ' turn(s), '
        + endRow.boundaries + ' board(s) compared, end reason: ' + endRow.endReason);
-  if (endRow.turns <= endRow.divTurn)
+  /* THE PLANT MUST HAVE BEEN PLACED. "Never placed" and "the comparator saw nothing" are the same row
+   * otherwise, and only the second condemns anything — `plantsFor` learned this on 2026-08-12. */
+  if (!plantApplied) fail('the plant was NEVER PLACED, so nothing below is about the stop rule');
+  else pass('the plant was placed ' + plantApplied + ' time(s) — once per boundary the stream was long enough for');
+  if (controlRow.div)
+    fail('the CONTROL arm parts too, so the catch below is not the plant');
+  else pass('the CONTROL arm — the same pair, the same seed, no plant — does not part at all');
+  if (!endRow.div || endRow.divTurn == null)
+    fail('the planted divergence was NOT CAUGHT — a comparator that cannot see an inserted line is '
+       + 'not measuring the stop rule or anything else');
+  else pass('the planted divergence is caught, at line ' + endRow.div.index + ' of turn ' + endRow.divTurn);
+  if (endRow.divTurn != null && endRow.turns <= endRow.divTurn)
     fail('the game stopped at its protocol divergence — --end-state is --state wearing a new name');
-  else pass('the game played on past the mismatched line (turn ' + endRow.divTurn + ' -> ' + endRow.turns + ')');
+  else if (endRow.divTurn != null)
+    pass('the game played on past the mismatched line (turn ' + endRow.divTurn + ' -> ' + endRow.turns + ')');
   if (!endRow.finalBoard) fail('no finalBoard was recorded, so there is no end state to compare');
   else pass('a final board was recorded at boundary ' + endRow.finalBoard.turn
             + ', identical=' + endRow.finalBoard.identical);

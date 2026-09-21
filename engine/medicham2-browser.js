@@ -726,6 +726,16 @@ const MEDSEEN = { floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepAct
    *                        threshold (entry hazards, or a Sitrus an Unnerve had been suppressing) is
    *                        the whole population. */
   refillUpdatePasses: 0, refillUpdateAte: 0,
+  /* 2026-09-21 -- THE SECOND AND LATER WAVES OF FAINT REPLACEMENTS. The authority raises a new
+   * `makeRequest('switch')` for every body that dies on arrival (sim/battle.ts:2832-2840, :2905-2910);
+   * this engine answered exactly one request per turn, so a Dragonite that walked onto Stealth Rock
+   * at 2 HP stayed in the slot as a corpse until the next turn opened. See MEDI_REFILL_ONE_WAVE.
+   *   refillSecondWave        waves BEYOND the first that actually ran. Zero on a turn where every
+   *                           replacement survived its own arrival, which is nearly every turn -- so
+   *                           this is a rare-event counter and a zero over ONE game means nothing.
+   *   refillWaveStoppedByWipe waves the battle ending cut short, which is the authority's own
+   *                           `if (this.ended) return true;` above its `checkFainted()`. */
+  refillSecondWave: 0, refillWaveStoppedByWipe: 0,
   /* ROADMAP #331 -- SELF-KOs SPENT AT THE `damageCallback`, i.e. above the target's own faint rather
    * than below it. THE NOUN: it counts USERS killed by their own move at that site, once per action,
    * never targets and never `|faint|` lines in general. It rises only for a move whose damage IS the
@@ -18269,6 +18279,32 @@ const SUB_ADDR_PER_TARGET=(typeof process!=='undefined'&&process.env&&process.en
  * tests/probe_refill_update_pass.js measures. Any run carrying it also carries a non-zero
  * `MEDFAILS.refillUpdateSkipped`. */
 const NO_REFILL_UPDATE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_REFILL_UPDATE==='1');
+/* 2026-09-21 -- MEDI_REFILL_ONE_WAVE=1 STOPS THE FAINT REPLACEMENTS AFTER A SINGLE WAVE, i.e. a body
+ * that walks into the dead one's slot and DIES THERE -- to Stealth Rock, to Spikes, to any entry
+ * damage -- leaves a corpse standing until the next turn opens, as this engine did until today.
+ *
+ * THE AUTHORITY ASKS AGAIN AND IT IS A LOOP, not a single request. `Battle#runAction` closes the
+ * replacement's own `instaswitch` action with `faintMessages()` and then, the queue being empty,
+ * `this.checkFainted()` (sim/battle.ts:2832-2840) -- which sets `switchFlag = true` on the body that
+ * just died -- and the `for (const playerSwitch of switches) { this.makeRequest('switch'); }` block
+ * at :2905-2910 raises a SECOND replacement request before `|turn|` is printed.
+ *
+ * MEASURED on the live team pool, `...bo3-2671680205 vs ...bo3-2676177609` / omit-protect, turn 13,
+ * the two streams IDENTICAL for thirteen turns and then:
+ *     both      |switch|p2b: Dragonite|Dragonite-Mega, L50|2/166
+ *     both      |-damage|p2b: Dragonite|0 fnt|[from] Stealth Rock
+ *     both      |faint|p2b: Dragonite
+ *     showdown  |switch|p2b: Oranguru|...          <- the second request, answered
+ *     medicham  |turn|14                            <- the corpse is still in the slot
+ * It surfaced as tests/test-forced-switch-mirror.js part 8 going red: the mirror answered `pass` for
+ * a slot medicham2 had not filled, Showdown refused it ("You need to switch in a Pokemon to replace
+ * Dragonite"), and the alive sets AGREED -- so it was not a parted board, it was this engine owing a
+ * replacement.
+ *
+ * This is a GAME knob, not an address knob: it moves the board at the turn boundary. Any run carrying
+ * it also carries a non-zero `MEDFAILS.refillOneWave`. tests/probe_refill_second_wave.js is green
+ * clean and red under it. */
+const REFILL_ONE_WAVE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REFILL_ONE_WAVE==='1');
 /* 2026-08-24 -- MEDI_SMART_PROTECT_LINE=1 PUTS THE `|-activate|move: Protect` BACK ON A SMART-TARGET
  * MOVE, i.e. Dragon Darts into a Protecting body announces the shield again, as this engine did until
  * today. Any run carrying it also carries a non-zero `MEDFAILS.smartProtectLineRestored`. Same shape
@@ -51649,11 +51685,18 @@ function battleTurn(S,rng,actsForA,actsForB){
       return m.st.sp;
     };
     if(REPLACE_SPEED_MODIFIED)MEDFAILS.replaceSpeedModifiedRestored=1;
-    for(const _r of [{act:actA,bench:benchA,foes:actB,sf:sfA,side:'A'},
-                     {act:actB,bench:benchB,foes:actA,sf:sfB,side:'B'}])
-      for(let i=0;i<_r.act.length;i++)
-        if(_r.act[i]&&_r.act[i].fainted)
-          _refills.push(Object.assign({i,spe:_corpseSpe(_r.act[i],_r.side)},_r));
+    /* 2026-09-21 -- BUILT BY A FUNCTION BECAUSE IT IS ASKED MORE THAN ONCE. The authority raises a new
+     * `makeRequest('switch')` for every wave of corpses (see MEDI_REFILL_ONE_WAVE), so the queue has to
+     * be rebuildable from the CURRENT actives rather than snapshotted before the first wave walks in.
+     * The body is byte-for-byte what sat here inline, plus the clear -- the first call reproduces the
+     * old behaviour exactly. */
+    const _queueRefills=()=>{
+      _refills.length=0;
+      for(const _r of [{act:actA,bench:benchA,foes:actB,sf:sfA,side:'A'},
+                       {act:actB,bench:benchB,foes:actA,sf:sfB,side:'B'}])
+        for(let i=0;i<_r.act.length;i++)
+          if(_r.act[i]&&_r.act[i].fainted)
+            _refills.push(Object.assign({i,spe:_corpseSpe(_r.act[i],_r.side)},_r));
     /* ==== NARRATION BATCH Y, 2026-09-09 -- THE REFILL QUEUE IS THE AUTHORITY'S `speedSort`, TIE DIE AND ALL ====
      *
      * Every forced replacement is an `instaswitch` action queued at once (`Side#chooseSwitch`,
@@ -51680,6 +51723,8 @@ function battleTurn(S,rng,actsForA,actsForB){
       entrySpeedSort(_refills,field);
       if(_tied)MEDSEEN.replaceTieResolved++;
     }
+    };
+    _queueRefills();
     const refill=()=>{
       const _arrived=[];
       for(const r of _refills){
@@ -51808,6 +51853,45 @@ function battleTurn(S,rng,actsForA,actsForB){
      * that took a side's last body ends the battle and this Update never runs. */
     residualUpdatePass(actA,actB,field,-1);
     refill();
+    /* ===== 2026-09-21 -- AND A REPLACEMENT THAT DIES ON ARRIVAL IS ITSELF REPLACED ================
+     *
+     * The line above answers ONE switch request. The authority answers as many as the board owes: the
+     * replacement's `instaswitch` is an ACTION, and `runAction` closes it with `faintMessages()` and
+     * then `this.checkFainted()` (sim/battle.ts:2832-2840), which sets `switchFlag = true` on a body
+     * that has just died to Stealth Rock -- so the `for (const playerSwitch of switches) {
+     * this.makeRequest('switch'); return true; }` block at :2905-2910 raises the NEXT request before
+     * `|turn|` is ever printed. This engine snapshotted the corpses once and walked away, leaving a
+     * dead body standing in the slot for a whole turn. See MEDI_REFILL_ONE_WAVE for the measured game.
+     *
+     * TERMINATION IS NOT A CAP, THE CAP IS A BACKSTOP. Each wave either places a body -- which spends
+     * a bench body and cannot be undone -- or finds no side with a live bench body left to place, and
+     * the guard below is exactly that question. The `8` is there so a future `bringIn` that refuses
+     * for a reason this loop cannot see becomes a counted stop rather than a hang.
+     *
+     * THE WIPE CHECK IS THE AUTHORITY'S `if (this.ended) return true;` one line above its own
+     * `checkFainted()`: a body whose arrival takes its side's last life ends the battle, and a battle
+     * that has ended asks for no replacement.
+     *
+     * THE `Update` PASS AND THE `traceSweep` STAY BELOW ALL OF IT, unchanged. Both are idempotent over
+     * the bodies that have already had them (the header below `traceSweep` makes the same argument
+     * about the berry), so running them once against the FINAL set of actives is the same board. */
+    if(REFILL_ONE_WAVE)MEDFAILS.refillOneWave=1;
+    else{
+      let _wave=0;
+      while(_wave++<8){
+        if(sideWiped(S)){MEDSEEN.refillWaveStoppedByWipe++;break;}
+        _queueRefills();
+        if(!_refills.length)break;
+        /* A CORPSE WITH NOTHING BEHIND IT IS NOT A REQUEST THIS ENGINE CAN ANSWER, and it is not one
+         * the authority answers either -- `Side#chooseSwitch` budgets a `pass` for exactly this slot.
+         * Asked of the SIDES STILL QUEUED rather than of the board, so one side running out does not
+         * strand the other's replacement. */
+        if(!_refills.some(r=>r.bench.some(b=>b&&!b.fainted)))break;
+        MEDSEEN.refillSecondWave++;
+        refill();
+      }
+      if(_wave>8)MEDFAILS.refillWaveCapHit=1;
+    }
     /* ROADMAP #310 -- AFTER the replacements walk in. `refill` is the one place a foe slot goes
      * from empty to occupied, which is the commonest way a Trace that found nothing gets a target. */
     traceSweep([...actA,...actB]);

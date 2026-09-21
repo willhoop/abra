@@ -65,7 +65,7 @@ All of it on engine release `0d7b1d9db6d1`, with the census pinned and the team 
 | deliberate roster, items | **148 of 148 in scope tested**, 0 differ, 0 did-not-fire | `data/roster.items.json` |
 | deliberate roster, abilities | **196 of 200 in scope tested**, 0 differ, 0 did-not-fire | `data/roster.abilities.json` |
 | deliberate roster, moves | **496 of 497 in scope tested**, 0 differ, 0 did-not-fire | `data/roster.moves.json` |
-| the mechanics census | **1,002 probed / 1,002 live / 0 missing** | `data/mechanics-census.json` |
+| the mechanics census | **1,004 probed / 1,004 live / 0 missing** | `data/mechanics-census.json` |
 | the staged harness | **4,632 games played, 0 threw**; 497 moves, 200 abilities and 148 items in scope, 0 diverging | `data/all-mechanics-fire.json` |
 | the store | **94,360 games recorded, 28,454 usable** — the ratio is arithmetic over those two, not a stored figure | `data/quality-filter.json:provenance.funnel.collected` / `:provenance.funnel.after_custom_ruleset` |
 | META-USAGE | **94,360 collected**, a funnel ending at **28,454** clean games | `data/quality-filter.json` |
