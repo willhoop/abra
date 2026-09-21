@@ -21,6 +21,36 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.23.0] — 2026-09-21
+
+### Added
+- **Reg M-C's usage model, the file CHOMP reads.** `node engine/analyze.js --regulation regmc` writes
+  `data/meta-usage-regmc.json` through the new `engine/usage_regulation.js`, in the shape CHOMP already reads
+  (top-level `threats`, `views.competitive`, `views.ladder`). It is counted over the LIVE Reg M-C stores (the tracked
+  `.jsonl.gz`, never a plain local copy), with the frozen pool's own predicate and then the shared quality filter,
+  and stamps both store digests as `source_digests`. New: per-species `sets` (the items, abilities and moves the open
+  sheets declared) and a `legality` block auditing every species, item, ability and move in the corpus against the
+  Reg M-C format and `TeamValidator`. An absent store refuses and writes nothing.
+- `engine/regmc_pool_predicate.js` — the pool's scope and Eject Button conjunction as one module, read by
+  `engine/cut_regmc_pool.js` and the usage model. `engine/usage_table.js` — the usage table itself, lifted verbatim
+  out of `engine/analyze.js` so every regulation's file is counted by one function.
+- `engine/durable-ingest.js storeFormatFor()` — the store token for any regulation entry; `activeStoreFormat()` is it
+  applied to `active`.
+
+### Changed
+- `meta-usage.json` is declared per regulation in `engine/regulation.js`. Under Reg M-C the differential's severity
+  ranking now reads Reg M-C usage; it read Reg M-B's. `tests/test-regulation-artifacts.js` drops it from NOT YET and
+  probes the seam's refusal with another undeclared Reg M-B file.
+
+### Fixed
+- `engine/analyze.js` read `process.argv[2]` as its store, so an explicit `--regulation` became the store path. It now
+  reads the first positional argument.
+
+### Notes
+- Reg M-B unmoved: `data/meta-usage.json` untouched, and HEAD's `analyze.js` and this one write byte-identical models
+  on the same Reg M-B store. The cutter's dry run is identical with the predicate moved. Nothing is published from the
+  Reg M-C model. Full account: `docs/_reports/2026-09-22-regmc-usage.md`.
+
 ## [0.22.0] — 2026-09-21
 
 ### Added

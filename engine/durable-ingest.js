@@ -183,14 +183,20 @@ function formatToken(tier){
  * this seam is that a rotation must not be able to fail quietly. */
 function activeStoreFormat(){
   const r=JSON.parse(fs.readFileSync(path.join(__dirname,'..','data','regulations.json'),'utf8'));
-  const a=(r.regulations||{})[r.active]||{};
+  return storeFormatFor((r.regulations||{})[r.active]||{},'active="'+r.active+'"');
+}
+/* The same derivation for ANY regulation entry ({label, showdownFormat}), so a reader serving a
+ * regulation other than `active` (engine/usage_regulation.js, abra/regmc 0.23.0) asks the parser that
+ * stamped the rows instead of re-spelling the token. activeStoreFormat() is this, applied to `active`. */
+function storeFormatFor(a,who){
+  who=who||JSON.stringify(a&&a.showdownFormat);
   const fromLabel=formatToken(a.label||'');
   const m=/reg([a-z0-9]+)$/.exec(String(a.showdownFormat||''));
   const fromId=m?'champions-reg'+m[1]:null;
-  if(!fromId) throw new Error('durable-ingest.activeStoreFormat: data/regulations.json active="'+r.active
-    +'" has no showdownFormat ending in a reg token, so the store token cannot be derived from it.');
+  if(!fromId) throw new Error('durable-ingest.activeStoreFormat: data/regulations.json '+who
+    +' has no showdownFormat ending in a reg token, so the store token cannot be derived from it.');
   if(fromLabel!==fromId) throw new Error('durable-ingest.activeStoreFormat: the label and the Showdown id '
-    +'of active="'+r.active+'" derive DIFFERENT store tokens ('+fromLabel+' from the label "'+(a.label||'')
+    +'of '+who+' derive DIFFERENT store tokens ('+fromLabel+' from the label "'+(a.label||'')
     +'", '+fromId+' from "'+a.showdownFormat+'"). One of the two is wrong; fix data/regulations.json.');
   return fromId;
 }
@@ -831,4 +837,4 @@ async function main(){
 if(require.main===module) main();
 /* archiveThenStore is EXPORTED so a second ingest path cannot quietly grow its own ordering. Any
  * caller that has fetched logs writes them through this and inherits both halves of the invariant. */
-module.exports={extract,archiveThenStore,formatToken,activeStoreFormat};
+module.exports={extract,archiveThenStore,formatToken,activeStoreFormat,storeFormatFor};

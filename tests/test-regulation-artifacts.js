@@ -62,7 +62,6 @@ const NOT_YET = {
   [J('fixture-legality-baseline')]: 'ENGINE — legality baseline of the staged fixtures',
   [J('mega-dex-official')]: 'ENGINE — mega formes; source of the table, which is per regulation',
   [J('mega-dex')]: 'ENGINE — mega harvest; source of the table',
-  [J('meta-usage')]: 'OPS — the CHOMP-facing usage model; engine/analyze.js has its own regulation handling',
   [JS('move-effects')]: 'ENGINE — browser bundle built from the table',
   [J('regulations')]: 'CONFIG — the one file that names every regulation; shared by construction',
   [J('residual-order')]: 'ENGINE — residual order, derived from the format',
@@ -160,15 +159,17 @@ const PROBE = `
   tryit('write_declared', () => fs.writeFileSync(J('data/game-differential'), 'NEW'));
   tryit('read_declared_absent', () => fs.readFileSync(J('data/game-differential.g1350'), 'utf8'));
   tryit('exists_declared_absent', () => fs.existsSync(J('data/game-differential.g1350')));
-  tryit('write_undeclared', () => fs.writeFileSync(J('data/meta-usage'), 'NEW'));
-  tryit('append_undeclared', () => fs.appendFileSync(J('data/meta-usage'), 'NEW'));
-  tryit('rename_onto', () => { fs.writeFileSync(J('data/_tmp-new'), 'NEW'); fs.renameSync(J('data/_tmp-new'), J('data/meta-usage')); });
-  tryit('copy_onto', () => fs.copyFileSync(J('data/_tmp-src'), J('data/meta-usage')));
-  tryit('unlink', () => fs.unlinkSync(J('data/meta-usage')));
-  tryit('stream', () => { fs.createWriteStream(J('data/meta-usage')).destroy(); });
-  tryit('open_w', () => { fs.closeSync(fs.openSync(J('data/meta-usage'), 'w')); });
-  tryit('open_r', () => { fs.closeSync(fs.openSync(J('data/meta-usage'), 'r')); });
-  tryit('abs_path', () => fs.writeFileSync(path.resolve('data', J('meta-usage')), 'NEW'));
+  /* The undeclared probe file was the CHOMP-facing usage model until abra/regmc 0.23.0 declared that
+   * one per regulation; the Smogon priors are still Reg M-B's and undeclared. */
+  tryit('write_undeclared', () => fs.writeFileSync(J('data/smogon-priors'), 'NEW'));
+  tryit('append_undeclared', () => fs.appendFileSync(J('data/smogon-priors'), 'NEW'));
+  tryit('rename_onto', () => { fs.writeFileSync(J('data/_tmp-new'), 'NEW'); fs.renameSync(J('data/_tmp-new'), J('data/smogon-priors')); });
+  tryit('copy_onto', () => fs.copyFileSync(J('data/_tmp-src'), J('data/smogon-priors')));
+  tryit('unlink', () => fs.unlinkSync(J('data/smogon-priors')));
+  tryit('stream', () => { fs.createWriteStream(J('data/smogon-priors')).destroy(); });
+  tryit('open_w', () => { fs.closeSync(fs.openSync(J('data/smogon-priors'), 'w')); });
+  tryit('open_r', () => { fs.closeSync(fs.openSync(J('data/smogon-priors'), 'r')); });
+  tryit('abs_path', () => fs.writeFileSync(path.resolve('data', J('smogon-priors')), 'NEW'));
   tryit('subdir', () => fs.writeFileSync('data/team-pool-frozen/FROZEN.md', 'NEW'));
   tryit('new_file', () => fs.writeFileSync(J('data/brand-new'), 'NEW'));
   tryit('release', () => fs.writeFileSync(J('data/releases/abcdef012345/x'), 'NEW'));
@@ -181,7 +182,7 @@ function sandbox() {
   fs.mkdirSync(path.join(T, 'data', 'releases', 'abcdef012345'), { recursive: true });
   fs.copyFileSync(path.join(ROOT, 'engine', 'regulation.js'), path.join(T, 'engine', 'regulation.js'));
   fs.copyFileSync(path.join(ROOT, 'data', J('regulations')), path.join(T, 'data', J('regulations')));
-  for (const f of [J('game-differential'), J('game-differential.g1350'), J('meta-usage'), J('_tmp-src'),
+  for (const f of [J('game-differential'), J('game-differential.g1350'), J('smogon-priors'), J('_tmp-src'),
     'team-pool-frozen/FROZEN.md', J('releases/abcdef012345/x')]) fs.writeFileSync(path.join(T, 'data', f), 'MB');
   return T;
 }
@@ -203,7 +204,7 @@ const rd = (T, f) => {
     for (const k of ['write_undeclared', 'append_undeclared', 'rename_onto', 'copy_onto', 'unlink', 'stream', 'open_w', 'abs_path', 'subdir']) {
       ok('an existing Reg M-B file is REFUSED: ' + k, j[k] === 'REFUSED', k + ' -> ' + j[k]);
     }
-    ok('...and it is byte-for-byte untouched', rd(T, J('meta-usage')) === 'MB' && rd(T, 'team-pool-frozen/FROZEN.md') === 'MB');
+    ok('...and it is byte-for-byte untouched', rd(T, J('smogon-priors')) === 'MB' && rd(T, 'team-pool-frozen/FROZEN.md') === 'MB');
     ok('reading an existing file is not a write', j.open_r === 'ok', j.open_r);
     ok('a NEW file is allowed (it overwrites nothing)', j.new_file === 'ok' && rd(T, J('brand-new')) === 'NEW');
     ok('data/releases/ is exempt (content-addressed)', j.release === 'ok');

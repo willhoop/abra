@@ -521,6 +521,10 @@ const PER_REGULATION_ARTIFACTS = Object.freeze([
   [/^rollout-switch-census\.json$/, 'engine/rollout_switch_census.js', 'the voluntary-switch rate the empirical driver prices a switch with'],
   [/^joint-click-census\.json$/, 'engine/joint_click_census.js', 'the joint arm target draw and switch-by-context table'],
   [/^move-priors\.observed\.json$/, 'engine/policy.js', 'the behaviour table as derived, before a person promotes it into the engine'],
+  /* 2026-09-21 (MEASURE, abra/regmc 0.23.0) -- THE USAGE MODEL CHOMP READS. Built from the regulation's
+   * own stores by engine/usage_regulation.js (engine/analyze.js dispatches to it), and read LIVE by the
+   * differential's severity ranking -- which, until this line, ranked Reg M-C bodies by Reg M-B usage. */
+  [/^meta-usage\.json$/, 'engine/analyze.js', 'the CHOMP-facing species usage model, and the severity ranking in the differential'],
 ]);
 const POOL_DIR = 'data/team-pool-frozen';
 const isPerRegulation = base => PER_REGULATION_ARTIFACTS.some(([re]) => re.test(String(base)));

@@ -9,7 +9,9 @@ const Q=require(path.join(__dirname,'quality.js'));
  * is the one resolver and it honours --regulation / ABRA_REGULATION; with neither set it returns the
  * same id this expression returned. */
 const ACTIVE_FORMAT = require(require('path').join(__dirname, 'regulation.js')).FORMAT;
-const STORE=process.argv[2]||null;
+/* The store is the first POSITIONAL argument. `--regulation <id>` is a flag with a value, and reading
+ * argv[2] took `--regulation` itself as the store path (the policy.js trap, docs/REGULATION-ROTATION.md). */
+const STORE=process.argv.slice(2).filter((a,i,v)=>!a.startsWith('--')&&v[i-1]!=='--regulation')[0]||null;
 const ME=(process.env.ME||'willhoop').split(',').map(x=>x.toLowerCase().replace(/[^a-z0-9]/g,''));
 
 /* GAMES COME THROUGH THE SHARED QUALITY FILTER (data/quality-filter.json).
@@ -24,6 +26,20 @@ const ME=(process.env.ME||'willhoop').split(',').map(x=>x.toLowerCase().replace(
  * Set ABRA_UNFILTERED=1 to compute over everything, which is only ever useful for demonstrating the
  * difference the filter makes. */
 const UNFILTERED = !!process.env.ABRA_UNFILTERED;
+
+/* ---- THE USAGE MODEL IS PER REGULATION (MEASURE, abra/regmc 0.23.0) ------------------------------
+ *
+ * Everything below this block is Reg M-B's model and writes the unsuffixed data/meta-usage.json, byte
+ * for byte as it did before the block existed. Under any other regulation (`--regulation <id>` or
+ * ABRA_REGULATION) the model is built by engine/usage_regulation.js from THAT regulation's own stores
+ * and written to its sibling (data/meta-usage-<id>.json, by engine/regulation.js artifactFor). The code
+ * below cannot serve another regulation: its store is Reg M-B's ladder by default, its format token
+ * comes from `active` in data/regulations.json rather than from the selection, and its legality and
+ * custom-ruleset verdicts were computed over Reg M-B's store only. The branch sits above every store
+ * read so none of that runs. */
+const REGN = require(path.join(__dirname, 'regulation.js'));
+if (REGN.ARTIFACT_TAG) process.exit(require(path.join(__dirname, 'usage_regulation.js')).main());
+const { usage, view } = require(path.join(__dirname, 'usage_table.js'));
 
 /* ---- ONE REGULATION PER MODEL. THE KEY WAS ALREADY IN EVERY ROW AND NOTHING READ IT -------------
  *
@@ -75,25 +91,7 @@ process.stderr.write(UNFILTERED
   ? `WARNING: ABRA_UNFILTERED — using all ${games.length} games, including bots and forfeits\n`
   : `quality filter: ${games.length} usable of ${_funnel.collected} collected (${(100*games.length/_funnel.collected).toFixed(1)}%)\n`);
 const idn=n=>(n||'').toLowerCase().replace(/[^a-z0-9]/g,'');
-
-function usage(rows, {minRating=0, humansOnly=true}={}){
-  const stat={}; let sides=0;
-  const bump=(sp,k)=>{(stat[sp]=stat[sp]||{seen:0,brought:0,led:0,won:0,played:0})[k]++;};
-  for(const g of rows) for(const s of ['p1','p2']){
-    const pl=g[s]; if(!pl)continue;
-    if(humansOnly&&pl.bot)continue;
-    if(minRating&&(pl.rating||0)<minRating)continue;
-    sides++;
-    const won=g.winner&&idn(g.winner)===idn(pl.name);
-    for(const sp of new Set(g.six[s]))bump(sp,'seen');
-    for(const sp of g.brought[s]){bump(sp,'brought');bump(sp,'played');if(won)bump(sp,'won');}
-    for(const sp of g.lead[s])bump(sp,'led');
-  }
-  const t=Object.entries(stat).filter(([_,s])=>s.seen>=8)
-    .map(([sp,s])=>({sp,team:s.seen/sides,bring:s.brought/s.seen,lead:s.led/s.seen,win:s.played?s.won/s.played:null,n:s.seen}))
-    .sort((a,b)=>b.team-a.team);
-  return {sides, table:t};
-}
+/* usage() lives in engine/usage_table.js since abra/regmc 0.23.0 -- one table, every regulation. */
 function show(title,u){ console.log(`\n${title}  (${u.sides} teams)`);
   console.log('species        team%  bring% lead%  win%'); 
   for(const t of u.table.slice(0,10))
@@ -142,10 +140,7 @@ if(mine.length){
 const out=usage(games,{humansOnly:true});
 const _all = _allRows.filter(_inActive);   // the ladder view is this regulation's ladder, not every regulation's
 const ladderOut = UNFILTERED ? out : usage(_all,{humansOnly:true});
-const view = o => ({
-  sampledTeams:o.sides,
-  threats:o.table.map(t=>({sp:t.sp,teamRate:+t.team.toFixed(4),bringRate:+t.bring.toFixed(3),leadRate:+t.lead.toFixed(3),winRate:t.win!=null?+t.win.toFixed(3):null,n:t.n}))
-});
+/* view() lives in engine/usage_table.js beside usage(). */
 /* The model CHOMP reads. It now carries its own provenance: which games it was computed from and
  * what was excluded, so a consumer can tell whether a number is about the metagame or about a bot. */
 fs.writeFileSync('data/meta-usage.json',JSON.stringify({

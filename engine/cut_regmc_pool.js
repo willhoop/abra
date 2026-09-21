@@ -78,11 +78,10 @@ const SRC_BO3 = arg('--bo3', 'data/games.gen9championsvgc2026regmcbo3.jsonl.gz')
 const SRC_LADDER = arg('--ladder', 'data/games.gen9championsvgc2026regmc.jsonl.gz');
 const OUT_DIR = arg('--out', 'data/team-pool-frozen-regmc');
 
-/* THE PREDICATE, in one place. */
-const CUTOFF = '2026-09-14';                       // UTC date boundary; strictly before is "old rule"
-const FIX_COMMIT = 'aa6d5f0856';                   // Showdown, 2026-09-13 20:13 UTC
-const EJECT_ID = 'ejectbutton';                    // READ: <showdown>/data/mods/champions/items.ts, key added by aa6d5f0856
-const norm = s => String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]/g, '');
+/* THE PREDICATE, in one place -- engine/regmc_pool_predicate.js since abra/regmc 0.23.0, because the
+ * Reg M-C usage model (engine/usage_regulation.js) counts the same population and a copy would drift. */
+const PRED = require('./regmc_pool_predicate.js');
+const { CUTOFF, FIX_COMMIT, EJECT_ID, norm, declaresItem } = PRED;
 
 function die(msg) { console.error('FATAL: ' + msg); process.exit(1); }
 
@@ -114,9 +113,6 @@ function readStore(rel) {
   return { abs, rel: path.relative(ROOT, abs).replace(/\\/g, '/'), sha256: sha, bytes: st.size, mtime: st.mtime.toISOString(), lines };
 }
 
-const sheetsPresent = g => !!(g.sheets && Array.isArray(g.sheets.p1) && Array.isArray(g.sheets.p2)
-                              && g.sheets.p1.length && g.sheets.p2.length);
-const declaresItem = g => ['p1', 'p2'].some(s => (g.sheets[s] || []).some(p => norm(p && p.item) === EJECT_ID));
 
 /* Each kept game is written back BYTE FOR BYTE as the store held it. A pool is a copy with rows
  * removed; rewriting a row would make it a derivation of the store rather than a sample of it. */
@@ -137,9 +133,9 @@ function cut(store, label) {
     const rawNamesItem = norm(line).includes(EJECT_ID);
     if (rawNamesItem) st.names_item_anywhere_raw++;
     /* CLAUSE 1 — scope. Open team sheets only, and a sheet that is not there is not a sheet. */
-    if (!(g.openSheet === true && sheetsPresent(g))) { st.excl_not_open_sheet++; continue; }
+    if (!PRED.inScope(g)) { st.excl_not_open_sheet++; continue; }
     st.in_scope++;
-    const before = String(g.date || '') < CUTOFF;
+    const before = PRED.before(g);
     if (before) st.in_scope_before_cutoff++;
     const declares = declaresItem(g);
     if (declares) st.declares_item_any_date++;

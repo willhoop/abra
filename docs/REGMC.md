@@ -1,6 +1,6 @@
 # REG M-C — the ledger
 
-**Version: 0.22.0 — 2026-09-21.**
+**Version: 0.23.0 — 2026-09-21.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 A leading `0` means NOT USABLE YET (SemVer 2.0.0 clause 4). This line reaches **1.0.0 the day the M-C
@@ -346,6 +346,12 @@ evaluated at all, and the figures are in `docs/_reports/2026-09-20-regmc-pool.md
 here.
 **There is no hidden case precisely BECAUSE the scope is open sheets**, which is worth knowing before
 anyone widens the scope later.
+
+**THE USAGE MODEL CHOMP READS IS PER REGULATION (0.23.0).** `node engine/analyze.js --regulation regmc` writes
+`data/meta-usage-regmc.json` from the LIVE M-C stores with this pool's predicate (`engine/regmc_pool_predicate.js`, the
+one module both read) and the shared quality filter, and audits every entity in it for legality. It is live on purpose:
+it describes the meta for CHOMP and is not a measurement of MEDICHAM. CHOMP does not read it yet
+(`docs/_reports/2026-09-22-regmc-usage.md` §5).
 
 **The live stores keep growing** — the collector appends hourly, so re-derive their counts rather than
 quoting any number written here.

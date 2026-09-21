@@ -42,6 +42,22 @@ _stamped 2026-09-21 04:30_
 
 <!-- /GENERATED -->
 
+## THE USAGE MODEL CHOMP READS IS PER REGULATION. REG M-C'S IS COUNTED FROM THE LIVE STORES, WITH THE POOL'S OWN PREDICATE. 2026-09-21 (abra/regmc 0.23.0)
+
+- **Live, not frozen, and why that is allowed.** The frozen pool pins MEDICHAM measurements. A usage model
+  describes what people bring, and CHOMP wants it current, so `engine/usage_regulation.js` counts the live
+  tracked `.jsonl.gz` stores. It keeps the pool's POPULATION by reading the same predicate module the cutter
+  reads, and it keeps checkability by stamping both store digests as `source_digests`, so provenance calls the
+  model stale the moment the collector moves the store.
+- **The quality filter goes on top of the pool predicate.** The predicate decides scope and one mechanic. The
+  bot, forfeit and full-bring rules are what make a bring or win rate mean what Reg M-B's file means by it. Two
+  rules key on id lists judged over Reg M-B's store only. They are published as NOT ASKED, not as a clean zero.
+- **Legality is audited, never filtered,** over the corpus beneath the tables and not only the tables. Where
+  no sheet carries an entity, the fixture is constructed. The count and where each failure sits are in the
+  artifact's `legality` block.
+- **Reg M-B unmoved, shown by running HEAD's code and this commit's on one store.** The two models are
+  byte-identical, and they equal the committed file. Full account: `docs/_reports/2026-09-22-regmc-usage.md`.
+
 ## REG M-C HAS ITS OWN CENSUS, AND A REG M-C RUN IS STEERED BY REG M-C HUMANS. THE FIRST PINNED REG M-C DIFFERENTIAL RAN. 2026-09-21 (abra/regmc 0.19.0)
 
 - **The census.** `tests/test-mechanics.js --regulation regmc` needed no new instrument: since 0.17.0 its

@@ -53,6 +53,18 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.23.0] — 2026-09-21 — **Reg M-C gets its own usage model, the file CHOMP reads**
+
+- **What changed.** `engine/analyze.js --regulation regmc` writes `data/meta-usage-regmc.json` through
+  `engine/usage_regulation.js`: the LIVE Reg M-C stores, the frozen pool's predicate (`engine/regmc_pool_predicate.js`,
+  now shared with the cutter), then the shared quality filter; store digests stamped; per-species sets and a legality
+  audit added. `meta-usage.json` is declared per regulation in `engine/regulation.js`. `engine/usage_table.js` holds the
+  one usage table. `analyze.js` no longer reads `--regulation` as its store.
+- **Measured.** NO FIGURE published. Reg M-B is unmoved: `data/meta-usage.json` untouched, and HEAD's and this
+  commit's `analyze.js` write byte-identical models on the same Reg M-B store. The Reg M-C readings, the legality count
+  and what CHOMP needs are in `docs/_reports/2026-09-22-regmc-usage.md`.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.22.0] — 2026-09-21 — **Emergency Exit switches its holder out, and the item pass is measured on the pinned differential**
 
 - **What changed.** Ability tag `switchesOutAtHalf` (derived; Golisopod is the only legal Reg M-C carrier; none in Reg
