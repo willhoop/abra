@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.27.0] — 2026-09-22 — **Octolock drops Defence and Sp. Def every turn until its source is gone, and its leaf is compared**
+
+- **What changed.** `perTurnBoost` carries `residualSourceEnd` and `trapsWhileSourceActive`, read off Octolock's
+  condition; the residual walk ticks a clockless member and ends it at the residual when its source is gone; the trap
+  verdict refuses a switch while the source stands; `engine/board_state.js` compares `vol.octolock`. Knob
+  `MEDI_PERTURN_BOOST_CLOCK_ALWAYS`; probe `tests/probe_regmc_octolock.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine.md` §5: a
+  rare move, and the lab moved while the pool did not, as expected before the run.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
 ## [abra/regmc 0.26.0] — 2026-09-22 — **Glaive Rush leaves its user exposed, and the leaf it writes is compared**
 
 - **What changed.** Move tag `exposesUser` (derived from the self volatile's condition; Glaive Rush only) and its

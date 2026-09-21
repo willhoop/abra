@@ -274,3 +274,77 @@ measured anything; it is an untracked worktree release.)
 sha256 of the three Reg M-B files unchanged; damage differential seed `20260804` identical to the base but for the
 output-path line; lattice on release `2227f14a9d2e` (whose board reader now compares `vol.glaiverush`): **0 of 961**, 0
 void, 0 threw.
+
+---
+
+## 5. Octolock (abra/regmc 0.27.0)
+
+### The authority, read whole
+
+M-C checkout `data/moves.ts` octolock :12960-12994; the Champions mod (`data/mods/champions/moves.ts` :703-706) only
+sets `isNonstandard: null`. The condition (read from the dist dex): no `duration`; `onStart` writes `-start ... move:
+Octolock|[of] <source>`; `onResidual` (order 14) first ends it when `source && (!source.isActive || source.hp <= 0 ||
+!source.activeTurns)`, writing `-end ... Octolock|[partiallytrapped]|[silent]`, and otherwise boosts `{def: -1, spd:
+-1}`; `onTrapPokemon` traps while the source is active. `activeTurns` is incremented in `endTurn` (`sim/battle.ts:1765`)
+and reset on switch-in (`sim/battle-actions.ts:137`).
+
+### The defect, shown by the probe before the fix
+
+The per-turn-boost residual (`perTurnBoostVolatiles`, the Syrup Bomb family) decrements `_vol[v]` as a clock. Octolock
+has no clock (the generic volatile write stores a bare 1), so this engine wrote `-end|X|octolock` at the first residual
+and dropped nothing; the authority dropped two stages every turn.
+
+| arm | authority | 0.26.0 engine | after |
+|---|---|---|---|
+| LOCK (3 turns) | 6 `-unboost` | 0; `-end` at turn 1; boards part on `boosts.def/spd` every turn | match, boards 0 |
+| RELEASE (user switches out on turn 3) | 4 `-unboost`, then `-end ... [partiallytrapped]|[silent]` at the residual | 0 | match, boards 0 |
+
+### Tag, engine, board
+
+`perTurnBoost` gains `residualSourceEnd {clauses: [isActive, hp, activeTurns], endArgs: ['[partiallytrapped]',
+'[silent]']}` and `trapsWhileSourceActive: true`, both read off the handler text; a structural diff of the regenerated
+tag file showed only the Octolock row changing (Syrup Bomb's row is identical), and that row was spliced. The residual
+walk ticks a clockless member without decrementing and ends it with the tag's arguments when the source is gone
+(`sourceOffField` for `isActive`/`hp`, `_newlySwitched` for `!activeTurns`, as the partial trap does); the `onUpdate`
+sweep skips it; `switchTrapVerdict` refuses a switch while the source is active (`MEDSEEN.volTrapBlocked`; not probed,
+because the staged harness can only offer choices the authority's request allows). `engine/board_state.js` compares
+`vol.octolock`. `tests/probe_uncompared_leaves.js --regulation regmc` after: 84 leaves written, 58 compared, 4
+declared, 22 in neither, and all 22 end before the boundary (20 have a one-turn duration, 2 end inside their own
+action). The Reg M-C gate's board-leaves clause should now pass; it was not run from this worktree.
+
+| run | exit | red |
+|---|---|---|
+| 0.26.0 engine bytes (`--medi`) | 1 | both arms (lines and boards) |
+| clean, release `ac2bfd957f10` | 0 | none |
+| `MEDI_PERTURN_BOOST_CLOCK_ALWAYS=1` | 1 | both arms (lines and boards) |
+
+The first cast gave the locked foe Focus Energy as its idle click, and a second Focus Energy writes `-fail` (the kit's
+known narration difference); the target's click is now a repeatable self boost of a stat the lock does not touch. The
+`-start` line is compared without its `[of]` field (the differential's reducer folds it; narration, recorded).
+
+### Pinned Reg M-C differential
+
+| engine | release | state bar | void | threw |
+|---|---|---|---|---|
+| 0.26.0 | `3c2625e09826` | 43 / 953 | 2 | 4 |
+| 0.27.0 | `ac2bfd957f10` | **43 / 953** | 2 | 4 |
+
+Unmoved, as expected before the run: Octolock has 15 Reg M-C sheet uses (`data/tags-regmc.json` `uses`), and no
+board-material game in this sample is headed by it. The lab moved; the pool did not.
+
+### The remaining board-material games, by first BOARD divergence (0.26.0 run, 40 of 43 listed; the list caps at 40)
+
+| family | games | what parts |
+|---|---|---|
+| Revival Blessing with no fainted ally: the authority `-fail`s, this engine pivots a bench body in | 9 | species/hp of the slot |
+| Terrain lasting 8 turns in the authority and 5 here (`field.terrain_turns 5/8`) | 7 | field |
+| Infestation chip larger in the authority | 3 | hp |
+| Normal Gem spent on Fake Out | 2 | item, hp |
+| White Herb timing | 2 | item, boosts |
+| games whose first PROTOCOL divergence is the Sirfetch'd / Farfetch'd display name, so the board cause is hidden | 5 | various, later |
+| one each: Grassy Terrain end, Seed Sower, Liquid Ooze, Double Shock's type ordering, Berserk, Trace's pick, rain upkeep, Psychic Fangs after the authority stopped, Psychic Terrain on a different body, two damage values (Golisopod, Basculegion) | 12 | various |
+
+### Reg M-B unmoved
+
+sha256 of the three Reg M-B files unchanged; damage differential seed `20260804` identical to the base but for the
+output-path line; lattice on release `d276a79a2605`: **0 of 961**, 0 void, 0 threw.

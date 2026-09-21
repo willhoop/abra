@@ -2935,10 +2935,26 @@ const MOVE_TAGS = [
       const vol = m.volatileStatus || (m.secondary && m.secondary.volatileStatus)
                || (m.secondaries || []).map(s => s && s.volatileStatus).find(Boolean) || null;
       if (!vol) return null;
+      /* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- WHERE THE VOLATILE DIES WITH ITS SOURCE, READ OFF THE HANDLER.
+       * Syrup Bomb ends at `onUpdate` (`this.effectState.source && !this.effectState.source.isActive`); Octolock
+       * (M-C checkout data/moves.ts :12960-12994) ends at its own `onResidual`, ABOVE the boost, on
+       * `source && (!source.isActive || source.hp <= 0 || !source.activeTurns)`, writing
+       * `-end ... 'Octolock', '[partiallytrapped]', '[silent]'`, and it has NO duration -- so its `_vol` entry is not a
+       * clock. It also traps (`onTrapPokemon`: `if (this.effectState.source?.isActive) pokemon.tryTrap()`). Absent on
+       * a member whose handlers say none of this, so Reg M-B's `data/tags.json` rows are unchanged. */
+      const res = String(c.onResidual || '').replace(/\s+/g, ' ');
+      const rg = /if \(source && \(([^{]*)\)\) \{([^}]*)\}/.exec(res);
+      const residualSourceEnd = rg ? {
+        clauses: rg[1].split('||').map(x => x.trim()).map(x => /isActive/.test(x) ? 'isActive' : /hp\s*<=\s*0/.test(x) ? 'hp' : /activeTurns/.test(x) ? 'activeTurns' : x),
+        endArgs: ((/this\.add\(\s*"-end"\s*,\s*pokemon\s*,\s*"[^"]*"((?:\s*,\s*"[^"]*")*)\s*\)/.exec(rg[2]) || [])[1] || '')
+          .split(',').map(x => x.trim().replace(/^"|"$/g, '')).filter(Boolean) } : null;
+      const trapsWhileSourceActive = /source\??\.isActive\) pokemon\.tryTrap\(\)/.test(String(c.onTrapPokemon || '').replace(/\s+/g, ' '));
       return { volatile: vol, boosts,
                on: call[2] === 'pokemon' ? 'holder' : call[2],
                duration: c.duration != null ? +c.duration : null,
-               endsSilently: /\[silent\]/.test(String(c.onEnd || '')) };
+               endsSilently: /\[silent\]/.test(String(c.onEnd || '')),
+               ...(residualSourceEnd ? { residualSourceEnd } : {}),
+               ...(trapsWhileSourceActive ? { trapsWhileSourceActive: true } : {}) };
     } },
   /* THE COUNTER AND THE FEELING ARE TWO DIFFERENT NUMBERS, AND THIS TAG CARRIED THE FEELING.
    *

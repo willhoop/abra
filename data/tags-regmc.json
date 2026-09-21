@@ -11536,7 +11536,19 @@
      },
      "on": "holder",
      "duration": null,
-     "endsSilently": false
+     "endsSilently": false,
+     "residualSourceEnd": {
+      "clauses": [
+       "isActive",
+       "hp",
+       "activeTurns"
+      ],
+      "endArgs": [
+       "[partiallytrapped]",
+       "[silent]"
+      ]
+     },
+     "trapsWhileSourceActive": true
     },
     "targetClass": {
      "target": "normal",

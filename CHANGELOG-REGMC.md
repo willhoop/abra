@@ -21,6 +21,32 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.27.0] — 2026-09-22
+
+### Fixed
+- **Octolock drops Defence and Sp. Def every turn until its source is gone.** The per-turn-boost residual read every
+  member's `_vol` entry as a clock; Octolock declares no duration, so its bare 1 ran out and the lock ENDED at its first
+  residual, where the authority drops two stages. `perTurnBoost` (`engine/tag_dex.js`) now also carries, read off the
+  condition, `residualSourceEnd {clauses, endArgs}` (the source-gone test at the top of Octolock's own `onResidual`)
+  and `trapsWhileSourceActive` (`onTrapPokemon`). A member with no duration and a residual source end is ticked
+  without a clock and ended at the residual by the partial trap's three clauses (`sourceOffField`, `_newlySwitched`),
+  writing `-end ... [partiallytrapped]|[silent]`; the `onUpdate` sweep leaves it alone. `switchTrapVerdict` refuses a
+  switch while its source is active (counted, `MEDSEEN.volTrapBlocked`; the staged harness cannot offer a switch the
+  authority refuses, so that half is not probed). Syrup Bomb's row is unchanged. Knob `MEDI_PERTURN_BOOST_CLOCK_ALWAYS`.
+- `engine/board_state.js` compares `vol.octolock` (presence). `tests/probe_uncompared_leaves.js --regulation regmc`
+  now lists no uncompared leaf that can stand at a turn boundary.
+- `tests/probe_regmc_octolock.js` (`--regulation regmc`): three residual drops while locked; two, then a silent end,
+  when the user switches out. Exit 0 clean; exit 1 under the knob and on the 0.26.0 engine bytes.
+
+### Notes
+- The authority writes `[of] <source>` on Octolock's `-start` and this engine does not; the differential's reducer
+  folds that field (narration). Recorded, not fixed.
+- `data/tags-regmc.json`: only the Octolock row changed (spliced). Reg M-B's `data/tags.json` has no member with
+  either new field.
+- Reg M-B unmoved: the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
 ## [0.26.0] — 2026-09-22
 
 ### Added

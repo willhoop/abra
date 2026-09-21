@@ -1031,6 +1031,9 @@ function mediBody(m, id, ctx) {
        * hit into the holder until then; tests/probe_uncompared_leaves.js listed it as written and uncompared. Presence:
        * the condition carries no duration on either side. No Reg M-B legal move writes it. */
       glaiverush: vol.glaiverush ? 1 : 0,
+      /* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- OCTOLOCK. No duration on either side: it stands from the hit until
+       * its source is gone, dropping two stages at every residual, so it CROSSES the turn boundary. Presence. */
+      octolock: vol.octolock ? 1 : 0,
       /* THE TWO-TURN LOCK. medicham2 holds the move id in `_charging` and Showdown a `twoturnmove`
        * volatile; both answer "is this body committed to a charge". WHICH move is not compared — see
        * NOT_COMPARED — because the two engines name it in different places and a mismatch there would
@@ -1432,6 +1435,8 @@ function sdBody(p, id, ctx) {
       syrupbomb: v.syrupbomb ? 1 : 0,
       /* 2026-09-22 (Reg M-C, abra/regmc 0.26.0) -- the authority's side of Glaive Rush's exposure; see mediBody. */
       glaiverush: v.glaiverush ? 1 : 0,
+      /* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- the authority's side of Octolock; see mediBody. */
+      octolock: v.octolock ? 1 : 0,
       charging: v.twoturnmove ? 1 : 0,
       /* ROADMAP #308 -- the authority's side of the three. `trapper` sits on the SOURCE of a Spirit
        * Shackle and is deliberately NOT read: medicham2 keeps the trapper inside the victim's own

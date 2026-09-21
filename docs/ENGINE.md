@@ -1,3 +1,34 @@
+## REG M-C: OCTOLOCK DROPS DEFENCE AND SP. DEF EVERY TURN UNTIL ITS SOURCE IS GONE; ITS LEAF IS COMPARED. 2026-09-22 (abra/regmc 0.27.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §5.
+
+- **Defect.** The per-turn-boost residual read `_vol[v]` as a clock for every member. Octolock has no duration, so the
+  lock ended at its first residual instead of dropping two stages each turn.
+- **Tag.** `perTurnBoost` gains `residualSourceEnd {clauses, endArgs}` and `trapsWhileSourceActive`, both read off the
+  condition; only Octolock carries them. Syrup Bomb's row and Reg M-B's tag file are unchanged.
+- **Engine.** Clockless members tick without decrementing and end at the residual on the partial trap's three clauses
+  (`sourceOffField`, `_newlySwitched`); the `onUpdate` sweep skips them; `switchTrapVerdict` refuses a switch while the
+  source stands (counted, not probed: the staged harness cannot offer a switch the authority refuses).
+- **Board.** `vol.octolock` compared. `tests/probe_uncompared_leaves.js --regulation regmc`: no uncompared leaf can
+  stand at a turn boundary.
+- **Probe** `tests/probe_regmc_octolock.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_PERTURN_BOOST_CLOCK_ALWAYS` and on the 0.26.0 engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after this pass
+
+Ranked on the PINNED Reg M-C differential, by first BOARD divergence (report §5):
+
+1. **Revival Blessing** fails without a fainted ally; this engine pivots instead (the largest family). The revive road
+   needs the differential's forced-switch mirror to answer a revival request (MEASURE).
+2. **Terrain Extender** (terrain 8 turns in the authority, 5 here); **Binding Band**-shaped Infestation chip;
+   **Normal Gem**; White Herb timing.
+3. Singles: terrain end, Seed Sower, Liquid Ooze, Double Shock ordering, Berserk, Trace's pick, rain upkeep, two
+   damage values, and the games hidden behind the Sirfetch'd/Farfetch'd name.
+4. The 17 census rows missing under Reg M-C.
+5. Carried: Octolock's `-start` `[of]` field, the Inner Focus stat label, the seed GAIN door, Emergency Exit's residual
+   and hazard doors; for MEASURE, `MEGA_PREFER_B` outside `driverSnap`.
 ## REG M-C: GLAIVE RUSH LEAVES ITS USER EXPOSED, AND ITS LEAF IS COMPARED. 2026-09-22 (abra/regmc 0.26.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine.md` §4.
@@ -15,7 +46,7 @@ Full account: `docs/_reports/2026-09-22-regmc-engine.md` §4.
 - **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
   line; lattice `--games 1200` 0 of 961.
 
-### The Reg M-C hand list, after this pass
+### The Reg M-C hand list, after the 0.26.0 pass — SUPERSEDED by the 0.27.0 list above
 
 1. **Octolock** — the engine ends it at the first residual (its `_vol` entry is read as a clock and it has none); the
    authority drops Defence and Sp. Def every turn until the source leaves. And its uncompared leaf.

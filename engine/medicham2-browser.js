@@ -2207,6 +2207,9 @@ const MEDSEEN = { floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepAct
    * a damage calc into a holder multiplied; a move into a holder that could not miss; the volatile dropped at the
    * holder's own BeforeMove gate. */
   selfExposedArmed: 0, selfExposedDoubled: 0, selfExposedHit: 0, selfExposedEndedBeforeMove: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- a per-turn-boost volatile with NO clock that ends at its own residual when
+   * its source is gone (Octolock): ticked without a clock; ended at the residual; a switch it refused. */
+  perTurnBoostUnclockedTick: 0, perTurnBoostResidualSourceEnd: 0, volTrapBlocked: 0,
   /* WIRE 119 -- a move REFUSED at execution time by a category-forbidding volatile (Taunt). This is
    * the half the interaction matrix was failing on: the holder clicks Taunt in the same turn, so the
    * target's already-chosen status move has to FAIL when it runs. A zero here after games with a
@@ -5882,6 +5885,8 @@ const TRACE=(function(){
      * `add('-end', pokemon, this.effectState.sourceEffect, '[partiallytrapped]')` (data/conditions.ts
      * partiallytrapped onEnd). Same fact as the chip line above, so it reads the same record. */
     vend(m,eff,tag){ this.push(['-end',ident(m),eff,tag]); },
+    /* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- an `-end` with the handler's own argument list (Octolock's residual). */
+    vendArgs(m,eff,args){ this.push(['-end',ident(m),eff].concat(args||[])); },
     /* 2026-09-19 -- Gastro Acid's `this.add('-endability', pokemon)` (data/moves.ts:6450): two fields, nothing else. */
     endability(m){ this.push(['-endability',ident(m)]); },
     /* 2026-09-19 (narration D) -- an `-end` carrying `[from]` then `[of]`, two fields: the spin family's Leech Seed. */
@@ -7438,6 +7443,9 @@ function guaranteeVolatiles(){
  * match on the volatile and no move name reaches them. MEDI_SELF_EXPOSED_INERT=1 never arms it (the pre-0.26.0 engine).
  * tests/probe_regmc_glaive_rush.js */
 const SELF_EXPOSED_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SELF_EXPOSED_INERT==='1');
+/* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- MEDI_PERTURN_BOOST_CLOCK_ALWAYS=1 reads every per-turn-boost volatile's `_vol`
+ * entry as a clock again, so a member with no duration (Octolock) ends at its first residual (the pre-0.27.0 engine). */
+const PERTURN_BOOST_CLOCK_ALWAYS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PERTURN_BOOST_CLOCK_ALWAYS==='1');
 let _volExposed=null;
 function exposedVolatiles(){
   if(_volExposed) return _volExposed;
@@ -19980,6 +19988,17 @@ function switchTrapVerdict(m,foes,field){
   /* WIRE 116 -- the partial trap (Fire Spin, Infestation, Wrap, Whirlpool, Sand Tomb, Thunder Cage,
      Magma Storm). Its exemptions are Ghost and Shed Shell only -- it has no mirror rule. */
   if(!_ghost&&m._trap&&!_shed){out.block='partial';return out;}
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- A PER-TURN-BOOST VOLATILE THAT TRAPS WHILE ITS SOURCE IS ACTIVE (Octolock:
+   * `onTrapPokemon(pokemon) { if (this.effectState.source?.isActive) pokemon.tryTrap(); }`). `tryTrap` is refused by the
+   * `trapped` immunity (Ghost), and Shed Shell clears it, like every branch above. The source is looked for among the
+   * active bodies the verdict is handed. */
+  if(!_ghost&&!_shed&&m._vol&&m._volSrc){
+    for(const [_v,_r] of perTurnBoostVolatiles()){
+      if(!(_r.pb&&_r.pb.trapsWhileSourceActive)||!(m._vol[_v]>0))continue;
+      const _s=m._volSrc[_v];
+      if(_s&&!_s.fainted&&_s.curHP>0&&(foes||[]).includes(_s)){out.block='volatile';MEDSEEN.volTrapBlocked++;return out;}
+    }
+  }
   return out;
 }
 function liveFoesOf(me){
@@ -32649,6 +32668,9 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _m=e.m; if(!_m._vol||!_m._volSrc)continue;
         for(const [_v,_r] of perTurnBoostVolatiles()){
           if(!(_m._vol[_v]>0))continue;
+          /* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- a member whose source-gone end is in its own RESIDUAL (Octolock)
+           * has no onUpdate end; it is ended by the residual walk, with the authority's line, and not here. */
+          if(_r.pb&&_r.pb.residualSourceEnd&&!PERTURN_BOOST_CLOCK_ALWAYS)continue;
           const _src=_m._volSrc[_v];
           if(!_src)continue;
           const _gone=sourceOffField(_src,actA,actB);
@@ -51533,6 +51555,37 @@ function battleTurn(S,rng,actsForA,actsForB){
        * out with the wrong sign for the first one that does. */
       if(_G.has('volBoost')&&m.curHP>0&&!m.fainted&&m._vol)for(const [_v,_r] of perTurnBoostVolatiles()){
         if(!(m._vol[_v]>0))continue;
+        /* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- A MEMBER WITH NO CLOCK THAT ENDS AT ITS OWN RESIDUAL. Octolock (M-C
+         * checkout data/moves.ts :12960-12994) declares no `duration`, so `_vol.octolock` is a bare 1 and NOT a clock: the
+         * decrement below ended it on its first residual, where the authority drops Defence and Sp. Def. Its onResidual
+         * ends it FIRST when `source && (!source.isActive || source.hp <= 0 || !source.activeTurns)` -- the partial trap's
+         * three clauses, read the same way here (`sourceOffField`, and `_newlySwitched` for `!activeTurns`) -- writing
+         * `-end ... Octolock|[partiallytrapped]|[silent]`, and returns before the boost. The clauses and the end arguments
+         * are the tag's (`residualSourceEnd`), read off the handler. */
+        const _rse=_r.pb&&_r.pb.residualSourceEnd;
+        if(_rse&&_r.pb.duration==null&&!PERTURN_BOOST_CLOCK_ALWAYS){
+          const _s0=(m._volSrc&&m._volSrc[_v])||null;
+          const _cl=_rse.clauses||[];
+          const _gone=!!_s0&&((_cl.includes('isActive')||_cl.includes('hp'))&&sourceOffField(_s0,actA,actB)
+                              ||(_cl.includes('activeTurns')&&!!_s0._newlySwitched));
+          if(_gone){
+            delete m._vol[_v]; if(m._volSrc)delete m._volSrc[_v];
+            MEDSEEN.perTurnBoostResidualSourceEnd++;
+            if(TR)TR.vendArgs(m,_v,_rse.endArgs);
+            continue;
+          }
+          MEDSEEN.perTurnBoostUnclockedTick++;
+          for(const k in _r.pb.boosts){
+            const _st=SD2ENG[k]; const _d=+_r.pb.boosts[k];
+            if(!_st||!m.boosts||m.boosts[_st]==null||!_d)continue;
+            if(_d>0){ MEDFAILS.perTurnBoostRaiseUnmodelled++;
+                      if(!MEDFAILS.perTurnBoostRaiseUnmodelledFirst)MEDFAILS.perTurnBoostRaiseUnmodelledFirst=_r.mv+'/'+k;
+                      continue; }
+            applyStatDrop(m,_st,-_d,_r.mv,_s0);
+            MEDSEEN.perTurnVolatileBoost++;
+          }
+          continue;
+        }
         if(--m._vol[_v]<=0){
           delete m._vol[_v];
           if(m._volSrc)delete m._volSrc[_v];
