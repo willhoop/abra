@@ -33,12 +33,12 @@ MEASURE — can we believe a number
     it becomes quotable again when this is re-run: node engine/click_census.js
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-20 17:29
+    moved after the fit: engine/medicham2-browser.js  2026-09-20 18:14
     moved after the fit: data/engine-data.js  2026-08-31 00:08
     moved after the fit: data/abra-tags.js  2026-09-20 12:17
 ```
 
-_stamped 2026-09-20 18:13_
+_stamped 2026-09-20 19:38_
 
 <!-- /GENERATED -->
 

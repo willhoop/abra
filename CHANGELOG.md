@@ -10,6 +10,30 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [7.0.0] — 2026-09-20
+
+### Changed
+- **The MEDICHAM quarantine gate is OPEN** — all ten clauses on release `0d7b1d9db6d1`, with the census
+  and team pool pinned. Board-material and undeclared narration are zero on all three team lattices,
+  and the held-out 12,000-game draw parts 0 boards in 7,182 games.
+- The five living documents are rewritten at 7.0.0, folding 107 owed notes rows. Superseded figures were
+  deleted rather than captioned.
+
+### Removed
+- Every published figure belonging to a model other than MEDICHAM. MAG, MILTANK, PORYGON2, DODUO and
+  GARY each read a rollout; the gate opening makes their numbers re-runnable, not true. Their entries
+  now carry no number at all. SLOWKING's team-preview Nash table is kept and the exception declared: it
+  solves a matchup matrix built from real ladder outcomes with no simulator in its path.
+
+### Notes
+- **Basis CHANGED.** Every simulator figure the 6.x line published answered "how wrong is it still?",
+  which is no longer the question. The series cannot be linked, so it is republished rather than
+  continued.
+- Illusion, the one declared exclusion, is stated with its predicate: 452 of 26,428 sides (1.71%) hold a
+  carrier in their brought-six list, 229 of those brought it.
+- Still true and stated in every document: closed team sheets and bo1 are out of scope, 7 live
+  `lastMove` readings are an unregistered class, and the corner arms have not been read on this release.
+
 ## [6.84.0] — 2026-09-20
 
 ### Fixed

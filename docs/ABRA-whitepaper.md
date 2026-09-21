@@ -1,145 +1,283 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 6.0.0 · Last updated 2026-09-11**
+**Version 7.0.0 · Last updated 2026-09-20**
 
-**UPDATE, 2026-09-12 — THE WHOLE-GAME GATE NOW READS THREE TEAM LATTICES, AND ON THEM IT FAILS.** `node engine/quarantine.js` on release `bc8d7cf849dd` prints `GATE: CLOSED — 1 of 8 GATING clauses fail`, and the failing clause is the whole-game BOARD-MATERIAL clause. That clause used to read one sample. The differential chooses its teams by a fixed stride whose step comes from `--games`, so `--games` decides which teams and which matchups play, and the one sample it read held no divergence. The clause now requires zero on three lattices drawn from the same frozen pool under the same pins (ROADMAP #619). On that release board-material read zero at `--games 1200` and non-zero at `--games 1350` and `--games 1950`. The per-lattice counts move with every engine release and are not stated here; the current reading is printed by `node engine/quarantine.js --whole-game` from `data/game-differential.json`, `data/game-differential.g1350.json` and `data/game-differential.g1950.json`. So the 2026-09-11 reading below that both whole-game clauses pass, and that the pool sat still while the lab moved, describe that one lattice and not the pool. Account: `docs/_reports/2026-09-12-lattice-gate.md`.
+**7.0.0 — THE MEDICHAM QUARANTINE GATE IS OPEN ON EVERY CLAUSE, AND ON 2026-09-20 THE WIDE HELD-OUT
+SAMPLE AGREED WITH IT FOR THE FIRST TIME. RELEASE `0d7b1d9db6d1`, `CHANGELOG.md` 6.83.0.** `node
+engine/quarantine.js` reads `GATE: OPEN — MEDICHAM passes both conditions; nothing is withheld`, ten
+gating clauses of ten, every instrument answering about one frozen engine. The gate's three team
+lattices part no board and carry no undeclared narration. A held-out draw of 7,182 games on the same
+pins — an instrument the gate does not run, and the one that has caught on every previous release what
+the lattices could not see — parts none either. Its board partings fell 34, 15, 9, 1, 0 across that one
+day as five batches of engine fixes landed. **This is a basis change, which is what makes the version a
+major rather than a better number: the question "what may this project publish" has a different answer
+today, and the 6.0.0 headline this document used to carry has been DELETED rather than captioned.**
 
-**CORRECTION, 2026-09-11 — THE GATE IS CLOSED AGAIN. THE 6.0.0 BLOCK BELOW IS KEPT AS DATED EVIDENCE; ITS "THE GATE IS OPEN" AND "MEDICHAM IS CORRECT" ARE NOT TRUE AS STATEMENTS ABOUT TODAY.** `node engine/quarantine.js`, run at HEAD `bf2d594f` at `2026-09-11T12:21Z`, prints `GATE: CLOSED — 2 of 9 GATING clauses fail`. The first failing clause is *no open, known engine defect*, which prints `10 OPEN roadmap row(s) name an instrument that is RED` — ROADMAP #535, #529, #318, #348, #375, #380, #412, #425, #467 and #511. The second is *mechanics / each one staged and compared against showdown*, which prints `9 of 16 DIVERGING MECHANICS ARE PLAYED AND UNCLEARED`, every one of them among the partings registered as ROADMAP #593–#600. The other seven clauses still pass, both whole-game clauses among them.
+**WHAT THIS EDITION REMOVED, STATED BEFORE ANYTHING IS CLAIMED.** The 6.0.0 block that led this paper
+— *"MEDICHAM IS CORRECT AGAINST THE OFFICIAL SIMULATOR ON THE PINNED POOL"* — is gone, together with
+the two dated corrections that withdrew it. It was a true reading of one team lattice and a false
+answer to the question it was printed under, and the reason is §3.2: `--games` selects WHICH teams
+play, so one lattice is one sample. A caption beside it would have been read as evidence; this
+repository has twice measured what happens to a warning printed beside a number. The history is not
+lost — it is told in §3.2 with what closed it, and the dated release blocks below this one are left
+exactly as they were written.
 
-**UPDATE, 2026-09-11 (6.18.0):** `node engine/quarantine.js` now prints `GATE: CLOSED — 1 of 9 GATING clauses fail`. The mechanics clause passes again; the one clause still failing is the open-defect clause, on two named rows — #318 (roster move scenarios staged on bodies that cannot legally learn the move) and #511 (the survival clamp applied per volley rather than per hit). The 2-of-9 reading above is kept as dated evidence.
+**THE CURRENT VERDICT, CLAUSE BY CLAUSE, EACH BOUND TO THE ARTIFACT IT WAS READ FROM.** All ten gating
+clauses read PASS on release `0d7b1d9db6d1`. **Whole-game BOARD-MATERIAL** — zero on each of the three
+lattices, the subtraction named below. **Whole-game NARRATION** — zero undeclared on each. **Damage
+differential** — `compared` 6000 against `disagreed` 0 at the midpoint and at every interior roll
+index, seed 20260804 (`data/engine-diff.json`). **Deliberate roster**, one mechanic staged at a time:
+148 items with boards matching (`data/roster.items.json`).
+196 abilities of 200 in scope (`data/roster.abilities.json`).
+496 moves of 497 in scope (`data/roster.moves.json`).
+Zero FIRED-AND-BOARDS-DIFFER, zero DID-NOT-FIRE and zero COULD-NOT-STAGE on all three stages. **Staged
+mechanics** — `data/all-mechanics-fire.json`: 4632 games played, none threw, no sheet failed to
+assemble, every in-scope row proven or excused by the owner on a receipt. **Census** — 1002 rows
+probed, 1002 live, 0 missing, 0 unarmed, 0 hollow, 0 threw (`data/mechanics-census.json`).
+**Coverage** — every move above the usage shelf is measured by the roster or by the census. **Board
+leaves** — no leaf a legal mechanic writes can stand at a turn boundary uncompared. **Open defects** —
+no open register row names an instrument that reads red. The gate's own words *nothing is withheld*
+describe the gate. They do not describe this paper, which still carries no figure downstream of the
+simulator, because none has been re-run.
 
-**WHY IT CLOSED: THE INSTRUMENTS GOT BETTER, THE ENGINE DID NOT GET WORSE — AND THE DEFECTS ARE REAL.** Two instruments added after 6.0.0 see what the 6.0.0 gate could not. CHANGELOG 6.13.0 gave a deciding probe to twenty register rows that had asserted a live defect with nothing checking them, and ten of those probes read RED. CHANGELOG 6.14.0 put the staging planner inside the harness, so each mechanic is staged on a fixture built from its own requirements instead of on hand-picked bodies, and staged mechanics that fired rose from 740 to 783 of 845. On the new boards eight mechanics part from the official simulator. Four change the board: Oblivious lets Taunt through, Magic Bounce does not bounce Spite, a Super Luck or Scope Lens holder misses the guaranteed critical hit after Focus Energy, and a mega stone held under Klutz does not evolve. Four differ in narration only: Cute Charm, Own Tempo, Sweet Veil and Covet. No fix introduced any of them. They were in the engine at 6.0.0, and the 6.0.0 gate had no instrument that staged them. **So "MEDICHAM is correct" was true of that day's instruments, and it is withdrawn as a statement about the engine.**
+**WHAT THE GATE REQUIRES, STATED AS THE CONDITION THE CODE CHECKS RATHER THAN AS A SUMMARY.** Let
+`L = {1200, 1350, 1950}` be the three `--games` values in `LATTICE_SAMPLES` (`engine/quarantine.js`).
+For each lattice ℓ ∈ L the whole-game differential plays the teams that `--games` selects from the
+frozen pool through MEDICHAM and through the official simulator under shared dice, and the gating
+quantity is
 
-**WHAT DID NOT MOVE.** The pinned real-game pool. `data/game-differential.json`, generated `2026-09-11T11:23:47Z` on release `aefcb93baf14`, reads `state.games` 961 and `state.games_board_never_diverged` 961 on the middle arm — the arm the 6.0.0 headline used — so board-material is still 0 of 961. The lab moved and the pool sat still, which is the split expected when the new defects are rare mechanics.
+  B_ℓ = `state.games` − `state.games_board_never_diverged`,
 
-**WHAT THIS DOES TO THE QUARANTINE.** With the gate closed, every artifact `node engine/quarantine.js` lists as downstream of MEDICHAM is WITHHELD again, not re-runnable, and the split the 6.0.0 block draws between artifacts that lift and artifacts that stay no longer describes anything: no re-run makes any of them quotable until the gate opens again. No published figure is withdrawn by this, because 6.0.0 re-ran none of them and published none of them. Leaf calibration stays absent, and it now needs the gate to open AND `node engine/backtest_winrate.js` to be re-run. Accounts: `docs/_reports/2026-09-11-integration.md`, `docs/_reports/2026-09-11-owed-instruments.md` and `docs/_reports/2026-09-11-gate-closed-docs.md`.
+read from `data/game-differential.json`, `data/game-differential.g1350.json` and
+`data/game-differential.g1950.json` respectively. A lattice game that threw fails the clause; it reads
+`threw` and `errors[]`, takes the larger when they disagree, and cannot answer when both are absent. A
+lattice whose artifact is missing, stale, unpinned, mislabelled or a duplicate of another lattice is
+CANNOT-ANSWER, never a pass. The gate is open only when B_ℓ = 0 and no game threw for every ℓ ∈ L
+**and** every other gating clause passes. **Narration is the second gate Will named on 2026-08-22, and
+the code arms it automatically:** the narration clause reports without gating while any B_ℓ is
+non-zero, and holds the gate shut the moment every B_ℓ reads zero — so an open gate also means the
+undeclared narration-only count N_ℓ is zero on every lattice.
 
-**6.0.0 — MEDICHAM IS CORRECT AGAINST THE OFFICIAL SIMULATOR ON THE PINNED POOL, AND THE GATE IS OPEN. BOARD-MATERIAL 0 OF 961 WITH NONE EXCLUDED; NARRATION 0 UNDECLARED OF 961; RELEASE `cbd510bc2b13`. THIS IS A MAJOR BECAUSE THE BASIS MOVED, AND IT IS A PARTIAL LIFT.**
+**THE BLIND-SPOT CLAUSES — WHAT A PASS HAD NOT REQUIRED BEFORE 2026-09-19, AND NOW DOES.** Will,
+2026-09-19: *"stop saying medicham is done when all these blind spots remain"*. The gate had read open
+under nine clauses; five holes were then closed in `engine/quarantine.js`, each shown red on a
+deliberate break before it was trusted, and read through them that release's own artifacts would not
+have opened it. (1) **Proof of every in-scope mechanic**: an in-scope ability or item must read FIRED
+against a control arm and a move must resolve on both engines; a missing row fails, and only the
+owner's deferral map and the declared Illusion exclusion excuse one. (2) **A board that parts while
+the protocol agrees** is judged like a divergence; before, it went to no bucket at all. (3) **A new
+clause: no leaf that can stand at a turn boundary goes uncompared**, read from
+`tests/probe_uncompared_leaves.js`. (4) **A board that parts in a staged row's CONTROL arm** fails the
+mechanics clause, excused only when the control mechanic is itself on the owner's shelf — never
+because the row's subject is. (5) **A FIRED row on a live control must be earned by the subject's own
+receipt**; a credit that only the control's action produced fails like an unproven row
+(`CHANGELOG.md` 6.64.0, 6.66.1, 6.67.1).
 
-**THE HEADLINE, WITH BOTH OPERANDS OF EVERY SUBTRACTION NAMED, BECAUSE THE WRONG OPERAND WOULD READ
-GREENER AND LOOK RIGHT.** `data/game-differential.json`, generated `2026-09-10T09:57:55Z` on release
-`cbd510bc2b13` against Showdown commit `20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4`: the gating quantity
-is `state.games` **961** less `state.games_board_never_diverged` **961**, which is **0**. No game was
-dropped to reach it — `state.games_void_excluded` is 0 against `state.games_before_void_exclusion`
-**961** — and none was cut short: `state.games_cut_off_by_the_turn_cap` is 0 at `turns_cap` **50**, and
-the longest game reaches turn **36**. `state.turn_boundaries_compared` **10,705** equals
-`state.turn_boundaries_identical` **10,705**, and `state.first_board_divergences` is empty. Every game
-ends the same way on every compared leaf: `end_state[0].summary.verdicts` reads SAME-END-STATE **960**,
-DIFFERENT-END-STATE 0, ENDED-APART 0, NO-COMPARABLE-BOARD 0 and THREW 1, the last being a harness
-choice rejection recorded in `errors[0]` rather than a rule disagreement. **This is the quantity Will
-named on 2026-08-22 — commentary may differ, boards may not — and it is met.**
+**WHY THREE LATTICES AND NOT ONE — AND WHY THREE WERE STILL NOT ENOUGH.** `engine/diff_swarm.js` picks
+teams by a deterministic stride whose step is computed from `--games`, and pairs adjacent picks, so
+`--games` decides WHICH teams and WHICH matchups play and not only how many. The 6.0.0 headline read
+one such lattice. On one release, one census pin and one frozen pool, with only `--games` moving, the
+`--games 1200` run played 961 games and parted 0 boards; `--games 1350` played 1069 and parted 10; a
+`--games 12000` run played 7178 and parted 84 (`CHANGELOG.md` 6.45.0). The published zero was a correct
+reading of a lattice that happened to hold no divergence, and the gate had been certifying the engine
+off it. Three lattices were adopted instead of the wide draw because the wide draw costs more
+wall-clock time per release than the three together, and they were chosen by walking the shipping
+swarm builder so that they share few teams (`CHANGELOG.md` 6.46.0). **That decision was right and it
+was not sufficient, which is the honest reading of the final week of the series.** Once the three lattices read zero
+together, a held-out `--games 12000` draw on identical pins still parted 34 boards (`CHANGELOG.md`
+6.71.0) — then 15, then 9, then 1, then 0 (`CHANGELOG.md` 6.74.0, 6.80.0, 6.82.0, 6.83.0), each step a
+real engine defect the three lattices could not see. **A zero is a statement about the sample that
+produced it.** The wide draw is now run beside the gate for exactly that reason, and this paper's
+headline is the pair of readings, not the gate alone.
 
-**THE NARRATION CLAUSE IS THE SECOND GATE WILL NAMED THAT DAY, IT BECAME A GATE THE MOMENT THE BOARDS
-STOPPED PARTING, AND IT READS ZERO.** In the same artifact `state.protocol_diverged_games` is 1 and
-`state.protocol_diverged_board_never_did` is 1; `state.board_parted_before_the_protocol_did` and
-`state.protocol_diverged_board_held_longer` are both 0; `end_state[0].summary.by_cause_totals` reads
-causes 1, NARRATION_ONLY 1, BOARD_MATERIAL 0, with `by_cause_reconciles` true. The single remaining row
-is DECLARED and does not vote — the perish drain written above `|upkeep|` where the authority puts it
-below, a real defect the owner closeted on 2026-08-28 (ROADMAP #440) and which `engine/status.js`
-prints on every run. **It is a lower bound, not a count of defects**: a game records only its FIRST
-divergence, so a defect that is never earliest is not in this number at all.
+**WHAT THE GATING ARTIFACTS READ, WITH BOTH OPERANDS OF EVERY SUBTRACTION NAMED, BECAUSE THE WRONG
+OPERAND WOULD READ GREENER AND LOOK RIGHT.** Every gating artifact stamps `engine_release`
+`0d7b1d9db6d1` — the three lattices, `data/engine-diff.json`, `data/all-mechanics-fire.json` and the
+three roster stages. The pins are identical across the lattices and the held-out draw: arm `middle`,
+`steering.policy` `empirical-click/v1`, `--team-store data/team-pool-frozen`, `turns_cap` 50,
+`--end-state`, the census pinned (`steering.pinned` true, `steering.matches_live` true,
+`steering.input_rows` 1002, digest `aa1e36d7d44c`), and the frozen pool holding 8778 teams
+(`steering.team_pool_teams`, `data/game-differential.json`). **The flags are part of the sample
+definition, not a budget**, and are recorded here for that reason.
 
-**THE BOUND ON THE WORD "CORRECT", STATED WITH THE HEADLINE AND NOT BELOW IT.** The board comparison
-reads **54** of the **80** leaves a legal mechanic can write, and 54 is the CEILING rather than a
-shortfall: `tests/probe_uncompared_leaves.js` `derive()` reads `compared` 54, `ceiling` 54, `total` 80,
-`hole` 20 and `standing_at_the_boundary` 0, because 18 of the 20 are duration-1 leaves ended in the
-residual and 2 remove themselves inside the action, so neither can be standing when the comparator
-looks. Beside that, `state.not_compared` in `data/game-differential.json` declares 8 board FIELDS
-uncompared with a reason each — ability trapping, the yawn/attract/curse/heal-block volatiles,
-Unburden, Power Shift, the rampage count with the Ally Switch ladder, the two slot-condition
-countdowns, the trapper mark on the source, and the magnet-rise and syrup-bomb durations. **A board
-difference that exists only inside a turn and is gone by the boundary is invisible to this
-instrument**; that rate was measured at **2 of 19** narration causes on the batch-V population
-(`CHANGELOG.md` 5.273.0, retracted there from 3 of 19), and both were fixed. It is also a claim about
-**one driver** and about **real teams**.
+| lattice | artifact | board-material B_ℓ | undeclared narration N_ℓ | threw | turn boundaries compared = identical |
+|---|---|---|---|---|---|
+| `--games 1200` | `data/game-differential.json` | 961 − 961 = **0** | **0** (0 raw) | **0** | 10,716 = 10,716 |
+| `--games 1350` | `data/game-differential.g1350.json` | 1069 − 1069 = **0** | **0** (1 raw, less 1 declared) | **0** | 11,856 = 11,856 |
+| `--games 1950` | `data/game-differential.g1950.json` | 1497 − 1497 = **0** | **0** (2 raw, less 2 declared) | **0** | 16,725 = 16,725 |
 
-**THE SAMPLE, WHICH IS PART OF THE CLAIM.** `data/game-differential.json` `steering.policy` is
-`empirical-click/v1` — at every decision the driver draws from real recorded human play, P(move |
-species) over `data/game-differential.json:steering.driver_inputs` — **345** rows of `data/move-priors.json`
-— with a voluntary switch at the **9.98%** conditional rate measured in `data/rollout-switch-census.json`.
-The teams are real: `steering.team_store_pinned_to` is `data/team-pool-frozen`,
-`steering.team_pool_teams` **8,778** with `steering.team_pool_picked` **1,968** and
-`steering.team_pool_digest` `0d103fb9fa87`. Mode A pins every die on both engines (`pins.digest`
-`de38d17e15a2`), the census pin is `steering.input_digest` `ab219c68f165`, and the flags were
-`--steering empirical --arm middle --end-state --games 1200 --turns 50 --team-store data/team-pool-frozen`
-— **the game count is part of the sample definition and not a budget**, so it is recorded with the
-figure. Three exclusions are declared rather than absorbed: **43** teams are dropped from the pool for
-carrying Illusion (`closet.teams_dropped`, ROADMAP #160, Will 2026-08-11); the spreads are synthetic
-because an open sheet reveals none (`declared_gaps.spreads_absent`), while the natures are REAL —
-`declared_gaps.nature_declared` **17,440** against `declared_gaps.nature_fallback_to_serious` **96**;
-and `declared_gaps.mega_stones_kept` is **2,626** with `declared_gaps.mega_stones_stripped` 0.
+Nothing was dropped to reach a zero and each lattice says so on its own fields:
+`state.games_void_excluded` reads 0 against `state.games_before_void_exclusion` 961, 1069 and 1497, and
+`state.games_cut_off_by_the_turn_cap` reads 0 on all three at `turns_cap` 50. `end_state[0].summary`
+reads SAME-END-STATE 961 (`data/game-differential.json`), 1069 (`data/game-differential.g1350.json`)
+and 1497 (`data/game-differential.g1950.json`), with DIFFERENT-END-STATE, ENDED-APART,
+NO-COMPARABLE-BOARD and THREW all 0. The three raw protocol divergences are the one declared cause —
+an end-of-battle line this engine does not write — and each ends the battle on both engines with the
+board holding.
 
-**THE DAMAGE DIFFERENTIAL, AND WHAT IT SKIPS BY CONSTRUCTION.** `data/engine-diff.json`, generated
-`2026-09-10T09:53:03Z` on the same release: `requested` **6,000**, `compared` **6,000**, `agreed`
-**6,000**, `disagreed` 0, at the midpoint and at every further roll index in `arms` — `top`, `bottom` and `idx01`–`idx14`, each 6,000 compared and 0 disagreed — with `seed` 20260804 and
-`band_missing` 0. It skips `skipped_multihit` **134** comparisons across the moves listed in `skipped_multihit_moves` and
-`skipped_ability_multihit` **17** Parental Bond clicks across the moves listed in `skipped_ability_multihit_moves`, because `dmgRange` prices a
-whole click and one `moveHit` call is one packet, and `pool.dropped` 9 prior rows have no damage-table
-row to draw. **The volley loop has therefore never been damage-compared here** — it is compared in
-whole games and staged in the roster, and that is the honest statement of the gap. Beside them
-`accuracy_conformance` reads 500 compared and 0 disagreed, `accuracy_modifier_conformance` 13 handlers
-over 14 rows with 0 disagreed, and `substitute_bypass_conformance` 500 compared with 51 in set, none
-missing and none extra.
+**THE HELD-OUT DRAW, WHICH IS NOT PART OF THE GATE AND IS THE STRONGER READING.** Same release, same
+pins, `--games 12000`, pool digest `e398641bda45`, and 7,182 usable games whose boards never part
+(`CHANGELOG.md` 6.83.0). It is written under `data/verification/` rather than under `data/`, so that a
+run the gate does not make can never overwrite a gate artifact — and that placement is also why its
+fields are quoted here as a readout instead of cited: the citation rule binds a figure only to a
+`data/<name>.json` path, and inventing a citation it cannot check would be worse than quoting:
 
-**THE DELIBERATE ROSTER, WITH SCOPE DECIDED BY LEGAL CARRIER RATHER THAN BY A SHAPE RULE.** Every stage
-derives its population over the **347** legal species of this regulation before any other filter runs
-(`data/roster.items.json` `scope.carrier_derivation`, predicate `exists && !isNonstandard && tier !==
-"Illegal"`, including 72 mega and 83 battle-only formes). `data/roster.items.json` `scope`: 148 in
-scope, **148 tested**, `differ` 0, DID-NOT-FIRE 0, 0 fixture gaps. `data/roster.abilities.json`
-`scope`: 316 total of which **116 are out of scope** by `engine/legal_scope.js`'s verdict (114 with no
-legal carrier, 1 whose only carrier the validator refuses, 1 whose only readers are out of the regulation) and
-are therefore not rows, 200 in scope, **139 tested**, `differ` 0, DID-NOT-FIRE 0, 43 fixture gaps, 13
-CONTROL-NOT-QUIET and 5 deferred by the owner. `data/roster.moves.json` `scope`: 500 total, 3 with no legal
-carrier, 497 in scope, **486 tested**, `differ` 0, DID-NOT-FIRE 0, 8 fixture gaps and 3 deferred (CHANGELOG
-6.14.0: scope is now decided in one place, and the move stage had staged Soft-Boiled on a body that cannot learn
-it). Each stage carries red demonstrations that ran:
-`plant_anchors` in `data/roster.items.json`, `data/roster.abilities.json` and `data/roster.moves.json`
-reads `checked` 18, 44 and 36 with `dead` empty and `reds_ran` true, so the greens are not vacuous. **The fixture gaps and the thirteen are the deprioritised lab
-tail** (Will, 2026-08-23), carried and named rather than removed, and never described as
-"unaccounted".
+```
+data/verification/game-differential.g12000.json        engine_release 0d7b1d9db6d1
+state.games                                       7182
+state.games_board_never_diverged                  7182   -> board-material 0
+state.protocol_diverged_games                       75
+state.protocol_diverged_board_never_did             75
+state.board_parted_before_the_protocol_did           0
+state.turn_boundaries_compared / _identical      79715 / 79715
+state.first_board_divergences                     []
+state.games_cut_off_by_the_turn_cap                  0   (turns_cap 50)
+state.games_void_excluded / _before_void_exclusion    1 / 7183
+end_state[0].summary.verdicts                     SAME-END-STATE 7182, DIFFERENT-END-STATE 0
+end_state[0].summary.by_cause_totals              causes 65, NARRATION_ONLY 64, BOARD_MATERIAL 1
+```
 
-**THE CENSUS AND THE STAGED GAMES.** `data/mechanics-census.json` reads `probed` **835**, `live`
-**835**, `armed` **835**, `missing` 0, `unarmed` 0, `hollow` 0, `threw` 0 and `run_ok` true.
-`data/all-mechanics-fire.json` plays **1,313** staged games with `games_threw` 0 and
-`sheets_unassembled` 0. The census is CREDITED ONLY in the differential — it measures coverage and no
-longer selects the sample.
+**One game was excluded and it is named rather than netted out.** That game is tagged `low-identity`,
+which is this instrument's declaration that the two engines' dice streams were not shared in it, so
+whatever its board did is the ruler's doing and not the engine's; `void_games_counted_against_the_engine`
+is false by design. **That game's board did part**, at turn 7, and it is the single BOARD_MATERIAL
+entry in the by-cause table above — which is an ATTRIBUTION over the parted games and is NOT the
+gating quantity. The gating quantity is `state.games` less `state.games_board_never_diverged`, and
+both are printed above so that the reader is not made to choose between them on trust. Of the games
+whose protocol parted, every one reached an identical end state, none had the board part before the
+narration did, and none had the board part at all.
 
-**THE TWO SPEED-TIE CORNER ARMS ARE THE HONEST EDGE OF THE HEADLINE, AND THEY DO NOT READ ZERO.**
-"Board-material 0 of 961" is a statement about ONE ARM, `middle`. The two corner arms were fixed on
-2026-09-10 — `--arm` had moved which arms RAN and not which arm's games became `results`, so a
-corner-only run published `0 − 0`, byte-identical to a perfect score — and on release `cbd510bc2b13`
-they part **16 of 961** and **15 of 961** — `state.games` less `state.games_board_never_diverged` on
-`data/verification/gd-top-tie-first-2026-09-10.json` and
-`data/verification/gd-bottom-tie-first-2026-09-10.json`, both stamped release `cbd510bc2b13`, both
-recorded in `CHANGELOG.md` 5.282.0. Both engines
-draw from the same constant at a corner, so this is not dice noise. **The ties themselves are clean**:
-`speed_ties.tied_groups_resolved` reads 38,319 in `data/verification/gd-top-tie-first-2026-09-10.json`
-and 32,690 in `data/verification/gd-bottom-tie-first-2026-09-10.json`, and none of the parted boards is
-attributable to tie order (`docs/_reports/2026-09-10-corner-arms.md`). The corner arms are the pinned pool played at an extreme
-of the damage roll; they are reported because a headline measured on one arm should say so.
+**THE DAMAGE DIFFERENTIAL, WITH THE VOLLEY LOOP INSIDE IT.** `data/engine-diff.json`: `compared` 6000
+and `agreed` 6000, `disagreed` 0, seed 20260804, at the midpoint and at `top`, `bottom` and every
+interior index, each arm 6000 compared and 0 disagreed. Since `CHANGELOG.md` 6.1.0 a multi-hit move is
+run through the authority's own volley loop rather than priced as one hit, so `0 of 6000` is no longer
+a claim about single-hit moves only. What it still does not cover is declared in the same artifact:
+rolls that skip a non-finite result, and the move and ability families the arm cannot address, are
+listed there by name and count rather than absorbed into the denominator.
 
-**WHAT LIFTS AND WHAT STAYS WITHHELD — THIS IS A PARTIAL LIFT AND IS WRITTEN AS ONE.**
-`node engine/quarantine.js` prints **GATE: OPEN** and lists **64** artifacts that are downstream of
-MEDICHAM and are now RE-RUNNABLE. Re-runnable is not true: every one was measured under an engine that
-has since changed, so each must be re-run before it is quoted (ROADMAP #57). `node
-engine/major_readiness.js` splits them: **40 LIFT** — they would become quotable on a re-run — and
-**24 STAY**, because their generator writes or reads `data/policy-weights.json`, or is MILTANK, and
-Will sequenced the MAG refit after this release. **NONE OF THE 40 WAS RE-RUN FOR THIS VERSION, BY THE
-OWNER'S INSTRUCTION** (Will, 2026-08-11: *"Dont re run the artifacts weve bene over this"* — he is
-reworking MAG and MILTANK and does not want the time spent twice). So every figure downstream of
-MEDICHAM in this paper is **absent, with its generator named**, and no reader may infer a direction
-from the absence. **Leaf calibration — this project's one measurement number — is among the 40 and is
-not stated anywhere in this version.**
+**THE DELIBERATE ROSTER — ONE MECHANIC STAGED AT A TIME, WITH SCOPE DECIDED IN ONE PLACE.**
+`engine/legal_scope.js` decides what is in scope for the harness, the roster and the tag builder
+alike. `data/roster.items.json`: 148 rows FIRED-AND-BOARDS-MATCH, 0 FIRED-AND-BOARDS-DIFFER, 0
+DID-NOT-FIRE, 0 COULD-NOT-STAGE. `data/roster.abilities.json`: 196 MATCH, 3 ANNOUNCEMENT-ONLY accepted
+only on a complete receipt, 1 DEFERRED-BY-OWNER, of 200 in scope. `data/roster.moves.json`: 496 MATCH
+and 1 DEFERRED-BY-OWNER, of 497 in scope. An in-scope row that cannot be staged now holds its stage
+shut, on Will's ruling of 2026-09-11 — *"stop trying to close medicham out with all these untested
+mechanics"* — and all three stages read zero of them.
 
-**WHAT THIS VERSION DOES NOT ESTABLISH, WRITTEN OUT SO IT CANNOT BE INFERRED.** That MEDICHAM is
-correct on a mechanic nobody brought to the frozen pool: the pool is usage-weighted by construction,
-and the roster and census carry that tail entity by entity with their gaps listed above. That any model
-downstream is good, or even measured: a quarantined figure became re-runnable, not true, and none was
-re-run. That the corner arms are clean — they are not, and their number is printed above. That search
-pays (ROADMAP #62): phase 1 of §0.3 is reached and phase 2 has not begun. **The MAG refit stays OWED
-and it is a REFIT rather than a restamp:** `data/policy-weights.json` was not touched, and the damage
-table under the fitted vector has moved, so the feature function's input changed and a restamp would
-write over the evidence for the refit instead of answering it.
+**THE CENSUS AND THE STAGED GAMES.** `data/mechanics-census.json` reads `probed` 1002, `live` 1002,
+`armed` 1002, `missing` 0, `unarmed` 0, `hollow` 0, `threw` 0 and `run_ok` true. **That figure moved
+for an instrument reason worth stating**: the census used to snapshot its counts at a point in the file
+with twelve probes registered below it, so `live` meant "the rows above that line" and a MISSING row
+registered late could never have failed the run — the same silent-capability shape this repository is
+organised against. It was fixed at the snapshot (`CHANGELOG.md` 6.81.0). The staged battery played
+4632 games with 0 threw and 0 sheets it could not assemble; 497 moves in scope all resolved on both
+engines with 0 diverging, 200 abilities in scope with 199 firing, 148 items in scope all firing, and
+of 841 rows carrying a control arm, 2 parted a control board and neither was board-material
+(`data/all-mechanics-fire.json`).
+
+**THE TWO SPEED-TIE CORNER ARMS ARE NOT PART OF THE GATE, AND THEY WERE NOT RE-MEASURED FOR THIS
+VERSION.** `B_ℓ = 0` is a statement about the `middle` pin. The corner arms resolve every speed tie the
+other way and are run separately. Their most recent readings are 0 and 0 board-material on the
+smallest lattice (`data/verification/game-differential.g1200.top-tie-first.json`,
+`data/verification/game-differential.g1200.bottom-tie-first.json`).
+On the two larger lattices, measured on an older release still, they read 1 and 1
+(`data/verification/game-differential.g1350.top-tie-first.json`) and 4 and 4
+(`data/verification/game-differential.g1950.bottom-tie-first.json`). **Those are
+readings of engines this release has moved past, and they are printed as such rather than carried
+forward as current.** Several engine batches have landed since. The corner arms on `0d7b1d9db6d1` are
+OWED.
+
+**WHAT THE GATE DOES NOT COVER. EVERY GATING CLAUSE PASSES, AND EACH ITEM BELOW SURVIVES THAT.**
+
+- **Illusion is the one declared exclusion, and it is excused by name rather than silently.** MEDICHAM
+  does not model the disguise, so the ability's carriers are dropped from the differential's team pool
+  before a game is played, and the drop is published in the run's own artifact as a closet.
+  **The exposure this buys off is small and it is measured rather than assumed:** in the frozen pool,
+  fewer than two sheets in a hundred carry a legal carrier, and about half of those brought it into the
+  game. Neither readout below is cited: one is a live walk over a JSONL store and the other sits under
+  `data/verification/`, and the citation rule binds a figure only to a `data/<name>.json` path.
+
+  ```
+  # carriers derived from Dex.forFormat('gen9championsvgc2026regmb'): zoroark, zoroarkhisui
+  # one sheet per side, read from `six`; "brought" is the carrier appearing in `brought`
+  data/team-pool-frozen/games.bo3.jsonl        13,214 games, 26,428 sheets
+  sides whose brought-six list holds a carrier    452  (1.71%)
+  of those, brought into the game                 229
+
+  data/verification/game-differential.g12000.json
+  closet.teams_dropped                            374   across all nine configurations
+  closet.teams_whose_only_carrier_sits_past_
+    the_bodies_brought                            133
+  closet.bodies_a_pair_brings                       4
+  ```
+
+  On the wider ladder store the ability is not rare at all: 924 team sides carried one and 507 uses
+  were detected, a rate of 0.5487 per carrier side, and that detection is a FLOOR, because a disguise
+  is only caught when it clicks a move that only its own species can learn (`data/illusion.json`).
+- **Closed team sheets and best-of-one are out of scope for this release.** The target population is
+  open-sheet play, and the frozen pool is a best-of-three open-sheet store.
+- **Seven live readings of "the last move used" are a real unregistered class.** The authority keeps
+  the CALLING move where this engine keeps the called one. Found in the same dump that closed the last
+  board parting, reported, NOT fixed, and named here so that an open gate cannot be read as an absence
+  of known defects (`CHANGELOG.md` 6.83.0).
+- **The board comparison does not read every field.** `state.not_compared` declares seven board fields
+  uncompared with a reason each, among them ability-based switch trapping, three volatiles this engine
+  evaluates rather than stores, a stat-swap volatile, two slot-condition countdowns, a rampage and
+  ally-switch counter pair, the mark a move trap leaves on its source, and two durations
+  (`data/verification/game-differential.g12000.json`). A difference that exists only inside a turn and
+  is gone by the boundary is invisible to this instrument.
+- **A bound, and it is generous.** A zero numerator over n games bounds the per-game board-material
+  rate above at roughly 3/n at 95% confidence (Hanley and Lippman-Hand, *JAMA*, 1983). The largest
+  single sample is the held-out draw, n = 7182 (`data/verification/game-differential.g12000.json`), so
+  the bound is 3/7182 — under one twentieth of one percent per game. Treating those games as
+  independent draws is generous: the lattices share teams, the pool is usage-weighted, and both engines
+  are driven by one driver.
+- **One driver, one pool, one cap.** Every decision is drawn from real recorded human play — P(move |
+  species) over the rows of `data/move-priors.json`, with a voluntary switch drawn at the
+  conditional rate measured in `data/rollout-switch-census.json` — so the sample is the part humans
+  actually visit, not the part a search would. The cap is 50 turns and no game reached it.
+- **The obscure tail is carried by the lab, not by the pool.** A mechanic nobody brought to the frozen
+  pool is measured by the roster and the census entity by entity, which is why those instruments gate
+  at all. It is deprioritised, not dropped, on Will's ruling of 2026-08-23.
+
+**THE BASIS MOVED, AND THAT IS WHY THIS IS A MAJOR RATHER THAN A BETTER NUMBER.** Under the policy in
+`CLAUDE.md`, a MINOR moves a published figure under an unchanged basis and a MAJOR moves the basis, so
+that the old and the new series cannot be linked (Semantic Versioning 2.0.0 clause 8; ESS *Guidelines
+on Revision Policy*, Eurostat, 2013, `KS-RA-13-016`, Items `3.0` and `3.2`). Four things moved at once. **(i)
+The gate opened**, so every artifact downstream of the simulator stops being withheld — a change in
+what may be published, not in a number. **(ii) The whole-game clause changed what it reads**: one
+lattice became three, and the wide held-out draw was added beside them, so a board-material count from
+before is not a smaller version of today's, it is a reading of a different population. **(iii) A PASS
+changed meaning**: nine clauses became ten and the mechanics clause became stricter, so an older PASS
+did not assert what today's asserts. **(iv) The differential stopped being blind to a whole line class
+it had been dropping since 2026-08-06**, which moved every narration figure this project had published
+onto a different footing. Items (ii) and (iv) are the ones that make a back-cast impossible, which is
+the ESS test.
+
+**A LIFTED QUARANTINE MAKES NOTHING DOWNSTREAM TRUE, AND NOTHING DOWNSTREAM WAS RE-RUN.** The gate
+reads open, so every figure that was withheld is now **RE-RUNNABLE**. A quarantined number does not
+become true when the simulator becomes correct; it becomes measurable again. **No model figure appears
+in this version.** Leaf calibration, the win-rate backtest, every head-to-head, every rollout result,
+the fitted policy vector and the joint weights are all owed a re-run on this release and none has been
+run. The MAG refit is a REFIT and not a restamp: the damage table under the fitted vector has moved, so
+the feature function's input changed, and restamping would write over the evidence the refit exists to
+produce.
+
+**WHAT THIS VERSION DOES NOT ESTABLISH, WRITTEN OUT SO THAT IT CANNOT BE INFERRED.** That MEDICHAM is
+correct — every gating clause passes, and the list above is what the gate does not reach. That the
+engine is correct on a mechanic nobody brought to the frozen pool. That the corner arms are clean on
+this release; they were not re-measured. That any downstream model is good, or even measured. That
+search pays: phase 1 of §0.3 is reached and phase 2 has not begun. **And it does not establish that a
+zero will hold at a sample nobody has drawn yet** — that claim failed four times in one day, on this
+instrument, at this pool, on releases that each read zero on the gate first.
+
+---
+
+**EVERYTHING BELOW THIS LINE IS A DATED RELEASE LOG, AND NONE OF IT IS A READING OF TODAY.** Each block
+names the release it was measured on and is true of that release; none is rewritten, because a dated
+measurement is evidence and editing it to agree with today destroys the only thing it is for. The
+verdict that governs this document is the 7.0.0 block above, and where a block below carried a claim
+about the CURRENT state of the gate, that block has been deleted rather than annotated.
 
 **5.266.0 — THE WHOLE-GAME FIGURES ARE RESTORED ON MEASURED COUNTS: BOARD-MATERIAL 27 OF 961, PROTOCOL FIRST DIVERGENCE 93 OF 961, NARRATION-ONLY 70 OF 961, ON RELEASE `57679ef9a4a3`.** 5.265.0 published no whole-game count anywhere, and that was the correct answer at the time: the hazard-sweep order fix moved `engine/medicham2-browser.js`, so every whole-game artifact had been measured on release `d9e551ed0d5a` while the tree was `57679ef9a4a3`, and `engine/status.js` withheld rather than captioned. The re-measurement has been done. **This is a restoration and is written as one, not a silent reappearance.** `data/game-differential.json` is republished, generated `2026-09-06T17:42:35Z`, with pins identical to the superseded run: 961 games, cap 20, arm `middle`, steering `empirical-click/v1`, `--end-state`, census pin `data/verification/census-pin-9446a684709d.json`, pool `--team-store data/team-pool-frozen`, `team_pool_digest` `0d103fb9fa87` over 1,968 teams picked from a corpus of 8,778. Full account: `docs/_reports/2026-09-06-publish-5266.md`.
 
@@ -1444,8 +1582,9 @@ engine exists to serve had never been measured. It has now.
 **EVERY FIGURE THIS PARAGRAPH CARRIED IS QUARANTINED — the figures are withheld, not annotated.**
 `data/leaf-engine-contrast.json` is downstream of MEDICHAM: its generator
 `engine/leaf_engine_contrast.js` is in the play layer, reaching `engine/medicham2-browser.js` through
-`require`, so every number in it was produced by a simulator the gate does not certify. MEDICHAM is not
-correct — `engine/quarantine.js` reports the failing clauses, and `node engine/status.js` names which.
+`require`, so every number in it was produced by a simulator the gate did not certify when it was
+measured. Whether MEDICHAM passes its gate today is a gate verdict, and a pass is not a claim that it is correct: `engine/quarantine.js` computes it and
+`node engine/status.js` names any failing clause.
 No sample size, no paired Brier, no confidence interval, no noise floor, no rho, no ECE and no
 discrimination share is carried in its place; the comparison of the leaf across two engine releases is
 unquotable rather than retracted, and it is not a claim whose direction may be inferred from the
@@ -1492,9 +1631,12 @@ Serious / 0 EVs / 31 IVs so the two engines compute the same stat line before *a
 
 ## Abstract
 
-ABRA is a decision-support model family for **Pokémon Champions VGC, Regulation M-B, best-of-one
-closed-sheet ladder**. It continuously ingests public battle replays from Pokémon Showdown and stores
-the durable facts of every game, then builds small, CPU-trainable models on that store. Its central
+ABRA is a decision-support model family for **Pokémon Champions VGC, Regulation M-B**. It continuously
+ingests public battle replays from Pokémon Showdown — both the best-of-one closed-sheet ladder and the
+best-of-three open-sheet store — and keeps the durable facts of every game, then builds small,
+CPU-trainable models on that store. **The target population for every simulator figure in this version
+is open-sheet play**; closed sheets and best-of-one are out of scope for the validation, and the
+frozen pool the differential draws from is an open-sheet best-of-three snapshot. Its central
 empirical finding governs its design: **predicting the winner of a game from the two team sheets is
 near-impossible in this format — even a player-Elo model ties a coin.** ABRA therefore does not sell
 outcome prediction. It follows the recipe that worked in poker, Diplomacy, and sports analytics:
@@ -1612,16 +1754,16 @@ searches hits the engine-speed wall, and the pattern is clean:
 **The plan is four phases, and the fourth is a result rather than a defeat:**
 
 ```
-1  finish MEDICHAM        REACHED at 6.0.0 — correct against Showdown on the pinned pool
+1  finish MEDICHAM        a GATE verdict, read at the head of this paper — never declared here
 2  GATE #62               does compute buy anything: untimed vs on-the-clock
 3  if yes -> search, and measure EXPLOITABILITY against their ~100%
 4  if no  -> adopt their recipe: BC + PPO self-play/FP/DO, open source, reproducible
 ```
 
-**Phase 1 is reached under the definition at the head of this paper, and phase 2 has not begun.** No
-untimed-versus-on-the-clock measurement exists, MILTANK is paused beside the MAG refit, and the
-artifact that would answer phase 2 is one of those that lift on a re-run and were not re-run for this
-version — the count is derived by `engine/quarantine.js` on the day it is asked, not fixed here.
+**Whether phase 1 is reached is the gate’s verdict at the head of this paper — `GATE: OPEN — MEDICHAM passes both conditions; nothing is withheld` — and phase 2
+has not begun either way.** No untimed-versus-on-the-clock measurement exists, MILTANK is paused
+beside the MAG refit, and the artifact that would answer phase 2 is downstream of MEDICHAM and was
+not re-run for this version, by the owner’s instruction (ROADMAP #57).
 
 Phase 4 is cheap precisely because VGC-Bench made it so — the method is published, open-source and
 reproducible — and taking it would be a finding about VGC, not a failure of this project.
@@ -1664,15 +1806,12 @@ simulator which no longer exists. **The gate is now OPEN, so the artifact is RE-
 re-runnable is not true.** It is one of the 40 on `node engine/major_readiness.js`'s LIFT list and it
 was NOT re-run for this version, by the owner's instruction of 2026-09-09 that the downstream
 artifacts stay stale until he has reworked MAG and MILTANK. So no replication verdict, no bucket
-share, no calibration gap and no sample size is carried here: whether the inversion replicates is an
+share, no calibration gap and no sample size is carried here: what the re-measurement found is an
 OPEN question in this document, not a settled one, and the reader may not infer the direction from the
-absence. **This is MEASURE's one number and this version does not have it.** It becomes quotable on
+absence. (The 2026-07-23 verdict this sentence used to presuppose is itself withdrawn, 2026-09-11.) **This is MEASURE's one number and this version does not have it.** It becomes quotable on
 one command, when the owner asks for it: `node engine/backtest_winrate.js`.
 
-**CORRECTED 2026-09-11: THE GATE IS CLOSED AGAIN, SO THIS ARTIFACT IS WITHHELD BY THE GATE, NOT
-RE-RUNNABLE, AND ONE COMMAND IS NO LONGER ENOUGH.** `data/winrate-backtest.json` is on the withheld
-list `node engine/quarantine.js` prints. It becomes quotable only when the gate opens again AND
-`node engine/backtest_winrate.js` is re-run. Why the gate closed is at the head of this paper.
+**7.0.0: `GATE: OPEN — MEDICHAM passes both conditions; nothing is withheld` — AND IT DECIDES ONLY WHETHER THIS MAY BE RE-RUN, NEVER WHETHER THE OLD READING WAS TRUE.** `data/winrate-backtest.json` was NOT re-run for this version, by the owner’s instruction that the downstream artifacts stay stale until he has reworked MAG and MILTANK (ROADMAP #57). **This is MEASURE’s one number and this version does not have it**, whichever way the gate reads.
 
 The conclusion is not "our models are weak." It is a property of the game: a two-player, zero-sum,
 **imperfect-information, simultaneous-move** game with a non-transitive metagame has an irreducible
@@ -1705,28 +1844,21 @@ available, and the store grows ~18k/week, so every model below sharpens on its o
 
 ## 3. The validated foundation — a simulator that agrees with the authority (MEDICHAM)
 
-The one component that is *not* a coin flip is the simulator. As of 6.0.0, MEDICHAM
-(`engine/medicham2-browser.js`) is validated against the **official Pokémon Showdown simulator**, which
-is the authority for this project (ADR-002), on three instruments that each stamp one frozen engine
-release: the whole-game differential (`data/game-differential.json` — board-material **0 of 961**,
-10,705 of 10,705 turn boundaries identical, none excluded, none cut
-off), the damage differential (`data/engine-diff.json` — 6,000 compared, 0 disagreed, at 17 roll
-indices), and the deliberate roster — `data/roster.items.json` **148 tested**,
-`data/roster.abilities.json` **194 tested**, `data/roster.moves.json` **496 tested** (re-measured on release `1a6550ea5ec6`, CHANGELOG 6.58.0), every stage with
-DID-NOT-FIRE 0 and `differ` 0. Each stage's scope is decided by `engine/legal_scope.js` (CHANGELOG 6.14.0).
-The bound on the word "correct" is stated in the 6.0.0 block at the head of this paper
+The one component that is *not* a coin flip is the simulator. MEDICHAM
+(`engine/medicham2-browser.js`) is measured against the **official Pokémon Showdown simulator**, which
+is the authority for this project (ADR-002), on instruments that each stamp one frozen engine release:
+the whole-game differential on three team lattices (`data/game-differential.json`,
+`data/game-differential.g1350.json`, `data/game-differential.g1950.json`), the damage differential with
+the volley loop inside it (`data/engine-diff.json`, since `CHANGELOG.md` 6.1.0), the deliberate roster
+with its scope decided by `engine/legal_scope.js` (`data/roster.items.json`,
+`data/roster.abilities.json`, `data/roster.moves.json`), and the staged-mechanics harness, each fixture
+built from the mechanic’s own requirements by `engine/stage_planner.js` (`data/all-mechanics-fire.json`).
+Their readings on the 7.0.0 release are in the 7.0.0 block at the head of this paper and are not
+restated here, so that there is one place a reader can find them.
+**What they add up to is a GATE, read and never remembered: `GATE: OPEN — MEDICHAM passes both conditions; nothing is withheld`. Every gating clause passes, including the blind-spot clauses; that is not a claim that MEDICHAM is correct, and the limits it does not cover are listed in the 7.0.0 block at the head of this paper.**
+The bound on the word "correct" is stated in the 7.0.0 block at the head of this paper
 and is not repeated here. The older, narrower Smogon-calculator check below is retained because it is
 still true of its own artifact.
-
-**THE NARRATION FIGURE THAT STOOD IN THE SENTENCE ABOVE IS WITHHELD AS OF 6.72.0, AND IT IS NOT
-REPLACED.** Every narration count this project has published was measured by a comparator that
-dropped every `|-ability|` line from both streams before comparing — `engine/game_differential.js`'s
-`ability-announcement` equivalence, added 2026-08-06 and retired 2026-09-19. Re-measured on the same
-release `18773c22878f`, the same pinned pool and the same `--games 1200` lattice with that rule gone:
-**250 of 961 games** part, all of them narration, `by_cause_reconciles: true`. Board-material is
-**unchanged at 0 of 961**, which is why the sentence above keeps that number and loses the other one.
-The three gate lattices have not been re-run, so there is no new narration figure to print here; see
-CHANGELOG 6.72.0 and `docs/_reports/2026-09-19-ability-line-blindness.md`.
 
 MEDICHAM's Gen-9 doubles damage
 pipeline (`engine/medicham2-browser.js`) is validated against the Smogon damage calculator (the community
@@ -1841,9 +1973,188 @@ by the same amount at both ends, because `--plant spread` leaves `disagreed` at 
 while both corner arms light up. So the paragraph above is now history: it was a true statement about
 an endpoint-only instrument, and the instrument changed.
 
+**AND IT CHANGED AGAIN ON 2026-09-10.** The reading in the paragraph above is the dated one. The same artifact, regenerated on release `534442d71183`, reads `compared` **6,000** with `disagreed` 0, and both of its multi-hit skip counters read 0: the reference now enters the authority at `hitStepMoveHitLoop` instead of at one arrival, so multi-hit moves and Parental Bond clicks are compared rather than skipped by construction (`data/engine-diff.json`, `CHANGELOG.md` 6.1.0).
+
 Every probability ships a **proper score** (log-loss and/or Brier), a **confidence interval**
 (clustered by game where states within a game are correlated), and an **honest baseline**, persisted
 to JSON and gated in CI.
+
+### 3.2 What moved between 6.0.0 and 7.0.0: the instruments widened first, and the engine was fixed against them (7.0.0)
+
+**THE 6.0.0 CLAIM WAS WITHDRAWN BY BETTER INSTRUMENTS, NOT BY A REGRESSION.** Twenty register rows had
+asserted a live defect with nothing deciding them; each now names the probe that decides it, pinned to
+an engine release, and **three** of those claims were refuted by their own probes (`CHANGELOG.md`
+6.13.0). Separately the staged harness stopped playing hand-picked bodies. `engine/stage_planner.js`
+derives what a mechanic needs from the authority’s handlers and the tag params, then constructs a legal
+board that supplies it together with a control differing in one leaf — a validated fixture for **841**
+of the **847** mechanics with a legal carrier (`CHANGELOG.md` 6.9.1). Run inside the harness, on both
+sides of the board and in the slot the mechanic reads, staged mechanics that fired rose to **783 of
+845** (`CHANGELOG.md` 6.14.0).
+
+**AND WHICH MECHANICS EXIST IN THIS REGULATION IS NOW DECIDED IN ONE PLACE.** `engine/legal_scope.js`
+answers that question for the harness, the deliberate roster and the tag builder alike. The two
+derivations it replaced had already disagreed, on **three** rows in both directions, inside totals that
+differed by only two (`CHANGELOG.md` 6.10.0) — so a coverage count taken before that unification and
+one taken after are not the same series, and the denominators in this paper move with it.
+
+**THE WIDER INSTRUMENTS IMMEDIATELY FOUND EIGHT PARTINGS, AND ALL EIGHT WERE CLOSED AGAINST THE
+AUTHORITY.** Four changed a board: Oblivious let Taunt through, Magic Bounce did not send Spite back,
+Focus Energy and Dragon Cheer did not add their stages to the critical-hit ratio, and a mega stone held
+under Klutz did not evolve. Four differed in narration only — Cute Charm, Own Tempo, the veils and
+Covet. Each was shown failing first, then passing, then failing again under its own switch
+(`CHANGELOG.md` 6.14.0 for the finding, 6.18.0 for the fixes). **No fix introduced any of them**: they
+were in the engine at 6.0.0, and the 6.0.0 gate had no instrument that staged them. That is the whole
+argument for treating a gate verdict as a reading rather than a memory.
+
+**THE ENGINE FIXES THAT FOLLOWED, EACH PROBED RED AGAINST THE AUTHORITY BEFORE IT EXISTED AND EACH
+BEHIND ITS OWN SWITCH.** The speed-tie corner arms carried most of them and fell at every step:
+Disguise refusing a critical hit for every holder and three accuracy roads that never rolled
+(`CHANGELOG.md` 6.5.0), Encore never ending when the encored move ran out of PP (6.6.0), then thirteen
+further mechanisms and two cards that a prior diagnosis had left unattributed (6.7.0). Since then: five
+defects at 6.11.0 — a body given Simple by Simple Beam doubling every stat change it takes, Magnet
+Rise’s clock, a second Psychic Noise restarting a heal block, a Parental Bond volley paying its
+secondary on each hit, and a rampage lasting two or three turns rather than always two; five moves that
+fail on an ability flag now asking the flag (6.12.0); a survival clamp answering each arrival of a
+volley instead of rewriting its total (6.22.0, ROADMAP #511); a sleep the residual walk sets being
+offered to its cure before the turn ends (6.24.0); and a perish-zeroed body running its later residual
+handlers, with a corpse no longer counted as a residual follower — which took the pinned pool’s last
+protocol divergence from **1 of 961** to **0 of 961** (6.26.0, ROADMAP #601 and #440).
+
+**TWO MEASUREMENTS WERE TAKEN FOR A SEARCH THAT DOES NOT EXIST YET, BECAUSE PHASE 3 NEEDS THEM AND
+NEITHER HAD EVER BEEN MADE.** A position copy costs about a third of one turn in MEDICHAM and slightly
+under half in Showdown’s string round trip — roughly **6%** of a full rollout in both — so playing
+turns, not copying positions, is what limits a search; and MEDICHAM’s rebuild-from-board copy is
+independent, while Showdown’s in-memory JSON copy shares the original’s log and is not (`CHANGELOG.md`
+6.9.2). Stepping two live positions alternately is independent of stepping them in sequence, with one
+exception that is now fixed: a process-global faint counter made a double wipe read as a draw the
+moment any other battle was built — **43 of 43** constructed double wipes before, **0 of 43** after, and
+**43 of 43** again with the old rule switched back on (`CHANGELOG.md` 6.14.1). No caller today was
+affected; a tree search keeping positions alive would have been.
+
+**THE RULERS WERE CORRECTED TOO, AND TWO OF THE CORRECTIONS MADE THE GATE READ WORSE RATHER THAN
+BETTER.** A probe’s temporary fixture was being credited as the writer of the gate’s real input, which
+had withheld **23** instrument artifacts as though they were downstream of the simulator
+(`CHANGELOG.md` 6.15.0). The quarantine classifier gained three derived routes and no new names, and
+the withheld set went from **64** artifacts to **69** (6.20.0) — a classifier repair that released a
+model figure would have been the repair being wrong. The untraceable-figure check became a ratchet: a
+figure is traced only by a trace bound to it — an artifact its own paragraph cites and which holds it,
+or the CHANGELOG entry its block names — with **2,258** existing figures grandfathered on a list that
+may only shrink (6.6.2). **That rule is why every figure in this version’s new text is bound in the
+paragraph that states it.** And a published figure may no longer rest on an engine release whose bytes
+are not in this repository (6.2.0, RULE 5 in `engine/provenance.js`) — a defect that had been hand-fixed
+three times before anything enforced it.
+
+**THE SECOND HALF OF THE SERIES: THE LAB WAS FINISHED, AND FINISHING IT MEANT DISTRUSTING ITS OWN
+CONTROL.** Will, 2026-09-11: *"stop trying to close medicham out with all these untested mechanics"*.
+The response was to stage what had not been staged rather than to argue it out of scope. Every in-scope
+item was staged, on the corner where a sub-100% roll lands in both engines (`CHANGELOG.md` 6.31.0);
+an entity no legal body can carry stopped being counted as a staging gap at all (6.28.0); and the
+remaining ability and move rows were closed one shape rule at a time, each rule staging the condition
+the ability actually reads rather than a plain attack (6.33.0 to 6.43.0), until CONTROL-NOT-QUIET
+reached zero for the first time (6.42.0). **The instrument lesson is the one this paper keeps
+relearning.** A roster row is a one-variable experiment only if its control arm differs from the
+subject in the one ability and nothing else, and three times the control was found measuring something
+other than the subject: a lent crit blocker made an armour ability read green on a delta with no
+status leaf in it, and a new rule produced a green with no boost in its delta (both withdrawn before
+publication, 6.34.0); the Skill Swap control's own bookkeeping was being counted as the entity's
+evidence, so 39 ability greens were vacuous and were refused (6.36.0); and a non-alternate carrier
+handed the stager a null control, so the control arm silently restored the subject's ability (6.39.0,
+ROADMAP #612). **Each correction made the lab's count go down before it went back up**, which is the
+signature of a ruler being fixed rather than a result being tuned. The fixtures also found an engine
+defect nobody had pointed at: the first staging that ever put an Early Bird body to sleep showed the
+sleep counter counting turns elapsed where the authority spends two ticks (6.41.0).
+
+**THEN THE WHOLE-GAME CLAUSE WAS FOUND TO BE A SAMPLE, AND THE GATE WAS MADE TO READ THREE.** The
+finding and the decision are stated at the head of this paper (`CHANGELOG.md` 6.45.0, 6.46.0); the
+gate read CLOSED on the new clause the day it landed, and every release after it was measured on all
+three lattices under the same pins, with the games each fix should remove predicted before the run.
+The engine work that followed was aimed by the lattices and by the named leads each re-measurement
+left: Heal Bell reaching no action at all, Corrosive Gas interleaving its refusals with its effect, and
+Reflect Type's real-type line at the turn boundary (6.44.0); an Electric charge that survived an aborted
+or a status click, and a mega evolution that skipped the outgoing ability's `End` so a Flash Fire boost
+survived it (6.45.0); Beat Up pricing a hit off the field forme rather than the set species (6.47.0);
+Future Sight's payout meeting a Substitute, Harvest restoring an item that is not a berry, and
+Prankster's refusal made target-aware (6.48.0); Mold Breaker piercing Good as Gold, Magic Bounce and
+Sticky Hold (6.49.0); Gooey's drop travelling the boost road so Contrary, Defiant and Mirror Armor
+react, Mummy and Wandering Spirit honouring the flags that refuse them, a Transform running the copied
+ability's start, and Parental Bond never opening its second hit on a fainted target (6.50.0); and
+fifteen single-game leads across move effects, turn order, game-end residuals and die addresses, among
+them Helping Hand at an ally that already moved, the promoted second Round, and Magic Bounce reflecting
+the moves it had missed (6.52.0); then the last seven named leads — Protean honouring a refused Try, Clear Smog clearing the target's boosts, a Mold Breaker move breaking Contrary on the boost road, Cud Chew's pending berry clearing on switch-out, Copycat refusing the `failcopycat` moves, and on-hit chance abilities such as Cursed Body rolling once per landed hit with Triple Axel's accuracy drawn at the top of each hit (6.54.0); Sucker Punch reading the queued move that Encore rewrites, Focus Sash and Sturdy answering a Future Sight payout and a confusion self-hit, thirteen narration mechanisms, and four turn-order mechanisms that had looked like coin flips and were order defects (6.57.0); and Forewarn announcing with its die, Harvest throwing its coin every turn, and six more narration lines (6.59.0). **Every one was shown red against the authority first and sits behind
+its own `MEDI_*` switch**, and each was measured on all three lattices, not on the one that had read
+zero. The three lattices first read zero board-material together on release `1a6550ea5ec6` (`CHANGELOG.md` 6.58.0), and zero undeclared narration as well on `4c9b0cc4a4da` (6.60.0). On the way they read 0 / 1 / 2 on `a1c7dcd5696b` (6.53.0) and 0 / 1 / 1 on `8a4140de3eaa` (6.55.0), and no game joined at any step. The gate opened on `4c9b0cc4a4da` once the Harvest red plant that the 6.59.0 coin fix had stranded was re-aimed and caught; no engine byte changed in 6.60.0 or 6.61.0 (`CHANGELOG.md` 6.61.0).
+
+**THEN THE GATE WAS MADE STRICTER THE SAME DAY, READ CLOSED, AND OPENED AGAIN ON A NEW RELEASE.** Will, 2026-09-19: *"stop saying medicham is done when all these blind spots remain"*. Under the nine-clause bar the gate had read open on `4c9b0cc4a4da`; `engine/quarantine.js` then gained a tenth clause and four stricter halves (`CHANGELOG.md` 6.64.0, 6.66.1, 6.67.1), stated at the head of this paper, and read through them that release's own artifacts would not have opened it. The engine was fixed against the new bar: Unburden became a compared leaf and tracking it found a carrier that never doubled its Speed after losing a stolen item; Gastro Acid had suppressed nothing; Knock Off's multiplier and Poltergeist read the held item under Magic Room and Klutz; Ripen, Anticipation, Screen Cleaner, Pressure, Mold Breaker and Unnerve gained their missing lines; Tidy Up's order and the `-unboost|0` at −6 were fixed; and the empirical driver stopped clicking a move the authority refuses, which is what the four lattice games that threw on `4c9b0cc4a4da` were (6.63.0). Anger Point now fires at the authority's `Hit` event, before the move's own secondary, a divergence that had hidden in a staged row's control arm (6.66.0). The staging planner came to prefer a control that is measured quiet, and eleven ability rows were staged on their own triggers rather than credited on their control's action; Sticky Hold now announces a refused strip and lets a fainting holder's item go (6.67.0, 6.68.0). A pinned run could cut a release as a side effect, and no longer can (6.65.1). The documents' quarantine check had charged 15 figures when the gate first opened; 6 were real and were withdrawn, 9 were digit collisions and the scanner was fixed (6.62.0). The re-measure on `d92bdfb50d88` read `GATE: CLOSED — 2 of 10` (6.65.0); the one on `6180c4712761` reads OPEN with all ten clauses passing (6.69.0). The census gained fourteen rows over these releases, each with a probe that fires (`CHANGELOG.md` 6.63.0, 6.66.0, 6.68.0); its reading on this release is in the 7.0.0 block at the head of this paper.
+
+**THE REGISTER AND THE RULERS WERE KEPT HONEST ALONGSIDE.** The gate's own parser missed a red marker
+on letter case and cut any status cell that quoted a pipe; fixed, twelve register verdicts moved, every
+one toward asserting breakage (`CHANGELOG.md` 6.29.0). The documents' quarantine check had fallen
+silent the hour the gate first read open, because the withholder returns nothing once the gate is ok;
+it now keeps charging a figure read from a downstream artifact that does not name the current release
+(6.30.0). A register sweep re-pointed six closed rows at instruments that can actually be run, and rows
+asserting breakage went from 29 to 20 (6.47.1). The two red plants that had come to aim at dead code
+after the accuracy table moved onto tags were re-aimed, and the roster's idle click stopped being a move
+the fixture body cannot learn — which is how the Protean divergence on the Greninjite row surfaced
+(6.50.1, 6.51.0). **None of that moves an engine byte, and all of it changes what a green means.**
+
+**THEN THE COMPARATOR ITSELF WAS FOUND BLIND TO A WHOLE CLASS OF LINE, AND IT HAD BEEN BLIND FOR 44
+DAYS.** An equivalence rule born with the differential on 2026-08-06 dropped every ability-announcement
+line from BOTH streams before comparing, on the argument that the announcement is cosmetic and that
+every consequence of it is a separate, kept line. **That argument has exactly one hole: an ability
+whose whole effect IS the announcement has no consequence line to keep** — the class the tag builder
+derives as not visible on a board. It was measured rather than argued: with this engine's announcement
+switched off entirely, the whole-game comparison still read *first divergence none*. The rule's own red
+demonstration could not have caught it, because the pair it plants is two boost lines the rule never
+touches, so its self-test was true of the comparator and said nothing about the rule. The rule was
+retired and nothing replaced it. On one lattice the blind spot was **250 of 961** games, 26.0% of the
+sample, **every one of them narration and none of them a board** — and a fourth plant was added to the
+differential's own proof, an announcement line only one engine wrote, which is CAUGHT on the clean run
+and NOT CAUGHT with the old rule pasted back (`CHANGELOG.md` 6.72.0). Every narration figure this
+project had published was taken with those lines invisible; all of them were withheld and re-measured
+rather than restated, and the figures in the 7.0.0 block at the head of this paper are the first that
+were not.
+
+**AND THE WIDER DRAW WAS MADE A STANDING INSTRUMENT, WHICH IS THE SINGLE MOST USEFUL METHOD CHANGE IN
+THE 6.x SERIES.** With the three gate lattices reading zero, a held-out draw at `--games 12000` on
+identical pins was run beside them on every release. It parted 34 boards, then 15, then 9, then 1, then
+0 (`CHANGELOG.md` 6.71.0, 6.74.0, 6.80.0, 6.82.0, 6.83.0). The usable-game count of that draw moved by
+a handful between the first reading and the rest, as a void game entered and left the sample, so the
+five readings are compared by seed rather than by rate. **The comparisons between those readings
+were made on SEEDS and not on counts** — each run's parted games matched against the previous run's by
+seed, so a pass reports how many closed, how many stand and how many JOINED, and one game did join
+without being a regression: it parted at the identical protocol index on the identical line pair in
+both passes, because an earlier fix had carried an older defect onto a body that survives the turn,
+where a board leaf can finally see it. A count that fell would have hidden that; a seed match could
+not.
+
+**THE NINE PARTINGS THE WIDE DRAW FOUND WERE NINE MECHANISMS, NOT ONE, AND THE LAST IS THE ONE WORTH
+KEEPING.** Among them: a global fact — that a shield answers before a move is reflected — had been
+asked at individual call sites, so a per-site fix left it missing on six further dispatch roads, and it
+was hoisted into the one function where the fact belongs; a charge-turn self-boost was raw arithmetic
+that never asked the sign-inverting helper, so a swapped inverting ability did not invert it; an
+absorbed hit still owes its secondary die, because the authority's absorbed result is `null` and not
+`false`; and an execution-time move override required a live foe where the authority's has no foe
+clause. A 100%-chance primary volatile threw a die the authority never throws — it moved no board by
+itself and **spent a draw on a shared address**, so an unrelated ability read the next number instead
+of its own. **The last one was a `null` written into the status source slot where the authority passes
+the ability holder: `null` is not `undefined`, so a guard took its else branch and three separate
+mechanics went silently dead at once — an ally's status-refusing ability, a side-wide status screen,
+and a status-reflecting ability.** The authority's own refusal is silent there, so nothing in either
+log ever showed it (`CHANGELOG.md` 6.82.0, 6.81.0, 6.83.0). Each sits behind its own `MEDI_*` switch
+and each probe reads clean with the switch off and red with it on.
+
+**THE INSTRUMENTS WERE WRONG ALONGSIDE THE ENGINE, AND THAT RATIO IS THE FINDING RATHER THAN AN
+ASIDE.** The census had been snapshotting its counts at a point in the file with twelve probes
+registered below the line, so a MISSING row registered late could never have failed the run — a
+capability that could not report its own absence, which is the shape this repository is organised
+against (`CHANGELOG.md` 6.81.0). A roster red demonstration anchored on a literal function signature
+matched zero times for the third time in its life after a parameter was added, so every row that rule
+produced asserted nothing; the anchor now reads itself out of the frozen source, so it follows the next
+parameter and still dies loudly on a rename (`CHANGELOG.md` 6.79.0). Three shell-quoting traps
+manufactured **eight** false reds in one day, one of which presented as three failed roster stages;
+**nothing was changed on the strength of any of them**, because each was read from the probe's output
+rather than from its exit code (`CHANGELOG.md` 6.82.0). **A gate that is only as good as its rulers is
+the thesis of this section, and the final week of the series paid for it in both directions.**
 
 ### 4.1 GURU — meta / matchup matrix (descriptive)
 From REAL outcomes, `engine/guru.py` builds an archetype × archetype matchup matrix over **5,265 clean
@@ -2076,8 +2387,9 @@ cores beat which" and for quantifying how cyclic the meta really is.
    is about the CONFIGURATION RECORD and survives without them; a figure printed with a caveat beside
    it is the failure this section is about, one level up.
 
-   **CORRECTED 2026-09-11:** the gate is CLOSED again, so the R1, R2 and R3 artifacts are withheld by
-   the gate once more, not merely re-runnable. Why the gate closed is at the head of this paper.
+   **7.0.0: `GATE: OPEN — MEDICHAM passes both conditions; nothing is withheld`** The open gate does not change this: none of R1, R2 and R3 was re-run for this version
+   (ROADMAP #57), so no rate and no interval is carried here. The limitation being described is about
+   the CONFIGURATION RECORD and survives without them.
 
    Auditing the other rungs against the same standard produced two further findings. **The R3
    divergence gate publishes a rate and records no control.** Its own script computes
@@ -2114,8 +2426,11 @@ cores beat which" and for quantifying how cyclic the meta really is.
    together with both exploit-step probes. **The gate opening released nothing here**, and saying so
    is the point: a partial lift that is announced as a lift is the caption failure in a new costume.
 
-   **CORRECTED 2026-09-11:** the gate is CLOSED again, so all three exploitability artifacts and both
-   exploit-step probes are withheld by the gate as well as by decision.
+   **7.0.0: the DECISION is the binding half, and it has not moved.** All three are written by
+   `engine/exploit.js`, which reads `data/policy-weights.json`, and the MAG refit is sequenced after
+   this release. They stay absent from this paper whatever the gate reads, so **this project still has
+   no exploitability number** and the comparison with VGC-Bench’s ~100% is still one we have set up
+   and not made.
 
 8. **Speed readings of the same engine differ by an order of magnitude and for two months nothing
    caught it** (added 3.62.2, §3.0; updated 2026-09-08). 3,401, 1,606 and 13,041 are three
@@ -2133,8 +2448,11 @@ cores beat which" and for quantifying how cyclic the meta really is.
    being told. A project whose central architectural decision rests on a speed ratio should watch
    that ratio the way it watches a win rate. `node engine/status.js` still does not print it.
 
-   **CORRECTED 2026-09-11:** the gate is CLOSED again, so `data/medicham-speed.json` is withheld by the
-   gate; "lifts on a re-run" above no longer holds.
+   **7.0.0:** `data/medicham-speed.json` was not re-run for this version either, so no figure of its
+   is quoted anywhere in this document, and the two-engine harness under
+   `data/verification/speed-2026-09-08/` remains the only throughput reading here. **Nothing has
+   started ratcheting engine speed in the meantime**, which is the half of this item that keeps
+   getting worse rather than better.
 
 ## 7. The road to ALAKAZAM
 
@@ -2142,7 +2460,7 @@ ALAKAZAM is the in-battle capstone, built last on the inputs above. Given a live
 output the win-%-optimal move (a mixed strategy) and its value by: (1) a **belief** over the opponent's
 hidden sets (XATU), updated by a Bayesian filter; (2) **depth-limited search** over the validated
 damage engine, solving each simultaneous turn as a **matrix game** (regret matching — this removes the
-speed bias that inverted the greedy engine); (3) a **learned value** at the leaves (PORY, grown to an
+speed bias a greedy one-ply policy carries); (3) a **learned value** at the leaves (PORY, grown to an
 NNUE-style net); (4) **human-anchoring** (KL-regularised to the behaviour-clone) so it stays strong and
 unexploitable. Inference is light (CPU / Web Worker / WASM); the strongest version needs offline RL on
 millions of human + self-play games and a rented cloud GPU. It is judged on decision quality and
@@ -2356,8 +2674,8 @@ separately against the protocol's own annotations.
 they are withheld, not annotated.** `data/policy-weights.json` and `data/click-censoring-census.json`
 are both downstream of MEDICHAM: their generators `engine/fit_policy.js` and `engine/click_census.js`
 sit in the play layer and reach `engine/medicham2-browser.js` through `require`, so the corpus counts
-are counts of games this simulator could build a board for. MEDICHAM is not correct —
-`node engine/status.js` names the failing clauses. No action count, no game count, no censored share
+are counts of games this simulator could build a board for. Whether MEDICHAM passes its gate is a gate verdict, and a pass is not a claim that it is correct —
+`node engine/status.js` names any failing clause. No action count, no game count, no censored share
 and no per-class table is carried in its place, and the absence may not be read as a claim that the
 slice is small. They become quotable again when the gate opens AND these are re-run:
 `node engine/fit_policy.js` and `node engine/click_census.js`. What survives without a figure is the
@@ -2395,8 +2713,8 @@ becomes quotable again when the gate opens AND this is re-run: `node engine/em_v
 **THE PAIRED HELD-OUT RESULT IS QUARANTINED — every figure it carried is withheld, not annotated.**
 `data/censoring-value.json` is downstream of MEDICHAM: its generator `engine/censoring_value.js` is in
 the play layer and reaches `engine/medicham2-browser.js` through `require`, so the held-out decisions
-it scored were scored through a simulator the gate does not certify. MEDICHAM is not correct —
-`node engine/status.js` names the failing clauses. No sample size, no per-class effect and no
+it scored were scored through a simulator the gate does not certify. Whether MEDICHAM passes its gate is a gate verdict, and a pass is not a claim that it is correct —
+`node engine/status.js` names any failing clause. No sample size, no per-class effect and no
 confidence interval is carried in its place, and no direction may be inferred from the absence — in
 particular this document does NOT here claim that the correction helped, that it did nothing, or that
 it hurt. The earlier 3.42.0 reading stays where it was published, in `CHANGELOG.md` 3.42.0 and

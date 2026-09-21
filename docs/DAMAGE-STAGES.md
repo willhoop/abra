@@ -1,6 +1,438 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 6.1.0 — 2026-09-10.**
+**Version: 7.0.0 — 2026-09-20.**
+
+**WHAT THIS PAGE IS.** One row per stage of the authority's damage pipeline, what this engine does at
+that stage, and the instrument that re-checks every row on every run. It began as an AUDIT of a chain
+that was wrong in about a third of its members. **That audit landed.** From `7.0.0` the tables below
+describe the engine that EXISTS rather than the one that was broken, and the version-by-version record
+of what was wrong is kept, dated and unedited, under `THE DATED RECORD` at the foot of the page.
+
+**READ THE TABLES AGAINST A SYMBOL, NOT A LINE NUMBER.** Every earlier version of this page pinned its
+"ours" column to line numbers inside one frozen release, and every one of those columns was wrong
+within days of being written — the file is fifty thousand lines and every fix above a row moves it.
+The columns now name the FUNCTION and the IDENTIFIER, which move only when somebody renames them.
+
+---
+
+## 0. THE AUTHORITY FOR THE SECOND HALF OF THIS CHAIN IS THE CHAMPIONS MOD, AND THIS PAGE CITED MAINLINE FOR IT UNTIL `7.0.0`
+
+`getDamage` is **mainline** — `sim/battle-actions.ts`, not overridden. Everything from the `+2` down to
+the `16`-bit truncation is **not**: `modifyDamage` is one of the methods `data/mods/champions/scripts.ts`
+replaces, beside `canTerastallize`, `canMegaEvo`, `spreadMoveHit` and `hitStepMoveHitLoop`. Reading
+`sim/battle-actions.ts` for those stages is reading MAINLINE where Champions overrides it, which is the
+failure `CLAUDE.md` names by name, and it is what this page did for its whole life.
+
+**NO STAGE MOVES BECAUSE OF THIS AND EVERY CITATION BELOW STAGE `4` DOES.** The override's ORDER is
+mainline's, clause for clause; what it adds is the two effectiveness announcements (`-supereffective`
+and `-resisted`, each capped by a `Math.min`) that give the format its `4x` and `0.25x` lines. The
+arithmetic either side of them is character-identical. So this is a correction to the EVIDENCE and not
+to the finding — and a page whose citations point at a file the format does not run is a page that
+cannot be checked, which is worse than one that is merely out of date.
+
+```
+$ grep -n "modifyDamage(\|canTerastallize(\|spreadMoveHit(\|hitStepMoveHitLoop(" \
+      $SHOWDOWN_PATH/data/mods/champions/scripts.ts
+180:  canTerastallize(pokemon) {
+197:  modifyDamage(baseDamage, pokemon, target, move, suppressMessages) {
+315:  spreadMoveHit(targets, pokemon, moveOrMoveName, hitEffect?, isSecondary?, isSelf?) {
+428:  hitStepMoveHitLoop(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove) {
+```
+
+**AND ONE STAGE OF THE MAINLINE FORMULA CANNOT HAPPEN HERE AT ALL.** `canTerastallize` returns `null`
+in the mod, so `pokemon.terastallized` is never set: the Tera base-power floor, the Tera STAB doubling
+and the whole Stellar branch inside `modifyDamage` are unreachable in this regulation. They are
+recorded in the table as CANNOT OCCUR rather than as ABSENT, because those are different claims and
+only one of them is a debt.
+
+---
+
+## 1. THE AUTHORITY'S PIPELINE, ONE ROW PER STAGE
+
+Three ways the authority applies a multiplier, and the difference between them is where every finding
+on this page has ever lived:
+
+| how | what it is |
+|---|---|
+| `modify(v, m)` | `sim/battle.ts`, `Battle#modify` — `tr((tr(v * tr(m*4096)) + 2047) / 4096)`. Fixed point, round-half-up on `4096`ths. |
+| `chainModify` / `runEvent` | `Battle#chainModify` folds every handler at a stage into ONE `event.modifier`, spent ONCE by `finalModify` -> `modify`. **Two handlers in one chain truncate once, not twice.** |
+| plain `tr()` | a bare truncated multiply. The source labels two of these "not a modifier" **on purpose**. |
+
+`tr` is `Dex#trunc`, which is `num >>> 0` — not `Math.floor` chosen for taste.
+
+**Authority column:** `A` is mainline `sim/battle-actions.ts` `getDamage`; `C` is Champions
+`data/mods/champions/scripts.ts` `modifyDamage`. **Ours** is `engine/medicham2-browser.js`, inside
+`dmgRangeOneHit` unless another function is named.
+
+| # | stage | authority | how | ours | verdict |
+|---|---|---|---|---|---|
+| `1` | **BasePower chain** — items, abilities, terrain, Helping Hand, Charge, auras, the move's own `onBasePower` | `A` `runEvent('BasePower')`, then `clampIntRange(basePower, 1)` | chainModify, spent once | `_bpChain`, fed by `BPCH`, spent once by `mdChain` and clamped by `Math.max(1, …)` | **SAME STAGE, SAME CHAIN** |
+| `2` | **Tera base-power floor** | `A` | assignment | absent | **CANNOT OCCUR** — `canTerastallize` returns `null` in the mod (§0) |
+| `3` | **stat modifiers** `ModifyAtk` / `ModifySpA` / `ModifyDef` / `ModifySpD` | `A` `runEvent('Modify' + statTable[stat])`, attacker then defender | chainModify, spent once each | `_aCh` / `_dCh`, fed by `ACH` / `DCH`, each spent once by `mdChain` | **SAME STAGE, SAME CHAIN** |
+| `4` | **base damage** `tr(tr(tr(tr(2L/5+2)*bp*A)/D)/50)` | `A` | integer | `Math.floor(Math.floor(22*mvBP*A/D)/50)+2` | **SAME** — at level `50`, `2L/5+2` is `22`, and `22*bp*A` is already an integer, so the extra `tr` is a no-op |
+| `5` | **`+2`** | `C` `baseDamage += 2` | addition | folded into the line above | SAME |
+| `6` | **spread `x0.75`** | `C`, `modify` | `modify` | `md4096(base, 0.75)` | **SAME STAGE, SAME ARITHMETIC** |
+| `6b` | **Parental Bond's second packet `x0.25`** | `C`, the `else if` on the spread branch | `modify` | `md4096(base, perHit.bondMult)` in the same slot, reached through `hitPlanOf`'s two-packet plan | **SAME STAGE.** It used to be one packet at `x1.25` several stages later; two packets is what the ability is |
+| `7` | **weather** `WeatherModifyDamage` | `C`, `priorityEvent` | priorityEvent -> chainModify | `md4096` on the rain and sun pairs, read through the SUPPRESSED sky | **SAME STAGE** |
+| `8` | **CRIT — a plain `tr(x * 1.5)`, NOT a modifier** | `C` | `tr()` | `Math.floor(base*1.5)`, gated on `_critHere` | **SAME POSITION ON BOTH ROADS.** The certain crit was always here; the ROLLED crit used to be multiplied onto this function's OUTPUT by the battle loop, four stages late. The battle loop no longer multiplies — it asks for the crit price through `isCrit` |
+| `9` | **the randomizer — also NOT a modifier** | `C` -> `sim/battle.ts` `Battle#randomizer`, `tr(tr(d*(100-random(16)))/100)` | `tr()` | `Math.floor(base*r/100)` inside `roll()` | **SAME POSITION, SAME ARITHMETIC.** Different SHAPE, documented in `engine/game_differential.js`; the shape is not the position |
+| `10` | **STAB** (and `ModifySTAB` for Adaptability) | `C`, `modify` | `modify` | `md4096(d, stab)` | **SAME STAGE** |
+| `11` | **type effectiveness**, clamped to `-6..6`, `x2` per step up and `tr(/2)` per step down | `C` | literal | `Math.floor(d*eff)` | **SAME.** `floor(d/4) === floor(floor(d/2)/2)` for every integer, so the single floor IS the reference |
+| `12` | **burn `x0.5`**, physical, not Guts, not Facade | `C`, `modify` | `modify` | `md4096(d, burn)`, the Facade exemption keyed on `conditionalPower.when === 'userStatused'` rather than on a move name | **SAME STAGE** |
+| `13` | **ModifyDamage chain** — the final item and ability chain | `C` `runEvent('ModifyDamage')` | chainModify, spent once | `mod`, fed by `MODMUL`, spent once by `mdChain` | **SAME STAGE AND GENUINELY A CHAIN** |
+| `13b` | **Friend Guard** (`onAnyModifyDamage`) | `C`, the same chain | chainModify, in the same chain | `MODMUL(hit.allyDamageMult)`; it arrives on the `hit` argument, because the ally is not in this function's parameters | **SAME CHAIN.** It used to be a second `md4096` on an already-spent number |
+| `14` | **bypassProtect `x0.25`** | `C`, `modify`, after the chain is spent | `modify` | `md4096(dmg, piercesProtect.damageMult)` at the hit site, **per arrival** | **SAME** — a separate spend is correct here, and the authority quarters each hit rather than the total |
+| `15` | **minimum `1`** | `C` `if (gen !== 5 && !baseDamage) return 1` | `return 1` | `roll()` returns `1` when the chain truncates to `0` and the hit connected (`eff > 0`) | **SAME.** Absent until a Parental Bond second packet into a resist was found truncating to `0` here and paying `1` there |
+| `16` | **`16`-bit truncation** | `C` `tr(baseDamage, 16)`, which is `(n >>> 0) % 65536` | `tr()` | absent | **ABSENT AND UNREACHABLE** — it needs a single packet above `65536` |
+
+---
+
+## 2. EVERY MULTIPLIER WE APPLY, CLASSIFIED BY THE AUTHORITY'S STAGE
+
+**Stage read from the handler's own event name through `Dex.forFormat('gen9championsvgc2026regmb')`,
+never from memory.** Membership is DERIVED from `data/tags.json` and is deliberately not restated here
+as a list of counts: the tagger regenerates that artifact against a corpus that grows hourly, and every
+usage figure this page ever typed into a row had moved by the next gate run.
+
+### 2a. THE CLASS THAT WAS AT THE WRONG STAGE, AND WHERE EVERY MEMBER SITS TODAY
+
+This was the audit's finding: about a third of the engine's multipliers were spent on the FINAL damage,
+whatever stage the authority spends them at. Each now sits at the authority's own stage, inside the
+authority's own chain. **The tag is the subject of every row — no member is matched by name unless the
+row says so.**
+
+| multiplier | authority event | where it is now |
+|---|---|---|
+| **the type items** — every member of `damageMultType`, the largest class in the audit | `onBasePower` | the base-power chain, off the tag |
+| **Tough Claws, Sharpness, Mega Launcher, Strong Jaw, Punk Rock (offensive), Iron Fist** — `boostsMoveClass` | `onBasePower` | the base-power chain, through `exact4096`, with the move-class flag asked of the move |
+| **Technician** | `onBasePower`, at the highest priority in the format | the base-power chain. Its gate reads the RAW base power, which is EQUIVALENT rather than sloppy: the relay is still unspent when its handler runs |
+| **Sheer Force** — `removesOwnSecondaries.powerMult` | `onBasePower` | the base-power chain, only for a move that HAD a secondary to remove |
+| **Supreme Overlord** — `boostsFromFallen` | `onBasePower`, a table of exact `4096`ths | the base-power chain, off the authority's table rather than the tag's `perFallen` intent |
+| **Helping Hand** | the condition's `onBasePower` | the base-power chain, arriving on the `hit` argument |
+| **Expanding Force / Rising Voltage** — `terrainScaled` | `onBasePower` | the base-power chain, gated on the GROUNDED subject the authority names per move |
+| **Muscle Band / Wise Glasses** | `onBasePower` | the base-power chain. **Name-wired**, because both are `untagged` in the artifact; the value is the authority's own pair |
+| **Dry Skin** — `halvesTypeDamage.basePowerMult` | `onSourceBasePower` — the DEFENDER reaching into the attacker's base power | the base-power chain. Same tag as the row below, different field, on purpose |
+| **the `-ate` abilities' power half** | `onBasePower` | the base-power chain. The RETYPE half is decided at the top of the function |
+| **Thick Fat / Heatproof / Purifying Salt** — `halvesTypeDamage.attackerStatMult` | `onSourceModifyAtk` / `onSourceModifySpA` — the **STAT** stage | the attacker's stat chain |
+| **Water Bubble** (the offensive half) | `onModifyAtk` / `onModifySpA` — the **STAT** stage | the attacker's stat chain |
+| **Sniper** — `critDamageUp` | `onModifyDamage` | the ModifyDamage chain, gated on `_critHere`. It used to be folded into the crit's plain multiply, which is neither the right stage nor a modifier at all |
+| **Friend Guard** | `onAnyModifyDamage` | the ModifyDamage chain (§4) |
+
+**THE TWO FAILURE MODES INSIDE "WRONG STAGE", BOTH OF WHICH HAD TO BE FIXED TOGETHER.** They stay on the
+page because they are the reason a wrong stage reads as rounding to every human who looks at it:
+
+1. **The stage itself.** A base power passes through `tr(…/D)` and `tr(…/50)` before it becomes damage;
+   a final multiplier does not. The truncations do not commute.
+2. **The chain.** The authority folds every handler at one stage into ONE relay and spends it once. A
+   fix that moves a member to the right stage but keeps one `Math.floor` per member is still wrong the
+   moment two members co-occur — and it passes every single-modifier test anybody would write.
+
+The authority's own arithmetic, for the row that started this page:
+
+```
+Kingambit Kowtow Cleave (Dark, physical) into Charizard, flat bodies, top roll, no crit.
+
+  bp 85
+  Black Glasses  modify(85, x1.2)   -- the BasePower chain                = 102
+  base           tr(tr(tr(22 * 102 * 155)/98)/50) + 2                     = 72
+  randomizer     tr(tr(72*100)/100)                                       = 72
+  STAB           modify(72, x1.5)                                         = 108
+  type Dark vs Fire/Flying = 1x, ModifyDamage chain empty                -> 108
+
+The same multiplier spent on the FINAL damage instead reaches 109. One stage apart, one point out --
+and the TOP roll, the roll every older check pinned, is where that gap is SMALLEST.
+```
+
+### 2b. ABSENT — AND EVERY ABSENCE IS NOW A FACT ABOUT THE REGULATION
+
+The four classes this page once listed as missing from the engine — the field terrains, the auras,
+Charge, and the whole `damageBoost` family — **are wired**, at the base-power or the stat stage, and the
+gate re-checks them. What is left absent is absent because the regulation cannot produce it, and every
+line below is derived rather than recalled:
+
+| absent | why |
+|---|---|
+| **Battery, Power Spot, Steely Spirit** (`onAllyBasePower`) | **no legal carrier.** They are legal ABILITIES and no legal species in this regulation can have one |
+| **Dark Aura, Aura Break** (`onAnyBasePower`) | **no legal carrier**, same derivation. **Fairy Aura has exactly one** and IS wired — see below |
+| **Punching Glove, the plates, the orbs, Soul Dew** | `isNonstandard: 'Past'` — not in this format. Recorded so nobody wires them |
+| **Collision Course, Electro Drift, Brine, Retaliate** | `isNonstandard: 'Past'`. This page filed them as a move-table gap for the owner of `build_engine_data.js`; **that filing is superseded** — they are not moves in this regulation |
+| **the Tera floor, the Tera STAB doubling, the Stellar branch** | `canTerastallize` returns `null` in the mod (§0) |
+| **`ignoreAccuracy`** | no legal carrier (§5). `ignoreEvasion` has carriers, and both of its halves are wired |
+
+```
+$ SHOWDOWN_PATH=... node -e "
+const {Dex}=require(process.env.SHOWDOWN_PATH+'/dist/sim');
+const D=Dex.forFormat('gen9championsvgc2026regmb');
+const legal=x=>x.exists&&!x.isNonstandard&&x.tier!=='Illegal';
+const sp=D.species.all().filter(legal);
+const carriers=id=>sp.filter(s=>s.abilities&&Object.values(s.abilities)
+  .map(a=>D.abilities.get(a).id).includes(id)).map(s=>s.name);
+for(const id of ['battery','powerspot','steelyspirit','darkaura','aurabreak','fairyaura'])
+  console.log(id, JSON.stringify(carriers(id)));"
+
+battery       []
+powerspot     []
+steelyspirit  []
+darkaura      []
+aurabreak     []
+fairyaura     ["Floette-Mega"]
+```
+
+**FAIRY AURA IS A BASE-POWER MULTIPLIER, AND ITS PAIR IS NOT A DECIMAL.** The handler is mainline —
+`data/abilities.ts`, `fairyaura.onAnyBasePower`, under an `onAnyBasePowerPriority`, and `grep fairyaura`
+returns nothing in the mod:
+
+```js
+onAnyBasePower(basePower, source, target, move) {
+  if (target === source || move.category === 'Status' || move.type !== 'Fairy') return;
+  if (!move.auraBooster?.hasAbility('Fairy Aura')) move.auraBooster = this.effectState.target;
+  if (move.auraBooster !== this.effectState.target) return;
+  return this.chainModify([move.hasAuraBreak ? 3072 : 5448, 4096]);
+}
+```
+
+So Aura Break does not SUPPRESS the aura, it INVERTS it, at the same stage. The artifact's older scalar
+truncates one `4096`th low; the engine REFUSES a scalar there, counts `auraMultUnusable`, and leaves the
+damage alone rather than being quietly wrong. The aura applies to every Fairy move on the field rather
+than only the holder's, which is why the holder's own sheet count was never the exposure — **and the
+claim this page carried, that the holder is a Gardevoir forme, is false. That forme's ability is
+Pixilate; Fairy Aura's one legal carrier is the Floette mega forme, reached by its stone on
+`Floette-Eternal`.**
+
+### 2c. SAME STAGE — CHECKED, AND NOW RE-CHECKED ON EVERY RUN
+
+**This list exists so the next session does not re-audit it.** Each was measured against the authority
+rather than read, and each is now a row the stage gate re-derives on every run.
+
+| multiplier | authority event | ours |
+|---|---|---|
+| **Life Orb** | `onModifyDamage` | folded into `mod` through `ch4096` |
+| **Metronome (the item)** | `onModifyDamage`, and a LADDER rather than a constant | `MODMUL` off the tag's own step table |
+| **Multiscale / Shadow Shield**, **Filter / Solid Rock / Prism Armor**, **Ice Scales**, **Punk Rock (defensive)** | `onSourceModifyDamage` — **not** a stat modifier, which is the natural mis-statement | `damageReduce`, in the chain |
+| **Tinted Lens**, **Expert Belt**, **Neuroforce** | `onModifyDamage` | in the chain. Neuroforce is **name-wired** and has no tag entry — correct today, brittle |
+| **the resist berries** | `onSourceModifyDamage` | in the chain, keyed on the type this function actually PRICED rather than on the move's static type |
+| **Reflect / Light Screen / Aurora Veil** | `onAnyModifyDamage` | `DOUBLES_SCREEN`, the authority's doubles constant exactly; a crit ignores them |
+| **the four Ruin abilities** | `onAnyModifyDef` / `onAnyModifyAtk` / `onAnyModifySpA` / `onAnyModifySpD` — the **STAT** stage | the stat chains |
+| **Huge Power / Pure Power, Guts, Solar Power, Orichalcum Pulse, Hadron Engine** | `onModifyAtk` / `onModifySpA` | the attacker's stat chain |
+| **Flash Fire's absorbed volatile** | the condition's `onModifyAtk` / `onModifySpA` — a STAT stage | the attacker's stat chain, paid only into the stat the move actually uses |
+| **the `damageBoost` family** | `onBasePower`, or `onModifyAtk` / `onModifySpA`, per member | split across the base-power and stat chains by the event the member carries. The narrowed shape and its membership are PRINTED by the gate on every run |
+| **Rivalry** — `damageByGender` | `onBasePower`, with an ELSE that a one-multiplier tag cannot hold | the base-power chain, three ways off `genderOf`, which answers a declared gender or none |
+| **Wonder Room** — `swapsDefences` | `Pokemon#getStat` swaps `storedStats` and then applies the ORIGINAL stat's stage | applied to the defence before the stage multiplier, with the defence KEY deliberately left unrewritten |
+| **Adaptability** | `onModifySTAB` | `stabBoost` |
+| **the minimize punish** — `punishesMinimize` | the move flag's damage half | `MODMUL`, and the never-miss half is in `hitChance` (§5). The tag names BOTH halves precisely so a consumer cannot land one and skip the other |
+| **snow raising an Ice body's defence, sand raising a Rock body's** | the weather condition's `onModifyDef` / `onModifySpD` | the defender's stat chain — **and gated on the STAT the hit reads, not on the move's category** |
+
+**THE WEATHER ROW IS THE ONE THIS TABLE GOT WRONG, AND IT WAS WRONG IN BOTH DIRECTIONS AT ONCE.** Which
+handler a hit runs is `move.overrideDefensiveStat || (isPhysical ? 'def' : 'spd')`, and
+`overrideDefensiveStat` WINS. This format has exactly one such move — Psyshock, special, reading
+Defence, derived as the only `statSwap.attackInto` row in `data/tags.json` — so a category gate missed
+the boost on a Psyshock into an Ice body in snow and applied one the authority never applies into a
+Rock body in sand. Every neighbouring multiplier already read the stat; these two lines were the only
+readers of the category. Knob `MEDI_WEATHER_DEF_BY_CATEGORY=1` restores the category gate; probe
+`tests/probe_weather_defence_stat.js`.
+
+**AND A STAGE ARRIVED AT WRONGLY MAKES EVERY MULTIPLIER ON THIS PAGE CORRECT AND THE DAMAGE WRONG.**
+This chain reads a stat stage; it does not decide how one is arrived at. A charge-turn self-boost was
+doing raw arithmetic on the boost vector instead of asking the one sign-inverting reader the other
+boost roads ask, so a swapped inverting ability did not invert it — and a four-stage Special Attack
+error walks straight through a correct formula. Knob `MEDI_CHARGE_BOOST_RAW=1`, probe
+`tests/probe_charge_boost_contrary.js`. The same shape is why the stat-drop road, the ability-boost road
+and this one must share a reader rather than each do the arithmetic.
+
+---
+
+## 3. THE TWO NON-MODIFIERS, CHECKED EXPLICITLY
+
+### The crit
+
+- **Is it a plain truncated `x1.5`, or does it go through the `4096`ths helper?** Plain, on both engines.
+  That matches the authority's `tr(baseDamage * 1.5)` and its own "crit - not a modifier" comment.
+- **Position.** The authority puts the crit BEFORE the randomizer, STAB, the type chart, burn and the
+  ModifyDamage chain. Both of this engine's roads are now there. The rolled crit used to multiply a
+  number that had already been rolled, STAB'd, type-charted, burnt and chain-spent — and it hid because
+  every existing check pinned the TOP roll, where the randomizer is the identity.
+- **The three things a crit IGNORES**, from `moveHit.crit` setting `ignoreNegativeOffensive` and
+  `ignorePositiveDefensive`: the attacker's NEGATIVE offensive stages, the defender's POSITIVE defensive
+  stages, and screens. **And the one it does not: BURN.** Burn's halving is a multiplier, not a stage, so
+  it survives a critical hit. A probe goes RED on any engine that "completes" that list.
+- **The delayed payout takes the crit through the SAME door.** The authority hands a delayed payout to
+  `trySpreadMoveHit`, so it walks the same step list as a direct click; this engine RE-PRICES it as a
+  certain crit through the damage function rather than multiplying afterwards. A late `x1.5` would be
+  wrong in exactly the way the old rolled crit was wrong. The `-crit` line is written between the
+  effectiveness line and the damage line, which is the authority's order.
+- **The rate is a rate and stays out of the range.** The crit is drawn as
+  `randomChance(1, critMult[critRatio])`, and gen 9 clamps the ratio to a stage whose `critMult` entry is
+  `1` — so a guaranteed crit is a draw that is always true, not a draw that is skipped.
+
+### The roll
+
+- **Position: SAME**, between the crit and STAB, confirmed at both endpoints on every control row.
+- **Shape: different, and already documented** in `engine/game_differential.js` — uniform integers here
+  against the authority's inverted indices, agreeing at the endpoints. **That note is about shape and
+  not about position**, and the two get confused every time somebody re-reads it.
+
+---
+
+## 4. THE CHAIN, NOT ONLY THE STAGE
+
+Friend Guard is `onAnyModifyDamage`, so it belongs in the **same chain** as Life Orb, the screens, the
+resist berries and Expert Belt — not beside it. This engine used to spend it as its own `md4096` on the
+number the damage function had already spent its chain on: two spends against the authority's one.
+
+```
+Life Orb x1.3 then Friend Guard x0.75, over base damages 20..300
+
+  authority      modify(d, chain(chain(1, 1.3), 0.75))    ONE spend
+  the old road   modify(modify(d, 1.3), 0.75)             TWO spends
+  -> 60 of 281 base-damage values disagree (21.4%);   at d=45 the authority says 44 and the old road 43
+```
+
+**The rule that outlives the fix:** a member at the right stage in the wrong CHAIN is invisible to any
+test that switches on one multiplier at a time. Every stage in the gate carries at least one two-member
+row for exactly that reason, and those rows are the ones that fail first if a per-member floor is ever
+re-introduced.
+
+---
+
+## 5. THE TO-HIT PIPELINE — THE OTHER STAGED CHAIN ON THIS ROAD
+
+**A miss is a damage of zero, so the same stage-and-chain discipline decides it**, and this page had
+never carried the pipeline that does. The authority is `hitStepAccuracy` in mainline
+`sim/battle-actions.ts`; Champions does not override it, and the only `ignoreAccuracy` / `ignoreEvasion`
+text in the mod sits inside `hitStepMoveHitLoop`'s `multiaccuracy` branch, which is the later arrivals of
+a volley and a different question. Ours is `hitChance`.
+
+| # | stage | authority | ours |
+|---|---|---|---|
+| `1` | **the guarantees, decided before any modifier exists** | `onAnyAccuracy` / `onSourceAccuracy` returning `true`, plus the step list's own `move.alwaysHit`, Poison-type Toxic and self-targeting status clauses | `Infinity`, returned above the arithmetic: No Guard **on either body**, Lock-On (attacker-side, naming one defender), a Poison-type's Toxic, and a minimize-punishing move into a minimized body |
+| `2` | **the OHKO class** | `if (move.ohko)` sets the accuracy OUTRIGHT — the `ModifyAccuracy` event AND both stage adjustments live in the `else` | a branch that RETURNS, with the accuracy, the gate type and the immunity all read out of the `ohko` tag. The level term is identically zero at level `50`, which is a format fact rather than an approximation |
+| `3` | **`ModifyAccuracy`** — Bright Powder, Wide Lens, Zoom Lens, Compound Eyes, Hustle, Sand Veil, Snow Cloak, Wonder Skin, Tangled Feet, Gravity | `runEvent('ModifyAccuracy')` — one chain, spent once | `_accMod`, accumulated by `accChain` over the field row and the attacker/defender walk, applied ONCE by `accApplyChain`. A row carrying a multiplier and no `4096`ths pair is COUNTED (`accModNoChainPair`), never silently floated |
+| `3b` | **the defender's ability is read THROUGH Mold Breaker** | the `breakable` guard lives inside `runEvent` itself, so it governs EVERY event, including this one | asked through `suppressedAbility`, the same reader the bounce, absorb and status roads use. Membership printed before wiring: three breakable accuracy abilities in the format, all defender-side, so the attacker half of the walk cannot move and the ITEM half must not |
+| `4` | **the accuracy and evasion STAGES** | two nested `clampIntRange(…, -6, 6)`, then `trunc(accuracy * (3 + boost) / 3)` or `trunc(accuracy * 3 / (3 - boost))` | combined once, clamped once, looked up once, truncated once with `>>> 0`, the authority's own `tr` |
+| `5` | **the draw** | `randomChance(accuracy, 100)` for EVERY accuracy that is not literally `true` | the same rule, with `Infinity` as this engine's `true` |
+
+**THE STAGES SIT BELOW THE MODIFIER WALK, AND THAT IS THE AUTHORITY'S ORDER RATHER THAN A TIDY-UP.** The
+multiplications commute, so the old order was harmless while nothing truncated; the moment a truncation
+exists, the ORDER decides where the fraction is thrown away. Compound Eyes on a `90`-accuracy move into
+`+1` evasion is `trunc(117 * 3/4)` one way round and `trunc(90 * 3/4) * 1.3` the other.
+
+**AND THE TWO STAGES ARE ONE NUMBER, NOT TWO MULTIPLICATIONS.** This engine used to multiply by the
+accuracy stage, divide by the evasion stage and never truncate. The second clamp is the whole of the
+caps arm — `-6` minus `+6` is `-12` and must come back as `-6` — and with one side at zero the two roads
+part wherever the answer is fractional. At `+1` accuracy into `+2` evasion the DIRECTION reverses: the
+old arithmetic made the attacker MORE accurate than the authority does. It decides hit or miss, so it is
+board-material. Knob `MEDI_ACC_EVA_SEPARATE=1`.
+
+**`ignoreEvasion` HAS BOTH HALVES WIRED AND THEY ARE TWO DIFFERENT TAGS.** The ABILITY half zeroes the
+defender's evasion stage off `ignoresEvasion`; the MOVE half off `ignoresBoosts.evasion`, which is the
+field the dex flag actually reaches the artifact as. Wiring one and not the other is how this sat
+half-done for weeks, with a comment in the source naming the missing half as a separate unfixed defect.
+`ignoreAccuracy` still has no legal carrier and is still not modelled, and that is stated rather than
+defaulted. Knob `MEDI_MOVE_EVASION_COUNTED=1`, probe `tests/probe_ignore_evasion_move.js`.
+
+---
+
+## 6. WHAT THE INSTRUMENT CANNOT SEE, SAID OUT LOUD
+
+`tests/test-damage-stages.js` calls `battle.actions.moveHit`, one level below `spreadMoveHit`. Three
+events never fire there:
+
+- **`ModifyMove`** — so the authority never sets `typeChangerBoosted`, and a Pixilate row would compare
+  two different moves. Pixilate is therefore NOT in the matrix; its stage is argued from the handler
+  source in §2a and its behaviour is probed in `tests/test-mechanics.js`. Sheer Force IS in the matrix,
+  with its flag staged by hand exactly as its own `onModifyMove` would set it.
+- **`spreadHit`** and **`willCrit`** — both staged by hand, and the staging is stated in the file.
+- **the hit loop**, so `move.hit` and the multi-hit family are outside THIS instrument. They are not
+  outside the engine's coverage: the per-hit differential `tests/test-engine-diff.js` drives the
+  authority's own volley loop through the Champions override, so a volley is compared as a volley rather
+  than as one packet.
+
+Two further limits, stated because they are the shape of the control failures this project keeps
+finding:
+
+- **The reference reports HP ACTUALLY LOST, so a KO clamps it.** The defender is made unfaintable on both
+  sides by the same multiple; without that, "strong" and "much stronger" print the same number and the
+  two engines agree for a reason that has nothing to do with the arithmetic.
+- **Both abilities are set explicitly on both sides, always.** An early pass left the defender at its
+  species default and measured an ability against itself — the compare-a-Scarf-against-a-Scarf failure,
+  and it happened here before it was caught elsewhere.
+
+**AND THE KNOB IS CHECKED BEFORE THE ANSWER IS.** Every scenario runs against its own control first, and
+the gate FAILS if the authority gives the same answer either way: a row that agrees because neither
+engine did anything is not evidence. One family needs a crit to make its knob visible at all, and that
+flag is per-row and explicit rather than defaulted on, because a blanket crit would hide a genuinely
+dead knob everywhere else.
+
+**A WHOLE-GAME BOARD FIGURE IS NOT EVIDENCE ABOUT THIS CHAIN**, in either direction. A board parts for a
+targeting error, a status, a switch, a faint or a stale field just as readily as for a damage roll, and a
+clean stage table is evidence about the damage chain and about nothing else. Name the artifact and the
+sample whenever either is quoted.
+
+---
+
+## 7. THE MEASUREMENT, AND WHAT IS STILL OPEN
+
+Two instruments stand over this page, and both were re-run for `7.0.0` on the engine in the tree:
+
+```
+$ SHOWDOWN_PATH=... node tests/test-damage-stages.js
+DAMAGE STAGE GATE — exact equality against the authority, all 16 rolls, both crit states
+  1696/1696 exact
+  CH_EXACT: 5 override(s), re-derived from the live dex, 0 wrong
+  narrowed damageBoost shape matches 5: firemane, blaze, overgrow, swarm, torrent — 0 at the wrong stage
+PASS
+
+$ grep -c "^row(" tests/test-damage-stages.js        # scenarios x 2 crit states x 16 rolls
+53
+$ grep "^row('" tests/test-damage-stages.js | cut -d"'" -f2 | sort | uniq -c
+     18 basePower      9 CHAIN        9 stat       5 terrain
+      4 control        3 modifyDamage 2 crit       2 weather      1 spread
+```
+
+`data/engine-diff.json` is the second, and it is a different question rather than a bigger version of the
+first. On release `0d7b1d9db6d1`, against Showdown commit
+`20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4`, it reads `requested` 6000, `compared` 6000, `agreed` 6000 and
+`disagreed` 0 — at the midpoint and at every one of its sixteen arms — with seed 20260804,
+`band_missing` 0, `skipped_multihit` 0 and `skipped_ability_multihit` 0. **The stage gate is EXACT
+equality on every roll over a small deliberate matrix; the differential is a BAND over a large random
+draw, and a band cannot see one point.** Neither replaces the other and neither is evidence about the
+other's blind spot.
+
+**WHAT IS STILL OPEN ON THIS CHAIN, EACH WITH ITS REASON.**
+
+- **The `16`-bit truncation is absent and unreachable** (stage `16`). It needs a single packet above
+  `65536`. Recorded, not ranked.
+- **Four members are NAME-WIRED and correct today**: Muscle Band, Wise Glasses, Neuroforce and the field
+  terrain constants. Each is named in the tables above and at its site; a tag that starts carrying one
+  retires the name.
+- **A member with no derivable subject is LOUD, not defaulted.** A `terrainScaled` row whose grounded
+  subject is unknown keeps today's answer and counts `terrainScaledSubjectUnknown` with the offending id,
+  so a member arriving next regulation announces itself instead of inheriting a guess. The same shape
+  guards the aura pair (`auraMultUnusable`), the accuracy chain (`accModNoChainPair`, `accModNoTagValue`)
+  and the move-table read (`accuracyNoTable`).
+- **`data/engine-diff.json` names what it still cannot draw** rather than rounding it away: a
+  smart-target volley that the authority's own loop throws on at a one-target entry point, and clicks the
+  authority refuses before their first arrival. Both are conditions of the AUTHORITY at that entry point
+  rather than engine defects, and the whole-game differential is the guard on them.
+- **Two files outside `docs/` still quote this page's superseded scenario count** —
+  `tests/bench-medicham.js` and `tests/staged_status_counters.js`. Reported here and not edited: they are
+  not this document's to change.
+
+**Every stage in §1 and every row in §2 is re-derived by `tests/test-damage-stages.js` on every run, and
+the census carries probes on the same mechanics beside it.** Nothing on this page is an assertion a
+reader has to take on trust: each is either a line in the authority you can read, or a row an instrument
+re-measures.
+
+---
+
+## THE DATED RECORD — HISTORY, NOT CURRENT STATE
+
+**Everything below this line is dated evidence, kept unedited.** It is the version-by-version record of
+what this chain did and of what was wrong with it, and it is NOT a description of the engine. Several of
+those blocks say the stage table is owed, or stale, or dated evidence — they were right when they were
+written, and the debt they name was discharged; §7 above is the current reading. Section references
+inside them (`§2a`, `§3`) point at the tables **as they stood then**, which is why the blocks are not
+rewritten: a dated claim is never edited to agree with today.
 
 **6.1.0 - THE VOLLEY LOOP IS DAMAGE-COMPARED FOR THE FIRST TIME, AND NOTHING IN THE DAMAGE CHAIN MOVED.** `data/engine-diff.json`, generated `2026-09-10T17:54:22Z` on release `3c2b2f9ac845` against Showdown commit `20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4`, reads `requested` **6,000**, `compared` **6,000**, `agreed` **6,000** and `disagreed` 0 at the midpoint and at every arm in `arms` — `top`, `bottom` and `idx01` to `idx14` — with `seed` 20260804 and `band_missing` 0. **`skipped_multihit` and `skipped_ability_multihit` both read 0**, and `volley.move_rows` **130** plus `volley.bond_rows` **12** say that **142** of those 6,000 comparisons ran as VOLLEYS through the authority own hit loop rather than as one packet. No stage, no multiplier and no rounding on this page changes: the reference entry point moved from `moveHit` to `hitStepMoveHitLoop` for a volley row and every single-hit row still enters at `moveHit` and draws byte-identical output. What remains uncompared is named in the same object rather than rounded away — `volley.unstageable` **1** (Dragon Darts, where the authority own loop throws at a one-target entry point) and `volley.no_arrival` **4** (Sucker Punch and Last Resort, refused by the authority before their first arrival). Beside it `accuracy_conformance` reads 500 compared and 0 disagreed, `accuracy_modifier_conformance` 13 handlers over 14 rows with 0 disagreed, and `substitute_bypass_conformance` 500 compared with `missing` and `extra` both empty.
 
@@ -730,372 +1162,3 @@ This document is an AUDIT. It changes no engine file and lands no mechanic. Noth
 `tests/test-mechanics.js` yet, so nothing here is carried by the census — that is the next pass's job.
 
 ---
-
-## 0. THE ANSWER THAT WAS ASKED FOR FIRST — FAIRY AURA IS A **BASE POWER** MULTIPLIER
-
-`pokemon-showdown/data/abilities.ts` — `fairyaura.onAnyBasePower`, priority **20**:
-
-```js
-if (target === source || move.category === "Status" || move.type !== "Fairy") return;
-if (!move.auraBooster?.hasAbility("Fairy Aura")) move.auraBooster = this.effectState.target;
-if (move.auraBooster !== this.effectState.target) return;
-return this.chainModify([move.hasAuraBreak ? 3072 : 5448, 4096]);
-```
-
-Three facts, all read out of the handler rather than remembered:
-
-1. **The stage is `BasePower`, not `ModifyDamage`.** Dark Aura is the same handler with `"Dark"`.
-
-2. **The multiplier is `[5448, 4096]`, not `1.33`.** Our tag artifact carries `auraBoost.mult = 1.33`,
-   and `trunc(1.33 * 4096) = 5447` — one 4096th low. Pass the pair to `md4096`/`ch4096`, which already
-   accepts `[num, den]` for exactly this reason (its own header records the same trap for Tough Claws,
-   `1.3 -> 5324` against the authority's `[5325, 4096]`).
-
-3. **Aura Break does not suppress the aura — it INVERTS it** to `[3072, 4096]` (x0.75) at the same
-   stage. Measured: Sylveon Moonblast into Goodra, no aura 98, Fairy Aura 132, Fairy Aura + defender
-   Aura Break **74**. `aurabreak` has no entry in the tag artifact at all.
-
-### The cost of landing it at the wrong stage, measured
-
-Eight Fairy-move rows, bodies flat L50/0EV/31IV/Serious in both engines, top roll. Two candidate
-fixes scored against Showdown: the multiplier applied to BASE POWER, and the same multiplier spent on
-the FINAL damage.
-
-| row | Showdown | ours today (no aura) | fix at BasePower | fix at ModifyDamage |
-|---|---|---|---|---|
-| Sylveon Moonblast -> Goodra | 132 | 98 | **132** | 130 |
-| Sylveon Dazzling Gleam -> Snorlax | 72 | 55 | **72** | 73 |
-| Gardevoir Moonblast -> Snorlax | 94 | 72 | **94** | 96 |
-| Clefable Play Rough -> Goodra | 162 | 122 | **162** | 162 |
-| Azumarill Play Rough -> Snorlax | 67 | 51 | **67** | 68 |
-| Sylveon Draining Kiss -> Goodra | 72 | 54 | **72** | 72 |
-| Gardevoir Dazzling Gleam -> Goodra | 122 | 96 | **122** | 128 |
-| Clefable Moonblast -> Heliolisk | 85 | 66 | **85** | 88 |
-
-**BasePower-stage fix: 8/8 correct. ModifyDamage-stage fix: 2/8.** The two candidate fixes agree with
-each other on 2/8, so a wrong-stage aura is not "close enough" — it is wrong three quarters of the
-time, by up to 6 points on a 122-point hit.
-
-**The usage argument, and `uses` is a sheet count so it is read carefully.** The tag artifact says
-`fairyaura: uses 0`. That figure is worthless here for the reason `docs/LESSONS.md` 3 gives: the
-ability is Gardevoir-Mega's, so it never appears in a sheet's ability slot. The real exposure is the
-STONE, times **every Fairy move either side clicks while it is on the field** — `appliesToEveryone:
-true` in our own artifact.
-
-Exposure is read live from `data/tags.json` and is deliberately NOT restated here. The counts that sat
-on this line were true when it was written and were stale within hours — `tags.json` is regenerated
-whenever the tagger runs, and every one of them had moved by the next gate run. What matters and does
-not drift: the stone is on the order of hundreds of sheets, Moonblast is the most-clicked Fairy move
-in the corpus by a wide margin with Dazzling Gleam second, and the aura applies to EVERY Fairy move on
-the field rather than only the holder's — so the exposure is the stone's sheets multiplied by every
-Fairy click by anyone, which is why `fairyaura: uses 0` was worthless evidence. Read the current
-numbers out of the artifact.
-
----
-
-## 1. THE AUTHORITY'S PIPELINE, ONE ROW PER STAGE
-
-`getDamage` (`sim/battle-actions.ts:1585`) then `modifyDamage` (`:1724`). Three ways the authority
-applies a multiplier, and the difference between them is where every finding in this document lives:
-
-| how | what it is |
-|---|---|
-| `modify(v, m)` | `sim/battle.ts:2329` — `tr((tr(v * tr(m*4096)) + 2047) / 4096)`. Fixed point, round-half-up on 4096ths. |
-| `chainModify` / `runEvent` | `battle.ts:2318`/`2302` — each handler folds into `event.modifier`; the chain is spent ONCE by `finalModify` -> `modify`. **Two handlers in one chain truncate once, not twice.** |
-| plain `tr()` | a bare truncated multiply. The source labels two of these "not a modifier" **on purpose**. |
-
-| # | stage | authority (line) | how | ours (frozen line) | verdict |
-|---|---|---|---|---|---|
-| 1 | **BasePower chain** — items, abilities, terrain, Helping Hand, Charge, auras, the move's own `onBasePower` | `battle-actions.ts:1650` `runEvent('BasePower')`, then `clampIntRange(bp,1)` at `:1653` | chainModify, spent once | scattered: `:1985` (-ate), `:1991` (weatherScaled), `:1997`, `:2008-2112` (variablePower), `:2121-2137` (conditionalPower) | **PARTLY SAME STAGE** — the move-side members are here and correct; every ITEM and ABILITY member is not (see §2) |
-| 2 | **Tera 60-BP floor** | `:1660-1667` | assignment | absent | ABSENT — no Tera in this engine at all; out of scope, stated |
-| 3 | **stat modifiers** `ModifyAtk/SpA/Def/SpD` | `:1708-1709` | chainModify, spent once | `:2192-2245` through `md4096` | **SAME STAGE** for Choice items, Guts, Solar Power, Orichalcum, Hadron, the four Ruin abilities, sand/snow defence, **Flash Fire's absorbed volatile** (added at 5.209.0). **WRONG STAGE** for Thick Fat / Heatproof / Purifying Salt / Water Bubble (see §2) |
-| 4 | **base damage** `tr(tr(tr(tr(2L/5+2)*bp*A)/D)/50)` | `:1718` | integer | `:2246` `Math.floor(Math.floor(22*mvBP*A/D)/50)+2` | **SAME** — at L50 `2L/5+2 = 22`, and `22*bp*A` is already an integer so the extra `tr` is a no-op |
-| 5 | **+2** | `:1731` | addition | folded into `:2246` | SAME |
-| 6 | **spread x0.75** | `:1737` | `modify` | `:2247` `md4096(base, 0.75)` | **SAME STAGE, SAME ARITHMETIC.** Measured: spread arm 13/282 disagree, control 13/282 — the same rows. Spread adds zero error |
-| 6b | **Parental Bond** (2nd hit x0.25) | `:1742` | `modify`, per hit | `:2337-2341` one hit x1.25 at the base stage | STRUCTURALLY DIFFERENT — declared in the engine's own comment; a two-hit move rolled once is not this stage's problem |
-| 7 | **weather** `WeatherModifyDamage` | `:1746` | priorityEvent -> chainModify | `:2250-2251` `md4096` | **SAME STAGE.** Charizard Flamethrower -> Snorlax: 61 clear, 91 sun, 30 rain, both engines |
-| 8 | **CRIT — a plain `tr(x * 1.5)`, NOT a modifier** | `:1748-1752` | `tr()` | `:2276-2281` (certain crits) / **`:5912-5918` (rolled crits, at the hit site)** | **SPLIT — see §3.** dmgRange's certain crit is at the right stage and passes. The battle loop's rolled crit is applied AFTER everything |
-| 9 | **the randomizer — also NOT a modifier** | `:1755`, `battle.ts:2388` `tr(tr(d*(100-random(16)))/100)` | `tr()` | `:2528` `Math.floor(base*r/100)` inside `roll()` | **SAME POSITION, SAME ARITHMETIC.** Different SHAPE (11 uniform integers vs 16 inverted indices) — already documented in `engine/game_differential.js`; the POSITION is not also different. Both endpoints match exactly |
-| 10 | **STAB** (+ `ModifySTAB` for Adaptability) | `:1789-1792` | `modify` | `:2391-2392`, applied at `:2529` `md4096(d, stab)` | **SAME STAGE.** Adaptability x2 via `stabBoost` agrees (132 vs 132) |
-| 11 | **type effectiveness**, clamped -6..6, `x2` per step up / `tr(/2)` per step down | `:1796-1812` | literal | `:2530` `Math.floor(d*eff)` | **SAME.** `floor(d/4) === floor(floor(d/2)/2)` for every integer, so the single floor is the reference. No clamp in ours, but no move reaches +-7 steps |
-| 12 | **burn x0.5**, physical, not Guts, not Facade | `:1816-1820` | `modify` | `:2405-2406`, applied at `:2531` `md4096(d, burn)` | **SAME STAGE.** Measured burn arm 8/160 (5.0%) against a control of 4.6% — inside the control's own residual |
-| 13 | **ModifyDamage chain** — the final item/ability chain | `:1826` | chainModify, spent once | `:2418-2419` `mod` / `MODMUL`, spent at `:2533` `mdChain` | **SAME STAGE AND GENUINELY A CHAIN.** Life Orb, **Metronome** (added at 5.208.0, WIRE 158 — attacker-side, `onModifyDamage`), Expert Belt, resist berries, Multiscale/Filter/Solid Rock/Prism Armor/Ice Scales/Punk Rock-defensive, Tinted Lens, Neuroforce, screens. Measured at the control's residual — see §4 |
-| 13b | **Friend Guard** (`onAnyModifyDamage`) | `:1826`, same chain | chainModify, **in the same chain** | `:5892-5898`, `md4096` on the already-spent number | **RIGHT STAGE, WRONG CHAIN** — see §3 |
-| 14 | **bypassProtect x0.25** | `:1830` | `modify`, after the chain is spent | `:5931` `md4096(dmg, 0.25)` | SAME — a separate spend is correct here |
-| 15 | **minimum 1** | `:1838` | `return 1` | absent | ABSENT, **and never observed**: 600 random (attacker, move, defender) draws produced 0 rows where Showdown floored to 1 and we returned 0. Recorded, not ranked |
-| 16 | **16-bit truncation** | `:1841` `tr(baseDamage, 16)` | `tr()` | absent | ABSENT and unreachable — needs a damage above 2^16 |
-
----
-
-## 2. EVERY MULTIPLIER WE APPLY, CLASSIFIED BY THE AUTHORITY'S STAGE
-
-This is the table that outlives the audit. **Stage read from the handler's own event name via
-`Dex.forFormat('gen9championsvgc2026regmb')`, never from memory.**
-
-The `uses` column is the tag artifact's sheet or click count. It is a **prior, not truth**, and it is
-read from the LIVE artifact while the engine bytes are read from the frozen release — deliberately,
-because usage is a fact about the corpus and not about the engine, and the corpus has grown since the
-release was cut. (The frozen copy's figures are lower across the board; nothing in the ranking moves.)
-
-### 2a. WRONG STAGE — we apply it later than the authority does
-
-Ordered by exposure — class size times usage, not usage alone, which is why eighteen items at a few
-thousand sheets each outrank one ability at 678. The measured column is the disagreement rate against Showdown over random
-(attacker, move, defender) triples with flat bodies, top roll, rows dropped when the reference KO'd
-(clamped) or dealt 0. **The control — the same rows with nothing switched on — disagrees on 4.1%
-(12/294).** That is the floor: anything at 4% is adding nothing, anything at 35% is the stage.
-
-**PER-ITEM USAGE FOR THE TYPE-ITEM ROW IS READ LIVE FROM `data/tags.json` AND IS DELIBERATELY NOT
-RESTATED IN THE ROW.** The counts that used to stand there were correct when written and had all moved
-by the next gate run, because the tagger regenerates that artifact against a corpus that grows hourly —
-roughly a quarter of all tagged entities' `uses` moved in the single regeneration of 2026-08-10 (the
-exact tally is in `docs/MEDICHAM-SPRINT-NOTES.md`, where it is stated once). Membership is what matters
-and it is derived, not typed.
-
-*(The citation moved out of the table row on 2026-08-10, and the reason is worth one sentence. A table
-row is its own paragraph to `tests/test-docs-current.js`, so naming `data/tags.json` inside the row was
-a promise that every figure in that row came from it — and the row's other figures are DISAGREEMENT
-RATES from the run described above, which no artifact holds. `65.0%` passed the citation check for
-months purely because some unrelated `0.65` sat in `tags.json`, and it stopped passing the moment that
-number moved. The measurement is unchanged; only the false citation is gone.)*
-
-| multiplier | authority event | ours (frozen line) | uses | measured disagreement |
-|---|---|---|---|---|
-| **the 18 type items** — every member of `damageMultType`, headed by Fairy Feather, Black Glasses, Mystic Water and Charcoal, with a long tail down to Silver Powder | `onBasePower` x1.2 | `:2499-2500` `damageMultType` in the ModifyDamage chain | **the biggest class here** | Black Glasses **65.0% (13/20)**, Charcoal **40.0% (10/25)** |
-| **Tough Claws** | `onBasePower` `[5325,4096]` | `:2313-2320` `boostsMoveClass`, at the base stage | 627 | **34.0% (54/159)** |
-| **Technician** | `onBasePower` x1.5, priority 30 | `:2308`, at the base stage | 678 | **40.3% (31/77)** |
-| **Sharpness** | `onBasePower` x1.5 | `:2313-2320` | 314 | **48.0% (12/25)** |
-| **Sheer Force** (the x1.3 half) | `onBasePower` `[5325,4096]` | `:2326-2332` `removesOwnSecondaries.powerMult` | 176 | staged rows agree; same class, same fix |
-| **Thick Fat / Heatproof / Purifying Salt** | `onSourceModifyAtk` / `onSourceModifySpA` x0.5 — the **STAT** stage | `:2487-2493` `halvesTypeDamage.attackerStatMult` in the ModifyDamage chain | 136 / 17 / 60 | **73.1% (19/26)** |
-| **Water Bubble** (attacking x2 on Water) | `onModifyAtk` / `onModifySpA` — the **STAT** stage | `:2494` in the ModifyDamage chain | 131 | **77.3% (17/22)** |
-| **Iron Fist** | `onBasePower` `[4915,4096]` | `:2313-2320` | 114 | 9.5% (2/21) |
-| **Dry Skin** (x1.25 taken from Fire) | `onSourceBasePower` x1.25 | `:2487-2493` `halvesTypeDamage.basePowerMult` | 133 | **40.0% (10/25)** |
-| **Supreme Overlord** | `onBasePower`, table `[4096,4506,4915,5325,5734,6144]` | `:2249` `boostsFromFallen`, `md4096(base, 1+0.1n)` | 84 | staged rows agree at n=1,3; the table is exact 4096ths and `1+0.1n` is not |
-| **Helping Hand** | `onBasePower` `chainModify(1.5)` | `:5902` `Math.floor(d * 1.5)` on the rolled range, at the hit site | **4306** | **5/5 rows wrong** — Alakazam Psychic -> Snorlax: Showdown 108, ours 109; Kingambit Kowtow -> Snorlax 154 vs 157; Pikachu Thunderbolt -> Snorlax 49 vs 51 |
-| **Expanding Force / Rising Voltage** | `onBasePower` `[5325,4096]` | `:2303-2307` `terrainScaled`, `Math.floor(base*mult)` at the base stage | 204 / 123 | same class; also a plain float multiply rather than 4096ths |
-| **Muscle Band / Wise Glasses** | `onBasePower` `[4505,4096]` | `:2516-2517`, hardcoded names in the ModifyDamage chain | 112 / 33 | Muscle Band **39.6% (74/187)**, Wise Glasses **42.2% (43/102)** |
-| **Mega Launcher / Strong Jaw / Punk Rock-offensive** | `onBasePower` | `:2313-2320` | 29 / 6 / 0 | Strong Jaw 25.0% (2/8), Punk Rock 20.0% (1/5) |
-| **the -ate abilities' x1.2** (Pixilate 2875, Refrigerate 9, Aerilate/Galvanize/Dragonize/Normalize 0) | `onBasePower` `[4915,4096]`, priority 23 | `:1985` `Math.floor(mvBP * damageMult)` — **right stage, wrong rounding** (floor vs round-half-up on 4096ths) | 2875 | not measurable through `moveHit` (see §5); the retype half is at the right stage and works |
-| **Sniper** | `onModifyDamage` x1.5 | `:2279-2280` and `:5916-5917`, folded into the crit's plain multiply | 50 | **34.8% top roll, 54.1% bottom roll** |
-
-### The arithmetic, in full, for the row that started this
-
-Kingambit Kowtow Cleave (Dark, physical, 85 BP) into Charizard. Bodies flat in both engines: atk 155,
-def 98, Charizard maxhp 153. Top roll, no crit, no burn, nothing else on the field.
-
-```
-SHOWDOWN   bp 85
-           Black Glasses  modify(85, x1.2)   -- the BasePower chain            = 102
-           base           tr(tr(tr(22 * 102 * 155)/98)/50) + 2                 = 72
-           randomizer     tr(tr(72*100)/100)                                   = 72
-           STAB           modify(72, x1.5)                                     = 108
-           type Dark vs Fire/Flying = 1x, ModifyDamage chain empty             -> 108
-
-OURS       bp 85          (Black Glasses is not read here at all)
-           base           floor(floor(22 * 85 * 155 / 98) / 50) + 2             = 61
-           roll           floor(61 * 100 / 100)                                 = 61
-           STAB           md4096(61, 1.5)                                       = 91
-           type 1x, burn 1x
-           ModifyDamage   the x1.2 lands HERE: mdChain(91, ch4096(4096, 1.2))   -> 109
-```
-
-Same multiplier, same fixed-point helpers, **one stage apart, and a point of damage out**. The x1.2
-applied to 85 gives 102, which is a base power; applied to 91 it gives 109, which is a damage. In
-between sit `tr(.../98)` and `tr(.../50)`, and neither commutes with a multiply.
-
-**Two failure modes hide inside "wrong stage", and both need fixing together.**
-
-1. **The stage itself.** A base power passes through `tr(.../D)` and `tr(.../50)` before it becomes
-   damage; a final multiplier does not. The truncations do not commute.
-2. **The chain.** Showdown folds every `onBasePower` handler into ONE `event.modifier` and spends it
-   once. Ours applies each as its own `Math.floor`. Measured directly: Gallade Drain Punch -> Snorlax
-   with **Iron Fist + Muscle Band** — Showdown 228, ours 227, while each alone agrees. A fix that
-   moves these to the base-power stage but keeps one floor per member will still be wrong when two
-   co-occur.
-
-### 2b. ABSENT — we apply nothing at all
-
-| multiplier | authority event | evidence | usage |
-|---|---|---|---|
-| **field terrain damage** — Electric Terrain x1.3 on Electric, Psychic Terrain x1.3 on Psychic, Grassy Terrain x0.5 on Earthquake/Bulldoze/Magnitude, Misty Terrain x0.5 on Dragon | `onBasePower` `[5325,4096]` / `chainModify(0.5)` on the terrain CONDITION | grep of the frozen file: the only terrain reads in `dmgRange` are Hadron Engine (`:2230`) and the per-move `terrainScaled` tag (`:2305`). Measured: Pikachu Thunderbolt -> Snorlax **43 vs 34**; Hatterene Psychic -> Snorlax **94 vs 73**; Garchomp Earthquake in Grassy **60 vs 118**; Dragon Claw in Misty **92 vs 165** | Psychic Terrain 128 clicks + Psychic Surge 2; Electric 11; Grassy 11; Misty 9. Small today, and it is the whole of what a terrain team does |
-| **Fairy Aura / Dark Aura / Aura Break** | `onAnyBasePower` `[5448,4096]` / `[3072,4096]` | `grep auraBoost` = 0 hits in the frozen engine, and no `aurabreak` entry in the tag artifact | Gardevoirite 412 sheets x every Fairy click on the field. **§0** |
-| **Charge** (x2 on the user's next Electric move) | `onBasePower` `chainModify(2)` on the volatile | Pikachu Thunderbolt -> Snorlax with Charge: **66 vs 34** | move 1 click, but Electromorphosis applies it too |
-| **the whole `damageBoost` tag** — Steelworker, Transistor, Dragon's Maw, Rocky Payload, Stakeout, Analytic, Reckless, Rivalry, Flare Boost, Toxic Boost, Sand Force, Gorilla Tactics, Hustle | `onBasePower` (Analytic, Reckless, Rivalry, Sand Force) or `onModifyAtk/SpA` (Stakeout, Steelworker, Transistor, Dragon's Maw, Rocky Payload, Hustle, Gorilla Tactics) | `grep damageBoost` in the frozen engine returns **one hit, and it is inside a comment**. 44 abilities carry the tag; nothing reads it | Reckless 77, Rivalry 39, Analytic 14, rest 0 on this corpus |
-| **Battery / Power Spot / Steely Spirit** (ally base-power boosts) | `onAllyBasePower` | absent from the engine; Battery and Power Spot have no tag entry at all, Steely Spirit is `untagged` | 0 on this corpus; they are doubles abilities and the corpus is doubles |
-| **Punching Glove** | `onBasePower` | absent | **`isNonstandard: 'Past'` — banned in this format.** Recorded so nobody wires it |
-| **the 17 plates, the orbs, Soul Dew** | `onBasePower` | absent | all `isNonstandard: 'Past'` — banned. The type-item cousins in 2a are the legal ones |
-| **Collision Course / Electro Drift / Brine / Retaliate** | move `onBasePower` | not in `MC.moves` at all — a move-table gap, not a stage gap | filed for whoever owns `build_engine_data.js` |
-
-### 2c. SAME STAGE — checked, and correct
-
-**This list exists so the next session does not re-audit it.** Each was measured, not read.
-
-| multiplier | authority event | ours | evidence |
-|---|---|---|---|
-| **Life Orb** x1.3 | `onModifyDamage` `[5324,4096]` | `:2411-2412`, folded into `mod` via `ch4096` | **3.9% (11/284)** against a control of 4.1% — the same rows |
-| **Multiscale / Shadow Shield** x0.5 from full | `onSourceModifyDamage` | `:2437-2451` `damageReduce` | **4.1% (12/294)** — identical to the control |
-| **Tinted Lens** x2 on resisted | `onModifyDamage` | `:2453` | **4.1% (12/294)** — identical to the control |
-| **Filter / Solid Rock / Prism Armor** x0.75 on SE | `onSourceModifyDamage` | `:2437-2451` | single rows agree exactly |
-| **Ice Scales** x0.5 special | `onSourceModifyDamage` (**not** a stat modifier, which is the natural mis-statement) | `:2437-2451` | Alakazam Psychic -> Snorlax 36 vs 36 |
-| **Punk Rock defensive** x0.5 sound | `onSourceModifyDamage` | `:2437-2451` | Hyper Voice -> Snorlax 24 vs 24 (control 49) |
-| **Expert Belt** x1.2 on SE | `onModifyDamage` `[4915,4096]` | `:2502-2503` | agrees |
-| **the resist berries** x0.5 | `onSourceModifyDamage` | `:2514-2515` | Chople on a SE Fighting hit, 114 vs 114 |
-| **Neuroforce** x1.25 on SE | `onModifyDamage` | `:2452` | agrees. (`neuroforce` is absent from `data/tags.json` and is name-wired — correct today, brittle) |
-| **Reflect / Light Screen / Aurora Veil** `[2732,4096]` in doubles | `onAnyModifyDamage` | `:2462-2466` `DOUBLES_SCREEN = 2732/4096` | constant matches the authority's doubles branch exactly |
-| **the four Ruin abilities** x0.75 | `onAnyModifyDef` / `onAnyModifyAtk` / `onAnyModifySpA` / `onAnyModifySpD` — **STAT** stage | `:2242-2245` `md4096` on A or D | Sword of Ruin 81 vs 81, Tablets of Ruin 46 vs 46 |
-| **sand Rock SpD x1.5 / snow Ice Def x1.5** | `onModifySpD` / `onModifyDef` using `this.modify` | `:2208-2209` `md4096(D, 1.5)` | correct event, correct arithmetic |
-| **Huge Power / Pure Power** x2, **Guts** x1.5, **Solar Power**, **Orichalcum Pulse**, **Hadron Engine** `[5461,4096]` | `onModifyAtk` / `onModifySpA` | `:2225-2230` | Huge Power row agrees (clamped, but the pre-clamp ratio is exact) |
-| **Choice Band / Choice Specs / Assault Vest** x1.5 | `onModifyAtk` / `onModifySpA` / `onModifySpD` | `:2192-2194` | right stage — **and all three are `isNonstandard: 'Past'`, so they are dead code in this format** |
-| **Adaptability** x2 STAB | `onModifySTAB` | `:2391-2392` `stabBoost` | 132 vs 132 |
-| **spread x0.75** | `modify` at `:1737` | `:2247` | 13/282, the control's own rows |
-| **burn x0.5** | `modify` at `:1818` | `:2531` | 5.0% against a 4.6% control |
-| **Facade's burn exemption** | `move.id !== 'facade'` at `:1817` | `:2405` keyed on `conditionalPower.when === 'userStatused'` | shape-keyed, membership printed, exactly one move |
-| **Technician's <=60 gate** | `this.modify(bp, this.event.modifier)` at `:1650` | `:2308` gates on the raw `mvBP` | **EQUIVALENT, and this was nearly filed as a bug.** Technician's `onBasePowerPriority` is **30, the highest in the format**, so `event.modifier` is still 1 when its gate runs and `modify(bp, 1) === bp`. Proved: Body Slam (85 BP) + Technician + Silk Scarf gets no Technician boost in either engine |
-| **the randomizer's POSITION** | `:1755` | `:2528` | both endpoints match on every control row |
-| **the certain crit's position** | `:1751` | `:2276-2281` | Frost Breath and Storm Throw agree at BOTH endpoints |
-| **the base-damage formula itself** | `:1718` | `:2246` | a 294-row control at 4.1% residual, and the 12 failures are named moves (Beak Blast, Night Daze, Spirit Shackle, Trop Kick, Fickle Beam, Apple Acid), not arithmetic |
-
----
-
-## 3. THE TWO NON-MODIFIERS, CHECKED EXPLICITLY
-
-### The crit: our arithmetic is right, our POSITION is wrong in the battle loop
-
-- **Is it a plain truncated x1.5, or did it go through the 4096ths helper?** Plain. `:2280`
-  `Math.floor(base*1.5*critMult)` and `:5917` `Math.floor(dmg*1.5*critMult)`. Neither touches
-  `md4096`. That matches the authority's `tr(baseDamage * 1.5)` and its "crit - not a modifier"
-  comment. **Correct.**
-- **Position.** The authority puts the crit at `:1751` — *before* the randomizer, STAB, the type
-  chart, burn and the ModifyDamage chain. `dmgRange` puts its certain crit in exactly that place
-  (`:2276`, after spread and weather, before `roll()`) and it passes at both endpoints. The **battle
-  loop's rolled crit** (`:5912-5918`) multiplies the number that has already been rolled, STAB'd,
-  type-charted, burnt and chain-spent.
-
-At the TOP roll the randomizer is the identity, so the error is smaller and the wrongness looks like
-nothing. Measured over random triples:
-
-| arm | disagree |
-|---|---|
-| no crit, bottom roll (**the control**) | 20/364 — **5.5%** |
-| crit, top roll | 72/346 — 20.8% |
-| **crit, bottom roll** | 165/355 — **46.5%** |
-| **crit + Life Orb, bottom roll** | 210/340 — **61.8%** |
-| crit + Sniper, top roll | 109/313 — 34.8% |
-| crit + Sniper, bottom roll | 179/331 — 54.1% |
-
-Sniper compounds it twice: it is `onModifyDamage`, so it belongs in the final chain, and ours folds it
-into the crit's plain multiply.
-
-### The roll: same position, different shape
-
-- **Position: SAME.** `:2528` `Math.floor(base * r / 100)` sits between the crit and STAB, which is
-  where `battle.ts:2388` `randomizer` sits. Confirmed at both endpoints on every control row.
-- **Shape: different, and already documented** in `engine/game_differential.js`'s header — 11 uniform
-  integers here against 16 inverted indices there, agreeing only at the endpoints. **That note does
-  not cover position, and position is fine.** The shape question is not this audit's.
-
-### The crit, third road: the DELAYED payout took no draw at all — added 5.241.0
-
-The two roads above are about POSITION. This one was about ABSENCE, and absence is the harder thing
-for this document to have caught, because a stage that is never entered produces no wrong number to
-compare — it produces the same number every time.
-
-The authority hands a delayed payout to `trySpreadMoveHit` (`data/conditions.ts:415`), so it walks
-the same step list as a direct click: the crit step at `sim/battle-actions.ts:1156` → `:1636-1642`,
-`critMult = [0,24,8,2,1]` at `:1633`, the plain ×1.5 at `data/mods/champions/scripts.ts:222` and the
-`|-crit|` line at `:285`. Champions carries no `futuremove` key, so mainline is the authority and that
-is derived rather than assumed.
-
-**How it was measured, and why a sampled run could never have found it.** The die was pinned, not
-sampled — crit-CERTAIN on one arm and crit-IMPOSSIBLE on the other, same board, same attacker:
-
-| die | authority | ours, before |
-|---|---|---|
-| crit-certain | **72**, `\|-crit\|` present | **69**, no line |
-| crit-impossible | **48**, no line | **69**, no line |
-
-Identical output across a varied knob is the finding. The direct-click control on the same attacker
-moved on both engines, so the harness could see a crit either way.
-
-**Where the fix lands, in this document's terms.** The payout is RE-PRICED as a certain crit through
-`dmgRange` — the road §3 above measures as being at the authority's position and passing at both
-endpoints — rather than multiplied afterwards like the battle loop's rolled crit. A late ×1.5 would
-have produced a number that is wrong in exactly the way the 46.5% bottom-roll row above is wrong. The
-`-crit` line is written between the effectiveness line and the damage line, which is the authority's
-order.
-
-**The rolled-crit defect in the battle loop is UNCHANGED by this**, and the table above it still
-stands. This adds a road; it does not fix that one.
-
----
-
-## 4. THE CHAIN, NOT ONLY THE STAGE — FRIEND GUARD
-
-Friend Guard is `onAnyModifyDamage`, so it belongs in the **same chain** as Life Orb, the screens, the
-resist berries and Expert Belt. Ours applies it at `:5896` as its own `md4096` on the number
-`dmgRange` has already spent its chain on.
-
-Right stage, wrong chain, and it costs a point on a fifth of values. Two spends against one, over base
-damages 20..300:
-
-```
-Life Orb x1.3 then Friend Guard x0.75
-  authority  modify(d, chain(chain(1, 1.3), 0.75))    one spend
-  ours       modify(modify(d, 1.3), 0.75)             two spends
-  -> 60 of 281 base-damage values disagree (21.4%);  d=45: authority 44, ours 43
-```
-
-Friend Guard is **1015 sheets**. Helping Hand (§2a) has the same double-spend problem on top of its
-stage problem.
-
----
-
-## 5. WHAT THIS AUDIT COULD NOT SEE, SAID OUT LOUD
-
-The harness calls `battle.actions.moveHit`, which is one level below `spreadMoveHit`. Three events
-never fire there, so three things are argued from the handler source rather than measured:
-
-- **`ModifyMove`** — so Sheer Force's `hasSheerForce` and the -ate abilities' `typeChangerBoosted` are
-  never set by Showdown. Sheer Force was staged by hand; **the -ate abilities could not be** and their
-  row above is reasoned from `data/abilities.ts`, not measured.
-- **`spreadHit`** and **`willCrit`** — both staged by hand, and the staging is stated in the probe.
-- **the hit loop**, so `move.hit` and multi-hit are out of scope. `tests/test-engine-diff.js` already
-  records this boundary.
-
-Two further limits, stated because they are the shape of the control failures this project keeps
-finding:
-
-- **The reference clamps at the defender's HP and we do not.** Four rows in the first pass read as
-  disagreements purely because Showdown had KO'd. Every rate above drops those rows.
-- **Both abilities are set explicitly on both sides, always.** The first pass left the defender at its
-  species default and measured Araquanid's own Water Bubble against a blank, and Heliolisk's own Dry
-  Skin against a blank. That is the Choice-Scarf-against-a-Choice-Scarf failure, and it happened here
-  before it was caught.
-
----
-
-## 6. THE ORDER TO FIX IN
-
-1. **Fairy Aura / Dark Aura at the BasePower stage, with `[5448,4096]` and `[3072,4096]`.** Another
-   agent is wiring `auraBoost` now. §0 is the acceptance test: 8/8, not 2/8.
-2. **The 18 type items** (the largest class in 2a) — one line, `damageMultType` moves from `MODMUL` to a base-power
-   chain. Everything below shares that chain, so build it once.
-3. **Helping Hand** (4306 clicks) — and it needs the chain as well as the stage.
-4. **Technician, Tough Claws, Sharpness, Sheer Force, Iron Fist, Mega Launcher, Strong Jaw, Punk Rock,
-   Supreme Overlord, Expanding Force / Rising Voltage, Muscle Band, Wise Glasses, Dry Skin** — the same
-   move into the same chain.
-5. **Thick Fat / Heatproof / Purifying Salt / Water Bubble** into the STAT stage, beside the Ruin
-   abilities that already live there.
-6. **The battle loop's rolled crit** — it must be applied inside `dmgRange`, before the roll, not to
-   `dmgRange`'s output. This is the largest single measured effect in the document (46.5% -> 61.8%).
-7. **Friend Guard** into the ModifyDamage chain rather than beside it.
-8. **The field terrain multipliers**, which are absent entirely.
-9. ~~**`damageBoost`** — 44 abilities carry it and nothing reads it.~~ **DONE, in two passes.**
-   ROADMAP #92 (3.7x) wired the unconditional, type-naming half — five abilities, all 0 corpus uses.
-   ROADMAP #112 (3.83.0) made the HP condition machine-readable and added the other four: Blaze,
-   Torrent, Overgrow, Swarm — 9,141 uses. Solar Power is still refused, correctly: its condition is a
-   WEATHER and `inWeather` is a separate clause. The membership was printed before either wiring, and
-   `tests/test-damage-stages.js` re-derives it every run.
-
-Every one of these needs a failing probe in `tests/test-mechanics.js` first. None of them is open work
-until it has one.

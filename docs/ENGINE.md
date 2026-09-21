@@ -28,8 +28,10 @@ turns later. It took a replay from turn 1: a previous pass had staged the situat
 11 turns, seen nothing, and called it not reproducible. **That was a claim about the fixture.**
 
 **WHAT ZERO DOES NOT MEAN.** Illusion stays the one declared exclusion. **CORRECTED the same day:** re-derived over the
-frozen pool, 450 of 26,370 bo3 sheets (1.71%) carry a legal body and 228 of those brought it. The
-first figure divided a SHEET count by the GAME count and read about twice the true rate; it is a live
+frozen pool, 452 of 26,428 SIDES (1.71%) hold a carrier in their brought-six list and 229 of those brought
+it into play. Two derivations disagreed at 450/26,370 and 452/26,428 until the predicate was named:
+58 sides carry no declared sheet array, and the brought-six list is the complete one. The figure first
+published here divided a SHEET count by the GAME count and read about twice the true rate. It is a live
 derivation over an untracked store file, so it carries no artifact citation. Closed team sheets and bo1 stay out of scope. **7 live `lastMove`
 readings remain a real unregistered class**, reported and not fixed. A zero is a statement about what
 was measured, and these were not.
@@ -720,9 +722,9 @@ ENGINE — does the simulator do what Pokémon does
   1002/1002 probed mechanics live, 0 missing   (census 2026-09-20 17:31)
     the census probes what somebody thought to probe: 304 of 304 in-scope tags carry a probe, 0 carry none (9 of 313
     tags have no in-scope carrier); 0 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 37 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 2.0 h old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/0d7b1d9db6d1/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "0d7b1d9db6d1".
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/0d7b1d9db6d1/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "0d7b1d9db6d1".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -739,7 +741,7 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-20 18:13_
+_stamped 2026-09-20 19:38_
 
 <!-- /GENERATED -->
 

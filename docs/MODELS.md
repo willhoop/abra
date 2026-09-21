@@ -1,6 +1,66 @@
 # ABRA — the model family (living reference)
 
-**Version 6.0.0 · Last updated 2026-09-11.**
+**Version 7.0.0 · Last updated 2026-09-20.**
+
+**7.0.0 — THE MEDICHAM QUARANTINE GATE IS OPEN, AND THAT IS A BASIS CHANGE RATHER THAN A BETTER NUMBER.** For two months the only quantity this ledger could honestly carry was how far the simulator sat from its gate. That distance is zero and the gate is OPEN. What follows is not an improved figure, it is a change of basis: every model in this file except MEDICHAM decides its question by PLAYING GAMES ON MEDICHAM, or by fitting features computed through it, and the simulator underneath them has been corrected dozens of times since any of those figures was measured. **The gate opening makes them re-runnable. It does not make them true.**
+
+**SO THEY ARE DELETED FROM THIS EDITION, NOT CAPTIONED.** That is a rule this project paid for twice: a warning printed beside a number gets skimmed past and the number gets quoted anyway — `PRE-CHANGE` beside the rollout family, and "one of the two known failures" beside a red gate. **MAG, MILTANK, PORYGON2, DODUO, GARY and SLOWKING's in-battle half therefore carry no figure at all below.** Not an old one, not an estimate, not a range. **No direction may be inferred from an absence.** Each entry states what the model is for, what it consumed, that its published figures were withdrawn at 7.0.0 because the engine beneath them changed, and the command that re-runs it. **The re-run is OWED** — the list is ROADMAP #57 — and Will sequenced the MAG refit and MILTANK AFTER this major, so nothing was re-run to fill the gap.
+
+**ONE EXCEPTION, DECLARED RATHER THAN QUIET.** SLOWKING's team-preview Nash table is solved over `data/guru-matchups.json`, a matrix built from real ladder results with no simulator anywhere in its path, and it was re-verified field for field against `data/slowking-eval.json` in this pass. It is not downstream of MEDICHAM. Deleting a true cited figure is as wrong as keeping a stale one, so it stands, and its entry says which half of SLOWKING it covers.
+
+**MEDICHAM'S OWN STATE IS PUBLISHED IN FULL, BECAUSE THESE INSTRUMENTS MEASURE IT RATHER THAN CONSUME IT.** Every reading below is on engine release `0d7b1d9db6d1`, census pinned to `data/verification/census-pin-b6df14beff8d.json`, `--team-store data/team-pool-frozen`, `--steering empirical --arm middle --end-state`. **`--games` is part of the sample definition, not a budget** — the whole-game clause picks teams by a stride computed from it, so a larger run plays DIFFERENT teams rather than the same teams plus more. The three gate lattices and the held-out draw are four different samples for that reason, and each is named with the run that produced it.
+
+| instrument | reading | artifact |
+|---|---|---|
+| gate lattices, board-material | **0 of 961, 0 of 1069, 0 of 1497** | `data/game-differential.json`, `data/game-differential.g1350.json`, `data/game-differential.g1950.json` |
+| gate lattices, undeclared narration | zero on all three | `data/game-differential.json`, `data/game-differential.g1350.json`, `data/game-differential.g1950.json` |
+| damage differential | **0 of 6000** at the midpoint and at every interior index | `data/engine-diff.json` |
+| roster items / abilities / moves | **148 of 148, 196 of 200, 496 of 497** | `data/roster.items.json`, `data/roster.abilities.json`, `data/roster.moves.json` |
+| mechanics staged | 0 diverge, 0 undeclared | `data/all-mechanics-fire.json` |
+| census | **1002 probed / 1002 live / 0 missing** | `data/mechanics-census.json` |
+| gate | **OPEN**, all ten clauses | `node engine/quarantine.js` |
+
+**AND THE HELD-OUT DRAW, WHICH IS THE SAMPLE THE GATE DOES NOT SEE.** It is written under
+`data/verification/`, which the documentation gate's citation matcher cannot bind a figure to — it
+matches `data/<name>.json` and nothing with a directory in it. So the readout is quoted rather than
+cited, and the command that reproduces it is above the digits:
+
+```
+$ node -e "const g=require('./data/verification/game-differential.g12000.json').state;
+           console.log(g.games, g.games_board_never_diverged, g.protocol_diverged_board_never_did)"
+7182 7182 75
+```
+
+The three numbers are the played games, the played games whose boards never parted, and the protocol
+divergences that never reached a board. The first two are equal, so **board-material is zero on a
+sample the gate's three lattices do not contain.**
+
+**THE WIDE SAMPLE AND THE GATE NOW AGREE, AND THAT IS THE LOAD-BEARING PART.** The whole-game clause reads a TEAM LATTICE, and a larger `--games` plays different teams rather than the same teams plus more — which is why the gate requires zero on three lattices and why a held-out draw is run beside them. On every previous release the held-out draw caught partings the three lattices could not see. It no longer does: the held-out readout above parts no board, and the three gate lattices read zero as well. **A zero that holds at one sample size is a fact about that sample; this one holds at four.**
+
+**WHAT ZERO DOES NOT MEAN.** Three things sit outside it, declared here rather than discovered later:
+
+- **Illusion is the one declared exclusion.** A small minority of frozen-pool sheets carry a legal
+  Illusion body, and about half of those actually brought it. The counts are a live derivation over an
+  untracked store file rather than a row in any `data/*.json`, so they are quoted below rather than
+  given a citation they do not have:
+
+  ```
+  # carriers DERIVED from the format, never typed:
+  #   Dex.forFormat('gen9championsvgc2026regmb')  ->  zoroark, zoroarkhisui
+  # counted over the frozen pool: data/team-pool-frozen/games.bo3.jsonl
+  games                                       13,214
+  sides (one player's team in one game)       26,428
+  sides whose brought-six list holds a carrier   452     = 1.71% of sides
+  ...of those 452, brought one into play         229
+  ```
+
+  **The figure this ledger published before today was wrong and is retracted, not softened.** It read
+  a sheet count over a GAME count — and there are two sheets per game — so the rate was inflated
+  roughly twofold, on top of being stale.
+- **Closed team sheets and bo1 are out of scope.** The population this engine is certified against is open-sheet bo3.
+- **7 live `lastMove` readings are a real unregistered class** — the authority keeps the CALLING move where this engine keeps the called one. Reported and not fixed, and it carries no register row.
+
+**WHAT THIS EDITION DOES NOT DO.** It does not re-run anything, it does not lift a figure back into print, and it does not estimate what a re-run would say. A withdrawn number returns when its generator is run on an engine that passes the gate, and not before.
 
 **CORRECTION, 2026-09-11 - THE GATE IS CLOSED AGAIN, SO THE DISTANCE TO IT IS NOT ZERO. THE 6.0.0 BLOCK BELOW IS DATED EVIDENCE; ITS "THE GATE IS OPEN", "NINE PASS" AND "NOW A DECISION RATHER THAN A GATE" ARE NOT TRUE TODAY.** `node engine/quarantine.js` at HEAD `bf2d594f`, `2026-09-11T12:21Z`, prints `GATE: CLOSED — 2 of 9 GATING clauses fail`. The failing clauses are the open-defect clause (`10 OPEN roadmap row(s) name an instrument that is RED`: ROADMAP #535, #529, #318, #348, #375, #380, #412, #425, #467, #511) and the staged-mechanics clause (`9 of 16 DIVERGING MECHANICS ARE PLAYED AND UNCLEARED`, all among the partings registered as ROADMAP #593–#600). It closed because instruments added after 6.0.0 see more, not because the engine got worse: CHANGELOG 6.13.0 gave twenty register rows a deciding probe, and CHANGELOG 6.14.0 put the staging planner inside the harness, raising staged mechanics that fired from 740 to 783 of 845. The defects those instruments see are real, and they were in the engine at 6.0.0. The pinned pool did not move: `data/game-differential.json` on release `aefcb93baf14` reads `state.games` 961 and `state.games_board_never_diverged` 961. The full account is at the head of `docs/ABRA-whitepaper.md`.
 
@@ -1014,185 +1074,118 @@ shape. A row deleted before stage 2 can never become a cell.
 
 ### The two gates in front of all of it
 
-- **MILTANK untimed vs MILTANK on the clock** is unanswered, and **31.6% of move decisions** were
-  measured as deferred under time pressure. "As many rollouts as time allows" is load-bearing.
+- **MILTANK untimed vs MILTANK on the clock** is unanswered. The deferred-decision share under time
+  pressure was withdrawn at 7.0.0 with the rest of the MILTANK family, so no rate is carried here;
+  "as many rollouts as time allows" remains load-bearing and is now unquantified.
 - **The rollout may not approximate anything.** Will: *"miltanks rollout needs to just play the game out
   on medicham and have it match showdown perfectly thats the whole point. miltanks just chooses the
-  actions."* The seed is the only place a correct simulator can still produce a wrong game — see
+  actions."* That condition is met as of 7.0.0 — the gate is OPEN and the head of this ledger carries the
+  readings. The seed is the only place a correct simulator can still produce a wrong game — see
   ROADMAP #244 and #245.
 
-**Games are short enough for stage 3 to reach real outcomes.** Measured on the open-sheet store,
-played-out games only (n=8,593): median **7** turns, 95.3% done by 12, **99.8% by 20** — the rollout
-horizon. So MILTANK can play to actual wins and losses, and the learned leaf evaluator (63.70% against
-60.28% for counting bodies and HP) is load-bearing only on the 0.2% tail. It is not a blocker for this
-design.
+**Games are short enough for stage 3 to reach real outcomes**, and the learned leaf evaluator against
+the count-bodies-and-HP baseline is the comparison that decides whether the tail matters. Both the
+game-length distribution quoted here and the leaf comparison were withdrawn at 7.0.0: the leaf
+comparison was measured through MEDICHAM and `data/leaf-comparison.json` declares itself unquotable
+once the leaf moves, which it has. Neither is restated. Re-running them is part of ROADMAP #57.
 
 ---
 
 ## DODUO — Doubles Optimiser: Decisions United, One turn (named 2026-07-28)
+
+**EVERY PUBLISHED DODUO FIGURE IS WITHDRAWN AT 7.0.0.** The head-to-head against coordination-zeroed,
+the held-out top-1 and log-likelihood of the three predictors, the double-target rates, the fitted pair
+weights and their signs, the collinearity and stability readings, the fallback counters, the corpus
+counts and the joint vector's length were all produced either by playing games on MEDICHAM or by
+fitting features computed through it. The engine has been corrected many times since every one of them
+was taken. **They are deleted, not captioned.** No size, no interval and no direction is carried, and
+none may be inferred from the absence.
+
+**What it consumed:** `engine/board.js` features (which call MEDICHAM for damage), human clicks matched
+by `engine/click_match.js`, and self-play games written by `engine/mew.js` through MEDICHAM.
+**The re-run is OWED** (ROADMAP #57): `node --max-old-space-size=4096 engine/fit_joint.js`, then a
+paired head-to-head against the `--joint-zero` control. Will sequenced the MAG refit AFTER this major,
+so nothing here was re-run to fill the gap.
+
 **Job:** score the PAIR of choices, not two choices separately. Named for the two heads on one body:
-two slots, one decision. 18 coordination features — `focusFireKills`, `redirectThenAttack`,
+two slots, one decision. Coordination features — `focusFireKills`, `redirectThenAttack`,
 `boostsPartnerDamage`, `speedSetupHelpsPartner`, `weatherSetupHelpsPartner`, `healsPartner`,
 `doubleKO`, `flinchThenSetup`, `screenWhileThreatened`, `spreadFreeBesideAlly`, and the rest.
+
 **Why it matters, and it is a strategic argument not a tidiness one (Will's):** a team must optimise
 for TEAM success, not individual Pokémon success. A policy that picks each slot independently can be
 set positions that REQUIRE coordination and will fail them every time — a repeatable hole rather than
 variance, and precisely what WOBBUFFET searches for.
-**I retired this earlier and was wrong.** The retirement rested on the double-target rate — MAG 24.6%
-against humans 23.2%. That metric touches **2 of the 18 features**. Judging a team-coordination model
-by a targeting statistic is judging a ninth of it.
-**TRAINABLE FOR WINNING SINCE 2026-07-31** (`ce5367c`). Every number below this line was fitted to
-predict a human click, including all 18 pair terms — the objective this project has measured as the
-binding constraint twice. `train_policy.js --joint` now moves the pair block by whether the game was
-**won**. The gradient of the pair softmax is the concatenation `[xa + xb, jf]`: the two single
-vectors summed (both are scored by the same single block `wS = wj.slice(0, 56)`), then the 18 pair
-terms. Vector length **76 = 58 + 18**, read off the joint weights artifact on 2026-08-06; its
-single-move block is the MAG weights' feature list **identically, all 58**. *(This read
-`74 = 56 + 18` until 2026-08-06. The single-move block grew by two features and the ledger did not
-follow. A vector length that is silently wrong is how a refit comes to be fitted against the wrong
-shape, so it is read from the artifact rather than remembered — and the artifacts are named in the
-**Code:** line below rather than here, because `engine/docs_scan.js` scopes a citation to its whole
-section and naming them mid-section put the retired 23.2% double-target figure, which no artifact
-holds, inside their orbit.)*
 
-**DODUO does not replace MAG, it CONTAINS it** — a question worth answering in the ledger because it
-is the natural one to ask (Will, 2026-08-06: *"SO WILL DODUO JUST TAKE OVER FROM MAG?"*). The first
-58 weights **are** MAG, applied to both slots by the same block; the 18 pair terms sit on top. Force
-those 18 to zero and the model measures **9.4%** against MAG's **10.1%** — the same player. MAG is
-still needed alone in three places and they are not edge cases: a **1v1**, where there is no partner
-and the 18 coordination features are meaningless (DUSK's entire territory); a **forced replacement**,
-which is one decision; and **GARY**, which samples one opposing Pokemon's move at a time. It is also
-the cheap filter — MAG scores ~8–16 options per slot where DODUO scores ~64–100 pairs, so the
-intended shape is MAG cutting the list and DODUO ranking what survives.
+**I retired this once and was wrong, and the reason survives the withdrawal of the number.** The
+retirement rested on a double-target rate, which touches two of the coordination features. Judging a
+team-coordination model by a targeting statistic is judging a fraction of it.
 
-Wiring notes that matter to anyone touching it: `--joint` is **per arm**, so a training run needs
-`--joint --joint2` and `mew.js` refuses `--learn` without the pair; each iteration's checkpoint
-reaches the players through `--joint-weights`, because magnemite otherwise re-reads the frozen
+**DODUO does not replace MAG, it CONTAINS it** (Will, 2026-08-06: *"SO WILL DODUO JUST TAKE OVER FROM
+MAG?"*). The single-move block of the joint vector **is** MAG, applied to both slots by the same block;
+the pair terms sit on top. Force the pair terms to zero and you are playing MAG. MAG is still needed
+alone in three places and they are not edge cases: a **1v1**, where there is no partner and the
+coordination features are meaningless (DUSK's territory); a **forced replacement**, which is one
+decision; and **GARY**, which samples one opposing Pokémon's move at a time. It is also the cheap
+filter — MAG scores options per slot where DODUO scores pairs, so the intended shape is MAG cutting the
+list and DODUO ranking what survives.
+
+**Wiring notes that matter to anyone touching it:** `--joint` is **per arm**, so a training run needs
+`--joint --joint2` and `mew.js` refuses `--learn` without the pair; each iteration's checkpoint reaches
+the players through `--joint-weights`, because magnemite otherwise re-reads the frozen
 `data/policy-weights-joint.json` and the pair terms never move; `preflight.js` reports `joint (pair
-terms)` as its own block, so a dead coordination layer reads as one cause rather than 18.
+terms)` as its own block, so a dead coordination layer reads as one cause rather than many.
 
-*Status: wired and gated, **not yet measured for winning**. Do not quote a win rate for trained
-DODUO — none exists.* First evidence it moves at all: two short self-play iterations moved
-`bothSameTarget`, `overkill` and `focusFireKills` most. Those are joint weights, so the values and
-their ranking are withheld with the joint weights (withdrawn 2026-09-11).
+**TRAINABLE FOR WINNING SINCE 2026-07-31** (`ce5367c`). Before that, every fitted value in it predicted
+a human click — the objective this project has twice measured as the binding constraint.
+`train_policy.js --joint` moves the pair block by whether the game was **won**. The gradient of the pair
+softmax is the concatenation of the two single vectors summed with the pair terms, and
+`accumulateLogitGrad(g, vecs, probs, j, nW)` is already generic over vector length. **Read the vector's
+length off the artifact, never off this page** — it has been stale here once, and a vector length that
+is silently wrong is how a refit comes to be fitted against the wrong shape.
 
-**Refitted 2026-08-02 on `engine/click_match.js`**, on clean games, split into train and held-out.
-**Its corpus counts are withheld** (withdrawn 2026-09-11). They were re-derived on 2026-09-10 from the
-blob that run wrote, commit `52645850`, which is a version of `data/policy-weights-joint.json`, and the
-matcher's kept-turn counts before and after the fix sit in `data/redirect-audit.json` and
-`data/collinearity-joint.json`; the gate withholds all three.
+**Status: wired and gated, NOT measured for winning.** Do not quote a win rate for trained DODUO; none
+exists that survives 7.0.0.
 
-It compared three predictors of which PAIR a human clicked — two moves decided separately (what MAG
-does), the refit with its joint terms forced to zero, and the refit with them — on held-out
-log-likelihood and top-1. Those figures are withheld with the joint weights, and so is which of the
-refit and the coordination terms carried the gain. All of it predicts a human click; it is
-not evidence the pair wins more games.
+**The wiring bug worth remembering, stated without its counters.** The first smoke test decided no pairs
+at all and fell back on every eligible turn while reporting nothing wrong — no games discarded, no
+error. The partner's options were read from the raw request rather than the reshaped list `chooseMove`
+receives, so every partner candidate parsed as unusable. A head-to-head at that point would have
+returned a coin and been reported as "coordination does not help". It was caught only because the
+fallback is COUNTED and printed. Fixed: the pair path now decides every eligible turn.
 
-**Stability was measured against the refit before it:** sign flips across the pair block, the
-vector's movement in L2 and the pair block's variance-inflation factors
-(`engine/collinearity_joint.js`). Those figures, and the verdict they supported, are withheld with
-`data/collinearity-joint.json` (withdrawn 2026-09-11).
+**The fitter defect worth remembering, same treatment.** `fit_joint.js` required a candidate's target to
+match the human's recorded target, and a spread candidate is built with `targetMon: null` because a
+spread move is not aimed — so **no spread click could ever match**, and the turns the coordination
+features describe were precisely the ones being discarded. Refitted, the affected weights changed sign.
+The before and after values, the discarded share and the corpus counts are withdrawn.
 
-**What the audit looked for** is the opposite failure — weights fitted on almost nothing, where a large
-coefficient rests on a feature that almost never fires among the enumerated alternatives. Which weights
-it found, their coefficients and their fire rates are withheld with the artifact.
-`data/collinearity-joint.json` records the fire rate beside every weight, because in a table of
-coefficients a barely-observed one looks identical to a well-supported one.
-**Now wired into `magnemite.js` for the first time** (`--joint`, off by default). It had never once
-been in the loop, so the project had never tested whether coordinated choice helps; retiring it would
-have closed a question that was never opened.
-**The wiring bug worth remembering:** the first smoke test decided **0 pairs and fell back 99 times**
-while reporting nothing wrong — 0 games discarded, no error. The partner's options were read from the
-raw request rather than the reshaped list `chooseMove` receives, so every partner candidate parsed as
-unusable. A head-to-head run at that point would have returned ~50% and I would have reported that
-coordination does not help. It was caught only because the fallback is COUNTED and printed. Fixed:
-100% of eligible turns now decided as a pair.
-**MEASURED 2026-07-28; THE RESULT IS WITHDRAWN 2026-09-11.** Coordination ON against coordination
-ZEROED — the entire pair path either way, same single weights, same top-K cap, same softmax over
-pairs, so the only difference is the coordination weights. The games were seed-paired, with a
-harness-fairness check beside them, and were played through the simulator. No artifact records the
-run, and CLAUDE.md quarantines every model report that reads a rollout, so the win rate, the
-decisive-pair share, the fairness check, the cuts by game length and first blood, and the KO and
-Protect rates are all absent rather than annotated.
+**What this does NOT settle.** Will's argument was about EXPLOITABILITY — that a bot choosing each slot
+independently can be set positions it fails every time. That is a claim about the worst case against a
+prepared opponent, not about the average, and a policy can be worse on average while being harder to
+counter. Nothing measured here tests it. `engine/exploit.js --target <weights.json>` can be pointed at
+DODUO; until that runs, the coordination question is open, not closed.
 
-**The explanation offered, and it is the same lesson MACHAMP taught.** These are IMITATION weights. The fit prices
-`spreadFreeBesideAlly`, `terrainSetupHelpsPartner` and `screenWhileThreatened` strongly negative, at
-lambda = 0 (re-derived 2026-09-10: the three `jointFeatures` weights in the fit of 2026-07-28, commit
-`c1566ee1`; the values are withheld with the joint weights, withdrawn 2026-09-11). Those are statements
-that humans rarely click those pairs, not that the pairs are bad — and a bot told to avoid a free spread
-move beside its own ally that strongly will decline its best plays. Predicting a human pair (the fit's
-held-out top-1 is withheld with the joint weights) and winning are different objectives, and this was offered as the cleanest separation of the two;
-the head-to-head it rested on is withdrawn above.
-
-> **WITHDRAWN 2026-08-01. All three of those numbers were a fitter defect, not a preference.**
-> `fit_joint.js` required the candidate's target to match the human's recorded target, and a spread
-> candidate is built with `targetMon: null` because Earthquake is not aimed — so **no spread click
-> could ever match**. Spread moves are 14.94% of all human move clicks and 1,393 of 1,397 were
-> discarded; the fit ran on ~~24,997 of 82,483~~ joint turns — struck 2026-09-10, those two counters are
-> `fit_joint.js` console output and no artifact records either, every revision of the joint weights file
-> checked — and the missing majority was precisely the turns
-> these three features describe. Refitted, all three change sign. Re-derived 2026-09-10 from the
-> `jointFeatures` entries of commit `b030ca03` (fit of 2026-07-31) and of commit `fc7e76ce`
-> (2026-08-01), both versions of the joint weights file, which the gate withholds; the before and after
-> values and the refit's turn count are withheld with it (withdrawn 2026-09-11).
->
-> The corrected vector was then played against the shipped one on two disjoint seed blocks. That
-> head-to-head went through the simulator and no artifact records it, so both decisive-pair shares
-> are withdrawn (2026-09-11), and so is any direction. What stands without it: the imitation fit was
-> not expressing a human preference against these three plays, it was never shown them.
->
-> **The broader claim is not settled here either.** That imitation and winning are different
-> objectives was argued from the greedy-selection head-to-head and from sign flips between the
-> resemble and win fits in `overkill`, `focusFireKills` and `partnerCoversMe`. The head-to-head is
-> withdrawn and the fits are withheld with the joint weights. What is retired is *these three features
-> as the illustration of it*, and DODUO's head-to-head, which was measured on the contaminated vector
-> and does not describe the current one.
-
-**What this does NOT settle.** Will's argument was about EXPLOITABILITY — that a bot choosing
-each slot independently can be set positions it fails every time. That is a claim about the
-worst case against a prepared opponent, not about the average, and a policy can be worse on
-average while being harder to counter. Nothing here tests it. `engine/exploit.js` now accepts
-`--target <weights.json>`, so WOBBUFFET can be pointed at DODUO for the first time. Until that
-runs, the coordination question is open, not closed.
-
-**The coordination features are not refuted either — the imitation fit of them is.** Refitting
-the 18 pair weights for WINNING rather than for resemblance (MACHAMP over the joint vector) is
-the untested version of this idea.
-
-**UPDATED 2026-07-30 — this is now roadmap item 1, and the gap is exact.** The evidence offered for it
-was four knowledge additions and two objective changes measured head to head that day (see
-MAGNEMITE); those results are withdrawn (2026-09-11). DODUO has only ever been fitted to the
-resemblance objective.
-The remaining work is wiring, not a new model:
-
-- `engine/train_policy.js` has **no joint support** at all.
-- `magnemite.js`'s learning gradient is sized to `this.w` (53 single weights), while the joint vector
-  is `this.wj` (53 + **21** pair weights — the list grew from 18). So self-play training cannot reach
-  the coordination weights.
-- The pair softmax is the same conditional logit, and `accumulateLogitGrad(g, vecs, probs, j, nW)` is
-  already generic over vector length.
-
-**Do choice-lock first.** `fit_policy.js` hands `candidates()` all four sheet moves with no legality
-filter, so a choice-locked human appears to have had ~9 options when they had 4 — the logit
-denominator contains actions that were never available, on **6.52%** of items. Both DODUO arms
-inherit that error today.
-
-**A trap already paid for once:** `fit_joint` fits its single block and its pair block TOGETHER, and
-23 of 48 features carry opposite signs between that fit and the shipped one. Mixing the two vectors
-was played head to head (its decisive-pair share is withdrawn, 2026-09-11) and would have been
-reported as "coordination does not help."
+**The coordination features are not refuted either — the imitation fit of them is.** Refitting the pair
+weights for WINNING rather than for resemblance (MACHAMP over the joint vector) is the untested version
+of this idea.
 
 **Already implemented, do not rebuild it:** top-K capping by single-move score, keeping the human's
 chosen pair regardless of rank so the fit cannot manufacture agreement, and reporting how often the
 chosen pair falls outside K. `--joint-zero` is a true control (whole pair path, coordination weights
 zeroed) and `stats.jointFellBack` counts degradation.
 
-**Measured cost of the pair path, on a real mid-game board (2026-07-30):** 9 × 8 = **72 joint
-actions** per side. Only **28 of 72** have a non-zero joint vector — the other 44 score exactly as the
-sum of two singles already computed. With two Pokémon the coordination graph is a single edge, so
-the MARL factorisation machinery (QMIX, QPLEX, Max-Plus) is unnecessary; what that literature does
-contribute is the reason independent scoring fails, since a monotonic factorisation cannot represent
-"Protect while my partner removes the threat."
+**On the structure rather than the size:** most joint actions on a real board score exactly as the sum
+of two singles already computed, and only a minority carry a non-zero joint vector. With two Pokémon the
+coordination graph is a single edge, so the MARL factorisation machinery (QMIX, QPLEX, Max-Plus) is
+unnecessary; what that literature does contribute is the reason independent scoring fails, since a
+monotonic factorisation cannot represent "Protect while my partner removes the threat."
+
+**Do choice-lock first.** `fit_policy.js` hands `candidates()` all four sheet moves with no legality
+filter, so a choice-locked human appears to have had more options than they had — a wrong denominator in
+the conditional logit. Both DODUO arms inherit that error today. The share it touches is withdrawn with
+the rest of the MAG corpus counts.
+
 **Code:** `engine/fit_joint.js` → `data/policy-weights-joint.json`; played via `--joint` in
 `engine/mew.js`.
 
@@ -1291,6 +1284,33 @@ than Pelipper plus Archaludon** — the same expressiveness failure as DODUO, on
 **The old verdict, kept because a prior conclusion is never silently rewritten.** Every preview-level model in this project sat at the same coin-flip ceiling — JOLTEON, preview roles, CHOMP-EV, and as of 3.2.0 WAR. The 2026-07-25 finding that the 55% skill ceiling was itself bot-contaminated (52.4% clean, CI includes 50) makes the ceiling lower than JOLTEON was built against, not higher. A low-rank non-transitive term would not change that. It survives only as a candidate shortlister for DITTO; it should make no win-probability claim anywhere.
 
 ## MEDICHAM — Matchup Evaluation, Damage-Informed CHOMP-Heuristic Approximate Moves
+
+**MECHANICS STATE, 7.0.0 — THE GATE IS OPEN, AND EVERY DATED BLOCK BELOW THIS PARAGRAPH IS HISTORY.** Read on engine release `0d7b1d9db6d1`, census pinned to `data/verification/census-pin-b6df14beff8d.json`, `--team-store data/team-pool-frozen`, `--steering empirical --arm middle --end-state`. The three gate lattices read board-material **0 of 961, 0 of 1069, 0 of 1497** across `data/game-differential.json`, `data/game-differential.g1350.json` and `data/game-differential.g1950.json`, with undeclared narration at zero on all three. `data/engine-diff.json` reads `compared` **6000** and `disagreed` 0 at the midpoint and at every interior index. `data/roster.items.json`, `data/roster.abilities.json` and `data/roster.moves.json` read **148 of 148, 196 of 200, 496 of 497** with FIRED-AND-BOARDS-DIFFER 0 and DID-NOT-FIRE 0 on all three. `data/all-mechanics-fire.json` stages every in-scope mechanic with 0 diverging and 0 undeclared. `data/mechanics-census.json` reads **1002** probed, **1002** live, 0 missing. `node engine/quarantine.js` prints **GATE: OPEN** on all ten clauses.
+
+**THE HELD-OUT DRAW IS QUOTED, NOT CITED**, because it is written under `data/verification/` and the documentation gate binds a figure only to a `data/<name>.json` path with no directory in it. Reproduce it and read it:
+
+```
+$ node -e "const g=require('./data/verification/game-differential.g12000.json').state;
+           console.log(g.games, g.games_board_never_diverged, g.protocol_diverged_board_never_did)"
+7182 7182 75
+```
+
+Every played game's boards held, so board-material is zero on a sample the gate's three lattices do not contain.
+
+**WHAT THE ZERO DOES NOT COVER, DECLARED HERE AND NOT DISCOVERED LATER.** **Illusion is the one declared exclusion.** The carriers are DERIVED from the format rather than typed, and the counts are a live derivation over an untracked store file, so they are a quoted readout rather than a citation:
+
+```
+# Dex.forFormat('gen9championsvgc2026regmb')  ->  zoroark, zoroarkhisui
+# counted over the frozen pool: data/team-pool-frozen/games.bo3.jsonl
+games                                       13,214
+sides (one player's team in one game)       26,428
+sides whose brought-six list holds a carrier   452     = 1.71% of sides
+...of those 452, brought one into play         229
+```
+
+**The share this ledger carried before today was wrong and is retracted rather than softened** — it divided a SHEET count by a GAME count, and there are two sheets per game, so it was inflated roughly twofold on top of being stale. **Closed team sheets and bo1 are out of scope**; the certified population is open-sheet bo3. And **7 live `lastMove` readings are a real unregistered class** — the authority keeps the CALLING move where this engine keeps the called one — reported, not fixed, and carrying no register row.
+
+**AND THE GATE BEING OPEN IS NOT THE SAME AS THE MODELS BEING TRUE.** Everything downstream of this entry becomes RE-RUNNABLE at 7.0.0 and nothing becomes true. The per-model entries below carry no figure for that reason; the re-run list is ROADMAP #57.
 
 **MECHANICS STATE, CORRECTED 2026-09-11 — THE GATE IS CLOSED. THE 6.1.0 PARAGRAPH BELOW ENDS "`node engine/quarantine.js` reports the gate OPEN"; THAT IS DATED EVIDENCE AND IS NOT TRUE TODAY.** At HEAD `bf2d594f`, `2026-09-11T12:21Z`, the same command prints `GATE: CLOSED — 2 of 9 GATING clauses fail`: the open-defect clause and the staged-mechanics clause. Both fail on instruments added after 6.0.0 (CHANGELOG 6.13.0 and 6.14.0), and the defects they see are real. The pinned pool did not move: `data/game-differential.json` on release `aefcb93baf14` reads `state.games` 961 and `state.games_board_never_diverged` 961. The account is at the head of this ledger.
 
@@ -1581,6 +1601,16 @@ independently of that fix.
 > Checking the claim was cheaper than acting on it.
 
 ## SLOWKING — Search over Learned Opponent-belief World, Knowledge-Intensive Nash Game-solver
+
+**7.0.0 — SLOWKING IS THE ONE MODEL WHOSE FIGURES SURVIVE THIS MAJOR, AND ONLY ITS PREVIEW HALF.** The
+team-preview Nash table below is solved over `data/guru-matchups.json`, a matchup matrix built from real
+ladder results. No simulator is anywhere in its path, so the correction of MEDICHAM does not touch it,
+and every value in it was re-verified field for field against `data/slowking-eval.json` in this pass.
+**Deleting a true cited figure would be as wrong as keeping a stale one**, so it stands. What does NOT
+stand is anything SLOWKING has ever been quoted for from a live position: the in-battle re-solve is not
+wired to the engine, it has no measured result, and any figure produced for it would be downstream of
+MEDICHAM and withdrawn with the rest.
+
 **PROMOTED 2026-08-06 (ADR-003): SLOWKING IS NO LONGER "THE PREVIEW SOLVER". IT IS THE SHAPE OF THE WHOLE AGENT.** `docs/POKER-TO-POKEMON.md` argued from theory that VGC is formally the same object as heads-up poker — two-player, zero-sum, imperfect-information — and that the solution concept is therefore a **mixed equilibrium, not a single best move**. VGC-Bench supplied the missing measurement: a compiled policy, trained on 700,000+ logs and PPO-tuned, that beats a Worlds competitor and is still **~100% exploitable**. So the equilibrium-and-re-solving machinery this model implements stops being one track among several and becomes the project's central claim. **The thesis is that a re-solving agent should be harder to exploit than a compiled one** — a learned policy *recalls*, a search *recomputes*, and a best-response exploiter attacks a fixed mapping that a per-turn re-solve does not present. **Whether that survives simultaneity, stochasticity and a ~6-turn horizon is UNKNOWN. It is the experiment, not the assumption**, and §4 of `docs/POKER-TO-POKEMON.md` is where the three known breaks in the analogy are written down.
 **Job:** the endgame — tell you the equilibrium-best move (and win %) on a live position.
 **Method:** the poker-AI stack (CFR → DeepStack → Libratus → ReBeL) adapted to VGC. `engine/slowking/`: `nash.py` (equilibrium, verified on RPS/2×2), `belief.py` (public-belief-state + Bayesian filter), `ismcts.py` (simultaneous-move regret matching, recovers exact Nash), `game.py` (engine interface), `solver.py` (team-preview Nash + continual re-solve → bring **mix** + win%), `value.py` (learned leaf evaluator).
@@ -1872,231 +1902,228 @@ not be quoted as evidence that species choice predicts outcomes.
 **Code:** `engine/mew.js` → `data/games.selfplay.jsonl` (gitignored, seed-reproducible, every record stamped `source:"selfplay"`). Viewer `web/mew.html`. Paper `docs/MEW-whitepaper.md`.
 
 ## MAGNEMITE (MAG) — Move Appraisal Grounded iN Effectiveness, Matchup, Immunity and Timing Estimates (added 2026-07-26)
+
+**EVERY PUBLISHED MAG FIGURE IS WITHDRAWN AT 7.0.0.** That is the whole fitted vector and everything
+computed from it: the weight values and their standard errors and confidence intervals, the feature
+count, the corpus counts, the held-out log-likelihood and top-1, the super-effective / failed-move /
+immune / Protect rates against the old policy and against humans, the opponent-model reductions, the
+switch-event counts, the unmatched-click rate and its causes, the click-censoring class shares, the
+covariate-shift distances and per-weight standard-error moves, and the `unknownSpecies` before-and-after
+share. Every one of them was measured through `engine/board.js`, which calls MEDICHAM for damage, or
+through games MEDICHAM played. **The engine has been corrected dozens of times since. They are deleted,
+not captioned** — no value, no interval, no direction, and no direction may be inferred from the
+absence.
+
+**And one of them was doubly stale, which is why a caption would not have been enough.** The three
+speed / screen / heal weights this entry printed did not match `data/policy-weights.json` on disk
+either: the published table had drifted from its own artifact as well as from the engine. A number that
+disagrees with the file it names is not a stale reading, it is a second source of truth.
+
+**What it consumed:** open-sheet human clicks matched by `engine/click_match.js`, boards reconstructed
+by `engine/board.js` (damage, speed order and survival all through MEDICHAM), and a conditional-logit
+fit in `engine/fit_policy.js`.
+**The re-run is OWED, and it is a REFIT rather than a RESTAMP** (ROADMAP #57). `data/policy-weights.json`
+was not touched in this release. The damage table underneath the fitted vector has been regenerated
+since the vector was fitted, so the feature FUNCTION's input changed; a restamp would answer the fixture
+gate, silence the table gate, and write over the evidence for the refit. `engine/feature_fixture.js
+--check` is the gate that says so. Will sequenced the refit AFTER this major, so it has not been run:
+`node engine/fit_policy.js`, then `node --max-old-space-size=4096 engine/fit_joint.js`.
+
 **Job:** decide a move by looking at the other side of the field, instead of by how popular the move is.
-**Why:** the behaviour clone answers only *what does this species usually click?* Two gaps followed and no prior-tuning could close them — super-effective moves at 9.7% against a real 21.4%, moves that outright failed at 9.7% against 2.5%. It also made every `build_lab` number a measurement of what beats **bad** play.
-**Method:** three files. `engine/board.js` reconstructs the state a decision was made against and turns (move, target) pairs into **58 features** (12 at 3.21.0); `engine/fit_policy.js` fits those features to real human clicks by **conditional logit** (McFadden 1974) over the fit corpus; `engine/magnemite.js` plays the fitted distribution inside the official engine. `mew.js --policy score`. **6.0.0 — THE CORPUS SIZES ARE STILL ABSENT, AND IT IS NOW A DECISION.** `data/policy-weights.json` is reserved for a refit sequenced AFTER 6.0.0 (Will, 2026-09-09), so `node engine/major_readiness.js` keeps it and every artifact that reads it on the STAY list. The games, decisions, train and held-out counts were taken through a simulator that no longer exists and are absent rather than captioned. They return when the owner asks for the refit: `node engine/fit_policy.js`. **CORRECTED 2026-09-11:** the gate is CLOSED again, so this is a gate as well as a decision — `data/policy-weights.json` is on the withheld list `node engine/quarantine.js` prints, and a refit alone does not make these counts quotable.
 
-> **Every figure in that line was corrected 2026-08-04 and none of them was a typo.** It read
-> an older fit's feature count and corpus counts. The artifact — `data/policy-weights.json`, generated
-> `2026-08-04T02:17:31Z` — carried a different feature count and corpus; both sets of counts are
-> withheld with the MAG weights (withdrawn 2026-09-11). The ledger was describing the fit before
-> last, and a second heading two screens down still said "56 FEATURES AS OF 3.29.0" while the method
-> line above it said 53, so the file disagreed with itself as well as with the artifact. This is the
-> drift `docs/MODELS.md`'s own header warns about, recurring in the entry for the model at the centre
-> of the refit. Quote `data/policy-weights.json`; it is one `corpus` object and it cannot drift.
+**Why:** the behaviour clone answers only *what does this species usually click?* Two gaps followed and
+no prior-tuning could close them — it under-clicked super-effective moves and over-clicked moves that
+outright failed, against what real players do. It also made every `build_lab` number a measurement of
+what beats **bad** play. The sizes of both gaps are withdrawn above.
 
-**REFITTED ON THE FOUR-CHANNEL SHEET, 3.40.0 (2026-08-04T23:37Z artifact).** Will's decision: open
-team sheets always; closed sheets deferred. *At that release* `data/policy-weights.json` read a
-corpus whose counts are withheld — **superseded by the 3.42.0 click-censoring refit below; this
-paragraph is the 3.40.0 record.** The 3.40.0 vector survives as
-`data/policy-weights-pre-censoring.json`, and `engine/quarantine.js` holds it as a key-for-key twin of
-the MAG vector (withdrawn 2026-09-11). `fitEnvironment.sheet_channels`
-= [nature, item, ability, moves]`, `matches_player: true`, and a **point-of-use reach counter** —
-the share of scored decisions on which the declared ability/moves arrived on the board is withheld
-with the fit — so the environment match was measured, not asserted. The two-channel incumbent is preserved
-(`data/policy-weights-presheet.json`) and frozen in release `d3d04b669e18` as arm A of the pending
-paired held-out comparison against its noise floor, withheld with `data/sheet-channel-value.json` (`engine/sheet_channel_value.js`,
-not yet run). **The JOINT (pair) layer is NOT yet refitted** — until it is, the pair layer prices
-against the two-channel board, and no improvement claim exists for either layer.
+**Method:** three files. `engine/board.js` reconstructs the state a decision was made against and turns
+(move, target) pairs into features; `engine/fit_policy.js` fits those features to real human clicks by
+**conditional logit** (McFadden 1974) over the fit corpus; `engine/magnemite.js` plays the fitted
+distribution inside the official engine. `mew.js --policy score`. **Read the feature count and the
+corpus off `data/policy-weights.json` when it is refitted, never off this page** — this entry carried a
+stale count twice, and a second heading contradicted its own method line for a week.
 
-**BOTH HALVES CLOSED, 3.41.0 (same night).** The joint layer is refitted on the four-channel sheet
-(`data/policy-weights-joint.json`) and the channel VALUE is now a measurement rather than an argument
-(`data/sheet-channel-value.json`, paired held-out decisions against the frozen two-channel incumbent).
-**EVERY FIGURE THIS ENTRY CARRIED IS QUARANTINED — withheld, not annotated.** Both artifacts are
-downstream of MEDICHAM: `engine/fit_joint.js` and `engine/sheet_channel_value.js` are in the play layer
-and reach `engine/medicham2-browser.js` through `require`. MEDICHAM is not correct —
-`node engine/status.js` names the failing clauses. So no turn count, no coverage counter, no held-out
-top-1, no logL effect, no interval and no noise floor is carried here, and no direction may be read out
-of the absence. They become quotable again when the gate opens AND these are re-run:
-`node --max-old-space-size=4096 engine/fit_joint.js` and `node engine/sheet_channel_value.js`.
+**Nothing in it is asserted.** Every "this move cannot work now" test reads a dex **data field** —
+`move.status`, `move.sideCondition`, `move.pseudoWeather`, `move.weather`, `move.stallingMove` — against
+tracked state. No move is named anywhere in `board.js`, so a new regulation needs no edit (S13). The
+weights are estimated, never typed, and the realism report is never consulted during fitting — it is
+held back as the out-of-sample check, because it stops being evidence the moment it becomes the
+objective.
 
-**THE OUTPLAYED TURNS ARE IN THE FIT NOW, AND THINGS THAT WERE IN IT ARE NOT — 3.42.0.**
-`docs/CLICK-CENSORING-FIX.md`, all four stages, artifacts `data/click-censoring-census.json`,
-`data/partial-label-em.json`, `data/censoring-value.json`.
+**Why open team sheets:** a choice model needs the **choice set**. A normal replay reveals only moves
+that were *used*, so alternatives reconstructed from revelation are biased by revelation itself. Open
+sheets publish all four moves of all six up front.
 
-**THE COUNTS IN THIS ENTRY ARE QUARANTINED — withheld, not annotated.** `data/policy-weights.json` (the
-FIT corpus) and `data/click-censoring-census.json` are both downstream of MEDICHAM: `engine/fit_policy.js`
-and `engine/click_census.js` are in the play layer and reach `engine/medicham2-browser.js` through
-`require`. MEDICHAM is not correct — `node engine/status.js` names the failing clauses. No action count,
-no game count, no per-class count and no share is carried here; the census sweeps more games than the
-fit because it reads every stored game while the fit takes only those it can build a board for, and its
-class shares held steady across every re-run as the store grew, but the shares themselves are absent.
-They become quotable again when the gate opens AND these are re-run: `node engine/fit_policy.js` and
-`node engine/click_census.js`.
+**Held out by GAME, never by decision** — decisions inside a game are correlated, so splitting by
+decision leaks. The held-out scores, the comparison against the behaviour clone alone and against
+uniform, and the in-sample check that it is not memorising are all withdrawn above.
 
-What is NOT withheld is the MECHANISM, because it is a fact about the protocol rather than a
-measurement: some recorded actions were never clicks — Encore application turns, where the move Encore
-forces out is on the victim's own menu so the matcher accepted it, and `|drag|` arrivals, which
-`engine/durable-ingest.js` stores with the same shape as a voluntary switch. All of them were being
-fitted as human choices. A further class is redirected attacks whose recorded target is the
-redirector; those are now fitted under the marginal likelihood over a two-member candidate set instead
-of as a confident wrong label.
+**Aiming was named as most of it.** `RandomPlayerAI` chooses which foe to hit with `prng.random(2)`
+*before* `chooseMove` is called, so the target was a coin flip however good the move choice was — and in
+doubles aiming is most of what "super effective" means.
 
-The refit's movement was read the same way — its L2 change, how many weights moved past two standard
-errors, and which moved most — and those figures are withheld with the MAG weights. The mechanism
-predicts that `stallIntoEncore` — "I am about to Protect and something across from me can Encore me
-for it" — should fall; whether it did is withheld with them.
+**It samples, it does not take the best move.** A greedy bot sails past humans on super-effective rate
+and is *less* human. Same argument as DEFENSE §2.
 
-**The measured value is withheld, with the figures it rested on** (withdrawn 2026-09-11).
-`engine/censoring_value.js` scored paired held-out decisions, bootstrapped over GAMES, on **COERCED**
-turns (probability left on the action no human chose), on **REDIRECTION** turns (mass and
-log-likelihood on the true candidate set) and on corpus top-1; the estimator's recovery of a planted
-censoring bias was checked separately. `data/censoring-value.json` and `data/partial-label-em.json`
-are both on the withheld list `node engine/quarantine.js` prints, so no sample size, effect, interval
-or verdict is carried here, and no direction may be inferred from the absence. They become quotable
-again when the gate opens AND these are re-run: `node engine/censoring_value.js` and
+**THE THREE CONDITION FEATURES, WHAT THEY ARE AND WHY THEY WORK — VALUES WITHDRAWN.** `data/tags.json`
+derives move tags with their parameters and `engine/tags.js` exists to load them; `board.js` read NONE
+of them, and most reached no consumer at all. The symptom Will spotted: MAG scored **Tailwind and
+Protect identically**, because the only things firing on a Tailwind click were `accuracy`, `isStatus`
+and `priorLogP`. There was no speed-control feature at all.
+
+| feature | fires when |
+|---|---|
+| `speedSwing` | it flips speed order IN MY FAVOUR; zero when already faster |
+| `screenValue` | it halves incoming damage AND something hits hard, graded by CATEGORY |
+| `healValue` | it heals me AND I am hurt; zero at full HP |
+
+Written as CONDITIONS rather than flags, and that is why they fired where an earlier batch of four flag
+features measured null: a bare "this is Tailwind" cannot help a one-ply scorer, because the payoff is on
+later turns. What one ply CAN see is whether the condition making it worth doing is true now.
+
+**CHOICE LOCK.** `fit_policy.js` handed `candidates()` all four sheet moves with no legality filter, so
+a choice-locked human appeared to have had more options than they had — a WRONG DENOMINATOR in the
+conditional logit. Live play was never affected (the request marks the rest `disabled`). After the
+refit, most switch features cleared zero and **switches started winning the argmax**, where before the
+refit `--switching` changed nothing at all. The affected share and the switch counts are withdrawn.
+
+**THE OPPONENT MODEL — job 2 of ALAKAZAM, off by default.** `incomingThreat` took a MAX, the foe's
+hardest available hit, and nine features are built on it. MAG assumed the foe always clicks a damaging
+move AND that it was the nastiest available; humans do neither. It is now an expectation weighted by
+P(their action), from the same weights — `candidates` and `featuresFor` already take `side`. **The bot
+stops panicking.** The measured rate, and the measured falls in `protectThreatened` and
+`diesBeforeMoving`, are withdrawn. It needs a refit before shipping, since nine features now mean
+something different.
+
+**THE CENSORING MECHANISM, WHICH IS A FACT ABOUT THE PROTOCOL AND NOT A MEASUREMENT.** Some recorded
+actions were never clicks — Encore application turns, where the move Encore forces out is on the
+victim's own menu so the matcher accepted it, and `|drag|` arrivals, which `engine/durable-ingest.js`
+stores with the same shape as a voluntary switch. All of them were being fitted as human choices. A
+further class is redirected attacks whose recorded target is the redirector; those are now fitted under
+the marginal likelihood over a two-member candidate set instead of as a confident wrong label (Cour,
+Sapp & Taskar 2011; `docs/CLICK-CENSORING-FIX.md`, artifacts `data/click-censoring-census.json`,
+`data/partial-label-em.json`, `data/censoring-value.json`). **Every count and share in that work is
+withdrawn**, including the measured value of the fix and the recovery of a planted censoring bias.
+Re-runs owed: `node engine/click_census.js`, `node engine/censoring_value.js`,
 `node engine/em_validation.js`.
 
-**Two changes to how the policy is USED, and four to what it knows, were measured head to head on
-2026-07-30** — taking the best move instead of sampling, self-play policy improvement
-(`engine/train_policy.js`, REINFORCE with a trust region), and four separate feature additions, with
-an overdispersion check across teams beside them. Every one was played through the simulator and no
-artifact records any of them, so the results, the check and the verdict drawn from them (that the
-objective, not the knowledge, is the binding constraint) are withdrawn (2026-09-11). DODUO's next
-test is still proposed as a retrain rather than more features.
+**Facts that reached one consumer and not the next (all fixed 2026-07-30), stated without their
+counters.** Every integrity bug found that day had one shape. Priority blocking sat in the tag artifact
+read by `clickFragility` alone, so **Sucker Punch beat a Farigiraf in every rollout ever run**. The
+sheet's item and ability reached `switchIn` but not `switchFeatures`, the path that actually chooses the
+switch. A switch-in's own ability never reached the estimate at all, so MAG weighed bringing Incineroar
+in against the foe's full Attack. Modelling the drop alone would have been *worse than modelling
+neither* (Intimidate into Kingambit is +2 Attack for them), so the whole three-stage drop pipeline runs:
+Contrary inverts, Clear Body deletes, Inner Focus / Own Tempo / Scrappy block Intimidate by name, Guard
+Dog converts to +1, Mirror Armor reflects, Defiant and Competitive retaliate. All derived by calling the
+dex's own handlers against a recording stub — no ability or weather is named in `board.js`.
 
-**Facts that reached one consumer and not the next (all fixed 2026-07-30).** Every integrity bug found
-that day had one shape. Priority blocking sat in the tag artifact read by `clickFragility` alone, so
-**Sucker Punch beat a Farigiraf in every rollout ever run**. The sheet's item and ability reached
-`switchIn` but not `switchFeatures`, the path that actually chooses the switch. A switch-in's own
-ability never reached the estimate at all: over 40,001 matchups, declaring `intimidate`, `drizzle` or
-`drought` moved the vector in **0** of them against a `levitate` control's 2,754 — so MAG weighed
-bringing Incineroar in against the foe's full Attack. Now 9,227 / 3,463 / 3,438. Modelling the drop
-alone would have been *worse than modelling neither* (Intimidate into Kingambit is +2 Attack for
-them), so the whole three-stage drop pipeline runs: Contrary inverts, Clear Body deletes, Inner
-Focus/Own Tempo/Scrappy block Intimidate by name, Guard Dog converts to +1, Mirror Armor reflects,
-Defiant and Competitive retaliate. All derived by calling the dex's own handlers against a recording
-stub — no ability or weather is named in `board.js`.
-**Nothing in it is asserted.** Every "this move cannot work now" test reads a dex **data field** — `move.status`, `move.sideCondition`, `move.pseudoWeather`, `move.weather`, `move.stallingMove` — against tracked state. No move is named anywhere in `board.js`, so a new regulation needs no edit (S13). The weights are estimated, never typed, and the realism report is never consulted during fitting — it is held back as the out-of-sample check, because it stops being evidence the moment it becomes the objective.
-**Why open team sheets:** a choice model needs the **choice set**. A normal replay reveals only moves that were *used*, so alternatives reconstructed from revelation are biased by revelation itself. Open sheets publish all four moves of all six up front.
-**Fit, held out by GAME** (decisions inside a game are correlated, so splitting by decision leaks): the held-out log-likelihood and top-1, the same against the behaviour clone alone and against uniform, and the in-sample comparison that checks it is not memorising are MAG fit figures, withheld with `data/policy-weights.json` (withdrawn 2026-09-11). The weights were identical across three iteration budgets.
-**Measured out of sample, in seed-matched battles against the previous policy:** the super-effective, failed-move, immune and Protect-type rates were each compared with the old policy and with real players, along with how many games survive the quality filter. They are a MAG model report on a withheld weight vector, no artifact records them, and they are withdrawn (2026-09-11).
-**Aiming was named as most of it.** `RandomPlayerAI` chooses which foe to hit with `prng.random(2)` *before* `chooseMove` is called, so the target was a coin flip however good the move choice was — and in doubles aiming is most of what "super effective" means.
-**It samples, it does not take the best move** — a greedy bot sails past 23.4% super-effective and is *less* human. Same argument as DEFENSE §2.
-**Two findings, both withheld with the vector.** How the behaviour clone alone compares with choosing uniformly at random as a model of human choice, how heavily the fit weights it, and which learned effects are largest all come from the withheld fit (withdrawn 2026-09-11).
-**58 FEATURES as of `data/policy-weights.json` 2026-08-04 (this heading read 56 and was stale; the
-three below are the large ones added at 3.29.0).** `data/tags.json` derives 96 move tags
-with their parameters and `engine/tags.js` exists to load them; board.js read NONE of them, and 72 of
-the 96 reached no consumer at all. The symptom Will spotted: MAG scored **Tailwind and Protect
-identically at −1.54**, because the only things firing on a Tailwind click were `accuracy`,
-`isStatus` and `priorLogP`. There was no speed-control feature in the 53.
+**Honest status / what it does NOT do.** It DOES decide switches (voluntary switches score through
+`switchFeatures`; the post-KO replacement is scored rather than rolled) and it DOES run a real damage
+calculation (`board.js` calls the damage engine throughout — `koTarget`, `killIsRoll`,
+`diesBeforeMoving` and the switch-survival features all read it). What remains true: it has **no model
+of the opponent's move** in the shipped default, so it cannot read a Protect or bait a switch; and it is
+**one ply, no search**. The weights are fitted on open-sheet games, which hedge less than closed ladder
+play, and a slice of clicks could not be matched to a candidate and was dropped —
+`data/policy-weights.json` records it under `matching.unmatched` and **that rate is withdrawn**. This
+line once read "~11% … mostly redirection (Follow Me, Rage Powder)"; both halves were wrong, measured by
+`engine/redirect_audit.js`. The real causes were a foe **switching in on the same turn**, an **in-battle
+forme change** with no sheet entry, and a **mirror collapsing the two team sheets** — all fixed in
+`engine/click_match.js`, which raised the slot-level match rate. Those shares and that rise are
+withdrawn with `data/redirect-audit.json`. Logit also assumes independence of irrelevant alternatives,
+which close-substitute moves violate; see DEFENSE §6.
 
-| feature | fires when | weight |
-|---|---|---|
-| `speedSwing` | it flips speed order IN MY FAVOUR; zero when already faster | **+0.983** [0.933, 1.032] |
-| `screenValue` | it halves incoming damage AND something hits hard, graded by CATEGORY | **+1.128** [1.031, 1.225] |
-| `healValue` | it heals me AND I am hurt; zero at full HP | **+2.220** [2.004, 2.436] |
+**Corpus:** three open-sheet sources, deduplicated by replay id, all through `quality.js` —
+**`data/games.bo3.jsonl`** (our own hourly scrape of `gen9championsvgc2026regmbbo3`, whose ruleset
+carries **Force Open Team Sheets**, so every game publishes all six sets), the small share of the closed
+ladder store where both players agreed to sheets, and the external VGC-Bench archive. Decisions kept and
+seen, games, and the dropped clicks by reason are recorded under `matching` in the artifact and are
+withdrawn here.
 
-Written as CONDITIONS rather than flags, and that is why they fired where 3.28.0's four additions
-measured null: a bare "this is Tailwind" cannot help a one-ply scorer, because the payoff is on later
-turns. What one ply CAN see is whether the condition making it worth doing is true now.
+**The damage table is the reason the re-run is a refit.** Rows have been added and moved since the fit;
+every row that moved is a mega or an in-battle forme, and `st`, `bs`, `t`, `item` and `ab` moved on zero
+rows. That was once argued to make a RESTAMP sufficient. It is not: the table the features are computed
+against is a different table, so the feature function's input changed. **A restamp is only valid if the
+feature FUNCTION is unchanged, and there is no version where the shortcut is fine.**
 
-**CHOICE LOCK (3.29.0).** `fit_policy.js` handed `candidates()` all four sheet moves with no legality
-filter, so a choice-locked human appeared to have ~9 options when they had 4 — a WRONG DENOMINATOR
-in the conditional logit, on 6.52% of items. Live play was never affected (the request marks the rest
-`disabled`). After the refit, six of eight switch features clear zero, and **switches now win the
-argmax**: greedy play went from 222 switch events per 60 games (all forced post-KO) to 239, where
-before the refit `--switching` changed nothing at all.
+**Covariate shift, corrected automatically.** Open-sheet TEAMS differ from closed-sheet teams far more
+than measured behaviour given a board does, so every refit re-estimates on a sample reweighted to the
+closed-sheet species mix and reports the shift **in standard errors**. The reweighted vector ships,
+since MEW draws its teams from the ladder store. Board-reading weights (`eff`, `immune`, `deadStatus`)
+did not move; `priorLogP` and `bp` did, and `bp` flipped sign. **Every distance and every
+standard-error move is withdrawn.**
 
-**THE OPPONENT MODEL — job 2 of ALAKAZAM, off by default (3.29.0).** `incomingThreat` took a MAX, the
-foe's hardest available hit, and nine features are built on it. Measured: the foe's lead clicks a
-damaging move **52.9%** of the time and MAG assumed 100% AND assumed it was the nastiest. Now an
-expectation weighted by P(their action), from the same weights — `candidates` and `featuresFor`
-already take `side`. Across 44 boards `protectThreatened` fell 84%, `diesBeforeMoving` 78%. **The bot
-stops panicking.** Needs a refit before shipping, since nine features now mean something different.
-
-**Honest status / what it does NOT do — REWRITTEN 2026-07-30, because two of the four claims here had
-become false and were being quoted as current.** It DOES now decide switches (voluntary switches
-score through `switchFeatures`; the post-KO replacement is scored rather than rolled) and it DOES run
-a real damage calculation (`board.js` calls the damage engine throughout — `koTarget`, `killIsRoll`,
-`diesBeforeMoving` and the switch-survival features all read it). What remains true: it has **no
-model of the opponent's move**, so it cannot read a Protect or bait a switch; and it is **one ply, no
-search**. The weights are fitted on open-sheet games, which hedge less than closed ladder play, and a slice of clicks could not be matched to a candidate and was dropped — `data/policy-weights.json` records it under `matching.unmatched`, and **that rate is QUARANTINED: withheld, not annotated**, because the artifact is downstream of MEDICHAM (`engine/fit_policy.js` reaches `engine/medicham2-browser.js` through `require`). It becomes quotable again when the gate opens AND this is re-run: `node engine/fit_policy.js`. This line used to read "~11% … mostly redirection (Follow Me, Rage Powder)". **Both halves were wrong**: redirection is a small minority of the unmatched rather than most of it, measured 2026-08-02 by `engine/redirect_audit.js`, and the rate fell sharply — the shares are withheld with the artifact, and `data/redirect-audit.json` is withheld on the same grounds. The real causes were a foe **switching in on the same turn** (44.4%), an **in-battle forme change** with no sheet entry (19.7%), and a **mirror collapsing the two team sheets** (16.4%) — all fixed in `engine/click_match.js`, which took the slot-level match rate from 87.2% to 97.2%. Redirection's true cost is a *mislabelled* target, and at 3.42.0 it stopped being unrecoverable and started being HONEST: the click is not recovered — the protocol still records only a move's resolved target — but the turn now enters the fit as a PARTIAL LABEL over the two live foes rather than as a certainty on the redirector (Cour, Sapp & Taskar 2011; `docs/CLICK-CENSORING-FIX.md`). The size of that class is withheld with the rest of the fit corpus. Logit also assumes independence of irrelevant alternatives, which close-substitute moves violate; see DEFENSE §6.
-**Corpus (as of 3.21.0):** three open-sheet sources, deduplicated by replay id, all through quality.js — **`data/games.bo3.jsonl`** (our own hourly scrape of `gen9championsvgc2026regmbbo3`, whose ruleset carries **Force Open Team Sheets**, so every game publishes all six sets), the ~1% of the closed ladder store where both players agreed to sheets, and the external VGC-Bench archive. The corpus counts — decisions kept and seen, games, and the dropped clicks by reason (unmatched, trivial, ambiguous), recorded under `matching` — are MAG's and are withheld with `data/policy-weights.json` (withdrawn 2026-09-11). The unmatched count would otherwise restate the rate withheld one line up.
-**Damage table, restated 2026-09-03:** the table holds **322** rows today. The paragraph immediately
-below is the 2026-08-02 record and is left exactly as written rather than rewritten in place. What
-has happened since is settled at 5.241.0 above: every row that moved is a mega or an in-battle forme,
-`st`, `bs`, `t`, `item` and `ab` moved on **zero** rows, and the growth does **not** reach this fit —
-the verdict is a RESTAMP, not a refit, and neither has been run. Read that entry, not this line, for
-the argument and the bound.
-**Damage table:** 318 species. Eight had no row and therefore computed **zero damage, zero threat and
-zero risk** until 2026-08-02 — five format megas (Victreebel, Feraligatr, Skarmory, Barbaracle,
-Falinks) whose data existed but was gated behind a stale `in_our_store` flag, plus Aegislash-Blade,
-Palafin-Hero and Gourgeist's size formes, which need real rows because their stats differ from their
-base so the cosmetic fallback correctly refuses to substitute. `board.dmgMon.unknownSpecies` measured
-**6.16% → 0.00%** of candidate scorings; it had read 0.00% for weeks only because its workload was
-120 replayed games, in which an in-battle forme change never reaches a scored position.
-**Covariate shift, corrected automatically:** open-sheet TEAMS differ from closed-sheet teams by 551.9 points of total absolute species difference (`engine/corpus_shift.js`), while measured behaviour given a board differs by at most 1.49. Every refit re-estimates on a sample reweighted to the closed-sheet species mix and reports the shift **in standard errors**. Five weights move materially — `priorLogP` 10.8 SE, `bp` 6.2 SE (sign flips) — so the **reweighted vector ships**, since MEW draws its teams from the ladder store. Board-reading weights (`eff`, `immune`, `deadStatus`) do not move.
-**Code:** `engine/board.js`, `engine/fit_policy.js`, `engine/magnemite.js`, `engine/corpus_shift.js` → `data/policy-weights.json` (both weight vectors, standard errors, and which shipped). Six assertions in `engine/selftest.js` under "board reading".
+**Code:** `engine/board.js`, `engine/fit_policy.js`, `engine/magnemite.js`, `engine/corpus_shift.js` →
+`data/policy-weights.json` (both weight vectors, standard errors, and which shipped). Six assertions in
+`engine/selftest.js` under "board reading".
 
 ## MILTANK — the search player (named 2026-08-03; added to this ledger 2026-08-04)
 
-**6.0.0 — WITHHELD, AND IT STAYS WITHHELD THROUGH THIS MAJOR.** MILTANK is paused beside the MAG refit, so `data/search-decision-profile.json` (`engine/miltank.js`) is on `major_readiness.js`'s STAY list and was not re-run. Every figure below that reads a MILTANK run is absent, not captioned.
-**Job:** decide by playing the position forward, instead of by scoring it once. MILTANK owns the
-bring, the lead, the mega timing and the post-KO replacement.
-**Why it is a separate model and not a MAG setting:** MAG scores an ACTION against the board in front
-of it. That is a one-ply question, and the four decisions above are not one-ply questions — a lead is
-a bet about turn three. Search is the only thing that can price it.
+**EVERY PUBLISHED MILTANK FIGURE IS WITHDRAWN AT 7.0.0, AND SO IS EVERY RUNG BELOW IT.** R1 (leaf
+accuracy), R2 (leaf cost), R3 (divergence), R4 (the head-to-head and its SPRT), the search-decision
+profile and the deferred-decision share under time pressure were all produced by MEDICHAM playing games.
+The engine has been corrected dozens of times since. **They are deleted, not captioned** — no rate, no
+interval, no sample size, no stopping point, and no direction may be inferred from the absence.
+
+**What it consumed:** `engine/rollout_leaf.js` playouts on MEDICHAM, scored by MAG's weights through
+`engine/board.js`, with GARY as the opponent inside the search.
+**The re-run is OWED** (ROADMAP #57). MILTANK is paused beside the MAG refit — Will sequenced both AFTER
+this major — so `data/search-decision-profile.json`, `data/rollout-r1-explore1.json`,
+`data/rollout-cost.json`, `data/rollout-r3.json` and `data/rollout-r4.json` were not re-run and nothing
+was published in their place.
+
+**Job:** decide by playing the position forward, instead of by scoring it once. MILTANK owns the bring,
+the lead, the mega timing and the post-KO replacement.
+
+**Why it is a separate model and not a MAG setting:** MAG scores an ACTION against the board in front of
+it. That is a one-ply question, and the four decisions above are not one-ply questions — a lead is a bet
+about turn three. Search is the only thing that can price it.
+
 **Named for Rollout**, which is the move that gets stronger the longer it is allowed to continue. The
 name is a description of the method, not a pun applied afterwards.
-**Result (R4): WITHHELD — QUARANTINED, 2026-08-22.** The head-to-head rate, its decisive-pair count,
-its CI, its game and seed-pair counts and its SPRT stopping point were all read from
-`data/rollout-r4.json`, which `engine/rollout_r4.js` builds from `games.r4-decided.jsonl` — a dump of
-games MEDICHAM played. `node engine/status.js` reports it **QUARANTINED: the figure is withheld, not
-annotated**, and the same run marks every R4 game file `PRE-CHANGE` because the engine source moved
-after the games were played. The figures are cut, not captioned: CLAUDE.md says printing a quarantined
-number with a caveat is the bug, and a `PRE-CHANGE` standing note is exactly the caption that rule
-forbids. They become re-runnable, not true, when the gate opens. Artifact `data/rollout-r4.json`; read
-it with `node engine/sprt.js data/games.r4-decided.jsonl`.
 
-**Four things about that measurement that do not depend on its value, and so survive the withholding:**
+### Four things about those measurements that do not depend on their values, and so survive the withdrawal
+
 - **The n was wrong everywhere it was quoted until 2026-08-04.** `games.r4-decided.jsonl` records every
-  id twice — a record plus a log-only companion — so the line count is not the game count. The
-  generator now asserts the id-twice and seed-twice invariants and refuses to write without them.
-- **The point estimate is biased high.** The run stopped at an SPRT boundary. The verdict carries the
-  error rate; a point estimate taken at a bound does not, and a fixed-n CI beside it is context rather
-  than inference. **Never read an interim SPRT, and never publish a p-value computed as though n were
-  fixed in advance.**
-- **No A/A noise floor exists for this comparison.** Three split-half cuts stand in for one and are
-  labelled a substitute, not a floor. An effect smaller than the spread between two halves of one arm
-  is not an effect.
-- **`player_digest.js` reports SAME PLAYER AS NOW** — what moved was simulator mechanics, not the
-  model. That makes transfer to the current build a reasonable assumption and leaves it an assumption.
+  id twice — a record plus a log-only companion — so the line count is not the game count. The generator
+  now asserts the id-twice and seed-twice invariants and refuses to write without them.
+- **A point estimate taken at an SPRT boundary is biased high.** The verdict carries the error rate; the
+  point estimate does not, and a fixed-n CI beside it is context rather than inference. **Never read an
+  interim SPRT, and never publish a p-value computed as though n were fixed in advance.**
+- **No A/A noise floor existed for that comparison.** Three split-half cuts stood in for one and were
+  labelled a substitute, not a floor. **An effect smaller than the spread between two halves of one arm
+  is not an effect**, and the re-run owes a real floor rather than a substitute.
+- **`player_digest.js` reported SAME PLAYER AS NOW** — what moved was simulator mechanics, not the model.
+  That made transfer to a later build a reasonable assumption and left it an assumption. 7.0.0 declines
+  the assumption: transfer is not a measurement.
 
-**Earlier rungs: R1, R2 and R3 are QUARANTINED and their figures are withheld on the same grounds** —
-`data/rollout-r1-explore1.json`, `data/rollout-cost.json` and `data/rollout-r3.json` are each downstream
-of MEDICHAM and each named by `node engine/status.js` as withheld. R1's verdict of **NOT ESTABLISHED**,
-corrected 2026-08-04, is a verdict rather than a figure and stands.
+### What the earlier rungs taught about their own instruments, which is not a figure
 
 R1's published PASS was prose only: `engine/rollout_r1.js` printed it and wrote no artifact, while
 `data/rollout-r1.json` held the *withdrawn* cross-language join and `engine/status.js` read that.
-Recomputed from the one committed input, `data/rollout-r1-rows.jsonl`, the gate is **UNDECIDED**. The
-material column matches the published one exactly, so it is the same sample; the rollout column
-reproduces the *greedy* calibration table in `docs/ROLLOUT-design.md` §4.2.1 bin-for-bin, so the
-surviving dump is the `explore=0` incumbent and **the published PASS cannot be recomputed from
-anything committed**. The dump stamps no `N`, no `explore` and no build digest, which is why the two
-runs were indistinguishable; `rollout_r1.js` now writes `data/rollout-r1-rows.meta.json` beside every
-dump. Artifact `data/rollout-r1.json` (`engine/rollout_r1_artifact.js`); the withdrawn join is
-preserved at `data/rollout-r1-withdrawn-join.json` with `withdrawn: true`. **The accuracy figures on
-both sides of that comparison are withheld here** — quarantined with the rest of the rollout family —
-and the verdict UNDECIDED is what the paragraph is for.
+Recomputed from the one committed input, `data/rollout-r1-rows.jsonl`, the gate came back **UNDECIDED**;
+the material column matched the published one exactly, so it is the same sample, while the rollout column
+reproduced the *greedy* calibration table bin for bin — so the surviving dump is the `explore=0`
+incumbent and **the published PASS cannot be recomputed from anything committed**. The dump stamped no
+`N`, no `explore` and no build digest, which is why the two runs were indistinguishable; `rollout_r1.js`
+now writes `data/rollout-r1-rows.meta.json` beside every dump. The withdrawn join is preserved at
+`data/rollout-r1-withdrawn-join.json` with `withdrawn: true`. **R1's verdict of NOT ESTABLISHED is a
+verdict rather than a figure and stands.**
 
-R2 and R3 had the same hole and were stamped 2026-08-04 through `engine/run_stamp.js`, one shared
-implementation rather than a third copy. Both published numbers reproduce as arithmetic and neither
-reproduction carries weight: **R3's rate is recomputed from two fields in its own file**, with no
-per-decision rows behind it, and **R2's timings cannot be recomputed by anyone** — a duration is a
-fact about a machine under a load and no per-leaf sample was dumped. Both rates are withheld here for
-the quarantine reason above; that they reproduce only as arithmetic on themselves is the finding, and
-it does not need the values.
+R2 and R3 had the same hole and were stamped through `engine/run_stamp.js`, one shared implementation
+rather than a third copy. Both published numbers reproduce as arithmetic and neither reproduction carries
+weight: **R3's rate is recomputed from two fields in its own file**, with no per-decision rows behind it,
+and **R2's timings cannot be recomputed by anyone** — a duration is a fact about a machine under a load
+and no per-leaf sample was dumped.
 
-Two findings outrank the plumbing. **R3's noise floor was computed, printed and never written**, and
-the script's own verdict branches on it (`rate <= floor` → NOT A RESULT), so the committed artifact
-cannot say which branch its run took; the floors published in `docs/ROLLOUT-design.md` §5 belong to
-four earlier runs, and at N=20 the floor measured *higher* than the divergence. **R2 timed
-`explore=0` at `maxTurns=20`** by inheriting two library defaults, while MILTANK's in-game leaf is
-`explore=1.0` at `maxTurns=60` — the affordability table rests on the cost of a leaf the bot does not
-run. Separately, `data/rollout-r3.json`'s caveat claimed switches were excluded; commit `b4ec80b` put
-them on the menu and left the string alone.
+Two findings outrank the plumbing. **R3's noise floor was computed, printed and never written**, and the
+script's own verdict branches on it (`rate <= floor` → NOT A RESULT), so the committed artifact cannot
+say which branch its run took; at the smallest budget tried, the floor measured *higher* than the
+divergence. **R2 timed the wrong leaf**: it inherited two library defaults and timed `explore=0` at a
+short turn cap, while MILTANK's in-game leaf is `explore=1.0` at `maxTurns=60` — so the affordability
+table rested on the cost of a leaf the bot does not run. Separately, `data/rollout-r3.json`'s caveat
+claimed switches were excluded; commit `b4ec80b` put them on the menu and left the string alone.
+
 **Code:** `engine/miltank.js`, `engine/rollout_r4.js`, `engine/sprt.js`, `engine/paired_h2h.js`.
 Division ledger: `docs/SEARCH.md`. Paper: `docs/MILTANK.md`.
 
@@ -2113,7 +2140,8 @@ Division ledger: `docs/SEARCH.md`. Paper: `docs/MILTANK.md`.
 
 **Will, 2026-09-08: *"make sure that miltank knows there are such things as speed ties that we need to
 explore both branches"*** — and then, on being told MEDICHAM comes first: *"just add it to miltank notes
-that we can review once medicham is done."* **Recorded, deliberately not actioned.**
+that we can review once medicham is done."* **Recorded, deliberately not actioned. MEDICHAM's gate is
+now open, so this is due.**
 
 **The evidence that it does not branch, such as it is:** a grep for `speed tie`, `speedTie`, `tieBranch`
 and `tie.*branch` across `engine/miltank.js`, `engine/rollout_leaf.js` and `engine/board.js` returns
@@ -2125,26 +2153,33 @@ must actually read the resolution path before this is treated as established.
 tie for MEASUREMENT so the two engines resolve a tied group the same way. **This is the opposite
 concern.** In real play a speed tie is a **BRANCH, not a die**: both orders are live and a search that
 samples one at random is planning against a coin it does not control. **A determinism introduced for the
-differential must never leak into the player** — that would be a far worse defect than the three games
-#376 closes, and it would be invisible, because a player that always wins ties looks like a player that
-is simply doing well.
+differential must never leak into the player** — that would be a far worse defect than the games #376
+closes, and it would be invisible, because a player that always wins ties looks like a player that is
+simply doing well.
 
 **What to check when this is picked up:** whether the rollout resolves a tie by sampling, and if so
 whether MILTANK's value for that action is an average over both orders or a single draw. **An average
 over one sample is not an average.**
 
 ## GARY — the opponent inside the search (named 2026-08-06)
+
+**NO GARY FIGURE IS PUBLISHED AT 7.0.0.** GARY is a setting inside the rollout, so every number ever
+quoted beside it — the aiming rate, the decisions-per-leaf estimate and the game-length it rests on —
+came out of games MEDICHAM played or out of `engine/board.js`. They are deleted rather than captioned.
+GARY has never had a verdict of its own in any case: **NOT MEASURED**, and the re-run that would give it
+one is part of ROADMAP #57.
+
 **Job:** decide what the OTHER side clicks on every turn of an imagined game. MILTANK ranks a move by
-imagining the rest of the battle ~200 times and counting wins; GARY is whoever plays the foe in those
-imagined battles. It answers an ACTION-shaped question, so it is a MAG relative and deliberately
-**not** a member of the PORY value-function family — those score a POSITION with no action attached,
-and mixing the two would be the category error `CLAUDE.md` names.
+imagining the rest of the battle many times and counting wins; GARY is whoever plays the foe in those
+imagined battles. It answers an ACTION-shaped question, so it is a MAG relative and deliberately **not**
+a member of the PORY value-function family — those score a POSITION with no action attached, and mixing
+the two would be the category error `CLAUDE.md` names.
 
 **Why it is named at all.** It had no name, and *a capability that cannot prove it ran is assumed
 broken* needs something to be missing under. Naming it makes its counter, its artifact stamp and its
 ledger row obligatory.
 
-**Method:** a `foePolicy` setting read by `engine/rollout_leaf.js:289` inside `runPlayout`, with two
+**Method:** a `foePolicy` setting read by `engine/rollout_leaf.js` inside `runPlayout`, with two
 implementations:
 
 | setting | what it does |
@@ -2153,38 +2188,40 @@ implementations:
 | `'prior'` | draws weighted by `pickByPrior` over `data/move-priors.json` — what that species really clicks |
 
 **Honest status: BUILT AND SWITCHED OFF, and four things are wrong with it. NOT MEASURED.**
-1. **The default is the coin, in the library and in the live bot** —
-   `engine/miltank.js:455 DEFAULTS = { ... foePolicy: 'uniform' }` and
-   `engine/mag_bot.js:173 arg('miltank-foe', 'uniform')`. The `'prior'` path is wired end to end and
-   nothing turns it on. (task #32)
-2. **The flag steers BOTH sides.** `rollout_leaf.js:302-303` applies the same `pick` to `S.actA` and
-   `S.actB`, so one setting governs the search's model of itself and of the opponent. The name is
-   wrong and the two must be split before any "better opponent" result is interpretable. (#34)
-3. **The target is drawn uniformly in both settings** (`rollout_leaf.js:290`). `'prior'` fixes *which
-   move* and never *who it hits* — and `board.js:377` already records humans aiming both attacks at
-   the same foe 23.4% of the time against ~50% for independent choice. (#35)
-4. **GARY has two seats and they disagree.** `rolloutAfterActions`'s own comment: *"The opponent is
-   NOT modelled. It plays chooseAction during the stepped turn."* Deterministic greedy on the turn
-   being ranked, a coin on every turn after. (#36)
+
+1. **The default is the coin, in the library and in the live bot** — `engine/miltank.js`'s `DEFAULTS`
+   carries `foePolicy: 'uniform'` and `engine/mag_bot.js` passes `arg('miltank-foe', 'uniform')`. The
+   `'prior'` path is wired end to end and nothing turns it on. (task #32)
+2. **The flag steers BOTH sides.** `rollout_leaf.js` applies the same `pick` to `S.actA` and `S.actB`,
+   so one setting governs the search's model of itself and of the opponent. The name is wrong and the
+   two must be split before any "better opponent" result is interpretable. (#34)
+3. **The target is drawn uniformly in both settings.** `'prior'` fixes *which move* and never *who it
+   hits* — and `board.js` already records that humans aim both attacks at the same foe far more often
+   than independent choice would. That rate is withdrawn with the MAG corpus counts. (#35)
+4. **GARY has two seats and they disagree.** `rolloutAfterActions`'s own comment: *"The opponent is NOT
+   modelled. It plays chooseAction during the stepped turn."* Deterministic greedy on the turn being
+   ranked, a coin on every turn after. (#36)
 
 **And no artifact records which GARY ran.** `data/rollout-r1.json` and
-`data/rollout-r1-explore-sweep.json` carry no `foePolicy` key at all. Neither R1's leaf verdict nor
-R4's head-to-head can therefore say whether their opponent was a person or a coin. That is not a
-retraction — the arms were paired and each comparison is internally valid — but neither result can be
-transferred to a run whose GARY differs, and nothing currently prevents that transfer. (#33)
+`data/rollout-r1-explore-sweep.json` carry no `foePolicy` key at all. Neither R1's leaf verdict nor R4's
+head-to-head could therefore say whether their opponent was a person or a coin. That was never a
+retraction of those runs — the arms were paired and each comparison was internally valid — but neither
+result transfers to a run whose GARY differs, and nothing prevented that transfer. Both are withdrawn at
+7.0.0 on the engine-bytes ground anyway, and the missing stamp is a defect the re-run must fix first.
+(#33)
 
 **What it is not, corrected in the same pass.** The objection *"MAG cannot be sampled because it is
-deterministic"* is **false**: `greedy=false` already draws from a softmax and `magnemite.js:217` calls
-it *"the single biggest measured lever in the project."* The real obstacle to GARY-as-MAG is the
-`board.js` ↔ MEDICHAM translation, which happens once per imagined game today and would have to
-happen every turn — and which **has never been measured** (#39). At a measured median game length of
-6 turns a leaf evaluation is ~5,600 decisions, not the ~48,000 a 60-turn cap implies, so this is an
-open question rather than a closed one.
+deterministic"* is **false**: `greedy=false` already draws from a softmax and `magnemite.js` calls it
+*"the single biggest measured lever in the project."* The real obstacle to GARY-as-MAG is the
+`board.js` ↔ MEDICHAM translation, which happens once per imagined game today and would have to happen
+every turn — and which **has never been measured** (#39). The cost estimate once given for it was read
+off a median game length measured through the simulator and is withdrawn, so this is an open question
+with no sizing attached.
 
 **Code:** `engine/rollout_leaf.js` (`runPlayout`, `pickByPrior`, `rolloutAfterActions`),
 `engine/miltank.js`, `engine/mag_bot.js`, reading `data/move-priors.json`.
 **Related:** MOVE PRIORS is GARY's current brain and is *board-blind* by construction —
-`engine/paired_h2h.js:165` describes it as *"behaviour clone — clicks what people click, blind to the
+`engine/paired_h2h.js` describes it as *"behaviour clone — clicks what people click, blind to the
 board."* A board-aware GARY is unbuilt.
 
 ## DUSK — the endgame tablebase (scoped 2026-08-06, unbuilt)
@@ -2277,36 +2314,43 @@ one Smogon publishes — this is **P(move | action)**, Smogon's is **P(move is O
 the MAG browser bundle `data/mag.js`.
 
 ## PORYGON2 — nearest-neighbour value function (added to this ledger 2026-08-04)
-**Job:** score a POSITION — given a board with no action attached, how likely is this side to win.
-It is the other candidate leaf beside `rolloutWinProb`, and the model `docs/POKER-TO-POKEMON.md` §7
-proposes training on self-play and calibrating on humans.
-**Method:** `engine/porygon2.py` embeds each position in **17 features** — material
-(`alive_diff`, `hp_active_diff`, `hp_total_diff`, `my_alive`, `foe_alive`, `turn`), state
-(`status_diff`, `boost_diff`, `tailwind_diff`, `screen_diff`, `hazard_diff`, `trickroom`,
-`weather_on`, `terrain_on`) and matchup (`matchup_edge`, `speed_edge`, `type_threat`) — and looks up
-the k nearest neighbours. No weights are fitted; it is a lookup.
-**Corpus:** **trained on self-play games, evaluated on held-out clean HUMAN ladder games** (all four
-counts withheld). Generated **2026-07-28**. **WITHHELD SINCE 2026-09-11:** the self-play is
-`data/games.selfplay.porygon2.raw-logs.jsonl`, which `engine/mew.js` wrote by playing MEDICHAM, so
-every PORYGON2 artifact is downstream of the simulator; `engine/quarantine.js` now reads Python
-generators for the dumps they read.
 
-Four arms were scored — a coin, the **material sign** (the baseline that matters), a plain
-nearest-neighbour lookup and a distance-weighted one — and every accuracy, Brier score and log-loss
-among them is withheld with `data/porygon2.json`.
+**EVERY PORYGON2 FIGURE IS WITHDRAWN AT 7.0.0.** The four arms' accuracies, Brier scores and log-losses,
+the k-sweep, the feature count and the corpus counts all rest on
+`data/games.selfplay.porygon2.raw-logs.jsonl`, which `engine/mew.js` wrote by playing MEDICHAM. The
+engine has been corrected dozens of times since. **They are deleted, not captioned**, and no direction
+may be inferred from the absence. **The re-run is OWED** (ROADMAP #57): regenerate the self-play corpus
+on a gate-passing engine, then `python engine/porygon2.py`.
 
-**Honest status: how far it beats material, if at all, is withheld, and NOT ONE OF THE ARTIFACT'S
-NUMBERS HAS AN INTERVAL.** The artifact publishes six point estimates and no CI, no paired
-test and no split-half floor, so *"beats material"* is currently an ordering of six numbers, not a
-result. The smallest split-half floor this project has published is 0.43 points. **NOT MEASURED.**
-Note also that its best accuracy and its best log-loss come from **different arms**, which is what a
-table with no uncertainty on it looks like.
-**Its own stated caveat, quoted:** *"Self-play positions come from MAG playing itself. If MAG's play
-is unlike human play the neighbourhoods are unrepresentative and the lookup is confidently wrong."*
-That is why the evaluation set is human, and it is the right design.
+**Job:** score a POSITION — given a board with no action attached, how likely is this side to win. It is
+the other candidate leaf beside `rolloutWinProb`, and the model `docs/POKER-TO-POKEMON.md` §7 proposes
+training on self-play and calibrating on humans.
+
+**Method:** `engine/porygon2.py` embeds each position in material features (`alive_diff`,
+`hp_active_diff`, `hp_total_diff`, `my_alive`, `foe_alive`, `turn`), state features (`status_diff`,
+`boost_diff`, `tailwind_diff`, `screen_diff`, `hazard_diff`, `trickroom`, `weather_on`, `terrain_on`)
+and matchup features (`matchup_edge`, `speed_edge`, `type_threat`) — and looks up the k nearest
+neighbours. No weights are fitted; it is a lookup.
+
+**Corpus:** trained on self-play games, evaluated on held-out clean HUMAN ladder games. Four arms were
+scored — a coin, the **material sign** (the baseline that matters), a plain nearest-neighbour lookup and
+a distance-weighted one.
+
+**Honest status: NOT MEASURED, and that was true before the withdrawal as well.** The artifact publishes
+point estimates and **no confidence interval, no paired test and no split-half floor**, so *"beats
+material"* was an ordering of point estimates rather than a result. Its best accuracy and its best
+log-loss came from **different arms**, which is what a table with no uncertainty on it looks like. The
+re-run owes a noise floor before it owes a number: **an effect smaller than the spread between two
+halves of one arm is not an effect.**
+
+**Its own stated caveat, quoted:** *"Self-play positions come from MAG playing itself. If MAG's play is
+unlike human play the neighbourhoods are unrepresentative and the lookup is confidently wrong."* That is
+why the evaluation set is human, and it is the right design.
+
 **And CLAUDE.md's own charge stands against it:** *"PORYGON2 and DODUO were fitted, saved, quoted in
 documents, and never once in a live decision."* It is read by `engine/mew.js` and
 `engine/player_digest.js` and by two GATE scripts; **no live decision calls it.**
+
 **Code:** `engine/porygon2.py` → `data/porygon2.json`, `data/porygon2-curve.json` (the k-sweep) and
 `data/porygon2-species.json` (types, Speed and the type chart exported from `data/engine-data.js` so
 there is no second copy of the dex). Distinct from PORY (`engine/pory.py`), the logistic value net

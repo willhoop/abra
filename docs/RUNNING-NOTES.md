@@ -52,6 +52,56 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [7.0.0] — 2026-09-20 — **the MEDICHAM quarantine gate is OPEN, and the living documents are rewritten to say so**
+
+- **Basis.** **CHANGED — every figure this project published about its simulator answered the question
+  "how wrong is it still?", and that is no longer the question being asked.** The quarantine gate has
+  been closed for the whole life of the 6.x line, and every artifact downstream of MEDICHAM was
+  withheld under it. A reader cannot be told "27 became 22" about those numbers, because the 27
+  answered a question we no longer ask. That is SemVer 2.0.0 clause 8 and an ESS major revision (Items
+  3.0, 3.2): the series cannot be linked, so it is back-cast and republished rather than continued.
+- **The reading that opens it**, on release `0d7b1d9db6d1`, census pinned to
+  `data/verification/census-pin-b6df14beff8d.json`, `--team-store data/team-pool-frozen`,
+  `--steering empirical --arm middle --end-state`: gate OPEN on all ten clauses; board-material and
+  undeclared narration ZERO on all three lattices (961 / 1,069 / 1,497 games); the held-out
+  `--games 12000` draw at 7,182 games with **0 board-material**; damage 0 of 6000 at every corner of the
+  roll; roster 148 of 148, 196 of 200, 496 of 497; staged battery 0 diverge and 0 undeclared; census
+  1002 probed / 1002 live / 0 missing.
+- **The five living documents are rewritten and their version headers move 6.0.0 → 7.0.0**, folding
+  **107 owed notes rows**. Superseded figures were DELETED, not captioned — roughly 55 in
+  `docs/MODELS.md` alone, a 1,620-line release-evidence preamble in the technical docs, and every
+  historical block back to 5.254.0 in `docs/SUMMARY.md`.
+- **EVERY MODEL EXCEPT MEDICHAM NOW PUBLISHES NO NUMBER AT ALL.** MAG, MILTANK, PORYGON2, DODUO and
+  GARY each read a rollout, so their figures were measured under an engine that has since been
+  corrected many times. **The gate opening makes them re-runnable, not true.** Their entries state the
+  purpose, what was withdrawn and that the re-run is owed. One of MAG's published tables disagreed with
+  `data/policy-weights.json` ON DISK as well as with the engine — doubly stale, and proof that a caption
+  could not have held it.
+- **One exception, and it is declared rather than assumed.** SLOWKING's team-preview Nash table is KEPT.
+  `engine/slowking_preview.py` solves a matchup matrix built from REAL ladder outcomes
+  (`engine/guru.py`, Wilson intervals) with no simulator anywhere in its path, so it is upstream of
+  MEDICHAM like the store itself. The agent writing that ledger refused the instruction to delete it and
+  was right; the coordinator verified the provenance string before accepting.
+- **Illusion, the one declared exclusion, is now stated WITH ITS PREDICATE.** **452 of 26,428 sides
+  (1.71%) hold a legal carrier in their brought-six list, and 229 of those brought it into play.** Two
+  independent derivations disagreed at 450/26,370 and 452/26,428 until the predicate was named: 58 sides
+  carry no declared sheet array, and the brought-six list is the complete one. It is a live derivation
+  over an untracked store file, so it carries no artifact citation and the documents say so.
+- **Supersedes.** ~~450 of 26,370 (1.71%), 228 brought~~ (6.84.0 row), now **452 of 26,428, 229
+  brought**, with the predicate named. And every figure the five documents deleted.
+- **A SIXTH DOCUMENT WAS TRAILING AND THE GATE CAUGHT IT.** `docs/DAMAGE-STAGES.md` sat at 6.1.0, and
+  bringing it current found that **every stage of the damage chain cited MAINLINE `sim/battle-actions.ts`
+  while Champions OVERRIDES `modifyDamage`** (`data/mods/champions/scripts.ts`) — the page's evidence
+  pointed at a file this format does not run, which is the exact failure `CLAUDE.md` names about reading
+  mainline. Also corrected: a weather row that gated on the move's CATEGORY rather than the stat the hit
+  reads; an aura ability attributed to the wrong carrier; and Terastallisation described as out of scope
+  when the mod's `canTerastallize` returns `null`, so it **cannot occur**. A new section documents the
+  to-hit pipeline as a stage table. Grandfathered figures in that file fell 235 -> 57.
+- **What an open gate is NOT, stated in all five documents.** Illusion is unmodelled. Closed team sheets
+  and bo1 are out of scope. **7 live `lastMove` readings are a real unregistered class**, reported and
+  not fixed. The corner arms have never been read on this release. A zero is a statement about what was
+  measured.
+
 ## [6.84.0] — 2026-09-20 — the Illusion exposure figure was a SHEET count over a GAME denominator, and is corrected
 
 - **What changed.** Nothing in the engine. A published figure is corrected.
