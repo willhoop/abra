@@ -53,6 +53,15 @@ const key=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
  * condition that exempts an artifact from every corpus check in that file. */
 const CANONICAL = path.join(__dirname, '../data/move-priors.json');
 const OBSERVED  = path.join(__dirname, '../data/move-priors.observed.json');
+/* 2026-09-21 (MEASURE, abra/regmc 0.19.0) -- THE REGULATION DECIDES THE STORE AND THE TABLE. Under a
+ * non-owner regulation the derivation reads that regulation's frozen pool (engine/regulation_stores.js),
+ * OBSERVED lands on its `-<id>` sibling through the artifact seam, and a promotion defaults to the
+ * regulation's own table (`runtime.<id>.movePriors`) -- a write onto data/move-priors.json is refused
+ * there anyway. Under Reg M-B every one of these is the path it always was. */
+const REGN = require('./regulation.js');
+const RSTORES = require('./regulation_stores.js');
+const CANONICAL_FOR_REGULATION = REGN.MOVE_PRIORS_FILE === 'data/move-priors.json'
+  ? CANONICAL : path.join(__dirname, '..', REGN.MOVE_PRIORS_FILE);
 
 const ARGV = process.argv.slice(2);
 const flag = n => ARGV.includes('--' + n);
@@ -60,7 +69,7 @@ const opt  = (n, d) => { const i = ARGV.indexOf('--' + n);
                          return (i >= 0 && ARGV[i+1] && !/^--/.test(ARGV[i+1])) ? ARGV[i+1] : d; };
 /* Positional args, with the VALUE of --from/--to excluded so `--promote --from x` cannot be read as
  * a store path. The two positionals stay exactly what they were: [store] [out]. */
-const POS = ARGV.filter((a,i) => !/^--/.test(a) && !(i>0 && /^--(from|to)$/.test(ARGV[i-1])));
+const POS = ARGV.filter((a,i) => !/^--/.test(a) && !(i>0 && /^--(from|to|regulation)$/.test(ARGV[i-1])));
 
 /* ------------------------------------------------------------------------------------------------
  * THE PROMOTE STEP. Runs before the derivation and exits, so a promotion never re-reads the store —
@@ -219,7 +228,7 @@ function refuse(msg, code) {
 }
 
 function promote() {
-  const from = opt('from', OBSERVED), to = opt('to', CANONICAL);
+  const from = opt('from', OBSERVED), to = opt('to', CANONICAL_FOR_REGULATION);
   const dry = flag('dry-run'), force = flag('force');
 
   if (!fs.existsSync(from))
@@ -274,7 +283,10 @@ function promote() {
     return;
   }
 
-  console.log(`PROMOTE  ${from}\n     ->  ${to}`);
+  /* Name the file the artifact seam actually read: identity under Reg M-B. */
+  const fromShown = (REGN.ARTIFACT_TAG && path.resolve(from) === path.resolve(OBSERVED))
+    ? path.join(__dirname, '..', REGN.artifactFor('data/move-priors.observed.json')) : from;
+  console.log(`PROMOTE  ${fromShown}\n     ->  ${to}`);
   console.log(`  observed derived ${obs.generated||'(undated)'} — ${spN} species, ${cellsN} move cells`);
   if (haveCanon) console.log(`  engine now       ${cur.generated||'(undated)'} — ${spO} species, ${cellsO} move cells`);
 
@@ -322,13 +334,17 @@ function bump(o,m){ o[m]=(o[m]||0)+1; }
  * human behaviour inherited it.
  *
  * quality.js is the single definition of usable and every other consumer goes through it. */
-const CLEAN=(()=>{ try{ return new Set(require('./quality.js').loadGames({path:STORE}).map(g=>g.id)); }
+/* A NON-OWNER REGULATION READS ITS FROZEN POOL, whose own predicate (open sheets, the dated Eject
+ * Button conjunction) IS its scope and quality rule -- quality.js's filter is Reg M-B's definition of
+ * usable and is not applied on top. An explicit store argument keeps the old behaviour everywhere. */
+const POOL = POS[0] ? null : RSTORES.pool();
+const CLEAN=POOL ? null : (()=>{ try{ return new Set(require('./quality.js').loadGames({path:STORE}).map(g=>g.id)); }
                    catch(e){ console.error('quality.js unavailable:',e.message); return null; } })();
-if(!CLEAN||!CLEAN.size){ console.error('refusing to build the behaviour clone without the clean filter'); process.exit(1); }
+if(!POOL&&(!CLEAN||!CLEAN.size)){ console.error('refusing to build the behaviour clone without the clean filter'); process.exit(1); }
 
-for(const line of fs.readFileSync(STORE,'utf8').split('\n')){
+for(const line of (POOL ? POOL.files.map(f=>fs.readFileSync(f.abs,'utf8')).join('\n') : fs.readFileSync(STORE,'utf8')).split('\n')){
   if(!line.trim())continue; let r; try{r=JSON.parse(line);}catch(e){continue;}
-  if(!CLEAN.has(r.id))continue;
+  if(CLEAN&&!CLEAN.has(r.id))continue;
   if(seen.has(r.id))continue; seen.add(r.id);
   for(const t of (r.turns||[])){
     for(const e of t.ev){
@@ -342,6 +358,8 @@ for(const line of fs.readFileSync(STORE,'utf8').split('\n')){
 
 // finalize -> probabilities + tags, keep species with enough signal
 const out={ generated:new Date().toISOString().slice(0,10), species:{} };
+if (POOL) out.source={ regulation:REGN.ID, format:REGN.FORMAT, pool:POOL.dir, pool_digest:POOL.pool_digest,
+                       files:POOL.files.map(f=>({file:f.file, sha256:f.sha256})), scope:POOL.scope };
 let kept=0, statusMoves=0;
 for(const s in sp){
   const d=sp[s]; if(d.acts<15) continue;          // need a real sample
@@ -356,7 +374,7 @@ for(const s in sp){
   kept++;
 }
 fs.writeFileSync(OUT, JSON.stringify(out));
-process.stderr.write(`behaviour-clone: ${kept} species profiled from real clicks, ${statusMoves} non-damage move slots tagged -> ${OUT}\n`);
+process.stderr.write(`behaviour-clone: ${kept} species profiled from real clicks, ${statusMoves} non-damage move slots tagged -> ${POOL && !POS[1] ? REGN.artifactFor('data/move-priors.observed.json') : OUT}\n`);
 if (path.resolve(OUT) === path.resolve(OBSERVED))
   process.stderr.write(`  this is the OBSERVED table and nothing reads it. `
     + `node engine/policy.js --promote --dry-run  says what landing it would do to the engine.\n`);

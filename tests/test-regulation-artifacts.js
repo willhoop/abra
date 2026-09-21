@@ -60,15 +60,12 @@ const NOT_YET = {
   [J('ability-blocks')]: 'ENGINE — built from engine/board.js; frozen into releases',
   [JS('abra-tags')]: 'ENGINE — browser bundle of the tag file; follows data/tags.json when it is rebuilt',
   [J('fixture-legality-baseline')]: 'ENGINE — legality baseline of the staged fixtures',
-  [J('joint-click-census')]: 'ENGINE/MEASURE — human joint clicks, Reg M-B store; steers the empirical driver',
   [J('mega-dex-official')]: 'ENGINE — mega formes; source of the table, which is per regulation',
   [J('mega-dex')]: 'ENGINE — mega harvest; source of the table',
   [J('meta-usage')]: 'OPS — the CHOMP-facing usage model; engine/analyze.js has its own regulation handling',
   [JS('move-effects')]: 'ENGINE — browser bundle built from the table',
-  [J('move-priors')]: 'MEASURE — move priors from the Reg M-B store',
   [J('regulations')]: 'CONFIG — the one file that names every regulation; shared by construction',
   [J('residual-order')]: 'ENGINE — residual order, derived from the format',
-  [J('rollout-switch-census')]: 'ENGINE/MEASURE — human switch rates, Reg M-B store; steers the empirical driver',
   [J('smogon-priors')]: 'OPS — Smogon usage priors for Reg M-B',
 };
 
@@ -86,7 +83,9 @@ console.log('1. THE PER-REGULATION LIST AGAINST THE GATE\'S DERIVED CLOSURE');
     ok('the gate closure could be derived', false, (R.j && R.j.error) || R.err.slice(0, 600));
   } else {
     const REG = require('../engine/regulation.js');
-    const engineFile = f => Object.prototype.hasOwnProperty.call(REG.FILES, 'data/' + f)
+    /* Every Reg M-B file the regulation map can replace, read off regulation.js (FILES is empty under
+     * Reg M-B, which is the regulation this probe runs under). 2026-09-21: move-priors joined it. */
+    const engineFile = f => (REG.FILE_DEFAULTS || []).includes('data/' + f)
       || [JS('engine-data'), J('tags'), J('protocol-events')].includes(f);
     ok('the closure is not empty (' + R.j.closure.length + ' artifacts, ' + R.j.inputs.length + ' gate inputs)',
       R.j.closure.length > 10 && R.j.inputs.length > 5);
@@ -99,6 +98,12 @@ console.log('1. THE PER-REGULATION LIST AGAINST THE GATE\'S DERIVED CLOSURE');
       !sharedInputs.length, 'SHARED GATE INPUTS: ' + sharedInputs.join(', '));
     const stale = Object.keys(NOT_YET).filter(f => !R.j.closure.includes(f));
     ok('no NOT_YET declaration is stale', !stale.length, 'no longer in the closure: ' + stale.join(', '));
+    /* 2026-09-21 (abra/regmc 0.19.0) -- A DECLARATION THAT OUTLIVED ITS FIX. The steering inputs
+     * (switch census, joint census, move priors) moved out of this list; one left behind would print
+     * "NOT YET per-regulation" for a file that is, which is the stale-prose failure in a test. */
+    const doubled = Object.keys(NOT_YET).filter(f => REG.isPerRegulation(f) || engineFile(f));
+    ok('no NOT_YET declaration names a file that already follows the regulation', !doubled.length,
+      'declared NOT YET and per-regulation at once: ' + doubled.join(', '));
     const perReg = R.j.closure.filter(f => REG.isPerRegulation(f));
     console.log('     per-regulation (' + perReg.length + '): ' + perReg.join(', '));
     console.log('     NOT YET per-regulation, write-guarded only (' + Object.keys(NOT_YET).length + '): '

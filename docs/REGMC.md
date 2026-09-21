@@ -1,6 +1,6 @@
 # REG M-C — the ledger
 
-**Version: 0.17.0 — 2026-09-21.**
+**Version: 0.19.0 — 2026-09-21.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 A leading `0` means NOT USABLE YET (SemVer 2.0.0 clause 4). This line reaches **1.0.0 the day the M-C
@@ -345,7 +345,9 @@ anyone widens the scope later.
 quoting any number written here.
 
 **Nothing is simulated yet.** No M-C engine, no census, no roster, no gate. The checkout exists, the
-delta is derived, and that is the whole of it.
+delta is derived, and that is the whole of it. *(Dated. Since then the engine, the gate and the census
+have been built: the census and its pin at 0.19.0, `CHANGELOG-REGMC.md`. Read the gate with
+`node engine/quarantine.js --regulation regmc`, not this sentence.)*
 
 ## THE M-C POOL CARRIES CUSTOM-RULE ROOMS, AND THE M-B ANSWER DOES NOT TRANSFER — 0.6.0, 2026-09-21
 

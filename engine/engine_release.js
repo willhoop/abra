@@ -253,8 +253,12 @@ const SOURCES = [
  * photograph with the tag half out of frame. The protocol-events file is NOT frozen here: it is an
  * alignment INPUT to the differential, deliberately kept out of the release (game_differential.js,
  * PROTO_PATH), and the same holds for M-C's. Reg M-B maps nothing, so this list stays empty for it. */
-const REGULATION_SOURCES = [REGN.ENGINE_DATA, REGN.TAGS_FILE]
-  .filter(f => f !== REGN.DEFAULT_ENGINE_DATA && f !== 'data/tags.json');
+/* 2026-09-21 (MEASURE, abra/regmc 0.19.0) -- AND THE BEHAVIOUR TABLE. `data/move-priors.json` is already
+ * a SOURCE (the empirical arm clicks out of it, read through REL.read); a regulation that names its own
+ * copy gets that copy frozen beside it, and `regulationRel` below serves it to REL.read. Reg M-B names
+ * none, so its list stays empty and its cut is the file set it always was. */
+const REGULATION_SOURCES = [REGN.ENGINE_DATA, REGN.TAGS_FILE, REGN.MOVE_PRIORS_FILE]
+  .filter(f => f && f !== REGN.DEFAULT_ENGINE_DATA && f !== 'data/tags.json' && f !== 'data/move-priors.json');
 /* A relative path as the SELECTED regulation reads it: the M-B name of a file this release froze a
  * regulation-own copy of maps to that copy; everything else is itself. For REL.path / REL.read, which
  * do not pass through the require resolver. Identity under Reg M-B. */

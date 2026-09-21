@@ -2907,22 +2907,29 @@ function equivProof() {
 const EMP = EMPIRICAL ? require('./empirical_driver.js') : null;
 let EMP_PRIORS = null, EMP_SWITCH = null, EMP_C = null, EMP_INPUTS = null, EMP_JOINT = null;
 if (EMPIRICAL) {
-  const relDigest = (REL.manifest.files || {})['data/move-priors.json'] || null;
+  /* 2026-09-21 (MEASURE, abra/regmc 0.19.0) -- THE BEHAVIOUR TABLE IS THE SELECTED REGULATION'S.
+   * `REL.read` already serves the regulation's own frozen copy (engine_release.js regulationRel), so the
+   * digest and the name stamped beside it must be that copy's too, or the steering block would name Reg
+   * M-B's table while the driver clicked Reg M-C's. `fileFor` is identity under Reg M-B. The switch
+   * census below is read through the artifact seam, so it is named by `artifactFor` for the same reason. */
+  const MP_FILE = require('./regulation.js').MOVE_PRIORS_FILE;
+  const SW_FILE = require('./regulation.js').artifactFor('data/rollout-switch-census.json');
+  const relDigest = (REL.manifest.files || {})[MP_FILE] || null;
   if (!relDigest) {
-    throw new Error('release ' + REL.id + ' does not carry data/move-priors.json, so the empirical '
+    throw new Error('release ' + REL.id + ' does not carry ' + MP_FILE + ', so the empirical '
       + 'arm has no behaviour table to draw from. That release predates the table being a frozen '
       + 'SOURCE; cut a release from a tree that has it, or run --steering coverage.');
   }
   EMP_PRIORS = EMP.loadPriors(REL.read('data/move-priors.json'),
-                              'release ' + REL.id + ' / data/move-priors.json');
+                              'release ' + REL.id + ' / ' + MP_FILE);
   const swPath = D('data', 'rollout-switch-census.json');
-  EMP_SWITCH = EMP.switchRateFrom(fs.readFileSync(swPath, 'utf8'), 'data/rollout-switch-census.json');
+  EMP_SWITCH = EMP.switchRateFrom(fs.readFileSync(swPath, 'utf8'), SW_FILE);
   EMP_C = EMP.counters();
   EMP_INPUTS = [
-    { file: 'data/move-priors.json', read_from: 'release ' + REL.id, digest: relDigest,
+    { file: MP_FILE, read_from: 'release ' + REL.id, digest: relDigest,
       generated: EMP_PRIORS.generated, rows: EMP_PRIORS.species,
       what: 'P(move | species) over real recorded ladder clicks — the action distribution' },
-    { file: 'data/rollout-switch-census.json', read_from: 'live tree (not an engine SOURCE)',
+    { file: SW_FILE, read_from: 'live tree (not an engine SOURCE)',
       digest: ER.sha12Content(swPath), raw_digest: ER.sha12(swPath), generated: EMP_SWITCH.generated,
       rows: EMP_SWITCH.games,
       what: 'the conditional voluntary-switch rate, ' + EMP_SWITCH.pct + '% of decisions taken with a '
@@ -10262,7 +10269,8 @@ if (WRITE) {
   }, REL.stamp(), driverCodeGuard(), emptyPopulationGuard());
   const outPath = OUT ? path.resolve(OUT) : D('data', 'game-differential.json');
   fs.writeFileSync(outPath, JSON.stringify(artifact, null, 2) + '\n');
-  console.log('  -> ' + (OUT ? outPath : 'data/game-differential.json'));
+  /* The file the seam actually wrote: identity under Reg M-B, the `-<id>` sibling otherwise. */
+  console.log('  -> ' + (OUT ? outPath : require('./regulation.js').artifactFor('data/game-differential.json')));
 }
 
 /* DID THE INSTRUMENT MOVE WHILE THIS RUN WAS PLAYING? — 2026-09-05, MEASURE.

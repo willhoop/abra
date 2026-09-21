@@ -37984,6 +37984,140 @@ probe('move', 'sideBuff', 'a Safeguard refuses an ABILITY-sourced status and say
                  + `Knobs MEDI_PUNISH_STATUS_SOURCELESS, MEDI_SIDEBUFF_LINE_UNGATED` };
 });
 
+/* ---- REG M-C'S OWN ROWS: THE TERRAIN SEEDS, AND THE GRASSY HEAL ON A CHARGE TURN ----------------------
+ * 2026-09-21 (MEASURE, abra/regmc 0.19.0). The seeds were wired and proven against the authority at
+ * abra/regmc 0.16.0 by `tests/probe_regmc_terrain_seeds.js` alone, because there was no Reg M-C census to
+ * carry a row (docs/_reports/2026-09-21-regmc-seeds.md §0). There is one now: this file writes
+ * `data/mechanics-census-regmc.json` when Reg M-C is selected (engine/regulation.js, the artifact seam).
+ *
+ * WHY THESE ROWS DO NOT MOVE REG M-B'S CENSUS, BY CONSTRUCTION RATHER THAN BY CARE.
+ *   - The two seed rows exist only when the selected regulation's tag file carries a `consumedOnTerrain`
+ *     item that is legal in the selected format. Reg M-B's data/tags.json has no member and no seed is
+ *     legal there, so under Reg M-B nothing below registers and the Showdown dex is not even loaded.
+ *   - The Grassy row is a SHARED mechanic, and one more row would move the `probed` count the closed
+ *     Reg M-B line published (the seeds agent wrote it, ran it, and removed it for exactly that reason:
+ *     tests/test-docs-current.js failed on it). It is registered for a NON-OWNER regulation only. Reg
+ *     M-B gets it the day somebody decides its census may move, which is a decision, not a side effect.
+ *
+ * EVERY BODY AND EVERY MOVE IS DERIVED: the seeds from the tag, each seed's terrain move from the tag's own
+ * `terrain` param, the charge moves from the `semiInvulnerable` tag, and every species from the format's
+ * legal list filtered to rows the regulation's table can build. Knobs: MEDI_SEED_UNCONSUMED,
+ * MEDI_SEED_NO_TERRAIN_CHANGE, MEDI_TERRAIN_HEAL_SEMIINV (each refuses the census write, above). */
+{
+  const REGN_ = require(D('engine', 'regulation.js'));
+  const TG_ = require(D('data', 'tags.json'));   /* the SELECTED regulation's tags, through the resolver */
+  const hasTag = (sec, t) => Object.entries(TG_[sec] || {}).filter(([, v]) => (v.tags || []).includes(t));
+  const SEED_ROWS = hasTag('items', 'consumedOnTerrain')
+    .map(([id, v]) => ({ id, p: (v.params || {}).consumedOnTerrain || {} })).sort((a, b) => (a.id < b.id ? -1 : 1));
+  const wantGrassyRow = !!REGN_.ARTIFACT_TAG;
+  if (SEED_ROWS.length || wantGrassyRow) {
+    const CS_ = require(D('engine', 'champions_sim.js'));
+    const DX = CS_.sim().Dex.forFormat(CS_.FORMAT);
+    const legal_ = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
+    const learns_ = (sid, mv) => !!((((DX.species.getLearnsetData(sid) || {}).learnset) || {})[mv]);
+    let BODIES = null;
+    const bodies = () => BODIES || (BODIES = DX.species.all()
+      .filter(s => legal_(s) && !s.battleOnly && !s.isMega)
+      .map(s => s.id).sort()
+      .filter(id => {
+        try { return !!M.buildMon(id, {}); }
+        catch (e) {
+          /* A body the table cannot build is left out of the cast, and said so: a silent drop would let a
+           * broken table shrink the cast until a row stopped deriving and read as a throw elsewhere. */
+          console.error('  reg-only rows: buildMon(' + id + ') threw, left out of the cast -- ' + String(e && e.message).slice(0, 80));
+          return false;
+        }
+      }));
+    const bodyWhere = pred => bodies().find(id => pred(DX.species.get(id))) || null;
+    const boostSum = b => Object.values(b.boosts || {}).reduce((a, x) => a + (+x || 0), 0);
+    const want = p => Object.values(p.boosts || {}).reduce((a, x) => a + (+x || 0), 0);
+    const seeds = SEED_ROWS.filter(s => legal_(DX.items.get(s.id)) && s.p.terrain);
+    const A = seeds[0] || null;
+    const B = A ? (seeds.find(s => s.p.terrain !== A.p.terrain) || null) : null;
+    const FILL = bodyWhere(() => true);
+    const SETTER = A ? bodyWhere(s => learns_(s.id, A.p.terrain)) : null;
+
+    if (A) {
+      /* THE ENTRY ROAD. A terrain is set by its own move on turn 1; on turn 2 a bench body holding that
+       * terrain's seed switches in under it and must spend the seed at once. The control holds a seed of
+       * ANOTHER terrain, which must stay in hand -- it catches "spend any seed". */
+      probe('item', 'consumedOnTerrain', 'a terrain seed is spent on switching in under its own terrain', () => {
+        if (!B || !SETTER || !FILL) throw new Error('could not derive a cast: seeds ' + seeds.map(s => s.id) + ', setter ' + SETTER);
+        const run = (seedId) => {
+          const me = bare(SETTER), ally = bare(FILL), hold = bare(FILL), f1 = bare(FILL), f2 = bare(FILL);
+          hold.item = seedId;
+          const S = M.battleInit([me, ally, hold], [f1, f2], { seeded: true });
+          M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, A.p.terrain, null, S.field)], [ally, { kind: 'pass' }]]),
+            PASS2(f1, f2));
+          const t1 = S.field.terrain || 'none', b0 = boostSum(hold);
+          M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: hold }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+          return [hold.item || '-', boostSum(hold) - b0, t1];
+        };
+        const control = run(B.id), test = run(A.id);
+        return { works: test[0] === '-' && test[1] === want(A.p) && test[2] !== 'none'
+                        && control[0] === B.id && control[1] === 0,
+                 arms: { control, test },
+                 detail: `[item after entry, boost stages gained, terrain up] under ${A.p.terrain} set by ${SETTER}: `
+                       + `holding ${B.id} ${JSON.stringify(control)}, holding ${A.id} ${JSON.stringify(test)}. `
+                       + 'Knob MEDI_SEED_UNCONSUMED' };
+      });
+
+      /* THE CHANGE ROAD. The holder is already ON THE FIELD when its partner's move starts the terrain; the
+       * authority's `eachEvent('TerrainChange')` spends it that instant. The entry road cannot do this. */
+      probe('item', 'consumedOnTerrain', 'a terrain seed on the field is spent the moment its terrain starts', () => {
+        if (!B || !SETTER || !FILL) throw new Error('could not derive a cast: seeds ' + seeds.map(s => s.id) + ', setter ' + SETTER);
+        const run = (seedId) => {
+          const me = bare(FILL), ally = bare(SETTER), f1 = bare(FILL), f2 = bare(FILL);
+          me.item = seedId;
+          const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+          const b0 = boostSum(me);
+          M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, M.playerAction(ally, A.p.terrain, null, S.field)]]),
+            PASS2(f1, f2));
+          return [me.item || '-', boostSum(me) - b0, S.field.terrain || 'none'];
+        };
+        const control = run(B.id), test = run(A.id);
+        return { works: test[0] === '-' && test[1] === want(A.p) && test[2] !== 'none'
+                        && control[0] === B.id && control[1] === 0,
+                 arms: { control, test },
+                 detail: `[item after the turn, boost stages gained, terrain up] partner ${SETTER} clicks ${A.p.terrain}: `
+                       + `holding ${B.id} ${JSON.stringify(control)}, holding ${A.id} ${JSON.stringify(test)}. `
+                       + 'Knob MEDI_SEED_NO_TERRAIN_CHANGE' };
+      });
+    }
+
+    if (wantGrassyRow) {
+      /* THE GRASSY HEAL SKIPS A SEMI-INVULNERABLE BODY. The authority's `onResidual` heals only
+       * `isGrounded() && !isSemiInvulnerable()`. A grounded body at half HP spends its turn on the charge
+       * turn of a semi-invulnerable move: no heal. The control is the same body clicking Protect: healed. */
+      probe('move', 'terrainPassiveHeal', 'Grassy Terrain does not heal a body on a semi-invulnerable charge turn', () => {
+        const SEMI = hasTag('moves', 'semiInvulnerable').map(([k]) => k).sort();
+        let pick = null;
+        for (const mv of SEMI) {
+          const b = bodyWhere(s => !(s.types || []).includes('Flying') && learns_(s.id, mv) && learns_(s.id, 'protect'));
+          if (b) { pick = { mv, b }; break; }
+        }
+        if (!pick || !FILL) throw new Error('could not derive a grounded charge-move user from ' + SEMI.join(','));
+        const run = (mv) => {
+          const me = bare(pick.b), ally = bare(FILL), f1 = bare(FILL), f2 = bare(FILL);
+          me.curHP = Math.floor(me.st.hp / 2);
+          const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+          S.field.terrain = 'grassy'; S.field.terrainT = 5;
+          const before = me.curHP;
+          M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+          return me.curHP - before;
+        };
+        const sixteenth = Math.floor(bare(pick.b).st.hp / 16);
+        const control = run('protect'), test = run(pick.mv);
+        return { works: control === sixteenth && test === 0,
+                 arms: { control, test },
+                 detail: `${pick.b} at half HP under Grassy Terrain, HP gained over the turn: Protect ${control} `
+                       + `(a sixteenth is ${sixteenth}), ${pick.mv}'s charge turn ${test} (must be 0). `
+                       + 'Knob MEDI_TERRAIN_HEAL_SEMIINV' };
+      });
+    }
+  }
+}
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');
@@ -38406,7 +38540,8 @@ if (DELIBERATE_BREAK.length) {
     results: results.map(r => ({ kind: r.kind, tag: r.tag, label: r.label, live: r.works, detail: r.detail,
                                  hollow: !!r.hollow, armed: !!r.armed, directCall: !!r.directCall })),
   }, null, 2) + '\n');
-  console.log('\n  wrote data/mechanics-census.json' + (!red.length ? ''
+  /* The file the artifact seam actually wrote: identity under Reg M-B, `-<id>` under another regulation. */
+  console.log('\n  wrote ' + require(D('engine', 'regulation.js')).artifactFor('data/mechanics-census.json') + (!red.length ? ''
     : (ACCEPT
       ? ' — run_ok:false, and the ratchet floors were RAISED BY --accept to ' + nextUnarmed
         + '/' + nextDirectCall + '. That was a decision somebody took, not a re-run.'

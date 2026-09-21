@@ -21,6 +21,46 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.19.0] — 2026-09-21
+
+### Added
+- **Reg M-C has its own census.** `tests/test-mechanics.js --regulation regmc` writes
+  `data/mechanics-census-regmc.json` through the artifact seam, and it is pinned as
+  `data/verification/census-pin-regmc-98c69a4fee7f.json`. The `regmc-` infix keeps a Reg M-C pin from being
+  read as a Reg M-B one. A steered Reg M-C differential can now run pinned.
+- **The seeds get census rows, for Reg M-C only.** Three rows: a terrain seed spent on entry, one spent the
+  moment its terrain starts, and the Grassy heal skipping a semi-invulnerable body. Each is derived from the
+  tags and the format and each goes MISSING under its knob. They register only when the selected tag file
+  carries a legal seed (the seed rows) or the regulation is not Reg M-B (the Grassy row). So Reg M-B's
+  census does not move.
+- `engine/regulation_stores.js`: which human games a steering input is counted from. Reg M-B keeps its own
+  stores. Any other regulation reads its frozen pool, checked by size and sha256 against the pool receipt,
+  and REFUSES by name on an absent or altered file.
+- `tests/test-regulation-steering.js` (29 checks): Reg M-B selects its literal stores; Reg M-C maps its
+  behaviour table and censuses; in a sandbox the four builders count a synthetic pool and leave Reg M-B's
+  files byte-identical; an absent or altered pool file refuses. Shown red on six deliberate breaks.
+
+### Changed
+- **The steering inputs follow the regulation.** `engine/click_counts.js`, `engine/sheet_usage.js`,
+  `engine/policy.js` (the behaviour clone) and `engine/rollout_switch_census.js` read the selected
+  regulation's pool (and its raw-log shards) under any regulation but Reg M-B. The behaviour table is a
+  per-regulation engine file (`runtime.regmc.movePriors` → `data/move-priors-regmc.json`), and a Reg M-C
+  release freezes it. `data/rollout-switch-census.json`, `data/joint-click-census.json` and
+  `data/move-priors.observed.json` are declared per-regulation.
+- `engine/game_differential.js` prints the file the seam wrote, and stamps the behaviour table and the
+  switch census under the names and digests of the files it actually read.
+- `engine/joint_click_census.js` refuses under a non-owner regulation. Its stores are still Reg M-B's by name.
+- `tests/test-regulation-artifacts.js`: the three steering inputs leave NOT_YET. A new check fails a NOT_YET
+  entry that already follows the regulation.
+
+### Notes
+- Reg M-B is unmoved. Its census rows, click counts and sheet usage are identical to what HEAD's code
+  produces. No tracked Reg M-B artifact changed.
+- The first pinned Reg M-C differential (`--games 1200`, release `9298380d80f5`, cut in a worktree) is a
+  reading, not a published figure or a gate verdict. Full account: `docs/_reports/2026-09-21-regmc-census.md`.
+- Version 0.19.0 was taken because ENGINE is working on items in parallel and may take 0.18.0.
+- **Supersedes.** Nothing. **Basis.** unchanged.
+
 ## [0.17.0] — 2026-09-21
 
 ### Added

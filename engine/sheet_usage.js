@@ -39,6 +39,11 @@ const path = require('path');
 const readline = require('readline');
 
 const ROOT = path.resolve(__dirname, '..');
+/* 2026-09-21 (MEASURE, abra/regmc 0.19.0) -- THE SELECTED REGULATION DECIDES THE STORE, exactly as in
+ * engine/click_counts.js: loaded first so OUT lands on the `-<id>` sibling under a non-owner regulation,
+ * whose games are its frozen pool (engine/regulation_stores.js). Under Reg M-B nothing here changes. */
+const REGN = require('./regulation.js');
+const RSTORES = require('./regulation_stores.js');
 /* BOTH HUMAN STORES. The bo1 ladder contributes few sheets and is included anyway: excluding it would
  * make this artifact describe the bo3 population rather than the player population, and the two
  * formats do not draw the same teams. `per_store` records what each contributed so a reader can tell.
@@ -113,11 +118,11 @@ function megaOnlyAbilities(dex) {
   return [...onMega].filter(a => !onBase.has(a)).sort();
 }
 
-async function build() {
+async function build(files) {
   const acc = { abilitySlots: {}, itemSlots: {}, abilityTeams: {}, itemTeams: {}, speciesTeams: {}, teams: 0 };
   const per = [];
   let games = 0, sheetGames = 0, slots = 0, withAbility = 0, withItem = 0, badLines = 0;
-  for (const f of STORES) {
+  for (const f of (files || STORES)) {
     const r = await readOne(f, acc);
     per.push({ store: path.basename(f), games: r.games, sheet_games: r.sheetGames, slots: r.slots });
     games += r.games; sheetGames += r.sheetGames; slots += r.slots;
@@ -132,8 +137,10 @@ function rank(counts, teams) {
 }
 
 async function main() {
-  if (!STORES.length) { console.error('  no human store found in data/'); process.exit(1); }
-  const r = await build();
+  /* pool() THROWS on an absent or altered pool file: a missing store is never a zero-usage artifact. */
+  const POOL = RSTORES.pool();
+  if (!POOL && !STORES.length) { console.error('  no human store found in data/'); process.exit(1); }
+  const r = await build(POOL ? POOL.files.map(f => f.abs) : STORES);
   let notCountable = [];
   try {
     const CS = require('./champions_sim.js');
@@ -168,8 +175,11 @@ async function main() {
     not_countable_failed: notCountable === null
       ? 'the format dex would not load, so the mega-only list is UNKNOWN — treat every zero here as '
         + 'unverified rather than as evidence of non-use' : null,
-    stores: STORES.map(p => path.relative(ROOT, p).replace(/\\/g, '/')),
+    stores: POOL ? POOL.files.map(f => f.file) : STORES.map(p => path.relative(ROOT, p).replace(/\\/g, '/')),
     per_store: r.per,
+    ...(POOL ? { regulation: REGN.ID, format: REGN.FORMAT, scope: POOL.scope,
+      pool: { dir: POOL.dir, receipt: POOL.receipt, pool_digest: POOL.pool_digest,
+              files: POOL.files.map(f => ({ file: f.file, sha256: f.sha256, verified: f.verified })) } } : {}),
     games_scanned: r.games,
     sheet_games: r.sheetGames,
     sheet_slots: r.slots,
@@ -194,7 +204,7 @@ async function main() {
         console.log('      ' + String(v.per_team).padStart(6) + '%  ' + String(v.teams).padStart(6) + '  ' + k);
     }
   }
-  console.log('\n  wrote ' + path.relative(ROOT, OUT).replace(/\\/g, '/'));
+  console.log('\n  wrote ' + REGN.artifactFor(path.relative(ROOT, OUT).replace(/\\/g, '/')));
 }
 
 /* THE LOAD FAILURE SPEAKS. A silently-null artifact is how a caller ends up treating "never built"
@@ -223,5 +233,10 @@ function teamsFor(kind, key) {
   const row = (a[kind] || {})[id(key)];
   return row ? row.teams : 0;
 }
-module.exports = { load, loadFailure, teamsFor, OUT_PATH: OUT };
+/* The stores a build under the selected regulation would read, repo-relative. For the regulation test. */
+function storesSelected(opts) {
+  const P = RSTORES.pool(opts);
+  return P ? P.files.map(f => f.file) : STORES.map(p => path.relative(ROOT, p).replace(/\\/g, '/'));
+}
+module.exports = { load, loadFailure, teamsFor, OUT_PATH: OUT, storesSelected };
 if (require.main === module) main().catch(e => { console.error(e); process.exit(1); });

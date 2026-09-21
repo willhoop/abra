@@ -1,0 +1,2543 @@
+{
+  "generated": "2026-09-21T20:34:01.791Z",
+  "by": "engine/sheet_usage.js",
+  "what": "How often each ability and item is BROUGHT, counted from declared open team sheets across both human stores. The first honest store-derived ability usage this project has had.",
+  "supersedes": "engine/click_counts.js's header claim that no honest ability usage exists. That was measured against games.ladder.jsonl alone, before games.bo3.jsonl (99.9% open sheets) was being read.",
+  "denominator": "per_team is the share of TEAMS carrying it at least once, and is the number a human means by \"usage\". A per-SLOT share divides by six and reads six times smaller — reporting Aegislash as 0.16% of slots rather than 1.24% of teams was a real error.",
+  "not_countable_note": "A team sheet declares the PRE-MEGA ability. Abilities that exist only on a mega forme can never appear here, and a zero for one of them means INVISIBLE TO THIS INSTRUMENT, not unused. Count those through engine/mega_census.js.",
+  "not_countable": [
+    "aerilate",
+    "auraguard",
+    "dragonize",
+    "eelevate",
+    "fairyaura",
+    "firemane",
+    "innardsout",
+    "megasol",
+    "parentalbond",
+    "piercingdrill",
+    "shadowtag",
+    "spicyspray",
+    "unseenfist"
+  ],
+  "not_countable_failed": null,
+  "stores": [
+    "data/team-pool-frozen-regmc/games.bo3.jsonl",
+    "data/team-pool-frozen-regmc/games.ots.jsonl"
+  ],
+  "per_store": [
+    {
+      "store": "games.bo3.jsonl",
+      "games": 23473,
+      "sheet_games": 23473,
+      "slots": 281676
+    },
+    {
+      "store": "games.ots.jsonl",
+      "games": 1359,
+      "sheet_games": 1359,
+      "slots": 16308
+    }
+  ],
+  "regulation": "regmc",
+  "format": "gen9championsvgc2026regmc",
+  "scope": "the frozen regmc pool (data/team-pool-frozen-regmc, pool digest 792daded918f): the regulation's own stores with the pool's scope and quality rule already applied — see its FROZEN.md for the predicate. No further filter is applied here.",
+  "pool": {
+    "dir": "data/team-pool-frozen-regmc",
+    "receipt": "data/team-pool-frozen-regmc/pool-receipt.json",
+    "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709",
+    "files": [
+      {
+        "file": "data/team-pool-frozen-regmc/games.bo3.jsonl",
+        "sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+        "verified": true
+      },
+      {
+        "file": "data/team-pool-frozen-regmc/games.ots.jsonl",
+        "sha256": "4dcc2aa615626425ca95e4e4398be0591d48267687b6286d191304199dd39946",
+        "verified": true
+      }
+    ]
+  },
+  "games_scanned": 24832,
+  "sheet_games": 24832,
+  "sheet_slots": 297984,
+  "slots_declaring_ability": 297984,
+  "slots_declaring_item": 297743,
+  "teams": 49664,
+  "unparsable_lines": 0,
+  "abilities": {
+    "intimidate": {
+      "teams": 32259,
+      "per_team": 64.954
+    },
+    "grassysurge": {
+      "teams": 26019,
+      "per_team": 52.39
+    },
+    "unburden": {
+      "teams": 20858,
+      "per_team": 41.998
+    },
+    "defiant": {
+      "teams": 14530,
+      "per_team": 29.257
+    },
+    "psychicsurge": {
+      "teams": 13414,
+      "per_team": 27.01
+    },
+    "goodasgold": {
+      "teams": 11577,
+      "per_team": 23.311
+    },
+    "adaptability": {
+      "teams": 10215,
+      "per_team": 20.568
+    },
+    "rockhead": {
+      "teams": 8132,
+      "per_team": 16.374
+    },
+    "flowerveil": {
+      "teams": 7636,
+      "per_team": 15.375
+    },
+    "drizzle": {
+      "teams": 7625,
+      "per_team": 15.353
+    },
+    "armortail": {
+      "teams": 7229,
+      "per_team": 14.556
+    },
+    "emergencyexit": {
+      "teams": 6999,
+      "per_team": 14.093
+    },
+    "blaze": {
+      "teams": 6840,
+      "per_team": 13.773
+    },
+    "competitive": {
+      "teams": 6831,
+      "per_team": 13.754
+    },
+    "prankster": {
+      "teams": 6713,
+      "per_team": 13.517
+    },
+    "lightningrod": {
+      "teams": 6402,
+      "per_team": 12.891
+    },
+    "roughskin": {
+      "teams": 6165,
+      "per_team": 12.413
+    },
+    "pixilate": {
+      "teams": 6006,
+      "per_team": 12.093
+    },
+    "stamina": {
+      "teams": 5007,
+      "per_team": 10.082
+    },
+    "sandstream": {
+      "teams": 4688,
+      "per_team": 9.439
+    },
+    "cursedbody": {
+      "teams": 3786,
+      "per_team": 7.623
+    },
+    "sandrush": {
+      "teams": 3385,
+      "per_team": 6.816
+    },
+    "flashfire": {
+      "teams": 3344,
+      "per_team": 6.733
+    },
+    "flamebody": {
+      "teams": 2957,
+      "per_team": 5.954
+    },
+    "clearbody": {
+      "teams": 2828,
+      "per_team": 5.694
+    },
+    "hospitality": {
+      "teams": 2819,
+      "per_team": 5.676
+    },
+    "innerfocus": {
+      "teams": 2754,
+      "per_team": 5.545
+    },
+    "trace": {
+      "teams": 2549,
+      "per_team": 5.132
+    },
+    "chlorophyll": {
+      "teams": 2212,
+      "per_team": 4.454
+    },
+    "drought": {
+      "teams": 2195,
+      "per_team": 4.42
+    },
+    "toxicdebris": {
+      "teams": 2084,
+      "per_team": 4.196
+    },
+    "torrent": {
+      "teams": 1965,
+      "per_team": 3.957
+    },
+    "thermalexchange": {
+      "teams": 1767,
+      "per_team": 3.558
+    },
+    "magicbounce": {
+      "teams": 1763,
+      "per_team": 3.55
+    },
+    "unnerve": {
+      "teams": 1740,
+      "per_team": 3.504
+    },
+    "levitate": {
+      "teams": 1683,
+      "per_team": 3.389
+    },
+    "snowwarning": {
+      "teams": 1652,
+      "per_team": 3.326
+    },
+    "synchronize": {
+      "teams": 1585,
+      "per_team": 3.191
+    },
+    "poisontouch": {
+      "teams": 1514,
+      "per_team": 3.048
+    },
+    "ironfist": {
+      "teams": 1474,
+      "per_team": 2.968
+    },
+    "soundproof": {
+      "teams": 1387,
+      "per_team": 2.793
+    },
+    "liquidvoice": {
+      "teams": 1357,
+      "per_team": 2.732
+    },
+    "snowcloak": {
+      "teams": 1136,
+      "per_team": 2.287
+    },
+    "speedboost": {
+      "teams": 1064,
+      "per_team": 2.142
+    },
+    "static": {
+      "teams": 1061,
+      "per_team": 2.136
+    },
+    "sharpness": {
+      "teams": 1024,
+      "per_team": 2.062
+    },
+    "multiscale": {
+      "teams": 1020,
+      "per_team": 2.054
+    },
+    "galewings": {
+      "teams": 981,
+      "per_team": 1.975
+    },
+    "solidrock": {
+      "teams": 889,
+      "per_team": 1.79
+    },
+    "mirrorarmor": {
+      "teams": 863,
+      "per_team": 1.738
+    },
+    "solarpower": {
+      "teams": 819,
+      "per_team": 1.649
+    },
+    "regenerator": {
+      "teams": 814,
+      "per_team": 1.639
+    },
+    "sandveil": {
+      "teams": 775,
+      "per_team": 1.56
+    },
+    "damp": {
+      "teams": 726,
+      "per_team": 1.462
+    },
+    "swiftswim": {
+      "teams": 700,
+      "per_team": 1.409
+    },
+    "technician": {
+      "teams": 695,
+      "per_team": 1.399
+    },
+    "telepathy": {
+      "teams": 673,
+      "per_team": 1.355
+    },
+    "hypercutter": {
+      "teams": 646,
+      "per_team": 1.301
+    },
+    "friendguard": {
+      "teams": 641,
+      "per_team": 1.291
+    },
+    "raindish": {
+      "teams": 639,
+      "per_team": 1.287
+    },
+    "pressure": {
+      "teams": 555,
+      "per_team": 1.118
+    },
+    "stancechange": {
+      "teams": 542,
+      "per_team": 1.091
+    },
+    "moody": {
+      "teams": 524,
+      "per_team": 1.055
+    },
+    "oblivious": {
+      "teams": 510,
+      "per_team": 1.027
+    },
+    "toughclaws": {
+      "teams": 504,
+      "per_team": 1.015
+    },
+    "steadfast": {
+      "teams": 485,
+      "per_team": 0.977
+    },
+    "scrappy": {
+      "teams": 465,
+      "per_team": 0.936
+    },
+    "overgrow": {
+      "teams": 426,
+      "per_team": 0.858
+    },
+    "justified": {
+      "teams": 416,
+      "per_team": 0.838
+    },
+    "infiltrator": {
+      "teams": 373,
+      "per_team": 0.751
+    },
+    "compoundeyes": {
+      "teams": 328,
+      "per_team": 0.66
+    },
+    "protean": {
+      "teams": 304,
+      "per_team": 0.612
+    },
+    "sturdy": {
+      "teams": 292,
+      "per_team": 0.588
+    },
+    "queenlymajesty": {
+      "teams": 285,
+      "per_team": 0.574
+    },
+    "moxie": {
+      "teams": 275,
+      "per_team": 0.554
+    },
+    "magmaarmor": {
+      "teams": 272,
+      "per_team": 0.548
+    },
+    "weakarmor": {
+      "teams": 237,
+      "per_team": 0.477
+    },
+    "keeneye": {
+      "teams": 221,
+      "per_team": 0.445
+    },
+    "voltabsorb": {
+      "teams": 213,
+      "per_team": 0.429
+    },
+    "unaware": {
+      "teams": 193,
+      "per_team": 0.389
+    },
+    "illusion": {
+      "teams": 188,
+      "per_team": 0.379
+    },
+    "punkrock": {
+      "teams": 183,
+      "per_team": 0.368
+    },
+    "waterbubble": {
+      "teams": 171,
+      "per_team": 0.344
+    },
+    "zerotohero": {
+      "teams": 158,
+      "per_team": 0.318
+    },
+    "magicguard": {
+      "teams": 156,
+      "per_team": 0.314
+    },
+    "cloudnine": {
+      "teams": 148,
+      "per_team": 0.298
+    },
+    "libero": {
+      "teams": 144,
+      "per_team": 0.29
+    },
+    "sniper": {
+      "teams": 143,
+      "per_team": 0.288
+    },
+    "electricsurge": {
+      "teams": 131,
+      "per_team": 0.264
+    },
+    "superluck": {
+      "teams": 126,
+      "per_team": 0.254
+    },
+    "cutecharm": {
+      "teams": 117,
+      "per_team": 0.236
+    },
+    "naturalcure": {
+      "teams": 113,
+      "per_team": 0.228
+    },
+    "pickpocket": {
+      "teams": 108,
+      "per_team": 0.217
+    },
+    "frisk": {
+      "teams": 106,
+      "per_team": 0.213
+    },
+    "moldbreaker": {
+      "teams": 103,
+      "per_team": 0.207
+    },
+    "supremeoverlord": {
+      "teams": 102,
+      "per_team": 0.205
+    },
+    "contrary": {
+      "teams": 100,
+      "per_team": 0.201
+    },
+    "bulletproof": {
+      "teams": 95,
+      "per_team": 0.191
+    },
+    "shellarmor": {
+      "teams": 95,
+      "per_team": 0.191
+    },
+    "angerpoint": {
+      "teams": 94,
+      "per_team": 0.189
+    },
+    "marvelscale": {
+      "teams": 90,
+      "per_team": 0.181
+    },
+    "symbiosis": {
+      "teams": 89,
+      "per_team": 0.179
+    },
+    "magician": {
+      "teams": 79,
+      "per_team": 0.159
+    },
+    "stalwart": {
+      "teams": 78,
+      "per_team": 0.157
+    },
+    "sheerforce": {
+      "teams": 76,
+      "per_team": 0.153
+    },
+    "limber": {
+      "teams": 73,
+      "per_team": 0.147
+    },
+    "reckless": {
+      "teams": 73,
+      "per_team": 0.147
+    },
+    "imposter": {
+      "teams": 68,
+      "per_team": 0.137
+    },
+    "electromorphosis": {
+      "teams": 68,
+      "per_team": 0.137
+    },
+    "owntempo": {
+      "teams": 66,
+      "per_team": 0.133
+    },
+    "eartheater": {
+      "teams": 61,
+      "per_team": 0.123
+    },
+    "rivalry": {
+      "teams": 60,
+      "per_team": 0.121
+    },
+    "leafguard": {
+      "teams": 59,
+      "per_team": 0.119
+    },
+    "thickfat": {
+      "teams": 59,
+      "per_team": 0.119
+    },
+    "dryskin": {
+      "teams": 59,
+      "per_team": 0.119
+    },
+    "hugepower": {
+      "teams": 56,
+      "per_team": 0.113
+    },
+    "disguise": {
+      "teams": 55,
+      "per_team": 0.111
+    },
+    "healer": {
+      "teams": 53,
+      "per_team": 0.107
+    },
+    "overcoat": {
+      "teams": 53,
+      "per_team": 0.107
+    },
+    "furcoat": {
+      "teams": 50,
+      "per_team": 0.101
+    },
+    "icebody": {
+      "teams": 49,
+      "per_team": 0.099
+    },
+    "swarm": {
+      "teams": 47,
+      "per_team": 0.095
+    },
+    "illuminate": {
+      "teams": 46,
+      "per_team": 0.093
+    },
+    "insomnia": {
+      "teams": 45,
+      "per_team": 0.091
+    },
+    "waterabsorb": {
+      "teams": 45,
+      "per_team": 0.091
+    },
+    "cudchew": {
+      "teams": 44,
+      "per_team": 0.089
+    },
+    "sapsipper": {
+      "teams": 41,
+      "per_team": 0.083
+    },
+    "heatproof": {
+      "teams": 41,
+      "per_team": 0.083
+    },
+    "noguard": {
+      "teams": 39,
+      "per_team": 0.079
+    },
+    "steelyspirit": {
+      "teams": 39,
+      "per_team": 0.079
+    },
+    "corrosion": {
+      "teams": 38,
+      "per_team": 0.077
+    },
+    "surgesurfer": {
+      "teams": 37,
+      "per_team": 0.075
+    },
+    "vitalspirit": {
+      "teams": 36,
+      "per_team": 0.072
+    },
+    "wanderingspirit": {
+      "teams": 35,
+      "per_team": 0.07
+    },
+    "sandforce": {
+      "teams": 34,
+      "per_team": 0.068
+    },
+    "harvest": {
+      "teams": 30,
+      "per_team": 0.06
+    },
+    "earlybird": {
+      "teams": 29,
+      "per_team": 0.058
+    },
+    "mummy": {
+      "teams": 29,
+      "per_team": 0.058
+    },
+    "berserk": {
+      "teams": 28,
+      "per_team": 0.056
+    },
+    "megalauncher": {
+      "teams": 27,
+      "per_team": 0.054
+    },
+    "poisonpoint": {
+      "teams": 26,
+      "per_team": 0.052
+    },
+    "purifyingsalt": {
+      "teams": 25,
+      "per_team": 0.05
+    },
+    "aromaveil": {
+      "teams": 25,
+      "per_team": 0.05
+    },
+    "guts": {
+      "teams": 22,
+      "per_team": 0.044
+    },
+    "whitesmoke": {
+      "teams": 16,
+      "per_team": 0.032
+    },
+    "heavymetal": {
+      "teams": 16,
+      "per_team": 0.032
+    },
+    "gooey": {
+      "teams": 16,
+      "per_team": 0.032
+    },
+    "screencleaner": {
+      "teams": 16,
+      "per_team": 0.032
+    },
+    "grasspelt": {
+      "teams": 16,
+      "per_team": 0.032
+    },
+    "hungerswitch": {
+      "teams": 16,
+      "per_team": 0.032
+    },
+    "analytic": {
+      "teams": 14,
+      "per_team": 0.028
+    },
+    "purepower": {
+      "teams": 14,
+      "per_team": 0.028
+    },
+    "quickdraw": {
+      "teams": 14,
+      "per_team": 0.028
+    },
+    "bigpecks": {
+      "teams": 13,
+      "per_team": 0.026
+    },
+    "seedsower": {
+      "teams": 13,
+      "per_team": 0.026
+    },
+    "plus": {
+      "teams": 13,
+      "per_team": 0.026
+    },
+    "fluffy": {
+      "teams": 10,
+      "per_team": 0.02
+    },
+    "filter": {
+      "teams": 10,
+      "per_team": 0.02
+    },
+    "curiousmedicine": {
+      "teams": 9,
+      "per_team": 0.018
+    },
+    "liquidooze": {
+      "teams": 9,
+      "per_team": 0.018
+    },
+    "motordrive": {
+      "teams": 8,
+      "per_team": 0.016
+    },
+    "effectspore": {
+      "teams": 8,
+      "per_team": 0.016
+    },
+    "gluttony": {
+      "teams": 8,
+      "per_team": 0.016
+    },
+    "merciless": {
+      "teams": 7,
+      "per_team": 0.014
+    },
+    "supersweetsyrup": {
+      "teams": 7,
+      "per_team": 0.014
+    },
+    "hydration": {
+      "teams": 7,
+      "per_team": 0.014
+    },
+    "slushrush": {
+      "teams": 6,
+      "per_team": 0.012
+    },
+    "forecast": {
+      "teams": 6,
+      "per_team": 0.012
+    },
+    "tangledfeet": {
+      "teams": 6,
+      "per_team": 0.012
+    },
+    "lightmetal": {
+      "teams": 5,
+      "per_team": 0.01
+    },
+    "sandspit": {
+      "teams": 5,
+      "per_team": 0.01
+    },
+    "sweetveil": {
+      "teams": 4,
+      "per_team": 0.008
+    },
+    "battlearmor": {
+      "teams": 4,
+      "per_team": 0.008
+    },
+    "hustle": {
+      "teams": 4,
+      "per_team": 0.008
+    },
+    "shielddust": {
+      "teams": 4,
+      "per_team": 0.008
+    },
+    "receiver": {
+      "teams": 4,
+      "per_team": 0.008
+    },
+    "cheekpouch": {
+      "teams": 3,
+      "per_team": 0.006
+    },
+    "stakeout": {
+      "teams": 3,
+      "per_team": 0.006
+    },
+    "refrigerate": {
+      "teams": 2,
+      "per_team": 0.004
+    },
+    "ripen": {
+      "teams": 2,
+      "per_team": 0.004
+    },
+    "immunity": {
+      "teams": 2,
+      "per_team": 0.004
+    },
+    "forewarn": {
+      "teams": 2,
+      "per_team": 0.004
+    },
+    "skilllink": {
+      "teams": 2,
+      "per_team": 0.004
+    },
+    "quickfeet": {
+      "teams": 2,
+      "per_team": 0.004
+    },
+    "opportunist": {
+      "teams": 2,
+      "per_team": 0.004
+    },
+    "minus": {
+      "teams": 1,
+      "per_team": 0.002
+    },
+    "strongjaw": {
+      "teams": 1,
+      "per_team": 0.002
+    },
+    "guarddog": {
+      "teams": 1,
+      "per_team": 0.002
+    }
+  },
+  "items": {
+    "focussash": {
+      "teams": 31049,
+      "per_team": 62.518
+    },
+    "lifeorb": {
+      "teams": 29503,
+      "per_team": 59.405
+    },
+    "sitrusberry": {
+      "teams": 27458,
+      "per_team": 55.288
+    },
+    "salamencite": {
+      "teams": 17568,
+      "per_team": 35.374
+    },
+    "miracleseed": {
+      "teams": 17000,
+      "per_team": 34.23
+    },
+    "leftovers": {
+      "teams": 14078,
+      "per_team": 28.346
+    },
+    "grassyseed": {
+      "teams": 13702,
+      "per_team": 27.589
+    },
+    "choicescarf": {
+      "teams": 12141,
+      "per_team": 24.446
+    },
+    "psychicseed": {
+      "teams": 9931,
+      "per_team": 19.996
+    },
+    "floettite": {
+      "teams": 7698,
+      "per_team": 15.5
+    },
+    "chopleberry": {
+      "teams": 7537,
+      "per_team": 15.176
+    },
+    "raichunitey": {
+      "teams": 7053,
+      "per_team": 14.201
+    },
+    "golisopite": {
+      "teams": 6969,
+      "per_team": 14.032
+    },
+    "charizarditey": {
+      "teams": 5909,
+      "per_team": 11.898
+    },
+    "fairyfeather": {
+      "teams": 5859,
+      "per_team": 11.797
+    },
+    "rockyhelmet": {
+      "teams": 5846,
+      "per_team": 11.771
+    },
+    "colburberry": {
+      "teams": 5808,
+      "per_team": 11.695
+    },
+    "whiteherb": {
+      "teams": 5657,
+      "per_team": 11.391
+    },
+    "gardevoirite": {
+      "teams": 4624,
+      "per_team": 9.311
+    },
+    "tyranitarite": {
+      "teams": 3564,
+      "per_team": 7.176
+    },
+    "staraptite": {
+      "teams": 3270,
+      "per_team": 6.584
+    },
+    "froslassite": {
+      "teams": 3009,
+      "per_team": 6.059
+    },
+    "garchompitez": {
+      "teams": 2992,
+      "per_team": 6.024
+    },
+    "occaberry": {
+      "teams": 2882,
+      "per_team": 5.803
+    },
+    "blackglasses": {
+      "teams": 2849,
+      "per_team": 5.737
+    },
+    "lightclay": {
+      "teams": 2803,
+      "per_team": 5.644
+    },
+    "metagrossite": {
+      "teams": 2511,
+      "per_team": 5.056
+    },
+    "charcoal": {
+      "teams": 2328,
+      "per_team": 4.688
+    },
+    "lucarionitez": {
+      "teams": 2246,
+      "per_team": 4.522
+    },
+    "swampertite": {
+      "teams": 2046,
+      "per_team": 4.12
+    },
+    "gengarite": {
+      "teams": 2038,
+      "per_team": 4.104
+    },
+    "mysticwater": {
+      "teams": 1877,
+      "per_team": 3.779
+    },
+    "baxcalibrite": {
+      "teams": 1571,
+      "per_team": 3.163
+    },
+    "passhoberry": {
+      "teams": 1476,
+      "per_team": 2.972
+    },
+    "glimmoranite": {
+      "teams": 1385,
+      "per_team": 2.789
+    },
+    "dragoninite": {
+      "teams": 1267,
+      "per_team": 2.551
+    },
+    "ejectbutton": {
+      "teams": 1260,
+      "per_team": 2.537
+    },
+    "aerodactylite": {
+      "teams": 1235,
+      "per_team": 2.487
+    },
+    "delphoxite": {
+      "teams": 1229,
+      "per_team": 2.475
+    },
+    "cameruptite": {
+      "teams": 1211,
+      "per_team": 2.438
+    },
+    "expertbelt": {
+      "teams": 1166,
+      "per_team": 2.348
+    },
+    "blastoisinite": {
+      "teams": 1037,
+      "per_team": 2.088
+    },
+    "mentalherb": {
+      "teams": 745,
+      "per_team": 1.5
+    },
+    "absolitez": {
+      "teams": 726,
+      "per_team": 1.462
+    },
+    "widelens": {
+      "teams": 719,
+      "per_team": 1.448
+    },
+    "scovillainite": {
+      "teams": 634,
+      "per_team": 1.277
+    },
+    "cobaberry": {
+      "teams": 622,
+      "per_team": 1.252
+    },
+    "mawilite": {
+      "teams": 593,
+      "per_team": 1.194
+    },
+    "sharpbeak": {
+      "teams": 533,
+      "per_team": 1.073
+    },
+    "twistedspoon": {
+      "teams": 425,
+      "per_team": 0.856
+    },
+    "blazikenite": {
+      "teams": 417,
+      "per_team": 0.84
+    },
+    "kasibberry": {
+      "teams": 361,
+      "per_team": 0.727
+    },
+    "roseliberry": {
+      "teams": 315,
+      "per_team": 0.634
+    },
+    "nevermeltice": {
+      "teams": 311,
+      "per_team": 0.626
+    },
+    "venusaurite": {
+      "teams": 291,
+      "per_team": 0.586
+    },
+    "airballoon": {
+      "teams": 279,
+      "per_team": 0.562
+    },
+    "rindoberry": {
+      "teams": 245,
+      "per_team": 0.493
+    },
+    "crabominite": {
+      "teams": 233,
+      "per_team": 0.469
+    },
+    "alakazite": {
+      "teams": 228,
+      "per_team": 0.459
+    },
+    "damprock": {
+      "teams": 221,
+      "per_team": 0.445
+    },
+    "charizarditex": {
+      "teams": 213,
+      "per_team": 0.429
+    },
+    "metalcoat": {
+      "teams": 213,
+      "per_team": 0.429
+    },
+    "leek": {
+      "teams": 213,
+      "per_team": 0.429
+    },
+    "chartiberry": {
+      "teams": 200,
+      "per_team": 0.403
+    },
+    "garchompite": {
+      "teams": 190,
+      "per_team": 0.383
+    },
+    "pidgeotite": {
+      "teams": 189,
+      "per_team": 0.381
+    },
+    "spelltag": {
+      "teams": 180,
+      "per_team": 0.362
+    },
+    "magnet": {
+      "teams": 180,
+      "per_team": 0.362
+    },
+    "brightpowder": {
+      "teams": 176,
+      "per_team": 0.354
+    },
+    "pyroarite": {
+      "teams": 173,
+      "per_team": 0.348
+    },
+    "raichunitex": {
+      "teams": 161,
+      "per_team": 0.324
+    },
+    "scraftinite": {
+      "teams": 157,
+      "per_team": 0.316
+    },
+    "meganiumite": {
+      "teams": 153,
+      "per_team": 0.308
+    },
+    "scizorite": {
+      "teams": 148,
+      "per_team": 0.298
+    },
+    "lumberry": {
+      "teams": 148,
+      "per_team": 0.298
+    },
+    "ironball": {
+      "teams": 146,
+      "per_team": 0.294
+    },
+    "electricseed": {
+      "teams": 139,
+      "per_team": 0.28
+    },
+    "habanberry": {
+      "teams": 135,
+      "per_team": 0.272
+    },
+    "shucaberry": {
+      "teams": 134,
+      "per_team": 0.27
+    },
+    "starminite": {
+      "teams": 132,
+      "per_team": 0.266
+    },
+    "greninjite": {
+      "teams": 132,
+      "per_team": 0.266
+    },
+    "terrainextender": {
+      "teams": 126,
+      "per_team": 0.254
+    },
+    "gyaradosite": {
+      "teams": 126,
+      "per_team": 0.254
+    },
+    "scopelens": {
+      "teams": 125,
+      "per_team": 0.252
+    },
+    "steelixite": {
+      "teams": 123,
+      "per_team": 0.248
+    },
+    "blackbelt": {
+      "teams": 113,
+      "per_team": 0.228
+    },
+    "kangaskhanite": {
+      "teams": 109,
+      "per_team": 0.219
+    },
+    "lopunnite": {
+      "teams": 100,
+      "per_team": 0.201
+    },
+    "dragonfang": {
+      "teams": 94,
+      "per_team": 0.189
+    },
+    "sceptilite": {
+      "teams": 91,
+      "per_team": 0.183
+    },
+    "ampharosite": {
+      "teams": 91,
+      "per_team": 0.183
+    },
+    "drampanite": {
+      "teams": 90,
+      "per_team": 0.181
+    },
+    "aggronite": {
+      "teams": 89,
+      "per_team": 0.179
+    },
+    "redcard": {
+      "teams": 86,
+      "per_team": 0.173
+    },
+    "chandelurite": {
+      "teams": 81,
+      "per_team": 0.163
+    },
+    "houndoominite": {
+      "teams": 79,
+      "per_team": 0.159
+    },
+    "silkscarf": {
+      "teams": 78,
+      "per_team": 0.157
+    },
+    "dragalgite": {
+      "teams": 77,
+      "per_team": 0.155
+    },
+    "meowsticite": {
+      "teams": 71,
+      "per_team": 0.143
+    },
+    "wacanberry": {
+      "teams": 67,
+      "per_team": 0.135
+    },
+    "leppaberry": {
+      "teams": 66,
+      "per_team": 0.133
+    },
+    "lucarionite": {
+      "teams": 66,
+      "per_team": 0.133
+    },
+    "feraligite": {
+      "teams": 64,
+      "per_team": 0.129
+    },
+    "slowbronite": {
+      "teams": 64,
+      "per_team": 0.129
+    },
+    "kebiaberry": {
+      "teams": 64,
+      "per_team": 0.129
+    },
+    "quickclaw": {
+      "teams": 61,
+      "per_team": 0.123
+    },
+    "skarmorite": {
+      "teams": 60,
+      "per_team": 0.121
+    },
+    "chesnaughtite": {
+      "teams": 59,
+      "per_team": 0.119
+    },
+    "abomasite": {
+      "teams": 58,
+      "per_team": 0.117
+    },
+    "softsand": {
+      "teams": 58,
+      "per_team": 0.117
+    },
+    "wiseglasses": {
+      "teams": 55,
+      "per_team": 0.111
+    },
+    "golurkite": {
+      "teams": 55,
+      "per_team": 0.111
+    },
+    "kingsrock": {
+      "teams": 52,
+      "per_team": 0.105
+    },
+    "babiriberry": {
+      "teams": 50,
+      "per_team": 0.101
+    },
+    "chestoberry": {
+      "teams": 47,
+      "per_team": 0.095
+    },
+    "muscleband": {
+      "teams": 43,
+      "per_team": 0.087
+    },
+    "galladite": {
+      "teams": 42,
+      "per_team": 0.085
+    },
+    "hardstone": {
+      "teams": 42,
+      "per_team": 0.085
+    },
+    "eelektrossite": {
+      "teams": 42,
+      "per_team": 0.085
+    },
+    "yacheberry": {
+      "teams": 41,
+      "per_team": 0.083
+    },
+    "banettite": {
+      "teams": 40,
+      "per_team": 0.081
+    },
+    "heracronite": {
+      "teams": 40,
+      "per_team": 0.081
+    },
+    "tangaberry": {
+      "teams": 40,
+      "per_team": 0.081
+    },
+    "malamarite": {
+      "teams": 39,
+      "per_team": 0.079
+    },
+    "falinksite": {
+      "teams": 38,
+      "per_team": 0.077
+    },
+    "normalgem": {
+      "teams": 38,
+      "per_team": 0.077
+    },
+    "beedrillite": {
+      "teams": 37,
+      "per_team": 0.075
+    },
+    "shellbell": {
+      "teams": 33,
+      "per_team": 0.066
+    },
+    "heatrock": {
+      "teams": 32,
+      "per_team": 0.064
+    },
+    "altarianite": {
+      "teams": 30,
+      "per_team": 0.06
+    },
+    "bindingband": {
+      "teams": 28,
+      "per_team": 0.056
+    },
+    "excadrite": {
+      "teams": 27,
+      "per_team": 0.054
+    },
+    "chimechite": {
+      "teams": 26,
+      "per_team": 0.052
+    },
+    "victreebelite": {
+      "teams": 25,
+      "per_team": 0.05
+    },
+    "manectite": {
+      "teams": 24,
+      "per_team": 0.048
+    },
+    "payapaberry": {
+      "teams": 20,
+      "per_team": 0.04
+    },
+    "zoomlens": {
+      "teams": 19,
+      "per_team": 0.038
+    },
+    "clefablite": {
+      "teams": 18,
+      "per_team": 0.036
+    },
+    "sablenite": {
+      "teams": 17,
+      "per_team": 0.034
+    },
+    "scolipite": {
+      "teams": 17,
+      "per_team": 0.034
+    },
+    "metronome": {
+      "teams": 17,
+      "per_team": 0.034
+    },
+    "icyrock": {
+      "teams": 17,
+      "per_team": 0.034
+    },
+    "glalitite": {
+      "teams": 16,
+      "per_team": 0.032
+    },
+    "medichamite": {
+      "teams": 13,
+      "per_team": 0.026
+    },
+    "mistyseed": {
+      "teams": 13,
+      "per_team": 0.026
+    },
+    "hawluchanite": {
+      "teams": 13,
+      "per_team": 0.026
+    },
+    "smoothrock": {
+      "teams": 12,
+      "per_team": 0.024
+    },
+    "lightball": {
+      "teams": 12,
+      "per_team": 0.024
+    },
+    "emboarite": {
+      "teams": 11,
+      "per_team": 0.022
+    },
+    "audinite": {
+      "teams": 11,
+      "per_team": 0.022
+    },
+    "pinsirite": {
+      "teams": 11,
+      "per_team": 0.022
+    },
+    "barbaracite": {
+      "teams": 11,
+      "per_team": 0.022
+    },
+    "bigroot": {
+      "teams": 10,
+      "per_team": 0.02
+    },
+    "poisonbarb": {
+      "teams": 10,
+      "per_team": 0.02
+    },
+    "sharpedonite": {
+      "teams": 7,
+      "per_team": 0.014
+    },
+    "focusband": {
+      "teams": 6,
+      "per_team": 0.012
+    },
+    "shedshell": {
+      "teams": 5,
+      "per_team": 0.01
+    },
+    "absolite": {
+      "teams": 1,
+      "per_team": 0.002
+    },
+    "oranberry": {
+      "teams": 1,
+      "per_team": 0.002
+    },
+    "silverpowder": {
+      "teams": 1,
+      "per_team": 0.002
+    }
+  },
+  "species": {
+    "rillaboom": {
+      "teams": 26171,
+      "per_team": 52.696
+    },
+    "sneasler": {
+      "teams": 22465,
+      "per_team": 45.234
+    },
+    "salamence": {
+      "teams": 17637,
+      "per_team": 35.513
+    },
+    "incineroar": {
+      "teams": 15774,
+      "per_team": 31.761
+    },
+    "kingambit": {
+      "teams": 13344,
+      "per_team": 26.869
+    },
+    "gholdengo": {
+      "teams": 11577,
+      "per_team": 23.311
+    },
+    "basculegion": {
+      "teams": 10768,
+      "per_team": 21.682
+    },
+    "indeedeef": {
+      "teams": 9955,
+      "per_team": 20.045
+    },
+    "arcaninehisui": {
+      "teams": 8241,
+      "per_team": 16.594
+    },
+    "floetteeternal": {
+      "teams": 7721,
+      "per_team": 15.546
+    },
+    "raichu": {
+      "teams": 7294,
+      "per_team": 14.687
+    },
+    "farigiraf": {
+      "teams": 7281,
+      "per_team": 14.661
+    },
+    "golisopod": {
+      "teams": 6999,
+      "per_team": 14.093
+    },
+    "garchomp": {
+      "teams": 6928,
+      "per_team": 13.95
+    },
+    "milotic": {
+      "teams": 6619,
+      "per_team": 13.328
+    },
+    "charizard": {
+      "teams": 6131,
+      "per_team": 12.345
+    },
+    "sylveon": {
+      "teams": 6038,
+      "per_team": 12.158
+    },
+    "pelipper": {
+      "teams": 5713,
+      "per_team": 11.503
+    },
+    "archaludon": {
+      "teams": 5117,
+      "per_team": 10.303
+    },
+    "gardevoir": {
+      "teams": 4651,
+      "per_team": 9.365
+    },
+    "tyranitar": {
+      "teams": 4624,
+      "per_team": 9.311
+    },
+    "whimsicott": {
+      "teams": 4043,
+      "per_team": 8.141
+    },
+    "indeedee": {
+      "teams": 3533,
+      "per_team": 7.114
+    },
+    "staraptor": {
+      "teams": 3421,
+      "per_team": 6.888
+    },
+    "excadrill": {
+      "teams": 3415,
+      "per_team": 6.876
+    },
+    "froslass": {
+      "teams": 3015,
+      "per_team": 6.071
+    },
+    "volcarona": {
+      "teams": 2942,
+      "per_team": 5.924
+    },
+    "armarouge": {
+      "teams": 2691,
+      "per_team": 5.418
+    },
+    "metagross": {
+      "teams": 2567,
+      "per_team": 5.169
+    },
+    "lucario": {
+      "teams": 2339,
+      "per_team": 4.71
+    },
+    "sinistcha": {
+      "teams": 2249,
+      "per_team": 4.528
+    },
+    "swampert": {
+      "teams": 2182,
+      "per_team": 4.394
+    },
+    "torkoal": {
+      "teams": 2135,
+      "per_team": 4.299
+    },
+    "glimmora": {
+      "teams": 2093,
+      "per_team": 4.214
+    },
+    "gengar": {
+      "teams": 2055,
+      "per_team": 4.138
+    },
+    "grimmsnarl": {
+      "teams": 2054,
+      "per_team": 4.136
+    },
+    "politoed": {
+      "teams": 1963,
+      "per_team": 3.953
+    },
+    "venusaur": {
+      "teams": 1945,
+      "per_team": 3.916
+    },
+    "aerodactyl": {
+      "teams": 1928,
+      "per_team": 3.882
+    },
+    "baxcalibur": {
+      "teams": 1805,
+      "per_team": 3.634
+    },
+    "hatterene": {
+      "teams": 1804,
+      "per_team": 3.632
+    },
+    "dragonite": {
+      "teams": 1657,
+      "per_team": 3.336
+    },
+    "pawmot": {
+      "teams": 1570,
+      "per_team": 3.161
+    },
+    "ninetalesalola": {
+      "teams": 1449,
+      "per_team": 2.918
+    },
+    "kommoo": {
+      "teams": 1427,
+      "per_team": 2.873
+    },
+    "annihilape": {
+      "teams": 1419,
+      "per_team": 2.857
+    },
+    "primarina": {
+      "teams": 1386,
+      "per_team": 2.791
+    },
+    "delphox": {
+      "teams": 1303,
+      "per_team": 2.624
+    },
+    "camerupt": {
+      "teams": 1215,
+      "per_team": 2.446
+    },
+    "blastoise": {
+      "teams": 1056,
+      "per_team": 2.126
+    },
+    "talonflame": {
+      "teams": 1008,
+      "per_team": 2.03
+    },
+    "corviknight": {
+      "teams": 907,
+      "per_team": 1.826
+    },
+    "hydreigon": {
+      "teams": 797,
+      "per_team": 1.605
+    },
+    "blaziken": {
+      "teams": 793,
+      "per_team": 1.597
+    },
+    "absol": {
+      "teams": 730,
+      "per_team": 1.47
+    },
+    "scovillain": {
+      "teams": 686,
+      "per_team": 1.381
+    },
+    "toxapex": {
+      "teams": 652,
+      "per_team": 1.313
+    },
+    "ceruledge": {
+      "teams": 649,
+      "per_team": 1.307
+    },
+    "sinistchamasterpiece": {
+      "teams": 611,
+      "per_team": 1.23
+    },
+    "dragapult": {
+      "teams": 599,
+      "per_team": 1.206
+    },
+    "mawile": {
+      "teams": 594,
+      "per_team": 1.196
+    },
+    "gallade": {
+      "teams": 552,
+      "per_team": 1.111
+    },
+    "aegislash": {
+      "teams": 542,
+      "per_team": 1.091
+    },
+    "sableye": {
+      "teams": 533,
+      "per_team": 1.073
+    },
+    "lycanrocdusk": {
+      "teams": 485,
+      "per_team": 0.977
+    },
+    "mausholdfour": {
+      "teams": 484,
+      "per_team": 0.975
+    },
+    "mamoswine": {
+      "teams": 472,
+      "per_team": 0.95
+    },
+    "rotomwash": {
+      "teams": 470,
+      "per_team": 0.946
+    },
+    "maushold": {
+      "teams": 422,
+      "per_team": 0.85
+    },
+    "typhlosionhisui": {
+      "teams": 345,
+      "per_team": 0.695
+    },
+    "kleavor": {
+      "teams": 333,
+      "per_team": 0.671
+    },
+    "rotomheat": {
+      "teams": 316,
+      "per_team": 0.636
+    },
+    "tsareena": {
+      "teams": 287,
+      "per_team": 0.578
+    },
+    "alakazam": {
+      "teams": 260,
+      "per_team": 0.524
+    },
+    "scizor": {
+      "teams": 248,
+      "per_team": 0.499
+    },
+    "clefable": {
+      "teams": 248,
+      "per_team": 0.499
+    },
+    "sirfetchd": {
+      "teams": 242,
+      "per_team": 0.487
+    },
+    "crabominable": {
+      "teams": 235,
+      "per_team": 0.473
+    },
+    "espathra": {
+      "teams": 220,
+      "per_team": 0.443
+    },
+    "kangaskhan": {
+      "teams": 220,
+      "per_team": 0.443
+    },
+    "empoleon": {
+      "teams": 213,
+      "per_team": 0.429
+    },
+    "scrafty": {
+      "teams": 202,
+      "per_team": 0.407
+    },
+    "pidgeot": {
+      "teams": 190,
+      "per_team": 0.383
+    },
+    "grapploct": {
+      "teams": 186,
+      "per_team": 0.375
+    },
+    "zoroarkhisui": {
+      "teams": 184,
+      "per_team": 0.37
+    },
+    "weavile": {
+      "teams": 181,
+      "per_team": 0.364
+    },
+    "gyarados": {
+      "teams": 180,
+      "per_team": 0.362
+    },
+    "araquanid": {
+      "teams": 178,
+      "per_team": 0.358
+    },
+    "greninja": {
+      "teams": 178,
+      "per_team": 0.358
+    },
+    "samurotthisui": {
+      "teams": 178,
+      "per_team": 0.358
+    },
+    "pyroar": {
+      "teams": 175,
+      "per_team": 0.352
+    },
+    "chandelure": {
+      "teams": 165,
+      "per_team": 0.332
+    },
+    "cinderace": {
+      "teams": 162,
+      "per_team": 0.326
+    },
+    "palafin": {
+      "teams": 158,
+      "per_team": 0.318
+    },
+    "meowscarada": {
+      "teams": 155,
+      "per_team": 0.312
+    },
+    "meganium": {
+      "teams": 153,
+      "per_team": 0.308
+    },
+    "vivillon": {
+      "teams": 150,
+      "per_team": 0.302
+    },
+    "pincurchin": {
+      "teams": 140,
+      "per_team": 0.282
+    },
+    "starmie": {
+      "teams": 138,
+      "per_team": 0.278
+    },
+    "vileplume": {
+      "teams": 137,
+      "per_team": 0.276
+    },
+    "inteleon": {
+      "teams": 133,
+      "per_team": 0.268
+    },
+    "steelix": {
+      "teams": 131,
+      "per_team": 0.264
+    },
+    "klefki": {
+      "teams": 130,
+      "per_team": 0.262
+    },
+    "vanilluxe": {
+      "teams": 127,
+      "per_team": 0.256
+    },
+    "toxtricity": {
+      "teams": 123,
+      "per_team": 0.248
+    },
+    "drampa": {
+      "teams": 116,
+      "per_team": 0.234
+    },
+    "krookodile": {
+      "teams": 116,
+      "per_team": 0.234
+    },
+    "lopunny": {
+      "teams": 103,
+      "per_team": 0.207
+    },
+    "sceptile": {
+      "teams": 99,
+      "per_team": 0.199
+    },
+    "aggron": {
+      "teams": 97,
+      "per_team": 0.195
+    },
+    "ampharos": {
+      "teams": 91,
+      "per_team": 0.183
+    },
+    "dragalge": {
+      "teams": 86,
+      "per_team": 0.173
+    },
+    "houndoom": {
+      "teams": 86,
+      "per_team": 0.173
+    },
+    "arcanine": {
+      "teams": 84,
+      "per_team": 0.169
+    },
+    "tinkaton": {
+      "teams": 82,
+      "per_team": 0.165
+    },
+    "ditto": {
+      "teams": 81,
+      "per_team": 0.163
+    },
+    "overqwil": {
+      "teams": 81,
+      "per_team": 0.163
+    },
+    "slowkinggalar": {
+      "teams": 80,
+      "per_team": 0.161
+    },
+    "gliscor": {
+      "teams": 80,
+      "per_team": 0.161
+    },
+    "malamar": {
+      "teams": 78,
+      "per_team": 0.157
+    },
+    "torterra": {
+      "teams": 78,
+      "per_team": 0.157
+    },
+    "ninetales": {
+      "teams": 77,
+      "per_team": 0.155
+    },
+    "feraligatr": {
+      "teams": 77,
+      "per_team": 0.155
+    },
+    "vivillonpokeball": {
+      "teams": 77,
+      "per_team": 0.155
+    },
+    "mudsdale": {
+      "teams": 75,
+      "per_team": 0.151
+    },
+    "altaria": {
+      "teams": 75,
+      "per_team": 0.151
+    },
+    "hippowdon": {
+      "teams": 73,
+      "per_team": 0.147
+    },
+    "slowbro": {
+      "teams": 72,
+      "per_team": 0.145
+    },
+    "oranguru": {
+      "teams": 71,
+      "per_team": 0.143
+    },
+    "abomasnow": {
+      "teams": 70,
+      "per_team": 0.141
+    },
+    "meowsticf": {
+      "teams": 68,
+      "per_team": 0.137
+    },
+    "hawlucha": {
+      "teams": 68,
+      "per_team": 0.137
+    },
+    "bellibolt": {
+      "teams": 68,
+      "per_team": 0.137
+    },
+    "chesnaught": {
+      "teams": 68,
+      "per_team": 0.137
+    },
+    "skarmory": {
+      "teams": 67,
+      "per_team": 0.135
+    },
+    "umbreon": {
+      "teams": 63,
+      "per_team": 0.127
+    },
+    "goodrahisui": {
+      "teams": 62,
+      "per_team": 0.125
+    },
+    "orthworm": {
+      "teams": 61,
+      "per_team": 0.123
+    },
+    "toxtricitylowkey": {
+      "teams": 61,
+      "per_team": 0.123
+    },
+    "meowstic": {
+      "teams": 60,
+      "per_team": 0.121
+    },
+    "golurk": {
+      "teams": 59,
+      "per_team": 0.119
+    },
+    "basculegionf": {
+      "teams": 59,
+      "per_team": 0.119
+    },
+    "snorlax": {
+      "teams": 57,
+      "per_team": 0.115
+    },
+    "heliolisk": {
+      "teams": 56,
+      "per_team": 0.113
+    },
+    "persianalola": {
+      "teams": 55,
+      "per_team": 0.111
+    },
+    "mimikyu": {
+      "teams": 55,
+      "per_team": 0.111
+    },
+    "taurospaldeaaqua": {
+      "teams": 54,
+      "per_team": 0.109
+    },
+    "rhyperior": {
+      "teams": 52,
+      "per_team": 0.105
+    },
+    "perrserker": {
+      "teams": 49,
+      "per_team": 0.099
+    },
+    "azumarill": {
+      "teams": 48,
+      "per_team": 0.097
+    },
+    "eelektross": {
+      "teams": 47,
+      "per_team": 0.095
+    },
+    "wigglytuff": {
+      "teams": 45,
+      "per_team": 0.091
+    },
+    "scolipede": {
+      "teams": 44,
+      "per_team": 0.089
+    },
+    "luxray": {
+      "teams": 44,
+      "per_team": 0.089
+    },
+    "banette": {
+      "teams": 43,
+      "per_team": 0.087
+    },
+    "heracross": {
+      "teams": 43,
+      "per_team": 0.087
+    },
+    "skeledirge": {
+      "teams": 42,
+      "per_team": 0.085
+    },
+    "vivillonmarine": {
+      "teams": 41,
+      "per_team": 0.083
+    },
+    "quaquaval": {
+      "teams": 40,
+      "per_team": 0.081
+    },
+    "noivern": {
+      "teams": 39,
+      "per_team": 0.079
+    },
+    "conkeldurr": {
+      "teams": 39,
+      "per_team": 0.079
+    },
+    "falinks": {
+      "teams": 38,
+      "per_team": 0.077
+    },
+    "beedrill": {
+      "teams": 37,
+      "per_team": 0.075
+    },
+    "raichualola": {
+      "teams": 37,
+      "per_team": 0.075
+    },
+    "vivillonfancy": {
+      "teams": 37,
+      "per_team": 0.075
+    },
+    "manectric": {
+      "teams": 37,
+      "per_team": 0.075
+    },
+    "runerigus": {
+      "teams": 35,
+      "per_team": 0.07
+    },
+    "decidueyehisui": {
+      "teams": 34,
+      "per_team": 0.068
+    },
+    "salazzle": {
+      "teams": 34,
+      "per_team": 0.068
+    },
+    "houndstone": {
+      "teams": 32,
+      "per_team": 0.064
+    },
+    "slowking": {
+      "teams": 32,
+      "per_team": 0.064
+    },
+    "bastiodon": {
+      "teams": 32,
+      "per_team": 0.064
+    },
+    "jolteon": {
+      "teams": 31,
+      "per_team": 0.062
+    },
+    "lycanroc": {
+      "teams": 30,
+      "per_team": 0.06
+    },
+    "aurorus": {
+      "teams": 30,
+      "per_team": 0.06
+    },
+    "garganacl": {
+      "teams": 29,
+      "per_team": 0.058
+    },
+    "cofagrigus": {
+      "teams": 29,
+      "per_team": 0.058
+    },
+    "reuniclus": {
+      "teams": 28,
+      "per_team": 0.056
+    },
+    "chimecho": {
+      "teams": 28,
+      "per_team": 0.056
+    },
+    "clawitzer": {
+      "teams": 27,
+      "per_team": 0.054
+    },
+    "victreebel": {
+      "teams": 26,
+      "per_team": 0.052
+    },
+    "spiritomb": {
+      "teams": 26,
+      "per_team": 0.052
+    },
+    "arboliva": {
+      "teams": 26,
+      "per_team": 0.052
+    },
+    "farfetchd": {
+      "teams": 26,
+      "per_team": 0.052
+    },
+    "toxicroak": {
+      "teams": 26,
+      "per_team": 0.052
+    },
+    "mrrime": {
+      "teams": 25,
+      "per_team": 0.05
+    },
+    "glaceon": {
+      "teams": 25,
+      "per_team": 0.05
+    },
+    "infernape": {
+      "teams": 24,
+      "per_team": 0.048
+    },
+    "hydrapple": {
+      "teams": 23,
+      "per_team": 0.046
+    },
+    "mrmime": {
+      "teams": 23,
+      "per_team": 0.046
+    },
+    "gogoat": {
+      "teams": 23,
+      "per_team": 0.046
+    },
+    "serperior": {
+      "teams": 22,
+      "per_team": 0.044
+    },
+    "pikachu": {
+      "teams": 21,
+      "per_team": 0.042
+    },
+    "goodra": {
+      "teams": 20,
+      "per_team": 0.04
+    },
+    "medicham": {
+      "teams": 19,
+      "per_team": 0.038
+    },
+    "rotomfrost": {
+      "teams": 19,
+      "per_team": 0.038
+    },
+    "trevenant": {
+      "teams": 19,
+      "per_team": 0.038
+    },
+    "emboar": {
+      "teams": 18,
+      "per_team": 0.036
+    },
+    "emolga": {
+      "teams": 17,
+      "per_team": 0.034
+    },
+    "audino": {
+      "teams": 16,
+      "per_team": 0.032
+    },
+    "glalie": {
+      "teams": 16,
+      "per_team": 0.032
+    },
+    "morpeko": {
+      "teams": 16,
+      "per_team": 0.032
+    },
+    "alcremie": {
+      "teams": 15,
+      "per_team": 0.03
+    },
+    "rotommow": {
+      "teams": 15,
+      "per_team": 0.03
+    },
+    "pangoro": {
+      "teams": 15,
+      "per_team": 0.03
+    },
+    "slowbrogalar": {
+      "teams": 14,
+      "per_team": 0.028
+    },
+    "thievul": {
+      "teams": 13,
+      "per_team": 0.026
+    },
+    "rampardos": {
+      "teams": 13,
+      "per_team": 0.026
+    },
+    "liepard": {
+      "teams": 13,
+      "per_team": 0.026
+    },
+    "sharpedo": {
+      "teams": 11,
+      "per_team": 0.022
+    },
+    "espeon": {
+      "teams": 11,
+      "per_team": 0.022
+    },
+    "pinsir": {
+      "teams": 11,
+      "per_team": 0.022
+    },
+    "barbaracle": {
+      "teams": 11,
+      "per_team": 0.022
+    },
+    "vaporeon": {
+      "teams": 10,
+      "per_team": 0.02
+    },
+    "taurospaldeablaze": {
+      "teams": 10,
+      "per_team": 0.02
+    },
+    "squawkabillyblue": {
+      "teams": 10,
+      "per_team": 0.02
+    },
+    "stunfisk": {
+      "teams": 10,
+      "per_team": 0.02
+    },
+    "ariados": {
+      "teams": 9,
+      "per_team": 0.018
+    },
+    "diggersby": {
+      "teams": 9,
+      "per_team": 0.018
+    },
+    "forretress": {
+      "teams": 9,
+      "per_team": 0.018
+    },
+    "swalot": {
+      "teams": 9,
+      "per_team": 0.018
+    },
+    "arbok": {
+      "teams": 9,
+      "per_team": 0.018
+    },
+    "simisage": {
+      "teams": 8,
+      "per_team": 0.016
+    },
+    "toucannon": {
+      "teams": 8,
+      "per_team": 0.016
+    },
+    "vivillongarden": {
+      "teams": 8,
+      "per_team": 0.016
+    },
+    "sandaconda": {
+      "teams": 8,
+      "per_team": 0.016
+    },
+    "vivillonmodern": {
+      "teams": 8,
+      "per_team": 0.016
+    },
+    "leafeon": {
+      "teams": 7,
+      "per_team": 0.014
+    },
+    "roserade": {
+      "teams": 7,
+      "per_team": 0.014
+    },
+    "typhlosion": {
+      "teams": 7,
+      "per_team": 0.014
+    },
+    "tyrantrum": {
+      "teams": 6,
+      "per_team": 0.012
+    },
+    "musharna": {
+      "teams": 6,
+      "per_team": 0.012
+    },
+    "beartic": {
+      "teams": 6,
+      "per_team": 0.012
+    },
+    "vivilloncontinental": {
+      "teams": 6,
+      "per_team": 0.012
+    },
+    "castform": {
+      "teams": 6,
+      "per_team": 0.012
+    },
+    "aromatisse": {
+      "teams": 6,
+      "per_team": 0.012
+    },
+    "wyrdeer": {
+      "teams": 6,
+      "per_team": 0.012
+    },
+    "simipour": {
+      "teams": 6,
+      "per_team": 0.012
+    },
+    "simisear": {
+      "teams": 6,
+      "per_team": 0.012
+    },
+    "rotom": {
+      "teams": 5,
+      "per_team": 0.01
+    },
+    "polteageist": {
+      "teams": 5,
+      "per_team": 0.01
+    },
+    "lycanrocmidnight": {
+      "teams": 5,
+      "per_team": 0.01
+    },
+    "watchog": {
+      "teams": 5,
+      "per_team": 0.01
+    },
+    "machamp": {
+      "teams": 5,
+      "per_team": 0.01
+    },
+    "squawkabilly": {
+      "teams": 5,
+      "per_team": 0.01
+    },
+    "florges": {
+      "teams": 4,
+      "per_team": 0.008
+    },
+    "zoroark": {
+      "teams": 4,
+      "per_team": 0.008
+    },
+    "tauros": {
+      "teams": 4,
+      "per_team": 0.008
+    },
+    "passimian": {
+      "teams": 4,
+      "per_team": 0.008
+    },
+    "alcremiemintcream": {
+      "teams": 4,
+      "per_team": 0.008
+    },
+    "dedenne": {
+      "teams": 4,
+      "per_team": 0.008
+    },
+    "rotomfan": {
+      "teams": 4,
+      "per_team": 0.008
+    },
+    "flapple": {
+      "teams": 3,
+      "per_team": 0.006
+    },
+    "avalugg": {
+      "teams": 3,
+      "per_team": 0.006
+    },
+    "mabosstiff": {
+      "teams": 3,
+      "per_team": 0.006
+    },
+    "vivillontundra": {
+      "teams": 3,
+      "per_team": 0.006
+    },
+    "qwilfish": {
+      "teams": 3,
+      "per_team": 0.006
+    },
+    "polteageistantique": {
+      "teams": 2,
+      "per_team": 0.004
+    },
+    "appletun": {
+      "teams": 2,
+      "per_team": 0.004
+    },
+    "gourgeistsmall": {
+      "teams": 2,
+      "per_team": 0.004
+    },
+    "alcremierainbowswirl": {
+      "teams": 2,
+      "per_team": 0.004
+    },
+    "vivillonocean": {
+      "teams": 2,
+      "per_team": 0.004
+    },
+    "vivillonjungle": {
+      "teams": 2,
+      "per_team": 0.004
+    },
+    "decidueye": {
+      "teams": 1,
+      "per_team": 0.002
+    },
+    "gourgeistsuper": {
+      "teams": 1,
+      "per_team": 0.002
+    },
+    "samurott": {
+      "teams": 1,
+      "per_team": 0.002
+    },
+    "avalugghisui": {
+      "teams": 1,
+      "per_team": 0.002
+    },
+    "vivillonsandstorm": {
+      "teams": 1,
+      "per_team": 0.002
+    },
+    "furfroudandy": {
+      "teams": 1,
+      "per_team": 0.002
+    }
+  }
+}

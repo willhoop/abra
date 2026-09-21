@@ -52,6 +52,22 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.19.0] — 2026-09-21 — **Reg M-C gets its own census and its own steering inputs, so a pinned, steered Reg M-C differential can run**
+
+- **What changed.** The Reg M-C census (`data/mechanics-census-regmc.json`, pin
+  `data/verification/census-pin-regmc-98c69a4fee7f.json`) and three Reg M-C-only rows for the seeds and the
+  Grassy heal (`tests/test-mechanics.js`). Every steering-input builder (`engine/click_counts.js`,
+  `engine/sheet_usage.js`, `engine/policy.js`, `engine/rollout_switch_census.js`) reads the selected
+  regulation's frozen pool through the new `engine/regulation_stores.js`, which refuses an absent or altered
+  pool. The behaviour table is a per-regulation engine file frozen by a Reg M-C release. The joint census
+  refuses under Reg M-C. `engine/game_differential.js` names the files it actually read and wrote. New test
+  `tests/test-regulation-steering.js`.
+- **Measured.** NO FIGURE published. The census, the steering inputs and the first pinned Reg M-C
+  differential (`--games 1200`, release `9298380d80f5`, worktree only) are readings in
+  `docs/_reports/2026-09-21-regmc-census.md`. Reg M-B is unmoved: its census rows, click counts and sheet
+  usage are identical to what HEAD's code produces.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none; the runbook rows are the document.
+
 ## [abra/regmc 0.17.0] — 2026-09-21 — **The MEDICHAM gate answers per regulation, and a Reg M-C run can no longer move Reg M-B's evidence**
 
 - **What changed.** `engine/regulation.js` resolves every artifact in the gate's path per regulation
