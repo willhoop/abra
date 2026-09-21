@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.15.0 — 2026-09-21.**
+**Version: 0.15.1 — 2026-09-21.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -295,6 +295,23 @@ A runbook that pretends judgement is mechanical is worse than none. These do not
    Read the UNTESTABLE line before reading anything else: the infobox is in the RAW log, so the answer
    is always a floor. On Reg M-C that line says the great majority of the store has no local raw log —
    which does not mean *M-C is nearly clean*, it means *M-C has barely been asked*.
+
+## FOUND DURING THE REBUILD — APPEND A ROW EVERY TIME ONE BITES
+
+*(Will, 2026-09-21: "make sure to continuously update the regulation change document so next regulation
+change is even easier".)* **This section is appended in the same commit as the fix that found it.** One
+row per trap: what bit, how it showed, what to do next time. The steps above say what to do; this says
+what went wrong while doing it, in the order it happened on Reg M-B → M-C.
+
+| # | what bit | how it showed | next time |
+|---|---|---|---|
+| 1 | **Three files are per-regulation, not one.** The species table, `data/tags.json` and `data/protocol-events.json` are each derived from the format. | The first new-regulation games parted on things the new format added (terrain setters, new mega stones) because the OLD tag file had no row for them. | Add the three to `runtime.<reg>` in `data/regulations.json` on day one; `fileFor` in `engine/regulation.js` redirects all three and refuses a write onto the old regulation's files. Derive each with the new checkout. |
+| 2 | **A reader that loads a tag file by path bypasses the redirect.** `engine/names.js` read Reg M-B's tags under Reg M-C. | The differential picked Reg M-C teams by Reg M-B membership. Nothing failed. | After adding the per-regulation files, grep for every direct load of `tags.json` / `protocol-events.json` / `engine-data.js` and route it through the selector. |
+| 3 | **Editing a DERIVER restales the old regulation's artifact.** 0.14.0 added `--out` to `engine/derive_protocol_events.js` without regenerating Reg M-B's `data/protocol-events.json`. | Every differential, roster and battery run refused to start with "produced by … and that file is now …". A battery script that greps an OLD artifact afterwards then printed last run's clean numbers as if they were new. | Any edit to a deriver: regenerate the old regulation's artifact in the same commit and show it is byte-identical apart from its stamps. Read each run's exit code before any figure a wrapper prints. |
+| 4 | **The pre-commit audit copied the whole Projects folder into `%TEMP%`.** `engine/artifact_audit.js` read `path.join(ROOT,'..','..','..','..',c)` in `engine/regulation.js` as a sibling checkout named `..`. | Every commit hung silently for minutes; stray copies (`%TEMP%/Pokemon`, `agents`, `worktrees`) piled up. | Fixed 0.15.0 (a name made of dots is not a sibling). If a commit hook goes silent, look at `%TEMP%` for a fresh copy of the repo's parent before anything else. |
+| 5 | **The new regulation's smoke IS the work list.** | The first Reg M-C games played end to end the first time, and most of those that parted did so on terrain set on entry (`docs/_reports/2026-09-21-regmc-table-wiring.md`). | Build the species table, run a small unpinned smoke immediately, and rank by FIRST CAUSE. It found the headline features of the new format before anyone read a patch note. |
+| 6 | **New mega stones arrive untagged.** | "Mega forme did not evolve" in the first smoke (`docs/_reports/2026-09-21-regmc-tags.md`). | Check every legal stone in the new format has its mega tag right after deriving the tag file. |
+| 7 | **The closed regulation needs a regression check, not a re-measure.** | A full Reg M-B battery was re-run on 2026-09-21 and was not needed. | For the closed line: damage differential identical plus one lattice at 0. Anything more is re-measuring a published result. |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

@@ -52,6 +52,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.15.1] — 2026-09-21 — **The rotation runbook keeps a running list of the traps**
+
+- `docs/REGULATION-ROTATION.md` now has *Found during the rebuild*, a table of seven traps from this
+  rotation. The list covers the three per-regulation files, a reader that bypassed the redirect, a
+  deriver edit that restaled Reg M-B's events file, the pre-commit audit that copied Projects into
+  `%TEMP%`, the smoke as the work list, untagged mega stones, and the closed line needing only a
+  regression check. Every later fix that finds a trap appends a row.
+- **Supersedes.** Nothing. **Basis.** unchanged. **Owes.** Nothing; the runbook is the document.
+
 ## [abra/regmc 0.15.0] — 2026-09-21 — **Reg M-C gets its own tag file and protocol-events file, and terrain on entry is closed**
 
 - **Two new files, selected the same way as the species table.** `data/tags-regmc.json` and

@@ -21,6 +21,16 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.15.1] — 2026-09-21
+
+### Added
+- `docs/REGULATION-ROTATION.md` gains a running section, *Found during the rebuild*, with seven traps
+  hit on Reg M-B → M-C and what to do next time. Will asked for the rotation document to be updated
+  continuously; each new trap gets a row in the same commit as its fix.
+
+### Notes
+- **Supersedes.** Nothing. No figure moves. **Basis.** unchanged.
+
 ## [0.15.0] — 2026-09-21
 
 ### Added
