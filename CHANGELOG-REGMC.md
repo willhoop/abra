@@ -21,6 +21,29 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.25.0] — 2026-09-22
+
+### Fixed
+- **Aura Guard halves contact damage.** The `damageReduce` reader in `engine/medicham2-browser.js` had no branch for
+  `onlyWhen: 'contact'`, so the condition was refused as unknown (`MEDFAILS.damageReduceUnknown`) and the cut was never
+  applied: every contact hit into Lucario-Mega-Z did double damage here. The reader now asks the per-use contact fact
+  (`mvMakesContact(id, att, use)`), which is what the authority's handler reads (`move.flags['contact']` on the active
+  move, after Long Reach). The ability is `breakable`, and Mold Breaker already removes it from `defAb`. Knob
+  `MEDI_DAMAGE_REDUCE_CONTACT_UNKNOWN`.
+- `tests/probe_regmc_aura_guard.js` (`--regulation regmc`): a contact hit, a non-contact hit and a Mold Breaker contact
+  hit into the mega holder. Exit 0 clean; exit 1 under the knob and on the 0.24.0 engine bytes.
+
+### Notes
+- **The "Aura Guard card that only parts after earlier games" is not engine state.** Replayed in a fresh process with
+  the driver's coverage counters restored, the Lucario game reproduces line for line. A second game that did NOT
+  reproduce parts at the driver's mega choice: `MEGA_PREFER_B` in `engine/game_differential.js` alternates across
+  games and is not in `driverSnap`, so whether the Lucario megas into the Aura Guard forme depends on the games before
+  it. The instrument's, filed for MEASURE; see the report.
+- No Reg M-B tag carries a contact-only `damageReduce`, so the new branch cannot run under Reg M-B.
+- Reg M-B unmoved: the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
 ## [0.24.0] — 2026-09-22
 
 ### Added

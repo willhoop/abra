@@ -1,3 +1,29 @@
+## REG M-C: AURA GUARD HALVES CONTACT DAMAGE; THE "ORDER-DEPENDENT" CARD IS THE DRIVER'S MEGA CHOICE. 2026-09-22 (abra/regmc 0.25.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §2-§3.
+
+- **Defect.** `damageReduce` with `onlyWhen: 'contact'` (Aura Guard, Lucario-Mega-Z; no Reg M-B member) had no branch,
+  so it was refused and counted (`MEDFAILS.damageReduceUnknown`) and never applied.
+- **Fix.** The reader asks `mvMakesContact(id, att, use)`: the per-use flag after Long Reach, which is what the
+  authority's `onSourceModifyDamage` reads. Mold Breaker already clears `defAb`.
+- **Probe** `tests/probe_regmc_aura_guard.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_DAMAGE_REDUCE_CONTACT_UNKNOWN` and on the 0.24.0 engine bytes.
+- **Not a leak.** A fresh process with the driver's counters restored replays the Lucario game line for line. What
+  carries across games is `MEGA_PREFER_B` in `engine/game_differential.js` (the driver's mega-slot alternation, not in
+  `driverSnap`), which decides whether the Lucario megas at all. MEASURE's instrument; filed, not changed here.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after this pass
+
+Ranked on the PINNED Reg M-C differential, by board-material first cause (report §3):
+
+1. **Glaive Rush** (the user's double-damage volatile, and the uncompared `volatile:glaiverush` leaf) — the Baxcalibur
+   damage-value cards; then **Octolock**.
+2. Faint HP written `0fnt` on one side; terrain; the rest of `other`.
+3. The 17 census rows missing under Reg M-C.
+4. Carried: the Inner Focus stat label, the seed GAIN door, Emergency Exit's residual and hazard doors; for MEASURE,
+   `MEGA_PREFER_B` outside `driverSnap`.
 ## REG M-C: THE MOVE-EFFECTS RULEBOOK IS PER-REGULATION. 2026-09-22 (abra/regmc 0.24.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine.md` §1.
@@ -14,7 +40,7 @@ Full account: `docs/_reports/2026-09-22-regmc-engine.md` §1.
 - **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
   line; lattice `--games 1200` 0 of 961.
 
-### The Reg M-C hand list, after this pass
+### The Reg M-C hand list, after the 0.24.0 pass — SUPERSEDED by the 0.25.0 list above
 
 Ranked on the PINNED Reg M-C differential, by board-material first cause (report §1):
 

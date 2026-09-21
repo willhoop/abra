@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.25.0] — 2026-09-22 — **Aura Guard halves contact damage; the "order-dependent" card was the driver's mega choice**
+
+- **What changed.** `engine/medicham2-browser.js`: the `damageReduce` reader evaluates `onlyWhen: 'contact'` (it was
+  refused as unknown, so Aura Guard never applied). Knob `MEDI_DAMAGE_REDUCE_CONTACT_UNKNOWN`; probe
+  `tests/probe_regmc_aura_guard.js`. The cross-game dependence of the card is the differential driver's mega
+  alternation, not engine state (filed for MEASURE).
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine.md` §3.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
 ## [abra/regmc 0.24.0] — 2026-09-22 — **The move-effects rulebook is per-regulation, so the 15 moves Reg M-C added have their secondaries, boosts and accuracy**
 
 - **What changed.** `data/move-effects.js` joins the per-regulation map (`engine/regulation.js`, `moveEffects`); Reg M-C

@@ -12658,6 +12658,8 @@ const _contactCache=Object.create(null);
  * `flag` IS READ, NOT ASSUMED. A member that deletes some other flag is refused and COUNTED rather
  * than being treated as a contact-remover, because guessing here would hand a body an immunity to
  * Rough Skin it does not have. Legal carrier DERIVED: Decidueye, the only one in Reg M-B. */
+/* MEDI_DAMAGE_REDUCE_CONTACT_UNKNOWN=1: a contact-only `damageReduce` (Aura Guard) is refused as unknown again (pre-0.25.0). */
+const DAMAGE_REDUCE_CONTACT_UNKNOWN=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DAMAGE_REDUCE_CONTACT_UNKNOWN==='1');
 function mvMakesContact(id,att,use){
   if(!id) return false;
   const k=String(id).toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -16703,6 +16705,15 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
               :_w==='special'?mv.c==='S'
               :_w==='physical'?mv.c==='P'
               :_w==='sound'?!!(mv.id&&TAGS.has('move',mv.id,'sound'))
+              /* 2026-09-22 (Reg M-C, abra/regmc 0.25.0) -- CONTACT. Aura Guard (Lucario-Mega-Z) is
+               * `onSourceModifyDamage(damage, source, target, move) { if (move.flags['contact']) return this.chainModify(0.5); }`
+               * in the Reg M-C checkout: the ACTIVE move's flag, which Long Reach deletes in `onModifyMove`, so the
+               * per-use contact fact is `mvMakesContact(id, att, use)` and not the raw tag. Before this the
+               * condition was unknown, refused and counted, so the cut was NEVER applied: the Lucario
+               * damage-value cards of the pinned Reg M-C differential. Breakable: `defAb` is already the
+               * ability Mold Breaker leaves standing. MEDI_DAMAGE_REDUCE_CONTACT_UNKNOWN=1 restores the refusal.
+               * tests/probe_regmc_aura_guard.js */
+              :_w==='contact'?(DAMAGE_REDUCE_CONTACT_UNKNOWN?null:mvMakesContact(mv.id,att,mv))
               :null;
       if(_ok===null){MEDFAILS.damageReduceUnknown++;
         if(!MEDFAILS.damageReduceUnknownFirst)MEDFAILS.damageReduceUnknownFirst=String(defAb)+'/'+String(_w);}
