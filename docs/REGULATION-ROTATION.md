@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.15.1 — 2026-09-21.**
+**Version: 0.16.0 — 2026-09-21.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -201,7 +201,8 @@ carries no regulation id at all.**
 |---|---|
 | **the frozen team pool** (`--team-store`) | The new regulation gets its **own** pinned pool, cut from its own store with step 6's exclusion applied. The old one is the old regulation by construction and is never re-pointed. |
 | **the census pin** | Regenerate for the new format. A count taken either side of a census regeneration is **not a before/after**. |
-| **the gate's lattices** (`--games` values) | `engine/quarantine.js` requires zero on several sample sizes chosen by walking the swarm builder so the samples share few teams. A zero that holds at one sample size is a fact about that sample. Re-derive the sizes against the new pool. |
+| **the gate's lattices** (`--games` values) | `engine/quarantine.js` requires zero on several sample sizes chosen by walking the swarm builder so the samples share few teams. A zero that holds at one sample size is a fact about that sample. Re-derive the sizes against the new pool with `node engine/lattice_walk.js --regulation <new> --anchor 1200 --from 1250 --to 2000 --greedy 2` and add one row to `LATTICE_GAMES` in `engine/quarantine.js`. |
+| **every gate artifact** | Nothing to re-point: `engine/regulation.js` `artifactFor` sends every artifact the gate reads or an instrument writes to `data/<name>-<new>.<ext>` (pool: `data/team-pool-frozen-<new>`) for any regulation but Reg M-B, and refuses a write onto any other existing `data/` file. Run the gate with `--regulation <new>`. A new artifact family gets a pattern in `PER_REGULATION_ARTIFACTS`; `tests/test-regulation-artifacts.js` fails until it has one. |
 | **the release set** | Every release cut before the flip describes the previous regulation. Cut the first new one only after the rebuild and re-point steps below have settled, or it freezes the old format. |
 
 ### 10. Rebuild what the format decides — DERIVED
@@ -312,6 +313,10 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | 5 | **The new regulation's smoke IS the work list.** | The first Reg M-C games played end to end the first time, and most of those that parted did so on terrain set on entry (`docs/_reports/2026-09-21-regmc-table-wiring.md`). | Build the species table, run a small unpinned smoke immediately, and rank by FIRST CAUSE. It found the headline features of the new format before anyone read a patch note. |
 | 6 | **New mega stones arrive untagged.** | "Mega forme did not evolve" in the first smoke (`docs/_reports/2026-09-21-regmc-tags.md`). | Check every legal stone in the new format has its mega tag right after deriving the tag file. |
 | 7 | **The closed regulation needs a regression check, not a re-measure.** | A full Reg M-B battery was re-run on 2026-09-21 and was not needed. | For the closed line: damage differential identical plus one lattice at 0. Anything more is re-measuring a published result. |
+| 8 | **The gate and every instrument wrote ONE fixed path.** Only the three engine files were per-regulation. | A Reg M-C `--write` would have overwritten Reg M-B's published evidence and exited 0, and the gate could only answer for Reg M-B (`docs/_reports/2026-09-21-regmc-gate.md`). | Fixed 0.16.0: per-regulation artifacts are `data/<name>-<reg>.<ext>`; see step 9's pin table. Run the gate with `--regulation <reg>`. The lattice sizes do NOT transfer: re-derive them with `engine/lattice_walk.js`. |
+| 9 | **An absent input passed a clause.** The open-defect clause read no register verdicts for the new regulation and passed. | The first Reg M-C gate run showed PASS with 0 verdicts read. | Fixed 0.16.0: absent verdicts read CANNOT-ANSWER. Run the new regulation's gate once before its instruments exist. Every clause must read NO ARTIFACT or CANNOT-ANSWER. A PASS there is a clause that cannot see absence. |
+| trap 10 | **A test that writes the old regulation's names into a sandbox becomes their writer.** `engine/provenance.js` credits whoever names an artifact beside a write into `data/`. | The gate's artifact closure moved under a new test; the report records it (`docs/_reports/2026-09-21-regmc-gate.md` section 2). | Found 0.16.0. In a test, assemble artifact names, never spell them next to a write. Re-derive `node engine/provenance.js --graph --json` and check nothing credits the test. |
+| trap 11 | **Some builders read the old regulation's store whatever is selected.** `engine/click_counts.js` and `engine/sheet_usage.js` read the Reg M-B stores by name, and the steering inputs are Reg M-B's too. | Under the new regulation they would write old-store numbers into correctly named new files. Nothing would fail. | Found 0.16.0, not fixed. Before running a builder for the new regulation, check which store it opens. The not-yet-per-regulation inputs are listed in `tests/test-regulation-artifacts.js` (NOT_YET). |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

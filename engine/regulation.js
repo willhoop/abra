@@ -440,6 +440,191 @@ function guardWrites() {
 }
 installTableResolver();
 
+/* ---- 2026-09-21 (MEASURE) -- AND SO DOES EVERY ARTIFACT THE GATE READS OR ITS INSTRUMENTS WRITE -----
+ *
+ * THE HAZARD. The block above moved the three files the ENGINE reads. It did not move the files the
+ * MEASUREMENT reads and writes: `data/game-differential.json` and its lattice siblings, the roster
+ * stages, `data/all-mechanics-fire.json`, `data/engine-diff.json`, the census, the release pointer, the
+ * baselines and stamps. Every instrument wrote one fixed path, so a Reg M-C run with `--write`
+ * OVERWROTE Reg M-B's published 7.0.0 evidence and exited 0 -- and `engine/quarantine.js` read those
+ * same fixed paths, so it could only ever answer for Reg M-B.
+ *
+ * THE OWNER OF THE UNSUFFIXED NAMES IS REG M-B, FOREVER, NOT "WHICHEVER IS ACTIVE". Those files were
+ * written by Reg M-B and are its closed record. If ownership followed `active`, flipping the config to
+ * Reg M-C would make every M-C reader read M-B's evidence as its own -- the exact failure this block
+ * exists to prevent, arriving on the day of the flip. So the owner is the same literal the fallback
+ * above carries, and every OTHER regulation gets a sibling: `-<id>` before the final extension
+ * (`game-differential.g1350.json` -> `game-differential.g1350-regmc.json`), which is the name
+ * engine/engine_release.js already gives its per-regulation pointer. A directory gets the suffix
+ * appended (`data/team-pool-frozen` -> `data/team-pool-frozen-regmc`, which is where the pool is).
+ *
+ * THE SEAM IS fs, FOR THE SAME REASON THE TABLE'S SEAM IS require. The readers and writers are a dozen
+ * instruments (several owned by ENGINE, one of them 19,000 lines) and every one builds the path as
+ * `D('data', '<name>')`. Editing each is the 490-readings mistake; a reader written tomorrow would miss
+ * it. So while a non-owner regulation is selected, a read or write of a LIVE-tree `data/<name>` whose
+ * name is declared below is answered by its sibling. Nothing is installed for Reg M-B: its path is the
+ * code that ran before this block existed, byte for byte.
+ *
+ * A MISSING SIBLING IS ENOENT, NEVER A FALL-THROUGH. Reading Reg M-B's file because Reg M-C has none
+ * yet would hand the M-C gate M-B's clean numbers, which is a pass nobody measured. ENOENT is what
+ * every reader already treats as "no artifact", so the gate reports CANNOT-ANSWER by construction.
+ *
+ * THE LIST IS DECLARED AND CHECKED, NOT TRUSTED. `tests/test-regulation-artifacts.js` walks the gate's
+ * artifact closure out of engine/quarantine.js's own derivation (its reads, and everything they were
+ * built from, through provenance.js's graph) and fails on any member that is neither declared here nor
+ * declared regulation-shared there with a reason. A new clause reading a new file fails that test.
+ *
+ * AND WHAT THE LIST MISSES STILL CANNOT BE OVERWRITTEN. The redirect is for files a run should FIND;
+ * the guard is for files it must never TOUCH. While a non-owner regulation is selected, a write,
+ * append, truncate, unlink, rename or copy onto ANY EXISTING file under the live `data/` whose path
+ * does not name that regulation is REFUSED -- deny by default, so an artifact nobody thought to
+ * declare is protected anyway. A NEW file is allowed (it overwrites nothing); `data/releases/` is
+ * exempt (content-addressed: a cut writes a new directory, and a re-cut of the same tree appends to
+ * its own). The three engine files keep the refusal the block above gives them. */
+const ARTIFACT_OWNER = CONFIG_FALLBACK_ID;
+const ARTIFACT_TAG = ID === ARTIFACT_OWNER ? null : ID;
+
+/* [pattern over the data/ basename, the writer, what it is]. Families by pattern, so a new lattice
+ * sample or roster stage is covered by existing, not by an edit here. */
+const PER_REGULATION_ARTIFACTS = Object.freeze([
+  [/^game-differential(\.g\d+)?\.json$/, 'engine/game_differential.js', 'the whole-game differential, one file per team lattice'],
+  [/^divergence-turns\.json$/, 'engine/game_differential.js --dump-out', 'the differential\'s turn dump'],
+  [/^engine-diff\.json$/, 'tests/test-engine-diff.js', 'the damage differential'],
+  [/^roster(\.[a-z]+)?(\.prev)?\.json$/, 'tests/roster.js', 'the deliberate roster, every stage and its previous copy'],
+  [/^all-mechanics-fire(\.boardstate)?\.json$/, 'engine/all_mechanics_fire.js', 'every mechanic staged against the authority'],
+  [/^mechanics-census\.json$/, 'tests/test-mechanics.js', 'the census that steers what plays'],
+  [/^engine-release\.json$/, 'engine/engine_release.js', 'the release pointer (engine_release.js names its own per-regulation pointer the same way)'],
+  [/^published-samples\.json$/, 'engine/publish_guard.js', 'the published-sample ratchet'],
+  [/^whole-game-baseline\.json$/, 'engine/quarantine.js --stamp-whole-game', 'the whole-game bar'],
+  [/^quarantine-stamp\.json$/, 'engine/quarantine.js --check', 'the citation ratchet'],
+  [/^decision-impact\.json$/, '(no writer today)', 'the paired decision-impact run'],
+  [/^register-reality\.json$/, 'engine/register_reality.js', 'the register rows run against the engine'],
+  [/^click-counts\.json$/, 'engine/click_counts.js', 'human click counts (reach)'],
+  [/^sheet-usage\.json$/, 'engine/sheet_usage.js', 'sheet usage (reach)'],
+  [/^diff-team-pool\.json$/, 'engine/diff_swarm.js', 'the team-pool cache the differential draws from'],
+  [/^diff-swarm\.json$/, 'engine/diff_swarm.js --write', 'the swarm report'],
+]);
+const POOL_DIR = 'data/team-pool-frozen';
+const isPerRegulation = base => PER_REGULATION_ARTIFACTS.some(([re]) => re.test(String(base)));
+/** `-<id>` before the final extension; a name with no extension (a directory) gets it appended. */
+function siblingName(base, id) {
+  const b = String(base), ext = path.extname(b);
+  return ext ? b.slice(0, -ext.length) + '-' + id + ext : b + '-' + id;
+}
+/** The repo-relative path this regulation reads and writes in place of `rel`: the engine files by
+ *  `fileFor`, then the declared artifacts and the frozen pool by the sibling rule. Identity under the
+ *  owner (Reg M-B) and for anything undeclared. */
+function artifactFor(rel) {
+  const r = String(rel).replace(/\\/g, '/').replace(/^\.\//, '');
+  const f = fileFor(r);
+  if (f !== r || !ARTIFACT_TAG) return f;
+  const m = /^data\/([^/]+)$/.exec(r);
+  if (!m) return r;
+  return (r === POOL_DIR || isPerRegulation(m[1])) ? 'data/' + siblingName(m[1], ARTIFACT_TAG) : r;
+}
+
+const LIVE_DATA = path.resolve(ROOT, 'data');
+const ARTIFACTS = { owner: ARTIFACT_OWNER, tag: ARTIFACT_TAG, installed: false, redirects: 0, byFile: {},
+  writesRefused: 0, refused: [] };
+const ART_HOOK = Symbol.for('abra.regulation.artifactSeam');
+
+function installArtifactSeam() {
+  if (!ARTIFACT_TAG) return false;
+  const prior = globalThis[ART_HOOK];
+  if (prior) {
+    /* One seam per process. A frozen release carries its own copy of this file; its ROOT is the
+     * release directory, and a second seam would guard a directory nobody measures. */
+    if (prior.tag !== ARTIFACT_TAG) {
+      throw new Error('regulation: REFUSING -- two copies of engine/regulation.js in one process disagree about\n'
+        + '  the regulation artifacts belong to: ' + prior.tag + ' (installed first) vs ' + ARTIFACT_TAG + '.');
+    }
+    return false;
+  }
+  const orig = {};
+  const low = s => s.toLowerCase();
+  const liveData = low(LIVE_DATA);
+  /* a string path under the live data/ -> its sibling, when declared; otherwise null */
+  const redirect = p => {
+    if (typeof p !== 'string') return null;
+    const abs = path.resolve(p);
+    if (low(path.dirname(abs)) !== liveData) return null;
+    const base = path.basename(abs);
+    if (!isPerRegulation(base)) return null;
+    ARTIFACTS.redirects++;
+    ARTIFACTS.byFile[base] = (ARTIFACTS.byFile[base] || 0) + 1;
+    return path.join(path.dirname(abs), siblingName(base, ARTIFACT_TAG));
+  };
+  const map = p => redirect(p) || p;
+  /* the three engine files keep their own refusal (guardWrites, above) and its wording */
+  const engineOwned = new Set(Object.keys(FILES).map(def => low(path.resolve(ROOT, def))));
+  const guarded = p => {
+    if (typeof p !== 'string') return false;
+    const abs = path.resolve(p);
+    const rel = path.relative(LIVE_DATA, abs);
+    if (!rel || rel.startsWith('..') || path.isAbsolute(rel)) return false;
+    const r = low(rel).replace(/\\/g, '/');
+    if (r.startsWith('releases/') || r.includes(low(ARTIFACT_TAG)) || engineOwned.has(low(abs))) return false;
+    return orig.existsSync(abs);
+  };
+  const refuse = (how, p) => {
+    ARTIFACTS.writesRefused++;
+    ARTIFACTS.refused.push(how + ' ' + p);
+    throw new Error('regulation: REFUSING to ' + how + ' ' + p + ' -- this run selected ' + ID
+      + ', and that file already exists\n  under data/ without naming ' + ID + ', so it is '
+      + ARTIFACT_OWNER + '\'s (or shared) and a run about ' + ID + ' may not change it.\n'
+      + '  If it is a per-regulation artifact, declare it in PER_REGULATION_ARTIFACTS in engine/regulation.js\n'
+      + '  and it will be written to its sibling ' + siblingName(path.basename(p), ARTIFACT_TAG) + ' instead.');
+  };
+  const WRITE_FLAGS = /[wa+]/;
+  const wrap1 = (name, how) => {       /* path at argument 0; `how` set = a write */
+    orig[name] = fs[name];
+    if (typeof orig[name] !== 'function') return;
+    fs[name] = function () {
+      const a = Array.prototype.slice.call(arguments);
+      a[0] = map(a[0]);
+      const w = typeof how === 'function' ? how(a) : how;
+      if (w && guarded(a[0])) refuse(w, a[0]);
+      return orig[name].apply(this, a);
+    };
+  };
+  const wrap2 = (name, how) => {       /* (src, dst): both mapped; dst is written, and a rename also removes src */
+    orig[name] = fs[name];
+    if (typeof orig[name] !== 'function') return;
+    fs[name] = function () {
+      const a = Array.prototype.slice.call(arguments);
+      a[0] = map(a[0]); a[1] = map(a[1]);
+      if (guarded(a[1])) refuse(how, a[1]);
+      if (name === 'renameSync' && guarded(a[0])) refuse('rename away', a[0]);
+      return orig[name].apply(this, a);
+    };
+  };
+  orig.existsSync = fs.existsSync;
+  for (const n of ['readFileSync', 'existsSync', 'statSync', 'lstatSync', 'accessSync', 'createReadStream', 'readFile']) wrap1(n, null);
+  for (const [n, how] of [['writeFileSync', 'write'], ['appendFileSync', 'append to'], ['writeFile', 'write'],
+    ['appendFile', 'append to'], ['createWriteStream', 'write'], ['truncateSync', 'truncate'],
+    ['unlinkSync', 'delete'], ['rmSync', 'delete']]) wrap1(n, how);
+  wrap1('openSync', a => (WRITE_FLAGS.test(String(a[1] == null ? 'r' : a[1])) ? 'open for writing' : null));
+  wrap2('renameSync', 'rename onto');
+  wrap2('copyFileSync', 'copy onto');
+  if (fs.promises) {
+    for (const [n, how] of [['readFile', null], ['writeFile', 'write'], ['appendFile', 'append to']]) {
+      const o = fs.promises[n];
+      if (typeof o !== 'function') continue;
+      fs.promises[n] = function () {
+        const a = Array.prototype.slice.call(arguments);
+        a[0] = map(a[0]);
+        if (how && guarded(a[0])) return Promise.reject(new Error('regulation: REFUSING to ' + how + ' ' + a[0]
+          + ' -- it exists under data/ without naming ' + ID + '.'));
+        return o.apply(this, a);
+      };
+    }
+  }
+  globalThis[ART_HOOK] = { tag: ARTIFACT_TAG, stats: ARTIFACTS };
+  ARTIFACTS.installed = true;
+  return true;
+}
+installArtifactSeam();
+
 function describe() {
   const bits = [
     'ABRA REGULATION: ' + ID,
@@ -461,6 +646,7 @@ function describe() {
       : ''));
   }
   if (!TABLE.default) bits.push('| files ' + Object.values(FILES).join(', '));
+  if (ARTIFACT_TAG) bits.push('| artifacts data/<name>-' + ARTIFACT_TAG + '.<ext> (Reg M-B\'s unsuffixed files are never read or written)');
   if (SEL.fallback) bits.push('| FALLBACK: ' + SEL.fallback);
   return bits.join('  ');
 }
@@ -496,6 +682,11 @@ module.exports = {
    * the one answer to "which file does this regulation read in place of rel"; FILES is the whole map
    * (empty for Reg M-B). */
   TAGS_FILE, PROTOCOL_EVENTS_FILE, fileFor, FILES: Object.assign({}, FILES),
+  /* 2026-09-21 (MEASURE): the gate's artifacts by the sibling rule. artifactFor(rel) is the one answer to
+   * "which file does this regulation's measurement read or write in place of rel"; identity under
+   * ARTIFACT_OWNER. artifacts() reports whether the fs seam is installed and what it redirected/refused. */
+  ARTIFACT_OWNER, ARTIFACT_TAG, PER_REGULATION_ARTIFACTS, POOL_DIR, artifactFor, siblingName, isPerRegulation,
+  artifacts: () => Object.assign({}, ARTIFACTS, { byFile: Object.assign({}, ARTIFACTS.byFile), refused: ARTIFACTS.refused.slice() }),
   /* Exported for the test, so the selection rule can be exercised against a varied knob rather than
    * against whatever this process happened to be started with. An identical result across a varied
    * knob means the knob is unwired. */

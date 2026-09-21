@@ -1,12 +1,16 @@
 # REG M-C — the ledger
 
-**Version: 0.15.1 — 2026-09-21.**
+**Version: 0.16.0 — 2026-09-21.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 A leading `0` means NOT USABLE YET (SemVer 2.0.0 clause 4). This line reaches **1.0.0 the day the M-C
 gate opens**, which is the same condition MEDICHAM met for Reg M-B: the differential at zero on every
 lattice and on the held-out draw, the roster and staged battery clean, and no open defect an instrument
 measures. Nothing is typed to declare it — `engine/quarantine.js` computes it.
+
+The M-C gate is `node engine/quarantine.js --regulation regmc` (0.16.0). It reads only `data/<name>-regmc.<ext>`
+artifacts and the `data/team-pool-frozen-regmc` pool, over its own lattice. A missing artifact reads NO ARTIFACT
+or CANNOT-ANSWER, never Reg M-B's file.
 
 Reg M-B's published record is **7.0.0** and is closed. Nothing here changes it.
 

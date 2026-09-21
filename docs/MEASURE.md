@@ -42,6 +42,25 @@ _stamped 2026-09-21 04:30_
 
 <!-- /GENERATED -->
 
+## THE GATE ANSWERS PER REGULATION. A REG M-C RUN READS AND WRITES ONLY `-regmc` ARTIFACTS, AND REG M-B'S EVIDENCE CANNOT BE WRITTEN FROM ONE. 2026-09-21 (abra/regmc 0.16.0)
+
+- **The hazard.** Every instrument in the gate's path wrote one fixed `data/<name>`. A Reg M-C run with
+  `--write` overwrote Reg M-B's 7.0.0 evidence and exited 0. `engine/quarantine.js` read the same fixed
+  paths, so it could only ever answer for Reg M-B.
+- **The seam.** `engine/regulation.js` `artifactFor` plus an fs seam: under any regulation but Reg M-B,
+  a declared artifact is read and written as its `-<id>` sibling. An absent sibling is ENOENT, never Reg
+  M-B's file. A write onto any other existing `data/` file is refused. **The unsuffixed names belong to
+  Reg M-B for ever**, not to whichever regulation is `active`.
+- **The list is checked, not trusted.** `tests/test-regulation-artifacts.js` walks the gate's closure
+  out of quarantine's own derivation. Every gate input must be per-regulation, and every other member
+  must be declared NOT YET with an owner. The engine and steering inputs in that list are write-guarded
+  only; ENGINE owns moving them.
+- **The lattice is per regulation.** `engine/lattice_walk.js` reproduces the 2026-09-12 table exactly
+  and returns Reg M-B's 1950 under the same rule. Reg M-C: 1200 / 1600 / 1900.
+- **Reg M-B unmoved.** The default gate and five other modes are byte-identical apart from the new first
+  line. Readings taken in a worktree are a before/after comparison, not a gate verdict: release manifests
+  are untracked there. Full account: `docs/_reports/2026-09-21-regmc-gate.md`.
+
 ## 7.37% OF THE LADDER STORE WAS PLAYED UNDER CUSTOM RULES, AND THE FIRST COUNT OF IT WAS SIX TIMES TOO LOW. 2026-09-21 (abra/regmc 0.6.0)
 
 Will: *"yes clean the store filter it all out"*. **The store is not edited** — `store raw, analyze on

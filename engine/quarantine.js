@@ -64,7 +64,19 @@ const { execFileSync } = require('child_process');
 const PIN = require('./pin_guard.js');
 
 const ROOT = path.join(__dirname, '..');
-const D = (...p) => path.join(ROOT, ...p);
+/* PER REGULATION -- 2026-09-21 (MEASURE). Every path this gate reads or writes goes through
+ * `REG.artifactFor`, so `--regulation regmc` answers from Reg M-C's own artifacts (`data/<name>-regmc.<ext>`,
+ * the pool `data/team-pool-frozen-regmc`) and never from Reg M-B's. Under Reg M-B `artifactFor` is the
+ * identity, so every path, message and verdict below is the one this file printed before the change.
+ * `D('data', '<name>')` stays spelled that way on purpose: `gateInputArtifacts` derives the gate's reads
+ * from exactly that spelling. A Reg M-C artifact that does not exist is ENOENT, i.e. NO ARTIFACT, i.e.
+ * CANNOT-ANSWER -- never Reg M-B's file read in its place. */
+const REG = require('./regulation.js');
+const A = (rel) => REG.artifactFor(rel);
+const D = (...p) => path.join(ROOT, A(p.join('/')));
+const POOL = A('data/team-pool-frozen');
+/* A re-run command must select the regulation it is about; under Reg M-B nothing is added. */
+const RUN_ENV = REG.ARTIFACT_TAG ? 'ABRA_REGULATION=' + REG.ID + ' ' : '';
 /* ROADMAP #258 — UNREADABLE IS NOT ABSENT, AND HERE THE DIFFERENCE DECIDES A GATE. Every clause below
  * reads its evidence through this function, and a null means "NO ARTIFACT — run the instrument". A
  * corrupt or half-written file therefore produced the same verdict as a file nobody has generated,
@@ -284,8 +296,8 @@ function usageIndex() {
       moves: clicks && clicks.store_games ? `${clicks.store_games.toLocaleString()} stored games` : null,
       teams: sheets && sheets.sheet_games ? `${sheets.sheet_games.toLocaleString()} open-sheet games` : null,
     },
-    absent: [clicks ? null : 'data/click-counts.json (engine/click_counts.js)',
-             sheets ? null : 'data/sheet-usage.json (engine/sheet_usage.js)'].filter(Boolean),
+    absent: [clicks ? null : A('data/click-counts.json') + ' (engine/click_counts.js)',
+             sheets ? null : A('data/sheet-usage.json') + ' (engine/sheet_usage.js)'].filter(Boolean),
   };
 }
 
@@ -340,7 +352,7 @@ function reachShelf(U) {
     if (!AD || !denom) {
       return { kind, unit, denom, denomLabel, derivable: false, exact: null, minCount: null,
         why: 'NOT DERIVABLE — ' + (!AD ? 'the anchor population (data/click-counts.json store_games) '
-          : 'this population (data/sheet-usage.json sheet_games) ') + 'is absent, so no threshold in '
+          : 'this population (' + A('data/sheet-usage.json') + ' sheet_games) ') + 'is absent, so no threshold in '
           + unit + ' can be derived from ' + REACH_SHELF_CLICKS + ' clicks. NOTHING of this kind is '
           + 'shelved; every row counts.' };
     }
@@ -419,7 +431,7 @@ function decisionImpact(curId) {
   const inert = (why) => ({ active: false, why, cleared: [], clear: () => null });
   const j = readJson(D('data', 'decision-impact.json'));
   if (!j) {
-    return inert('NO DECISION-IMPACT RUN — data/decision-impact.json is absent, so nothing is excused '
+    return inert('NO DECISION-IMPACT RUN — ' + A('data/decision-impact.json') + ' is absent, so nothing is excused '
       + 'on decision impact and every played divergence counts. It is written by a paired argmax run '
       + '(engine/argmax_paired.js, ROADMAP #278) with arms that differ by the FIX.');
   }
@@ -711,7 +723,7 @@ function rosterStage(stage, inject) {
   const files = inject !== undefined ? [inject.file || '(injected)']
                                      : [`roster.${stage}.json`, 'roster.all.json', 'roster.json'];
   for (const f of files) {
-    tried.push('data/' + f);
+    tried.push(A('data/' + f));
     const j = inject !== undefined ? (inject.json || inject) : readJson(D('data', f));
     if (!j) continue;
     /* AN `all` ARTIFACT SATISFIES THE THREE STAGES THE RULE NAMES, AND NOTHING ELSE. Accepting
@@ -734,14 +746,14 @@ function rosterStage(stage, inject) {
      * is the only thing provenance.js can check BY CONTENT. tests/roster.js opens a release and holds
      * the handle, so spreading `REL.stamp()` into its artifact is a one-line change. */
     {
-      const r = PIN.guard({ name: `deliberate roster / ${stage}`, file: 'data/' + f, artifact: j,
+      const r = PIN.guard({ name: `deliberate roster / ${stage}`, file: A('data/' + f), artifact: j,
         need: ['release', 'digests'], curId,
-        rerun: `SHOWDOWN_PATH=... node tests/roster.js --stage ${stage} --reds --write` });
+        rerun: `${RUN_ENV}SHOWDOWN_PATH=... node tests/roster.js --stage ${stage} --reds --write` });
       /* THE COUNT FIELDS ARE ABSENT FROM A WITHHELD VERDICT, not set to null — a reader doing
        * `r.differ ?? '?'` would print `?` either way, but `differ in r` is the difference between
        * "this clause reported no divergences" and "this clause reported nothing". The selftest
        * asserts it by name. */
-      if (r) return Object.assign(r, { stage, file: 'data/' + f });
+      if (r) return Object.assign(r, { stage, file: A('data/' + f) });
     }
     const c = j.counts || {};
     const differ = c['FIRED-AND-BOARDS-DIFFER'] || 0;
@@ -767,7 +779,7 @@ function rosterStage(stage, inject) {
      * `badReds`. That is the check that would have caught 2026-09-07's `,type:mvT` on the day. */
     const pa = j.plant_anchors || null;
     const redsNote = !pa
-      ? `. RED DEMONSTRATION NOT DECLARED by ${'data/' + f} — it predates the plant-anchor audit, so `
+      ? `. RED DEMONSTRATION NOT DECLARED by ${A('data/' + f)} — it predates the plant-anchor audit, so `
         + `an empty \`reds\` cannot be told from an unarmed one`
       : pa.reds_ran ? ''
       : `. THE RED DEMONSTRATION WAS NOT ARMED — this artifact was written without \`--reds\`, so its `
@@ -824,7 +836,7 @@ function rosterStage(stage, inject) {
      * shelve them, which is a different fact and belongs in the closet. */
     const denom = sc
       ? `${sc.tested} of ${sc.in_scope} tested`
-      : `DENOMINATOR NOT CARRIED by ${'data/' + f} — it predates the scope block; re-run `
+      : `DENOMINATOR NOT CARRIED by ${A('data/' + f)} — it predates the scope block; re-run `
         + `tests/roster.js --stage ${stage} --reds --write`;
     const unattrib = unattributable === null
       ? '. UNATTRIBUTABLE ROWS NOT COUNTED — this artifact carries no rows to count'
@@ -861,7 +873,7 @@ function rosterStage(stage, inject) {
       : Math.max(cnsScope || 0, cnsRows ? cnsRows.length : 0);
     const cnsIds = cnsRows ? cnsRows.slice(0, 12).map(r => r.id || r.name) : [];
     const cnsTxt = cnsIn === null
-      ? `IN-SCOPE COULD-NOT-STAGE CANNOT BE COUNTED — ${'data/' + f} carries neither `
+      ? `IN-SCOPE COULD-NOT-STAGE CANNOT BE COUNTED — ${A('data/' + f)} carries neither `
         + '`scope.could_not_stage_in_scope` nor result rows, so an unstaged in-scope mechanic could '
         + 'not be seen; re-run tests/roster.js --stage ' + stage + ' --reds --write'
       : cnsIn === 0 ? ''
@@ -885,8 +897,8 @@ function rosterStage(stage, inject) {
     const rosterOk = differ === 0 && silent === 0 && badReds === 0 && staleShelf === 0 && cnsIn === 0
       && ann.ok;
     return {
-      stage, file: 'data/' + f, generated: j.generated || null, release: j.engine_release || null,
-      pins: PIN.receipt({ file: 'data/' + f, checked: ['release', 'digests'],
+      stage, file: A('data/' + f), generated: j.generated || null, release: j.engine_release || null,
+      pins: PIN.receipt({ file: A('data/' + f), checked: ['release', 'digests'],
                           release: j.engine_release || null }),
       differ, silent, badReds, matched: c['FIRED-AND-BOARDS-MATCH'] || 0,
       couldNotStage: c['COULD-NOT-STAGE'] || 0, couldNotStageInScope: cnsIn,
@@ -912,7 +924,7 @@ function rosterStage(stage, inject) {
                         why: 'no artifact declares this stage' }),
     why: `NO ARTIFACT FOR THIS STAGE — none of ${tried.join(', ')} declares stage "${stage}". `
        + `A missing stage is a FAILING clause, never a passing one: run `
-       + `SHOWDOWN_PATH=... node tests/roster.js --stage ${stage} --reds --write`,
+       + `${RUN_ENV}SHOWDOWN_PATH=... node tests/roster.js --stage ${stage} --reds --write`,
   };
 }
 
@@ -924,9 +936,9 @@ function differentialClause(artifact, curId) {
   const j = artifact === undefined ? readJson(D('data', 'engine-diff.json')) : artifact;
   if (!j) {
     return { name: 'game differential', ok: false, missing: true,
-             pins: PIN.receipt({ file: 'data/engine-diff.json', checked: ['release', 'digests'],
+             pins: PIN.receipt({ file: A('data/engine-diff.json'), checked: ['release', 'digests'],
                                  why: 'no artifact to pin' }),
-             why: 'NO ARTIFACT — data/engine-diff.json is absent. Run tests/test-engine-diff.js.' };
+             why: 'NO ARTIFACT — ' + A('data/engine-diff.json') + ' is absent. Run ' + RUN_ENV + 'tests/test-engine-diff.js.' };
   }
   /* ---- THE PIN, BEFORE A SINGLE COUNT IS READ — 2026-09-04 --------------------------------------
    *
@@ -940,9 +952,9 @@ function differentialClause(artifact, curId) {
    * frozen, only the engine is. What was missing was a way to stamp the live tree without cutting a
    * release it had not read from, which `engine_release.liveStamp()` now provides. */
   {
-    const r = PIN.guard({ name: 'game differential', file: 'data/engine-diff.json', artifact: j,
+    const r = PIN.guard({ name: 'game differential', file: A('data/engine-diff.json'), artifact: j,
       need: ['release', 'digests'], curId,
-      rerun: 'SHOWDOWN_PATH=... node tests/test-engine-diff.js --n 6000 --seed 20260804' });
+      rerun: RUN_ENV + 'SHOWDOWN_PATH=... node tests/test-engine-diff.js --n 6000 --seed 20260804' });
     if (r) return r;
   }
   const dis = j.disagreed || 0;
@@ -964,7 +976,7 @@ function differentialClause(artifact, curId) {
    * disagreed" is exactly the silent default this file exists to stop. A PLANTED run fails too — a red
    * demonstration is not a measurement, and the instrument already refuses to write it here. */
   /* the receipt every return below carries — see engine/pin_guard.js `audit` */
-  const RCPT = PIN.receipt({ file: 'data/engine-diff.json', checked: ['release', 'digests'],
+  const RCPT = PIN.receipt({ file: A('data/engine-diff.json'), checked: ['release', 'digests'],
                              release: (j[PIN.K.id] || null) });
   if (j.plant) {
     return { name: 'game differential', ok: false, generated: j.generated || null, pins: RCPT,
@@ -976,7 +988,7 @@ function differentialClause(artifact, curId) {
     return { name: 'game differential', ok: false, generated: j.generated || null, pins: RCPT,
       why: 'THE CORNER ARMS ARE ABSENT from data/engine-diff.json. `disagreed` is a MIDPOINT residual '
          + 'and cannot see a range wrong by the same amount at both ends, so it is not a sufficient '
-         + 'claim on its own. Re-run: SHOWDOWN_PATH=... node tests/test-engine-diff.js --n 6000 '
+         + 'claim on its own. Re-run: ' + RUN_ENV + 'SHOWDOWN_PATH=... node tests/test-engine-diff.js --n 6000 '
          + '--seed 20260804' };
   }
   const badArms = arms.filter(a => (a.disagreed || 0) > 0);
@@ -1565,15 +1577,15 @@ function mechanicsClause(inject) {
   const j = (inject && inject.j) || readJson(D('data', 'all-mechanics-fire.json'));
   if (!j) {
     return { name: NAME, ok: false, missing: true,
-      pins: PIN.receipt({ file: 'data/all-mechanics-fire.json', checked: ['release', 'digests'],
+      pins: PIN.receipt({ file: A('data/all-mechanics-fire.json'), checked: ['release', 'digests'],
                           why: 'no artifact to pin' }),
-      why: 'NO ARTIFACT — data/all-mechanics-fire.json is absent. A clause that cannot be computed '
-         + 'FAILS. Run: SHOWDOWN_PATH=... node engine/all_mechanics_fire.js --kind all --write' };
+      why: 'NO ARTIFACT — ' + A('data/all-mechanics-fire.json') + ' is absent. A clause that cannot be computed '
+         + 'FAILS. Run: ' + RUN_ENV + 'SHOWDOWN_PATH=... node engine/all_mechanics_fire.js --kind all --write' };
   }
   const cur = (inject && inject.cur) || readJson(D('data', 'engine-release.json'));
   const curId = cur && (cur.id || cur.release || cur.current);
   const ranOn = j.release || j.engine_release || null;
-  const MRCPT = PIN.receipt({ file: 'data/all-mechanics-fire.json',
+  const MRCPT = PIN.receipt({ file: A('data/all-mechanics-fire.json'),
                              checked: ['release', 'digests'], release: ranOn });
   const s = j.summary || {};
   const div = ['moves', 'abilities', 'items'].reduce((n, k) => n + (+((s[k] || {}).diverged) || 0), 0);
@@ -1616,9 +1628,9 @@ function mechanicsClause(inject) {
    * and both are covered by the release stamp (tags.json is a frozen source; the checkout is
    * `showdown_commit`). So the pin it needs is the STAMP, not a steering block. */
   {
-    const r = PIN.guard({ name: NAME, file: 'data/all-mechanics-fire.json', artifact: j,
+    const r = PIN.guard({ name: NAME, file: A('data/all-mechanics-fire.json'), artifact: j,
       need: ['release', 'digests'], curId: curId || null,
-      rerun: 'SHOWDOWN_PATH=... node engine/all_mechanics_fire.js --kind all --write' });
+      rerun: RUN_ENV + 'SHOWDOWN_PATH=... node engine/all_mechanics_fire.js --kind all --write' });
     if (r) return r;
   }
 
@@ -1837,9 +1849,9 @@ function coverageClause() {
   const census = readJson(D('data', 'mechanics-census.json'));
   const tags = readJson(D('data', 'tags.json'));
   const missing = [];
-  if (!clicks) missing.push('data/click-counts.json (run engine/click_counts.js)');
-  if (!census) missing.push('data/mechanics-census.json');
-  if (!tags) missing.push('data/tags.json');
+  if (!clicks) missing.push(A('data/click-counts.json') + ' (run engine/click_counts.js)');
+  if (!census) missing.push(A('data/mechanics-census.json'));
+  if (!tags) missing.push(A('data/tags.json'));
   if (missing.length) {
     return { name: 'coverage / every used mechanic is measured by something', ok: false, missing: true,
       pins: PIN.noArtifact('this clause recomputes from data/click-counts.json, data/mechanics-census.json '
@@ -3087,10 +3099,10 @@ function wholeGameDoor(NAME, artifact) {
   const j = artifact === undefined ? readJson(D('data', 'game-differential.json')) : artifact;
   if (!j) {
     return { refused: { name: NAME, ok: false, missing: true,
-      pins: PIN.receipt({ file: 'data/game-differential.json',
+      pins: PIN.receipt({ file: A('data/game-differential.json'),
                           checked: ['release', 'digests', 'population'], why: 'no artifact to pin' }),
-      why: 'NO ARTIFACT — data/game-differential.json is absent. A clause that cannot be computed '
-         + 'FAILS. Run: SHOWDOWN_PATH=... node engine/game_differential.js --release <id> '
+      why: 'NO ARTIFACT — ' + A('data/game-differential.json') + ' is absent. A clause that cannot be computed '
+         + 'FAILS. Run: ' + RUN_ENV + 'SHOWDOWN_PATH=... node engine/game_differential.js --release <id> '
          + '--games 1200 --write' } };
   }
   /* ==============================================================================================
@@ -3136,11 +3148,11 @@ function wholeGameDoor(NAME, artifact) {
    * about an old writer when the thing being decided is WHICH BYTES THIS NUMBER DESCRIBES — it is
    * the absence of the only evidence that could answer. One refusal now, in engine/pin_guard.js. */
   {
-    const r = PIN.guard({ name: NAME, file: 'data/game-differential.json', artifact: j,
+    const r = PIN.guard({ name: NAME, file: A('data/game-differential.json'), artifact: j,
       need: ['release', 'digests'],
-      rerun: 'SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> '
+      rerun: RUN_ENV + 'SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> '
            + '--arm middle --end-state --census <pin> --games 1200 '
-           + '--team-store data/team-pool-frozen --write' });
+           + '--team-store ' + POOL + ' --write' });
     if (r) return { refused: r };
   }
   /* ==============================================================================================
@@ -3182,17 +3194,17 @@ function wholeGameDoor(NAME, artifact) {
    * no edit in this file. */
   {
     const STEERING = require('./steering.js');
-    const r = PIN.guard({ name: NAME, file: 'data/game-differential.json', artifact: j,
+    const r = PIN.guard({ name: NAME, file: A('data/game-differential.json'), artifact: j,
       need: ['population'], policy: STEERING.POLICY_EMPIRICAL,
       note: 'Under the coverage driver the games do not end — 944 of 961 stop at the turn cap and 17 '
           + 'reach a result, so a PASS there is a claim about openings, not about games.',
-      rerun: 'SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> '
+      rerun: RUN_ENV + 'SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> '
            + '--arm middle --end-state --census <pin> --games 1200 '
-           + '--team-store data/team-pool-frozen --write' });
+           + '--team-store ' + POOL + ' --write' });
     if (r) return { refused: Object.assign(r, { steering_policy: (j.steering && j.steering.policy) || null,
                                                 wanted_steering_policy: STEERING.POLICY_EMPIRICAL }) };
   }
-  const WGRCPT = PIN.receipt({ file: 'data/game-differential.json',
+  const WGRCPT = PIN.receipt({ file: A('data/game-differential.json'),
                               checked: ['release', 'digests', 'population'],
                               release: j[PIN.K.id] || null });
   return { j, rcpt: WGRCPT };
@@ -3250,7 +3262,7 @@ function wholeGameClause(artifact) {
   if (DOOR.refused) return DOOR.refused;
   const j = DOOR.j;
   const NL = String.fromCharCode(10);
-  const RCPT = PIN.receipt({ file: 'data/game-differential.json',
+  const RCPT = PIN.receipt({ file: A('data/game-differential.json'),
     checked: ['release', 'digests', 'population', 'state.planted_state_proof_ok',
               'state.mappings_all_proved'],
     release: j[PIN.K.id] || null });
@@ -3273,7 +3285,7 @@ function wholeGameClause(artifact) {
          + 'COUNT: `j.diverged` answers a different question and publishing it here would be the '
          + 'silent default. Re-run with boards on: SHOWDOWN_PATH=... node '
          + 'engine/game_differential.js --steering empirical --release <id> --arm middle --end-state '
-         + '--census <pin> --games 1200 --team-store data/team-pool-frozen --write' };
+         + '--census <pin> --games 1200 --team-store ' + POOL + ' --write' };
   }
   if (!games) {
     return { name: NAME, ok: false, generated: j.generated || null, pins: RCPT,
@@ -3293,9 +3305,9 @@ function wholeGameClause(artifact) {
          + String(st.planted_state_proof_ok) + ' and `state.mappings_all_proved` is '
          + String(st.mappings_all_proved) + '. A comparator blind to a board difference it planted '
          + 'itself says nothing about the ones it did not plant, so every board figure in this run is '
-         + 'WITHHELD rather than printed with a caveat. Re-run: SHOWDOWN_PATH=... node '
+         + 'WITHHELD rather than printed with a caveat. Re-run: ' + RUN_ENV + 'SHOWDOWN_PATH=... node '
          + 'engine/game_differential.js --steering empirical --release <id> --arm middle --end-state '
-         + '--census <pin> --games 1200 --team-store data/team-pool-frozen --write' };
+         + '--census <pin> --games 1200 --team-store ' + POOL + ' --write' };
   }
   /* ==============================================================================================
    * A GAME THAT THREW IS UNTESTED, NOT AGREEING — 2026-09-19 (Will: "stop saying medicham is done when
@@ -3319,8 +3331,8 @@ function wholeGameClause(artifact) {
       why: 'CANNOT ANSWER — this artifact carries neither `threw` nor `errors[]`, so nothing here can '
          + 'say whether a game was cut short by a refused choice. A truncated game reads as a board '
          + 'that never diverged; without the count, every zero below is unverifiable. Re-run: '
-         + 'SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> '
-         + '--arm middle --end-state --census <pin> --games 1200 --team-store data/team-pool-frozen --write' };
+         + RUN_ENV + 'SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> '
+         + '--arm middle --end-state --census <pin> --games 1200 --team-store ' + POOL + ' --write' };
   }
   const gamesThrew = Math.max(threwField || 0, errList ? errList.length : 0);
   const threwDisagree = threwField !== null && errList !== null && threwField !== errList.length;
@@ -3607,8 +3619,8 @@ function narrationVerdict(artifact, wgDecisionImpact, boardClause) {
          + 'narration-only cannot be told from board-material and there is NO FALLBACK ONTO '
          + '`diverged` (' + div + ') — on the last measured artifact 46 of 151 diverged games ALSO '
          + 'part a board, so that number is 30% the other clause. Re-run with the end-state pass on: '
-         + 'SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> '
-         + '--arm middle --end-state --census <pin> --games 1200 --team-store data/team-pool-frozen '
+         + RUN_ENV + 'SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> '
+         + '--arm middle --end-state --census <pin> --games 1200 --team-store ' + POOL + ' '
          + '--write' };
   }
   const rate = div / games;
@@ -4262,7 +4274,10 @@ function openDefectClause() {
     let raw = null;
     try { raw = JSON.parse(fs.readFileSync(D('data', REGISTER_REALITY.rowsFile), 'utf8')); }
     catch (e) {
-      return { rows: [], why: 'NO VERDICTS — ' + REGISTER_REALITY.rowsFile + ' could not be read ('
+      /* ABSENT IS CANNOT-ANSWER, NOT CLEAN -- 2026-09-21 (MEASURE). This path used to fall through to
+       * 'clean: ... (0 verdict(s) read)' and PASS, which is how the first Reg M-C gate run passed this clause
+       * on a register nobody had run for that regulation. Under Reg M-B the file exists and nothing changes. */
+      return { rows: [], missing: true, why: 'NO VERDICTS — ' + A('data/' + REGISTER_REALITY.rowsFile) + ' could not be read ('
         + String((e && e.message) || e).split(String.fromCharCode(10))[0] + '). Every open row below is DEBT because '
         + 'nothing ran, NOT because nothing is broken. Run: node engine/register_reality.js' };
     }
@@ -4309,7 +4324,7 @@ function openDefectClause() {
    * `orderProbeClause` in this file already follows applies: a clause that cannot be computed FAILS,
    * and it fails as CANNOT-ANSWER so the reason is distinguishable from a measured red. A rejected
    * marker (never asked) and a row with no marker are NOT this — nothing was run for them. */
-  const cannotAnswer = withRed.length === 0 && unrunnable.length > 0;
+  const cannotAnswer = withRed.length === 0 && (unrunnable.length > 0 || !!RR.missing);
   const debtLine = debt.length
     ? "  " + debt.length + " open row(s) assert breakage with NO instrument that decides them — DEBT, "
       + "not evidence, and they do not hold this clause shut: "
@@ -4344,7 +4359,7 @@ function openDefectClause() {
       ? ': ' + denied.map(r => '#' + r.n + (r.prose ? ' STILL COUNTS (prose)' : '')
           + ' [' + r.cell + ']').join('; ') : '.');
   return {
-    name: 'no open, known engine defect', ok: withRed.length === 0 && unrunnable.length === 0,
+    name: 'no open, known engine defect', ok: withRed.length === 0 && unrunnable.length === 0 && !RR.missing,
     ...(cannotAnswer ? { cannot_answer: true } : {}),
     open, excused, withRed, debt,
     pins: PIN.noArtifact('this clause reads docs/ROADMAP.md and data/register-reality.json live on every '
@@ -4355,7 +4370,10 @@ function openDefectClause() {
     staleRows, rejected, unrunnable, unverified, verdicts_read: RR.rows.length,
     verdicts_generated: RR.generated || null, verdicts_stale: verdictsStale,
     why: (withRed.length === 0
-      ? (cannotAnswer
+      ? (RR.missing
+        ? 'CANNOT ANSWER — there are no verdicts to read, so no open row could be shown RED or GREEN; an '
+          + 'absent register audit is not a clean one.'
+        : cannotAnswer
         ? 'CANNOT ANSWER — no open row names an instrument that is RED, and ' + unrunnable.length
           + ' open row(s) name an instrument that was asked and answered nothing usable ('
           + unrunnable.map(r => '#' + r.n).join(', ') + '). Those defects are neither shown live nor '
@@ -4433,10 +4451,10 @@ function orderProbeClause(inject) {
    * is still only caught by somebody calling the guard. Inside the list, `PIN.audit` makes it
    * structural; outside it, this is a fix and not a mechanism. */
   {
-    const r = PIN.guard({ name: NAME, file: 'data/game-differential.json', artifact: j,
+    const r = PIN.guard({ name: NAME, file: A('data/game-differential.json'), artifact: j,
       need: ['release', 'digests'],
-      rerun: 'SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --arm middle '
-           + '--games 1200 --team-store data/team-pool-frozen --write' });
+      rerun: RUN_ENV + 'SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --arm middle '
+           + '--games 1200 --team-store ' + POOL + ' --write' });
     if (r) return r;
   }
   const games = +j.games || 0;
@@ -4508,15 +4526,27 @@ function orderProbeClause(inject) {
  * release under pinned dice is a rule the two engines disagree about whatever else is absent; the
  * missing sample is still named. Exit 1 there, exit 2 only when nothing non-zero was read.
  * ============================================================================================== */
-const LATTICE_SAMPLES = Object.freeze([
-  Object.freeze({ games: 1200, file: 'data/game-differential.json' }),
-  Object.freeze({ games: 1350, file: 'data/game-differential.g1350.json' }),
-  Object.freeze({ games: 1950, file: 'data/game-differential.g1950.json' }),
-]);
+/* THE SIZES ARE PER REGULATION -- 2026-09-21 (MEASURE). They were chosen by walking `buildSwarm` over ONE
+ * pool, and a stride over another pool picks other teams, so they do not transfer; each regulation's are
+ * re-derived by `node engine/lattice_walk.js --regulation <id>` over that regulation's frozen pool and
+ * declared here (Reg M-C's: docs/_reports/2026-09-21-regmc-gate.md). The FIRST size is the published
+ * sample and keeps the plain name; the rest carry `.g<games>`. A regulation with no row declares no
+ * lattice, and both lattice clauses answer CANNOT-ANSWER for it -- never a pass.
+ *
+ * THE RULE, SO IT IS NOT RE-INVENTED: 1200 is the base sample (cost parity with Reg M-B's published one);
+ * each further size is the value in 1250..2000 whose picks are most often drawn by no size chosen before
+ * it (`--anchor 1200 --from 1250 --to 2000 --greedy 2`). The 2000 budget is Reg M-B's: run over Reg M-B's
+ * pool with its anchors 1200,1350 the same rule returns 1950, the size chosen by hand on 2026-09-12. */
+const LATTICE_GAMES = Object.freeze({ regmb: Object.freeze([1200, 1350, 1950]), regmc: Object.freeze([1200, 1600, 1900]) });
+const LATTICE_SAMPLES = Object.freeze((LATTICE_GAMES[REG.ID] || []).map((games, i) => Object.freeze({ games,
+  file: A(i === 0 ? 'data/game-differential.json' : 'data/game-differential.g' + games + '.json') })));
 
-const latticeRerun = (s) => 'node engine/game_differential.js --steering empirical --release <current> '
-  + '--arm middle --end-state --census data/mechanics-census.json --team-store data/team-pool-frozen '
+const latticeRerun = (s) => RUN_ENV + 'node engine/game_differential.js --steering empirical --release <current> '
+  + '--arm middle --end-state --census ' + A('data/mechanics-census.json') + ' --team-store ' + POOL + ' '
   + '--games ' + s.games + ' --write --out ' + s.file;
+/* THE POOL IS THIS REGULATION'S OR THE SAMPLE IS NOT ONE OF ITS LATTICES. Slashes normalised; the value is
+ * the `--team-store` argument the run recorded. Under Reg M-B every sample says `data/team-pool-frozen`. */
+const poolOf = (j) => String((j.steering && j.steering.team_store_pinned_to) || '').replace(/\\/g, '/').replace(/^\.\//, '').replace(/\/+$/, '');
 
 /* What makes N artifacts ONE question asked of N lattices. Every field is read, none is inferred. */
 const LATTICE_SAME = Object.freeze([
@@ -4611,6 +4641,19 @@ function latticeVerdict(kind, reads, perSample) {
       + 'gate under a plural name');
   }
 
+  const foreignPool = answered.filter((r) => {
+    const j = reads.find((x) => x.slot.file === r.file).j;
+    return !!(j.steering && j.steering.team_store_pinned_to) && poolOf(j) !== POOL;
+  });
+  if (foreignPool.length) {
+    incoherent.push('ANOTHER REGULATION\'S POOL -- ' + foreignPool.map((r) => '--games ' + r.games_requested + ' read '
+      + poolOf(reads.find((x) => x.slot.file === r.file).j)).join(', ') + '; this gate answers for ' + REG.ID
+      + ', whose frozen pool is ' + POOL);
+  }
+  if (!rows.length) {
+    incoherent.push('NO LATTICE IS DECLARED FOR ' + REG.ID + ' -- LATTICE_GAMES in engine/quarantine.js has no row for it. '
+      + 'Derive the sizes with node engine/lattice_walk.js --regulation ' + REG.ID + ' and declare them');
+  }
   const nonzero = rows.filter((r) => r.state === 'NON-ZERO');
   const cannot = rows.filter((r) => r.state === 'CANNOT-ANSWER');
   const ok = !nonzero.length && !cannot.length && !incoherent.length;
@@ -5517,7 +5560,10 @@ module.exports = { medichamIsCorrect, classify, state, withholder, playLayer, so
                     * shape composition ROADMAP #292 pinned belongs to that clause and moved with it. */
                    narrationClause, gateVerdict, clauseExit,
                   /* ROADMAP #619 — the gating whole-game clauses, over every team lattice. */
-                  wholeGameLatticeClause, narrationLatticeClause, LATTICE_SAMPLES };
+                  wholeGameLatticeClause, narrationLatticeClause, LATTICE_SAMPLES,
+                  /* 2026-09-21 (MEASURE) -- exported so tests/test-regulation-artifacts.js can ask which
+                   * artifacts sit in the gate's path and check every one is resolved per regulation. */
+                  gateInputArtifacts, instrumentsOfTheGate, graph };
 
 /* THE ONE PLACE A CLAUSE BECOMES AN EXIT CODE — `--order-probe`, `--whole-game` and anything added
  * after them. It was two copies of one expression the moment the second command existed, and this
@@ -8424,7 +8470,8 @@ if (require.main === module) {
     process.exit(0);
   }
 
-  console.log('');
+  console.log('REGULATION: ' + REG.ID + ' (' + REG.FORMAT + ')' + (REG.ARTIFACT_TAG
+    ? ' — artifacts data/<name>-' + REG.ARTIFACT_TAG + '.<ext>, pool ' + POOL : ' — artifacts data/<name>.<ext>, pool ' + POOL));
   console.log('QUARANTINE — everything downstream of MEDICHAM is withheld until MEDICHAM is correct');
   console.log('');
   const GATING = S.gate.clauses.filter(c => c.gates !== false);
