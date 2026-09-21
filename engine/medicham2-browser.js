@@ -2197,6 +2197,10 @@ const MEDSEEN = { floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepAct
   rockyHelmetPaid: 0, rockyHelmetRefusedIndirect: 0,
   /* 2026-09-21 (Reg M-C, abra/regmc 0.20.0) -- Air Balloon announced on entry, silenced by Gravity, and popped by a hit. */
   balloonAnnounced: 0, balloonAnnounceGravity: 0, balloonPopped: 0,
+  /* 2026-09-21 (Reg M-C, abra/regmc 0.21.0) -- Red Card spent / its attacker dragged / the drag refused by the attacker's
+   * ability; Eject Button spent / its holder switched out / a pivot that switched as well (Champions' rule). */
+  redCardSpent: 0, redCardDragged: 0, redCardDragRefused: 0,
+  ejectButtonSpent: 0, ejectButtonSwitched: 0, ejectButtonKeptPivot: 0, ejectButtonCancelledPivot: 0,
   /* WIRE 119 -- a move REFUSED at execution time by a category-forbidding volatile (Taunt). This is
    * the half the interaction matrix was failing on: the holder clicks Taunt in the same turn, so the
    * target's already-chosen status move has to FAIL when it runs. A zero here after games with a
@@ -5147,6 +5151,11 @@ const MEDFAILS = { encoreAction: 0, anticipationNoState: 0, anticipationMoveUnkn
    * (setItem raises its Start, so the authority announces it again); a hit a doll absorbed (onAfterSubDamage pops it
    * in the authority). `itemDisplayNameMissing`: a tag row with no display name, so the id was written instead. */
   balloonAnnounceOrderApprox: 0, balloonGainedUnannounced: 0, balloonBehindDollUnmodelled: 0, itemDisplayNameMissing: 0,
+  /* 2026-09-21 (Reg M-C, abra/regmc 0.21.0) -- the eject/drag doors not modelled, each counted: two Eject Button holders
+   * (or the button and another switch owed) whose relative order is a speed TIE the authority breaks with a die; a
+   * Red Card on a spread move whose two holders both qualify (only the first can drag -- `source.forceSwitchFlag`); a
+   * Red Card drag refused by Ingrain (a volatile this lookup does not read). */
+  ejectSwitchOrderTie: 0, redCardIngrainUnmodelled: 0,
   /* ROADMAP #242 -- a terrain that IS up and for which `data/residual-order.json` publishes no
    * `expiry:` row, so its clock has no position in the walk to be spent at. Non-zero means the
    * terrain never comes down, which is the exact shape the first draft of `residualExpireAt` shipped
@@ -13656,6 +13665,44 @@ function balloonAnnounce(m,field){
   if(TR)TR.item(m,itemDisplayName(m.item));
   MEDSEEN.balloonAnnounced++;
   return true;
+}
+/* ---- 2026-09-21 (Reg M-C, abra/regmc 0.21.0) -- RED CARD (`dragsAttackerOnHit`) AND EJECT BUTTON (`ejectsHolderOnHit`) --
+ *
+ * THE AUTHORITY, read whole. M-C checkout data/items.ts redcard :5146-5164; data/mods/champions/items.ts ejectbutton
+ * :266-280, the Champions override of data/items.ts :1680-1700 (Showdown aa6d5f0856, 2026-09-13) that DROPS mainline's
+ * `source.switchFlag = false`. Both are `onAfterMoveSecondary` handlers on the hit bodies; Eject Button carries
+ * `onAfterMoveSecondaryPriority: 2`, so it answers before Red Card, Pickpocket and Berserk (priority 0).
+ *
+ *   Red Card      source alive, target alive, damaging, source still active, `canSwitch(source.side)`, neither flagged to
+ *                 be dragged -> `target.useItem(source)` (`-enditem|TARGET|Red Card|[of] SOURCE`), then
+ *                 `runEvent('DragOut', source)` (Suction Cups, Guard Dog, Ingrain refuse) -> `source.forceSwitchFlag`.
+ *   Eject Button  target alive, damaging, not a future move, `canSwitch(target.side)`, target not flagged to be dragged,
+ *                 and NO active body with `switchFlag === true` -> `target.switchFlag = true`, `target.useItem()`.
+ *
+ * AT THE END OF THE ACTION (sim/battle.ts:2820-2907): every `forceSwitchFlag` body is DRAGGED first (a random bench
+ * body, `|drag|`), then `faintMessages`, then one switch request for every `switchFlag` body; the switch actions sort by
+ * the outgoing body's speed, a string flag (a pivot's `move.id`) writes `[from] <move>` and `true` writes a bare line.
+ * A pivot's flag is a STRING, so it never blocks the button; under Champions the pivot keeps it and BOTH switch.
+ * `cancelsSourceSwitch` is read off the tag (derived from the handler the format resolves), never assumed.
+ *
+ * KNOBS. MEDI_RED_CARD_INERT=1 and MEDI_EJECT_BUTTON_INERT=1 do nothing (the pre-0.21.0 engine held both forever).
+ * MEDI_EJECT_BUTTON_MAINLINE=1 applies mainline's rule (the button cancels the attacker's pivot). Each stamps MEDFAILS. */
+const RED_CARD_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_RED_CARD_INERT==='1');
+const EJECT_BUTTON_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_EJECT_BUTTON_INERT==='1');
+const EJECT_BUTTON_MAINLINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_EJECT_BUTTON_MAINLINE==='1');
+if(RED_CARD_INERT)MEDFAILS.redCardInertRestored=1;
+if(EJECT_BUTTON_INERT)MEDFAILS.ejectButtonInertRestored=1;
+if(EJECT_BUTTON_MAINLINE)MEDFAILS.ejectButtonMainlineRestored=1;
+/* `useItem` for an item whose effect is the item leaving: `-enditem` (with `[of] SOURCE` when a source is named),
+ * `lastItem`/`usedItemThisTurn`/Unburden (`recordItemUsed`), the hand empties, then Symbiosis answers. */
+function sideOfBody(b,actA){ return (actA&&actA.indexOf(b)>=0)?'A':'B'; }
+function spendItemOnHit(tg,of){
+  const _id=String(tg.item);
+  if(TR)TR.enditem(tg,itemDisplayName(_id),null,of||null);
+  recordItemUsed(tg,_id);
+  tg.item='';
+  passItemFromAlly(tg);
+  return _id;
 }
 function balloonPop(tg){
   const p=balloonParam(tg); if(!p)return false;
@@ -48985,6 +49032,30 @@ function battleTurn(S,rng,actsForA,actsForB){
        * deferral (`defersHealingBerry`) is STILL NOT BRANCHED ON, and it was not before either -- that gap is
        * independent of this position and stays on the hand list. MEDI_HP_THRESHOLD_BOOST_ABOVE_RECOIL=1
        * restores the step-20 payment. tests/probe_narration_b_line_order.js --only berserk. */
+      /* 2026-09-21 (Reg M-C, abra/regmc 0.21.0) -- EJECT BUTTON, `onAfterMoveSecondaryPriority: 2`, so first on this
+       * event. Rows in speed order (the authority's `speedSort` for one priority); see `spendItemOnHit`. */
+      const _ejectOwed=[];
+      if(!EJECT_BUTTON_INERT&&!TAGS.has('move',a.move.id,'statusCategory')&&!TAGS.has('move',a.move.id,'delayedHit')){
+        const _eRows=_rows.filter(R=>!R.out&&R.tg&&R.tg!==m&&!R.tg.fainted&&R.tg.curHP>0
+                                     &&TAGS.param('item',R.tg.item,'ejectsHolderOnHit'));
+        if(_eRows.length>1){
+          _eRows.sort((x,y)=>effSpeed(y.tg,field,sideOfBody(y.tg,actA)) - effSpeed(x.tg,field,sideOfBody(x.tg,actA)));
+          for(let _k=1;_k<_eRows.length;_k++)
+            if(effSpeed(_eRows[_k].tg,field,sideOfBody(_eRows[_k].tg,actA))===effSpeed(_eRows[_k-1].tg,field,sideOfBody(_eRows[_k-1].tg,actA)))MEDFAILS.ejectSwitchOrderTie++;
+        }
+        const _fsE=TAGS.param('move',a.move.id,'forcesSwitch');
+        for(const R of _eRows){
+          const tg=R.tg, _p=TAGS.param('item',tg.item,'ejectsHolderOnHit');
+          const _bx=sideBoxOf(tg,it,actA,actB,benchA,benchB,sfA,sfB);
+          if(!canDragIn(_bx.bench))continue;                       // canSwitch(target.side)
+          if(_fsE&&_fsE.forceSwitch)continue;                      // target.forceSwitchFlag (a damaging phaze's row)
+          if(_p.blockedByPendingSwitch&&_ejectOwed.length)continue; // some active body already has switchFlag === true
+          spendItemOnHit(tg);
+          MEDSEEN.ejectButtonSpent++;
+          _ejectOwed.push({tg,bx:_bx});
+          if(_p.cancelsSourceSwitch||EJECT_BUTTON_MAINLINE){ m._pivotCancelledByEject=true; }
+        }
+      }
       if(_hptAtEvent){
         const _l=_hptAtEvent; _hptAtEvent=null;
         for(const _f of _l){ _f(); MEDSEEN.hpThresholdBoostAtEvent++; }
@@ -49032,6 +49103,33 @@ function battleTurn(S,rng,actsForA,actsForB){
           }
         }
         _ppPending=null;
+      }
+      /* 2026-09-21 (Reg M-C, abra/regmc 0.21.0) -- RED CARD, priority 0: after Pickpocket on the same body (Ability before
+       * Item), in row order. Only the first qualifying holder drags: its `source.forceSwitchFlag` refuses the rest. */
+      let _redCardDrag=false;
+      if(!RED_CARD_INERT&&!TAGS.has('move',a.move.id,'statusCategory')){
+        for(const R of _rows){
+          const tg=R.tg;
+          if(R.out||!tg||tg===m||tg.fainted||tg.curHP<=0)continue;
+          if(!TAGS.param('item',tg.item,'dragsAttackerOnHit'))continue;
+          if(m.fainted||m.curHP<=0)continue;                             // source.hp
+          const _mb=sideBoxOf(m,it,actA,actB,benchA,benchB,sfA,sfB);
+          if(!_mb.found||_mb.own.indexOf(m)<0)continue;                  // source.isActive
+          if(!canDragIn(_mb.bench))continue;                             // canSwitch(source.side)
+          if(_redCardDrag)continue;                                      // source.forceSwitchFlag
+          {const _fsR=TAGS.param('move',a.move.id,'forcesSwitch'); if(_fsR&&_fsR.forceSwitch)continue;}   // target.forceSwitchFlag
+          spendItemOnHit(tg,m);
+          MEDSEEN.redCardSpent++;
+          /* runEvent('DragOut', source): the ability half through the same reader the phaze doors use */
+          const _rfs=TAGS.param('ability',m.ability,'refusesForcedSwitch');
+          if(_rfs&&_rfs.refuses==='forcedSwitch'){
+            MEDSEEN.redCardDragRefused++;
+            if(TR&&_rfs.announces)TR.act(m,'ability: '+abilityLabel(m.ability));
+            continue;
+          }
+          if(m._vol&&m._vol.ingrain>0){MEDFAILS.redCardIngrainUnmodelled++;continue;}
+          _redCardDrag=true;
+        }
       }
       /* ==== 2026-09-19 -- `onAfterMove`: THE BODIES THIS MOVE HIT ARE CURED OF A NAMED STATUS =====
        *
@@ -49421,7 +49519,13 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* A PIVOT IS ALSO A CHOICE. U-turn is not 'leave' -- it is 'leave and bring THIS in', and
            the whole reason the move is played is the body that arrives. `a.pivotTo` carries it when
            the caller picked one; without it the first healthy bench mon comes in as before. */
-        if(idx>=0)pivotFrom(a.move.id,()=>switchOut(own,idx,bench,foes,sf,field,a.pivotTo));
+        /* 2026-09-21 (Reg M-C) -- a Red Card drag wins (the dragged-in body carries no flag); a mainline Eject Button
+         * cancels the pivot; under Champions an owed Eject switch makes the pivot one of the END-OF-ACTION switches,
+         * ordered by speed with it below the drags (`_ejectOwed`). */
+        if(_redCardDrag){MEDSEEN.pivotRefusedByRedCard=(MEDSEEN.pivotRefusedByRedCard|0)+1;}
+        else if(m._pivotCancelledByEject){MEDSEEN.ejectButtonCancelledPivot++;}
+        else if(_ejectOwed.length){ if(idx>=0)_ejectOwed.push({pivot:true,tg:m,own,idx,bench,foes,sf}); }
+        else if(idx>=0)pivotFrom(a.move.id,()=>switchOut(own,idx,bench,foes,sf,field,a.pivotTo));
       }
       /* WIRE 40 -- DRAGON TAIL AND CIRCLE THROW, the DAMAGING half of forcesSwitch. They carry base
          power, so they arrived here as ordinary attacks and the drag -- which is the entire reason a
@@ -49531,6 +49635,37 @@ function battleTurn(S,rng,actsForA,actsForB){
           }
         }
       }
+      /* 2026-09-21 (Reg M-C, abra/regmc 0.21.0) -- THE END OF THE ACTION: the Red Card drag (a random bench body, the
+       * phaze doors' die), then every switch owed to an Eject Button and a pivot kept beside it, the faster leaver first. */
+      if(_redCardDrag&&!m.fainted&&m.curHP>0){
+        const _mb=sideBoxOf(m,it,actA,actB,benchA,benchB,sfA,sfB), _mi=_mb.own.indexOf(m);
+        if(_mi>=0&&canDragIn(_mb.bench)){
+          const _lb=_live(_mb.bench);
+          if(TR)TR.drag=true;
+          switchOut(_mb.own,_mi,_mb.bench,_mb.foes,_mb.sf,field,_lb.length?_lb[Math.floor(rng()*_lb.length)]:null);
+          if(TR)TR.drag=false;
+          MEDSEEN.redCardDragged++;
+        }
+      }
+      if(_ejectOwed.length){
+        const _spe=e=>effSpeed(e.tg,field,sideOfBody(e.tg,actA));
+        const _ord=_ejectOwed.slice().sort((x,y)=>_spe(y)-_spe(x));
+        for(let _k=1;_k<_ord.length;_k++)if(_spe(_ord[_k])===_spe(_ord[_k-1]))MEDFAILS.ejectSwitchOrderTie++;
+        const _hadPivot=_ord.some(e=>e.pivot);
+        for(const e of _ord){
+          if(e.pivot){
+            const _i=e.own.indexOf(e.tg);
+            if(_i>=0&&!e.tg.fainted&&e.tg.curHP>0)pivotFrom(a.move.id,()=>switchOut(e.own,_i,e.bench,e.foes,e.sf,field,a.pivotTo));
+            continue;
+          }
+          const tg=e.tg, _i=e.bx.own.indexOf(tg);
+          if(_i<0||tg.fainted||tg.curHP<=0||!canDragIn(e.bx.bench))continue;
+          const _want=(S&&S.replaceWith)?S.replaceWith[sideOfBody(tg,actA)]:undefined;
+          if(switchOut(e.bx.own,_i,e.bx.bench,e.bx.foes,e.bx.sf,field,_want))MEDSEEN.ejectButtonSwitched++;
+        }
+        if(_hadPivot)MEDSEEN.ejectButtonKeptPivot++;
+      }
+      m._pivotCancelledByEject=false;
       /* WIRE 46 -- EXPLOSION FAINTS ITS USER, and it did not: the user walked away on full HP, so a
          move whose entire cost is your own Pokemon was priced as a free spread nuke. `faints:'always'`
          is Explosion, Self-Destruct and Misty Explosion; `faints:'ifHit'` is Final Gambit, Memento and

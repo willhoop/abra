@@ -6936,6 +6936,38 @@ const ITEM_TAGS = [
         switchInPriority: typeof it.onSwitchInPriority === 'number' ? it.onSwitchInPriority : 0,
       };
     } },
+  /* 2026-09-21 (Reg M-C, abra/regmc 0.21.0) -- RED CARD AND EJECT BUTTON, the two `onAfterMoveSecondary` items that end
+   * in a SWITCH. M-C checkout data/items.ts redcard :5146-5164 and ejectbutton :1680-1700, and the Champions override
+   * data/mods/champions/items.ts ejectbutton :266-280 (Showdown aa6d5f0856, 2026-09-13: the override drops mainline's
+   * `source.switchFlag = false`, so a pivot that sets the button off switches too).
+   *
+   *   Red Card     if (target.useItem(source)) { if (this.runEvent('DragOut', source, target, move)) source.forceSwitchFlag = true; }
+   *   Eject Button target.switchFlag = true; if (!target.useItem()) target.switchFlag = false;   (priority 2)
+   *
+   * DERIVED FROM THE HANDLER, never from the names: the drag is `source.forceSwitchFlag = true` behind `useItem(source)`;
+   * the eject is `target.switchFlag = true` beside `useItem()`, and `cancelsSourceSwitch` is read off the handler the
+   * FORMAT resolves -- false in the M-C checkout, true in the mainline one, so the rule change is a derived fact and not a
+   * typed one. Membership, printed before wiring, whole dex, both checkouts: `redcard` and `ejectbutton` only; both legal
+   * in gen9championsvgc2026regmc, both `Past` in gen9championsvgc2026regmb. */
+  { tag: 'dragsAttackerOnHit', param: 'spent when a damaging move hits the holder; the attacker is dragged out at the end of the action',
+    probe: 'dragsAttackerOnHit',
+    why: 'Red Card: a first cause of the Reg M-C smoke (the attacker stays in where the authority drags it out)',
+    of: it => {
+      const a = fnsrc(it.onAfterMoveSecondary);
+      if (!/source\.forceSwitchFlag\s*=\s*true/.test(a) || !/useItem\(\s*source\s*\)/.test(a)) return null;
+      return { requiresDamaging: /category\s*!==\s*["']Status["']/.test(a), dragOutEvent: /runEvent\(\s*["']DragOut["']/.test(a),
+        priority: typeof it.onAfterMoveSecondaryPriority === 'number' ? it.onAfterMoveSecondaryPriority : 0 };
+    } },
+  { tag: 'ejectsHolderOnHit', param: 'spent when a damaging move hits the holder; the holder switches out at the end of the action',
+    probe: 'ejectsHolderOnHit',
+    why: 'Eject Button (1,208 Reg M-C sheets); its rule changed mid-regulation (docs/REGMC.md, the Eject Button conjunction)',
+    of: it => {
+      const a = fnsrc(it.onAfterMoveSecondary);
+      if (!/target\.switchFlag\s*=\s*true/.test(a) || !/useItem\(\s*\)/.test(a)) return null;
+      return { requiresDamaging: /category\s*!==\s*["']Status["']/.test(a), notFutureMove: /futuremove/.test(a),
+        blockedByPendingSwitch: /switchFlag\s*===\s*true/.test(a), cancelsSourceSwitch: /source\.switchFlag\s*=\s*false/.test(a),
+        priority: typeof it.onAfterMoveSecondaryPriority === 'number' ? it.onAfterMoveSecondaryPriority : 0 };
+    } },
   /* Will: "damp rock is like light clay for setting the weather. same with the other weather
    * extenders." One mechanic -- hold this, your field effect lasts 8 turns instead of 5 -- and only
    * Light Clay had a tag. Damp Rock (200 sheets), Heat Rock (52), Smooth Rock and Icy Rock were all

@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.21.0] — 2026-09-21 — **Red Card drags the attacker, and Eject Button switches its holder out beside a pivot**
+
+- **What changed.** Item tags `dragsAttackerOnHit` and `ejectsHolderOnHit` (derived; membership printed first: Red Card
+  and Eject Button, legal in Reg M-C, `Past` in Reg M-B), and their consumers at the `AfterMoveSecondary` site and the end
+  of the action in `engine/medicham2-browser.js`. The Eject Button rule follows the Reg M-C checkout's Champions override:
+  a pivot that sets the button off switches too. Probe `tests/probe_regmc_eject_items.js`.
+- **Measured.** NO FIGURE published. Reg M-B is unmoved (damage differential, lattice at 1200); the Reg M-C smoke is
+  unpinned, and its before/after on one sample is in `docs/_reports/2026-09-21-regmc-items.md`.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.20.0] — 2026-09-21 — **Air Balloon is announced on entry and popped by a hit**
 
 - **What changed.** Item tag `poppedOnHit` (derived; membership printed first: Air Balloon only, legal in Reg M-C,

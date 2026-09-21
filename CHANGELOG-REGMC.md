@@ -21,6 +21,28 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.21.0] — 2026-09-21
+
+### Added
+- **Red Card and Eject Button.** Item tags `dragsAttackerOnHit` and `ejectsHolderOnHit` (`engine/tag_dex.js`), derived
+  from each item's `onAfterMoveSecondary`; the members are Red Card and Eject Button, both legal in Reg M-C and neither in
+  Reg M-B. `ejectsHolderOnHit.cancelsSourceSwitch` is read off the handler the format resolves: `false` under the Reg M-C
+  checkout (Showdown `aa6d5f0856`), `true` under the mainline one.
+- The engine spends Eject Button first on the event (priority 2), then Red Card; at the end of the action the Red Card
+  attacker is dragged (a random bench body), then every Eject Button holder switches out, beside a pivot the button did
+  not cancel, the faster leaver first. A Red Card drag cancels the attacker's own pivot. Knobs `MEDI_RED_CARD_INERT`,
+  `MEDI_EJECT_BUTTON_INERT`, `MEDI_EJECT_BUTTON_MAINLINE`.
+- `tests/probe_regmc_eject_items.js` (`--regulation regmc`): Red Card, Red Card into U-turn, Eject Button, Eject Button
+  into U-turn (both switch), one spread hit into both items. Exit 0 clean, 1 under each knob and on the pre-fix engine.
+
+### Notes
+- Counted, not modelled: a speed tie between two owed switches (the authority breaks it with a die), and a Red Card
+  drag refused by Ingrain.
+- Reg M-B unmoved: tags and protocol-events byte-identical; the damage differential identical but for its output-path
+  line; the Reg M-B lattice at `--games 1200` reads 0 board-material.
+- The Reg M-C smoke is unpinned and is not published. Full account: `docs/_reports/2026-09-21-regmc-items.md`.
+- **Supersedes.** Nothing. **Basis.** unchanged.
+
 ## [0.20.0] — 2026-09-21
 
 ### Added

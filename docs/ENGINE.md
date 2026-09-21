@@ -1,3 +1,34 @@
+## REG M-C: RED CARD DRAGS THE ATTACKER; EJECT BUTTON SWITCHES ITS HOLDER OUT BESIDE A PIVOT. 2026-09-21 (abra/regmc 0.21.0)
+
+Full account: `docs/_reports/2026-09-21-regmc-items.md`.
+
+- **Tags.** `dragsAttackerOnHit {requiresDamaging, dragOutEvent, priority}` and `ejectsHolderOnHit {requiresDamaging,
+  notFutureMove, blockedByPendingSwitch, cancelsSourceSwitch, priority}`, derived from `onAfterMoveSecondary`.
+  Membership printed before wiring, whole dex, both checkouts: `redcard` and `ejectbutton`; legal in Reg M-C, `Past` in
+  Reg M-B. `cancelsSourceSwitch` is `false` under the M-C checkout and `true` under the mainline one: the mid-regulation
+  rule change is read off the handler.
+- **Engine.** At the `AfterMoveSecondary` site: Eject Button (priority 2, rows in speed order, the first owed switch
+  blocks the rest), then Red Card after Pickpocket (the first qualifying holder only; Suction Cups / Guard Dog through
+  `refusesForcedSwitch`). `spendItemOnHit` is `useItem`. At the end of the action, below the damaging phaze: the Red Card
+  drag, then the owed switches (the button's holder, and a pivot the button did not cancel) in speed order. A Red Card
+  drag refuses the attacker's pivot.
+- **Probe** `tests/probe_regmc_eject_items.js --regulation regmc`: exit 0 clean; exit 1 under `MEDI_RED_CARD_INERT`,
+  `MEDI_EJECT_BUTTON_INERT`, `MEDI_EJECT_BUTTON_MAINLINE` (the old rule: the pivot is cancelled), and on the pre-fix engine.
+- **Reg M-B unmoved:** tags and protocol-events untouched; damage differential identical but for its output-path line;
+  lattice `--games 1200` 0 of 961 board-material.
+
+### The Reg M-C hand list, after this pass
+
+The smoke's two board-material games are listed first, by what parts the BOARD, not the first protocol line:
+
+1. **The fallen-counter game** — the board parts two turns after the `-end …fallenundefined` line, on a Lucario's HP.
+2. **A Lucario's HP, 5 points** on a game whose first protocol line is the Inner Focus stat name (turn 0); the board
+   parts at turn 3 for a different reason. Not yet opened.
+3. Narration only on this sample: the Double Shock `-fail` field (3 games), the Inner Focus stat name, Sirfetch'd's
+   display name.
+4. **Emergency Exit** — carried (next pass). Carried: Curse under Reg M-C, the seed GAIN door, the cross-game Aura Guard
+   damage value.
+
 ## REG M-C: AIR BALLOON IS ANNOUNCED ON ENTRY AND POPPED BY A HIT. 2026-09-21 (abra/regmc 0.20.0)
 
 Full account: `docs/_reports/2026-09-21-regmc-items.md`.
@@ -16,7 +47,7 @@ Full account: `docs/_reports/2026-09-21-regmc-items.md`.
 - **Reg M-B unmoved:** tags and protocol-events untouched; damage differential identical but for its output-path line;
   lattice `--games 1200` 0 of 961 board-material.
 
-### The Reg M-C hand list, after this pass
+### The Reg M-C hand list, after the 0.20.0 pass — SUPERSEDED by the 0.21.0 list above
 
 1. **Double Shock `-fail` field** — 3 games.
 2. **Inner Focus stat name** `atk`/`attack` — 2 games.

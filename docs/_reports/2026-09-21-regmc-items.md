@@ -207,3 +207,95 @@ the base but for the output-path line. Lattice `--games 1200` (same flags and pi
 | Sirfetch'd display name | 1 | 1 |
 | the Aura Guard damage value | 1 | 0 — gone again, with nothing in this fix touching it (the cross-game effect, §1) |
 | total dumped | 12 | 8 |
+
+---
+
+## 3. Red Card and Eject Button (abra/regmc 0.21.0)
+
+### The authority, read whole
+
+- Red Card, M-C checkout `data/items.ts` :5146-5164 (the Champions mod does not name it): `onAfterMoveSecondary` —
+  source alive, target alive, damaging; `!source.isActive || !canSwitch(source.side) || source.forceSwitchFlag ||
+  target.forceSwitchFlag` returns; `target.useItem(source)` (`-enditem|TARGET|Red Card|[of] SOURCE`), then
+  `runEvent('DragOut', source, target, move)` → `source.forceSwitchFlag = true`.
+- Eject Button, `data/mods/champions/items.ts` :266-280, overriding `data/items.ts` :1680-1700 (priority 2 inherited):
+  target alive, damaging, not a future move; `!canSwitch(target.side) || target.forceSwitchFlag || beingCalledBack ||
+  isSkyDropped()` returns; commanding/commanded returns; any active body with `switchFlag === true` returns;
+  `target.switchFlag = true; if (!target.useItem()) target.switchFlag = false`. Mainline also writes
+  `source.switchFlag = false` on success; the override (Showdown `aa6d5f0856`, 2026-09-13) does not.
+- `sim/battle-actions.ts:1311`: a pivot sets `source.switchFlag = move.id` — a STRING, so it never trips `=== true`.
+- `sim/battle.ts:2820-2828`: every `forceSwitchFlag` body is dragged (`dragIn`, a random switchable body, `|drag|`) at
+  the end of the action; `:2874-2907` then requests the flagged switches. `sim/battle-queue.ts:250-254`: a string flag
+  becomes the switch's `[from]`, `true` a bare `|switch|`.
+
+### Tags, membership printed before wiring
+
+`dragsAttackerOnHit {requiresDamaging, dragOutEvent, priority}` and `ejectsHolderOnHit {requiresDamaging,
+notFutureMove, blockedByPendingSwitch, cancelsSourceSwitch, priority}`. Whole item dex, both checkouts: `redcard` and
+`ejectbutton` only; both legal in Reg M-C, `Past` in Reg M-B. Printed:
+
+```
+pokemon-showdown-mc  gen9championsvgc2026regmc   EJECT ejectbutton:legal prio=2 cancelsSource=false   DRAG redcard:legal
+pokemon-showdown     gen9championsvgc2026regmc   EJECT ejectbutton:legal prio=2 cancelsSource=true    DRAG redcard:legal
+```
+
+So the rule change is a derived fact: the checkout that loads decides it. Structural diff of `data/tags-regmc.json`
+against 0.19.0: the two descriptors and the two item rows.
+
+### Engine
+
+At the `AfterMoveSecondary` site: Eject Button first (rows in speed order; a tie is counted), then — after Pickpocket
+and Berserk — Red Card over the rows (the first qualifying holder drags; the refusals are the handler's, and
+Suction Cups / Guard Dog go through `refusesForcedSwitch`). `spendItemOnHit` is `useItem`: `-enditem` (with `[of]` for
+Red Card), `recordItemUsed`, the hand empties, Symbiosis. At the end of the action, below the damaging phaze: the Red Card
+drag (the phaze doors' die), then the owed switches — each Eject Button holder, and the attacker's pivot if the button
+did not cancel it — faster leaver first. A Red Card drag refuses the attacker's pivot.
+
+### Probe — `tests/probe_regmc_eject_items.js --regulation regmc`
+
+One turn plus an all-Protect turn, so the switch the authority requests at the end of turn 1 is answered and written.
+
+| arm | staged | authority | this engine |
+|---|---|---|---|
+| RC | a plain hit into a Red Card holder | card spent `[of]` the attacker; attacker `|drag|`ged | match, boards 0 |
+| RC-UTURN | U-turn into a Red Card holder | dragged; no pivot | match, boards 0 |
+| EB | a plain hit into an Eject Button holder | button spent; holder `|switch|`es out | match, boards 0 |
+| EB-UTURN | U-turn into an Eject Button holder | button spent; the pivot `[from] U-turn` AND the holder switch, faster leaver first | match, boards 0 |
+| SPREAD | one spread hit into a Red Card holder and an Eject Button holder | button, then card; drag; then the holder's switch | match, boards 0 |
+
+| run | exit | red |
+|---|---|---|
+| clean | 0 | none |
+| `MEDI_RED_CARD_INERT=1` | 1 | RC, RC-UTURN, SPREAD (lines and boards) |
+| `MEDI_EJECT_BUTTON_INERT=1` | 1 | EB, EB-UTURN, SPREAD (lines and boards; and their fixture checks, see below) |
+| `MEDI_EJECT_BUTTON_MAINLINE=1` | 1 | EB-UTURN (the pivot is cancelled, the authority keeps it) |
+| `--medi` the 0.19.0 engine bytes | 1 | all five |
+
+**A limit of the harness, said:** the authority's switch REQUEST is answered by mirroring this engine's slot, so when
+this engine does not switch the request cannot be answered and the game stops. Under `MEDI_EJECT_BUTTON_INERT` the
+authority's own switch line therefore disappears too and the EB fixture checks read red. The `-enditem` is the
+engine-independent fixture; the switch line is an engine-and-authority check. The `[from]` of a pivot's switch is the
+display name on the authority (`U-turn`) and the id here (`uturn`), a spelling the driver already declares; the kit's
+comparison folds hyphens inside `[from]` and nothing else.
+
+### Reg M-B unmoved
+
+sha256 of `data/tags.json` and `data/protocol-events.json` unchanged. Damage differential seed `20260804`: identical but
+for the output-path line. Lattice `--games 1200` (same flags and pins as §1), release cut by the run `797c246b186d`:
+**0 of 961 board-material**, 0 VOID, 0 protocol-parted.
+
+### The smoke
+
+| | after Air Balloon (`20453e22e822`) | after Red Card / Eject Button (`d9c8422ffa7b`) |
+|---|---|---|
+| played / VOID | 87 / 0 | 87 / 0 |
+| **board-material** | **3 / 87** | **2 / 87** |
+| Red Card / Eject Button | 1 | 0 |
+| Double Shock `-fail` field | 3 | 3 (narration: none of the three is board-material) |
+| Inner Focus stat name | 2 | 2 (one is board-material, but its board parts at turn 3, not at the stat-name line) |
+| Sirfetch'd display name | 1 | 1 (narration) |
+| fallen counter | 1 | 1 (board-material: the board parts two turns later, on a Lucario's HP) |
+| total dumped | 8 | 7 |
+
+The board-material list is `state.first_board_divergences` (2 rows, so not truncated): `pair-speedctrl …2682837890`
+turn 5 (`p1.party.lucario.hp` 39 / 69), and `pair-speedctrl …2684673849` turn 3 (`p2.party.lucario.hp` 140 / 145).

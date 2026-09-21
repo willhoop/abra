@@ -114,7 +114,7 @@ function open(name, knobNames) {
   const plain = m => legal(m) && m.category !== 'Status' && m.target === 'normal' && !m.secondary && !m.secondaries
     && !m.self && !m.recoil && !m.drain && !m.flags.charge && !m.flags.recharge && !m.priority && !m.selfSwitch
     && !m.basePowerCallback && !m.damageCallback && !m.ohko && !m.selfdestruct && !m.volatileStatus && !m.onHit
-    && !m.onAfterHit && !m.onTry && !m.onTryHit && !m.onBasePower && !m.onModifyMove && !m.onModifyType
+    && !m.onAfterHit && !m.onAfterMove && !m.onAfterMoveSecondary && !m.onAfterMoveSecondarySelf && !m.onTry && !m.onTryHit && !m.onBasePower && !m.onModifyMove && !m.onModifyType
     && !m.onModifyPriority && !m.onEffectiveness && !m.overrideOffensivePokemon && !m.overrideOffensiveStat
     && !m.overrideDefensiveStat && m.basePower >= 20 && !m.flags.futuremove;
   /* the weakest plain single-arrival 100%-accurate move `att` learns that `tgt` takes neutrally or resisted; `pred` narrows the pool */
@@ -173,7 +173,10 @@ function open(name, knobNames) {
   function compareArms(RUNS, own, what) {
     console.log('\n4. MEDICHAM AGAINST THE AUTHORITY');
     for (const [tag, R] of RUNS) {
-      const sdO = R.sdK.filter(l => own.test(l)), meO = R.meK.filter(l => own.test(l));
+      /* a `[from]` names the same effect by its display name on the authority (`U-turn`) and by its id here (`uturn`);
+       * the driver already declares that spelling, so the comparison folds it and nothing else */
+      const fold = l => l.replace(/(\[from\])([^|]*)/g, (x, a, b) => a + b.replace(/-/g, ''));
+      const sdO = R.sdK.filter(l => own.test(l)).map(fold), meO = R.meK.filter(l => own.test(l)).map(fold);
       const same = sdO.length === meO.length && sdO.every((l, i) => l === meO[i]);
       ok(!R.div && same, tag + ' — no protocol divergence, and every ' + what + ' line agrees in order',
         R.div ? JSON.stringify(R.div) : (same ? null : 'showdown  ' + sdO.join(' ') + '\nmedicham2 ' + meO.join(' ')));

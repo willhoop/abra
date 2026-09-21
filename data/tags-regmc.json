@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-21T20:40:06.866Z",
+ "generated": "2026-09-21T21:01:28.775Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -2974,12 +2974,38 @@
    "kind": "item",
    "param": "announced on entry, and lost (not used) to the first damaging hit",
    "why": "Air Balloon is the next first cause of the Reg M-C smoke after Rocky Helmet: 3 games part on the missing `-item` announce, and every hit into a holder keeps a balloon the authority has already popped",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "poppedOnHit",
+   "used": true,
    "n": 1,
    "uses": 182,
    "examples": [
     "Air Balloon"
+   ]
+  },
+  {
+   "tag": "dragsAttackerOnHit",
+   "kind": "item",
+   "param": "spent when a damaging move hits the holder; the attacker is dragged out at the end of the action",
+   "why": "Red Card: a first cause of the Reg M-C smoke (the attacker stays in where the authority drags it out)",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 61,
+   "examples": [
+    "Red Card"
+   ]
+  },
+  {
+   "tag": "ejectsHolderOnHit",
+   "kind": "item",
+   "param": "spent when a damaging move hits the holder; the holder switches out at the end of the action",
+   "why": "Eject Button (1,208 Reg M-C sheets); its rule changed mid-regulation (docs/REGMC.md, the Eject Button conjunction)",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 1240,
+   "examples": [
+    "Eject Button"
    ]
   },
   {
@@ -36932,10 +36958,18 @@
   "ejectbutton": {
    "name": "Eject Button",
    "tags": [
+    "ejectsHolderOnHit",
     "flingable"
    ],
    "uses": 1240,
    "params": {
+    "ejectsHolderOnHit": {
+     "requiresDamaging": true,
+     "notFutureMove": true,
+     "blockedByPendingSwitch": true,
+     "cancelsSourceSwitch": false,
+     "priority": 2
+    },
     "flingable": {
      "basePower": 30,
      "status": null,
@@ -39517,10 +39551,16 @@
   "redcard": {
    "name": "Red Card",
    "tags": [
+    "dragsAttackerOnHit",
     "flingable"
    ],
    "uses": 61,
    "params": {
+    "dragsAttackerOnHit": {
+     "requiresDamaging": true,
+     "dragOutEvent": true,
+     "priority": 0
+    },
     "flingable": {
      "basePower": 10,
      "status": null,
