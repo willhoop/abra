@@ -2185,6 +2185,13 @@ const MEDSEEN = { floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepAct
    * wired, so the failure counter is replaced by a capability counter rather than deleted
    * (docs/ENGINE.md rule -- a counter must not merely vanish). */
   terrainHealSkippedAirborne: 0,
+  /* 2026-09-21 (Reg M-C) -- a Grassy Terrain heal SKIPPED because the body is semi-invulnerable (mid Phantom
+   * Force, Dig, Dive, Fly, Bounce). The handler is `if (pokemon.isGrounded() && !pokemon.isSemiInvulnerable())`
+   * (data/moves.ts:7713-7715); the engine asked the first half only. MEDI_TERRAIN_HEAL_SEMIINV=1 restores. */
+  terrainHealSkippedSemiInv: 0,
+  /* 2026-09-21 (Reg M-C) -- THE TERRAIN SEEDS (see `seedSpend`). `seedSpent` is every spend; the two roads are
+   * counted apart because a run with a Surge lead in it where `OnTerrainChange` stays 0 is the change road missing. */
+  seedSpent: 0, seedSpentOnEntry: 0, seedSpentOnTerrainChange: 0,
   /* WIRE 119 -- a move REFUSED at execution time by a category-forbidding volatile (Taunt). This is
    * the half the interaction matrix was failing on: the holder clicks Taunt in the same turn, so the
    * target's already-chosen status move has to FAIL when it runs. A zero here after games with a
@@ -5120,6 +5127,13 @@ const MEDFAILS = { encoreAction: 0, anticipationNoState: 0, anticipationMoveUnkn
   /* A terrain string neither vocabulary recognises (see terrainId). Returning the raw value is what
    * made the weather bug: truthy, and matching nothing. */
   terrainUnknown: 0, terrainUnknownFirst: '',
+  /* 2026-09-21 (Reg M-C) -- a seed handed over through `itemGive` (Trick, Recycle, Symbiosis) while its terrain is
+   * up. The authority spends it there (`setItem` raises the item's `Start`, sim/pokemon.ts:1886); this engine does
+   * not model that road yet, and says so here instead of holding the seed silently. */
+  seedGainedUnderTerrain: 0,
+  /* 2026-09-21 -- the terrain started at an entry site whose body carries no side back-reference, so the
+   * TerrainChange walk over the four actives could not be run. Loud, never defaulted. */
+  seedTerrainChangeNoSide: 0,
   /* ROADMAP #242 -- a terrain that IS up and for which `data/residual-order.json` publishes no
    * `expiry:` row, so its clock has no position in the walk to be spent at. Non-zero means the
    * terrain never comes down, which is the exact shape the first draft of `residualExpireAt` shipped
@@ -13540,6 +13554,97 @@ function recordItemUsed(m,itemId,road){
   ubGrant(m,road||'use');
   MEDSEEN.itemUsedRecorded++;
   return _id;
+}
+/* ---- 2026-09-21 (Reg M-C) -- THE TERRAIN SEEDS. Will: "Terrain setters and seeds are the most important
+ * features." -----------------------------------------------------------------------------------------------
+ *
+ * THE AUTHORITY, read whole in the M-C checkout (data/items.ts electricseed :1799-1821, grassyseed :2595-2617,
+ * mistyseed :4200-4222, psychicseed :4903-4925; `data/mods/champions/items.ts` names none of them):
+ *
+ *     onSwitchInPriority: -1,
+ *     onStart(pokemon)         { if (!pokemon.ignoringItem() && this.field.isTerrain(T)) pokemon.useItem(); }
+ *     onTerrainChange(pokemon) { if (this.field.isTerrain(T)) pokemon.useItem(); }
+ *
+ * and `Pokemon#useItem` (sim/pokemon.ts:1811-1849) is, in this order: `-enditem|HOLDER|ITEM`; `boost(item.boosts,
+ * this, source, item)` -- an ITEM effect, so the line is `-boost|HOLDER|STAT|N|[from] item: ITEM` and a capped
+ * stat writes a bare `-boost|HOLDER|STAT|0` (sim/battle.ts:2063-2078, not secondary, not self); then
+ * `lastItem`/`item=''`/`usedItemThisTurn` and `AfterUseItem`. `recordItemUsed` is that last half, and
+ * `passItemFromAlly` is Symbiosis's `onAllyAfterUseItem`.
+ *
+ * THREE ROADS, and the difference between them is WHEN, which is the whole of the mechanic in a switch wave:
+ *   'change'  `Field#setTerrain` ends `this.battle.eachEvent('TerrainChange', sourceEffect)` (sim/field.ts:155),
+ *             i.e. EVERY active body in `speedSort` order on the cached speed (`sdEachEventOrder`), AT THE
+ *             INSTANT the terrain starts. In a lead wave that is inside the setter's own handler, so a Grassy
+ *             Surge body's partner spends its seed BEFORE a slower entrant's ability runs.
+ *   'entry'   the item's own `onStart` at `onSwitchInPriority -1`: below every priority-0 ability of the same
+ *             wave and above White Herb's -2, over the entrants in the wave's rank order. It is how a body
+ *             walking into a terrain that is ALREADY UP spends its seed. It asks `ignoringItem()`; a parked
+ *             item (Klutz, Magic Room) is off `m.item`, so the slot read is that clause.
+ *   the GAIN door (`setItem` raises the item's `Start`, sim/pokemon.ts:1886) is NOT wired: a seed handed over by
+ *             Trick, Recycle or Symbiosis while its terrain is up is spent on the authority and counted here
+ *             (`MEDFAILS.seedGainedUnderTerrain`) rather than modelled, because the giver's `-item` line order is
+ *             each caller's own and is not changed in this pass.
+ *
+ * CANNOT FIRE TWICE: the item leaves the hand in the same call, so every later read -- the other road, Knock
+ * Off's x1.5, a second terrain -- sees an empty hand; `_lastItem` is written so Recycle can give it back.
+ *
+ * KNOBS. `MEDI_SEED_UNCONSUMED=1` spends nothing on any road (the pre-2026-09-21 engine). `MEDI_SEED_NO_TERRAIN_CHANGE=1`
+ * drops the 'change' road only, so a seed is spent at the entry pass or not at all -- the wrong TIME, which is what
+ * `tests/probe_regmc_terrain_seeds.js` arm C is built to see. Each stamps its MEDFAILS flag. */
+const SEED_UNCONSUMED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SEED_UNCONSUMED==='1');
+const SEED_NO_TERRAIN_CHANGE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SEED_NO_TERRAIN_CHANGE==='1');
+if(SEED_UNCONSUMED)MEDFAILS.seedUnconsumedRestored=1;
+/* 2026-09-21 (Reg M-C) -- MEDI_TERRAIN_HEAL_SEMIINV=1 puts the Grassy Terrain heal back on a semi-invulnerable body
+ * (the pre-2026-09-21 engine). See the heal in the residual walk. */
+const TERRAIN_HEAL_SEMIINV=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TERRAIN_HEAL_SEMIINV==='1');
+if(SEED_NO_TERRAIN_CHANGE)MEDFAILS.seedNoTerrainChangeRestored=1;
+function seedParam(m){ return (m&&m.item)?TAGS.param('item',m.item,'consumedOnTerrain'):null; }
+function seedSpend(m,field,road){
+  if(!m||m.fainted||m.curHP<=0)return false;
+  const p=seedParam(m); if(!p)return false;
+  if(road==='entry'&&!p.onEntry)return false;
+  if(!field||!terrainId(field.terrain)||terrainId(field.terrain)!==terrainId(p.terrain))return false;
+  if(SEED_UNCONSUMED)return false;
+  const _id=String(m.item);
+  if(TR)TR.enditem(m,_id);
+  /* `boost()` -- 'ChangeBoost' (Contrary x-1, Simple x2; the holder's own item, so never broken by a mover),
+   * the clamp, the line. A seed raises, so no 'TryBoost' refuser and no AfterEachBoost retaliation applies. */
+  const _sg=invSign(m,m,'Status');
+  for(const k in (p.boosts||{})){
+    const _s=SD2ENG[k]; if(!_s||!m.boosts||m.boosts[_s]==null)continue;
+    const _b0=m.boosts[_s];
+    m.boosts[_s]=clamp(_b0+(+p.boosts[k])*_sg,-6,6);
+    if(TR)TR.bst(m,_s,m.boosts[_s]-_b0,'[from] item: '+_id,true);
+  }
+  recordItemUsed(m,_id);
+  m.item='';
+  passItemFromAlly(m);
+  MEDSEEN.seedSpent++;
+  if(road==='entry')MEDSEEN.seedSpentOnEntry++; else MEDSEEN.seedSpentOnTerrainChange++;
+  return true;
+}
+/* THE 'change' ROAD. Called by every site that STARTS a terrain (the ability on entry, the move), after the
+ * `-fieldstart`. A board with no seed holder on it returns before touching anything -- no speed stamp, no die --
+ * so Reg M-B, whose table has no member, cannot move. The speed is the CACHED `pokemon.speed` the authority's
+ * `eachEvent` reads; a body with none yet (a lead, whose `runSwitch` stamped it on the authority) is stamped
+ * with its speed now. */
+function seedTerrainChange(field,actA,actB){
+  if(SEED_NO_TERRAIN_CHANGE)return 0;
+  const _any=[...(actA||[]),...(actB||[])].some(x=>x&&!x.fainted&&x.curHP>0&&seedParam(x));
+  if(!_any)return 0;
+  for(const x of (actA||[]))if(x&&!x.fainted&&x._sdSpe==null)sdStampSpeed(x,field,'A');
+  for(const x of (actB||[]))if(x&&!x.fainted&&x._sdSpe==null)sdStampSpeed(x,field,'B');
+  let n=0;
+  for(const e of sdEachEventOrder(actA,actB,field))if(seedSpend(e.m,field,'change'))n++;
+  return n;
+}
+/* THE 'entry' ROAD over a wave, `recs` in the wave's RANK order (the caller's `entrySpeedSort`), each record
+ * carrying its body on `mon` or `nx`. Priority -1 is below every priority-0 ability in the wave, so the caller
+ * runs this after its whole ability walk and before White Herb's -2 pass. */
+function seedEntryPass(recs,field){
+  let n=0;
+  for(const r of (recs||[])){const m=r&&(r.mon!==undefined?r.mon:r.nx);if(seedSpend(m,field,'entry'))n++;}
+  return n;
 }
 /* HOW MUCH A BERRY EFFECT IS WORTH TO THIS HOLDER. Ripen doubles EVERY berry effect and the artifact
  * used to say only that it halves a resist-berry hit (`damageReduce`), so a Sitrus under Ripen healed
@@ -25754,7 +25859,12 @@ function applyEntryEffects(m,field,ally){
    * `if (this.terrain === status.id) return false;` -- unconditionally, no gen check. */
   const t=TAGS.param('ability',m.ability,'terrainSetter');
   if(t&&t.terrain){const _t=terrainId(t.terrain);if(_t&&field.terrain!==_t){field.terrain=_t;field.terrainT=5;
-    if(TR)TR.terrainStart(_t,'[from] ability: '+m.ability,m);}}
+    if(TR)TR.terrainStart(_t,'[from] ability: '+m.ability,m);
+    /* 2026-09-21 (Reg M-C) -- `setTerrain` ends `eachEvent('TerrainChange')`, INSIDE this handler: every active
+     * body's seed is spent now, before the next entrant's ability runs. See `seedTerrainChange`. */
+    {const _S=m._sf&&m._sf._S;
+     if(_S)seedTerrainChange(field,_S.actA,_S.actB);
+     else if(seedParam(ally)||seedParam(m))MEDFAILS.seedTerrainChangeNoSide++;}}}
 }
 /* ---- ROADMAP #31 -- MEGA EVOLUTION, PERFORMED MID-TURN --------------------------------------------
  *
@@ -26403,6 +26513,9 @@ function itemGive(m,id){
    * `setItem`); it only stops the doubling, which `ubMult`'s `!itemOn(m)` reads. The knob drops it here. */
   if(UNBURDEN_BREAK==='ends-on-regain'&&m._ubVol){m._ubVol=0;MEDSEEN.unburdenBreakApplied=(MEDSEEN.unburdenBreakApplied|0)+1;}
   if(!ROOM_ITEM_SURVIVES_LOSS&&itemSuppressed(m,fieldOfBody(m)))itemRoomHide(m);
+  /* 2026-09-21 (Reg M-C) -- the seed's `Start` on `setItem` is not modelled; counted, never silent. */
+  {const _sp=seedParam(m),_f=_sp&&fieldOfBody(m);
+   if(_sp&&_f&&terrainId(_f.terrain)&&terrainId(_f.terrain)===terrainId(_sp.terrain))MEDFAILS.seedGainedUnderTerrain++;}
   MEDSEEN.itemGivenThroughDoor++;
   return true;
 }
@@ -28019,6 +28132,8 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry,outgoing){
   startAnnounceEarly(nx);   // the +onSwitchInPriority half of the entry event -- ABOVE the hazards
   applyEntryConditions(nx,sf,i,field);
   runEntryPass(nx,foes,act,i,field,null);
+  /* 2026-09-21 (Reg M-C) -- one arrival, so its seed's `onStart` (priority -1) is simply after its own ability. */
+  if(nx&&!nx.fainted&&nx.curHP>0)seedSpend(nx,field,'entry');
   return nx;
 }
 
@@ -30004,6 +30119,11 @@ function battleInit(teamA,teamB,opts){
       applyEntryEffects(e.mon,S.field,e.ally);
       applyEntryDrops(e.mon,_live(e.foes));   // WIRE 100a -- membership from `onSwitchInDrop`
     }
+    /* 2026-09-21 (Reg M-C) -- THE SEEDS' OWN `onStart`, at `onSwitchInPriority -1`: below every ability of this
+     * wave, above White Herb's -2, in the wave's RANK order -- the same `entrySpeedSort` over the same records
+     * `entryOrder` ranked above, so the memoised tie keys give the same answer. Only when a holder is present,
+     * so a board with no seed draws nothing and moves nothing. */
+    if(entrants.some(e=>seedParam(e.mon)))seedEntryPass(entrySpeedSort(entrants.slice(),S.field),S.field);
     /* ROADMAP #81 WIRE 11 -- `onAnySwitchIn`, THE FIRST OF WHITE HERB'S FOUR TRIGGERS. It runs at
      * priority -2, i.e. AFTER every entry ability has had its say, which is exactly what "one pass
      * once the whole lead has landed" reproduces: a herb spent against the first Intimidate would
@@ -38292,7 +38412,8 @@ function battleTurn(S,rng,actsForA,actsForB){
            game differential to find it a second time: Showdown fails a terrain move whose terrain is
            already up, so refreshing the clock here would be the same wrong number one field over. */
         if(_t&&terrainId(field.terrain)!==_t){field.terrain=_t;field.terrainT=5;if(TR)TR.terrainStart(_t,null,m);
-          syncFieldTypes(field,[...actA,...actB]);}   // ROADMAP #175 -- the sky changed, so the type does
+          syncFieldTypes(field,[...actA,...actB]);   // ROADMAP #175 -- the sky changed, so the type does
+          seedTerrainChange(field,actA,actB);}       // 2026-09-21 (Reg M-C) -- and every seed holder spends, in eachEvent order
         else mvFail(m);
         m._lastMove=a.mv;continue;
       }
@@ -50416,7 +50537,16 @@ function battleTurn(S,rng,actsForA,actsForB){
        }}
       if(_G.has('terrain')){const _th=terrainPerTurnHP()[terrainId(field.terrain)];
        if(_th&&_th.effect==='heal'&&_th.per&&!healBlocked(m)){
-         if(isGrounded(m)){const _h0=m.curHP;m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/_th.per));
+         /* 2026-09-21 (Reg M-C) -- AND NOT SEMI-INVULNERABLE. `grassyterrain.condition.onResidual` is
+          * `if (pokemon.isGrounded() && !pokemon.isSemiInvulnerable())` (data/moves.ts:7713-7715, M-C checkout;
+          * the Champions mod does not name grassyterrain). The second half was missing, so a Dragapult mid
+          * Phantom Force healed here and not there -- the Reg M-C smoke's "heal order" card, which was never an
+          * order: the authority simply skips that body. The predicate is the one Misty and Electric Terrain's
+          * refusals already ask (`mTerrainRefusesStatusOn`). MEDI_TERRAIN_HEAL_SEMIINV=1 restores. */
+         const _semi=!!(m._invuln&&m._charging&&TAGS.has('move',m._charging,'semiInvulnerable'));
+         if(_semi&&TERRAIN_HEAL_SEMIINV)MEDFAILS.terrainHealSemiInvRestored=1;
+         if(_semi&&!TERRAIN_HEAL_SEMIINV)MEDSEEN.terrainHealSkippedSemiInv++;
+         else if(isGrounded(m)){const _h0=m.curHP;m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp/_th.per));
            if(TR&&m.curHP>_h0)TR.heal(m,'[from] Grassy Terrain');}
          else MEDSEEN.terrainHealSkippedAirborne++;
        }}
@@ -51764,6 +51894,10 @@ function battleTurn(S,rng,actsForA,actsForB){
       for(let k=1;k<_order.length;k++)
         if(_order[k].spe===_order[k-1].spe)MEDFAILS.entryOrderTie++;
       for(const e of _order)runEntryPass(e.nx,e.foes,e.act,e.i,field,e.sf,e.announce);
+      /* 2026-09-21 (Reg M-C) -- the seeds' `onStart` (priority -1) over the ARRIVALS, in the rank order of the
+       * whole-field sort above; see the lead site. */
+      if(_arrived.some(e=>seedParam(e.nx)))
+        seedEntryPass(entrySpeedSort(_allActive.slice(),field).filter(e=>_arrived.indexOf(e)>=0),field);
       /* 2026-08-27 -- `onAnySwitchIn`, THE HERB'S FIRST TRIGGER, ON ITS FOURTH DOOR.
        *
        * ROADMAP #81 WIRE 11 wired all four of `whiteherb`'s handlers -- `onAnySwitchIn` (priority -2),

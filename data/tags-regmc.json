@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-21T18:22:19.480Z",
+ "generated": "2026-09-21T19:34:01.391Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -2937,6 +2937,22 @@
    "uses": 3977,
    "examples": [
     "White Herb"
+   ]
+  },
+  {
+   "tag": "consumedOnTerrain",
+   "kind": "item",
+   "param": "spent for a stat boost when its terrain is up: on entry, and the instant the terrain starts",
+   "why": "Grassy Seed (9,862 Reg M-C sheets) and Psychic Seed (7,056) are the largest first cause of the Reg M-C differential, 25-30 games of ~50: the holder is +1 Def/SpD from turn 1 and the engine never spent it",
+   "consumedBy": "onTerrainChange",
+   "used": true,
+   "n": 4,
+   "uses": 17024,
+   "examples": [
+    "Electric Seed",
+    "Grassy Seed",
+    "Misty Seed",
+    "Psychic Seed"
    ]
   },
   {
@@ -38492,10 +38508,19 @@
   "electricseed": {
    "name": "Electric Seed",
    "tags": [
+    "consumedOnTerrain",
     "flingable"
    ],
    "uses": 96,
    "params": {
+    "consumedOnTerrain": {
+     "terrain": "electricterrain",
+     "boosts": {
+      "def": 1
+     },
+     "onEntry": true,
+     "switchInPriority": -1
+    },
     "flingable": {
      "basePower": 10,
      "status": null,
@@ -38598,10 +38623,19 @@
   "grassyseed": {
    "name": "Grassy Seed",
    "tags": [
+    "consumedOnTerrain",
     "flingable"
    ],
    "uses": 9862,
    "params": {
+    "consumedOnTerrain": {
+     "terrain": "grassyterrain",
+     "boosts": {
+      "def": 1
+     },
+     "onEntry": true,
+     "switchInPriority": -1
+    },
     "flingable": {
      "basePower": 10,
      "status": null,
@@ -39091,10 +39125,19 @@
   "mistyseed": {
    "name": "Misty Seed",
    "tags": [
+    "consumedOnTerrain",
     "flingable"
    ],
    "uses": 10,
    "params": {
+    "consumedOnTerrain": {
+     "terrain": "mistyterrain",
+     "boosts": {
+      "spd": 1
+     },
+     "onEntry": true,
+     "switchInPriority": -1
+    },
     "flingable": {
      "basePower": 10,
      "status": null,
@@ -39349,10 +39392,19 @@
   "psychicseed": {
    "name": "Psychic Seed",
    "tags": [
+    "consumedOnTerrain",
     "flingable"
    ],
    "uses": 7056,
    "params": {
+    "consumedOnTerrain": {
+     "terrain": "psychicterrain",
+     "boosts": {
+      "spd": 1
+     },
+     "onEntry": true,
+     "switchInPriority": -1
+    },
     "flingable": {
      "basePower": 10,
      "status": null,

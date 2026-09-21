@@ -6845,6 +6845,41 @@ const ITEM_TAGS = [
   { tag: 'restoresStats', param: 'undoes stat drops once', probe: 'whiteherb',
     why: '2.1% of items, and it changes what a drop is worth',
     of: it => norm(it.name) === 'whiteherb' ? { restores: true } : null },
+  /* 2026-09-21 (Reg M-C) -- THE TERRAIN SEEDS. Will: "Terrain setters and seeds are the most important
+   * features." Every seed is the same two handlers (data/items.ts electricseed :1799, grassyseed :2595,
+   * mistyseed :4200, psychicseed :4903 in the M-C checkout; the Champions mod names none of them):
+   *
+   *     onSwitchInPriority: -1,
+   *     onStart(pokemon)         { if (!pokemon.ignoringItem() && this.field.isTerrain(T)) pokemon.useItem(); }
+   *     onTerrainChange(pokemon) { if (this.field.isTerrain(T)) pokemon.useItem(); }
+   *     boosts: { <stat>: 1 },
+   *
+   * so the item is SPENT (`useItem`, sim/pokemon.ts:1811-1849: `-enditem`, then `boost(item.boosts)`, then
+   * lastItem/usedItemThisTurn/AfterUseItem) on entry into its terrain AND the instant its terrain starts
+   * under it. DERIVED FROM THE HANDLER, never from the names: an item whose `onTerrainChange` spends it and
+   * reads one `isTerrain('<id>')`. Membership, printed before wiring, whole dex: exactly the four seeds in
+   * both checkouts -- all four legal in gen9championsvgc2026regmc, all four `isNonstandard: 'Past'` in
+   * gen9championsvgc2026regmb, so Reg M-B's table carries no member and nothing there can move. */
+  { tag: 'consumedOnTerrain', param: 'spent for a stat boost when its terrain is up: on entry, and the instant the terrain starts',
+    probe: 'onTerrainChange',
+    why: 'Grassy Seed (9,862 Reg M-C sheets) and Psychic Seed (7,056) are the largest first cause of the Reg M-C '
+       + 'differential, 25-30 games of ~50: the holder is +1 Def/SpD from turn 1 and the engine never spent it',
+    of: it => {
+      const tc = fnsrc(it.onTerrainChange);
+      if (!/useItem\(\)/.test(tc)) return null;
+      const t = tc.match(/isTerrain\(\s*['"]([a-z]+)['"]\s*\)/);
+      if (!t || !it.boosts || !Object.keys(it.boosts).length) return null;
+      const st = fnsrc(it.onStart);
+      const s = st.match(/isTerrain\(\s*['"]([a-z]+)['"]\s*\)/);
+      return {
+        terrain: t[1],
+        boosts: { ...it.boosts },
+        /* the entry half is its own handler and its own clause; carried so a future item with only one
+         * of the two halves is not given the other by the consumer. */
+        onEntry: !!(s && s[1] === t[1] && /useItem\(\)/.test(st)),
+        switchInPriority: typeof it.onSwitchInPriority === 'number' ? it.onSwitchInPriority : 0,
+      };
+    } },
   /* Will: "damp rock is like light clay for setting the weather. same with the other weather
    * extenders." One mechanic -- hold this, your field effect lasts 8 turns instead of 5 -- and only
    * Light Clay had a tag. Damp Rock (200 sheets), Heat Rock (52), Smooth Rock and Icy Rock were all

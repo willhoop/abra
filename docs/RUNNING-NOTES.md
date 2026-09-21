@@ -52,6 +52,19 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.16.0] — 2026-09-21 — **The terrain seeds fire, and the Grassy "heal order" card was a missing semi-invulnerable gate**
+
+- **What changed.** Item tag `consumedOnTerrain` (derived from the handler; members printed first) and its
+  engine consumer in `engine/medicham2-browser.js`: a seed is spent the instant its terrain starts and on
+  entry into a standing one. The Grassy Terrain heal now skips a semi-invulnerable body, as the authority
+  does. Probe `tests/probe_regmc_terrain_seeds.js`. No census row: the census is Reg M-B's, no seed is
+  legal there, and a row for the heal would move a figure the closed Reg M-B line has published.
+- **Measured.** NO FIGURE published. Reg M-B is unmoved (report §4); the Reg M-C smoke is unpinned, and
+  its before/after on one sample is in `docs/_reports/2026-09-21-regmc-seeds.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.15.1] — 2026-09-21 — **The rotation runbook keeps a running list of the traps**
 
 - `docs/REGULATION-ROTATION.md` now has *Found during the rebuild*, a table of seven traps from this

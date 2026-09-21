@@ -38348,7 +38348,12 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           /* 2026-09-21 -- tests/probe_refill_second_wave.js --red. MEDI_REFILL_ONE_WAVE
                            * leaves a replacement that dies on arrival standing in its slot, which is
                            * the state this engine was in until today. */
-                          'refillOneWave']
+                          'refillOneWave',
+                          /* 2026-09-21 (abra/regmc 0.16.0) -- tests/probe_regmc_terrain_seeds.js. The two seed
+                           * knobs cannot fire under Reg M-B (no seed is legal there); the heal knob can, on any
+                           * row that puts a semi-invulnerable body under Grassy Terrain. Listed so an armed run
+                           * refuses to write rather than publishing a pre-fix census. */
+                          'terrainHealSemiInvRestored', 'seedUnconsumedRestored', 'seedNoTerrainChangeRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

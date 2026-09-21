@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.15.1 — 2026-09-21.**
+**Version: 0.16.0 — 2026-09-21.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -312,6 +312,9 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | 5 | **The new regulation's smoke IS the work list.** | The first Reg M-C games played end to end the first time, and most of those that parted did so on terrain set on entry (`docs/_reports/2026-09-21-regmc-table-wiring.md`). | Build the species table, run a small unpinned smoke immediately, and rank by FIRST CAUSE. It found the headline features of the new format before anyone read a patch note. |
 | 6 | **New mega stones arrive untagged.** | "Mega forme did not evolve" in the first smoke (`docs/_reports/2026-09-21-regmc-tags.md`). | Check every legal stone in the new format has its mega tag right after deriving the tag file. |
 | 7 | **The closed regulation needs a regression check, not a re-measure.** | A full Reg M-B battery was re-run on 2026-09-21 and was not needed. | For the closed line: damage differential identical plus one lattice at 0. Anything more is re-measuring a published result. |
+| 8 | **A whole item class came back from `Past` with no mechanic tag.** The terrain seeds were illegal in Reg M-B, so the old tag deriver never needed a rule for them; in the new tag file they carried only `flingable`, and tag_dex's coverage report did not flag them because `flingable` counts as a tag. | The largest first cause of the smoke by far, as a missing `-enditem` (`docs/_reports/2026-09-21-regmc-tags.md` §5, `docs/_reports/2026-09-21-regmc-seeds.md` §5). | After deriving the new tag file, list every item, ability and move that is legal now and was `Past` before, and read its handlers. Treat "only generic tags" (`flingable`, `pp`, `targetClass`, …) as UNTAGGED. Rocky Helmet, Air Balloon and the Eject items are the same class. |
+| 9 | **A first-cause label can name the wrong mechanism.** The smoke card read "Grassy Terrain heal ORDER"; the authority was skipping a semi-invulnerable body. | One game, two heal lines in a different order (`docs/_reports/2026-09-21-regmc-seeds.md` §0). | Open the card's `before` lines before naming a cause. And ask whether the real mechanism also exists in the closed regulation: this one did, so the fix moved the closed line's engine and needed the row-7 regression check. A census row for it would move a figure the closed line published, so it was withheld for a decision (see the next row). |
+| 10 | **The census belongs to the closed regulation.** `data/mechanics-census.json` is built from Reg M-B's table and tags, so a mechanic legal only in the new format has no row it can go live in, and a row for a shared mechanic moves the census count the closed line published. | The seeds have a staged probe and no census row; the heal row went live and was withdrawn when `tests/test-docs-current.js` refused the moved count in three published documents (`docs/_reports/2026-09-21-regmc-seeds.md` §0). | Give the new regulation its own census file early (the same `runtime.<reg>` map as row 1). Until then, prove a mechanic with a `--regulation` probe and a knob, and say so in the changelog. |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

@@ -1,3 +1,38 @@
+## REG M-C: THE TERRAIN SEEDS FIRE, AND THE GRASSY "HEAL ORDER" CARD WAS A MISSING SEMI-INVULNERABLE GATE. 2026-09-21 (abra/regmc 0.16.0)
+
+Full account: `docs/_reports/2026-09-21-regmc-seeds.md`.
+
+- **Seeds.** Item tag `consumedOnTerrain`, derived from the handler (`onTerrainChange` spends the item on one
+  `isTerrain`); membership printed first: the four seeds, all legal in Reg M-C, all `Past` in Reg M-B.
+  Engine `seedSpend` / `seedTerrainChange` / `seedEntryPass`: spent the instant a terrain starts (both start
+  sites, `eachEvent` speed order) and on entry at priority -1 (lead wave, refill wave, single switch).
+- **Grassy heal.** The authority skips a semi-invulnerable body; the engine asked `isGrounded` only. It is
+  reachable in Reg M-B too. A census row for it (`move/terrainPassiveHeal`, Protect vs Phantom Force's charge
+  turn under Grassy Terrain) went live and MISSING under the knob, and was **withheld**: the census is
+  Reg M-B's and one more row moves a figure the closed line has published. The census is unchanged.
+- **Probe** `tests/probe_regmc_terrain_seeds.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_SEED_UNCONSUMED`, `MEDI_SEED_NO_TERRAIN_CHANGE`, `MEDI_TERRAIN_HEAL_SEMIINV`, and on HEAD's engine bytes.
+- **Reg M-B unmoved:** tags and protocol-events untouched; damage differential identical but for the
+  launcher line (control seed differs); M-B lattice `--games 1200` 0 of 961 board-material.
+- Smoke, same sample (unpinned, not published): board-material 43/86 → 16/86; seed causes 30 → 0.
+
+### The Reg M-C hand list, after this pass
+
+Ranked by first cause in the 0.16.0 smoke's dump (the full dump, not the capped lists). The seeds and the
+Grassy heal have left the list; `tests/probe_regmc_terrain_seeds.js` carries them now.
+
+1. **Rocky Helmet** — 11 games. Banned in Reg M-B, never modelled; no tag.
+2. **Air Balloon** — 3 games: no ground immunity and no announce.
+3. **Double Shock `-fail` field** — 3 games: the authority names the move in the `-fail`, this engine does not.
+4. **Inner Focus stat name** `atk`/`attack` — 2 games (carried from 0.14.0).
+5. **Emergency Exit** — 1 game. tag_dex reports it UNTAGGED.
+6. **Red Card / Eject Button** — 1 game.
+7. **The fallen counter** — 1 game: `-end …|fallenundefined`, a Last Respects / Supreme Overlord line.
+8. **Curse under Reg M-C** — `statChangeInCode {on:'target'}` misreads `this.boost({…}, source, source)`. Not
+   measured in a game.
+9. Species names with an apostrophe (carried). The seed GAIN door (Trick/Recycle/Symbiosis handing a seed over
+   under its terrain) is counted in `MEDFAILS.seedGainedUnderTerrain`, not modelled.
+
 ## REG M-C HAS ITS OWN TAG FILE AND PROTOCOL-EVENTS FILE, AND TERRAIN ON ENTRY IS CLOSED. 2026-09-21 (abra/regmc 0.15.0)
 
 Full account: `docs/_reports/2026-09-21-regmc-tags.md`.
@@ -11,19 +46,19 @@ Full account: `docs/_reports/2026-09-21-regmc-tags.md`.
   evolution from 8 to 0. Board-material fell from 65 of 77 to 45 of 85. This is a smoke reading and is
   not published.
 
-### The Reg M-C hand list, after this pass
+### The Reg M-C hand list, after the 0.15.0 pass — SUPERSEDED by the 0.16.0 list above
 
 The tags do not exist yet AND the engine does not implement these. They are ranked by the corrected
 smoke (`names.js` fixed), counted by first cause:
 
-1. **Grassy Seed / Psychic Seed**, consumed when their terrain starts, for a stat boost — **30 games**.
+1. ~~**Grassy Seed / Psychic Seed**, consumed when their terrain starts, for a stat boost~~ — closed 0.16.0.
    The Electric and Misty seeds are the same shape.
 2. **Rocky Helmet** — 7 games. It was banned in Reg M-B, so it has never been modelled.
 3. **Air Balloon** — 3 games: no ground immunity and no announce.
 4. **Emergency Exit** — 1 game. tag_dex reports it UNTAGGED at 2.33% usage.
 5. **Red Card / Eject Button** — 1 game.
-6. **The order of the Grassy Terrain end-of-turn heal** — 1 game. This is a residual-order question, not
-   a tag question.
+6. ~~**The order of the Grassy Terrain end-of-turn heal**~~ — closed 0.16.0, and it was not an order: a
+   semi-invulnerable body is skipped.
 7. **Curse under Reg M-C** carries `statChangeInCode {on:'target'}` and `lowersTarget`. That misreads
    `this.boost({…}, source, source)` as a boost on the target. It has not been measured in a game.
 8. Carried from 0.14.0: the Inner Focus stat name `atk`/`attack`, and species names that contain an

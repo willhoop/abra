@@ -21,6 +21,30 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.16.0] — 2026-09-21
+
+### Added
+- **The terrain seeds.** Item tag `consumedOnTerrain` (`engine/tag_dex.js`), derived from each seed's
+  `onTerrainChange`; its members are the four seeds, all legal in Reg M-C and none in Reg M-B. The engine
+  spends a seed the instant its terrain starts (ability or move, every active holder in speed order) and on
+  entry into a standing terrain, then boosts the holder and records the spent item. Knobs
+  `MEDI_SEED_UNCONSUMED` and `MEDI_SEED_NO_TERRAIN_CHANGE`.
+- `tests/probe_regmc_terrain_seeds.js` (`--regulation regmc`): six staged arms against the Reg M-C authority.
+  Exit 0 clean, 1 under each knob and on the pre-fix engine.
+
+### Fixed
+- **Grassy Terrain healed a semi-invulnerable body.** The smoke card read as a heal ORDER; it is the missing
+  `!isSemiInvulnerable()` half of the handler. Knob `MEDI_TERRAIN_HEAL_SEMIINV`. The mechanic is reachable in
+  Reg M-B too. A census row for it was written, went live, and was WITHHELD: the census is Reg M-B's, and a
+  new row moves a figure the closed Reg M-B line has published. That decision is the coordinator's.
+
+### Notes
+- Reg M-B unmoved: its tag and protocol-events files are untouched, the damage differential is identical,
+  and the Reg M-B lattice at `--games 1200` reads 0 board-material.
+- Smoke (unpinned, not published): board-material 43 → 16 of 86 on the same sample; the next cause is
+  Rocky Helmet. Full account: `docs/_reports/2026-09-21-regmc-seeds.md`.
+- **Supersedes.** Nothing published. **Basis.** unchanged.
+
 ## [0.15.1] — 2026-09-21
 
 ### Added
