@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.20.0] — 2026-09-21 — **Air Balloon is announced on entry and popped by a hit**
+
+- **What changed.** Item tag `poppedOnHit` (derived; membership printed first: Air Balloon only, legal in Reg M-C,
+  `Past` in Reg M-B) and its consumers `balloonAnnounce` / `balloonPop` in `engine/medicham2-browser.js`. Probe
+  `tests/probe_regmc_air_balloon.js`. No census row: no member is legal in Reg M-B.
+- **Measured.** NO FIGURE published. Reg M-B is unmoved (damage differential, lattice at 1200); the Reg M-C smoke is
+  unpinned, and its before/after on one sample is in `docs/_reports/2026-09-21-regmc-items.md`.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.19.0] — 2026-09-21 — **Reg M-C gets its own census and its own steering inputs, so a pinned, steered Reg M-C differential can run**
 
 - **What changed.** The Reg M-C census (`data/mechanics-census-regmc.json`, pin

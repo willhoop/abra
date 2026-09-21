@@ -1,6 +1,6 @@
 # Reg M-C: the items that came back from `Past` — Rocky Helmet, Air Balloon, Red Card, Eject Button — and Emergency Exit
 
-**Date.** 2026-09-21. **Division.** ENGINE. **Line.** abra/regmc 0.18.0 onward. **Status.** Findings record,
+**Date.** 2026-09-21. **Division.** ENGINE. **Line.** abra/regmc 0.18.0, then 0.20.0 onward (0.19.0 is MEASURE's census). **Status.** Findings record,
 historical by construction; never cited as current state.
 
 **No Reg M-C figure is published here.** The smoke is unpinned (no census pin, a release cut by the run,
@@ -128,3 +128,82 @@ Every staged set passed buildPair's Reg M-C `TeamValidator` fixture check (16 se
    (`--config omit-spread`) on the after engine, it agrees again (0 of 11 board-material). So something carried
    over from an earlier game in the same process changes this one; this pass did not find what. Neither Rocky Helmet
    nor any helmet holder is in that game. Recorded for the next pass, not fixed.
+
+---
+
+## 2. Air Balloon (abra/regmc 0.20.0)
+
+### The authority, read whole
+
+M-C checkout `data/items.ts` airballoon :185-212; the Champions mod does not name it:
+
+```
+onStart(target) { if (!target.ignoringItem() && !this.field.getPseudoWeather('gravity')) this.add('-item', target, 'Air Balloon'); }
+// airborneness implemented in sim/pokemon.js:Pokemon#isGrounded
+onDamagingHit(damage, target, source, move) {
+  this.add('-enditem', target, 'Air Balloon'); target.item = ''; this.clearEffectState(target.itemState);
+  this.runEvent('AfterUseItem', target, null, null, this.dex.items.get('airballoon'));
+},
+onAfterSubDamage(damage, target, source, effect) { if (effect.effectType === 'Move') { the same four lines } },
+```
+
+- `sim/pokemon.ts:2148-2160` `isGrounded` ends `return item !== 'airballoon'`; `runImmunity` (:2237-2267) answers a
+  Ground move with a bare `-immune`. This engine's `isGrounded` already mirrors that clause off the item SLOT, so the
+  immunity was right and the balloon simply never left.
+- `sim/battle.ts:1018-1030`: an item's `onStart` runs as its `onSwitchIn` (priority 0), and within one body an Item
+  handler sorts after the Ability handler. So the announcement belongs at the end of each entrant's own slot.
+- The pop is an undeclared-order `DamagingHit` handler: after the holder's ability handlers, before the attacker's
+  `onSource…` handler; once per arrival (the next finds an empty hand). No `lastItem`; `AfterUseItem` runs.
+
+### Tag and engine
+
+`poppedOnHit {announceOnStart, gravitySilences, onSubDamage, afterUseItem, switchInPriority}`. Membership printed
+before wiring, whole dex, both checkouts: `airballoon` only; legal in Reg M-C, `Past` in Reg M-B. The structural diff
+of `data/tags-regmc.json` against the 0.18.0 commit is the descriptor and the Air Balloon row, nothing else.
+
+`balloonAnnounce(m, field)` at the end of each entrant's slot in the lead wave and in `runEntryPass` (refill and single
+switch), skipped under Gravity and on a dead arrival. `balloonPop(tg)` in `_stepDamagingHitLate` between `_dhAbil` and
+`_dhSrc`, and per interior arrival in the packet loop at the same position. Counted, not modelled:
+`balloonGainedUnannounced` (a balloon handed over mid-battle; `setItem` raises its Start), `balloonBehindDollUnmodelled`
+(`onAfterSubDamage`), `balloonAnnounceOrderApprox` (a holder whose ability has a non-zero switch-in priority).
+
+### Probe — `tests/probe_regmc_air_balloon.js --regulation regmc`
+
+| arm | staged | authority | this engine |
+|---|---|---|---|
+| LEAD | holder leads; foe: Ground move, then a plain hit, then the Ground move | `-item`; `-immune`; hit + `-enditem`; the Ground move lands | match, boards 0 |
+| CONTROL | the same, no item | nothing announced; every hit lands | match, boards 0 |
+| SWITCH | holder switches in on turn 2 | `-item` at that entry | match, boards 0 |
+| VOLLEY | a two-arrival move into the holder | popped by the first arrival, once | match, boards 0 |
+
+| run | exit | red |
+|---|---|---|
+| clean | 0 | none |
+| `MEDI_AIR_BALLOON_SILENT=1` | 1 | LEAD, SWITCH, VOLLEY protocol lines only — **boards identical**: the announcement is narration |
+| `MEDI_AIR_BALLOON_UNPOPPED=1` | 1 | LEAD, VOLLEY, protocol AND boards: the pop is board-material |
+| `--medi` the 0.18.0 engine bytes | 1 | LEAD (lines + boards), SWITCH (lines), VOLLEY (lines + boards) |
+
+The holder's own click is its weakest plain hit back at the attacker. The first cast gave it Focus Energy as an idle
+click, and a SECOND Focus Energy writes `-fail` in the authority and nothing here: a narration defect, recorded, not
+this mechanic.
+
+### Reg M-B unmoved
+
+sha256 of `data/tags.json` and `data/protocol-events.json` unchanged. Damage differential seed `20260804`: identical to
+the base but for the output-path line. Lattice `--games 1200` (same flags and pins as §1), release cut by the run
+`6b729c1e1ebc`: **0 of 961 board-material**, 0 VOID, 0 protocol-parted.
+
+### The smoke
+
+| | after Rocky Helmet (`18b19518b799`) | after Air Balloon (`20453e22e822`) |
+|---|---|---|
+| played / VOID | 87 / 0 | 87 / 0 |
+| **board-material** | **6 / 87** | **3 / 87** |
+| Air Balloon | 3 | 0 |
+| Double Shock `-fail` field | 3 | 3 |
+| Inner Focus stat name | 2 | 2 |
+| Red Card / Eject Button | 1 | 1 |
+| fallen counter | 1 | 1 |
+| Sirfetch'd display name | 1 | 1 |
+| the Aura Guard damage value | 1 | 0 — gone again, with nothing in this fix touching it (the cross-game effect, §1) |
+| total dumped | 12 | 8 |

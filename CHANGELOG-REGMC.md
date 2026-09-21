@@ -21,6 +21,27 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.20.0] — 2026-09-21
+
+### Added
+- **Air Balloon.** Item tag `poppedOnHit` (`engine/tag_dex.js`), derived from the handlers: an item whose `onStart`
+  announces it and whose `onDamagingHit` writes `-enditem` and empties the hand. Its one member is Air Balloon, legal in
+  Reg M-C and not in Reg M-B. The engine announces it on entry (lead wave, refill, single switch) after the holder's own
+  ability, silenced by Gravity, and pops it on the first damaging hit, after the holder's ability handlers and before
+  the attacker's; the pop is a loss (no `lastItem`) that still wakes Unburden and Symbiosis. The ground immunity was
+  already `isGrounded`'s last clause. Knobs `MEDI_AIR_BALLOON_SILENT` and `MEDI_AIR_BALLOON_UNPOPPED`.
+- `tests/probe_regmc_air_balloon.js` (`--regulation regmc`): lead (announce, Ground refused, popped, Ground lands),
+  no-item control, mid-game switch-in, two-arrival volley. Exit 0 clean, 1 under each knob and on the pre-fix engine.
+
+### Notes
+- The announcement is narration (under `MEDI_AIR_BALLOON_SILENT` the boards stay identical); the pop is board-material.
+- Counted, not modelled: a balloon given mid-battle, a hit a doll absorbed, an announcement in the slot of an ability
+  whose switch-in priority is not 0.
+- Reg M-B unmoved: tags and protocol-events byte-identical; the damage differential identical but for its output-path
+  line; the Reg M-B lattice at `--games 1200` reads 0 board-material.
+- The Reg M-C smoke is unpinned and is not published. Full account: `docs/_reports/2026-09-21-regmc-items.md`.
+- **Supersedes.** Nothing. **Basis.** unchanged.
+
 ## [0.19.0] — 2026-09-21
 
 ### Added

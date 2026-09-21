@@ -1,3 +1,30 @@
+## REG M-C: AIR BALLOON IS ANNOUNCED ON ENTRY AND POPPED BY A HIT. 2026-09-21 (abra/regmc 0.20.0)
+
+Full account: `docs/_reports/2026-09-21-regmc-items.md`.
+
+- **Tag.** Item tag `poppedOnHit {announceOnStart, gravitySilences, onSubDamage, afterUseItem, switchInPriority}`,
+  derived from `onStart` (`-item`) and `onDamagingHit` (`-enditem`, hand emptied). Membership printed before wiring,
+  whole dex, both checkouts: `airballoon` only; legal in Reg M-C, `Past` in Reg M-B.
+- **Engine.** `balloonAnnounce` at the end of each entrant's own slot (lead wave, `runEntryPass`), skipped under
+  Gravity; `balloonPop` in the late `DamagingHit` pass (after the holder's ability handlers, before the attacker's
+  `onSource` handler) and per interior arrival. A loss, not a use: no `_lastItem`, but `ubGrant` and
+  `passItemFromAlly` run. The ground immunity needed nothing: `isGrounded` already ends `it!=='airballoon'` on the slot.
+- **Counted, not modelled:** `balloonGainedUnannounced`, `balloonBehindDollUnmodelled`, `balloonAnnounceOrderApprox`.
+- **Probe** `tests/probe_regmc_air_balloon.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_AIR_BALLOON_SILENT` (narration only — boards stay identical), `MEDI_AIR_BALLOON_UNPOPPED` (boards part), and on
+  the pre-fix engine bytes.
+- **Reg M-B unmoved:** tags and protocol-events untouched; damage differential identical but for its output-path line;
+  lattice `--games 1200` 0 of 961 board-material.
+
+### The Reg M-C hand list, after this pass
+
+1. **Double Shock `-fail` field** — 3 games.
+2. **Inner Focus stat name** `atk`/`attack` — 2 games.
+3. **Red Card / Eject Button** — 1 game. **Emergency Exit** — carried. **The fallen counter** — 1 game.
+4. A damage value on one game (Aura Guard not applied to a Wave Crash) that appears or not depending on the games
+   played before it in the same process; not in this pass's after-smoke. Carried as a cross-game effect to find.
+5. Carried: Curse under Reg M-C, species names with an apostrophe (Sirfetch'd, 1 game), the seed GAIN door.
+
 ## REG M-C: ROCKY HELMET TOLLS THE ATTACKER. 2026-09-21 (abra/regmc 0.18.0)
 
 Full account: `docs/_reports/2026-09-21-regmc-items.md`.
@@ -14,7 +41,7 @@ Full account: `docs/_reports/2026-09-21-regmc-items.md`.
 - **Reg M-B unmoved:** tags and protocol-events untouched; damage differential identical but for its output-path
   line (control seed differs); lattice `--games 1200` 0 of 961 board-material.
 
-### The Reg M-C hand list, after this pass
+### The Reg M-C hand list, after the 0.18.0 pass — SUPERSEDED by the 0.20.0 list above
 
 Ranked by first cause in the smoke's full dump. Rocky Helmet has left the list;
 `tests/probe_regmc_rocky_helmet.js` carries it now.

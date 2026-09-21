@@ -1,6 +1,6 @@
 # REG M-C — the ledger
 
-**Version: 0.19.0 — 2026-09-21.**
+**Version: 0.20.0 — 2026-09-21.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 A leading `0` means NOT USABLE YET (SemVer 2.0.0 clause 4). This line reaches **1.0.0 the day the M-C
@@ -180,7 +180,8 @@ both directions by the validator.
 **Rocky Helmet is UNBANNED in M-C** — `isNonstandard` moves from `"Past"` to `null`. The umbrella
 `CLAUDE.md` ban list is correct for M-B and becomes wrong for M-C the day this line goes active. The
 other six banned items and all three banned moves are unchanged. The engine models it from 0.18.0 (item tag `punishesAttackerItem`,
-`tests/probe_regmc_rocky_helmet.js`); before that it was tagged `flingable` only and did nothing.
+`tests/probe_regmc_rocky_helmet.js`); before that it was tagged `flingable` only and did nothing. Air Balloon, back
+from `Past` the same way, is modelled from 0.20.0 (`poppedOnHit`, `tests/probe_regmc_air_balloon.js`).
 
 **A pivot move plus Eject Button behaves differently.** Showdown commit `aa6d5f0856` (2026-09-13,
 *"Champions: Allow self-switches even if Eject Button is triggered"*) adds an Eject Button override that

@@ -6905,6 +6905,37 @@ const ITEM_TAGS = [
       return { trigger: 'contact', fraction: +m[1],
         order: typeof it.onDamagingHitOrder === 'number' ? it.onDamagingHitOrder : null };
     } },
+  /* 2026-09-21 (Reg M-C, abra/regmc 0.20.0) -- AIR BALLOON. M-C checkout data/items.ts airballoon :185-212 (the
+   * Champions mod does not name it):
+   *
+   *     onStart(target) { if (!target.ignoringItem() && !this.field.getPseudoWeather('gravity')) this.add('-item', target, 'Air Balloon'); }
+   *     // airborneness implemented in sim/pokemon.js:Pokemon#isGrounded
+   *     onDamagingHit(damage, target, source, move) {
+   *       this.add('-enditem', target, 'Air Balloon'); target.item = ''; this.clearEffectState(target.itemState);
+   *       this.runEvent('AfterUseItem', target, null, null, this.dex.items.get('airballoon'));
+   *     },
+   *     onAfterSubDamage(damage, target, source, effect) { if (effect.effectType === 'Move') { ...the same four lines... } },
+   *
+   * DERIVED FROM THE HANDLERS: an item whose `onStart` announces it with `-item` and whose `onDamagingHit` writes
+   * `-enditem` and empties the hand. The airborne half is `isGrounded`'s own last clause, which this engine already
+   * mirrors. Membership, printed before wiring, whole dex, both checkouts: `airballoon` only -- legal in
+   * gen9championsvgc2026regmc, `Past` in gen9championsvgc2026regmb. */
+  { tag: 'poppedOnHit', param: 'announced on entry, and lost (not used) to the first damaging hit',
+    probe: 'poppedOnHit',
+    why: 'Air Balloon is the next first cause of the Reg M-C smoke after Rocky Helmet: 3 games part on the missing '
+       + '`-item` announce, and every hit into a holder keeps a balloon the authority has already popped',
+    of: it => {
+      const st = fnsrc(it.onStart), dh = fnsrc(it.onDamagingHit);
+      if (!/this\.add\(\s*["']-item["']/.test(st)) return null;
+      if (!/["']-enditem["']/.test(dh) || !/\.item\s*=\s*["']["']/.test(dh)) return null;
+      return {
+        announceOnStart: true,
+        gravitySilences: /getPseudoWeather\(\s*["']gravity["']\s*\)/.test(st),
+        onSubDamage: /["']-enditem["']/.test(fnsrc(it.onAfterSubDamage)),
+        afterUseItem: /runEvent\(\s*["']AfterUseItem["']/.test(dh),
+        switchInPriority: typeof it.onSwitchInPriority === 'number' ? it.onSwitchInPriority : 0,
+      };
+    } },
   /* Will: "damp rock is like light clay for setting the weather. same with the other weather
    * extenders." One mechanic -- hold this, your field effect lasts 8 turns instead of 5 -- and only
    * Light Clay had a tag. Damp Rock (200 sheets), Heat Rock (52), Smooth Rock and Icy Rock were all

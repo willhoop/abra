@@ -2195,6 +2195,8 @@ const MEDSEEN = { floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepAct
   /* 2026-09-21 (Reg M-C, abra/regmc 0.17.0) -- Rocky Helmet tolls paid (`payItemPunish`), and the ones Magic Guard
    * refused. A zero over a smoke with a helmet holder being touched means the item stopped firing. */
   rockyHelmetPaid: 0, rockyHelmetRefusedIndirect: 0,
+  /* 2026-09-21 (Reg M-C, abra/regmc 0.20.0) -- Air Balloon announced on entry, silenced by Gravity, and popped by a hit. */
+  balloonAnnounced: 0, balloonAnnounceGravity: 0, balloonPopped: 0,
   /* WIRE 119 -- a move REFUSED at execution time by a category-forbidding volatile (Taunt). This is
    * the half the interaction matrix was failing on: the holder clicks Taunt in the same turn, so the
    * target's already-chosen status move has to FAIL when it runs. A zero here after games with a
@@ -5140,6 +5142,11 @@ const MEDFAILS = { encoreAction: 0, anticipationNoState: 0, anticipationMoveUnkn
   /* 2026-09-21 (Reg M-C) -- a `punishesAttackerItem` row whose trigger is not `contact`, or with no fraction or no
    * display name. The consumer models the contact shape only; anything else is refused and counted, never guessed. */
   itemPunishTriggerUnknown: 0, itemPunishTriggerUnknownFirst: '', itemPunishNoFraction: 0, itemPunishNoName: 0,
+  /* 2026-09-21 (Reg M-C, abra/regmc 0.20.0) -- Air Balloon's unmodelled doors, each counted rather than guessed:
+   * announced in the slot of an ability whose switch-in priority is not the item's; a balloon GIVEN mid-battle
+   * (setItem raises its Start, so the authority announces it again); a hit a doll absorbed (onAfterSubDamage pops it
+   * in the authority). `itemDisplayNameMissing`: a tag row with no display name, so the id was written instead. */
+  balloonAnnounceOrderApprox: 0, balloonGainedUnannounced: 0, balloonBehindDollUnmodelled: 0, itemDisplayNameMissing: 0,
   /* ROADMAP #242 -- a terrain that IS up and for which `data/residual-order.json` publishes no
    * `expiry:` row, so its clock has no position in the walk to be spent at. Non-zero means the
    * terrain never comes down, which is the exact shape the first draft of `residualExpireAt` shipped
@@ -13605,6 +13612,61 @@ if(SEED_UNCONSUMED)MEDFAILS.seedUnconsumedRestored=1;
 const TERRAIN_HEAL_SEMIINV=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TERRAIN_HEAL_SEMIINV==='1');
 if(SEED_NO_TERRAIN_CHANGE)MEDFAILS.seedNoTerrainChangeRestored=1;
 function seedParam(m){ return (m&&m.item)?TAGS.param('item',m.item,'consumedOnTerrain'):null; }
+/* ---- 2026-09-21 (Reg M-C, abra/regmc 0.20.0) -- AIR BALLOON: `poppedOnHit`. ---------------------------------------
+ *
+ * THE AUTHORITY, read whole. M-C checkout data/items.ts airballoon :185-212 (the Champions mod does not name it):
+ *     onStart(target) { if (!target.ignoringItem() && !this.field.getPseudoWeather('gravity')) this.add('-item', target, 'Air Balloon'); }
+ *     onDamagingHit(damage, target, source, move) {
+ *       this.add('-enditem', target, 'Air Balloon'); target.item = ''; this.clearEffectState(target.itemState);
+ *       this.runEvent('AfterUseItem', target, null, null, this.dex.items.get('airballoon'));
+ *     },
+ *     onAfterSubDamage(...) { if (effect.effectType === 'Move') { the same four lines } },
+ * and the airborne half is `Pokemon#isGrounded`'s last clause (sim/pokemon.ts:2159), which `isGrounded` here already
+ * mirrors off the SLOT -- so the moment the hand empties, the body is on the floor.
+ *
+ * ON ENTRY the item's `onStart` runs as its `onSwitchIn` (sim/battle.ts:1018-1030), priority 0, and within ONE body an
+ * Item handler sorts after the Ability handler (`resolvePriority`'s effect-type subOrder). So the announcement is paid
+ * at the end of each entrant's own slot in the speed-sorted walk, which is exact whenever the entrant's ability has
+ * `onSwitchInPriority` 0. A balloon on a body whose ability has another priority is announced in that ability's slot
+ * and COUNTED (`MEDFAILS.balloonAnnounceOrderApprox`), never assumed.
+ *
+ * THE POP is an undeclared-order `DamagingHit` handler: after the holder's own ability handlers, before the attacker's
+ * `onSource…` handler, once per arrival (the second arrival finds an empty hand). It is a LOSS and not a use: no
+ * `lastItem` (Recycle cannot bring it back), but `AfterUseItem` runs, so Unburden and Symbiosis both answer.
+ *
+ * KNOBS. MEDI_AIR_BALLOON_SILENT=1 announces nothing on entry. MEDI_AIR_BALLOON_UNPOPPED=1 never pops (the
+ * pre-0.20.0 engine held a balloon forever). Each stamps its MEDFAILS flag. */
+const AIR_BALLOON_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_AIR_BALLOON_SILENT==='1');
+const AIR_BALLOON_UNPOPPED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_AIR_BALLOON_UNPOPPED==='1');
+if(AIR_BALLOON_SILENT)MEDFAILS.airBalloonSilentRestored=1;
+if(AIR_BALLOON_UNPOPPED)MEDFAILS.airBalloonUnpoppedRestored=1;
+function balloonParam(m){ return (m&&m.item)?TAGS.param('item',m.item,'poppedOnHit'):null; }
+function itemDisplayName(id){
+  const _rec=TAGS.tagsFor?TAGS.tagsFor('item',id):null;
+  if(_rec&&_rec.name)return String(_rec.name);
+  MEDFAILS.itemDisplayNameMissing++;
+  return String(id);
+}
+function balloonAnnounce(m,field){
+  if(!m||m.fainted||m.curHP<=0)return false;
+  const p=balloonParam(m); if(!p||!p.announceOnStart)return false;
+  if(p.gravitySilences&&field&&field.gravity>0){MEDSEEN.balloonAnnounceGravity++;return false;}
+  if(AIR_BALLOON_SILENT)return false;
+  if(switchInPriorityOf(m)!==(+p.switchInPriority||0))MEDFAILS.balloonAnnounceOrderApprox++;
+  if(TR)TR.item(m,itemDisplayName(m.item));
+  MEDSEEN.balloonAnnounced++;
+  return true;
+}
+function balloonPop(tg){
+  const p=balloonParam(tg); if(!p)return false;
+  if(AIR_BALLOON_UNPOPPED)return false;
+  const _id=String(tg.item);
+  if(TR)TR.enditem(tg,itemDisplayName(_id));
+  tg.item='';
+  if(p.afterUseItem){ ubGrant(tg,'use'); passItemFromAlly(tg); }
+  MEDSEEN.balloonPopped++;
+  return true;
+}
 function seedSpend(m,field,road){
   if(!m||m.fainted||m.curHP<=0)return false;
   const p=seedParam(m); if(!p)return false;
@@ -26520,6 +26582,7 @@ function itemGive(m,id){
   if(UNBURDEN_BREAK==='ends-on-regain'&&m._ubVol){m._ubVol=0;MEDSEEN.unburdenBreakApplied=(MEDSEEN.unburdenBreakApplied|0)+1;}
   if(!ROOM_ITEM_SURVIVES_LOSS&&itemSuppressed(m,fieldOfBody(m)))itemRoomHide(m);
   /* 2026-09-21 (Reg M-C) -- the seed's `Start` on `setItem` is not modelled; counted, never silent. */
+  if(balloonParam(m))MEDFAILS.balloonGainedUnannounced++;
   {const _sp=seedParam(m),_f=_sp&&fieldOfBody(m);
    if(_sp&&_f&&terrainId(_f.terrain)&&terrainId(_f.terrain)===terrainId(_sp.terrain))MEDFAILS.seedGainedUnderTerrain++;}
   MEDSEEN.itemGivenThroughDoor++;
@@ -28365,6 +28428,7 @@ function runEntryPass(nx,foes,act,i,field,sf,announce){
   if(SWITCHIN_ANNOUNCE_AFTER_COPY)switchInAnnounce(nx);
   applyEntryEffects(nx,field,act[1-i]);
   applyEntryDrops(nx,_live(foes));   // WIRE 100a -- membership from `onSwitchInDrop`, not a name
+  balloonAnnounce(nx,field);         // 2026-09-21 (Reg M-C) -- the item's `onStart`, after its own ability
   }
   /* 2026-08-23 -- AND THE FIELD-DRIVEN FORMES, BECAUSE ARRIVING IS ONE OF THE MOMENTS THEY FOLLOW.
    *
@@ -30124,6 +30188,7 @@ function battleInit(teamA,teamB,opts){
       if(SWITCHIN_ANNOUNCE_AFTER_COPY)switchInAnnounce(e.mon);
       applyEntryEffects(e.mon,S.field,e.ally);
       applyEntryDrops(e.mon,_live(e.foes));   // WIRE 100a -- membership from `onSwitchInDrop`
+      balloonAnnounce(e.mon,S.field);           // 2026-09-21 (Reg M-C) -- the item's `onStart`, after its own ability
     }
     /* 2026-09-21 (Reg M-C) -- THE SEEDS' OWN `onStart`, at `onSwitchInPriority -1`: below every ability of this
      * wave, above White Herb's -2, in the wave's RANK order -- the same `entrySpeedSort` over the same records
@@ -44654,10 +44719,13 @@ function battleTurn(S,rng,actsForA,actsForB){
                 if(!_hitEvArr)_stepBuffOnHit(R,1);
                 /* 2026-09-19 -- AND THE LATE PAIR OF THE SAME EVENT, for this arrival: the target's
                  * Cursed Body, then the attacker's Poison Touch. See `_lateReactorsOf`. */
-                if(REACT_LATE_ONCE)MEDFAILS.reactLateOnceRestored=1;
+                if(REACT_LATE_ONCE){MEDFAILS.reactLateOnceRestored=1;balloonPop(tg);}
                 else{
                   const _lr=_lateReactorsOf(R);
-                  if(_lr.abil||_lr.src){ if(_lr.abil)_lr.abil(); if(_lr.src)_lr.src(); MEDSEEN.lateReactPerArrival++; }
+                  if(_lr.abil)_lr.abil();
+                  balloonPop(tg);   /* 2026-09-21 (Reg M-C) -- the holder's item, between its ability and the source's */
+                  if(_lr.src)_lr.src();
+                  if(_lr.abil||_lr.src)MEDSEEN.lateReactPerArrival++;
                   R._lateReactPaid=(R._lateReactPaid|0)+1;
                 }
                 MEDSEEN.reactionPaidPerArrival++;
@@ -45085,6 +45153,9 @@ function battleTurn(S,rng,actsForA,actsForB){
          * Helmet). Called with 1 for an interior arrival from the packet loop and with nothing by
          * `_stepDamagingHitItem`, which pays the arrivals the loop did not -- the same arithmetic `_damagingHit` uses.
          * A doll that ate the hit is not a damaged target (scripts.ts:399-406), so nothing is paid behind it. */
+        /* 2026-09-21 (Reg M-C, abra/regmc 0.20.0) -- and the row's balloon pops in the late step (see `balloonPop`). */
+        R._dhBal=!_subAte&&!!balloonParam(tg);
+        if(_subAte&&balloonParam(tg)&&TAGS.param('item',tg.item,'poppedOnHit').onSubDamage)MEDFAILS.balloonBehindDollUnmodelled++;
         R._dhItem=itemPunishOf(tg)?((_n)=>{
           if(_subAte)return 0;
           const _c=(_n==null?Math.max(0,(R.react|0)-(R._reactPaid|0)):_n);
@@ -47503,8 +47574,11 @@ function battleTurn(S,rng,actsForA,actsForB){
        * the whole count on a road that could not address arrivals. See `_lateReactorsOf`. */
       const _stepDamagingHitLate=(R)=>{
         const _f=R._dhAbil, _g=R._dhSrc, _n=(R._dhLateN==null?1:(R._dhLateN|0));
+        /* 2026-09-21 (Reg M-C) -- the holder's ITEM sits between its ability and the attacker's handler. */
+        const _b=R._dhBal; R._dhBal=false;
         R._dhAbil=null; R._dhSrc=null; R._dhLateN=null;
-        for(let _k=0;_k<_n;_k++){ if(_f)_f(); if(_g)_g(); }
+        if(!_n&&_b)balloonPop(R.tg);
+        for(let _k=0;_k<_n;_k++){ if(_f)_f(); if(_b)balloonPop(R.tg); if(_g)_g(); }
       };
       /* BATCH K -- the `thawsTarget` thaw, `frz.onAfterMoveSecondary`. Same event as Pickpocket and
        * the HP-threshold boost, so the same place in the list: below `-hitcount`. */

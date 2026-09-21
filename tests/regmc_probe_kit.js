@@ -117,12 +117,12 @@ function open(name, knobNames) {
     && !m.onAfterHit && !m.onTry && !m.onTryHit && !m.onBasePower && !m.onModifyMove && !m.onModifyType
     && !m.onModifyPriority && !m.onEffectiveness && !m.overrideOffensivePokemon && !m.overrideOffensiveStat
     && !m.overrideDefensiveStat && m.basePower >= 20 && !m.flags.futuremove;
-  /* the weakest plain move `att` learns that `tgt` takes neutrally or resisted; `pred` narrows the pool */
-  const hitFor = (att, tgt, pred) => D.moves.all().filter(m => plain(m) && learns(att, m.id) && (!pred || pred(m))
+  /* the weakest plain single-arrival 100%-accurate move `att` learns that `tgt` takes neutrally or resisted; `pred` narrows the pool */
+  const hitFor = (att, tgt, pred) => D.moves.all().filter(m => plain(m) && !m.multihit && sure(m) && learns(att, m.id) && (!pred || pred(m))
     && D.getImmunity(m.type, tgt) && D.getEffectiveness(m.type, tgt) <= 0)
     .sort((a, b) => a.basePower - b.basePower)[0] || null;
-  /* a self-targeted click that neither protects nor touches HP */
-  const idle = s => ['splash', 'celebrate', 'focusenergy', 'harden', 'defensecurl', 'withdraw', 'growl', 'tailwhip', 'leer']
+  /* a click that neither protects nor touches HP and can be repeated turn after turn (Focus Energy last: a second use fails) */
+  const idle = s => ['splash', 'celebrate', 'growl', 'tailwhip', 'leer', 'harden', 'defensecurl', 'withdraw', 'focusenergy']
     .map(x => D.moves.get(x)).find(m => legal(m) && learns(s, m.id) && m.target !== 'normal') || null;
   const bulk = s => s.baseStats.hp + s.baseStats.def + s.baseStats.spd;
   const mon = (s, item, mv, ab) => ({ species: s.id, item: item || '', ability: ab || quiet(s), moves: mv });

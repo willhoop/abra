@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-21T20:04:49.043Z",
+ "generated": "2026-09-21T20:40:06.866Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -2961,12 +2961,25 @@
    "kind": "item",
    "param": "chips a contact attacker a fraction of ITS max HP each time the holder is hit",
    "why": "Rocky Helmet (4,161 Reg M-C sheets) is the largest first cause of the Reg M-C smoke after the seeds: 11 of 22 dumped games part on the missing toll",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "punishesAttackerItem",
+   "used": true,
    "n": 1,
    "uses": 4200,
    "examples": [
     "Rocky Helmet"
+   ]
+  },
+  {
+   "tag": "poppedOnHit",
+   "kind": "item",
+   "param": "announced on entry, and lost (not used) to the first damaging hit",
+   "why": "Air Balloon is the next first cause of the Reg M-C smoke after Rocky Helmet: 3 games part on the missing `-item` announce, and every hit into a holder keeps a balloon the authority has already popped",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 182,
+   "examples": [
+    "Air Balloon"
    ]
   },
   {
@@ -38087,10 +38100,18 @@
   "airballoon": {
    "name": "Air Balloon",
    "tags": [
+    "poppedOnHit",
     "flingable"
    ],
    "uses": 182,
    "params": {
+    "poppedOnHit": {
+     "announceOnStart": true,
+     "gravitySilences": true,
+     "onSubDamage": true,
+     "afterUseItem": true,
+     "switchInPriority": 0
+    },
     "flingable": {
      "basePower": 10,
      "status": null,
