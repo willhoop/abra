@@ -21,6 +21,28 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.45.1] — 2026-09-22
+
+### Added
+- **`--only-game <selector>` on `engine/game_differential.js`: replay one game of the differential with a full per-turn
+  dump.** The selector is a substring of `<config> <seed tag>` or `#<n>` (the game's position in the arm's play order)
+  and must match exactly one game, else exit 2. The run walks the ordinary fixed-count loop, PLAYS every game before
+  the chosen one, captures it (both streams per turn, both boards and their diffs at every boundary, the first
+  protocol and board divergence, both engines' middle-arm dice addresses with the values drawn, and `trace_digest`),
+  prints it, writes it to `--only-game-out <file>` (default: the OS temp directory) and stops before the report, the
+  `--write` block and `--dump-games`. It never writes the published artifact.
+
+### Notes
+- **Why the games before it are played, measured.** The first cut skipped them, and game #293 replayed as a different
+  game: its medicham2 trace parted from the full run's at line 38 (Psychic Fangs there, Fire Fang here). The empirical
+  driver falls back to `coveragePick` when a species has no prior row or its draw fails, and `coveragePick` reads
+  `CLICKS` and the credit maps, which carry across games. With the prior games played, all three replayed games
+  (#293, #368, #630) reproduce the full run's `trace_digest` exactly (`MEDI_SAMPLE_DUMP` on release `d0e34207d250`).
+- **A run without the flag is unchanged.** On release `d0e34207d250`, same pins, the post-change artifact's `state` and
+  `first_divergences` blocks are identical to the pre-change run's; the only differing fields are `generated`,
+  `elapsed_s`, `steering.driver_code` (the driver file's own digest) and the dump's `generated`/`by`.
+  `docs/_reports/2026-09-22-regmc-engine-4.md` §2.
+
 ## [0.45.0] — 2026-09-22
 
 ### Fixed

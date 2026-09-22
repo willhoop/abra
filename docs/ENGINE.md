@@ -1,3 +1,18 @@
+## `--only-game`: REPLAY ONE GAME OF THE DIFFERENTIAL. 2026-09-22 (abra/regmc 0.45.1)
+
+A card says WHERE, not WHY; this is how to read the why. Full account: `docs/_reports/2026-09-22-regmc-engine-4.md` §2.
+
+```
+node engine/game_differential.js <the same pins as the run> --only-game <seed digits | #index> --only-game-out <file>
+```
+
+- Plays every game before the selected one (the empirical driver's `coveragePick` fallback carries `CLICKS` across
+  games, so a skipped-prefix replay is a different game -- measured), then dumps the selected one per turn: both
+  streams, both boards and diffs, both engines' dice addresses with values, `trace_digest`.
+- Never writes the published artifact. Without the flag the artifact's `state` and `first_divergences` are identical.
+- The output name must contain the regulation id under `--regulation regmc` if it already exists (the regulation
+  write guard refuses to overwrite an unsuffixed file under `data/`).
+
 ## ICE SPINNER REMOVES THE TERRAIN AFTER IT HITS (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.45.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-4.md` §1.

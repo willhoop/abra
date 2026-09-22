@@ -136,6 +136,33 @@ if (!Number.isInteger(MAXTURNS) || MAXTURNS < 1) {
   process.exit(2);
 }
 const ONLY = flag('--config', null);
+/* ---- `--only-game <selector>` — PLAY ONE GAME OF THE DIFFERENTIAL, WITH A FULL PER-TURN DUMP (2026-09-22, abra/regmc 0.45.0)
+ *
+ * A board-material card says WHERE two engines parted (a turn and a leaf), not WHY, and nothing could replay one game:
+ * the only way to look inside was a whole 1,200-game run and a capped dump. This walks EXACTLY the loop an ordinary
+ * fixed-count run walks -- same swarm, same pairs, same order, same per-game driver seed -- to the ONE game whose
+ * `<config> <seed tag>` contains the selector, or whose position in the arm's play order is `#<n>`, captures it, and
+ * stops. A selector matching no game or more than one exits 2 and lists what it matched.
+ *
+ * EVERY GAME BEFORE IT IS PLAYED, NOT SKIPPED, AND THAT WAS MEASURED, NOT ASSUMED. The first cut skipped them, and the
+ * replay of game #293 (omit-weather, release d0e34207d250) was a DIFFERENT game: its trace parted from the full run's at
+ * line 38 (Tyrantrum's Psychic Fangs there, Fire Fang here), because the empirical driver falls back to `coveragePick`
+ * when a species has no prior row or its draw fails, and `coveragePick` reads `CLICKS` and the credit maps, which carry
+ * across games. So a game is only itself after the games before it. The receipt that the replay IS the full run's game
+ * is `trace_digest`, the same digest `MEDI_SAMPLE_DUMP` writes for a full run.
+ *
+ * IT NEVER WRITES THE PUBLISHED ARTIFACT. The run stops straight after the game loop, before the report, the
+ * `--write` block and `--dump-games`; the dump goes to `--only-game-out <file>` (default: the OS temp directory) and
+ * nowhere else. A selector matching no game exits 2. Without the flag this block and its two call sites are inert. */
+const ONLY_GAME = flag('--only-game', null);
+const ONLY_GAME_OUT = flag('--only-game-out', null);
+if (ONLY_GAME != null && has('--until-covered')) {
+  console.error('--only-game replays the FIXED-COUNT loop; it cannot be combined with --until-covered. REFUSING.');
+  process.exit(2);
+}
+const onlyGameMatch = (idx, cfgId, tag) => ONLY_GAME == null ? true
+  : /^#\d+$/.test(ONLY_GAME) ? idx === +ONLY_GAME.slice(1)
+  : (String(cfgId) + ' ' + String(tag)).includes(ONLY_GAME);
 const WRITE = has('--write');
 const VERBOSE = has('--verbose');
 /* ROADMAP #81 WIRE 5 — THE SELECTION POLICY IS AN ARGUMENT NOW.
@@ -7648,6 +7675,7 @@ let PAIRING_BROKEN = 0;
  * and "the boards agree at min damage" are different claims about different games; adding them up
  * would produce a number that describes neither. */
 const ARM_RUNS = [];
+const ONLY_GAME_CAPTURED = [];   /* `--only-game`: one record per selected game, see the flag's header */
 const t0 = Date.now();
 /* ---- THE COVERAGE STOPPING RULE'S BOOKKEEPING (2026-08-12) ---------------------------------------
  * Filled by the batched scheduler and published as `coverage_stop`. `null` on a fixed-count run,
@@ -7665,7 +7693,7 @@ if (!has('--proof')) {
   /* ONE GAME, PLAYED THE SAME WAY BY BOTH SCHEDULERS. Extracted rather than duplicated: the fixed-count
    * path and the coverage path must differ ONLY in which pairs they hand over and when they stop, or
    * the stopping rule would be a second instrument wearing the same name. */
-  const playOne = (arm, cfgId, pr, isPrimary, armResults, armControl) => {
+  const playOne = (arm, cfgId, pr, isPrimary, armResults, armControl, onlyCapture) => {
     /* THE STONE CONTROL RUNS UNDER THE PRIMARY PIN ONLY. It is a paired measurement that DOUBLES
      * the games, and four arms times two would be eight runs of the swarm to answer a question
      * that is about stones and not about dice. Declared rather than quietly dropped. */
@@ -7676,7 +7704,10 @@ if (!has('--proof')) {
                    { arm, driverSeed: cfgId + '|' + pr.tag });
       driverRestore(s0);
     }
-    const r = playGame(pr.a, pr.b, cfgId, pr.tag, { arm, driverSeed: cfgId + '|' + pr.tag });
+    const r = playGame(pr.a, pr.b, cfgId, pr.tag, onlyCapture
+      ? { arm, driverSeed: cfgId + '|' + pr.tag, onBoundary: onlyCapture.onBoundary }
+      : { arm, driverSeed: cfgId + '|' + pr.tag });
+    if (onlyCapture) { onlyCapture.sdLog = (_lastSdLog || []).slice(); onlyCapture.r = r; }
     r.stones = pr.stones;
     if (c) {
       c.stones = 0;
@@ -7696,6 +7727,11 @@ if (!has('--proof')) {
      * address after the first game is unreachable by the other engine. */
     if (arm.middle) {
       const _sdN = MID_CTX_SEEN.sd.length, _meN = (typeof M.midEventLog === 'function') ? M.midEventLog().length : -1;
+      /* `--only-game`: both engines' dice addresses for THIS game, taken before `midGameVoid` clears them, each with
+       * the value it drew -- so a card that parts on a die can be read as "same address, different use" or "two
+       * addresses for one die" instead of guessed at. */
+      if (onlyCapture) onlyCapture.mid = { showdown: MID_CTX_SEEN.sd.map(a => [a, midValue(a)]),
+        medicham: ((typeof M.midEventLog === 'function') ? M.midEventLog() : []).map(a => [a, midValue(String(a))]) };
       MID_LAST_WHY = null; r._mid_void = midGameVoid(); r._mid_why = MID_LAST_WHY;
       /* 2026-09-06 — the `any`-bucket verdict travels WITH THE GAME, because the question it answers
        * is "is THIS game's first divergence the engine or a coin the two never shared", and that can
@@ -7805,12 +7841,37 @@ if (!has('--proof')) {
     driverReset();
     const armResults = [], armControl = [];
     const isPrimary = arm.id === RUN_PRIMARY.id;
-    for (const cfg of live) {
+    /* `--only-game`: the game's position in THIS loop's order, found before a game is played. Every game before it
+     * is PLAYED, not skipped -- see the flag's header for why -- and the loop stops once it has been captured. */
+    let gameIdx = 0, onlyAt = -1;
+    if (ONLY_GAME != null) {
+      const hits = [];
+      for (const cfg of live) { let k = 0;
+        for (const pr of pairsCached(cfg.config)) { if (k >= perConfig) break;
+          if (onlyGameMatch(gameIdx, cfg.config, pr.tag)) hits.push(gameIdx + '  ' + cfg.config + '  ' + pr.tag);
+          k++; gameIdx++; } }
+      gameIdx = 0;
+      if (hits.length !== 1) {
+        console.error('\n  --only-game ' + JSON.stringify(ONLY_GAME) + ' matched ' + hits.length + ' game(s) in arm ' + arm.id
+          + '; it must match exactly one.' + (hits.length ? '\n    ' + hits.slice(0, 12).join('\n    ') : ''));
+        process.exit(2);
+      }
+      onlyAt = +hits[0].split(' ')[0];
+    }
+    configs: for (const cfg of live) {
       let made = 0;
       for (const pr of pairsCached(cfg.config)) {
         if (made >= perConfig) break;
-        playOne(arm, cfg.config, pr, isPrimary, armResults, armControl);
-        made++;
+        if (gameIdx !== onlyAt) playOne(arm, cfg.config, pr, isPrimary, armResults, armControl);
+        else {
+          const cap = { index: gameIdx, arm: arm.id, config: cfg.config, tag: pr.tag, boards: [] };
+          cap.onBoundary = (snap, turnIdx) => cap.boards.push({ turn: turnIdx, identical: snap.identical,
+            leaves_compared: snap.leaves_compared, diffs: snap.diffs, medicham: snap.medi, showdown: snap.sd });
+          playOne(arm, cfg.config, pr, isPrimary, armResults, armControl, cap);
+          ONLY_GAME_CAPTURED.push(cap);
+          break configs;
+        }
+        made++; gameIdx++;
       }
     }
     ARM_RUNS.push({ arm, results: armResults, control: armControl,
@@ -7836,6 +7897,65 @@ if (!has('--proof')) {
       e.effect += v.effect; e.negative += v.negative; e.click += v.click; CREDIT_KIND.set(k, e); }
     for (const k of a.touched) COV_TOUCHED.add(k);
   }
+}
+
+if (ONLY_GAME != null) {
+  const crypto = require('crypto');
+  const sha = x => crypto.createHash('sha1').update(String(x)).digest('hex').slice(0, 12);
+  /* a stream cut at its `|turn|N` lines; index 0 is everything before turn 1 (the leads) */
+  const byTurn = lines => { const out = [[]]; for (const l of (lines || []).map(String)) {
+    const m = l.match(/^\|turn\|(\d+)/); if (m) { while (out.length <= +m[1]) out.push([]); continue; }
+    out[out.length - 1].push(l); } return out; };
+  const games = ONLY_GAME_CAPTURED.map(c => {
+    const r = c.r || {}, me = byTurn(r.mediTrace), sd = byTurn(c.sdLog);
+    const n = Math.max(me.length, sd.length, c.boards.length ? c.boards[c.boards.length - 1].turn + 1 : 0);
+    const turns = [];
+    for (let t = 0; t < n; t++) {
+      const b = c.boards.find(x => x.turn === t) || null;
+      turns.push({ turn: t, medicham_stream: me[t] || [], showdown_stream: sd[t] || [],
+                   board: b ? { identical: b.identical, leaves_compared: b.leaves_compared, diffs: b.diffs,
+                                medicham: b.medicham, showdown: b.showdown } : null });
+    }
+    return { index: c.index, arm: c.arm, config: c.config, seed: c.tag, turns_played: r.turns, err: r.err || null,
+             trace_digest: sha((r.mediTrace || []).join('\n')), medicham_trace: (r.mediTrace || []).map(String),
+             first_protocol_divergence: r.div ? { index: r.div.index, turn: r.divTurn, showdown: r.div.sdRaw,
+                                                  medicham: r.div.meRaw } : null,
+             first_board_divergence: r.stateDiv || null, end_reason: r.endReason || null,
+             mid_void: !!r._mid_void, mid_void_why: r._mid_why || null, mid_addresses: c.mid || null, turns };
+  });
+  console.log('\n  --only-game ' + JSON.stringify(ONLY_GAME) + ': game #' + (games[0] ? games[0].index : '?')
+    + ' captured, after playing the ' + (games[0] ? games[0].index : 0) + ' game(s) before it'
+    + ' (the published artifact is NOT written by this run)');
+  for (const g of games) {
+    console.log('\n  #' + g.index + '  ' + g.config + '  ' + g.seed + '   arm ' + g.arm + '   turns ' + g.turns_played
+      + '   trace ' + g.trace_digest + (g.mid_void ? '   VOID (' + g.mid_void_why + ')' : ''));
+    console.log('    first protocol divergence: ' + (g.first_protocol_divergence ? 'turn ' + g.first_protocol_divergence.turn
+      + '  showdown ' + g.first_protocol_divergence.showdown + '  medicham ' + g.first_protocol_divergence.medicham : 'none'));
+    console.log('    first board divergence: ' + (g.first_board_divergence ? 'turn ' + g.first_board_divergence.turn + '  '
+      + g.first_board_divergence.diffs.map(d => d.path + ' ' + JSON.stringify(d.medicham) + '/' + JSON.stringify(d.showdown)).join(', ') : 'none'));
+    for (const t of g.turns) {
+      console.log('    ---- turn ' + t.turn + (t.board ? '   board ' + (t.board.identical ? 'identical' : 'PARTED: '
+        + t.board.diffs.map(d => d.path + ' ' + JSON.stringify(d.medicham) + '/' + JSON.stringify(d.showdown)).join(', ')) : ''));
+      /* for READING only (the file keeps the raw stream): after `|split|<side>` the authority writes the exact line
+       * and then its public twin; keep the exact one, drop the marker, the twin, `|t:|` and blank lines */
+      const sdR = []; for (let i = 0; i < t.showdown_stream.length; i++) { const l = t.showdown_stream[i];
+        if (/^\|split\|/.test(l)) { sdR.push(t.showdown_stream[i + 1]); i += 2; continue; }
+        if (l === '|' || l === '' || /^\|t:\|/.test(l)) continue; sdR.push(l); }
+      const w = Math.max(sdR.length, t.medicham_stream.length);
+      for (let i = 0; i < w; i++) console.log('      sd ' + String(sdR[i] || '').padEnd(70).slice(0, 70)
+        + ' | me ' + String(t.medicham_stream[i] || ''));
+    }
+  }
+  const outPath = ONLY_GAME_OUT ? (path.isAbsolute(ONLY_GAME_OUT) ? ONLY_GAME_OUT : D(ONLY_GAME_OUT))
+    : path.join(require('os').tmpdir(), 'abra-only-game-' + process.pid + '.json');
+  fs.writeFileSync(outPath, JSON.stringify({
+    what: 'ONE GAME OF THE DIFFERENTIAL, replayed by --only-game, with both streams and both boards at every turn '
+        + 'boundary. A diagnostic, never a published figure.',
+    generated: new Date().toISOString(), selector: ONLY_GAME, engine_release: REL.id, steering: STEER_MODE,
+    games_requested: GAMES, team_store_pinned_to: TEAM_STORE || null, census_pinned_to: CENSUS_PIN || null,
+    pins_digest: (PINS && PINS.digest) || null, games }, null, 1) + '\n');
+  console.log('\n  wrote ' + outPath);
+  process.exit(games.length ? 0 : 2);
 }
 
 /* ---- THE SAMPLE FINGERPRINT — `MEDI_SAMPLE_DUMP=<file>` (2026-08-26, ROADMAP #465) --------------

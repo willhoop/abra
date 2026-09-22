@@ -149,3 +149,41 @@ The three protocol-only divergences are one class: the authority's `-end|<Kingam
 this engine writes its next line (a Supreme Overlord volatile ending silently). No game in either dump contains Ice
 Spinner. 1350 and 1950 had no Reg M-B reading before this pass, so "unmoved" is not claimed for their protocol column;
 the board column is zero.
+
+---
+
+## 2. `--only-game`: replaying one game (abra/regmc 0.45.1, instrument)
+
+### What it does
+
+`node engine/game_differential.js <pins> --only-game <selector> [--only-game-out <file>]`. The selector is a substring of
+`<config> <seed tag>` or `#<n>`; it must match exactly one game of the arm (exit 2 otherwise, listing the matches). The
+fixed-count loop is walked as usual; every game before the selected one is PLAYED; the selected one is played with a
+boundary hook and a capture of both engines' middle-arm dice addresses (taken before `midGameVoid` clears them); then
+the run dumps and exits -- before the report, the `--write` block and `--dump-games`. Dump: both streams split at
+`|turn|`, both boards and `diffs` at every boundary, first protocol / board divergence, `mid_void`, the raw medicham2
+trace and `trace_digest` (the same digest `MEDI_SAMPLE_DUMP` writes). `--until-covered` is refused.
+
+### Why the prior games are played (measured, not assumed)
+
+The first cut skipped them. Game #293 (`omit-weather …-2680535928`) then replayed with `trace 52894578ae03` against the
+full run's `0cf9b007b711` (`MEDI_SAMPLE_DUMP`); a `MEDI_TRACE_DUMP` run located the split at medicham2 trace line 38:
+Tyrantrum's Psychic Fangs in the full run, Fire Fang in the replay. The empirical driver's `empiricalPick` returns
+`coveragePick(moves)` when `EMP.rowFor` finds no prior row or `EMP.drawMove` returns nothing, and `coveragePick` sorts on
+`want` and `clicks` -- `COV_CREDIT` and `CLICKS`, which `driverReset` clears per ARM, not per game. So a game's clicks
+depend on the games before it. **For MEASURE:** under `--steering empirical` the games of a run are not independent,
+so the same pair played at a different position in the order (for instance under a different `--games`) can be a
+different game.
+
+### Receipts
+
+| replay | index | `trace_digest` replay | full run (`MEDI_SAMPLE_DUMP`) |
+|---|---|---|---|
+| `…2680535928` | #293 | `0cf9b007b711` | `0cf9b007b711` |
+| `…2681842922` | #368 | `e668bbd18ba5` | `e668bbd18ba5` |
+| `…2680957904` | #630 | `f1e685fd8783` | `f1e685fd8783` |
+
+Identity without the flag (release `d0e34207d250`, same pins, final instrument bytes): `state` identical,
+`first_divergences` identical; top-level fields that differ: `generated`, `elapsed_s`, `steering` (only
+`steering.driver_code`, the digest of the driver file itself); the `--dump-games` file differs only in `generated` and
+`by` (its own output path). Checked twice, on the intermediate and the final bytes.

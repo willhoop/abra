@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.45.1] — 2026-09-22 — **`--only-game`: replay one game of the differential**
+
+- **What changed.** `engine/game_differential.js --only-game <selector> [--only-game-out <file>]`: plays the fixed-count
+  loop up to and including the one selected game, dumps it per turn (streams, boards, diffs, dice addresses,
+  `trace_digest`), and stops without writing the published artifact.
+- **Measured.** NO FIGURE published. A run without the flag reproduces the pre-change `state` and `first_divergences`
+  blocks exactly on release `d0e34207d250`; three replays reproduce the full run's trace digests
+  (`docs/_reports/2026-09-22-regmc-engine-4.md` §2).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.45.0] — 2026-09-22 — **Ice Spinner removes the terrain after it hits, in both regulations**
 
 - **What changed.** `engine/tag_dex.js`: move tag `clearsTerrainAfterHit` (Ice Spinner alone, both regulations);
