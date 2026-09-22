@@ -21,6 +21,31 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.48.0] — 2026-09-22
+
+### Fixed
+- **A body that walks in through Emergency Exit or Eject Button draws its dice as an action of its own, in Reg M-C.**
+  Both set `switchFlag` (`data/mods/champions/abilities.ts` emergencyexit :22-29, `data/mods/champions/items.ts`
+  ejectbutton :266-281), and the authority answers a raised `switchFlag` with a switch request once the move's action has
+  ended (`sim/battle.ts` :2877-2911), so the entrant arrives on a new `switch` action with no active move. This engine
+  brought it in inside the move, still addressed to it. Under the differential's shared dice that is one die at two
+  addresses, and it was the Trace card: Gardevoir walking in behind Emergency Exit drew at `1|any|-|-|0` on the
+  authority (0.9706, Venusaur's Chlorophyll) and at `1|any|leafstorm|p10|0` here (0.2559, Charizard's Drought) --
+  read off `--only-game`'s address capture. The pick rule itself was already the authority's (a uniform index into the
+  same eligible list); only the address differed. **This is the same class, and the same fix, as the 2026-09-20 pivot
+  entry (`pivotFrom`)**: the rule is lifted into `midAddrOwnAction`, the one implementation, and the eject door now
+  asks it. No tag moved. Knob `MEDI_EJECT_ENTRY_MOVE_ADDR`.
+- `tests/probe_regmc_eject_entry_address.js` (`--regulation regmc`, middle arm): EE, EB, and PIVOT (the U-turn road,
+  the control that must stay green). It asserts every turn-1 `any` die at the same address on both engines, both ways,
+  and the boards. Exit 0 clean; exit 1 under the knob and on release `d307909e1c39` with the 0.47.0 engine bytes (EE and
+  EB red; PIVOT green in all three runs).
+
+### Notes
+- Neither door has a carrier in Reg M-B (Eject Button is `Past`; no legal species has Emergency Exit), and the pivot
+  road's behaviour is unchanged (the helper is the old inline code). Reg M-B data files byte-identical.
+- Pinned Reg M-C differential (`--games 1200`, census pin `f3b70bc0c47c`): 1 of 954 → **0 of 954** on release
+  `4868967b4a91`; the Trace game left, none joined. `docs/_reports/2026-09-22-regmc-engine-4.md` §5.
+
 ## [0.47.0] — 2026-09-22
 
 ### Fixed

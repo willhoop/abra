@@ -341,3 +341,191 @@ Left: `…2680957904` (it stays in the dump as protocol-only, `-fail field 3`). 
 
 Shared rule; Burn Up is Reg M-B legal (Double Shock is `Past`). The four Reg M-B data files byte-identical; lattice 1200
 on release `440b846e2aff`: 0 of 961, 0 void, 0 protocol.
+
+---
+
+## 5. The eject-door entrant's dice address -- the "Trace picks a different foe" card (abra/regmc 0.48.0)
+
+### The replay (`--only-game 2681842922`, release `d0e34207d250`, game #368)
+
+Turn 1: Venusaur's Leaf Storm takes Golisopod 150→16; `-activate|p1a: Golisopod|ability: Emergency Exit`; Venusaur's
+Life Orb recoil; `|switch|p1a: Gardevoir`; then Trace. Up to that line the two streams agree. Gardevoir's foes are
+Charizard-Mega-Y (Drought) and Venusaur (Chlorophyll); both engines' eligible lists are those two, in that order.
+The captured dice addresses of turn 1, category `any` (the Trace pick is the only `any` draw of the turn on either side):
+
+```
+showdown   20260813|1|any|-|-|0              0.9706  -> index 1 -> Venusaur  -> Chlorophyll
+medicham2  20260813|1|any|leafstorm|p10|0    0.2559  -> index 0 -> Charizard -> Drought
+```
+
+One die, two addresses. The authority drew with no active move; this engine drew with Leaf Storm still named.
+
+### Classification
+
+Not a rule difference in the pick: both engines draw one uniform index into the same list, and `traceCopy` already rolls
+the authority's die, a draw even for a one-element list (its 2026-08-27 header). It is the address, i.e. which action the entry belongs to. That is the
+exact class of 2026-09-20's pivot-entry fix (`pivotFrom`: "A PIVOT'S ENTRY IS A SEPARATE ACTION IN THE AUTHORITY, SO ITS
+DRAWS CARRY NO MOVE"), which ENGINE made and which the middle arm's shared-die contract requires; it is fixed here the same
+way rather than declared an instrument artifact, because the address is emitted by the engine and the authority's
+sequencing (a new action) is a fact about the game.
+
+### The authority, read whole
+
+- `data/mods/champions/abilities.ts` emergencyexit :22-29: `onEmergencyExit(target) { if (!this.canSwitch(...) ||
+  target.forceSwitchFlag || target.switchFlag) return; target.switchFlag = true; this.add('-activate', target, 'ability:
+  Emergency Exit'); }`.
+- `data/mods/champions/items.ts` ejectbutton :266-281: `onAfterMoveSecondary` ... `target.switchFlag = true; if
+  (!target.useItem()) target.switchFlag = false;`.
+- `sim/battle.ts` :2877-2911 (the tail of `runAction`): with any `switchFlag` raised, `BeforeSwitchOut`, then
+  `makeRequest('switch'); return true;` -- the answer is a new `switch` action, after the move's action (and its
+  `clearActiveMove`) has finished.
+
+### Fix
+
+`midAddrOwnAction()` -- save `MID_MOVE`/`MID_TGT`, set both to `-`, report whether they were stale, restore on demand --
+lifted verbatim out of `pivotFrom` (which now calls it; its behaviour and counters are unchanged) and asked by the eject
+door around its `switchOut` (`MEDSEEN.ejectEntryAddrCleared`). Red Card's drag is untouched: `pivotFrom`'s own header
+records that a dragged entrant runs inside `moveHit`, where the authority's active move IS set. Knob
+`MEDI_EJECT_ENTRY_MOVE_ADDR`.
+
+### Probe -- `tests/probe_regmc_eject_entry_address.js --regulation regmc` (middle arm)
+
+Cast derived: Gardevoir (the only Trace holder), Golisopod (the only Emergency Exit holder), Avalugg @ Eject Button,
+Corviknight (U-turn, the control), foes Galarian Slowking (Curious Medicine; Power Gem is the hit) and Toxapex
+(Merciless).
+
+| arm | authority turn-1 `any` | medicham2 0.47.0 / knob | medicham2 0.48.0 |
+|---|---|---|---|
+| EE | `1|any|-|-|0` | `1|any|powergem|p10|0`, boards part | `1|any|-|-|0`, boards agree |
+| EB | `1|any|-|-|0` | `1|any|powergem|p10|0`, boards part | `1|any|-|-|0`, boards agree |
+| PIVOT (control) | `1|any|-|-|0` | `1|any|-|-|0` | `1|any|-|-|0` |
+
+| run | exit | red |
+|---|---|---|
+| release `d307909e1c39` + the 0.47.0 engine bytes | **1** | EE, EB (address and boards); PIVOT green |
+| clean, release `4868967b4a91` | **0** | none; one stale address cleared in EE and in EB, the pivot road's own counter in PIVOT |
+| `MEDI_EJECT_ENTRY_MOVE_ADDR=1` | **1** | EE, EB; PIVOT green |
+
+29 staged sets across the cast search, 0 illegal.
+
+### Pinned Reg M-C differential
+
+| engine | release | state bar | void | protocol-only |
+|---|---|---|---|---|
+| 0.47.0 | `d307909e1c39` | 1 / 954 | 1 | 71 |
+| 0.48.0 | `4868967b4a91` | **0 / 954** | 1 | 70 |
+
+Left: `…2681842922`. Joined: none.
+
+### Reg M-B
+
+No carrier of either door (Eject Button `Past`, no Emergency Exit species); the pivot road is the same code. The four
+Reg M-B data files byte-identical.
+
+---
+
+## 6. Where the line stands after this pass
+
+### The four cards
+
+| card | cause | commit | pinned M-C 1200 after |
+|---|---|---|---|
+| Ice Spinner not clearing terrain | no tag for `onAfterHit` `clearTerrain()` (both regulations) | 0.45.0 | 3 / 954 |
+| Dire Claw damage difference | Grass Pelt's terrain-gated Def x1.5 refused by `condStatMult` (M-C only) | 0.46.0 | 2 / 954 |
+| Kingambit HP gap after Double Shock | STAB given to a `???` Struggle from a `???` body (both regulations) | 0.47.0 | 1 / 954 |
+| Trace copying a different foe | eject-door entrant's dice addressed to the move (M-C only; `pivotFrom`'s class) | 0.48.0 | **0 / 954** |
+
+None was an exact speed tie, an instrument artifact or narration-by-measurement. The Trace card came closest: its
+difference is a shared-die address, not a rule, and it is fixed on the precedent of `pivotFrom` (§5, "Classification").
+
+### Reg M-B on the final tree (release `8cf0c6f5bc19`, `SHOWDOWN_PATH` the M-B checkout)
+
+| `--games` | games | board-material | void | protocol-only |
+|---|---|---|---|---|
+| 1200 | 961 | **0** | 0 | 0 |
+| 1350 | 1069 | **0** | 0 | 1 |
+| 1950 | 1497 | **0** | 0 | 2 |
+
+The same games and the same class (Kingambit's silent `-end …|fallenundefined`) as the post-Ice-Spinner readings in §1.
+`data/tags.json` and `data/abra-tags.js` differ from the base only by the Ice Spinner row and descriptor;
+`data/protocol-events.json` and `data/move-effects.js` byte-identical across the pass.
+
+### The other two Reg M-C gate lattices (release `4868967b4a91`, same pins) -- first readings, NOT zero
+
+| `--games` | games | board-material | void | protocol-only |
+|---|---|---|---|---|
+| 1200 | 954 | **0** | 1 | 70 |
+| 1350 | 1075 | **2** | 0 | 78 |
+| 1950 | 1536 | **14** | 1 | 128 |
+
+First board divergences (cause NOT established for any; these are cards, not diagnoses):
+
+```
+1350 omit-spread           …bo3-2683867010 t4  golisopod.hp 74/65, incineroar.hp 138/148, active[0].species golisopod/incineroar
+1350 pair-speedctrl        …bo3-2683185970 t4  delphox.item rockyhelmet/focussash, pelipper.item focussash/''
+1950 omit-weather          …bo3-2682175073 t1  lucario.hp 145/72
+1950 omit-intimidate       …bo3-2681663488 t5  field.terrain psychic/''
+1950 omit-intimidate       …bo3-2681789845 t1  beedrill.hp 110/95, armarouge.hp 146/139
+1950 omit-intimidate       …bo3-2682187499 t4  indeedeef.hp 58/125
+1950 omit-intimidate       …bo3-2683185970 t2  delphox.item damprock/lightball, maushold.item ''/damprock
+1950 omit-spread           …bo3-2678871998 t8  pawmot.types /fighting vs electric/fighting
+1950 omit-spread           …bo3-2681801782 t1  lucario.hp 145/72
+1950 omit-spread           …bo3-2681855173 t1  greninja.types dark/water vs water
+1950 pair-protect-bust     …bo3-2678161087 t4  garchomp.hp 76/54
+1950 pair-redirect-priority …bo3-2678207112 t5 whimsicott.hp 36/135, armarouge.hp 59/142
+1950 pair-redirect-priority …bo3-2678460835 t2 talonflame.hp 103/153, indeedeef.hp 10/104
+1950 pair-redirect-priority …bo3-2684290289 t3 toxapex.hp 125/69
+1950 pair-redirect-priority …-2681082751 t1     lucario.hp 145/72
+1950 pair-speedctrl        …bo3-2684749333 t8  rillaboom.hp 97/87
+```
+
+Visible groupings, unconfirmed: three `lucario.hp 145/72` at turn 1 (the same number three times -- one cause); two item
+swaps on a Delphox (the same team, `…2683185970`, in both lattices -- an item-transfer mechanic); two type rows (a Pawmot
+that lost Electric on one engine only, a Greninja typed Dark on one engine -- Protean/Libero-shaped). Each can be
+replayed with `--only-game <digits>` under `--games 1350` or `--games 1950` (the index differs by lattice).
+
+---
+
+## OWED, NOT RUN
+
+From the MAIN checkout after the merge (none of these was run in this worktree; `status.js --write` must not run from a
+worktree):
+
+```
+node engine/status.js --write
+node engine/quarantine.js --regulation regmc
+```
+
+The Reg M-C census regeneration (the probes of this pass are staged tests, not census rows; ENGINE's `tests/test-mechanics.js`
+was not extended, so no census row carries `clearsTerrainAfterHit` yet):
+
+```
+node tests/test-mechanics.js --regulation regmc
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown node tests/test-mechanics.js
+```
+
+The Reg M-B held-out draw, owed because 0.45.0 (Ice Spinner) and 0.47.0 (`???` STAB) change paths Reg M-B runs:
+
+```
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown node engine/engine_release.js cut "abra/regmc 0.48.0, Reg M-B held-out"
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown tools\lownode.cmd engine/game_differential.js --steering empirical --arm middle --end-state --census <copy of data/mechanics-census.json> --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen --release <id> --games 12000 --write --out <scratch>
+```
+
+The next Reg M-C hand list (16 games across the 1350/1950 lattices, §6), replayed one at a time:
+
+```
+node engine/game_differential.js --regulation regmc --steering empirical --arm middle --end-state --census data/verification/census-pin-regmc-f3b70bc0c47c.json --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --release <id> --games 1950 --only-game 2682175073 --only-game-out <scratch>/og-lucario-regmc.json
+```
+
+Narration, not board-material, carried: the `-fail|<user>|move: <Move>` attribute on a failed `spendsOwnType` move.
+
+For MEASURE (the driver is theirs):
+- `--steering empirical` games are not independent: `coveragePick` (the empirical driver's fallback) reads `CLICKS` and the
+  credit maps, which carry across games within an arm (§2). The same pair at another position in the order can be a
+  different game.
+- `mirrorRevival` (carried from pass 3): it drops the head of the USER's slot entry queue, not the revived body's.
+
+Left in the worktree, uncommitted: `data/engine-release-regmc.json` (untracked; the Reg M-C release pointer this pass's
+cuts wrote -- the main checkout carries its own untracked copy) and scratch under `data/_scratch-eng-a4f8/` (git-ignored).
+The tracked M-B pointer `data/engine-release.json` was moved by this pass's M-B cuts and is restored from HEAD, not
+committed.

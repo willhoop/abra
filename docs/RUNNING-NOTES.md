@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.48.0] — 2026-09-22 — **An eject-door entrant's dice carry no move, in Reg M-C**
+
+- **What changed.** `engine/medicham2-browser.js`: `midAddrOwnAction`, the one "this entry is its own action" rule, lifted
+  out of `pivotFrom` and asked by the Emergency Exit / Eject Button door too. No tag moved. Knob
+  `MEDI_EJECT_ENTRY_MOVE_ADDR`; probe `tests/probe_regmc_eject_entry_address.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine-4.md` §5;
+  no Reg M-B carrier; Reg M-B data files byte-identical.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.47.0] — 2026-09-22 — **A `???` move never takes STAB, in both regulations**
 
 - **What changed.** `engine/medicham2-browser.js`: the one STAB line refuses STAB when the move's type is `???` (a spent

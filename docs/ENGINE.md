@@ -1,3 +1,30 @@
+## REG M-C: AN EJECT-DOOR ENTRANT'S DICE CARRY NO MOVE. 2026-09-22 (abra/regmc 0.48.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-4.md` §5.
+
+- **Defect.** Emergency Exit and Eject Button raise `switchFlag`; the authority brings the entrant in on a new action with
+  no active move, this engine inside the move. Under shared dice the entrant's Trace pick read a different die: the
+  "Trace picks a different foe" card. Not a rule difference in the pick (same list, same uniform index) -- a dice
+  ADDRESS difference, the class `pivotFrom` fixed for U-turn on 2026-09-20.
+- **Fix.** `midAddrOwnAction` (the rule, once), asked by `pivotFrom` and the eject door.
+- **Probe** `tests/probe_regmc_eject_entry_address.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_EJECT_ENTRY_MOVE_ADDR` and on release `d307909e1c39` with the 0.47.0 bytes; the PIVOT control green throughout.
+
+### The Reg M-C hand list, after this pass
+
+Pinned Reg M-C differential (`--games 1200`, census pin `f3b70bc0c47c`): **0 of 954** board-material on release
+`4868967b4a91`. Ice Spinner, Grass Pelt, `???` STAB and the eject-door address left this list as probes.
+
+**The other two gate lattices are NOT zero** (same pins, same release, first readings -- no earlier value exists):
+`--games 1350` **2 of 1075**, `--games 1950` **14 of 1536** (1 void). Causes not established; first board divergences
+are listed in report §6. They are the next hand list: three `lucario.hp 145/72` at turn 1, a psychic terrain the
+authority ended, a Pawmot type `/fighting` against `electric/fighting`, a Greninja type, item swaps, HP gaps.
+
+1. Narration, not board-material: the `-fail|<user>|move: <Move>` attribute when a `spendsOwnType` move fails (the
+   authority names the move; this engine does not) -- seen in the Kingambit game and in the typeless-STAB probe.
+2. Carried: `mirrorRevival` (MEASURE); the empirical driver's cross-game `coveragePick` state (MEASURE, report §2).
+3. Owed (not run): the census regeneration; the Reg M-B held-out draw (report `## OWED, NOT RUN`).
+
 ## A `???` MOVE NEVER TAKES STAB (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.47.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-4.md` §4.
@@ -52,7 +79,7 @@ Full account: `docs/_reports/2026-09-22-regmc-engine-4.md` §1.
 - **Reg M-B:** `data/tags.json` moves by the Ice Spinner row and the descriptor only (approved); the other two Reg M-B
   files byte-identical; lattices 1200 / 1350 / 1950 read 0 / 0 / 0 board-material. No census row yet (owed).
 
-### The Reg M-C hand list, after this fix
+### The Reg M-C hand list, after the 0.45.0 fix — SUPERSEDED by the 0.48.0 list above
 
 Pinned Reg M-C differential (`--games 1200`, census pin `f3b70bc0c47c`): 3 of 954 on release `d0e34207d250`.
 

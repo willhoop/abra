@@ -87,7 +87,7 @@ const TAGS = (function(){
  * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
-const MEDSEEN = { typelessStabRefused: 0, terrainStatMultPaid: 0, terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatMultPaid: 0, terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
    * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
@@ -28987,11 +28987,21 @@ let PIVOT_DEPTH=0;
  *
  * `MEDI_PIVOT_ENTRY_MOVE_ADDR=1` restores the stale address and stamps
  * `MEDFAILS.pivotEntryMoveAddrRestored`, so a run under it can never read as a clean one. */
+/* 2026-09-22 (abra/regmc 0.48.0) -- THE ONE IMPLEMENTATION OF "THIS ENTRY IS AN ACTION OF ITS OWN", lifted out of
+ * `pivotFrom` below so the eject door (Emergency Exit, Eject Button) asks the same thing. Both set `switchFlag`, and
+ * `Battle#runAction` answers a raised `switchFlag` with `makeRequest('switch')` AFTER the move's action has ended
+ * (M-C checkout sim/battle.ts :2877-2911) -- the entrant walks in on a new `switch` action with `activeMove` cleared,
+ * exactly as a U-turn's does. Returns whether the address was stale, and a restore. */
+function midAddrOwnAction(){
+  const _am=MID_MOVE,_at=MID_TGT,stale=(_am!=='-'||_at!=='-');
+  MID_MOVE='-';MID_TGT='-';
+  return {stale,restore(){MID_MOVE=_am;MID_TGT=_at;}};
+}
 function pivotFrom(mvId,fn){
   PIVOT_DEPTH++;
   const _am=MID_MOVE,_at=MID_TGT;
   if(PIVOT_ENTRY_MOVE_ADDR)MEDFAILS.pivotEntryMoveAddrRestored=1;
-  else if(_am!=='-'||_at!=='-'){MEDSEEN.pivotEntryAddrCleared++;MID_MOVE='-';MID_TGT='-';}
+  else if(midAddrOwnAction().stale)MEDSEEN.pivotEntryAddrCleared++;
   try{
     if(SWITCH_CAUSE_BLIND){MEDFAILS.switchCauseBlindRestored=1;return fn();}
     if(!TR||!mvId)return fn();
@@ -31667,6 +31677,9 @@ if(TERRAIN_STATMULT_INERT)MEDFAILS.terrainStatMultInertRestored=1;
 /* 2026-09-22 (abra/regmc 0.47.0) -- MEDI_TYPELESS_STAB=1 lets a '???' move take STAB from a '???' body again. */
 const TYPELESS_STAB=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TYPELESS_STAB==='1');
 if(TYPELESS_STAB)MEDFAILS.typelessStabRestored=1;
+/* 2026-09-22 (abra/regmc 0.48.0) -- MEDI_EJECT_ENTRY_MOVE_ADDR=1 keeps the move's dice address on an eject-door entrant. */
+const EJECT_ENTRY_MOVE_ADDR=(typeof process!=='undefined'&&process.env&&process.env.MEDI_EJECT_ENTRY_MOVE_ADDR==='1');
+if(EJECT_ENTRY_MOVE_ADDR)MEDFAILS.ejectEntryMoveAddrRestored=1;
 /* 2026-09-22 (Reg M-C, abra/regmc 0.44.0) -- DOES SHEER FORCE SKIP THIS MOVE'S AfterMoveSecondary EVENT?
  * `BattleActions#afterMoveSecondaryEvent` (sim/battle-actions.ts :811-818, both checkouts) runs the event only
  * `if (!(move.hasSheerForce && pokemon.hasAbility('sheerforce')))`, and Sheer Force's onModifyMove sets `hasSheerForce`
@@ -50219,7 +50232,15 @@ function battleTurn(S,rng,actsForA,actsForB){
           const tg=e.tg, _i=e.bx.own.indexOf(tg);
           if(_i<0||tg.fainted||tg.curHP<=0||!canDragIn(e.bx.bench))continue;
           const _want=(S&&S.replaceWith)?S.replaceWith[sideOfBody(tg,actA)]:undefined;
-          if(switchOut(e.bx.own,_i,e.bx.bench,e.bx.foes,e.bx.sf,field,_want)){ if(e.ee)MEDSEEN.emergencyExitSwitched++; else MEDSEEN.ejectButtonSwitched++; }
+          /* 2026-09-22 (abra/regmc 0.48.0) -- the entrant's draws carry no move: see `midAddrOwnAction`. The Trace card
+           * (Gardevoir in behind Emergency Exit copying Drought here, Chlorophyll there) was this: the authority drew at
+           * `1|any|-|-|0`, this engine at `1|any|leafstorm|p10|0` -- one die, two addresses. MEDI_EJECT_ENTRY_MOVE_ADDR=1
+           * restores the stale address. */
+          const _own=EJECT_ENTRY_MOVE_ADDR?null:midAddrOwnAction();
+          if(EJECT_ENTRY_MOVE_ADDR)MEDFAILS.ejectEntryMoveAddrRestored=1; else if(_own.stale)MEDSEEN.ejectEntryAddrCleared++;
+          let _swOk=false;
+          try{ _swOk=switchOut(e.bx.own,_i,e.bx.bench,e.bx.foes,e.bx.sf,field,_want); } finally { if(_own)_own.restore(); }
+          if(_swOk){ if(e.ee)MEDSEEN.emergencyExitSwitched++; else MEDSEEN.ejectButtonSwitched++; }
         }
         if(_hadPivot)MEDSEEN.ejectButtonKeptPivot++;
       }
