@@ -40056,7 +40056,8 @@
    "uses": 4012,
    "params": {
     "restoresStats": {
-     "restores": true
+     "restores": true,
+     "afterMoveImmediate": true
     },
     "flingable": {
      "basePower": 10,

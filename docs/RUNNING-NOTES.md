@@ -66,6 +66,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
   lattice 1200 at 0 of 961 with identical state and mega blocks, default gate output identical to HEAD's.
 - **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
 
+## [abra/regmc 0.36.0] — 2026-09-22 — **White Herb is spent on the move that ends the battle, in Reg M-C**
+
+- **What changed.** `engine/tag_dex.js`: `restoresStats.afterMoveImmediate` when the handler restores inside `useMove`
+  (M-C), absent when it queues (M-B); the M-C row spliced into `data/tags-regmc.json`. `engine/medicham2-browser.js`:
+  `herbAtWin` at the two `sideWiped` breaks. Knob `MEDI_HERB_SKIPPED_AT_WIN`; probe `tests/probe_regmc_white_herb_at_win.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine-2.md` §4.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
 ## [abra/regmc 0.35.0] — 2026-09-22 — **Steely Spirit boosts its holder's and its partner's Steel moves**
 
 - **What changed.** `engine/tag_dex.js`: `allyBasePowerBoost` reads a decimal multiplier, `includesSelf` and a category

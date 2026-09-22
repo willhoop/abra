@@ -6941,7 +6941,16 @@ const ITEM_TAGS = [
     of: it => norm(it.name) === 'clearamulet' ? { prevents: true } : null },
   { tag: 'restoresStats', param: 'undoes stat drops once', probe: 'whiteherb',
     why: '2.1% of items, and it changes what a drop is worth',
-    of: it => norm(it.name) === 'whiteherb' ? { restores: true } : null },
+    /* 2026-09-22 (abra/regmc 0.36.0) -- WHEN THE AFTERMOVE RESTORE HAPPENS IS THE HANDLER'S, AND THE TWO CHECKOUTS DIFFER.
+     * Reg M-B's checkout QUEUES it: `onAnyAfterMove() { this.queue.insertChoice({ choice: "event", event: "WhiteHerb",
+     * order: 99 }) }`, so it runs as its own action after the move -- and never after a move that ended the battle.
+     * Reg M-C's checkout RUNS it: `onAnyAfterMove() { this.effect.onStart.call(this, this.effectState.target); }`,
+     * inside `useMove`, before `runAction`'s win check. `afterMoveImmediate` is written only for the second shape, so
+     * Reg M-B's row derives byte-identically. */
+    of: it => norm(it.name) === 'whiteherb'
+      ? { restores: true,
+          ...(it.onAnyAfterMove && !/insertChoice/.test(String(it.onAnyAfterMove)) ? { afterMoveImmediate: true } : {}) }
+      : null },
   /* 2026-09-21 (Reg M-C) -- THE TERRAIN SEEDS. Will: "Terrain setters and seeds are the most important
    * features." Every seed is the same two handlers (data/items.ts electricseed :1799, grassyseed :2595,
    * mistyseed :4200, psychicseed :4903 in the M-C checkout; the Champions mod names none of them):

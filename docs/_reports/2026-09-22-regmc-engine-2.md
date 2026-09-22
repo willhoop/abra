@@ -262,3 +262,75 @@ The two Perrserker games left (seed sets compared); nothing joined.
 
 Three Reg M-B files unchanged against HEAD. Damage differential seed `20260804`: identical to the base but for the
 output-path line. Lattice on release `37e6245b775c`: **0 of 961**, 0 void.
+
+---
+
+## 4. White Herb on the move that ends the battle (abra/regmc 0.36.0)
+
+### The authority, read whole — and the two checkouts differ
+
+whiteherb, read from each checkout's dist dex (`data/_scratch-eng-a99f/herbcmp.js`, git-ignored):
+
+| handler | Reg M-B checkout (`gen9championsvgc2026regmb`) | Reg M-C checkout (`gen9championsvgc2026regmc`) |
+|---|---|---|
+| `onAnyAfterMove` | `this.queue.insertChoice({ choice: "event", event: "WhiteHerb", order: 99 })` | `this.effect.onStart.call(this, this.effectState.target)` |
+| `onWhiteHerb` | present (runs the restore when the queued event is reached) | absent |
+| `onStart`, `onAnySwitchIn`, `onAnyAfterMega`, `onResidual`, `onUse` | identical | identical |
+
+So under Reg M-C the restore runs inside `useMove`, before `runAction`'s `faintMessages()` (default `checkWin = true`,
+`sim/battle.ts` :2832-2833) ends the battle; under Reg M-B it is a queued action that never runs once the battle is
+over.
+
+### The defect, and the first cut that was wrong
+
+The two pinned games (`…2679539978`, `…2681406255`) end on a Sneasler's Close Combat: the authority's last lines are
+`-enditem|Sneasler|White Herb` and `-clearnegativeboost`; this engine wrote nothing (its herb is spent in `_updateAll`,
+which both `sideWiped` break sites skip), and the board parted on the item and two stages.
+
+The first cut ran the herb's reader at both breaks for every holder. The Reg M-C probe went green and the pinned M-C
+count fell 11 → 9, **and the Reg M-B lattice went 0 → 4**: four Sneasler games (`regmbbo3-2662378739`,
+`regmb-2635870534`, `regmb-2635826073`, `regmbbo3-2635223573`) where the Reg M-B authority kept the herb at -1/-1 and
+this engine now spent it. That is how the handler difference above was found. It is exactly what the per-commit Reg M-B
+lattice exists to catch.
+
+### The fix
+
+`engine/tag_dex.js`: `restoresStats` gains `afterMoveImmediate: true` when `onAnyAfterMove` does not `insertChoice`
+(membership printed: `whiteherb {restores, afterMoveImmediate}` under the M-C checkout, `whiteherb {restores}` under the
+M-B checkout, so Reg M-B's row derives byte-identically). Only the M-C row was spliced (structural diff: one rule
+change). `engine/medicham2-browser.js`: `herbAtWin` at the two breaks runs `restoreStatsUpdate` for a holder whose tag
+says the restore is immediate. Knob `MEDI_HERB_SKIPPED_AT_WIN`.
+
+### Probe — `tests/probe_regmc_white_herb_at_win.js --regulation regmc`
+
+A whole side has to be wiped by the herb holder's move, which the four-body harness can do over three turns: turns 1-2,
+the faster partner knocks out the foe in slot a twice (a lead, then its replacement) while the holder stands behind
+Protect; turn 3, the partner knocks out slot b and the holder's Close Combat knocks out the last body. The cast is
+searched until the AUTHORITY ends the battle; foes idle on a repeatable click (a second Focus Energy writes `-fail` on the
+authority only, so it is excluded).
+
+| arm | staged | authority | 0.35.0 engine (release `f09b7fd33be5`) | after |
+|---|---|---|---|---|
+| WIN | Kleavor @ White Herb + Cinderace vs Liepard, Heliolisk, Persian, Thievul | four faints, then `-enditem` + `-clearnegativeboost` | no herb lines; board `item whiteherb/`, `def -1/0`, `spd -1/0` | match, boards 0 |
+| CONTROL | the same, no item | four faints | match | match |
+
+| run | exit | red |
+|---|---|---|
+| 0.35.0 release and bytes | 1 | WIN (lines and boards) |
+| clean, release `5c6df1a5e969` | 0 | none |
+| `MEDI_HERB_SKIPPED_AT_WIN=1` | 1 | WIN (lines and boards) |
+
+The probe also asserts the tag agrees with the handler in the selected checkout.
+
+### Pinned Reg M-C differential
+
+| engine | release | state bar | void |
+|---|---|---|---|
+| 0.35.0 | `f09b7fd33be5` | 11 / 954 | 1 |
+| 0.36.0, first cut (ungated) | `daab408edd77` | 9 / 954 | 1 |
+| 0.36.0, tag-gated | `5c6df1a5e969` | **9 / 954** | 1 |
+
+### Reg M-B unmoved
+
+Three Reg M-B files unchanged against HEAD. Lattice: first cut, release `d6619c946f31`, **4 of 961** (withdrawn, above);
+tag-gated, release `d35b7664c7d5`, **0 of 961**, 0 void. Damage differential seed `20260804`: see the commit table.

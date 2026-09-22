@@ -65,6 +65,25 @@ rewritten; what changed and why is stated.
   first-divergence blocks as the published artifact; `engine/quarantine.js` with no flag prints the same output as
   HEAD's copy on the same tree. Readings: `docs/_reports/2026-09-22-regmc-instruments.md`. Nothing here is published.
 
+## [0.36.0] — 2026-09-22
+
+### Fixed
+- **White Herb is spent on the move that ends the battle, in Reg M-C.** The two checkouts differ here. Reg M-C's
+  whiteherb restores inside `useMove` (`onAnyAfterMove() { this.effect.onStart.call(...) }`), before `runAction`'s
+  `faintMessages()` ends the battle (M-C checkout `sim/battle.ts` :2832-2833); Reg M-B's QUEUES it
+  (`insertChoice({ event: "WhiteHerb", order: 99 })`), which never runs after the battle has ended. This engine spent
+  it in `_updateAll`, which both `sideWiped` break sites skip, so a Close Combat that knocked out the last foe left its
+  user holding the herb at -1/-1 under Reg M-C. `engine/tag_dex.js` now writes `restoresStats.afterMoveImmediate` for
+  the M-C shape only (Reg M-B's row derives byte-identically; the M-C row was spliced), and `herbAtWin` runs the herb's
+  reader at the two breaks for a holder whose tag says so. Knob `MEDI_HERB_SKIPPED_AT_WIN`.
+- `tests/probe_regmc_white_herb_at_win.js` (`--regulation regmc`): a three-turn wipe whose last knockout is the herb
+  holder's self-dropping hit, and a no-item control. Exit 0 clean; exit 1 under the knob and on the 0.35.0 release and
+  bytes.
+
+### Notes
+- The first cut ran the herb for every holder, and the Reg M-B lattice parted on four games the other way (the
+  authority kept the herb). That is how the two checkouts' handlers were found to differ; the tag now carries it.
+
 ## [0.35.0] — 2026-09-22
 
 ### Fixed

@@ -1,3 +1,17 @@
+## REG M-C: WHITE HERB IS SPENT ON THE MOVE THAT ENDS THE BATTLE. 2026-09-22 (abra/regmc 0.36.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-2.md` §4.
+
+- **Defect.** Reg M-C's herb restores inside `useMove`, before the win check; this engine spent it in `_updateAll`,
+  below both `sideWiped` breaks, so the battle-ending move's self-drop stayed on the board. Reg M-B's checkout queues
+  the restore instead and never spends it after the battle ends.
+- **Fix.** The tag carries which (`restoresStats.afterMoveImmediate`); `herbAtWin` at the two breaks reads it.
+- **Probe** `tests/probe_regmc_white_herb_at_win.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_HERB_SKIPPED_AT_WIN` and on the 0.35.0 release and bytes. The Reg M-B lattice is the other arm: it parted four
+  games when the first cut ignored the tag.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
 ## REG M-C: STEELY SPIRIT BOOSTS ITS HOLDER'S AND ITS PARTNER'S STEEL MOVES. 2026-09-22 (abra/regmc 0.35.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-2.md` §3.
