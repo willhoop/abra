@@ -134,6 +134,9 @@ function entryFor(id) {
     /* 2026-09-21 (MEASURE, abra/regmc 0.19.0) -- the behaviour table the empirical driver clicks out of,
      * P(move | species). null = the Reg M-B file. */
     movePriors: (rt && rt.movePriors) || null,
+    /* 2026-09-22 (ENGINE, abra/regmc 0.24.0) -- the move-effects rulebook (secondaries, certain boosts, accuracy).
+     * null = the Reg M-B file. */
+    moveEffects: (rt && rt.moveEffects) || null,
     in_regulations: !!base,
     in_runtime: !!rt,
   };
@@ -341,6 +344,13 @@ const REG_FILE_KEYS = [
    * (engine_release.js REGULATION_SOURCES), and a Reg M-C run steered off Reg M-B clicks would be a
    * Reg M-C measurement of Reg M-B behaviour that exited 0. */
   ['movePriors', 'data/move-priors.json'],
+  /* 2026-09-22 (ENGINE, abra/regmc 0.24.0) -- THE MOVE-EFFECTS RULEBOOK. `data/move-effects.js` carries every legal move's
+   * secondaries, certain boosts and accuracy (medicham2-browser.js `moveFxTable`, a lazy require relative to its own
+   * __dirname, so this resolver serves it with no reader edited). It is generated from ONE format
+   * (build/build_browser_data.js), and under Reg M-C the 15 legal moves Reg M-B lacks had NO ROW: no secondary, no
+   * certain boost, accuracy falling back to 100 (docs/_reports/2026-09-22-regmc-engine.md section 1). A SOURCE: an M-C
+   * release freezes the regulation's copy (engine_release.js REGULATION_SOURCES). */
+  ['moveEffects', 'data/move-effects.js'],
 ];
 const FILES = {};   /* default rel -> this regulation's rel, only where they differ */
 for (const [key, def] of REG_FILE_KEYS) {
@@ -362,6 +372,7 @@ const ENGINE_DATA = fileFor(DEFAULT_ENGINE_DATA);
 const TAGS_FILE = fileFor('data/tags.json');
 const PROTOCOL_EVENTS_FILE = fileFor('data/protocol-events.json');
 const MOVE_PRIORS_FILE = fileFor('data/move-priors.json');
+const MOVE_EFFECTS_FILE = fileFor('data/move-effects.js');
 /* basename of a Reg M-B file -> basename of this regulation's */
 const BASE_MAP = {};
 for (const def of Object.keys(FILES)) BASE_MAP[path.basename(def)] = path.basename(FILES[def]);
@@ -706,7 +717,7 @@ module.exports = {
   TAGS_FILE, PROTOCOL_EVENTS_FILE, fileFor, FILES: Object.assign({}, FILES),
   /* 2026-09-21 (MEASURE): the behaviour table, by the same rule; and every Reg M-B file this map can
    * replace, whichever regulation is selected (FILES above is empty under Reg M-B). */
-  MOVE_PRIORS_FILE, FILE_DEFAULTS: REG_FILE_KEYS.map(([, def]) => def),
+  MOVE_PRIORS_FILE, MOVE_EFFECTS_FILE, FILE_DEFAULTS: REG_FILE_KEYS.map(([, def]) => def),
   /* 2026-09-21 (MEASURE): the gate's artifacts by the sibling rule. artifactFor(rel) is the one answer to
    * "which file does this regulation's measurement read or write in place of rel"; identity under
    * ARTIFACT_OWNER. artifacts() reports whether the fs seam is installed and what it redirected/refused. */

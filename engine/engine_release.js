@@ -257,8 +257,12 @@ const SOURCES = [
  * a SOURCE (the empirical arm clicks out of it, read through REL.read); a regulation that names its own
  * copy gets that copy frozen beside it, and `regulationRel` below serves it to REL.read. Reg M-B names
  * none, so its list stays empty and its cut is the file set it always was. */
-const REGULATION_SOURCES = [REGN.ENGINE_DATA, REGN.TAGS_FILE, REGN.MOVE_PRIORS_FILE]
-  .filter(f => f && f !== REGN.DEFAULT_ENGINE_DATA && f !== 'data/tags.json' && f !== 'data/move-priors.json');
+/* 2026-09-22 (ENGINE, abra/regmc 0.24.0) -- AND THE MOVE-EFFECTS RULEBOOK, by the same argument: `data/move-effects.js` is
+ * already a SOURCE (the engine requires it lazily), and a regulation that names its own copy gets that copy frozen beside
+ * it. Reg M-B names none, so its list stays empty. */
+const REGULATION_SOURCES = [REGN.ENGINE_DATA, REGN.TAGS_FILE, REGN.MOVE_PRIORS_FILE, REGN.fileFor('data/move-effects.js')]
+  .filter(f => f && f !== REGN.DEFAULT_ENGINE_DATA && f !== 'data/tags.json' && f !== 'data/move-priors.json'
+    && f !== 'data/move-effects.js');
 /* A relative path as the SELECTED regulation reads it: the M-B name of a file this release froze a
  * regulation-own copy of maps to that copy; everything else is itself. For REL.path / REL.read, which
  * do not pass through the require resolver. Identity under Reg M-B. */

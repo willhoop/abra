@@ -62,7 +62,6 @@ const NOT_YET = {
   [J('fixture-legality-baseline')]: 'ENGINE — legality baseline of the staged fixtures',
   [J('mega-dex-official')]: 'ENGINE — mega formes; source of the table, which is per regulation',
   [J('mega-dex')]: 'ENGINE — mega harvest; source of the table',
-  [JS('move-effects')]: 'ENGINE — browser bundle built from the table',
   [J('regulations')]: 'CONFIG — the one file that names every regulation; shared by construction',
   [J('residual-order')]: 'ENGINE — residual order, derived from the format',
   [J('smogon-priors')]: 'OPS — Smogon usage priors for Reg M-B',

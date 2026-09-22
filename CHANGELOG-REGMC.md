@@ -21,6 +21,207 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.32.0] — 2026-09-22
+
+### Fixed
+- **White Herb is spent before an Eject Button or Red Card switch, not after it.** The herb restores from
+  `onAnyAfterMove`, and `AfterMove` is raised inside `useMove`, before `runAction`'s tail does the drags and the owed
+  switches (M-C checkout `sim/battle.ts` :2820-2907). This engine spent it at its post-action pass, after the
+  replacement had walked in, so a switch-in Intimidate's drop was cleared together with the move's self-drop. The
+  herb (`restoreStatsAll`, its one reader) now runs before those two M-C-only doors when either is owed; every other
+  road keeps its post-action pass. Knob `MEDI_HERB_AFTER_OWED_SWITCH`.
+- `tests/probe_regmc_white_herb_before_switch.js` (`--regulation regmc`): a self-dropping hit into an Eject Button
+  holder whose replacement has Intimidate, and a control with no Eject Button. Exit 0 clean; exit 1 under the knob and
+  on the 0.31.0 engine bytes.
+
+### Notes
+- Two more pinned games end with the authority spending a White Herb on the battle's last move and this engine not
+  (the engine ends the battle before its post-action pass). A hypothesis, not probed: a side wiped by one move cannot
+  be staged in the four-body harness in one turn. Recorded.
+- Reg M-B unmoved: the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
+## [0.31.0] — 2026-09-22
+
+### Added
+- **Normal Gem.** Item tag `typeGem {type, mod, volatile, skipsSelfTarget, skipsStatus}` (`engine/tag_dex.js`), derived
+  from the item's `onSourceTryPrimaryHit` and the `gem` condition's `onBasePower`. Membership, whole item dex, both
+  checkouts: all 18 gems match; the only legal one is Normal Gem in Reg M-C; none is legal in Reg M-B. Spliced into
+  `data/tags-regmc.json`: the Normal Gem row and the descriptor.
+- The engine spends the gem on the first row of a damaging use of its type that reaches the damage step (the
+  authority's TryPrimaryHit), writes `-enditem ... [from] gem|[move] <Move>`, records the use (Unburden, Symbiosis), and
+  multiplies that use's base power by the tag's `[5325, 4096]`, last in the base-power relay (`onBasePowerPriority:
+  14`). Knob `MEDI_TYPE_GEM_INERT`.
+- `tests/probe_regmc_type_gem.js` (`--regulation regmc`): a Normal move spends the gem and hits harder, an off-type
+  move keeps it, and a no-item control. Exit 0 clean; exit 1 under the knob and on the 0.30.0 engine bytes.
+
+### Notes
+- Reg M-B unmoved: the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
+## [0.30.0] — 2026-09-22
+
+### Fixed
+- **Binding Band deepens its holder's partial trap to a sixth.** `partiallytrapped.onStart` sets `boundDivisor =
+  source.hasItem("bindingband") ? 6 : 8` (M-C checkout, read from the dist dex), and the `partialTrap` tag has carried
+  that as `chipItem` (and Grip Claw's eight turns as `durationItem`) since the trap was derived; nothing read either, so
+  a holder chipped an eighth. The trap now reads the trapper's item when it lands and keeps the divisor as a divisor, so
+  the tick is `floor(maxhp / 6)`. Both items are `Past` in Reg M-B. Knob `MEDI_TRAP_CHIP_ITEM_BLIND`.
+- `tests/probe_regmc_binding_band.js` (`--regulation regmc`): a holder's Infestation chips a sixth at two residuals, and
+  the no-item control an eighth. Exit 0 clean; exit 1 under the knob and on the 0.29.0 engine bytes.
+
+### Notes
+- Reg M-B unmoved: the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
+## [0.29.0] — 2026-09-22
+
+### Fixed
+- **Terrain Extender makes its holder's terrain last eight turns.** Every terrain condition in the M-C checkout answers
+  `durationCallback(source) { if (source?.hasItem('terrainextender')) return 8; return 5; }`, and both terrain
+  writers in `engine/medicham2-browser.js` (the move and the Surge ability on entry) wrote a literal 5. `terrainTurns`
+  reads the setter's item's `extendsDuration` tag, as `weatherTurns` does for the rocks; nothing about 8 is typed.
+  Terrain Extender is `Past` in Reg M-B, so no Reg M-B item names a terrain. Knob `MEDI_TERRAIN_FIVE_ALWAYS`.
+- `tests/probe_regmc_terrain_extender.js` (`--regulation regmc`): a terrain move and a Surge ability, each from a holder,
+  and a control with no item; the terrain clock is a compared board leaf. Exit 0 clean; exit 1 under the knob and on
+  the 0.28.0 engine bytes.
+
+### Notes
+- The move road's `-fieldstart` carries `[of] <user>` here and nothing on the authority; the differential's reducer
+  folds it (narration, recorded).
+- Reg M-B unmoved: the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
+## [0.28.0] — 2026-09-22
+
+### Fixed
+- **Revival Blessing fails when nobody has fainted.** Its `selfSwitch` only raises the switch request that names a
+  fainted body (the move's own comment, M-C checkout `data/moves.ts` :15126-15129), and `onTryHit` fails the move when
+  the user's party holds no fainted body. This engine read the `selfSwitch` as a status pivot and switched a live bench
+  body in. New move tag `revivesFainted {slotCondition, failsWithoutFainted, hpFraction, instaswitchIfActiveSlot}`
+  (`engine/tag_dex.js`), the shape read off the move and the fraction off `Battle.prototype.runAction`; `pivotStatus`
+  no longer claims it. Membership, whole dex, both checkouts: Revival Blessing only; legal in Reg M-C, `Past` in Reg
+  M-B. The engine fails the move (`-fail|USER`, nobody switches) when the user's roster holds no fainted body. Knob
+  `MEDI_REVIVE_AS_PIVOT`.
+- `tests/probe_regmc_revival_blessing.js` (`--regulation regmc`): the move with no fainted ally fails and the user
+  stays. Exit 0 clean; exit 1 under the knob and on the 0.27.0 engine bytes.
+
+### Notes
+- **The revive itself is not modelled** (a fainted body exists): it is counted (`MEDFAILS.reviveUnmodelled`) and still
+  pivots. The differential's forced-switch mirror answers a switch request with a LIVE bench body, so it cannot express
+  a revival request, and the seven pinned choices the authority refused ("You have to pass to a fainted Pokémon") are
+  that. Filed for MEASURE; the engine half waits for an instrument that can show it right.
+- `data/tags-regmc.json`: the Revival Blessing row and the two descriptors (spliced). Reg M-B's tag file has no member.
+- Reg M-B unmoved: the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
+## [0.27.0] — 2026-09-22
+
+### Fixed
+- **Octolock drops Defence and Sp. Def every turn until its source is gone.** The per-turn-boost residual read every
+  member's `_vol` entry as a clock; Octolock declares no duration, so its bare 1 ran out and the lock ENDED at its first
+  residual, where the authority drops two stages. `perTurnBoost` (`engine/tag_dex.js`) now also carries, read off the
+  condition, `residualSourceEnd {clauses, endArgs}` (the source-gone test at the top of Octolock's own `onResidual`)
+  and `trapsWhileSourceActive` (`onTrapPokemon`). A member with no duration and a residual source end is ticked
+  without a clock and ended at the residual by the partial trap's three clauses (`sourceOffField`, `_newlySwitched`),
+  writing `-end ... [partiallytrapped]|[silent]`; the `onUpdate` sweep leaves it alone. `switchTrapVerdict` refuses a
+  switch while its source is active (counted, `MEDSEEN.volTrapBlocked`; the staged harness cannot offer a switch the
+  authority refuses, so that half is not probed). Syrup Bomb's row is unchanged. Knob `MEDI_PERTURN_BOOST_CLOCK_ALWAYS`.
+- `engine/board_state.js` compares `vol.octolock` (presence). `tests/probe_uncompared_leaves.js --regulation regmc`
+  now lists no uncompared leaf that can stand at a turn boundary.
+- `tests/probe_regmc_octolock.js` (`--regulation regmc`): three residual drops while locked; two, then a silent end,
+  when the user switches out. Exit 0 clean; exit 1 under the knob and on the 0.26.0 engine bytes.
+
+### Notes
+- The authority writes `[of] <source>` on Octolock's `-start` and this engine does not; the differential's reducer
+  folds that field (narration). Recorded, not fixed.
+- `data/tags-regmc.json`: only the Octolock row changed (spliced). Reg M-B's `data/tags.json` has no member with
+  either new field.
+- Reg M-B unmoved: the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
+## [0.26.0] — 2026-09-22
+
+### Added
+- **Glaive Rush leaves its user exposed.** Move tag `exposesUser {volatile, damageTakenMult, alwaysHitBy,
+  endsBeforeOwnMove, silentStart}` (`engine/tag_dex.js`), derived from the condition of the move's own
+  `self.volatileStatus`: an `onSourceModifyDamage` that `chainModify`s the damage its holder takes, an `onAccuracy`
+  that returns true, an `onBeforeMove` that removes it. Membership, whole dex, both checkouts: Glaive Rush only; legal
+  in Reg M-C, `Past` in Reg M-B. `data/tags-regmc.json` carries the descriptor and the Glaive Rush row (spliced; no
+  other row moved).
+- The engine arms the volatile at the self-drop step when the move reached a target, doubles every damage calc into
+  the holder, makes every move into it hit, and drops it at the top of the holder's own BeforeMove gate (priority 100,
+  above recharge). Knob `MEDI_SELF_EXPOSED_INERT`.
+- `engine/board_state.js` compares `vol.glaiverush` (presence), which stands across the turn boundary. It was listed
+  by `tests/probe_uncompared_leaves.js` as written and uncompared; it no longer is. No Reg M-B move writes it.
+- `tests/probe_regmc_glaive_rush.js` (`--regulation regmc`): an exposed user takes a doubled hit from a slower foe on
+  the same turn and a normal one after it moves again; a control with a plain contact move. Exit 0 clean; exit 1 under
+  the knob and on the 0.25.0 engine bytes.
+
+### Notes
+- Reg M-B unmoved: the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
+## [0.25.0] — 2026-09-22
+
+### Fixed
+- **Aura Guard halves contact damage.** The `damageReduce` reader in `engine/medicham2-browser.js` had no branch for
+  `onlyWhen: 'contact'`, so the condition was refused as unknown (`MEDFAILS.damageReduceUnknown`) and the cut was never
+  applied: every contact hit into Lucario-Mega-Z did double damage here. The reader now asks the per-use contact fact
+  (`mvMakesContact(id, att, use)`), which is what the authority's handler reads (`move.flags['contact']` on the active
+  move, after Long Reach). The ability is `breakable`, and Mold Breaker already removes it from `defAb`. Knob
+  `MEDI_DAMAGE_REDUCE_CONTACT_UNKNOWN`.
+- `tests/probe_regmc_aura_guard.js` (`--regulation regmc`): a contact hit, a non-contact hit and a Mold Breaker contact
+  hit into the mega holder. Exit 0 clean; exit 1 under the knob and on the 0.24.0 engine bytes.
+
+### Notes
+- **The "Aura Guard card that only parts after earlier games" is not engine state.** Replayed in a fresh process with
+  the driver's coverage counters restored, the Lucario game reproduces line for line. A second game that did NOT
+  reproduce parts at the driver's mega choice: `MEGA_PREFER_B` in `engine/game_differential.js` alternates across
+  games and is not in `driverSnap`, so whether the Lucario megas into the Aura Guard forme depends on the games before
+  it. The instrument's, filed for MEASURE; see the report.
+- No Reg M-B tag carries a contact-only `damageReduce`, so the new branch cannot run under Reg M-B.
+- Reg M-B unmoved: the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
+## [0.24.0] — 2026-09-22
+
+### Added
+- **The move-effects rulebook is per-regulation.** `data/move-effects.js` (a move's secondaries, certain boosts and
+  accuracy, read by `moveFxTable` in `engine/medicham2-browser.js`) joins the per-regulation map
+  (`engine/regulation.js` `REG_FILE_KEYS` `moveEffects`; `runtime.regmc.moveEffects` in `data/regulations.json`). Reg
+  M-C reads `data/move-effects-regmc.js`, built by `node build/build_browser_data.js --regulation regmc` from the Reg
+  M-C checkout: 515 legal moves, against Reg M-B's 500. An M-C release freezes it (`engine/engine_release.js`
+  `REGULATION_SOURCES`). Knob `MEDI_MOVE_EFFECTS_OWNER_TABLE` reads Reg M-B's file by its bytes, around the resolver.
+- `tests/probe_regmc_move_effects.js` (`--regulation regmc`): a 100% secondary stat drop and a certain self-boost, each
+  from a move Reg M-B's table has no row for, chosen from the dex; and a row for every legal move. Exit 0 clean; exit 1
+  under the knob and on the 0.22.0 engine bytes.
+
+### Changed
+- `build/build_browser_data.js` writes each output where the selected regulation reads it, and SKIPS
+  `data/mega-formes.js` (printed) under a regulation that has no copy of its own, so a Reg M-C run cannot overwrite
+  Reg M-B's file.
+- `tests/test-regulation-table.js` expects the move-effects copy in an M-C cut; `tests/test-regulation-artifacts.js`
+  drops it from `NOT_YET`.
+- `.gitattributes` pins `data/move-effects-regmc.js` to LF, like its Reg M-B twin: it is frozen into every M-C release,
+  and an unpinned LF file is rewritten CRLF by a checkout, which moves the release id with no code change.
+
+### Notes
+- The Reg M-C table differs from Reg M-B's on the 15 new moves and on one shared row: Curse carries no `volatile` in
+  the Reg M-C checkout.
+- Reg M-B unmoved: `data/tags.json`, `data/protocol-events.json` and `data/move-effects.js` byte-identical; damage
+  differential identical but for its output-path line (control seed differs); lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
+
 ## [0.23.1] — 2026-09-21
 
 ### Added
@@ -61,7 +262,6 @@ rewritten; what changed and why is stated.
 - Reg M-B unmoved: `data/meta-usage.json` untouched, and HEAD's `analyze.js` and this one write byte-identical models
   on the same Reg M-B store. The cutter's dry run is identical with the predicate moved. Nothing is published from the
   Reg M-C model. Full account: `docs/_reports/2026-09-22-regmc-usage.md`.
-
 ## [0.22.0] — 2026-09-21
 
 ### Added

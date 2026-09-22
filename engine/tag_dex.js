@@ -1259,6 +1259,30 @@ function ifClauses(src) {
   }
   return out;
 }
+/* 2026-09-22 (Reg M-C, abra/regmc 0.28.0) -- A MOVE THAT REVIVES A FAINTED PARTY MEMBER (Revival Blessing).
+ *
+ * M-C checkout data/moves.ts revivalblessing :15110-15136: `onTryHit(source) { if (!source.side.pokemon.filter(ally =>
+ * ally.fainted).length) return false; }`, `slotCondition: 'revivalblessing'`, and a `selfSwitch: true` that is only
+ * there to raise the switch request that names the fainted body. The revival itself is in the SIM, not on the move:
+ * sim/battle.ts `runAction` case 'revivalblessing' -- `sethp(maxhp / 2)` and `-heal ... [from] move: Revival Blessing`,
+ * and an `instaswitch` when the body's position is an active slot. So the fraction is read off `Battle.prototype.runAction`
+ * and the shape off the move; nothing is typed. */
+function reviveShape(m) {
+  if (!m || !m.slotCondition || !m.selfSwitch) return null;
+  if (!/\.fainted\)/.test(String(m.onTryHit || '').replace(/\s+/g, ' '))) return null;
+  let frac = null, inst = false;
+  try {
+    const { Battle } = require(path.join(process.env.SHOWDOWN_PATH, 'dist', 'sim', 'battle.js'));
+    const src = String(Battle.prototype.runAction).replace(/\s+/g, ' ');
+    const cs = src.indexOf('case "' + m.slotCondition + '":');
+    const body = cs >= 0 ? src.slice(cs, cs + 900) : '';
+    const fm = /sethp\(action\.target\.maxhp \/ (\d+)\)/.exec(body);
+    frac = fm ? 1 / +fm[1] : null;
+    inst = /choice: "instaswitch"/.test(body);
+  } catch (e) { console.error('tag_dex: reviveShape could not read Battle.prototype.runAction: ' + String((e && e.message) || e).slice(0, 120)); }
+  return { slotCondition: m.slotCondition, failsWithoutFainted: true, hpFraction: frac, instaswitchIfActiveSlot: inst,
+           from: 'DERIVED:move.onTryHit + Battle.prototype.runAction case ' + m.slotCondition };
+}
 const MOVE_TAGS = [
   /* ROADMAP #144 -- HOW MANY TIMES THIS MOVE CAN BE CLICKED, and until 2026-08-11 the engine had no
    * such number at all: zero mentions of PP in medicham2-browser.js and no `pp` field on a built
@@ -2935,10 +2959,26 @@ const MOVE_TAGS = [
       const vol = m.volatileStatus || (m.secondary && m.secondary.volatileStatus)
                || (m.secondaries || []).map(s => s && s.volatileStatus).find(Boolean) || null;
       if (!vol) return null;
+      /* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- WHERE THE VOLATILE DIES WITH ITS SOURCE, READ OFF THE HANDLER.
+       * Syrup Bomb ends at `onUpdate` (`this.effectState.source && !this.effectState.source.isActive`); Octolock
+       * (M-C checkout data/moves.ts :12960-12994) ends at its own `onResidual`, ABOVE the boost, on
+       * `source && (!source.isActive || source.hp <= 0 || !source.activeTurns)`, writing
+       * `-end ... 'Octolock', '[partiallytrapped]', '[silent]'`, and it has NO duration -- so its `_vol` entry is not a
+       * clock. It also traps (`onTrapPokemon`: `if (this.effectState.source?.isActive) pokemon.tryTrap()`). Absent on
+       * a member whose handlers say none of this, so Reg M-B's `data/tags.json` rows are unchanged. */
+      const res = String(c.onResidual || '').replace(/\s+/g, ' ');
+      const rg = /if \(source && \(([^{]*)\)\) \{([^}]*)\}/.exec(res);
+      const residualSourceEnd = rg ? {
+        clauses: rg[1].split('||').map(x => x.trim()).map(x => /isActive/.test(x) ? 'isActive' : /hp\s*<=\s*0/.test(x) ? 'hp' : /activeTurns/.test(x) ? 'activeTurns' : x),
+        endArgs: ((/this\.add\(\s*"-end"\s*,\s*pokemon\s*,\s*"[^"]*"((?:\s*,\s*"[^"]*")*)\s*\)/.exec(rg[2]) || [])[1] || '')
+          .split(',').map(x => x.trim().replace(/^"|"$/g, '')).filter(Boolean) } : null;
+      const trapsWhileSourceActive = /source\??\.isActive\) pokemon\.tryTrap\(\)/.test(String(c.onTrapPokemon || '').replace(/\s+/g, ' '));
       return { volatile: vol, boosts,
                on: call[2] === 'pokemon' ? 'holder' : call[2],
                duration: c.duration != null ? +c.duration : null,
-               endsSilently: /\[silent\]/.test(String(c.onEnd || '')) };
+               endsSilently: /\[silent\]/.test(String(c.onEnd || '')),
+               ...(residualSourceEnd ? { residualSourceEnd } : {}),
+               ...(trapsWhileSourceActive ? { trapsWhileSourceActive: true } : {}) };
     } },
   /* THE COUNTER AND THE FEELING ARE TWO DIFFERENT NUMBERS, AND THIS TAG CARRIED THE FEELING.
    *
@@ -3678,6 +3718,10 @@ const MOVE_TAGS = [
      * The five unconditional status/string pivots keep the params they had, byte for byte. */
     of: m => {
       if (!(m.selfSwitch && m.category === 'Status' && typeof m.selfSwitch !== 'string')) return null;
+      /* 2026-09-22 (Reg M-C, abra/regmc 0.28.0) -- NOT A PIVOT: a `selfSwitch` that exists "to trigger a switch protocol
+       * to choose a fainted party member" (Revival Blessing's own comment, M-C checkout data/moves.ts :15126-15129). Its
+       * user never leaves; it is `revivesFainted` below, and a pivot consumer would switch a live bench body in. */
+      if (reviveShape(m)) return null;
       const out = { selfSwitch: m.selfSwitch };
       const src = (String(m.onHit || '') + String(m.onTryHit || '') + String(m.onAfterHit || ''))
         .replace(/\s+/g, ' ');
@@ -3696,6 +3740,11 @@ const MOVE_TAGS = [
         .map(x => x[1]))];
       return out;
     } },
+  { tag: 'revivesFainted', param: 'fails unless the user\'s party holds a fainted body; revives one at hpFraction of its max HP',
+    probe: 'revivesFainted',
+    why: 'Revival Blessing (Pawmot, 767 Reg M-C uses): with no fainted ally the authority fails the move, and this engine '
+       + 'switched a live bench body in as though it were Parting Shot',
+    of: m => reviveShape(m) },
   /* ROADMAP #81 WIRE 12 -- `passes: true` NAMED NOTHING A CONSUMER COULD APPLY, and the engine had
    * no consumer at all: Baton Pass and Shed Tail both resolved to a click that never switched, so
    * Heliolisk paid half its HP for a Substitute and then STOOD THERE. The two are not the same
@@ -5668,6 +5717,34 @@ const MOVE_TAGS = [
   { tag: 'recharge', param: 'costs the turn AFTER it lands', probe: 'rechargeTurn',
     why: 'Hyper Beam. A free turn for the opponent',
     of: m => (m.self && m.self.volatileStatus === 'mustrecharge') ? { recharge: true } : null },
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.26.0) -- A MOVE THAT LEAVES ITS USER EXPOSED. Glaive Rush, M-C checkout
+   * data/moves.ts :6647-6678 (the Champions mod names it only in learnsets):
+   *     self: { volatileStatus: 'glaiverush' },
+   *     condition: { onStart(pokemon) { this.add('-singlemove', pokemon, 'Glaive Rush', '[silent]'); },
+   *                  onAccuracy() { return true; }, onSourceModifyDamage() { return this.chainModify(2); },
+   *                  onBeforeMovePriority: 100, onBeforeMove(pokemon) { pokemon.removeVolatile('glaiverush'); } }
+   * DERIVED FROM THE SELF VOLATILE'S CONDITION: a `self.volatileStatus` whose condition answers `onSourceModifyDamage` with
+   * a `chainModify(N)` -- the damage the USER takes is multiplied (the `Source` prefix is the defender's side of
+   * ModifyDamage) -- plus whether it makes every move against the user hit (`onAccuracy` returning true) and whether it
+   * ends at the user's own next action (`onBeforeMove` removing it). Membership, printed before wiring, whole dex, both
+   * checkouts: `glaiverush` only; legal in gen9championsvgc2026regmc, `Past` in gen9championsvgc2026regmb. */
+  { tag: 'exposesUser', param: 'after it lands, the user takes `damageTakenMult` x damage (and cannot dodge) until it next acts',
+    probe: 'exposesUser',
+    why: 'Glaive Rush (Baxcalibur, 1,128 Reg M-C uses): the authority doubles the next hit into the user, this engine did not',
+    of: m => {
+      const vol = m.self && m.self.volatileStatus;
+      if (!vol) return null;
+      let c; try { c = dex.conditions.get(vol); } catch (e) {
+        console.error('tag_dex: exposesUser could not read condition "' + vol + '" for ' + m.id + ': ' + String((e && e.message) || e).slice(0, 120));
+        return null; }
+      const src = f => String((c && c[f]) || '').replace(/\s+/g, ' ');
+      const mm = /this\.chainModify\(\s*([0-9.]+)\s*\)/.exec(src('onSourceModifyDamage'));
+      if (!mm) return null;
+      return { volatile: vol, damageTakenMult: +mm[1], alwaysHitBy: /return true/.test(src('onAccuracy')),
+               endsBeforeOwnMove: /removeVolatile\(/.test(src('onBeforeMove')),
+               silentStart: /\[silent\]/.test(src('onStart')),
+               from: 'DERIVED:dex.conditions.get(' + vol + ').onSourceModifyDamage' };
+    } },
   /* THE LOCK-IN FAMILY -- Outrage, Petal Dance, Raging Fury, Thrash and Uproar. Sibling of `recharge`
    * one line up and derived from the same field, which is why it sits here: both are a move that
    * writes a volatile ONTO ITS OWN USER and both of those volatiles answer `onLockMove`. They are
@@ -6437,6 +6514,26 @@ const FLATTENS_TAG = {
 
 const ITEM_TAGS = [
   FLATTENS_TAG,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.31.0) -- THE TYPE GEMS. M-C checkout data/items.ts normalgem (the Champions mod
+   * does not name it): `onSourceTryPrimaryHit(target, source, move) { if (target === source || move.category === "Status"
+   * || move.flags["pledgecombo"]) return; if (move.type === "Normal" && source.useItem()) { source.addVolatile("gem"); } }`,
+   * and data/conditions.ts `gem`: duration 1, `onBasePowerPriority: 14`, `onBasePower() { return this.chainModify([5325,
+   * 4096]); }`. DERIVED FROM THE HANDLER: the type off the item, the multiplier off the condition it adds. Membership,
+   * printed before wiring, whole item dex, both checkouts: all 18 gems match; the only legal one is `normalgem` in
+   * gen9championsvgc2026regmc, and none is legal in gen9championsvgc2026regmb. */
+  { tag: 'typeGem', param: 'spent on the first hit of a damaging move of `type`; that move takes x`mod` base power',
+    probe: 'typeGem',
+    why: 'Normal Gem on Fake Out (Reg M-C): the authority spends it and boosts the hit, this engine did neither',
+    of: it => {
+      const src = fnsrc(it.onSourceTryPrimaryHit);
+      const m = /move\.type === ["'](\w+)["'] && source\.useItem\(\)\) \{ source\.addVolatile\(["'](\w+)["']\)/.exec(src);
+      if (!m) return null;
+      let c; try { c = dex.conditions.get(m[2]); } catch (e) { console.error('tag_dex: typeGem could not read condition ' + m[2] + ': ' + String((e && e.message) || e).slice(0, 120)); return null; }
+      const bp = /chainModify\(\[(\d+), (\d+)\]\)/.exec(fnsrc(c && c.onBasePower));
+      if (!bp) return null;
+      return { type: m[1], mod: [+bp[1], +bp[2]], volatile: m[2], skipsSelfTarget: /target === source/.test(src),
+               skipsStatus: /move\.category === ["']Status["']/.test(src), from: 'DERIVED:item.onSourceTryPrimaryHit + dex.conditions.get(' + m[2] + ').onBasePower' };
+    } },
   /* ROADMAP #144 -- THE BERRY THAT GIVES PP BACK, and it could not have a tag before PP existed
    * because there was nothing for it to restore. Derived from the `onEat` handler's own arithmetic
    * (`moveSlot.pp = Math.min(moveSlot.pp + addedPP, moveSlot.maxpp)`, data/items.ts:3367), including

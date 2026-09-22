@@ -53,6 +53,85 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.32.0] — 2026-09-22 — **White Herb is spent before an Eject Button or Red Card switch, not after it**
+
+- **What changed.** `engine/medicham2-browser.js`: `restoreStatsAll` runs at the AfterMove door before the Red Card
+  drag and the owed Eject Button / Emergency Exit switches (both M-C-only). Knob `MEDI_HERB_AFTER_OWED_SWITCH`; probe
+  `tests/probe_regmc_white_herb_before_switch.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine.md` §11.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+## [abra/regmc 0.31.0] — 2026-09-22 — **Normal Gem is spent on a Normal move and boosts it**
+
+- **What changed.** Item tag `typeGem` (derived; Normal Gem is the only legal member) and its consumer
+  `typeGemSpend` plus a base-power relay member in `engine/medicham2-browser.js`. Knob `MEDI_TYPE_GEM_INERT`; probe
+  `tests/probe_regmc_type_gem.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine.md` §10.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+## [abra/regmc 0.30.0] — 2026-09-22 — **Binding Band deepens its holder's partial trap to a sixth**
+
+- **What changed.** `engine/medicham2-browser.js`: the partial trap reads its trapper's item off the tag's `chipItem` /
+  `durationItem` when it lands, and ticks by the divisor. Knob `MEDI_TRAP_CHIP_ITEM_BLIND`; probe
+  `tests/probe_regmc_binding_band.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine.md` §9.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+## [abra/regmc 0.29.0] — 2026-09-22 — **Terrain Extender makes its holder's terrain last eight turns**
+
+- **What changed.** `engine/medicham2-browser.js` `terrainTurns` reads the setter's item's `extendsDuration` tag; both
+  terrain writers (move, Surge ability) use it instead of a literal 5. Knob `MEDI_TERRAIN_FIVE_ALWAYS`; probe
+  `tests/probe_regmc_terrain_extender.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine.md` §7.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+## [abra/regmc 0.28.0] — 2026-09-22 — **Revival Blessing fails when nobody has fainted, instead of switching a live body in**
+
+- **What changed.** Move tag `revivesFainted` (derived; Revival Blessing only; `pivotStatus` no longer claims it) and
+  its consumer in `engine/medicham2-browser.js`: `-fail|USER` and no switch when the user's roster holds no fainted
+  body. The revive itself is counted (`MEDFAILS.reviveUnmodelled`), not modelled: the differential cannot mirror a
+  revival request (filed for MEASURE). Knob `MEDI_REVIVE_AS_PIVOT`; probe `tests/probe_regmc_revival_blessing.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine.md` §6.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+## [abra/regmc 0.27.0] — 2026-09-22 — **Octolock drops Defence and Sp. Def every turn until its source is gone, and its leaf is compared**
+
+- **What changed.** `perTurnBoost` carries `residualSourceEnd` and `trapsWhileSourceActive`, read off Octolock's
+  condition; the residual walk ticks a clockless member and ends it at the residual when its source is gone; the trap
+  verdict refuses a switch while the source stands; `engine/board_state.js` compares `vol.octolock`. Knob
+  `MEDI_PERTURN_BOOST_CLOCK_ALWAYS`; probe `tests/probe_regmc_octolock.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine.md` §5: a
+  rare move, and the lab moved while the pool did not, as expected before the run.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+## [abra/regmc 0.26.0] — 2026-09-22 — **Glaive Rush leaves its user exposed, and the leaf it writes is compared**
+
+- **What changed.** Move tag `exposesUser` (derived from the self volatile's condition; Glaive Rush only) and its
+  consumers in `engine/medicham2-browser.js` (armed at the self-drop step, doubled damage, never missed, ended at the
+  holder's BeforeMove). `engine/board_state.js` compares `vol.glaiverush`. Knob `MEDI_SELF_EXPOSED_INERT`; probe
+  `tests/probe_regmc_glaive_rush.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine.md` §4.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+## [abra/regmc 0.25.0] — 2026-09-22 — **Aura Guard halves contact damage; the "order-dependent" card was the driver's mega choice**
+
+- **What changed.** `engine/medicham2-browser.js`: the `damageReduce` reader evaluates `onlyWhen: 'contact'` (it was
+  refused as unknown, so Aura Guard never applied). Knob `MEDI_DAMAGE_REDUCE_CONTACT_UNKNOWN`; probe
+  `tests/probe_regmc_aura_guard.js`. The cross-game dependence of the card is the differential driver's mega
+  alternation, not engine state (filed for MEASURE).
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine.md` §3.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+## [abra/regmc 0.24.0] — 2026-09-22 — **The move-effects rulebook is per-regulation, so the 15 moves Reg M-C added have their secondaries, boosts and accuracy**
+
+- **What changed.** `data/move-effects.js` joins the per-regulation map (`engine/regulation.js`, `moveEffects`); Reg M-C
+  reads `data/move-effects-regmc.js`, derived by `build/build_browser_data.js --regulation regmc` from the Reg M-C
+  checkout, and an M-C release freezes it. Knob `MEDI_MOVE_EFFECTS_OWNER_TABLE`; probe
+  `tests/probe_regmc_move_effects.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine.md` §1.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.23.1] — 2026-09-21 — **A ledger restamp would have written the closed Reg M-B gate as CLOSED; not committed**
 
 - `engine/status.js --write` reads the DEFAULT regulation, which is still Reg M-B. Today's Reg M-C fixes
@@ -73,7 +152,6 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
   commit's `analyze.js` write byte-identical models on the same Reg M-B store. The Reg M-C readings, the legality count
   and what CHOMP needs are in `docs/_reports/2026-09-22-regmc-usage.md`.
 - **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
-
 ## [abra/regmc 0.22.0] — 2026-09-21 — **Emergency Exit switches its holder out, and the item pass is measured on the pinned differential**
 
 - **What changed.** Ability tag `switchesOutAtHalf` (derived; Golisopod is the only legal Reg M-C carrier; none in Reg

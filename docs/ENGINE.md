@@ -1,3 +1,239 @@
+## REG M-C: WHITE HERB IS SPENT BEFORE AN EJECT BUTTON OR RED CARD SWITCH. 2026-09-22 (abra/regmc 0.32.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §11, and what is left in §12.
+
+- **Defect.** White Herb restores at `onAnyAfterMove`, before `runAction`'s tail does the drags and owed switches. This
+  engine spent it at the post-action pass, after the replacement walked in, so a switch-in Intimidate's drop was
+  cleared as well.
+- **Fix.** `restoreStatsAll` at the AfterMove door, before the Red Card drag and the owed Eject Button / Emergency Exit
+  switches (both M-C-only doors).
+- **Probe** `tests/probe_regmc_white_herb_before_switch.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_HERB_AFTER_OWED_SWITCH` and on the 0.31.0 engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after this pass
+
+Ranked on the PINNED Reg M-C differential, by first BOARD divergence (18 left; report §12):
+
+1. The five games whose first protocol divergence is the **Sirfetch'd / Farfetch'd display name** (the M-C table keys
+   `sirfetch-d`): their board causes are later and hidden until the name is fixed (`build/build_engine_data_regmc.js`).
+2. **White Herb on the battle's last move** (two games): the authority spends it; this engine ends the battle first.
+3. Singles: Grassy Terrain's end, Seed Sower, Liquid Ooze, Berserk, Trace's pick, rain upkeep, a switch and a move after
+   the authority stopped, Psychic Terrain on a different body, two damage values (Golisopod, Basculegion).
+4. Revival Blessing's revive road (needs MEASURE's mirror first).
+5. The 17 census rows missing under Reg M-C: all staging gaps (report §8).
+6. Carried: the `-start`/`-fieldstart` `[of]` fields, the Inner Focus stat label, the seed GAIN door, Emergency Exit's
+   residual and hazard doors; for MEASURE, `MEGA_PREFER_B` outside `driverSnap`.
+## REG M-C: NORMAL GEM IS SPENT ON A NORMAL MOVE AND BOOSTS IT. 2026-09-22 (abra/regmc 0.31.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §10.
+
+- **Tag.** `typeGem {type, mod, volatile, skipsSelfTarget, skipsStatus}`, from `onSourceTryPrimaryHit` and the `gem`
+  condition. Legal member: Normal Gem (Reg M-C only).
+- **Engine.** `typeGemSpend` at the first row of the use that reaches the damage step; `-enditem ... [from] gem|[move]`;
+  Unburden and Symbiosis through `recordItemUsed` / `passItemFromAlly`; x5325/4096 last in the base-power relay; the
+  boost is dropped at the holder's next BeforeMove gate.
+- **Probe** `tests/probe_regmc_type_gem.js --regulation regmc`: exit 0 clean; exit 1 under `MEDI_TYPE_GEM_INERT` and on
+  the 0.30.0 engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after the 0.31.0 pass — SUPERSEDED by the 0.32.0 list above
+
+1. **White Herb** is spent at the AfterMove door, BEFORE the end-of-action switches (Eject Button); this engine spends
+   it at the post-action pass, after a switch-in's Intimidate, and clears that drop too. Two more White Herb games end
+   with the authority spending it and this engine not (unexplained).
+2. Singles: Grassy Terrain end, Seed Sower, Liquid Ooze, Berserk, Trace's pick, rain upkeep, two damage values, and the
+   games whose first protocol divergence is the Sirfetch'd/Farfetch'd display name (the M-C table keys `sirfetch-d`).
+3. Revival Blessing's revive road (needs MEASURE's mirror first).
+4. The 17 census rows missing under Reg M-C: all staging gaps (report §8).
+5. Carried: the `-start`/`-fieldstart` `[of]` fields, the Inner Focus stat label, the seed GAIN door, Emergency Exit's
+   residual and hazard doors; for MEASURE, `MEGA_PREFER_B` outside `driverSnap`.
+## REG M-C: BINDING BAND DEEPENS ITS HOLDER'S PARTIAL TRAP TO A SIXTH. 2026-09-22 (abra/regmc 0.30.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §9.
+
+- **Defect.** The partial trap's `chipItem` (Binding Band, a sixth) and `durationItem` (Grip Claw, eight turns) were on
+  the tag and read by nothing.
+- **Fix.** Read off the trapper's item when the trap lands; the tick is `floor(maxhp / divisor)`.
+- **Probe** `tests/probe_regmc_binding_band.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_TRAP_CHIP_ITEM_BLIND` and on the 0.29.0 engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after the 0.30.0 pass — SUPERSEDED by the 0.31.0 list above
+
+1. **Normal Gem** (untagged: consumed on a Normal move, x5325/4096 power), **White Herb** timing.
+2. Singles: Grassy Terrain end, Seed Sower, Liquid Ooze, Berserk, Trace's pick, rain upkeep, two damage values, and the
+   games whose first protocol divergence is the Sirfetch'd/Farfetch'd display name (the M-C table keys `sirfetch-d`).
+3. Revival Blessing's revive road (needs MEASURE's mirror first).
+4. The 17 census rows missing under Reg M-C: all staging gaps (report §8).
+5. Carried: the `-start`/`-fieldstart` `[of]` fields, the Inner Focus stat label, the seed GAIN door, Emergency Exit's
+   residual and hazard doors; for MEASURE, `MEGA_PREFER_B` outside `driverSnap`.
+## REG M-C: TERRAIN EXTENDER MAKES ITS HOLDER'S TERRAIN LAST EIGHT TURNS. 2026-09-22 (abra/regmc 0.29.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §7.
+
+- **Defect.** Both terrain writers (the move and the Surge ability) wrote a literal 5; the authority's
+  `durationCallback` returns 8 for a setter holding Terrain Extender.
+- **Fix.** `terrainTurns(terrain, item)` reads the setter's item's `extendsDuration` (the tag already named the four
+  terrains), as `weatherTurns` does for the rocks.
+- **Probe** `tests/probe_regmc_terrain_extender.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_TERRAIN_FIVE_ALWAYS` and on the 0.28.0 engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after the 0.29.0 pass — SUPERSEDED by the 0.30.0 list above
+
+Ranked on the PINNED Reg M-C differential, by first BOARD divergence (report §7):
+
+1. **Binding Band** (the partial trap's chip is a sixth for its holder; the tag already carries `chipItem`),
+   **Normal Gem** (untagged: consumed on a Normal move, x5325/4096 power), **White Herb** timing.
+2. Singles: Grassy Terrain end, Seed Sower, Liquid Ooze, Berserk, Trace's pick, rain upkeep, two damage values, and the
+   games whose first protocol divergence is the Sirfetch'd/Farfetch'd display name (the M-C table keys the species
+   `sirfetch-d`).
+3. Revival Blessing's revive road (needs MEASURE's mirror first).
+4. The 17 census rows missing under Reg M-C: every one classified as a STAGING gap (report §8).
+5. Carried: the `-start`/`-fieldstart` `[of]` fields, the Inner Focus stat label, the seed GAIN door, Emergency Exit's
+   residual and hazard doors; for MEASURE, `MEGA_PREFER_B` outside `driverSnap`.
+## REG M-C: REVIVAL BLESSING FAILS WHEN NOBODY HAS FAINTED. 2026-09-22 (abra/regmc 0.28.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §6.
+
+- **Defect.** Revival Blessing's `selfSwitch` only raises the request that names a fainted body; its `onTryHit` fails
+  the move when nobody in the user's party has fainted. This engine played it as a status pivot and switched a live
+  bench body in.
+- **Tag.** `revivesFainted {slotCondition, failsWithoutFainted, hpFraction, instaswitchIfActiveSlot}`, shape off the
+  move, fraction off `Battle.prototype.runAction`. `pivotStatus` excludes it. Members: Revival Blessing only.
+- **Engine.** `-fail|USER` and no switch when the roster (`sf.team`) holds no fainted body. The revive road is counted
+  (`MEDFAILS.reviveUnmodelled`) and still pivots: the differential's forced-switch mirror cannot answer a revival
+  request (MEASURE).
+- **Probe** `tests/probe_regmc_revival_blessing.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_REVIVE_AS_PIVOT` and on the 0.27.0 engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after the 0.28.0 pass — SUPERSEDED by the 0.29.0 list above
+
+Ranked on the PINNED Reg M-C differential, by first BOARD divergence (report §6):
+
+1. **Terrain Extender** (the terrain lasts 8 turns in the authority and 5 here) — the largest family now.
+2. **Normal Gem**, **White Herb** timing, the **Infestation** chip (a Binding Band shape), then singles: terrain end,
+   Seed Sower, Liquid Ooze, Berserk, Trace's pick, rain upkeep, two damage values, and the games hidden behind the
+   Sirfetch'd/Farfetch'd name.
+3. Revival Blessing's revive road (needs MEASURE's mirror first).
+4. The 17 census rows missing under Reg M-C.
+5. Carried: the `-start`/`-fieldstart` `[of]` fields, the Inner Focus stat label, the seed GAIN door, Emergency Exit's
+   residual and hazard doors; for MEASURE, `MEGA_PREFER_B` outside `driverSnap`.
+## REG M-C: OCTOLOCK DROPS DEFENCE AND SP. DEF EVERY TURN UNTIL ITS SOURCE IS GONE; ITS LEAF IS COMPARED. 2026-09-22 (abra/regmc 0.27.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §5.
+
+- **Defect.** The per-turn-boost residual read `_vol[v]` as a clock for every member. Octolock has no duration, so the
+  lock ended at its first residual instead of dropping two stages each turn.
+- **Tag.** `perTurnBoost` gains `residualSourceEnd {clauses, endArgs}` and `trapsWhileSourceActive`, both read off the
+  condition; only Octolock carries them. Syrup Bomb's row and Reg M-B's tag file are unchanged.
+- **Engine.** Clockless members tick without decrementing and end at the residual on the partial trap's three clauses
+  (`sourceOffField`, `_newlySwitched`); the `onUpdate` sweep skips them; `switchTrapVerdict` refuses a switch while the
+  source stands (counted, not probed: the staged harness cannot offer a switch the authority refuses).
+- **Board.** `vol.octolock` compared. `tests/probe_uncompared_leaves.js --regulation regmc`: no uncompared leaf can
+  stand at a turn boundary.
+- **Probe** `tests/probe_regmc_octolock.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_PERTURN_BOOST_CLOCK_ALWAYS` and on the 0.26.0 engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after the 0.27.0 pass — SUPERSEDED by the 0.28.0 list above
+
+Ranked on the PINNED Reg M-C differential, by first BOARD divergence (report §5):
+
+1. **Revival Blessing** fails without a fainted ally; this engine pivots instead (the largest family). The revive road
+   needs the differential's forced-switch mirror to answer a revival request (MEASURE).
+2. **Terrain Extender** (terrain 8 turns in the authority, 5 here); **Binding Band**-shaped Infestation chip;
+   **Normal Gem**; White Herb timing.
+3. Singles: terrain end, Seed Sower, Liquid Ooze, Double Shock ordering, Berserk, Trace's pick, rain upkeep, two
+   damage values, and the games hidden behind the Sirfetch'd/Farfetch'd name.
+4. The 17 census rows missing under Reg M-C.
+5. Carried: Octolock's `-start` `[of]` field, the Inner Focus stat label, the seed GAIN door, Emergency Exit's residual
+   and hazard doors; for MEASURE, `MEGA_PREFER_B` outside `driverSnap`.
+## REG M-C: GLAIVE RUSH LEAVES ITS USER EXPOSED, AND ITS LEAF IS COMPARED. 2026-09-22 (abra/regmc 0.26.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §4.
+
+- **Tag.** `exposesUser {volatile, damageTakenMult, alwaysHitBy, endsBeforeOwnMove, silentStart}`, derived from the
+  condition of the move's `self.volatileStatus`. Members: Glaive Rush only (legal in Reg M-C, `Past` in Reg M-B).
+- **Engine.** Armed at the self-drop step when the move reached a target (the recharge's clause); every damage calc
+  into the holder x2 (a power of two, exact in the 4096ths chain); every move into it hits (beside Lock-On); dropped at
+  the top of the holder's BeforeMove gate (priority 100, above recharge's 11). Switching out clears it with every
+  volatile.
+- **Board.** `engine/board_state.js` compares `vol.glaiverush`; `tests/probe_uncompared_leaves.js --regulation regmc`
+  no longer lists it.
+- **Probe** `tests/probe_regmc_glaive_rush.js --regulation regmc`: exit 0 clean; exit 1 under `MEDI_SELF_EXPOSED_INERT`
+  and on the 0.25.0 engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after the 0.26.0 pass — SUPERSEDED by the 0.27.0 list above
+
+1. **Octolock** — the engine ends it at the first residual (its `_vol` entry is read as a clock and it has none); the
+   authority drops Defence and Sp. Def every turn until the source leaves. And its uncompared leaf.
+2. Faint HP written `0fnt` on one side; terrain; the rest of `other`.
+3. The 17 census rows missing under Reg M-C.
+4. Carried: the Inner Focus stat label, the seed GAIN door, Emergency Exit's residual and hazard doors; for MEASURE,
+   `MEGA_PREFER_B` outside `driverSnap`.
+## REG M-C: AURA GUARD HALVES CONTACT DAMAGE; THE "ORDER-DEPENDENT" CARD IS THE DRIVER'S MEGA CHOICE. 2026-09-22 (abra/regmc 0.25.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §2-§3.
+
+- **Defect.** `damageReduce` with `onlyWhen: 'contact'` (Aura Guard, Lucario-Mega-Z; no Reg M-B member) had no branch,
+  so it was refused and counted (`MEDFAILS.damageReduceUnknown`) and never applied.
+- **Fix.** The reader asks `mvMakesContact(id, att, use)`: the per-use flag after Long Reach, which is what the
+  authority's `onSourceModifyDamage` reads. Mold Breaker already clears `defAb`.
+- **Probe** `tests/probe_regmc_aura_guard.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_DAMAGE_REDUCE_CONTACT_UNKNOWN` and on the 0.24.0 engine bytes.
+- **Not a leak.** A fresh process with the driver's counters restored replays the Lucario game line for line. What
+  carries across games is `MEGA_PREFER_B` in `engine/game_differential.js` (the driver's mega-slot alternation, not in
+  `driverSnap`), which decides whether the Lucario megas at all. MEASURE's instrument; filed, not changed here.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after the 0.25.0 pass — SUPERSEDED by the 0.26.0 list above
+
+Ranked on the PINNED Reg M-C differential, by board-material first cause (report §3):
+
+1. **Glaive Rush** (the user's double-damage volatile, and the uncompared `volatile:glaiverush` leaf) — the Baxcalibur
+   damage-value cards; then **Octolock**.
+2. Faint HP written `0fnt` on one side; terrain; the rest of `other`.
+3. The 17 census rows missing under Reg M-C.
+4. Carried: the Inner Focus stat label, the seed GAIN door, Emergency Exit's residual and hazard doors; for MEASURE,
+   `MEGA_PREFER_B` outside `driverSnap`.
+## REG M-C: THE MOVE-EFFECTS RULEBOOK IS PER-REGULATION. 2026-09-22 (abra/regmc 0.24.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §1.
+
+- **Defect.** `data/move-effects.js` (secondaries, certain boosts, accuracy; `moveFxTable`) was built for Reg M-B only,
+  so under Reg M-C the 15 legal moves Reg M-B lacks had no row: no secondary, no certain boost, accuracy falling back to
+  100 (`MEDFAILS.accuracyUnknown`).
+- **Fix.** `moveEffects` in `engine/regulation.js` `REG_FILE_KEYS`; `runtime.regmc.moveEffects` names
+  `data/move-effects-regmc.js`, built by `node build/build_browser_data.js --regulation regmc` (515 legal moves). The
+  lazy require resolves to it live and out of a release; an M-C cut freezes it. The builder skips `data/mega-formes.js`
+  under a regulation with no copy of its own.
+- **Probe** `tests/probe_regmc_move_effects.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_MOVE_EFFECTS_OWNER_TABLE` and on the 0.22.0 engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after the 0.24.0 pass — SUPERSEDED by the 0.25.0 list above
+
+Ranked on the PINNED Reg M-C differential, by board-material first cause (report §1):
+
+1. **Aura Guard** (`damageReduce` with `onlyWhen: 'contact'` refused as unknown, so never applied) — the Lucario
+   damage-value cards. The "order-dependent" card is the DRIVER's mega alternation, not engine state (report §2).
+2. **Glaive Rush** (the user's double-damage volatile) — the Baxcalibur damage-value cards; and **Octolock**.
+3. Faint HP written `0fnt` on one side; terrain; the rest of `other`.
+4. The 17 census rows missing under Reg M-C.
+5. Carried: the Inner Focus stat label, the seed GAIN door, Emergency Exit's residual and hazard doors.
 ## REG M-C: EMERGENCY EXIT SWITCHES ITS HOLDER OUT; THE ITEM PASS ON THE PINNED DIFFERENTIAL. 2026-09-21 (abra/regmc 0.22.0)
 
 Full account: `docs/_reports/2026-09-21-regmc-items.md`.
@@ -17,7 +253,7 @@ Full account: `docs/_reports/2026-09-21-regmc-items.md`.
 - **Reg M-B unmoved:** tags and protocol-events untouched; damage differential identical but for its output-path line;
   lattice `--games 1200` 0 of 961 board-material.
 
-### The Reg M-C hand list, after this pass
+### The Reg M-C hand list, after the 0.22.0 pass — SUPERSEDED by the 0.24.0 list above
 
 Ranked on the PINNED Reg M-C differential (`docs/_reports/2026-09-21-regmc-items.md` §5), by board-material first cause:
 

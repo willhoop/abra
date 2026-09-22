@@ -2203,6 +2203,16 @@ const MEDSEEN = { floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepAct
   ejectButtonSpent: 0, ejectButtonSwitched: 0, ejectButtonKeptPivot: 0, ejectButtonCancelledPivot: 0,
   /* 2026-09-21 (Reg M-C, abra/regmc 0.22.0) -- Emergency Exit asked / switched / cleared the other switches (mainline). */
   emergencyExitAsked: 0, emergencyExitSwitched: 0, emergencyExitClearedOthers: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.26.0) -- `exposesUser` (Glaive Rush): armed on the user at the self-drop step;
+   * a damage calc into a holder multiplied; a move into a holder that could not miss; the volatile dropped at the
+   * holder's own BeforeMove gate. */
+  selfExposedArmed: 0, selfExposedDoubled: 0, selfExposedHit: 0, selfExposedEndedBeforeMove: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- a per-turn-boost volatile with NO clock that ends at its own residual when
+   * its source is gone (Octolock): ticked without a clock; ended at the residual; a switch it refused. */
+  perTurnBoostUnclockedTick: 0, perTurnBoostResidualSourceEnd: 0, volTrapBlocked: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.28.0) -- `revivesFainted` (Revival Blessing) clicked with no fainted body in the
+   * user's party: it fails and nobody switches. */
+  reviveFailedNoFainted: 0,
   /* WIRE 119 -- a move REFUSED at execution time by a category-forbidding volatile (Taunt). This is
    * the half the interaction matrix was failing on: the holder clicks Taunt in the same turn, so the
    * target's already-chosen status move has to FAIL when it runs. A zero here after games with a
@@ -5878,6 +5888,8 @@ const TRACE=(function(){
      * `add('-end', pokemon, this.effectState.sourceEffect, '[partiallytrapped]')` (data/conditions.ts
      * partiallytrapped onEnd). Same fact as the chip line above, so it reads the same record. */
     vend(m,eff,tag){ this.push(['-end',ident(m),eff,tag]); },
+    /* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- an `-end` with the handler's own argument list (Octolock's residual). */
+    vendArgs(m,eff,args){ this.push(['-end',ident(m),eff].concat(args||[])); },
     /* 2026-09-19 -- Gastro Acid's `this.add('-endability', pokemon)` (data/moves.ts:6450): two fields, nothing else. */
     endability(m){ this.push(['-endability',ident(m)]); },
     /* 2026-09-19 (narration D) -- an `-end` carrying `[from]` then `[of]`, two fields: the spin family's Leech Seed. */
@@ -7425,6 +7437,41 @@ function guaranteeVolatiles(){
     if(!MEDFAILS.volGuaranteeTableFailedFirst) MEDFAILS.volGuaranteeTableFailedFirst=String((e&&e.message)||e);
   }
   return _volGuarantee;
+}
+/* 2026-09-22 (Reg M-C, abra/regmc 0.26.0) -- A MOVE THAT LEAVES ITS USER EXPOSED (`exposesUser`, Glaive Rush).
+ * The M-C checkout's data/moves.ts glaiverush :6647-6678: `self: { volatileStatus: 'glaiverush' }`, and its condition
+ * answers `onAccuracy() { return true; }`, `onSourceModifyDamage() { return this.chainModify(2); }` and, at
+ * `onBeforeMovePriority: 100`, `onBeforeMove(pokemon) { pokemon.removeVolatile('glaiverush'); }`. The tag carries all
+ * three off the condition (engine/tag_dex.js). VOLATILE -> params, like `guaranteeVolatiles` above, so the consumers
+ * match on the volatile and no move name reaches them. MEDI_SELF_EXPOSED_INERT=1 never arms it (the pre-0.26.0 engine).
+ * tests/probe_regmc_glaive_rush.js */
+const SELF_EXPOSED_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SELF_EXPOSED_INERT==='1');
+/* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- MEDI_PERTURN_BOOST_CLOCK_ALWAYS=1 reads every per-turn-boost volatile's `_vol`
+ * entry as a clock again, so a member with no duration (Octolock) ends at its first residual (the pre-0.27.0 engine). */
+const PERTURN_BOOST_CLOCK_ALWAYS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PERTURN_BOOST_CLOCK_ALWAYS==='1');
+/* 2026-09-22 (Reg M-C, abra/regmc 0.28.0) -- MEDI_REVIVE_AS_PIVOT=1 plays a `revivesFainted` move as the status pivot it
+ * was classified as before 0.28.0: the user leaves and a live bench body comes in, whether or not anyone has fainted. */
+const REVIVE_AS_PIVOT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REVIVE_AS_PIVOT==='1');
+let _volExposed=null;
+function exposedVolatiles(){
+  if(_volExposed) return _volExposed;
+  _volExposed=new Map();
+  try{
+    for(const id of (TAGS.withTag?TAGS.withTag('move','exposesUser'):[])){
+      const p=TAGS.param('move',id,'exposesUser');
+      if(p&&p.volatile)_volExposed.set(p.volatile,p);
+    }
+  }catch(e){
+    MEDFAILS.volExposedTableFailed=(MEDFAILS.volExposedTableFailed||0)+1;
+    if(!MEDFAILS.volExposedTableFailedFirst) MEDFAILS.volExposedTableFailedFirst=String((e&&e.message)||e);
+  }
+  return _volExposed;
+}
+/* The exposing params a body is standing under, or null. */
+function exposedBy(body){
+  if(!body||!body._vol)return null;
+  for(const [v,p] of exposedVolatiles()) if(body._vol[v]>0) return p;
+  return null;
 }
 /* Is THIS attacker's next-move guarantee live against THIS defender? One predicate, called by the
  * accuracy path and by the semi-invulnerability step, because the authority's condition answers both
@@ -9372,6 +9419,52 @@ function applyMoveWeather(m,mvId,field){
   field.weatherT=weatherTurns(w,m&&m.item);
   if(TR)TR.wx(w);
   return true;
+}
+/* 2026-09-22 (Reg M-C, abra/regmc 0.29.0) -- AND THE TERRAIN'S CLOCK, BY THE SAME RULE AS THE SKY'S. Every terrain condition
+ * in the M-C checkout (data/moves.ts electricterrain :4511, grassyterrain :7687, mistyterrain :12165, psychicterrain
+ * :14109) answers `durationCallback(source, effect) { if (source?.hasItem('terrainextender')) return 8; return 5; }` -- the
+ * SETTER's item, whether the setter clicked the move or walked in with the Surge ability. Both writers in this file wrote a
+ * literal 5. The item's own `extendsDuration` tag names the terrains it extends and the new length, as it does for the
+ * weather rocks; nothing about 8 is typed here. Terrain Extender is `Past` in Reg M-B, so no Reg M-B item carries a
+ * terrain in its `extends`. MEDI_TERRAIN_FIVE_ALWAYS=1 writes the literal 5 again. tests/probe_regmc_terrain_extender.js */
+const TERRAIN_FIVE_ALWAYS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TERRAIN_FIVE_ALWAYS==='1');
+/* 2026-09-22 (Reg M-C, abra/regmc 0.30.0) -- MEDI_TRAP_CHIP_ITEM_BLIND=1: the partial trap ignores its trapper's item again. */
+const TRAP_CHIP_ITEM_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TRAP_CHIP_ITEM_BLIND==='1');
+/* 2026-09-22 (Reg M-C, abra/regmc 0.31.0) -- THE TYPE GEMS (`typeGem`, Normal Gem). M-C checkout data/items.ts normalgem:
+ * `onSourceTryPrimaryHit(target, source, move) { if (target === source || move.category === "Status" || ...) return; if
+ * (move.type === "Normal" && source.useItem()) source.addVolatile("gem"); }`, and the `gem` condition's
+ * `onBasePower() { return this.chainModify([5325, 4096]); }` (duration 1). TryPrimaryHit is raised per target inside
+ * `spreadMoveHit`, after every accuracy step and before `getSpreadDamage`, so the gem is spent on the first row that reaches
+ * the damage step, before its `-damage`, and every arrival of that use carries the boost. `useItem` writes
+ * `-enditem|HOLDER|Normal Gem|[from] gem|[move] <Move>` and grants Unburden (`recordItemUsed`). The type is the ACTIVE
+ * move's (`effMoveType`), the multiplier the tag's. MEDI_TYPE_GEM_INERT=1 never spends one. tests/probe_regmc_type_gem.js */
+const TYPE_GEM_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TYPE_GEM_INERT==='1');
+/* 2026-09-22 (Reg M-C, abra/regmc 0.32.0) -- MEDI_HERB_AFTER_OWED_SWITCH=1: White Herb waits for the post-action pass again,
+ * after a Red Card drag or an Eject Button / Emergency Exit switch (the pre-0.32.0 engine). */
+const HERB_AFTER_OWED_SWITCH=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HERB_AFTER_OWED_SWITCH==='1');
+function typeGemSpend(m,tg,moveId,mvObj,field){
+  if(TYPE_GEM_INERT||!m||!m.item||m.fainted)return false;
+  const p=TAGS.param('item',m.item,'typeGem');
+  if(!p||!p.type||!Array.isArray(p.mod))return false;
+  if(p.skipsSelfTarget!==false&&tg===m)return false;
+  if(p.skipsStatus!==false&&TAGS.has('move',moveId,'statusCategory'))return false;
+  if(String(effMoveType(mvObj,moveId,field,m)||'')!==String(p.type))return false;
+  const _id=String(m.item);
+  const _nm=(moveFx(moveId)||{}).name||moveId;
+  if(TR)TR.enditem(m,itemDisplayName(_id),'[from] gem',null,'[move] '+_nm);
+  recordItemUsed(m,_id);
+  m.item='';
+  passItemFromAlly(m);
+  m._gemBoost={mv:moveId,mod:p.mod.slice(0,2)};
+  MEDSEEN.typeGemSpent=(MEDSEEN.typeGemSpent||0)+1;
+  return true;
+}
+function terrainTurns(terrain, item){
+  const t=terrainId(terrain);
+  if(!t||TERRAIN_FIVE_ALWAYS)return 5;
+  const ext=TAGS.param('item',item,'extendsDuration');
+  if(ext&&ext.toTurns&&(ext.extends||[]).some(nm=>terrainId(nm)===t)){MEDSEEN.terrainExtended=(MEDSEEN.terrainExtended||0)+1;return +ext.toTurns;}
+  return 5;
 }
 function weatherTurns(weather, item, TAGSMOD){
   const w=weatherId(weather);
@@ -12658,6 +12751,8 @@ const _contactCache=Object.create(null);
  * `flag` IS READ, NOT ASSUMED. A member that deletes some other flag is refused and COUNTED rather
  * than being treated as a contact-remover, because guessing here would hand a body an immunity to
  * Rough Skin it does not have. Legal carrier DERIVED: Decidueye, the only one in Reg M-B. */
+/* MEDI_DAMAGE_REDUCE_CONTACT_UNKNOWN=1: a contact-only `damageReduce` (Aura Guard) is refused as unknown again (pre-0.25.0). */
+const DAMAGE_REDUCE_CONTACT_UNKNOWN=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DAMAGE_REDUCE_CONTACT_UNKNOWN==='1');
 function mvMakesContact(id,att,use){
   if(!id) return false;
   const k=String(id).toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -14346,6 +14441,9 @@ function hitChance(att,def,id,field,ctx){
    * attacker and names one defender, so `guaranteedAgainst(def,att)` would be a different, invented
    * mechanic and is deliberately not asked. */
   if(guaranteedAgainst(att,def)){MEDSEEN.guaranteedHit++;return Infinity;}
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.26.0) -- AND A BODY STANDING UNDER AN EXPOSING VOLATILE CANNOT BE MISSED: the
+   * condition's own `onAccuracy() { return true; }` is on the TARGET, in the same Accuracy event as Lock-On's. */
+  {const _xp=exposedBy(def); if(_xp&&_xp.alwaysHitBy){MEDSEEN.selfExposedHit++;return Infinity;}}
   /* ROADMAP #236 -- A POISON-TYPE'S TOXIC CANNOT MISS, AND THE FACT IS NOT ON THE MOVE.
    *
    * `dex.moves.get('toxic').accuracy` is 90 and that is correct -- the exemption lives in the STEP
@@ -16489,6 +16587,9 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
      * stages the authority applies them at rather than being collapsed into one number that is right
      * for one of them and out by a truncation for the other. */
     {const _ib=invulnDamageMult(def,mv.id,'basePower'); if(_ib!==1)BPCH(_ib);}
+    /* 2026-09-22 (Reg M-C, abra/regmc 0.31.0) -- THE GEM'S x5325/4096, `onBasePowerPriority: 14`: after the abilities and
+     * items above (Technician 30, the type items 15, Dry Skin 17), so last in this relay. See typeGemSpend. */
+    if(att&&att._gemBoost&&mv&&att._gemBoost.mv===mv.id){BPCH(att._gemBoost.mod);MEDSEEN.typeGemBoosted=(MEDSEEN.typeGemBoosted||0)+1;}
     /* SPENT ONCE, and clamped to 1 exactly as `battle-actions.ts:1653` clamps it after the event. */
     if(_bpChain!==CH_ONE){mvBP=Math.max(1,mdChain(mvBP,_bpChain));MEDSEEN.bpChainSpent++;MEDSEEN.bpChainMembers+=_bpMembers;}
   }
@@ -16703,12 +16804,25 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
               :_w==='special'?mv.c==='S'
               :_w==='physical'?mv.c==='P'
               :_w==='sound'?!!(mv.id&&TAGS.has('move',mv.id,'sound'))
+              /* 2026-09-22 (Reg M-C, abra/regmc 0.25.0) -- CONTACT. Aura Guard (Lucario-Mega-Z) is
+               * `onSourceModifyDamage(damage, source, target, move) { if (move.flags['contact']) return this.chainModify(0.5); }`
+               * in the Reg M-C checkout: the ACTIVE move's flag, which Long Reach deletes in `onModifyMove`, so the
+               * per-use contact fact is `mvMakesContact(id, att, use)` and not the raw tag. Before this the
+               * condition was unknown, refused and counted, so the cut was NEVER applied: the Lucario
+               * damage-value cards of the pinned Reg M-C differential. Breakable: `defAb` is already the
+               * ability Mold Breaker leaves standing. MEDI_DAMAGE_REDUCE_CONTACT_UNKNOWN=1 restores the refusal.
+               * tests/probe_regmc_aura_guard.js */
+              :_w==='contact'?(DAMAGE_REDUCE_CONTACT_UNKNOWN?null:mvMakesContact(mv.id,att,mv))
               :null;
       if(_ok===null){MEDFAILS.damageReduceUnknown++;
         if(!MEDFAILS.damageReduceUnknownFirst)MEDFAILS.damageReduceUnknownFirst=String(defAb)+'/'+String(_w);}
       else if(_ok)MODMUL(_dr.damageMult);
     }
   }
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.26.0) -- THE EXPOSED DEFENDER. `onSourceModifyDamage() { return this.chainModify(2); }`
+   * on the defender's own volatile: the same ModifyDamage event, and a power of two commutes exactly through the
+   * 4096ths chain, so its position among the other final modifiers cannot move a number. */
+  {const _xp=exposedBy(def); if(_xp&&+_xp.damageTakenMult>0){MODMUL(+_xp.damageTakenMult);MEDSEEN.selfExposedDoubled++;}}
   /* ROADMAP #212 -- FLUFFY, THE ONLY MULTI-CLAUSE MEMBER, AND EVERY CLAUSE IS APPLIED.
    *
    * `damageByMoveTrait` carries a LIST because Fluffy's handler accumulates: Fire x2, contact x0.5,
@@ -19929,6 +20043,17 @@ function switchTrapVerdict(m,foes,field){
   /* WIRE 116 -- the partial trap (Fire Spin, Infestation, Wrap, Whirlpool, Sand Tomb, Thunder Cage,
      Magma Storm). Its exemptions are Ghost and Shed Shell only -- it has no mirror rule. */
   if(!_ghost&&m._trap&&!_shed){out.block='partial';return out;}
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- A PER-TURN-BOOST VOLATILE THAT TRAPS WHILE ITS SOURCE IS ACTIVE (Octolock:
+   * `onTrapPokemon(pokemon) { if (this.effectState.source?.isActive) pokemon.tryTrap(); }`). `tryTrap` is refused by the
+   * `trapped` immunity (Ghost), and Shed Shell clears it, like every branch above. The source is looked for among the
+   * active bodies the verdict is handed. */
+  if(!_ghost&&!_shed&&m._vol&&m._volSrc){
+    for(const [_v,_r] of perTurnBoostVolatiles()){
+      if(!(_r.pb&&_r.pb.trapsWhileSourceActive)||!(m._vol[_v]>0))continue;
+      const _s=m._volSrc[_v];
+      if(_s&&!_s.fainted&&_s.curHP>0&&(foes||[]).includes(_s)){out.block='volatile';MEDSEEN.volTrapBlocked++;return out;}
+    }
+  }
   return out;
 }
 function liveFoesOf(me){
@@ -21564,8 +21689,20 @@ const SD_WILL_ACT=new Set(['move','switch','instaswitch','shift']);
  * Reading the one rulebook is what lets the contract test hold this engine and champ-model together.
  */
 let _FX=null;
+/* 2026-09-22 (ENGINE, abra/regmc 0.24.0) -- THE TABLE IS THE SELECTED REGULATION'S. The lazy require below goes through
+ * node's resolver, and engine/regulation.js maps `data/move-effects.js` to the regulation's own sibling
+ * (`runtime.<id>.moveEffects`, e.g. data/move-effects-regmc.js), live and out of a release. Before that map existed Reg M-C
+ * read Reg M-B's table and 15 legal moves had no row (tests/probe_regmc_move_effects.js).
+ * MEDI_MOVE_EFFECTS_OWNER_TABLE=1 restores the defect: it reads data/move-effects.js BY ITS BYTES, around the resolver. */
+const MOVE_EFFECTS_OWNER_TABLE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_MOVE_EFFECTS_OWNER_TABLE==='1');
 function moveFxTable(){
   if(_FX) return _FX;
+  if(MOVE_EFFECTS_OWNER_TABLE&&typeof require!=='undefined'){
+    const _p=require('path'), _w={};
+    new Function('window',require('fs').readFileSync(_p.join(__dirname,'..','data','move-effects.js'),'utf8'))(_w);
+    _FX=_w.MOVE_EFFECTS||null;
+    if(_FX) return _FX;
+  }
   _FX=(typeof window!=='undefined'&&window.MOVE_EFFECTS)||
       (typeof globalThis!=='undefined'&&globalThis.MOVE_EFFECTS)||null;
   /* In node the site's script tags do not exist, so load the generated file on first use. Without
@@ -26007,7 +26144,7 @@ function applyEntryEffects(m,field,ally){
   /* AND THE SAME RULE FOR TERRAIN, from the same file: `setTerrain()` opens with
    * `if (this.terrain === status.id) return false;` -- unconditionally, no gen check. */
   const t=TAGS.param('ability',m.ability,'terrainSetter');
-  if(t&&t.terrain){const _t=terrainId(t.terrain);if(_t&&field.terrain!==_t){field.terrain=_t;field.terrainT=5;
+  if(t&&t.terrain){const _t=terrainId(t.terrain);if(_t&&field.terrain!==_t){field.terrain=_t;field.terrainT=terrainTurns(_t,m.item);
     if(TR)TR.terrainStart(_t,'[from] ability: '+m.ability,m);
     /* 2026-09-21 (Reg M-C) -- `setTerrain` ends `eachEvent('TerrainChange')`, INSIDE this handler: every active
      * body's seed is spent now, before the next entrant's ability runs. See `seedTerrainChange`. */
@@ -32586,6 +32723,9 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _m=e.m; if(!_m._vol||!_m._volSrc)continue;
         for(const [_v,_r] of perTurnBoostVolatiles()){
           if(!(_m._vol[_v]>0))continue;
+          /* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- a member whose source-gone end is in its own RESIDUAL (Octolock)
+           * has no onUpdate end; it is ended by the residual walk, with the authority's line, and not here. */
+          if(_r.pb&&_r.pb.residualSourceEnd&&!PERTURN_BOOST_CLOCK_ALWAYS)continue;
           const _src=_m._volSrc[_v];
           if(!_src)continue;
           const _gone=sourceOffField(_src,actA,actB);
@@ -33924,6 +34064,10 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * THE BACKSTOP BELOW THE GATE STAYS, and it is not a second answer: both roads call
        * `spendRecharge`, which is the only place the refusal is spelled. See the counter pair. */
+      /* 2026-09-22 (Reg M-C, abra/regmc 0.26.0) -- AN EXPOSING VOLATILE ENDS HERE, at `onBeforeMovePriority: 100`, the top
+       * of the list and above recharge's 11: the holder's own next action removes it before anything can refuse it. */
+      {const _xp=exposedBy(m); if(_xp&&_xp.endsBeforeOwnMove){delete m._vol[_xp.volatile];MEDSEEN.selfExposedEndedBeforeMove++;}}
+      if(m._gemBoost)delete m._gemBoost;   // 2026-09-22 (Reg M-C) -- a gem boosts only the use that spent it (duration 1)
       if(m._recharge&&!RECHARGE_BELOW_STATUS){
         MEDSEEN.rechargeSpentAtBeforeMove++; spendRecharge(m); continue;
       }
@@ -38625,7 +38769,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* WIRE 64, the terrain half. Same rule and landed in the same pass rather than waiting for the
            game differential to find it a second time: Showdown fails a terrain move whose terrain is
            already up, so refreshing the clock here would be the same wrong number one field over. */
-        if(_t&&terrainId(field.terrain)!==_t){field.terrain=_t;field.terrainT=5;if(TR)TR.terrainStart(_t,null,m);
+        if(_t&&terrainId(field.terrain)!==_t){field.terrain=_t;field.terrainT=terrainTurns(_t,m.item);if(TR)TR.terrainStart(_t,null,m);
           syncFieldTypes(field,[...actA,...actB]);   // ROADMAP #175 -- the sky changed, so the type does
           seedTerrainChange(field,actA,actB);}       // 2026-09-21 (Reg M-C) -- and every seed holder spends, in eachEvent order
         else mvFail(m);
@@ -38749,6 +38893,26 @@ function battleTurn(S,rng,actsForA,actsForB){
          was built before the sort and the arrays can have been rewritten by an earlier switch this
          same turn. A switch with an empty bench does nothing and still costs the turn. */
       if(a.kind==='switch'){
+        /* 2026-09-22 (Reg M-C, abra/regmc 0.28.0) -- REVIVAL BLESSING FAILS WITHOUT A FAINTED BODY. `onTryHit(source) { if
+         * (!source.side.pokemon.filter(ally => ally.fainted).length) return false; }` -- the whole party (`sf.team`, the
+         * roster `fallenCount` reads), so `useMoveInner` writes a bare `-fail|USER` and nobody switches. This engine played
+         * it as Parting Shot and brought a live bench body in: the largest board-material family of the pinned Reg M-C
+         * differential at 0.27.0. WITH a fainted body the authority revives it (sim/battle.ts runAction case
+         * 'revivalblessing': half its max HP, `-heal ... [from] move: Revival Blessing`, an instaswitch if it lies in an
+         * active slot); that road is NOT modelled -- the differential's forced-switch mirror cannot answer a revival
+         * request, so nothing could show it right -- and it is counted (MEDFAILS.reviveUnmodelled) and still pivots.
+         * tests/probe_regmc_revival_blessing.js */
+        if(a.revive){
+          const _rsf=it.side==='A'?sfA:sfB;
+          const _rparty=(_rsf&&_rsf.team&&_rsf.team.length)?_rsf.team
+            :[...(it.side==='A'?actA:actB),...(it.side==='A'?benchA:benchB)];
+          if(!(_rsf&&_rsf.team&&_rsf.team.length))MEDFAILS.fallenNoRoster++;
+          if(!_rparty.some(x=>x&&x!==m&&x.fainted)){
+            m._lastMove=a.mv; mvFail(m); MEDSEEN.reviveFailedNoFainted++; continue;
+          }
+          MEDFAILS.reviveUnmodelled=(MEDFAILS.reviveUnmodelled||0)+1;
+          if(!MEDFAILS.reviveUnmodelledFirst)MEDFAILS.reviveUnmodelledFirst=String(a.mv);
+        }
         /* WIRE 65, the other half. Parting Shot (7,184 uses) is a STATUS move: blocked by Protect, it
            fails and the user STAYS. medicham2 switched anyway, so the single largest unmodelled move
            in the corpus was an unblockable pivot. Found by the same pair run -- Showdown kept Pangoro
@@ -42828,6 +42992,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * rng stream than the authority does. `null` until the first target is actually priced, so a
        * move that misses everything draws nothing at all. */
       let _hitsThisUse=null;
+      let _gemTried=false;   // 2026-09-22 (Reg M-C) -- the type gem is asked once per use, at the first row priced (typeGemSpend)
       /* 2026-09-19 -- THE PER-ARRIVAL ACCURACY OF A `multiaccuracy` VOLLEY, RESOLVED ONE ARRIVAL AT A TIME.
        *
        * `_maLazy` is set by `_stepDamage` when `rollHitsOf` hands the arrivals back unresolved, and spent
@@ -42895,6 +43060,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       let _critArr0=null;
       const _stepDamage=(R)=>{const tg=R.tg;
         _reached++;   // ROADMAP #81 WIRE 1 -- past every gate: this target is a HIT, so the move did not fail
+        if(!_gemTried){_gemTried=true;typeGemSpend(m,tg,a.move.id,a.move.mv||MC.moves[a.move.id],field);}
         /* ROADMAP #262 -- THE ONE LINE THAT MIRRORS `getSpreadDamage`'s `this.battle.activeTarget =
          * target` (sim/battle-actions.ts:1154). It is written for EVERY row this step reaches, so
          * what is left standing when the step ends is the LAST such row -- which is exactly what the
@@ -47217,7 +47383,19 @@ function battleTurn(S,rng,actsForA,actsForB){
               * line is the MOVE. This engine wrote the literal "[from] partiallytrapped", so Bind, Fire
               * Spin, Infestation, Sand Tomb, Snap Trap, Whirlpool and Wrap all printed the same string
               * and every one of the seven parted from the authority on it. */
-             tg._trap={frac:+_pt2.chipPerTurn,turns:+_pt2.duration,by:m,mv:a.move.id};
+             /* 2026-09-22 (Reg M-C, abra/regmc 0.30.0) -- THE TRAPPER'S ITEM. `partiallytrapped.onStart` sets
+              * `boundDivisor = source.hasItem("bindingband") ? 6 : 8` and `durationCallback` returns 8 for a Grip Claw
+              * source (M-C checkout, read from the dist dex), and the tag has carried both as `chipItem` / `durationItem`
+              * since the partial-trap derivation: nothing read them, so a Binding Band holder chipped an eighth. The
+              * divisor is kept as a DIVISOR (`div`) so the tick is the authority's own `floor(maxhp / 6)` rather than a float
+              * product (checked equal for every multiple of six to 400; kept as the division anyway). Both items are `Past` in
+              * Reg M-B, so no Reg M-B trapper holds one.
+              * MEDI_TRAP_CHIP_ITEM_BLIND=1 reads neither. tests/probe_regmc_binding_band.js */
+             const _ci=_pt2.chipItem, _di=_pt2.durationItem;
+             const _cHit=!TRAP_CHIP_ITEM_BLIND&&_ci&&_ci.item&&m.item===_ci.item&&+_ci.chipPerTurn>0;
+             const _dHit=!TRAP_CHIP_ITEM_BLIND&&_di&&_di.item&&m.item===_di.item&&+_di.duration>0;
+             tg._trap={frac:_cHit?+_ci.chipPerTurn:+_pt2.chipPerTurn,turns:_dHit?+_di.duration:+_pt2.duration,by:m,mv:a.move.id};
+             if(_cHit){tg._trap.div=Math.round(1/+_ci.chipPerTurn);MEDSEEN.trapChipItem=(MEDSEEN.trapChipItem||0)+1;}
              if(TR)TR.actOf(tg,'move: '+a.move.id,m);
            }}
           /* ROADMAP #147 -- A DAMAGING MOVE'S OWN VOLATILE, WHICH REACHED NOTHING AT ALL.
@@ -48496,6 +48674,12 @@ function battleTurn(S,rng,actsForA,actsForB){
           m._recharge=true;_rechargeArmed=true;MEDSEEN.rechargeArmedAtSelfDrops++;if(TR)TR.recharge(m);}
         else if(!m.fainted&&TAGS.has('move',a.move.id,'recharge')){
           MEDSEEN.rechargeSkippedNoTarget++;_rechargeArmed=true;}
+        /* 2026-09-22 (Reg M-C, abra/regmc 0.26.0) -- AND `self: { volatileStatus }` WHEN IT EXPOSES THE USER. Same
+         * clause as the recharge above: `selfDrops` runs only over targets still standing in the list (`_reached`).
+         * Its onStart line is `[silent]`. */
+        {const _ex=TAGS.param('move',a.move.id,'exposesUser');
+         if(_ex&&_ex.volatile&&!m.fainted&&_reached>0&&!SELF_EXPOSED_INERT){
+           m._vol=m._vol||{}; m._vol[_ex.volatile]=1; MEDSEEN.selfExposedArmed++;}}
       };
       /* ---- THE STEP LIST, IN SHOWDOWN'S ORDER, AND THE DRIVER UNDER IT ----------------------------
        *
@@ -49712,6 +49896,17 @@ function battleTurn(S,rng,actsForA,actsForB){
       }
       /* 2026-09-21 (Reg M-C, abra/regmc 0.21.0) -- THE END OF THE ACTION: the Red Card drag (a random bench body, the
        * phaze doors' die), then every switch owed to an Eject Button and a pivot kept beside it, the faster leaver first. */
+      /* 2026-09-22 (Reg M-C, abra/regmc 0.32.0) -- WHITE HERB AT THE AFTERMOVE DOOR, BEFORE THESE SWITCHES. whiteherb
+       * (M-C checkout, read from the dist dex) restores from `onAnyAfterMove`, and `AfterMove` is raised inside `useMove`,
+       * so it runs before `runAction`'s tail, where the drags (`forceSwitchFlag`, sim/battle.ts:2820-2828) and the owed
+       * switches (`switchFlag`, :2874-2907) are done. This engine spent the herb at its post-action pass, AFTER a
+       * replacement had walked in -- so a switch-in Intimidate's drop was cleared along with the move's own self-drop. The
+       * herb is asked here only when one of these two M-C-only doors is owed (Red Card and Eject Button are `Past` in Reg
+       * M-B and Emergency Exit has no Reg M-B carrier); every other road keeps its post-action pass. The pass is the
+       * herb's one reader, `restoreStatsAll`. tests/probe_regmc_white_herb_before_switch.js */
+      if((_redCardDrag||_ejectOwed.length)&&!HERB_AFTER_OWED_SWITCH){
+        const _hn=restoreStatsAll(actA,actB); if(_hn)MEDSEEN.herbBeforeOwedSwitch=(MEDSEEN.herbBeforeOwedSwitch||0)+_hn;
+      }
       if(_redCardDrag&&!m.fainted&&m.curHP>0){
         const _mb=sideBoxOf(m,it,actA,actB,benchA,benchB,sfA,sfB), _mi=_mb.own.indexOf(m);
         if(_mi>=0&&canDragIn(_mb.bench)){
@@ -51273,7 +51468,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * volatile's presence) and was RED here at `medi 4 chip(s), authority 3` before this moved.
            * `MEDI_TRAP_TICK_BEFORE_CLOCK=1` restores the chip-then-decrement order. */
           if(TRAP_TICK_BEFORE_CLOCK){
-            if(!refusesIndirect(m)){m.curHP-=Math.floor(m.st.hp*m._trap.frac);MEDSEEN.partialTrapTick++;
+            if(!refusesIndirect(m)){m.curHP-=(m._trap.div?Math.floor(m.st.hp/m._trap.div):Math.floor(m.st.hp*m._trap.frac));MEDSEEN.partialTrapTick++;
               if(TR){
                 if(!m._trap.mv){MEDFAILS.trapSourceUnknown++;
                   if(!MEDFAILS.trapSourceUnknownFirst)MEDFAILS.trapSourceUnknownFirst=String(m.name||'?');}
@@ -51289,7 +51484,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(TR)TR.vend(m,_tmv||'partiallytrapped',_tmv?'[partiallytrapped]':'');
           }
           else{
-            if(!refusesIndirect(m)){m.curHP-=Math.floor(m.st.hp*m._trap.frac);MEDSEEN.partialTrapTick++;
+            if(!refusesIndirect(m)){m.curHP-=(m._trap.div?Math.floor(m.st.hp/m._trap.div):Math.floor(m.st.hp*m._trap.frac));MEDSEEN.partialTrapTick++;
               if(TR){
                 /* A trap with no recorded move cannot name one, and that is LOUD rather than papered
                  * over with the old literal: the fallback prints a string the authority never writes. */
@@ -51461,6 +51656,37 @@ function battleTurn(S,rng,actsForA,actsForB){
        * out with the wrong sign for the first one that does. */
       if(_G.has('volBoost')&&m.curHP>0&&!m.fainted&&m._vol)for(const [_v,_r] of perTurnBoostVolatiles()){
         if(!(m._vol[_v]>0))continue;
+        /* 2026-09-22 (Reg M-C, abra/regmc 0.27.0) -- A MEMBER WITH NO CLOCK THAT ENDS AT ITS OWN RESIDUAL. Octolock (M-C
+         * checkout data/moves.ts :12960-12994) declares no `duration`, so `_vol.octolock` is a bare 1 and NOT a clock: the
+         * decrement below ended it on its first residual, where the authority drops Defence and Sp. Def. Its onResidual
+         * ends it FIRST when `source && (!source.isActive || source.hp <= 0 || !source.activeTurns)` -- the partial trap's
+         * three clauses, read the same way here (`sourceOffField`, and `_newlySwitched` for `!activeTurns`) -- writing
+         * `-end ... Octolock|[partiallytrapped]|[silent]`, and returns before the boost. The clauses and the end arguments
+         * are the tag's (`residualSourceEnd`), read off the handler. */
+        const _rse=_r.pb&&_r.pb.residualSourceEnd;
+        if(_rse&&_r.pb.duration==null&&!PERTURN_BOOST_CLOCK_ALWAYS){
+          const _s0=(m._volSrc&&m._volSrc[_v])||null;
+          const _cl=_rse.clauses||[];
+          const _gone=!!_s0&&((_cl.includes('isActive')||_cl.includes('hp'))&&sourceOffField(_s0,actA,actB)
+                              ||(_cl.includes('activeTurns')&&!!_s0._newlySwitched));
+          if(_gone){
+            delete m._vol[_v]; if(m._volSrc)delete m._volSrc[_v];
+            MEDSEEN.perTurnBoostResidualSourceEnd++;
+            if(TR)TR.vendArgs(m,_v,_rse.endArgs);
+            continue;
+          }
+          MEDSEEN.perTurnBoostUnclockedTick++;
+          for(const k in _r.pb.boosts){
+            const _st=SD2ENG[k]; const _d=+_r.pb.boosts[k];
+            if(!_st||!m.boosts||m.boosts[_st]==null||!_d)continue;
+            if(_d>0){ MEDFAILS.perTurnBoostRaiseUnmodelled++;
+                      if(!MEDFAILS.perTurnBoostRaiseUnmodelledFirst)MEDFAILS.perTurnBoostRaiseUnmodelledFirst=_r.mv+'/'+k;
+                      continue; }
+            applyStatDrop(m,_st,-_d,_r.mv,_s0);
+            MEDSEEN.perTurnVolatileBoost++;
+          }
+          continue;
+        }
         if(--m._vol[_v]<=0){
           delete m._vol[_v];
           if(m._volSrc)delete m._volSrc[_v];
@@ -53041,6 +53267,11 @@ function playerActionPrimary(me,moveId,target,field){
      artifact this engine reads carries the numbers (the lowersTarget param says "via onHit", and
      MOVE_EFFECTS has no boosts for it). So the switch is modelled and the drop is not. That is a
      known half, and it is the half that decides where the move is played. */
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.28.0) -- REVIVAL BLESSING IS NOT A PIVOT. Its `selfSwitch` only raises the switch
+   * request that names a FAINTED body (M-C checkout data/moves.ts :15126-15129), so `pivotStatus` no longer claims it
+   * (engine/tag_dex.js) and it arrives here as `revivesFainted`. It keeps the `switch` kind, so every reader of a
+   * move-driven switch (the |move| line, PP, the BeforeMove gate) still sees one, and carries `revive` for the branch. */
+  if(TAGS.has('move',id,'revivesFainted'))return REVIVE_AS_PIVOT?{kind:'switch',mv:id,target}:{kind:'switch',mv:id,target,revive:true};
   if(TAGS.has('move',id,'pivotStatus'))return {kind:'switch',mv:id,target};
   /* ROADMAP #81 WIRE 12 -- BATON PASS AND SHED TAIL, WHICH NEVER SWITCHED AND HAD NO BRANCH AT ALL.
    *

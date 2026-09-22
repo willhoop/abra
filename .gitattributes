@@ -90,6 +90,9 @@ data/abra-tags.js                text eol=lf
 data/residual-order.json         text eol=lf
 data/switchin-order.json         text eol=lf
 data/move-effects.js             text eol=lf
+# 2026-09-22 (abra/regmc 0.24.0): the Reg M-C copy of the move-effects rulebook is a REGULATION_SOURCES member of
+# every M-C release, generated LF like its twin above, so it is pinned for the same reason.
+data/move-effects-regmc.js       text eol=lf
 data/ability-blocks.json         text eol=lf
 data/smogon-priors.json          text eol=lf
 data/move-priors.json            text eol=lf

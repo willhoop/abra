@@ -1280,11 +1280,23 @@
    "why": "Parting Shot (4,782 uses, the most common pivot in the format) and Chilly Reception. The switch is the point and the effect is the payment",
    "consumedBy": "partingshot",
    "used": true,
-   "n": 3,
-   "uses": 13573,
+   "n": 2,
+   "uses": 12950,
    "examples": [
     "Chilly Reception",
-    "Parting Shot",
+    "Parting Shot"
+   ]
+  },
+  {
+   "tag": "revivesFainted",
+   "kind": "move",
+   "param": "fails unless the user's party holds a fainted body; revives one at hpFraction of its max HP",
+   "why": "Revival Blessing (Pawmot, 767 Reg M-C uses): with no fainted ally the authority fails the move, and this engine switched a live bench body in as though it were Parting Shot",
+   "consumedBy": "revivesFainted",
+   "used": true,
+   "n": 1,
+   "uses": 775,
+   "examples": [
     "Revival Blessing"
    ]
   },
@@ -2357,6 +2369,19 @@
    ]
   },
   {
+   "tag": "exposesUser",
+   "kind": "move",
+   "param": "after it lands, the user takes `damageTakenMult` x damage (and cannot dodge) until it next acts",
+   "why": "Glaive Rush (Baxcalibur, 1,128 Reg M-C uses): the authority doubles the next hit into the user, this engine did not",
+   "consumedBy": "exposesUser",
+   "used": true,
+   "n": 1,
+   "uses": 1134,
+   "examples": [
+    "Glaive Rush"
+   ]
+  },
+  {
    "tag": "locksIntoMove",
    "kind": "move",
    "param": "the user is forced to repeat this move for `turns` turns",
@@ -2634,6 +2659,19 @@
    "uses": 105,
    "examples": [
     "Iron Ball"
+   ]
+  },
+  {
+   "tag": "typeGem",
+   "kind": "item",
+   "param": "spent on the first hit of a damaging move of `type`; that move takes x`mod` base power",
+   "why": "Normal Gem on Fake Out (Reg M-C): the authority spends it and boosts the hit, this engine did neither",
+   "consumedBy": "typeGem",
+   "used": true,
+   "n": 1,
+   "uses": 26,
+   "examples": [
+    "Normal Gem"
    ]
   },
   {
@@ -11523,7 +11561,19 @@
      },
      "on": "holder",
      "duration": null,
-     "endsSilently": false
+     "endsSilently": false,
+     "residualSourceEnd": {
+      "clauses": [
+       "isActive",
+       "hp",
+       "activeTurns"
+      ],
+      "endArgs": [
+       "[partiallytrapped]",
+       "[silent]"
+      ]
+     },
+     "trapsWhileSourceActive": true
     },
     "targetClass": {
      "target": "normal",
@@ -21106,6 +21156,7 @@
     "targetClass",
     "contact",
     "formatSecondaryCount",
+    "exposesUser",
     "volatileRestart"
    ],
    "uses": 1128,
@@ -21126,6 +21177,14 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "exposesUser": {
+     "volatile": "glaiverush",
+     "damageTakenMult": 2,
+     "alwaysHitBy": true,
+     "endsBeforeOwnMove": true,
+     "silentStart": true,
+     "from": "DERIVED:dex.conditions.get(glaiverush).onSourceModifyDamage"
     },
     "volatileRestart": {
      "byVolatile": {
@@ -28847,7 +28906,7 @@
     "targetClass",
     "neverMisses",
     "noProtectFlag",
-    "pivotStatus",
+    "revivesFainted",
     "statusCategory",
     "healsSelf",
     "formatSecondaryCount",
@@ -28875,8 +28934,12 @@
      "target": "self",
      "category": "Status"
     },
-    "pivotStatus": {
-     "selfSwitch": true
+    "revivesFainted": {
+     "slotCondition": "revivalblessing",
+     "failsWithoutFainted": true,
+     "hpFraction": 0.5,
+     "instaswitchIfActiveSlot": true,
+     "from": "DERIVED:move.onTryHit + Battle.prototype.runAction case revivalblessing"
     },
     "statusCategory": {
      "status": true
@@ -39301,10 +39364,22 @@
   "normalgem": {
    "name": "Normal Gem",
    "tags": [
-    "untagged"
+    "typeGem"
    ],
    "uses": 26,
-   "params": {}
+   "params": {
+    "typeGem": {
+     "type": "Normal",
+     "mod": [
+      5325,
+      4096
+     ],
+     "volatile": "gem",
+     "skipsSelfTarget": true,
+     "skipsStatus": true,
+     "from": "DERIVED:item.onSourceTryPrimaryHit + dex.conditions.get(gem).onBasePower"
+    }
+   }
   },
   "occaberry": {
    "name": "Occa Berry",
