@@ -53,6 +53,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.32.0] — 2026-09-22 — **White Herb is spent before an Eject Button or Red Card switch, not after it**
+
+- **What changed.** `engine/medicham2-browser.js`: `restoreStatsAll` runs at the AfterMove door before the Red Card
+  drag and the owed Eject Button / Emergency Exit switches (both M-C-only). Knob `MEDI_HERB_AFTER_OWED_SWITCH`; probe
+  `tests/probe_regmc_white_herb_before_switch.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine.md` §11.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
 ## [abra/regmc 0.31.0] — 2026-09-22 — **Normal Gem is spent on a Normal move and boosts it**
 
 - **What changed.** Item tag `typeGem` (derived; Normal Gem is the only legal member) and its consumer

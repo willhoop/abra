@@ -21,6 +21,27 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.32.0] — 2026-09-22
+
+### Fixed
+- **White Herb is spent before an Eject Button or Red Card switch, not after it.** The herb restores from
+  `onAnyAfterMove`, and `AfterMove` is raised inside `useMove`, before `runAction`'s tail does the drags and the owed
+  switches (M-C checkout `sim/battle.ts` :2820-2907). This engine spent it at its post-action pass, after the
+  replacement had walked in, so a switch-in Intimidate's drop was cleared together with the move's self-drop. The
+  herb (`restoreStatsAll`, its one reader) now runs before those two M-C-only doors when either is owed; every other
+  road keeps its post-action pass. Knob `MEDI_HERB_AFTER_OWED_SWITCH`.
+- `tests/probe_regmc_white_herb_before_switch.js` (`--regulation regmc`): a self-dropping hit into an Eject Button
+  holder whose replacement has Intimidate, and a control with no Eject Button. Exit 0 clean; exit 1 under the knob and
+  on the 0.31.0 engine bytes.
+
+### Notes
+- Two more pinned games end with the authority spending a White Herb on the battle's last move and this engine not
+  (the engine ends the battle before its post-action pass). A hypothesis, not probed: a side wiped by one move cannot
+  be staged in the four-body harness in one turn. Recorded.
+- Reg M-B unmoved: the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
 ## [0.31.0] — 2026-09-22
 
 ### Added

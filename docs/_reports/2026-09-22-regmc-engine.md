@@ -604,3 +604,122 @@ The three Normal Gem games are gone.
 
 sha256 of the three Reg M-B files unchanged; damage differential seed `20260804` identical to the base but for the
 output-path line; lattice on release `879b7cf1227d`: **0 of 961**, 0 void, 0 threw.
+
+---
+
+## 11. White Herb before the owed switches (abra/regmc 0.32.0)
+
+### The authority, read whole
+
+`whiteherb` (M-C checkout, read from the dist dex): `onStart` restores every negative stage and spends the item; it is
+raised from `onAnySwitchIn`, `onAnyAfterMega`, `onAnyAfterMove` and `onResidual`. `AfterMove` is raised inside `useMove`;
+`runAction`'s tail (`sim/battle.ts` :2820-2907) then drags every `forceSwitchFlag` body (Red Card), runs
+`faintMessages`, `Update`, and requests the `switchFlag` switches (Eject Button, Emergency Exit, a pivot).
+
+### The defect, and the pinned game it came from
+
+`omit-spread …2680875688`, turn 4: Sneasler's Close Combat into a Rillaboom holding Eject Button. Authority:
+`-enditem|Rillaboom|Eject Button`, `-enditem|Sneasler|White Herb`, `-clearnegativeboost`, then Incineroar switches in and
+Intimidates (Sneasler -1 Atk, kept). This engine: the switch and the Intimidate first, then the herb, which cleared the
+Intimidate drop too (board `boosts.atk 0/-1`).
+
+### The fix
+
+`restoreStatsAll(actA, actB)` (the herb's one reader) at the top of the end-of-action block, when a Red Card drag or an
+owed Eject Button / Emergency Exit switch is pending. Those doors are M-C-only (Red Card and Eject Button are `Past` in
+Reg M-B; Emergency Exit has no Reg M-B carrier), so every Reg M-B road keeps its post-action pass. Knob
+`MEDI_HERB_AFTER_OWED_SWITCH`.
+
+### Probe — `tests/probe_regmc_white_herb_before_switch.js --regulation regmc`
+
+| arm | staged | authority | 0.31.0 engine | after |
+|---|---|---|---|---|
+| EJECT | Snorlax @ White Herb, Superpower into Sylveon @ Eject Button; Arbok (Intimidate) replaces it | herb, then switch, then Intimidate (Atk -1 stays) | switch, Intimidate, then herb (Atk 0); board `boosts.atk 0/-1` | match, boards 0 |
+| CONTROL | the same with no Eject Button | the herb clears the self-drop | match | match |
+
+| run | exit | red |
+|---|---|---|
+| 0.31.0 engine bytes (release `5664c1b395a2`) | 1 | EJECT (lines and boards) |
+| clean, release `7a7240f738d1` | 0 | none |
+| `MEDI_HERB_AFTER_OWED_SWITCH=1` | 1 | EJECT (lines and boards) |
+
+### Pinned Reg M-C differential
+
+| engine | release | state bar | void | threw |
+|---|---|---|---|---|
+| 0.31.0 | `5664c1b395a2` | 19 / 954 | 1 | 4 |
+| 0.32.0 | `7a7240f738d1` | **18 / 954** | 1 | 4 |
+
+The two other White Herb games stand: in both, the authority's last lines are the herb's `-enditem` and
+`-clearnegativeboost`, and this engine emits nothing further (both engines "ended the battle"). A reading of that, not
+probed: the move that ends the battle raises `AfterMove` (and so the herb) before `faintMessages` decides the winner,
+and this engine breaks out of the turn on the wiped side before its post-action pass. Staging it needs a side wiped by
+one move in the four-body harness.
+
+### Reg M-B unmoved
+
+sha256 of the three Reg M-B files unchanged; damage differential seed `20260804` identical to the base but for the
+output-path line; lattice on release `5ca8aaa41c6c`: **0 of 961**, 0 void, 0 threw.
+
+---
+
+## 12. Where it stands, and what is left
+
+### The pinned Reg M-C differential, commit by commit (state bar = `state.games - state.games_board_never_diverged`)
+
+| commit | mechanic | release | board-material | void | threw |
+|---|---|---|---|---|---|
+| base `b22c86a2` (0.22.0) | — | `c2cce00ddfc8` | 78 / 941 | 14 | 5 |
+| 0.24.0 `768ea2fd` | move-effects table per regulation | `ae521767a04f` | 78 / 941 | 14 | 5 |
+| 0.25.0 `ae58e6ba` | Aura Guard (contact damage cut) | `37942009a577` | 56 / 952 | 3 | 4 |
+| 0.26.0 `eb7798b8` | Glaive Rush (exposed user; leaf compared) | `3c2625e09826` | 43 / 953 | 2 | 4 |
+| 0.27.0 `a0e42ba5` | Octolock (clockless drop; leaf compared) | `ac2bfd957f10` | 43 / 953 | 2 | 4 |
+| 0.28.0 `cb42bc64` | Revival Blessing fails without a fainted ally | `0bb19ac17b74` | 33 / 954 | 1 | 4 |
+| 0.29.0 `b2f7eacb` | Terrain Extender | `2ed8f7966fdf` | 25 / 954 | 1 | 4 |
+| 0.30.0 `96fa8b46` | Binding Band | `fa4072a17835` | 22 / 954 | 1 | 4 |
+| 0.31.0 `b294c417` | Normal Gem | `5664c1b395a2` | 19 / 954 | 1 | 4 |
+| 0.32.0 | White Herb before the owed switches | `7a7240f738d1` | **18 / 954** | 1 | 4 |
+
+Every run: `--games 1200`, `--steering empirical --arm middle --end-state`, census pin
+`census-pin-regmc-98c69a4fee7f`, team store `data/team-pool-frozen-regmc` (the main tree's), Reg M-C checkout
+`f10d679`. Faint-HP writing (`0fnt` on one side), 14 at the brief, reads 0 from 0.26.0 on: those games were Aura Guard
+and Glaive Rush damage.
+
+### What is left: the 18, by first BOARD divergence (0.32.0 run, all 18 listed)
+
+| family | games |
+|---|---|
+| first protocol divergence is the Sirfetch'd / Farfetch'd display name (M-C table key `sirfetch-d`); the board cause is later and hidden | 5 |
+| White Herb spent by the authority on the battle's last move, not here | 2 |
+| a switch or a move after the authority stopped emitting (rain upkeep, Psychic Fangs, a switch) | 3 |
+| a damage value (Golisopod, Basculegion) | 2 |
+| Grassy Terrain's end not written here | 1 |
+| Seed Sower's terrain not set here | 1 |
+| Liquid Ooze not applied here | 1 |
+| Berserk boosting here and not in the authority | 1 |
+| Trace copying a different ability | 1 |
+| Psychic Terrain's `-activate` on a different body | 1 |
+
+THREW stays at 4, and the refused-choice counter reads 6: the Revival Blessing revive road the harness cannot mirror.
+
+### Reg M-B, every commit
+
+`data/tags.json` `c34d6465c3b6…`, `data/protocol-events.json` `4e2f810b338a…`, `data/move-effects.js` `f35ecd91ba86…`:
+byte-identical to HEAD at every commit. `tests/test-engine-diff.js --n 6000 --seed 20260804`: identical to the base but
+for the `wrote …` line at every commit (control seed `20260805` on the base: 128 differing lines). Lattice `--games
+1200`: 0 of 961, 0 void, 0 threw, on releases `66a1c8056926`, `79ba77f8744d`, `2227f14a9d2e`, `d276a79a2605`,
+`e397d32dc184`, `f5e8a0f68e2b`, `8abdc33a57a2`, `879b7cf1227d`, `5ca8aaa41c6c`. No Reg M-B census or roster row was added.
+
+### Filed for other divisions
+
+- **MEASURE:** `MEGA_PREFER_B` (`engine/game_differential.js` :3434) is outside `driverSnap`, so a game replayed alone
+  or with the counters restored can take a different mega (§2). `mirrorForcedSwitch` cannot answer a revival request
+  (§6). The census rows' typed Reg M-B values (§8).
+- **ENGINE, next pass:** the M-C table's hyphenated species keys (`build/build_engine_data_regmc.js`), then the list
+  above.
+
+### Scratch left in the worktree (mine, untracked)
+
+`data/verification/_eng-a8c5-ediff-*.json` (the damage-differential outputs), `data/_scratch-eng-a8c5-dump-*.json`
+(git-ignored), and the releases cut here under `data/releases/` (untracked in a worktree), including `84b4be6731ec`, cut
+from a syntactically broken intermediate and never used for a measurement.

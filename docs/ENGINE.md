@@ -1,3 +1,30 @@
+## REG M-C: WHITE HERB IS SPENT BEFORE AN EJECT BUTTON OR RED CARD SWITCH. 2026-09-22 (abra/regmc 0.32.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §11, and what is left in §12.
+
+- **Defect.** White Herb restores at `onAnyAfterMove`, before `runAction`'s tail does the drags and owed switches. This
+  engine spent it at the post-action pass, after the replacement walked in, so a switch-in Intimidate's drop was
+  cleared as well.
+- **Fix.** `restoreStatsAll` at the AfterMove door, before the Red Card drag and the owed Eject Button / Emergency Exit
+  switches (both M-C-only doors).
+- **Probe** `tests/probe_regmc_white_herb_before_switch.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_HERB_AFTER_OWED_SWITCH` and on the 0.31.0 engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after this pass
+
+Ranked on the PINNED Reg M-C differential, by first BOARD divergence (18 left; report §12):
+
+1. The five games whose first protocol divergence is the **Sirfetch'd / Farfetch'd display name** (the M-C table keys
+   `sirfetch-d`): their board causes are later and hidden until the name is fixed (`build/build_engine_data_regmc.js`).
+2. **White Herb on the battle's last move** (two games): the authority spends it; this engine ends the battle first.
+3. Singles: Grassy Terrain's end, Seed Sower, Liquid Ooze, Berserk, Trace's pick, rain upkeep, a switch and a move after
+   the authority stopped, Psychic Terrain on a different body, two damage values (Golisopod, Basculegion).
+4. Revival Blessing's revive road (needs MEASURE's mirror first).
+5. The 17 census rows missing under Reg M-C: all staging gaps (report §8).
+6. Carried: the `-start`/`-fieldstart` `[of]` fields, the Inner Focus stat label, the seed GAIN door, Emergency Exit's
+   residual and hazard doors; for MEASURE, `MEGA_PREFER_B` outside `driverSnap`.
 ## REG M-C: NORMAL GEM IS SPENT ON A NORMAL MOVE AND BOOSTS IT. 2026-09-22 (abra/regmc 0.31.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine.md` §10.
@@ -12,7 +39,7 @@ Full account: `docs/_reports/2026-09-22-regmc-engine.md` §10.
 - **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
   line; lattice `--games 1200` 0 of 961.
 
-### The Reg M-C hand list, after this pass
+### The Reg M-C hand list, after the 0.31.0 pass — SUPERSEDED by the 0.32.0 list above
 
 1. **White Herb** is spent at the AfterMove door, BEFORE the end-of-action switches (Eject Button); this engine spends
    it at the post-action pass, after a switch-in's Intimidate, and clears that drop too. Two more White Herb games end

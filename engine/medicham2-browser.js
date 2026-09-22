@@ -9439,6 +9439,9 @@ const TRAP_CHIP_ITEM_BLIND=(typeof process!=='undefined'&&process.env&&process.e
  * `-enditem|HOLDER|Normal Gem|[from] gem|[move] <Move>` and grants Unburden (`recordItemUsed`). The type is the ACTIVE
  * move's (`effMoveType`), the multiplier the tag's. MEDI_TYPE_GEM_INERT=1 never spends one. tests/probe_regmc_type_gem.js */
 const TYPE_GEM_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TYPE_GEM_INERT==='1');
+/* 2026-09-22 (Reg M-C, abra/regmc 0.32.0) -- MEDI_HERB_AFTER_OWED_SWITCH=1: White Herb waits for the post-action pass again,
+ * after a Red Card drag or an Eject Button / Emergency Exit switch (the pre-0.32.0 engine). */
+const HERB_AFTER_OWED_SWITCH=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HERB_AFTER_OWED_SWITCH==='1');
 function typeGemSpend(m,tg,moveId,mvObj,field){
   if(TYPE_GEM_INERT||!m||!m.item||m.fainted)return false;
   const p=TAGS.param('item',m.item,'typeGem');
@@ -49893,6 +49896,17 @@ function battleTurn(S,rng,actsForA,actsForB){
       }
       /* 2026-09-21 (Reg M-C, abra/regmc 0.21.0) -- THE END OF THE ACTION: the Red Card drag (a random bench body, the
        * phaze doors' die), then every switch owed to an Eject Button and a pivot kept beside it, the faster leaver first. */
+      /* 2026-09-22 (Reg M-C, abra/regmc 0.32.0) -- WHITE HERB AT THE AFTERMOVE DOOR, BEFORE THESE SWITCHES. whiteherb
+       * (M-C checkout, read from the dist dex) restores from `onAnyAfterMove`, and `AfterMove` is raised inside `useMove`,
+       * so it runs before `runAction`'s tail, where the drags (`forceSwitchFlag`, sim/battle.ts:2820-2828) and the owed
+       * switches (`switchFlag`, :2874-2907) are done. This engine spent the herb at its post-action pass, AFTER a
+       * replacement had walked in -- so a switch-in Intimidate's drop was cleared along with the move's own self-drop. The
+       * herb is asked here only when one of these two M-C-only doors is owed (Red Card and Eject Button are `Past` in Reg
+       * M-B and Emergency Exit has no Reg M-B carrier); every other road keeps its post-action pass. The pass is the
+       * herb's one reader, `restoreStatsAll`. tests/probe_regmc_white_herb_before_switch.js */
+      if((_redCardDrag||_ejectOwed.length)&&!HERB_AFTER_OWED_SWITCH){
+        const _hn=restoreStatsAll(actA,actB); if(_hn)MEDSEEN.herbBeforeOwedSwitch=(MEDSEEN.herbBeforeOwedSwitch||0)+_hn;
+      }
       if(_redCardDrag&&!m.fainted&&m.curHP>0){
         const _mb=sideBoxOf(m,it,actA,actB,benchA,benchB,sfA,sfB), _mi=_mb.own.indexOf(m);
         if(_mi>=0&&canDragIn(_mb.bench)){
