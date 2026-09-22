@@ -1,3 +1,16 @@
+## REG M-C: REVIVAL BLESSING REVIVES A FAINTED ALLY. 2026-09-22 (abra/regmc 0.41.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-3.md` §1.
+
+- **Defect.** With a fainted body in the party the engine counted `reviveUnmodelled` and pivoted a live bench body in.
+  The authority revives the first fainted body in party order to half HP and, if its corpse still holds a slot,
+  instaswitches it back in: at once when a move is still queued, after the residual otherwise.
+- **Fix.** `reviveFainted` / `reviveInstaswitch`, read off the existing `revivesFainted` tag; `fallenCount` keeps the
+  death. The revived body's own SwitchOut handlers on the instaswitch are counted, not modelled.
+- **Probe** `tests/probe_regmc_revive.js --regulation regmc`: exit 0 clean; exit 1 under `MEDI_REVIVE_UNMODELLED` and on
+  release `5c6df1a5e969` with the 0.40.0 bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; lattice `--games 1200` 0 of 961.
+
 ## REG M-C: WHITE HERB IS SPENT ON THE MOVE THAT ENDS THE BATTLE. 2026-09-22 (abra/regmc 0.36.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-2.md` §4.

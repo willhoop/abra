@@ -21,6 +21,31 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.41.0] — 2026-09-22
+
+### Fixed
+- **Revival Blessing revives a fainted ally, in Reg M-C.** With a fainted body in the party the move was counted
+  `MEDFAILS.reviveUnmodelled` and played as a pivot that brought a LIVE bench body in; the authority revives the first
+  fainted body in party order to half its max HP (`sethp` truncates), writes `-heal|pN: <name>|…|[from] move: Revival
+  Blessing`, and, when the corpse still holds an active slot, instaswitches it back in: at once when any move is still
+  queued that turn, after the residual otherwise (M-C checkout `sim/battle.ts` :2781-2798 and :2916-2923,
+  `sim/battle-queue.ts` :307-313). `engine/medicham2-browser.js` `reviveFainted` / `reviveInstaswitch`: the pick reads
+  `sf.team` (kept in the authority's party order since ROADMAP #544), the revived body goes to the bench in party order
+  or back into its slot, its own queued action is cancelled by the instaswitch, and `fallenCount` keeps counting the
+  death (`side.totalFainted` is never decremented). Read off the existing `revivesFainted` tag (`hpFraction`,
+  `instaswitchIfActiveSlot`); no tag file moved. The revived body's own SwitchOut handlers on its instaswitch are not
+  modelled and are counted (`MEDFAILS.reviveSwitchOutUnmodelled`). Knob `MEDI_REVIVE_UNMODELLED`.
+- `tests/probe_regmc_revive.js` (`--regulation regmc`): BENCH (revived to the bench), NOW (revived in its slot with a
+  slower foe still to move) and LAST (every foe already moved: the instaswitch lands after `|upkeep`). Exit 0 clean;
+  exit 1 under the knob and on release `5c6df1a5e969` with the 0.40.0 engine bytes.
+
+### Notes
+- Pinned Reg M-C differential (`--games 1200`, census pin `f3b70bc0c47c`, pool `team-pool-frozen-regmc`): 13 of 953
+  board-material on release `5c6df1a5e969` (0.40.0) → 7 of 954 on `2d5d6ec26e28`; the six revive games left, none
+  joined, and all 12 revival requests are now mirrored from a revive this engine made. Reg M-B unmoved: its three files
+  byte-identical, lattice `--games 1200` 0 of 961 (release `7335f5460a29`). Readings:
+  `docs/_reports/2026-09-22-regmc-engine-3.md`. Nothing here is published.
+
 ## [0.40.0] — 2026-09-22
 
 ### Fixed

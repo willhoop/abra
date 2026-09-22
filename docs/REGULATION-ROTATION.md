@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.40.0 — 2026-09-22.**
+**Version: 0.41.0 — 2026-09-22.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -385,6 +385,7 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | **The roster read the closed regulation's tag file and the old text layout.** `REL.read('data/tags.json')` serves the owner's copy out of every release, and the new checkout does not attach `desc` / `shortDesc` to an entity and writes a multiplier as "×". | The first Reg M-C items stage read a large share of its items COULD-NOT-STAGE for no mechanical reason; after the fixes only items new to the format remain (instruments report §4). | Fixed 0.40.0 in `tests/roster.js`. After a checkout change, print one entity's `desc` before trusting any rule that reads prose. |
 | **A fixture's legality was checked and thrown away.** `buildPair` judged every roster set against the TeamValidator and printed a count on exit; the artifact carried nothing. | The new regulation's roster built sets it refuses and nothing counted them against the gate. | Fixed 0.40.0: `fixture_legality` travels with the roster counts and `engine/quarantine.js` fails a stage on a NOT-baselined refusal. |
 | **The same item can have different handlers in the two checkouts, and the engine must read which from the tag.** White Herb's `onAnyAfterMove` QUEUES the restore in Reg M-B's checkout (`insertChoice`, a queued event) and RUNS it inside `useMove` in Reg M-C's, so only the new regulation spends it on the move that ends the battle. | A fix written for the new regulation alone moved the closed one: the Reg M-B lattice went from 0 to 4 board-material games, every one a White Herb the old authority kept. | Before fixing a new-regulation card, print the entity's handlers in BOTH checkouts; when they differ, derive the difference into a tag field that is written only for the new shape (so the old tag file derives byte-identically) and gate the engine on it. Run the old lattice on every commit: it is the control that caught this. `docs/_reports/2026-09-22-regmc-engine-2.md` §4. |
+| **A road "counted, not modelled" in the old regulation can be dormant there by construction.** Revival Blessing's revive road was a `MEDFAILS.reviveUnmodelled` counter that no Reg M-B game could ever raise (the move and its one learner are `Past` in Reg M-B), so the closed line's zero said nothing about it. | Six of the thirteen pinned Reg M-C board-material games at 0.40.0 were that one counted road. | On a rotation, list every `MEDFAILS` counter whose entities are illegal in the old regulation and legal in the new one: each is an unmodelled mechanic the old gate never exercised. Fixed 0.41.0 (`reviveFainted`). |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

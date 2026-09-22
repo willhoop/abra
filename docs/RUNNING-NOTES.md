@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.41.0] — 2026-09-22 — **Revival Blessing revives a fainted ally, in Reg M-C**
+
+- **What changed.** `engine/medicham2-browser.js`: `reviveFainted` / `reviveInstaswitch` replace the counted pivot road
+  (the first fainted body in party order to half HP, `-heal` by side, an instaswitch now or after the residual);
+  `fallenCount` keeps the revived death. Knob `MEDI_REVIVE_UNMODELLED`; probe `tests/probe_regmc_revive.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine-3.md` §1.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, lattice at 1200 0 of 961).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.40.0] — 2026-09-22 — **The Reg M-C instruments answer for Reg M-C: a per-game mega slot, an answered revive, a re-staged census, a Reg M-C roster**
 
 - **What changed.** `engine/game_differential.js`: the mega-slot choice is a per-game address under Reg M-C (Reg M-B

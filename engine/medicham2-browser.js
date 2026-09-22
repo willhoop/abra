@@ -87,7 +87,7 @@ const TAGS = (function(){
  * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
-const MEDSEEN = { allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+const MEDSEEN = { reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
    * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
@@ -3433,7 +3433,7 @@ const MEDSEEN = { allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesN
   dollSecondaryDrawn: 0, secAddrSkippedDollRow: 0, secAddrDollWithNoLiveRowYet: 0,
   updateEventSorted: 0, updateSpeedCacheStamped: 0, updateSortCachedDiffersLive: 0, updateTieResolved: 0,
   volSeqStamped: 0, volStepShadowOrdered: 0 };
-const MEDFAILS = { allyBasePowerUnusable: 0, critItemLockUnparsed: 0, encoreAction: 0, anticipationNoState: 0, anticipationMoveUnknown: 0, sweepActivateNoName: 0,
+const MEDFAILS = { reviveSwitchOutUnmodelled: 0, reviveNoHpFraction: 0, allyBasePowerUnusable: 0, critItemLockUnparsed: 0, encoreAction: 0, anticipationNoState: 0, anticipationMoveUnknown: 0, sweepActivateNoName: 0,
   /* 2026-09-19 -- a body reached the Update sort with no cached `pokemon.speed` stamp (it fell back to live
    * speed), and a tied Update group resolved with no die in scope. Both should stay 0. */
   updateSpeedUncached: 0, updateOrderTieNoDie: 0,
@@ -5781,6 +5781,10 @@ const TRACE=(function(){
      * '[from] ability: Regenerator', '[silent]')`. push() drops an empty field, so with no `of` the
      * flag lands where the authority puts it and every existing three-argument caller is unchanged. */
     heal(m,from,of,tag){ this.push(['-heal',ident(m),health(m),from,of?'[of] '+ident(of):'',tag]); },
+    /* 2026-09-22 (Reg M-C, abra/regmc 0.41.0) -- A REVIVED BODY IS NAMED BY ITS SIDE ALONE. The authority writes the
+     * revive's `-heal` while the body is NOT active (`isActive` went false at its faint; sim/battle.ts :2796, and
+     * `Pokemon#toString` drops the slot letter for an inactive body), even when its corpse still holds a slot here. */
+    healSide(m,sd,from){ this.push(['-heal',sd+': '+identName(m),health(m),from]); },
     /* 2026-08-26 -- AND SUPREME OVERLORD'S MARKER CLOSES HERE TOO, BECAUSE A DEATH IS THE OTHER
      * MOMENT THE ABILITY ENDS. `faintMessages` writes `|faint|`, increments `side.totalFainted` and
      * THEN fires the ability's End (sim/battle.ts:2550-2553), with `isActive` still true -- so the
@@ -7459,6 +7463,11 @@ const PERTURN_BOOST_CLOCK_ALWAYS=(typeof process!=='undefined'&&process.env&&pro
 /* 2026-09-22 (Reg M-C, abra/regmc 0.28.0) -- MEDI_REVIVE_AS_PIVOT=1 plays a `revivesFainted` move as the status pivot it
  * was classified as before 0.28.0: the user leaves and a live bench body comes in, whether or not anyone has fainted. */
 const REVIVE_AS_PIVOT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REVIVE_AS_PIVOT==='1');
+/* 2026-09-22 (Reg M-C, abra/regmc 0.41.0) -- MEDI_REVIVE_UNMODELLED=1 restores the pre-0.41.0 revive road: with a fainted
+ * body in the party the move is counted `MEDFAILS.reviveUnmodelled` and played as a pivot that brings a LIVE bench body in.
+ * tests/probe_regmc_revive.js */
+const REVIVE_UNMODELLED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REVIVE_UNMODELLED==='1');
+if(REVIVE_UNMODELLED)MEDFAILS.reviveUnmodelledRestored=1;
 let _volExposed=null;
 function exposedVolatiles(){
   if(_volExposed) return _volExposed;
@@ -26543,7 +26552,7 @@ function canDragIn(bench){ return _live(bench).length>0; }
  * one case where the roster is absent is COUNTED rather than falling silently back to the arrays that
  * caused this, because a quiet fallback here is indistinguishable from the bug. */
 function fallenCount(sf,act,bench){
-  if(sf&&sf.team&&sf.team.length)return sf.team.filter(x=>x&&x.fainted).length;
+  if(sf&&sf.team&&sf.team.length)return sf.team.filter(x=>x&&x.fainted).length+(sf._revived|0);
   MEDFAILS.fallenNoRoster++;
   return [...act,...bench].filter(x=>x&&x.fainted).length;
 }
@@ -30224,6 +30233,91 @@ function faintHousekeeping(m){
   MEDSEEN.transformRevertedOnFaint++;
   return true;
 }
+/* ==== 2026-09-22 (Reg M-C, abra/regmc 0.41.0) -- REVIVAL BLESSING REVIVES ======================================
+ *
+ * The authority, M-C checkout, read whole. `revivalblessing` (data/moves.ts :15110-15136) raises a switch request on its
+ * user's slot that only a FAINTED party member may answer (sim/side.ts :930-975); a bare answer names the first fainted
+ * body in party order (`slot = 0; while (!this.pokemon[slot].fainted) slot++`). The answer is a `revivalblessing` action
+ * (order 6, sorted to the head of the rest of the turn), and sim/battle.ts :2781-2798 runs it:
+ *     pokemonLeft++;
+ *     if (target.position < side.active.length) queue.addChoice({choice: 'instaswitch', pokemon: target, target});
+ *     fainted = false; faintQueued = false; subFainted = false; status = ''; hp = 1; sethp(maxhp / 2);
+ *     add('-heal', target, target.getHealth, '[from] move: Revival Blessing');
+ * `sethp` truncates (sim/pokemon.ts :1655-1667). `side.totalFainted` is NOT decremented, so Last Respects and Supreme
+ * Overlord keep counting the revived body's death (`sf._revived`, read by `fallenCount`).
+ *
+ * THE INSTASWITCH. `addChoice` APPENDS (sim/battle-queue.ts :307-313), behind the turn's residual, and runAction's tail
+ * re-sorts the queue only when its head is a move (sim/battle.ts :2916-2923). So a body revived in an active slot walks
+ * in AT ONCE when any move is still queued this turn (a fainted body's move included: gen 9 cancels nothing on a faint),
+ * and AFTER THE RESIDUAL otherwise -- standing in `side.active` through the residual, where `fieldEvent` finds it
+ * (sim/battle.ts :484-515). `switchIn` with the body as its own `oldActive` (sim/battle-actions.ts :62-160) cancels the
+ * body's own queued action and clears its volatiles; its own SwitchOut handlers also run there, and that half is NOT
+ * modelled: a body carrying a switch-out tag is counted (`MEDFAILS.reviveSwitchOutUnmodelled`), never silent.
+ *
+ * The pick: the first fainted body in `sf.team`, which `bringIn` keeps permuted as the authority's `side.pokemon`
+ * (ROADMAP #544) -- the authority's own default, and the body the differential then names (mirrorRevival). */
+function reviveClear(t){
+  /* `clearVolatile(false)` at the faint (sim/battle.ts :2560): what `switchOut` clears for a leaver, the corpse lost too */
+  t.protect=false; t.tookProtectTurns=0; t._redirect=null; t._seededBy=null;
+  t._charging=null; t._invuln=false; t._ttmWrap=null; t._ttmTgtSlot=null;
+  t._sub=0; t._noSound=0; t._noRepeat=null; t._noRepeatT=0; t._recharge=false; t._trap=null; t._trapHard=null;
+  t._mtLock=null; t._vol={}; t._guarantee=null; t._encoreMove=null; t._sealed=null; t._volGave=null; t._volSrc=null;
+  t._protectMove=null; t._lastMove=null; t._lastAim=null; t._lock=null; t._lockT=0; t._lockHadMove=false; t._flinch=false;
+  t._mvRes=undefined; t._mvResLast=undefined; t._metroLast=null; t._metroN=0; t._timesAttacked=0; t._perish=null;
+  t._yawn=null; t._ptDmg=null; t._healBlock=0; t._cud=null;
+  t.boosts={at:0,df:0,sa:0,sd:0,sp:0,acc:0,eva:0};
+  /* the status line: `status = ''`, and every counter hanging off it */
+  t.status=''; t.frzTurns=0; t.slpTurns=0; t.slpTime=0; t._toxN=0; t.toxTurns=0;
+  /* the faint bookkeeping, so a second death is a new one */
+  t._faintOut=undefined; t._abAtFaint=undefined; t._fEpoch=undefined;
+}
+function reviveFainted(user,sd,sf,act,bench,foes,field,S,acts,unresolved,mv){
+  const party=(sf&&sf.team&&sf.team.length)?sf.team:[...act,...bench];
+  const t=party.find(x=>x&&x!==user&&x.fainted);
+  if(!t||!t.st)return false;
+  const pr=TAGS.param('move',mv,'revivesFainted')||{};
+  const frac=typeof pr.hpFraction==='number'?pr.hpFraction:null;
+  if(frac==null){MEDFAILS.reviveNoHpFraction++;return false;}
+  reviveClear(t);
+  t.fainted=false;
+  t.curHP=Math.max(1,Math.trunc(t.st.hp*frac));
+  if(sf)sf._revived=(sf._revived|0)+1;
+  MEDSEEN.reviveRevived++;
+  if(TR)TR.healSide(t,sd,'[from] move: '+mv);
+  const i=act.indexOf(t);
+  if(i<0){
+    /* to the bench, in the party order the authority keeps */
+    if(bench.indexOf(t)<0){
+      const k=sf&&sf.team?sf.team.indexOf(t):-1;
+      let at=bench.length;
+      if(k>=0)for(let j=0;j<bench.length;j++){const kj=sf.team.indexOf(bench[j]);if(kj>k){at=j;break;}}
+      bench.splice(at,0,t);
+    }
+    return true;
+  }
+  if(!pr.instaswitchIfActiveSlot)return true;
+  if(TAGS.param('ability',t.ability,'switchOutTrigger')||TAGS.param('ability',t.ability,'healsOnSwitchOut')){
+    MEDFAILS.reviveSwitchOutUnmodelled++;
+    if(!MEDFAILS.reviveSwitchOutUnmodelledFirst)MEDFAILS.reviveSwitchOutUnmodelledFirst=String(t.name)+'/'+String(t.ability);
+  }
+  /* the body's own queued action is cancelled by its instaswitch, whichever moment that is */
+  for(const x of acts||[])if(x&&x.mon===t&&unresolved&&unresolved.has(t)){x._reviveCancelled=true;}
+  const moveQueued=(acts||[]).some(x=>x&&x.mon&&unresolved&&unresolved.has(x.mon)&&x.a&&x.a.kind!=='pass');
+  const go={act,i,bench,foes,sf,t};
+  if(moveQueued){reviveInstaswitch(go,field);return true;}
+  (S._reviveInsta||(S._reviveInsta=[])).push(go);
+  return true;
+}
+function reviveInstaswitch(g,field){
+  if(g.act[g.i]!==g.t||g.t.fainted)return;
+  const _bi=g.bench.indexOf(g.t);
+  if(_bi<0)g.bench.push(g.t);
+  const _dr=TR?TR.drag:false; if(TR)TR.drag=false;
+  const _sw=TR?TR._swFrom:null; if(TR)TR._swFrom=null;
+  try{ bringIn(g.act,g.i,g.bench,g.foes,g.sf,field,g.t); }
+  finally{ if(TR){TR.drag=_dr;TR._swFrom=_sw;} }
+  MEDSEEN.reviveInstaswitch++;
+}
 /* IS A `|faint|` STILL OWED? The authority's `this.ended` is set inside a DRAIN and never at the
  * state transition, so a caller asking "has the battle ended at this line" has to know whether the
  * queue is empty as well as whether a side is out of bodies. One reader, so the two places that ask
@@ -33550,6 +33644,8 @@ function battleTurn(S,rng,actsForA,actsForB){
         continue;
       }
       if(m.fainted||m.curHP<=0)continue;
+      /* 2026-09-22 (Reg M-C, abra/regmc 0.41.0) -- a revived body's queued action died with its instaswitch (`reviveFainted`) */
+      if(it._reviveCancelled){MEDSEEN.reviveActionCancelled++;continue;}
       if(it.a&&it.a.kind!=='switch'&&it.a.kind!=='pass')m._mvActs=((m._mvActs)|0)+1;
       /* ROADMAP #232 -- THE SHIELD FAMILY'S GATE USED TO BE CALLED HERE, ABOVE THE `BeforeMove` GATES,
        * AND THE COMMENT THAT STOOD ON THIS LINE NAMED THE DEFECT AND LEFT IT: *"a flinched or sleeping
@@ -38968,6 +39064,12 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(!(_rsf&&_rsf.team&&_rsf.team.length))MEDFAILS.fallenNoRoster++;
           if(!_rparty.some(x=>x&&x!==m&&x.fainted)){
             m._lastMove=a.mv; mvFail(m); MEDSEEN.reviveFailedNoFainted++; continue;
+          }
+          /* 2026-09-22 (Reg M-C, abra/regmc 0.41.0) -- AND WITH ONE, IT REVIVES. See `reviveFainted`. */
+          if(!REVIVE_UNMODELLED){
+            m._lastMove=a.mv; m._mvRes=true;
+            if(reviveFainted(m,it.side==='A'?'p1':'p2',_rsf,it.side==='A'?actA:actB,it.side==='A'?benchA:benchB,
+                             it.side==='A'?actB:actA,field,S,acts,unresolved,a.mv))continue;
           }
           MEDFAILS.reviveUnmodelled=(MEDFAILS.reviveUnmodelled||0)+1;
           if(!MEDFAILS.reviveUnmodelledFirst)MEDFAILS.reviveUnmodelledFirst=String(a.mv);
@@ -52616,6 +52718,12 @@ function battleTurn(S,rng,actsForA,actsForB){
     }
     /* the `eachEvent` list skips a corpse; its flag is cleared here as the residualOrder walk used to. */
     for(const m of [...actA,...actB])if(m&&m._statusSetInWalk)m._statusSetInWalk=false;
+    /* 2026-09-22 (Reg M-C, abra/regmc 0.41.0) -- a body revived in an active slot with no move left to come walks in
+     * here: its instaswitch was appended behind the residual (`reviveFainted`). */
+    if(S._reviveInsta&&S._reviveInsta.length){
+      const _ri=S._reviveInsta; S._reviveInsta=[];
+      for(const g of _ri){ if(!_wipedAtResidual){reviveInstaswitch(g,field);MEDSEEN.reviveInstaswitchAfterResidual++;} }
+    }
     /* ROADMAP #175 -- BEFORE the replacements walk in, and that ordering is the whole of it: `refill`
      * puts a new body in the dead one's slot, so a sweep placed one line lower would find the corpse
      * gone and every residual faint would inherit nothing. */
