@@ -242,3 +242,75 @@ Left: `…2681957395` (the Liquid Ooze game). Joined: none.
 
 Three Reg M-B files unchanged against HEAD. Lattice on release `97d18af7a5a9`: **0 of 961**, 0 void, 0 protocol
 divergences.
+
+---
+
+## 3. Seed Sower (abra/regmc 0.43.0)
+
+### The authority, read whole (M-C checkout)
+
+- `data/abilities.ts` seedsower :4119-4127 (the Champions mod does not name it):
+  `onDamagingHit(damage, target, source, move) { this.field.setTerrain('grassyterrain'); }` — no gate of its own.
+- `Field#setTerrain` takes the event's target (the holder) as source and the ability as effect; a standing terrain
+  refuses; the duration is the terrain's `durationCallback` (the holder's Terrain Extender); the line is
+  `-fieldstart|move: Grassy Terrain|[from] ability: Seed Sower|[of] HOLDER`; it ends with `TerrainChange`, which spends a
+  matching seed.
+
+### The defect
+
+`seedsower` was `untagged`. `effectRecipients` (`engine/tag_dex.js`) counts `setWeather` and `sideCondition` in an
+`onDamagingHit` as a cost to the attacker — which is how Sand Spit reaches `punishesAttacker.setsWeather` — but not
+`setTerrain`, so `punishesAttacker` never matched Seed Sower. The pinned game (`…2679664835`) parted at turn 5 when
+Pelipper's Weather Ball hit Arboliva: the authority started Grassy Terrain and Annihilape spent its Grassy Seed
+(`def +1`); this engine did neither.
+
+### Tag, membership printed before wiring (`data/_scratch-eng-ae72/member3.js`)
+
+```
+pokemon-showdown-mc regmc  seedsower[legal] setsTerrain=grassyterrain carriers=arboliva
+pokemon-showdown    regmb  seedsower[legal] setsTerrain=grassyterrain carriers=none
+```
+
+`effectRecipients` gains `setTerrain`; `punishesAttacker` writes `setsTerrain` only when present, so Sand Spit and every
+other row keep exactly their keys. Regenerated `data/tags-regmc.json` to scratch: one rule change (the Seed Sower row);
+the row alone was spliced (the descriptor's member count is left as committed, the precedent of the Leek and Steely
+Spirit rows).
+
+### Engine
+
+Beside Sand Spit's weather in the punish block: `terrainId`, refuse a standing terrain (`MEDSEEN.punishTerrainAlreadyUp`),
+`terrainTurns(t, holder.item)`, `TR.terrainStart(…, '[from] ability: …', holder)`, `syncFieldTypes`,
+`seedTerrainChange` — the same steps the terrain move and `terrainSetter` take. Knob `MEDI_PUNISH_TERRAIN_INERT`.
+
+### Probe — `tests/probe_regmc_seed_sower.js --regulation regmc`
+
+| arm | staged | authority |
+|---|---|---|
+| HIT | Snorlax Seed Bomb into Arboliva (Seed Sower), partner Toxapex @ Grassy Seed | `-fieldstart … [from] ability: Seed Sower`, `-enditem|p2b: Toxapex|Grassy Seed`, `def +1` |
+| UP | the same hit on turn 2, the terrain up from turn 1 | no second `-fieldstart` |
+| CONTROL | the HIT arm, Arboliva on Harvest (no berry held) | no terrain |
+
+The seed is read off the tag file's `consumedOnTerrain`; the holder's click is a self-targeted stat-boosting status move
+(repeatable), so no `-fail` line appears on one engine only.
+
+| run | exit | red |
+|---|---|---|
+| release `e4ec330c6314` + the 0.42.0 engine bytes | **1** | HIT, UP (lines and boards) |
+| clean, release `04de2d2fc705` | **0** | none; one terrain set in HIT and in UP, none in CONTROL |
+| `MEDI_PUNISH_TERRAIN_INERT=1` | **1** | HIT, UP (lines and boards) |
+
+7 staged sets, 0 illegal under the Reg M-C `TeamValidator`.
+
+### Pinned Reg M-C differential
+
+| engine | release | state bar | void |
+|---|---|---|---|
+| 0.42.0 | `e4ec330c6314` | 6 / 954 | 1 |
+| 0.43.0 | `04de2d2fc705` | **5 / 954** | 1 |
+
+Left: `…2679664835` (the Seed Sower game). Joined: none.
+
+### Reg M-B unmoved
+
+Three Reg M-B files unchanged against HEAD. Lattice on release `fb3fcbb03756`: **0 of 961**, 0 void, 0 protocol
+divergences.

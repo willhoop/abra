@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.43.0] — 2026-09-22 — **Seed Sower sets Grassy Terrain when its holder is hit, in Reg M-C**
+
+- **What changed.** `engine/tag_dex.js`: `effectRecipients` counts `setTerrain`; `punishesAttacker.setsTerrain` (only when
+  present); the Seed Sower row spliced into `data/tags-regmc.json`. `engine/medicham2-browser.js`: the terrain branch
+  beside Sand Spit's weather. Knob `MEDI_PUNISH_TERRAIN_INERT`; probe `tests/probe_regmc_seed_sower.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine-3.md` §3.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, lattice at 1200 0 of 961).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.42.0] — 2026-09-22 — **Liquid Ooze turns a drain, a Leech Seed return and a Strength Sap into damage, in Reg M-C**
 
 - **What changed.** `engine/tag_dex.js`: ability tag `reversesHeal {from}` off `onSourceTryHeal`; the Liquid Ooze row and

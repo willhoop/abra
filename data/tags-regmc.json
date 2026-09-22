@@ -44003,10 +44003,31 @@
   "seedsower": {
    "name": "Seed Sower",
    "tags": [
-    "untagged"
+    "punishesAttacker"
    ],
    "uses": 8,
-   "params": {}
+   "params": {
+    "punishesAttacker": {
+     "compounds": false,
+     "trigger": "anyHit",
+     "order": null,
+     "onFaintOnly": null,
+     "requiresForme": null,
+     "inflicts": null,
+     "inflictsVolatile": null,
+     "boosts": null,
+     "boostsSecondary": null,
+     "announce": null,
+     "attackerImmune": null,
+     "attackerStatusImmunity": null,
+     "fraction": null,
+     "dealsDamageTaken": null,
+     "hazard": null,
+     "maxLayers": null,
+     "setsWeather": null,
+     "setsTerrain": "grassyterrain"
+    }
+   }
   },
   "shadowtag": {
    "name": "Shadow Tag",

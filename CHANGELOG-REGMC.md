@@ -21,6 +21,27 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.43.0] — 2026-09-22
+
+### Fixed
+- **Seed Sower sets Grassy Terrain when its holder is hit, in Reg M-C.** The ability was `untagged`: `effectRecipients`
+  in `engine/tag_dex.js` counted `setWeather` and `sideCondition` as a cost to the attacker but not `setTerrain`, so
+  `punishesAttacker` never matched it. M-C checkout `data/abilities.ts` seedsower :4119-4127
+  (`onDamagingHit() { this.field.setTerrain('grassyterrain'); }`). `punishesAttacker` now reads `setsTerrain`, written
+  only when present, so every existing row keeps its keys; membership, printed before wiring: `seedsower` (Arboliva in
+  Reg M-C; no legal carrier in Reg M-B, so no Reg M-B row). The row alone was spliced into `data/tags-regmc.json`.
+  `engine/medicham2-browser.js`: beside Sand Spit's weather, the terrain is set through the same four steps the terrain
+  move takes (a standing terrain refuses, the holder's Terrain Extender, `-fieldstart … [from] ability`, the seeds'
+  `TerrainChange`). Knob `MEDI_PUNISH_TERRAIN_INERT`.
+- `tests/probe_regmc_seed_sower.js` (`--regulation regmc`): HIT (the terrain starts and the partner's Grassy Seed is
+  spent), UP (a second hit into the standing terrain starts nothing) and a CONTROL on the holder's other ability. Exit 0
+  clean; exit 1 under the knob and on release `e4ec330c6314` with the 0.42.0 engine bytes.
+
+### Notes
+- Pinned Reg M-C differential (`--games 1200`, census pin `f3b70bc0c47c`): 6 of 954 → 5 of 954 on release
+  `04de2d2fc705`; the Seed Sower game left, none joined. Reg M-B unmoved: three files byte-identical, lattice
+  `--games 1200` 0 of 961 (release `fb3fcbb03756`). Readings: `docs/_reports/2026-09-22-regmc-engine-3.md` §3.
+
 ## [0.42.0] — 2026-09-22
 
 ### Fixed

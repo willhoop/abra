@@ -838,7 +838,11 @@ function effectRecipients(a) {
     if (!w || w === 'target') out.holder = true; else if (w === 'source') out.attacker = true; };
   for (const m of src.matchAll(/this\.(?:boost|damage|heal)\(/g)) mark(argsOf(src, m.index + m[0].length - 1)[1]);
   for (const m of src.matchAll(/\b(target|source)\.(?:addVolatile|trySetStatus|setStatus)\(/g)) mark(m[1]);
-  if (/sideCondition|setWeather/.test(src)) out.attacker = true;
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.43.0) -- `setTerrain` joins `setWeather`: Seed Sower (data/abilities.ts seedsower
+   * :4119-4127) sets Grassy Terrain off a damaging hit exactly as Sand Spit sets sand. Membership printed before wiring:
+   * the one in-format ability matching is seedsower, carried by Arboliva in Reg M-C and by nothing in Reg M-B, so no
+   * Reg M-B row moves. */
+  if (/sideCondition|setWeather|setTerrain/.test(src)) out.attacker = true;
   return out;
 }
 
@@ -9169,7 +9173,10 @@ const ABILITY_TAGS = [
                })(),
                hazard,
                maxLayers: hazard ? +((src.match(/layers\s*<\s*(\d+)/) || [])[1] || 0) || null : null,
-               setsWeather: (src.match(/setWeather\(\s*["'](\w+)["']/) || [])[1] || null };
+               setsWeather: (src.match(/setWeather\(\s*["'](\w+)["']/) || [])[1] || null,
+               /* 2026-09-22 (Reg M-C, abra/regmc 0.43.0) -- the terrain twin. Written ONLY when present, so every row
+                * that sets no terrain (every Reg M-B row) keeps exactly the keys it had. */
+               ...((t => t ? { setsTerrain: t } : {})((src.match(/setTerrain\(\s*["'](\w+)["']/) || [])[1] || null)) };
     } },
   /* DERIVED FROM THE HANDLER SOURCE, not from a list of names (Will: "no hardcodes"). Showdown
    * expresses the contact condition two ways -- checkMoveMakesContact() or move.flags.contact -- and

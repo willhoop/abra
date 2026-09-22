@@ -87,7 +87,7 @@ const TAGS = (function(){
  * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
-const MEDSEEN = { oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+const MEDSEEN = { punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
    * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
@@ -31638,6 +31638,10 @@ function payItemPunish(m,tg,n,moveId,use){
  * `amt` is the heal as TryHeal saw it -- the caller's Big-Root-multiplied figure. Returns true when the heal became
  * damage (the caller heals nothing). MEDI_OOZE_INERT=1 restores the pre-0.42.0 engine (the heal is paid). */
 const OOZE_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_OOZE_INERT==='1');
+/* 2026-09-22 (Reg M-C, abra/regmc 0.43.0) -- MEDI_PUNISH_TERRAIN_INERT=1 ignores `punishesAttacker.setsTerrain` (Seed Sower),
+ * the pre-0.43.0 engine. */
+const PUNISH_TERRAIN_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PUNISH_TERRAIN_INERT==='1');
+if(PUNISH_TERRAIN_INERT)MEDFAILS.punishTerrainInertRestored=1;
 if(OOZE_INERT)MEDFAILS.oozeInertRestored=1;
 function oozeOf(holder,srcId){
   if(!holder||!holder.ability)return null;
@@ -46034,6 +46038,21 @@ function battleTurn(S,rng,actsForA,actsForB){
               if(_w){field.weather=_w;field.weatherT=weatherTurns(_w,tg.item);
                 if(TR)TR.wx(_w,'[from] ability: '+tg.ability,tg);
                 syncFieldTypes(field,[...actA,...actB]);}   // ROADMAP #175 -- Forecast follows this sky too
+            }
+            /* 2026-09-22 (Reg M-C, abra/regmc 0.43.0) -- THE TERRAIN TWIN: Seed Sower. M-C checkout data/abilities.ts seedsower
+             * :4119-4127, `onDamagingHit() { this.field.setTerrain('grassyterrain'); }`. `Field#setTerrain` takes the event's
+             * target -- the HOLDER, `tg` -- as its source: a terrain already standing refuses, the holder's Terrain Extender
+             * sets the clock, `-fieldstart ... [from] ability: ... [of] HOLDER`, then `TerrainChange` spends the seeds. The
+             * same four steps the terrain move and `terrainSetter` take (above), read off `punishesAttacker.setsTerrain`. */
+            if(_pun.setsTerrain&&!PUNISH_TERRAIN_INERT){
+              const _tt=terrainId(_pun.setsTerrain);
+              if(_tt&&terrainId(field.terrain)!==_tt){
+                field.terrain=_tt;field.terrainT=terrainTurns(_tt,tg.item);
+                if(TR)TR.terrainStart(_tt,'[from] ability: '+tg.ability,tg);
+                syncFieldTypes(field,[...actA,...actB]);
+                seedTerrainChange(field,actA,actB);
+                MEDSEEN.punishTerrainSet++;
+              } else if(_tt)MEDSEEN.punishTerrainAlreadyUp++;
             }
             /* WIRE 68 -- TOXIC DEBRIS, and the comment that used to sit here said this tag had
              * "nowhere to land". It does now: WIRE 41 gave each side an `hz` bag on its `_sf`, so a

@@ -1,3 +1,15 @@
+## REG M-C: SEED SOWER SETS GRASSY TERRAIN WHEN ITS HOLDER IS HIT. 2026-09-22 (abra/regmc 0.43.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-3.md` §3.
+
+- **Defect.** Seed Sower was `untagged` (`effectRecipients` knew `setWeather`, not `setTerrain`), so a hit into Arboliva
+  set no terrain and no partner's Grassy Seed was spent.
+- **Tag.** `punishesAttacker.setsTerrain`, only when present. Members: Seed Sower (Arboliva, Reg M-C only).
+- **Engine.** The terrain branch beside Sand Spit's weather: refuse a standing terrain, Terrain Extender, the line, the seeds.
+- **Probe** `tests/probe_regmc_seed_sower.js --regulation regmc`: exit 0 clean; exit 1 under `MEDI_PUNISH_TERRAIN_INERT`
+  and on release `e4ec330c6314` with the 0.42.0 bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; lattice `--games 1200` 0 of 961.
+
 ## REG M-C: LIQUID OOZE TURNS A DRAIN INTO DAMAGE. 2026-09-22 (abra/regmc 0.42.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-3.md` §2.
