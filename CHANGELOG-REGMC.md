@@ -21,6 +21,26 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.42.0] — 2026-09-22
+
+### Fixed
+- **Liquid Ooze turns a drain, a Leech Seed return and a Strength Sap into damage, in Reg M-C.** The ability was
+  `untagged` and nothing read it, so the healer healed. M-C checkout `data/abilities.ts` liquidooze :2402-2415
+  (`onSourceTryHeal`: for `drain`, `leechseed` and `strengthsap`, `this.damage(damage); return 0`), and `Battle#heal`
+  (`sim/battle.ts` :2261-2301) runs TryHeal before its full-HP refusal, so a full-HP healer is damaged too. New ability
+  tag `reversesHeal {from}` in `engine/tag_dex.js`, derived off the handler (membership: `liquidooze`, whose one legal
+  carrier is Swalot in Reg M-C; no legal carrier in Reg M-B, so no Reg M-B row); the row and its descriptor spliced
+  into `data/tags-regmc.json`, nothing else moved. `engine/medicham2-browser.js` `oozeReverse` at the three heal sites,
+  on the Big-Root-multiplied amount, honouring Magic Guard (`refusesIndirect`). Knob `MEDI_OOZE_INERT`.
+- `tests/probe_regmc_liquid_ooze.js` (`--regulation regmc`): DRAIN, SAP and SEED into the holder from a full-HP healer,
+  and a CONTROL on the holder's other ability. Exit 0 clean; exit 1 under the knob and on release `2d5d6ec26e28` with
+  the 0.41.0 engine bytes.
+
+### Notes
+- Pinned Reg M-C differential (`--games 1200`, census pin `f3b70bc0c47c`): 7 of 954 → 6 of 954 on release
+  `e4ec330c6314`; the Liquid Ooze game left, none joined. Reg M-B unmoved: three files byte-identical, lattice
+  `--games 1200` 0 of 961 (release `97d18af7a5a9`). Readings: `docs/_reports/2026-09-22-regmc-engine-3.md` §2.
+
 ## [0.41.0] — 2026-09-22
 
 ### Fixed

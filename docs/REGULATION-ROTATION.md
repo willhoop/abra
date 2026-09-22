@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.41.0 — 2026-09-22.**
+**Version: 0.42.0 — 2026-09-22.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -386,6 +386,7 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | **A fixture's legality was checked and thrown away.** `buildPair` judged every roster set against the TeamValidator and printed a count on exit; the artifact carried nothing. | The new regulation's roster built sets it refuses and nothing counted them against the gate. | Fixed 0.40.0: `fixture_legality` travels with the roster counts and `engine/quarantine.js` fails a stage on a NOT-baselined refusal. |
 | **The same item can have different handlers in the two checkouts, and the engine must read which from the tag.** White Herb's `onAnyAfterMove` QUEUES the restore in Reg M-B's checkout (`insertChoice`, a queued event) and RUNS it inside `useMove` in Reg M-C's, so only the new regulation spends it on the move that ends the battle. | A fix written for the new regulation alone moved the closed one: the Reg M-B lattice went from 0 to 4 board-material games, every one a White Herb the old authority kept. | Before fixing a new-regulation card, print the entity's handlers in BOTH checkouts; when they differ, derive the difference into a tag field that is written only for the new shape (so the old tag file derives byte-identically) and gate the engine on it. Run the old lattice on every commit: it is the control that caught this. `docs/_reports/2026-09-22-regmc-engine-2.md` §4. |
 | **A road "counted, not modelled" in the old regulation can be dormant there by construction.** Revival Blessing's revive road was a `MEDFAILS.reviveUnmodelled` counter that no Reg M-B game could ever raise (the move and its one learner are `Past` in Reg M-B), so the closed line's zero said nothing about it. | Six of the thirteen pinned Reg M-C board-material games at 0.40.0 were that one counted road. | On a rotation, list every `MEDFAILS` counter whose entities are illegal in the old regulation and legal in the new one: each is an unmodelled mechanic the old gate never exercised. Fixed 0.41.0 (`reviveFainted`). |
+| **An ability with no legal carrier in the old regulation is `untagged` in the new one, and the usage floor hides it.** Liquid Ooze is legal in both formats but carried only in Reg M-C, so Reg M-B's tag file never had its row, and `engine/tag_dex.js` flags an untagged entity only above 0.5% usage (`UNTAGGED_FLOOR`): 4 Reg M-C sheet uses printed nothing. | A drain into it healed the drainer, and the only sign was one board-material game in the pinned differential. | On a rotation, list every ability, item and move that is `untagged` in the new tag file AND has a legal carrier there, regardless of usage, and read each handler. Fixed 0.42.0 (`reversesHeal`). |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

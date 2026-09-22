@@ -3188,6 +3188,19 @@
    ]
   },
   {
+   "tag": "reversesHeal",
+   "kind": "ability",
+   "param": "a listed heal the holder is the source of is dealt to the healer as damage instead",
+   "why": "Liquid Ooze (Swalot, Reg M-C): the authority damages a draining, sapping or seeding healer, this engine healed it",
+   "consumedBy": "reversesHeal",
+   "used": true,
+   "n": 1,
+   "uses": 4,
+   "examples": [
+    "Liquid Ooze"
+   ]
+  },
+  {
    "tag": "refusesForcedSwitch",
    "kind": "ability",
    "param": "the holder cannot be dragged out by a move or an item",
@@ -42689,10 +42702,18 @@
   "liquidooze": {
    "name": "Liquid Ooze",
    "tags": [
-    "untagged"
+    "reversesHeal"
    ],
    "uses": 4,
-   "params": {}
+   "params": {
+    "reversesHeal": {
+     "from": [
+      "drain",
+      "leechseed",
+      "strengthsap"
+     ]
+    }
+   }
   },
   "liquidvoice": {
    "name": "Liquid Voice",

@@ -7253,6 +7253,28 @@ const ABILITY_TAGS = [
       if (!/target\.switchFlag\s*=\s*true/.test(s)) return null;
       return { clearsOtherSwitches: /active\.switchFlag\s*=\s*false/.test(s), announces: /this\.add\(\s*["']-activate["']/.test(s) };
     } },
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.42.0) -- LIQUID OOZE. M-C checkout data/abilities.ts liquidooze :2402-2415 (the
+   * Champions mod does not name it):
+   *     onSourceTryHeal(damage, target, source, effect) {
+   *       const canOoze = ['drain', 'leechseed', 'strengthsap'];
+   *       if (canOoze.includes(effect.id)) { this.damage(damage); return 0; }
+   *     }
+   * A heal that the HOLDER is the source of, from one of the listed effects, becomes that much damage to the healer.
+   * `sim/battle.ts` heal :2261-2301 runs TryHeal before its full-HP refusal, so a full-HP healer is damaged too. The
+   * effect list IS part of the fact and is carried. DERIVED FROM THE HANDLER: `onSourceTryHeal` that calls
+   * `this.damage(` and names a quoted list. Membership, printed before wiring: `liquidooze` only; its one legal carrier
+   * in gen9championsvgc2026regmc is Swalot; no legal carrier in gen9championsvgc2026regmb (no Reg M-B row). */
+  { tag: 'reversesHeal', param: 'a listed heal the holder is the source of is dealt to the healer as damage instead',
+    probe: 'reversesHeal',
+    why: 'Liquid Ooze (Swalot, Reg M-C): the authority damages a draining, sapping or seeding healer, this engine healed it',
+    of: a => {
+      const s = String(a.onSourceTryHeal || '').replace(/\s+/g, ' ');
+      if (!/this\.damage\(/.test(s)) return null;
+      const list = s.match(/\[\s*((?:["'][a-z]+["']\s*,?\s*)+)\]/);
+      const from = list ? [...list[1].matchAll(/["']([a-z]+)["']/g)].map(x => x[1]) : null;
+      if (!from || !from.length) return null;     /* an unreadable effect list is not a claim */
+      return { from };
+    } },
   { tag: 'refusesForcedSwitch', param: 'the holder cannot be dragged out by a move or an item',
     probe: 'onDragOut',
     why: 'Suction Cups: Showdown drags the body out and this engine did not move the board, because '

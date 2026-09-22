@@ -163,3 +163,82 @@ divergences.
 an active slot instaswitches into ITS OWN slot, which can be the other one; its entry is left in that slot's queue.
 Harmless unless the same slot raises a forced-switch request later in the same turn, when the leftover entry would
 answer it. Not seen in this sample.
+
+---
+
+## 2. Liquid Ooze (abra/regmc 0.42.0)
+
+After §1 every remaining game is its own cause (7 games, 7 causes). Taken in order of cleanliness, not size: a cause
+that is a whole unmodelled mechanic, Reg M-C only, with a clean staging.
+
+### The authority, read whole (M-C checkout)
+
+- `data/abilities.ts` liquidooze :2402-2415 (the Champions mod does not name it): `onSourceTryHeal` — for `drain`,
+  `leechseed`, `strengthsap`: `this.damage(damage); return 0`.
+- `sim/battle.ts` heal :2261-2301: `if (damage && damage <= 1) damage = 1; damage = trunc(damage)`, then
+  `runEvent('TryHeal')` ("for things like Liquid Ooze, the Heal event still happens when nothing is healed"), and only
+  then `if (target.hp >= target.maxhp) return false`. So a full-HP healer is damaged.
+- Big Root (`data/items.ts` :482-494) is `onTryHealPriority: 1` on the same event, so it multiplies before the ooze reads
+  the amount. Magic Guard (`data/abilities.ts` :2465-2476) refuses the non-move damage.
+- The ability answers while its holder is active, which includes a holder the drain just knocked out
+  (`faintMessages` has not run; `Pokemon#ignoringAbility` :858-).
+
+### The defect
+
+`liquidooze` was `untagged` in `data/tags-regmc.json`; no line of the engine read it. The pinned game
+(`…2681957395`, Golisopod's Leech Life into Swalot, Golisopod on full HP) parted on Golisopod's HP (150 against 145).
+
+### Tag, membership printed before wiring (`data/_scratch-eng-ae72/member.js`, the same regex)
+
+```
+pokemon-showdown-mc regmc  liquidooze[legal] {"from":["drain","leechseed","strengthsap"]} carriers=swalot
+pokemon-showdown    regmb  liquidooze[legal] {"from":["drain","leechseed","strengthsap"]} carriers=none
+```
+
+No legal carrier in Reg M-B, so Reg M-B's tag file has no row and does not move. `data/tags-regmc.json` regenerated to
+scratch; the structural diff (tags and params per entity) showed ONE rule change, the Liquid Ooze row, plus the new
+descriptor; the other descriptor differences are usage churn. The row and the descriptor alone were spliced (CRLF kept;
+the splicer refuses a committed file that does not round-trip).
+
+### Engine
+
+`oozeReverse(healer, holder, effectId, amount)` beside the Rocky Helmet payer, called at the drain row
+(`_payDrainRow`, after Big Root), the Strength Sap heal (`healWithSourceMult`) and the Leech Seed return (only when the
+chip took something, as the authority's `if (damage)`). A 0-HP healer takes nothing; Magic Guard refuses it
+(`MEDSEEN.oozeRefusedIndirect`); a drain under Heal Block with an ooze target is counted, not modelled
+(`MEDFAILS.oozeUnderHealBlockUnmodelled`). Knob `MEDI_OOZE_INERT`.
+
+### Probe — `tests/probe_regmc_liquid_ooze.js --regulation regmc`
+
+Holder: the one legal carrier (Swalot), clicking a self-targeted status move with no heal (none of the kit's idle moves is
+in its learnset). The Strength Sap user's ability is one whose only handler is `onModifySpe` (derived; no quiet carrier
+learns the move).
+
+| arm | staged | authority |
+|---|---|---|
+| DRAIN | Sylveon Draining Kiss into Swalot, Sylveon on full HP | `-damage|p1a: Sylveon|145/170|[from] ability: Liquid Ooze|[of] p2a: Swalot` |
+| SAP | Vileplume Strength Sap into Swalot | `-damage|p1a: Vileplume|25/150|[from] ability: Liquid Ooze|…` |
+| SEED | Torterra Leech Seed into Swalot; the residual | the chip, then `-damage|p1a: Torterra|149/170|[from] ability: Liquid Ooze|…` |
+| CONTROL | DRAIN into Swalot on Sticky Hold | nothing touches Sylveon |
+
+| run | exit | red |
+|---|---|---|
+| release `2d5d6ec26e28` + the 0.41.0 engine bytes | **1** | DRAIN, SAP, SEED (lines and boards) |
+| clean, release `e4ec330c6314` | **0** | none; one reversal per arm, none in CONTROL |
+| `MEDI_OOZE_INERT=1` | **1** | DRAIN, SAP, SEED (lines and boards) |
+
+8 staged sets, 0 illegal under the Reg M-C `TeamValidator`.
+
+### Pinned Reg M-C differential
+
+| engine | release | state bar | void |
+|---|---|---|---|
+| 0.41.0 | `2d5d6ec26e28` | 7 / 954 | 1 |
+| 0.42.0 | `e4ec330c6314` | **6 / 954** | 1 |
+
+Left: `…2681957395` (the Liquid Ooze game). Joined: none.
+
+### Reg M-B unmoved
+
+Three Reg M-B files unchanged against HEAD. Lattice on release `97d18af7a5a9`: **0 of 961**, 0 void, 0 protocol
+divergences.

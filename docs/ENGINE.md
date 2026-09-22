@@ -1,3 +1,16 @@
+## REG M-C: LIQUID OOZE TURNS A DRAIN INTO DAMAGE. 2026-09-22 (abra/regmc 0.42.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-3.md` §2.
+
+- **Defect.** Liquid Ooze was `untagged` and unread: a drain, a Leech Seed return or a Strength Sap from its holder
+  healed the healer. The authority damages the healer by the heal amount, even on full HP.
+- **Tag.** `reversesHeal {from: [drain, leechseed, strengthsap]}`, off `onSourceTryHeal`. Members: Liquid Ooze (Swalot,
+  Reg M-C only).
+- **Engine.** `oozeReverse` at the three heal sites, after Big Root; Magic Guard refuses the damage.
+- **Probe** `tests/probe_regmc_liquid_ooze.js --regulation regmc`: exit 0 clean; exit 1 under `MEDI_OOZE_INERT` and on
+  release `2d5d6ec26e28` with the 0.41.0 bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; lattice `--games 1200` 0 of 961.
+
 ## REG M-C: REVIVAL BLESSING REVIVES A FAINTED ALLY. 2026-09-22 (abra/regmc 0.41.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-3.md` §1.

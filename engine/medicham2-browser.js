@@ -87,7 +87,7 @@ const TAGS = (function(){
  * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
-const MEDSEEN = { reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+const MEDSEEN = { oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
    * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
@@ -3433,7 +3433,7 @@ const MEDSEEN = { reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfter
   dollSecondaryDrawn: 0, secAddrSkippedDollRow: 0, secAddrDollWithNoLiveRowYet: 0,
   updateEventSorted: 0, updateSpeedCacheStamped: 0, updateSortCachedDiffersLive: 0, updateTieResolved: 0,
   volSeqStamped: 0, volStepShadowOrdered: 0 };
-const MEDFAILS = { reviveSwitchOutUnmodelled: 0, reviveNoHpFraction: 0, allyBasePowerUnusable: 0, critItemLockUnparsed: 0, encoreAction: 0, anticipationNoState: 0, anticipationMoveUnknown: 0, sweepActivateNoName: 0,
+const MEDFAILS = { oozeNoName: 0, oozeUnderHealBlockUnmodelled: 0, reviveSwitchOutUnmodelled: 0, reviveNoHpFraction: 0, allyBasePowerUnusable: 0, critItemLockUnparsed: 0, encoreAction: 0, anticipationNoState: 0, anticipationMoveUnknown: 0, sweepActivateNoName: 0,
   /* 2026-09-19 -- a body reached the Update sort with no cached `pokemon.speed` stamp (it fell back to live
    * speed), and a tied Update group resolved with no die in scope. Both should stay 0. */
   updateSpeedUncached: 0, updateOrderTieNoDie: 0,
@@ -31621,6 +31621,45 @@ function payItemPunish(m,tg,n,moveId,use){
   }
   return _paid;
 }
+/* 2026-09-22 (Reg M-C, abra/regmc 0.42.0) -- LIQUID OOZE: `reversesHeal`.
+ *
+ * THE AUTHORITY, read whole. M-C checkout data/abilities.ts liquidooze :2402-2415 (the Champions mod does not name it):
+ *     onSourceTryHeal(damage, target, source, effect) {
+ *       const canOoze = ['drain', 'leechseed', 'strengthsap'];
+ *       if (canOoze.includes(effect.id)) { this.damage(damage); return 0; }
+ *     }
+ * `Battle#heal` (sim/battle.ts :2261-2301) truncates the amount (>= 1), runs TryHeal -- Big Root's onTryHeal
+ * (priority 1) multiplies first, then this -- and only THEN refuses a healer on full HP, so a full-HP drainer is damaged.
+ * `this.damage(damage)` is the event's target (the healer), source (the holder) and effect (the ability):
+ * `-damage|HEALER|hp|[from] ability: Liquid Ooze|[of] HOLDER`, through `spreadDamage` (a 0-HP healer takes nothing;
+ * Magic Guard refuses a non-move effect, `refusesIndirect`). The holder's ability answers while the holder is still
+ * active, i.e. also on the drain that knocked it out (`faintMessages` has not run). The effect list is the tag's.
+ *
+ * `amt` is the heal as TryHeal saw it -- the caller's Big-Root-multiplied figure. Returns true when the heal became
+ * damage (the caller heals nothing). MEDI_OOZE_INERT=1 restores the pre-0.42.0 engine (the heal is paid). */
+const OOZE_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_OOZE_INERT==='1');
+if(OOZE_INERT)MEDFAILS.oozeInertRestored=1;
+function oozeOf(holder,srcId){
+  if(!holder||!holder.ability)return null;
+  const p=TAGS.param('ability',holder.ability,'reversesHeal');
+  return (p&&Array.isArray(p.from)&&p.from.includes(String(srcId)))?p:null;
+}
+function oozeReverse(healer,holder,srcId,amt){
+  if(OOZE_INERT||!healer||!holder||healer===holder)return false;
+  if(!oozeOf(holder,srcId))return false;
+  MEDSEEN.oozeReversed++;
+  if(healer.fainted||healer.curHP<=0||!healer.st)return true;
+  const d=Math.trunc(amt);
+  if(!(d>0))return true;
+  if(refusesIndirect(healer)){MEDSEEN.oozeRefusedIndirect++;return true;}
+  const _rec=TAGS.tagsFor?TAGS.tagsFor('ability',holder.ability):null;
+  let _name=(_rec&&_rec.name)||'';
+  if(!_name){MEDFAILS.oozeNoName++;_name=String(holder.ability);}
+  healer.curHP-=d;
+  if(TR)TR.dmg(healer,'[from] ability: '+_name,holder);
+  if(healer.curHP<=0)queueFaint(healer,'reversesHeal');
+  return true;
+}
 function battleTurn(S,rng,actsForA,actsForB){
   /* 2026-09-21 (Reg M-C, abra/regmc 0.22.0) -- the Emergency Exit doors this engine does not model (the residual and the
    * hazards, sim/battle.ts:2863-2874) are COUNTED: a holder above half at the last look and at or below it now. */
@@ -36220,6 +36259,8 @@ function battleTurn(S,rng,actsForA,actsForB){
              * item's `from` list and `this.heal(atk, source, target)` raises TryHeal on the USER.
              * The stat is already an integer, so the trunc `Battle#heal` does first is a no-op and
              * the modifier is applied straight to it. */
+            /* 2026-09-22 (Reg M-C, abra/regmc 0.42.0) -- the sapped body's `reversesHeal` turns it into damage (`oozeReverse`) */
+            if(!oozeReverse(m,_t,a.mv,healWithSourceMult(m,a.mv,_sapHeal)))
             m.curHP=Math.min(m.st.hp,m.curHP+healWithSourceMult(m,a.mv,_sapHeal));
             /* ROADMAP #234 -- AND IT LOSES AN ATTRIBUTION RATHER THAN GAINING ONE.
              * sim/battle.ts:2290: `if (effect.effectType === 'Move') add('-heal', target, health)` --
@@ -42413,12 +42454,15 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(!(_drTag&&_drTag.fraction))return;
         /* Heal Block takes the HEAL and leaves the DAMAGE, which is the rule and is also the only
            version worth modelling: a Drain Punch under Heal Block is still a Drain Punch. */
+        if(td>0&&!m.fainted&&m.st&&healBlocked(m)&&oozeOf(tg,'drain'))MEDFAILS.oozeUnderHealBlockUnmodelled++;
         if(!(td>0)||m.fainted||!m.st||healBlocked(m))return;
         let _one=Math.round(td*_drTag.fraction);        // sim/battle.ts:2168, per target
         if(_one&&_one<=1)_one=1;                        // :2265
         _one=Math.trunc(_one);                          // :2266
         if(_drMult!==1)_one=md4096(_one,_drMult);       // the TryHeal modifier, :932
         MEDSEEN.drainRoundedPerTarget++;
+        /* 2026-09-22 (Reg M-C, abra/regmc 0.42.0) -- the drained body's `reversesHeal` turns it into damage (`oozeReverse`) */
+        if(oozeReverse(m,tg,'drain',_one))return;
         const _gain=Math.min(m.st.hp,m.curHP+_one)-m.curHP;
         if(_gain>0){m.curHP+=_gain;if(TR)TR.heal(m,'[from] drain',tg);}
       };
@@ -51725,6 +51769,9 @@ function battleTurn(S,rng,actsForA,actsForB){
            * pokemon)` puts the effect id `leechseed` in front of the item's own list, and the ITEM IS
            * THE SEEDER'S -- `onTryHeal` is raised on the body being healed, not on the victim. The
            * chip above is untouched: only the return passes through TryHeal. */
+          /* 2026-09-22 (Reg M-C, abra/regmc 0.42.0) -- the seeded body's `reversesHeal` turns it into damage (`oozeReverse`);
+           * the authority heals only `if (damage)` (data/moves.ts leechseed condition onResidual) */
+          if(!(_d>0&&oozeReverse(_s,m,'leechseed',healWithSourceMult(_s,'leechseed',_d))))
           _s.curHP=Math.min(_s.st.hp,_s.curHP+healWithSourceMult(_s,'leechseed',_d));
           /* 2026-09-05 -- AND THE SEEDER'S LINE IS `[silent]`, WITH NO ATTRIBUTION AT ALL. It is not
            * a rule this engine gets to infer from the effect: `Battle#heal` switches on the effect id
