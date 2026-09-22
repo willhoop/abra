@@ -37504,7 +37504,11 @@
    "uses": 148,
    "params": {
     "critRatioUp": {
-     "critRatio": 2
+     "critRatio": 3,
+     "onlySpecies": [
+      "farfetchd",
+      "sirfetchd"
+     ]
     },
     "flingable": {
      "basePower": 60,

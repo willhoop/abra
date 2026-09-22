@@ -1,3 +1,16 @@
+## REG M-C: THE LEEK IS TWO CRIT STAGES, AND ONLY FOR FARFETCH'D AND SIRFETCH'D. 2026-09-22 (abra/regmc 0.34.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-2.md` §2.
+
+- **Defect.** Every crit item was tagged one stage (`critRatio: 2`); the Leek is `+ 2` and species-locked, so a
+  Sirfetch'd with a high-crit move rolled 1/2 where the authority is certain.
+- **Fix.** The deriver reads the increment and the lock off the handler; the engine honours the lock. Scope Lens's row
+  is unchanged, so Reg M-B's tags do not move.
+- **Probe** `tests/probe_regmc_leek.js --regulation regmc` (middle arm): exit 0 clean; exit 1 under
+  `MEDI_CRIT_ITEM_ONE_STAGE` and on the 0.33.0 release and bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
 ## REG M-C: A PUNCTUATED BASE NAME IS KEYED AS ONE BASE; U+2019 FOLDS LIKE AN APOSTROPHE. 2026-09-22 (abra/regmc 0.33.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-2.md` §1.

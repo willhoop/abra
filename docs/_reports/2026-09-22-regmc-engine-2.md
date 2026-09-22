@@ -93,3 +93,93 @@ with the game's board part later (a Sitrus Berry on Pelipper, turn 1). That is �
 
 Three Reg M-B files unchanged against HEAD. Damage differential seed `20260804`: identical to the base but for the
 `wrote …` output-path line. Lattice: see the commit table in the last section.
+
+---
+
+## 2. The Leek (abra/regmc 0.34.0)
+
+### The authority, read whole
+
+M-C checkout `data/items.ts` leek :3322-3337; the Champions mod (`data/mods/champions/items.ts` :522-525) only sets
+`isNonstandard: null`:
+
+```
+onModifyCritRatio(critRatio, user) {
+  if (["farfetchd", "sirfetchd"].includes(this.toID(user.baseSpecies.baseSpecies))) return critRatio + 2;
+}
+```
+
+The ratio indexes `critMult = [0, 24, 8, 2, 1]` (`sim/battle-actions.ts` :1623-1641), so a high-crit move (its own
+`critRatio` 2) held with the Leek by a Sirfetch'd reaches 4: a certain crit. Scope Lens (:5554-5563) is `critRatio + 1`
+for anyone.
+
+### The defect
+
+`engine/tag_dex.js`'s item `critRatioUp` row was `it.onModifyCritRatio ? { critRatio: 2 } : null`: one stage for every
+member. Right for Scope Lens, the only legal member in Reg M-B; wrong twice for the Leek (one stage short for the two
+species it names, one stage long for everyone else). In the four unmasked games a Sirfetch'd or Farfetch'd rolled 1/2
+at 1/2 where the authority was certain (Sky Attack: ratio 2 + 2 = 4), or at 1/8 where the authority rolled 1/2 (Close
+Combat, Meteor Assault, First Impression: ratio 1 + 2 = 3).
+
+### Tag, membership printed before wiring
+
+The row now reads the increment (`return critRatio + N`) and the lock (a base-species id list, or a single
+`=== 'x'`, or `baseSpecies.name === 'X'`); a condition it cannot name is `lockUnparsed: true` and the engine refuses
+it (counted, `MEDFAILS.critItemLockUnparsed`). Whole item dex, both checkouts:
+
+```
+pokemon-showdown-mc regmc  leek[legal] {critRatio:3, onlySpecies:[farfetchd, sirfetchd]}  scopelens[legal] {critRatio:2}
+                           razorclaw[Past] {critRatio:2}  luckypunch[Past] {critRatio:3, onlySpecies:[chansey]}  stick[Past] {critRatio:3, onlySpecies:[farfetchd]}
+pokemon-showdown    regmb  scopelens[legal] {critRatio:2}   (every other member Past; the same rows)
+```
+
+Scope Lens's row is byte-identical to the one `data/tags.json` carries, so Reg M-B's tag file does not move and was not
+regenerated. `data/tags-regmc.json` was regenerated to scratch (`node engine/tag_dex.js --regulation regmc`); a
+structural diff on (tags, params) per entity showed one rule change, the Leek row, and usage churn in the descriptor
+block only; the Leek row alone was spliced onto the committed file (CRLF kept).
+
+### Engine
+
+`critChance`: the item stage is added only when the lock names the attacker's base id (`monFlat(key.split('-')[0])`,
+which is right for these two species only since 0.33.0), refused when `lockUnparsed`, and counted
+(`MEDSEEN.critItemLockedOut`) when the lock excludes the holder. Knob `MEDI_CRIT_ITEM_ONE_STAGE` restores one stage for
+every carrier.
+
+### Probe — `tests/probe_regmc_leek.js --regulation regmc`
+
+Played on the `middle` arm (real dice, seeded and shared by category): under the kit's default bottom arm every crit
+lands, which the first run showed (all three arms, 4 of 4 crits) and which cannot see a rate. `tests/regmc_probe_kit.js`
+`play` gained an optional arm id.
+
+| arm | staged (five turns) | authority | 0.33.0 engine (release `941e36906e6c`) | after |
+|---|---|---|---|---|
+| LEEK | Farfetch'd @ Leek, Night Slash into Sylveon | 5 crits of 5 hits | parts (lines and boards) | match, boards 0 |
+| LOCKED | Ariados @ Leek, the same | 1 crit of 5 | parts (lines and boards) | match, boards 0 |
+| CONTROL | Farfetch'd, no item | 1 crit of 5 | match | match |
+
+| run | exit | red |
+|---|---|---|
+| 0.33.0 release and bytes | 1 | LEEK and LOCKED (lines and boards) |
+| clean, release `afb18817eabc` | 0 | none |
+| `MEDI_CRIT_ITEM_ONE_STAGE=1` | 1 | LEEK and LOCKED (lines and boards) |
+
+8 staged sets, 0 illegal under the Reg M-C `TeamValidator`.
+
+### Pinned Reg M-C differential
+
+| engine | release | state bar | void |
+|---|---|---|---|
+| 0.33.0 | `941e36906e6c` | 18 / 954 | 1 |
+| 0.34.0 | `afb18817eabc` | **13 / 954** | 1 |
+
+Five games left the board-material list (seed sets compared, 0.33.0 against 0.34.0): three of the four Leek-crit
+games (`…2679721304`, `…2683276871`, `…2681633603`), the Scrappy-narration game (`regmc-2680622216`, Pelipper) and
+the Psychic Terrain `-activate` game (`…2681453314`, Slowbro). The last two were not replayed, so which roll their
+board leaf rode on is not established; both field a Sirfetch'd or Farfetch'd (the dump's final roster; the dump does not record items). The fourth crit game
+(`regmc-2680535928`) is still board-material, on a later cause (§3). The Psychic Terrain `-activate` line itself is
+narration and still parts that game's protocol stream.
+
+### Reg M-B unmoved
+
+Three Reg M-B files unchanged against HEAD. Damage differential seed `20260804`: identical to the base but for the
+output-path line. Lattice on release `1c19d8d9bcd7`: **0 of 961**, 0 void.

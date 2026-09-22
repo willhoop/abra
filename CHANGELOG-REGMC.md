@@ -21,6 +21,22 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.34.0] — 2026-09-22
+
+### Fixed
+- **The Leek is two crit stages, and only for Farfetch'd and Sirfetch'd.** M-C checkout `data/items.ts` leek:
+  `if (["farfetchd", "sirfetchd"].includes(this.toID(user.baseSpecies.baseSpecies))) return critRatio + 2;`. The item
+  crit tag gave every `onModifyCritRatio` item `critRatio: 2` (one stage, Scope Lens's `+ 1`), so a Sirfetch'd's Leek
+  was one stage short and any other holder was one stage long. `engine/tag_dex.js` now reads the increment and the
+  species lock off the handler (`critRatio` = 1 + stage, `onlySpecies` = the base-species ids; a lock it cannot read is
+  marked `lockUnparsed` and refused downstream). Scope Lens derives the identical row it always had, so Reg M-B's tag
+  file does not move; only the Leek row was spliced into `data/tags-regmc.json` (a structural diff of the regenerated
+  file showed no other rule change). `engine/medicham2-browser.js` reads the lock against the key's base segment
+  (0.33.0's fix). Knob `MEDI_CRIT_ITEM_ONE_STAGE`.
+- `tests/probe_regmc_leek.js` (`--regulation regmc`, the middle arm): Farfetch'd @ Leek's Night Slash crits five of
+  five; an unlocked holder and a no-item control agree with the authority roll for roll. Exit 0 clean; exit 1 under the
+  knob and on the 0.33.0 release and bytes. `tests/regmc_probe_kit.js`'s `play` takes an optional arm.
+
 ## [0.33.0] — 2026-09-22
 
 ### Fixed

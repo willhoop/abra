@@ -7097,7 +7097,29 @@ const ITEM_TAGS = [
        + 'the distribution already needs for Flower Trick, so it costs nothing to support. NOTE the '
        + 'ratio is a STAGE feeding P(crit); the crit damage multiplier is always x1.5 and nothing here '
        + 'changes it -- do not read critRatio: 2 as double damage',
-    of: it => it.onModifyCritRatio ? { critRatio: 2 } : null },
+    /* 2026-09-22 (abra/regmc 0.34.0) -- THE STAGE AND THE LOCK ARE READ, NOT ASSUMED. Every member used to get
+     * `critRatio: 2` (one stage), right for Scope Lens (`return critRatio + 1`) and wrong for the Leek, legal again in
+     * Reg M-C: `if (["farfetchd", "sirfetchd"].includes(this.toID(user.baseSpecies.baseSpecies))) return critRatio + 2`
+     * -- TWO stages, and only for those two base species. `critRatio` keeps its meaning (1 + the stage), so a one-stage
+     * member derives the identical row it always had; `onlySpecies` names the base-species ids a lock lists. A handler
+     * whose increment cannot be read keeps the old row and says so (`stageUnparsed`). */
+    of: it => {
+      if (!it.onModifyCritRatio) return null;
+      const src = String(it.onModifyCritRatio);
+      const inc = src.match(/return\s+critRatio\s*\+\s*(\d+)\s*;/);
+      const lock = src.match(/\[([^\]]*)\]\s*\.includes\(\s*this\.toID\(\s*\w+\.baseSpecies\.baseSpecies\s*\)\s*\)/);
+      const out = { critRatio: inc ? 1 + (+inc[1]) : 2 };
+      if (!inc) out.stageUnparsed = true;
+      if (lock) out.onlySpecies = (lock[1].match(/["']([a-z0-9]+)["']/g) || []).map(x => x.replace(/["']/g, ''));
+      else {
+        /* the single-species spellings: `this.toID(user.baseSpecies.baseSpecies) === 'x'` and `user.baseSpecies.name === 'X'` */
+        const one = src.match(/this\.toID\(\s*\w+\.baseSpecies\.baseSpecies\s*\)\s*===\s*["']([a-z0-9]+)["']/)
+          || src.match(/\w+\.baseSpecies\.name\s*===\s*["']([^"']+)["']/);
+        if (one) out.onlySpecies = [norm(one[1])];
+        else if (/\bif\s*\(/.test(src)) out.lockUnparsed = true;   /* a condition this reader cannot name: refused downstream, not dropped */
+      }
+      return out;
+    } },
   /* NEW 2026-08-08 -- WHAT THIS ITEM IS WORTH WHEN IT IS THROWN. `item.fling` is a first-class dex
    * field, so this is a READ rather than a handler probe: `{basePower}` plus, on some members, a
    * `status` or a `volatileStatus` that becomes the throw's secondary. Light Ball is 30 and

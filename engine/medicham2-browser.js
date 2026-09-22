@@ -87,7 +87,7 @@ const TAGS = (function(){
  * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
-const MEDSEEN = { floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+const MEDSEEN = { critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
    * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
@@ -3433,7 +3433,7 @@ const MEDSEEN = { floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepAct
   dollSecondaryDrawn: 0, secAddrSkippedDollRow: 0, secAddrDollWithNoLiveRowYet: 0,
   updateEventSorted: 0, updateSpeedCacheStamped: 0, updateSortCachedDiffersLive: 0, updateTieResolved: 0,
   volSeqStamped: 0, volStepShadowOrdered: 0 };
-const MEDFAILS = { encoreAction: 0, anticipationNoState: 0, anticipationMoveUnknown: 0, sweepActivateNoName: 0,
+const MEDFAILS = { critItemLockUnparsed: 0, encoreAction: 0, anticipationNoState: 0, anticipationMoveUnknown: 0, sweepActivateNoName: 0,
   /* 2026-09-19 -- a body reached the Update sort with no cached `pokemon.speed` stamp (it fell back to live
    * speed), and a tied Update group resolved with no die in scope. Both should stay 0. */
   updateSpeedUncached: 0, updateOrderTieNoDie: 0,
@@ -12811,6 +12811,7 @@ function mvMakesContact(id,att,use){
  * the artifact means one stage up. Move and ITEM (Scope Lens) stack; the two ABILITY carriers are
  * refused and counted -- see MEDFAILS.critRatioAbility. */
 const CRIT_BY_STAGE=[1/24,1/8,1/2,1];
+const CRIT_ITEM_ONE_STAGE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CRIT_ITEM_ONE_STAGE==='1');
 /* ROADMAP #151 -- IS THIS MOVE'S DAMAGE COMPUTED AT ALL? ONE PREDICATE, TWO READERS, NO NAME LIST.
  *
  * `sim/battle-actions.ts:getDamage` has FOUR early returns and every one of them is above both the
@@ -12912,7 +12913,15 @@ function critChance(moveId,att,defAbility,defBody,opts){
   if(_mv&&+_mv.critRatio>1)stage+=(+_mv.critRatio-1);
   if(att){
     const _it=TAGS.param('item',att.item,'critRatioUp');
-    if(_it&&+_it.critRatio>1)stage+=(+_it.critRatio-1);
+    /* 2026-09-22 (Reg M-C, abra/regmc 0.34.0) -- THE LEEK IS TWO STAGES AND ONLY FOR TWO BASE SPECIES. The item tag now
+     * carries the handler's own increment (`critRatio` = 1 + stage) and its lock (`onlySpecies`, base-species ids, asked of
+     * the key's segment before its first hyphen: the table's base part, abra/regmc 0.33.0). A lock the deriver could not
+     * read is refused and counted rather than applied to everybody. MEDI_CRIT_ITEM_ONE_STAGE=1 restores the old reading
+     * (one stage for every carrier). tests/probe_regmc_leek.js */
+    if(_it&&CRIT_ITEM_ONE_STAGE){ if(+_it.critRatio>1)stage+=1; }
+    else if(_it&&_it.lockUnparsed){MEDFAILS.critItemLockUnparsed++;}
+    else if(_it&&Array.isArray(_it.onlySpecies)&&_it.onlySpecies.indexOf(monFlat(String(att.name||'').split('-')[0]))<0){MEDSEEN.critItemLockedOut++;}
+    else if(_it&&+_it.critRatio>1)stage+=(+_it.critRatio-1);
     /* 2026-09-11 (ROADMAP #595) -- THE CRIT-STAGE VOLATILES ADD TO THE SAME RATIO, AND THIS FUNCTION NEVER
      * ASKED THEM. Every `onModifyCritRatio` handler is one event over one relay var (sim/battle-actions.ts:
      * `runEvent('ModifyCritRatio', source, target, move, move.critRatio || 0)`), so Focus Energy's +2 stacks

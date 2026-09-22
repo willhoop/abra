@@ -53,6 +53,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.34.0] — 2026-09-22 — **The Leek is two crit stages, and only for Farfetch'd and Sirfetch'd**
+
+- **What changed.** `engine/tag_dex.js`: the item `critRatioUp` row reads the handler's increment and species lock (Scope
+  Lens unchanged); the Leek row spliced into `data/tags-regmc.json`. `engine/medicham2-browser.js`: `critChance` honours
+  the lock. Knob `MEDI_CRIT_ITEM_ONE_STAGE`; probe `tests/probe_regmc_leek.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine-2.md` §2.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
 ## [abra/regmc 0.33.0] — 2026-09-22 — **A punctuated base name is keyed as one base, and U+2019 folds like an apostrophe**
 
 - **What changed.** `build/build_engine_data_regmc.js`: the key's base part is the base species' id (5 rows renamed in
