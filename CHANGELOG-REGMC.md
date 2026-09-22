@@ -21,6 +21,50 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.40.0] — 2026-09-22
+
+### Fixed
+- **The differential's mega-slot choice no longer crosses games under Reg M-C.** `engine/game_differential.js` chose
+  which slot megas, when both could, by a parity that flipped on every mega of the whole run and sat outside
+  `driverSnap`, so a game's boards depended on the games played before it. Under any regulation but the artifact owner
+  the choice is now a draw at the driver's own per-game address. Reg M-B keeps the parity byte for byte: its lattices
+  ask the rule, so changing it there would re-deal published games. `GD_MEGA_SLOT_CARRIES=1` restores the parity;
+  `GD_MEGA_SLOT_PER_GAME=1` measures the address under Reg M-B. The rule and how often it was asked are printed and
+  stamped (`mega.slot_rule`, `mega.both_slots_offered`). Guard: `tests/test-driver-per-game.js`.
+- **A revival request is answered, so a revive is compared instead of thrown.** `mirrorRevival` answers the slots
+  whose request entry carries Showdown's own `reviving` flag: with the body medicham2 revived when it revived one,
+  otherwise with the authority's own default (the first fainted body in party order), and drops the pivot body
+  medicham2 queued for that slot. Counted and stamped as `revival_requests`. `GD_REVIVE_UNANSWERED=1` restores the old
+  road. Guard: `tests/test-revive-mirror.js`.
+- **Seventeen Reg M-C census rows re-staged to derive from the selected regulation.** Each typed a Reg M-B stat,
+  damage number, free pick, key spelling or authority line. They now read the number from the build or from the
+  authority on the run (new `tests/census_authority.js`: the selected checkout, the engine body's stats copied
+  across), or search for the first candidate whose control arm stages the mechanic, starting with the historical
+  fixture. The Spicy Spray announcement row is registered only when the selected authority writes the line. The Taunt
+  row reads a move's category from the `statusCategory` tag instead of a zero `bp`.
+- **The roster stages the selected regulation.** `tests/roster.js` read Reg M-B's tag file out of every release and
+  read descriptions the Reg M-C checkout does not attach (and writes "1.5×" for "1.5x"). It now reads the selected tag
+  file, and a view of the dex supplies the checkout's own text table to its rules without touching the shared dex.
+- **An artifact stamped with another regulation's release is not STRANDED.** `tests/test-artifact-rerunnable.js` opened
+  every release under the default regulation, and `open()` refuses a release cut for another one, so the first
+  committed Reg M-C roster artifacts read STRANDED and the commit hook refused them. Such a release is now VERIFIED
+  (content intact) and banded ANOTHER-REGULATION with the regulation named; a modified one is still STRANDED.
+
+### Added
+- `tests/probe_regmc_changed_pp.js`: every move legal in both regulations whose PP changed, derived from both dexes,
+  run out of PP in a real game against the authority.
+- `fixture_legality` in every roster artifact: each built set judged by the selected format's TeamValidator.
+  `engine/quarantine.js` fails a roster stage on a NOT-baselined refusal or on a block saying nothing was judged; an
+  artifact without the field (every Reg M-B roster artifact) is unaffected. Three selftest arms.
+- The Reg M-C roster artifacts (`data/roster.{items,abilities,moves}-regmc.json`, release `fa68d953e73f`) and the
+  census pin `data/verification/census-pin-regmc-f3b70bc0c47c.json`.
+
+### Notes
+- Reg M-B unmoved: its census rows are identical apart from the sampled `formatSecondaryChance` row, which moves by
+  the same amount between any two runs; its lattice at `--games 1200` reads 0 of 961 with the same state, mega and
+  first-divergence blocks as the published artifact; `engine/quarantine.js` with no flag prints the same output as
+  HEAD's copy on the same tree. Readings: `docs/_reports/2026-09-22-regmc-instruments.md`. Nothing here is published.
+
 ## [0.35.0] — 2026-09-22
 
 ### Fixed

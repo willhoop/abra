@@ -53,6 +53,19 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.40.0] — 2026-09-22 — **The Reg M-C instruments answer for Reg M-C: a per-game mega slot, an answered revive, a re-staged census, a Reg M-C roster**
+
+- **What changed.** `engine/game_differential.js`: the mega-slot choice is a per-game address under Reg M-C (Reg M-B
+  keeps its parity), and `mirrorRevival` answers a revival request. `tests/test-mechanics.js`: seventeen rows re-staged
+  through the new `tests/census_authority.js` and a fixture search. `tests/roster.js`: the selected tag file, the
+  checkout's text table, and `fixture_legality` in the artifact, which `engine/quarantine.js` now gates on. New guards
+  `tests/test-driver-per-game.js`, `tests/test-revive-mirror.js`, `tests/probe_regmc_changed_pp.js`.
+- **Measured.** NO FIGURE published. Every reading (census, roster, the three lattices and the held-out draw on release
+  `fa68d953e73f` and census pin `census-pin-regmc-f3b70bc0c47c`) is a worktree reading in
+  `docs/_reports/2026-09-22-regmc-instruments.md`. Reg M-B unmoved: census rows identical but for the sampled row,
+  lattice 1200 at 0 of 961 with identical state and mega blocks, default gate output identical to HEAD's.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.35.0] — 2026-09-22 — **Steely Spirit boosts its holder's and its partner's Steel moves**
 
 - **What changed.** `engine/tag_dex.js`: `allyBasePowerBoost` reads a decimal multiplier, `includesSelf` and a category

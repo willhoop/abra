@@ -894,8 +894,21 @@ function rosterStage(stage, inject) {
           + ann.accepted.map((x) => x.key + ' (' + x.tag + '; ' + x.knob + ' -> ' + x.knob_stamp
               + '; ' + x.probe + ')').join(', ')
       : `. ${ANN_VERDICT} — none claimed`;
+    /* ---- A VERDICT STAGED ON A SET THE REGULATION REFUSES IS A STAGING GAP (2026-09-22, MEASURE, abra/regmc 0.40.0) ----
+     * tests/roster.js now carries `fixture_legality`: every set it built, judged by the selected format's TeamValidator
+     * (buildPair's fixture check). A NOT-baselined refusal counts against the clause exactly as an in-scope
+     * COULD-NOT-STAGE does -- Will's rule that an unstaged mechanic is not a pass. A block that says the check never
+     * loaded is refused too: nothing judged is not zero. An artifact written before the field existed (every Reg M-B
+     * roster artifact) carries none and this term adds nothing, so the closed regulation's verdict is unchanged. */
+    const fl = j.fixture_legality || null;
+    const flUnjudged = !!fl && fl.checked == null;
+    const flBad = fl && typeof fl.not_baselined === 'number' ? fl.not_baselined : 0;
+    const flTxt = flUnjudged ? 'FIXTURE LEGALITY NOT JUDGED — ' + (fl.why || 'the check did not run')
+      : flBad ? `${flBad} FIXTURE SET(S) THE ${j.format || 'selected format'}'S TEAMVALIDATOR REFUSES (not baselined): `
+        + (fl.first_not_baselined || []).slice(0, 4).map(x => (x.problems || []).join(' / ')).join(' | ')
+      : '';
     const rosterOk = differ === 0 && silent === 0 && badReds === 0 && staleShelf === 0 && cnsIn === 0
-      && ann.ok;
+      && ann.ok && flBad === 0 && !flUnjudged;
     return {
       stage, file: A('data/' + f), generated: j.generated || null, release: j.engine_release || null,
       pins: PIN.receipt({ file: A('data/' + f), checked: ['release', 'digests'],
@@ -914,8 +927,10 @@ function rosterStage(stage, inject) {
         : `${differ} FIRED-AND-BOARDS-DIFFER, ${silent} DID-NOT-FIRE — ${denom}`
           + (badReds ? `, ${badReds} red demonstration(s) did not behave as their rule predicted` : '')
           + (staleShelf ? `, ${staleShelf} DEFERRAL(S) NOW PASS ON THEIR OWN — take the shelf down` : '')
-          + (cnsTxt ? `, ${cnsTxt}` : ''))
+          + (cnsTxt ? `, ${cnsTxt}` : '')
+          + (flTxt ? `, ${flTxt}` : ''))
         + annNote + unattrib + redsNote,
+      fixtureIllegal: fl ? flBad : null,
     };
   }
   return {
@@ -6091,6 +6106,24 @@ if (require.main === module) {
         ok('COULD-NOT-STAGE / GREEN — OUT-OF-SCOPE rows stay out, including a pre-2026-09-11 '
           + '`counts` bucket that still holds carrier-less rows: the National Dex is not a gap',
           oos.ok === true && oos.couldNotStageInScope === 0, oos.why);
+        /* 2026-09-22 (MEASURE, abra/regmc 0.40.0) -- THE FIXTURE-LEGALITY TERM. */
+        const cleanCols = { counts: { 'FIRED-AND-BOARDS-DIFFER': 0, 'DID-NOT-FIRE': 0, 'FIRED-AND-BOARDS-MATCH': 136 },
+          scope: { tested: 136, in_scope: 136, unattributable: 0, could_not_stage_in_scope: 0 }, results: [] };
+        const flBad = rosterStage('items', { file: 'roster.items.json', json: stamped({ ...cleanCols,
+          fixture_legality: { checked: 400, illegal: 1, not_baselined: 1,
+            first_not_baselined: [{ site: 'tests/roster.js:1', species: 'x', problems: ['__planted_illegal__'] }] } }) });
+        ok('FIXTURE LEGALITY / RED — one NOT-baselined set the format refuses FAILS a stage clean in every other column, '
+          + 'and the verdict names it', flBad.ok === false && flBad.fixtureIllegal === 1 && /__planted_illegal__/.test(flBad.why), flBad.why);
+        const flUnj = rosterStage('items', { file: 'roster.items.json', json: stamped({ ...cleanCols,
+          fixture_legality: { checked: null, why: 'selftest: never loaded' } }) });
+        ok('FIXTURE LEGALITY / RED — a block saying nothing was judged fails; it is not a zero',
+          flUnj.ok === false && /NOT JUDGED/.test(flUnj.why), flUnj.why);
+        const flOk = rosterStage('items', { file: 'roster.items.json', json: stamped({ ...cleanCols,
+          fixture_legality: { checked: 400, illegal: 2, not_baselined: 0, first_not_baselined: [] } }) });
+        const flAbsent = rosterStage('items', { file: 'roster.items.json', json: stamped({ ...cleanCols }) });
+        ok('FIXTURE LEGALITY / GREEN — baselined refusals only, and an artifact written before the field (every Reg M-B '
+          + 'roster artifact), both leave the stage clean', flOk.ok === true && flAbsent.ok === true
+          && flAbsent.fixtureIllegal === null, flOk.why + ' || ' + flAbsent.why);
         const blind = rArt({ [PIN.K.id]: relId2, [PIN.K.digests]: { 'engine/board.js': 'aaaaaaaaaaaa' },
                              scope: { tested: 136, in_scope: 136, unattributable: 0 } });
         delete blind.results;

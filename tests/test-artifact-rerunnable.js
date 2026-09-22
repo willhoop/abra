@@ -302,6 +302,7 @@ function stampedArtifacts() {
 
 /* ---- 4. THE RELEASE SIDE, THROUGH THE CANONICAL CALLS ONLY -------------------------------------- */
 const OPENED = new Map();
+const REGN_ID = require(D('engine', 'regulation.js')).ID;
 function openOf(id) {
   if (!OPENED.has(id)) {
     /* `open()` is what a re-run actually calls: it refuses a pruned release by name, refuses a
@@ -323,6 +324,18 @@ function judge(a, byCaller) {
   if (a.retired && a.why) return { band: 'RETIRED', detail: oneLine(a.why).slice(0, 100) };
   const o = openOf(a.id);
   if (o.err) {
+    /* 2026-09-22 (MEASURE, abra/regmc 0.40.0) -- A RELEASE CUT FOR ANOTHER REGULATION IS NOT STRANDED. `open()` refuses a
+     * release whose damage table is not the selected regulation's, by design, so every Reg M-C artifact read from a
+     * default (Reg M-B) run failed to open and was called STRANDED. The question "can this be re-run" belongs to a run
+     * under THAT regulation. So the release is VERIFIED (content intact, the same check `open()` makes first) and, if
+     * intact, the row is ANOTHER-REGULATION with the regulation named; a modified or missing release still falls
+     * through to STRANDED below. */
+    if (/was cut for the damage table/.test(o.err)) {
+      let v = null;
+      try { v = ER.verify(a.id); } catch (e) { v = { ok: false, bad: [e.message] }; }
+      if (v && v.ok) return { band: 'ANOTHER-REGULATION', detail: 'intact; re-runnable only under --regulation '
+        + ((v.manifest && v.manifest.regulation) || '?') + ' (this run selected ' + REGN_ID + ')' };
+    }
     /* THE SPLIT. Absent from this disk and unknown to git is a fact about the clone; anything else
      * that will not open is a fact about the release, and it travels with the artifact. When git could
      * not be asked the split is not made — the old verdict is the over-accusing one, which is the safe
@@ -374,10 +387,10 @@ const { out: arts, prose, scratch, unreadable } = stampedArtifacts();
 const rows = arts.map(a => ({ ...a, ...judge(a, byCaller) }));
 
 console.log('');
-const ORDER = { 'STRANDED': 0, 'UNKNOWN-PRODUCER': 1, 'RETIRED': 2, 'RE-RUNNABLE': 3, 'ABSENT-ON-THIS-MACHINE': 4 };
+const ORDER = { 'STRANDED': 0, 'UNKNOWN-PRODUCER': 1, 'RETIRED': 2, 'RE-RUNNABLE': 3, 'ANOTHER-REGULATION': 4, 'ABSENT-ON-THIS-MACHINE': 5 };
 for (const r of [...rows].sort((x, y) => ORDER[x.band] - ORDER[y.band] || x.file.localeCompare(y.file))) {
   if (r.band === 'ABSENT-ON-THIS-MACHINE') continue;              /* grouped by release below */
-  console.log('  ' + r.band.padEnd(17) + r.id + '  ' + r.file.padEnd(48)
+  console.log('  ' + r.band.padEnd(Math.max(17, r.band.length + 1)) + r.id + '  ' + r.file.padEnd(48)
     + (r.producer || '(no by)').padEnd(34) + (r.detail || ''));
 }
 
@@ -388,6 +401,7 @@ console.log('\n  ' + rows.length + ' stamped artifact(s) over ' + new Set(rows.m
   + rows.filter(r => r.band === 'RE-RUNNABLE').length + ' re-runnable, '
   + rows.filter(r => r.band === 'RETIRED').length + ' retired, '
   + unknown.length + ' unknown-producer, ' + bad.length + ' STRANDED and undeclared, '
+  + rows.filter(r => r.band === 'ANOTHER-REGULATION').length + ' cut for another regulation (intact), '
   + absent.length + ' absent on this machine.');
 
 /* WHAT GIT WAS ASKED, AND WHAT IT SAID. Printed every run so a clone and the laptop can be told apart

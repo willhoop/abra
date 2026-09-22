@@ -42,6 +42,24 @@ _stamped 2026-09-21 04:30_
 
 <!-- /GENERATED -->
 
+## A REG M-C READING IS NOW A REG M-C READING: THE DRIVER, THE CENSUS AND THE ROSTER STOPPED CARRYING REG M-B. 2026-09-22 (abra/regmc 0.40.0)
+
+- **Driver state that crossed games.** The differential chose which slot megas, when both could, by a run-wide parity
+  outside `driverSnap`, so a game's boards depended on its place in the run. Under Reg M-C the choice is a per-game
+  address; `tests/test-driver-per-game.js` plays one game alone, after itself and after another game and requires
+  identical streams (RED under `GD_MEGA_SLOT_CARRIES=1`). Reg M-B keeps the parity: its lattice asks the rule, and the
+  address, measured there with `GD_MEGA_SLOT_PER_GAME=1`, re-deals games and moves the published mega-slot split.
+- **A revive is compared.** The switch mirror had no answer for a revival request, so every such game threw.
+  `mirrorRevival` answers it from Showdown's own `reviving` flag; the boards then part on the revive, which is ENGINE's
+  unmodelled road, and no longer on the harness.
+- **The census asks the selected regulation.** Seventeen rows typed a Reg M-B number, free pick or line. They now read
+  it from the build or from the authority (`tests/census_authority.js`), or search for a fixture whose control stages
+  the mechanic, historical fixture first, so Reg M-B's rows are unchanged.
+- **The roster asks the selected regulation.** It read Reg M-B's tags out of every release and descriptions the new
+  checkout does not attach. Its artifact now carries `fixture_legality`, and a NOT-baselined refusal fails the stage.
+- Readings, the per-name table of the mechanics new to Reg M-C, and what is owed to ENGINE:
+  `docs/_reports/2026-09-22-regmc-instruments.md`.
+
 ## THE USAGE MODEL CHOMP READS IS PER REGULATION. REG M-C'S IS COUNTED FROM THE LIVE STORES, WITH THE POOL'S OWN PREDICATE. 2026-09-21 (abra/regmc 0.23.0)
 
 - **Live, not frozen, and why that is allowed.** The frozen pool pins MEDICHAM measurements. A usage model
