@@ -21,6 +21,28 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.54.0] — 2026-09-22
+
+### Fixed
+- **Milk Drink heals the one body it is aimed at, not the whole side (Reg M-C only).** The Champions mod retargets it
+  (`data/mods/champions/moves.ts` :646-649, `target: "adjacentAllyOrSelf"`; Reg M-B's mod marks it `Past`), and the
+  authority spends `moveData.heal` on each target (`sim/battle-actions.ts` :1201-1209), so the drinker heals itself OR its
+  partner. `healParam` read "heal both" off the mere presence of the `healsAlly` tag, which admits every friendly class;
+  only `allies` (Life Dew) resolves to both bodies. The Reg M-C 1950 card `…bo3-2684290289` t3 (Gogoat's Milk Drink at
+  itself; this engine healed Toxapex too). The class is now read off `targetClass`: `allies` spreads, any other class
+  heals the aimed body (the partner when the click names it, else the user). No tag moved. Knob `MEDI_AIMED_HEAL_SPREADS`.
+- `tests/probe_regmc_milk_drink_target.js` (`--regulation regmc`): DRINK (Gogoat, both bodies damaged; the user alone is
+  healed), DEW (Life Dew, the control; both healed). Exit 0 clean; exit 1 under the knob and on release `eec3a9b0e36a`
+  with the 0.53.0 engine bytes.
+
+### Notes
+- The partner road (Milk Drink aimed at the ally) is implemented and counted (`aimedHealOnPartner`) but NOT staged: the
+  scripted encoder in `engine/game_differential.js` aims every `adjacentAllyOrSelf` click at its user.
+- Reg M-B untouched in behaviour (Life Dew is its only pair-sized `healsAlly` member, `allies`); Reg M-B data files
+  byte-identical. Reg M-B lattice 1200 on release `bcbe61fc53b9`: 0 of 961.
+- Pinned Reg M-C differential (census pin `f3b70bc0c47c`, release `6397666428ff`): 1950 7 → **6 of 1537**; 1350 **0 of
+  1075** and 1200 **0 of 954** unmoved. `docs/_reports/2026-09-22-regmc-engine-6.md` §1.
+
 ## [0.53.0] — 2026-09-22
 
 ### Fixed

@@ -597,6 +597,11 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
   /* 2026-09-22 (Reg M-C, abra/regmc 0.53.0) -- an Ice Spinner terrain clear paid by a user a contact toll had knocked out
    * (the Champions `spreadMoveHit` raises AfterHit with no HP test). */
   terrainClearedByFaintedUser: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.54.0) -- a pair-sized heal whose class names ONE body (`adjacentAllyOrSelf`: Milk Drink
+   * under the Champions mod) spent on that body alone, not spread across the side as `allies` (Life Dew) is. */
+  aimedHealOneBody: 0,
+  /* ...of which the aimed body was the user's partner rather than the user. */
+  aimedHealOnPartner: 0,
   /* ROADMAP #175 -- every damage packet `refusesIndirectDamage` turned away, across all nine gated
    * sites. It replaces MEDFAILS.magicGuardChip, which counted the same event as a KNOWN GAP: the
    * counter moves from the failures object to the capabilities one, which is the whole shape of the
@@ -7020,6 +7025,11 @@ const RETURNED_BODY_KEEPS_ACTION=(typeof process!=='undefined'&&process.env
  * contact toll knocked out, as before (the mainline `pokemon.hp` guard the Champions mod does not have). */
 const AFTERHIT_NEEDS_LIVE_USER=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_AFTERHIT_NEEDS_LIVE_USER==='1');
+/* 2026-09-22 (Reg M-C, abra/regmc 0.54.0) -- MEDI_AIMED_HEAL_SPREADS=1 spreads a pair-sized `healsAlly` heal across the whole
+ * side whatever its target class, as before (Milk Drink healed its user AND the partner). */
+const AIMED_HEAL_SPREADS=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_AIMED_HEAL_SPREADS==='1');
+if(AIMED_HEAL_SPREADS)MEDFAILS.aimedHealSpreadsRestored=1;
 /* 2026-09-05 -- MEDI_CHARGE_REAIMS_FIRST_LIVE_FOE=1 restores the pre-fix release rule: the second turn
  * of a two-turn move is rebuilt against `live(foes)[0]` instead of the slot the charge was aimed at.
  * It restores that and NOTHING else -- the charge turn still records the slot, the wrapper still
@@ -10098,7 +10108,22 @@ const refusesIndirect=m=>{
 function healParam(id){
   const s=TAGS.param('move',id,'healsSelf'), al=TAGS.param('move',id,'healsAlly');
   const fr=(s&&s.heal)||(al&&al.heal)||null;
-  if(Array.isArray(fr)&&fr[1])return {fr,allies:Array.isArray(al&&al.heal)};
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.54.0) -- `healsAlly` SAYS THE PARTNER CAN BE HEALED, NOT THAT IT ALWAYS IS. The tag
+   * (engine/tag_dex.js) admits five friendly classes, and only `allies` (Life Dew) resolves to BOTH bodies
+   * (`Pokemon#getMoveTargets` -> `alliesAndSelf()`). `adjacentAllyOrSelf` names ONE body, the chosen one, and the
+   * authority spends `moveData.heal` on each target (`runMoveEffects`, sim/battle-actions.ts :1201-1209) -- so under
+   * the Champions mod's `milkdrink: { target: "adjacentAllyOrSelf" }` (data/mods/champions/moves.ts :646-649) the
+   * drinker heals itself OR its partner, never both. This read `allies` off the tag's presence and healed both: the
+   * Reg M-C 1950 card `pair-redirect-priority ...bo3-2684290289` t3 (Gogoat's Milk Drink at itself; the authority
+   * heals Gogoat alone, this engine Toxapex too). The class is read off `targetClass`, never a name; membership over
+   * both tag files: Life Dew (`allies`) and Heal Pulse (`any`, `heal: true` -- not sized here) in both, Milk Drink
+   * (`adjacentAllyOrSelf`) in Reg M-C only. MEDI_AIMED_HEAL_SPREADS=1 restores the spread. */
+  if(Array.isArray(fr)&&fr[1]){
+    const _alPair=Array.isArray(al&&al.heal);
+    const _tc=TAGS.param('move',id,'targetClass');
+    const _side=_alPair&&(AIMED_HEAL_SPREADS||!_tc||_tc.target==='allies');
+    return {fr,allies:_side,aimed:_alPair&&!_side};
+  }
   if(fr===true){
     const _ws=TAGS.param('move',id,'weatherScaled');
     if(_ws&&_ws.baseHealFraction)return {weather:_ws,allies:false};
@@ -40142,6 +40167,21 @@ function battleTurn(S,rng,actsForA,actsForB){
             }
             for(const x of _pass)amt(x);
           }
+          /* 2026-09-22 (Reg M-C, abra/regmc 0.54.0) -- AN AIMED HEAL SPENDS ON THE ONE BODY IT NAMES (see `healParam`). The
+           * partner when the click named it and it stands, with the per-body TryHit refusal Life Dew's road asks above;
+           * the user otherwise (the encoder's `adjacentAllyOrSelf` default, and the authority's `getRandomTarget` answer
+           * for a class in `DEFAULT_TARGET_SELF`). The partner road is NOT staged by any probe: the scripted encoder
+           * (engine/game_differential.js `scripted`) aims every `adjacentAllyOrSelf` click at its user. */
+          else if(_hp.aimed){
+            MEDSEEN.aimedHealOneBody++;
+            const _at=a.target;
+            const _side=(it.side==='A'?actA:actB);
+            if(_at&&_at!==m&&_side.includes(_at)&&!_at.fainted&&_at.curHP>0){
+              MEDSEEN.aimedHealOnPartner++;
+              const _rf=tryHitRefusal(m,_at,a.mv);
+              if(_rf)announceTryHitRefusal(_rf,_at); else amt(_at);
+            } else amt(m);
+          }
           else amt(m);
         }
         /* WIRE 152 -- AND SWALLOW SPENDS THE STACK, `onHit`, WHETHER OR NOT THE HEAL DID ANYTHING.
@@ -53680,7 +53720,7 @@ function playerActionPrimary(me,moveId,target,field){
    * TRAVELS WITH IT: the move names a SIDE, and the eligible bodies are decided at execution from the
    * abilities standing on that side, which can change between the choice and the click. */
   if(TAGS.has('move',id,'boostsAlliesWithAbility'))return {kind:'abilityboost',mv:id};
-  {const _h0=healParam(id); if(_h0&&!_h0.fromTargetStat)return {kind:'heal',mv:id};}
+  {const _h0=healParam(id); if(_h0&&!_h0.fromTargetStat)return _h0.aimed?{kind:'heal',mv:id,target}:{kind:'heal',mv:id};}
   /* WIRE 154 -- THE FOUR HEALS `healParam` CANNOT SIZE, AND EVERY ONE OF THEM WAS A WASTED TURN.
    *
    * Heal Pulse (148), Wish (63), Rest (60) and Healing Wish (16) all fell past the branch above --

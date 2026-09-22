@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.53.0 — 2026-09-22.**
+**Version: 0.54.0 — 2026-09-22.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -396,6 +396,7 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | **A question asked of the wrong body is right whenever the two bodies agree, and a new pool changes how often they do.** The Psychic Terrain gate asked the aimed body rather than the Follow Me user it was drawn to; the two differ only when the aimed body is airborne and the drawer grounded, which Reg M-C's Talonflame + Indeedee cores deal on turn 1. | A priority move that lands here and is refused by the terrain on the authority. | For every per-target refusal (`onTryHit`, `onTryImmunity`), check that the engine asks the post-redirect target; grep the engine's comments for "post-redirect" and "named rather than folded in". Fixed 0.51.0. |
 | **A refusal modelled at the late site passes a case the early site catches.** The engine refused a gone body's action at `runAction` (`isActive`); the authority also cancels it at `switchIn` (`cancelAction`), which matters only when the body comes BACK the same turn -- two forced exits in one turn, which needs Reg M-C's Eject Button and Emergency Exit together. | A body acting on a turn it was ejected. | When a new regulation legalises a second way to leave or re-enter the field, re-read `switchIn` / `cancelAction` / `runAction` and ask what a body that leaves AND returns in one turn keeps. Fixed 0.52.0 (`TURN_EPOCH`). |
 | **The new regulation's checkout may override a function the old notes cite from mainline.** 0.45.0 cited `sim/battle-actions.ts`'s `if (moveData.onAfterHit && pokemon.hp)`; the Champions mod ships its own `spreadMoveHit` without the guard, so a user knocked out by a contact toll still runs its move's `onAfterHit`. | A terrain (or a hazard) that should have ended, left standing after the attacker fainted to Rocky Helmet. | Before citing a `sim/` line as the rule, grep `data/mods/champions/scripts.ts` in BOTH checkouts for the same method name (`spreadMoveHit`, `hitStepMoveHitLoop`, `modifyDamage`, `getActionSpeed`...). Fixed 0.53.0 for Ice Spinner; the hazard families are named. |
+| **A tag that admits several target classes is read as the one class the old regulation used.** `healsAlly` admits every friendly class; in Reg M-B its only pair-sized member was Life Dew (`allies`), so the engine read the tag's presence as "heal both". Champions M-C retargets Milk Drink to `adjacentAllyOrSelf` and it joined the tag. | A heal that restores the partner as well as the user. | When a mod row changes a move's `target`, list every tag the move carries and grep the engine for readers that key on the tag's presence rather than on `targetClass`. Fixed 0.54.0 (`healParam`). |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

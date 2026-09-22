@@ -1,3 +1,13 @@
+## MILK DRINK HEALS THE ONE BODY IT IS AIMED AT (REG M-C). 2026-09-22 (abra/regmc 0.54.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-6.md` §1.
+
+- **Defect.** `healParam` treated every pair-sized `healsAlly` move as side-wide. Champions retargets Milk Drink to
+  `adjacentAllyOrSelf`, so a Gogoat drinking at itself also healed its partner.
+- **Fix.** Spread only for `targetClass` `allies`; otherwise heal the aimed body (partner road counted, not staged).
+- **Probe** `tests/probe_regmc_milk_drink_target.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_AIMED_HEAL_SPREADS` and on release `eec3a9b0e36a` with the 0.53.0 bytes.
+
 ## ICE SPINNER ENDS THE TERRAIN EVEN WHEN ITS USER IS KNOCKED OUT (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.53.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-5.md` §5.

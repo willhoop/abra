@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.54.0] — 2026-09-22 — **Milk Drink heals the one body it is aimed at (Reg M-C)**
+
+- **What changed.** `engine/medicham2-browser.js`: `healParam` spreads a pair-sized `healsAlly` heal only for the `allies`
+  class; `adjacentAllyOrSelf` (Milk Drink under the Champions mod) heals the aimed body. No tag moved. Knob
+  `MEDI_AIMED_HEAL_SPREADS`; probe `tests/probe_regmc_milk_drink_target.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine-6.md` §1;
+  Reg M-B lattice 1200 reads 0 board-material; Reg M-B data files byte-identical.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.53.0] — 2026-09-22 — **Ice Spinner ends the terrain even when its user is knocked out, in both regulations**
 
 - **What changed.** `engine/medicham2-browser.js`: the Ice Spinner terrain clear asks for a live user only on the
