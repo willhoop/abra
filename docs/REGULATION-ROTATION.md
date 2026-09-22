@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.51.0 — 2026-09-22.**
+**Version: 0.52.0 — 2026-09-22.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -394,6 +394,7 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | **A gap a code comment names as "still unpaid" is dormant only while the old pool rarely deals it.** The max-HP recoil block said in so many words that Steel Beam into a Protect was unpaid; in Reg M-B no gate lattice dealt it, and Reg M-C's Lucario-Mega-Z made it a turn-1 opener three times in one lattice. | A turn-1 HP gap on the attacker, the same number every time. | On a rotation, grep the engine for the gaps it names in its own comments ("still UNPAID", "not modelled", "named rather than") and re-check each against the new pool's usage before the first lattice. Fixed 0.49.0 (`_failRecoilOnShield`). |
 | **A second copy of an ordering rule stays wrong wherever the first copy was corrected.** Magician sorted its targets with its own `effSpeed` comparator after `sdEachEventOrder` had been taught the authority's cached, Trick-Room-negated `speedSort`; the Reg M-B lattices never dealt a Magician spread hit under Trick Room. | A Reg M-C item theft from the wrong foe, only under Trick Room. | When a card is an ORDER (who is asked first), grep every `speedSort` / `.sort(` over bodies in the engine and route each through the one emulation. Fixed 0.50.0 (`sdSpeedSortEntries`). |
 | **A question asked of the wrong body is right whenever the two bodies agree, and a new pool changes how often they do.** The Psychic Terrain gate asked the aimed body rather than the Follow Me user it was drawn to; the two differ only when the aimed body is airborne and the drawer grounded, which Reg M-C's Talonflame + Indeedee cores deal on turn 1. | A priority move that lands here and is refused by the terrain on the authority. | For every per-target refusal (`onTryHit`, `onTryImmunity`), check that the engine asks the post-redirect target; grep the engine's comments for "post-redirect" and "named rather than folded in". Fixed 0.51.0. |
+| **A refusal modelled at the late site passes a case the early site catches.** The engine refused a gone body's action at `runAction` (`isActive`); the authority also cancels it at `switchIn` (`cancelAction`), which matters only when the body comes BACK the same turn -- two forced exits in one turn, which needs Reg M-C's Eject Button and Emergency Exit together. | A body acting on a turn it was ejected. | When a new regulation legalises a second way to leave or re-enter the field, re-read `switchIn` / `cancelAction` / `runAction` and ask what a body that leaves AND returns in one turn keeps. Fixed 0.52.0 (`TURN_EPOCH`). |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

@@ -591,6 +591,9 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
   /* 2026-09-22 (Reg M-C, abra/regmc 0.51.0) -- the attack path's Psychic Terrain bar asked of a body OTHER than the one
    * the move was aimed at (the redirected target). */
   terrainBarAskedRedirected: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.52.0) -- a queued action dropped because its body left the field alive earlier in the
+   * turn (the authority's `cancelAction` at `switchIn`), whether or not it has come back. */
+  actionCancelledByForcedOut: 0,
   /* ROADMAP #175 -- every damage packet `refusesIndirectDamage` turned away, across all nine gated
    * sites. It replaces MEDFAILS.magicGuardChip, which counted the same event as a KNOWN GAP: the
    * counter moves from the failures object to the capabilities one, which is the whole shape of the
@@ -5554,6 +5557,11 @@ const MEDFAILS = { oozeNoName: 0, oozeUnderHealBlockUnmodelled: 0, reviveSwitchO
  * is handed. A counter maintained separately is a second implementation of "what did we emit" and
  * would eventually disagree with the thing it counts. */
 let TR=null;
+/* 2026-09-22 (Reg M-C, abra/regmc 0.52.0) -- THE TURN A BODY LEFT THE FIELD ALIVE. `switchIn` cancels every queued action of
+ * an unfainted body it replaces (sim/battle-actions.ts :104-107, `this.battle.queue.cancelAction(oldActive)`), so a body
+ * forced out and brought back in the same turn has nothing left to do. `switchOut` stamps `_leftEpoch` with this counter,
+ * which the turn loop advances once per turn where it builds the queue; the action loop reads it. */
+let TURN_EPOCH=0;
 const TRACE=(function(){
   const SLOTCH=['a','b','c','d'];
   /* Both maps are INVERTED FROM THE ENGINE'S OWN, first key wins, rather than typed a second time --
@@ -7001,6 +7009,10 @@ const TERRAIN_BAR_AT_TRYMOVE=(typeof process!=='undefined'&&process.env
  * carrying it that met a redirected priority move also carries `MEDFAILS.terrainBarPreRedirectRestored`. */
 const TERRAIN_BAR_PRE_REDIRECT=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_TERRAIN_BAR_PRE_REDIRECT==='1');
+/* 2026-09-22 (Reg M-C, abra/regmc 0.52.0) -- MEDI_RETURNED_BODY_KEEPS_ACTION=1 lets a body forced out and brought back in
+ * the same turn run its queued action, as before. Stamps `MEDFAILS.returnedBodyKeepsActionRestored` when it matters. */
+const RETURNED_BODY_KEEPS_ACTION=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_RETURNED_BODY_KEEPS_ACTION==='1');
 /* 2026-09-05 -- MEDI_CHARGE_REAIMS_FIRST_LIVE_FOE=1 restores the pre-fix release rule: the second turn
  * of a two-turn move is rebuilt against `live(foes)[0]` instead of the slot the charge was aimed at.
  * It restores that and NOTHING else -- the charge turn still records the slot, the wrapper still
@@ -29074,6 +29086,8 @@ function pivotHerbSweep(sf){
 function switchOut(act,i,bench,foes,sf,field,wanted,pass){
   const out=act[i]; if(!out||out.fainted) return null;
   if(!_live(bench).length) return null;
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.52.0) -- the authority's `cancelAction(oldActive)`: see TURN_EPOCH. */
+  out._leftEpoch=TURN_EPOCH;
   /* 2026-08-26 -- AND THE MARKER CLOSES ON THE WAY OUT, ABOVE EVERYTHING ELSE IN THIS FUNCTION.
    *
    * The authority fires the outgoing body's ability End at the point its own comment calls "will
@@ -32041,6 +32055,7 @@ function battleTurn(S,rng,actsForA,actsForB){
      * once-a-turn sync alone would leave the type one whole turn behind the sky it follows. */
     syncFieldTypes(field,[...actA,...actB]);
     const acts=[];
+    TURN_EPOCH++;
     /* ROADMAP #212 -- Opportunist's ledger for the action about to run. Null between actions, so a
      * settle with nothing banked is a no-op rather than a guess. */
     let _oppSnap=null;
@@ -33770,6 +33785,20 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(!MEDSEEN.actionSkippedOffFieldFirst)
           MEDSEEN.actionSkippedOffFieldFirst=String(m.name||'?')+'/'+String(actionMoveId(it.a)||it.a.kind);
         continue;
+      }
+      /* 2026-09-22 (Reg M-C, abra/regmc 0.52.0) -- AND A BODY THAT LEFT ALIVE THIS TURN HAS NO ACTION LEFT, EVEN IF IT IS BACK.
+       * The gate above is `runAction`'s `isActive` refusal and answers only while the body is still off the field. The
+       * authority's refusal is earlier and stronger: `switchIn` splices every queued action of the unfainted body it
+       * replaces out of the queue (sim/battle-actions.ts :104-107; sim/battle-queue.ts cancelAction :334-343), so a
+       * body ejected by Eject Button and brought back by Emergency Exit (Reg M-C 1350 lattice, `...bo3-2683867010` t4:
+       * Incineroar's Parting Shot ran here and not on the authority) or by a partner's pivot never acts. Every kind is
+       * cancelled, a switch included, as the splice is. MEDI_RETURNED_BODY_KEEPS_ACTION=1 lets it act, as before. */
+      if(m._leftEpoch===TURN_EPOCH&&it.a&&it.a.kind!=='pass'){
+        if(RETURNED_BODY_KEEPS_ACTION)MEDFAILS.returnedBodyKeepsActionRestored=1;
+        else{MEDSEEN.actionCancelledByForcedOut++;
+             if(!MEDSEEN.actionCancelledByForcedOutFirst)
+               MEDSEEN.actionCancelledByForcedOutFirst=String(m.name||'?')+'/'+String(actionMoveId(it.a)||it.a.kind);
+             continue;}
       }
       if(m.fainted||m.curHP<=0)continue;
       /* 2026-09-22 (Reg M-C, abra/regmc 0.41.0) -- a revived body's queued action died with its instaswitch (`reviveFainted`) */

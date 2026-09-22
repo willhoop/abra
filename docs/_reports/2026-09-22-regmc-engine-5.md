@@ -286,3 +286,77 @@ Follow Me and Psychic Terrain are both Reg M-B legal and the M-B checkout's hand
 Reg M-B data files byte-identical. Lattice 1200 on release `7a9b704e148a`: **0 of 961**, 0 void, 0 protocol-diverged.
 
 ---
+
+## 4. A body forced out loses its queued action, even if it comes back (abra/regmc 0.52.0)
+
+### The card (1350, `omit-spread …bo3-2683867010`, turn 4)
+
+```
+|-enditem|p1a: Incineroar|Eject Button              Dragapult's Shadow Ball; Incineroar ejected, Golisopod in
+|move|p2b: Rillaboom|woodhammer|p1a: Golisopod        Golisopod to 65/150
+|-activate|p1a: Golisopod|ability: Emergency Exit     Incineroar back in (Intimidate)
+showdown   |-weather|RainDance|[upkeep]               (Incineroar does not act)
+medicham2  |move|p1a: Incineroar|partingshot|p2a: Dragapult   (and pivots Golisopod back in)
+```
+
+### The authority, read whole
+
+- `sim/battle-actions.ts` switchIn :62-122 (no Champions override): for the unfainted body leaving the slot,
+  `// if a pokemon is forced out by Whirlwind/etc or Eject Button/Pack, it can't use its chosen move` then
+  `this.battle.queue.cancelAction(oldActive);` (:104-107).
+- `sim/battle-queue.ts` cancelAction :334-343 splices EVERY queued action of that body out of the queue.
+- `runAction` `case 'move'` refuses `!action.pokemon.isActive` -- the only refusal this engine had (ROADMAP #361). It
+  answers only while the body is still off the field; a body brought back later the same turn passes it.
+
+### The defect
+
+This engine let a body that was forced out and brought back in the same turn run its queued action.
+
+### Fix
+
+`switchOut` stamps the leaving (unfainted) body with `_leftEpoch = TURN_EPOCH`, a counter the turn loop advances once per
+turn where it builds its queue; the action loop, right after the `isActive` refusal, drops the action of a body stamped
+this turn (every kind but `pass`, as the splice takes every kind). `MEDSEEN.actionCancelledByForcedOut`. Knob
+`MEDI_RETURNED_BODY_KEEPS_ACTION`. No tag moved.
+
+Not changed, stated: the body is removed from this engine's `unresolved` set when its slot in the loop comes up, not at
+the moment it leaves, so a question asked in between (`queue.willMove` in the authority) still counts it as pending here.
+No card or probe parts on that.
+
+### Probe -- `tests/probe_regmc_forced_out_action_cancelled.js --regulation regmc`
+
+Cast derived: Sylveon @ Eject Button (base Speed 60, Focus Energy queued), Thievul (90, U-turn), Sceptile (120, Night
+Slash into Sylveon). The first bench body is the one a forced switch brings in on both engines, so Toxapex replaces the
+ejected Sylveon and Sylveon replaces the pivoting Thievul.
+
+| arm | staged | authority |
+|---|---|---|
+| BACK | Sylveon ejected, walks back in behind Thievul's U-turn | no `|move|` from Sylveon this turn |
+| STAYS | Sylveon holds nothing: hit, stays; Toxapex comes in behind the U-turn | Sylveon's Focus Energy runs |
+
+| run | exit | red |
+|---|---|---|
+| release `0f2b9112051e` + the 0.51.0 engine bytes | **1** | BACK (Sylveon's `|move|` and its Focus Energy volatile and PP) |
+| clean, release `4d7779ca7bad` | **0** | none; one cancellation in BACK, none in STAYS |
+| `MEDI_RETURNED_BODY_KEEPS_ACTION=1` | **1** | BACK |
+
+8 staged sets, 0 illegal.
+
+### Pinned Reg M-C differential (release `4d7779ca7bad`)
+
+| `--games` | before | after | void | protocol-diverged |
+|---|---|---|---|---|
+| 1200 | 0 / 954 | **0 / 954** | 1 | 67 |
+| 1350 | 1 / 1075 | **0 / 1075** | 0 | 74 → 73 |
+| 1950 | 8 / 1537 | **8 / 1537** | 0 | 117 |
+
+Left: `…2683867010`. Joined: none. **The 1350 lattice reads zero.**
+
+### Reg M-B
+
+A shared rule (the same `switchIn` in both checkouts; in Reg M-B, where neither eject door has a carrier, a forced exit
+followed by a same-turn return needs a drag move and a later pivot). Reg M-B data files
+byte-identical. Lattice 1200 on release `359ba087f8f2`: **0 of 961**,
+0 void, 0 protocol-diverged.
+
+---

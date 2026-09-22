@@ -21,6 +21,26 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.52.0] — 2026-09-22
+
+### Fixed
+- **A body forced out mid-turn loses its queued action even if it is brought back the same turn, in both regulations.**
+  `switchIn` splices every queued action of the unfainted body it replaces (`sim/battle-actions.ts` :104-107,
+  `queue.cancelAction`; `sim/battle-queue.ts` :334-343). This engine had only `runAction`'s `isActive` refusal, which a
+  body back on the field passes: in the Reg M-C 1350 lattice (`…bo3-2683867010`, turn 4) an Incineroar ejected by Eject
+  Button and brought back by Golisopod's Emergency Exit ran its Parting Shot here and not on the authority. `switchOut`
+  now stamps the leaving body with the turn (`TURN_EPOCH`) and the action loop drops that body's action. No tag moved.
+  Knob `MEDI_RETURNED_BODY_KEEPS_ACTION`.
+- `tests/probe_regmc_forced_out_action_cancelled.js` (`--regulation regmc`): BACK (ejected, walks back in behind a
+  partner's U-turn, does not act), STAYS (the control). Exit 0 clean; exit 1 under the knob and on release
+  `0f2b9112051e` with the 0.51.0 engine bytes.
+
+### Notes
+- Shared rule; Reg M-B data files byte-identical; the Reg M-B `--games 1200` lattice reads 0 of 961 on release
+  `359ba087f8f2`.
+- Pinned Reg M-C differential (census pin `f3b70bc0c47c`, release `4d7779ca7bad`): 1350 1 → **0 of 1075**; 1950 8 of
+  1537 and 1200 0 of 954 unmoved. `docs/_reports/2026-09-22-regmc-engine-5.md` §4.
+
 ## [0.51.0] — 2026-09-22
 
 ### Fixed

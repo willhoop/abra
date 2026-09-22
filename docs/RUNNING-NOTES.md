@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.52.0] — 2026-09-22 — **A body forced out mid-turn loses its queued action, in both regulations**
+
+- **What changed.** `engine/medicham2-browser.js`: `switchOut` stamps `_leftEpoch`; the action loop drops the queued action
+  of a body that left alive this turn (the authority's `cancelAction`). No tag moved. Knob
+  `MEDI_RETURNED_BODY_KEEPS_ACTION`; probe `tests/probe_regmc_forced_out_action_cancelled.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine-5.md` §4;
+  Reg M-B lattice 1200 reads 0 board-material; Reg M-B data files byte-identical.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.51.0] — 2026-09-22 — **Psychic Terrain asks the body a priority move was drawn to, in both regulations**
 
 - **What changed.** `engine/medicham2-browser.js`: the attack path's Psychic Terrain gate asks the post-redirect foe

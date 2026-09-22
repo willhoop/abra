@@ -1,3 +1,14 @@
+## A BODY FORCED OUT MID-TURN LOSES ITS QUEUED ACTION (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.52.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-5.md` §4.
+
+- **Defect.** Only `runAction`'s `isActive` refusal was modelled; the authority's `switchIn` cancels the leaver's queued
+  actions outright, so a body ejected and brought back (Eject Button then Emergency Exit) acted here. The 1350 card.
+- **Fix.** `switchOut` stamps `_leftEpoch = TURN_EPOCH`; the action loop drops a stamped body's action.
+- **Probe** `tests/probe_regmc_forced_out_action_cancelled.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_RETURNED_BODY_KEEPS_ACTION` and on release `0f2b9112051e` with the 0.51.0 bytes.
+- **Pinned Reg M-C:** 1350 1 → **0 of 1075**; 1950 8 of 1537 and 1200 0 of 954 unmoved. Reg M-B 1200: 0 of 961.
+
 ## PSYCHIC TERRAIN ASKS THE BODY A PRIORITY MOVE WAS DRAWN TO (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.51.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-5.md` §3.
