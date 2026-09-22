@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.35.0] — 2026-09-22 — **Steely Spirit boosts its holder's and its partner's Steel moves**
+
+- **What changed.** `engine/tag_dex.js`: `allyBasePowerBoost` reads a decimal multiplier, `includesSelf` and a category
+  gate; the Steely Spirit row spliced into `data/tags-regmc.json`. `engine/medicham2-browser.js`: the first consumer, in
+  the base-power chain (the attacker's own ability, and its partner through `hit.attPartner`). Knob
+  `MEDI_ALLY_BP_BOOST_INERT`; probe `tests/probe_regmc_steely_spirit.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine-2.md` §3.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
 ## [abra/regmc 0.34.0] — 2026-09-22 — **The Leek is two crit stages, and only for Farfetch'd and Sirfetch'd**
 
 - **What changed.** `engine/tag_dex.js`: the item `critRatioUp` row reads the handler's increment and species lock (Scope

@@ -87,7 +87,7 @@ const TAGS = (function(){
  * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
-const MEDSEEN = { critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+const MEDSEEN = { allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
    * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
@@ -3433,7 +3433,7 @@ const MEDSEEN = { critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBefor
   dollSecondaryDrawn: 0, secAddrSkippedDollRow: 0, secAddrDollWithNoLiveRowYet: 0,
   updateEventSorted: 0, updateSpeedCacheStamped: 0, updateSortCachedDiffersLive: 0, updateTieResolved: 0,
   volSeqStamped: 0, volStepShadowOrdered: 0 };
-const MEDFAILS = { critItemLockUnparsed: 0, encoreAction: 0, anticipationNoState: 0, anticipationMoveUnknown: 0, sweepActivateNoName: 0,
+const MEDFAILS = { allyBasePowerUnusable: 0, critItemLockUnparsed: 0, encoreAction: 0, anticipationNoState: 0, anticipationMoveUnknown: 0, sweepActivateNoName: 0,
   /* 2026-09-19 -- a body reached the Update sort with no cached `pokemon.speed` stamp (it fell back to live
    * speed), and a tied Update group resolved with no die in scope. Both should stay 0. */
   updateSpeedUncached: 0, updateOrderTieNoDie: 0,
@@ -12812,6 +12812,7 @@ function mvMakesContact(id,att,use){
  * refused and counted -- see MEDFAILS.critRatioAbility. */
 const CRIT_BY_STAGE=[1/24,1/8,1/2,1];
 const CRIT_ITEM_ONE_STAGE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CRIT_ITEM_ONE_STAGE==='1');
+const ALLY_BP_BOOST_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ALLY_BP_BOOST_INERT==='1');
 /* ROADMAP #151 -- IS THIS MOVE'S DAMAGE COMPUTED AT ALL? ONE PREDICATE, TWO READERS, NO NAME LIST.
  *
  * `sim/battle-actions.ts:getDamage` has FOUR early returns and every one of them is above both the
@@ -16334,6 +16335,27 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
      * application. It was `Math.floor(rolled * 1.5)` at the hit site -- one stage AND one chain late,
      * and wrong on 5 of 5 audited rows. */
     if(hit&&hit.helpingHand){BPCH(+hit.helpingHandMult||1.5);MEDSEEN.helpingHandBP++;}
+    /* 2026-09-22 (Reg M-C, abra/regmc 0.35.0) -- THE ALLY BASE-POWER BOOSTERS HAD NO CONSUMER. `onAllyBasePower`
+     * (Steely Spirit `move.type === 'Steel'` x1.5; Battery / Power Spot [5325,4096], not the holder's own move) is
+     * collected over the attacker's `alliesAndSelf()` (sim/battle.ts :1056-1057), so the ATTACKER's own ability and its
+     * active partner's each count once. The attacker's is read here for every caller; the partner can only be TOLD
+     * (`hit.attPartner`, set at the battle loop's hit site), like Friend Guard. A row whose multiplier is 1 or absent
+     * is refused and counted rather than applied. MEDI_ALLY_BP_BOOST_INERT=1 restores the missing consumer.
+     * tests/probe_regmc_steely_spirit.js */
+    if(!ALLY_BP_BOOST_INERT){
+      const _abp=(holder,isSelf)=>{
+        if(!holder||!holder.ability||(!isSelf&&(holder.fainted||holder.curHP<=0)))return;
+        const p=TAGS.param('ability',holder.ability,'allyBasePowerBoost'); if(!p)return;
+        if(isSelf&&p.includesSelf===false)return;
+        if(p.onlyType&&p.onlyType!==mvT)return;
+        if(p.onlyCategory&&p.onlyCategory!==(phys?'Physical':'Special'))return;
+        const mm=Array.isArray(p.mult)?p.mult:+p.mult;
+        if(!mm||mm===1){MEDFAILS.allyBasePowerUnusable++;return;}
+        BPCH(mm);MEDSEEN.allyBasePowerBoost++;
+      };
+      _abp(att,true);
+      if(hit&&hit.attPartner&&hit.attPartner!==att)_abp(hit.attPartner,false);
+    }
     /* TECHNICIAN, and the `<= 60` gate reads the RAW base power on purpose. Its
      * `onBasePowerPriority` is 30, the highest in this format, so when its handler runs
      * `this.modify(basePower, this.event.modifier)` the relay is still 1 and `modify(bp, 1) === bp`.
@@ -43229,6 +43251,10 @@ function battleTurn(S,rng,actsForA,actsForB){
            * must stay nothing. dmgRange's own `hasPower` guard is that test, so nothing is needed
            * here beyond passing the flag. */
           if(m._helpingHand)c.helpingHand=true;
+          /* abra/regmc 0.35.0 -- the ATTACKER's active partner, for `onAllyBasePower` (Steely Spirit). */
+          { const _aside=actA.indexOf(m)>=0?actA:(actB.indexOf(m)>=0?actB:null);
+            const _apal=_aside&&_aside.find(x=>x&&x!==m&&!x.fainted&&x.curHP>0);
+            if(_apal)c.attPartner=_apal; }
           /* ROADMAP #103 -- the ROLLED hit count, so dmgRange prices the hits this turn actually
            * landed instead of the 3.1 it prices a hypothetical one with. Only ever set above 1 for a
            * move the artifact calls multi-hit; every other caller of dmgRange leaves it absent and

@@ -44440,8 +44440,8 @@
    "params": {
     "allyBasePowerBoost": {
      "onlyType": "Steel",
-     "mult": 1,
-     "includesSelf": null
+     "mult": 1.5,
+     "includesSelf": true
     }
    }
   },

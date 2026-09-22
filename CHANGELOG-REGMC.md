@@ -21,6 +21,22 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.35.0] — 2026-09-22
+
+### Fixed
+- **Steely Spirit boosts its holder's and its partner's Steel moves.** `onAllyBasePower` (M-C checkout
+  `data/abilities.ts` steelyspirit: `if (move.type === 'Steel') return this.chainModify(1.5)`) is collected over the
+  attacker's `alliesAndSelf()` (`sim/battle.ts` :1056-1057). Two defects: the tag's multiplier parse stopped at the
+  decimal point (`mult: 1`), and the engine had no consumer for `allyBasePowerBoost` at all. `engine/tag_dex.js` now
+  reads a decimal or `[n, 4096]` multiplier, whether the holder's own move counts (`includesSelf`: Battery and Power
+  Spot exclude it) and a category gate; only the Steely Spirit row was spliced into `data/tags-regmc.json` (Reg M-B has
+  no carrier and its tag file does not move). `engine/medicham2-browser.js` adds the member to the base-power chain for
+  the attacker's own ability and for its active partner (`hit.attPartner`, told at the hit site like Friend Guard).
+  Knob `MEDI_ALLY_BP_BOOST_INERT`.
+- `tests/probe_regmc_steely_spirit.js` (`--regulation regmc`): Perrserker's Iron Head with and without the ability, and
+  a partner's Iron Head beside it with and without. Exit 0 clean; exit 1 under the knob and on the 0.34.0 release and
+  bytes.
+
 ## [0.34.0] — 2026-09-22
 
 ### Fixed

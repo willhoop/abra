@@ -183,3 +183,82 @@ narration and still parts that game's protocol stream.
 
 Three Reg M-B files unchanged against HEAD. Damage differential seed `20260804`: identical to the base but for the
 output-path line. Lattice on release `1c19d8d9bcd7`: **0 of 961**, 0 void.
+
+---
+
+## 3. Steely Spirit (abra/regmc 0.35.0)
+
+### The authority, read whole
+
+M-C checkout `data/abilities.ts` steelyspirit :4589-4601 (the Champions mod does not name it):
+
+```
+onAllyBasePowerPriority: 22,
+onAllyBasePower(basePower, attacker, defender, move) { if (move.type === 'Steel') return this.chainModify(1.5); }
+```
+
+`onAlly<Event>` handlers are collected over the event target's `alliesAndSelf()` (`sim/battle.ts` :1056-1057), and the
+BasePower event's target is the attacker (`sim/battle-actions.ts` :1650), so the holder boosts its own Steel move and its
+partner's. Battery (:342-354) and Power Spot (:3412-3424) exclude the holder (`attacker !== this.effectState.target`).
+
+### The defect, twice
+
+The two remaining Perrserker games (`…2680024905`, `regmc-2681007636`) parted on an Iron Head's damage: 120 against 129 on
+a Golisopod and 102 against 131 on a Basculegion, the authority's hit the larger. The Reg M-C table's Perrserker carries
+Steely Spirit (`data/engine-data-regmc.js`, observed set). `allyBasePowerBoost` was:
+
+1. **mis-derived** — `engine/tag_dex.js` read the multiplier with `(\d+)`, which stops at the decimal point, so the row
+   said `mult: 1`, and `includesSelf` was `null` unless a handler wrote `source ===`;
+2. **consumed by nothing** — no line of `engine/medicham2-browser.js` read the tag. Its three members had no legal carrier
+   in Reg M-B, and the tag sat in the deriver's expected-empty list, so nothing ever asked.
+
+### Tag, membership printed before wiring
+
+```
+pokemon-showdown-mc regmc  battery {mult:[5325,4096], includesSelf:false, onlyCategory:Special}
+                           powerspot {mult:[5325,4096], includesSelf:false}   steelyspirit {onlyType:Steel, mult:1.5, includesSelf:true}
+pokemon-showdown    regmb  the same three rows
+```
+
+Only Steely Spirit has a legal carrier in Reg M-C, so it is the only row in `data/tags-regmc.json`; it was spliced after a
+structural diff of the regenerated file showed that row as the only rule change. Reg M-B has no row and its file does
+not move.
+
+### Engine
+
+The base-power chain (`dmgRangeOneHit`, beside Helping Hand) adds each booster once: the attacker's own ability (every
+caller), and its active partner's through `hit.attPartner`, which the battle loop's hit context now sets from the
+attacker's side (a pure price, with no hit context, sees only the attacker's own). A row whose multiplier is 1 or absent
+is refused and counted (`MEDFAILS.allyBasePowerUnusable`). Knob `MEDI_ALLY_BP_BOOST_INERT`.
+
+### Probe — `tests/probe_regmc_steely_spirit.js --regulation regmc`
+
+| arm | staged | authority (target HP left) | 0.34.0 engine (release `afb18817eabc`) | after |
+|---|---|---|---|---|
+| SELF | Perrserker (Steely Spirit) Iron Head into Corviknight | 107/173 | parts (lines and boards) | match |
+| ALLY | Snorlax Iron Head, partner Perrserker (Steely Spirit) | 129/173 | parts (lines and boards) | match |
+| CONTROL | Perrserker (Battle Armor), SELF's hit | 129/173 | match | match |
+| ALLYCTL | Snorlax, partner Perrserker (Battle Armor) | 144/173 | match | match |
+
+| run | exit | red |
+|---|---|---|
+| 0.34.0 release and bytes | 1 | SELF and ALLY (lines and boards) |
+| clean, release `f09b7fd33be5` | 0 | none |
+| `MEDI_ALLY_BP_BOOST_INERT=1` | 1 | SELF and ALLY (lines and boards) |
+
+A secondary is allowed on the staged move (Perrserker's Steel moves all carry one); it fires identically on both engines
+under the kit's arm. All staged sets legal under the Reg M-C `TeamValidator`.
+
+### Pinned Reg M-C differential
+
+| engine | release | state bar | void |
+|---|---|---|---|
+| 0.34.0 | `afb18817eabc` | 13 / 954 | 1 |
+| 0.35.0 | `f09b7fd33be5` | **11 / 954** | 1 |
+
+The two Perrserker games left (seed sets compared); nothing joined.
+
+### Reg M-B unmoved
+
+Three Reg M-B files unchanged against HEAD. Damage differential seed `20260804`: identical to the base but for the
+output-path line. Lattice on release `37e6245b775c`: **0 of 961**, 0 void.

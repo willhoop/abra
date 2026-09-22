@@ -1,3 +1,16 @@
+## REG M-C: STEELY SPIRIT BOOSTS ITS HOLDER'S AND ITS PARTNER'S STEEL MOVES. 2026-09-22 (abra/regmc 0.35.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-2.md` §3.
+
+- **Defect.** `allyBasePowerBoost` was derived (its tag parse read `chainModify(1.5)` as `1`) and consumed by nothing:
+  the tag's three members had no legal carrier in Reg M-B, so the gap was invisible until Perrserker arrived.
+- **Fix.** The deriver reads the multiplier, the self clause and a category gate; the damage chain applies the
+  attacker's own booster and its partner's.
+- **Probe** `tests/probe_regmc_steely_spirit.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_ALLY_BP_BOOST_INERT` and on the 0.34.0 release and bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
 ## REG M-C: THE LEEK IS TWO CRIT STAGES, AND ONLY FOR FARFETCH'D AND SIRFETCH'D. 2026-09-22 (abra/regmc 0.34.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-2.md` §2.

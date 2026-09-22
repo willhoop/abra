@@ -10644,10 +10644,21 @@ const ABILITY_TAGS = [
       const src = String(a.onAllyBasePower || '').replace(/\s+/g, ' ');
       if (!src) return null;
       const t = src.match(/move\.type\s*===\s*["'](\w+)["']/);
-      const m = src.match(/chainModify\(\s*\[?\s*(\d+)\s*,?\s*(\d+)?/);
+      /* 2026-09-22 (abra/regmc 0.35.0) -- THE MULTIPLIER MAY BE A DECIMAL, AND THE HOLDER IS AN ALLY OF ITSELF.
+       * Steely Spirit, the one member with a legal carrier in Reg M-C, is `chainModify(1.5)`; the old pattern read
+       * `(\d+)` and stopped at the dot, so the row said `mult: 1` -- a boost of nothing. And `onAlly<Event>` handlers
+       * are collected over `target.alliesAndSelf()` (sim/battle.ts :1056-1057, the BasePower event's target being the
+       * attacker, sim/battle-actions.ts :1650 `runEvent('BasePower', source, ...)`), so a holder boosts its OWN move unless
+       * the handler excludes it: Battery and Power Spot write `attacker !== this.effectState.target`. `includesSelf`
+       * is now read either way (it was `null` unless the handler said `source ===`), and a category gate is kept. */
+      const arr = src.match(/chainModify\(\s*\[\s*(\d+)\s*,\s*(\d+)\s*\]/);
+      const dec = src.match(/chainModify\(\s*(\d+(?:\.\d+)?)\s*\)/);
+      const cat = src.match(/move\.category\s*===\s*["'](\w+)["']/);
+      const notSelf = /attacker\s*!==\s*this\.effectState\.target/.test(src) || /source\s*===\s*\w+/.test(src);
       return { onlyType: t ? t[1] : null,
-               mult: m ? (m[2] ? +m[1] / +m[2] : +m[1]) : null,
-               includesSelf: /source\s*===\s*\w+/.test(src) ? false : null };
+               mult: arr ? [+arr[1], +arr[2]] : (dec ? +dec[1] : null),
+               includesSelf: !notSelf,
+               ...(cat ? { onlyCategory: cat[1] } : {}) };
     } },
 
   /* SERENE GRACE AND TINTED LENS — the two ROADMAP #65 named as having been EATEN by a regeneration
