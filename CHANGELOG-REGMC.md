@@ -21,6 +21,27 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.49.0] — 2026-09-22
+
+### Fixed
+- **Steel Beam into a Protect charges its user, in both regulations.** Steel Beam's own `onMoveFail` takes half the user's
+  maximum HP (`data/moves.ts` steelbeam :17876-17892, not named by the Champions mod), and `useMoveInner` raises
+  `MoveFail` whenever `trySpreadMoveHit` comes back falsy (`sim/battle-actions.ts` :524-527) -- a Protect that answered
+  included. This engine paid the charge on a whiff and on an immunity, but its fully-shielded exit left above the max-HP
+  recoil block, so a Steel Beam into a Protect was free; the block's own header had named the gap. It was the three
+  `lucario.hp 145/72` cards of the Reg M-C `--games 1950` lattice (a Lucario-Mega-Z Steel Beam into a Protect on turn 1).
+  `_failRecoilOnShield` pays it at that exit: the `recoil {of: 'maxhp', paidOnFail}` tag (Steel Beam alone, printed),
+  `refusesIndirectDamage` honoured, `[from] steelbeam`. No tag moved. Knob `MEDI_FAIL_RECOIL_SHIELD_FREE`.
+- `tests/probe_regmc_steel_beam_protect.js` (`--regulation regmc`): SHIELD, HIT, CONTROL (a plain move into the Protect).
+  Exit 0 clean; exit 1 under the knob and on release `519f2a27fce0` with the 0.48.0 engine bytes (SHIELD red).
+
+### Notes
+- Shared rule: Steel Beam is Reg M-B legal and the M-B checkout carries the same handler. Reg M-B data files
+  byte-identical; the Reg M-B `--games 1200` lattice reads 0 of 961 on release `c60cc1ca32b8`.
+- Pinned Reg M-C differential (census pin `f3b70bc0c47c`, release `fef8345b826a`): `--games 1950` 14 of 1536 → **11 of
+  1537** (the three Lucario games left, none joined; the baseline's one void game now plays clean); 1350 unmoved at 2 of
+  1075; 1200 unmoved at 0 of 954. `docs/_reports/2026-09-22-regmc-engine-5.md` §1.
+
 ## [0.48.0] — 2026-09-22
 
 ### Fixed

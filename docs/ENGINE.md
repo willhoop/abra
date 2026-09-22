@@ -1,3 +1,15 @@
+## STEEL BEAM INTO A PROTECT CHARGES ITS USER (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.49.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-5.md` §1.
+
+- **Defect.** The fully-shielded exit left above the max-HP recoil block, so Steel Beam's `onMoveFail` half-max-HP charge
+  was never paid when a Protect answered (the block's own header named it). Three turn-1 Lucario-Mega-Z cards of the
+  Reg M-C 1950 lattice.
+- **Fix.** `_failRecoilOnShield`, beside `_crashOnFail` at that exit; the member is the tag's (`recoil.paidOnFail`).
+- **Probe** `tests/probe_regmc_steel_beam_protect.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_FAIL_RECOIL_SHIELD_FREE` and on release `519f2a27fce0` with the 0.48.0 bytes.
+- **Pinned Reg M-C:** 1950 14 → 11 of 1537; 1350 2 of 1075 and 1200 0 of 954 unmoved. Reg M-B 1200: 0 of 961.
+
 ## REG M-C: AN EJECT-DOOR ENTRANT'S DICE CARRY NO MOVE. 2026-09-22 (abra/regmc 0.48.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-4.md` §5.

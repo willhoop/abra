@@ -582,6 +582,9 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
    * zero on a run containing a Struggle that whiffed means the gate is unreachable, which is the
    * state this engine was in: it charged every one of them. */
   maxHPRecoilRefusedOnWhiff: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.49.0) -- the same family's `onMoveFail` charge paid at the FULLY-SHIELDED exit
+   * (Steel Beam into a Protect). A zero on a run holding a Steel Beam that a Protect answered means the exit is free. */
+  failRecoilPaidOnShield: 0,
   /* ROADMAP #175 -- every damage packet `refusesIndirectDamage` turned away, across all nine gated
    * sites. It replaces MEDFAILS.magicGuardChip, which counted the same event as a KNOWN GAP: the
    * counter moves from the failures object to the capabilities one, which is the whole shape of the
@@ -19578,6 +19581,12 @@ if(RECOIL_ON_A_CORPSE)MEDFAILS.recoilOnCorpseRestored=1;
 const RECOIL_ON_A_WHIFF=(typeof process!=='undefined'&&process.env
                          &&process.env.MEDI_RECOIL_ON_A_WHIFF==='1');
 if(RECOIL_ON_A_WHIFF)MEDFAILS.recoilOnWhiffRestored=1;
+/* 2026-09-22 (Reg M-C, abra/regmc 0.49.0) -- MEDI_FAIL_RECOIL_SHIELD_FREE=1 puts back the engine as it stood before: a
+ * move whose own `onMoveFail` charges its user (Steel Beam) is charged NOTHING when every target's Protect answered it.
+ * See `_failRecoilOnShield`; any run carrying it also carries `MEDFAILS.failRecoilShieldFreeRestored = 1`. LOAD TIME. */
+const FAIL_RECOIL_SHIELD_FREE=(typeof process!=='undefined'&&process.env
+                              &&process.env.MEDI_FAIL_RECOIL_SHIELD_FREE==='1');
+if(FAIL_RECOIL_SHIELD_FREE)MEDFAILS.failRecoilShieldFreeRestored=1;
 /* 2026-09-19 -- MEDI_TRAP_SURVIVES_DEAD_TRAPPER=1 TAKES THE RELEASE BACK OUT OF `noteFaint`, i.e. the
  * engine exactly as it stood before: the hard trap is freed only when a REPLACEMENT is brought in,
  * so a trapper that dies as the last body of its side holds its victim to the end of the game. It
@@ -42111,6 +42120,29 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(TR)TR.dmg(m,'[from] '+a.move.id);
         if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);}
       };
+      /* 2026-09-22 (Reg M-C, abra/regmc 0.49.0) -- STEEL BEAM INTO A PROTECT IS CHARGED. The max-HP recoil block's own header
+       * ("Steel Beam into a Protect is still UNPAID here where the authority charges it") named this gap; the pinned Reg M-C
+       * differential at --games 1950 parts THREE games on it, all turn 1, all a Lucario-Mega-Z at 145 here against 72:
+       *     showdown  |-activate|p1a: Gengar|move: Protect   |-damage|p2a: Lucario|72/145|[from] steelbeam
+       *     medicham2 |-activate|p1a: Gengar|move: Protect   (nothing)
+       * THE AUTHORITY, READ WHOLE: data/moves.ts steelbeam :17876-17892 --
+       *     onMoveFail(target, source, move) { if (move.multihit) return;
+       *         this.damage(Math.round(source.maxhp / 2), source, source, this.dex.conditions.get('Steel Beam')); }
+       * raised by sim/battle-actions.ts :524-527 `if (!moveResult) { ... singleEvent('MoveFail', ...) }` -- and a target
+       * whose Protect answered leaves `trySpreadMoveHit` falsy. The no-target return at :510-513 sits ABOVE and charges
+       * nothing, which `_hadTargets` already keeps out of this exit. The charge is `Battle#damage` with a Condition effect,
+       * so the `refusesIndirectDamage` class (Magic Guard) refuses it, like `_crashOnFail`. The member is the TAG's --
+       * `recoil {of:'maxhp', paidOnFail}`, tag_dex's reading of a damaging `onMoveFail` -- never a name. */
+      const _failRecoilOnShield=()=>{
+        const _fr=TAGS.param('move',a.move&&a.move.id,'recoil');
+        if(!(_fr&&_fr.of==='maxhp'&&+_fr.fraction>0&&_fr.paidOnFail&&m.st&&!m.fainted))return;
+        if(FAIL_RECOIL_SHIELD_FREE)return;
+        if(refusesIndirect(m))return;
+        m.curHP-=Math.max(1,Math.round(m.st.hp*+_fr.fraction));
+        MEDSEEN.failRecoilPaidOnShield++;
+        if(TR)TR.dmg(m,ATTR.from(ATTR.cond(a.move.id)));
+        if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);}
+      };
       /* ROADMAP #331 -- THE USER'S OWN FAINT IS QUEUED DURING THE MOVE AND ANNOUNCED AFTER IT, and
        * holding those two apart is the whole fix. `Pokemon#faint()` (sim/pokemon.ts:1587-1598) sets
        * hp to 0 and PUSHES onto `faintQueue`; it writes nothing. The `|faint|` lines are written
@@ -42435,7 +42467,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * survived the shield" and "a Substitute ate the hit" are different facts. */
       if(_hadTargets&&!targets.length){
         if(_selfKOPending){_selfKOPending=false;MEDSEEN.selfKOLineFromShieldExit++;faintLineOut(m);}
-        m._mvRes=null;_crashOnFail();continue;}
+        m._mvRes=null;_crashOnFail();_failRecoilOnShield();continue;}
       /* ROADMAP #81 WIRE 10 -- THE ACCURACY ROLL IS STEP 4, AND IT USED TO SIT HERE, AT STEP 0.
        *
        * Showdown's `moveSteps` (sim/battle-actions.ts:555-577) runs invulnerability, TryHit, type

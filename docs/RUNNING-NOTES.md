@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.49.0] — 2026-09-22 — **Steel Beam into a Protect charges its user, in both regulations**
+
+- **What changed.** `engine/medicham2-browser.js`: `_failRecoilOnShield` at the fully-shielded exit pays the
+  `recoil {of: 'maxhp', paidOnFail}` member's `onMoveFail` charge. No tag moved. Knob `MEDI_FAIL_RECOIL_SHIELD_FREE`;
+  probe `tests/probe_regmc_steel_beam_protect.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine-5.md` §1;
+  Reg M-B lattice 1200 reads 0 board-material; Reg M-B data files byte-identical.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.48.0] — 2026-09-22 — **An eject-door entrant's dice carry no move, in Reg M-C**
 
 - **What changed.** `engine/medicham2-browser.js`: `midAddrOwnAction`, the one "this entry is its own action" rule, lifted
