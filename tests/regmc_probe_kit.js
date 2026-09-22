@@ -134,13 +134,17 @@ function open(name, knobNames) {
   const canon = l => String(l).toLowerCase().replace(/[\s']/g, '');
 
   /* play one arm. `keep` selects the lines kept for display and comparison; `counters()` is read around the game. */
-  function play(tag, A, B, script, keep, counters) {
+  /* `armId` (abra/regmc 0.34.0): a probe whose mechanic is a RATE (a crit stage) cannot be seen under the bottom arm,
+   * where every crit lands; it names the `middle` arm, whose dice are real, seeded and shared by category. */
+  function play(tag, A, B, script, keep, counters, armId) {
+    const arm = armId ? G.ARM_BY_ID.get(armId) : ARM;
+    if (!arm) return { staged: false, why: 'no arm ' + armId + ' in ARM_BY_ID' };
     const a = G.buildPair(A), b = G.buildPair(B);
     if (!a || !b || a.length !== A.length || b.length !== B.length) return { staged: false, why: 'buildPair dropped a body' };
     if (G.resetScriptCounters) G.resetScriptCounters();
     const c0 = counters ? counters() : {};
     const boards = [];
-    const r = G.playGame(a, b, 'directed', name + ' :: ' + tag, { script, arm: ARM,
+    const r = G.playGame(a, b, 'directed', name + ' :: ' + tag, { script, arm,
       onBoundary: (snap, ti) => {
         boards.push({ turn: ti, compared: snap.leaves_compared, diffs: (snap.diffs || []).map(d => d.path + ' ' + d.medicham + '/' + d.showdown) });
         snap.identical = true; snap.diffs = [];

@@ -37504,7 +37504,11 @@
    "uses": 148,
    "params": {
     "critRatioUp": {
-     "critRatio": 2
+     "critRatio": 3,
+     "onlySpecies": [
+      "farfetchd",
+      "sirfetchd"
+     ]
     },
     "flingable": {
      "basePower": 60,
@@ -40052,7 +40056,8 @@
    "uses": 4012,
    "params": {
     "restoresStats": {
-     "restores": true
+     "restores": true,
+     "afterMoveImmediate": true
     },
     "flingable": {
      "basePower": 10,
@@ -44436,8 +44441,8 @@
    "params": {
     "allyBasePowerBoost": {
      "onlyType": "Steel",
-     "mult": 1,
-     "includesSelf": null
+     "mult": 1.5,
+     "includesSelf": true
     }
    }
   },

@@ -65,6 +65,78 @@ rewritten; what changed and why is stated.
   first-divergence blocks as the published artifact; `engine/quarantine.js` with no flag prints the same output as
   HEAD's copy on the same tree. Readings: `docs/_reports/2026-09-22-regmc-instruments.md`. Nothing here is published.
 
+## [0.36.0] — 2026-09-22
+
+### Fixed
+- **White Herb is spent on the move that ends the battle, in Reg M-C.** The two checkouts differ here. Reg M-C's
+  whiteherb restores inside `useMove` (`onAnyAfterMove() { this.effect.onStart.call(...) }`), before `runAction`'s
+  `faintMessages()` ends the battle (M-C checkout `sim/battle.ts` :2832-2833); Reg M-B's QUEUES it
+  (`insertChoice({ event: "WhiteHerb", order: 99 })`), which never runs after the battle has ended. This engine spent
+  it in `_updateAll`, which both `sideWiped` break sites skip, so a Close Combat that knocked out the last foe left its
+  user holding the herb at -1/-1 under Reg M-C. `engine/tag_dex.js` now writes `restoresStats.afterMoveImmediate` for
+  the M-C shape only (Reg M-B's row derives byte-identically; the M-C row was spliced), and `herbAtWin` runs the herb's
+  reader at the two breaks for a holder whose tag says so. Knob `MEDI_HERB_SKIPPED_AT_WIN`.
+- `tests/probe_regmc_white_herb_at_win.js` (`--regulation regmc`): a three-turn wipe whose last knockout is the herb
+  holder's self-dropping hit, and a no-item control. Exit 0 clean; exit 1 under the knob and on the 0.35.0 release and
+  bytes.
+
+### Notes
+- The first cut ran the herb for every holder, and the Reg M-B lattice parted on four games the other way (the
+  authority kept the herb). That is how the two checkouts' handlers were found to differ; the tag now carries it.
+
+## [0.35.0] — 2026-09-22
+
+### Fixed
+- **Steely Spirit boosts its holder's and its partner's Steel moves.** `onAllyBasePower` (M-C checkout
+  `data/abilities.ts` steelyspirit: `if (move.type === 'Steel') return this.chainModify(1.5)`) is collected over the
+  attacker's `alliesAndSelf()` (`sim/battle.ts` :1056-1057). Two defects: the tag's multiplier parse stopped at the
+  decimal point (`mult: 1`), and the engine had no consumer for `allyBasePowerBoost` at all. `engine/tag_dex.js` now
+  reads a decimal or `[n, 4096]` multiplier, whether the holder's own move counts (`includesSelf`: Battery and Power
+  Spot exclude it) and a category gate; only the Steely Spirit row was spliced into `data/tags-regmc.json` (Reg M-B has
+  no carrier and its tag file does not move). `engine/medicham2-browser.js` adds the member to the base-power chain for
+  the attacker's own ability and for its active partner (`hit.attPartner`, told at the hit site like Friend Guard).
+  Knob `MEDI_ALLY_BP_BOOST_INERT`.
+- `tests/probe_regmc_steely_spirit.js` (`--regulation regmc`): Perrserker's Iron Head with and without the ability, and
+  a partner's Iron Head beside it with and without. Exit 0 clean; exit 1 under the knob and on the 0.34.0 release and
+  bytes.
+
+## [0.34.0] — 2026-09-22
+
+### Fixed
+- **The Leek is two crit stages, and only for Farfetch'd and Sirfetch'd.** M-C checkout `data/items.ts` leek:
+  `if (["farfetchd", "sirfetchd"].includes(this.toID(user.baseSpecies.baseSpecies))) return critRatio + 2;`. The item
+  crit tag gave every `onModifyCritRatio` item `critRatio: 2` (one stage, Scope Lens's `+ 1`), so a Sirfetch'd's Leek
+  was one stage short and any other holder was one stage long. `engine/tag_dex.js` now reads the increment and the
+  species lock off the handler (`critRatio` = 1 + stage, `onlySpecies` = the base-species ids; a lock it cannot read is
+  marked `lockUnparsed` and refused downstream). Scope Lens derives the identical row it always had, so Reg M-B's tag
+  file does not move; only the Leek row was spliced into `data/tags-regmc.json` (a structural diff of the regenerated
+  file showed no other rule change). `engine/medicham2-browser.js` reads the lock against the key's base segment
+  (0.33.0's fix). Knob `MEDI_CRIT_ITEM_ONE_STAGE`.
+- `tests/probe_regmc_leek.js` (`--regulation regmc`, the middle arm): Farfetch'd @ Leek's Night Slash crits five of
+  five; an unlocked holder and a no-item control agree with the authority roll for roll. Exit 0 clean; exit 1 under the
+  knob and on the 0.33.0 release and bytes. `tests/regmc_probe_kit.js`'s `play` takes an optional arm.
+
+## [0.33.0] — 2026-09-22
+
+### Fixed
+- **A species whose base name carries punctuation is keyed as one base, and U+2019 folds like `'`.** Two defects on one
+  shape. (1) `build/build_engine_data_regmc.js` collapsed every non-alphanumeric run of the display name to a hyphen,
+  and the engine reads a key's segment before its first hyphen as the base species (the `statMult.onlySpecies` lock), so
+  `Sirfetch’d`, `Farfetch’d`, `Mr. Rime`, `Mr. Mime` and `Kommo-o` were keyed `sirfetch-d`, `farfetch-d`, `mr-rime`,
+  `mr-mime`, `kommo-o`, as if each had a forme. The base part is now the base species' id and only the forme tail keeps
+  the hyphen rule; every legal species is scanned for the shape on every build (5 found), a name that is neither
+  `<base>` nor `<base>-<forme>` refuses the build, and the regenerated table differs from the old one by those five
+  renames and nothing else. `ABRA_REGMC_KEY_WHOLE_NAME=1` restores the old rule. (2) The M-C checkout spells the two
+  Farfetch'd names with U+2019 (`data/pokedex.ts`), and `traceCanon` folded only the ASCII apostrophe, so the first
+  `|switch|` of every game that brought one parted on a spelling. Knob `MEDI_CANON_KEEPS_TYPO_APOSTROPHE`.
+- `tests/probe_regmc_species_key.js` (`--regulation regmc`): every table key's base segment is its species' base id, and
+  every legal punctuated species walks in with identical reduced `|switch|` lines and identical boards. Exit 0 clean;
+  exit 1 under the knob and on the 0.32.0 release and engine bytes.
+
+### Notes
+- The five hidden games now show their real first causes: four are a critical hit the authority rolls and this engine
+  does not (Leek), one is narration. The board-material count did not move on this commit; the report says why.
+
 ## [0.32.1] — 2026-09-22
 
 ### Added

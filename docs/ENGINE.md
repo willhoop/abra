@@ -1,3 +1,57 @@
+## REG M-C: WHITE HERB IS SPENT ON THE MOVE THAT ENDS THE BATTLE. 2026-09-22 (abra/regmc 0.36.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-2.md` §4.
+
+- **Defect.** Reg M-C's herb restores inside `useMove`, before the win check; this engine spent it in `_updateAll`,
+  below both `sideWiped` breaks, so the battle-ending move's self-drop stayed on the board. Reg M-B's checkout queues
+  the restore instead and never spends it after the battle ends.
+- **Fix.** The tag carries which (`restoresStats.afterMoveImmediate`); `herbAtWin` at the two breaks reads it.
+- **Probe** `tests/probe_regmc_white_herb_at_win.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_HERB_SKIPPED_AT_WIN` and on the 0.35.0 release and bytes. The Reg M-B lattice is the other arm: it parted four
+  games when the first cut ignored the tag.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+## REG M-C: STEELY SPIRIT BOOSTS ITS HOLDER'S AND ITS PARTNER'S STEEL MOVES. 2026-09-22 (abra/regmc 0.35.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-2.md` §3.
+
+- **Defect.** `allyBasePowerBoost` was derived (its tag parse read `chainModify(1.5)` as `1`) and consumed by nothing:
+  the tag's three members had no legal carrier in Reg M-B, so the gap was invisible until Perrserker arrived.
+- **Fix.** The deriver reads the multiplier, the self clause and a category gate; the damage chain applies the
+  attacker's own booster and its partner's.
+- **Probe** `tests/probe_regmc_steely_spirit.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_ALLY_BP_BOOST_INERT` and on the 0.34.0 release and bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+## REG M-C: THE LEEK IS TWO CRIT STAGES, AND ONLY FOR FARFETCH'D AND SIRFETCH'D. 2026-09-22 (abra/regmc 0.34.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-2.md` §2.
+
+- **Defect.** Every crit item was tagged one stage (`critRatio: 2`); the Leek is `+ 2` and species-locked, so a
+  Sirfetch'd with a high-crit move rolled 1/2 where the authority is certain.
+- **Fix.** The deriver reads the increment and the lock off the handler; the engine honours the lock. Scope Lens's row
+  is unchanged, so Reg M-B's tags do not move.
+- **Probe** `tests/probe_regmc_leek.js --regulation regmc` (middle arm): exit 0 clean; exit 1 under
+  `MEDI_CRIT_ITEM_ONE_STAGE` and on the 0.33.0 release and bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+## REG M-C: A PUNCTUATED BASE NAME IS KEYED AS ONE BASE; U+2019 FOLDS LIKE AN APOSTROPHE. 2026-09-22 (abra/regmc 0.33.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-2.md` §1.
+
+- **Defect.** The Reg M-C table keyed `Sirfetch’d` as `sirfetch-d` (and four more: `farfetch-d`, `mr-rime`, `mr-mime`,
+  `kommo-o`), splitting the base name as if it had a forme; and `traceCanon` did not fold the U+2019 the M-C checkout
+  writes, so those games parted on their first `|switch|` and their real causes were hidden.
+- **Fix.** The builder keys the base part by the base species' id and scans every legal species for the shape; the
+  normaliser folds U+2019. The table changed by five renames and nothing else.
+- **Probe** `tests/probe_regmc_species_key.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_CANON_KEEPS_TYPO_APOSTROPHE` and on the 0.32.0 release and engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
 ## REG M-C: WHITE HERB IS SPENT BEFORE AN EJECT BUTTON OR RED CARD SWITCH. 2026-09-22 (abra/regmc 0.32.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine.md` §11, and what is left in §12.

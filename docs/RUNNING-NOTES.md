@@ -66,6 +66,39 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
   lattice 1200 at 0 of 961 with identical state and mega blocks, default gate output identical to HEAD's.
 - **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
 
+## [abra/regmc 0.36.0] — 2026-09-22 — **White Herb is spent on the move that ends the battle, in Reg M-C**
+
+- **What changed.** `engine/tag_dex.js`: `restoresStats.afterMoveImmediate` when the handler restores inside `useMove`
+  (M-C), absent when it queues (M-B); the M-C row spliced into `data/tags-regmc.json`. `engine/medicham2-browser.js`:
+  `herbAtWin` at the two `sideWiped` breaks. Knob `MEDI_HERB_SKIPPED_AT_WIN`; probe `tests/probe_regmc_white_herb_at_win.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine-2.md` §4.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+## [abra/regmc 0.35.0] — 2026-09-22 — **Steely Spirit boosts its holder's and its partner's Steel moves**
+
+- **What changed.** `engine/tag_dex.js`: `allyBasePowerBoost` reads a decimal multiplier, `includesSelf` and a category
+  gate; the Steely Spirit row spliced into `data/tags-regmc.json`. `engine/medicham2-browser.js`: the first consumer, in
+  the base-power chain (the attacker's own ability, and its partner through `hit.attPartner`). Knob
+  `MEDI_ALLY_BP_BOOST_INERT`; probe `tests/probe_regmc_steely_spirit.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine-2.md` §3.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+## [abra/regmc 0.34.0] — 2026-09-22 — **The Leek is two crit stages, and only for Farfetch'd and Sirfetch'd**
+
+- **What changed.** `engine/tag_dex.js`: the item `critRatioUp` row reads the handler's increment and species lock (Scope
+  Lens unchanged); the Leek row spliced into `data/tags-regmc.json`. `engine/medicham2-browser.js`: `critChance` honours
+  the lock. Knob `MEDI_CRIT_ITEM_ONE_STAGE`; probe `tests/probe_regmc_leek.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine-2.md` §2.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+## [abra/regmc 0.33.0] — 2026-09-22 — **A punctuated base name is keyed as one base, and U+2019 folds like an apostrophe**
+
+- **What changed.** `build/build_engine_data_regmc.js`: the key's base part is the base species' id (5 rows renamed in
+  `data/engine-data-regmc.js`, no content change). `engine/medicham2-browser.js`: `traceCanon` folds U+2019. Knobs
+  `ABRA_REGMC_KEY_WHOLE_NAME` (builder), `MEDI_CANON_KEEPS_TYPO_APOSTROPHE` (engine); probe `tests/probe_regmc_species_key.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine-2.md` §1.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
 ## [abra/regmc 0.32.1] — 2026-09-22 — **The rotation manual gains a step for CHOMP, the downstream consumer**
 
 - Step 14, *Downstream consumers*, in `docs/REGULATION-ROTATION.md`. It covers what CHOMP reads from ABRA

@@ -6941,7 +6941,16 @@ const ITEM_TAGS = [
     of: it => norm(it.name) === 'clearamulet' ? { prevents: true } : null },
   { tag: 'restoresStats', param: 'undoes stat drops once', probe: 'whiteherb',
     why: '2.1% of items, and it changes what a drop is worth',
-    of: it => norm(it.name) === 'whiteherb' ? { restores: true } : null },
+    /* 2026-09-22 (abra/regmc 0.36.0) -- WHEN THE AFTERMOVE RESTORE HAPPENS IS THE HANDLER'S, AND THE TWO CHECKOUTS DIFFER.
+     * Reg M-B's checkout QUEUES it: `onAnyAfterMove() { this.queue.insertChoice({ choice: "event", event: "WhiteHerb",
+     * order: 99 }) }`, so it runs as its own action after the move -- and never after a move that ended the battle.
+     * Reg M-C's checkout RUNS it: `onAnyAfterMove() { this.effect.onStart.call(this, this.effectState.target); }`,
+     * inside `useMove`, before `runAction`'s win check. `afterMoveImmediate` is written only for the second shape, so
+     * Reg M-B's row derives byte-identically. */
+    of: it => norm(it.name) === 'whiteherb'
+      ? { restores: true,
+          ...(it.onAnyAfterMove && !/insertChoice/.test(String(it.onAnyAfterMove)) ? { afterMoveImmediate: true } : {}) }
+      : null },
   /* 2026-09-21 (Reg M-C) -- THE TERRAIN SEEDS. Will: "Terrain setters and seeds are the most important
    * features." Every seed is the same two handlers (data/items.ts electricseed :1799, grassyseed :2595,
    * mistyseed :4200, psychicseed :4903 in the M-C checkout; the Champions mod names none of them):
@@ -7097,7 +7106,29 @@ const ITEM_TAGS = [
        + 'the distribution already needs for Flower Trick, so it costs nothing to support. NOTE the '
        + 'ratio is a STAGE feeding P(crit); the crit damage multiplier is always x1.5 and nothing here '
        + 'changes it -- do not read critRatio: 2 as double damage',
-    of: it => it.onModifyCritRatio ? { critRatio: 2 } : null },
+    /* 2026-09-22 (abra/regmc 0.34.0) -- THE STAGE AND THE LOCK ARE READ, NOT ASSUMED. Every member used to get
+     * `critRatio: 2` (one stage), right for Scope Lens (`return critRatio + 1`) and wrong for the Leek, legal again in
+     * Reg M-C: `if (["farfetchd", "sirfetchd"].includes(this.toID(user.baseSpecies.baseSpecies))) return critRatio + 2`
+     * -- TWO stages, and only for those two base species. `critRatio` keeps its meaning (1 + the stage), so a one-stage
+     * member derives the identical row it always had; `onlySpecies` names the base-species ids a lock lists. A handler
+     * whose increment cannot be read keeps the old row and says so (`stageUnparsed`). */
+    of: it => {
+      if (!it.onModifyCritRatio) return null;
+      const src = String(it.onModifyCritRatio);
+      const inc = src.match(/return\s+critRatio\s*\+\s*(\d+)\s*;/);
+      const lock = src.match(/\[([^\]]*)\]\s*\.includes\(\s*this\.toID\(\s*\w+\.baseSpecies\.baseSpecies\s*\)\s*\)/);
+      const out = { critRatio: inc ? 1 + (+inc[1]) : 2 };
+      if (!inc) out.stageUnparsed = true;
+      if (lock) out.onlySpecies = (lock[1].match(/["']([a-z0-9]+)["']/g) || []).map(x => x.replace(/["']/g, ''));
+      else {
+        /* the single-species spellings: `this.toID(user.baseSpecies.baseSpecies) === 'x'` and `user.baseSpecies.name === 'X'` */
+        const one = src.match(/this\.toID\(\s*\w+\.baseSpecies\.baseSpecies\s*\)\s*===\s*["']([a-z0-9]+)["']/)
+          || src.match(/\w+\.baseSpecies\.name\s*===\s*["']([^"']+)["']/);
+        if (one) out.onlySpecies = [norm(one[1])];
+        else if (/\bif\s*\(/.test(src)) out.lockUnparsed = true;   /* a condition this reader cannot name: refused downstream, not dropped */
+      }
+      return out;
+    } },
   /* NEW 2026-08-08 -- WHAT THIS ITEM IS WORTH WHEN IT IS THROWN. `item.fling` is a first-class dex
    * field, so this is a READ rather than a handler probe: `{basePower}` plus, on some members, a
    * `status` or a `volatileStatus` that becomes the throw's secondary. Light Ball is 30 and
@@ -10622,10 +10653,21 @@ const ABILITY_TAGS = [
       const src = String(a.onAllyBasePower || '').replace(/\s+/g, ' ');
       if (!src) return null;
       const t = src.match(/move\.type\s*===\s*["'](\w+)["']/);
-      const m = src.match(/chainModify\(\s*\[?\s*(\d+)\s*,?\s*(\d+)?/);
+      /* 2026-09-22 (abra/regmc 0.35.0) -- THE MULTIPLIER MAY BE A DECIMAL, AND THE HOLDER IS AN ALLY OF ITSELF.
+       * Steely Spirit, the one member with a legal carrier in Reg M-C, is `chainModify(1.5)`; the old pattern read
+       * `(\d+)` and stopped at the dot, so the row said `mult: 1` -- a boost of nothing. And `onAlly<Event>` handlers
+       * are collected over `target.alliesAndSelf()` (sim/battle.ts :1056-1057, the BasePower event's target being the
+       * attacker, sim/battle-actions.ts :1650 `runEvent('BasePower', source, ...)`), so a holder boosts its OWN move unless
+       * the handler excludes it: Battery and Power Spot write `attacker !== this.effectState.target`. `includesSelf`
+       * is now read either way (it was `null` unless the handler said `source ===`), and a category gate is kept. */
+      const arr = src.match(/chainModify\(\s*\[\s*(\d+)\s*,\s*(\d+)\s*\]/);
+      const dec = src.match(/chainModify\(\s*(\d+(?:\.\d+)?)\s*\)/);
+      const cat = src.match(/move\.category\s*===\s*["'](\w+)["']/);
+      const notSelf = /attacker\s*!==\s*this\.effectState\.target/.test(src) || /source\s*===\s*\w+/.test(src);
       return { onlyType: t ? t[1] : null,
-               mult: m ? (m[2] ? +m[1] / +m[2] : +m[1]) : null,
-               includesSelf: /source\s*===\s*\w+/.test(src) ? false : null };
+               mult: arr ? [+arr[1], +arr[2]] : (dec ? +dec[1] : null),
+               includesSelf: !notSelf,
+               ...(cat ? { onlyCategory: cat[1] } : {}) };
     } },
 
   /* SERENE GRACE AND TINTED LENS — the two ROADMAP #65 named as having been EATEN by a regeneration

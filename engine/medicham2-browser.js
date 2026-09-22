@@ -87,7 +87,7 @@ const TAGS = (function(){
  * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
-const MEDSEEN = { floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+const MEDSEEN = { allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
    * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
@@ -3433,7 +3433,7 @@ const MEDSEEN = { floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepAct
   dollSecondaryDrawn: 0, secAddrSkippedDollRow: 0, secAddrDollWithNoLiveRowYet: 0,
   updateEventSorted: 0, updateSpeedCacheStamped: 0, updateSortCachedDiffersLive: 0, updateTieResolved: 0,
   volSeqStamped: 0, volStepShadowOrdered: 0 };
-const MEDFAILS = { encoreAction: 0, anticipationNoState: 0, anticipationMoveUnknown: 0, sweepActivateNoName: 0,
+const MEDFAILS = { allyBasePowerUnusable: 0, critItemLockUnparsed: 0, encoreAction: 0, anticipationNoState: 0, anticipationMoveUnknown: 0, sweepActivateNoName: 0,
   /* 2026-09-19 -- a body reached the Update sort with no cached `pokemon.speed` stamp (it fell back to live
    * speed), and a tied Update group resolved with no die in scope. Both should stay 0. */
   updateSpeedUncached: 0, updateOrderTieNoDie: 0,
@@ -6268,6 +6268,13 @@ function traceRelease(prev){ TR=prev; if(!prev){TRACE.out=null;TRACE.S=null;} }
  * ONE FUNCTION, TWO CALL SITES (CLAUDE.md's FACTS ARE GLOBAL): the `statcode` move branch and the
  * `buffsHolderOnHit` ability step both ask this, so the two can never come to disagree about it. */
 function announcesSetBoost(amount){ return Math.abs(+amount||0) > 6; }
+/* 2026-09-22 (Reg M-C, abra/regmc 0.33.0) -- THE APOSTROPHE THE AUTHORITY ACTUALLY WRITES IS U+2019. The rule below
+ * folds `'` for `Farfetch'd`, and the Reg M-C checkout spells the species `Farfetch’d` / `Sirfetch’d` (U+2019,
+ * data/pokedex.ts; the Leek's `itemUser` list reads "Farfetch’d"), so `|switch|p2a: Sirfetch’d|Sirfetch’d, L50`
+ * reduced to `sirfetch’d,l50` on the authority and `sirfetchd,l50` here, and the first line of every game that
+ * brought one parted on a spelling. Folded like its ASCII twin. MEDI_CANON_KEEPS_TYPO_APOSTROPHE=1 keeps it.
+ * tests/probe_regmc_species_key.js */
+const CANON_KEEPS_TYPO_APOSTROPHE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CANON_KEEPS_TYPO_APOSTROPHE==='1');
 function traceCanon(line){
   return String(line).split('|').map((f,i)=>{
     let v=f.toLowerCase().replace(/\s+/g,'');
@@ -6279,7 +6286,7 @@ function traceCanon(line){
      * KNOWN RESIDUE, stated rather than discovered later: `Type: Null` carries a COLON, which is
      * structural in `[from] item: X` and in `p1a: Garchomp`, so it is not folded and that one species
      * will still part the streams. */
-    v=v.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[-'.]/g,'');
+    v=v.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(CANON_KEEPS_TYPO_APOSTROPHE?/[-'.]/g:/[-'’.]/g,'');
     /* the SIDE field only: `p1:` with no slot letter. `p1a:garchomp` does not match and must not. */
     if(/^p[12]:/.test(v))v=v.slice(0,3);
     return v;
@@ -12804,6 +12811,8 @@ function mvMakesContact(id,att,use){
  * the artifact means one stage up. Move and ITEM (Scope Lens) stack; the two ABILITY carriers are
  * refused and counted -- see MEDFAILS.critRatioAbility. */
 const CRIT_BY_STAGE=[1/24,1/8,1/2,1];
+const CRIT_ITEM_ONE_STAGE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CRIT_ITEM_ONE_STAGE==='1');
+const ALLY_BP_BOOST_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ALLY_BP_BOOST_INERT==='1');
 /* ROADMAP #151 -- IS THIS MOVE'S DAMAGE COMPUTED AT ALL? ONE PREDICATE, TWO READERS, NO NAME LIST.
  *
  * `sim/battle-actions.ts:getDamage` has FOUR early returns and every one of them is above both the
@@ -12905,7 +12914,15 @@ function critChance(moveId,att,defAbility,defBody,opts){
   if(_mv&&+_mv.critRatio>1)stage+=(+_mv.critRatio-1);
   if(att){
     const _it=TAGS.param('item',att.item,'critRatioUp');
-    if(_it&&+_it.critRatio>1)stage+=(+_it.critRatio-1);
+    /* 2026-09-22 (Reg M-C, abra/regmc 0.34.0) -- THE LEEK IS TWO STAGES AND ONLY FOR TWO BASE SPECIES. The item tag now
+     * carries the handler's own increment (`critRatio` = 1 + stage) and its lock (`onlySpecies`, base-species ids, asked of
+     * the key's segment before its first hyphen: the table's base part, abra/regmc 0.33.0). A lock the deriver could not
+     * read is refused and counted rather than applied to everybody. MEDI_CRIT_ITEM_ONE_STAGE=1 restores the old reading
+     * (one stage for every carrier). tests/probe_regmc_leek.js */
+    if(_it&&CRIT_ITEM_ONE_STAGE){ if(+_it.critRatio>1)stage+=1; }
+    else if(_it&&_it.lockUnparsed){MEDFAILS.critItemLockUnparsed++;}
+    else if(_it&&Array.isArray(_it.onlySpecies)&&_it.onlySpecies.indexOf(monFlat(String(att.name||'').split('-')[0]))<0){MEDSEEN.critItemLockedOut++;}
+    else if(_it&&+_it.critRatio>1)stage+=(+_it.critRatio-1);
     /* 2026-09-11 (ROADMAP #595) -- THE CRIT-STAGE VOLATILES ADD TO THE SAME RATIO, AND THIS FUNCTION NEVER
      * ASKED THEM. Every `onModifyCritRatio` handler is one event over one relay var (sim/battle-actions.ts:
      * `runEvent('ModifyCritRatio', source, target, move, move.critRatio || 0)`), so Focus Energy's +2 stacks
@@ -16318,6 +16335,27 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
      * application. It was `Math.floor(rolled * 1.5)` at the hit site -- one stage AND one chain late,
      * and wrong on 5 of 5 audited rows. */
     if(hit&&hit.helpingHand){BPCH(+hit.helpingHandMult||1.5);MEDSEEN.helpingHandBP++;}
+    /* 2026-09-22 (Reg M-C, abra/regmc 0.35.0) -- THE ALLY BASE-POWER BOOSTERS HAD NO CONSUMER. `onAllyBasePower`
+     * (Steely Spirit `move.type === 'Steel'` x1.5; Battery / Power Spot [5325,4096], not the holder's own move) is
+     * collected over the attacker's `alliesAndSelf()` (sim/battle.ts :1056-1057), so the ATTACKER's own ability and its
+     * active partner's each count once. The attacker's is read here for every caller; the partner can only be TOLD
+     * (`hit.attPartner`, set at the battle loop's hit site), like Friend Guard. A row whose multiplier is 1 or absent
+     * is refused and counted rather than applied. MEDI_ALLY_BP_BOOST_INERT=1 restores the missing consumer.
+     * tests/probe_regmc_steely_spirit.js */
+    if(!ALLY_BP_BOOST_INERT){
+      const _abp=(holder,isSelf)=>{
+        if(!holder||!holder.ability||(!isSelf&&(holder.fainted||holder.curHP<=0)))return;
+        const p=TAGS.param('ability',holder.ability,'allyBasePowerBoost'); if(!p)return;
+        if(isSelf&&p.includesSelf===false)return;
+        if(p.onlyType&&p.onlyType!==mvT)return;
+        if(p.onlyCategory&&p.onlyCategory!==(phys?'Physical':'Special'))return;
+        const mm=Array.isArray(p.mult)?p.mult:+p.mult;
+        if(!mm||mm===1){MEDFAILS.allyBasePowerUnusable++;return;}
+        BPCH(mm);MEDSEEN.allyBasePowerBoost++;
+      };
+      _abp(att,true);
+      if(hit&&hit.attPartner&&hit.attPartner!==att)_abp(hit.attPartner,false);
+    }
     /* TECHNICIAN, and the `<= 60` gate reads the RAW base power on purpose. Its
      * `onBasePowerPriority` is 30, the highest in this format, so when its handler runs
      * `this.modify(basePower, this.event.modifier)` the relay is still 1 and `modify(bp, 1) === bp`.
@@ -23822,6 +23860,27 @@ function restoreStatsUpdate(m){
    *     |-activate|p2a: Oranguru|ability: Symbiosis|Life Orb|[of] p2b: Torkoal */
   passItemFromAlly(m);
   return true;
+}
+/* 2026-09-22 (Reg M-C, abra/regmc 0.36.0) -- WHITE HERB ON THE MOVE THAT ENDS THE BATTLE. whiteherb restores from
+ * `onAnyAfterMove` (M-C checkout, read from the dist dex), and `AfterMove` is raised inside `useMove`, before `runAction`'s
+ * `faintMessages()` (default `checkWin = true`, sim/battle.ts :2832-2833) decides the winner. This engine spends the herb
+ * in `_updateAll`, which both `sideWiped` break sites skip -- so a Close Combat that wiped the last foe left its user
+ * holding the herb at -1/-1 where the authority had spent it. The herb's one reader runs at those two breaks, for a
+ * holder whose item's tag says the restore is IMMEDIATE (`restoresStats.afterMoveImmediate`). Reg M-B's checkout QUEUES
+ * it instead (`insertChoice({event: 'WhiteHerb', order: 99})`), which never runs after the battle has ended -- the first
+ * cut of this fix ran it for every holder and parted four Reg M-B lattice games the other way; the tag carries the
+ * difference so no regulation is named here. MEDI_HERB_SKIPPED_AT_WIN=1 restores the skip.
+ * tests/probe_regmc_white_herb_at_win.js */
+const HERB_SKIPPED_AT_WIN=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HERB_SKIPPED_AT_WIN==='1');
+function herbAtWin(a,b){
+  if(HERB_SKIPPED_AT_WIN)return 0;
+  let n=0;
+  for(const x of [...(a||[]),...(b||[])]){
+    const p=x&&TAGS.param('item',x.item,'restoresStats');
+    if(p&&p.afterMoveImmediate&&restoreStatsUpdate(x))n++;
+  }
+  if(n)MEDSEEN.herbAtWin=(MEDSEEN.herbAtWin||0)+n;
+  return n;
 }
 function restoreStatsAll(a,b){
   let n=0;
@@ -33405,7 +33464,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * The LAST action's copy of this check is below the loop, for the same reason the settles have
        * one there: the loop-top schedule cannot see the action that ended it. */
-      if(sideWiped(S)){MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedMidAction++;break _TURN;}
+      if(sideWiped(S)){herbAtWin(actA,actB);MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedMidAction++;break _TURN;}
       _updateAll();
       /* 2026-09-08 -- ...AND THE POST-ACTION RE-SORT RUNS HERE, below the Update pass and above the
        * mega phase, which is the authority's own order: `eachEvent('Update')` at sim/battle.ts:2856,
@@ -43213,6 +43272,10 @@ function battleTurn(S,rng,actsForA,actsForB){
            * must stay nothing. dmgRange's own `hasPower` guard is that test, so nothing is needed
            * here beyond passing the flag. */
           if(m._helpingHand)c.helpingHand=true;
+          /* abra/regmc 0.35.0 -- the ATTACKER's active partner, for `onAllyBasePower` (Steely Spirit). */
+          { const _aside=actA.indexOf(m)>=0?actA:(actB.indexOf(m)>=0?actB:null);
+            const _apal=_aside&&_aside.find(x=>x&&x!==m&&!x.fainted&&x.curHP>0);
+            if(_apal)c.attPartner=_apal; }
           /* ROADMAP #103 -- the ROLLED hit count, so dmgRange prices the hits this turn actually
            * landed instead of the 3.1 it prices a hypothetical one with. Only ever set above 1 for a
            * move the artifact calls multi-hit; every other caller of dmgRange leaves it absent and
@@ -50209,7 +50272,7 @@ function battleTurn(S,rng,actsForA,actsForB){
     /* ROADMAP #231 -- and the LAST action's win check, in the same position relative to the settles
      * and to `_updateAll` as the loop-top copy. This is the one that fires in the ordinary case: the
      * body that wipes a side is usually the last one with an action left. */
-    if(sideWiped(S)){MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedBeforeResidual++;break _TURN;}
+    if(sideWiped(S)){herbAtWin(actA,actB);MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedBeforeResidual++;break _TURN;}
     _updateAll();   // ROADMAP #81 WIRE 7 -- after the LAST action, the half the loop-top call cannot reach
     /* 2026-08-26 -- HOW MANY SHIELDS NEVER REACHED THEIR OWN GATE. A capability that cannot prove it
      * ran is assumed broken, and the inverse holds too: a REFUSAL that cannot prove it fired looks
