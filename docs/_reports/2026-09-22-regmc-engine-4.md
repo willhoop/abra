@@ -268,3 +268,76 @@ Left: `…2680535928`. Joined: none.
 ### Reg M-B
 
 No behaviour can change (no carrier). Lattice 1200 on release `b6bcecf24b41`: 0 of 961, 0 void, 0 protocol.
+
+---
+
+## 4. `???` never takes STAB -- the "Kingambit HP gap after Double Shock" (abra/regmc 0.47.0)
+
+### The replay (`--only-game 2680957904`, release `d0e34207d250`, game #630)
+
+- Turn 2: Pawmot's Double Shock lands; `-start|p2b: Pawmot|typechange|???/Fighting|[from] move: doubleshock` (both).
+- Turn 3: Pawmot's second Double Shock fails. Authority `-fail|p2b: Pawmot|move: Double Shock`, here `-fail|p2b: Pawmot`:
+  the first PROTOCOL divergence, narration (no board leaf moves; boards identical through turn 6).
+- Turn 4: Ditto enters and Imposter-transforms into Pawmot, copying `???/Fighting`.
+- Turns 6-7: Ditto has no usable move and Struggles. Turn 7 into Kingambit (76/175 before):
+  authority `-damage|p2a: Kingambit|49/175` (27), here `36/175` (40). Weather Ball then takes 13 on both. Board parts:
+  `kingambit.hp 23/36`.
+
+40/27 is the STAB ratio within rounding, so the question was which engine gives STAB to what.
+
+### The authority, read whole
+
+- `data/moves.ts` struggle :18211-18232: `onModifyMove(move, pokemon, target) { move.type = '???'; this.add('-activate',
+  pokemon, 'move: Struggle'); }`, `struggleRecoil: true`, `target: "randomNormal"`; the Champions mod does not name it.
+- `data/mods/champions/scripts.ts` :228-233 (Champions' own `modifyDamage`): `// The "???" type never gets STAB ... if
+  (type !== '???') { let stab = 1; const isSTAB = move.forceSTAB || pokemon.hasType(type) || ...`. `sim/battle-actions.ts`
+  :1757-1762 and the Reg M-B checkout's copy carry the same guard.
+
+### The defect
+
+`dmgRangeOneHit`'s one STAB line: `const stab = att.types.includes(mvT) ? … : 1`. `mvT` is `???` for Struggle
+(`setsOwnTypeAlways`, ROADMAP #144 made that the priced type), and the user's types include `???` after
+`spendsOwnType` or a Transform of such a body. Under the kit's pinned arm the SPENT arm reads 170→125 here against
+170→140 on the authority -- the same x1.5.
+
+### Fix
+
+`const _typeless = mvT === '???' && !TYPELESS_STAB;` and the STAB branch requires `!_typeless`
+(`MEDSEEN.typelessStabRefused` counts a refusal that mattered). The literal is the type name the authority tests, cited
+above. No tag moved. Knob `MEDI_TYPELESS_STAB`.
+
+### Probe -- `tests/probe_regmc_typeless_stab.js --regulation regmc`
+
+Cast derived: the only mono-typed spender-learner in the regulation is Typhlosion (Burn Up); its turn-1 Burn Up goes
+into its OWN partner (`ally: true`, a partner that resists Fire: Garganacl) so no foe is weakened; Galarian Slowking
+Disables it on turn 2; turn 3 Typhlosion Struggles into Slowking at full HP.
+
+| arm | authority | medicham2 (0.46.0 bytes / knob) | medicham2 (0.47.0) |
+|---|---|---|---|
+| SPENT (user `???`) | Slowking 170→140 | 170→125 | 170→140 |
+| CONTROL (user Fire, never spent; Sunny Day its one move) | 170→140 | 170→140 | 170→140 |
+
+SPENT's protocol parts first on turn 2 on the same `-fail|…|move: <Move>` attribute the Kingambit game carries; the probe
+prints the protocol divergence and asserts the `-damage` lines and the boards.
+
+| run | exit | red |
+|---|---|---|
+| release `e16663e89997` + the 0.46.0 engine bytes | **1** | SPENT (damage line and boards) |
+| clean, release `d307909e1c39` | **0** | none; STAB refused in SPENT only |
+| `MEDI_TYPELESS_STAB=1` | **1** | SPENT (damage line and boards) |
+
+7 staged sets, 0 illegal.
+
+### Pinned Reg M-C differential
+
+| engine | release | state bar | void |
+|---|---|---|---|
+| 0.46.0 | `e16663e89997` | 2 / 954 | 1 |
+| 0.47.0 | `d307909e1c39` | **1 / 954** | 1 |
+
+Left: `…2680957904` (it stays in the dump as protocol-only, `-fail field 3`). Joined: none.
+
+### Reg M-B
+
+Shared rule; Burn Up is Reg M-B legal (Double Shock is `Past`). The four Reg M-B data files byte-identical; lattice 1200
+on release `440b846e2aff`: 0 of 961, 0 void, 0 protocol.

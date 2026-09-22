@@ -87,7 +87,7 @@ const TAGS = (function(){
  * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
-const MEDSEEN = { terrainStatMultPaid: 0, terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+const MEDSEEN = { typelessStabRefused: 0, terrainStatMultPaid: 0, terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
    * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
@@ -16804,7 +16804,15 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
   /* WIRE 95 -- the STAB factor reads `stabBoost` (Adaptability's x2) off the artifact instead of a
    * name. The 1.5 base is the game's own constant and stays typed. */
   const _sbT=TAGS.param('ability',att.ability,'stabBoost');
-  const stab=att.types.includes(mvT)?((_sbT&&+_sbT.stab)||1.5):1;
+  /* 2026-09-22 (abra/regmc 0.47.0) -- "The '???' type never gets STAB" (M-C checkout data/mods/champions/scripts.ts
+   * :228-233, `if (type !== '???')` around the whole STAB block; sim/battle-actions.ts :1757-1762 and the Reg M-B checkout
+   * say the same). A body can BE '???' -- Double Shock and Burn Up substitute it for the type they spend (`spendsOwnType`),
+   * and a Transform copies it -- and Struggle's own onModifyMove makes the MOVE '???' (`setsOwnTypeAlways`), so a
+   * spent body's Struggle took x1.5 here: the Kingambit card, 40 against the authority's 27. The literal is the type
+   * name the authority tests, not a Pokemon value. MEDI_TYPELESS_STAB=1 restores the pre-0.47.0 engine. */
+  const _typeless=mvT==='???'&&!TYPELESS_STAB;
+  if(_typeless&&att.types.includes(mvT))MEDSEEN.typelessStabRefused++;
+  const stab=(!_typeless&&att.types.includes(mvT))?((_sbT&&+_sbT.stab)||1.5):1;
   /* WIRE 83 -- A MOVE POWERED BY MY OWN STATUS IS NOT ALSO PENALISED BY IT. Showdown's
    * battle-actions applies the burn halving `if (this.gen < 6 || move.id !== "facade")`, so from
    * Gen 6 Facade takes the x2 and NOT the x0.5. This engine applied both and they cancel exactly --
@@ -31656,6 +31664,9 @@ if(AFTERHIT_TERRAIN_INERT)MEDFAILS.afterHitTerrainInertRestored=1;
 /* 2026-09-22 (abra/regmc 0.46.0) -- MEDI_TERRAIN_STATMULT_INERT=1 ignores `condStatMult` `when: 'terrain'` (Grass Pelt). */
 const TERRAIN_STATMULT_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TERRAIN_STATMULT_INERT==='1');
 if(TERRAIN_STATMULT_INERT)MEDFAILS.terrainStatMultInertRestored=1;
+/* 2026-09-22 (abra/regmc 0.47.0) -- MEDI_TYPELESS_STAB=1 lets a '???' move take STAB from a '???' body again. */
+const TYPELESS_STAB=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TYPELESS_STAB==='1');
+if(TYPELESS_STAB)MEDFAILS.typelessStabRestored=1;
 /* 2026-09-22 (Reg M-C, abra/regmc 0.44.0) -- DOES SHEER FORCE SKIP THIS MOVE'S AfterMoveSecondary EVENT?
  * `BattleActions#afterMoveSecondaryEvent` (sim/battle-actions.ts :811-818, both checkouts) runs the event only
  * `if (!(move.hasSheerForce && pokemon.hasAbility('sheerforce')))`, and Sheer Force's onModifyMove sets `hasSheerForce`

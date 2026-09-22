@@ -21,6 +21,31 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.47.0] — 2026-09-22
+
+### Fixed
+- **A `???` move never takes STAB, in both regulations.** Champions' own `modifyDamage` wraps the whole STAB block in
+  `if (type !== '???')` ("The '???' type never gets STAB", M-C checkout `data/mods/champions/scripts.ts` :228-233; the
+  Reg M-B checkout and `sim/battle-actions.ts` :1757-1762 say the same). Struggle's `onModifyMove` makes the move `???`
+  (`setsOwnTypeAlways`), and a body that spent its only type on Double Shock or Burn Up is `???` (`spendsOwnType`), as is
+  a Transform of one. This engine's STAB line asked only `att.types.includes(mvT)`, so a spent body's Struggle took
+  x1.5. Found with `--only-game` on the Kingambit card: a Ditto transformed into a Double Shock-spent Pawmot Struggled
+  into Kingambit for 40 against the authority's 27. The fix is one guard on the one STAB line
+  (`engine/medicham2-browser.js`, `dmgRangeOneHit`); no tag moved. Knob `MEDI_TYPELESS_STAB`.
+- `tests/probe_regmc_typeless_stab.js` (`--regulation regmc`): SPENT (a mono-Fire user spends its type with Burn Up on
+  its own partner, is Disabled, and Struggles) and CONTROL (the same user, never spent). It asserts the damage lines
+  and the boards; SPENT's protocol parts earlier on a narration line (the authority's `-fail` names the move) that this
+  probe prints and does not judge. Exit 0 clean; exit 1 under the knob and on release `e16663e89997` with the 0.46.0
+  engine bytes.
+
+### Notes
+- **Shared-engine fix.** Burn Up and Struggle are Reg M-B legal and the rule is the same there. Reg M-B measured:
+  `data/tags.json`, `data/abra-tags.js`, `data/protocol-events.json`, `data/move-effects.js` byte-identical; lattice 1200
+  0 of 961 on release `440b846e2aff`.
+- Pinned Reg M-C differential (`--games 1200`, census pin `f3b70bc0c47c`): 2 of 954 → 1 of 954 on release
+  `d307909e1c39`; the Kingambit game left the board-material count, none joined. Its turn-3 `-fail` narration (the
+  authority's `move: Double Shock` attribute) remains, protocol-only. `docs/_reports/2026-09-22-regmc-engine-4.md` §4.
+
 ## [0.46.0] — 2026-09-22
 
 ### Fixed

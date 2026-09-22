@@ -1,3 +1,15 @@
+## A `???` MOVE NEVER TAKES STAB (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.47.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-4.md` §4.
+
+- **Defect.** The STAB line asked only whether the user has the move's type. A Struggle is `???`, and a body that spent
+  its only type (Double Shock, Burn Up) or transformed into one is `???` too, so its Struggle took x1.5; the authority
+  never gives `???` STAB. This was the "Kingambit HP gap after Double Shock" card (a transformed Ditto's Struggle).
+- **Fix.** One guard on the one STAB line; no tag moved.
+- **Probe** `tests/probe_regmc_typeless_stab.js --regulation regmc`: exit 0 clean; exit 1 under `MEDI_TYPELESS_STAB` and
+  on release `e16663e89997` with the 0.46.0 bytes.
+- **Reg M-B** (shared rule, Burn Up legal): the four Reg M-B data files byte-identical; lattice 1200 0 of 961.
+
 ## REG M-C: GRASS PELT RAISES DEFENCE IN GRASSY TERRAIN. 2026-09-22 (abra/regmc 0.46.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-4.md` §3.

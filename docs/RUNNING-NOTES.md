@@ -53,6 +53,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.47.0] — 2026-09-22 — **A `???` move never takes STAB, in both regulations**
+
+- **What changed.** `engine/medicham2-browser.js`: the one STAB line refuses STAB when the move's type is `???` (a spent
+  body's Struggle). No tag moved. Knob `MEDI_TYPELESS_STAB`; probe `tests/probe_regmc_typeless_stab.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine-4.md` §4;
+  the rule is the same in Reg M-B; Reg M-B lattice at 1200 reads 0 board-material games on release `440b846e2aff`.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.46.0] — 2026-09-22 — **Grass Pelt raises Defence in Grassy Terrain, in Reg M-C**
 
 - **What changed.** `engine/tag_dex.js`: `condStatMult` names `when: 'terrain'` (Grass Pelt alone);
