@@ -101,6 +101,53 @@ const turnDamage = (sps, stage, moveId, rngIn) => {
 const turnDamageBig = (sps, stage, moveId, rngIn) =>
   turnDamage(sps, (B) => { unfaintable(B.f1); if (stage) stage(B); }, moveId, rngIn);
 
+/* ---- STAGED FOR THE SELECTED REGULATION, NOT FOR THE ONE A ROW WAS WRITTEN UNDER -- 2026-09-22 (MEASURE, 0.40.0) ----
+ *
+ * Seventeen rows below read MISSING under Reg M-C against an engine that is right (docs/_reports/2026-09-22-regmc-
+ * engine.md §8): each asserted a fact about Reg M-B's BUILD -- a Speed, a damage number, the move a species clicks when
+ * left free, a key spelling, a line Reg M-B's checkout writes. A census row is a claim about the mechanic, and a row that
+ * cannot tell a regulation's fixture from the mechanic answers the wrong question. So those rows now either
+ *   - read the number from the build or from the authority ON THE RUN (tests/census_authority.js: the selected
+ *     regulation's checkout, the engine body's own stats copied onto the authority's body), or
+ *   - FIND their fixture: `firstStaged` walks candidates and keeps the first whose CONTROL arm stages the mechanic.
+ * EVERY CANDIDATE LIST STARTS WITH THE HISTORICAL FIXTURE, so under Reg M-B each row plays exactly what it always played
+ * and the census is byte-identical (checked: docs/_reports/2026-09-22-regmc-instruments.md). A search that finds nothing
+ * is NOT STAGED, reads MISSING, and counts against the gate -- never a pass. */
+const REG_OWNER = !require(D('engine', 'regulation.js')).ARTIFACT_TAG;
+const AUTH = require(D('tests', 'census_authority.js'));
+let _stagingCands = null;
+/* A CANDIDATE THAT THROWS IS SKIPPED, AND COUNTED: the search moves on to the next one, and the count and the first
+ * reason are printed at exit, so a search that skipped everything cannot read as a search that found nothing. */
+const STAGING_SKIPPED = { unbuildable: 0, threw: 0, first: '' };
+process.on('exit', () => { if (STAGING_SKIPPED.unbuildable || STAGING_SKIPPED.threw) console.log('  fixture search: '
+  + STAGING_SKIPPED.unbuildable + ' candidate(s) the table would not build, ' + STAGING_SKIPPED.threw
+  + ' candidate arm(s) that threw and were skipped; first: ' + STAGING_SKIPPED.first); });
+/* the species the selected regulation makes legal AND the selected table builds, base formes only, sorted -- the pool a
+ * fixture search draws from. Derived per run; nothing is typed. */
+const STAGING_CANDIDATES = () => {
+  if (_stagingCands) return _stagingCands;
+  const CS0 = require(D('engine', 'champions_sim.js'));
+  const DX0 = CS0.sim().Dex.forFormat(CS0.FORMAT);
+  const lg = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
+  _stagingCands = require(D('engine', 'mc_key.js')).mcKey.all().map(([k]) => k).filter(k => { const sp = DX0.species.get(k); return lg(sp) && !sp.isMega && !sp.battleOnly; })
+    .filter(k => { try { return !!M.buildMon(k, {}); } catch (e) { STAGING_SKIPPED.unbuildable++; STAGING_SKIPPED.first = STAGING_SKIPPED.first || (k + ': ' + e.message); return false; } }).sort();
+  return _stagingCands;
+};
+const withFirst = (first, rest) => [first].concat(rest.filter(x => JSON.stringify(x) !== JSON.stringify(first)));
+const firstStaged = (cands, run, staged) => {
+  for (const c of cands) {
+    let r;
+    try { r = run(c); } catch (e) { STAGING_SKIPPED.threw++; STAGING_SKIPPED.first = STAGING_SKIPPED.first || (JSON.stringify(c) + ': ' + e.message); continue; }
+    if (staged(r, c)) return { c, r };
+  }
+  return null;
+};
+const displayName = (id) => {
+  const CS0 = require(D('engine', 'champions_sim.js'));
+  const sp = CS0.sim().Dex.forFormat(CS0.FORMAT).species.get(id);
+  return sp && sp.exists ? sp.name : id;
+};
+
 const results = [];
 /* A PROBE THAT THREW IS NOT THE SAME AS A MECHANIC THAT IS ABSENT, and until 2026-08-04 the census
  * could not tell you which had happened. Both land in `missing`, which is right — a probe that
@@ -949,8 +996,12 @@ probe('item', 'megaStone', 'a stone-holder is built as its BASE forme and evolve
   const control = run(false), test = run(true);
   /* THE BUILD IS ASSERTED AS WELL AS THE END STATE. An engine that megas at BUILD time reaches the
    * same `after` on the test arm and fails here, which is the whole point of the change. */
-  return { works: String(control.built) === 'gengar,cursedbody,200'
-                  && String(control.after) === 'gengar,cursedbody,200'
+  /* 2026-09-22 (MEASURE): the base build is READ -- the table's own slot-0 ability and a stoneless build's SpA -- where
+   * this typed Reg M-B's `gengar,cursedbody,200`. */
+  const baseAb = String((MC.mons['gengar'] || {}).ab || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const baseBuilt = String(['gengar', baseAb, M.buildMon('gengar', {}).st.sa]);
+  return { works: String(control.built) === baseBuilt
+                  && String(control.after) === baseBuilt
                   && test.after[0] === 'gengar-mega' && test.after[1] === 'shadowtag'
                   && test.after[2] > control.after[2] && test.dealt > control.dealt,
            arms: { control: [control.built, control.after, control.dealt],
@@ -5340,9 +5391,14 @@ probe('ability', 'speedCond', 'Quick Feet is hastened by a burn the OPPONENT app
     return { st, speMe, speFoe, foeDied: f1.fainted };
   };
   const off = run('none'), on = run('quickfeet');
+  /* 2026-09-22 (MEASURE): the Speeds are the BUILD's and the multiplier is the artifact's, read on the run -- this typed
+   * Reg M-B's 192 / 205 / 288. What the row needs is the BRACKET: unhastened the foe is faster, hastened the subject is,
+   * and the hastened Speed is the build's times the tag's own `speedMult` (x1.5 lands on a whole or a half, where the
+   * authority's `modify` and a floor agree). */
+  const qfMult = (require(D('engine', 'tags.js')).param('ability', 'quickfeet', 'speedCond') || {}).speedMult;
   return { works: off.st === 'brn' && on.st === 'brn'          /* the burn landed in BOTH arms */
-                  && off.speMe === 192 && off.speFoe === 205   /* unhastened, the foe is faster */
-                  && on.speMe === 288                          /* 192 x 1.5, the artifact's own mult */
+                  && off.speMe === bare('jolteon').st.sp && off.speMe < off.speFoe   /* unhastened, the foe is faster */
+                  && !!qfMult && on.speMe === Math.floor(off.speMe * qfMult) && on.speMe > off.speFoe
                   && off.foeDied === false && on.foeDied === true,
            arms: { control: [off.speMe, off.foeDied], test: [on.speMe, on.foeDied] },
            detail: 'Dragapult (Speed ' + off.speFoe + ') burns a Jolteon with Will-O-Wisp, then both '
@@ -6473,9 +6529,9 @@ probe('move', 'forbidsStatusMoves', 'Taunt stops the target using a status move'
   /* ARMED, 2026-08-06. THE CONTROL MUST PICK A STATUS MOVE, or "it clicked an attack" is the
    * chooser's own ordering rather than the Taunt — the identical correction the Disable probe next
    * door already carries, and the reason that one was a false LIVE for as long as it existed. */
-  const run = (taunt) => {
+  const run = (taunt, foeSp) => {
     const me = bare('incineroar'), ally = bare('corviknight');
-    const f1 = bare('whimsicott'), f2 = bare('garchomp');
+    const f1 = bare(foeSp || 'whimsicott'), f2 = bare('garchomp');
     const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
     M.battleTurn(S, rng5,
       new Map([[me, taunt ? M.playerAction(me, 'taunt', f1, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
@@ -6496,10 +6552,17 @@ probe('move', 'forbidsStatusMoves', 'Taunt stops the target using a status move'
     const kind = (rec && rec.kind) || 'nothing';
     const picked = (rec && rec.move) || kind;
     const isStatus = kind !== 'nothing' && (kind !== 'attack'
-      || !!(rec.move && MC.moves[rec.move] && !MC.moves[rec.move].bp));
+      /* 2026-09-22 (MEASURE): the move's CATEGORY, read off the `statusCategory` tag -- a zero `bp` in the table also
+       * marks every weight- or callback-powered attack (Low Kick read as a status click under Reg M-C). */
+      || !!(rec.move && require(D('engine', 'tags.js')).has('move', rec.move, 'statusCategory')));
     return { tainted, picked, isStatus };
   };
-  const free = run(false), taunted = run(true);
+  /* 2026-09-22 (MEASURE): the foe is the first candidate that, LEFT ALONE, clicks a status move -- the precondition
+   * this row states and the Reg M-C Whimsicott does not meet (it clicks Moonblast). Whimsicott is tried first. A foe
+   * built with status moves only is a fair fixture: Taunted, it has nothing it may click and Struggles, which is the
+   * refusal itself. */
+  const pickT = firstStaged(withFirst('whimsicott', STAGING_CANDIDATES()), sp => run(false, sp), r => !r.tainted && r.isStatus);
+  const free = pickT ? pickT.r : run(false), taunted = run(true, pickT ? pickT.c : 'whimsicott');
   return { works: !free.tainted && free.isStatus && taunted.tainted && !taunted.isStatus,
            arms: { control: free.picked, test: taunted.picked },
            detail: 'left alone the foe freely clicked ' + (free.picked || 'nothing') + ' (status='
@@ -6543,10 +6606,10 @@ probe('move', 'forbidsStatusMoves', 'Taunt takes every status move off the menu 
    * would pass on a dead engine, which is the defect the probe above has. */
   const TAGS = require(D('engine', 'tags.js'));
   const KINDMV = { protect: 'protect', wideguard: 'wideguard', tail: 'tailwind' };
-  const run = (taunted) => {
+  const run = (taunted, meSp) => {
     let n = 0;
     for (let i = 0; i < 40; i++) {
-      const me = bare('milotic'), ally = bare('corviknight');
+      const me = bare(meSp || 'milotic'), ally = bare('corviknight');
       const f1 = bare('garchomp'), f2 = bare('weavile');
       const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
       if (taunted) (me._vol = me._vol || {}).taunt = 3;
@@ -6565,7 +6628,10 @@ probe('move', 'forbidsStatusMoves', 'Taunt takes every status move off the menu 
     }
     return n;
   };
-  const control = run(false), test = run(true);
+  /* 2026-09-22 (MEASURE): the body is the first candidate whose untaunted draws reach a status move at all -- the
+   * precondition above, which the Reg M-C Milotic does not meet. Milotic is tried first. */
+  const pickM = firstStaged(withFirst('milotic', STAGING_CANDIDATES()), sp => run(false, sp), c => c > 0);
+  const control = pickM ? pickM.r : run(false), test = run(true, pickM ? pickM.c : 'milotic');
   return { works: control > 0 && test === 0,
            detail: 'status clicks in 40 draws: untaunted ' + control + ', Taunted ' + test,
            arms: { control, test } };
@@ -6881,15 +6947,16 @@ probe('ability', 'disablesAttacker', 'Cursed Body can disable the move that hit 
    *
    * rng is pinned LOW because Cursed Body is a 30% roll: at rng5 (0.5) a faithful wire correctly does
    * nothing, and the probe would report a working engine as missing. */
-  const run = (ab) => {
+  const run = (ab, fx) => {
+    const foeSp = (fx && fx[0]) || 'garchomp', mv = (fx && fx[1]) || 'earthquake';
     const me = bare('milotic'), ally = bare('incineroar');
-    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    const f1 = bare(foeSp), f2 = bare(foeSp);
     me.ability = ab;
     const rngLow = () => 0.05;
     const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
     const pass2 = (a, b) => new Map([[a, { kind: 'pass' }], [b, { kind: 'pass' }]]);
     M.battleTurn(S, rngLow, pass2(me, ally),
-      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+      new Map([[f1, M.playerAction(f1, mv, me, S.field)], [f2, { kind: 'pass' }]]));
     const hit = f1._lastMove;
     /* The foe is then left COMPLETELY FREE. A forced action bypasses chooseAction and would measure
      * the caller's obedience — the correction the Encore probe already carries. */
@@ -6897,8 +6964,15 @@ probe('ability', 'disablesAttacker', 'Cursed Body can disable the move that hit 
     const rec = (S.lastActs || []).find(x => x.side === 'B');
     return { hit, then: rec && (rec.move || rec.kind), sealed: f1._sealed || null };
   };
-  const off = run('none'), on = run('cursedbody');
-  return { works: off.hit === 'earthquake' && off.then === 'earthquake' && on.then !== 'earthquake',
+  /* 2026-09-22 (MEASURE): the (foe, committed move) pair is the first whose no-ability control REPEATS the move -- the
+   * precondition this row states; the Reg M-C Garchomp's free pick is Draco Meteor. Garchomp / Earthquake is tried
+   * first; then every candidate with each damaging move its build carries. */
+  const cbCands = () => withFirst(['garchomp', 'earthquake'], [].concat(...STAGING_CANDIDATES().map(sp =>
+    (M.buildMon(sp, {}).moves || []).filter(m => MC.moves[m] && MC.moves[m].bp > 0).map(m => [sp, m]))));
+  const pickC = firstStaged(cbCands(), fx => run('none', fx), (r, fx) => r.hit === fx[1] && r.then === fx[1]);
+  const cbFx = pickC ? pickC.c : ['garchomp', 'earthquake'];
+  const off = pickC ? pickC.r : run('none', cbFx), on = run('cursedbody', cbFx);
+  return { works: off.hit === cbFx[1] && off.then === cbFx[1] && on.then !== cbFx[1],
            arms: { control: off.then, test: on.then },
            detail: `foe hit with ${off.hit}; next free pick: ability none ${off.then}, `
                  + `Cursed Body ${on.then} (sealed=${JSON.stringify(on.sealed)})` };
@@ -7179,14 +7253,26 @@ probe('move', 'spreadAll', 'Earthquake hits your own partner too', () => {
  * cleared on both arms because buildMon hands out a usage item and a Life Orb underneath this would
  * be a second modifier in the same chain. */
 probe('move', 'spreadFoes', 'a spread move takes Showdown\'s x0.75 rounded half up, not a truncation', () => {
-  const run = (mv) => turnDamageBig(['garchomp', 'milotic', 'kingambit', 'incineroar'],
+  /* 2026-09-22 (MEASURE): the three numbers are the AUTHORITY's, asked on the run (tests/census_authority.js, index 7,
+   * the engine bodies' stats copied across, items and abilities blank as `bare` builds them): single-target, spread,
+   * and spread with the multi-target modify replaced by a truncation. They were typed from Reg M-B (64 / 52 / 50); on the
+   * Reg M-C Kingambit the truncation lands on the same value as the rounding, so the row could not separate the two
+   * arithmetics. The defender is the first candidate on which it can -- Kingambit first. */
+  const run = (mv, defSp) => turnDamageBig(['garchomp', 'milotic', defSp || 'kingambit', 'incineroar'],
     (B) => { B.me.item = ''; B.f1.item = ''; }, mv);
-  const control = run('flamethrower'), test = run('heatwave');
-  return { works: control === 64 && test === 52,
+  const authOf = (defSp) => {
+    const att = bare('garchomp'), def = bare(defSp);
+    return { single: AUTH.damageAt(att, def, 'flamethrower'), spread: AUTH.damageAt(att, def, 'heatwave', { spread: true }),
+             trunc: AUTH.damageAt(att, def, 'heatwave', { spread: true, truncSpread: true }) };
+  };
+  const pickS = firstStaged(withFirst('kingambit', STAGING_CANDIDATES()), authOf, a => a.single > 0 && a.spread > 0 && a.spread !== a.trunc);
+  const defS = pickS ? pickS.c : 'kingambit', want = pickS ? pickS.r : authOf('kingambit');
+  const control = run('flamethrower', defS), test = run('heatwave', defS);
+  return { works: !!pickS && control === want.single && test === want.spread,
            arms: { control, test },
-           detail: `Garchomp -> Kingambit, item cleared: single-target Flamethrower ${control} (must be 64, `
+           detail: `Garchomp -> ${displayName(defS)}, item cleared: single-target Flamethrower ${control} (must be ${want.single}, `
                  + `the authority's index-7 value — identical on a truncating engine), spread Heat Wave `
-                 + `${test} (must be 52, the authority's index-7 value; a truncating x0.75 was MEASURED at 50)` };
+                 + `${test} (must be ${want.spread}, the authority's index-7 value; a truncating x0.75 was MEASURED at ${want.trunc})` };
 });
 
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). The two `moveAccuracy` reads proved the LOOKUP
@@ -7359,14 +7445,17 @@ probe('move', 'thawsTarget', 'a frozen TARGET thaws by TAG and by TYPE, and by n
 });
 
 probe('item', 'survivesFromFull', 'Focus Sash leaves 1 HP from full', () => {
-  const run = (item) => {
-    const { me, ally, f1, f2, S } = board('garchomp', 'incineroar', 'alakazam', 'garchomp');
+  const run = (item, tgtSp) => {
+    const { me, ally, f1, f2, S } = board('garchomp', 'incineroar', tgtSp || 'alakazam', 'garchomp');
     f1.item = item;
     M.battleTurn(S, rng5,
       new Map([[me, M.playerAction(me, 'earthquake', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
     return { hp: f1.curHP, dead: !!f1.fainted };
   };
-  const none = run(''), sash = run('focussash');
+  /* 2026-09-22 (MEASURE): the target is the first candidate the no-item Earthquake KOs FROM FULL -- the precondition a
+   * Sash row needs; the Reg M-C Alakazam survives it on 33. Alakazam is tried first. */
+  const pickF = firstStaged(withFirst('alakazam', STAGING_CANDIDATES()), sp => run('', sp), r => r.dead);
+  const none = pickF ? pickF.r : run(''), sash = run('focussash', pickF ? pickF.c : 'alakazam');
   /* ARMS DECLARED, 2026-08-06. Both were already computed; what was missing was handing them to the
    * harness so the structural agreement check can see them. */
   return { works: none.dead && !sash.dead && sash.hp === 1,
@@ -7645,10 +7734,11 @@ probe('move', 'sealsMoves', 'Disable stops the target repeating that move', () =
    * READ FROM S.lastActs, NOT FROM _lastMove. `_lastMove` is not written by every action kind, so a
    * turn that produced a pass or a switch leaves yesterday's move sitting there and the probe reads a
    * repeat that never happened. `lastActs` is the engine's own record of what was clicked. */
-  const run = (disable) => {
-    const { me, ally, f1, f2, S } = board('whimsicott', 'incineroar', 'garchomp', 'garchomp');
+  const run = (disable, fx) => {
+    const foeSp = (fx && fx[0]) || 'garchomp', mv = (fx && fx[1]) || 'earthquake';
+    const { me, ally, f1, f2, S } = board('whimsicott', 'incineroar', foeSp, foeSp);
     M.battleTurn(S, rng5, PASS2(me, ally),
-      new Map([[f1, M.playerAction(f1, 'earthquake', me, S.field)], [f2, { kind: 'pass' }]]));
+      new Map([[f1, M.playerAction(f1, mv, me, S.field)], [f2, { kind: 'pass' }]]));
     const committed = f1._lastMove;
     M.battleTurn(S, rng5,
       new Map([[me, disable ? M.playerAction(me, 'disable', f1, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
@@ -7657,7 +7747,12 @@ probe('move', 'sealsMoves', 'Disable stops the target repeating that move', () =
     const rec = (S.lastActs || []).find(x => x.side === 'B');
     return { committed, then: rec && (rec.move || rec.kind) };
   };
-  const free = run(false), sealed = run(true);
+  /* 2026-09-22 (MEASURE): the (foe, committed move) pair is the first whose free control REPEATS the move -- the
+   * precondition above; the Reg M-C Garchomp's free choice is Flamethrower. Garchomp / Earthquake is tried first. */
+  const dsCands = withFirst(['garchomp', 'earthquake'], [].concat(...STAGING_CANDIDATES().map(sp =>
+    (M.buildMon(sp, {}).moves || []).filter(m => MC.moves[m] && MC.moves[m].bp > 0).map(m => [sp, m]))));
+  const pickD = firstStaged(dsCands, fx => run(false, fx), r => !!r.committed && r.then === r.committed);
+  const free = pickD ? pickD.r : run(false), sealed = run(true, pickD ? pickD.c : null);
   return { works: !!free.committed && free.then === free.committed && sealed.then !== sealed.committed,
            arms: { control: free.then, test: sealed.then },
            detail: 'committed ' + free.committed + '; free choice repeated ' + free.then
@@ -13445,7 +13540,18 @@ probe('move', 'drain',
    * which the two arithmetics differ at all -- 25.0% of two-target spread drains. Both damages are
    * asserted odd, so if a future damage change made them even the probe reports itself vacuous
    * instead of passing for the wrong reason. */
-  const spread = drainBoard('matchagotcha', '', 'raichu', 'kangaskhan');
+  /* 2026-09-22 (MEASURE): the two foes are the first candidate pair on which BOTH damages are odd -- the only case the
+   * two arithmetics differ, as the comment above says; on Reg M-C's Raichu + Kangaskhan both read 14. Tried first. */
+  const odd = r => (r.d1 % 2 === 1) && (r.d2 % 2 === 1)
+    && sdHeal(r.d1, 0.5, 1) + sdHeal(r.d2, 0.5, 1) !== sdHeal(r.d1 + r.d2, 0.5, 1);
+  const drCands = function* () {
+    yield ['raichu', 'kangaskhan'];
+    const C = STAGING_CANDIDATES().filter(sp => sp !== 'kangaskhan');
+    for (const a of C) for (const b of C) if (a !== b) yield [a, b];
+  };
+  const pickDr = firstStaged(drCands(), fx => drainBoard('matchagotcha', '', fx[0], fx[1]), odd);
+  const drFx = pickDr ? pickDr.c : ['raichu', 'kangaskhan'];
+  const spread = pickDr ? pickDr.r : drainBoard('matchagotcha', '', drFx[0], drFx[1]);
   const perBody = sdHeal(spread.d1, 0.5, 1) + sdHeal(spread.d2, 0.5, 1);
   const lumped = sdHeal(spread.d1 + spread.d2, 0.5, 1);
   /* THE CONTROL IS A SINGLE-TARGET DRAIN, where one round and one lump are the same number by
@@ -13460,7 +13566,7 @@ probe('move', 'drain',
                        + spread.gain + ' (authority ' + perBody + ', lumped would be ' + lumped + ')' },
            detail: (staged ? '' : 'NOT STAGED — the two damages are ' + spread.d1 + ' and ' + spread.d2
                     + ', and per-body and lumped agree at ' + perBody + ', so this arm cannot fail. ')
-                 + 'Matcha Gotcha into Raichu + Kangaskhan: ' + spread.d1 + ' and ' + spread.d2
+                 + 'Matcha Gotcha into ' + displayName(drFx[0]) + ' + ' + displayName(drFx[1]) + ': ' + spread.d1 + ' and ' + spread.d2
                  + ' damage, healed ' + spread.gain + '; per-body ' + perBody + ', lumped ' + lumped
                  + '. Control Bitter Blade ' + single.d1 + ' damage, healed ' + single.gain
                  + ', authority ' + singleExp };
@@ -17595,19 +17701,24 @@ probe('ability', 'priorityModFlying', 'Gale Wings puts a full-HP Flying move in 
    * already outsped the Weavile (187) it was staged against, so every arm went first anyway -- and
    * the receipt counted Brave Bird's own RECOIL as "damage taken before acting". Dragapult (205) is
    * genuinely faster, and Drill Peck has no recoil. */
-  const run = (ab, hp) => {
+  const run = (ab, hp, foeSp) => {
     const me = bare('talonflame'); me.ability = ab;
     if (hp) me.curHP = Math.floor(me.st.hp * hp);
     const ally = bare('milotic');
-    const f1 = bare('dragapult'), f2 = bare('garchomp');
-    f1.curHP = 40;                                               /* Drill Peck ends it if it goes first */
+    const f1 = bare(foeSp || 'dragapult'), f2 = bare('garchomp');
+    f1.curHP = foeSp && foeSp !== 'dragapult' ? 1 : 40;          /* Drill Peck ends it if it goes first */
     const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
     const before = me.curHP;
     M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'drillpeck', f1, S.field)], [ally, { kind: 'pass' }]]),
       new Map([[f1, M.playerAction(f1, 'shadowball', me, S.field)], [f2, { kind: 'pass' }]]));
     return before - me.curHP;                                    /* >0 means the faster foe hit first */
   };
-  const none = run('none'), wings = run('galewings'), chipped = run('galewings', 0.6);
+  /* 2026-09-22 (MEASURE): the foe is the first candidate that hits a no-ability Talonflame BEFORE it acts -- the
+   * precondition the row states; the Reg M-C Talonflame outspeeds the Reg M-C Dragapult, so nothing moved first in any
+   * arm. Dragapult is tried first; a searched foe stands on 1 HP so Drill Peck ends it whatever its bulk. */
+  const pickG = firstStaged(withFirst('dragapult', STAGING_CANDIDATES()), sp => run('none', 0, sp), d => d > 0);
+  const gFoe = pickG ? pickG.c : 'dragapult';
+  const none = pickG ? pickG.r : run('none'), wings = run('galewings', 0, gFoe), chipped = run('galewings', 0.6, gFoe);
   return { works: none > 0 && wings === 0 && chipped > 0,
            arms: { control: none, test: wings },
            detail: `damage taken before acting -- no ability ${none}, Gale Wings at full HP ${wings} `
@@ -20305,18 +20416,32 @@ probe('item', 'healsAtThreshold', 'the Sitrus is eaten BETWEEN the two attackers
    * exceed its HP (or it lives whatever the engine does), and the two together must NOT exceed its HP
    * plus the berry's quarter (or it dies whatever the engine does). A 173 HP Corviknight on 140
    * taking two 80s is the window; the arms print it. */
-  const run = (item) => {
+  const run = (item, hpAbs) => {
     const { me, ally, f1, f2, S } = board('milotic', 'milotic', 'corviknight', 'garchomp');
-    f1.item = item; f1.curHP = Math.round(f1.st.hp * 0.81);
+    f1.item = item; f1.curHP = hpAbs === 'full' ? f1.st.hp : hpAbs != null ? hpAbs : Math.round(f1.st.hp * 0.81);
     M.battleTurn(S, rng5,
       new Map([[me, M.playerAction(me, 'scald', f1, S.field)], [ally, M.playerAction(ally, 'scald', f1, S.field)]]),
       PASS2(f1, f2));
     return { hp: f1.curHP, dead: !!f1.fainted, item: f1.item };
   };
-  const none = run(''), berry = run('sitrusberry');
+  /* 2026-09-22 (MEASURE): the HP is DERIVED when 81% misses the window (it does on Reg M-C: the control lives on 24).
+   * The two Scalds from a full-HP body with no item are measured, and the body is put on exactly their sum -- lethal
+   * without the berry, alive with it by the berry's quarter -- provided one Scald alone takes it to half, which is when
+   * the berry fires. If that cannot hold, the row is NOT STAGED. */
+  let sitHp = null, sitNote = '';
+  let none = run('');
+  if (!none.dead) {
+    const full = run('', 'full');                          /* a full-HP body, no item */
+    const maxhp = bare('corviknight').st.hp;
+    const two = full.dead ? null : maxhp - full.hp;
+    const one = two != null && two % 2 === 0 ? two / 2 : null;
+    if (one != null && two < maxhp && two - one <= maxhp / 2) { sitHp = two; none = run('', sitHp); }
+    sitNote = sitHp == null ? 'NOT STAGED — no HP puts two Scalds inside the Sitrus window on this build. ' : '';
+  }
+  const berry = run('sitrusberry', sitHp);
   return { works: none.dead && !berry.dead && berry.item === '',
            arms: { control: none, test: berry },
-           detail: `a Corviknight on 81% taking TWO Scalds in one turn — no item `
+           detail: sitNote + (sitHp == null ? `a Corviknight on 81%` : `a Corviknight on ${sitHp} HP`) + ` taking TWO Scalds in one turn — no item `
                  + `${none.dead ? 'FAINTED' : none.hp + ' hp'}; Sitrus `
                  + `${berry.dead ? 'FAINTED (eaten too late to matter)' : berry.hp + ' hp, berry spent'}` };
 });
@@ -25257,12 +25382,20 @@ probe('ability', 'hitsTwice', 'Parental Bond hits twice, with the second packet 
     stage: (B) => { B.me.ability = ability; }, rng: () => 0.99,
     script: [{ me: { mv: 'solarbeam', at: 'f1' } }, { me: { mv: 'solarbeam', at: 'f1' } }] })[1].f1.lost;
   const beamOff = beam('none'), beamOn = beam('parentalbond');
-  return { works: control === 34 && test === 42 && beamOn === beamOff && beamOff > 0,
+  /* 2026-09-22 (MEASURE): the two numbers are the AUTHORITY's, asked on the run through its whole hit loop
+   * (tests/census_authority.js `hitTotal`: `battle.actions.useMove`, top roll, the engine bodies' stats copied across,
+   * an unfaintable target) -- they were typed from Reg M-B (34 / 42), and the Reg M-C build reads 38 blank. */
+  const pbAuth = (ab) => { const kg = bare('kangaskhan-mega'); kg.ability = ab;
+    return AUTH.hitTotal(kg, bare('dragapult'), 'firepunch', { rollIndex: 0, bigTarget: true }); };
+  const wantBlank = pbAuth('none'), wantPB = pbAuth('parentalbond');
+  return { works: control === wantBlank && test === wantPB && beamOn === beamOff && beamOff > 0,
            arms: { control, test },
            detail: `[HP taken off an unfaintable Dragapult by one Fire Punch, top roll] — ability `
-                 + `blank ${control}, PARENTAL BOND ${test}. 42 is Showdown's own number for this `
-                 + `board through battle.actions.useMove with the stats aligned; the pre-fix engine `
+                 + `blank ${control}, PARENTAL BOND ${test}. ${wantPB} is Showdown's own number for this `
+                 + `board through battle.actions.useMove with the stats aligned`
+                 + (REG_OWNER ? `; the pre-fix engine `
                  + `read 43, because it scaled one packet by 1.25 instead of pricing two. SOLAR BEAM, `
+                 : ` (blank ${wantBlank}). SOLAR BEAM, `)
                  + `which the ability refuses (charge flag): ${beamOff} without it and ${beamOn} with `
                  + `— identical, which is the arm an engine that doubles everything fails` };
 });
@@ -29813,11 +29946,13 @@ const cleanerRun = (ab) => {
   M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: inc }], [ally, { kind: 'pass' }]]),
     PASS2(f1, f2));
   return { own: (S.sfA.sc && S.sfA.sc.reflect) || 0, foe: (S.sfB.sc && S.sfB.sc.lightscreen) || 0,
-           slot0: S.actA[0] && S.actA[0].name };
+           slot0: S.actA[0] && S.actA[0].name, walkedIn: inc.name };
 };
 probe('ability', 'clearsScreensOnEntry', 'Screen Cleaner takes down BOTH sides, its own included', () => {
   const off = cleanerRun('none'), on = cleanerRun('screencleaner');
-  return { works: off.slot0 === 'mrrime' && off.own > 0 && off.foe > 0 && on.own === 0 && on.foe === 0,
+  /* 2026-09-22 (MEASURE): "the incoming body is in slot 0" is asked of the BODY's own key -- this typed Reg M-B's
+   * `mrrime`, and the Reg M-C table keys it `mr-rime`. */
+  return { works: off.slot0 === off.walkedIn && off.own > 0 && off.foe > 0 && on.own === 0 && on.foe === 0,
            arms: { control: off.own + '/' + off.foe, test: on.own + '/' + on.foe },
            detail: 'Mr. Rime walks in ("' + on.slot0 + '") with a Reflect on its OWN side and a Light '
                  + 'Screen on the foe\'s: with no ability they read ' + off.own + ' and ' + off.foe
@@ -31221,10 +31356,10 @@ probe('ability', 'preventsStatDrop', 'Keen Eye AND Illuminate refuse Mud-Slap\'s
  * neither body carries an item, a status or a hazard. If it did, the row would be measuring the
  * weather instead of the order. */
 probe('ability', 'speedCond', 'Slush Rush doubles Beartic in snow, and the order decides who lives', () => {
-  const run = (weather) => {
+  const run = (weather, foeSp) => {
     const me = bare('beartic'); me.ability = 'slushrush';
     const ally = bare('farigiraf');
-    const f1 = bare('watchog'), f2 = bare('milotic');
+    const f1 = bare(foeSp || 'watchog'), f2 = bare('milotic');
     const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
     S.field.weather = weather;
     const speMe = M.effSpeed(me, S.field, 'A'), speFoe = M.effSpeed(f1, S.field, 'B');
@@ -31234,12 +31369,20 @@ probe('ability', 'speedCond', 'Slush Rush doubles Beartic in snow, and the order
       new Map([[f1, M.playerAction(f1, 'crunch', me, S.field)], [f2, { kind: 'pass' }]]));
     return { speMe, speFoe, foeDied: f1.fainted, meDied: me.fainted };
   };
-  const off = run(''), on = run('snow');
-  return { works: off.speMe === 70 && on.speMe === 140 && off.speFoe === on.speFoe
+  /* 2026-09-22 (MEASURE): the foe is the first candidate whose Speed sits strictly between Beartic's and its doubled
+   * Speed -- this typed Reg M-B's 70 / 140 and a Watchog at 129, and the Reg M-C Beartic (104) already outspeeds the
+   * Reg M-C Watchog. The Speeds asserted are the build's and the tag's own multiplier. Watchog is tried first. */
+  const srMult = (require(D('engine', 'tags.js')).param('ability', 'slushrush', 'speedCond') || {}).speedMult;
+  const pickSr = firstStaged(withFirst('watchog', STAGING_CANDIDATES()), sp => [run('', sp), run('snow', sp)],
+    ([a, b]) => a.speMe < a.speFoe && a.speFoe < b.speMe);
+  const srFoe = pickSr ? pickSr.c : 'watchog';
+  const off = pickSr ? pickSr.r[0] : run(''), on = pickSr ? pickSr.r[1] : run('snow');
+  return { works: off.speMe === bare('beartic').st.sp && !!srMult && on.speMe === Math.floor(off.speMe * srMult)
+                  && off.speFoe === on.speFoe
                   && off.foeDied === false && off.meDied === true
                   && on.foeDied === true && on.meDied === false,
            arms: { control: [off.speMe, off.foeDied], test: [on.speMe, on.foeDied] },
-           detail: 'Beartic and a Watchog (Speed ' + off.speFoe + ') both on 1 HP, both clicking a '
+           detail: 'Beartic and a ' + displayName(srFoe) + ' (Speed ' + off.speFoe + ') both on 1 HP, both clicking a '
                  + 'lethal move. NO WEATHER: Beartic is Speed ' + off.speMe + ', moves second and dies '
                  + '(foe fainted ' + off.foeDied + '). SNOW: Speed ' + on.speMe + ', moves first and '
                  + 'survives (foe fainted ' + on.foeDied + '). Snow does not chip, so nothing but the '
@@ -31521,13 +31664,17 @@ probe('ability', 'damageByMoveTrait', 'Fluffy halves contact, doubles Fire, and 
  * target that has not moved (WIRE 69), which would have made the Encore arms agree for a reason that
  * has nothing to do with the veil. */
 probe('ability', 'protectsAllyFromStatus', 'Aroma Veil refuses Taunt and Encore for the holder AND the ally, and refuses no status', () => {
+  /* 2026-09-22 (MEASURE): the ally's last move is one its BUILD carries -- Encore is refused at a move the target does
+   * not have, and the Reg M-C Farigiraf is not built with Twin Beam, so the no-ability Encore could not land. Twin Beam
+   * is tried first; then the build's own moves, and the first on which the no-ability Encore lands is used. */
+  let allyLast = 'twinbeam';
   const vol = (ab, mv, atAlly) => {
     const me = bare('milotic'); me.ability = ab;
     const ally = bare('farigiraf');
     const f1 = bare('gholdengo'), f2 = bare('milotic');
     f1.moves = ['taunt', 'encore', 'protect', 'makeitrain'];
     const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
-    me._lastMove = 'scald'; ally._lastMove = 'twinbeam';
+    me._lastMove = 'scald'; ally._lastMove = allyLast;
     M.battleTurn(S, rng5, PASS2(me, ally),
       new Map([[f1, M.playerAction(f1, mv, atAlly ? ally : me, S.field)], [f2, { kind: 'pass' }]]));
     const body = atAlly ? ally : me;
@@ -31543,6 +31690,8 @@ probe('ability', 'protectsAllyFromStatus', 'Aroma Veil refuses Taunt and Encore 
       new Map([[f1, M.playerAction(f1, 'willowisp', me, S.field)], [f2, { kind: 'pass' }]]));
     return me.status;
   };
+  const pickAv = firstStaged(withFirst('twinbeam', bare('farigiraf').moves || []), m => { allyLast = m; return vol('none', 'encore', true); }, r => r > 0);
+  allyLast = pickAv ? pickAv.c : 'twinbeam';
   const tSelfOff = vol('none', 'taunt', false), tSelfOn = vol('aromaveil', 'taunt', false);
   const tAllyOff = vol('none', 'taunt', true), tAllyOn = vol('aromaveil', 'taunt', true);
   const eAllyOff = vol('none', 'encore', true), eAllyOn = vol('aromaveil', 'encore', true);
@@ -32468,8 +32617,14 @@ probe('move', 'weatherSetter', 'the sandstorm chip runs fastest-first, and Trick
              chompHit: trace.some(l => /garchomp/.test(l) && /Sandstorm/.test(l)) };
   };
   const norm = run(false), inv = run(true);
-  const fast = ['p2a', 'p1a', 'p1b'];          /* 205, 101, 80 — Garchomp is Ground and exempt */
-  return { works: norm.spe.p2a === 205 && norm.spe.p1a === 101 && norm.spe.p1b === 80
+  /* 2026-09-22 (MEASURE): the expected order is the three chipped bodies sorted by their BUILD Speeds, read on the run
+   * -- this typed Reg M-B's 205 / 101 / 80. It still separates the three engines the comment names only if the Speeds
+   * are distinct and the Speed order is NOT slot order (nor its reverse), and both are asserted. */
+  const chippedK = ['p2a', 'p1a', 'p1b'];      /* Garchomp (p2b) is Ground and exempt */
+  const fast = chippedK.slice().sort((a, b) => norm.spe[b] - norm.spe[a]);
+  const sandStaged = new Set(chippedK.map(k => norm.spe[k])).size === 3
+    && fast.join(',') !== 'p1a,p1b,p2a' && fast.join(',') !== 'p2a,p1b,p1a';
+  return { works: sandStaged
                   && norm.order.join(',') === fast.join(',')
                   && inv.order.join(',') === fast.slice().reverse().join(',')
                   && norm.chompHit === false && inv.chompHit === false,
@@ -36393,7 +36548,15 @@ probe('ability', 'punishesAttacker',
  * THE OVER-FIRE CONTROL IS THE ALREADY-STATUSED ARM. `!source.status` is a real clause: a Fire body
  * that is already paralysed is still immune to the burn and the authority stays SILENT. An engine
  * that printed the line off the immunity alone would satisfy the positive arm and break this one. */
-probe('ability', 'punishesAttacker',
+/* 2026-09-22 (MEASURE): WHETHER THIS ROW EXISTS IS ASKED OF THE AUTHORITY. Reg M-B's checkout writes the bare line;
+ * Reg M-C's handler is `onDamagingHit(...) { source.trySetStatus("brn", target); }` and writes nothing on either arm
+ * (docs/_reports/2026-09-22-regmc-engine.md §8, and `AUTH.linesOf` below reproduces it). A row whose subject the
+ * selected authority does not have can only compare two silences -- two agreeing arms, which this file fails as HOLLOW
+ * -- so it is registered when the authority writes the line on the positive arm, exactly as the seed rows are
+ * registered only where the tag has a member. The expected line is the authority's own, read on the run. */
+const SPICY_AUTH = (() => { const c = bare('charizard'), s = bare('scovillain-mega'); s.ability = 'spicyspray';
+  return AUTH.linesOf(c, s, 'flamethrower', { bigTarget: true, keep: /^\|-immune\|p1a/ }); })();
+if (SPICY_AUTH.length) probe('ability', 'punishesAttacker',
       'Spicy Spray announces a bare |-immune| at the FIRE ATTACKER, and only when it is unstatused', () => {
   const hit = (pre) => {
     const { me, ally, f1, f2, S } = board('charizard', 'incineroar', 'scovillain-mega', 'garchomp');
@@ -36407,7 +36570,7 @@ probe('ability', 'punishesAttacker',
     return { lines: trace.map(M.traceCanon).filter(l => /^\|-immune\|p1a/.test(l)),
              took: hp - f1.curHP, status: me.status || 'none' };
   };
-  const WANT = M.traceCanon('|-immune|p1a: charizard');
+  const WANT = M.traceCanon(SPICY_AUTH[0]);
   const clean = hit(null), statused = hit('par');
   return { works: clean.took > 0 && statused.took > 0
                   && clean.lines.length === 1 && clean.lines[0] === WANT

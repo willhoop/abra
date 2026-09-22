@@ -3431,7 +3431,37 @@ const ALIGN_MOVED_WHO = new Map();   // ...and WHICH body, because a bare 21 can
  * not say which. */
 let MEGA_CHOICES = 0, MEGA_SIDES_CAPABLE = 0, MEGA_SIDES_EVOLVED = 0;
 let MEGA_MEDI = 0, MEGA_SD = 0, MEGA_SLOT_A = 0, MEGA_SLOT_B = 0;
-let MEGA_PREFER_B = false;   // alternates, so the driver does not mega out of the left slot every time
+let MEGA_PREFER_B = false;   // the LEGACY run-wide parity; read only under GD_MEGA_SLOT_CARRIES=1 -- see below
+/* ---- WHICH SLOT MEGAS WHEN BOTH COULD IS A PER-GAME ADDRESS, NOT A RUN-WIDE PARITY -----------------
+ * 2026-09-22 (MEASURE, abra/regmc 0.40.0; filed by ENGINE, docs/_reports/2026-09-22-regmc-engine.md §2).
+ *
+ * `MEGA_PREFER_B` flipped on EVERY mega of the whole run and sat outside `driverSnap`, so when one side
+ * held two stones on the field, which body megaed depended on the parity of every mega in every game
+ * played before it in the same process. A game's result depended on its place in the run: ENGINE's
+ * `…2678336611` megaed Salamence in sequence and Lucario played alone, and its "Aura Guard card" was
+ * that and nothing else. A differential whose per-game answer depends on run order is not reproducible
+ * per game.
+ *
+ * NOW: when BOTH slots are offered `canMegaEvo` on one turn, the side's choice is a draw at the driver's
+ * own address (`drv`, keyed by the game's seed, the turn and the side), which is the construction every
+ * other driver randomness already uses ("THE EMPIRICAL DRIVER'S RANDOMNESS IS AN ADDRESS, NOT A STREAM").
+ * Half-and-half, so the left-slot bias the parity existed to prevent is still prevented, and nothing
+ * carries across a game boundary. When only one slot is offered the order cannot matter and nothing is
+ * drawn. `GD_MEGA_SLOT_CARRIES=1` restores the run-wide parity (the red demonstration).
+ *
+ * THE CLOSED REGULATION KEEPS ITS INSTRUMENT, BYTE FOR BYTE. Reg M-B is published at 7.0.0 on the
+ * parity, and changing the rule under it would re-deal every game in which both slots were offered, so
+ * under the artifact owner (Reg M-B) the parity stays the rule, exactly as it ran -- not even moved into
+ * `driverSnap`, because `withFrozenDriver` would then restore it around the planted proofs and change
+ * the parity the run starts from. `GD_MEGA_SLOT_PER_GAME=1` asks for the address under Reg M-B too:
+ * that is how what the address WOULD move there is measured, never how Reg M-B is published.
+ * `both_offered` counts the decisions the rule decides, under either rule, so a zero says the rule was
+ * never asked. */
+const MEGA_SLOT_CARRIES = process.env.GD_MEGA_SLOT_CARRIES === '1';
+const MEGA_SLOT_RULE = (MEGA_SLOT_CARRIES
+  || (require('./regulation.js').ARTIFACT_TAG == null && process.env.GD_MEGA_SLOT_PER_GAME !== '1'))
+  ? 'run-wide-parity' : 'per-game-address';
+const MEGA_SLOT_PICK = { both_offered: 0, chose_right: 0 };
 /* DERIVED ONCE, AND ALLOWED TO THROW. A `catch { return false }` here would keep every mega stone on
  * every team and part the streams on line one of a quarter of the games, while the report cheerfully
  * said `mega stones stripped: 0` — the exact shape names.js was written to remove. */
@@ -3973,6 +4003,30 @@ function refusedChoice(sd, input, err) {
  * no unclaimed match is NOT counted here — it is a lookup miss and goes to SWITCH_LOOKUP_MISS.sd,
  * whose printed caption ("that side PASSED while the other switched") already says what it means. */
 const FORCED_SWITCH_MIRROR = { switched: 0, passed: 0 };
+/* ---- A REVIVAL REQUEST IS ANSWERED, NOT REFUSED -- 2026-09-22 (MEASURE, abra/regmc 0.40.0) ----------
+ * Filed by ENGINE (docs/_reports/2026-09-22-regmc-engine.md §6). Revival Blessing raises a SWITCH request
+ * on its user's slot, and `sim/side.ts` refuses any answer but a FAINTED party member there ("Can't
+ * switch: You have to pass to a fainted Pokémon"). `mirrorForcedSwitch` looks only for a LIVE bench
+ * body, so it named the pivot body medicham2 had sent in, Showdown refused it, the alive sets still
+ * agreed, and the game THREW -- the revive was counted by the engine and never compared by anything.
+ *
+ * `mirrorRevival` answers the slots whose request entry carries Showdown's own `reviving` flag
+ * (`sim/pokemon.ts` getSwitchRequestData: `entry.reviving = this.isActive && !!slotConditions[...]
+ * ['revivalblessing']`), read off the request, never re-derived from the move. WHICH body:
+ *   MIRRORED   medicham2 revived one -- a body fainted in its roster before the turn and standing after
+ *              it, which Showdown still has fainted. The same body is named, so the revive is compared.
+ *   DEFAULT    medicham2 revived none (its revive road is unmodelled: `MEDFAILS.reviveUnmodelled`). The
+ *              answer is Showdown's own default for a bare `switch` on a revival slot -- the first
+ *              fainted body in party order (`sim/side.ts` chooseSwitch: `slot = 0; while
+ *              (!this.pokemon[slot].fainted) slot++`). The authority revives, medicham2 does not, and
+ *              the boards part HERE, on the revive, where the state bar sees it -- not in a thrown game.
+ *   AMBIGUOUS  more than one body qualifies as MIRRORED; the first in party order is named and counted.
+ * The pivot body medicham2 queued for that slot is dropped from the entry queue: Showdown will never ask
+ * about it, and left there it would answer the next genuine request with the wrong body.
+ * `GD_REVIVE_UNANSWERED=1` restores the old road (the red demonstration). */
+const REVIVE_UNANSWERED = process.env.GD_REVIVE_UNANSWERED === '1';
+const REVIVE_MIRROR = { requests: 0, mirrored: 0, authority_default: 0, ambiguous: 0, no_fainted_body: 0,
+                        pivot_entry_dropped: 0, first: '' };
 /* ---- 2026-08-29 — THE MIRROR WAS ASKING AN END-OF-TURN QUESTION ABOUT A MID-TURN REQUEST --------
  *
  * `mirrorForcedSwitch` read medicham2's CURRENT active in a slot. medicham2 plays a whole turn in one
@@ -4975,12 +5029,21 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
          * the LEFT slot on almost every side, and "the base class could only mega from the LEFT slot"
          * is the historical defect this instrument is supposed to be able to see. Alternating is the
          * coverage-seeking rule of §3.3 applied to a second axis. */
-        const order = MEGA_PREFER_B ? [1, 0] : [0, 1];
+        /* WHICH SLOT, WHEN BOTH COULD -- a per-game address, not the run-wide parity; see MEGA_SLOT_CARRIES. */
+        const offered = [0, 1].filter(i => { const a = chosen[sd][i];
+          return a && !a.pass && a.switchTo == null && req.active[i] && req.active[i].canMegaEvo; });
+        let order = [0, 1];
+        if (offered.length === 2) {
+          MEGA_SLOT_PICK.both_offered++;
+          const right = MEGA_SLOT_RULE === 'run-wide-parity' ? MEGA_PREFER_B
+                      : drv(battle, side, 0, 'megaSlot') < 0.5;
+          if (right) { MEGA_SLOT_PICK.chose_right++; order = [1, 0]; }
+        }
         for (const i of order) {
-          const a = chosen[sd][i];
-          if (!a || a.pass || a.switchTo != null) continue;
-          if (!req.active[i] || !req.active[i].canMegaEvo) continue;
-          a.mega = true; megaChoices++; MEGA_PREFER_B = !MEGA_PREFER_B; break;
+          if (!offered.includes(i)) continue;
+          chosen[sd][i].mega = true; megaChoices++;
+          if (MEGA_SLOT_RULE === 'run-wide-parity') MEGA_PREFER_B = !MEGA_PREFER_B;
+          break;
         }
       }
 
@@ -5062,6 +5125,12 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
         });
         return map;
       };
+      /* medicham2's fainted bodies BEFORE the turn, so a revive it performs can be named (mirrorRevival). */
+      const faintedBefore = {};
+      for (const [sd, sf, act, bench] of [['p1', S.sfA, S.actA, S.benchA], ['p2', S.sfB, S.actB, S.benchB]]) {
+        const all = (sf && sf.team && sf.team.length) ? sf.team : [...(act || []), ...(bench || [])];
+        faintedBefore[sd] = all.filter(m => m && m.fainted);
+      }
       M.battleTurn(S, armRng, mk(S.actA, S.actB, S.benchA, chosen.p1), mk(S.actB, S.actA, S.benchB, chosen.p2));
 
       /* --- showdown --- */
@@ -5143,8 +5212,23 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
            * decision could only ever be tested by hunting the corpus for a game that happens to reach
            * it. Corpus games move; a constructed one does not. tests/test-forced-switch-mirror.js hands
            * it the exact shape as data. */
-          const mr = mirrorForcedSwitch(side.activeRequest.forceSwitch, mine, side.pokemon,
-                                        entryQueues[sd]);
+          let fsNeed = side.activeRequest.forceSwitch, rv = null;
+          if (!REVIVE_UNANSWERED) {
+            const revived = new Set(faintedBefore[sd].filter(m => !m.fainted).map(m => rosterKey(m)));
+            rv = mirrorRevival(fsNeed, side.activeRequest.side && side.activeRequest.side.pokemon,
+                               side.pokemon, revived, entryQueues[sd]);
+            if (rv.requests) {
+              REVIVE_MIRROR.requests += rv.requests; REVIVE_MIRROR.mirrored += rv.mirrored;
+              REVIVE_MIRROR.authority_default += rv.authority_default; REVIVE_MIRROR.ambiguous += rv.ambiguous;
+              REVIVE_MIRROR.no_fainted_body += rv.no_fainted_body;
+              REVIVE_MIRROR.pivot_entry_dropped += rv.pivot_entry_dropped;
+              if (!REVIVE_MIRROR.first) REVIVE_MIRROR.first = sd + ' slot ' + (rv.slots[0] + 1) + ' -> '
+                + rv.picks[rv.slots[0]] + (rv.mirrored ? ' (mirrored)' : ' (authority default)');
+              fsNeed = fsNeed.map((need, i) => need && !rv.slots.includes(i));
+            }
+          }
+          const mr = mirrorForcedSwitch(fsNeed, mine, side.pokemon, entryQueues[sd]);
+          if (rv && rv.requests) for (const i of rv.slots) mr.picks[i] = rv.picks[i];
           FORCED_SWITCH_MIRROR.switched += mr.switched;
           FORCED_SWITCH_MIRROR.passed += mr.passed;
           ENTRY_WATCH.from_entry_log += mr.fromEntryLog;
@@ -5537,6 +5621,29 @@ let scriptLockedNoTarget = 0;
  *
  * ABSENT (the argument, or an empty queue for the slot) IT BEHAVES EXACTLY AS BEFORE, which is what
  * tests/test-forced-switch-mirror.js parts 2–6 assert by handing it three arguments. */
+function mirrorRevival(forceSwitch, reqPokemon, roster, revivedByMedi, entries) {
+  const out = { slots: [], picks: [], requests: 0, mirrored: 0, authority_default: 0, ambiguous: 0,
+                no_fainted_body: 0, pivot_entry_dropped: 0 };
+  const claimed = new Set();
+  (forceSwitch || []).forEach((need, i) => {
+    const rq = reqPokemon && reqPokemon[i];
+    if (!need || !rq || !rq.reviving) return;
+    out.requests++;
+    out.slots.push(i);
+    const eq = entries && entries[i];
+    if (eq && eq.length) { eq.shift(); out.pivot_entry_dropped++; }
+    const fainted = [];
+    roster.forEach((q, n) => { if (q && q.fainted && !claimed.has(n)) fainted.push(n); });
+    if (!fainted.length) { out.no_fainted_body++; out.picks[i] = 'pass'; return; }
+    const same = fainted.filter(n => revivedByMedi && revivedByMedi.has(rosterKey(roster[n])));
+    let n;
+    if (same.length) { n = same[0]; out.mirrored++; if (same.length > 1) out.ambiguous++; }
+    else { n = fainted[0]; out.authority_default++; }
+    claimed.add(n);
+    out.picks[i] = 'switch ' + (n + 1);
+  });
+  return out;
+}
 function mirrorForcedSwitch(forceSwitch, mine, roster, entries) {
   const claimed = new Set();
   const out = { picks: [], switched: 0, passed: 0, lookupMiss: 0, cannot: null,
@@ -7279,7 +7386,7 @@ function endStateVerdict(r) {
   return r.finalBoard.identical ? 'SAME-END-STATE' : 'DIFFERENT-END-STATE';
 }
 
-module.exports = { playGame, buildPair, seamCounters: () => Object.assign({}, SEAM), fixtureIllegal: () => FIXTURE_ILLEGAL.slice(), freshBodies, classify, pinRandom, PIN_CHANCE, sdStream, chooseAction,
+module.exports = { playGame, buildPair, megaSlotPick: () => Object.assign({ rule: MEGA_SLOT_RULE }, MEGA_SLOT_PICK), seamCounters: () => Object.assign({}, SEAM), fixtureIllegal: () => FIXTURE_ILLEGAL.slice(), freshBodies, classify, pinRandom, PIN_CHANCE, sdStream, chooseAction,
                    /* 2026-08-25 — THE ONE DOOR onto "which body of the roster is this", exported so a
                     * probe drives THE resolver rather than a second copy of it. `rosterKeyFallbacks`
                     * is the loud half: any read that had to fall back on display state is counted
@@ -7344,7 +7451,8 @@ module.exports = { playGame, buildPair, seamCounters: () => Object.assign({}, SE
                    /* the mirror decision itself, so a test can hand it the exact shape that broke it
                     * (a double KO on a side down to one usable body) as DATA rather than hunting a
                     * corpus game that happens to reach it. */
-                   mirrorForcedSwitch,
+                   mirrorForcedSwitch, mirrorRevival,
+                   reviveCounters: () => Object.assign({}, REVIVE_MIRROR),
                    choiceCounters: () => ({ refused: CHOICE_REFUSED.n, first: CHOICE_REFUSED.first,
                                             switched: FORCED_SWITCH_MIRROR.switched,
                                             passed: FORCED_SWITCH_MIRROR.passed,
@@ -7352,7 +7460,8 @@ module.exports = { playGame, buildPair, seamCounters: () => Object.assign({}, SE
                                             unmirrorableFirst: MIRROR_IMPOSSIBLE.first }),
                    resetChoiceCounters: () => { CHOICE_REFUSED.n = 0; CHOICE_REFUSED.first = '';
                                                 FORCED_SWITCH_MIRROR.switched = 0; FORCED_SWITCH_MIRROR.passed = 0;
-                                                MIRROR_IMPOSSIBLE.n = 0; MIRROR_IMPOSSIBLE.first = ''; },
+                                                MIRROR_IMPOSSIBLE.n = 0; MIRROR_IMPOSSIBLE.first = '';
+                                                for (const k of Object.keys(REVIVE_MIRROR)) REVIVE_MIRROR[k] = k === 'first' ? '' : 0; },
                    /* ROADMAP #291 -- THE ILLUSION CLOSET (ROADMAP #160), EXPORTED SO THE SECOND
                     * INSTRUMENT READS IT RATHER THAN RE-DERIVING IT. `engine/all_mechanics_fire.js`
                     * was staging Bitter Malice on Zoroark-Hisui and Night Daze on Zoroark -- the only
@@ -9313,6 +9422,8 @@ if (END_STATE) {
     + '   (not a floor: a game stops at its first divergence, so a benched stone-holder is never offered)');
   console.log('    from the LEFT slot ' + MEGA_SLOT_A + ', from the RIGHT slot ' + MEGA_SLOT_B
     + (MEGA_SLOT_A && MEGA_SLOT_B ? '' : '  <-- ONE SLOT ONLY, which is the literal historical defect'));
+  console.log('    slot rule when both slots are offered: ' + MEGA_SLOT_RULE + ' -- asked ' + MEGA_SLOT_PICK.both_offered
+    + ' time(s), chose the RIGHT slot ' + MEGA_SLOT_PICK.chose_right);
   if (!MEGA_MEDI) console.log('    ZERO EVOLUTIONS. The capability cannot prove it ran, so it is assumed broken.');
   console.log('');
 }
@@ -9714,6 +9825,10 @@ console.log('    ' + ONLY_EMPTY_SLOT.n + ' slot(s) whose one enabled move had no
  * is for. A non-zero `pass` count is not a defect; a non-zero refusal count above is. */
 console.log('    forced-switch SLOTS mirrored from medicham2: ' + FORCED_SWITCH_MIRROR.switched
   + ' filled, ' + FORCED_SWITCH_MIRROR.passed + ' answered `pass` because medicham2 had no live body there either.');
+console.log('    revival requests answered: ' + REVIVE_MIRROR.requests + ' (' + REVIVE_MIRROR.mirrored + ' mirrored from a revive medicham2 made, '
+  + REVIVE_MIRROR.authority_default + ' by the authority\'s own default because medicham2 revived nothing, '
+  + REVIVE_MIRROR.no_fainted_body + ' with no fainted body)' + (REVIVE_UNANSWERED ? '   <-- GD_REVIVE_UNANSWERED=1: THE ANSWER IS OFF' : '')
+  + (REVIVE_MIRROR.first ? '; first: ' + REVIVE_MIRROR.first : ''));
 /* NOT A DEFECT AND NOT ZERO-GATED. The noun is a forced switch that could not be expressed because
  * the two engines already disagree about which bodies are alive. Printed beside the refusal count so
  * the two are never read as one number: the line above must be 0, this one need not be. */
@@ -9946,6 +10061,8 @@ if (WRITE) {
         engines_agree_on_the_count: MEGA_MEDI === MEGA_SD,
         sides_capable: MEGA_SIDES_CAPABLE, sides_evolved: MEGA_SIDES_EVOLVED,
         from_left_slot: MEGA_SLOT_A, from_right_slot: MEGA_SLOT_B,
+        slot_rule: MEGA_SLOT_RULE, both_slots_offered: MEGA_SLOT_PICK.both_offered,
+        both_offered_chose_right: MEGA_SLOT_PICK.chose_right,
         choices_issued: MEGA_CHOICES,
         every_issued_choice_evolved_in_both_engines:
           !!MEGA_CHOICES && MEGA_MEDI === MEGA_CHOICES && MEGA_SD === MEGA_CHOICES,
@@ -10234,6 +10351,7 @@ if (WRITE) {
       fallback_first_slot_legacy_knob: FALLBACK_FIRST_SLOT_LEGACY,
       forced_switch_slots_mirrored: FORCED_SWITCH_MIRROR.switched,
       forced_switch_slots_passed: FORCED_SWITCH_MIRROR.passed,
+      revival_requests: Object.assign({ unanswered_knob: REVIVE_UNANSWERED }, REVIVE_MIRROR),
       /* NOT a defect count — see the printed caption. A game counted here stopped early ON PURPOSE
        * and carries the real, earlier divergence that parted the boards. */
       forced_switch_unmirrorable: MIRROR_IMPOSSIBLE.n,
