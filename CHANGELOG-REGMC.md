@@ -21,6 +21,29 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.53.0] — 2026-09-22
+
+### Fixed
+- **Ice Spinner ends the terrain even when a contact toll knocks its user out, in both regulations.** The Champions mod
+  carries its own `spreadMoveHit` (`data/mods/champions/scripts.ts` :315-426, identical in the Reg M-B checkout) and raises
+  `AfterHit` after `DamagingHit` with no `pokemon.hp` test; Ice Spinner's `onAfterHit` asks none either. This engine
+  (0.45.0) copied mainline's `if (moveData.onAfterHit && pokemon.hp)` (`sim/battle-actions.ts` :1123), so a Starmie a
+  Rocky Helmet knocked out left the Psychic Terrain standing: the Reg M-C 1950 card `…bo3-2681663488`. The live-user test
+  now applies only on the Substitute road the tag marks (`subNeedsUserHP`). The two other `onAfterHit` families in the
+  same step (Stone Axe / Ceaseless Edge, Rapid Spin / Mortal Spin) carry the same gap and are named, not changed. No tag
+  moved. Knob `MEDI_AFTERHIT_NEEDS_LIVE_USER`.
+- `tests/probe_regmc_ice_spinner_fainted_user.js` (`--regulation regmc`): FAINTS (Froslass, brought low by its own Curse
+  and Substitute, knocked out by Rough Skin + Rocky Helmet; the terrain still ends), STANDS (the control). Exit 0 clean;
+  exit 1 under the knob and on release `4d7779ca7bad` with the 0.52.0 engine bytes.
+
+### Notes
+- Corrects `docs/_reports/2026-09-22-regmc-engine-4.md` §1, which read the mainline guard; the dated report is left as
+  written and `docs/_reports/2026-09-22-regmc-engine-5.md` §5 carries the correction.
+- Shared rule; Reg M-B data files byte-identical. Reg M-B lattices on release `017932cdac0b`: 1200 / 1350 / 1950 read
+  0 of 961 / 0 of 1069 / 0 of 1497 board-material.
+- Pinned Reg M-C differential (census pin `f3b70bc0c47c`, release `cd3eed0c5796`): 1950 8 → **7 of 1537**; 1350 **0 of
+  1075** and 1200 **0 of 954** unmoved. `docs/_reports/2026-09-22-regmc-engine-5.md` §5-§6.
+
 ## [0.52.0] — 2026-09-22
 
 ### Fixed

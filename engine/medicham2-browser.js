@@ -594,6 +594,9 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
   /* 2026-09-22 (Reg M-C, abra/regmc 0.52.0) -- a queued action dropped because its body left the field alive earlier in the
    * turn (the authority's `cancelAction` at `switchIn`), whether or not it has come back. */
   actionCancelledByForcedOut: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.53.0) -- an Ice Spinner terrain clear paid by a user a contact toll had knocked out
+   * (the Champions `spreadMoveHit` raises AfterHit with no HP test). */
+  terrainClearedByFaintedUser: 0,
   /* ROADMAP #175 -- every damage packet `refusesIndirectDamage` turned away, across all nine gated
    * sites. It replaces MEDFAILS.magicGuardChip, which counted the same event as a KNOWN GAP: the
    * counter moves from the failures object to the capabilities one, which is the whole shape of the
@@ -7013,6 +7016,10 @@ const TERRAIN_BAR_PRE_REDIRECT=(typeof process!=='undefined'&&process.env
  * the same turn run its queued action, as before. Stamps `MEDFAILS.returnedBodyKeepsActionRestored` when it matters. */
 const RETURNED_BODY_KEEPS_ACTION=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_RETURNED_BODY_KEEPS_ACTION==='1');
+/* 2026-09-22 (Reg M-C, abra/regmc 0.53.0) -- MEDI_AFTERHIT_NEEDS_LIVE_USER=1 refuses Ice Spinner's terrain clear to a user a
+ * contact toll knocked out, as before (the mainline `pokemon.hp` guard the Champions mod does not have). */
+const AFTERHIT_NEEDS_LIVE_USER=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_AFTERHIT_NEEDS_LIVE_USER==='1');
 /* 2026-09-05 -- MEDI_CHARGE_REAIMS_FIRST_LIVE_FOE=1 restores the pre-fix release rule: the second turn
  * of a two-turn move is rebuilt against `live(foes)[0]` instead of the slot the charge was aimed at.
  * It restores that and NOTHING else -- the charge turn still records the slot, the wrapper still
@@ -48854,14 +48861,30 @@ function battleTurn(S,rng,actsForA,actsForB){
          * `Field#clearTerrain` (sim/field.ts :159-167) is a no-op with no terrain up; otherwise the terrain's own
          * `FieldEnd` writes `-fieldend|move: <Terrain>` and `TerrainChange` runs. Once per move, like the two above.
          * Written as Steel Roller's clear is (WIRE 88), which is the other road that removes a terrain on a hit. */
+        /* 2026-09-22 (Reg M-C, abra/regmc 0.53.0) -- THE PARAGRAPH ABOVE READ MAINLINE, AND CHAMPIONS DROPPED THE GUARD. The
+         * `pokemon.hp` it cites is `sim/battle-actions.ts` :1123; the Champions mod carries its OWN `spreadMoveHit`
+         * (data/mods/champions/scripts.ts :315-426, the same in the Reg M-B checkout) and raises
+         *     if (moveData.onAfterHit) { for (const t of damagedTargets) this.battle.singleEvent('AfterHit', ...); }
+         * with no HP test at all, and Ice Spinner's `onAfterHit` asks none either -- only its `onAfterSubDamage` asks
+         * `source.hp`. So a user a Rough Skin / Rocky Helmet toll just knocked out STILL ends the terrain, above its own
+         * `|faint|`: the Reg M-C 1950 card `omit-intimidate ...bo3-2681663488` t5 (Starmie's Ice Spinner, Rocky Helmet KO,
+         * `-fieldend|move: Psychic Terrain` on the authority only). The live-user test now applies on the Substitute road
+         * alone, and only where the tag says the sub handler asks (`subNeedsUserHP`). The two families above keep their
+         * `!m.fainted` in this pass: their `onAfterHit` bodies (Stone Axe :18078, Ceaseless Edge :2229, Rapid Spin
+         * :14703, Mortal Spin :12323) ask no HP either, so they carry the same gap, and no card or probe parts on them yet --
+         * named, not folded in. MEDI_AFTERHIT_NEEDS_LIVE_USER=1 puts the gate back. */
         {
           const _cta=TAGS.param('move',a.move&&a.move.id,'clearsTerrainAfterHit');
-          if(_cta&&!AFTERHIT_TERRAIN_INERT&&connected&&!m.fainted&&(_cta.throughSubstitute||!_subAte)){
+          const _ctaLive=AFTERHIT_NEEDS_LIVE_USER?!m.fainted
+                        :(!_subAte||!(_cta&&_cta.subNeedsUserHP)||!m.fainted);
+          if(AFTERHIT_NEEDS_LIVE_USER&&_cta)MEDFAILS.afterHitNeedsLiveUserRestored=1;
+          if(_cta&&!AFTERHIT_TERRAIN_INERT&&connected&&_ctaLive&&(_cta.throughSubstitute||!_subAte)){
             const _t0=field.terrain;
             if(_t0){field.terrain='';field.terrainT=0;
               if(TR)TR.terrainEnd(_t0);
               syncFieldTypes(field,[...actA,...actB]);
-              MEDSEEN.terrainClearedAfterHit++;}
+              MEDSEEN.terrainClearedAfterHit++;
+              if(m.fainted)MEDSEEN.terrainClearedByFaintedUser++;}
             else MEDSEEN.terrainClearAfterHitNoTerrain++;
           }
         }

@@ -1,3 +1,32 @@
+## ICE SPINNER ENDS THE TERRAIN EVEN WHEN ITS USER IS KNOCKED OUT (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.53.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-5.md` §5.
+
+- **Defect.** 0.45.0 copied mainline's `AfterHit` `pokemon.hp` guard; the Champions `spreadMoveHit` has none. A Starmie
+  knocked out by Rocky Helmet left the terrain up. The same gap sits on Stone Axe / Ceaseless Edge / Rapid Spin /
+  Mortal Spin in the same step -- named, not changed (no card).
+- **Fix.** The live-user test only on the Substitute road the tag marks (`subNeedsUserHP`).
+- **Probe** `tests/probe_regmc_ice_spinner_fainted_user.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_AFTERHIT_NEEDS_LIVE_USER` and on release `4d7779ca7bad` with the 0.52.0 bytes.
+
+### The Reg M-C hand list, after this pass
+
+Pinned Reg M-C differential (census pin `f3b70bc0c47c`, release `cd3eed0c5796`): `--games` 1200 **0 of 954**, 1350
+**0 of 1075**, 1950 **7 of 1537**. Steel Beam into Protect, Magician's speed order, the terrain bar's redirected body,
+the forced-out action and Ice Spinner's fainted user left this list as probes (0.49.0-0.53.0).
+
+The seven 1950 cards, read off the dump (cause NOT confirmed against the authority for any; report §6): Castform's
+Forecast on Snowscape; Protean before a Psychic Terrain refusal; Double Shock's type change vs a Rocky Helmet KO; Rough
+Skin from a KO'd transformed Ditto; Milk Drink healing the partner too; an Encore / Expanding Force order between two
+Armarouge (speed tie not excluded); a Revival Blessing body healed by Grassy Terrain before it is on the field.
+
+1. Narration, not board-material: the Ghost Curse line order and its bare `[of]` (probe §5); the `-fail|<user>|move:
+   <Move>` attribute on a failed `spendsOwnType` move (pass 4).
+2. Named gaps with no card: Stone Axe / Ceaseless Edge / Rapid Spin / Mortal Spin with a fainted user (§5); Psychic
+   Terrain's ally exemption (§3).
+3. Carried: `mirrorRevival` (MEASURE); the empirical driver's cross-game `coveragePick` state (MEASURE).
+4. Owed (not run): the census regeneration; the Reg M-B held-out draw (report `## OWED, NOT RUN`).
+
 ## A BODY FORCED OUT MID-TURN LOSES ITS QUEUED ACTION (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.52.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-5.md` §4.

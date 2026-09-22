@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.53.0] — 2026-09-22 — **Ice Spinner ends the terrain even when its user is knocked out, in both regulations**
+
+- **What changed.** `engine/medicham2-browser.js`: the Ice Spinner terrain clear asks for a live user only on the
+  Substitute road (the Champions `spreadMoveHit` raises `AfterHit` with no HP test). No tag moved. Knob
+  `MEDI_AFTERHIT_NEEDS_LIVE_USER`; probe `tests/probe_regmc_ice_spinner_fainted_user.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine-5.md` §5-§6;
+  Reg M-B lattices 1200/1350/1950 read 0 board-material; Reg M-B data files byte-identical.
+- **Basis.** unchanged. **Supersedes.** Nothing published (it corrects a claim in a dated `_reports` file, which is left
+  as written). **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.52.0] — 2026-09-22 — **A body forced out mid-turn loses its queued action, in both regulations**
 
 - **What changed.** `engine/medicham2-browser.js`: `switchOut` stamps `_leftEpoch`; the action loop drops the queued action
