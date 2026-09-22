@@ -21,6 +21,27 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.33.0] — 2026-09-22
+
+### Fixed
+- **A species whose base name carries punctuation is keyed as one base, and U+2019 folds like `'`.** Two defects on one
+  shape. (1) `build/build_engine_data_regmc.js` collapsed every non-alphanumeric run of the display name to a hyphen,
+  and the engine reads a key's segment before its first hyphen as the base species (the `statMult.onlySpecies` lock), so
+  `Sirfetch’d`, `Farfetch’d`, `Mr. Rime`, `Mr. Mime` and `Kommo-o` were keyed `sirfetch-d`, `farfetch-d`, `mr-rime`,
+  `mr-mime`, `kommo-o`, as if each had a forme. The base part is now the base species' id and only the forme tail keeps
+  the hyphen rule; every legal species is scanned for the shape on every build (5 found), a name that is neither
+  `<base>` nor `<base>-<forme>` refuses the build, and the regenerated table differs from the old one by those five
+  renames and nothing else. `ABRA_REGMC_KEY_WHOLE_NAME=1` restores the old rule. (2) The M-C checkout spells the two
+  Farfetch'd names with U+2019 (`data/pokedex.ts`), and `traceCanon` folded only the ASCII apostrophe, so the first
+  `|switch|` of every game that brought one parted on a spelling. Knob `MEDI_CANON_KEEPS_TYPO_APOSTROPHE`.
+- `tests/probe_regmc_species_key.js` (`--regulation regmc`): every table key's base segment is its species' base id, and
+  every legal punctuated species walks in with identical reduced `|switch|` lines and identical boards. Exit 0 clean;
+  exit 1 under the knob and on the 0.32.0 release and engine bytes.
+
+### Notes
+- The five hidden games now show their real first causes: four are a critical hit the authority rolls and this engine
+  does not (Leek), one is narration. The board-material count did not move on this commit; the report says why.
+
 ## [0.32.1] — 2026-09-22
 
 ### Added

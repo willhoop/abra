@@ -53,6 +53,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.33.0] — 2026-09-22 — **A punctuated base name is keyed as one base, and U+2019 folds like an apostrophe**
+
+- **What changed.** `build/build_engine_data_regmc.js`: the key's base part is the base species' id (5 rows renamed in
+  `data/engine-data-regmc.js`, no content change). `engine/medicham2-browser.js`: `traceCanon` folds U+2019. Knobs
+  `ABRA_REGMC_KEY_WHOLE_NAME` (builder), `MEDI_CANON_KEEPS_TYPO_APOSTROPHE` (engine); probe `tests/probe_regmc_species_key.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine-2.md` §1.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
 ## [abra/regmc 0.32.1] — 2026-09-22 — **The rotation manual gains a step for CHOMP, the downstream consumer**
 
 - Step 14, *Downstream consumers*, in `docs/REGULATION-ROTATION.md`. It covers what CHOMP reads from ABRA

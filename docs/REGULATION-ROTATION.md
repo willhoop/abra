@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.32.1 — 2026-09-22.**
+**Version: 0.33.0 — 2026-09-22.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -374,6 +374,7 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | **A consumer can read the new file and still be blind to the new meta.** CHOMP keys usage by its own species table, vendored from the old regulation's `data/engine-data.js`. | Many of the new regulation's most-used species have no key in it, and CHOMP returns zero for an absent key without a warning (`docs/_reports/2026-09-22-regmc-usage.md` §5). | When a consumer switches file, also switch every table it joins that file against. For CHOMP: the usage path, the species table source, and its format constants. |
 | **A script that reads `process.argv[2]` as its input takes `--regulation` as that input.** `engine/analyze.js` did, as `engine/policy.js` had. | Under the old regulation with an explicit `--regulation`, the store path became the string `--regulation` (`docs/_reports/2026-09-22-regmc-usage.md` §6). | Fixed abra/regmc 0.23.0. Grep for `argv[2]` in every script before its first run with `--regulation`. |
 | **`engine/status.js --write` stamps the DEFAULT regulation's live gate into every division ledger.** While `data/regulations.json` still names the closed regulation `active`, the new regulation's engine fixes move the closed one's live engine bytes, so its artifacts read *measured against a different engine*. | On 2026-09-21 a restamp from the main tree would have written the Reg M-B gate as CLOSED into all five ledgers, and would have raised the `mtime_only` provenance ratchet, on a day the published 7.0.0 record was unchanged on its own frozen release. It was reverted, not committed. | Either flip `active` (step 8) before the first restamp after the rebuild starts, or make `status.js` report per regulation. Until then, do not commit a ledger restamp. A closed line's published record is its frozen release, not the live tree. |
+| **A key rule that turns every punctuation run into a hyphen splits a base name as if it had a forme.** The new table keyed `Sirfetch’d` as `sirfetch-d`, and the engine reads the segment before the first hyphen as the base species. The new checkout also spells the name with U+2019, which the one normaliser did not fold. | Five pinned games parted on their very first `|switch|` line, which hid their real causes (four were a Leek crit). The old table never had the shape, because its punctuated species were illegal there or keyed by hand. | Key the base part by the base species' id and keep the hyphen only before the forme tail; scan every legal species for a base name with punctuation on every build; check which characters the new dex actually writes (U+2019, not `'`). `docs/_reports/2026-09-22-regmc-engine-2.md` §1. |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

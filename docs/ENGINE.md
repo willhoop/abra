@@ -1,3 +1,17 @@
+## REG M-C: A PUNCTUATED BASE NAME IS KEYED AS ONE BASE; U+2019 FOLDS LIKE AN APOSTROPHE. 2026-09-22 (abra/regmc 0.33.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-2.md` §1.
+
+- **Defect.** The Reg M-C table keyed `Sirfetch’d` as `sirfetch-d` (and four more: `farfetch-d`, `mr-rime`, `mr-mime`,
+  `kommo-o`), splitting the base name as if it had a forme; and `traceCanon` did not fold the U+2019 the M-C checkout
+  writes, so those games parted on their first `|switch|` and their real causes were hidden.
+- **Fix.** The builder keys the base part by the base species' id and scans every legal species for the shape; the
+  normaliser folds U+2019. The table changed by five renames and nothing else.
+- **Probe** `tests/probe_regmc_species_key.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_CANON_KEEPS_TYPO_APOSTROPHE` and on the 0.32.0 release and engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
 ## REG M-C: WHITE HERB IS SPENT BEFORE AN EJECT BUTTON OR RED CARD SWITCH. 2026-09-22 (abra/regmc 0.32.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine.md` §11, and what is left in §12.

@@ -6268,6 +6268,13 @@ function traceRelease(prev){ TR=prev; if(!prev){TRACE.out=null;TRACE.S=null;} }
  * ONE FUNCTION, TWO CALL SITES (CLAUDE.md's FACTS ARE GLOBAL): the `statcode` move branch and the
  * `buffsHolderOnHit` ability step both ask this, so the two can never come to disagree about it. */
 function announcesSetBoost(amount){ return Math.abs(+amount||0) > 6; }
+/* 2026-09-22 (Reg M-C, abra/regmc 0.33.0) -- THE APOSTROPHE THE AUTHORITY ACTUALLY WRITES IS U+2019. The rule below
+ * folds `'` for `Farfetch'd`, and the Reg M-C checkout spells the species `Farfetch’d` / `Sirfetch’d` (U+2019,
+ * data/pokedex.ts; the Leek's `itemUser` list reads "Farfetch’d"), so `|switch|p2a: Sirfetch’d|Sirfetch’d, L50`
+ * reduced to `sirfetch’d,l50` on the authority and `sirfetchd,l50` here, and the first line of every game that
+ * brought one parted on a spelling. Folded like its ASCII twin. MEDI_CANON_KEEPS_TYPO_APOSTROPHE=1 keeps it.
+ * tests/probe_regmc_species_key.js */
+const CANON_KEEPS_TYPO_APOSTROPHE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CANON_KEEPS_TYPO_APOSTROPHE==='1');
 function traceCanon(line){
   return String(line).split('|').map((f,i)=>{
     let v=f.toLowerCase().replace(/\s+/g,'');
@@ -6279,7 +6286,7 @@ function traceCanon(line){
      * KNOWN RESIDUE, stated rather than discovered later: `Type: Null` carries a COLON, which is
      * structural in `[from] item: X` and in `p1a: Garchomp`, so it is not folded and that one species
      * will still part the streams. */
-    v=v.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[-'.]/g,'');
+    v=v.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(CANON_KEEPS_TYPO_APOSTROPHE?/[-'.]/g:/[-'’.]/g,'');
     /* the SIDE field only: `p1:` with no slot letter. `p1a:garchomp` does not match and must not. */
     if(/^p[12]:/.test(v))v=v.slice(0,3);
     return v;

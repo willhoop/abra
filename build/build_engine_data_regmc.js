@@ -182,8 +182,35 @@ const SPECIES = DEX.species.all().filter(s => strict(s) || futureSpecies.has(s.i
  * — "display name, lowercased, runs of non-alphanumerics collapsed to one hyphen". Plain lowercasing
  * was tried first and wrote `vivillon-icy snow` and `mr. rime`, which every consumer would have found
  * through `monFlat` and which no human would ever have typed. Checked against the LIVE Reg M-B
- * artifact on every run so the 2026-07-30 two-spellings failure cannot recur silently. */
-const keyOf = s => s.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+ * artifact on every run so the 2026-07-30 two-spellings failure cannot recur silently.
+ *
+ * 2026-09-22 (abra/regmc 0.33.0) -- THE HYPHEN IS THE FORME SEPARATOR, SO IT MAY NOT APPEAR INSIDE THE BASE NAME.
+ * The engine reads a key's segment before its first hyphen as the BASE species (medicham2-browser.js, the
+ * `statMult.onlySpecies` lock: `String(body.name).split('-')[0]`, because the authority compares
+ * `baseSpecies.baseSpecies`). The rule above collapsed EVERY non-alphanumeric run to a hyphen, so a base name
+ * that carries punctuation of its own was split as if it had a forme: the M-C dex spells `Sirfetch’d` and
+ * `Farfetch’d` with U+2019, and the table wrote `sirfetch-d` / `farfetch-d` (base `sirfetch`, forme `d`);
+ * `Mr. Rime` -> `mr-rime`, `Mr. Mime` -> `mr-mime`, `Kommo-o` -> `kommo-o`. Reg M-B's table writes all of
+ * these unbroken (`mrrime`, `kommoo`). So the BASE part is the base species' id (no separator can survive in
+ * it) and only the FORME tail keeps the hyphen rule. Every legal species is scanned for the shape on every
+ * run (`BASE NAMES WITH PUNCTUATION` below), and a name that is not `<base>` or `<base>-<forme tail>` refuses
+ * the build rather than guessing where the base ends. `ABRA_REGMC_KEY_WHOLE_NAME=1` restores the old rule. */
+const KEY_WHOLE_NAME = process.env.ABRA_REGMC_KEY_WHOLE_NAME === '1';
+const hyph = x => String(x).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const formeTail = s => {
+  const base = s.baseSpecies || s.name;
+  if (s.name === base) return '';
+  return s.name.startsWith(base + '-') ? s.name.slice(base.length + 1) : null;
+};
+const keyOf = s => {
+  if (KEY_WHOLE_NAME) return hyph(s.name);
+  const tail = formeTail(s);
+  if (tail === null) throw new Error(`KEY RULE REFUSES ${s.id}: the name "${s.name}" is not "${s.baseSpecies}" or "${s.baseSpecies}-<forme>"`);
+  return norm(s.baseSpecies || s.name) + (tail ? '-' + hyph(tail) : '');
+};
+/* the shape, scanned: a legal species whose BASE name holds a character the whole-name rule turns into a hyphen */
+const punctuatedBases = () => SPECIES.filter(s => /[^A-Za-z0-9]/.test(s.baseSpecies || s.name))
+  .map(s => `${s.id} (base "${s.baseSpecies || s.name}") -> ${keyOf(s)}` + (hyph(s.name) !== keyOf(s) ? `  [the whole-name rule wrote ${hyph(s.name)}]` : ''));
 function keyControl() {
   let mb = null;
   try { mb = JSON.parse(fs.readFileSync(D('data', 'engine-data.js'), 'utf8').match(/const MC = (\{[\s\S]*?\});/)[1]); }
@@ -525,6 +552,9 @@ const CENSUS_BANDS = [
               : `DID NOT RUN — ${kc.why}`));
   for (const d of (kc.differ || [])) say(`      ${d}`);
   if (kc.ran && kc.differ.length) say('      (reported, not silently accepted — the 2026-07-30 failure was two spellings and no comparison)');
+  const pb = punctuatedBases();
+  say(`\n  BASE NAMES WITH PUNCTUATION (the key keeps the base as ONE unhyphenated id${KEY_WHOLE_NAME ? '; ABRA_REGMC_KEY_WHOLE_NAME=1 -- THE OLD RULE IS ARMED' : ''}): ${pb.length}`);
+  for (const x of pb) say(`      ${x}`);
 
   const scan = await scanPool();
   say(`\n  POOL READ: ${scan.games.toLocaleString()} open-sheet games, ${scan.sheets.toLocaleString()} sheet entries, `
