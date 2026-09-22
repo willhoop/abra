@@ -21,6 +21,36 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.45.0] — 2026-09-22
+
+### Fixed
+- **Ice Spinner removes the terrain after it hits, in both regulations.** Its handler pair is
+  `onAfterHit() { this.field.clearTerrain(); }` and `onAfterSubDamage() { if (source.hp) this.field.clearTerrain(); }`
+  (M-C checkout `data/moves.ts` icespinner :9417-9437; the Reg M-B checkout is identical). It has no `onTry`, so the
+  `failsWithoutTerrain` tag (Steel Roller) never matched it, no tag said the terrain goes, and this engine left it up.
+  New move tag `clearsTerrainAfterHit` in `engine/tag_dex.js` (read off `onAfterHit` only; `throughSubstitute`,
+  `subNeedsUserHP`, `onlyOnConnect`); membership printed before wiring: Ice Spinner alone, in both regulations. Read in
+  `engine/medicham2-browser.js` by `_afterHitField`, the step that already holds the other two `onAfterHit` families
+  (`hazardOnHit`, `removesHazards`), gated on a connected hit, a user still standing (`AfterHit` runs only
+  `if (pokemon.hp)`, `sim/battle-actions.ts` :1120) and the substitute rule. Knob `MEDI_AFTERHIT_TERRAIN_INERT`.
+- `tests/probe_regmc_ice_spinner.js` (`--regulation regmc`): CLEAR, SUB (behind a Substitute), NONE (no terrain) and
+  CONTROL (a plain hit leaves the terrain). Exit 0 clean; exit 1 under the knob and on release `1f475312c778` with the
+  0.44.0 engine bytes.
+
+### Changed
+- **`data/tags.json` (Reg M-B) moves, by Will's approval for this fix.** Exactly two rule changes, in both tag files and
+  printed by a structural diff: the `icespinner` row gains `clearsTerrainAfterHit`, and the tag's descriptor is added.
+  No other row moved; usage figures are the committed ones. `data/abra-tags.js` rebuilt (`build/build_tags_js.js
+  --check` passes). `data/protocol-events.json` and `data/move-effects.js` byte-identical.
+
+### Notes
+- Pinned Reg M-C differential (`--games 1200`, census pin `f3b70bc0c47c`): 4 of 954 → 3 of 954 on release
+  `d0e34207d250`; the Ice Spinner game left, none joined.
+- Reg M-B (release `a193df3c8301`, `SHOWDOWN_PATH` the M-B checkout): lattice 1200 **0 of 961**, 1350 **0 of 1069**,
+  1950 **0 of 1497**, 0 void each. The 1 and 2 protocol-only divergences at 1350 and 1950 are all Kingambit's silent
+  `-end …|fallenundefined` line, and no game in either dump contains Ice Spinner. Readings:
+  `docs/_reports/2026-09-22-regmc-engine-4.md` §1.
+
 ## [0.44.0] — 2026-09-22
 
 ### Fixed

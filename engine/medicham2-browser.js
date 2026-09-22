@@ -87,7 +87,7 @@ const TAGS = (function(){
  * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
-const MEDSEEN = { hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+const MEDSEEN = { terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
    * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
@@ -31642,6 +31642,10 @@ const OOZE_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_OO
  * the pre-0.43.0 engine. */
 const PUNISH_TERRAIN_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PUNISH_TERRAIN_INERT==='1');
 if(PUNISH_TERRAIN_INERT)MEDFAILS.punishTerrainInertRestored=1;
+/* 2026-09-22 (abra/regmc 0.45.0) -- MEDI_AFTERHIT_TERRAIN_INERT=1 ignores `clearsTerrainAfterHit` (Ice Spinner): the
+ * pre-0.45.0 engine, which left the terrain standing. */
+const AFTERHIT_TERRAIN_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_AFTERHIT_TERRAIN_INERT==='1');
+if(AFTERHIT_TERRAIN_INERT)MEDFAILS.afterHitTerrainInertRestored=1;
 /* 2026-09-22 (Reg M-C, abra/regmc 0.44.0) -- DOES SHEER FORCE SKIP THIS MOVE'S AfterMoveSecondary EVENT?
  * `BattleActions#afterMoveSecondaryEvent` (sim/battle-actions.ts :811-818, both checkouts) runs the event only
  * `if (!(move.hasSheerForce && pokemon.hasAbility('sheerforce')))`, and Sheer Force's onModifyMove sets `hasSheerForce`
@@ -48709,6 +48713,26 @@ function battleTurn(S,rng,actsForA,actsForB){
             const _osf=m._sf, _fsf2=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
             sweepField(_rmh,m,_osf,_fsf2,field,actA.concat(actB),a.move&&a.move.id);
             MEDSEEN.hazardSweepAtAfterHit++;
+          }
+        }
+        /* 2026-09-22 (abra/regmc 0.45.0) -- ICE SPINNER, THE THIRD `onAfterHit` FAMILY, and the same handler pair:
+         *     onAfterHit(target, source) { this.field.clearTerrain(); }
+         *     onAfterSubDamage(damage, target, source) { if (source.hp) this.field.clearTerrain(); }
+         * (M-C checkout data/moves.ts icespinner :9417-9437; the Reg M-B checkout is identical.) `AfterHit` is raised only
+         * `if (moveData.onAfterHit && pokemon.hp)` (sim/battle-actions.ts :1120), after `DamagingHit`, so a user a Rough
+         * Skin toll just knocked out clears nothing -- `!m.fainted` is that gate, as it is for the two blocks above.
+         * `Field#clearTerrain` (sim/field.ts :159-167) is a no-op with no terrain up; otherwise the terrain's own
+         * `FieldEnd` writes `-fieldend|move: <Terrain>` and `TerrainChange` runs. Once per move, like the two above.
+         * Written as Steel Roller's clear is (WIRE 88), which is the other road that removes a terrain on a hit. */
+        {
+          const _cta=TAGS.param('move',a.move&&a.move.id,'clearsTerrainAfterHit');
+          if(_cta&&!AFTERHIT_TERRAIN_INERT&&connected&&!m.fainted&&(_cta.throughSubstitute||!_subAte)){
+            const _t0=field.terrain;
+            if(_t0){field.terrain='';field.terrainT=0;
+              if(TR)TR.terrainEnd(_t0);
+              syncFieldTypes(field,[...actA,...actB]);
+              MEDSEEN.terrainClearedAfterHit++;}
+            else MEDSEEN.terrainClearAfterHitNoTerrain++;
           }
         }
       };

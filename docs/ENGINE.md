@@ -1,3 +1,25 @@
+## ICE SPINNER REMOVES THE TERRAIN AFTER IT HITS (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.45.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-4.md` §1.
+
+- **Defect.** Ice Spinner's `onAfterHit` clears the terrain (and its `onAfterSubDamage`, if the user stands). No tag
+  carried it -- `failsWithoutTerrain` reads `onTry`, which Ice Spinner lacks -- so this engine left the terrain up. Legal
+  with the same handler in Reg M-B (301 sheet uses), where no lattice dealt it into a standing terrain.
+- **Fix.** Move tag `clearsTerrainAfterHit`; read in `_afterHitField` beside `hazardOnHit` and `removesHazards`.
+- **Probe** `tests/probe_regmc_ice_spinner.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_AFTERHIT_TERRAIN_INERT` and on release `1f475312c778` with the 0.44.0 bytes.
+- **Reg M-B:** `data/tags.json` moves by the Ice Spinner row and the descriptor only (approved); the other two Reg M-B
+  files byte-identical; lattices 1200 / 1350 / 1950 read 0 / 0 / 0 board-material. No census row yet (owed).
+
+### The Reg M-C hand list, after this fix
+
+Pinned Reg M-C differential (`--games 1200`, census pin `f3b70bc0c47c`): 3 of 954 on release `d0e34207d250`.
+
+1. A Dire Claw damage difference (Gogoat 46/198 against a knockout) -- cause not established.
+2. Trace's pick when its holder enters behind Emergency Exit (Drought here, Chlorophyll there) -- not established.
+3. A Kingambit HP difference at turn 7 behind a Double Shock `-fail` label -- not established.
+4. Carried: `mirrorRevival` (MEASURE); the Reg M-C gate's 1350/1950 lattices; Reg M-B's held-out draw.
+
 ## BERSERK IS NOT RAISED BY A SHEER FORCE HIT (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.44.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-3.md` §4.
@@ -11,7 +33,7 @@ Full account: `docs/_reports/2026-09-22-regmc-engine-3.md` §4.
 - **Reg M-B unmoved:** the three Reg M-B files byte-identical; lattice `--games 1200` 0 of 961, `agreement_by_turn`
   identical. The held-out Reg M-B draw was not run.
 
-### The Reg M-C hand list, after this pass
+### The Reg M-C hand list, after the 0.44.0 pass — SUPERSEDED by the 0.45.0 list above
 
 Ranked on the PINNED Reg M-C differential (`--games 1200`, census pin `f3b70bc0c47c`), by first BOARD divergence: 4 of
 954 left on release `1f475312c778`, each its own cause (report §5). Revival Blessing, Liquid Ooze, Seed Sower and

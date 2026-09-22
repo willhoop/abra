@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.44.0 — 2026-09-22.**
+**Version: 0.45.0 — 2026-09-22.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -388,6 +388,7 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | **A road "counted, not modelled" in the old regulation can be dormant there by construction.** Revival Blessing's revive road was a `MEDFAILS.reviveUnmodelled` counter that no Reg M-B game could ever raise (the move and its one learner are `Past` in Reg M-B), so the closed line's zero said nothing about it. | Six of the thirteen pinned Reg M-C board-material games at 0.40.0 were that one counted road. | On a rotation, list every `MEDFAILS` counter whose entities are illegal in the old regulation and legal in the new one: each is an unmodelled mechanic the old gate never exercised. Fixed 0.41.0 (`reviveFainted`). |
 | **An ability with no legal carrier in the old regulation is `untagged` in the new one, and the usage floor hides it.** Liquid Ooze is legal in both formats but carried only in Reg M-C, so Reg M-B's tag file never had its row, and `engine/tag_dex.js` flags an untagged entity only above 0.5% usage (`UNTAGGED_FLOOR`): 4 Reg M-C sheet uses printed nothing. | A drain into it healed the drainer, and the only sign was one board-material game in the pinned differential. | On a rotation, list every ability, item and move that is `untagged` in the new tag file AND has a legal carrier there, regardless of usage, and read each handler. Fixed 0.42.0 (`reversesHeal`). |
 | **The new pool deals pairs the old lattices never did, and a defect it finds can belong to the closed line too.** Berserk ignored Sheer Force's skip of AfterMoveSecondary in BOTH regulations: both abilities are Reg M-B legal and the two checkouts share the gate, but no Reg M-B lattice dealt Mega Camerupt's Earth Power into a Drampa. | A Reg M-C card that is really a shared-engine defect; the fix changes Reg M-B behaviour while every Reg M-B instrument reads unmoved. | Before fixing a new-regulation card, ask whether its entities and handlers are legal and identical in the old checkout; if so, say the fix is shared, run the old lattice, and name the old held-out draw as owed. Fixed 0.44.0 (`sheerForceSkipsAfterMove`). |
+| **A tag keyed on one handler misses a member with the same effect in another handler.** `failsWithoutTerrain` reads Steel Roller's `onTry` + `onHit`; Ice Spinner clears the terrain from `onAfterHit` and has no `onTry`, so it matched nothing and the engine never removed a terrain for it -- in Reg M-B too, where it has 301 sheet uses (`data/tags.json:moves.icespinner.uses`) and every gate lattice read zero (no lattice dealt it into a standing terrain before the terrain ran out). | A Reg M-C card that is a shared-engine gap, invisible to every Reg M-B instrument. | When a card names an EFFECT (`clearTerrain`, `setTerrain`, `addSideCondition`), grep that call across every handler of every legal entity in both checkouts, not the handler the existing tag reads. Fixed 0.45.0 (`clearsTerrainAfterHit`). |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

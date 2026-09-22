@@ -1615,6 +1615,19 @@ window.ABRA_TAGS={
    ]
   },
   {
+   "tag": "clearsTerrainAfterHit",
+   "kind": "move",
+   "param": "a DAMAGING move that removes the terrain in its onAfterHit, when it connects",
+   "why": "Ice Spinner removed nothing here: the pinned Reg M-C differential parted on a Grassy Terrain the authority had cleared, and Ice Spinner is legal with the same handler in Reg M-B",
+   "consumedBy": "clearsTerrainAfterHit",
+   "used": true,
+   "n": 1,
+   "uses": 301,
+   "examples": [
+    "Ice Spinner"
+   ]
+  },
+  {
    "tag": "sideBuff",
    "kind": "move",
    "param": "another multi-turn modifier on my side",
@@ -22476,6 +22489,7 @@ window.ABRA_TAGS={
     "pp",
     "targetClass",
     "contact",
+    "clearsTerrainAfterHit",
     "formatSecondaryCount"
    ],
    "uses": 301,
@@ -22493,6 +22507,11 @@ window.ABRA_TAGS={
     },
     "contact": {
      "contact": true
+    },
+    "clearsTerrainAfterHit": {
+     "throughSubstitute": true,
+     "subNeedsUserHP": true,
+     "onlyOnConnect": true
     },
     "formatSecondaryCount": {
      "count": 0

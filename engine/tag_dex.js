@@ -4115,6 +4115,26 @@ const MOVE_TAGS = [
       return { needsTerrain: true,
                clears: /clearTerrain\(\)/.test(String(m.onHit || '') + String(m.onAfterSubDamage || '')) };
     } },
+  /* 2026-09-22 (abra/regmc 0.45.0) -- THE TERRAIN CLEAR THAT DOES NOT NEED ONE. Ice Spinner is
+   *     onAfterHit(target, source) { this.field.clearTerrain(); }
+   *     onAfterSubDamage(damage, target, source) { if (source.hp) this.field.clearTerrain(); }
+   * (M-C checkout data/moves.ts icespinner :9417-9437; the Reg M-B checkout carries the same pair; the
+   * Champions mod names it only in learnsets). It has no `onTry`, so `failsWithoutTerrain` above never
+   * matched it and no tag said the terrain goes. Read off `onAfterHit` ONLY, which is its own moment:
+   * `spreadMoveHit` raises `AfterHit` after `DamagingHit` and only `if (pokemon.hp)`
+   * (sim/battle-actions.ts :1120-1127), where Steel Roller's `onHit` clear runs at step 3. Membership
+   * printed before wiring: Ice Spinner alone in both regulations (Steel Roller and Defog clear from
+   * `onHit` and keep their own tags). */
+  { tag: 'clearsTerrainAfterHit', param: 'a DAMAGING move that removes the terrain in its onAfterHit, when it connects',
+    probe: 'clearsTerrainAfterHit',
+    why: 'Ice Spinner removed nothing here: the pinned Reg M-C differential parted on a Grassy Terrain the '
+       + 'authority had cleared, and Ice Spinner is legal with the same handler in Reg M-B',
+    of: m => {
+      if (!/clearTerrain\(\)/.test(String(m.onAfterHit || ''))) return null;
+      const sub = String(m.onAfterSubDamage || '');
+      return { throughSubstitute: /clearTerrain\(\)/.test(sub),
+               subNeedsUserHP: /source\.hp/.test(sub), onlyOnConnect: true };
+    } },
   { tag: 'sideBuff', param: 'another multi-turn modifier on my side', probe: 'sideBuff',
     why: 'Safeguard, Mist -- what is left once Tailwind and the screens are split out',
     /* WHAT IT REFUSES IS NOW DERIVED, AND IT HAD TO BE BEFORE ANYTHING COULD READ IT. The param was

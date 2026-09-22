@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.45.0] — 2026-09-22 — **Ice Spinner removes the terrain after it hits, in both regulations**
+
+- **What changed.** `engine/tag_dex.js`: move tag `clearsTerrainAfterHit` (Ice Spinner alone, both regulations);
+  `engine/medicham2-browser.js` reads it in `_afterHitField`. `data/tags.json`, `data/tags-regmc.json` and
+  `data/abra-tags.js` move by exactly the Ice Spinner row and the new descriptor (Will approved the Reg M-B move for this
+  fix). Knob `MEDI_AFTERHIT_TERRAIN_INERT`; probe `tests/probe_regmc_ice_spinner.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine-4.md` §1.
+  Reg M-B lattices at 1200, 1350 and 1950 read 0 board-material games each on release `a193df3c8301`.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.44.0] — 2026-09-22 — **Berserk is not raised by a Sheer Force hit**
 
 - **What changed.** `engine/medicham2-browser.js`: `sheerForceSkipsAfterMove`, the one reader of "Sheer Force skipped
