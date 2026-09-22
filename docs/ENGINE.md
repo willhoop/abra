@@ -1,3 +1,31 @@
+## BERSERK IS NOT RAISED BY A SHEER FORCE HIT (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.44.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-3.md` §4.
+
+- **Defect.** Berserk is `onAfterMoveSecondary`; a Sheer Force move with a secondary skips that whole event
+  (`afterMoveSecondaryEvent`, identical in both checkouts). The `boostsAtHPThreshold` step never asked, so a Mega
+  Camerupt Earth Power boosted a Drampa. Found in the Reg M-C pool; latent in Reg M-B, which no Reg M-B lattice dealt.
+- **Fix.** `sheerForceSkipsAfterMove`, the one reader, asked by the threshold step and the Emergency Exit door.
+- **Probe** `tests/probe_regmc_sheer_force_threshold.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_THRESHOLD_IGNORES_SHEER_FORCE` and on release `04de2d2fc705` with the 0.43.0 bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; lattice `--games 1200` 0 of 961, `agreement_by_turn`
+  identical. The held-out Reg M-B draw was not run.
+
+### The Reg M-C hand list, after this pass
+
+Ranked on the PINNED Reg M-C differential (`--games 1200`, census pin `f3b70bc0c47c`), by first BOARD divergence: 4 of
+954 left on release `1f475312c778`, each its own cause (report §5). Revival Blessing, Liquid Ooze, Seed Sower and
+Berserk-under-Sheer-Force left this list as probes.
+
+1. **Ice Spinner's terrain removal** — unmodelled, no tag. Needs a decision: the move is Reg M-B legal with the same
+   handler, so a tag moves Reg M-B's derivation (`data/tags.json`).
+2. A Dire Claw damage difference (Gogoat 46/198 against a knockout, no crit on either side) — cause not established.
+3. Trace's pick when its holder enters behind Emergency Exit (Drought here, Chlorophyll there) — die address or moment
+   not established.
+4. A Kingambit HP difference at turn 7 behind a Double Shock `-fail` label — cause not established.
+5. Carried: `mirrorRevival` shifts the user's slot entry queue, not the revived body's (MEASURE); the Reg M-C gate's
+   1350/1950 lattices and Reg M-B's held-out draw on this engine (report `## OWED, NOT RUN`).
+
 ## REG M-C: SEED SOWER SETS GRASSY TERRAIN WHEN ITS HOLDER IS HIT. 2026-09-22 (abra/regmc 0.43.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-3.md` §3.
@@ -104,7 +132,7 @@ Full account: `docs/_reports/2026-09-22-regmc-engine.md` §11, and what is left 
 - **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
   line; lattice `--games 1200` 0 of 961.
 
-### The Reg M-C hand list, after this pass
+### The Reg M-C hand list, after the 0.32.0 pass — SUPERSEDED by the 0.44.0 list above
 
 Ranked on the PINNED Reg M-C differential, by first BOARD divergence (18 left; report §12):
 

@@ -21,6 +21,30 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.44.0] — 2026-09-22
+
+### Fixed
+- **Berserk is not raised by a Sheer Force hit.** Berserk's boost is an `onAfterMoveSecondary` handler, and
+  `afterMoveSecondaryEvent` (`sim/battle-actions.ts` :811-818, the same in both checkouts) skips that whole event when
+  `move.hasSheerForce` and the attacker has Sheer Force — which Sheer Force's `onModifyMove` sets exactly when the move
+  had secondaries. This engine's `boostsAtHPThreshold` step never asked. New `sheerForceSkipsAfterMove(attacker, move)`
+  in `engine/medicham2-browser.js`, read off the attacker's `removesOwnSecondaries` tag and the move's rulebook row; the
+  Emergency Exit door, which asked the same question inline since 0.22.0, now calls it (its probe stays green). No tag
+  moved. Knob `MEDI_THRESHOLD_IGNORES_SHEER_FORCE`.
+- `tests/probe_regmc_sheer_force_threshold.js` (`--regulation regmc`): SHEER (a Sheer Force attacker's move with a
+  secondary takes the holder across half: no boost) and CONTROL (the same attacker on its other ability: the boost).
+  Exit 0 clean; exit 1 under the knob and on release `04de2d2fc705` with the 0.43.0 engine bytes.
+
+### Notes
+- **This is a shared-engine fix and Reg M-B's rule is the same.** Berserk (Drampa, Drampa-Mega) and Sheer Force (nine
+  carriers, Camerupt-Mega among them) are legal in Reg M-B, and the Reg M-B checkout's `afterMoveSecondaryEvent` carries
+  the identical gate, so the closed line carried this defect latent: no Reg M-B lattice dealt the pair. Reg M-B
+  measured unmoved: three files byte-identical; lattice `--games 1200` 0 of 961 with `agreement_by_turn` identical to
+  this pass's first Reg M-B reading (release `0d1733910f65`). Its held-out draw was not run.
+- Pinned Reg M-C differential (`--games 1200`, census pin `f3b70bc0c47c`): 5 of 954 → 4 of 954 on release
+  `1f475312c778`; the Berserk game (Camerupt-Mega's Earth Power into Drampa-Mega) left, none joined. Readings:
+  `docs/_reports/2026-09-22-regmc-engine-3.md` §4.
+
 ## [0.43.0] — 2026-09-22
 
 ### Fixed

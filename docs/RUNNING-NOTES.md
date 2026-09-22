@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.44.0] — 2026-09-22 — **Berserk is not raised by a Sheer Force hit**
+
+- **What changed.** `engine/medicham2-browser.js`: `sheerForceSkipsAfterMove`, the one reader of "Sheer Force skipped
+  this move's AfterMoveSecondary event", now asked by the `boostsAtHPThreshold` step and by the Emergency Exit door.
+  Knob `MEDI_THRESHOLD_IGNORES_SHEER_FORCE`; probe `tests/probe_regmc_sheer_force_threshold.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine-3.md` §4.
+  The rule is the same in Reg M-B's checkout and both abilities are legal there; Reg M-B measured unmoved (the three
+  Reg M-B files byte-identical, lattice at 1200 0 of 961, `agreement_by_turn` identical).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.43.0] — 2026-09-22 — **Seed Sower sets Grassy Terrain when its holder is hit, in Reg M-C**
 
 - **What changed.** `engine/tag_dex.js`: `effectRecipients` counts `setTerrain`; `punishesAttacker.setsTerrain` (only when

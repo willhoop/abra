@@ -87,7 +87,7 @@ const TAGS = (function(){
  * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
-const MEDSEEN = { punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+const MEDSEEN = { hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
    * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
@@ -31642,6 +31642,20 @@ const OOZE_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_OO
  * the pre-0.43.0 engine. */
 const PUNISH_TERRAIN_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PUNISH_TERRAIN_INERT==='1');
 if(PUNISH_TERRAIN_INERT)MEDFAILS.punishTerrainInertRestored=1;
+/* 2026-09-22 (Reg M-C, abra/regmc 0.44.0) -- DOES SHEER FORCE SKIP THIS MOVE'S AfterMoveSecondary EVENT?
+ * `BattleActions#afterMoveSecondaryEvent` (sim/battle-actions.ts :811-818, both checkouts) runs the event only
+ * `if (!(move.hasSheerForce && pokemon.hasAbility('sheerforce')))`, and Sheer Force's onModifyMove sets `hasSheerForce`
+ * exactly when the move had secondaries to delete. Read off the attacker's `removesOwnSecondaries` tag and the move's
+ * rulebook row. ONE reader: the Emergency Exit door (0.22.0) asked the same question inline, and now calls this. Every
+ * `onAfterMoveSecondary` handler sits behind it -- Berserk (`boostsAtHPThreshold`) was the one that did not ask.
+ * MEDI_THRESHOLD_IGNORES_SHEER_FORCE=1 lets Berserk fire through it again (the pre-0.44.0 engine). */
+const THRESHOLD_IGNORES_SHEER_FORCE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_THRESHOLD_IGNORES_SHEER_FORCE==='1');
+if(THRESHOLD_IGNORES_SHEER_FORCE)MEDFAILS.thresholdIgnoresSheerForceRestored=1;
+function sheerForceSkipsAfterMove(att,moveId){
+  if(!att||!moveId||!TAGS.param('ability',att.ability,'removesOwnSecondaries'))return false;
+  const f=moveFx(moveId);
+  return !!(f&&f.secondary&&f.secondary.length);
+}
 if(OOZE_INERT)MEDFAILS.oozeInertRestored=1;
 function oozeOf(holder,srcId){
   if(!holder||!holder.ability)return null;
@@ -46385,6 +46399,8 @@ function battleTurn(S,rng,actsForA,actsForB){
         function _hpThresholdBoost(){
           const _bt=TAGS.param('ability',tg.ability,'boostsAtHPThreshold');
           if(!(_bt&&_bt.boosts&&+_bt.threshold>0&&tg.boosts&&!tg.fainted&&tg.curHP>0&&dmg>0))return;
+          /* 2026-09-22 (Reg M-C, abra/regmc 0.44.0) -- the handler is `onAfterMoveSecondary`, which a Sheer Force move skips */
+          if(!THRESHOLD_IGNORES_SHEER_FORCE&&sheerForceSkipsAfterMove(m,a.move.id)){MEDSEEN.hpThresholdSheerForceRefused++;return;}
           const _line=tg.st.hp*+_bt.threshold;
           const _crossed=tg.curHP<=_line&&(tg.curHP+dmg)>_line;
           if(!(_crossed||_bt.onCrossingOnly===false))return;
@@ -49594,8 +49610,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* 2026-09-21 (Reg M-C, abra/regmc 0.22.0) -- EMERGENCY EXIT, THE TARGET DOOR: every target still standing whose HP went
        * from above half to at or below half on this move, unless Sheer Force boosted it. See `emergencyExitAsk`. */
       {
-        const _rosE=TAGS.param('ability',m.ability,'removesOwnSecondaries');
-        const _sfE=_rosE&&(()=>{const f=moveFx(a.move.id);return !!(f&&f.secondary&&f.secondary.length);})();
+        const _sfE=sheerForceSkipsAfterMove(m,a.move.id);   // 2026-09-22 (abra/regmc 0.44.0) -- the one reader
         if(!_sfE&&!TAGS.has('move',a.move.id,'statusCategory'))for(const R of _rows){
           const tg=R.tg;
           if(R.out||!tg||tg===m||tg.fainted||tg.curHP<=0||R.hp0==null)continue;

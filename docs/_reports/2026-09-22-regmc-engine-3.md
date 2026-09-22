@@ -314,3 +314,118 @@ Left: `…2679664835` (the Seed Sower game). Joined: none.
 
 Three Reg M-B files unchanged against HEAD. Lattice on release `fb3fcbb03756`: **0 of 961**, 0 void, 0 protocol
 divergences.
+
+---
+
+## 4. Berserk and Sheer Force (abra/regmc 0.44.0) — a shared-engine defect
+
+### The card, and why it was not what it looked like
+
+`…2680183974`, turn 2: Camerupt's Earth Power took Drampa-Mega from 102/153 to 38/153; this engine raised Berserk
+(`spa +1`), the authority did not. A first look suggested the mega had changed the ability; an authority-only
+experiment (`data/_scratch-eng-ae72/berserk.js`: Drampa megas on the hit turn, a turn earlier, or never) showed Berserk
+firing in all three, so the mega was not it. The dump's final roster names the attacker `cameruptmega`, whose one
+ability in the M-C dex is Sheer Force.
+
+### The authority, read whole
+
+- `data/abilities.ts` berserk :414-444 (the Champions mod overrides only `onDamage`, the berry half): the boost is
+  `onAfterMoveSecondary`.
+- `sim/battle-actions.ts` afterMoveSecondaryEvent :811-818: the event runs only
+  `if (!(move.hasSheerForce && pokemon.hasAbility('sheerforce')))`; Sheer Force's `onModifyMove` sets `hasSheerForce`
+  exactly when the move had secondaries. Earth Power has one.
+- **The Reg M-B checkout carries the identical gate**, and Berserk (Drampa, Drampa-Mega) and Sheer Force (Tauros,
+  Feraligatr, Steelix, Mawile, Camerupt-Mega, Rampardos, Conkeldurr, Toucannon, Kleavor) are legal there too.
+
+### Fix
+
+`sheerForceSkipsAfterMove(attacker, moveId)`: the attacker's `removesOwnSecondaries` tag and the move's rulebook row
+(`moveFx(...).secondary`). The Berserk step (`_hpThresholdBoost`) returns before boosting when it answers true
+(`MEDSEEN.hpThresholdSheerForceRefused`). The Emergency Exit door (0.22.0) asked the identical question inline; it now
+calls the helper (one reader), and `tests/probe_regmc_emergency_exit.js` stays green. No tag moved. Knob
+`MEDI_THRESHOLD_IGNORES_SHEER_FORCE`.
+
+### Probe — `tests/probe_regmc_sheer_force_threshold.js --regulation regmc`
+
+Cast searched until the authority itself shows the shape: the CONTROL hit must raise Berserk (so it crossed half) and
+the SHEER hit must land at or below half from full.
+
+| arm | staged | authority |
+|---|---|---|
+| SHEER | Feraligatr (Sheer Force) Ice Beam into Drampa (Berserk), 35/153 | no `-ability … boost`; `spa` stays 0 |
+| CONTROL | Feraligatr (Torrent), the same | `-ability|p2a: Drampa|Berserk|boost`, `spa +1` |
+
+| run | exit | red |
+|---|---|---|
+| release `04de2d2fc705` + the 0.43.0 engine bytes | **1** | SHEER (lines and boards) |
+| clean, release `1f475312c778` | **0** | none; no boost in SHEER, one in CONTROL |
+| `MEDI_THRESHOLD_IGNORES_SHEER_FORCE=1` | **1** | SHEER (lines and boards) |
+
+### Pinned Reg M-C differential
+
+| engine | release | state bar | void |
+|---|---|---|---|
+| 0.43.0 | `04de2d2fc705` | 5 / 954 | 1 |
+| 0.44.0 | `1f475312c778` | **4 / 954** | 1 |
+
+Left: `…2680183974`. Joined: none.
+
+### Reg M-B
+
+The fix changes Reg M-B behaviour (toward its own authority). Measured unmoved: three Reg M-B files unchanged against
+HEAD; lattice on release `0d1733910f65` **0 of 961**, 0 void, 0 protocol divergences, `agreement_by_turn` identical to
+this pass's first Reg M-B reading (10,716 boundaries compared in both). The Reg M-B held-out draw was NOT run; it is in
+the owed list. Recorded as a rotation trap: a new pool can surface a defect the closed line carried latent.
+
+---
+
+## 5. What is left: 4 of 954, each its own cause
+
+| game | first board divergence | what is known | why it stopped here |
+|---|---|---|---|
+| `…2678759068` (baseline) | turn 9, `field.terrain grassy/''` | **Ice Spinner's terrain removal is unmodelled.** `onAfterHit() { this.field.clearTerrain(); }` (M-C checkout `data/moves.ts` icespinner :9417-9437); no tag carries it (`icespinner` has only `pp/targetClass/contact/formatSecondaryCount`). | **Needs a decision.** Ice Spinner is legal in Reg M-B with 20 learners and the same handler, so the tag would add a row to Reg M-B's derivation, which the brief requires to stay byte-identical. Options: (a) add the tag to both files and let `data/tags.json` move (a closed-line artifact change), or (b) splice it into the M-C file only and leave Reg M-B's engine without it. |
+| `…2680535928` (omit-weather) | turn 9, `pp expandingforce 2/3` | Sneasler's Dire Claw into Gogoat: the authority leaves Gogoat at 46/198, this engine knocks it out; neither writes `-crit`. A damage or state difference on a leaf the board does not compare. | Not established. Needs a single-game replay with the full stream; `game_differential.js` has no seed filter. |
+| `…2681842922` (omit-intimidate) | turn 1, `gardevoir.ability drought/chlorophyll` | Gardevoir enters mid-turn behind Emergency Exit; Trace picks Charizard's Drought here and Venusaur's Chlorophyll there. `traceCopy` draws from the generic `medRng()`; the authority's `this.sample` runs inside Trace's `onUpdate`. | Not established whether it is the die's address, the moment of the pick, or the candidate order. |
+| `…2680957904` (pair-protect-bust) | turn 7, `kingambit.hp 23/36` | Protocol parts at turn 3 on narration (`-fail` without `move: Double Shock`); the board holds until a 13-HP difference on Kingambit at turn 7. | Not established; needs a replay. |
+
+Narration seen but not board-material in this pass: the revive's Leppa Berry order (§1), the Double Shock `-fail`
+attribute, and the 70 other protocol-only divergences in the dump.
+
+---
+
+## OWED, NOT RUN
+
+From the MAIN checkout after the merge (none of these was run in this worktree):
+
+```
+node engine/status.js --write
+node engine/quarantine.js --regulation regmc
+```
+
+The Reg M-C gate lattices on this pass's last engine (1350 and 1950 were not run; only 1200 was):
+
+```
+node engine/engine_release.js cut "abra/regmc 0.44.0" --regulation regmc
+tools\lownode.cmd engine/game_differential.js --regulation regmc --steering empirical --arm middle --end-state --census data/verification/census-pin-regmc-f3b70bc0c47c.json --team-store <main>/data/team-pool-frozen-regmc --release <id> --games 1350 --write --out <scratch>
+tools\lownode.cmd engine/game_differential.js --regulation regmc --steering empirical --arm middle --end-state --census data/verification/census-pin-regmc-f3b70bc0c47c.json --team-store <main>/data/team-pool-frozen-regmc --release <id> --games 1950 --write --out <scratch>
+```
+
+The Reg M-B held-out draw, owed because §4 changes a path Reg M-B runs (Berserk and Sheer Force are legal there):
+
+```
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown node engine/engine_release.js cut "abra/regmc 0.44.0, Reg M-B check"
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown tools\lownode.cmd engine/game_differential.js --steering empirical --arm middle --end-state --census <copy of data/mechanics-census.json> --team-store <main>/data/team-pool-frozen --release <id> --games 12000 --write --out <scratch>
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown tools\lownode.cmd engine/game_differential.js --steering empirical --arm middle --end-state --census <copy of data/mechanics-census.json> --team-store <main>/data/team-pool-frozen --release <id> --games 1350 --write --out <scratch>
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown tools\lownode.cmd engine/game_differential.js --steering empirical --arm middle --end-state --census <copy of data/mechanics-census.json> --team-store <main>/data/team-pool-frozen --release <id> --games 1950 --write --out <scratch>
+```
+
+The census, which this pass did not regenerate (the four probes are staged tests, not census rows):
+
+```
+node tests/test-mechanics.js --regulation regmc
+```
+
+For MEASURE (the driver is theirs): `mirrorRevival` drops the head of the USER's slot entry queue; a body revived in an
+active slot instaswitches into its OWN slot, so its entry is left in that queue (§1).
+
+For a decision: Ice Spinner's terrain removal (§5, first row).
