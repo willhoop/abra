@@ -1,3 +1,13 @@
+## A WEATHER A MEGA EVOLUTION RAISES TURNS A STANDING CASTFORM AT ONCE (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.55.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-6.md` §2.
+
+- **Defect.** `megaEvolveNow` is the third caller of `applyEntryEffects` and the only one that did not end in
+  `syncFieldTypes`, so a Froslass-Mega's Snow Warning left a standing Castform Normal.
+- **Fix.** `syncFieldTypes` over the actives at the end of the evolution, after `recomputeWeatherSuppression`.
+- **Probe** `tests/probe_regmc_mega_weather_forecast.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_MEGA_WEATHER_NO_FORME_SYNC` and on release `6397666428ff` with the 0.54.0 bytes.
+
 ## MILK DRINK HEALS THE ONE BODY IT IS AIMED AT (REG M-C). 2026-09-22 (abra/regmc 0.54.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-6.md` §1.

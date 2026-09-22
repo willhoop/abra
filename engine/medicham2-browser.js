@@ -602,6 +602,9 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
   aimedHealOneBody: 0,
   /* ...of which the aimed body was the user's partner rather than the user. */
   aimedHealOnPartner: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.55.0) -- the field-follower sync (Forecast, Mimicry) run over the actives inside a mega
+   * evolution, after the mega forme's entry effects may have raised a weather or a terrain. */
+  megaWeatherFormeSynced: 0,
   /* ROADMAP #175 -- every damage packet `refusesIndirectDamage` turned away, across all nine gated
    * sites. It replaces MEDFAILS.magicGuardChip, which counted the same event as a KNOWN GAP: the
    * counter moves from the failures object to the capabilities one, which is the whole shape of the
@@ -7030,6 +7033,11 @@ const AFTERHIT_NEEDS_LIVE_USER=(typeof process!=='undefined'&&process.env
 const AIMED_HEAL_SPREADS=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_AIMED_HEAL_SPREADS==='1');
 if(AIMED_HEAL_SPREADS)MEDFAILS.aimedHealSpreadsRestored=1;
+/* 2026-09-22 (Reg M-C, abra/regmc 0.55.0) -- MEDI_MEGA_WEATHER_NO_FORME_SYNC=1 leaves a standing Forecast / Mimicry body on
+ * its old forme when a mega evolution's ability raises a weather or a terrain, as before. */
+const MEGA_WEATHER_NO_FORME_SYNC=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_MEGA_WEATHER_NO_FORME_SYNC==='1');
+if(MEGA_WEATHER_NO_FORME_SYNC)MEDFAILS.megaWeatherNoFormeSyncRestored=1;
 /* 2026-09-05 -- MEDI_CHARGE_REAIMS_FIRST_LIVE_FOE=1 restores the pre-fix release rule: the second turn
  * of a two-turn move is rebuilt against `live(foes)[0]` instead of the slot the charge was aimed at.
  * It restores that and NOTHING else -- the charge turn still records the slot, the wrapper still
@@ -26572,6 +26580,18 @@ function megaEvolveNow(S,m,auto){
   recomputeWeatherSuppression(S.field,[...S.actA,...S.actB]);
   refreshSleepBlock(S.actA,S.actB,S.sfA,S.sfB);
   MEDSEEN.fieldFactsResyncedOnMega++;
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.55.0) -- AND THE FIELD-FOLLOWERS, BECAUSE THE WEATHER THE MEGA JUST RAISED ASKS EVERY
+   * ACTIVE. `Field#setWeather` ends `this.battle.eachEvent('WeatherChange', sourceEffect)` (sim/field.ts :87, both
+   * checkouts), and Forecast's `onWeatherChange` (data/mods/champions/abilities.ts :1475-1498) formeChanges Castform on
+   * that instant. A mega's ability Start runs inside the evolution, so a Froslass-Mega's Snow Warning turns a standing
+   * Castform Snowy above the next mega of the turn. The entry road (`applyEntryEffects` at a switch) already ends in
+   * `syncFieldTypes` over the actives; this third caller of `applyEntryEffects` never did, so the Castform stayed
+   * Normal: the Reg M-C 1950 card `omit-intimidate ...bo3-2681789845` t1 (the authority's `-formechange|p2b:
+   * Castform|Castform-Snowy` straight after `-weather|Snowscape|[from] ability: Snow Warning`, and a Blizzard priced for
+   * the wrong type). AFTER `recomputeWeatherSuppression`, for the reason the entry road gives: `effWeatherOf` reads
+   * `field.wSup` first. Idempotent -- it writes nothing when no body's types move. MEDI_MEGA_WEATHER_NO_FORME_SYNC=1
+   * skips it. */
+  if(!MEGA_WEATHER_NO_FORME_SYNC){syncFieldTypes(S.field,[...S.actA,...S.actB]);MEDSEEN.megaWeatherFormeSynced++;}
   sf.megaUsed=true;
   MEDSEEN.megaEvolved++;
   if(slot===1)MEDSEEN.megaEvolvedSlotB++;

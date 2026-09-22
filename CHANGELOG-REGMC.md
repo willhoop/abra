@@ -21,6 +21,26 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.55.0] — 2026-09-22
+
+### Fixed
+- **A weather a mega evolution raises turns a standing Castform at once, in both regulations.** `Field#setWeather` ends
+  `eachEvent('WeatherChange')` (`sim/field.ts` :87, both checkouts) and Forecast's `onWeatherChange`
+  (`data/mods/champions/abilities.ts` :1475-1498) changes the forme on that instant; a mega's ability Start runs inside
+  the evolution. `megaEvolveNow` ran the mega forme's entry effects and never the field-follower sync the switch road ends
+  in, so a Castform beside a Froslass-Mega stayed Normal under its Snow Warning: the Reg M-C 1950 card `…bo3-2681789845`
+  t1. `megaEvolveNow` now ends in `syncFieldTypes` over the actives, after the weather-suppression recompute. No tag
+  moved. Knob `MEDI_MEGA_WEATHER_NO_FORME_SYNC`.
+- `tests/probe_regmc_mega_weather_forecast.js` (`--regulation regmc`): MEGA (Charizard megas into Charizard-Mega-Y beside a
+  Castform; `-formechange … Castform-Sunny` straight after the Drought line), PLAIN (no mega, the control). Exit 0 clean;
+  exit 1 under the knob and on release `6397666428ff` with the 0.54.0 engine bytes.
+
+### Notes
+- Shared rule (Forecast and the weather megas are Reg M-B legal); Reg M-B data files byte-identical. Reg M-B lattice 1200 on
+  release `a1fbee64c5bf`: 0 of 961.
+- Pinned Reg M-C differential (census pin `f3b70bc0c47c`, release `b272aada45c2`): 1950 6 → **5 of 1537**; 1350 **0 of
+  1075** and 1200 **0 of 954** unmoved. `docs/_reports/2026-09-22-regmc-engine-6.md` §2.
+
 ## [0.54.0] — 2026-09-22
 
 ### Fixed

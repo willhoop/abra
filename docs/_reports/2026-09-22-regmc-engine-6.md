@@ -109,3 +109,71 @@ Left: `…2684290289`. Joined: none.
 
 Life Dew is Reg M-B's only pair-sized `healsAlly` member and it is `allies`, so Reg M-B behaviour is unchanged. Data files
 byte-identical. Lattice 1200 on release `bcbe61fc53b9`: **0 of 961**, 0 void, 0 protocol-diverged.
+
+---
+
+## 2. A weather a mega evolution raises turns a standing Castform at once (abra/regmc 0.55.0)
+
+### The card (1950, `omit-intimidate …bo3-2681789845`, turn 1)
+
+```
+|-weather|Snowscape|[from] ability: Snow Warning|[of] p2a: Froslass
+showdown   |-formechange|p2b: Castform|Castform-Snowy|[msg]|[from] ability: Forecast
+medicham2  |detailschange|p1a: Beedrill|beedrill-mega, L50        (no forme change)
+... Castform's Blizzard: showdown Beedrill 95/140, Armarouge 139/160; here 110/140, 146/160 (a Normal-type Castform's)
+```
+
+### The authority, read whole
+
+- `sim/field.ts` setWeather :39-88 (both checkouts): ends `this.battle.eachEvent('WeatherChange', sourceEffect)` -- every
+  active body.
+- `data/mods/champions/abilities.ts` forecast :1470-1500: `onWeatherChange` formeChanges a (not transformed) Castform off
+  `effectiveWeather()`; `hail` and `snowscape` both give Castform-Snowy.
+- A mega evolution runs the mega forme's ability Start inside the evolution, so the weather and the forme change both land
+  above the next mega of the turn (the card shows exactly that order).
+
+### The defect
+
+`megaEvolveNow` calls `applyEntryEffects` (which sets the weather off `weatherSetter`) and resyncs the aura, the weather
+suppression and the sleep refusal, but not the field-followers. The switch road (`applyEntryEffects` at a refill) ends in
+`syncFieldTypes` over the actives; `abilityStarted` ends in it for the one body. The mega door was the gap.
+
+### Fix
+
+`syncFieldTypes(S.field, actives)` at the end of `megaEvolveNow`, after `recomputeWeatherSuppression` (for the entry road's
+reason: `effWeatherOf` reads `field.wSup` first). Idempotent. `MEDSEEN.megaWeatherFormeSynced`. Knob
+`MEDI_MEGA_WEATHER_NO_FORME_SYNC`. No tag moved.
+
+### Probe -- `tests/probe_regmc_mega_weather_forecast.js --regulation regmc`
+
+Cast derived: the legal megas whose forme ability sets weather (Charizard-Mega-Y, Tyranitar-Mega, Abomasnow-Mega,
+Froslass-Mega); the first to stage is Charizard-Mega-Y (Drought) beside Castform. The probe does not stage the snow case
+itself; the 1950 card is its measurement.
+
+| arm | staged | authority |
+|---|---|---|
+| MEGA | t1 Charizard megas (Protect) beside Castform | `-weather|SunnyDay|[from] ability: Drought`, then `-formechange|p1b: Castform|Castform-Sunny` |
+| PLAIN | the same, no mega | no weather, no forme change |
+
+| run | exit | red |
+|---|---|---|
+| release `6397666428ff` + the 0.54.0 engine bytes | **1** | MEGA (line and boards: species, types) |
+| clean, release `b272aada45c2` | **0** | none; one sync that retyped in MEGA, none in PLAIN |
+| `MEDI_MEGA_WEATHER_NO_FORME_SYNC=1` | **1** | MEGA |
+
+6 staged sets, 0 illegal.
+
+### Pinned Reg M-C differential (release `b272aada45c2`)
+
+| `--games` | before | after | void | protocol-diverged |
+|---|---|---|---|---|
+| 1200 | 0 / 954 | **0 / 954** | 1 | 67 |
+| 1350 | 0 / 1075 | **0 / 1075** | 0 | 73 |
+| 1950 | 6 / 1537 | **5 / 1537** | 0 | 115 → 114 |
+
+Left: `…2681789845`. Joined: none.
+
+### Reg M-B
+
+Shared rule (Forecast and Charizard-Mega-Y / Tyranitar-Mega are Reg M-B legal; the same `setWeather`). Data files
+byte-identical. Lattice 1200 on release `a1fbee64c5bf`: **0 of 961**, 0 void, 0 protocol-diverged.

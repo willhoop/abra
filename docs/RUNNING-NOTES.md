@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.55.0] — 2026-09-22 — **A weather a mega evolution raises turns a standing Castform at once, in both regulations**
+
+- **What changed.** `engine/medicham2-browser.js`: `megaEvolveNow` ends in `syncFieldTypes` over the actives (Forecast and
+  Mimicry follow a weather or terrain the mega's ability raised). No tag moved. Knob `MEDI_MEGA_WEATHER_NO_FORME_SYNC`;
+  probe `tests/probe_regmc_mega_weather_forecast.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine-6.md` §2;
+  Reg M-B lattice 1200 reads 0 board-material; Reg M-B data files byte-identical.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.54.0] — 2026-09-22 — **Milk Drink heals the one body it is aimed at (Reg M-C)**
 
 - **What changed.** `engine/medicham2-browser.js`: `healParam` spreads a pair-sized `healsAlly` heal only for the `allies`
