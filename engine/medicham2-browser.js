@@ -9430,6 +9430,32 @@ function applyMoveWeather(m,mvId,field){
 const TERRAIN_FIVE_ALWAYS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TERRAIN_FIVE_ALWAYS==='1');
 /* 2026-09-22 (Reg M-C, abra/regmc 0.30.0) -- MEDI_TRAP_CHIP_ITEM_BLIND=1: the partial trap ignores its trapper's item again. */
 const TRAP_CHIP_ITEM_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TRAP_CHIP_ITEM_BLIND==='1');
+/* 2026-09-22 (Reg M-C, abra/regmc 0.31.0) -- THE TYPE GEMS (`typeGem`, Normal Gem). M-C checkout data/items.ts normalgem:
+ * `onSourceTryPrimaryHit(target, source, move) { if (target === source || move.category === "Status" || ...) return; if
+ * (move.type === "Normal" && source.useItem()) source.addVolatile("gem"); }`, and the `gem` condition's
+ * `onBasePower() { return this.chainModify([5325, 4096]); }` (duration 1). TryPrimaryHit is raised per target inside
+ * `spreadMoveHit`, after every accuracy step and before `getSpreadDamage`, so the gem is spent on the first row that reaches
+ * the damage step, before its `-damage`, and every arrival of that use carries the boost. `useItem` writes
+ * `-enditem|HOLDER|Normal Gem|[from] gem|[move] <Move>` and grants Unburden (`recordItemUsed`). The type is the ACTIVE
+ * move's (`effMoveType`), the multiplier the tag's. MEDI_TYPE_GEM_INERT=1 never spends one. tests/probe_regmc_type_gem.js */
+const TYPE_GEM_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TYPE_GEM_INERT==='1');
+function typeGemSpend(m,tg,moveId,mvObj,field){
+  if(TYPE_GEM_INERT||!m||!m.item||m.fainted)return false;
+  const p=TAGS.param('item',m.item,'typeGem');
+  if(!p||!p.type||!Array.isArray(p.mod))return false;
+  if(p.skipsSelfTarget!==false&&tg===m)return false;
+  if(p.skipsStatus!==false&&TAGS.has('move',moveId,'statusCategory'))return false;
+  if(String(effMoveType(mvObj,moveId,field,m)||'')!==String(p.type))return false;
+  const _id=String(m.item);
+  const _nm=(moveFx(moveId)||{}).name||moveId;
+  if(TR)TR.enditem(m,itemDisplayName(_id),'[from] gem',null,'[move] '+_nm);
+  recordItemUsed(m,_id);
+  m.item='';
+  passItemFromAlly(m);
+  m._gemBoost={mv:moveId,mod:p.mod.slice(0,2)};
+  MEDSEEN.typeGemSpent=(MEDSEEN.typeGemSpent||0)+1;
+  return true;
+}
 function terrainTurns(terrain, item){
   const t=terrainId(terrain);
   if(!t||TERRAIN_FIVE_ALWAYS)return 5;
@@ -16558,6 +16584,9 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
      * stages the authority applies them at rather than being collapsed into one number that is right
      * for one of them and out by a truncation for the other. */
     {const _ib=invulnDamageMult(def,mv.id,'basePower'); if(_ib!==1)BPCH(_ib);}
+    /* 2026-09-22 (Reg M-C, abra/regmc 0.31.0) -- THE GEM'S x5325/4096, `onBasePowerPriority: 14`: after the abilities and
+     * items above (Technician 30, the type items 15, Dry Skin 17), so last in this relay. See typeGemSpend. */
+    if(att&&att._gemBoost&&mv&&att._gemBoost.mv===mv.id){BPCH(att._gemBoost.mod);MEDSEEN.typeGemBoosted=(MEDSEEN.typeGemBoosted||0)+1;}
     /* SPENT ONCE, and clamped to 1 exactly as `battle-actions.ts:1653` clamps it after the event. */
     if(_bpChain!==CH_ONE){mvBP=Math.max(1,mdChain(mvBP,_bpChain));MEDSEEN.bpChainSpent++;MEDSEEN.bpChainMembers+=_bpMembers;}
   }
@@ -34035,6 +34064,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* 2026-09-22 (Reg M-C, abra/regmc 0.26.0) -- AN EXPOSING VOLATILE ENDS HERE, at `onBeforeMovePriority: 100`, the top
        * of the list and above recharge's 11: the holder's own next action removes it before anything can refuse it. */
       {const _xp=exposedBy(m); if(_xp&&_xp.endsBeforeOwnMove){delete m._vol[_xp.volatile];MEDSEEN.selfExposedEndedBeforeMove++;}}
+      if(m._gemBoost)delete m._gemBoost;   // 2026-09-22 (Reg M-C) -- a gem boosts only the use that spent it (duration 1)
       if(m._recharge&&!RECHARGE_BELOW_STATUS){
         MEDSEEN.rechargeSpentAtBeforeMove++; spendRecharge(m); continue;
       }
@@ -42959,6 +42989,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * rng stream than the authority does. `null` until the first target is actually priced, so a
        * move that misses everything draws nothing at all. */
       let _hitsThisUse=null;
+      let _gemTried=false;   // 2026-09-22 (Reg M-C) -- the type gem is asked once per use, at the first row priced (typeGemSpend)
       /* 2026-09-19 -- THE PER-ARRIVAL ACCURACY OF A `multiaccuracy` VOLLEY, RESOLVED ONE ARRIVAL AT A TIME.
        *
        * `_maLazy` is set by `_stepDamage` when `rollHitsOf` hands the arrivals back unresolved, and spent
@@ -43026,6 +43057,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       let _critArr0=null;
       const _stepDamage=(R)=>{const tg=R.tg;
         _reached++;   // ROADMAP #81 WIRE 1 -- past every gate: this target is a HIT, so the move did not fail
+        if(!_gemTried){_gemTried=true;typeGemSpend(m,tg,a.move.id,a.move.mv||MC.moves[a.move.id],field);}
         /* ROADMAP #262 -- THE ONE LINE THAT MIRRORS `getSpreadDamage`'s `this.battle.activeTarget =
          * target` (sim/battle-actions.ts:1154). It is written for EVERY row this step reaches, so
          * what is left standing when the step ends is the LAST such row -- which is exactly what the

@@ -6514,6 +6514,26 @@ const FLATTENS_TAG = {
 
 const ITEM_TAGS = [
   FLATTENS_TAG,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.31.0) -- THE TYPE GEMS. M-C checkout data/items.ts normalgem (the Champions mod
+   * does not name it): `onSourceTryPrimaryHit(target, source, move) { if (target === source || move.category === "Status"
+   * || move.flags["pledgecombo"]) return; if (move.type === "Normal" && source.useItem()) { source.addVolatile("gem"); } }`,
+   * and data/conditions.ts `gem`: duration 1, `onBasePowerPriority: 14`, `onBasePower() { return this.chainModify([5325,
+   * 4096]); }`. DERIVED FROM THE HANDLER: the type off the item, the multiplier off the condition it adds. Membership,
+   * printed before wiring, whole item dex, both checkouts: all 18 gems match; the only legal one is `normalgem` in
+   * gen9championsvgc2026regmc, and none is legal in gen9championsvgc2026regmb. */
+  { tag: 'typeGem', param: 'spent on the first hit of a damaging move of `type`; that move takes x`mod` base power',
+    probe: 'typeGem',
+    why: 'Normal Gem on Fake Out (Reg M-C): the authority spends it and boosts the hit, this engine did neither',
+    of: it => {
+      const src = fnsrc(it.onSourceTryPrimaryHit);
+      const m = /move\.type === ["'](\w+)["'] && source\.useItem\(\)\) \{ source\.addVolatile\(["'](\w+)["']\)/.exec(src);
+      if (!m) return null;
+      let c; try { c = dex.conditions.get(m[2]); } catch (e) { console.error('tag_dex: typeGem could not read condition ' + m[2] + ': ' + String((e && e.message) || e).slice(0, 120)); return null; }
+      const bp = /chainModify\(\[(\d+), (\d+)\]\)/.exec(fnsrc(c && c.onBasePower));
+      if (!bp) return null;
+      return { type: m[1], mod: [+bp[1], +bp[2]], volatile: m[2], skipsSelfTarget: /target === source/.test(src),
+               skipsStatus: /move\.category === ["']Status["']/.test(src), from: 'DERIVED:item.onSourceTryPrimaryHit + dex.conditions.get(' + m[2] + ').onBasePower' };
+    } },
   /* ROADMAP #144 -- THE BERRY THAT GIVES PP BACK, and it could not have a tag before PP existed
    * because there was nothing for it to restore. Derived from the `onEat` handler's own arithmetic
    * (`moveSlot.pp = Math.min(moveSlot.pp + addedPP, moveSlot.maxpp)`, data/items.ts:3367), including

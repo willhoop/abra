@@ -550,3 +550,57 @@ removed before commit.
 
 sha256 of the three Reg M-B files unchanged; damage differential seed `20260804` identical to the base but for the
 output-path line; lattice on release `8abdc33a57a2`: **0 of 961**, 0 void, 0 threw.
+
+---
+
+## 10. Normal Gem (abra/regmc 0.31.0)
+
+### The authority, read whole
+
+M-C checkout `data/items.ts` normalgem (the Champions mod does not name it): `onSourceTryPrimaryHit(target, source, move)
+{ if (target === source || move.category === "Status" || move.flags["pledgecombo"]) return; if (move.type === "Normal"
+&& source.useItem()) { source.addVolatile("gem"); } }`. `data/conditions.ts` gem: `duration: 1`, `onBasePowerPriority:
+14`, `onBasePower() { return this.chainModify([5325, 4096]); }`. `TryPrimaryHit` is raised per target in
+`tryPrimaryHitEvent` (`sim/battle-actions.ts` :1138-1146), inside `spreadMoveHit`, after the accuracy steps and before
+`getSpreadDamage`. In the pinned games the gem was on a Sneasler's and a Dragonite's Fake Out / Extreme Speed, and
+`useItem` granted Unburden (the `vol.unburden 0/1` leaf).
+
+### Tag, membership printed before wiring
+
+`typeGem {type, mod, volatile, skipsSelfTarget, skipsStatus, from}`. Whole item dex: the M-C checkout, 18 gems, the
+only legal one `normalgem`; the M-B checkout, 18 gems, none legal. The engine's tag file for Reg M-C was regenerated and
+only the Normal Gem row and the descriptor spliced in (the item was `untagged`).
+
+### Engine
+
+`typeGemSpend(m, tg, moveId, mvObj, field)` at the top of `_stepDamage`, once per use; the active move type is
+`effMoveType`. The boost is `m._gemBoost {mv, mod}`, read in the base-power relay after every other member, and dropped
+at the holder's next BeforeMove gate.
+
+### Probe — `tests/probe_regmc_type_gem.js --regulation regmc`
+
+| arm | staged | authority | 0.30.0 engine | after |
+|---|---|---|---|---|
+| GEM | Kingambit @ Normal Gem, Slash into Baxcalibur | `-enditem ... [from] gem|[move] Slash`, 91/190 | no `-enditem`, 114/190 | match, boards 0 |
+| OFFTYPE | the same holder's Night Slash | no spend, 90/190 | match | match |
+| CONTROL | Slash with no item | 114/190 | match | match |
+
+| run | exit | red |
+|---|---|---|
+| 0.30.0 engine bytes (`--medi`) | 1 | GEM (lines and boards) |
+| clean, release `5664c1b395a2` | 0 | none |
+| `MEDI_TYPE_GEM_INERT=1` | 1 | GEM (lines and boards) |
+
+### Pinned Reg M-C differential
+
+| engine | release | state bar | void | threw |
+|---|---|---|---|---|
+| 0.30.0 | `fa4072a17835` | 22 / 954 | 1 | 4 |
+| 0.31.0 | `5664c1b395a2` | **19 / 954** | 1 | 4 |
+
+The three Normal Gem games are gone.
+
+### Reg M-B unmoved
+
+sha256 of the three Reg M-B files unchanged; damage differential seed `20260804` identical to the base but for the
+output-path line; lattice on release `879b7cf1227d`: **0 of 961**, 0 void, 0 threw.

@@ -21,6 +21,25 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.31.0] — 2026-09-22
+
+### Added
+- **Normal Gem.** Item tag `typeGem {type, mod, volatile, skipsSelfTarget, skipsStatus}` (`engine/tag_dex.js`), derived
+  from the item's `onSourceTryPrimaryHit` and the `gem` condition's `onBasePower`. Membership, whole item dex, both
+  checkouts: all 18 gems match; the only legal one is Normal Gem in Reg M-C; none is legal in Reg M-B. Spliced into
+  `data/tags-regmc.json`: the Normal Gem row and the descriptor.
+- The engine spends the gem on the first row of a damaging use of its type that reaches the damage step (the
+  authority's TryPrimaryHit), writes `-enditem ... [from] gem|[move] <Move>`, records the use (Unburden, Symbiosis), and
+  multiplies that use's base power by the tag's `[5325, 4096]`, last in the base-power relay (`onBasePowerPriority:
+  14`). Knob `MEDI_TYPE_GEM_INERT`.
+- `tests/probe_regmc_type_gem.js` (`--regulation regmc`): a Normal move spends the gem and hits harder, an off-type
+  move keeps it, and a no-item control. Exit 0 clean; exit 1 under the knob and on the 0.30.0 engine bytes.
+
+### Notes
+- Reg M-B unmoved: the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice at `--games 1200` 0 of 961.
+- Pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine.md` and are not published. **Supersedes.**
+  Nothing. **Basis.** unchanged.
 ## [0.30.0] — 2026-09-22
 
 ### Fixed

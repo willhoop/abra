@@ -53,6 +53,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.31.0] — 2026-09-22 — **Normal Gem is spent on a Normal move and boosts it**
+
+- **What changed.** Item tag `typeGem` (derived; Normal Gem is the only legal member) and its consumer
+  `typeGemSpend` plus a base-power relay member in `engine/medicham2-browser.js`. Knob `MEDI_TYPE_GEM_INERT`; probe
+  `tests/probe_regmc_type_gem.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine.md` §10.
+  Reg M-B is unmoved (the three Reg M-B files byte-identical, damage differential, lattice at 1200).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
 ## [abra/regmc 0.30.0] — 2026-09-22 — **Binding Band deepens its holder's partial trap to a sixth**
 
 - **What changed.** `engine/medicham2-browser.js`: the partial trap reads its trapper's item off the tag's `chipItem` /

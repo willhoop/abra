@@ -1,3 +1,28 @@
+## REG M-C: NORMAL GEM IS SPENT ON A NORMAL MOVE AND BOOSTS IT. 2026-09-22 (abra/regmc 0.31.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine.md` §10.
+
+- **Tag.** `typeGem {type, mod, volatile, skipsSelfTarget, skipsStatus}`, from `onSourceTryPrimaryHit` and the `gem`
+  condition. Legal member: Normal Gem (Reg M-C only).
+- **Engine.** `typeGemSpend` at the first row of the use that reaches the damage step; `-enditem ... [from] gem|[move]`;
+  Unburden and Symbiosis through `recordItemUsed` / `passItemFromAlly`; x5325/4096 last in the base-power relay; the
+  boost is dropped at the holder's next BeforeMove gate.
+- **Probe** `tests/probe_regmc_type_gem.js --regulation regmc`: exit 0 clean; exit 1 under `MEDI_TYPE_GEM_INERT` and on
+  the 0.30.0 engine bytes.
+- **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
+  line; lattice `--games 1200` 0 of 961.
+
+### The Reg M-C hand list, after this pass
+
+1. **White Herb** is spent at the AfterMove door, BEFORE the end-of-action switches (Eject Button); this engine spends
+   it at the post-action pass, after a switch-in's Intimidate, and clears that drop too. Two more White Herb games end
+   with the authority spending it and this engine not (unexplained).
+2. Singles: Grassy Terrain end, Seed Sower, Liquid Ooze, Berserk, Trace's pick, rain upkeep, two damage values, and the
+   games whose first protocol divergence is the Sirfetch'd/Farfetch'd display name (the M-C table keys `sirfetch-d`).
+3. Revival Blessing's revive road (needs MEASURE's mirror first).
+4. The 17 census rows missing under Reg M-C: all staging gaps (report §8).
+5. Carried: the `-start`/`-fieldstart` `[of]` fields, the Inner Focus stat label, the seed GAIN door, Emergency Exit's
+   residual and hazard doors; for MEASURE, `MEGA_PREFER_B` outside `driverSnap`.
 ## REG M-C: BINDING BAND DEEPENS ITS HOLDER'S PARTIAL TRAP TO A SIXTH. 2026-09-22 (abra/regmc 0.30.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine.md` §9.
@@ -10,7 +35,7 @@ Full account: `docs/_reports/2026-09-22-regmc-engine.md` §9.
 - **Reg M-B unmoved:** the three Reg M-B files byte-identical; damage differential identical but for its output-path
   line; lattice `--games 1200` 0 of 961.
 
-### The Reg M-C hand list, after this pass
+### The Reg M-C hand list, after the 0.30.0 pass — SUPERSEDED by the 0.31.0 list above
 
 1. **Normal Gem** (untagged: consumed on a Normal move, x5325/4096 power), **White Herb** timing.
 2. Singles: Grassy Terrain end, Seed Sower, Liquid Ooze, Berserk, Trace's pick, rain upkeep, two damage values, and the

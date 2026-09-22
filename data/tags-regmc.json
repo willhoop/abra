@@ -2662,6 +2662,19 @@
    ]
   },
   {
+   "tag": "typeGem",
+   "kind": "item",
+   "param": "spent on the first hit of a damaging move of `type`; that move takes x`mod` base power",
+   "why": "Normal Gem on Fake Out (Reg M-C): the authority spends it and boosts the hit, this engine did neither",
+   "consumedBy": "typeGem",
+   "used": true,
+   "n": 1,
+   "uses": 26,
+   "examples": [
+    "Normal Gem"
+   ]
+  },
+  {
    "tag": "isBerry",
    "kind": "item",
    "param": "the item is a Berry — the class Teatime, Stuff Cheeks, Harvest and Unnerve all key on",
@@ -39351,10 +39364,22 @@
   "normalgem": {
    "name": "Normal Gem",
    "tags": [
-    "untagged"
+    "typeGem"
    ],
    "uses": 26,
-   "params": {}
+   "params": {
+    "typeGem": {
+     "type": "Normal",
+     "mod": [
+      5325,
+      4096
+     ],
+     "volatile": "gem",
+     "skipsSelfTarget": true,
+     "skipsStatus": true,
+     "from": "DERIVED:item.onSourceTryPrimaryHit + dex.conditions.get(gem).onBasePower"
+    }
+   }
   },
   "occaberry": {
    "name": "Occa Berry",
