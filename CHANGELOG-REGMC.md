@@ -21,6 +21,26 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.50.0] — 2026-09-22
+
+### Fixed
+- **Magician takes from the first hit target in the authority's `speedSort`, which Trick Room reverses, in both
+  regulations.** `magician` (`data/abilities.ts` :2477-2500, no Champions override) runs `this.speedSort(hitTargets)`,
+  which reads the cached `pokemon.speed` -- `getActionSpeed()`, `-speed` under Trick Room in Champions
+  (`data/mods/champions/scripts.ts` :46-54) -- and asks every hit target in that order, a fainted one included
+  (`takeItem` asks no HP). This engine sorted on live Speed, fastest first, so under Trick Room it robbed the wrong foe:
+  the Delphox card of both the Reg M-C 1350 and 1950 lattices (`…bo3-2683185970`). The sort loop of `sdEachEventOrder`
+  is lifted into `sdSpeedSortEntries` (one `speedSort`), and Magician sorts its whole hit list through it. No tag moved.
+  Knob `MEDI_MAGICIAN_LIVE_SPEED_ORDER`.
+- `tests/probe_regmc_magician_speed_order.js` (`--regulation regmc`): ROOM (Trick Room up, the slower foe robbed), OPEN
+  (the control). Exit 0 clean; exit 1 under the knob and on release `fef8345b826a` with the 0.49.0 engine bytes.
+
+### Notes
+- Shared rule: Magician is Reg M-B legal and the M-B checkout carries the same handler. Reg M-B data files
+  byte-identical; the Reg M-B `--games 1200` lattice reads 0 of 961 on release `97eafd8d3dc3`.
+- Pinned Reg M-C differential (census pin `f3b70bc0c47c`, release `3ddd357ff11f`): 1350 2 → **1 of 1075**; 1950 11 →
+  **10 of 1537**; 1200 unmoved at 0 of 954. `docs/_reports/2026-09-22-regmc-engine-5.md` §2.
+
 ## [0.49.0] — 2026-09-22
 
 ### Fixed

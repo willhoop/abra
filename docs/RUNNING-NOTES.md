@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.50.0] — 2026-09-22 — **Magician's victim follows the authority's speed sort, in both regulations**
+
+- **What changed.** `engine/medicham2-browser.js`: `sdSpeedSortEntries` (the `speedSort` loop, lifted out of
+  `sdEachEventOrder` unchanged) now also orders Magician's hit targets on the cached action speed. No tag moved. Knob
+  `MEDI_MAGICIAN_LIVE_SPEED_ORDER`; probe `tests/probe_regmc_magician_speed_order.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine-5.md` §2;
+  Reg M-B lattice 1200 reads 0 board-material; Reg M-B data files byte-identical.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.49.0] — 2026-09-22 — **Steel Beam into a Protect charges its user, in both regulations**
 
 - **What changed.** `engine/medicham2-browser.js`: `_failRecoilOnShield` at the fully-shielded exit pays the

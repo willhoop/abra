@@ -585,6 +585,9 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
   /* 2026-09-22 (Reg M-C, abra/regmc 0.49.0) -- the same family's `onMoveFail` charge paid at the FULLY-SHIELDED exit
    * (Steel Beam into a Protect). A zero on a run holding a Steel Beam that a Protect answered means the exit is free. */
   failRecoilPaidOnShield: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.50.0) -- a Magician theft whose hit targets were ordered on the CACHED action speed
+   * (`pokemon.speed`, Trick Room negated), and a tie among them resolved by the sort's die. */
+  magicianSpeedSortCached: 0, speedSortTieResolved: 0,
   /* ROADMAP #175 -- every damage packet `refusesIndirectDamage` turned away, across all nine gated
    * sites. It replaces MEDFAILS.magicGuardChip, which counted the same event as a KNOWN GAP: the
    * counter moves from the failures object to the capabilities one, which is the whole shape of the
@@ -11806,6 +11809,15 @@ function sdEachEventOrder(actA,actB,field){
     if(e.m._sdSpe==null){ MEDFAILS.updateSpeedUncached++; e.spe=live; }
     else { e.spe=e.m._sdSpe; if(e.spe!==live)MEDSEEN.updateSortCachedDiffersLive++; }
   }
+  sdSpeedSortEntries(L,'update');
+  MEDSEEN.updateEventSorted++;
+  return L;
+}
+/* 2026-09-22 (Reg M-C, abra/regmc 0.50.0) -- `Battle#speedSort` (sim/battle.ts:429-460) over a list whose entries already
+ * carry `.spe` (the key `comparePriority` reads off `pokemon.speed`). Lifted verbatim out of `sdEachEventOrder` so the
+ * Magician theft (`this.speedSort(hitTargets)`, data/abilities.ts magician :2477-2500) sorts by the same function; one
+ * implementation of the sort. `why` names the caller in the tie counters (`update` keeps the counters it always had). */
+function sdSpeedSortEntries(L,why){
   const _r=medTieRng();
   const tie=e=>{ if(e._t===undefined)e._t=_r?_r():0; return e._t; };
   let sorted=0;
@@ -11824,12 +11836,11 @@ function sdEachEventOrder(actA,actB,field){
       const grp=L.slice(sorted,sorted+next.length);
       grp.sort((x,y)=>tie(y)-tie(x));
       for(let i=0;i<grp.length;i++)L[sorted+i]=grp[i];
-      MEDSEEN.updateTieResolved++;
-      if(!_r)MEDFAILS.updateOrderTieNoDie++;
+      if(why==='update'){MEDSEEN.updateTieResolved++; if(!_r)MEDFAILS.updateOrderTieNoDie++;}
+      else{MEDSEEN.speedSortTieResolved++; if(!_r)MEDFAILS.speedSortTieNoDie++;}
     }
     sorted+=next.length;
   }
-  MEDSEEN.updateEventSorted++;
   return L;
 }
 function residualOrder(actA,actB,field,opts){
@@ -17594,6 +17605,11 @@ if(MAGICIAN_ENDITEM_LINE)MEDFAILS.magicianEnditemLineRestored=1;
  *                                     (the authority's `setItem` refuses it: `!this.hp`, sim/pokemon.ts:1874) */
 const MAGICIAN_DEAD_THIEF_TAKES=_envK('MEDI_MAGICIAN_DEAD_THIEF_TAKES');
 if(MAGICIAN_DEAD_THIEF_TAKES)MEDFAILS.magicianDeadThiefTakesRestored=1;
+/*   MEDI_MAGICIAN_LIVE_SPEED_ORDER=1  Magician picks among its hit targets by LIVE Speed, fastest first, as before
+ *                                     abra/regmc 0.50.0 (the authority's `speedSort` reads the cached action speed,
+ *                                     which Trick Room negates) */
+const MAGICIAN_LIVE_SPEED_ORDER=_envK('MEDI_MAGICIAN_LIVE_SPEED_ORDER');
+if(MAGICIAN_LIVE_SPEED_ORDER)MEDFAILS.magicianLiveSpeedOrderRestored=1;
 function damageRollIndex(u){
   const i=DAMAGE_ROLL_SIDES-1-Math.floor(u*DAMAGE_ROLL_SIDES);
   return i<0?0:(i>DAMAGE_ROLL_SIDES-1?DAMAGE_ROLL_SIDES-1:i);
@@ -50018,8 +50034,30 @@ function battleTurn(S,rng,actsForA,actsForB){
            &&stealFlagOK(_mg,a.move.id,m,a.move.mv)){
           if(a.move.id==='fling'){MEDFAILS.stealFromFlingUnmodelled++;}
           else{
-            const _cand=_rows.filter(R=>!R.out&&R.tg&&R.tg!==m&&itemOn(R.tg)&&!itemRefusesTake(R.tg))
-                             .sort((x,y)=>effSpeed(y.tg,field)-effSpeed(x.tg,field));
+            /* 2026-09-22 (Reg M-C, abra/regmc 0.50.0) -- THE ORDER IS THE AUTHORITY'S `speedSort`, NOT LIVE SPEED.
+             * `this.speedSort(hitTargets)` with no comparator is `comparePriority`, which reads the CACHED `pokemon.speed`
+             * (`updateSpeed()` -> `getActionSpeed()`, sim/pokemon.ts:556-558), and the Champions `getActionSpeed`
+             * (data/mods/champions/scripts.ts:46-54) is `-speed` under Trick Room. So under Trick Room the SLOWER target
+             * is asked first. This sorted on live Speed, fastest first: the Delphox cards of the Reg M-C 1350 and 1950
+             * lattices (`...bo3-2683185970`), Trick Room up, Magician taking the faster foe's item. The WHOLE hit list is
+             * sorted (a tie among bodies with no item still draws the authority's shuffle), a fainted target stays in it
+             * (`takeItem` asks no HP), and the first body whose item can be taken is the victim. */
+            let _cand;
+            if(MAGICIAN_LIVE_SPEED_ORDER){
+              _cand=_rows.filter(R=>!R.out&&R.tg&&R.tg!==m&&itemOn(R.tg)&&!itemRefusesTake(R.tg))
+                         .sort((x,y)=>effSpeed(y.tg,field)-effSpeed(x.tg,field));
+            }else{
+              const _L=[];
+              for(const R of _rows){
+                if(R.out||!R.tg||R.tg===m||_L.some(e=>e.m===R.tg))continue;
+                const _live=sdActionSpeed(R.tg,field);
+                if(R.tg._sdSpe==null){MEDFAILS.updateSpeedUncached++;_L.push({m:R.tg,spe:_live});}
+                else _L.push({m:R.tg,spe:R.tg._sdSpe});
+              }
+              sdSpeedSortEntries(_L,'magician');
+              MEDSEEN.magicianSpeedSortCached++;
+              _cand=_L.filter(e=>itemOn(e.m)&&!itemRefusesTake(e.m)).map(e=>({tg:e.m}));
+            }
             if(_cand.length){
               /* ROADMAP #462 -- the doors. */
               /* 2026-09-19 (narration D) -- WHAT THE AUTHORITY PRINTS, AND WHEN IT PRINTS NOTHING.

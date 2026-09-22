@@ -138,3 +138,79 @@ authority (the same handler in the M-B checkout). No tag moved; the three Reg M-
 on release `c60cc1ca32b8`: **0 of 961**, 0 void, 0 protocol-diverged.
 
 ---
+
+## 2. Magician's victim is the authority's `speedSort` order (abra/regmc 0.50.0)
+
+### The cards
+
+Both are the same team (`…bo3-2683185970`), Trick Room up:
+
+```
+1350 t4  Heat Wave hits Pelipper and Indeedee
+  showdown   |-item|p1a: Delphox|Focus Sash|[from] ability: Magician|[of] p2a: Pelipper
+  medicham2  |-item|p1a: Delphox|rockyhelmet|[from] ability: magician|[of] p2b: Indeedee
+1950 t2  Expanding Force hits Maushold and Pikachu; Pikachu faints to it
+  showdown   |-item|p1a: Delphox|Light Ball|[from] ability: Magician|[of] p2: Pikachu
+  medicham2  |-item|p1a: Delphox|damprock|[from] ability: magician|[of] p2a: Maushold
+```
+
+### The authority, read whole
+
+- `data/abilities.ts` magician :2477-2500 (no Champions override): after the handler's refusals, `const hitTargets =
+  move.hitTargets; this.speedSort(hitTargets); for (const pokemon of hitTargets) { if (pokemon !== source) { const
+  yourItem = pokemon.takeItem(source); if (!yourItem) continue; … this.add('-item', …); return; } }`.
+- `speedSort` with no comparator is `comparePriority`, which reads the cached `pokemon.speed`; `updateSpeed()`
+  (`sim/pokemon.ts` :556-558) writes `getActionSpeed()` into it, and the Champions `getActionSpeed`
+  (`data/mods/champions/scripts.ts` :46-54) is `-speed` under Trick Room. So under Trick Room the SLOWER target is asked
+  first. `takeItem` (`sim/pokemon.ts` :1851-1866) asks no HP, so a target the same move knocked out is still asked (the
+  1950 card: the authority took the fainted Pikachu's Light Ball).
+
+### The defect
+
+The engine's Magician block sorted its candidates on live Speed, fastest first (`effSpeed(y) - effSpeed(x)`): no Trick
+Room, no cached value, no tie die.
+
+### Fix
+
+The sort loop of `sdEachEventOrder` (the `Battle#speedSort` emulation over cached action speeds) is lifted verbatim into
+`sdSpeedSortEntries(L, why)`; `sdEachEventOrder` calls it with its counters unchanged, and the Magician block now builds
+the whole hit list (each body once, `_sdSpe` or, counted, its live `sdActionSpeed`), sorts it through the same function,
+and takes from the first body whose item can be taken. `MEDSEEN.magicianSpeedSortCached`, `speedSortTieResolved`. Knob
+`MEDI_MAGICIAN_LIVE_SPEED_ORDER` (the old sort). No tag moved.
+
+### Probe -- `tests/probe_regmc_magician_speed_order.js --regulation regmc`
+
+Cast derived: Delphox (Magician; the holders that learn Trick Room and Protect are Delphox and Klefki), Dazzling Gleam
+(the first plain 100%-accurate `allAdjacentFoes` move it learns), foes Kangaskhan @ Binding Band (base Speed 90) and
+Sylveon @ Damp Rock (60) -- items with no handler of their own.
+
+| arm | staged | authority |
+|---|---|---|
+| ROOM | t1 Delphox's Trick Room; t2 Dazzling Gleam | `-item|p1a: Delphox|Damp Rock|…|[of] p2b: Sylveon` (the slower) |
+| OPEN | t1 Protect; t2 the same | `-item|p1a: Delphox|Binding Band|…|[of] p2a: Kangaskhan` (the faster) |
+
+| run | exit | red |
+|---|---|---|
+| release `fef8345b826a` + the 0.49.0 engine bytes | **1** | ROOM (line and boards) |
+| clean, release `3ddd357ff11f` | **0** | none; one theft per arm, each sorted on the cached speed |
+| `MEDI_MAGICIAN_LIVE_SPEED_ORDER=1` | **1** | ROOM (line and boards) |
+
+6 staged sets, 0 illegal. The probe does not stage the fainted-target case; the 1950 card is its measurement.
+
+### Pinned Reg M-C differential (release `3ddd357ff11f`)
+
+| `--games` | before | after | void |
+|---|---|---|---|
+| 1200 | 0 / 954 | **0 / 954** | 1 |
+| 1350 | 2 / 1075 | **1 / 1075** | 0 |
+| 1950 | 11 / 1537 | **10 / 1537** | 0 |
+
+Left: the Delphox game in both lattices. Joined: none.
+
+### Reg M-B
+
+Magician is Reg M-B legal (`data/tags.json:abilities.magician.uses` 466) and the M-B checkout's handler is the same
+(`data/abilities.ts` :2467), so this is a shared rule; Reg M-B data files byte-identical. Lattice 1200 on release
+`97eafd8d3dc3`: **0 of 961**, 0 void, 0 protocol-diverged.
+
+---

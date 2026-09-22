@@ -1,3 +1,15 @@
+## MAGICIAN'S VICTIM IS THE AUTHORITY'S `speedSort` ORDER (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.50.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-5.md` §2.
+
+- **Defect.** Magician picked among its hit targets by live Speed, fastest first; the authority's `speedSort` reads the
+  cached action speed, negated under Trick Room, and keeps a target the move knocked out. The Delphox card of the Reg
+  M-C 1350 and 1950 lattices.
+- **Fix.** `sdSpeedSortEntries` -- the one `speedSort` loop, lifted out of `sdEachEventOrder` -- orders the whole hit list.
+- **Probe** `tests/probe_regmc_magician_speed_order.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_MAGICIAN_LIVE_SPEED_ORDER` and on release `fef8345b826a` with the 0.49.0 bytes.
+- **Pinned Reg M-C:** 1350 2 → 1 of 1075; 1950 11 → 10 of 1537; 1200 0 of 954 unmoved. Reg M-B 1200: 0 of 961.
+
 ## STEEL BEAM INTO A PROTECT CHARGES ITS USER (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.49.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-5.md` §1.
