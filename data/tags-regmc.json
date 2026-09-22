@@ -41995,12 +41995,19 @@
   "grasspelt": {
    "name": "Grass Pelt",
    "tags": [
-    "breakable"
+    "breakable",
+    "condStatMult"
    ],
    "uses": 11,
    "params": {
     "breakable": {
      "breakable": true
+    },
+    "condStatMult": {
+     "stat": "def",
+     "mult": 1.5,
+     "when": "terrain",
+     "terrain": "grassyterrain"
     }
    }
   },

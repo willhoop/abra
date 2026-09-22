@@ -1,3 +1,17 @@
+## REG M-C: GRASS PELT RAISES DEFENCE IN GRASSY TERRAIN. 2026-09-22 (abra/regmc 0.46.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-4.md` §3.
+
+- **Defect.** `condStatMult` refused Grass Pelt's terrain condition by design, so the ability had no multiplier tag.
+  The "Dire Claw damage difference" card was this: Gogoat at full HP in Grassy Terrain, 152 damage on the authority, a
+  knockout here. Located with `--only-game`.
+- **Fix.** `condStatMult.when: 'terrain'` (+ `terrain`), read off the field by the one `condStatMult` reader.
+- **Probe** `tests/probe_regmc_grass_pelt.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_TERRAIN_STATMULT_INERT` and on release `d0e34207d250` with the 0.45.1 bytes.
+- **Reg M-B:** no row (no legal carrier); all four Reg M-B files byte-identical; lattice 1200 0 of 961.
+- Not checked, and no card needs it: a `condStatMult` holder attacking with its own Defence (Body Press, `swapsStat`),
+  where the authority's ModifyDef event would apply too.
+
 ## `--only-game`: REPLAY ONE GAME OF THE DIFFERENTIAL. 2026-09-22 (abra/regmc 0.45.1)
 
 A card says WHERE, not WHY; this is how to read the why. Full account: `docs/_reports/2026-09-22-regmc-engine-4.md` §2.

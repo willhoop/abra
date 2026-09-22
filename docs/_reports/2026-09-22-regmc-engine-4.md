@@ -187,3 +187,84 @@ Identity without the flag (release `d0e34207d250`, same pins, final instrument b
 `first_divergences` identical; top-level fields that differ: `generated`, `elapsed_s`, `steering` (only
 `steering.driver_code`, the digest of the driver file itself); the `--dump-games` file differs only in `generated` and
 `by` (its own output path). Checked twice, on the intermediate and the final bytes.
+
+---
+
+## 3. Grass Pelt -- the "Dire Claw damage difference" (abra/regmc 0.46.0)
+
+### The replay (`--only-game 2680535928`, release `d0e34207d250`, game #293)
+
+Boards identical through turn 8. Board at the turn-8 boundary, both engines: field `grassy`, 4 turns left (Rillaboom's
+Grassy Surge with a Terrain Extender); Gogoat 198/198, ability Grass Pelt, no item, no boosts; Sneasler 30/155, ability
+Unburden, no item, `def -1 / spd -1`. Turn 9: Sneasler's Dire Claw (super effective) into Gogoat --
+`-damage|p1b: Gogoat|46/198` on the authority (152), `0 fnt` here. The board parts on Armarouge's Expanding Force PP,
+which the authority spends on the Gogoat still standing.
+
+### The authority, read whole
+
+`data/abilities.ts` grasspelt :1697-1706: `onModifyDefPriority: 6`, `onModifyDef(pokemon) { if
+(this.field.isTerrain('grassyterrain')) return this.chainModify(1.5); }`, `flags: { breakable: 1 }`. Not in the Champions
+mod. `isTerrain` with no target reads `effectiveTerrain` (`runEvent('TryTerrain')`; no legal `onTryTerrain` in either
+checkout), so grounding is not asked. Dire Claw's Champions override (`data/mods/champions/moves.ts` :215) changes only
+flags (adds `slicing`) and the secondary chance (30).
+
+### The defect
+
+`condStatMult` (`engine/tag_dex.js`) admitted `when: 'always'` and `when: 'statused'` and refused everything else; its
+own comment named Grass Pelt as the refusal ("a real gap and it is left open rather than guessed at"). No Reg M-B species
+carries Grass Pelt, so the refusal was free there. The engine's reader (`dmgRangeOneHit`, WIRE 112) already named Grass
+Pelt as "the condition this engine will meet next".
+
+### Membership, printed before wiring (`data/_scratch-eng-a4f8/member-pelt.js`)
+
+```
+regmc furcoat     onModifyDef  carriers=persianalola,furfrou | return this.chainModify(2)
+regmc grasspelt   onModifyDef  carriers=gogoat              | if (this.field.isTerrain("grassyterrain")) return this.chainModify(1.5)
+regmc marvelscale onModifyDef  carriers=milotic             | if (pokemon.status) { return this.chainModify(1.5); }
+regmb furcoat / grasspelt (carriers=none) / marvelscale      the same handlers
+```
+
+The new branch admits a handler whose ONE `if` is `this.field.isTerrain("<id>")` around the `chainModify`: Grass Pelt
+alone. Tag files regenerated to scratch and diffed: Reg M-C, one row (`grasspelt` gains `condStatMult {stat: def, mult:
+1.5, when: terrain, terrain: grassyterrain}`), spliced alone; Reg M-B, no rule change (no row is written for an ability
+with no legal carrier). `data/tags.json`, `data/abra-tags.js`, `data/protocol-events.json`, `data/move-effects.js`
+byte-identical.
+
+### Engine
+
+The `condStatMult` reader: `when: 'terrain'` -> `terrainId(field.terrain) === terrainId(p.terrain)`; paid through the
+same `DCH` spend (`MEDSEEN.terrainStatMultPaid`). Mold Breaker still reads `defAb`. Knob `MEDI_TERRAIN_STATMULT_INERT`.
+
+### Probe -- `tests/probe_regmc_grass_pelt.js --regulation regmc`
+
+Cast derived: Gogoat (the only holder), Torterra (Grassy Terrain, t1), Garchomp (Shadow Claw physical, Power Gem
+special; both plain, neither Grass). The holder's turn-2 click is Growth (no idle move in its learnset; a self boost that
+touches neither defence).
+
+| arm | staged | authority (Gogoat HP after the hit) |
+|---|---|---|
+| PELT | Grassy Terrain t1, Shadow Claw t2 | 139/198 |
+| BARE | no terrain | 109/198 |
+| SPECIAL | PELT with Power Gem | 153/198 (no multiplier on a special hit) |
+| CONTROL | PELT, Gogoat on Sap Sipper | 109/198 |
+
+| run | exit | red |
+|---|---|---|
+| release `d0e34207d250` + the 0.45.1 engine bytes | **1** | PELT (lines and boards) |
+| clean, release `e16663e89997` | **0** | none; the multiplier paid in PELT only |
+| `MEDI_TERRAIN_STATMULT_INERT=1` | **1** | PELT (lines and boards) |
+
+8 staged sets, 0 illegal.
+
+### Pinned Reg M-C differential
+
+| engine | release | state bar | void |
+|---|---|---|---|
+| 0.45.1 | `d0e34207d250` | 3 / 954 | 1 |
+| 0.46.0 | `e16663e89997` | **2 / 954** | 1 |
+
+Left: `…2680535928`. Joined: none.
+
+### Reg M-B
+
+No behaviour can change (no carrier). Lattice 1200 on release `b6bcecf24b41`: 0 of 961, 0 void, 0 protocol.

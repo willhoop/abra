@@ -21,6 +21,30 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.46.0] — 2026-09-22
+
+### Fixed
+- **Grass Pelt raises Defence in Grassy Terrain, in Reg M-C.** `onModifyDef(pokemon) { if
+  (this.field.isTerrain('grassyterrain')) return this.chainModify(1.5); }` (M-C checkout `data/abilities.ts` grasspelt
+  :1697-1706; the Champions mod does not name it). `condStatMult` in `engine/tag_dex.js` refused the handler on purpose
+  ("a condition this derivation cannot name gets no tag"), so the ability carried only `breakable` and this engine paid
+  no multiplier. The derivation now names the condition: `when: 'terrain'`, `terrain: 'grassyterrain'`, admitted only
+  when the handler's single `if` is that test. `engine/medicham2-browser.js`'s `condStatMult` reader evaluates it off
+  the field. Knob `MEDI_TERRAIN_STATMULT_INERT`. Found with `--only-game`: the pinned game's Dire Claw into a Gogoat at
+  full HP under Grassy Terrain dealt 152 on the authority and knocked it out here.
+- `tests/probe_regmc_grass_pelt.js` (`--regulation regmc`): PELT, BARE (no terrain), SPECIAL (a special hit) and
+  CONTROL (the holder on its other ability). Exit 0 clean; exit 1 under the knob and on release `d0e34207d250` with the
+  0.45.1 engine bytes.
+
+### Notes
+- `data/tags-regmc.json` moves by the Grass Pelt row only (the `condStatMult` descriptor's member count is left as
+  committed, the precedent of the Leek and Steely Spirit rows). Grass Pelt has no legal carrier in Reg M-B, so the Reg
+  M-B derivation writes no row: `data/tags.json`, `data/abra-tags.js`, `data/protocol-events.json` and
+  `data/move-effects.js` are byte-identical.
+- Pinned Reg M-C differential (`--games 1200`, census pin `f3b70bc0c47c`): 3 of 954 → 2 of 954 on release
+  `e16663e89997`; the Dire Claw game left, none joined. Reg M-B lattice 1200 on release `b6bcecf24b41`: 0 of 961.
+  `docs/_reports/2026-09-22-regmc-engine-4.md` §3.
+
 ## [0.45.1] — 2026-09-22
 
 ### Added

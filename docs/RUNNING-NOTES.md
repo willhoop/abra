@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.46.0] — 2026-09-22 — **Grass Pelt raises Defence in Grassy Terrain, in Reg M-C**
+
+- **What changed.** `engine/tag_dex.js`: `condStatMult` names `when: 'terrain'` (Grass Pelt alone);
+  `engine/medicham2-browser.js` evaluates it off the field. `data/tags-regmc.json` moves by the Grass Pelt row only; no
+  Reg M-B file moves (no legal carrier there). Knob `MEDI_TERRAIN_STATMULT_INERT`; probe `tests/probe_regmc_grass_pelt.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C reading is in `docs/_reports/2026-09-22-regmc-engine-4.md` §3;
+  Reg M-B lattice at 1200 reads 0 board-material games on release `b6bcecf24b41`.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its gate opens).
+
 ## [abra/regmc 0.45.1] — 2026-09-22 — **`--only-game`: replay one game of the differential**
 
 - **What changed.** `engine/game_differential.js --only-game <selector> [--only-game-out <file>]`: plays the fixed-count

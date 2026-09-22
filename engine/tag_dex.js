@@ -9985,6 +9985,15 @@ const ABILITY_TAGS = [
         if (/if\s*\(\s*\w+\.status\s*\)/.test(src)) return { stat, mult, when: 'statused' };
         /* the handler is one `return this.chainModify(n)` and nothing else */
         if (!/\bif\s*\(/.test(src)) return { stat, mult, when: 'always' };
+        /* 2026-09-22 (abra/regmc 0.46.0) -- GRASS PELT, THE CONDITION THE BLOCK ABOVE REFUSED, NOW NAMED. Its whole
+         * handler is `if (this.field.isTerrain('grassyterrain')) return this.chainModify(1.5);` (M-C checkout
+         * data/abilities.ts grasspelt :1697-1706; the Champions mod does not name it), so the condition is ONE terrain
+         * and nothing else: `when: 'terrain'`, `terrain` = the id the handler names. Only a handler whose single `if`
+         * is that test is admitted; anything else still refuses. `isTerrain` without a target ignores grounding
+         * (sim/field.ts effectiveTerrain; no legal `onTryTerrain` in either checkout). Membership printed before
+         * wiring: grasspelt alone, and it has no legal carrier in Reg M-B, so Reg M-B's tag file gains no row. */
+        const _terr = src.match(/^[^{]*\{\s*if\s*\(\s*this\.field\.isTerrain\(\s*["'](\w+)["']\s*\)\s*\)\s*(?:\{\s*)?return\s+this\.chainModify\([^)]*\);?\s*\}?\s*\}\s*$/);
+        if (_terr && (src.match(/\bif\s*\(/g) || []).length === 1) return { stat, mult, when: 'terrain', terrain: _terr[1] };
         return null;                      /* a condition this derivation cannot name -- refuse */
       }
       return null;

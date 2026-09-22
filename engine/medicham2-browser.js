@@ -87,7 +87,7 @@ const TAGS = (function(){
  * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
-const MEDSEEN = { terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+const MEDSEEN = { terrainStatMultPaid: 0, terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
    * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
@@ -16273,9 +16273,16 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    * to tag it, so it arrives here as no tag at all rather than as a wrong one. */
   {const _cs=TAGS.param('ability',defAb,'condStatMult');
    if(_cs&&_cs.mult&&_cs.stat===(phys?'def':'spd')){
+     /* 2026-09-22 (abra/regmc 0.46.0) -- `when: 'terrain'` is Grass Pelt: `if (this.field.isTerrain('grassyterrain'))
+      * return this.chainModify(1.5)` (M-C checkout data/abilities.ts grasspelt :1697-1706). `isTerrain` with no target
+      * asks the field alone -- no grounding test -- so neither does this. MEDI_TERRAIN_STATMULT_INERT=1 drops it (the
+      * pre-0.46.0 engine, where the ability carried no tag and no multiplier was paid). */
      const _w=_cs.when==='always'?true
             :_cs.when==='statused'?!!(def.status&&def.status!=='none')
+            :_cs.when==='terrain'?(TERRAIN_STATMULT_INERT?false
+                                  :!!(field&&field.terrain&&_cs.terrain&&terrainId(field.terrain)===terrainId(_cs.terrain)))
             :null;
+     if(_cs.when==='terrain'&&_w)MEDSEEN.terrainStatMultPaid++;
      if(_w===null){MEDFAILS.condStatMultUnknownWhen++;
        if(!MEDFAILS.condStatMultUnknownWhenFirst)
          MEDFAILS.condStatMultUnknownWhenFirst=String(defAb)+'/'+String(_cs.when);}
@@ -31646,6 +31653,9 @@ if(PUNISH_TERRAIN_INERT)MEDFAILS.punishTerrainInertRestored=1;
  * pre-0.45.0 engine, which left the terrain standing. */
 const AFTERHIT_TERRAIN_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_AFTERHIT_TERRAIN_INERT==='1');
 if(AFTERHIT_TERRAIN_INERT)MEDFAILS.afterHitTerrainInertRestored=1;
+/* 2026-09-22 (abra/regmc 0.46.0) -- MEDI_TERRAIN_STATMULT_INERT=1 ignores `condStatMult` `when: 'terrain'` (Grass Pelt). */
+const TERRAIN_STATMULT_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TERRAIN_STATMULT_INERT==='1');
+if(TERRAIN_STATMULT_INERT)MEDFAILS.terrainStatMultInertRestored=1;
 /* 2026-09-22 (Reg M-C, abra/regmc 0.44.0) -- DOES SHEER FORCE SKIP THIS MOVE'S AfterMoveSecondary EVENT?
  * `BattleActions#afterMoveSecondaryEvent` (sim/battle-actions.ts :811-818, both checkouts) runs the event only
  * `if (!(move.hasSheerForce && pokemon.hasAbility('sheerforce')))`, and Sheer Force's onModifyMove sets `hasSheerForce`
