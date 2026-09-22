@@ -196,8 +196,48 @@ const SB = require(D('tests', 'staged_board.js'));       // the harness, as a li
  * Null when the artifact was never built, which means "cannot defer", never "zero clicks". */
 const CLICKS = require(D('engine', 'click_counts.js')).load();
 const CS = require(D('engine', 'champions_sim.js'));
-const dex = CS.sim().Dex.forFormat(CS.FORMAT);
-const TAGS = JSON.parse(REL.read('data/tags.json'));
+const dexRaw = CS.sim().Dex.forFormat(CS.FORMAT);
+/* 2026-09-22 (MEASURE, abra/regmc 0.40.0) -- THE SHAPE RULES READ `desc` / `shortDesc`, AND A NEWER CHECKOUT DOES NOT PUT
+ * THEM ON THE ENTITY. The Reg M-C checkout builds an Item / Move / Ability without its text; the text lives in
+ * `dex.loadTextData()` (sim/dex.ts). Every rule that reads a description then read `undefined` and fell through to
+ * `held-and-nothing-more` or a refusal: 56 items went COULD-NOT-STAGE on the first Reg M-C run for no mechanical reason.
+ * The entities are frozen, so THIS FILE's `dex` is a view: the same dex underneath (a prototype, so every cache and
+ * method is the checkout's), whose items / moves / abilities hand back an entity with no text of its own wrapped so
+ * that `desc` / `shortDesc` read the text table's. Nothing else is touched, and the shared dex the battles use is NOT
+ * modified. On a checkout that already attaches the text (Reg M-B's) nothing is wrapped; the count is printed. */
+const TEXT_FILLED = { items: 0, moves: 0, abilities: 0 };
+const dex = (() => {
+  const T = typeof dexRaw.loadTextData === 'function' ? dexRaw.loadTextData() : null;
+  if (!T) return dexRaw;
+  const view = Object.create(dexRaw);
+  for (const [k, tab] of [['items', 'Items'], ['moves', 'Moves'], ['abilities', 'Abilities']]) {
+    const raw = dexRaw[k], wrapped = new WeakMap();
+    const wrap = (e) => {
+      if (!e || typeof e !== 'object' || e.shortDesc || e.desc) return e;
+      const t = (T[tab] || {})[e.id];
+      if (!t || !(t.shortDesc || t.desc)) return e;
+      if (!wrapped.has(e)) {
+        TEXT_FILLED[k]++;
+        /* AND THE NEWER TEXT WRITES A MULTIPLIER AS "1.5×" (U+00D7) WHERE THE OLDER WROTE "1.5x", which every rule that
+         * reads a multiplier out of the prose matches on. The sign is normalised; nothing else in the sentence is. */
+        const norm = s => (s == null ? s : String(s).replace(/(\d)×/g, '$1x'));
+        const d = norm(t.desc || t.shortDesc), sd = norm(t.shortDesc || t.desc);
+        wrapped.set(e, new Proxy(e, { get: (o, p) => (p === 'desc' ? d : p === 'shortDesc' ? sd : o[p]) }));
+      }
+      return wrapped.get(e);
+    };
+    const tv = Object.create(raw);
+    tv.get = (x) => wrap(raw.get(x));
+    tv.all = () => raw.all().map(wrap);
+    if (typeof raw.getByID === 'function') tv.getByID = (x) => wrap(raw.getByID(x));
+    view[k] = tv;
+  }
+  return view;
+})();
+/* THE RULES READ THE SELECTED REGULATION'S TAG FILE, as the engine does. `REL.read('data/tags.json')` served the owner
+ * regulation's copy out of every release -- a Reg M-C release freezes both -- so under Reg M-C the rules derived fixtures
+ * from Reg M-B's tags while the engine played Reg M-C's. `fileFor` is identity under Reg M-B. */
+const TAGS = JSON.parse(REL.read(require(D('engine', 'regulation.js')).fileFor('data/tags.json')));
 const pretty = SB.pretty;
 
 const STAGE = ARG('--stage') || 'spine';
@@ -18558,6 +18598,8 @@ function main() {
   console.log('  engine release ' + REL.id + '   simulator digest '
     + (REL.stamp().source_digests || {})[('engine/medicham2-browser.js')]);
   console.log('  format ' + CS.FORMAT);
+  console.log('  descriptions filled from the checkout\'s text table (entities it built without them): '
+    + JSON.stringify(TEXT_FILLED) + '   tags read from ' + require(D('engine', 'regulation.js')).fileFor('data/tags.json'));
 
   if (HAS('--rules')) { printRules(); return 0; }
 
@@ -19328,6 +19370,20 @@ function main() {
        * key is unchanged — `stamp()` writes `engine_release` — so nothing that reads this artifact
        * needs editing. */
       ...REL.stamp(), format: CS.FORMAT,
+      /* 2026-09-22 (MEASURE, abra/regmc 0.40.0) -- EVERY SET THIS RUN BUILT, PUT TO THE SELECTED FORMAT'S TEAMVALIDATOR.
+       * `buildPair`'s fixture check (engine/game_differential.js, process-global so it survives the per-arm reloads)
+       * already judged each one and printed the count on exit; it now travels WITH the counts, because a verdict staged
+       * on a set the regulation cannot put on a sheet is a claim about a game nobody can play. A NOT-baselined illegal
+       * set is a staging gap and `engine/quarantine.js` counts it against the roster clause. */
+      fixture_legality: (() => {
+        const fx = globalThis.__abraFixtureCheck;
+        if (!fx) return { checked: null, why: 'the fixture check never loaded, so nothing was judged -- NOT a zero' };
+        const nb = fx.illegal.filter(x => !x.baselined);
+        return { checked: fx.checked, illegal: fx.illegal.length, not_baselined: nb.length,
+                 baseline: 'data/fixture-legality-baseline.json',
+                 first_not_baselined: nb.slice(0, 25).map(x => ({ site: x.site, species: x.set && x.set.species,
+                   problems: x.problems })) };
+      })(),
       counts: Object.fromEntries(VERDICT_ORDER.map(v => [v, (by[v] || []).length])),
       /* THE BASE TRAVELS WITH THE COUNTS. `counts` sums to this and to nothing else; a reader that
        * finds only `counts` cannot now mistake it for the legal list, which is `scope.total`. */
