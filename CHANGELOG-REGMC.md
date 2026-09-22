@@ -21,6 +21,17 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.32.1] — 2026-09-22
+
+### Added
+- Step 14 of `docs/REGULATION-ROTATION.md`, *Downstream consumers*. CHOMP reads ABRA's usage model keyed
+  by its own old-regulation species table, and some ABRA builders still read CHOMP files. The step gives
+  the command that prints the live list. Will deferred the CHOMP update ("chomp update will come later"),
+  so `data/meta-usage.json` stays Reg M-B's until he says otherwise.
+
+### Notes
+- **Supersedes.** Nothing. **Basis.** unchanged.
+
 ## [0.32.0] — 2026-09-22
 
 ### Fixed

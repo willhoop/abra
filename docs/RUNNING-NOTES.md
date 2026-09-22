@@ -53,6 +53,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.32.1] — 2026-09-22 — **The rotation manual gains a step for CHOMP, the downstream consumer**
+
+- Step 14, *Downstream consumers*, in `docs/REGULATION-ROTATION.md`. It covers what CHOMP reads from ABRA
+  (the usage model, keyed by CHOMP's own species table) and what ABRA still reads from CHOMP (some
+  builders and tests), with a command that prints the live list. Will deferred the CHOMP update, so the
+  usage file CHOMP reads stays Reg M-B's.
+- **Supersedes.** Nothing. **Basis.** unchanged. **Owes.** The CHOMP update, when Will calls it.
+
 ## [abra/regmc 0.32.0] — 2026-09-22 — **White Herb is spent before an Eject Button or Red Card switch, not after it**
 
 - **What changed.** `engine/medicham2-browser.js`: `restoreStatsAll` runs at the AfterMove door before the Red Card

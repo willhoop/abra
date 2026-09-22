@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.32.0 — 2026-09-22.**
+**Version: 0.32.1 — 2026-09-22.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -257,6 +257,28 @@ are rewritten at the major, from the running-notes rows. `regulation_touchpoints
 prints which documents still name the old regulation.
 
 ---
+
+### 14. Downstream consumers — CHOMP, and what ABRA itself reads FROM CHOMP — JUDGEMENT, deferrable
+
+CHOMP is a separate project (`../CHOMP`) and a CONSUMER. It never learns about a rotation on its own.
+Two directions, and both are checked every rotation:
+
+- **What CHOMP reads from ABRA.** CHOMP loads the usage model (`data/meta-usage.json`, and for a new
+  regulation its sibling, e.g. `data/meta-usage-regmc.json`), keyed by CHOMP's OWN species table, which
+  is built from the OLD regulation. A species missing from that table scores as zero usage and nothing
+  warns. The three changes CHOMP needs, file by file, are in `docs/_reports/2026-09-22-regmc-usage.md`.
+  **Deferring this is allowed** (Will, 2026-09-22: *"chomp update will come later"*). While it is deferred,
+  do not re-point `data/meta-usage.json`: CHOMP keeps reading the old regulation's file, which is at
+  least internally consistent.
+- **What ABRA reads from CHOMP.** Some ABRA builders and tests still read CHOMP files, so a stale CHOMP
+  silently feeds the old regulation back in. Print the live list, never a typed one:
+
+  ```bash
+  grep -rn "CHOMP" engine build tests --include=*.js --include=*.py | grep -v graveyard | grep "path.join\|require"
+  ```
+
+  The M-B species table builder `build/build_engine_data.js` reads CHOMP's model. That is why the new
+  regulation got its own builder (`build/build_engine_data_regmc.js`) that derives from the format instead.
 
 ## WHAT CANNOT BE DERIVED, AND MUST BE JUDGED EVERY TIME
 
