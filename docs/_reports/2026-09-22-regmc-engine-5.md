@@ -214,3 +214,75 @@ Magician is Reg M-B legal (`data/tags.json:abilities.magician.uses` 466) and the
 `97eafd8d3dc3`: **0 of 961**, 0 void, 0 protocol-diverged.
 
 ---
+
+## 3. Psychic Terrain asks the body a priority move was drawn to (abra/regmc 0.51.0)
+
+### The cards
+
+Both 1950 games: a grounded Indeedee's Follow Me draws a priority move that was aimed at its airborne partner.
+
+```
+…2682187499 t4  Dragonite-Mega's Extreme Speed, drawn onto p2b Indeedee
+  showdown   |-activate|p2b: Indeedee|move: Psychic Terrain
+  medicham2  |-damage|p2b: Indeedee|58/145
+…2678460835 t2  Talonflame's Dual Wingbeat (Gale Wings priority), drawn onto p2b Indeedee
+  showdown   |-activate|p2b: Indeedee|move: Psychic Terrain
+  medicham2  |-damage|p2b: Indeedee|56/145   (and two Rocky Helmet tolls)
+```
+
+### The authority, read whole
+
+- `data/moves.ts` psychicterrain.condition.onTryHit :14114-14128 (not named by the Champions mod): `if (effect &&
+  (effect.priority <= 0.1 || effect.target === 'self')) return; if (target.isSemiInvulnerable() || target.isAlly(source))
+  return; if (!target.isGrounded()) { … return; } this.add('-activate', target, 'move: Psychic Terrain'); return null;`
+- It is a `TryHit` handler, raised by `hitStepTryHitEvent` over the move's TARGETS, the list `getMoveTargets` built after
+  `RedirectTarget` (Follow Me) moved the aim. So the body asked is the one the move was drawn to.
+
+### The defect
+
+The attack path's terrain gate (NARRATION 2026-09-10) asked `priorityRefusedAbove(..., _tAim, ...)` with `_tAim =
+a.target`, the body the player named. Its own header named the gap: *"The authority hands `onTryHit` the post-redirect
+body and exempts an ally outright; both are true here too and neither is claimed by this pass -- named rather than folded
+in, because no probe fails on them today."* Two do now.
+
+### Fix
+
+For a single-target move whose one target (after the redirect gate above it has run) is a foe, the gate asks that body.
+`MEDSEEN.terrainBarAskedRedirected`. Knob `MEDI_TERRAIN_BAR_PRE_REDIRECT`. The ally exemption (`target.isAlly(source)`)
+is NOT touched: no card or probe parts on it, and it stays named in the header. No tag moved.
+
+### Probe -- `tests/probe_regmc_terrain_bar_redirect.js --regulation regmc`
+
+Cast derived: Galarian Slowking (Psychic Terrain, t1), Clefable (Follow Me, grounded), Corviknight (Flying, the aimed
+body), Baxcalibur's Ice Shard (the first plain priority move neutral or resisted into both).
+
+| arm | staged | authority |
+|---|---|---|
+| DRAWN | t2 Clefable Follow Me; Ice Shard aimed at Corviknight | `-activate|p2a: Clefable|move: Psychic Terrain`, no damage |
+| AIMED | t2 Clefable Protects; the same Ice Shard | `-damage|p2b: Corviknight|119/173` |
+
+| run | exit | red |
+|---|---|---|
+| release `3ddd357ff11f` + the 0.50.0 engine bytes | **1** | DRAWN (line and boards) |
+| clean, release `0f2b9112051e` | **0** | none; the terrain refused once in DRAWN, asked of the redirected body |
+| `MEDI_TERRAIN_BAR_PRE_REDIRECT=1` | **1** | DRAWN (line and boards) |
+
+7 staged sets, 0 illegal.
+
+### Pinned Reg M-C differential (release `0f2b9112051e`)
+
+| `--games` | before | after | void | protocol-diverged |
+|---|---|---|---|---|
+| 1200 | 0 / 954 | **0 / 954** | 1 | 70 → 67 |
+| 1350 | 1 / 1075 | **1 / 1075** | 0 | 77 → 74 |
+| 1950 | 10 / 1537 | **8 / 1537** | 0 | 124 → 117 |
+
+Left: the two Indeedee games. Joined: none. The protocol-only count fell in all three lattices (narration-only games of
+the same shape, which parted a line and no board).
+
+### Reg M-B
+
+Follow Me and Psychic Terrain are both Reg M-B legal and the M-B checkout's handler is the same, so this is a shared rule;
+Reg M-B data files byte-identical. Lattice 1200 on release `7a9b704e148a`: **0 of 961**, 0 void, 0 protocol-diverged.
+
+---

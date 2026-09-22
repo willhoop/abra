@@ -21,6 +21,26 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.51.0] — 2026-09-22
+
+### Fixed
+- **Psychic Terrain refuses a priority move by the body Follow Me drew it to, in both regulations.**
+  `psychicterrain.condition.onTryHit` (`data/moves.ts` :14114-14128, not named by the Champions mod) is a `TryHit`
+  handler, raised over the move's targets after `RedirectTarget` moved them. This engine's attack-path gate asked the body
+  the player aimed at -- its own header named the gap -- so a priority move aimed at an airborne Talonflame and drawn onto
+  a grounded Follow Me Indeedee landed here and was refused by the authority: two cards of the Reg M-C 1950 lattice
+  (`…2682187499` Extreme Speed, `…2678460835` Gale Wings Dual Wingbeat). The gate now asks the one post-redirect foe
+  target of a single-target move. The ally exemption is left as named. No tag moved. Knob `MEDI_TERRAIN_BAR_PRE_REDIRECT`.
+- `tests/probe_regmc_terrain_bar_redirect.js` (`--regulation regmc`): DRAWN (Follow Me, refused), AIMED (the control).
+  Exit 0 clean; exit 1 under the knob and on release `3ddd357ff11f` with the 0.50.0 engine bytes.
+
+### Notes
+- Shared rule: Follow Me and Psychic Terrain are Reg M-B legal with the same handler. Reg M-B data files byte-identical;
+  the Reg M-B `--games 1200` lattice reads 0 of 961 on release `7a9b704e148a`.
+- Pinned Reg M-C differential (census pin `f3b70bc0c47c`, release `0f2b9112051e`): 1950 10 → **8 of 1537**; 1350 1 of
+  1075 and 1200 0 of 954 unmoved; protocol-only games fell in all three (70 → 67, 77 → 74, 124 → 117).
+  `docs/_reports/2026-09-22-regmc-engine-5.md` §3.
+
 ## [0.50.0] — 2026-09-22
 
 ### Fixed

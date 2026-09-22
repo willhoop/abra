@@ -1,3 +1,14 @@
+## PSYCHIC TERRAIN ASKS THE BODY A PRIORITY MOVE WAS DRAWN TO (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.51.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-5.md` §3.
+
+- **Defect.** The attack path's terrain gate asked the aimed body, not the one Follow Me drew the move to (the gate's
+  header named it). Two Indeedee cards of the Reg M-C 1950 lattice.
+- **Fix.** The gate asks the single post-redirect foe target. The ally exemption stays named, unclaimed.
+- **Probe** `tests/probe_regmc_terrain_bar_redirect.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_TERRAIN_BAR_PRE_REDIRECT` and on release `3ddd357ff11f` with the 0.50.0 bytes.
+- **Pinned Reg M-C:** 1950 10 → 8 of 1537; 1350 1 of 1075 and 1200 0 of 954 unmoved. Reg M-B 1200: 0 of 961.
+
 ## MAGICIAN'S VICTIM IS THE AUTHORITY'S `speedSort` ORDER (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.50.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-5.md` §2.

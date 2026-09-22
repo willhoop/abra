@@ -588,6 +588,9 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
   /* 2026-09-22 (Reg M-C, abra/regmc 0.50.0) -- a Magician theft whose hit targets were ordered on the CACHED action speed
    * (`pokemon.speed`, Trick Room negated), and a tie among them resolved by the sort's die. */
   magicianSpeedSortCached: 0, speedSortTieResolved: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.51.0) -- the attack path's Psychic Terrain bar asked of a body OTHER than the one
+   * the move was aimed at (the redirected target). */
+  terrainBarAskedRedirected: 0,
   /* ROADMAP #175 -- every damage packet `refusesIndirectDamage` turned away, across all nine gated
    * sites. It replaces MEDFAILS.magicGuardChip, which counted the same event as a KNOWN GAP: the
    * counter moves from the failures object to the capabilities one, which is the whole shape of the
@@ -6993,6 +6996,11 @@ const REDIRECT_BELOW_CHARGE=(typeof process!=='undefined'&&process.env
  * `MEDFAILS.terrainBarAtTryMoveRestored`. */
 const TERRAIN_BAR_AT_TRYMOVE=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_TERRAIN_BAR_AT_TRYMOVE==='1');
+/* 2026-09-22 (Reg M-C, abra/regmc 0.51.0) -- MEDI_TERRAIN_BAR_PRE_REDIRECT=1 asks the attack path's Psychic Terrain bar
+ * of the body the move was AIMED at rather than the one Follow Me drew it to -- the engine as it stood before. Any run
+ * carrying it that met a redirected priority move also carries `MEDFAILS.terrainBarPreRedirectRestored`. */
+const TERRAIN_BAR_PRE_REDIRECT=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_TERRAIN_BAR_PRE_REDIRECT==='1');
 /* 2026-09-05 -- MEDI_CHARGE_REAIMS_FIRST_LIVE_FOE=1 restores the pre-fix release rule: the second turn
  * of a two-turn move is rebuilt against `live(foes)[0]` instead of the slot the charge was aimed at.
  * It restores that and NOTHING else -- the charge turn still records the slot, the wrapper still
@@ -41588,7 +41596,18 @@ function battleTurn(S,rng,actsForA,actsForB){
        * MEDI_TERRAIN_BAR_AT_TRYMOVE=1 skips this gate and puts the terrain back in the number above. */
       if(!TERRAIN_BAR_AT_TRYMOVE){
         const _tFoes=it.side==='A'?actB:actA;
-        const _tAim=(a.target&&_tFoes.indexOf(a.target)>=0&&!a.move.spread)?a.target:null;
+        let _tAim=(a.target&&_tFoes.indexOf(a.target)>=0&&!a.move.spread)?a.target:null;
+        /* 2026-09-22 (Reg M-C, abra/regmc 0.51.0) -- AND THE BODY ASKED IS THE ONE THE MOVE WAS DRAWN TO. The paragraph
+         * above named this and left it: `psychicterrain.condition.onTryHit` (data/moves.ts :14114-14128) is a `TryHit`
+         * handler, raised by `hitStepTryHitEvent` on the move's TARGETS -- the list `getMoveTargets` built after
+         * `RedirectTarget` (Follow Me) moved the aim. `targets` here is that list (the redirect gate above has run). The
+         * Reg M-C 1950 lattice parts twice on it: a priority move aimed at an airborne foe (Talonflame) and drawn onto a
+         * grounded Follow Me Indeedee, refused by the authority (`-activate|<Indeedee>|move: Psychic Terrain`), landed
+         * here. MEDI_TERRAIN_BAR_PRE_REDIRECT=1 asks the aimed body again. */
+        if(!a.move.spread&&targets.length===1&&_tFoes.indexOf(targets[0])>=0){
+          if(TERRAIN_BAR_PRE_REDIRECT){if(targets[0]!==_tAim)MEDFAILS.terrainBarPreRedirectRestored=1;}
+          else{if(targets[0]!==_tAim)MEDSEEN.terrainBarAskedRedirected++; _tAim=targets[0];}
+        }
         const _tWhy={};
         if(gatePriority(m,a.move.id,field,0)>priorityRefusedAbove(_tFoes,field,_tAim,_tWhy,'terrain')){
           if(TR){
