@@ -7091,6 +7091,11 @@ if(REVIVE_PENDING_TAKES_RESIDUAL)MEDFAILS.revivePendingTakesResidualRestored=1;
 const HAZARD_ON_HIT_NEEDS_LIVE_USER=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_HAZARD_ON_HIT_NEEDS_LIVE_USER==='1');
 if(HAZARD_ON_HIT_NEEDS_LIVE_USER)MEDFAILS.hazardOnHitNeedsLiveUserRestored=1;
+/* 2026-09-23 (ENGINE pass 9, abra/regmc 0.71.0) -- MEDI_HAZARD_ON_HIT_FAINTED_ALWAYS=1 lets a fainted user lay Stone Axe's /
+ * Ceaseless Edge's hazard whatever its `onAfterHit` asks, as 0.60.0 did in both regulations. */
+const HAZARD_ON_HIT_FAINTED_ALWAYS=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_HAZARD_ON_HIT_FAINTED_ALWAYS==='1');
+if(HAZARD_ON_HIT_FAINTED_ALWAYS)MEDFAILS.hazardOnHitFaintedAlwaysRestored=1;
 /* 2026-09-22 (Reg M-C, abra/regmc 0.61.0) -- MEDI_SPIN_NEEDS_LIVE_USER=1 refuses Rapid Spin's / Mortal Spin's sweep to a user
  * a contact toll knocked out, as before. */
 const SPIN_NEEDS_LIVE_USER=(typeof process!=='undefined'&&process.env
@@ -49146,7 +49151,13 @@ function battleTurn(S,rng,actsForA,actsForB){
            * contact toll just knocked out still lays the hazard -- unless a Substitute took the hit. Both handlers ask the
            * HP on that road, so the sub road keeps `!m.fainted` for the whole family without a new tag param.
            * MEDI_HAZARD_ON_HIT_NEEDS_LIVE_USER=1 asks for a live user on both roads again. */
-          const _hohLive=HAZARD_ON_HIT_NEEDS_LIVE_USER?!m.fainted:(!_subAte||!m.fainted);
+          /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.71.0) -- AND THE AFTERHIT ROAD IS THE HANDLER'S TOO, WHICH 0.60.0 READ
+           * OFF THE REG M-C CHECKOUT ONLY. Reg M-B's `onAfterHit` (pokemon-showdown data/moves.ts stoneaxe :18072-18078,
+           * ceaselessedge :2229-2235) asks `!move.hasSheerForce && source.hp`, so there a user a toll knocked out lays
+           * nothing -- the held-out 12,000 draw on release 89ac57f1f81b parted on it (Ceaseless Edge, Rough Skin: 2 Spikes
+           * layers against 1). `laysForFaintedUser` is read off the handler by tag_dex; Reg M-C's handlers carry it. */
+          const _hohDeadOk=HAZARD_ON_HIT_FAINTED_ALWAYS||!!(_hoh&&_hoh.laysForFaintedUser);
+          const _hohLive=HAZARD_ON_HIT_NEEDS_LIVE_USER?!m.fainted:(!m.fainted||(!_subAte&&_hohDeadOk));
           if(_hoh&&_hoh.hazard&&connected&&_hohLive&&(_hoh.throughSubstitute||!_subAte)){
             const _hsf=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
             if(_hsf){layHazard(_hsf,_hoh.hazard,_hoh.maxLayers,m,it.side==='A'?'p2':'p1');

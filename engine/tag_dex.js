@@ -4255,8 +4255,17 @@ const MOVE_TAGS = [
        * handlers is reported rather than inferred. `onAfterSubDamage` present means the layer goes
        * down even when a Substitute ate the hit; `onAfterHit` alone would not. A miss and a Protect
        * stop both, because neither handler runs at all. */
+      /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.71.0) -- WHETHER A FAINTED USER STILL LAYS IT IS THE HANDLER'S, AND
+       * THE TWO REGULATIONS' AUTHORITIES DISAGREE. Both Champions `spreadMoveHit`s raise `AfterHit` with no HP test, so
+       * the move's own `onAfterHit` decides. Reg M-B's checkout (data/moves.ts stoneaxe :18072-18078, ceaselessedge
+       * :2229-2235) asks `!move.hasSheerForce && source.hp`; Reg M-C's (:18078-18084, :2229-2235) asks only
+       * `!move.hasSheerForce`. Read off the handler, never off the regulation id. Written ONLY when true, so no Reg M-B
+       * row moves (the same convention as `trapsTarget.alsoUser`). */
+      const aft = String(m.onAfterHit || '');
+      const laysForFaintedUser = !!m.onAfterHit && !/source\.hp/.test(aft);
       return { hazard: h, maxLayers: hazardCap(h),
-               throughSubstitute: !!m.onAfterSubDamage, onlyOnConnect: true };
+               throughSubstitute: !!m.onAfterSubDamage, onlyOnConnect: true,
+               ...(laysForFaintedUser ? { laysForFaintedUser: true } : {}) };
     } },
   /* ROADMAP #72, THE OTHER HALF -- HAZARDS COME BACK UP, AND NOTHING SAID SO. 2026-08-11.
    *

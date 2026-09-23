@@ -15758,7 +15758,8 @@
      "hazard": "spikes",
      "maxLayers": 3,
      "throughSubstitute": true,
-     "onlyOnConnect": true
+     "onlyOnConnect": true,
+     "laysForFaintedUser": true
     },
     "formatSecondaryCount": {
      "count": 1
@@ -32354,7 +32355,8 @@
      "hazard": "stealthrock",
      "maxLayers": 1,
      "throughSubstitute": true,
-     "onlyOnConnect": true
+     "onlyOnConnect": true,
+     "laysForFaintedUser": true
     },
     "formatSecondaryCount": {
      "count": 1

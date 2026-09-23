@@ -14479,6 +14479,39 @@ probe('move', 'hazardOnHit', 'Ceaseless Edge lays Spikes only when it connects -
                  + ' layer (onAfterSubDamage -- must be 1)' };
 });
 
+/* 2026-09-23 (ENGINE pass 9, abra/regmc 0.71.0) -- A USER A CONTACT TOLL KNOCKS OUT LAYS ITS HAZARD ONLY WHERE ITS OWN
+ * `onAfterHit` ASKS NO HP, AND THE TWO REGULATIONS' AUTHORITIES DISAGREE. Reg M-B's checkout (data/moves.ts stoneaxe
+ * :18072-18078) reads `if (!move.hasSheerForce && source.hp)`; Reg M-C's (:18078-18084) dropped `source.hp`. Both Champions
+ * `spreadMoveHit`s raise AfterHit with no HP test, so the handler decides. 0.60.0 read the Reg M-C checkout and laid for a
+ * fainted user in both regulations; the Reg M-B held-out 12,000 draw on release 89ac57f1f81b parted on it.
+ *
+ * THE EXPECTATION IS READ OFF THE SELECTED AUTHORITY'S HANDLER, NOT OFF THE TAG THE ENGINE READS, so the probe cannot agree
+ * with the engine by construction. CONTROL: the same Kleavor at full HP lays one layer (it survives the toll). TEST: at
+ * 1 HP it dies to the Rough Skin toll and lays one layer or none as its handler says. MEDI_HAZARD_ON_HIT_FAINTED_ALWAYS=1
+ * restores the 0.60.0 reading. tests/probe_regmc_hazard_on_hit_fainted_user.js is the two-engine proof. */
+probe('move', 'hazardOnHit', 'a user a contact toll knocks out lays Stone Axe\'s rock only if its own onAfterHit asks no HP', () => {
+  const CS0 = require(D('engine', 'champions_sim.js'));
+  const axe = CS0.sim().Dex.forFormat(CS0.FORMAT).moves.get('stoneaxe');
+  const deadLays = !!axe.onAfterHit && !/source\.hp/.test(String(axe.onAfterHit));
+  const run = (hp) => {
+    const me = bare('kleavor'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    f1.ability = 'roughskin';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(f1);
+    if (hp) me.curHP = hp;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'stoneaxe', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { fainted: !!me.fainted || me.curHP <= 0, rock: ((f1._sf && f1._sf.hz) || {}).stealthrock || 0 };
+  };
+  const control = run(0), test = run(1);
+  return { works: !control.fainted && control.rock === 1 && test.fainted && test.rock === (deadLays ? 1 : 0),
+           arms: { control, test },
+           detail: CS0.FORMAT + ': the authority\'s onAfterHit ' + (deadLays ? 'asks no HP' : 'asks source.hp')
+                 + ' -- CONTROL full HP ' + JSON.stringify(control) + ' (must survive, 1 layer)   |   TEST 1 HP '
+                 + JSON.stringify(test) + ' (must faint, ' + (deadLays ? 1 : 0) + ' layer)' };
+});
+
 /* ROADMAP #72, THE OTHER HALF -- HAZARDS COME BACK UP. 2026-08-11.
  *
  * Setting landed (WIRE 41, WIRE 68, the `hazardOnHit` pair above) and REMOVAL did not exist at all:
@@ -38650,7 +38683,9 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                            * knobs cannot fire under Reg M-B (no seed is legal there); the heal knob can, on any
                            * row that puts a semi-invulnerable body under Grassy Terrain. Listed so an armed run
                            * refuses to write rather than publishing a pre-fix census. */
-                          'terrainHealSemiInvRestored', 'seedUnconsumedRestored', 'seedNoTerrainChangeRestored']
+                          'terrainHealSemiInvRestored', 'seedUnconsumedRestored', 'seedNoTerrainChangeRestored',
+                          /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.71.0) -- the Stone Axe fainted-user row reads it */
+                          'hazardOnHitFaintedAlwaysRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

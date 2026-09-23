@@ -1,3 +1,14 @@
+## A USER A CONTACT TOLL KNOCKS OUT LAYS ITS HAZARD ONLY WHERE ITS HANDLER ASKS NO HP (REG M-B: NEVER). 2026-09-23 (abra/regmc 0.71.0)
+
+Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §1.
+
+- **Defect.** 0.60.0 read only the Reg M-C checkout, where the handler asks no HP, and changed both regulations. Reg
+  M-B's `onAfterHit` still asks `source.hp`. The Reg M-B held-out draw on `89ac57f1f81b` parted on it (1/7182).
+- **Fix.** `hazardOnHit.laysForFaintedUser` is read off the handler by `tag_dex` (Reg M-C only). The engine reads it.
+- **Probe** `tests/probe_regmc_hazard_on_hit_fainted_user.js` in both regulations, each move staged. It is red under
+  `MEDI_HAZARD_ON_HIT_FAINTED_ALWAYS` and red on `89ac57f1f81b` with the 0.70.0 bytes (Reg M-B). There is also a census
+  row under `hazardOnHit`.
+
 ## CONTRARY AND THE TERRAIN SEEDS ARE STAGED IN REG M-C. 2026-09-23 (abra/regmc 0.69.1)
 
 - **Cause.** `probe_protean_contrary`'s `itemboost` lead read NOT STAGED under Reg M-C. The seeds are legal there, and

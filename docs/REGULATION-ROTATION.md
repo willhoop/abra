@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.70.0 — 2026-09-23.**
+**Version: 0.71.0 — 2026-09-23.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -407,6 +407,7 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | **A row below the usage shelf is shelved on a count, not measured clean, and a new regulation's store is thin.** Bounce (2 clicks) and Jaw Lock (0) sat on the shelf over a real board DIFFER -- one a shared-rule defect (the charge-turn PrepareHit) that reaches Reg M-B's Greninja too. | A `BELOW-USAGE-SHELF` row whose `underlying_verdict` is FIRED-AND-BOARDS-DIFFER. | Read every shelf row's underlying verdict on a new regulation's first rosters and diagnose each DIFFER against the authority; a thin store is a sampling fact, not a correctness one. Fixed 0.67.0 (Bounce) and 0.68.0 (Jaw Lock). |
 | **A probe lead that read FALSE in the old regulation ("nothing legal reaches it") has no arm to run when the new regulation legalises the entity.** `probe_protean_contrary`'s `itemboost` lead derived Reg M-B's empty stat-raising item list and staged no arm. Reg M-C legalises the terrain seeds, so the derivation found them and the lead read NOT STAGED from 0.62.0 on. | A probe that is green in the old regulation and red on a `NOT STAGED` lead in the new one. | On a rotation, run every probe with an authority-only or FALSE lead under the new regulation, and write arms for every entity its derivation newly finds. Fixed 0.69.1. |
 | **An instrument change made for the new regulation can change what the OLD regulation's gate reads, and the old gate only shows it when it is re-measured.** `tests/roster.js` added `fixture_legality` (0.40.0), and `engine/quarantine.js` counts a refused set against the clause on the understanding that Reg M-B artifacts carry none. The first Reg M-B roster re-run carried the block (17/77/47 refused sets, `data/roster.items.json:fixture_legality.not_baselined` and its sibling stages) and turned three PASS clauses into FAIL. The same pass's text proxy threw on Reg M-B's frozen `''` Hidden Power text and knocked 7 abilities to COULD-NOT-STAGE. | Old-regulation clauses turning red on a re-measure while every DIFFER count stays 0. | Re-run the OLD regulation's roster in the same pass as any change to a shared instrument, and diff its bucket counts against the previous artifact. `docs/_reports/2026-09-23-gates-on-finished-engine.md`. |
+| **The two regulations' checkouts are different Showdown versions, so a mainline handler can differ between them even where the Champions mod overrides nothing.** Stone Axe's and Ceaseless Edge's `onAfterHit` asks `source.hp` in the Reg M-B checkout and not in the Reg M-C one. 0.60.0 read only one checkout and changed both regulations. | A shared-rule fix whose probe was run under one regulation only; the other regulation's held-out draw parts. | For a fix marked BOTH REGULATIONS, read the handler in both checkouts, derive the difference into a tag param, and run the probe under both. Fixed 0.71.0. |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

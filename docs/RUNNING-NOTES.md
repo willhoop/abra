@@ -53,6 +53,19 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.71.0] — 2026-09-23 — **A user a contact toll knocks out lays Stone Axe's / Ceaseless Edge's hazard only where its own handler asks no HP (Reg M-B: never)**
+
+- **What changed.** `engine/tag_dex.js` writes `hazardOnHit.laysForFaintedUser` when the move's own `onAfterHit` asks no
+  `source.hp` (true in Reg M-C, false in Reg M-B). `engine/medicham2-browser.js` lays for a fainted user only on that
+  param. `data/tags-regmc.json` moves by 2 rows; `data/tags.json` is byte-identical. Knob
+  `MEDI_HAZARD_ON_HIT_FAINTED_ALWAYS`. Probe `tests/probe_regmc_hazard_on_hit_fainted_user.js` (both regulations) and one
+  census row.
+- **Measured.** NO FIGURE published. Probe: Reg M-B green clean, red under the knob and on `89ac57f1f81b` with the 0.70.0
+  bytes; Reg M-C green. Census (worktree, not republished): 1005/1005 Reg M-B and 1007/1007 Reg M-C.
+  `docs/_reports/2026-09-23-engine-gate-reds.md` §1.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens; the Reg M-B held-out figure is re-measured by MEASURE).
+
 ## [abra/regmc 0.70.0] — 2026-09-23 — **Both MEDICHAM gates read in main on the finished engine: both CLOSED**
 
 - **What changed.** No code. Regenerated on releases `89ac57f1f81b` (Reg M-B) and `485d0a6840ad` (Reg M-C): both

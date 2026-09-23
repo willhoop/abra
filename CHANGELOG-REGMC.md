@@ -21,6 +21,26 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.71.0] — 2026-09-23
+
+### Fixed
+- **Reg M-B: Stone Axe and Ceaseless Edge no longer lay their hazard for a user a contact toll knocked out.** The two
+  authorities disagree. Reg M-B's checkout keeps `source.hp` in the move's own `onAfterHit` (`data/moves.ts` stoneaxe
+  :18072-18078, ceaselessedge :2229-2235). Reg M-C's checkout dropped it (:18078-18084, :2229-2235). Both Champions
+  `spreadMoveHit`s raise `AfterHit` with no HP test, so the handler decides. 0.60.0 read only the Reg M-C checkout and
+  changed both regulations. The Reg M-B held-out 12,000 draw on `89ac57f1f81b` parted on it (Ceaseless Edge into Rough
+  Skin: MEDICHAM 2 Spikes layers, Showdown 1). `engine/tag_dex.js` now reads `hazardOnHit.laysForFaintedUser` off the
+  handler and writes it only when true. `data/tags-regmc.json` moves by the stoneaxe and ceaselessedge rows, and
+  `data/tags.json` stays byte-identical. The engine lays for a fainted user only when the tag says so. Knob
+  `MEDI_HAZARD_ON_HIT_FAINTED_ALWAYS`.
+- `tests/probe_regmc_hazard_on_hit_fainted_user.js` plays both regulations (`anyRegulation`), stages each move on its own
+  (Stone Axe was never staged before), and reads what the FAINTS arm expects off the authority's handler. Reg M-B has no
+  legal contact-toll item, so finer chip steps were added. Reg M-B is green clean, and red under the knob and on
+  `89ac57f1f81b` with the 0.70.0 bytes. Reg M-C is green, and red under `MEDI_HAZARD_ON_HIT_NEEDS_LIVE_USER`.
+- New census row (`tests/test-mechanics.js`, `hazardOnHit`): Stone Axe from a 1 HP Kleavor into Rough Skin. Its
+  expectation is read off the selected authority's handler. Census 1004 → 1005 (Reg M-B) and 1006 → 1007 (Reg M-C), all
+  live. It is MISSING under the knob.
+
 ## [0.70.0] — 2026-09-23
 
 ### Changed
