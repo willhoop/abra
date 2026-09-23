@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-21T11:17:01.826Z",
+ "generated": "2026-09-23T04:47:32.153Z",
  "by": "tests/roster.js",
  "stage": "moves",
  "swap_leaf_correction": {
@@ -7,34 +7,34 @@
   "real_ability_rewrite_kept": 0,
   "control_arm_bookkeeping_dropped": 0
  },
- "engine_release": "2e9db8bb11fd",
- "engine_release_cut": "2026-09-21T11:12:58.105Z",
+ "engine_release": "89ac57f1f81b",
+ "engine_release_cut": "2026-09-23T04:13:53.505Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "1e35c4df04aa",
+  "engine/medicham2-browser.js": "a6eb84612af1",
   "engine/board.js": "c85a3b756c98",
-  "engine/rollout_leaf.js": "d00e77a7ac26",
+  "engine/rollout_leaf.js": "a68f159b6d5c",
   "engine/position_features.js": "bb71676d3669",
-  "engine/tags.js": "145a3cc9ce2f",
-  "engine/champions_sim.js": "6a4596a4ac9c",
+  "engine/tags.js": "5a57b5020d15",
+  "engine/champions_sim.js": "8094725f52a8",
   "data/residual-order.json": "eff160ad1c5a",
   "data/switchin-order.json": "24a007a66b7d",
-  "engine/mc_key.js": "f57c27a6bf38",
+  "engine/mc_key.js": "aaa095762671",
   "engine/lookup.js": "17f49e5aed43",
   "engine/set_priors.js": "f8a81445ee3a",
   "engine/smogon_priors.js": "ebd062f756c8",
   "engine/quality.js": "ebc37c7c9d05",
-  "engine/showdown_path.js": "271d0acb239b",
-  "engine/regulation.js": "ebab71cd2ba6",
+  "engine/showdown_path.js": "46646401ede2",
+  "engine/regulation.js": "827f5138ecf5",
   "data/move-effects.js": "f35ecd91ba86",
   "data/ability-blocks.json": "86741fd35452",
   "data/smogon-priors.json": "f2dc78cea6c5",
-  "data/regulations.json": "3a18e91e8699",
+  "data/regulations.json": "6c7c3e3dd06c",
   "data/quality-filter.json": "042524dd1df7",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "43bf7eb1bcc1",
-  "data/tags.json": "c34d6465c3b6",
+  "data/abra-tags.js": "e5d86eb1d337",
+  "data/tags.json": "e82b7eb5cf8a",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
@@ -42,6 +42,189 @@
   "data/rollout-switch-census.json": "b599f8d581b5"
  },
  "format": "gen9championsvgc2026regmb",
+ "fixture_legality": {
+  "checked": 790,
+  "illegal": 47,
+  "not_baselined": 47,
+  "baseline": "data/fixture-legality-baseline.json",
+  "first_not_baselined": [
+   {
+    "site": "tests/roster.js:1603",
+    "species": "beedrill",
+    "problems": [
+     "Beedrill can't learn Baneful Bunker."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "goodrahisui",
+    "problems": [
+     "Goodra-Hisui can't learn Belch."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "goodrahisui",
+    "problems": [
+     "Goodra-Hisui can't learn Bug Bite."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "sneasler",
+    "problems": [
+     "Sneasler can't learn Focus Energy."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "milotic",
+    "problems": [
+     "Milotic can't learn Focus Energy."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "clefable",
+    "problems": [
+     "Clefable can't learn Focus Energy."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1603",
+    "species": "torterra",
+    "problems": [
+     "Torterra can't learn Focus Energy."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1603",
+    "species": "torkoal",
+    "problems": [
+     "Torkoal can't learn Focus Energy."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "goodrahisui",
+    "problems": [
+     "Goodra-Hisui can't learn Focus Energy."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "goodrahisui",
+    "problems": [
+     "Goodra-Hisui can't learn Focus Energy."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "corviknight",
+    "problems": [
+     "Corviknight can't learn Magnet Rise."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "milotic",
+    "problems": [
+     "Milotic can't learn Focus Energy."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "clefable",
+    "problems": [
+     "Clefable can't learn Focus Energy."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1603",
+    "species": "lycanrocdusk",
+    "problems": [
+     "Lycanroc-Dusk can't learn Magnet Rise."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "goodrahisui",
+    "problems": [
+     "Goodra-Hisui can't learn Forest's Curse."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "goodrahisui",
+    "problems": [
+     "Goodra-Hisui can't learn Guard Swap."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1603",
+    "species": "goodrahisui",
+    "problems": [
+     "Goodra-Hisui can't learn Heal Bell."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1603",
+    "species": "torkoal",
+    "problems": [
+     "Torkoal can't learn Healing Wish."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "gallade",
+    "problems": [
+     "Gallade can't learn Focus Energy."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "goodrahisui",
+    "problems": [
+     "Goodra-Hisui can't learn Instruct."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1603",
+    "species": "beedrill",
+    "problems": [
+     "Beedrill can't learn King's Shield."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "goodrahisui",
+    "problems": [
+     "Goodra-Hisui can't learn Magic Powder."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "goodrahisui",
+    "problems": [
+     "Goodra-Hisui can't learn Pain Split."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "goodrahisui",
+    "problems": [
+     "Goodra-Hisui can't learn Pluck."
+    ]
+   },
+   {
+    "site": "tests/roster.js:1602",
+    "species": "goodrahisui",
+    "problems": [
+     "Goodra-Hisui can't learn Psych Up."
+    ]
+   }
+  ]
+ },
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
@@ -87,7 +270,7 @@
   }
  },
  "plant_anchors": {
-  "release": "2e9db8bb11fd",
+  "release": "89ac57f1f81b",
   "checked": 37,
   "dead": [],
   "reds_ran": true

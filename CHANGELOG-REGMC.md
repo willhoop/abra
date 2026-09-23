@@ -21,6 +21,34 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.70.0] — 2026-09-23
+
+### Changed
+- **Both MEDICHAM gates were read in main on the finished engine.** One release was cut per regulation: Reg M-B
+  `89ac57f1f81b` and Reg M-C `485d0a6840ad`. The pass regenerated both censuses (1004/1004 and 1006/1006 live, each
+  pinned), every roster stage, every team lattice, both `all-mechanics-fire` runs and both damage differentials, and
+  ran the Reg M-B 12,000-game held-out draw. No engine, test or tool byte moved.
+- **Reg M-B gate: CLOSED, 3 of 10.** All three failing clauses are the roster, and all three causes are the ruler.
+  (1) The re-run roster now carries `fixture_legality`, and the refused fixture sets (items 17, abilities 77,
+  moves 47) count against the clause. The previous artifacts carried no such block. (2) `tests/roster.js`'s text
+  proxy throws on Reg M-B's frozen `''` Hidden Power text, which leaves 7 abilities COULD-NOT-STAGE (Iron Fist, Mega
+  Launcher, Reckless, Sharpness, Strong Jaw, Technician, Tough Claws). 0 DIFFER and 0 DID-NOT-FIRE in every stage.
+  That abilities reading is **not republished**: it would put a ruler loss behind the published "196 of 200". It is
+  kept at `data/verification/roster.abilities-89ac57f1f81b-proxy-threw.json`, and the clause reads STALE until the
+  ruler is fixed.
+  Board-material is 0/961, 0/1069 and 0/1497; narration is 0; the damage differential is 0/6000.
+- **Reg M-C gate: CLOSED, 7 of 10.** Real reds, ENGINE-owned: multi-hit volleys into Multiscale and Disguise
+  (`engine-diff-regmc` 3/6000), and the Intimidate-reaction abilities (Inner Focus, Oblivious, Scrappy, Own Tempo;
+  Guard Dog and Rattled read STATE) in `all-mechanics-fire-regmc`. Also 7 unproven in-scope mechanics. CANNOT-ANSWER:
+  the narration baseline is unstamped (a decision) and `register-reality-regmc` has never been run. Board-material is
+  0/955, 0/1266 and 0/1497.
+
+### Notes
+- **Reg M-B held-out, `--games 12000`: 1 board-material game of 7,182.** Ceaseless Edge lays a Spikes layer after its
+  user faints to Rough Skin. MEDICHAM reads 2 layers and Showdown reads 1. The previous draw, on `2e9db8bb11fd`, read 0.
+  ENGINE owns it.
+- Full account and the OWED list: `docs/_reports/2026-09-23-gates-on-finished-engine.md`.
+
 ## [0.69.1] — 2026-09-23
 
 ### Fixed

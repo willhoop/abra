@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-23T03:20:52.188Z",
+ "generated": "2026-09-23T05:53:59.690Z",
  "by": "tests/roster.js",
  "stage": "moves",
  "swap_leaf_correction": {
@@ -8,8 +8,8 @@
   "control_arm_bookkeeping_dropped": 0
  },
  "engine_release": "485d0a6840ad",
- "engine_release_cut": "2026-09-23T02:52:05.075Z",
- "engine_release_cuts": 66,
+ "engine_release_cut": "2026-09-23T04:14:02.257Z",
+ "engine_release_cuts": 1,
  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
  "source_digests": {
   "engine/medicham2-browser.js": "a6eb84612af1",

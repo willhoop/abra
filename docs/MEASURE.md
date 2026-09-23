@@ -13,34 +13,44 @@ it does not compete on them.
 
 ```
 MEASURE — can we believe a number
-  leaf calibration: WITHHELD — engine/provenance.js calls data/winrate-backtest.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    older than its input engine-data.js
-    (+2 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/backtest_winrate.js
-  engine correctness -> leaf: WITHHELD — engine/provenance.js calls data/leaf-engine-contrast.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    older than its input engine-data.js
-    (+10 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 246 unsafe, 2 void (declared), 7 possibly stale, 7 ok, 0 missing
+  leaf calibration: QUARANTINED — the figure is withheld, not annotated.
+    data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 3 of 10 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
+  engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
+    data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 3 of 10 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
+  provenance: 234 unsafe, 2 void (declared), 29 possibly stale, 22 ok, 0 missing
     RATCHET TRIPPED — the unstamped list grew; provenance.js exited non-zero: _diag41-sample.json, _diag46-cards.json, _diag46-sample.json, _diag46b-cards.json, _diag46b-sample.json, _diag77-cards.json
     their generators ship without recording what CONTENT they read — stamp source_digests
-  click censoring: WITHHELD — engine/provenance.js calls data/click-censoring-census.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — engine/fit_policy.js was 37df17935c16 at read time, is 98ee2730d140 now
-    (+5 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/click_census.js
+  click censoring: QUARANTINED — the figure is withheld, not annotated.
+    data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 3 of 10 gate clauses fail (deliberate roster / items; deliberate roster / abilities; deliberate roster / moves)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
+  the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-21 03:38
+    moved after the fit: engine/medicham2-browser.js  2026-09-23 00:00
     moved after the fit: data/engine-data.js  2026-08-31 00:08
-    moved after the fit: data/abra-tags.js  2026-09-20 12:17
+    moved after the fit: data/abra-tags.js  2026-09-22 17:19
 ```
 
-_stamped 2026-09-21 04:30_
+_stamped 2026-09-23 03:16_
 
 <!-- /GENERATED -->
+
+## BOTH GATES READ IN MAIN ON THE FINISHED ENGINE: BOTH CLOSED, REG M-B ON THE RULER ONLY. 2026-09-23 (abra/regmc 0.70.0)
+
+- **Reg M-B.** Every engine-facing clause passes: board-material 0/961, 0/1069, 0/1497; damage 0/6000; mechanics 0.
+  The roster clauses fail on the instrument. The first Reg M-B roster re-run since 0.40.0 carries `fixture_legality`,
+  and `engine/quarantine.js` assumed Reg M-B artifacts never would. The text proxy in `tests/roster.js` also throws on
+  Reg M-B's frozen Hidden Power text (7 abilities COULD-NOT-STAGE). Neither is an engine defect. Both are owed to
+  this division.
+- **Reg M-C.** Real reds: multi-hit volleys into Multiscale and Disguise, and the Intimidate-reaction abilities.
+  CANNOT-ANSWER: the narration baseline (a decision) and the register audit (never run).
+- **Held-out.** Reg M-B 1/7182: Ceaseless Edge Spikes after its user faints to Rough Skin.
+- Full account: `docs/_reports/2026-09-23-gates-on-finished-engine.md`.
 
 ## A REG M-C READING IS NOW A REG M-C READING: THE DRIVER, THE CENSUS AND THE ROSTER STOPPED CARRYING REG M-B. 2026-09-22 (abra/regmc 0.40.0)
 

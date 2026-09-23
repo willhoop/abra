@@ -53,6 +53,20 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.70.0] — 2026-09-23 — **Both MEDICHAM gates read in main on the finished engine: both CLOSED**
+
+- **What changed.** No code. Regenerated on releases `89ac57f1f81b` (Reg M-B) and `485d0a6840ad` (Reg M-C): both
+  censuses (pinned), `data/roster.*`, every lattice `data/game-differential*.json`, `data/all-mechanics-fire*.json`,
+  `data/engine-diff*.json`, and `data/verification/game-differential.g12000.json`.
+- **Measured.** NO FIGURE published. Reg M-B gate: 3/10 fail, all roster, all ruler (fixture legality 17/77/47 not
+  baselined; 7 abilities COULD-NOT-STAGE because the text proxy throws. That abilities reading is kept in
+  `data/verification/` and not republished). Board-material 0/961, 0/1069, 0/1497. Reg M-C
+  gate: 7/10 fail. The damage reds are volleys into Multiscale and Disguise (3/6000); the mechanics reds are the
+  Intimidate-reaction abilities. Board-material 0/955, 0/1266, 0/1497. Reg M-B held-out: 1/7182 (Ceaseless Edge Spikes
+  after its user faints to Rough Skin). `docs/_reports/2026-09-23-gates-on-finished-engine.md`.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens; Reg M-B's line is closed at 7.0.0).
+
 ## [abra/regmc 0.69.1] — 2026-09-23 — **The Contrary seed arms are staged in Reg M-C; `probe_protean_contrary` is green in both regulations**
 
 - **What changed.** `tests/probe_protean_contrary.js`, the `itemboost` lead. Reg M-C legalises the terrain seeds, so the
