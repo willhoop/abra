@@ -21,6 +21,27 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.57.0] — 2026-09-22
+
+### Fixed
+- **Double Shock and Burn Up spend their user's type at `selfDrops`, above the contact tolls and the faints, in both
+  regulations.** The spend is a `self: { onHit }` (`data/moves.ts` :3960-3965), run by `selfDrops` at step 4 of the
+  Champions `spreadMoveHit` (`data/mods/champions/scripts.ts` :385, the same in the Reg M-B checkout) -- above
+  `runEvent('DamagingHit')` (Rough Skin, Rocky Helmet) and the faints. This engine paid it at the bottom of the attack
+  branch, so a Pawmot a Rocky Helmet knocked out wrote `typechange` after `|faint|` and the corpse kept `???/Fighting`:
+  the Reg M-C 1950 card `…bo3-2678871998` t8. It is now paid in `_stepSelfPay`. No tag moved. Knob
+  `MEDI_SPEND_TYPE_AFTER_MOVE`.
+- `tests/probe_regmc_spend_type_before_toll.js` (`--regulation regmc`): FAINTS (Sharpedo, Rough Skin @ Rocky Helmet,
+  brings Pawmot to 31/145 with two Night Slashes; Pawmot's Double Shock; the tolls KO it), STANDS (the control, Pawmot
+  survives). Exit 0 clean; exit 1 under the knob and on release `f2e0e5560692` with the 0.56.0 engine bytes.
+
+### Notes
+- Shared rule (Double Shock and Burn Up are Reg M-B legal); Reg M-B data files byte-identical. Reg M-B lattice 1200 on
+  release `1ad6fd553b23`: 0 of 961.
+- Pinned Reg M-C differential (census pin `f3b70bc0c47c`, release `1d5008367277`): 1950 4 → **3 of 1537**; 1350 **0 of
+  1075** and 1200 **0 of 954** unmoved. Protocol-only games fell too (1950 113 → 99, 1350 73 → 72, 1200 67 → 64): the
+  same line order on survivors. `docs/_reports/2026-09-22-regmc-engine-6.md` §4.
+
 ## [0.56.0] — 2026-09-22
 
 ### Fixed

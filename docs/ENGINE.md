@@ -1,3 +1,13 @@
+## DOUBLE SHOCK AND BURN UP SPEND THEIR USER'S TYPE ABOVE THE CONTACT TOLLS (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.57.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-6.md` §4.
+
+- **Defect.** The `spendsOwnType` spend (a `self: { onHit }`) was paid at the bottom of the attack branch, below the
+  contact tolls and the faints, so a user a toll KO'd kept `???` on its corpse.
+- **Fix.** Paid in `_stepSelfPay`, the authority's `selfDrops` position.
+- **Probe** `tests/probe_regmc_spend_type_before_toll.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_SPEND_TYPE_AFTER_MOVE` and on release `f2e0e5560692` with the 0.56.0 bytes.
+
 ## PROTEAN CONVERTS ITS USER BEFORE PSYCHIC TERRAIN REFUSES THE PRIORITY MOVE (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.56.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-6.md` §3.

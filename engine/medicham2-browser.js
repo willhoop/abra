@@ -608,6 +608,9 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
   /* 2026-09-22 (Reg M-C, abra/regmc 0.56.0) -- a Protean / Libero conversion made at `PrepareHit`, ahead of a Psychic
    * Terrain refusal at `TryHit` that then stops the move. */
   proteanBeforeTerrainBar: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.57.0) -- a `spendsOwnType` spend (Double Shock, Burn Up) paid at `selfDrops`, above the
+   * contact tolls and the faints, where the authority pays its `self: { onHit }`. */
+  ownTypeSpentAtSelfDrops: 0,
   /* ROADMAP #175 -- every damage packet `refusesIndirectDamage` turned away, across all nine gated
    * sites. It replaces MEDFAILS.magicGuardChip, which counted the same event as a KNOWN GAP: the
    * counter moves from the failures object to the capabilities one, which is the whole shape of the
@@ -7046,6 +7049,11 @@ if(MEGA_WEATHER_NO_FORME_SYNC)MEDFAILS.megaWeatherNoFormeSyncRestored=1;
 const TERRAIN_BAR_BEFORE_PREPAREHIT=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_TERRAIN_BAR_BEFORE_PREPAREHIT==='1');
 if(TERRAIN_BAR_BEFORE_PREPAREHIT)MEDFAILS.terrainBarBeforePrepareHitRestored=1;
+/* 2026-09-22 (Reg M-C, abra/regmc 0.57.0) -- MEDI_SPEND_TYPE_AFTER_MOVE=1 pays a `spendsOwnType` spend at the bottom of the
+ * attack branch again, below the contact tolls and the faints (a user the toll knocked out kept '???' on its corpse). */
+const SPEND_TYPE_AFTER_MOVE=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_SPEND_TYPE_AFTER_MOVE==='1');
+if(SPEND_TYPE_AFTER_MOVE)MEDFAILS.spendTypeAfterMoveRestored=1;
 /* 2026-09-05 -- MEDI_CHARGE_REAIMS_FIRST_LIVE_FOE=1 restores the pre-fix release rule: the second turn
  * of a two-turn move is rebuilt against `live(foes)[0]` instead of the slot the charge was aimed at.
  * It restores that and NOTHING else -- the charge turn still records the slot, the wrapper still
@@ -49171,6 +49179,22 @@ function battleTurn(S,rng,actsForA,actsForB){
          * which is the sentence that block already used to justify itself.
          * It sits at the BOTTOM of this step because `selfDrops` calls `moveHit(source, source, ...)`
          * and that applies the self boost table before the self volatile. */
+        /* 2026-09-22 (Reg M-C, abra/regmc 0.57.0) -- AND `spendsOwnType`, WHICH IS A `self: { onHit }` AND SO IS PAID HERE.
+         * Double Shock / Burn Up spend the type in `self.onHit` (data/moves.ts :3960-3965), and `selfDrops` -> `moveHit(source,
+         * source, move, moveData.self)` runs it at step 4 of the Champions `spreadMoveHit` (data/mods/champions/scripts.ts
+         * :385, the same in the Reg M-B checkout) -- ABOVE `runEvent('DamagingHit')` (Rough Skin, Rocky Helmet) and above
+         * the faints. This engine paid it at the bottom of the attack branch, below both, so a Pawmot a Rocky Helmet knocked
+         * out wrote its `typechange` after `|faint|` and the corpse kept `???/Fighting` (the faint's type rebuild had already
+         * run): the Reg M-C 1950 card `omit-spread ...bo3-2678871998` t8. Same gate as before (`connected`, the type still
+         * held), same line. MEDI_SPEND_TYPE_AFTER_MOVE=1 moves it back. */
+        if(!SPEND_TYPE_AFTER_MOVE){
+          const _st2=TAGS.param('move',a.move.id,'spendsOwnType');
+          if(_st2&&_st2.removes&&connected&&Array.isArray(m.types)&&m.types.includes(_st2.removes)){
+            m.types=m.types.map(t=>t===_st2.removes?(_st2.becomes||'???'):t);
+            MEDSEEN.ownTypeSpent++; MEDSEEN.ownTypeSpentAtSelfDrops++;
+            if(TR)TR.vstart(m,'typechange',m.types.join('/')+'|'+ATTR.from(ATTR.move(a.move.id)));
+          }
+        }
         if(!m.fainted&&_reached>0&&TAGS.has('move',a.move.id,'recharge')){
           m._recharge=true;_rechargeArmed=true;MEDSEEN.rechargeArmedAtSelfDrops++;if(TR)TR.recharge(m);}
         else if(!m.fainted&&TAGS.has('move',a.move.id,'recharge')){
@@ -49971,7 +49995,9 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * IT IS PERMANENT FOR THE REST OF THE BODY'S TIME ON THE FIELD, which is why nothing restores it
        * at the residual the way `typeRemovedForTurn` does. Switching out rebuilds the body. */
-      {
+      /* 2026-09-22 (Reg M-C, abra/regmc 0.57.0) -- MOVED UP TO `_stepSelfPay`; this site now runs only under
+       * MEDI_SPEND_TYPE_AFTER_MOVE=1. See `_stepSelfPay`. */
+      if(SPEND_TYPE_AFTER_MOVE){
         const _st2=TAGS.param('move',a.move.id,'spendsOwnType');
         if(_st2&&_st2.removes&&connected&&Array.isArray(m.types)&&m.types.includes(_st2.removes)){
           m.types=m.types.map(t=>t===_st2.removes?(_st2.becomes||'???'):t);

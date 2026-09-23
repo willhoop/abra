@@ -245,3 +245,78 @@ Left: `…2681855173`. Joined: none.
 ### Reg M-B
 
 Shared rule. Data files byte-identical. Lattice 1200 on release `bc918a21928d`: **0 of 961**, 0 void, 0 protocol-diverged.
+
+---
+
+## 4. Double Shock and Burn Up spend their user's type above the contact tolls (abra/regmc 0.57.0)
+
+### The card (1950, `omit-spread …bo3-2678871998`, turn 8)
+
+```
+|move|p1a: Pawmot|Double Shock|p2b: Indeedee          (Indeedee's Follow Me)
+|-damage|p2b: Indeedee|0 fnt
+showdown   |-start|p1a: Pawmot|typechange|???/Fighting|[from] move: Double Shock
+           |-damage|p1a: Pawmot|0 fnt|[from] item: Rocky Helmet|[of] p2b: Indeedee
+           |faint|p2b: Indeedee   |faint|p1a: Pawmot                     -> the corpse reads Electric/Fighting
+medicham2  |-damage|p1a: Pawmot|0 fnt|[from] item: Rocky Helmet ...  |faint| |faint|
+           |-start|p1a: Pawmot|typechange|???/Fighting                    -> the corpse reads ???/Fighting
+```
+
+### The authority, read whole
+
+- `data/moves.ts` doubleshock :3945-3969: `self: { onHit(pokemon) { pokemon.setType(...'???'...); this.add('-start', ...) } }`;
+  the Champions mod adds only a `punch` flag (`data/mods/champions/moves.ts` :254-257). Burn Up is the same shape.
+- `data/mods/champions/scripts.ts` spreadMoveHit :315-426 (the same in the Reg M-B checkout): step 3 `runMoveEffects`,
+  step 4 `selfDrops` (the `self` block), step 5 secondaries, THEN `runEvent('DamagingHit')` -- the tolls. The faints are
+  written later by `faintMessages`, whose `clearVolatile` rebuilds the corpse's types.
+
+### The defect
+
+The engine paid the spend at the bottom of the attack branch (ROADMAP #210, "a `self: { onHit }` -- it runs only when the
+move actually CONNECTED"): right gate, wrong position, below `_stepDamagingHit*` and `_stepFaint`. The faint's type rebuild
+(`typesRestoredOnFaint`) had already run, so the late spend stuck to the corpse.
+
+### Fix
+
+The spend moved into `_stepSelfPay` (the step-list slot the file already names as `selfDrops`), with the same gate
+(`connected`, the type still held) and the same line. `MEDSEEN.ownTypeSpentAtSelfDrops`. Knob `MEDI_SPEND_TYPE_AFTER_MOVE`
+(the old site runs only under it). No tag moved.
+
+### Probe -- `tests/probe_regmc_spend_type_before_toll.js --regulation regmc`
+
+Cast derived: the legal moves whose `self.onHit` sets the user's type (Burn Up, Double Shock -- only Double Shock makes
+contact, so Burn Up meets no contact toll: a first draft staged Burn Up and saw no toll at all); its one legal user, Pawmot;
+the contact-toll abilities (Iron Barbs, Rough Skin) and item (Rocky Helmet); Sharpedo (Rough Skin) @ Rocky Helmet. The
+FAINTS arm finds the lowering by playing it: the first of Sharpedo's plain moves that leaves Pawmot inside the two tolls'
+reach (Night Slash twice, 145 → 31).
+
+| arm | staged | authority |
+|---|---|---|
+| FAINTS | t1-t2 Night Slash ×2 into Pawmot; t3 Double Shock KOs Sharpedo | `typechange|???/Fighting`, Rough Skin 13/145, Rocky Helmet `0 fnt`, `faint` ×2 |
+| STANDS | Sharpedo idles (Agility) instead | the same order; Pawmot survives at 103/145 |
+
+| run | exit | red |
+|---|---|---|
+| release `f2e0e5560692` + the 0.56.0 engine bytes | **1** | FAINTS (line order and boards: `pawmot.types`), STANDS (line order) |
+| clean, release `1d5008367277` | **0** | none; one spend per arm, each at `selfDrops` |
+| `MEDI_SPEND_TYPE_AFTER_MOVE=1` | **1** | FAINTS, STANDS |
+
+7 staged sets, 0 illegal. `tests/probe_regmc_typeless_stab.js` (pass 4's Double Shock / Burn Up probe) stays green on the
+new bytes. Seen in passing: with Focus Energy as the foe's idle, the authority writes `-fail` on its second use and this
+engine writes nothing -- narration, no board; the probe idles on a self boost instead.
+
+### Pinned Reg M-C differential (release `1d5008367277`)
+
+| `--games` | before | after | void | protocol-diverged |
+|---|---|---|---|---|
+| 1200 | 0 / 954 | **0 / 954** | 1 | 67 → 64 |
+| 1350 | 0 / 1075 | **0 / 1075** | 0 | 73 → 72 |
+| 1950 | 4 / 1537 | **3 / 1537** | 0 | 113 → 99 |
+
+Left: `…2678871998`. Joined: none. The protocol-only counts fell in all three lattices: the same line order on users that
+survive the toll.
+
+### Reg M-B
+
+Shared rule (Double Shock and Burn Up are Reg M-B legal). Data files byte-identical. Lattice 1200 on release
+`1ad6fd553b23`: **0 of 961**, 0 void, 0 protocol-diverged.
