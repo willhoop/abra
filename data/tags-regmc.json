@@ -42075,7 +42075,10 @@
      "reflects": null,
      "reflectSkipsAtFloor": null,
      "reflectNeedsLivingSource": null,
-     "allyBlockLine": null
+     "allyBlockLine": null,
+     "answersWith": {
+      "atk": 1
+     }
     }
    }
   },

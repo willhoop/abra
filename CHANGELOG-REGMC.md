@@ -21,6 +21,25 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.74.0] — 2026-09-23
+
+### Fixed
+- **Reg M-C: Guard Dog refused Intimidate with a bare `-fail` and never raised its Attack.** The handler
+  (`data/abilities.ts` guarddog; no Champions override; no Reg M-B carrier) deletes the drop and then calls
+  `this.boost({ atk: 1 }, target, target, null, false, true)`. So the authority writes
+  `-ability|<holder>|Guard Dog|boost` and `-boost|<holder>|atk|1`, and no `-fail`. The Reg M-C all-mechanics-fire read
+  it as a STATE divergence (Mabosstiff at atk +1 on the authority and 0 here). `engine/tag_dex.js` now reads
+  `preventsStatDrop.answersWith` off the self-boost call and writes it only when present, so `data/tags.json` stays
+  byte-identical and `data/tags-regmc.json` moves by the guarddog row. `refuseStatDrop` answers through
+  `abilityBoostRun`, which is the same road Defiant takes. Knob `MEDI_GUARD_DOG_REFUSES_ONLY`.
+- **Why the roster called it clean.** The roster's shape rule for Guard Dog is `ability/refuses-a-forced-switch`
+  (`onDragOut`). It stages a Roar and never an Intimidate, so the `onTryBoost` half was never played. Its
+  FIRED-AND-BOARDS-MATCH verdict is true of the half it staged.
+- New probe `tests/probe_intimidate_reactors.js` (either regulation). It has the GUARDDOG arm, with a Stakeout
+  Mabosstiff as the control. It is green in Reg M-C, and red under the knob and on `485d0a6840ad` with the 0.70.0
+  bytes. In Reg M-B it reads NOT RUN (exit 2), because there is no carrier. New census row (`preventsStatDrop`),
+  registered only where a legal carrier exists. Reg M-C census 1007 → 1008 live (worktree, not republished).
+
 ## [0.73.0] — 2026-09-23
 
 ### Fixed

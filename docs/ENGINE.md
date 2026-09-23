@@ -1,3 +1,13 @@
+## GUARD DOG ANSWERS INTIMIDATE WITH +1 ATTACK (REG M-C). 2026-09-23 (abra/regmc 0.74.0)
+
+Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §3.
+
+- **Defect.** Guard Dog was a bare refuser here. The authority's handler raises `{atk: 1}` on the holder in place of
+  the drop. The roster missed it because its Guard Dog rule stages the Roar half only (`onDragOut`).
+- **Fix.** `preventsStatDrop.answersWith` comes from `tag_dex`. `refuseStatDrop` answers through `abilityBoostRun`.
+- **Probe** `tests/probe_intimidate_reactors.js` GUARDDOG, plus a census row. It is red under
+  `MEDI_GUARD_DOG_REFUSES_ONLY` and on `485d0a6840ad`.
+
 ## DISGUISE UNDER A VOLLEY: REG M-B HOLDS THE NEUTRAL, REG M-C LETS IT GO AT THE BUST. 2026-09-23 (abra/regmc 0.73.0)
 
 Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §2.

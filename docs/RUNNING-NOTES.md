@@ -53,6 +53,17 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.74.0] — 2026-09-23 — **Guard Dog answers Intimidate with +1 Attack (Reg M-C)**
+
+- **What changed.** `engine/tag_dex.js` writes `preventsStatDrop.answersWith` (Guard Dog alone, Reg M-C only).
+  `engine/medicham2-browser.js` answers a refused drop with that self boost (`answerRefusedDrop`). `data/tags-regmc.json`
+  moves by 1 row; `data/tags.json` is byte-identical. Knob `MEDI_GUARD_DOG_REFUSES_ONLY`. Probe
+  `tests/probe_intimidate_reactors.js`, plus one census row.
+- **Measured.** NO FIGURE published. Probe green in Reg M-C, red under the knob and on `485d0a6840ad` with the 0.70.0
+  bytes. Reg M-C census 1008/1008 (worktree). `docs/_reports/2026-09-23-engine-gate-reds.md` §3.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.73.0] — 2026-09-23 — **Disguise under a volley: Reg M-B holds the neutral for the whole move, Reg M-C lets it go at the bust**
 
 - **What changed.** `engine/medicham2-browser.js`: the Disguise volley per regulation (Reg M-B battle hold; Reg M-C

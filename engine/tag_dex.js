@@ -7773,6 +7773,16 @@ const ABILITY_TAGS = [
        * continue` -- the drop is then simply deleted and nobody takes it), and it needs a LIVING
        * source (`if (source.hp)`). */
       const refl = /this\.boost\([^)]*\bsource\b/.test(src);
+      /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.74.0) -- A REFUSAL THAT ANSWERS WITH A SELF BOOST. Guard Dog
+       * (data/abilities.ts guarddog, both checkouts): `delete boost.atk; this.boost({ atk: 1 }, target, target, null, false,
+       * true);`. The table the handler raises on its own holder, read off the call; written ONLY when present, so no
+       * Reg M-B row moves (printed before wiring over both dexes: guarddog alone, and it has no Reg M-B carrier). */
+      const ansM = src.replace(/\s+/g, ' ').match(/this\.boost\(\s*\{([^}]*)\}\s*,\s*target\s*,\s*target\b/);
+      const answersWith = {};
+      if (ansM) for (const kv of ansM[1].split(',')) {
+        const q = kv.split(':').map(x => x.trim().replace(/["']/g, ''));
+        if (q.length === 2 && !isNaN(+q[1])) answersWith[q[0]] = +q[1];
+      }
       return { blocks: statsBlockedIn(src) || 'all stats',
                onlyFrom: only,
                onlyGrassTypes: /hasType\("Grass"\)/.test(src) || null,
@@ -7780,7 +7790,8 @@ const ABILITY_TAGS = [
                reflects: refl || null,
                reflectSkipsAtFloor: refl ? /boosts\[\w+\]\s*===?\s*-6/.test(src) : null,
                reflectNeedsLivingSource: refl ? /source\.hp/.test(src) : null,
-               allyBlockLine: allyBlockLine || null };
+               allyBlockLine: allyBlockLine || null,
+               ...(Object.keys(answersWith).length ? { answersWith } : {}) };
     } },
   /* ROADMAP #92 -- AN ABILITY THAT REFUSES ONE NAMED VOLATILE, WHICH IS NOT THE SAME TAG AS ONE THAT
    * REFUSES A STAT DROP. Own Tempo carried `preventsStatDrop` alone -- the Intimidate half -- and its

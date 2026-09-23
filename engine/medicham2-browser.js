@@ -23589,15 +23589,42 @@ function ownStatDropRefusal(target,engStat,effectName,isSecondary,src,amount){
     else reflectStatDrop(target,src,engStat,amount,ab);
   }
   return {ab, label:blocks==='all stats'?'':(STAT_LABEL[engStat]||''),
-          announce:!isSecondary&&_eid!=='octolock'&&REFLECTS_DROP.indexOf(ab)<0};
+          announce:!isSecondary&&_eid!=='octolock'&&REFLECTS_DROP.indexOf(ab)<0&&!p.answersWith,
+          answer:p.answersWith||null};
 }
 /* The one place a refusal turns into a protocol line, so the shape cannot drift between the four
  * callers. Returns true when the drop was refused. */
 function refuseStatDrop(target,engStat,effectName,isSecondary,src,amount){
   const r=statDropRefusal(target,engStat,effectName,isSecondary,src,amount);
   if(!r)return false;
-  if(TR&&r.announce)TR.failUnboost(target,r.label,r.ab);
+  if(r.answer&&!GUARD_DOG_REFUSES_ONLY){answerRefusedDrop(target,r.ab,r.answer);return true;}
+  if(TR&&(r.announce||(r.answer&&GUARD_DOG_REFUSES_ONLY)))TR.failUnboost(target,r.label,r.ab);
   else if(!isSecondary)veilBoostBlock(r,target,effectName);
+  return true;
+}
+/* 2026-09-23 (ENGINE pass 9, abra/regmc 0.74.0) -- A REFUSAL THAT ANSWERS. Guard Dog (data/abilities.ts guarddog, both
+ * checkouts, no Champions override): `if (effect.name === 'Intimidate' && boost.atk) { delete boost.atk;
+ * this.boost({ atk: 1 }, target, target, null, false, true); }`. The drop is deleted and a SELF boost is raised in its
+ * place: `Battle#boost` with `effect ||= this.effect` (Guard Dog) writes `-ability|<holder>|Guard Dog|boost` above
+ * `-boost|<holder>|atk|1`, and no `-fail` (the handler writes none). isSelf, so a +6 cap writes the zero line. The table
+ * is `preventsStatDrop.answersWith`, read off the handler by tag_dex (Reg M-C only: Guard Dog has no Reg M-B carrier).
+ * Found by the Reg M-C all-mechanics-fire (Mabosstiff: authority atk +1, MEDICHAM 0). MEDI_GUARD_DOG_REFUSES_ONLY=1
+ * restores the bare `-fail` refusal. tests/probe_intimidate_reactors.js GUARDDOG. */
+const GUARD_DOG_REFUSES_ONLY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_GUARD_DOG_REFUSES_ONLY==='1');
+if(GUARD_DOG_REFUSES_ONLY)MEDFAILS.guardDogRefusesOnlyRestored=1;
+function answerRefusedDrop(body,ab,answer){
+  if(!body||!body.boosts||!answer)return false;
+  const _run=abilityBoostRun(body,ab,{isSecondary:false});
+  const _zs=abilityZeroAnnounces(true);
+  for(const k in answer){
+    const _s=SD2ENG[k];
+    if(!_s||body.boosts[_s]==null)continue;
+    const _b=body.boosts[_s];
+    body.boosts[_s]=clamp(_b+(+answer[k]),-6,6);
+    _run.bst(_s,body.boosts[_s]-_b,_zs);
+  }
+  _run.done();
+  MEDSEEN.refusedDropAnswered=(MEDSEEN.refusedDropAnswered|0)+1;
   return true;
 }
 /* WIRE 100 -- ONE OPPONENT-INFLICTED STAT-DROP PATH, shared by Intimidate and Sticky Web, because
