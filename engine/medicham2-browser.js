@@ -28428,6 +28428,7 @@ function layHazard(sf,hz,cap,setter,sideLabel,say){
  * repeated Focus Energy (Reg M-C narration group E). MEDI_SELF_VOLATILE_FAIL_SILENT=1 restores the exclusion. */
 const SELF_VOL_FAIL_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SELF_VOLATILE_FAIL_SILENT==='1');
 const SPEND_TYPE_FAIL_BARE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SPEND_TYPE_FAIL_BARE==='1');   /* 0.83.0, see the spendsOwnType refusal */
+const STEEL_ROLLER_CLEAR_AT_END=(typeof process!=='undefined'&&process.env&&process.env.MEDI_STEEL_ROLLER_CLEAR_AT_END==='1');   /* 0.84.0, see `_stepMoveOnHitTerrain` */
 /* 2026-09-23 (ENGINE pass 10, abra/regmc 0.82.0) -- COURT CHANGE SWAPS THE LISTED SIDE CONDITIONS BETWEEN THE SIDES.
  *
  * The authority (M-C checkout data/moves.ts courtchange :3032-3098; no Champions override) walks its own literal list
@@ -49328,6 +49329,27 @@ function battleTurn(S,rng,actsForA,actsForB){
         MEDSEEN.stealEatAtHitEvent++;
         return _itemStripStep(R);
       };
+      /* 2026-09-23 (ENGINE pass 10, abra/regmc 0.84.0) -- STEEL ROLLER'S CLEAR IS ITS OWN `onHit`, STEP 3.
+       *     onHit() { this.field.clearTerrain(); }        (steelroller, data/moves.ts, both checkouts, no Champions override)
+       * `runMoveEffects` raises the move's `singleEvent('Hit')` above `DamagingHit` (Rocky Helmet, Stamina) and above
+       * `faintMessages`, so the authority writes `-fieldend` BEFORE the toll lines and BEFORE the target's `|faint|`.
+       * This engine cleared at the bottom of the move (WIRE 88's site below), after all of them. Once per move: the first
+       * row that took the hit clears it. The doll road (`onAfterSubDamage`) is left to the old site. Reg M-C narration
+       * group F. MEDI_STEEL_ROLLER_CLEAR_AT_END=1 restores the old position. */
+      let _onHitTerrainDone=false;
+      const _stepMoveOnHitTerrain=(R)=>{
+        if(STEEL_ROLLER_CLEAR_AT_END||_onHitTerrainDone)return;
+        if(!R||(!R.hit&&!R.fainted))return;
+        const _ft3=TAGS.param('move',a.move&&a.move.id,'failsWithoutTerrain');
+        if(!(_ft3&&_ft3.clears))return;
+        _onHitTerrainDone=true;
+        const _t0=field.terrain;
+        if(!_t0)return;
+        field.terrain='';field.terrainT=0;
+        if(TR)TR.terrainEnd(_t0);
+        syncFieldTypes(field,[...actA,...actB]);
+        MEDSEEN.terrainClearedAtOnHit=(MEDSEEN.terrainClearedAtOnHit||0)+1;
+      };
       /* STEP 7c's half -- Thief, Covet and Knock Off, whose handler really is `onAfterHit`. */
       const _stepAfterHit=(R)=>{
         if(_stripAtOnHit())return;
@@ -49720,7 +49742,8 @@ function battleTurn(S,rng,actsForA,actsForB){
                      * raises `singleEvent('Hit', moveData, …)` and THEN `runEvent('Hit', …)`, so Bug Bite's
                      * steal-eat sits above the ability Hit event below it and far above the reactors. */
                     _stepStealEatAtHit,
-                    _stepHitEvent,                     // 2026-09-19 -- step 3, `runMoveEffects`: an `onHit` stat ability
+                    _stepMoveOnHitTerrain,             // 2026-09-23 -- Steel Roller's own `onHit` clear, same event
+                    _stepHitEvent,                    // 2026-09-19 -- step 3, `runMoveEffects`: an `onHit` stat ability
                     _stepSelfPay,_stepEffects,
                     /* NARRATION BATCH Y, 2026-09-09 -- ONE `DamagingHit`, in the authority's sort order: every
                      * order-1 handler index-major, then every undeclared-order handler index-major. See

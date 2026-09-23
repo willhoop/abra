@@ -1,3 +1,7 @@
+## STEEL ROLLER ENDS THE TERRAIN IN ITS OWN `onHit`, ABOVE THE TOLLS AND THE FAINT (BOTH REGULATIONS). 2026-09-23 (abra/regmc 0.84.0)
+
+- `_stepMoveOnHitTerrain` (step 3, beside the move's other `onHit`). Knob `MEDI_STEEL_ROLLER_CLEAR_AT_END`. Probe
+  `tests/probe_steel_roller_onhit.js`. Reg M-C narration group F.
 ## DOUBLE SHOCK AND BURN UP FAIL NAMING THEMSELVES (BOTH REGULATIONS). 2026-09-23 (abra/regmc 0.83.0)
 
 - The `spendsOwnType` refusal writes the handler's `-fail|<user>|move: <Name>`. Knob `MEDI_SPEND_TYPE_FAIL_BARE`. Probe

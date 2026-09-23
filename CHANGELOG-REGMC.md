@@ -21,6 +21,19 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.84.0] — 2026-09-23
+
+### Fixed
+- **Steel Roller ended the terrain at the bottom of the move (both regulations).** Its clear is its own
+  `onHit() { this.field.clearTerrain(); }` (data/moves.ts, both checkouts, no Champions override), which
+  `runMoveEffects` raises above `DamagingHit` and above `faintMessages`. So the authority writes `-fieldend` before a
+  contact toll's `-damage` and before the target's `|faint|`; the engine wrote it after both. A new step
+  `_stepMoveOnHitTerrain` sits beside the move's other `onHit` step; the old WIRE 88 site still serves the doll road
+  (`onAfterSubDamage`). Reg M-C narration group F (3 / 8 / 9 first divergences on the pass-9 lattices). Knob
+  `MEDI_STEEL_ROLLER_CLEAR_AT_END`.
+- New probe `tests/probe_steel_roller_onhit.js` (either regulation). TOLL arm (a derived contact-toll item, Reg M-C
+  only) and KO arm. Green in both; red under the knob in both.
+
 ## [0.83.0] — 2026-09-23
 
 ### Fixed
