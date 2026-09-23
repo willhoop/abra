@@ -7795,6 +7795,11 @@ const ABILITY_TAGS = [
         const q = kv.split(':').map(x => x.trim().replace(/["']/g, ''));
         if (q.length === 2 && !isNaN(+q[1])) answersWith[q[0]] = +q[1];
       }
+      /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.76.0) -- THE REFUSAL LINE'S STAT LABEL, AS THE HANDLER SPELLS IT, where
+       * it spells a stat ID: `this.add("-fail", target, "unboost", "atk", ...)` in the Reg M-C checkout (Inner Focus,
+       * Oblivious, Own Tempo, Scrappy, Hyper Cutter; "def" for Big Pecks), against Reg M-B's "Attack" / "Defense",
+       * which the engine's own display table already writes. Written ONLY on a stat id, so no Reg M-B row moves. */
+      const failLabel = (src.replace(/\s+/g, ' ').match(/add\(\s*["']-fail["']\s*,\s*\w+\s*,\s*["']unboost["']\s*,\s*["'](atk|def|spa|spd|spe)["']/) || [])[1] || null;
       return { blocks: statsBlockedIn(src) || 'all stats',
                onlyFrom: only,
                onlyGrassTypes: /hasType\("Grass"\)/.test(src) || null,
@@ -7803,7 +7808,8 @@ const ABILITY_TAGS = [
                reflectSkipsAtFloor: refl ? /boosts\[\w+\]\s*===?\s*-6/.test(src) : null,
                reflectNeedsLivingSource: refl ? /source\.hp/.test(src) : null,
                allyBlockLine: allyBlockLine || null,
-               ...(Object.keys(answersWith).length ? { answersWith } : {}) };
+               ...(Object.keys(answersWith).length ? { answersWith } : {}),
+               ...(failLabel ? { failLabel } : {}) };
     } },
   /* ROADMAP #92 -- AN ABILITY THAT REFUSES ONE NAMED VOLATILE, WHICH IS NOT THE SAME TAG AS ONE THAT
    * REFUSES A STAT DROP. Own Tempo carried `preventsStatDrop` alone -- the Intimidate half -- and its

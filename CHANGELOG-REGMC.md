@@ -21,6 +21,25 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.76.0] — 2026-09-23
+
+### Fixed
+- **Reg M-C: Inner Focus, Oblivious, Own Tempo and Scrappy (and Hyper Cutter and Big Pecks) wrote `-fail|…|unboost|Attack`
+  where the authority writes `atk`.** The Reg M-B checkout's handlers write `this.add('-fail', target, 'unboost',
+  'Attack', ...)` (`data/abilities.ts` innerfocus :2150). The Reg M-C checkout's handlers write the stat id: `'atk'`
+  (:2160), and `'def'` for Big Pecks. medicham2's `STAT_LABEL` is the Reg M-B spelling. This is narration only, and
+  the boards agree. It is the four "diverging" abilities of the Reg M-C `all-mechanics-fire`. `engine/tag_dex.js`
+  now reads the literal into `preventsStatDrop.failLabel` where it is a stat id, and writes it only then.
+  `data/tags-regmc.json` moves by those six rows, and `data/tags.json` stays byte-identical. The engine writes the
+  handler's label when the tag carries one. Nothing is keyed on the regulation id. Knob `MEDI_REFUSAL_LABEL_DISPLAY`.
+- **Why the roster called them clean.** The roster's `ability/stat-drop-reaction` rule grades BOARDS
+  (FIRED-AND-BOARDS-MATCH), and the boards were right. `all_mechanics_fire` grades the protocol line as well. Both
+  instruments were right about what each one reads.
+- `tests/probe_intimidate_reactors.js` gains the four arms. They are green in both regulations. In Reg M-C they are
+  red under the knob and on `485d0a6840ad` with the 0.70.0 bytes. In Reg M-B the knob moves nothing, as it should.
+  There is also a new census row, registered where Inner Focus has a legal carrier (both regulations). Its expected
+  label is read off the selected authority's handler.
+
 ## [0.75.0] — 2026-09-23
 
 ### Fixed

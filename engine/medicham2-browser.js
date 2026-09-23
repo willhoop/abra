@@ -23421,6 +23421,8 @@ function canTakeStatus(t,st,ignoreTypeImmunity,src,why){
  * one of these handlers); the BLOCK is not. Backwards, that would fire a `-fail` on every Icy Wind
  * and part the two streams in a new place instead of an old one. */
 const STAT_LABEL={at:'Attack',df:'Defense',sa:'Special Attack',sd:'Special Defense',sp:'Speed'};
+const REFUSAL_LABEL_DISPLAY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REFUSAL_LABEL_DISPLAY==='1');
+if(REFUSAL_LABEL_DISPLAY)MEDFAILS.refusalLabelDisplayRestored=1;
 const SD_BLOCK2ENG={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp',accuracy:'acc',evasion:'eva'};
 /* STAGED tag_dex enrichment (`preventsStatDrop.onlyFrom`). Read the tag first; this list is only
  * consulted for an artifact generated before that field existed. */
@@ -23588,7 +23590,14 @@ function ownStatDropRefusal(target,engStat,effectName,isSecondary,src,amount){
     if(src===undefined||amount===undefined)MEDSEEN.reflectSourceUnknown++;
     else reflectStatDrop(target,src,engStat,amount,ab);
   }
-  return {ab, label:blocks==='all stats'?'':(STAT_LABEL[engStat]||''),
+  /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.76.0) -- THE LABEL IS THE HANDLER'S OWN SPELLING. Reg M-B's checkout writes
+   * `this.add('-fail', target, 'unboost', 'Attack', ...)` (data/abilities.ts innerfocus :2150); Reg M-C's writes the stat
+   * id, 'atk' (:2160), and so do its Oblivious, Own Tempo, Scrappy, Hyper Cutter and Big Pecks ('def'). tag_dex reads
+   * the literal into `preventsStatDrop.failLabel` where it is a stat id (Reg M-C only); STAT_LABEL stays the Reg M-B
+   * answer. MEDI_REFUSAL_LABEL_DISPLAY=1 writes STAT_LABEL everywhere, as before. */
+  const _lab=blocks==='all stats'?'':((p.failLabel&&!REFUSAL_LABEL_DISPLAY)?p.failLabel:(STAT_LABEL[engStat]||''));
+  if(p.failLabel&&!REFUSAL_LABEL_DISPLAY&&blocks!=='all stats')MEDSEEN.refusalLabelFromHandler=(MEDSEEN.refusalLabelFromHandler|0)+1;
+  return {ab, label:_lab,
           announce:!isSecondary&&_eid!=='octolock'&&REFLECTS_DROP.indexOf(ab)<0&&!p.answersWith,
           answer:p.answersWith||null};
 }

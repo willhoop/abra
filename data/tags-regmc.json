@@ -40687,7 +40687,8 @@
      "reflects": null,
      "reflectSkipsAtFloor": null,
      "reflectNeedsLivingSource": null,
-     "allyBlockLine": null
+     "allyBlockLine": null,
+     "failLabel": "def"
     }
    }
   },
@@ -42296,7 +42297,8 @@
      "reflects": null,
      "reflectSkipsAtFloor": null,
      "reflectNeedsLivingSource": null,
-     "allyBlockLine": null
+     "allyBlockLine": null,
+     "failLabel": "atk"
     }
    }
   },
@@ -42492,7 +42494,8 @@
      "reflects": null,
      "reflectSkipsAtFloor": null,
      "reflectNeedsLivingSource": null,
-     "allyBlockLine": null
+     "allyBlockLine": null,
+     "failLabel": "atk"
     },
     "refusesVolatile": {
      "refuses": [
@@ -43162,7 +43165,8 @@
      "reflects": null,
      "reflectSkipsAtFloor": null,
      "reflectNeedsLivingSource": null,
-     "allyBlockLine": null
+     "allyBlockLine": null,
+     "failLabel": "atk"
     }
    }
   },
@@ -43260,7 +43264,8 @@
      "reflects": null,
      "reflectSkipsAtFloor": null,
      "reflectNeedsLivingSource": null,
-     "allyBlockLine": null
+     "allyBlockLine": null,
+     "failLabel": "atk"
     },
     "refusesVolatile": {
      "refuses": [
@@ -44043,7 +44048,8 @@
      "reflects": null,
      "reflectSkipsAtFloor": null,
      "reflectNeedsLivingSource": null,
-     "allyBlockLine": null
+     "allyBlockLine": null,
+     "failLabel": "atk"
     },
     "ignoresTypeImmunity": {
      "movesOfType": "Fighting/Normal",

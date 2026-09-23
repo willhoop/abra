@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.75.0 — 2026-09-23.**
+**Version: 0.76.0 — 2026-09-23.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -410,6 +410,7 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | **The two regulations' checkouts are different Showdown versions, so a mainline handler can differ between them even where the Champions mod overrides nothing.** Stone Axe's and Ceaseless Edge's `onAfterHit` asks `source.hp` in the Reg M-B checkout and not in the Reg M-C one. 0.60.0 read only one checkout and changed both regulations. | A shared-rule fix whose probe was run under one regulation only; the other regulation's held-out draw parts. | For a fix marked BOTH REGULATIONS, read the handler in both checkouts, derive the difference into a tag param, and run the probe under both. Fixed 0.71.0. |
 | **A Champions mod override in one regulation's checkout can be absent from the next one, and then mainline is the authority.** Reg M-B's mod overrides Disguise to hold the neutral for a whole volley (`effectState.neutral`). Reg M-C's mod has no disguise entry, so the busted forme takes its real matchup from arrival 2 on. The engine had one rule for both, and it was wrong a different way in each regulation (battle in M-B, price in M-C). | A multi-hit into a Mimikyu parts on the board in one regulation and on the damage differential in the other. | On a rotation, diff each checkout's `data/mods/champions/*.ts` entry list against the last one, and re-derive every tag param read off a handler the diff touches. Fixed 0.73.0. |
 | **A roster shape rule stages ONE handler of an ability, and a new regulation can make the unstaged handler matter.** Guard Dog's roster rule is the `onDragOut` phaze refusal, and Rattled's is the `onDamagingHit` type trigger. Neither stages the Intimidate half (`onTryBoost` / `onAfterBoost`), so both read FIRED-AND-BOARDS-MATCH while the Intimidate reaction was missing from the engine. Both abilities are new in the M-C carrier pool. | The roster is clean and `all_mechanics_fire` reads STATE on the same ability. | For each newly legal ability, list every `on*` handler it declares and name the instrument that stages each one. A handler that no instrument stages is not tested. Fixed 0.74.0 (Guard Dog) / 0.75.0 (Rattled). |
+| **A protocol string the old regulation's checkout spelled one way can be spelled another way in the new one, with no Champions override and no rule change.** The Intimidate refusers write `'Attack'` in the Reg M-B checkout and `'atk'` in the Reg M-C one. The engine's display table held the Reg M-B spelling, so every Reg M-C refusal line parted. | Narration-only partings that cluster on one line shape across many abilities. | Diff the `this.add(...)` literals of every handler the engine reproduces between the two checkouts, and read each literal into a tag param instead of a table. Fixed 0.76.0. |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

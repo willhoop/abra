@@ -53,6 +53,17 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.76.0] — 2026-09-23 — **An Intimidate refusal names the stat as the regulation's own handler spells it ('atk' in Reg M-C)**
+
+- **What changed.** `engine/tag_dex.js` writes `preventsStatDrop.failLabel` where the handler's refusal label is a
+  stat id (Reg M-C: 6 rows). `engine/medicham2-browser.js` writes that label and falls back to `STAT_LABEL`.
+  `data/tags-regmc.json` moves by 6 rows; `data/tags.json` is byte-identical. Knob `MEDI_REFUSAL_LABEL_DISPLAY`. Probe
+  arms and one census row (both regulations).
+- **Measured.** NO FIGURE published. Probe green in both regulations; in Reg M-C it is red under the knob and on
+  `485d0a6840ad`. `docs/_reports/2026-09-23-engine-gate-reds.md` §3.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens; no Reg M-B figure moves).
+
 ## [abra/regmc 0.75.0] — 2026-09-23 — **Rattled raises its Speed after an Intimidate drop (Reg M-C)**
 
 - **What changed.** `engine/tag_dex.js`: `boostsWhenLowered` admits an effect-gated reaction (`onlyFrom`, `whenStat`,

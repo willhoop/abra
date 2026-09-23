@@ -2702,6 +2702,29 @@ if (INTIM_REACT.rattled) probe('ability', 'boostsWhenLowered',
                  + JSON.stringify(R.answer) + ') ' + JSON.stringify(test.lines) };
 });
 
+/* 2026-09-23 (abra/regmc 0.76.0) -- the refusal line's stat label is the SELECTED AUTHORITY'S spelling ('Attack' in the
+ * Reg M-B checkout, 'atk' in Reg M-C's), read off Inner Focus's own `this.add('-fail', ...)` on the run. Registered where
+ * Inner Focus has a legal carrier. MEDI_REFUSAL_LABEL_DISPLAY=1 writes the display name in both. */
+const IF_LABEL = (() => {
+  const CS0 = require(D('engine', 'champions_sim.js'));
+  const DX0 = CS0.sim().Dex.forFormat(CS0.FORMAT);
+  const A = DX0.abilities.get('innerfocus');
+  if (!(A && A.exists && !A.isNonstandard)) return null;
+  const lab = (String(A.onTryBoost || '').replace(/\s+/g, ' ').match(/add\(\s*["']-fail["']\s*,\s*\w+\s*,\s*["']unboost["']\s*,\s*["']([A-Za-z ]+)["']/) || [])[1];
+  const c = STAGING_CANDIDATES().find(k => Object.values(DX0.species.get(k).abilities || {}).some(a => DX0.abilities.get(a).id === 'innerfocus'));
+  return lab && c ? { label: lab, carrier: c } : null;
+})();
+if (IF_LABEL) probe('ability', 'preventsStatDrop',
+    'an Intimidate refusal names the stat the way the selected authority\'s handler spells it', () => {
+  const control = intimOnto(IF_LABEL.carrier, 'none'), test = intimOnto(IF_LABEL.carrier, 'innerfocus');
+  const want = '|unboost|' + IF_LABEL.label.toLowerCase().replace(/[^a-z0-9]/g, '') + '|';
+  const fail = test.lines.find(l => /^\|-fail\|/.test(l)) || '';
+  return { works: control.boosts.at === -1 && test.boosts.at === 0 && fail.includes(want),
+           arms: { control: control.boosts.at, test: [test.boosts.at, fail] },
+           detail: IF_LABEL.carrier + ' opposite an Intimidate switch-in -- no ability: atk ' + control.boosts.at + ' (must be -1); Inner Focus: atk '
+                 + test.boosts.at + ', refusal line ' + JSON.stringify(fail) + ' (must carry ' + JSON.stringify(want) + ', the handler writes "' + IF_LABEL.label + '")' };
+});
+
 /* A STAT CHANGE CLAMPED TO ZERO IS STILL ANNOUNCED, AND THE ENGINE COULD NOT SAY IT AT ALL.
  *
  * `bst()` opened `if(!d) return;` — the magnitude is the delta that actually landed, so a body already
@@ -3232,6 +3255,14 @@ probe('ability', 'preventsStatDrop', 'Mirror Armor RETURNS the drop to its sourc
  *
  * THE ARMS ARE THE EMITTED LINES, so an engine that blocks silently fails this and an engine that
  * announces a drop it did not refuse fails it too. */
+/* 2026-09-23 (ENGINE pass 9, abra/regmc 0.76.0) -- THE SCOPED LABEL IS THE SELECTED AUTHORITY'S OWN SPELLING, read off
+ * Inner Focus's handler on the run: 'Attack' in the Reg M-B checkout, 'atk' in Reg M-C's. This row typed Reg M-B's. */
+const IF_LABEL_CANON = (() => {
+  const CS0 = require(D('engine', 'champions_sim.js'));
+  const A = CS0.sim().Dex.forFormat(CS0.FORMAT).abilities.get('innerfocus');
+  const lab = (String((A && A.onTryBoost) || '').replace(/\s+/g, ' ').match(/add\(\s*["']-fail["']\s*,\s*\w+\s*,\s*["']unboost["']\s*,\s*["']([A-Za-z ]+)["']/) || [])[1] || null;   /* unreadable: the row reads MISSING, never a guessed spelling */
+  return lab ? lab.toLowerCase().replace(/[^a-z0-9]/g, '') : 'UNREADABLE';
+})();
 probe('ability', 'preventsStatDrop', 'a refused stat drop is ANNOUNCED, naming the ability and (when scoped) the stat', () => {
   const lines = (ab1, ab2) => {
     const me = bare('incineroar'), ally = bare('corviknight');
@@ -3245,7 +3276,7 @@ probe('ability', 'preventsStatDrop', 'a refused stat drop is ANNOUNCED, naming t
   return { works: control.length === 2 && control.every(l => /^\|-unboost\|/.test(l))
                   && test.length === 2
                   && test[0] === '|-fail|p2a:metagross|unboost|[from]ability:clearbody|[of]p2a:metagross'
-                  && test[1] === '|-fail|p2b:gallade|unboost|attack|[from]ability:innerfocus|[of]p2b:gallade',
+                  && test[1] === '|-fail|p2b:gallade|unboost|' + IF_LABEL_CANON + '|[from]ability:innerfocus|[of]p2b:gallade',
            arms: { control, test },
            detail: `one Intimidate switch-in, canonised — no abilities: ${JSON.stringify(control)}; `
                  + `Clear Body + Inner Focus: ${JSON.stringify(test)} (the blanket refuser names no `
@@ -38752,7 +38783,7 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           'terrainHealSemiInvRestored', 'seedUnconsumedRestored', 'seedNoTerrainChangeRestored',
                           /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.71.0) -- the Stone Axe fainted-user row reads it */
                           'hazardOnHitFaintedAlwaysRestored',
-                          'volleyShieldEveryArrivalRestored', 'disguiseVolleyOldRestored', 'guardDogRefusesOnlyRestored', 'rattledIgnoresIntimidateRestored']
+                          'volleyShieldEveryArrivalRestored', 'disguiseVolleyOldRestored', 'guardDogRefusesOnlyRestored', 'rattledIgnoresIntimidateRestored', 'refusalLabelDisplayRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

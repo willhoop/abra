@@ -1,3 +1,15 @@
+## AN INTIMIDATE REFUSAL NAMES THE STAT AS THE HANDLER SPELLS IT (REG M-C: 'atk'). 2026-09-23 (abra/regmc 0.76.0)
+
+Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §3.
+
+- **Defect.** `STAT_LABEL` is the Reg M-B spelling (`Attack`). The Reg M-C checkout's refusers write the stat id
+  (`atk`, `def`). This is narration only. The roster graded the boards (right), and `all_mechanics_fire` graded the
+  line (wrong).
+- **Fix.** `preventsStatDrop.failLabel` comes from `tag_dex`, where the literal is a stat id. It is derived, never
+  keyed on the regulation.
+- **Probe** `tests/probe_intimidate_reactors.js` (INNERFOCUS / OBLIVIOUS / OWNTEMPO / SCRAPPY), plus a census row. It is
+  red under `MEDI_REFUSAL_LABEL_DISPLAY` in Reg M-C.
+
 ## RATTLED RAISES ITS SPEED AFTER AN INTIMIDATE DROP (REG M-C). 2026-09-23 (abra/regmc 0.75.0)
 
 Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §3.
