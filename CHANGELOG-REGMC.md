@@ -21,6 +21,25 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.75.0] — 2026-09-23
+
+### Fixed
+- **Reg M-C: Rattled never answered Intimidate.** The handler (`data/abilities.ts` rattled; no Champions override; no
+  Reg M-B carrier) is `onAfterBoost(boost, target, source, effect) { if (effect?.name === "Intimidate" && boost.atk)
+  { this.boost({ spe: 1 }); } }`. The drop lands and Speed rises, with a `-ability|<holder>|Rattled|boost` line. The
+  `boostsWhenLowered` derivation needed a `< 0` in the handler, so it dropped Rattled. The Reg M-C all-mechanics-fire
+  read a STATE divergence (Persian-Alola at spe +1 on the authority and 0 here). `engine/tag_dex.js` now admits the
+  effect-gated shape as `onlyFrom` / `whenStat` / `quietAtCap` (`quietAtCap` because the call passes neither isSelf nor
+  isSecondary, so a capped raise writes no zero line). These are written only on that shape. `data/tags-regmc.json`
+  moves by the rattled row and the catalogue's `n`. `data/tags.json` stays byte-identical. The only road that passes
+  the effect and the landed stat is `applyStatDrop` (Intimidate), so every other drop road keeps its meaning. Knob
+  `MEDI_RATTLED_IGNORES_INTIMIDATE`.
+- **Why the roster called it clean.** The roster's Rattled rule is `ability/speeds-up-when-hit-by-a-type`
+  (`onDamagingHit`). It staged a Crunch and never an Intimidate.
+- `tests/probe_intimidate_reactors.js` gains the RATTLED arm, with a Fur Coat Persian-Alola as the control. It is green
+  in Reg M-C, and red under the knob and on `485d0a6840ad` with the 0.70.0 bytes. It also has a new census row
+  (`boostsWhenLowered`), registered where a legal carrier exists.
+
 ## [0.74.0] — 2026-09-23
 
 ### Fixed

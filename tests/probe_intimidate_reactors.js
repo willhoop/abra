@@ -24,11 +24,11 @@
  */
 'use strict';
 const K = require('./regmc_probe_kit.js').open('probe_intimidate_reactors',
-  ['MEDI_GUARD_DOG_REFUSES_ONLY'], { anyRegulation: true });
+  ['MEDI_GUARD_DOG_REFUSES_ONLY', 'MEDI_RATTLED_IGNORES_INTIMIDATE'], { anyRegulation: true });
 const { D, ok, SPEC, learns, abil, quiet, bulk, mon, pickDistinct, show, P } = K;
 
 console.log('\n1. THE CAST, DERIVED THIS RUN (' + K.CS.FORMAT + ')');
-const REACT = ['guarddog'];   /* 0.74.0 */
+const REACT = ['guarddog', 'rattled'];   /* 0.74.0, 0.75.0 */
 const INTIM = SPEC.filter(s => abil(s).includes('intimidate') && learns(s, 'protect')).sort((a, b) => bulk(b) - bulk(a));
 const FILL = SPEC.filter(s => quiet(s) && learns(s, 'protect')).sort((a, b) => bulk(b) - bulk(a));
 console.log('     Intimidate leads: ' + show(INTIM));

@@ -2655,11 +2655,11 @@ const INTIM_REACT = (() => {
     if (m) for (const kv of m[1].split(',')) { const q = kv.split(':').map(x => x.trim().replace(/["']/g, '')); if (q.length === 2) o[q[0]] = +q[1]; }
     return o; };
   const out = {};
-  for (const ab of ['guarddog']) {
+  for (const [ab, hook] of [['guarddog', 'onTryBoost'], ['rattled', 'onAfterBoost']]) {
     const A = DX0.abilities.get(ab);
     if (!lg(A)) continue;
     const c = carrierOf(ab);
-    if (c) out[ab] = { carrier: c, answer: table(A.onTryBoost) };
+    if (c) out[ab] = { carrier: c, answer: table(A[hook]) };
   }
   return out;
 })();
@@ -2685,6 +2685,21 @@ if (INTIM_REACT.guarddog) probe('ability', 'preventsStatDrop',
            detail: R.carrier + ' opposite an Intimidate switch-in -- no ability: atk ' + control.boosts.at + ' (must be -1); '
                  + 'Guard Dog: atk ' + test.boosts.at + ' (the authority\'s handler raises ' + JSON.stringify(R.answer) + ') '
                  + JSON.stringify(test.lines) };
+});
+
+/* 2026-09-23 (abra/regmc 0.75.0) -- Rattled: the drop LANDS and then the handler's own table is raised (onAfterBoost). */
+if (INTIM_REACT.rattled) probe('ability', 'boostsWhenLowered',
+    'Rattled takes the Intimidate drop and then raises the table its handler names', () => {
+  const R = INTIM_REACT.rattled;
+  const control = intimOnto(R.carrier, 'none'), test = intimOnto(R.carrier, 'rattled');
+  const wantSp = +(R.answer.spe || 0);
+  return { works: control.boosts.at === -1 && control.boosts.sp === 0 && wantSp > 0
+                  && test.boosts.at === -1 && test.boosts.sp === wantSp
+                  && test.lines.some(l => /^\|-ability\|p2a:[^|]*\|rattled\|boost$/.test(l)),
+           arms: { control: [control.boosts.at, control.boosts.sp], test: [test.boosts.at, test.boosts.sp] },
+           detail: R.carrier + ' opposite an Intimidate switch-in -- no ability: atk/spe ' + control.boosts.at + '/' + control.boosts.sp
+                 + ' (must be -1/0); Rattled: ' + test.boosts.at + '/' + test.boosts.sp + ' (the authority handler raises '
+                 + JSON.stringify(R.answer) + ') ' + JSON.stringify(test.lines) };
 });
 
 /* A STAT CHANGE CLAMPED TO ZERO IS STILL ANNOUNCED, AND THE ENGINE COULD NOT SAY IT AT ALL.
@@ -38737,7 +38752,7 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           'terrainHealSemiInvRestored', 'seedUnconsumedRestored', 'seedNoTerrainChangeRestored',
                           /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.71.0) -- the Stone Axe fainted-user row reads it */
                           'hazardOnHitFaintedAlwaysRestored',
-                          'volleyShieldEveryArrivalRestored', 'disguiseVolleyOldRestored', 'guardDogRefusesOnlyRestored']
+                          'volleyShieldEveryArrivalRestored', 'disguiseVolleyOldRestored', 'guardDogRefusesOnlyRestored', 'rattledIgnoresIntimidateRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

@@ -23791,11 +23791,25 @@ function abilityBoostRun(body,ab,opts){
     announced(){return said;}
   };
 }
-function retaliateWhenLowered(f,src){
+/* 2026-09-23 (ENGINE pass 9, abra/regmc 0.75.0) -- `eff` and `landed` are passed by the Intimidate road only (applyStatDrop):
+ * a row gated on one effect and one landed stat (`onlyFrom` / `whenStat`, Rattled's `effect?.name === 'Intimidate' &&
+ * boost.atk`) answers nothing without them, so every other caller keeps its meaning. MEDI_RATTLED_IGNORES_INTIMIDATE=1
+ * refuses every gated row, as before (the row did not exist). tests/probe_intimidate_reactors.js RATTLED. */
+const RATTLED_IGNORES_INTIMIDATE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_RATTLED_IGNORES_INTIMIDATE==='1');
+if(RATTLED_IGNORES_INTIMIDATE)MEDFAILS.rattledIgnoresIntimidateRestored=1;
+function retaliateWhenLowered(f,src,eff,landed){
   if(!f||f.fainted||!f.boosts)return false;
   const ab=(f.ability||'').replace(/[^a-z0-9]/g,'');
   const p=TAGS.param('ability',ab,'boostsWhenLowered');
   if(!p)return false;
+  if(p.onlyFrom){
+    if(RATTLED_IGNORES_INTIMIDATE)return false;
+    const _n=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+    if(_n(eff)!==_n(p.onlyFrom))return false;
+    const _ws=p.whenStat?SD2ENG[p.whenStat]:null;
+    if(_ws&&!(landed&&landed[_ws]))return false;       // `boost.atk` after the cap: a drop the -6 floor zeroed is falsy
+    MEDSEEN.gatedDropReaction=(MEDSEEN.gatedDropReaction|0)+1;
+  }
   if(src===undefined){MEDSEEN.retaliateSourceUnknown++;}
   else{
     if(p.needsSource&&!src)return false;
@@ -23818,7 +23832,7 @@ function retaliateWhenLowered(f,src){
    * zero. Four of the batch's NARRATION-ONLY causes are this one line: a Defiant body at +6 takes
    * Parting Shot's second drop and the authority writes `|-boost|pXY|atk|0`. Both legal carriers
    * pass `(target, target, null, false, true)`; the membership is printed by the probe. */
-  const _zeroSays=abilityZeroAnnounces(true);
+  const _zeroSays=abilityZeroAnnounces(!p.quietAtCap);
   for(const k in bo){const _s=SD2ENG[k];if(_s&&f.boosts[_s]!=null){
     const _b=f.boosts[_s];f.boosts[_s]=clamp(f.boosts[_s]+bo[k],-6,6);
     const _d=f.boosts[_s]-_b;
@@ -23936,7 +23950,7 @@ function applyStatDrop(f,stat,n,eff,src,zeroSays){
   /* WIRE 138 -- THROUGH THE SHARED READER. This block used to be the only place the retaliation
    * happened, which is why every move-driven drop escaped it. `src` is optional and `undefined` keeps
    * the pre-wire behaviour with a counter, so no existing caller changes meaning silently. */
-  if(TAGS.param('ability',ab,'boostsWhenLowered')){retaliateWhenLowered(f,src);return ab;}
+  if(TAGS.param('ability',ab,'boostsWhenLowered')){retaliateWhenLowered(f,src,eff,{[stat]:f.boosts[stat]-_b1});return ab;}
   return ab==='simple'?'simple':'dropped';
 }
 function applyIntimidate(f){ return applyStatDrop(f,'at',1,'Intimidate'); }

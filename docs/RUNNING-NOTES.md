@@ -53,6 +53,17 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.75.0] — 2026-09-23 — **Rattled raises its Speed after an Intimidate drop (Reg M-C)**
+
+- **What changed.** `engine/tag_dex.js`: `boostsWhenLowered` admits an effect-gated reaction (`onlyFrom`, `whenStat`,
+  `quietAtCap`; Rattled alone). `engine/medicham2-browser.js`: `retaliateWhenLowered` honours the gate, and the
+  Intimidate road passes it. `data/tags-regmc.json` moves by 1 row and the catalogue's `n`; `data/tags.json` is
+  byte-identical. Knob `MEDI_RATTLED_IGNORES_INTIMIDATE`. Probe arm and one census row.
+- **Measured.** NO FIGURE published. Probe green in Reg M-C, red under the knob and on `485d0a6840ad` with the 0.70.0
+  bytes. `docs/_reports/2026-09-23-engine-gate-reds.md` §3.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.74.0] — 2026-09-23 — **Guard Dog answers Intimidate with +1 Attack (Reg M-C)**
 
 - **What changed.** `engine/tag_dex.js` writes `preventsStatDrop.answersWith` (Guard Dog alone, Reg M-C only).

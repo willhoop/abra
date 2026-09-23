@@ -7687,7 +7687,15 @@ const ABILITY_TAGS = [
       const perStat = !!a.onAfterEachBoost;
       const src = String(a.onAfterEachBoost || a.onAfterBoost || '');
       if (!perStat && !a.onAfterBoost) return null;
-      if (!/statsLowered|<\s*0/.test(src)) return null;
+      /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.75.0) -- A REACTION GATED ON ONE EFFECT AND ONE LANDED STAT. Rattled
+       * (data/abilities.ts rattled, both checkouts, no Champions override; no Reg M-B carrier): `onAfterBoost(boost,
+       * target, source, effect) { if (effect?.name === "Intimidate" && boost.atk) { this.boost({ spe: 1 }); } }`. It
+       * names no `< 0`, so the test below dropped it and the engine never raised the Speed. The gate travels as
+       * `onlyFrom` / `whenStat`; `quietAtCap` says the call passes neither isSelf nor isSecondary, so a capped raise
+       * writes NO zero line (sim/battle.ts boost()). All three written only on this shape, so no existing row moves
+       * (printed before wiring over both dexes: rattled alone). */
+      const gate = src.replace(/\s+/g, ' ').match(/effect\??\.name\s*===\s*["']([^"']+)["']\s*&&\s*boost\.(\w+)\s*\)/);
+      if (!/statsLowered|<\s*0/.test(src) && !gate) return null;
       const bm = src.match(/\.boost\(\s*\{([^}]*)\}/);
       const boosts = {};
       if (bm) for (const kv of bm[1].split(',')) {
@@ -7698,6 +7706,10 @@ const ABILITY_TAGS = [
       if (Object.keys(boosts).length) out.boosts = boosts;
       if (/!\s*source/.test(src)) out.needsSource = true;
       if (/isAlly\(\s*source\s*\)/.test(src)) out.notFromAlly = true;
+      if (gate) {
+        out.onlyFrom = gate[1]; out.whenStat = gate[2];
+        if (!/\.boost\(\s*\{[^}]*\}\s*,\s*target\s*,\s*target/.test(src.replace(/\s+/g, ' '))) out.quietAtCap = true;
+      }
       return out;
     } },
   { tag: 'preventsStatDrop', param: 'WHICH stat drops do not apply, and to whom', probe: 'onTryBoost',

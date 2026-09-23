@@ -3422,7 +3422,7 @@
    "why": "Defiant (5.46%) and Competitive. The Intimidate punisher -- dropping their Attack HANDS them an attack boost, so the lead interaction inverts",
    "consumedBy": "onAfterEachBoost",
    "used": true,
-   "n": 2,
+   "n": 3,
    "uses": 15352,
    "examples": [
     "Competitive",
@@ -43641,10 +43641,21 @@
   "rattled": {
    "name": "Rattled",
    "tags": [
+    "boostsWhenLowered",
     "buffsHolderOnHit"
    ],
    "uses": 0,
    "params": {
+    "boostsWhenLowered": {
+     "retaliates": true,
+     "perStatLowered": false,
+     "boosts": {
+      "spe": 1
+     },
+     "onlyFrom": "Intimidate",
+     "whenStat": "atk",
+     "quietAtCap": true
+    },
     "buffsHolderOnHit": {
      "compounds": true,
      "boosts": {

@@ -1,3 +1,14 @@
+## RATTLED RAISES ITS SPEED AFTER AN INTIMIDATE DROP (REG M-C). 2026-09-23 (abra/regmc 0.75.0)
+
+Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §3.
+
+- **Defect.** `boostsWhenLowered` needed a `< 0` in the handler, and Rattled's `effect?.name === 'Intimidate' &&
+  boost.atk` has none, so the Speed never rose. The roster's Rattled rule stages only the `onDamagingHit` half.
+- **Fix.** The tag carries `onlyFrom` / `whenStat` / `quietAtCap`. `retaliateWhenLowered` asks them, and only the
+  Intimidate road passes the effect.
+- **Probe** `tests/probe_intimidate_reactors.js` RATTLED, plus a census row. It is red under
+  `MEDI_RATTLED_IGNORES_INTIMIDATE` and on `485d0a6840ad`.
+
 ## GUARD DOG ANSWERS INTIMIDATE WITH +1 ATTACK (REG M-C). 2026-09-23 (abra/regmc 0.74.0)
 
 Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §3.
