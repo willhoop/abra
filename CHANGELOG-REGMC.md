@@ -21,6 +21,36 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.71.0] — 2026-09-23
+
+### Fixed
+- **`tests/roster.js`'s text view no longer throws on Reg M-B's frozen Hidden Power text (16 typings).** The view (now
+  `tests/roster_text_view.js`) leaves an entity whose `desc`/`shortDesc` is a frozen own property unwrapped, and it
+  counts that entity. A Proxy may not report another value for such a property. Iron Fist, Mega Launcher, Reckless,
+  Sharpness, Strong Jaw, Technician and Tough Claws stage again. Guard: `tests/test-roster-text-view.js`, shown red
+  with the guard removed.
+- **Roster fixtures that the TeamValidator refused are repaired, and none was baselined.** The distinct refused sets
+  went from 17 / 77 / 47 (+2 rule-built) to **0 / 6 / 3 (+2)** under Reg M-B, and from 17 / 80 / 47 (+2) to
+  **0 / 7 / 3 (+2)** under Reg M-C. This is measured by the new `tests/probe_roster_fixture_legality.js`, which builds
+  every arm `runEntry` plays and reproduced HEAD's receipts exactly. The main repairs:
+  - the control click resolves per body where one holder cannot learn the scenario's click;
+  - a second restaging pass demands Focus Energy where it stays;
+  - move-stage clickers, ability carriers, partners, pivots and phazers now learn what they click;
+  - and five one-row causes are fixed (Focus Band, Big Root, Merciless, Imposter, Limber).
+  The rule-level legal picks run only in a re-match of a row that the restaging could not make legal (`LEGAL_FIRST`).
+  **No row lost its staging in either regulation.** The fixtures that changed are exactly the rows that held a refused
+  set.
+
+### Notes
+- **Still refused, and not carrier-less**:
+  - the in-play Skill Swap lender. Asked of the format, no legal quiet-ability species learns Skill Swap in either
+    regulation. It sits on the control arm of 84 / 90 rows. This is a decision, not a repair.
+  - Heal Bell. Its sole learner, Chimecho, holds only Levitate.
+  - Roost (a HELD row).
+  - Transform. Its sole learner, Ditto, learns nothing else.
+- **No roster stage was run** (light mode). The stage commands and the verdict reading are owed:
+  `docs/_reports/2026-09-23-roster-fixture-legality.md`.
+
 ## [0.70.0] — 2026-09-23
 
 ### Changed

@@ -205,35 +205,14 @@ const dexRaw = CS.sim().Dex.forFormat(CS.FORMAT);
  * method is the checkout's), whose items / moves / abilities hand back an entity with no text of its own wrapped so
  * that `desc` / `shortDesc` read the text table's. Nothing else is touched, and the shared dex the battles use is NOT
  * modified. On a checkout that already attaches the text (Reg M-B's) nothing is wrapped; the count is printed. */
-const TEXT_FILLED = { items: 0, moves: 0, abilities: 0 };
-const dex = (() => {
-  const T = typeof dexRaw.loadTextData === 'function' ? dexRaw.loadTextData() : null;
-  if (!T) return dexRaw;
-  const view = Object.create(dexRaw);
-  for (const [k, tab] of [['items', 'Items'], ['moves', 'Moves'], ['abilities', 'Abilities']]) {
-    const raw = dexRaw[k], wrapped = new WeakMap();
-    const wrap = (e) => {
-      if (!e || typeof e !== 'object' || e.shortDesc || e.desc) return e;
-      const t = (T[tab] || {})[e.id];
-      if (!t || !(t.shortDesc || t.desc)) return e;
-      if (!wrapped.has(e)) {
-        TEXT_FILLED[k]++;
-        /* AND THE NEWER TEXT WRITES A MULTIPLIER AS "1.5×" (U+00D7) WHERE THE OLDER WROTE "1.5x", which every rule that
-         * reads a multiplier out of the prose matches on. The sign is normalised; nothing else in the sentence is. */
-        const norm = s => (s == null ? s : String(s).replace(/(\d)×/g, '$1x'));
-        const d = norm(t.desc || t.shortDesc), sd = norm(t.shortDesc || t.desc);
-        wrapped.set(e, new Proxy(e, { get: (o, p) => (p === 'desc' ? d : p === 'shortDesc' ? sd : o[p]) }));
-      }
-      return wrapped.get(e);
-    };
-    const tv = Object.create(raw);
-    tv.get = (x) => wrap(raw.get(x));
-    tv.all = () => raw.all().map(wrap);
-    if (typeof raw.getByID === 'function') tv.getByID = (x) => wrap(raw.getByID(x));
-    view[k] = tv;
-  }
-  return view;
-})();
+/* 2026-09-23 (ENGINE) -- THE VIEW LIVES IN tests/roster_text_view.js NOW, so a unit test can hold it to the case that made
+ * it throw on Reg M-B: sixteen Hidden Power typings whose `desc` / `shortDesc` are FROZEN own properties holding '', which
+ * a Proxy may not report as anything else. Seven abilities went COULD-NOT-STAGE on that throw (tests/test-roster-text-view.js).
+ * Such an entity is left unwrapped and counted in TEXT_KEPT; every other entity is handled exactly as before. */
+const _TV = require(D('tests', 'roster_text_view.js')).textView(dexRaw);
+const TEXT_FILLED = _TV.filled;
+const TEXT_KEPT = _TV.kept;
+const dex = _TV.dex;
 /* THE RULES READ THE SELECTED REGULATION'S TAG FILE, as the engine does. `REL.read('data/tags.json')` served the owner
  * regulation's copy out of every release -- a Reg M-C release freezes both -- so under Reg M-C the rules derived fixtures
  * from Reg M-B's tags while the engine played Reg M-C's. `fileFor` is identity under Reg M-B. */
@@ -471,6 +450,21 @@ function inertChoice(sc) {
   if (!holders.length) return { pick: null, why: 'no body carries the control click' };
   const key = String(sc.id).replace(/~control2?$/, '') + '|' + bodies.map(m => idOf(m.species)).sort().join(',');
   if (INERT_PICKS.has(key)) return INERT_PICKS.get(key);
+  const out = inertDecide(sc, holders, bodies, carries);
+  INERT_PICKS.set(key, out);
+  INERT_PICK_TALLY[out.why] = (INERT_PICK_TALLY[out.why] || 0) + 1;
+  return out;
+}
+/* THE DECISION ITSELF, WITH NO MEMO AND NO TALLY (2026-09-23), so `restageLegal` can ask it of a fixture
+ * BEFORE the bodies are final without leaving a stale memo row or counting a scenario that never plays. */
+function inertDecide(sc, holders, bodies, carries) {
+  if (!holders) {
+    bodies = sc.A.concat(sc.B);
+    carries = (m, mv) => (m.moves || []).some(x => idOf(x) === idOf(mv));
+    if (!INERT_SUBS.length || process.env.ROSTER_INERT_FOCUSENERGY === '1') return { pick: null, why: 'restored' };
+    holders = bodies.filter(m => carries(m, INERT));
+    if (!holders.length) return { pick: null, why: 'no body carries the control click' };
+  }
   let out;
   if (holders.every(m => learnsLegally(m.species, INERT))) out = { pick: null, why: 'Focus Energy is legal on every holder' };
   else if (sc.inertEffect) out = { pick: null, why: 'KEPT: the scenario reads Focus Energy\'s own effect (' + sc.inertEffect + ')' };
@@ -478,7 +472,7 @@ function inertChoice(sc) {
   /* A CRIT-RATIO ENTITY READS FOCUS ENERGY'S +2 WHETHER OR NOT ITS RULE SAYS SO. Measured 2026-09-19: Super
    * Luck's generic fixture (Absol idles, then attacks) crits only because the idle click adds two stages;
    * built on the substitute it read THE STAGING IS INERT. Derived off the entity's own handler. */
-  else if (idOf(sc.entityId) && sc.kind !== 'move' && typeof ((sc.kind === 'item' ? dex.items : dex.abilities)
+  else if (idOf(sc.entityId) && !sc.critStagesUnread && sc.kind !== 'move' && typeof ((sc.kind === 'item' ? dex.items : dex.abilities)
              .get(sc.entityId) || {}).onModifyCritRatio === 'function')
     out = { pick: null, why: 'KEPT: the entity modifies the crit ratio, and Focus Energy\'s +' + INERT_RAISES_CRIT_STAGES + ' is part of what its fixture reaches' };
   else {
@@ -502,19 +496,112 @@ function inertChoice(sc) {
     }
     out = { pick, why };
   }
-  INERT_PICKS.set(key, out);
-  INERT_PICK_TALLY[out.why] = (INERT_PICK_TALLY[out.why] || 0) + 1;
   return out;
+}
+/* ---- AND WHERE ONE BODY CANNOT LEARN THE SCENARIO'S CONTROL CLICK, THAT BODY IDLES ON ANOTHER (2026-09-23) ------
+ *
+ * `inertChoice` picks ONE control click per scenario, because a click names one move id and the body in a slot
+ * changes across a switch. That leaves a scenario with no legal fixture whenever some holder learns neither: the
+ * scenario keeps Focus Energy (something on it can sleep a body), and a body that does not learn Focus Energy is a
+ * set the TeamValidator refuses. MEASURED by tests/probe_roster_fixture_legality.js: every legal carrier of Aroma
+ * Veil, Effect Spore, Flower Veil, Friend Guard, Sweet Veil, Marvel Scale and Fur Coat learns Sleep Talk and none
+ * learns Focus Energy, and no legal species learns Sing, Sleep Powder or Dire Claw together with Focus Energy.
+ *
+ * SO THE CLICK IS RESOLVED PER BODY WHERE IT HAS TO BE, AND ONLY THERE. A holder that learns the scenario's click
+ * keeps it, byte for byte. A holder that does not is handed the sleep-gated substitute (Sleep Talk) when it is
+ * inert ON THAT BODY, which is one of two facts:
+ *   - the body declares no move but the control click. Sleep Talk calls a random move from the user's OWN
+ *     moveSlots and fails when there is none (read off the format: `if (!randomMove) return false;`), so even
+ *     asleep it does nothing but spend its PP — the same bookkeeping every idle click writes;
+ *   - or nothing on the board but this body's own foe-aimed moves can write sleep, and none of its own moves,
+ *     its ability or its item sleeps ITSELF — so it cannot be the body that is asleep.
+ * It is NEVER taken where Focus Energy is part of what the fixture reads (a crit-reading entity, `inertEffect`),
+ * on the row that IS a control click, where some body already carries the substitute, or on a body whose ability
+ * the substitute's own `onTry` names (Comatose).
+ *
+ * THE SCRIPT FOLLOWS THE BODY, NOT THE SLOT. A slot's idle clicks are resolved to the idle of the body standing in
+ * it at that step — the leads, then whoever a scripted `sw` brings in. A replacement nobody scripted (a faint, a
+ * pivot, a phaze) is resolved to the scenario's own click; if it cannot click that, the game refuses the choice
+ * LOUDLY, which is a thrown row and never a quiet pass. `ROSTER_IDLE_PER_BODY=0` turns this off. */
+const IDLE_PER_BODY = !(typeof process !== 'undefined' && process.env && process.env.ROSTER_IDLE_PER_BODY === '0');
+/* ---- LEGAL FIRST, ONLY WHERE THE OLD FIXTURE COULD NOT BE MADE LEGAL (2026-09-23) --------------------------------
+ *
+ * Several rules below now know how to pick a body that LEARNS what it clicks (a clicker, a carrier's own clicks, a
+ * partner, a wisher). Asked of every row, that choice also moved rows whose fixture the restaging pass ALREADY made
+ * legal — measured under Reg M-B: asked of every row, 56 move rows' fixtures changed; gated, 32, every one a row that
+ * held a refused set — and a changed fixture is a changed measurement. So those choices are made only when this flag
+ * is up, and `assign` raises it for one
+ * re-match of a row whose restaging left an UNRESOLVED pair; the re-matched fixture is kept only if it leaves fewer
+ * unresolved pairs. Every other row is byte-identical to what it was. `ROSTER_LEGAL_FIRST=0` turns the re-match off. */
+let LEGAL_FIRST = false;
+/* THE PER-BODY SAFETY READS ONE SHAPE SHARPER THAN THE SCENARIO GATE: a handler that RETURNS on the incoming status
+ * being sleep before it writes that same status cannot write sleep. Printed over both regulations before it was
+ * wired — of the three legal entities whose handlers name sleep and write a status (Effect Spore, Synchronize, Rest)
+ * it drops exactly one, Synchronize (`if (status.id === 'slp' || status.id === 'frz') return;`). The scenario-wide
+ * gate in `inertDecide` is NOT changed by it, so no other row's control click moves. */
+const _REFUSES_SLP_FIRST = /if\s*\(\s*(\w+)\.id\s*===\s*['"]slp['"][^)]*\)\s*return\b[\s\S]*?\.(?:try)?[sS]etStatus\s*\(\s*\1\b/;
+function _writesSleep(kind, xid) {
+  if (!_namesSleep(kind, xid)) return false;
+  const g = kind === 'move' ? dex.moves : kind === 'ability' ? dex.abilities : dex.items;
+  const x = g.get(xid);
+  return !(x && x.exists && !x.status && _REFUSES_SLP_FIRST.test(_hText(x)));
+}
+function idleSafeOn(sc, b, sub) {
+  if (sc.inertEffect || idOf(sc.entityId) === idOf(INERT) || idOf(sc.entityId) === idOf(sub)) return false;
+  if (idOf(sc.entityId) && !sc.critStagesUnread && sc.kind !== 'move' && typeof ((sc.kind === 'item' ? dex.items : dex.abilities)
+        .get(sc.entityId) || {}).onModifyCritRatio === 'function') return false;
+  const bodies = sc.A.concat(sc.B);
+  if (bodies.some(m => (m.moves || []).some(x => idOf(x) === idOf(sub)))) return false;
+  for (const st of sc.script || []) for (const side of ['p1', 'p2'])
+    for (const a of (st && st[side]) || []) if (a && a.m && idOf(a.m) === idOf(sub)) return false;
+  if ((INERT_SUB_BLOCKS.get(idOf(sub)) || []).includes(idOf(b.ability))) return false;
+  const own = (b.moves || []).filter(x => idOf(x) !== idOf(INERT));
+  if (!own.length) return true;
+  if (_writesSleep('ability', b.ability) || _writesSleep('item', b.item)) return false;
+  if (own.some(x => _writesSleep('move', x) && ['self', 'allies', 'allySide', 'all'].includes((dex.moves.get(x) || {}).target))) return false;
+  const others = bodies.filter(m => m !== b);
+  if (others.some(m => _writesSleep('ability', m.ability) || _writesSleep('item', m.item)
+        || (m.moves || []).some(x => idOf(x) !== idOf(INERT) && _writesSleep('move', x)))) return false;
+  if (idOf(sc.entityId) && _writesSleep(sc.kind, sc.entityId)
+      && !(sc.kind === 'move' && own.some(x => idOf(x) === idOf(sc.entityId)))) return false;
+  return true;
 }
 function withLegalInert(sc) {
   const ch = inertChoice(sc);
-  if (!ch.pick) return { sc, pick: null };
-  const sw = x => (idOf(x) === idOf(INERT) ? ch.pick : x);
+  const D = ch.pick || INERT;
+  const alt = new Map();                      /* species id -> the idle click that body declares instead */
+  if (IDLE_PER_BODY && ch.why !== 'restored') for (const b of sc.A.concat(sc.B)) {
+    if (!(b.moves || []).some(x => idOf(x) === idOf(INERT)) || learnsLegally(b.species, D)) continue;
+    const sub = INERT_SUBS.find(m => idOf(m.id) !== idOf(D) && learnsLegally(b.species, m.id) && idleSafeOn(sc, b, m.id));
+    if (sub) alt.set(idOf(dex.species.get(b.species).id), sub.id);
+  }
+  if (!ch.pick && !alt.size) return { sc, pick: null };
+  const idleOf = sp => (sp && alt.get(idOf(dex.species.get(sp).id))) || D;
   /* de-duplicated: a body handed the control click twice was already an illegal set ("multiple copies") */
-  const body = m => ({ ...m, moves: [...new Set((m.moves || []).map(sw))] });
-  const acts = arr => (arr || []).map(a => (a && a.m && idOf(a.m) === idOf(INERT) ? { ...a, m: ch.pick } : a));
-  return { pick: ch.pick, sc: { ...sc, A: sc.A.map(body), B: sc.B.map(body),
-    script: (sc.script || []).map(st => ({ ...st, p1: acts(st.p1), p2: acts(st.p2) })) } };
+  const body = m => ({ ...m, moves: [...new Set((m.moves || []).map(x => (idOf(x) === idOf(INERT) ? idleOf(m.species) : x)))] });
+  const occ = { p1: [sc.A[0] && sc.A[0].species, sc.A[1] && sc.A[1].species],
+                p2: [sc.B[0] && sc.B[0].species, sc.B[1] && sc.B[1].species] };
+  const script = (sc.script || []).map(st => {
+    const out = { ...st };
+    for (const side of ['p1', 'p2']) {
+      out[side] = (st[side] || []).map((a, i) => {
+        if (!a) return a;
+        if (a.sw) { occ[side][i] = a.sw; return a; }
+        if (a.m && idOf(a.m) === idOf(INERT)) return { ...a, m: idleOf(occ[side][i]) };
+        /* a click that switches its user out hands the slot to a body nobody scripted */
+        const mv = a.m ? dex.moves.get(a.m) : null;
+        if (mv && (mv.selfSwitch || mv.selfdestruct)) occ[side][i] = null;
+        return a;
+      });
+    }
+    return out;
+  });
+  /* the watch in play() reads only the bodies whose safety rested on "cannot be asleep": a body declaring nothing but
+   * the control click may be asleep, and its Sleep Talk then fails, which is the whole reason it was admitted */
+  const watched = [...alt.entries()].filter(([sp]) => { const b = sc.A.concat(sc.B).find(m => idOf(dex.species.get(m.species).id) === sp);
+    return b && (b.moves || []).some(x => idOf(x) !== idOf(INERT)); });
+  return { pick: ch.pick, perBody: watched,
+    sc: { ...sc, A: sc.A.map(body), B: sc.B.map(body), script } };
 }
 function _anyAsleep(o, depth) {
   if (!o || typeof o !== 'object' || depth > 6) return false;
@@ -993,9 +1080,12 @@ function builtStats(speciesId) {
      * species is unchanged, so `spreadFor` still reads the mega's own base stats and `spreadL50`
      * still runs on them. Read off the species rather than listed, so a forme added later is priced
      * on a legal set without editing this line. */
+    /* 2026-09-23: AND A BODY THAT LEARNS NEITHER CONTROL CLICK (Ditto learns only Transform) is priced on the first
+     * legal move it does learn, in id order — the move is never clicked, the validator reads it all the same. */
+    const anyLegal = x => firstLegalMove(x) || INERT;
     const row = x => ({ species: x, item: (dex.species.get(x) || {}).requiredItem || '', ability: '',
       moves: [learnsLegally(x, INERT) ? INERT
-              : ((INERT_SUBS.find(m => learnsLegally(x, m.id)) || { id: INERT }).id)] });
+              : ((INERT_SUBS.find(m => learnsLegally(x, m.id)) || { id: anyLegal(x) }).id)] });
     const pair = _BP([row(speciesId)].concat(_fillers(speciesId).map(row)), { hpBoost: 1 });
     /* ---- THE **SPEC**, NOT THE BODY HANGING OFF IT, AND THE DIFFERENCE IS 18 ATTACK POINTS --------
      *
@@ -1141,6 +1231,16 @@ function swapperFor(arm, avoid) {
   const used = new Set([CAST.ATTACKER().species, CAST.ATTACKER2().species, CAST.BAG().species]
     .concat((avoid || []).filter(Boolean)).map(idOf));
   const bulk = s => s.baseStats.hp + s.baseStats.def + s.baseStats.spd;
+  /* 2026-09-23 -- THE LENDER CANNOT BE MADE LEGAL, AND THAT IS A FACT ABOUT THE REGULATION, NOT A REPAIR LEFT UNDONE.
+   * In the control arm it clicks Skill Swap, and ASKED OF THE FORMAT (TeamValidator, both regulations): not one
+   * legal species that holds a quiet ability learns Skill Swap — the quiet holders are Kangaskhan, Houndoom,
+   * Torkoal, Torterra, Samurott, Goodra-Hisui, Salazzle, Falinks and Glimmora, and the validator refuses each
+   * ("Goodra-Hisui can't learn Skill Swap."). Requiring it here was tried and measured under Reg M-B: the swapper
+   * went null and every MEGA- and SUPPRESS-tier row that needs the in-play exchange lost its staging outright
+   * (aerilate, dragonize, eelevate, filter, forecast, furcoat, innardsout, levitate, megasol, mimicry, piercingdrill,
+   * stalwart, surgesurfer, unseenfist, and analytic through the swapper's speed). A row that stops staging is not a
+   * repaired row, so the lender is chosen as before and its control-arm set stays REFUSED, named in
+   * docs/_reports/2026-09-23-roster-fixture-legality.md for the decision it needs. */
   const pool = CANDIDATES.filter(s => !used.has(idOf(s.id))
     && Object.values(s.abilities || {}).some(n => quietAsControl(n, arm)));
   pool.sort((a, b) => bulk(b) - bulk(a));
@@ -1571,9 +1671,13 @@ const ARM_FALLS_THROUGH = (typeof process !== 'undefined' && process.env
  * requires every `middle` row to carry a COIN RECEIPT, i.e. the die that decided it was checked
  * against the authority's own address log rather than assumed. */
 const ARM_PLAYED = new Map();
+/* every game this file plays, counted, so a caller that only BUILDS fixtures (tests/probe_roster_fixture_legality.js)
+ * can say how many proof games the rules played on the way (2026-09-23) */
+let PLAY_CALLS = 0;
 function play(sc0, src, armId) {
+  PLAY_CALLS++;
   /* the scenario as it is BUILT: the control click resolved to one every holder can legally know */
-  const { sc, pick: inertPick } = withLegalInert(sc0);
+  const { sc, pick: inertPick, perBody: inertPerBody } = withLegalInert(sc0);
   const G = SB.harness(src);
   let ARM = G.ARM_BY_ID.get(armId || PRIMARY_ARM_ID);
   if (!ARM) return { bad: 'NO-SUCH-ARM', why: 'the scenario asks for pin arm "' + (armId || PRIMARY_ARM_ID)
@@ -1686,7 +1790,11 @@ function play(sc0, src, armId) {
   /* THE SUBSTITUTE'S ONE HAZARD, WATCHED RATHER THAN ASSUMED SHUT. The static gate in `inertChoice`
    * keeps Focus Energy on any fixture that names sleep; a board that shows a sleeping body under the
    * substitute anyway means that gate missed a road, and it is counted and named at the end of the run. */
-  if (inertPick && boards.some(x => _anyAsleep(x.medi, 0) || _anyAsleep(x.sd, 0))) {
+  /* a body handed the substitute ON ITS OWN (`withLegalInert`, per body) that is asleep on either board is the same
+   * miss, read on that body's own party row */
+  const _perBodySlept = (inertPerBody || []).some(([sp]) => boards.some(x => ['p1', 'p2'].some(side =>
+    ['sd', 'medi'].some(k => ((((((x[k] || {}).sides || {})[side] || {}).party || {})[sp]) || {}).status === 'slp'))));
+  if ((inertPick && boards.some(x => _anyAsleep(x.medi, 0) || _anyAsleep(x.sd, 0))) || _perBodySlept) {
     INERT_SUB_SLEPT++;
     if (INERT_SUB_SLEPT_WHO.length < 20) INERT_SUB_SLEPT_WHO.push(sc.id);
   }
@@ -1951,7 +2059,23 @@ function controlOf(sc, rank) {
      * for itself gives two identical scripts, which is why `move/is-the-control-click` refused Focus
      * Energy outright. `INERT_ALT` is derived off the same shape cap and proven by the same selftest
      * clause; it is reached ONLY here, so no other move row's control arm moves. */
-    const sub = (INERT_ALT && idOf(sc.entityId) === idOf(INERT)) ? INERT_ALT : INERT;
+    let sub = (INERT_ALT && idOf(sc.entityId) === idOf(INERT)) ? INERT_ALT : INERT;
+    /* 2026-09-23: AND WHERE NO BODY ON THE BOARD CAN LEARN THE ALTERNATE, THE SUBSTITUTE STANDS IN FOR IT. Every
+     * body clicks the entity in the subject arm and the alternate in this one, so each must learn both, and the
+     * TeamValidator says no legal species learns Focus Energy AND Magnet Rise (tests/probe_roster_fixture_legality.js).
+     * The sleep-gated substitute (`INERT_SUBS`) is proven inert on an awake body by the same selftest clause, and
+     * it is taken only where every body learns it and nothing on the board can write sleep — the same two
+     * conditions `inertDecide` puts on it everywhere else. Its own bookkeeping is ignored below, as the
+     * alternate's is. */
+    if (sub === INERT_ALT) {
+      const all = c.A.concat(c.B);
+      if (!all.every(b => learnsLegally(b.species, INERT_ALT))) {
+        const sleepy = all.some(b => _namesSleep('ability', b.ability) || _namesSleep('item', b.item)
+          || (b.moves || []).some(x => idOf(x) !== idOf(INERT) && _namesSleep('move', x)));
+        const s2 = sleepy ? null : INERT_SUBS.find(m => all.every(b => learnsLegally(b.species, m.id)));
+        if (s2) sub = s2.id;
+      }
+    }
     for (const st of c.script) for (const side of ['p1', 'p2']) for (const a of side ? st[side] : []) {
       if (a && idOf(a.m) === idOf(sc.entityId)) { a.m = sub; delete a.t; }
     }
@@ -1971,7 +2095,13 @@ function controlOf(sc, rank) {
       /* the alternate's OWN bookkeeping is the control describing itself and is never evidence —
        * exactly what `INERT_SELF` is for the primary. The entity's own `pp`/`vol` rows are NOT in
        * here, which is the whole point: they are what the row is read on. */
-      for (const x of INERT_ALT_SELF) ignore.push(x.re);
+      if (sub === INERT_ALT) for (const x of INERT_ALT_SELF) ignore.push(x.re);
+      else {
+        /* the substitute's own two leaves, in the same anchored shapes — its PP row and any volatile it declares */
+        ignore.push(new RegExp('^p[12]\\.pp\\[\\d+\\]\\.' + idOf(sub) + '$'));
+        const sm = dex.moves.get(sub);
+        if (sm && sm.volatileStatus) ignore.push(new RegExp('^p[12]\\.active\\[\\d+\\]\\.vol\\.' + idOf(sm.volatileStatus) + '$'));
+      }
     }
   }
   return { sc: c, ignore, swap };
@@ -3963,6 +4093,45 @@ function CLICKER(arm) {
   _CL[k] = best ? mon(best.sp.id, '', best.ability, []) : { ...CAST.ATTACKER() };
   return _CL[k];
 }
+/* ---- A CLICKER THAT CAN LEGALLY KNOW WHAT IT CLICKS — 2026-09-23 --------------------------------------------
+ *
+ * `CLICKER` is one body per arm, chosen for the pool's best attacking stat, and every move rule that aims a move at a
+ * foe hands that move to it. Measured by tests/probe_roster_fixture_legality.js: Goodra-Hisui, the clicker on both
+ * arms, learns none of Forest's Curse, Guard Swap, Instruct, Magic Powder, Pain Split, Psych Up, Quash, Reflect
+ * Type, Role Play, Simple Beam, Soak, Speed Swap, Topsy-Turvy, Transform, Trick-or-Treat, Belch, Bug Bite or Pluck,
+ * and the restaging pass could not move it because each rule also sized a chip or a setter for Goodra-Hisui.
+ *
+ * SO THE RULE ASKS FIRST. `CLICKER(arm)` itself when it learns every id — byte-identical to before for every move it
+ * learns — else the quiet move-stage body with the best attacking stat that does (the same pool and the same key
+ * `CLICKER` is chosen by), else `learnerBody` over the wider pools. `o.not` refuses species already on the board. */
+function clickerFor(arm, ids, o) {
+  const not = new Set(((o && o.not) || []).filter(Boolean).map(x => idOf(dex.species.get(x).id)));
+  const C = CLICKER(arm);
+  if (!not.has(idOf(C.species)) && canLearnAll(C.species, ids)) return { ...C, moves: [] };
+  const off = sp => Math.max(sp.baseStats.atk, sp.baseStats.spa);
+  const closet = illusionCloset().species;
+  const r = moveBodies(arm).filter(x => !not.has(x.sp.id) && !closet.has(x.sp.id) && canLearnAll(x.sp.id, ids))
+    .sort((a, b) => off(b.sp) - off(a.sp) || (a.sp.id < b.sp.id ? -1 : 1))[0];
+  if (r) return mon(r.sp.id, '', r.ability, []);
+  const lb = learnerBody(ids, { not: [...not], wide: true, key: off });
+  return lb ? { ...lb, moves: [] } : null;
+}
+/* THE SAME QUESTION FOR A BODY THAT CLICKS A MOVE AT ITSELF: `quietBody(o)` when it learns every id, else the first
+ * body of the same pool, in the same order, that does, else `learnerBody` over the wider pools. */
+function quietLearner(o, ids) {
+  o = o || {};
+  const q = quietBody(o);
+  if (q && canLearnAll(q.species, ids)) return q;
+  const not = new Set((o.not || []).filter(Boolean).map(x => idOf(dex.species.get(x).id)));
+  const closet = illusionCloset().species;
+  for (const r of moveBodies(o.arm)) {
+    if (not.has(r.sp.id) || closet.has(r.sp.id) || !canLearnAll(r.sp.id, ids)) continue;
+    const b = quietBody({ ...o, not: moveBodies(o.arm).filter(x => x.sp.id !== r.sp.id).map(x => x.sp.id) });
+    if (b) return b;
+  }
+  const lb = learnerBody(ids, { not: [...not], wide: true, pred: s => !o.type || dex.getImmunity(o.type, s.types) !== false });
+  return lb ? { ...lb, moves: [] } : null;
+}
 
 /* WHICH PIN CORNER A MOVE NEEDS, READ OFF THE MOVE'S OWN accuracy AND critRatio.
  *
@@ -4712,6 +4881,8 @@ function chippableBody(arm, opt) {
   const att = dex.species.get(opt.attacker || CLICKER(arm).species);
   for (const r of moveBodies(arm)) {
     if ((opt.not || []).some(x => x && idOf(x) === idOf(r.sp.id))) continue;
+    /* 2026-09-23: a body that will CLICK a move must learn it (`move/heal` hands it the heal) */
+    if (opt.learns && !canLearnAll(r.sp.id, opt.learns)) continue;
     if (opt.status && dex.getImmunity(opt.status === 'tox' ? 'psn' : opt.status, r.sp.types) === false) continue;
     if (opt.powder && r.sp.types.includes('Grass')) continue;
     const hp = flatL50(r.sp.baseStats).hp;
@@ -5775,8 +5946,12 @@ function abilityScenario(e, C, kind) {
     return hitUs;
   })();
   const stone = C.tier === 'MEGA' ? C.stone : '';
+  /* 2026-09-23: THE CARRIER DECLARES THE AGGRESSOR'S HIT ONLY WHERE IT LEARNS IT. It never clicks it in the entry and
+   * residual kinds, and the restaging pass could prune it only on a board nothing reads a move list on — so a
+   * carrier of ANTICIPATION or FOREWARN (both read move lists) kept a move its species cannot learn (Hatterene's
+   * Bite, Musharna's Dragon Claw). The kinds that click set the carrier's moves themselves below. */
   const carrier = mon(base.id, stone, C.tier === 'MEGA' ? '' : dex.abilities.get(e.id).name,
-                      [hitThem.id]);
+                      (!LEGAL_FIRST || learnsLegally(base.id, hitThem.id)) ? [hitThem.id] : []);
   const partnerSp = (() => {
     const alt = CANDIDATES.find(s => s.id !== base.id && s.id !== atk.id
       && neutralContactOn(s.id) && idOf(s.id) !== idOf(CAST.BAG().species));
@@ -5820,14 +5995,17 @@ function abilityScenario(e, C, kind) {
               turn([IDLE, IDLE], [IDLE, IDLE])];
   } else if (kind === 'switchout') {
     hpB = 4;
+    /* 2026-09-23: A CARRIER THAT LEARNS NO U-TURN LEAVES BY SWITCHING. Altaria (Natural Cure) and Toxapex
+     * (Regenerator) learn no self-switching move at all in this format; the ability reads the switch-out, not the
+     * move that caused it, so the carrier's turn-2 exit is a plain switch to the bench body. */
     script = [turn([click(hitThem.id, 0), click(hitThem.id, 1)], [IDLE, IDLE]),
-              turn([IDLE, IDLE], [click('uturn', 0), click('uturn', 0)])];
+              turn([IDLE, IDLE], [(!LEGAL_FIRST || learnsLegally(base.id, 'uturn')) ? click('uturn', 0) : { sw: benchSp.id }, click('uturn', 0)])];
   } else {
     script = [turn([click(hitThem.id, 0), IDLE], [carrierHit ? click(carrierHit.id, 0) : IDLE, IDLE]),
               turn([click(hitThem.id, 0), IDLE], [carrierHit ? click(carrierHit.id, 0) : IDLE, IDLE]),
               turn([IDLE, IDLE], [IDLE, IDLE])];
   }
-  if (kind === 'switchout') carrier.moves.push('uturn');
+  if (kind === 'switchout' && (!LEGAL_FIRST || learnsLegally(base.id, 'uturn'))) carrier.moves.push('uturn');
   if (kind === 'generic') carrier.moves = carrierHit ? [carrierHit.id] : [INERT];
 
   /* THE SETUP TURN, for the two tiers whose control is a CLICK rather than a swapped ability. The
@@ -5937,7 +6115,7 @@ function abilityScenario(e, C, kind) {
      * the three CAST bodies do not. The lender stands in a slot that idles in every kind but
      * `switchout`, and it is present in BOTH arms — only the click differs. */
     a1: controlKind === 'abilityswap'
-      ? mon(SWAPPER.species, '', SWAPPER.ability, [hitThem.id])
+      ? mon(SWAPPER.species, '', SWAPPER.ability, (!LEGAL_FIRST || learnsLegally(SWAPPER.species, hitThem.id)) ? [hitThem.id] : [])
       : controlKind === 'suppress' && gastroLender()
       ? mon(gastroLender().species, '', carrierAbility(dex.species.get(gastroLender().species)) || '',
             lentMoves())
@@ -5963,6 +6141,23 @@ function abilityScenario(e, C, kind) {
   sc.controlKind = controlKind;
   sc.abilityId = e.id;
   sc.carrierSpecies = base.id;
+  /* 2026-09-23: A CARRIER THAT CAN LEGALLY HOLD NO CONTROL CLICK ONLY EVER SWITCHES. Imposter's one legal carrier is
+   * Ditto, which learns Transform and nothing else (TeamValidator: "Ditto can't learn Focus Energy", and no Sleep
+   * Talk either), so every idle click on it was a set the regulation refuses. In the ENTRY kind the carrier's own
+   * turns are the switch out and the switch back — boundary 2, the second entry, is the reading — and only the
+   * trailing idle turn asks it to click. So for such a carrier, with an ordinary sheet control (no prepended setup
+   * turn, which it would also have to click), the script ends at the re-entry and the carrier declares the one
+   * move it does learn, which it never clicks. Every other entry row is unchanged. */
+  const idleIds = [INERT].concat(INERT_SUBS.map(m => m.id));
+  if (kind === 'entry' && controlKind === 'ability' && !idleIds.some(x => learnsLegally(base.id, x))) {
+    const own = firstLegalMove(base.id);
+    const ci = sc.B.findIndex(m => idOf(dex.species.get(m.species).id) === idOf(base.id));
+    if (own && ci >= 0 && sc.script.length === 3) {
+      sc.script = sc.script.slice(0, 2);
+      sc.B[ci] = { ...sc.B[ci], moves: [own] };
+      sc.carrierIdlesNever = 'the carrier learns no control click; it only switches, and the fixture ends at its re-entry';
+    }
+  }
   return { note: C.tier + ' carrier ' + base.name
       + (C.tier === 'MEGA' ? ' -> ' + pretty(C.forme) + ' via ' + pretty(C.stone) : '')
       + '; control = ' + (controlKind === 'abilityswap' ? controlNote
@@ -6787,7 +6982,8 @@ function learnerWithNeutralHit(def, alsoIds, o) {
     if (dex.getImmunity(t, dSp.types) === false || dex.getEffectiveness(t, dSp.types) !== 0) continue;
     for (const m of deliveriesOfType(t)) {
       if (o.pred && !o.pred(m)) continue;
-      const body = learnerBody((alsoIds || []).concat([m.id]), { not: (o.not || []).concat([def]) });
+      /* `o.wide` (2026-09-23) passes through to `learnerBody`'s wider pool; absent, the call is unchanged */
+      const body = learnerBody((alsoIds || []).concat([m.id]), { not: (o.not || []).concat([def]), wide: !!o.wide });
       if (body) return { body, mv: m };
     }
   }
@@ -6821,8 +7017,11 @@ const RULES = [
       + 'writes one is no use here: on this corner every secondary fires, so the residual takes the '
       + 'last point of HP off the survivor and BOTH authority boards end the turn with the holder '
       + 'dead — measured, on Poison Jab into Whimsicott, which is how this rule learned the rule');
-    const attAb = idOf(KILL_ATT.id) === idOf(CAST.ATTACKER().species)
-      ? CAST.ATTACKER().ability : carrierAbility(KILL_ATT);
+    /* 2026-09-23: THE ABILITY OF THE BODY THAT THROWS, not of `KILL_ATT`. When `KILL_ATT` finds no clean kill the
+     * search widens to another attacker (`K.att`), and this line kept handing out KILL_ATT's ability — the
+     * validator: "Rhyperior can't have Guts." */
+    const attAb = idOf(K.att.id) === idOf(CAST.ATTACKER().species)
+      ? CAST.ATTACKER().ability : carrierAbility(K.att);
     return { arm: BOTTOM_ARM,
       note: pretty(K.att.id) + ' throws a lethal ' + K.move.name + ' (' + K.ratio.toFixed(1)
           + 'x its HP, and NO secondary) at ' + pretty(K.victim.id) + '. WITH the item the holder '
@@ -7523,25 +7722,56 @@ const RULES = [
   match(e) {
     if (!e.onTryHeal || !/drain/i.test(e.shortDesc || '')) return null;
     if (!DRAIN_MOVE) return cannot('no 100-accuracy single-target draining move exists in this format');
-    const bag = dex.species.get(CAST.BAG().species);
-    if (dex.getImmunity(DRAIN_MOVE.type, bag.types) === false)
-      return cannot('the only 100-accuracy drain carrier is ' + DRAIN_MOVE.name + ', which the '
-        + 'punching bag is immune to');
+    /* 2026-09-23: THE HOLDER AND ITS PARTNER BOTH CLICK THE DRAIN, SO BOTH MUST LEARN IT. `DRAIN_MOVE` is the
+     * strongest drain in the format (Bitter Blade), and neither the punching bag (Kangaskhan) nor Snorlax learns
+     * it. The same list, strongest first, is walked for the first drain the bag — else the first carrier body —
+     * learns, that the aggressor it is thrown at is not immune to, with a partner that learns it too (Snorlax
+     * where it can, as before). The bag with Bitter Blade is what this returns wherever that was legal. */
+    const A0sp = dex.species.get(CAST.ATTACKER().species);
+    const castIds = new Set([CAST.ATTACKER().species, CAST.ATTACKER2().species].map(x => dex.species.get(x).id));
+    const closetD = illusionCloset().species;
+    const bag0 = dex.species.get(CAST.BAG().species);
+    const DRAINS = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.drain
+        && (m.accuracy === true || m.accuracy === 100) && (m.target === 'normal' || m.target === 'any')
+        && !m.flags.charge && !m.multihit && m.basePower > 0)
+      .sort((a, b) => b.basePower - a.basePower || (a.id < b.id ? -1 : 1));
+    const holders = [bag0].concat(CANDIDATES.filter(s => s.id !== bag0.id && !castIds.has(s.id)
+      && buildableSpecies(s.id) && !closetD.has(s.id)));
+    const partnerFor = (d, h) => { const sn = dex.species.get('snorlax');
+      if (sn.id !== h.id && learnsLegally(sn.id, d.id)) return sn;
+      return CANDIDATES.find(s => s.id !== h.id && !castIds.has(s.id) && buildableSpecies(s.id)
+        && !closetD.has(s.id) && learnsLegally(s.id, d.id)) || null; };
+    let DP = null;
+    for (const d of DRAINS) {
+      if (dex.getImmunity(d.type, A0sp.types) === false) continue;
+      for (const h of holders) {
+        if (!learnsLegally(h.id, d.id) || dex.getImmunity(d.type, h.types) === false) continue;
+        const p = partnerFor(d, h);
+        if (p) { DP = { d, h, p }; break; }
+      }
+      if (DP) break;
+    }
+    if (!DP) return cannot('no legal buildable holder and partner both learn a 100-accuracy single-target drain '
+      + 'that ' + A0sp.name + ' is not immune to');
+    const bag = DP.h;
+    const DRAIN = DP.d;
+    const bagAb = bag.id === bag0.id ? CAST.BAG().ability : carrierAbility(bag);
     /* ROADMAP #318 (6.24.0): each aggressor's chip is a neutral hit IT LEARNS — neither learns Sludge Bomb */
     const nuBy = by => Object.keys(DELIVERY).map(t => learnableOfType(by, t).find(mv =>
       dex.getEffectiveness(mv.type, bag.types) === 0 && dex.getImmunity(mv.type, bag.types) !== false)).find(Boolean) || null;
     const nu0 = nuBy(CAST.ATTACKER().species), nu1 = nuBy(CAST.ATTACKER2().species);
     const nu = nu0;
     if (!nu0 || !nu1) return cannot('no neutral 100-accuracy delivery move the aggressors learn exists to chip the holder first');
-    return { note: 'chipped, then draining with ' + DRAIN_MOVE.name,
+    return { note: 'chipped, then draining with ' + DRAIN.name + ' (' + pretty(bag.id) + ' holds, '
+          + pretty(DP.p.id) + ' is the negative)',
       scenario: scaffold({ hpA: 8, hpB: 4,
         a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [nu0.id]),
         a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [nu1.id]),
-        b0: mon(bag.id, e.id, CAST.BAG().ability, [DRAIN_MOVE.id]),
-        b1: mon('snorlax', '', carrierAbility(dex.species.get('snorlax')) || '', [DRAIN_MOVE.id]),
+        b0: mon(bag.id, e.id, bagAb, [DRAIN.id]),
+        b1: mon(DP.p.id, '', carrierAbility(DP.p) || '', [DRAIN.id]),
         script: [turn([click(nu0.id, 0), click(nu1.id, 1)], [IDLE, IDLE]),
-                 turn([IDLE, IDLE], [click(DRAIN_MOVE.id, 0), click(DRAIN_MOVE.id, 0)]),
-                 turn([IDLE, IDLE], [click(DRAIN_MOVE.id, 0), click(DRAIN_MOVE.id, 0)])] }) };
+                 turn([IDLE, IDLE], [click(DRAIN.id, 0), click(DRAIN.id, 0)]),
+                 turn([IDLE, IDLE], [click(DRAIN.id, 0), click(DRAIN.id, 0)])] }) };
   } },
 
 { id: 'item/extends-a-duration', kind: 'item',
@@ -8072,14 +8302,27 @@ const RULES = [
       /* A SELF-TARGETING PIVOT TAKES NO TARGET. Baton Pass and Shed Tail are `target: 'self'`, and
        * naming a foe slot for one of those is a click the driver cannot build. */
       const selfTargeted = PIVOT.target === 'self' || PIVOT.target === 'all';
+      /* 2026-09-23: THE BODY THAT PIVOTS LEARNS THE PIVOT. `R` where it does; otherwise the first legal carrier
+       * body (same pool, same order) that does, is not a Ghost (a Ghost is never trapped, so it would prove
+       * nothing) and is not already on side A. Charizard learns none of Baton Pass, Chilly Reception or Shed Tail. */
+      const sideA = new Set([P.id, dex.species.get(partnerA.species).id]);
+      /* then the wider pool (`learnerBody`, the planner's quietest ability); and where NOTHING legal learns it, the old
+       * body stands — its set is refused and counted, and the arm is kept rather than lost */
+      const PBw = learnsLegally(R.id, PIVOT.id) ? null
+        : learnerBody([PIVOT.id], { not: [...sideA], wide: true, pred: s => !s.types.includes('Ghost') });
+      const PB = learnsLegally(R.id, PIVOT.id) ? R
+        : (CANDIDATES.find(s => buildableSpecies(s.id) && !s.types.includes('Ghost') && !sideA.has(s.id)
+            && learnsLegally(s.id, PIVOT.id) && !illusionCloset().species.has(s.id))
+           || (PBw ? dex.species.get(PBw.species) : R));
+      const PBab = (PBw && PB.id === dex.species.get(PBw.species).id) ? PBw.ability : (carrierAbility(PB) || '');
       exceptions.push({ id: 'a-switching-move-still-works[' + shape + ']', side: 'A', slot: 0,
-        from: R.id,
+        from: PB.id,
         why: 'a pivot move (' + PIVOT.name + ', selfSwitch=' + JSON.stringify(PIVOT.selfSwitch)
            + ') is a MOVE, and a trap does not stop one. One arm per DISTINCT selfSwitch shape, '
            + 'because two of the seven carry a STRING and an arm that only ever draws a boolean one '
            + 'cannot speak for them',
         scenario: exScenario('pivot-' + idOf(PIVOT.id),
-          mon(R.id, '', carrierAbility(R) || '', [INERT, PIVOT.id]),
+          mon(PB.id, '', PBab, [INERT, PIVOT.id]),
           selfTargeted ? { m: PIVOT.id } : { m: PIVOT.id, t: 0 }) });
     }
     /* ---- FORCED SWITCHING IS THE OTHER AXIS, AND IT RUNS THE OPPOSITE WAY -------------------------
@@ -8099,9 +8342,13 @@ const RULES = [
     const PHAZE = dex.moves.all().find(m => m.exists && !m.isNonstandard && m.forceSwitch
       && (m.accuracy === 100 || m.accuracy === true) && MC.moves[m.id]);
     if (PHAZE) {
-      const allyPh = mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [INERT, PHAZE.id]);
       const x = exScenario('phaze', mon(R.id, '', carrierAbility(R) || '', [INERT]),
                            IDLE, click(PHAZE.id, 0));
+      /* 2026-09-23: the phazer LEARNS the phaze (Weavile learns no Roar) — `throwerFor`, the CAST body first, never
+       * a species side B already holds (Species Clause: board_state.js keys a party by species) */
+      const phz = throwerFor(CAST.ATTACKER2(), [PHAZE.id], { not: [base.id].concat(x.B.filter((m, i) => i !== 1).map(m => m.species)) });
+      const allyPh = phz ? mon(phz.species, '', phz.ability, [INERT, PHAZE.id])
+                         : mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [INERT, PHAZE.id]);
       x.B = x.B.map((m, i) => (i === 1 ? allyPh : m));
       /* ---- DECLARED: THIS ARM DOES NOT COMPARE WHICH BODY THE PHAZE DRAGGED IN -------------------
        *
@@ -8832,9 +9079,11 @@ const RULES = [
     for (const f of CANDIDATES) {
       if (f.id === carSp.id || f.forme.endsWith('Mega') || !buildableSpecies(f.id)) continue;
       if (spd(f) <= spd(carSp)) continue;
-      const kill = lethalMove(carSp, f, 1.35);
+      /* 2026-09-23: each body throws a move IT LEARNS (`lethalMove`'s `by`, the table's picks first) — the
+       * table's Drill Peck and Kowtow Cleave were handed to Slowbro-Galar and Heracross, which learn neither */
+      const kill = lethalMove(carSp, f, 1.35, LEGAL_FIRST ? carSp.id : undefined);
       if (!kill) continue;
-      const back = lethalMove(f, carSp, 0.05);   // it only has to LAND, not to kill
+      const back = lethalMove(f, carSp, 0.05, LEGAL_FIRST ? f.id : undefined);   // it only has to LAND, not to kill
       if (!back) continue;
       pick = { foe: f, kill: kill.mv, back: back.mv }; break;
     }
@@ -9579,16 +9828,42 @@ const RULES = [
     if (needStatus && !st) return cannot('its multiplier is gated on the holder being STATUSED and '
       + 'this format offers no 100-accuracy single-target status move, so the gate cannot be opened');
     if (off) {
-      const target = moveBodies(PRIMARY_ARM_ID).map(r => r.sp)
-        .find(sp => pick(cat, sp.types) && pick(other, sp.types));
+      const targets = moveBodies(PRIMARY_ARM_ID).map(r => r.sp)
+        .filter(sp => pick(cat, sp.types) && pick(other, sp.types));
+      let target = targets[0];
       if (!target) return cannot(noBodyWhy({}) + ' (it must be neutral to BOTH a physical and a '
         + 'special click, or the two turns differ in the type chart as well as in the category)');
-      const tgAb = moveBodies(PRIMARY_ARM_ID).find(r => r.sp.id === target.id).ability;
-      const C = abilityCarrierAnyTier(e, sp => idOf(sp.id) !== idOf(target.id)
-        && (!needStatus || dex.getImmunity(st.status === 'tox' ? 'psn' : st.status, sp.types) !== false));
+      /* 2026-09-23: THE CARRIER THROWS BOTH CLICKS, SO IT MUST LEARN THEM. The table's Dragon Claw and Dragon
+       * Pulse are what `pick` hands out, and no carrier of Guts, Huge Power, Hustle or Pure Power learns Dragon
+       * Claw. The table's pair is kept wherever the carrier learns it; otherwise each click is the carrier's own
+       * delivery move of the same category, neutral into the same target (`learnableOfType`). */
+      const pickL = (c, types, by) => {
+        const t0 = pick(c, types);
+        if (t0 && learnsLegally(by, t0.id)) return t0;
+        for (const t of Object.keys(DELIVERY)) {
+          if (dex.getEffectiveness(t, types) !== 0 || dex.getImmunity(t, types) === false) continue;
+          const m = learnableOfType(by, t, x => x.category === c)[0];
+          if (m) return m;
+        }
+        return null;
+      };
+      const statusOk = sp => !needStatus || dex.getImmunity(st.status === 'tox' ? 'psn' : st.status, sp.types) !== false;
+      /* the same targets, in the same order, until one has an ALTERNATE carrier that learns both clicks into it;
+       * failing that, the old question on the first target, unchanged — its refused set is counted and named */
+      let C = null;
+      if (LEGAL_FIRST) for (const T of targets) {
+        C = abilityCarrier(e, sp => idOf(sp.id) !== idOf(T.id) && statusOk(sp)
+          && !!pickL(cat, T.types, sp.id) && !!pickL(other, T.types, sp.id));
+        if (C) { target = T; break; }
+      }
+      const legalC = !!C;
+      if (!C) C = abilityCarrierAnyTier(e, sp => idOf(sp.id) !== idOf(target.id) && statusOk(sp));
       if (!C) return cannot(noCarrierWhy(e, needStatus ? 'can carry the ' + st.status + ' this rule '
         + 'inflicts to open the gate' : 'is a body other than the derived target'));
-      const A = pick(cat, target.types), B2 = pick(other, target.types);
+      const tgAb = moveBodies(PRIMARY_ARM_ID).find(r => r.sp.id === target.id).ability;
+      const cid = (C.sp || dex.species.get(C.species)).id;
+      const A = (legalC && pickL(cat, target.types, cid)) || pick(cat, target.types);
+      const B2 = (legalC && pickL(other, target.types, cid)) || pick(other, target.types);
       return stageAbilityAnyTier(e, C, { hpA: 8, hpB: 4, moves: [A.id, B2.id],
         note: (needStatus ? st.name + ' opens the gate on turn 1, then ' : '') + A.name + ' ('
             + cat + ', which is what ' + keys[0] + ' multiplies) and ' + B2.name + ' (' + other
@@ -9992,7 +10267,11 @@ const RULES = [
     if (!C) return cannot(noCarrierWhy(e, 'can be chipped between a quarter and 60% of its HP by one '
       + 'derived delivery move — a per-turn heal on a full-HP body reads 0 in both arms'));
     const chip = hitInBand(atk, C.sp, 0.25, 0.6);
-    const back = neutralHit2(atk.id, [chip.id]) || neutralHit2(atk.id, []);
+    /* 2026-09-23: THE CARRIER THROWS IT, SO IT LEARNS IT. The table's pick is kept wherever the carrier learns it;
+     * otherwise the carrier's own neutral delivery move (Charizard learns no Iron Head). */
+    const back0 = neutralHit2(atk.id, [chip.id]) || neutralHit2(atk.id, []);
+    const back = (!LEGAL_FIRST || (back0 && learnsLegally(C.sp.id, back0.id))) ? back0
+      : (neutralHit2(atk.id, [chip.id], C.sp.id) || neutralHit2(atk.id, [], C.sp.id) || null);
     return stageAbility(e, C, { hpA: 8, hpB: 1, moves: back ? [back.id] : [INERT],
       note: set.ability + ' on the partner raises ' + W[0] + '; the carrier is chipped to '
           + Math.round((1 - chip.d / chip.hp) * 100) + '% by ' + chip.mv.name + ' on turn 1 and then '
@@ -10035,14 +10314,24 @@ const RULES = [
       if (atk.types.includes('Dark')) return cannot('the aggressor is a Dark type and this family is '
         + 'refused by Dark bodies, so the staged click would be blocked in BOTH arms');
       let kill = null;
-      const C = abilityCarrier(e, sp => spd(sp) < spd(atk) && !!(kill = lethalMove(atk, sp, 1.2))
-        && DROP_POOL.some(m => learnsLegally(sp.id, m.id)));
+      /* 2026-09-23: the table's kill (Dire Claw on this board) went to the restaging pass, which moved the aggressor
+       * onto Sneasler — and Dire Claw can SLEEP, which keeps the control click on Focus Energy, which Whimsicott
+       * cannot learn. So a carrier is asked for in three passes, each only if the one before found nothing: a kill
+       * the aggressor LEARNS (`lethalMove`'s `by`); then the table's kill with a carrier that can hold Focus Energy
+       * if that kill writes sleep; then the old question unchanged, whose refused set is counted and named. */
+      const baseOk = sp => spd(sp) < spd(atk) && DROP_POOL.some(m => learnsLegally(sp.id, m.id));
+      let by = LEGAL_FIRST ? atk.id : undefined;
+      let C = LEGAL_FIRST ? abilityCarrier(e, sp => baseOk(sp) && !!(kill = lethalMove(atk, sp, 1.2, by))) : null;
+      if (!C && LEGAL_FIRST) { by = undefined;
+        C = abilityCarrier(e, sp => baseOk(sp) && !!(kill = lethalMove(atk, sp, 1.2))
+          && (!_namesSleep('move', kill.mv.id) || learnsLegally(sp.id, INERT))); }
+      if (!C) C = abilityCarrier(e, sp => baseOk(sp) && !!(kill = lethalMove(atk, sp, 1.2)));
       /* ROADMAP #318 (6.24.0): the status click is a drop the CARRIER learns (Whimsicott never learned Noble Roar) */
       const pdrop = C ? DROP_POOL.find(m => learnsLegally(C.species, m.id)) : null;
       if (!C) return cannot(noCarrierWhy(e, 'is SLOWER than the aggressor ' + atk.name + ' AND can be '
         + 'killed outright by one of its derived delivery moves — without both, the shift changes no '
         + 'leaf and the entry reads INERT'));
-      kill = lethalMove(atk, C.sp, 1.2);
+      kill = lethalMove(atk, C.sp, 1.2, by);
       return stageAbility(e, C, { hpA: 4, hpB: 1, moves: [pdrop.id],
         note: 'the carrier is slower (' + spd(C.sp) + ' against ' + spd(atk) + ') and is killed '
             + 'outright by ' + kill.mv.name + '; it clicks ' + DROP_MOVE.name + ', which only lands '
@@ -10780,6 +11069,10 @@ const RULES = [
     for (const sp of (CARRIERS[e.id] || [])) {
       if (!sp.exists || sp.isNonstandard || sp.battleOnly || sp.forme.endsWith('Mega')) continue;
       if (!buildableSpecies(sp.id) || !altAbility(sp, e.id)) continue;
+      /* 2026-09-23: the carrier stands and IDLES through the status click, so it must legally know a control click.
+       * Ditto learns Transform alone (TeamValidator: "Ditto can't learn Focus Energy") and was this rule's Limber
+       * carrier; the next carrier in the same order is taken instead. */
+      if (![INERT].concat(INERT_SUBS.map(m => m.id)).some(x => learnsLegally(sp.id, x))) continue;
       for (const st of named) {
         if (refusesByType(sp.types, st)) continue;           // clause 2 — Will's Jolteon
         const slower = shedsOnItsOwnMove(st);
@@ -12741,8 +13034,9 @@ const RULES = [
        * consequence is read off the field rather than off a click. */
       const aura = TAGS.abilities && TAGS.abilities[e.id] && TAGS.abilities[e.id].params
         && TAGS.abilities[e.id].params.auraBoost;
-      const partnerSp = CANDIDATES.find(s => s.id !== base.id && s.id !== atk.id && s.id !== bag.id
-        && buildableSpecies(s.id) && carrierAbility(s));
+      const partnerOk = s => s.id !== base.id && s.id !== atk.id && s.id !== bag.id
+        && buildableSpecies(s.id) && carrierAbility(s);
+      let partnerSp = CANDIDATES.find(partnerOk);
       if (!partnerSp) return cannot('no buildable partner body exists to click beside the carrier');
       let click0 = null, negative = null, what = '';
       if (aura && aura.type) {
@@ -12750,16 +13044,24 @@ const RULES = [
          * Fairy move and therefore carries its own 0.75 spread reduction — mixing that into an
          * x5448/4096 reading is two multipliers where the rule wants one. Moonblast is the
          * single-target member and the choice is made on `target`, not on a name. */
-        const fairy = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.type === aura.type
+        const fairies = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.type === aura.type
           && m.category !== 'Status' && m.basePower && m.accuracy === 100
           && m.target === 'normal' && MC.moves[m.id])
-          .sort((a, b) => b.basePower - a.basePower)[0];
-        const other = deliveryOf ? null : null;
-        const off = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.type !== aura.type
+          .sort((a, b) => b.basePower - a.basePower);
+        const offs = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.type !== aura.type
           && m.category !== 'Status' && m.basePower && m.accuracy === 100
           && m.target === 'normal' && MC.moves[m.id]
           && dex.getImmunity(m.type, bag.types) !== false)
-          .sort((a, b) => b.basePower - a.basePower)[0];
+          .sort((a, b) => b.basePower - a.basePower);
+        /* 2026-09-23: THE PARTNER THROWS BOTH, SO IT MUST LEARN BOTH. Venusaur, the first partner, learns no
+         * Moonblast. The first partner (same order) that learns an aura-typed and an off-typed member of the two
+         * lists takes its strongest of each; the lists and their filters are unchanged. */
+        let fairy = fairies[0], off = offs[0];
+        if (LEGAL_FIRST && !(partnerSp && learnsLegally(partnerSp.id, fairy && fairy.id) && learnsLegally(partnerSp.id, off && off.id))) {
+          const lp = CANDIDATES.filter(partnerOk).find(s => fairies.some(m => learnsLegally(s.id, m.id))
+            && offs.some(m => learnsLegally(s.id, m.id)));
+          if (lp) { partnerSp = lp; fairy = fairies.find(m => learnsLegally(lp.id, m.id)); off = offs.find(m => learnsLegally(lp.id, m.id)); }
+        }
         if (!fairy || !off) return cannot('the format offers no single-target 100-accuracy '
           + aura.type + '-type move and off-type counterpart this engine knows, so the aura has '
           + 'nothing to boost and nothing to leave alone');
@@ -14732,7 +15034,14 @@ const RULES = [
         + 'learns the status click'));
       planFor(C.sp || dex.species.get(C.species));
       const P = plan;
-      return stageAbilityQuiet(e, C, { hpA: 4, hpB: 4, moves: [P.hit.id],
+      /* 2026-09-23: THE CONTROL CLICK'S CRIT STAGES CANNOT MOVE THIS ROW, AND THE ARITHMETIC IS READ, NOT TYPED. With
+       * the ability the ratio is the handler's literal (`ret`, 4 or more), which the authority clamps to the certain
+       * tier whatever else is added; without it the ratio is 1 plus the control click's own stages
+       * (`INERT_RAISES_CRIT_STAGES`), and while that stays below 4 it is a RATE, which the primary pin refuses in
+       * both engines. So the idle click may be the substitute here — and it has to be, because this ability's only
+       * legal carrier (Toxapex) learns no Focus Energy. Every other crit-ratio entity keeps Focus Energy. */
+      const critUnread = ret >= 4 && 1 + INERT_RAISES_CRIT_STAGES < 4;
+      const R = stageAbilityQuiet(e, C, { hpA: 4, hpB: 4, moves: [P.hit.id],
         note: pretty(P.th.species) + ' stands beside the carrier and clicks ' + setter.name + ' at '
             + P.def.name + ' on turn 1, writing the `' + setter.status + '` the handler\'s own status '
             + 'list names; the carrier then throws ' + P.hit.name + ' at that body on turns 2 and 3. '
@@ -14750,6 +15059,11 @@ const RULES = [
             + 'status, and a gate that never opened reads INERT and says nothing',
           ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p1', 0);
             return !!(A && statuses.includes(String(A.status || ''))); }) } });
+      /* the rate is refused only on the PRIMARY corner; on any other the flag is not set and Focus Energy stays */
+      if (critUnread && R && R.scenario && (R.arm || R.scenario.arm || PRIMARY_ARM_ID) === PRIMARY_ARM_ID)
+        R.scenario.critStagesUnread = 'ratio ' + ret + ' with the ability (clamped to the certain tier), 1+'
+          + INERT_RAISES_CRIT_STAGES + ' without it (a rate the primary pin refuses)';
+      return R;
     }
     /* ---- SNIPER: THE ROLLED ROAD, OPENED BY ROADMAP #608 — 2026-09-12 ---------------------------
      *
@@ -15641,7 +15955,9 @@ const RULES = [
         + set2.name + ' on turn 1; the move is clicked on turn 2 and the stage leaves are what is '
         + 'compared. ' + pretty(b1.species) + ' beside it never boosts and is the negative' + armNote(e),
       scenario: scaffold({ hpA: 4, hpB: 8,
-        a0: { ...CLICKER(arm), moves: byFoe ? [e.id, set2.id] : [set2.id] },
+        /* 2026-09-23: a thrower that LEARNS the move (`clickerFor`) — Goodra-Hisui learns none of Guard Swap,
+         * Psych Up or Topsy-Turvy; the setter it never clicks is left to the restaging pass as before */
+        a0: { ...((LEGAL_FIRST && byFoe && clickerFor(arm, [e.id])) || CLICKER(arm)), moves: byFoe ? [e.id, set2.id] : [set2.id] },
         b0: { ...b0, moves: byFoe ? [set2.id] : [e.id, set2.id] },
         b1: { ...b1, moves: [INERT] },
         script: [turn([IDLE, IDLE], [click(set2.id), IDLE]),
@@ -15708,15 +16024,19 @@ const RULES = [
      * gate correctly open, the move landed on an immune body and the row read INERT for the third
      * time, now for a reason that had nothing to do with the precondition. Same fault the status rule
      * already records against Poison Powder, on the same body. */
-    const b0 = quietBody({ arm, type: self ? null : e.type });
+    /* 2026-09-23: the eater LEARNS the move it clicks — a self-aimed one on a quiet learner (`quietLearner`), a
+     * thrown one on a learner of it (`clickerFor`). Goodra-Hisui learns none of Belch, Bug Bite, Pluck or Recycle. */
+    const b0 = (self && LEGAL_FIRST) ? (quietLearner({ arm }, [e.id]) || quietBody({ arm }))
+      : quietBody({ arm, type: self ? null : e.type });
     const b1 = quietBody({ arm, not: [b0 && b0.species] });
     if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: self ? null : e.type }));
+    const CK = (LEGAL_FIRST && !self && clickerFor(arm, [e.id])) || { ...CLICKER(arm) };
     /* the eater is whoever CLICKS the move — Belch is thrown at a foe by its user, Recycle is aimed
      * at the user itself, and `aimsAtFoe` is what separates them */
-    const eater = self ? b0 : { ...CLICKER(arm) };
-    const chipTarget = self ? b0.species : CLICKER(arm).species;
+    const eater = self ? b0 : { ...CK };
+    const chipTarget = self ? b0.species : CK.species;
     /* ROADMAP #318 (6.24.0): the chip is one its THROWER learns — the clicker at a self-eater, else b0 */
-    const chip = neutralHit2(chipTarget, [e.id], self ? CLICKER(arm).species : b0.species);
+    const chip = neutralHit2(chipTarget, [e.id], self ? CK.species : b0.species);
     if (!chip) return cannot('no neutral 100-accuracy delivery move exists to take ' + chipTarget
       + ' to half HP, and a half-HP berry that is never eaten leaves the gate shut');
     /* THE BERRY EATS AT HALF, SO THE CHIP HAS TO CROSS THE LINE, AND ONE DID NOT. The first version
@@ -15725,14 +16045,14 @@ const RULES = [
      * the coverage limit it had just been written to remove. THREE chips, and the number is derived:
      * enough copies of the derived hit to take the body past half its flat HP. */
     const HALVE = HALF_HP_BERRY.id;
-    const eatSp = dex.species.get(self ? b0.species : CLICKER(arm).species);
+    const eatSp = dex.species.get(self ? b0.species : CK.species);
     /* THE 0.85 ROLL AND NOT THE MAXIMUM, AND THE RECEIPT IS WHAT FOUND IT. `maxRoll` prices the top
      * of the damage range, which is the corner the PRIMARY arm pins — but a sub-100-accuracy move
      * runs on `bottom-tie-first`, whose corner is the MINIMUM roll. Belch is 90-accurate, so its chip
      * count was computed one roll too generous, the body never crossed the half-HP line, the berry
      * was never eaten and the gate stayed shut. It did not read as a pass: `precondition.ok` said
      * THE PRECONDITION DID NOT LAND, which is the whole reason that check exists. */
-    const per = Math.floor(maxRoll(dex.species.get(self ? CLICKER(arm).species : b0.species),
+    const per = Math.floor(maxRoll(dex.species.get(self ? CK.species : b0.species),
                                    chip, eatSp) * 0.85);
     const hp = flatL50(eatSp.baseStats).hp;
     const need = per > 0 ? Math.ceil((hp / 2) / per) : 0;
@@ -15757,8 +16077,8 @@ const RULES = [
         + need + 'x by ' + chip.name + ' (' + per + ' a time into ' + hp + ' HP) so it crosses the '
         + 'half-HP line and EATS it, then clicks with `ateBerry` set' + armNote(e),
       scenario: scaffold({ hpA: 1, hpB: 1,
-        a0: self ? mon(CLICKER(arm).species, '', CLICKER(arm).ability, [chip.id])
-                 : mon(CLICKER(arm).species, HALVE, CLICKER(arm).ability, [e.id]),
+        a0: self ? mon(CK.species, '', CK.ability, [chip.id])
+                 : mon(CK.species, HALVE, CK.ability, [e.id]),
         b0: self ? { ...b0, item: HALVE, moves: [e.id] } : { ...b0, moves: [chip.id] },
         b1: { ...b1, moves: [INERT] },
         script: Array.from({ length: need }, () => chipTurn)
@@ -15886,11 +16206,18 @@ const RULES = [
     /* THE PAIR IS DERIVED, NOT PICKED: recipient bulky enough to be chipped deep and survive, wisher
      * small enough that half ITS max HP is a different number from half the recipient's. */
     let pick = null;
+    /* 2026-09-23: THE WISHER LEARNS THE MOVE. Falinks, the pool's pick, learns no Wish. The quiet pool's learners
+     * first; only when none of them makes a pair, the carrier pool's learners (`carrierAbility`). */
+    const wishers = !LEGAL_FIRST ? [moveBodies(arm)] : [moveBodies(arm).filter(W => learnsLegally(W.sp.id, e.id)),
+      CANDIDATES.filter(s => buildableSpecies(s.id) && carrierAbility(s) && learnsLegally(s.id, e.id)
+        && !illusionCloset().species.has(s.id)).map(s => ({ sp: s, ability: carrierAbility(s) }))];
+    for (const pool of wishers) {
+    if (pick) break;
     for (const R of moveBodies(arm)) {
       const rhp = flatL50(R.sp.baseStats).hp;
       const chip = hitInBand(att, R.sp, 0.55, 0.92);
       if (!chip) continue;
-      for (const W of moveBodies(arm)) {
+      for (const W of pool) {
         if (W.sp.id === R.sp.id) continue;
         const whp = flatL50(W.sp.baseStats).hp;
         if (whp >= rhp) continue;                 // the wisher must be the SMALLER of the two ...
@@ -15900,6 +16227,7 @@ const RULES = [
         if (chip.d < Math.floor(rhp / 2)) continue;
         if (!pick || gap > pick.gap) pick = { R, W, rhp, whp, gap, chip };
       }
+    }
     }
     if (!pick) return cannot('no pair of bodies in the move stage\'s ' + moveBodies(arm).length
       + '-species pool works as (recipient, wisher): the recipient must take one derived hit past 55% '
@@ -16071,7 +16399,9 @@ const RULES = [
     if (!pick) return cannot(noChipWhy(arm, BAND) + ' — and the entrant must be BOTH damaged and '
       + 'statused, because this move\'s own condition refuses to act on a body that is neither, and '
       + 'must survive its own status residual in the arm that never heals it.');
-    const user = quietBody({ arm, not: [pick.body.sp.id, CLICKER(arm).species] });
+    /* 2026-09-23: the user LEARNS the move (Torkoal learns no Healing Wish) — `quietLearner`, the same pool first */
+    const user = LEGAL_FIRST ? quietLearner({ arm, not: [pick.body.sp.id, CLICKER(arm).species] }, [e.id])
+      : quietBody({ arm, not: [pick.body.sp.id, CLICKER(arm).species] });
     const filler = quietBody({ arm, not: [pick.body.sp.id, CLICKER(arm).species, user && user.species] });
     if (!user || !filler) return cannot(noBodyWhy({ arm, not: [pick.body.sp.id] })
       + ' This probe needs THREE distinct bodies on the subject side: the one that is damaged and '
@@ -16353,7 +16683,10 @@ const RULES = [
             pred: s => maxRoll(s, KILLABLE2.move, k2) >= hp * 1.2 })
             || mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [KILLABLE2.move.id]); })(),
         b0: mon(KILLABLE.species, '', KILLABLE.ability, [e.id]),
-        b1: mon(KILLABLE2.species, '', KILLABLE2.ability, [e.id]),
+        /* 2026-09-23: THE NEGATIVE CARRIES THE MOVE ONLY WHERE IT CAN LEARN IT. It never clicks it — the whole
+         * negative is "does NOT click it" — so an uncarried move is the same experiment, and Baneful Bunker and
+         * King's Shield each have ONE legal learner, which is already b0 once restaged. */
+        b1: mon(KILLABLE2.species, '', KILLABLE2.ability, (!LEGAL_FIRST || learnsLegally(KILLABLE2.species, e.id)) ? [e.id] : []),
         script: [turn([click(KILLABLE.move.id, 0), click(KILLABLE2.move.id, 1)], [mclick(e), IDLE])] }) };
   } },
 
@@ -16914,6 +17247,14 @@ const RULES = [
     let pick = chippableBody(arm, { lo, hi: 0.94, fracNotWhole: fr });
     let rounds = true;
     if (!pick) { pick = chippableBody(arm, { lo, hi: 0.94 }); rounds = false; }
+    /* 2026-09-23: THE HEALER LEARNS THE HEAL WHERE THE POOL ALLOWS IT. Only when the body picked above cannot learn
+     * the move is a learner asked for, in the same pool and band; where none exists the old pick stands and the
+     * restaging pass (or the refused-set count, for a held row) takes it from there, as before. */
+    if (LEGAL_FIRST && pick && !learnsLegally(pick.sp.id, e.id)) {
+      const lp = chippableBody(arm, { lo, hi: 0.94, fracNotWhole: fr, learns: [e.id] });
+      const lp2 = lp || chippableBody(arm, { lo, hi: 0.94, learns: [e.id] });
+      if (lp2) { pick = lp2; rounds = !!lp; }
+    }
     if (!pick) return cannot(noChipWhy(arm, { lo, hi: 0.94 }) + ' A heal must be staged on a body it '
       + 'cannot fill, or the amount is clamped by the maximum and the right answer and a wrong one '
       + 'are the same number.');
@@ -17581,11 +17922,26 @@ const RULES = [
      + 'would be the `ability/generic` failure again.',
   match(e) {
     const arm = armFor(e);
-    const b0 = quietBody({ arm }), b1 = quietBody({ arm, not: [b0 && b0.species] });
-    if (!b0 || !b1) return cannot(noBodyWhy({ arm }));
-    const chip = neutralHit(b0.species, e.id);
-    if (!chip) return cannot('no neutral 100-accuracy delivery move exists to chip the bodies first');
     const byFoe = aimsAtFoe(e);
+    /* 2026-09-23: the body that CLICKS the move learns it — `quietLearner` for a self-aimed move, `clickerFor` for
+     * one thrown at a foe. Both hand back what they did before for every move the old body learns. */
+    /* AND WHERE NO LEGAL BODY CAN BE FOUND, THE PRE-2026-09-23 FIXTURE IS KEPT RATHER THAN THE ROW LOST. A row that
+     * stops staging is not a repaired row; its refused set stays in the fixture-legality count, named. */
+    const q0 = quietBody({ arm });
+    const b0 = (!byFoe && LEGAL_FIRST) ? (quietLearner({ arm }, [e.id]) || q0) : q0;
+    const b1 = quietBody({ arm, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm }));
+    let CK = { ...CLICKER(arm) }, chip = neutralHit(b0.species, e.id);
+    if (LEGAL_FIRST && byFoe && !learnsLegally(CK.species, e.id)) {
+      const c2 = clickerFor(arm, [e.id]);
+      const ch2 = c2 && neutralHit2(b0.species, [e.id], c2.species);
+      if (c2 && ch2) { CK = c2; chip = ch2; }
+      else {
+        const L = learnerWithNeutralHit(b0.species, [e.id]) || learnerWithNeutralHit(b0.species, [e.id], { wide: true });
+        if (L) { CK = { ...L.body, moves: [] }; chip = L.mv; }
+      }
+    }
+    if (!chip) return cannot('no neutral 100-accuracy delivery move exists to chip the bodies first');
     const cl = throwIt(e, 0);
     /* ONE CLICK, ON TURN 2, AND THE REASON IS A THROWN GAME RATHER THAN TIDINESS. Explosion, Memento,
      * Misty Explosion and Self-Destruct KILL THE USER, so a second scripted click lands on the
@@ -17596,7 +17952,7 @@ const RULES = [
           + (byFoe ? 'the aggressor at ' + pretty(b0.species) : pretty(b0.species) + ' itself')
           + ', both sides chipped and holding an item' + armNote(e),
       scenario: scaffold({ hpA: 8, hpB: 8,
-        a0: mon(CLICKER(arm).species, 'leftovers', CLICKER(arm).ability, byFoe ? [e.id, chip.id] : [chip.id]),
+        a0: mon(CK.species, 'leftovers', CK.ability, byFoe ? [e.id, chip.id] : [chip.id]),
         b0: { ...b0, item: 'sitrusberry', moves: byFoe ? [INERT] : [e.id] },
         b1: { ...b1, item: 'leftovers', moves: [INERT] },
         /* THE AGGRESSOR KEEPS A REAL CLICK ON EVERY TURN IT IS NOT THE SUBJECT, and IMPRISON is why:
@@ -18198,6 +18554,17 @@ if (LEARNSET_UNREPAIRED) console.error('  !! roster: ROSTER_LEARNSET_UNREPAIRED=
  * delivery table's own picks and the CAST bodies, the pre-#318 fixtures, while `fixtureAudit` — which asks
  * its own validator, not this function — still counts what the format refuses. Read from `process.env`
  * directly because this runs at module load, above the `LEARNSET_UNREPAIRED` constant. */
+/* the first legal move a species learns, in id order, or null — for a body that must declare SOMETHING and learns
+ * no control click (2026-09-23; Ditto learns Transform and nothing else) */
+function firstLegalMove(speciesId) {
+  /* the memo hangs off the function, not a module const: this is reachable from `builtStats` at module load,
+   * long before a const this far down the file would exist */
+  const _FLM = firstLegalMove._memo || (firstLegalMove._memo = new Map());
+  const k = idOf(speciesId);
+  if (!_FLM.has(k)) _FLM.set(k, dex.moves.all().filter(m => m.exists && !m.isNonstandard).map(m => m.id)
+    .sort().find(id => learnsLegally(speciesId, id)) || null);
+  return _FLM.get(k);
+}
 function learnsLegally(speciesId, moveId) {
   if (process.env.ROSTER_LEARNSET_UNREPAIRED === '1') return true;
   const k = idOf(speciesId) + '|' + idOf(moveId);
@@ -18460,11 +18827,59 @@ function restageLegal(sc, kind, e) {
   /* the clicks are COPIED before anything is renamed: IDLE and some rule-local clicks are shared objects */
   sc.script = sc.script.map(st => ({ ...st, p1: (st.p1 || []).map(x => (x ? { ...x } : x)),
                                             p2: (st.p2 || []).map(x => (x ? { ...x } : x)) }));
+  /* ---- THE CONTROL CLICK IS EXEMPT ONLY WHILE SOMETHING CAN SUBSTITUTE IT (2026-09-23) -------------------
+   *
+   * The exemption above was written when the control click was not part of the claim (ROADMAP #316). Since
+   * 0.40.0 every set this file builds is put to the TeamValidator, and `inertChoice` can hand a scenario a
+   * substitute only when EVERY holder learns it and nothing on the fixture can sleep a body. Where it cannot,
+   * the scenario idles on Focus Energy, and a holder that does not learn Focus Energy is a set the regulation
+   * refuses: 11 item, 35 ability and 17 move sets under Reg M-B, measured by
+   * tests/probe_roster_fixture_legality.js. So on exactly those fixtures (`inertDecide` answers KEPT) Focus
+   * Energy becomes a move the holder must learn like any other, and the ordinary restaging below swaps a
+   * body that cannot for one that can, through the same tiers. It is never PRUNED: a body idles by slot, so
+   * whether it clicks the control click is decided by the game, not by the script this pass can read.
+   *
+   * THE SKILL SWAP LENDER IS NOT SWAPPED THROUGH THE ORDINARY POOLS. Its ability IS the control
+   * (`sc.controlAbility`), and those pools would hand it a different one; it may only become another body holding
+   * the SAME ability that learns the click (the lender branch below). */
+  const lender = sc.controlKind === 'abilityswap' ? sc.A[1] : null;
+  /* TWO PASSES, AND THE ORDER IS MEASURED: whether the control click stays Focus Energy depends on the bodies, and
+   * the first pass can bring one in (a wide-pool body holding Synchronize names sleep). So the ordinary pass runs
+   * first, the question is asked of what it produced, and only then is Focus Energy demanded of its holders. */
+  const onePass = (feKept) => {
   for (const [sk, pk] of [['A', 'p1'], ['B', 'p2']]) {
     for (let idx = 0; idx < sc[sk].length; idx++) {
       let body = sc[sk][idx];
+      /* the Skill Swap lender by POSITION (side A slot 1), not by object: a pass may have replaced the object */
+      const isLender = lender !== null && sk === 'A' && idx === 1;
       let need = (body.moves || []).map(idOf).filter(x => x !== inert);
       let refused = need.filter(x => !learnsLegally(body.species, x));
+      /* a LEAD that can idle on the substitute on its own (`withLegalInert`, per body) keeps its species; a bench
+       * body is swapped, because a replacement nobody scripted idles on the scenario's own click */
+      const ownIdle = idx < 2 && IDLE_PER_BODY && INERT_SUBS.some(m => learnsLegally(body.species, m.id) && idleSafeOn(sc, body, m.id));
+      /* THE LENDER, WHERE FOCUS ENERGY STAYS, BECOMES ANOTHER BODY HOLDING THE SAME LENT ABILITY THAT LEARNS IT — the
+       * control's ability is unchanged, only the body carrying it. Its idle click is its whole subject-arm job, and a
+       * move it declared but never clicks (the aggressor's hit) goes with the old body where the new one cannot learn
+       * it. Where no such body exists it stays as it is, refused. (Its control-arm Skill Swap is refused either way:
+       * no legal species holding a quiet ability learns Skill Swap — see `swapperFor`.) */
+      if (feKept && isLender && !learnsLegally(body.species, inert)) {
+        const takenL = new Set(sc.A.concat(sc.B).filter(b => b !== body).map(b => idOf(dex.species.get(b.species).id)));
+        const alt = LEGAL_SPECIES.find(s => !s.battleOnly && !s.forme.endsWith('Mega') && buildableSpecies(s.id)
+          && !takenL.has(s.id) && !illusionCloset().species.has(s.id) && learnsLegally(s.id, inert)
+          && Object.values(s.abilities || {}).some(a => idOf(a) === idOf(body.ability)));
+        if (alt) {
+          const old = idOf(dex.species.get(body.species).id);
+          sc[sk][idx] = { ...body, species: alt.id, moves: (body.moves || []).filter(x => idOf(x) === inert || learnsLegally(alt.id, x)) };
+          for (const st of sc.script) for (const s of ['p1', 'p2']) for (const a of (st[s] || []))
+            if (a && a.sw && idOf(a.sw) === old) a.sw = alt.id;
+          out.swaps.push({ side: pk, slot: idx, kind: 'body', from: old, to: alt.id, ability: body.ability,
+                           tier: 'lender-same-ability', noise: 0, moves: [inert], renamed: [] });
+        } else out.unresolved.push({ side: pk, slot: idx, body: idOf(body.species), refused: [inert], fe: true });
+        continue;
+      }
+      if (feKept && !isLender && !ownIdle && (body.moves || []).some(x => idOf(x) === inert) && !learnsLegally(body.species, inert)) {
+        need = need.concat([inert]); refused = refused.concat([inert]);
+      }
       if (!refused.length) continue;
       /* A BENCH BODY KEEPS ITS MOVE IDS: its clicks cannot be told apart from the lead's it replaced, so it
        * may only change species, never moves. */
@@ -18477,7 +18892,7 @@ function restageLegal(sc, kind, e) {
       const clicked = new Set();
       if (lead) { for (const st of sc.script) { const a = (st[pk] || [])[idx]; if (a && a.sw) break; if (a && a.m) clicked.add(idOf(a.m)); } }
       else for (const st of sc.script) for (const a of (st[pk] || [])) if (a && a.m) clicked.add(idOf(a.m));
-      const pruned = boardReadsMovesets(sc) ? [] : refused.filter(x => !clicked.has(x) && x !== entityMove);
+      const pruned = boardReadsMovesets(sc) ? [] : refused.filter(x => !clicked.has(x) && x !== entityMove && x !== inert);
       if (pruned.length) {
         body = { ...body, moves: body.moves.filter(x => !pruned.includes(idOf(x))) };
         sc[sk][idx] = body;
@@ -18526,7 +18941,7 @@ function restageLegal(sc, kind, e) {
           continue;
         }
       }
-      if (!tw || !twMap) { out.unresolved.push({ side: pk, slot: idx, body: idOf(body.species), refused }); continue; }
+      if (!tw || !twMap) { out.unresolved.push({ side: pk, slot: idx, body: idOf(body.species), refused, fe: feKept || undefined }); continue; }
       const old = idOf(dex.species.get(body.species).id);
       sc[sk][idx] = { ...body, species: tw.sp.id, ability: tw.ability, moves: body.moves.map(x => twMap.get(idOf(x)) || x) };
       if (lead) renameLeadClicks(sc, pk, idx, twMap);
@@ -18536,6 +18951,9 @@ function restageLegal(sc, kind, e) {
                        noise: tw.noise, moves: need, renamed: moved(twMap) });
     }
   }
+  };
+  onePass(false);
+  if (!process.env.ROSTER_FE_UNREPAIRED && /^KEPT/.test(String(inertDecide(sc).why || ''))) onePass(true);
   return out;
 }
 
@@ -18742,12 +19160,34 @@ function assign(kind) {
       continue; }
     if (hit.m.cannot) { out.push({ kind, id: e.id, name: e.name, rule: hit.rule.id,
       verdict: 'COULD-NOT-STAGE', why: hit.m.cannot, out_of_scope: hit.m.scope || null }); continue; }
-    const sc = hit.m.scenario;
+    let sc = hit.m.scenario;
     sc.id = kind + '/' + e.id;
     sc.kind = kind; sc.entityId = e.id;
     sc.arm = hit.m.arm || PRIMARY_ARM_ID;
     /* ROADMAP #318 — the learnset restaging pass, or the measured hold; see both headers above `assign`. */
-    const rs = restageOrHold(sc, kind, e);
+    let rs = restageOrHold(sc, kind, e);
+    /* 2026-09-23 — LEGAL FIRST, ONE RE-MATCH, ONLY FOR A ROW THE RESTAGING COULD NOT MAKE LEGAL. See `LEGAL_FIRST`. The
+     * re-matched fixture replaces the old one only if it leaves FEWER unresolved pairs; the row says so in `legal_first`. */
+    let legalFirst = null;
+    if (rs && rs.unresolved.length && !LEARNSET_UNREPAIRED && process.env.ROSTER_LEGAL_FIRST !== '0') {
+      let m2 = null;
+      LEGAL_FIRST = true;
+      /* a throw here keeps the original fixture, and SAYS so: the row is then judged on the old, refused body */
+      try { m2 = hit.rule.match(e); }
+      catch (err) { m2 = null; console.error('  roster: the LEGAL-FIRST re-match of ' + kind + '/' + e.id + ' threw ('
+        + String((err && err.message) || err).split('\n')[0] + ') — the original fixture is kept'); }
+      finally { LEGAL_FIRST = false; }
+      if (m2 && m2.scenario && !m2.cannot) {
+        const sc2 = m2.scenario;
+        sc2.id = sc.id; sc2.kind = kind; sc2.entityId = e.id; sc2.arm = m2.arm || PRIMARY_ARM_ID;
+        const rs2 = restageOrHold(sc2, kind, e);
+        const nU = r => (r ? r.unresolved.length : 0);
+        if (nU(rs2) < nU(rs)) {
+          legalFirst = { unresolved_before: nU(rs), unresolved_after: nU(rs2) };
+          hit = { rule: hit.rule, m: m2 }; sc = sc2; rs = rs2;
+        }
+      }
+    }
     const row = { kind, id: e.id, name: e.name, rule: hit.rule.id, ruleObj: hit.rule,
                   reads: hit.rule.reads, note: hit.m.note || '', tier: hit.m.tier || null,
                   controlQuiet: hit.m.controlQuiet !== false, scenario: sc,
@@ -18761,7 +19201,9 @@ function assign(kind) {
                    * text said it had not ruled out the thing it exists to rule out. */
                   trapExceptions: hit.m.trapExceptions || null,
                   /* the receipt a precondition rule owes — see the check in `runEntry` */
-                  precondition: hit.m.precondition || null };
+                  precondition: hit.m.precondition || null,
+                  /* the LEGAL-FIRST re-match that replaced the fixture, when one did (see `LEGAL_FIRST`) */
+                  legal_first: legalFirst };
     if (rs && (rs.swaps.length || rs.unresolved.length || rs.held)) {
       row.restaged = rs;
       row.note = (row.note ? row.note + '  ' : '') + (rs.held ? '[#318 ' + rs.held + '; ' : '[#318 restaged: ')
@@ -19175,7 +19617,8 @@ function main() {
     + (REL.stamp().source_digests || {})[('engine/medicham2-browser.js')]);
   console.log('  format ' + CS.FORMAT);
   console.log('  descriptions filled from the checkout\'s text table (entities it built without them): '
-    + JSON.stringify(TEXT_FILLED) + '   tags read from ' + require(D('engine', 'regulation.js')).fileFor('data/tags.json'));
+    + JSON.stringify(TEXT_FILLED) + '   left unwrapped (text is a frozen own property): '
+    + JSON.stringify(Object.fromEntries(Object.entries(TEXT_KEPT).map(([k, v]) => [k, v.length]))) + '   tags read from ' + require(D('engine', 'regulation.js')).fileFor('data/tags.json'));
 
   if (HAS('--rules')) { printRules(); return 0; }
 
@@ -20006,6 +20449,8 @@ function main() {
         /* THE BODY THIS ROW WAS STAGED ON, as a field rather than as prose inside `note`. A shelf
          * that is decided by the CARRIER cannot be audited from outside without it. */
         carrier: r.carrier || null,
+        /* 2026-09-23: this row's fixture is the LEGAL-FIRST re-match (see `LEGAL_FIRST`), with the unresolved counts */
+        legal_first: r.legal_first || null,
         /* THE LIVE-DIE LANE'S RECEIPT, and it is the only thing that makes a `middle` row readable
          * from outside. `sdOnly`/`meOnly` empty means the two engines drew EXACTLY the same set of
          * addressed dice, so no verdict on this row can be the ruler's. Null on every corner row,
@@ -20133,7 +20578,10 @@ function main() {
  * it by running three stages costs minutes and moves artifacts. Added 2026-09-19 with
  * tests/probe_roster_inert_legality.js, which is the only caller. */
 module.exports = { RULES, assign, runEntry, play, selftest, DELIVERY, QUIET, WEAK_TO, STATUS_MOVE,
-                   DEFERRED, withLegalInert, inertChoice, INERT, INERT_SUBS, INERT_ALT_CANDS };
+                   DEFERRED, withLegalInert, inertChoice, INERT, INERT_SUBS, INERT_ALT_CANDS,
+                   /* 2026-09-23: the control arms, so tests/probe_roster_fixture_legality.js can put EVERY
+                    * arm `runEntry` builds to the validator without playing one -- not the subject alone */
+                   controlOf, playCalls: () => PLAY_CALLS };
 
 if (require.main === module) {
   const bad = main();
