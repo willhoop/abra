@@ -21,6 +21,24 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.67.0] — 2026-09-22
+
+### Fixed
+- **Protean and Libero change their holder's type on a two-turn move's charge turn, in both regulations.** On a spent
+  charge turn, `twoturnmove.onStart` ends `this.runEvent('PrepareHit', attacker, defender, effect)` under the comment
+  "Run side-effects normally associated with hitting (e.g., Protean, Libero)" (data/conditions.ts :311-312). The line is
+  identical in both checkouts, and neither mod overrides it. medicham2 converted only at the hit, so a Libero Cinderace
+  winding up Bounce stayed Fire where the authority read Flying.
+  - `engine/medicham2-browser.js` calls `proteanConvert` where the charge wrapper is added.
+  - The release turn converts nothing more (once per entry), and a weather-skipped charge still converts at the hit.
+  - No tag moved. Knob `MEDI_CHARGE_NO_PREPAREHIT`. Counter `MEDSEEN.proteanOnChargeTurn`.
+- The Reg M-C roster found it. Its Bounce row sat below the usage shelf with an underlying DIFFER on `types`.
+- `tests/probe_charge_turn_protean.js` has two arms, CHARGE and CONTROL. It is green clean in both regulations: Reg M-C
+  stages Greninja and Bounce; Reg M-B stages the same pair. It is red under the knob in both, and red on the 0.63.0 bytes
+  in both.
+- `tests/regmc_probe_kit.js` gains `open(name, knobs, { anyRegulation: true })`, so a shared-rule probe runs under
+  either regulation. Every existing caller is unchanged.
+
 ## [0.66.0] — 2026-09-22
 
 ### Fixed

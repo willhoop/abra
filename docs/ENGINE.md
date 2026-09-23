@@ -1,3 +1,11 @@
+## PROTEAN AND LIBERO CONVERT ON A CHARGE TURN (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.67.0)
+
+- **Defect.** `twoturnmove.onStart` runs `PrepareHit`, which is Protean's door, on the spent charge turn. medicham2 only
+  converted at the hit.
+- **Fix.** `proteanConvert` runs where `_ttmWrap` is added. It is once per entry, so the release turn is unchanged.
+- **Probe** `tests/probe_charge_turn_protean.js`: green in both regulations. It is red under `MEDI_CHARGE_NO_PREPAREHIT`
+  and red on the 0.63.0 bytes.
+
 ## RUN AWAY FREES ITS HOLDER FROM A TRAP (REG M-C). 2026-09-22 (abra/regmc 0.66.0)
 
 - **Defect.** Champions gives Run Away Shed Shell's `onTrapPokemon`. medicham2 read `escapesTrap` off the item only.

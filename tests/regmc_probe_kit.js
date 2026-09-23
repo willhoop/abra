@@ -41,8 +41,12 @@ function scriptedCensusPin(name) {
   return p;
 }
 
-function open(name, knobNames) {
-  if (!process.argv.includes('--regulation')) process.argv.push('--regulation', 'regmc');
+/* `opts.anyRegulation` (ENGINE pass 8, abra/regmc 0.67.0): a probe of a SHARED rule -- one both regulations' authorities
+ * run -- plays under whichever regulation is selected (`--regulation regmc`, or none for Reg M-B with its SHOWDOWN_PATH).
+ * Without it the kit stays Reg M-C only, exactly as before. */
+function open(name, knobNames, opts) {
+  const anyReg = !!(opts && opts.anyRegulation);
+  if (!anyReg && !process.argv.includes('--regulation')) process.argv.push('--regulation', 'regmc');
   scriptedCensusPin(name);
   require(path.join(ROOT, 'engine', 'showdown_path.js'));
   const REGN = require(path.join(ROOT, 'engine', 'regulation.js'));
@@ -57,7 +61,7 @@ function open(name, knobNames) {
   };
   console.log('\ntests/' + name + '.js — regulation ' + REGN.ID);
   console.log('  knobs armed: ' + (KNOBS.length ? KNOBS.join(', ') + '   (the defect is RESTORED; this must exit 1)' : 'none'));
-  if (REGN.ID !== 'regmc') { console.log('  NOT RUN — this probe is a Reg M-C probe and ' + REGN.ID + ' is selected.'); process.exit(2); }
+  if (!anyReg && REGN.ID !== 'regmc') { console.log('  NOT RUN — this probe is a Reg M-C probe and ' + REGN.ID + ' is selected.'); process.exit(2); }
 
   const SB = require(path.join(ROOT, 'tests', 'staged_board.js'));
   const G = SB.harness(MEDI_SRC_PATH ? fs.readFileSync(MEDI_SRC_PATH, 'utf8') : undefined);
@@ -68,7 +72,7 @@ function open(name, knobNames) {
     console.log('  release ' + G.REL.id + (MEDI_SRC_PATH ? '   engine bytes: ' + MEDI_SRC_PATH : ''));
     if (!MEDI_SRC_PATH && relBytes !== live) {
       console.log('  NOT RUN — the newest Reg M-C release does not hold the live engine. Cut one:\n'
-        + '    node engine/engine_release.js cut "<why>" --regulation regmc');
+        + '    node engine/engine_release.js cut "<why>"' + (REGN.ID === 'regmc' ? ' --regulation regmc' : ''));
       process.exit(2);
     }
   }

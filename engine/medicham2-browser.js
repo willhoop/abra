@@ -20239,6 +20239,9 @@ const TRAP_AT_EXECUTION=(typeof process!=='undefined'&&process.env&&process.env.
 /* 2026-09-22 (ENGINE pass 8, abra/regmc 0.66.0) -- MEDI_RUN_AWAY_TRAPPED=1: an ability `escapesTrap` (Reg M-C Run Away)
  * frees nobody (the pre-0.66.0 engine). tests/probe_regmc_run_away.js */
 const RUN_AWAY_TRAPPED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_RUN_AWAY_TRAPPED==='1');
+/* 2026-09-22 (ENGINE pass 8, abra/regmc 0.67.0) -- MEDI_CHARGE_NO_PREPAREHIT=1: a two-turn move's charge turn runs no
+ * PrepareHit, so Protean/Libero convert only at the hit (the pre-0.67.0 engine). tests/probe_charge_turn_protean.js */
+const CHARGE_NO_PREPAREHIT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CHARGE_NO_PREPAREHIT==='1');
 if(RUN_AWAY_TRAPPED)MEDFAILS.runAwayTrappedRestored=1;
 function switchTrapVerdict(m,foes,field){
   const out={block:null,shed:0};
@@ -41405,6 +41408,17 @@ function battleTurn(S,rng,actsForA,actsForB){
              * gone at the release boundary. */
             m._ttmWrap={move:a.move.id,dur:2};
             MEDSEEN.chargeWrapApplied++;
+            /* 2026-09-22 (ENGINE pass 8, abra/regmc 0.67.0) -- AND THE WRAPPER RUNS PREPAREHIT, SO PROTEAN AND LIBERO
+             * CONVERT ON THE CHARGE TURN. `twoturnmove.onStart` ends `// Run side-effects normally associated with
+             * hitting (e.g., Protean, Libero)  this.runEvent('PrepareHit', attacker, defender, effect);`
+             * (data/conditions.ts:311-312; the Champions mod does not override it). This engine converted only at the
+             * hit, so on the charge turn a Libero Cinderace winding up Bounce stayed Fire where the authority read
+             * Flying -- the Reg M-C roster's Bounce row (below the usage shelf, underlying DIFFER on `types`). The
+             * release turn does not convert twice: both abilities are once per entry (`_proteanUsed`), and a skipped
+             * charge (sun, rain) gets no wrapper here and converts at the hit, as the authority does.
+             * tests/probe_charge_turn_protean.js. MEDI_CHARGE_NO_PREPAREHIT=1 restores the pre-0.67.0 engine. */
+            if(CHARGE_NO_PREPAREHIT)MEDFAILS.chargeNoPrepareHitRestored=1;
+            else if(proteanConvert(m,a.move.id,field))MEDSEEN.proteanOnChargeTurn=(MEDSEEN.proteanOnChargeTurn||0)+1;
             m._lastMove=a.move.id;
             continue;                                           // the turn is spent
           }

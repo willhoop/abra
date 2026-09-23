@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.67.0] — 2026-09-22 — **Protean and Libero convert on a two-turn move's charge turn, in both regulations**
+
+- **What changed.** `engine/medicham2-browser.js` runs `proteanConvert` where the charge wrapper is added, which is the
+  authority's `twoturnmove.onStart` → `runEvent('PrepareHit')`. No tag moved. Knob `MEDI_CHARGE_NO_PREPAREHIT`; probe
+  `tests/probe_charge_turn_protean.js` (either regulation). `tests/regmc_probe_kit.js` gains an `anyRegulation` door.
+- **Measured.** NO FIGURE published. Probe: green clean under Reg M-C and Reg M-B, and red under the knob and on the
+  0.63.0 bytes in both. The Reg M-B lattices are re-run at 0.69.0. Shared rule.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens). The Reg M-B held-out draw is owed (shared rule).
+
 ## [abra/regmc 0.66.0] — 2026-09-22 — **Run Away frees its holder from a trap under Reg M-C**
 
 - **What changed.** `engine/tag_dex.js` derives `escapesTrap` on abilities with the item's predicate; this matches Reg M-C
