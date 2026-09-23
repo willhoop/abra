@@ -1021,6 +1021,17 @@ window.ABRA_TAGS={
    ]
   },
   {
+   "tag": "bypassesSubstitute",
+   "kind": "move",
+   "param": "reaches the body behind a Substitute",
+   "why": "Encore, Taunt and Disable go through a doll in the real game; a missing member is blocked by every substitute in every rollout",
+   "consumedBy": null,
+   "used": false,
+   "n": 51,
+   "uses": 0,
+   "examples": []
+  },
+  {
    "tag": "neverMissesAttack",
    "kind": "move",
    "param": "P(hit) = 1 on a DAMAGING move",
@@ -10017,6 +10028,7 @@ window.ABRA_TAGS={
     "pp",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -10083,6 +10095,9 @@ window.ABRA_TAGS={
        "from": "DERIVED:dex.conditions.get(dragoncheer).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -10211,6 +10226,7 @@ window.ABRA_TAGS={
     "endsWhenMoveOutOfPP",
     "targetClass",
     "moveClass",
+    "bypassesSubstitute",
     "statusCategory",
     "locksTarget",
     "formatSecondaryCount",
@@ -10277,6 +10293,9 @@ window.ABRA_TAGS={
        "from": "DERIVED:dex.conditions.get(encore).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -10601,6 +10620,7 @@ window.ABRA_TAGS={
     "pp",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "boostsTarget",
@@ -10653,6 +10673,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -12460,6 +12483,7 @@ window.ABRA_TAGS={
     "pp",
     "reordersTurn",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "ignoresProtect",
     "noProtectFlag",
@@ -12499,6 +12523,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -12673,6 +12700,7 @@ window.ABRA_TAGS={
     "punishesBoostedTarget",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "formatSecondaryCount",
     "volatileRestart"
    ],
@@ -12708,6 +12736,9 @@ window.ABRA_TAGS={
        "from": "DERIVED:dex.conditions.get(confusion).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -13166,6 +13197,7 @@ window.ABRA_TAGS={
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "boostsTarget",
@@ -13215,6 +13247,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -13266,6 +13301,7 @@ window.ABRA_TAGS={
     "immunityGate",
     "targetClass",
     "moveClass",
+    "bypassesSubstitute",
     "statusCategory",
     "formatSecondaryCount",
     "statusInflict",
@@ -13352,6 +13388,9 @@ window.ABRA_TAGS={
        "from": "DERIVED:dex.conditions.get(attract).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -14392,6 +14431,7 @@ window.ABRA_TAGS={
     "targetClass",
     "spreadAll",
     "sound",
+    "bypassesSubstitute",
     "formatSecondaryCount"
    ],
    "uses": 61,
@@ -14416,6 +14456,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -14716,6 +14759,7 @@ window.ABRA_TAGS={
     "pp",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "secondaryStatEffect",
     "statChange",
     "formatSecondaryCount"
@@ -14756,6 +14800,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 1
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -15440,6 +15487,7 @@ window.ABRA_TAGS={
     "targetClass",
     "spreadFoes",
     "sound",
+    "bypassesSubstitute",
     "lowersUser",
     "formatSecondaryCount"
    ],
@@ -15471,6 +15519,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -15564,6 +15615,7 @@ window.ABRA_TAGS={
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "boostsTarget",
@@ -15615,6 +15667,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -16289,6 +16344,7 @@ window.ABRA_TAGS={
     "pp",
     "perTurnHP",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "ignoresProtect",
     "noProtectFlag",
@@ -16366,6 +16422,9 @@ window.ABRA_TAGS={
        "from": "DERIVED:dex.conditions.get(curse).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -16567,6 +16626,7 @@ window.ABRA_TAGS={
     "pp",
     "targetClass",
     "moveClass",
+    "bypassesSubstitute",
     "neverMisses",
     "removesHazards",
     "statChangeInCode",
@@ -16631,6 +16691,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -16639,6 +16702,7 @@ window.ABRA_TAGS={
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -16708,6 +16772,9 @@ window.ABRA_TAGS={
        "from": "DERIVED:dex.conditions.get(destinybond).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -16904,6 +16971,7 @@ window.ABRA_TAGS={
     "sealsMoves",
     "targetClass",
     "moveClass",
+    "bypassesSubstitute",
     "statusCategory",
     "locksTarget",
     "formatSecondaryCount",
@@ -16970,6 +17038,9 @@ window.ABRA_TAGS={
        "from": "DERIVED:dex.conditions.get(disable).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -17924,6 +17995,7 @@ window.ABRA_TAGS={
     "removesPP",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "formatSecondaryCount"
    ],
    "uses": 16,
@@ -17949,6 +18021,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 1
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -18700,6 +18775,7 @@ window.ABRA_TAGS={
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "setsRoom",
@@ -18742,6 +18818,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -20930,6 +21009,7 @@ window.ABRA_TAGS={
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "statChangeInCode",
     "lowersTarget",
@@ -20976,6 +21056,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -21201,6 +21284,7 @@ window.ABRA_TAGS={
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "clearsBoosts",
@@ -21237,6 +21321,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -21333,6 +21420,7 @@ window.ABRA_TAGS={
     "pp",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -21392,6 +21480,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -21726,6 +21817,7 @@ window.ABRA_TAGS={
     "pp",
     "targetClass",
     "priority",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -21794,6 +21886,9 @@ window.ABRA_TAGS={
        "from": "DERIVED:dex.conditions.get(helpinghand).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -22154,6 +22249,7 @@ window.ABRA_TAGS={
     "targetClass",
     "spreadFoes",
     "sound",
+    "bypassesSubstitute",
     "formatSecondaryCount"
    ],
    "uses": 13095,
@@ -22178,6 +22274,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -22674,6 +22773,7 @@ window.ABRA_TAGS={
     "pp",
     "sealsMoves",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -22741,6 +22841,9 @@ window.ABRA_TAGS={
        "from": "DERIVED:dex.conditions.get(imprison).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -22945,6 +23048,7 @@ window.ABRA_TAGS={
     "reordersTurn",
     "instructsTarget",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "statusCategory",
     "formatSecondaryCount",
@@ -23019,6 +23123,9 @@ window.ABRA_TAGS={
      "flags": [
       "failinstruct"
      ]
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -23646,6 +23753,7 @@ window.ABRA_TAGS={
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -23692,6 +23800,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -24195,6 +24306,7 @@ window.ABRA_TAGS={
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -24240,6 +24352,9 @@ window.ABRA_TAGS={
      },
      "includesSelf": true,
      "failsWithNoEligibleAlly": true
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -24634,6 +24749,7 @@ window.ABRA_TAGS={
     "targetClass",
     "moveClass",
     "sound",
+    "bypassesSubstitute",
     "lowersTarget",
     "statusCategory",
     "statChange",
@@ -24680,6 +24796,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -25518,6 +25637,7 @@ window.ABRA_TAGS={
     "targetClass",
     "moveClass",
     "sound",
+    "bypassesSubstitute",
     "lowersTarget",
     "statusCategory",
     "statChange",
@@ -25565,6 +25685,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -25911,6 +26034,7 @@ window.ABRA_TAGS={
     "targetClass",
     "moveClass",
     "sound",
+    "bypassesSubstitute",
     "pivotStatus",
     "statChangeInCode",
     "lowersTarget",
@@ -25963,6 +26087,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -26013,6 +26140,7 @@ window.ABRA_TAGS={
     "pp",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -26073,6 +26201,9 @@ window.ABRA_TAGS={
        "from": "DERIVED:dex.conditions.get(perishsong).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -26819,6 +26950,7 @@ window.ABRA_TAGS={
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "statChangeInCode",
     "lowersTarget",
@@ -26865,6 +26997,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -27082,6 +27217,7 @@ window.ABRA_TAGS={
     "blocksHealing",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "formatSecondaryCount",
     "statusInflict",
     "volatileRestart"
@@ -27125,6 +27261,9 @@ window.ABRA_TAGS={
        "from": "DERIVED:dex.conditions.get(healblock).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -27218,6 +27357,7 @@ window.ABRA_TAGS={
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "ignoresProtect",
     "noProtectFlag",
@@ -27274,6 +27414,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -28002,6 +28145,7 @@ window.ABRA_TAGS={
     "pp",
     "changesTargetType",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "statusCategory",
     "formatSecondaryCount"
@@ -28037,6 +28181,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -28199,6 +28346,7 @@ window.ABRA_TAGS={
     "priority",
     "moveClass",
     "sound",
+    "bypassesSubstitute",
     "neverMisses",
     "ignoresProtect",
     "noProtectFlag",
@@ -28258,6 +28406,9 @@ window.ABRA_TAGS={
       "failcopycat",
       "noassist"
      ]
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -28519,6 +28670,7 @@ window.ABRA_TAGS={
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "ignoresProtect",
     "noProtectFlag",
@@ -28572,6 +28724,9 @@ window.ABRA_TAGS={
      "failsIfSame": true,
      "targetFlagRefuses": "failroleplay",
      "userFlagRefuses": "cantsuppress"
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -28646,6 +28801,7 @@ window.ABRA_TAGS={
     "variablePower",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "formatSecondaryCount",
     "promotesSameMoveInQueue"
    ],
@@ -28676,6 +28832,9 @@ window.ABRA_TAGS={
      "moveId": "round",
      "promotedBy": "round",
      "mult": 2
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -29041,6 +29200,7 @@ window.ABRA_TAGS={
     "targetClass",
     "moveClass",
     "sound",
+    "bypassesSubstitute",
     "lowersTarget",
     "statusCategory",
     "statChange",
@@ -29087,6 +29247,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -29705,6 +29868,7 @@ window.ABRA_TAGS={
     "targetClass",
     "moveClass",
     "sound",
+    "bypassesSubstitute",
     "statusCategory",
     "inflictsSleep",
     "formatSecondaryCount",
@@ -29749,6 +29913,9 @@ window.ABRA_TAGS={
        "to": "target"
       }
      ]
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -29758,6 +29925,7 @@ window.ABRA_TAGS={
     "pp",
     "swapsAbilities",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "statusCategory",
     "formatSecondaryCount",
@@ -29796,6 +29964,9 @@ window.ABRA_TAGS={
      "source": [
       "failskillswap"
      ]
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -30315,6 +30486,7 @@ window.ABRA_TAGS={
     "targetClass",
     "spreadFoes",
     "sound",
+    "bypassesSubstitute",
     "secondaryStatEffect",
     "statChange",
     "formatSecondaryCount"
@@ -30359,6 +30531,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 1
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -30368,6 +30543,7 @@ window.ABRA_TAGS={
     "pp",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "formatSecondaryCount",
     "statusInflict",
     "flinches",
@@ -30428,6 +30604,9 @@ window.ABRA_TAGS={
        "from": "DERIVED:dex.conditions.get(flinch).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -30698,6 +30877,7 @@ window.ABRA_TAGS={
     "targetClass",
     "spreadAll",
     "sound",
+    "bypassesSubstitute",
     "curesTargetStatusAfterMove",
     "formatSecondaryCount",
     "statusInflict",
@@ -30751,6 +30931,9 @@ window.ABRA_TAGS={
        "why": "the condition declares no onStart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -30759,6 +30942,7 @@ window.ABRA_TAGS={
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "statusCategory",
     "formatSecondaryCount",
@@ -30794,6 +30978,9 @@ window.ABRA_TAGS={
      "how": "swap",
      "between": "the user and the target",
      "movesStages": false
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -30968,6 +31155,7 @@ window.ABRA_TAGS={
     "removesPP",
     "targetClass",
     "moveClass",
+    "bypassesSubstitute",
     "statusCategory",
     "formatSecondaryCount"
    ],
@@ -30999,6 +31187,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -32673,6 +32864,7 @@ window.ABRA_TAGS={
     "sealsMoves",
     "targetClass",
     "moveClass",
+    "bypassesSubstitute",
     "statusCategory",
     "forbidsStatusMoves",
     "formatSecondaryCount",
@@ -32728,6 +32920,9 @@ window.ABRA_TAGS={
        "from": "DERIVED:dex.conditions.get(taunt).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -32805,6 +33000,7 @@ window.ABRA_TAGS={
     "pp",
     "forcesBerryEat",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -32846,6 +33042,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -33592,6 +33791,7 @@ window.ABRA_TAGS={
     "pp",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "secondaryStatEffect",
     "statChange",
     "formatSecondaryCount"
@@ -33632,6 +33832,9 @@ window.ABRA_TAGS={
     },
     "formatSecondaryCount": {
      "count": 1
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -33642,6 +33845,7 @@ window.ABRA_TAGS={
     "sealsMoves",
     "targetClass",
     "moveClass",
+    "bypassesSubstitute",
     "statusCategory",
     "locksTarget",
     "formatSecondaryCount",
@@ -33697,6 +33901,9 @@ window.ABRA_TAGS={
        "from": "DERIVED:dex.conditions.get(torment).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -34333,6 +34540,7 @@ window.ABRA_TAGS={
     "targetClass",
     "randomTarget",
     "sound",
+    "bypassesSubstitute",
     "formatSecondaryCount",
     "locksIntoMove",
     "callRefusalFlags",
@@ -34398,6 +34606,9 @@ window.ABRA_TAGS={
        "from": "DERIVED:dex.conditions.get(uproar).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -34931,6 +35142,7 @@ window.ABRA_TAGS={
     "targetClass",
     "priority",
     "moveClass",
+    "bypassesSubstitute",
     "neverMisses",
     "ignoresProtect",
     "noProtectFlag",
@@ -34988,6 +35200,9 @@ window.ABRA_TAGS={
       "failcopycat",
       "noassist"
      ]
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },

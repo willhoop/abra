@@ -14501,13 +14501,30 @@ function residualUpdatePass(actA,actB,field,gi){
  * ENCORE (4,848), TAUNT (1,503) and DISABLE (730) -- all carry `bypasssub` in the real game. A
  * "substitute blocks status moves" rule built on the `sound` tag alone would have blocked all three,
  * which is a worse engine than the one that blocks nothing. */
-const SUBPASS=new Set(["round","snore","bugbuzz","uproar","snarl","alluringvoice","psychicnoise",
+/* 2026-09-23 (ENGINE pass 10, abra/regmc 0.79.0) -- THE LITERAL IS NOW A TAG. `bypassesSubstitute`
+ * (engine/tag_dex.js, off `flags.bypasssub`) carries the set in both regulations' tag files: 51
+ * members in Reg M-B, exactly the literal below, and 52 in Reg M-C, the literal + Overdrive, which the
+ * literal did not have and every doll therefore blocked. The literal is kept ONLY as the revert:
+ * MEDI_SUBPASS_HANDLIST=1 restores it. A tag file without the tag is LOUD (MEDFAILS.subpassNoTag),
+ * because an empty set here means every doll blocks Encore, which reads as a mechanic. */
+const SUBPASS_HANDLIST=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SUBPASS_HANDLIST==='1');
+const SUBPASS_OLD=new Set(["round","snore","bugbuzz","uproar","snarl","alluringvoice","psychicnoise",
   "hypervoice","eeriespell","boomburst","sparklingaria","clangingscales","torchsong","dragoncheer",
   "encore","howl","afteryou","aromaticmist","attract","coaching","curse","defog","destinybond",
   "disable","fairylock","guardswap","haze","healbell","helpinghand","imprison","instruct","lifedew",
   "magneticflux","metalsound","nobleroar","partingshot","perishsong","powerswap","psychup",
   "reflecttype","roar","roleplay","screech","sing","skillswap","speedswap","spite","taunt","teatime",
   "torment","whirlwind"]);
+function subpassSet(){
+  if(SUBPASS_HANDLIST)return SUBPASS_OLD;
+  const ids=TAGS.withTag?TAGS.withTag('move','bypassesSubstitute'):[];
+  if(!ids.length&&!TAGS.off&&typeof MEDFAILS!=='undefined')MEDFAILS.subpassNoTag=(MEDFAILS.subpassNoTag||0)+1;
+  return new Set(ids);
+}
+function bypassesSub(mvId){
+  const id=String(mvId||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  return SUBPASS_HANDLIST?SUBPASS_OLD.has(id):TAGS.has('move',id,'bypassesSubstitute');
+}
 /* Does the doll eat this? One implementation, asked by the damage path and by every status path, so
  * "a substitute is up" cannot mean two different things in one turn. Infiltrator comes from the
  * artifact's own `ignoresScreensAndSubs.ignoresSubstitute`, never from its name. */
@@ -14581,7 +14598,7 @@ function subRefusesStatus(att,def,mvId){
 }
 function subBlocks(att,def,mvId){
   if(!def||!(def._sub>0)||def===att)return false;
-  if(SUBPASS.has(String(mvId||'').toLowerCase().replace(/[^a-z0-9]/g,'')))return false;
+  if(bypassesSub(mvId))return false;
   const _inf=att&&TAGS.param('ability',att.ability,'ignoresScreensAndSubs');
   if(_inf&&_inf.ignoresSubstitute)return false;
   return true;
@@ -54905,8 +54922,9 @@ if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRang
    * which re-derives the whole table out of the live format dex. A table nobody checks is the literal
    * it replaced; this is the only thing that makes it different in kind. */
   hitChance,hitProb,printedAccuracy,accStageMul,ACCMOD,
-  /* WIRE 130 -- exported for the SUBSTITUTE-BYPASS CONFORMANCE block in tests/test-engine-diff.js. */
-  SUBPASS,
+  /* WIRE 130 -- exported for the SUBSTITUTE-BYPASS CONFORMANCE block in tests/test-engine-diff.js.
+   * Since pass 10 it is the `bypassesSubstitute` tag set as loaded; `subBlocks` itself asks the tag per call. */
+  SUBPASS:subpassSet(),
   /* 2026-08-09 -- `MEDI_SPREAD`, WHICH THIS FILE HAS BEEN "EXPORTING" TO NOBODY SINCE IT WAS WRITTEN.
    *
    * Line 9972 assigns `root.MEDI_SPREAD=SPREAD` and that is the ONLY place it was ever published, so

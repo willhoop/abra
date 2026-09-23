@@ -1,3 +1,12 @@
+## WHAT GOES THROUGH A SUBSTITUTE IS A DERIVED TAG; OVERDRIVE REACHES THE BODY (REG M-C). 2026-09-23 (abra/regmc 0.79.0)
+
+Full account: `docs/_reports/2026-09-23-engine-pass10.md` §A2.
+
+- `bypassesSubstitute` (tag_dex, off `flags.bypasssub`) replaces the 51-id `SUBPASS` literal. Reg M-B has 51 members,
+  exactly the literal. Reg M-C has 52: the literal plus Overdrive, which every doll had been eating (a board defect).
+  Knob `MEDI_SUBPASS_HANDLIST`.
+- Probe `tests/probe_substitute_bypass_tag.js`, both regulations. The Reg M-C damage differential now exits 0.
+- Hand list: **Overdrive leaves it**. The probe and the differential's conformance clause now carry it.
 ## THE ROSTER'S TWO RULER DEFECTS ARE REPAIRED: THE TEXT PROXY AND FIXTURE LEGALITY. 2026-09-23 (abra/regmc 0.78.0)
 
 Full account: `docs/_reports/2026-09-23-roster-fixture-legality.md`. Light mode, so no roster stage was run (owed).

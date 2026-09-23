@@ -1020,6 +1020,24 @@
    ]
   },
   {
+   "tag": "bypassesSubstitute",
+   "kind": "move",
+   "param": "reaches the body behind a Substitute",
+   "why": "Encore, Taunt and Disable go through a doll in the real game; a missing member is blocked by every substitute in every rollout",
+   "consumedBy": null,
+   "used": false,
+   "n": 52,
+   "uses": 72785,
+   "examples": [
+    "Curse",
+    "Disable",
+    "Dragon Cheer",
+    "Encore",
+    "Howl",
+    "After You"
+   ]
+  },
+  {
    "tag": "neverMissesAttack",
    "kind": "move",
    "param": "P(hit) = 1 on a DAMAGING move",
@@ -10074,6 +10092,7 @@
     "dualPurpose",
     "perTurnHP",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "ignoresProtect",
     "noProtectFlag",
@@ -10161,6 +10180,9 @@
        "from": "DERIVED:dex.conditions.get(curse).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -10216,6 +10238,7 @@
     "sealsMoves",
     "targetClass",
     "moveClass",
+    "bypassesSubstitute",
     "statusCategory",
     "locksTarget",
     "formatSecondaryCount",
@@ -10282,6 +10305,9 @@
        "from": "DERIVED:dex.conditions.get(disable).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -10332,6 +10358,7 @@
     "pp",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -10398,6 +10425,9 @@
        "from": "DERIVED:dex.conditions.get(dragoncheer).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -10526,6 +10556,7 @@
     "endsWhenMoveOutOfPP",
     "targetClass",
     "moveClass",
+    "bypassesSubstitute",
     "statusCategory",
     "locksTarget",
     "formatSecondaryCount",
@@ -10592,6 +10623,9 @@
        "from": "DERIVED:dex.conditions.get(encore).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -10916,6 +10950,7 @@
     "pp",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "boostsTarget",
@@ -10968,6 +11003,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -13133,6 +13171,7 @@
     "pp",
     "reordersTurn",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "ignoresProtect",
     "noProtectFlag",
@@ -13172,6 +13211,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -13346,6 +13388,7 @@
     "punishesBoostedTarget",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "formatSecondaryCount",
     "volatileRestart"
    ],
@@ -13381,6 +13424,9 @@
        "from": "DERIVED:dex.conditions.get(confusion).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -13839,6 +13885,7 @@
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "boostsTarget",
@@ -13888,6 +13935,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -13939,6 +13989,7 @@
     "immunityGate",
     "targetClass",
     "moveClass",
+    "bypassesSubstitute",
     "statusCategory",
     "formatSecondaryCount",
     "statusInflict",
@@ -14025,6 +14076,9 @@
        "from": "DERIVED:dex.conditions.get(attract).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -15065,6 +15119,7 @@
     "targetClass",
     "spreadAll",
     "sound",
+    "bypassesSubstitute",
     "formatSecondaryCount"
    ],
    "uses": 69,
@@ -15089,6 +15144,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -15389,6 +15447,7 @@
     "pp",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "secondaryStatEffect",
     "statChange",
     "formatSecondaryCount"
@@ -15429,6 +15488,9 @@
     },
     "formatSecondaryCount": {
      "count": 1
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -16114,6 +16176,7 @@
     "targetClass",
     "spreadFoes",
     "sound",
+    "bypassesSubstitute",
     "lowersUser",
     "formatSecondaryCount"
    ],
@@ -16145,6 +16208,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -16238,6 +16304,7 @@
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "boostsTarget",
@@ -16289,6 +16356,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -17190,6 +17260,7 @@
     "pp",
     "targetClass",
     "moveClass",
+    "bypassesSubstitute",
     "neverMisses",
     "removesHazards",
     "statChangeInCode",
@@ -17254,6 +17325,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -17262,6 +17336,7 @@
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -17331,6 +17406,9 @@
        "from": "DERIVED:dex.conditions.get(destinybond).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -18516,6 +18594,7 @@
     "removesPP",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "formatSecondaryCount"
    ],
    "uses": 9,
@@ -18541,6 +18620,9 @@
     },
     "formatSecondaryCount": {
      "count": 1
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -19292,6 +19374,7 @@
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "setsRoom",
@@ -19334,6 +19417,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -21570,6 +21656,7 @@
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "statChangeInCode",
     "lowersTarget",
@@ -21616,6 +21703,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -21841,6 +21931,7 @@
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "clearsBoosts",
@@ -21877,6 +21968,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -21973,6 +22067,7 @@
     "pp",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -22032,6 +22127,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -22366,6 +22464,7 @@
     "pp",
     "targetClass",
     "priority",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -22434,6 +22533,9 @@
        "from": "DERIVED:dex.conditions.get(helpinghand).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -22794,6 +22896,7 @@
     "targetClass",
     "spreadFoes",
     "sound",
+    "bypassesSubstitute",
     "formatSecondaryCount"
    ],
    "uses": 21691,
@@ -22818,6 +22921,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -23314,6 +23420,7 @@
     "pp",
     "sealsMoves",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -23381,6 +23488,9 @@
        "from": "DERIVED:dex.conditions.get(imprison).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -23585,6 +23695,7 @@
     "reordersTurn",
     "instructsTarget",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "statusCategory",
     "formatSecondaryCount",
@@ -23660,6 +23771,9 @@
      "flags": [
       "failinstruct"
      ]
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -24350,6 +24464,7 @@
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -24396,6 +24511,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -24899,6 +25017,7 @@
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -24944,6 +25063,9 @@
      },
      "includesSelf": true,
      "failsWithNoEligibleAlly": true
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -25338,6 +25460,7 @@
     "targetClass",
     "moveClass",
     "sound",
+    "bypassesSubstitute",
     "lowersTarget",
     "statusCategory",
     "statChange",
@@ -25384,6 +25507,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -26222,6 +26348,7 @@
     "targetClass",
     "moveClass",
     "sound",
+    "bypassesSubstitute",
     "lowersTarget",
     "statusCategory",
     "statChange",
@@ -26269,6 +26396,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -26486,6 +26616,7 @@
     "targetClass",
     "spreadFoes",
     "sound",
+    "bypassesSubstitute",
     "formatSecondaryCount"
    ],
    "uses": 123,
@@ -26510,6 +26641,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -26649,6 +26783,7 @@
     "targetClass",
     "moveClass",
     "sound",
+    "bypassesSubstitute",
     "pivotStatus",
     "statChangeInCode",
     "lowersTarget",
@@ -26701,6 +26836,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -26751,6 +26889,7 @@
     "pp",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -26811,6 +26950,9 @@
        "from": "DERIVED:dex.conditions.get(perishsong).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -27557,6 +27699,7 @@
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "statChangeInCode",
     "lowersTarget",
@@ -27603,6 +27746,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -27820,6 +27966,7 @@
     "blocksHealing",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "formatSecondaryCount",
     "statusInflict",
     "volatileRestart"
@@ -27863,6 +28010,9 @@
        "from": "DERIVED:dex.conditions.get(healblock).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -27956,6 +28106,7 @@
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "ignoresProtect",
     "noProtectFlag",
@@ -28012,6 +28163,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -28791,6 +28945,7 @@
     "pp",
     "changesTargetType",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "statusCategory",
     "formatSecondaryCount"
@@ -28826,6 +28981,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -29046,6 +29204,7 @@
     "priority",
     "moveClass",
     "sound",
+    "bypassesSubstitute",
     "neverMisses",
     "ignoresProtect",
     "noProtectFlag",
@@ -29105,6 +29264,9 @@
       "failcopycat",
       "noassist"
      ]
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -29366,6 +29528,7 @@
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "ignoresProtect",
     "noProtectFlag",
@@ -29419,6 +29582,9 @@
      "failsIfSame": true,
      "targetFlagRefuses": "failroleplay",
      "userFlagRefuses": "cantsuppress"
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -29493,6 +29659,7 @@
     "variablePower",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "formatSecondaryCount",
     "promotesSameMoveInQueue"
    ],
@@ -29523,6 +29690,9 @@
      "moveId": "round",
      "promotedBy": "round",
      "mult": 2
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -29888,6 +30058,7 @@
     "targetClass",
     "moveClass",
     "sound",
+    "bypassesSubstitute",
     "lowersTarget",
     "statusCategory",
     "statChange",
@@ -29934,6 +30105,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -30611,6 +30785,7 @@
     "targetClass",
     "moveClass",
     "sound",
+    "bypassesSubstitute",
     "statusCategory",
     "inflictsSleep",
     "formatSecondaryCount",
@@ -30655,6 +30830,9 @@
        "to": "target"
       }
      ]
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -30664,6 +30842,7 @@
     "pp",
     "swapsAbilities",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "statusCategory",
     "formatSecondaryCount",
@@ -30702,6 +30881,9 @@
      "source": [
       "failskillswap"
      ]
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -31221,6 +31403,7 @@
     "targetClass",
     "spreadFoes",
     "sound",
+    "bypassesSubstitute",
     "secondaryStatEffect",
     "statChange",
     "formatSecondaryCount"
@@ -31265,6 +31448,9 @@
     },
     "formatSecondaryCount": {
      "count": 1
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -31274,6 +31460,7 @@
     "pp",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "formatSecondaryCount",
     "statusInflict",
     "flinches",
@@ -31334,6 +31521,9 @@
        "from": "DERIVED:dex.conditions.get(flinch).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -31604,6 +31794,7 @@
     "targetClass",
     "spreadAll",
     "sound",
+    "bypassesSubstitute",
     "curesTargetStatusAfterMove",
     "formatSecondaryCount",
     "statusInflict",
@@ -31657,6 +31848,9 @@
        "why": "the condition declares no onStart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -31665,6 +31859,7 @@
    "tags": [
     "pp",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "statusCategory",
     "formatSecondaryCount",
@@ -31700,6 +31895,9 @@
      "how": "swap",
      "between": "the user and the target",
      "movesStages": false
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -31874,6 +32072,7 @@
     "removesPP",
     "targetClass",
     "moveClass",
+    "bypassesSubstitute",
     "statusCategory",
     "formatSecondaryCount"
    ],
@@ -31905,6 +32104,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -33526,6 +33728,7 @@
     "sealsMoves",
     "targetClass",
     "moveClass",
+    "bypassesSubstitute",
     "statusCategory",
     "forbidsStatusMoves",
     "formatSecondaryCount",
@@ -33581,6 +33784,9 @@
        "from": "DERIVED:dex.conditions.get(taunt).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -33658,6 +33864,7 @@
     "pp",
     "forcesBerryEat",
     "targetClass",
+    "bypassesSubstitute",
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
@@ -33699,6 +33906,9 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -34445,6 +34655,7 @@
     "pp",
     "targetClass",
     "sound",
+    "bypassesSubstitute",
     "secondaryStatEffect",
     "statChange",
     "formatSecondaryCount"
@@ -34485,6 +34696,9 @@
     },
     "formatSecondaryCount": {
      "count": 1
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -34495,6 +34709,7 @@
     "sealsMoves",
     "targetClass",
     "moveClass",
+    "bypassesSubstitute",
     "statusCategory",
     "locksTarget",
     "formatSecondaryCount",
@@ -34550,6 +34765,9 @@
        "from": "DERIVED:dex.conditions.get(torment).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -35186,6 +35404,7 @@
     "targetClass",
     "randomTarget",
     "sound",
+    "bypassesSubstitute",
     "formatSecondaryCount",
     "locksIntoMove",
     "callRefusalFlags",
@@ -35251,6 +35470,9 @@
        "from": "DERIVED:dex.conditions.get(uproar).onRestart"
       }
      }
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },
@@ -35784,6 +36006,7 @@
     "targetClass",
     "priority",
     "moveClass",
+    "bypassesSubstitute",
     "neverMisses",
     "ignoresProtect",
     "noProtectFlag",
@@ -35841,6 +36064,9 @@
       "failcopycat",
       "noassist"
      ]
+    },
+    "bypassesSubstitute": {
+     "bypasssub": true
     }
    }
   },

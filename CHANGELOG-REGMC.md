@@ -21,6 +21,30 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.79.0] — 2026-09-23
+
+### Fixed
+- **Reg M-C: every Substitute blocked Overdrive.** The substitute condition's `onTryPrimaryHit` returns early on
+  `move.flags['bypasssub']` (data/conditions.ts, both checkouts; no Champions override). No artifact the engine read
+  carried that flag, so `engine/medicham2-browser.js` held `SUBPASS`, a hand-typed literal of 51 ids. Overdrive is the
+  one legal Reg M-C member it lacked (it is `Past` in Reg M-B), so the doll ate it: a BOARD defect, and the reason the
+  Reg M-C damage differential exited 1 on its substitute-bypass conformance clause.
+- `engine/tag_dex.js` derives a new move tag, `bypassesSubstitute`, off `flags.bypasssub`. Printed before wiring: 51
+  moves in Reg M-B (exactly the old literal) and 52 in Reg M-C (the literal plus Overdrive). `sound` is not a proxy:
+  Clangorous Soul is a sound move without the flag. `subBlocks` asks the tag; the literal is kept only as the revert,
+  knob `MEDI_SUBPASS_HANDLIST`. An empty tag set counts `MEDFAILS.subpassNoTag`.
+- **Reg M-B tag change, approved by the coordinator on the Ice Spinner terms.** `data/tags.json` gains one catalogue
+  row and one tag + param on 51 existing move rows. A leaf-by-leaf structural diff against the committed file found
+  **0 existing values moved** (215 lines added, 0 removed). `data/abra-tags.js` rebuilt (`build_tags_js.js --check`
+  green). `data/protocol-events.json` and `data/move-effects.js` untouched. Reg M-B behaviour is unchanged by
+  construction (the set is identical).
+- New probe `tests/probe_substitute_bypass_tag.js` (either regulation). Reg M-C: Toxtricity's Overdrive into a
+  Baxcalibur behind a Substitute, control Nuzzle (the doll takes it on the authority). Green; red under the knob and
+  with the 0.78.0 engine bytes (the board parts). Reg M-B: green (Snarl, control Mud-Slap).
+- Damage differential `--n 6000 --seed 20260804`: Reg M-C 0/6000 and **exit 0** (was exit 1 on the conformance
+  clause alone); Reg M-B 0/6000, exit 0. Written to `data/verification/pass10/engine-diff{,-regmc}.json`, not
+  republished.
+
 ## [0.78.0] — 2026-09-23
 
 ### Fixed

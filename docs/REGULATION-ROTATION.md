@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.78.0 — 2026-09-23.**
+**Version: 0.79.0 — 2026-09-23.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -413,6 +413,7 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | **A roster shape rule stages ONE handler of an ability, and a new regulation can make the unstaged handler matter.** Guard Dog's roster rule is the `onDragOut` phaze refusal, and Rattled's is the `onDamagingHit` type trigger. Neither stages the Intimidate half (`onTryBoost` / `onAfterBoost`), so both read FIRED-AND-BOARDS-MATCH while the Intimidate reaction was missing from the engine. Both abilities are new in the M-C carrier pool. | The roster is clean and `all_mechanics_fire` reads STATE on the same ability. | For each newly legal ability, list every `on*` handler it declares and name the instrument that stages each one. A handler that no instrument stages is not tested. Fixed 0.74.0 (Guard Dog) / 0.75.0 (Rattled). |
 | **A protocol string the old regulation's checkout spelled one way can be spelled another way in the new one, with no Champions override and no rule change.** The Intimidate refusers write `'Attack'` in the Reg M-B checkout and `'atk'` in the Reg M-C one. The engine's display table held the Reg M-B spelling, so every Reg M-C refusal line parted. | Narration-only partings that cluster on one line shape across many abilities. | Diff the `this.add(...)` literals of every handler the engine reproduces between the two checkouts, and read each literal into a tag param instead of a table. Fixed 0.76.0. |
 | **The scope authority re-admits a `Future`-flagged entity, and every instrument that keeps its own strict filter drops it without saying so.** `engine/legal_scope.js` admits Reg M-C's Aura Guard through the TeamValidator. The staging planner's universe and `all_mechanics_fire`'s population filtered `!isNonstandard` themselves, so Aura Guard had no fixture and NO ROW. The gate read that as unproven. | A mechanic that is in scope, with a tag and a probe, and with no row in one instrument. | Take a population from `legal_scope`, never from a local filter, and print the re-admissions. A CLI that defaults to `data/tags.json` is reading Reg M-B's catalogue under `--regulation regmc`, so pass the file. Fixed 0.77.0. |
+| **A hand-copied snapshot of an authority flag does not grow when the regulation adds a member.** `SUBPASS` was the `bypasssub` flag copied into a 51-id literal. Reg M-C made Overdrive legal and the literal did not have it, so every Substitute blocked it. The conformance clause saw it; nothing else did. | The damage differential exits 1 on a conformance block with 0 damage disagreements. | Grep the engine for literal id sets that mirror a move, ability or item flag, and derive each into a tag before the rotation. Fixed 0.79.0 (`bypassesSubstitute`). |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

@@ -3379,6 +3379,17 @@ const MOVE_TAGS = [
   { tag: 'sound', param: 'bypasses Substitute, blocked by Soundproof', probe: 'flags.sound',
     why: 'also the trigger for Throat Spray',
     of: m => (m.flags && m.flags.sound) ? { sound: true } : null },
+  /* 2026-09-23 (ENGINE pass 10, abra/regmc 0.79.0) -- WHAT GOES THROUGH A SUBSTITUTE, AS A TAG. The
+   * authority's fact is the move flag `bypasssub`, and until now no artifact the engine reads carried
+   * it, so medicham2 held a hand-copied `SUBPASS` literal of 51 ids. Reg M-C added one legal member
+   * (Overdrive) that the literal did not have, and every substitute blocked it. `sound` is NOT a
+   * proxy: Clangorous Soul is a sound move without `bypasssub` in both checkouts. Printed before
+   * wiring: 51 legal members in gen9championsvgc2026regmb (exactly the old literal), 52 in
+   * gen9championsvgc2026regmc (the literal + overdrive). */
+  { tag: 'bypassesSubstitute', param: 'reaches the body behind a Substitute', probe: 'flags.bypasssub',
+    why: 'Encore, Taunt and Disable go through a doll in the real game; a missing member is blocked by '
+       + 'every substitute in every rollout',
+    of: m => (m.flags && m.flags.bypasssub) ? { bypasssub: true } : null },
   /* SPLIT on Will's point -- "by never misses i was really thinking about the class of ATTACKING
    * moves like aerial ace". He is right, and the numbers are stark:
    *

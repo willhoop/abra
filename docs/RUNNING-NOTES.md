@@ -53,6 +53,17 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.79.0] — 2026-09-23 — **What goes through a Substitute is a derived tag; Overdrive reaches the body (Reg M-C)**
+
+- **What changed.** `engine/tag_dex.js` derives `bypassesSubstitute` off `flags.bypasssub`; `engine/medicham2-browser.js`
+  asks it instead of the hand-typed `SUBPASS` literal (kept as the revert, `MEDI_SUBPASS_HANDLIST`). `data/tags.json`
+  gains the catalogue row and the tag on its 51 members (0 existing values moved); `data/tags-regmc.json` on 52;
+  `data/abra-tags.js` rebuilt. Probe `tests/probe_substitute_bypass_tag.js`.
+- **Measured.** NO FIGURE published. Damage differential 0/6000 in both regulations, and Reg M-C now exits 0
+  (`data/verification/pass10/engine-diff-regmc.json`, `--n 6000 --seed 20260804`).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.78.0] — 2026-09-23 — **The roster's text proxy and its refused fixtures are repaired; 141 → 11 (Reg M-B), 144 → 12 (Reg M-C)**
 
 - **What changed.** `tests/roster.js`, with the text view moved into `tests/roster_text_view.js` and the new
