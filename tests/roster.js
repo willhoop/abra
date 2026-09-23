@@ -15231,6 +15231,8 @@ const RULES = [
      + 'lead. Side A switches its slot-0 body for its bench body on turn 1 (a switch resolves before any '
      + 'move), the carrier hits that slot, and the hit lands on a body with `activeTurns` 0: WITH the '
      + 'ability it is doubled. Turn 2 the same click into the same body, now settled, is the negative.',
+  break: { why: 'the x2 is paid on every hit, not only into an arrival (the pre-0.65.0 engine)',
+    patch: [["const STAKEOUT_UNCONDITIONAL=(", "const STAKEOUT_UNCONDITIONAL=true||("]] },
   match(e) {
     const keys = ['onModifyAtk', 'onModifySpA'].filter(k => typeof e[k] === 'function');
     if (!keys.length || !/!\s*defender\.activeTurns/.test(handlerSrc(e, keys))) return null;

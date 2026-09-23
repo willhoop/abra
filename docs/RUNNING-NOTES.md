@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.65.0] — 2026-09-22 — **Stakeout doubles only a hit into a body that arrived this turn**
+
+- **What changed.** `engine/tag_dex.js` derives `onlyWhen: {cond:'targetFreshlyArrived'}` for Stakeout alone, and
+  `engine/medicham2-browser.js` pays its x2 only when the target `_newlySwitched`. `data/tags-regmc.json` moves by the
+  stakeout row only. Knob `MEDI_STAKEOUT_UNCONDITIONAL`; probe `tests/probe_regmc_stakeout.js`.
+- **Measured.** NO FIGURE published. Roster row DIFFER on `aa7b45c6b8d2`, MATCH on `a98c181dbe2f`. Probe: green clean, red
+  under the knob and on the 0.63.0 bytes. Reg M-B has no carrier: `data/tags.json` is byte-identical.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.64.0] — 2026-09-22 — **The Reg M-C roster stages its 22 COULD-NOT-STAGE rows, and the dead terrain anchor is re-aimed**
 
 - **What changed.** `tests/roster.js`: 13 new shape rules, plus fixes to five existing ones: Leek, Terrain Extender,

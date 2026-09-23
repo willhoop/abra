@@ -44363,9 +44363,12 @@
      "mult": 2,
      "onType": null,
      "inWeather": null,
-     "onlyWhen": null,
+     "onlyWhen": {
+      "cond": "targetFreshlyArrived",
+      "says": "the defender arrived this turn (Showdown activeTurns 0)"
+     },
      "stage": "attackStat",
-     "onStat": "atk",
+     "onStat": "any",
      "costsPerTurn": null
     }
    }

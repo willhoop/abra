@@ -21,6 +21,24 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.65.0] — 2026-09-22
+
+### Fixed
+- **Stakeout doubles only a hit into a body that arrived this turn.** Its handler is `if (!defender.activeTurns) return
+  this.chainModify(2)`, on `onModifyAtk` and `onModifySpA` (data/abilities.ts stakeout; no Champions override). The tag
+  carried `onlyWhen: null`, so medicham2's untyped `attackStat` branch (Hustle's) paid a PERMANENT x2 on every physical
+  hit and nothing on a special one. `engine/tag_dex.js` now names `onlyWhen: {cond: 'targetFreshlyArrived'}` and `onStat:
+  'any'`, for this shape only; membership over both dexes is Stakeout alone. medicham2 pays the x2 when `def._newlySwitched`
+  is set, which is the engine's `activeTurns === 0` and the same field Speed Boost's gate reads. `data/tags-regmc.json`
+  moves by the stakeout row only. Reg M-B has no carrier, so `data/tags.json` is unchanged. Knob
+  `MEDI_STAKEOUT_UNCONDITIONAL`.
+- The Reg M-C roster (0.64.0, `ability/doubles-into-a-fresh-arrival`) found it: DIFFER on release `aa7b45c6b8d2`, where
+  the authority read 1009 HP on the arrival and this engine read 934. It reads MATCH on release `a98c181dbe2f`, and its
+  break (the knob) is CAUGHT.
+- `tests/probe_regmc_stakeout.js` has three arms: FRESH (the arrival hit on turn 1, the settled body on turn 2), LEAD and
+  CONTROL. It exits 0 clean. It exits 1 under the knob and with the 0.63.0 engine bytes (`--medi` release
+  `aa7b45c6b8d2`).
+
 ## [0.64.0] — 2026-09-22
 
 ### Changed

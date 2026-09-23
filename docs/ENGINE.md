@@ -1,3 +1,12 @@
+## STAKEOUT DOUBLES ONLY INTO A BODY THAT ARRIVED THIS TURN. 2026-09-22 (abra/regmc 0.65.0)
+
+- **Defect.** The tag's `onlyWhen` was null. The untyped `attackStat` branch serves Hustle, and it paid Stakeout's x2 on
+  every physical hit.
+- **Fix.** `tag_dex` names `targetFreshlyArrived` (Stakeout alone), and medicham2 reads `def._newlySwitched`. The row
+  counts `MEDSEEN.freshArrivalBoost` and `freshArrivalBoostRefused`.
+- **Probe** `tests/probe_regmc_stakeout.js`: green clean. It is red under `MEDI_STAKEOUT_UNCONDITIONAL` and red on the
+  0.63.0 bytes.
+
 ## THE REG M-C ROSTER STAGES ITS 22 COULD-NOT-STAGE ROWS; THE DEAD TERRAIN ANCHOR IS RE-AIMED. 2026-09-22 (abra/regmc 0.64.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-8.md`.

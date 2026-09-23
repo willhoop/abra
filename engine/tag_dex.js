@@ -9573,8 +9573,21 @@ const ABILITY_TAGS = [
             is: allyAb[1].split(',').map(x => x.trim().replace(/["']/g, '')),
             says: 'a partner carrying one of those abilities is on the field' }
         : null;
+      /* 2026-09-22 (ENGINE pass 8, abra/regmc 0.65.0) -- STAKEOUT'S GATE IS ON THE DEFENDER'S ARRIVAL.
+       * Its handler is `if (!defender.activeTurns) return this.chainModify(2)` on BOTH `onModifyAtk` and
+       * `onModifySpA` (data/abilities.ts stakeout; no Champions override). It carried `onlyWhen: null`
+       * -- "unconditional" -- and medicham2's untyped `attackStat` branch (the one Hustle is served by)
+       * paid a PERMANENT x2 on every physical hit. The Reg M-C roster staged it for the first time this
+       * pass: the authority doubles the hit into a body that switched in THIS turn and not the next
+       * hit, and this engine doubled both. Membership printed over both regulations' dex before wiring:
+       * `activeTurns` in an onBasePower/onModifyAtk/onModifySpA handler matches Stakeout alone. It has
+       * no Reg M-B carrier, so data/tags.json does not carry the row. `onStat: 'any'` only for this
+       * shape (both handlers, one gate); every other member's `onStat` is unchanged. */
+      const fresh = /!\s*defender\.activeTurns/.test(src);
       return { mult: multiplierIn(src), onType: ty, inWeather: w.length ? w : null,
-               onlyWhen: flags.length ? { cond: 'moveFlag', is: flags }
+               onlyWhen: fresh ? { cond: 'targetFreshlyArrived',
+                                   says: 'the defender arrived this turn (Showdown activeTurns 0)' }
+                       : flags.length ? { cond: 'moveFlag', is: flags }
                        : allyGate ? allyGate
                        : lastOut ? { cond: 'allOtherActivesHaveMoved',
                                      says: 'every other active body has already taken its action' }
@@ -9593,7 +9606,8 @@ const ABILITY_TAGS = [
                 * are `onModifySpA` ONLY, so an engine multiplying the attacking stat whatever the
                 * category hands an Ampharos a 1.5x Iron Tail it does not have. Measured on exactly
                 * that board before this field existed — physical 18 -> 27, which is wrong. */
-               onStat: a.onModifyAtk ? 'atk' : a.onModifySpA ? 'spa' : null,
+               onStat: (fresh && a.onModifyAtk && a.onModifySpA) ? 'any'
+                     : a.onModifyAtk ? 'atk' : a.onModifySpA ? 'spa' : null,
                costsPerTurn: chip ? '1/' + chip + ' max HP' : null };
     } },
   { tag: 'blocksMove', param: 'WHICH class of move fails', probe: 'onFoeTryMove',

@@ -9564,6 +9564,10 @@ const TRAP_CHIP_ITEM_BLIND=(typeof process!=='undefined'&&process.env&&process.e
  * `-enditem|HOLDER|Normal Gem|[from] gem|[move] <Move>` and grants Unburden (`recordItemUsed`). The type is the ACTIVE
  * move's (`effMoveType`), the multiplier the tag's. MEDI_TYPE_GEM_INERT=1 never spends one. tests/probe_regmc_type_gem.js */
 const TYPE_GEM_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TYPE_GEM_INERT==='1');
+/* 2026-09-22 (ENGINE pass 8, abra/regmc 0.65.0) -- MEDI_STAKEOUT_UNCONDITIONAL=1 pays Stakeout's x2 on every hit, not only
+ * into a body that arrived this turn (the pre-0.65.0 engine). tests/probe_regmc_stakeout.js */
+const STAKEOUT_UNCONDITIONAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_STAKEOUT_UNCONDITIONAL==='1');
+if(STAKEOUT_UNCONDITIONAL)MEDFAILS.stakeoutUnconditionalRestored=1;
 /* 2026-09-22 (Reg M-C, abra/regmc 0.32.0) -- MEDI_HERB_AFTER_OWED_SWITCH=1: White Herb waits for the post-action pass again,
  * after a Red Card drag or an Eject Button / Emergency Exit switch (the pre-0.32.0 engine). */
 const HERB_AFTER_OWED_SWITCH=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HERB_AFTER_OWED_SWITCH==='1');
@@ -16374,6 +16378,22 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
      *     hugepower  purepower  guts   <- spent by name above
      *     hustle                       <- the only member this branch adds today
      * A fifth arriving with the same shape is served by the shape, not by an edit. */
+    /* 2026-09-22 (ENGINE pass 8, abra/regmc 0.65.0) -- STAKEOUT: x2 ONLY INTO A BODY THAT ARRIVED THIS TURN.
+     * `if (!defender.activeTurns) return this.chainModify(2)` on onModifyAtk AND onModifySpA (data/abilities.ts
+     * stakeout, no Champions override). Its tag carried `onlyWhen: null`, so the untyped branch below paid a
+     * PERMANENT x2 on every physical hit; tag_dex now names `{cond:'targetFreshlyArrived'}` and `onStat: 'any'`.
+     * `def._newlySwitched` is the engine's `activeTurns === 0` (set in bringIn, cleared at the turn's open --
+     * the same two moments Speed Boost's gate reads, WIRE 138). Staged by the Reg M-C roster
+     * (`ability/doubles-into-a-fresh-arrival`) and by tests/probe_regmc_stakeout.js. Knob
+     * MEDI_STAKEOUT_UNCONDITIONAL=1 pays the x2 on every hit again (the pre-0.65.0 engine). */
+    if(_db&&+_db.mult>0&&_db.stage==='attackStat'&&_db.onlyWhen&&_db.onlyWhen.cond==='targetFreshlyArrived'
+       &&!_db.onType&&!_db.inWeather){
+      const _fst=_db.onStat;
+      if(_fst==='any'||(_fst==='atk'&&phys)||(_fst==='spa'&&!phys)){
+        if(STAKEOUT_UNCONDITIONAL||(def&&def._newlySwitched)){ACH(exact4096(attAb,+_db.mult));MEDSEEN.freshArrivalBoost=(MEDSEEN.freshArrivalBoost||0)+1;}
+        else MEDSEEN.freshArrivalBoostRefused=(MEDSEEN.freshArrivalBoostRefused||0)+1;
+      }
+    }
     if(_db&&+_db.mult>0&&_db.stage==='attackStat'&&_db.onStat
        &&!_db.onType&&!_db.inWeather&&!_db.onlyWhen&&!STAT_MULT_BY_NAME.has(attAb)){
       /* ONLY ON THE STAT THE HANDLER NAMES -- the same rule Plus and Minus needed, and for the same
