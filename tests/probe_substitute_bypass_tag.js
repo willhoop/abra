@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* tests/probe_substitute_bypass_tag.js — A `bypasssub` MOVE REACHES THE BODY BEHIND A SUBSTITUTE, READ OFF THE TAG.
- * 2026-09-23 (ENGINE pass 10, abra/regmc 0.79.0).
+ * 2026-09-23 (ENGINE pass 10, abra/regmc 0.80.0).
  *
  *   node tests/probe_substitute_bypass_tag.js --regulation regmc
  *   SHOWDOWN_PATH=<M-B checkout> node tests/probe_substitute_bypass_tag.js

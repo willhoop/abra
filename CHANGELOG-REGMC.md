@@ -21,7 +21,25 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [0.79.0] — 2026-09-23
+## [0.81.0] — 2026-09-23
+
+### Changed
+- **Renumbered: this branch's Overdrive entry is 0.80.0** (it was committed as 0.79.0; main's 0.79.0 is the roster
+  fixture fix).
+
+### Fixed
+- **A refused self-aimed volatile move wrote nothing (both regulations).** A second Focus Energy, Aqua Ring or Ingrain
+  is refused by `Pokemon#addVolatile` (present, no `onRestart`), so `didAnything` is false and the authority writes
+  `|move|<user>|<Move>||[still]` then `|-fail|<user>`. The engine's announcement in the `affect` branch
+  (`_volFail === _landed`) excluded effects aimed at the user, so it wrote neither. This is Reg M-C narration group E
+  (Focus Energy; Destiny Bond and Imprison are the same group and are re-read on the next lattice). Knob
+  `MEDI_SELF_VOLATILE_FAIL_SILENT`.
+- New probe `tests/probe_self_volatile_fail.js` (either regulation). Members are derived from the dex (self-aimed
+  Status moves whose whole effect is one volatile with no `onRestart`): Aqua Ring, Focus Energy and Ingrain staged;
+  Imprison refused by its own fixture (it seals the foes' Protect, so their scripted click is not on the request).
+  Green in both regulations; red under the knob (3 arms).
+
+## [0.80.0] — 2026-09-23
 
 ### Fixed
 - **Reg M-C: every Substitute blocked Overdrive.** The substitute condition's `onTryPrimaryHit` returns early on

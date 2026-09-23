@@ -3379,7 +3379,7 @@ const MOVE_TAGS = [
   { tag: 'sound', param: 'bypasses Substitute, blocked by Soundproof', probe: 'flags.sound',
     why: 'also the trigger for Throat Spray',
     of: m => (m.flags && m.flags.sound) ? { sound: true } : null },
-  /* 2026-09-23 (ENGINE pass 10, abra/regmc 0.79.0) -- WHAT GOES THROUGH A SUBSTITUTE, AS A TAG. The
+  /* 2026-09-23 (ENGINE pass 10, abra/regmc 0.80.0) -- WHAT GOES THROUGH A SUBSTITUTE, AS A TAG. The
    * authority's fact is the move flag `bypasssub`, and until now no artifact the engine reads carried
    * it, so medicham2 held a hand-copied `SUBPASS` literal of 51 ids. Reg M-C added one legal member
    * (Overdrive) that the literal did not have, and every substitute blocked it. `sound` is NOT a

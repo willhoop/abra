@@ -53,7 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
-## [abra/regmc 0.79.0] — 2026-09-23 — **What goes through a Substitute is a derived tag; Overdrive reaches the body (Reg M-C)**
+## [abra/regmc 0.81.0] — 2026-09-23 — **A refused self-aimed volatile move fails out loud (both regulations)**
+
+- **What changed.** `engine/medicham2-browser.js`: the `affect` branch's `[still]` + `-fail` announcement now covers a
+  volatile aimed at the user (a second Focus Energy, Aqua Ring, Ingrain). Knob `MEDI_SELF_VOLATILE_FAIL_SILENT`. Probe
+  `tests/probe_self_volatile_fail.js`. The Overdrive row above is renumbered 0.79.0 → 0.80.0 (main took 0.79.0).
+- **Measured.** NO FIGURE published. Probe green in both regulations, red under the knob.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
+## [abra/regmc 0.80.0] — 2026-09-23 — **What goes through a Substitute is a derived tag; Overdrive reaches the body (Reg M-C)**
 
 - **What changed.** `engine/tag_dex.js` derives `bypassesSubstitute` off `flags.bypasssub`; `engine/medicham2-browser.js`
   asks it instead of the hand-typed `SUBPASS` literal (kept as the revert, `MEDI_SUBPASS_HANDLIST`). `data/tags.json`

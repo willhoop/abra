@@ -1,4 +1,11 @@
-## WHAT GOES THROUGH A SUBSTITUTE IS A DERIVED TAG; OVERDRIVE REACHES THE BODY (REG M-C). 2026-09-23 (abra/regmc 0.79.0)
+## A REFUSED SELF-AIMED VOLATILE MOVE WRITES `[still]` AND `-fail` (BOTH REGULATIONS). 2026-09-23 (abra/regmc 0.81.0)
+
+Full account: `docs/_reports/2026-09-23-engine-pass10.md` §C.
+
+- The `affect` branch announced a refused volatile only when it was aimed at a target. A second Focus Energy, Aqua Ring
+  or Ingrain now writes the authority's `||[still]` and `-fail`. Knob `MEDI_SELF_VOLATILE_FAIL_SILENT`. Probe
+  `tests/probe_self_volatile_fail.js`. Reg M-C narration group E.
+## WHAT GOES THROUGH A SUBSTITUTE IS A DERIVED TAG; OVERDRIVE REACHES THE BODY (REG M-C). 2026-09-23 (abra/regmc 0.80.0)
 
 Full account: `docs/_reports/2026-09-23-engine-pass10.md` §A2.
 

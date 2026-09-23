@@ -14501,7 +14501,7 @@ function residualUpdatePass(actA,actB,field,gi){
  * ENCORE (4,848), TAUNT (1,503) and DISABLE (730) -- all carry `bypasssub` in the real game. A
  * "substitute blocks status moves" rule built on the `sound` tag alone would have blocked all three,
  * which is a worse engine than the one that blocks nothing. */
-/* 2026-09-23 (ENGINE pass 10, abra/regmc 0.79.0) -- THE LITERAL IS NOW A TAG. `bypassesSubstitute`
+/* 2026-09-23 (ENGINE pass 10, abra/regmc 0.80.0) -- THE LITERAL IS NOW A TAG. `bypassesSubstitute`
  * (engine/tag_dex.js, off `flags.bypasssub`) carries the set in both regulations' tag files: 51
  * members in Reg M-B, exactly the literal below, and 52 in Reg M-C, the literal + Overdrive, which the
  * literal did not have and every doll therefore blocked. The literal is kept ONLY as the revert:
@@ -28421,6 +28421,12 @@ function layHazard(sf,hz,cap,setter,sideLabel,say){
   if(TR&&sideLabel)TR.sstartSide(sideLabel,hz);
   return true;
 }
+/* 2026-09-23 (ENGINE pass 10, abra/regmc 0.81.0) -- A SELF-AIMED VOLATILE THAT IS REFUSED FAILS OUT LOUD TOO. The
+ * `_volFail===_landed` announcement in the `affect` branch excluded `to: 'user'`, so a second Focus Energy, a second
+ * Imprison or a Destiny Bond refused by its own `onPrepareHit` wrote nothing, where the authority's `didAnything` is
+ * false the same way and it writes `|move|<user>|<Move>||[still]` then `|-fail|<user>`. Measured on the authority, a
+ * repeated Focus Energy (Reg M-C narration group E). MEDI_SELF_VOLATILE_FAIL_SILENT=1 restores the exclusion. */
+const SELF_VOL_FAIL_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SELF_VOLATILE_FAIL_SILENT==='1');
 /* ROADMAP #72, THE OTHER HALF -- TAKE THE HAZARDS BACK OFF. ONE function, three call sites, for the
  * same reason layHazard is one function for three: "what does this click remove from the field" is a
  * FACT about the move, and the three sites that need it are a status click (`affect` -- Defog), a
@@ -37033,7 +37039,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * other failure sites in this loop already call it; this is the fifth. */
         if(_landed>0&&_volFail>0&&_volFail===_landed&&!_volApplied&&!_volSilent&&!a.sc
            &&((a.si&&a.si.effects)||[]).length===1
-           &&a.si.effects[0].volatile&&a.si.effects[0].to!=='user'
+           &&a.si.effects[0].volatile&&(a.si.effects[0].to!=='user'||!SELF_VOL_FAIL_SILENT)
            &&!(a.si.effects[0].chance<100)){
           MEDSEEN.volFailLinesWritten++;
           if(TR)TR.attrStill();
