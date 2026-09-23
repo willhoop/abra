@@ -1,3 +1,22 @@
+## THE LAST REFUSED ROSTER FIXTURES ARE REBUILT LEGAL. 2026-09-23 (abra/regmc 0.79.0)
+
+Full account: `docs/_reports/2026-09-23-roster-last-refusals.md`. Light mode, so no roster stage was run (owed).
+
+- **Refused sets, both regulations: 0 / 0 / 0, rule-built 0.** They were 0/6/3 (+2) under Reg M-B and 0/7/3 (+2) under
+  Reg M-C. None was kept, baselined or scoped out. Every mechanic has a legal carrier. No row lost staging.
+- **Skill Swap lender.** It is a legal learner holding a lendable ability: quiet, or announces-only
+  (`fieldFamilyBranch`; the only member is Frisk). The lender is Gourgeist-Super. Where the script proves no sleep
+  click reaches its slot, it idles on Sleep Talk. Knob: `ROSTER_SWAPPER_UNREPAIRED=1`, which reads red.
+- **Heal Bell / Roost / Transform.**
+  - Heal Bell: Chimecho, with the board proven Ground-free.
+  - Roost: Noivern holding Frisk.
+  - Transform: Ditto holding Limber. Its control re-aims the click at the partner instead of removing it.
+- **Separation.** 13 changed rows (Reg M-B) and 7 (Reg M-C) were played in both engines, and all read FIRED-AND-BOARDS-MATCH.
+  Heal Bell separates only on its own PP, as the old fixture did: no status is on its board, so the cure is never
+  exercised. **This is a hand-list item.**
+- **Hand list.** Heal Bell's cure is unexercised by its roster fixture (above). The rest is carried forward from
+  0.78.0 (the ruler fix, first numbered 0.71.0).
+
 ## THE ROSTER'S TWO RULER DEFECTS ARE REPAIRED: THE TEXT PROXY AND FIXTURE LEGALITY. 2026-09-23 (abra/regmc 0.78.0)
 
 Full account: `docs/_reports/2026-09-23-roster-fixture-legality.md`. Light mode, so no roster stage was run (owed).

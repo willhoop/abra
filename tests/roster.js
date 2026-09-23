@@ -548,8 +548,12 @@ function _writesSleep(kind, xid) {
 }
 function idleSafeOn(sc, b, sub) {
   if (sc.inertEffect || idOf(sc.entityId) === idOf(INERT) || idOf(sc.entityId) === idOf(sub)) return false;
+  /* the crit guard protects the bodies that THROW: Focus Energy's +2 on an attacker is part of what a crit-ratio
+   * entity's fixture reaches. A Skill Swap lender that never clicks a damaging move reaches no crit either way
+   * (2026-09-23, Super Luck), so the guard is not asked of it. */
   if (idOf(sc.entityId) && !sc.critStagesUnread && sc.kind !== 'move' && typeof ((sc.kind === 'item' ? dex.items : dex.abilities)
-        .get(sc.entityId) || {}).onModifyCritRatio === 'function') return false;
+        .get(sc.entityId) || {}).onModifyCritRatio === 'function'
+      && !(isSwapLender(sc, b) && lenderNeverAttacks(sc))) return false;
   const bodies = sc.A.concat(sc.B);
   if (bodies.some(m => (m.moves || []).some(x => idOf(x) === idOf(sub)))) return false;
   for (const st of sc.script || []) for (const side of ['p1', 'p2'])
@@ -560,10 +564,50 @@ function idleSafeOn(sc, b, sub) {
   if (_writesSleep('ability', b.ability) || _writesSleep('item', b.item)) return false;
   if (own.some(x => _writesSleep('move', x) && ['self', 'allies', 'allySide', 'all'].includes((dex.moves.get(x) || {}).target))) return false;
   const others = bodies.filter(m => m !== b);
-  if (others.some(m => _writesSleep('ability', m.ability) || _writesSleep('item', m.item)
-        || (m.moves || []).some(x => idOf(x) !== idOf(INERT) && _writesSleep('move', x)))) return false;
+  if (others.some(m => _writesSleep('ability', m.ability) || _writesSleep('item', m.item))) return false;
+  if (others.some(m => (m.moves || []).some(x => idOf(x) !== idOf(INERT) && _writesSleep('move', x)))
+      && !(isSwapLender(sc, b) && sleepCannotReachLender(sc))) return false;
   if (idOf(sc.entityId) && _writesSleep(sc.kind, sc.entityId)
       && !(sc.kind === 'move' && own.some(x => idOf(x) === idOf(sc.entityId)))) return false;
+  return true;
+}
+/* ---- THE SKILL SWAP LENDER, AND THE ONE SHARPER QUESTION ASKED OF IT ALONE (2026-09-23) --------------------------
+ *
+ * The lender stands in side A slot 1 of every in-play-exchange row, idles in the subject arm and clicks Skill Swap in
+ * the control arm, so in the control arm it DECLARES a move and the "declares nothing else" road above is shut. On a
+ * board where something writes sleep (Early Bird's Yawn), `idleSafeOn` then refuses the substitute outright, and no
+ * legal Skill Swap learner holding a lendable ability learns Focus Energy (TeamValidator, both regulations: the
+ * Skill Swap + Focus Energy learners are Espeon, Umbreon and Sylveon, none holding a quiet or announce-only ability).
+ *
+ * SO FOR THE LENDER ONLY, the question is asked of the SCRIPT: can a sleep-writing click reach THIS SLOT? It cannot
+ * when every scripted click of every sleep-writing move is single-target and aimed somewhere else — a foe click
+ * from the lender's own side, an ally click from the other side, or a foe click at the other slot — and nothing on
+ * side A ever switches into or out of slot 1. A spread or random-target sleep move, an unaimed click, or any switch in
+ * that slot is a refusal, as is any sleep-writing ABILITY or ITEM (checked above, unchanged). Every other body keeps
+ * the old gate, so no other fixture moves. The runtime watch (`INERT_SUB_SLEPT`) still counts any board that shows a
+ * sleeping body idling on the substitute. */
+function isSwapLender(sc, b) { return sc.controlKind === 'abilityswap' && (sc.A || []).indexOf(b) === 1; }
+function lenderNeverAttacks(sc) {
+  for (const st of sc.script || []) { const a = ((st && st.p1) || [])[1];
+    if (!a) continue;
+    if (a.sw) return false;
+    const mv = a.m ? dex.moves.get(a.m) : null;
+    if (mv && mv.exists && mv.category !== 'Status') return false; }
+  return true;
+}
+function sleepCannotReachLender(sc) {
+  const SINGLE = new Set(['normal', 'any', 'adjacentFoe', 'adjacentAlly', 'adjacentAllyOrSelf']);
+  for (const st of sc.script || []) for (const side of ['p1', 'p2']) for (const [j, a] of ((st && st[side]) || []).entries()) {
+    if (!a) continue;
+    if (side === 'p1' && j === 1 && a.sw) return false;
+    if (!a.m) continue;
+    const mv = dex.moves.get(a.m);
+    if (!mv || !mv.exists || !_writesSleep('move', mv.id)) continue;
+    if (!SINGLE.has(mv.target)) return false;
+    if (a.t != null && +a.t < 0) return false;          /* an ally aim by slot arithmetic: not resolved here, refused */
+    if (side === 'p1') { if (a.ally && j !== 1) return false; if (!a.ally && a.t == null) return false; }
+    else { if (a.ally) continue; if (a.t == null || +a.t === 1) return false; }
+  }
   return true;
 }
 function withLegalInert(sc) {
@@ -1225,13 +1269,17 @@ function quietAsControl(id, arm) {
  * swapper off a species a rule has already written onto side A (see `isSwapper`: two bodies of one
  * species collapse into ONE party row and the comparator counts a harness fault). */
 const _SWAPPER_ARM = new Map();
+/* hoisted from the move stage's vocabulary (`monsReady`) — see the note there */
+const { mcKey } = require(D('engine', 'mc_key.js'));
+let _monsLoaded = false;
 function swapperFor(arm, avoid) {
   const key = String(arm) + '|' + (avoid || []).filter(Boolean).map(idOf).sort().join(',');
   if (_SWAPPER_ARM.has(key)) return _SWAPPER_ARM.get(key);
   const used = new Set([CAST.ATTACKER().species, CAST.ATTACKER2().species, CAST.BAG().species]
     .concat((avoid || []).filter(Boolean)).map(idOf));
   const bulk = s => s.baseStats.hp + s.baseStats.def + s.baseStats.spd;
-  /* 2026-09-23 -- THE LENDER CANNOT BE MADE LEGAL, AND THAT IS A FACT ABOUT THE REGULATION, NOT A REPAIR LEFT UNDONE.
+  /* 2026-09-23 -- [SUPERSEDED THE SAME DAY by the note below it; kept as the record of why the first attempt failed.]
+   * THE LENDER CANNOT BE MADE LEGAL, AND THAT IS A FACT ABOUT THE REGULATION, NOT A REPAIR LEFT UNDONE.
    * In the control arm it clicks Skill Swap, and ASKED OF THE FORMAT (TeamValidator, both regulations): not one
    * legal species that holds a quiet ability learns Skill Swap — the quiet holders are Kangaskhan, Houndoom,
    * Torkoal, Torterra, Samurott, Goodra-Hisui, Salazzle, Falinks and Glimmora, and the validator refuses each
@@ -1241,17 +1289,56 @@ function swapperFor(arm, avoid) {
    * stalwart, surgesurfer, unseenfist, and analytic through the swapper's speed). A row that stops staging is not a
    * repaired row, so the lender is chosen as before and its control-arm set stays REFUSED, named in
    * docs/_reports/2026-09-23-roster-fixture-legality.md for the decision it needs. */
-  const pool = CANDIDATES.filter(s => !used.has(idOf(s.id))
-    && Object.values(s.abilities || {}).some(n => quietAsControl(n, arm)));
-  pool.sort((a, b) => bulk(b) - bulk(a));
+  /* 2026-09-23 (later the same day) -- AND THE DECISION IT NEEDED WAS TAKEN: A REFUSED CONTROL ARM IS NOT KEPT.
+   * The paragraph above is true of the QUIET set and it is not true of what a lender has to be. The lender's ability
+   * sits on the field in BOTH arms and lands on the carrier in the control arm, so what it must be is BOARD-INERT, and
+   * the quiet set is one road to that. The second road is already derived in this file: `fieldFamilyBranch` reads
+   * `announces-only` off an ability whose ONLY handler is an `onStart` that calls `this.add` and pure readers (the
+   * membership is printed by `--rules`; under both regulations it is Frisk), and the tag dex derives
+   * `announcesOnEntry.visibleOnABoard: false` for the same handler, which is why its own roster row is graded on the
+   * protocol line and not on a board (see `ANNOUNCEMENT`). So the pool is now: a legal Skill Swap LEARNER (the
+   * format's TeamValidator, `learnsLegally`) holding an ability that is quiet on this arm or announces-only. A quiet
+   * ability is preferred on the same body. Knob: `ROSTER_SWAPPER_UNREPAIRED=1` restores the refused lender for a
+   * paired measurement. The proof (`swapControlWorks`) re-plays per arm with this body, so a lender that does not
+   * separate its arms on a KNOWN-LIVE ability shuts the tier by measurement, as before. */
+  const REPAIRED = process.env.ROSTER_SWAPPER_UNREPAIRED !== '1';
+  const lendable = n => quietAsControl(n, arm) || (REPAIRED && announcesOnlyAbility(n));
+  /* THE BASE POPULATION IS EVERY LEGAL BODY, NOT `CANDIDATES`, once repaired: `CANDIDATES` needs a `carrierAbility`,
+   * which refuses any `onStart` — and the lender is built holding its lendable ability BY NAME, so what its other
+   * abilities do is never on the board. It must still be a body medicham2 can build (`buildableSpecies`). */
+  const base = REPAIRED
+    ? dex.species.all().filter(s => s.exists && !s.isNonstandard && s.tier !== 'Illegal' && !s.battleOnly
+        && !s.forme.endsWith('Mega') && buildableSpecies(s.id))
+    : CANDIDATES;
+  const pool = base.filter(s => !used.has(idOf(s.id))
+    && (!REPAIRED || learnsLegally(s.id, SWAP_MOVE))
+    && Object.values(s.abilities || {}).some(REPAIRED ? lendable : (n => quietAsControl(n, arm))));
+  pool.sort((a, b) => bulk(b) - bulk(a) || (a.id < b.id ? -1 : 1));
   let out = null;
   if (pool.length) {
     const sp = pool[0];
-    const ab = Object.values(sp.abilities).find(n => quietAsControl(n, arm));
-    out = { species: sp.id, name: sp.name, ability: ab, pool: pool.map(s => s.name), arm: arm || null };
+    const abs = Object.values(sp.abilities);
+    const ab = abs.find(n => quietAsControl(n, arm)) || abs.find(lendable);
+    out = { species: sp.id, name: sp.name, ability: ab, pool: pool.map(s => s.name), arm: arm || null,
+            lent_as: quietAsControl(ab, arm) ? 'quiet' : 'announces-only' };
   }
+  /* PRINTED, because a derived pool is the shape that over-matches (and under-matches) silently */
+  if (process.env.ROSTER_PRINT_SWAPPER === '1')
+    console.error('  [SWAPPER] arm=' + (arm || '-') + ' avoid=' + ((avoid || []).filter(Boolean).join(',') || '-')
+      + (REPAIRED ? '' : ' UNREPAIRED') + ' -> ' + (out ? out.name + ' lending ' + out.ability + ' (' + out.lent_as + ')' : 'NONE')
+      + '; pool ' + pool.map(s => s.name).join(', '));
   _SWAPPER_ARM.set(key, out);
   return out;
+}
+/* the second road to a board-inert lent ability — `fieldFamilyBranch`'s own `announces-only`, never a name */
+const ANNOUNCE_READERS = new Set(['foes', 'allies', 'adjacentFoes', 'adjacentAllies', 'getItem',
+                                  'getAbility', 'hasType', 'hasAbility', 'hasItem', 'includes',
+                                  'toString', 'getMoves', 'join', 'map', 'filter']);
+function announcesOnlyAbility(n) {
+  const a = dex.abilities.get(n);
+  if (!a || !a.exists || a.isNonstandard) return false;
+  const f = fieldFamilyBranch(a);
+  return !!(f && f.kind === 'announces-only');
 }
 const SWAPPER = swapperFor(null);
 /* ---- A BODY LENT INTO A SLOT CARRIES THE CONTROL CLICK AND NOTHING ELSE — 2026-09-21 -----------
@@ -2059,6 +2146,13 @@ function controlOf(sc, rank) {
      * for itself gives two identical scripts, which is why `move/is-the-control-click` refused Focus
      * Energy outright. `INERT_ALT` is derived off the same shape cap and proven by the same selftest
      * clause; it is reached ONLY here, so no other move row's control arm moves. */
+    /* THE RE-AIMED CONTROL (2026-09-23, `retargetScenario`): the entity's click stays and turns on the thrower's own
+     * partner. Nothing else about the two arms differs, and nothing is ignored. */
+    if (sc.retargetControl) {
+      for (const st of c.script) for (const side of ['p1', 'p2']) for (const a of st[side] || [])
+        if (a && idOf(a.m) === idOf(sc.entityId)) { delete a.t; a.ally = true; }
+      return { sc: c, ignore, swap };
+    }
     let sub = (INERT_ALT && idOf(sc.entityId) === idOf(INERT)) ? INERT_ALT : INERT;
     /* 2026-09-23: AND WHERE NO BODY ON THE BOARD CAN LEARN THE ALTERNATE, THE SUBSTITUTE STANDS IN FOR IT. Every
      * body clicks the entity in the subject arm and the alternate in this one, so each must learn both, and the
@@ -3653,8 +3747,8 @@ function neutralContactOn(speciesId, by) {
  * so the entry reads COULD-NOT-STAGE for a reason that is about the damage table rather than about
  * the move. Asked through `mc_key.js`, which is the project's ONE doorway into that table (four
  * hand-rolled copies of this lookup existed and two of them were wrong). */
-const { mcKey } = require(D('engine', 'mc_key.js'));
-let _monsLoaded = false;
+/* `mcKey` and `_monsLoaded` are declared above `swapperFor` since 2026-09-23: the swapper is derived at module load
+ * and asks `buildableSpecies`, which would otherwise read both in their temporal dead zone. */
 function monsReady() {
   if (_monsLoaded) return;
   /* the SNAPSHOT's table, not the live one — `data/engine-data.js` is one of the frozen files */
@@ -3867,6 +3961,133 @@ function critsLand() {
   return _CL2;
 }
 
+/* ---- A WIDER BOARD-INERT POOL, FOR A MOVE NO QUIET BODY LEARNS — 2026-09-23 ------------------------------------
+ *
+ * `moveBodies` is the quiet pool, and for three moves in both regulations no member of it learns the move (asked of
+ * the TeamValidator): Heal Bell (its one legal learner is Chimecho, whose one ability is Levitate), Roost and
+ * Transform. A body that clicks a move it cannot learn is a set the game refuses, so for those rows ONLY — a
+ * LEGAL_FIRST re-match — the pool is widened by two roads that are still inert on the board, each derived:
+ *   announces-only     `fieldFamilyBranch` reads it off the ability's own handler (the membership is Frisk in both
+ *                      regulations), and the tag dex derives `visibleOnABoard: false` for it;
+ *   ground-immunity    an ability with no handler at all that QUIET_EXCLUDE keeps out ONLY for "a Ground immunity"
+ *                      (its own stated reason), admitted when the caller PROVES the board holds no Ground click, no
+ *                      terrain, no hazard and no field condition (`groundFreeBoard`).
+ * The quiet pool comes first, byte for byte, so a row that found a quiet learner before still finds the same one. */
+const _IB = {};
+function groundOnlyAbility(n) {
+  const a = dex.abilities.get(n);
+  if (!a || !a.exists || a.isNonstandard || a.condition) return false;
+  if (Object.keys(a).some(k => /^on/.test(k) && typeof a[k] === 'function')) return false;
+  return /Ground immunity/.test(QUIET_EXCLUDE[a.id] || '');
+}
+function inertBodies(arm, o) {
+  o = o || {};
+  const k = (arm || PRIMARY_ARM_ID) + '|' + (o.groundFree ? 'g' : '-');
+  if (_IB[k]) return _IB[k];
+  const quiet = moveBodies(arm);
+  const have = new Set(quiet.map(r => r.sp.id));
+  const extra = [];
+  for (const s of dex.species.all()) {
+    if (!s.exists || s.isNonstandard || s.tier === 'Illegal' || s.battleOnly || s.forme.endsWith('Mega') || have.has(s.id)) continue;
+    if (!buildableSpecies(s.id)) continue;
+    const abs = Object.values(s.abilities || {});
+    let ab = abs.find(n => announcesOnlyAbility(n)), by = 'announces-only';
+    if (!ab && o.groundFree) { ab = abs.find(n => groundOnlyAbility(n)); by = 'ground-immunity-only'; }
+    if (!ab) continue;
+    extra.push({ sp: s, ability: ab, inertBy: by });
+  }
+  const bulk = s => s.baseStats.hp + s.baseStats.def + s.baseStats.spd;
+  extra.sort((a, b) => bulk(b.sp) - bulk(a.sp) || (a.sp.id < b.sp.id ? -1 : 1));
+  _IB[k] = quiet.concat(extra);
+  return _IB[k];
+}
+/* A BOARD ON WHICH A GROUND IMMUNITY CANNOT BE READ: no declared move is Ground-typed or sets a terrain, a side or
+ * slot condition or a field condition, and no ability on it touches groundedness. Asked of the finished scenario. */
+function groundFreeBoard(sc) {
+  for (const m of (sc.A || []).concat(sc.B || [])) {
+    if (!m) continue;
+    const ab = dex.abilities.get(m.ability || '');
+    if (ab && ab.exists && /isGrounded|Ground/.test(_hText(ab))) return false;
+    for (const x of m.moves || []) {
+      const mv = dex.moves.get(x);
+      if (!mv || !mv.exists) return false;
+      if (mv.type === 'Ground' || mv.terrain || mv.sideCondition || mv.slotCondition || mv.pseudoWeather || mv.weather) return false;
+      if (/isGrounded|groundedness|smackdown/i.test(_hText(mv) + _hText(mv.condition))) return false;
+    }
+  }
+  return true;
+}
+/* AN ABILITY WHOSE WHOLE CONTENT IS REFUSING OR CURING ONE STATUS: every handler is `onUpdate` or `onSetStatus` and
+ * every handler names the same one status id. Returns that id, or null. Read off the handlers, never a name. */
+function oneStatusAbility(n) {
+  const a = dex.abilities.get(n);
+  if (!a || !a.exists || a.isNonstandard || a.condition) return null;
+  const hs = Object.keys(a).filter(k => /^on/.test(k) && typeof a[k] === 'function');
+  if (!hs.length || hs.some(k => k !== 'onUpdate' && k !== 'onSetStatus')) return null;
+  const ids = new Set();
+  for (const k of hs) for (const x of String(a[k]).matchAll(/["'](brn|par|psn|tox|slp|frz)["']/g)) ids.add(x[1]);
+  return ids.size === 1 ? [...ids][0] : null;
+}
+/* can anything declared on this board write status `st`? A move's own `status`, a secondary's, or a handler that names
+ * it next to a status-writing call — the same shape `_namesSleep` reads, for any status */
+function boardWritesStatus(sc, st) {
+  const re = new RegExp('["\']' + st + '["\']');
+  const writes = x => { if (!x || !x.exists) return false;
+    if (x.status === st) return true;
+    for (const s of [].concat(x.secondary || [], x.secondaries || [])) if (s && (s.status === st || (re.test(_hText(s)) && _WRITE_CALL.test(_hText(s))))) return true;
+    const t = _hText(x) + (x.condition ? _hText(x.condition) : '');
+    return re.test(t) && _WRITE_CALL.test(t); };
+  for (const m of (sc.A || []).concat(sc.B || [])) {
+    if (!m) continue;
+    if (writes(dex.abilities.get(m.ability || '')) || writes(dex.items.get(m.item || ''))) return true;
+    for (const x of m.moves || []) if (writes(dex.moves.get(x))) return true;
+  }
+  return false;
+}
+/* ---- A FOE-AIMED MOVE WHOSE ONLY LEARNERS KNOW NOTHING ELSE: THE CONTROL RE-AIMS THE CLICK — 2026-09-23 ----------
+ *
+ * Transform's one legal learner in both regulations is Ditto, and Ditto learns Transform and nothing else (asked of
+ * the TeamValidator: no Focus Energy, no Sleep Talk, no delivery move). The generic shape needs its clicker to chip on
+ * turn 1 and idle on turn 3, and the move stage's control REPLACES the click with the idle click — neither of which a
+ * Ditto can legally declare. The earlier fixture handed Transform to Goodra-Hisui, which the regulation refuses.
+ *
+ * THE SHAPE IT CAN HAVE. One turn: the learner clicks the move AT THE FOE in the subject arm and AT ITS OWN PARTNER in
+ * the control arm — the move's own `target` admits both (`normal`/`any`), so both are legal clicks. The two targets
+ * are distinct species, so the arms part on everything Transform copies (species, types, stats, moves, ability): the
+ * control CAN read differently from the subject, and an engine whose Transform does nothing reads identically in both
+ * arms and DIFFERENT from the authority in both. The learner declares only its one move (the idle click `scaffold`
+ * appends is taken back off it), and holds an ability that is PROVEN inert here: quiet or announces-only, or one whose
+ * whole content is one status (Limber: paralysis) when nothing on the board writes that status. */
+function retargetScenario(e, arm) {
+  if (!['normal', 'any'].includes(e.target)) return null;
+  const learners = LEGAL_SPECIES.filter(s => !s.battleOnly && !s.forme.endsWith('Mega') && buildableSpecies(s.id)
+    && !illusionCloset().species.has(s.id) && learnsLegally(s.id, e.id));
+  const b0 = quietBody({ arm });
+  const a1 = b0 && quietBody({ arm, not: [b0.species] });
+  const b1 = a1 && quietBody({ arm, not: [b0.species, a1.species] });
+  if (!b0 || !a1 || !b1) return null;
+  for (const L of learners) {
+    if ([b0, a1, b1].some(x => idOf(x.species) === idOf(L.id))) continue;
+    for (const n of Object.values(L.abilities || {})) {
+      const st = oneStatusAbility(n);
+      if (!(QUIET_SET.has(idOf(n)) || announcesOnlyAbility(n) || st)) continue;
+      const sc = scaffold({ hpA: 1, hpB: 1,
+        a0: mon(L.id, '', n, [e.id]), a1: { ...a1, moves: [INERT] },
+        b0: { ...b0, moves: [INERT] }, b1: { ...b1, moves: [INERT] },
+        script: [turn([throwIt(e, 0), IDLE], [IDLE, IDLE])] });
+      sc.A[0] = { ...sc.A[0], moves: [e.id] };
+      if (st && boardWritesStatus(sc, st)) continue;
+      sc.retargetControl = true;
+      return { arm, scenario: sc,
+        note: 'retarget: ' + pretty(L.id) + ' [' + n + '] clicks ' + e.name + ' ONCE — at ' + pretty(b0.species)
+          + ' (foe) in the subject arm and at its partner ' + pretty(a1.species) + ' in the control arm; its only '
+          + 'legal learner(s) ' + learners.map(s => s.name).join(', ') + ' can declare no idle click, so the control is '
+          + 'the same click re-aimed, not removed' + (st ? '. ' + n + ' refuses only ' + st + ', which nothing on this board writes' : '')
+          + armNote(e) };
+    }
+  }
+  return null;
+}
 function quietBodies(arm) { return moveBodies(arm).map(r => r.sp); }
 /* o = { arm, type: not immune to it, neutralTo: the chart reads exactly 0, hasType, status: the body
  *       must be able to CARRY it, powder: the body must not be a Grass type, not: [species...] } */
@@ -4879,7 +5100,8 @@ function noHeldItems(sc) {
 function chippableBody(arm, opt) {
   opt = opt || {};
   const att = dex.species.get(opt.attacker || CLICKER(arm).species);
-  for (const r of moveBodies(arm)) {
+  /* `opt.pool` (2026-09-23): the wider board-inert pool `inertBodies`, asked for only by a LEGAL_FIRST re-match */
+  for (const r of (opt.pool || moveBodies(arm))) {
     if ((opt.not || []).some(x => x && idOf(x) === idOf(r.sp.id))) continue;
     /* 2026-09-23: a body that will CLICK a move must learn it (`move/heal` hands it the heal) */
     if (opt.learns && !canLearnAll(r.sp.id, opt.learns)) continue;
@@ -6887,11 +7109,9 @@ function fieldFamilyBranch(e) {
   }
   return null;
 }
-/* THE PURE READERS AN ANNOUNCE-ONLY HANDLER MAY CALL. Anything outside this refuses the match, so the
- * list can only ever make this rule NARROWER — a mutating call it has not heard of is a non-match. */
-const ANNOUNCE_READERS = new Set(['foes', 'allies', 'adjacentFoes', 'adjacentAllies', 'getItem',
-                                  'getAbility', 'hasType', 'hasAbility', 'hasItem', 'includes',
-                                  'toString', 'getMoves', 'join', 'map', 'filter']);
+/* THE PURE READERS AN ANNOUNCE-ONLY HANDLER MAY CALL — declared beside `swapperFor` since 2026-09-23,
+ * because the swapper is built at module load and reads `fieldFamilyBranch` (a const this far down would
+ * sit in its temporal dead zone). */
 /* ---- AN ABILITY THE SKILL SWAP CONTROL CANNOT REMOVE — 2026-09-12, MEASURED ---------------------
  *
  * `stageAbilitySwap` EXCHANGES the ability; it does not delete it. Its own header says so ("the one
@@ -17252,8 +17472,17 @@ const RULES = [
      * restaging pass (or the refused-set count, for a held row) takes it from there, as before. */
     if (LEGAL_FIRST && pick && !learnsLegally(pick.sp.id, e.id)) {
       const lp = chippableBody(arm, { lo, hi: 0.94, fracNotWhole: fr, learns: [e.id] });
-      const lp2 = lp || chippableBody(arm, { lo, hi: 0.94, learns: [e.id] });
-      if (lp2) { pick = lp2; rounds = !!lp; }
+      let lp2 = lp || chippableBody(arm, { lo, hi: 0.94, learns: [e.id] });
+      let lpR = !!lp;
+      /* AND WHERE NO QUIET BODY LEARNS IT (Roost, both regulations), the wider board-inert pool — see `inertBodies`.
+       * No item is held on this board, so an announces-only Frisk says nothing at all. */
+      if (!lp2) {
+        const W = inertBodies(arm);
+        const w1 = chippableBody(arm, { lo, hi: 0.94, fracNotWhole: fr, learns: [e.id], pool: W });
+        lp2 = w1 || chippableBody(arm, { lo, hi: 0.94, learns: [e.id], pool: W });
+        lpR = !!w1;
+      }
+      if (lp2) { pick = lp2; rounds = lpR; }
     }
     if (!pick) return cannot(noChipWhy(arm, { lo, hi: 0.94 }) + ' A heal must be staged on a body it '
       + 'cannot fill, or the amount is clamped by the maximum and the right answer and a wrong one '
@@ -17928,10 +18157,23 @@ const RULES = [
     /* AND WHERE NO LEGAL BODY CAN BE FOUND, THE PRE-2026-09-23 FIXTURE IS KEPT RATHER THAN THE ROW LOST. A row that
      * stops staging is not a repaired row; its refused set stays in the fixture-legality count, named. */
     const q0 = quietBody({ arm });
-    const b0 = (!byFoe && LEGAL_FIRST) ? (quietLearner({ arm }, [e.id]) || q0) : q0;
+    let b0 = (!byFoe && LEGAL_FIRST) ? (quietLearner({ arm }, [e.id]) || q0) : q0;
+    /* 2026-09-23 (later): A SELF-AIMED MOVE NO QUIET BODY LEARNS (Heal Bell, both regulations: one legal learner,
+     * Chimecho, whose one ability is Levitate) is clicked by a learner from the wider board-inert pool. The
+     * ground-immunity road is admitted here and PROVEN on the finished board below (`groundFreeBoard`); the chip is
+     * then drawn from a type other than Ground. A board that fails the proof is refused, never played. */
+    let groundProof = false;
+    if (!byFoe && LEGAL_FIRST && b0 && !learnsLegally(b0.species, e.id)) {
+      const r = inertBodies(arm, { groundFree: true }).find(x => learnsLegally(x.sp.id, e.id));
+      if (r) { b0 = mon(r.sp.id, '', r.ability, []); groundProof = r.inertBy === 'ground-immunity-only'; }
+    }
     const b1 = quietBody({ arm, not: [b0 && b0.species] });
     if (!b0 || !b1) return cannot(noBodyWhy({ arm }));
-    let CK = { ...CLICKER(arm) }, chip = neutralHit(b0.species, e.id);
+    /* 2026-09-23 (later): A FOE-AIMED MOVE WHOSE EVERY LEGAL LEARNER CAN HOLD NO IDLE CLICK AND NO CHIP (Transform:
+     * one learner, Ditto, which learns nothing else) cannot take this rule's shape at all — the clicker must chip on
+     * turn 1 and idle on turn 3 — and its control cannot be "the click replaced by the idle click". So it gets the
+     * shape it CAN have: see `retargetScenario`. */
+    let CK = { ...CLICKER(arm) }, chip = groundProof ? neutralHit2(b0.species, [e.id, 'Ground'], CLICKER(arm).species) : neutralHit(b0.species, e.id);
     if (LEGAL_FIRST && byFoe && !learnsLegally(CK.species, e.id)) {
       const c2 = clickerFor(arm, [e.id]);
       const ch2 = c2 && neutralHit2(b0.species, [e.id], c2.species);
@@ -17940,9 +18182,16 @@ const RULES = [
         const L = learnerWithNeutralHit(b0.species, [e.id]) || learnerWithNeutralHit(b0.species, [e.id], { wide: true });
         if (L) { CK = { ...L.body, moves: [] }; chip = L.mv; }
       }
+      if (!learnsLegally(CK.species, e.id)) { const RT = retargetScenario(e, arm); if (RT) return RT; }
     }
     if (!chip) return cannot('no neutral 100-accuracy delivery move exists to chip the bodies first');
     const cl = throwIt(e, 0);
+    if (groundProof) {
+      const probe = { A: [{ ...CK, moves: byFoe ? [e.id, chip.id] : [chip.id] }], B: [{ ...b0, moves: [e.id] }, { ...b1, moves: [INERT] }] };
+      if (!groundFreeBoard(probe)) return cannot(pretty(b0.species) + ' is the only legal learner of ' + e.name
+        + ' and its ability is a Ground immunity, and this board could not be proven free of anything that reads '
+        + 'groundedness, so the immunity would be part of the reading');
+    }
     /* ONE CLICK, ON TURN 2, AND THE REASON IS A THROWN GAME RATHER THAN TIDINESS. Explosion, Memento,
      * Misty Explosion and Self-Destruct KILL THE USER, so a second scripted click lands on the
      * REPLACEMENT — which does not carry the move, resolves to `pass`, and is rejected outright.
@@ -18860,12 +19109,27 @@ function restageLegal(sc, kind, e) {
       /* THE LENDER, WHERE FOCUS ENERGY STAYS, BECOMES ANOTHER BODY HOLDING THE SAME LENT ABILITY THAT LEARNS IT — the
        * control's ability is unchanged, only the body carrying it. Its idle click is its whole subject-arm job, and a
        * move it declared but never clicks (the aggressor's hit) goes with the old body where the new one cannot learn
-       * it. Where no such body exists it stays as it is, refused. (Its control-arm Skill Swap is refused either way:
-       * no legal species holding a quiet ability learns Skill Swap — see `swapperFor`.) */
-      if (feKept && isLender && !learnsLegally(body.species, inert)) {
+       * it. Where no such body exists it stays as it is, refused. (Until 2026-09-23 its control-arm Skill Swap was
+       * refused either way; `swapperFor` now draws the lender from legal Skill Swap learners — see the note there.) */
+      /* 2026-09-23 (later): A LENDER THAT CAN IDLE ON THE SUBSTITUTE IN BOTH ARMS KEEPS ITS SPECIES, and a replacement
+       * must learn Skill Swap too. Before this, the branch swapped the lender for a same-ability body that learns
+       * Focus Energy and not Skill Swap (Early Bird: Gourgeist-Super -> Grimmsnarl, "Grimmsnarl can't learn Skill
+       * Swap."), trading one refused set for another. Both arms are asked, because the control arm is the one where
+       * the lender declares a move (see `sleepCannotReachLender`). `ROSTER_SWAPPER_UNREPAIRED=1` restores the old branch. */
+      const swapRepaired = process.env.ROSTER_SWAPPER_UNREPAIRED !== '1';
+      const lenderIdles = swapRepaired && isLender && IDLE_PER_BODY && INERT_SUBS.some(m => {
+        if (!learnsLegally(body.species, m.id) || !idleSafeOn(sc, body, m.id)) return false;
+        let c = null;
+        try { c = controlOf(sc).sc; }
+        catch (err) { console.error('  roster: the lender idle check could not build the control arm of ' + (sc.id || '?')
+          + ' (' + String((err && err.message) || err).split('\n')[0] + ') — the lender is restaged as before'); return false; }
+        return !!(c && c.A[1] && idleSafeOn(c, c.A[1], m.id));
+      });
+      if (feKept && isLender && !learnsLegally(body.species, inert) && !lenderIdles) {
         const takenL = new Set(sc.A.concat(sc.B).filter(b => b !== body).map(b => idOf(dex.species.get(b.species).id)));
         const alt = LEGAL_SPECIES.find(s => !s.battleOnly && !s.forme.endsWith('Mega') && buildableSpecies(s.id)
           && !takenL.has(s.id) && !illusionCloset().species.has(s.id) && learnsLegally(s.id, inert)
+          && (!swapRepaired || learnsLegally(s.id, SWAP_MOVE))
           && Object.values(s.abilities || {}).some(a => idOf(a) === idOf(body.ability)));
         if (alt) {
           const old = idOf(dex.species.get(body.species).id);
