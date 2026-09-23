@@ -53,6 +53,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.82.1] — 2026-09-23 — **Pass 9's three probe reds were probe defects; fixed in the probes**
+
+- **What changed.** `tests/probe_disguise_crit.js` accepts a checkout with no Champions `disguise` entry;
+  `tests/probe_volley_collapse_clamp.js` has no default release pin; `tests/probe_ability_zero_boost_line.js` resolves
+  its checkout by regulation. No engine change.
+- **Measured.** NO FIGURE published. All three green in both regulations; the clamp probe red under its knob.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.82.0] — 2026-09-23 — **Court Change swaps the side conditions (Reg M-C)**
 
 - **What changed.** `engine/tag_dex.js` derives `swapsSideConditions` (the handler's own list); `engine/medicham2-browser.js`

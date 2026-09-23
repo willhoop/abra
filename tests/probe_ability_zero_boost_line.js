@@ -61,7 +61,11 @@
  *   MEDI_NO_ABILITY_ZERO_BOOST=1 SHOWDOWN_PATH=... node -r ./tests/_live_release.js tests/probe_ability_zero_boost_line.js
  * ================================================================================================ */
 'use strict';
-process.env.SHOWDOWN_PATH = process.env.SHOWDOWN_PATH || 'C:/Users/willj/Projects/Pokemon/pokemon-showdown';
+/* 2026-09-23 (ENGINE pass 10) -- THE CHECKOUT FOLLOWS THE REGULATION. This line defaulted SHOWDOWN_PATH to the Reg M-B
+ * checkout, so `--regulation regmc` with no SHOWDOWN_PATH resolved gen9championsvgc2026regmc against a checkout that
+ * does not carry it and champions_sim refused (a throw). engine/showdown_path.js is the one resolver: an explicit env
+ * var still wins, otherwise the selected regulation's checkout. */
+require(require('path').join(__dirname, '..', 'engine', 'showdown_path.js'));
 const path = require('path'), fs = require('fs');
 const ROOT = path.join(__dirname, '..');
 if (process.argv.indexOf('--games') < 0) process.argv.push('--games', '18');

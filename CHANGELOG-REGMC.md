@@ -21,6 +21,21 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.82.1] — 2026-09-23
+
+### Fixed
+- **Three probe reds from pass 9 were the probes, not the engine.** Each was read against the engine first; none needed
+  an engine change.
+  - `tests/probe_disguise_crit.js` (red under Reg M-C, 3 assertions): it demanded that the Champions mod carry a
+    `disguise` override that leaves `onCriticalHit`/`onDamage` alone. The Reg M-C mod has no `disguise` entry at all,
+    which satisfies the claim outright; the two knob children re-run that assertion and inherited the red. Now "no
+    override, or one touching neither". An override that touches either still fails. Green in both regulations.
+  - `tests/probe_volley_collapse_clamp.js` (CANNOT ANSWER in both): it pushed a default `--release 2b5a6585d8cf`, a
+    Reg M-B release that Reg M-C refuses and that Reg M-B's protocol-events digest now refuses. No default pin now.
+    Green in both regulations, both clamp routes (Endure, Focus Sash) staged; red under `MEDI_HITCOUNT_DROP_ON_COLLAPSE=1`.
+  - `tests/probe_ability_zero_boost_line.js` (threw under Reg M-C): it defaulted `SHOWDOWN_PATH` to the Reg M-B checkout.
+    It now resolves through `engine/showdown_path.js`. Green in both regulations with SHOWDOWN_PATH unset.
+
 ## [0.82.0] — 2026-09-23
 
 ### Fixed

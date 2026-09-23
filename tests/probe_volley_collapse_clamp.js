@@ -27,9 +27,13 @@ process.on('uncaughtException', (e) => { console.log('CANNOT ANSWER — the prob
 process.env.SHOWDOWN_PATH = process.env.SHOWDOWN_PATH || 'C:/Users/willj/Projects/Pokemon/pokemon-showdown';
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
-if (process.argv.indexOf('--release') < 0) process.argv.push('--release', '2b5a6585d8cf');
+/* 2026-09-23 (ENGINE pass 10) -- NO DEFAULT PIN. This line pushed `--release 2b5a6585d8cf`, the Reg M-B release the
+ * defect was first read on, so every run since measured that old photograph -- refused outright under Reg M-C (a Reg
+ * M-B release cannot serve another regulation's table) and refused under Reg M-B by the protocol-events digest check
+ * (the alignment rule moved on) -- and read CANNOT ANSWER in both. The harness now opens the newest release for the
+ * selected regulation, as every other staged probe does; `--release <id>` still pins. */
 if (process.argv.indexOf('--games') < 0) process.argv.push('--games', '18');
-const REL_ID = process.argv[process.argv.indexOf('--release') + 1];
+const REL_ID = process.argv.indexOf('--release') >= 0 ? process.argv[process.argv.indexOf('--release') + 1] : null;
 const cannot = (why) => { console.log('CANNOT ANSWER — ' + why); console.log('ABRA-EXIT 2 CANNOT-ANSWER'); process.exit(2); };
 const KNOB = process.env.MEDI_HITCOUNT_DROP_ON_COLLAPSE === '1';
 
@@ -38,7 +42,7 @@ const BS = require(path.join(ROOT, 'engine', 'board_state.js'));
 const G = SB.harness();
 const RID = (G.REL && G.REL.id) || '?';
 console.log('\ntests/probe_volley_collapse_clamp.js — ROADMAP #511   release ' + RID);
-if (RID !== REL_ID) cannot('the driver opened release ' + RID + ', not ' + REL_ID);
+if (REL_ID && RID !== REL_ID) cannot('the driver opened release ' + RID + ', not ' + REL_ID);
 const M = G.REL.require('engine/medicham2-browser.js', { want: ['MEDFAILS'] });
 
 const { TeamValidator } = require(process.env.SHOWDOWN_PATH + '/dist/sim/team-validator');

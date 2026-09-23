@@ -114,9 +114,14 @@ ok(/effect\?\.effectType === ["']Move["']/.test(String(DG.onDamage || '')),
    'the absorb is `onDamage` — a handler on the POKEMON\'s damage event, which a hit on the doll never raises');
 const CHAB = fs.readFileSync(SP + '/data/mods/champions/abilities.ts', 'utf8').replace(/\r/g, '');
 const dblock = /\n\tdisguise: \{[\s\S]*?\n\t\},\n/.exec(CHAB);
-ok(!!dblock && !/onCriticalHit|onDamage\(/.test(dblock[0]),
-   'Champions overrides `disguise` without touching `onCriticalHit` or `onDamage`, so mainline is the authority for both',
-   dblock ? 'override keys: ' + (dblock[0].match(/\n\t\t(\w+)/g) || []).map(s => s.trim()).join(', ') : 'block not found');
+/* 2026-09-23 (ENGINE pass 10) -- THE CLAIM IS "MAINLINE IS THE AUTHORITY FOR BOTH HANDLERS", AND A CHECKOUT WHOSE MOD HAS
+ * NO `disguise` ENTRY AT ALL SATISFIES IT OUTRIGHT. The Reg M-B mod overrides `disguise` (the volley `effectState.neutral`)
+ * and leaves these two alone; the Reg M-C mod has no entry (docs/REGULATION-ROTATION.md, 0.73.0). Demanding that the
+ * block exist is a fact about one checkout, and it failed this probe -- and both knob children, which re-run it -- under
+ * Reg M-C for a reason that says nothing about crits. An override that DOES touch either handler still fails. */
+ok(!dblock || !/onCriticalHit|onDamage\(/.test(dblock[0]),
+   'Champions leaves `onCriticalHit` and `onDamage` on `disguise` alone (no override, or one touching neither), so mainline is the authority for both',
+   dblock ? 'override keys: ' + (dblock[0].match(/\n\t\t(\w+)/g) || []).map(s => s.trim()).join(', ') : 'no Champions `disguise` entry in this checkout');
 
 /* ==================================================================================================
  * 1. THE CAST — derived

@@ -1,3 +1,8 @@
+## PASS 9'S THREE PROBE REDS WERE THE PROBES. 2026-09-23 (abra/regmc 0.82.1)
+
+Full account: `docs/_reports/2026-09-23-engine-pass10.md` §B. Disguise crit: a Reg M-B-only mod-block assertion.
+Volley collapse clamp: a stale default release pin. Ability zero boost: a Reg M-B default checkout. All green in both
+regulations; no engine change.
 ## COURT CHANGE SWAPS THE SIDE CONDITIONS (REG M-C). 2026-09-23 (abra/regmc 0.82.0)
 
 Full account: `docs/_reports/2026-09-23-engine-pass10.md` §A1.
