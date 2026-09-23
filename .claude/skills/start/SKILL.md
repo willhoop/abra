@@ -283,6 +283,19 @@ node engine/where.js <thing>        # which file owns this fact, which test woul
 is the point of the divisions and is not the hazard. Split by **"does it play a game"** — only one
 agent may. Everything else (register rows, docs, run-all, the registry) is safely parallel.
 
+**PARALLEL AGENTS ON ONE LINE COLLIDE ON THE VERSION NUMBER, EVERY TIME.** 2026-09-23: three branches
+each took the "next" `abra/regmc` version from the same main, so every merge conflicted in five
+documents (CHANGELOG-REGMC, ENGINE, REGMC, REGULATION-ROTATION, RUNNING-NOTES) and one renumber
+orphaned a figure the docs gate caught (a rotation row still named the old version). Brief each
+parallel agent to **merge main and renumber before returning**. At merge, grep every renumbered
+version's old string in all five files, not just the conflict hunks.
+
+**AN AGENT KILLED BY A NETWORK DROP IS RESUMED, NOT RE-DISPATCHED — AND ITS WORKTREE MAY NOT BE WHERE
+YOU LOOK.** Three drops on 2026-09-23 (API 500, ENOTFOUND, ECONNRESET). `SendMessage` to the agent id
+resumed each with context intact. One agent had made its own worktree `.claude/worktrees/engine-pass10`
+rather than `agent-<id>`, so the expected path did not exist and looked like lost work. Find it with
+`git worktree list`, then read its log and diff before resuming.
+
 **HEAVY RUNS AND WILL'S MACHINE ARE INCOMPATIBLE, AND `lownode` DOES NOT FIX IT.** BelowNormal governs
 CPU scheduling. It does nothing about memory bandwidth or L3, and the differential loads a 30 MB store
 plus the dex across every core. If Will is gaming or on a call, **ask before starting a chain** or run
@@ -711,6 +724,17 @@ that is the difference between coverage and the appearance of it.
   Every notes row written that night landed inside the "How to write a row" example and rendered as code.
 - **`git checkout HEAD -- <file>` on a file an agent wrote destroys its uncommitted work silently.**
   A whole notes row was rebuilt from the CHANGELOG and the agent's report after one.
+- **A probe that toggles its own knob reads GREEN when you set the knob from outside, and that is not
+  an unwired knob.** 2026-09-23: `MEDI_ENCORE_INSERT_KEEPS_PLACE=1 node tests/probe_encore_insert_tie.js`
+  exited 0. The probe deletes and sets the env itself per arm and asserts "the knob puts them back
+  apart". Read the probe's `harness(knobOn)` before calling a knob dead.
+- **A fix written from ONE regulation's checkout and applied to both is wrong in the other.** 2026-09-22/23:
+  the Stone Axe / Ceaseless Edge fainted-user fix (0.60.0) read only the Reg M-C handler; Reg M-B's
+  checks the user is alive, so the Reg M-B held-out draw parted 1 of 7,182 a day later. The same pass-4
+  Ice Spinner diagnosis read MAINLINE instead of the Champions mod. Brief: "read BOTH checkouts' handler".
+- **Two instruments can both be right and disagree.** The Reg M-C roster called Guard Dog / Rattled clean
+  while the census called them red: the roster grades BOARDS and stages one handler (Roar, a Dark hit),
+  never the Intimidate reaction the census stages. Before reconciling, ask what each one stages.
 
 ---
 
