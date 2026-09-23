@@ -20242,6 +20242,9 @@ const RUN_AWAY_TRAPPED=(typeof process!=='undefined'&&process.env&&process.env.M
 /* 2026-09-22 (ENGINE pass 8, abra/regmc 0.67.0) -- MEDI_CHARGE_NO_PREPAREHIT=1: a two-turn move's charge turn runs no
  * PrepareHit, so Protean/Libero convert only at the hit (the pre-0.67.0 engine). tests/probe_charge_turn_protean.js */
 const CHARGE_NO_PREPAREHIT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CHARGE_NO_PREPAREHIT==='1');
+/* 2026-09-22 (ENGINE pass 8, abra/regmc 0.68.0) -- MEDI_JAW_LOCK_INERT=1: a damaging move's own-`onHit` trap (Jaw Lock)
+ * traps nobody (the pre-0.68.0 engine). tests/probe_regmc_jaw_lock.js */
+const JAW_LOCK_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_JAW_LOCK_INERT==='1');
 if(RUN_AWAY_TRAPPED)MEDFAILS.runAwayTrappedRestored=1;
 function switchTrapVerdict(m,foes,field){
   const out={block:null,shed:0};
@@ -47805,6 +47808,33 @@ function battleTurn(S,rng,actsForA,actsForB){
            * whose rulebook row is missing. Spirit Shackle's row is chance 100 (derived), so this
            * cannot change today -- it is written so all three tag blocks read ONE rule rather than
            * three, which is the CLAUDE.md fact-has-one-implementation rule applied here. */
+          /* 2026-09-22 (ENGINE pass 8, abra/regmc 0.68.0) -- JAW LOCK: A DAMAGING MOVE WHOSE OWN `onHit` TRAPS, AND TRAPS
+           * BOTH BODIES. `onHit(target, source, move) { source.addVolatile('trapped', target, move, 'trapper');
+           * target.addVolatile('trapped', source, move, 'trapper'); }` (data/moves.ts jawlock; no Champions override).
+           * Every `trapsTarget` block in this file was a status click (`kind:'trapmove'`) or a secondary (the one
+           * below), so a Jaw Lock landed its damage and trapped NOBODY; the Reg M-C roster's Jaw Lock row (below the
+           * usage shelf, underlying DIFFER: `vol.trapped` 1 on both bodies there, 0 here) and its switch probe (the
+           * authority refused the target's switch, this engine let it go). `onHit` is not a secondary, so Sheer Force
+           * and the secondary die do not touch it. Each `addVolatile` refuses silently on its own -- a repeat
+           * (`trapAlreadyHeld`) or a Ghost (`runStatusImmunity('trapped')`) -- and the source is trapped FIRST, as
+           * the handler writes it. tests/probe_regmc_jaw_lock.js. MEDI_JAW_LOCK_INERT=1 restores the pre-0.68.0
+           * engine. */
+          {const _to=TAGS.param('move',a.move.id,'trapsTarget');
+           if(_to&&!_to.viaSecondary&&_to.volatile==='trapped'&&!JAW_LOCK_INERT
+              &&!tg.fainted&&tg.curHP>0&&tg!==m){
+             const _hold=(v,by)=>{
+               if(trapAlreadyHeld(v)){MEDSEEN.trapRefusedRepeatByOnHit=(MEDSEEN.trapRefusedRepeatByOnHit||0)+1;return;}
+               if((v.types||[]).includes('Ghost')){MEDSEEN.ghostRefusedTrap++;return;}
+               holdHardTrap(v,by,a.move.id);
+               MEDSEEN.moveTrapAppliedByOnHit=(MEDSEEN.moveTrapAppliedByOnHit||0)+1;
+               const _va=volAnnounce(a.move.id,_to.volatile);
+               if(!_va){ if(TR)TR.vstart(v,'move: '+a.move.id); }
+               else volAnnounceEmit(v,_va);
+             };
+             if(_to.alsoUser&&!m.fainted&&m.curHP>0)_hold(m,tg);
+             _hold(tg,m);
+           }}
+          if(JAW_LOCK_INERT)MEDFAILS.jawLockInertRestored=1;
           {const _tt=TAGS.param('move',a.move.id,'trapsTarget');
            if(_tt&&_tt.viaSecondary&&_tt.volatile==='trapped'&&!suppressed&&_inertSecRoll!==false
               &&!tg.fainted&&tg.curHP>0&&!m.fainted&&m.curHP>0&&tg!==m){

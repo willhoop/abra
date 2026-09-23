@@ -3266,8 +3266,15 @@ const MOVE_TAGS = [
       const mt = own.match(/addVolatile\(\s*["'](trapped)["']/)
               || secs.match(/addVolatile\(\s*["'](trapped)["']/);
       if (!mt) return null;
+      /* 2026-09-22 (ENGINE pass 8, abra/regmc 0.68.0) -- JAW LOCK TRAPS BOTH BODIES. Its own `onHit` is
+       * `source.addVolatile('trapped', target, move, 'trapper'); target.addVolatile('trapped', source, move,
+       * 'trapper');` (data/moves.ts jawlock; no Champions override). `alsoUser` says so, and is written ONLY when
+       * true so no other member's row moves. Membership over both regulations: Reg M-C Jaw Lock alone; Reg M-B has
+       * no legal member (data/tags.json carries no jawlock row). */
+      const both = /source\.addVolatile\(\s*["']trapped["']/.test(own);
       return { volatile: mt[1], to: 'target', endsWithSource: true,
-               viaSecondary: !/addVolatile\(\s*["']trapped["']/.test(own) };
+               viaSecondary: !/addVolatile\(\s*["']trapped["']/.test(own),
+               ...(both ? { alsoUser: true } : {}) };
     } },
   { tag: 'sharesHP', param: 'both bodies end on the same HP -- the average of the two',
     probe: 'sharesHP',

@@ -21,6 +21,24 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.68.0] — 2026-09-22
+
+### Fixed
+- **Jaw Lock traps both bodies under Reg M-C.** Its own `onHit` is `source.addVolatile('trapped', target, move,
+  'trapper'); target.addVolatile('trapped', source, move, 'trapper');` (data/moves.ts jawlock; no Champions override;
+  Reg M-B has no legal Jaw Lock). medicham2 had two `trapsTarget` doors, a status click (`kind:'trapmove'`) and a
+  secondary (Spirit Shackle). A damaging move whose own `onHit` traps reached neither, so Jaw Lock landed its damage and
+  trapped nobody.
+  - `engine/tag_dex.js` writes `alsoUser: true` on that shape, and only there.
+  - medicham2 traps the source and then the target on the hit, each refusing a repeat or a Ghost silently, as
+    `addVolatile` does.
+  - `data/tags-regmc.json` moves by the jawlock row only. `data/tags.json` is unchanged. Knob `MEDI_JAW_LOCK_INERT`.
+- The Reg M-C roster found it. Its Jaw Lock row sat below the usage shelf with an underlying DIFFER: `vol.trapped` read 1
+  on both bodies there and 0 here, and the authority refused the target's switch while this engine let it go. On release
+  `485d0a6840ad` the row reads MATCH, and Bounce's row (0.67.0) reads MATCH too.
+- `tests/probe_regmc_jaw_lock.js` has four arms: LOCK, GHOST, CONTROL and REFUSED. It exits 0 clean. It exits 1 under the
+  knob and with the 0.63.0 engine bytes. A Ghost the hit knocks out traps nobody on the authority, and this engine agrees.
+
 ## [0.67.0] — 2026-09-22
 
 ### Fixed

@@ -1,3 +1,12 @@
+## JAW LOCK TRAPS BOTH BODIES (REG M-C). 2026-09-22 (abra/regmc 0.68.0)
+
+- **Defect.** A damaging move whose OWN `onHit` traps reached neither `trapsTarget` door, the status click or the
+  secondary. Jaw Lock trapped nobody.
+- **Fix.** `trapsTarget.alsoUser` is written by `tag_dex`, and the attack path traps the source and then the target.
+  Counter `MEDSEEN.moveTrapAppliedByOnHit`.
+- **Probe** `tests/probe_regmc_jaw_lock.js`: green clean. It is red under `MEDI_JAW_LOCK_INERT` and red on the 0.63.0
+  bytes.
+
 ## PROTEAN AND LIBERO CONVERT ON A CHARGE TURN (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.67.0)
 
 - **Defect.** `twoturnmove.onStart` runs `PrepareHit`, which is Protean's door, on the spent charge turn. medicham2 only

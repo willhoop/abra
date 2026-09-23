@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.68.0] — 2026-09-22 — **Jaw Lock traps both bodies under Reg M-C**
+
+- **What changed.** `engine/tag_dex.js` writes `trapsTarget.alsoUser` on an own-`onHit` trap that also traps the source
+  (Jaw Lock alone). `engine/medicham2-browser.js` applies a damaging move's own-`onHit` trap, source first. `data/tags-regmc.json`
+  moves by the jawlock row only. Knob `MEDI_JAW_LOCK_INERT`; probe `tests/probe_regmc_jaw_lock.js`.
+- **Measured.** NO FIGURE published. Roster rows Jaw Lock and Bounce, both below the usage shelf over a DIFFER, read MATCH
+  on `485d0a6840ad`. Probe: green clean, red under the knob and on the 0.63.0 bytes. `data/tags.json` byte-identical.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.67.0] — 2026-09-22 — **Protean and Libero convert on a two-turn move's charge turn, in both regulations**
 
 - **What changed.** `engine/medicham2-browser.js` runs `proteanConvert` where the charge wrapper is added, which is the

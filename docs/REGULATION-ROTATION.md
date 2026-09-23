@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.67.0 — 2026-09-22.**
+**Version: 0.68.0 — 2026-09-22.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -404,6 +404,7 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | **A new regulation's entities fall to the roster's residue rule, which stages nothing.** The shape rules were written for the old regulation's entities; fifteen Reg M-C items and abilities (Air Balloon, Rocky Helmet, the seeds, Run Away's Champions escape...) matched no rule and read COULD-NOT-STAGE "THE STAGING IS INERT" on every Reg M-C roster since the regulation opened. | A block of COULD-NOT-STAGE rows whose rule is `item/held-and-nothing-more` or `ability/generic`. | After the first roster of a new regulation, list every row by `rule` and treat each residue row as owed fixture work: write the shape rule that creates what its handler waits for. Fixed 0.64.0. |
 | **A mod that changes a move's target class can outrun the scripted driver's encoder.** Champions M-C makes Milk Drink `adjacentAllyOrSelf`; `scripted()` resolved that class to the user's own slot whatever the script asked, so no staged scenario could aim it at the partner. | A heal that lands on its full-HP user, read as an inert row. | When a mod row changes `target`, check `scripted()` in `engine/game_differential.js` can express every aim the new class admits. Fixed 0.64.0 (`{ ally: true }`). |
 | **A tag's own "no ability does this" note is a fact about the regulation it was written in.** `escapesTrap` was item-only because "exactly ONE item in Reg M-B declares `onTrapPokemon`, and NO ability does"; the Champions M-C mod gives Run Away that exact handler. | A trapped body that the authority lets switch and this engine holds. | On a rotation, grep `engine/tag_dex.js` for membership claims ("NO ability", "exactly ONE", "matches nothing") and re-ask each over the new dex. Fixed 0.66.0. |
+| **A row below the usage shelf is shelved on a count, not measured clean, and a new regulation's store is thin.** Bounce (2 clicks) and Jaw Lock (0) sat on the shelf over a real board DIFFER -- one a shared-rule defect (the charge-turn PrepareHit) that reaches Reg M-B's Greninja too. | A `BELOW-USAGE-SHELF` row whose `underlying_verdict` is FIRED-AND-BOARDS-DIFFER. | Read every shelf row's underlying verdict on a new regulation's first rosters and diagnose each DIFFER against the authority; a thin store is a sampling fact, not a correctness one. Fixed 0.67.0 (Bounce) and 0.68.0 (Jaw Lock). |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 
