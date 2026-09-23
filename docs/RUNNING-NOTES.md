@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.72.0] — 2026-09-23 — **The price of a volley into Multiscale cuts only the first arrival, in both regulations**
+
+- **What changed.** `engine/medicham2-browser.js`: `dmgRange`'s flat price road splits a volley whose first arrival meets
+  a from-full cut (`_volleyFullHPSplit`; `dmgRangeOneHit` gains `noFullHP`). The battle road is unchanged. Knob
+  `MEDI_VOLLEY_SHIELD_EVERY_ARRIVAL`. Probe `tests/probe_volley_first_hit_shield.js`. No tag moved.
+- **Measured.** NO FIGURE published. Probe green in both regulations. It is red under the knob and on
+  `485d0a6840ad` / `89ac57f1f81b` with the 0.70.0 bytes. `docs/_reports/2026-09-23-engine-gate-reds.md` §2.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.71.0] — 2026-09-23 — **A user a contact toll knocks out lays Stone Axe's / Ceaseless Edge's hazard only where its own handler asks no HP (Reg M-B: never)**
 
 - **What changed.** `engine/tag_dex.js` writes `hazardOnHit.laysForFaintedUser` when the move's own `onAfterHit` asks no

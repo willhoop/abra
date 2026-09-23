@@ -1,3 +1,15 @@
+## THE PRICE OF A VOLLEY INTO MULTISCALE CUTS ONLY THE FIRST ARRIVAL (BOTH REGULATIONS). 2026-09-23 (abra/regmc 0.72.0)
+
+Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §2.
+
+- **Defect.** `dmgRange`'s flat road put Multiscale's x0.5 on every arrival. The authority asks `target.hp >= target.maxhp`
+  per arrival. This was the Reg M-C damage differential's two Dragonite-Mega rows. The battle was already right (the
+  per-arrival re-price).
+- **Fix.** `_volleyFullHPSplit` is used on the price road only. It prices arrival 1 with the cut and the rest without
+  it, and takes the split only when the cut moved arrival 1.
+- **Probe** `tests/probe_volley_first_hit_shield.js` in both regulations. It is red under
+  `MEDI_VOLLEY_SHIELD_EVERY_ARRIVAL` and on the 0.70.0 bytes.
+
 ## A USER A CONTACT TOLL KNOCKS OUT LAYS ITS HAZARD ONLY WHERE ITS HANDLER ASKS NO HP (REG M-B: NEVER). 2026-09-23 (abra/regmc 0.71.0)
 
 Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §1.

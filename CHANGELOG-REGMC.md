@@ -21,6 +21,24 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.72.0] — 2026-09-23
+
+### Fixed
+- **`dmgRange` priced a multi-hit volley into a full-HP Multiscale body with the cut on every arrival.** Multiscale
+  (`data/abilities.ts`, both checkouts; the Champions mod does not override it) halves the damage only while
+  `target.hp >= target.maxhp`, and that is asked inside each arrival's `getDamage`. Arrival 1 leaves the body below
+  full HP, so arrivals 2..N take the whole hit. The flat road priced every arrival off one band. This was the Reg M-C
+  damage differential's `scizormega dualwingbeat -> dragonitemega` (authority x2 61-73, MEDICHAM 40-48) and
+  `heracrossmega pinmissile -> dragonitemega` on `485d0a6840ad`. **The battle was already right**, because `_stepApply`
+  re-prices each arrival against the HP the previous arrival left. The fix is therefore on the price road only
+  (`!hit.wantPackets`). `_volleyFullHPSplit` asks `dmgRangeOneHit` with and without the from-full clause (new
+  `noFullHP` argument), and it splits only when the two differ, so Mold Breaker and a body already below full HP keep
+  their one owner. Counter `MEDSEEN.volleyFullHPSplit`. Knob `MEDI_VOLLEY_SHIELD_EVERY_ARRIVAL`.
+- New probe `tests/probe_volley_first_hit_shield.js` (either regulation). Kangaskhan's Double Hit goes into a Multiscale
+  Dragonite, with an Inner Focus Dragonite as the control. The authority halves arrival 1 only (19 then 39, against
+  39 then 39). The battle boards agree. The price reads 58 against the authority's 58. It is red under the knob and on
+  `485d0a6840ad` / `89ac57f1f81b` with the 0.70.0 bytes (price 38).
+
 ## [0.71.0] — 2026-09-23
 
 ### Fixed

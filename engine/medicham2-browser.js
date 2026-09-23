@@ -15519,7 +15519,7 @@ function formeMoveType(moveId,att){
   if(ft.otherwise){MEDSEEN.formeTypedMoveDefault++;return ft.otherwise;}
   return null;
 }
-function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,perHit,absBypass){
+function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,perHit,absBypass,noFullHP){
   stampMoveIds();
   /* BATCH K, 2026-09-07 -- `type` IS THE TYPE THIS FUNCTION ACTUALLY PRICED, AND IT IS ON EVERY
    * RETURN. The type-resist berry is HALVED by this function and SPENT by the battle loop, and the
@@ -17019,7 +17019,8 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
     if(_dr&&_dr.damageMult){
       const _w=_dr.onlyWhen;
       const _ok=_w==='superEffective'?eff>1
-              :_w==='fullHP'?(def.curHP==null||def.st==null||def.curHP>=def.st.hp)
+              /* 2026-09-23 (abra/regmc 0.72.0) -- `noFullHP`: an arrival after the first of a volley (`_volleyFullHPSplit`) */
+              :_w==='fullHP'?(!noFullHP&&(def.curHP==null||def.st==null||def.curHP>=def.st.hp))
               :_w==='special'?mv.c==='S'
               :_w==='physical'?mv.c==='P'
               :_w==='sound'?!!(mv.id&&TAGS.has('move',mv.id,'sound'))
@@ -17781,6 +17782,27 @@ function damageRollIndex(u){
  * `MEDFAILS.moveIdPrestampRestored`, so the defect stays reachable for a paired measurement without
  * swapping a file. Same shape as MEDI_MULTIHIT_ONE_INDEX and MEDI_DAMAGE_SPAN_DRAW. */
 const MOVEID_PRESTAMP_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_MOVEID_PRESTAMP==='1');
+/* 2026-09-23 (ENGINE pass 9, abra/regmc 0.72.0) -- MEDI_VOLLEY_SHIELD_EVERY_ARRIVAL=1 prices a flat volley into a from-full
+ * damage cut (Multiscale, Shadow Shield) with the cut on EVERY arrival again, as before. See `_volleyFullHPSplit`. */
+const VOLLEY_SHIELD_EVERY_ARRIVAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_VOLLEY_SHIELD_EVERY_ARRIVAL==='1');
+if(VOLLEY_SHIELD_EVERY_ARRIVAL)MEDFAILS.volleyShieldEveryArrivalRestored=1;
+/* The split price of a flat volley whose first arrival meets a from-full damage cut: arrival 1 at the cut, arrivals 2..N
+ * without it, roll by roll. Returns null when the cut does not change arrival 1 (no such ability, broken through, not at
+ * full HP), so the caller's own road runs untouched. Counts `volleyFullHPSplit`. */
+function _volleyFullHPSplit(att,def,mv,field,spread,isCrit,hit,total){
+  const _dr=TAGS.param('ability',def&&def.ability,'damageReduce');
+  if(!_dr||_dr.onlyWhen!=='fullHP')return null;
+  const _want=!!(hit&&Array.isArray(hit.rolls));
+  const hA=hit?Object.assign({},hit,{rolls:_want?[]:undefined,rollsUnit:undefined}):hit;
+  const hB=hit?Object.assign({},hit,{rolls:_want?[]:undefined,rollsUnit:undefined}):hit;
+  const one=dmgRangeOneHit(att,def,mv,field,spread,isCrit,hA,1,1,null,false,false);
+  const bare=dmgRangeOneHit(att,def,mv,field,spread,isCrit,hB,1,1,null,false,true);
+  if(!one||!bare||(one.min===bare.min&&one.max===bare.max))return null;
+  const k=total-1;
+  MEDSEEN.volleyFullHPSplit=(MEDSEEN.volleyFullHPSplit|0)+1;
+  if(_want){hit.rolls.length=0;for(let i=0;i<16;i++)hit.rolls.push(hA.rolls[i]+Math.floor(hB.rolls[i]*k));}
+  return {min:one.min+Math.floor(bare.min*k),max:one.max+Math.floor(bare.max*k),eff:one.eff,type:one.type};
+}
 function dmgRange(att,def,mv,field,spread,isCrit,hit){
   if(MOVEID_PRESTAMP_RESTORED)MEDFAILS.moveIdPrestampRestored=1;
   else stampMoveIds();
@@ -17817,6 +17839,21 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
      * the range below), so the two cannot disagree about whether the disguise is intact. */
     const _absMulti=!!(_plan.total>1.0000001&&formeOnHitAbsorbs(def,att,mv&&mv.id)&&!FORMEONHIT_CLICK_WIDE_RESTORED);
     if(FORMEONHIT_CLICK_WIDE_RESTORED&&_plan.total>1.0000001&&formeOnHitAbsorbs(def,att,mv&&mv.id))MEDFAILS.formeOnHitClickWideRestored=1;
+    /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.72.0) -- A FROM-FULL CUT MEETS ONLY THE FIRST ARRIVAL OF A VOLLEY.
+     * Multiscale (data/abilities.ts multiscale, both checkouts, no Champions override) is
+     * `onSourceModifyDamage(...) { if (target.hp >= target.maxhp) return this.chainModify(0.5); }`, asked inside each
+     * arrival's `getDamage`; arrival 1 leaves the body below full, so arrivals 2..N take the whole hit. The flat road
+     * priced all N off one arrival's band, so the cut landed N times: the Reg M-C damage differential's
+     * `scizormega dualwingbeat -> dragonitemega` and `heracrossmega pinmissile -> dragonitemega` (release 485d0a6840ad).
+     * THE BATTLE WAS ALREADY RIGHT -- `_stepApply` re-prices arrival k against the HP arrival k-1 left
+     * (tests/probe_volley_first_hit_shield.js SCALE, boards identical) -- so this is the PRICE road only
+     * (`!hit.wantPackets`): the packet road's band and its re-price are untouched. Whether the cut is live on arrival 1
+     * is not re-derived here: `dmgRangeOneHit` is asked with and without the from-full clause (`noFullHP`) and the
+     * split is taken only when the two differ, so Mold Breaker, a body already below full and every other gate of that
+     * clause keep their one owner. MEDI_VOLLEY_SHIELD_EVERY_ARRIVAL=1 restores the old price. */
+    const _fhp=(!VOLLEY_SHIELD_EVERY_ARRIVAL&&!(hit&&hit.wantPackets)&&!_absMulti&&_plan.total>1.0000001)
+      ?_volleyFullHPSplit(att,def,mv,field,spread,isCrit,hit,_plan.total):null;
+    if(_fhp)return _fhp;
     const _flat=dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,1,_plan.total,null,_absMulti);
     if(hit&&hit.wantPackets){
       const _n=Math.round(_plan.total);
