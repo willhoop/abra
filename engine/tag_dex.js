@@ -9732,6 +9732,20 @@ const ABILITY_TAGS = [
                onlyTypes: typeM ? [typeM[1]] : null,
                onlyGrounded: /isGrounded\(\)/.test(src) || null };
     } },
+  /* 2026-09-22 (ENGINE pass 8, abra/regmc 0.66.0) -- THE ABILITY TWIN OF SHED SHELL'S `escapesTrap`. The item-side note
+   * above says "NO ability does" declare `onTrapPokemon`; that was true of Reg M-B and is not of Reg M-C, where the
+   * Champions mod gives RUN AWAY `onTrapPokemonPriority: -10, onTrapPokemon(pokemon) { pokemon.trapped = false; }` and
+   * the same on `onMaybeTrapPokemon` (data/mods/champions/abilities.ts runaway). The same predicate as the item's, asked
+   * of abilities. Membership printed over both regulations before wiring: Reg M-C Run Away alone; Reg M-B none (its
+   * Run Away is mainline, no handler) -- so data/tags.json does not move. Consumer: switchTrapVerdict. */
+  { tag: 'escapesTrap', param: 'the holder is never trapped -- its escape option survives', probe: 'onTrapPokemon',
+    why: 'Run Away under Champions. The engine refuses a switch the authority allows, which is the direction that '
+       + 'costs a game rather than a point of HP',
+    of: a => {
+      const src = String(a.onTrapPokemon || '').replace(/\s+/g, ' ');
+      if (!/trapped = false/.test(src)) return null;
+      return { escapes: true, scope: 'holder' };
+    } },
   { tag: 'onSwitchInDrop', param: 'stat stages on the foe at switch-in', probe: 'intimidate',
     why: 'Intimidate. Beaten by Clear Amulet and by White Herb, neither of which is checked',
     /* ENRICHED AND TIGHTENED 2026-08-05 (STAGED). Two defects at once: {drop:true} named neither

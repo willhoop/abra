@@ -21,6 +21,25 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.66.0] — 2026-09-22
+
+### Fixed
+- **Run Away frees its holder from a trap under Reg M-C.** The Champions mod gives Run Away `onTrapPokemonPriority: -10,
+  onTrapPokemon(pokemon) { pokemon.trapped = false; }` and the same on `onMaybeTrapPokemon`
+  (data/mods/champions/abilities.ts runaway :71-81). That is Shed Shell's priority and Shed Shell's line, so it clears a
+  Block/Mean Look trap, a partial trap and an ability trap alike. medicham2 read `escapesTrap` off the ITEM only. The tag's
+  own note said "NO ability does", which was true of Reg M-B, whose Run Away has no handler.
+  - `engine/tag_dex.js` derives the ability `escapesTrap` with the item's predicate. Membership: Reg M-C Run Away alone;
+    Reg M-B none.
+  - `switchTrapVerdict` reads it beside the item's.
+  - `data/tags-regmc.json` gains the runaway row and its catalogue entry. `data/tags.json` is unchanged. Knob
+    `MEDI_RUN_AWAY_TRAPPED`.
+- The Reg M-C roster (0.64.0, `ability/escapes-a-trap`) found it: DID-NOT-FIRE on release `aa7b45c6b8d2`, where the
+  authority let the holder go and this engine kept it. It reads MATCH on release `23728e90d20e`, and its break is CAUGHT.
+  Shed Shell still reads MATCH.
+- `tests/probe_regmc_run_away.js` has three arms: HARD (Block), PARTIAL (Infestation) and CONTROL (the authority refuses
+  the switch). It exits 0 clean. It exits 1 under the knob and with the 0.63.0 engine bytes.
+
 ## [0.65.0] — 2026-09-22
 
 ### Fixed

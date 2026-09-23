@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.65.0 — 2026-09-22.**
+**Version: 0.66.0 — 2026-09-22.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -403,6 +403,7 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | **A new regulation's move can create a body that is in `side.active` and not `isActive`.** Revival Blessing (M-C only) revives into an empty active slot and defers the instaswitch behind the residual; every `this.heal` / `damage` / `boost` refuses the body meanwhile. Reg M-B had no road to that state. | A residual heal or chip on a revived body before it walks in. | When a new move revives, swaps or drags bodies, list what it leaves in `side.active` without `switchIn` (the `isActive` setter) and check each engine walk over the actives skips it. Fixed 0.59.0 (`_revivePending`). |
 | **A new regulation's entities fall to the roster's residue rule, which stages nothing.** The shape rules were written for the old regulation's entities; fifteen Reg M-C items and abilities (Air Balloon, Rocky Helmet, the seeds, Run Away's Champions escape...) matched no rule and read COULD-NOT-STAGE "THE STAGING IS INERT" on every Reg M-C roster since the regulation opened. | A block of COULD-NOT-STAGE rows whose rule is `item/held-and-nothing-more` or `ability/generic`. | After the first roster of a new regulation, list every row by `rule` and treat each residue row as owed fixture work: write the shape rule that creates what its handler waits for. Fixed 0.64.0. |
 | **A mod that changes a move's target class can outrun the scripted driver's encoder.** Champions M-C makes Milk Drink `adjacentAllyOrSelf`; `scripted()` resolved that class to the user's own slot whatever the script asked, so no staged scenario could aim it at the partner. | A heal that lands on its full-HP user, read as an inert row. | When a mod row changes `target`, check `scripted()` in `engine/game_differential.js` can express every aim the new class admits. Fixed 0.64.0 (`{ ally: true }`). |
+| **A tag's own "no ability does this" note is a fact about the regulation it was written in.** `escapesTrap` was item-only because "exactly ONE item in Reg M-B declares `onTrapPokemon`, and NO ability does"; the Champions M-C mod gives Run Away that exact handler. | A trapped body that the authority lets switch and this engine holds. | On a rotation, grep `engine/tag_dex.js` for membership claims ("NO ability", "exactly ONE", "matches nothing") and re-ask each over the new dex. Fixed 0.66.0. |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

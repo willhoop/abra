@@ -15175,6 +15175,8 @@ const RULES = [
      + 'nothing traps anybody there. A move lays the `trapped` volatile on the carrier on turn 1 and on '
      + 'turn 2 the carrier asks to leave. WITH the ability it must go; the CONTROL — the carrier with its '
      + 'other sheet ability — must be REFUSED by the authority and refused by us.',
+  break: { why: 'the ability escape is not read, so the holder stays trapped (the pre-0.66.0 engine)',
+    patch: [["const RUN_AWAY_TRAPPED=(", "const RUN_AWAY_TRAPPED=true||("]] },
   match(e) {
     if (typeof e.onTrapPokemon !== 'function' && typeof e.onMaybeTrapPokemon !== 'function') return null;
     if (!/trapped\s*=\s*false/.test(String(e.onTrapPokemon || '') + String(e.onMaybeTrapPokemon || ''))) return null;

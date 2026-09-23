@@ -20236,11 +20236,23 @@ function trapAlreadyHeld(t){ return !!(t&&t._trapHard); }
  * Knob: MEDI_TRAP_AT_EXECUTION=1 restores the pre-fix read (the verdict is recomputed at execution
  * and the stamped one is discarded). */
 const TRAP_AT_EXECUTION=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TRAP_AT_EXECUTION==='1');
+/* 2026-09-22 (ENGINE pass 8, abra/regmc 0.66.0) -- MEDI_RUN_AWAY_TRAPPED=1: an ability `escapesTrap` (Reg M-C Run Away)
+ * frees nobody (the pre-0.66.0 engine). tests/probe_regmc_run_away.js */
+const RUN_AWAY_TRAPPED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_RUN_AWAY_TRAPPED==='1');
+if(RUN_AWAY_TRAPPED)MEDFAILS.runAwayTrappedRestored=1;
 function switchTrapVerdict(m,foes,field){
   const out={block:null,shed:0};
   if(!m)return out;
   const _ghost=(m.types||[]).includes('Ghost');
-  const _shed=!!TAGS.param('item',m.item,'escapesTrap');
+  /* 2026-09-22 (ENGINE pass 8, abra/regmc 0.66.0) -- AND THE ABILITY TWIN. Under Reg M-C the Champions mod gives Run
+   * Away `onTrapPokemonPriority: -10, onTrapPokemon(pokemon) { pokemon.trapped = false; }` (data/mods/champions/
+   * abilities.ts runaway), the same priority and the same line as Shed Shell's, so it clears every branch below exactly
+   * as the item does. tag_dex derives `escapesTrap` on the ability by the item's own predicate. Found by the Reg M-C
+   * roster (`ability/escapes-a-trap`), which asked it for the first time; tests/probe_regmc_run_away.js.
+   * MEDI_RUN_AWAY_TRAPPED=1 reads the item alone again (the pre-0.66.0 engine). */
+  const _runAway=!RUN_AWAY_TRAPPED&&!!TAGS.param('ability',m.ability,'escapesTrap');
+  const _shed=!!TAGS.param('item',m.item,'escapesTrap')||_runAway;
+  if(_runAway)MEDSEEN.runAwayAsked=(MEDSEEN.runAwayAsked||0)+1;
   /* WIRE 92 -- the ability trap. The Shadow Tag mirror rule is read as tag-against-tag rather than by
      name; `onlyTypes` (Magnet Pull) and `onlyGrounded` (Arena Trap) come from the tag's own params. */
   if(!_ghost&&!TAGS.param('ability',m.ability,'preventsSwitch')){

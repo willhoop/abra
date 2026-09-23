@@ -1,3 +1,10 @@
+## RUN AWAY FREES ITS HOLDER FROM A TRAP (REG M-C). 2026-09-22 (abra/regmc 0.66.0)
+
+- **Defect.** Champions gives Run Away Shed Shell's `onTrapPokemon`. medicham2 read `escapesTrap` off the item only.
+- **Fix.** `tag_dex` derives the ability `escapesTrap`, and `switchTrapVerdict` reads it. Counter `MEDSEEN.runAwayAsked`.
+- **Probe** `tests/probe_regmc_run_away.js`: green clean. It is red under `MEDI_RUN_AWAY_TRAPPED` and red on the 0.63.0
+  bytes.
+
 ## STAKEOUT DOUBLES ONLY INTO A BODY THAT ARRIVED THIS TURN. 2026-09-22 (abra/regmc 0.65.0)
 
 - **Defect.** The tag's `onlyWhen` was null. The untyped `attackStat` branch serves Hustle, and it paid Stakeout's x2 on

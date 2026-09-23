@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.66.0] — 2026-09-22 — **Run Away frees its holder from a trap under Reg M-C**
+
+- **What changed.** `engine/tag_dex.js` derives `escapesTrap` on abilities with the item's predicate; this matches Reg M-C
+  Run Away alone. `switchTrapVerdict` in `engine/medicham2-browser.js` reads it beside the item's. `data/tags-regmc.json`
+  gains the runaway row and its catalogue entry. Knob `MEDI_RUN_AWAY_TRAPPED`; probe `tests/probe_regmc_run_away.js`.
+- **Measured.** NO FIGURE published. Roster row DID-NOT-FIRE on `aa7b45c6b8d2`, MATCH on `23728e90d20e`. Probe: green
+  clean, red under the knob and on the 0.63.0 bytes. `data/tags.json` is byte-identical.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.65.0] — 2026-09-22 — **Stakeout doubles only a hit into a body that arrived this turn**
 
 - **What changed.** `engine/tag_dex.js` derives `onlyWhen: {cond:'targetFreshlyArrived'}` for Stakeout alone, and

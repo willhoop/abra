@@ -4347,6 +4347,17 @@
    "examples": []
   },
   {
+   "tag": "escapesTrap",
+   "kind": "ability",
+   "param": "the holder is never trapped -- its escape option survives",
+   "why": "Run Away under Champions. The engine refuses a switch the authority allows, which is the direction that costs a game rather than a point of HP",
+   "consumedBy": "onTrapPokemon",
+   "used": true,
+   "n": 1,
+   "uses": 0,
+   "examples": []
+  },
+  {
    "tag": "onSwitchInDrop",
    "kind": "ability",
    "param": "stat stages on the foe at switch-in",
@@ -40374,6 +40385,19 @@
     "switchOutTrigger": {
      "does": "heal",
      "heal": 0.3333333333333333
+    }
+   }
+  },
+  "runaway": {
+   "name": "Run Away",
+   "tags": [
+    "escapesTrap"
+   ],
+   "uses": 0,
+   "params": {
+    "escapesTrap": {
+     "escapes": true,
+     "scope": "holder"
     }
    }
   },
