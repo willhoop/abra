@@ -1,3 +1,13 @@
+## STONE AXE AND CEASELESS EDGE LAY THEIR HAZARD EVEN WHEN A CONTACT TOLL KOS THEIR USER (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.60.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-6.md` §7.
+
+- **Defect.** The `hazardOnHit` block required `!m.fainted`, the mainline `AfterHit` guard the Champions `spreadMoveHit`
+  does not have (named in 0.53.0).
+- **Fix.** The live-user test on the Substitute road only (both handlers' `onAfterSubDamage` ask `source.hp`).
+- **Probe** `tests/probe_regmc_hazard_on_hit_fainted_user.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_HAZARD_ON_HIT_NEEDS_LIVE_USER` and on release `d05944372a1a` with the 0.59.0 bytes.
+
 ## A REVIVED BODY WAITING FOR ITS INSTASWITCH TAKES NOTHING FROM THE RESIDUAL (REG M-C). 2026-09-22 (abra/regmc 0.59.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-6.md` §6.

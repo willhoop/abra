@@ -618,6 +618,9 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
   /* 2026-09-22 (Reg M-C, abra/regmc 0.59.0) -- a residual group passing over a body Revival Blessing brought back into an
    * active slot whose instaswitch waits behind the residual: not `isActive`, so every heal / damage / boost is refused. */
   residualSkippedRevivePending: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.60.0) -- a `hazardOnHit` hazard (Stone Axe, Ceaseless Edge) laid by a user a contact
+   * toll had knocked out (the Champions `spreadMoveHit` raises AfterHit with no HP test). */
+  hazardOnHitByFaintedUser: 0,
   /* ROADMAP #175 -- every damage packet `refusesIndirectDamage` turned away, across all nine gated
    * sites. It replaces MEDFAILS.magicGuardChip, which counted the same event as a KNOWN GAP: the
    * counter moves from the failures object to the capabilities one, which is the whole shape of the
@@ -7071,6 +7074,11 @@ if(DH_READS_REVERTED_ABILITY)MEDFAILS.dhReadsRevertedAbilityRestored=1;
 const REVIVE_PENDING_TAKES_RESIDUAL=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_REVIVE_PENDING_TAKES_RESIDUAL==='1');
 if(REVIVE_PENDING_TAKES_RESIDUAL)MEDFAILS.revivePendingTakesResidualRestored=1;
+/* 2026-09-22 (Reg M-C, abra/regmc 0.60.0) -- MEDI_HAZARD_ON_HIT_NEEDS_LIVE_USER=1 refuses Stone Axe's / Ceaseless Edge's
+ * hazard to a user a contact toll knocked out, as before. */
+const HAZARD_ON_HIT_NEEDS_LIVE_USER=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_HAZARD_ON_HIT_NEEDS_LIVE_USER==='1');
+if(HAZARD_ON_HIT_NEEDS_LIVE_USER)MEDFAILS.hazardOnHitNeedsLiveUserRestored=1;
 /* 2026-09-05 -- MEDI_CHARGE_REAIMS_FIRST_LIVE_FOE=1 restores the pre-fix release rule: the second turn
  * of a two-turn move is rebuilt against `live(foes)[0]` instead of the slot the charge was aimed at.
  * It restores that and NOTHING else -- the charge turn still records the slot, the wrapper still
@@ -48970,10 +48978,20 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _afterHitField=()=>{
         {
           const _hoh=TAGS.param('move',a.move&&a.move.id,'hazardOnHit');
-          if(_hoh&&_hoh.hazard&&connected&&!m.fainted&&(_hoh.throughSubstitute||!_subAte)){
+          /* 2026-09-22 (Reg M-C, abra/regmc 0.60.0) -- THE LIVE-USER TEST IS THE SUBSTITUTE ROAD'S ONLY. Stone Axe
+           * (data/moves.ts :18078-18091) and Ceaseless Edge (:2229-2242), neither in the Champions mod:
+           *     onAfterHit(target, source, move)       { if (!move.hasSheerForce) ... addSideCondition(...) }   no HP test
+           *     onAfterSubDamage(damage, target, source, move) { if (!move.hasSheerForce && source.hp) ... }
+           * and the Champions `spreadMoveHit` raises `AfterHit` with no `pokemon.hp` test (0.53.0, Ice Spinner). So a user a
+           * contact toll just knocked out still lays the hazard -- unless a Substitute took the hit. Both handlers ask the
+           * HP on that road, so the sub road keeps `!m.fainted` for the whole family without a new tag param.
+           * MEDI_HAZARD_ON_HIT_NEEDS_LIVE_USER=1 asks for a live user on both roads again. */
+          const _hohLive=HAZARD_ON_HIT_NEEDS_LIVE_USER?!m.fainted:(!_subAte||!m.fainted);
+          if(_hoh&&_hoh.hazard&&connected&&_hohLive&&(_hoh.throughSubstitute||!_subAte)){
             const _hsf=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
             if(_hsf){layHazard(_hsf,_hoh.hazard,_hoh.maxLayers,m,it.side==='A'?'p2':'p1');
-              MEDSEEN.hazardOnHitAtAfterHit++;}
+              MEDSEEN.hazardOnHitAtAfterHit++;
+              if(m.fainted)MEDSEEN.hazardOnHitByFaintedUser++;}
           }
         }
         {

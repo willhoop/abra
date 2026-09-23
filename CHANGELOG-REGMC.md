@@ -21,6 +21,24 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.60.0] — 2026-09-22
+
+### Fixed
+- **Stone Axe and Ceaseless Edge lay their hazard even when a contact toll knocks their user out, in both regulations.**
+  Their `onAfterHit` (`data/moves.ts` :18078-18091, :2229-2242; not in the Champions mod) asks no HP -- only
+  `onAfterSubDamage` asks `source.hp` -- and the Champions `spreadMoveHit` raises `AfterHit` with no `pokemon.hp` test
+  (0.53.0 corrected Ice Spinner on the same ground and named this family). The `hazardOnHit` block now asks for a live user
+  on the Substitute road only. No tag moved. Knob `MEDI_HAZARD_ON_HIT_NEEDS_LIVE_USER`.
+- `tests/probe_regmc_hazard_on_hit_fainted_user.js` (`--regulation regmc`): FAINTS (Sharpedo, Rough Skin @ Rocky Helmet,
+  brings Hisuian Samurott to 7/165; its Ceaseless Edge; the tolls KO it and Spikes are still laid), STANDS (the control).
+  Exit 0 clean; exit 1 under the knob and on release `d05944372a1a` with the 0.59.0 engine bytes.
+
+### Notes
+- A lab fix: no pinned-pool game reaches it, and the lattices did not move (below). Shared rule; Reg M-B data files
+  byte-identical. Reg M-B lattice 1200 on release `3c901edd88de`: 0 of 961.
+- Pinned Reg M-C differential (census pin `f3b70bc0c47c`, release `0531f23833c0`): 1950 **1 of 1537**, 1350 **0 of 1075**,
+  1200 **0 of 954**, all unmoved. `docs/_reports/2026-09-22-regmc-engine-6.md` §7.
+
 ## [0.59.0] — 2026-09-22
 
 ### Fixed

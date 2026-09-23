@@ -463,3 +463,60 @@ Left: `…2684749333`. Joined: none.
 
 Revival Blessing is absent from `data/tags.json`: Reg M-B cannot reach this. Data files byte-identical. Lattice 1200 on
 release `362ef6d4b630`: **0 of 961**, 0 void, 0 protocol-diverged.
+
+---
+
+## 7. Stone Axe and Ceaseless Edge lay their hazard even when a contact toll knocks their user out (abra/regmc 0.60.0)
+
+Asked for in the brief (pass 5 §5 named the gap); no card. All four moves are Reg M-C legal (`isNonstandard` null on the
+M-C checkout); none is named in `data/mods/champions/moves.ts`, so the mainline handlers are the Champions ones.
+
+### The authority, read whole
+
+- `data/moves.ts` stoneaxe :18078-18091 and ceaselessedge :2229-2242:
+  `onAfterHit(target, source, move) { if (!move.hasSheerForce) for (const side of source.side.foeSidesWithConditions())
+  side.addSideCondition(...); }` -- no HP test; `onAfterSubDamage` adds `&& source.hp`.
+- `data/mods/champions/scripts.ts` spreadMoveHit :315-426: `runEvent('DamagingHit')`, then `AfterHit` with no `pokemon.hp`
+  test (pass 5 §5).
+
+### Fix
+
+`_hohLive = !_subAte || !m.fainted` in place of `!m.fainted`: a live user is required only on the Substitute road, where
+both handlers ask for one. No tag param added (the Reg M-B tag file stays byte-identical); the sub-road HP test is true of
+every `hazardOnHit` member, read above. `MEDSEEN.hazardOnHitByFaintedUser`. Knob `MEDI_HAZARD_ON_HIT_NEEDS_LIVE_USER`.
+
+### Probe -- `tests/probe_regmc_hazard_on_hit_fainted_user.js --regulation regmc`
+
+Cast derived: the legal contact `hazardOnHit` moves (Ceaseless Edge -> Spikes, Stone Axe -> Stealth Rock), the first user
+that stages (Hisuian Samurott, Ceaseless Edge), Sharpedo (Rough Skin) @ Rocky Helmet; the lowering found by playing it
+(Slash twice, 165 → 7).
+
+| arm | staged | authority |
+|---|---|---|
+| FAINTS | Ceaseless Edge KOs Sharpedo; Rough Skin KOs Samurott | `-sidestart|p2: B|Spikes` above both `faint`s; Toxapex takes Spikes on entry |
+| STANDS | Sharpedo idles on the lowering turns | the same `-sidestart`; Samurott survives |
+
+| run | exit | red |
+|---|---|---|
+| release `d05944372a1a` + the 0.59.0 engine bytes | **1** | FAINTS (the line, boards: `p2.hazards.spikes`, the entrant's HP) |
+| clean, release `0531f23833c0` | **0** | none; one lay per arm, the FAINTS one by a fainted user |
+| `MEDI_HAZARD_ON_HIT_NEEDS_LIVE_USER=1` | **1** | FAINTS |
+
+6 staged sets, 0 illegal. The probe folds the side label and `move:` prefix of `-sidestart` exactly as the driver does
+(`p2: B|Spikes` there, `p2: |move: Spikes` here).
+
+### Pinned Reg M-C differential (release `0531f23833c0`)
+
+| `--games` | before | after | void | protocol-diverged |
+|---|---|---|---|---|
+| 1200 | 0 / 954 | **0 / 954** | 1 | 64 |
+| 1350 | 0 / 1075 | **0 / 1075** | 0 | 72 |
+| 1950 | 1 / 1537 | **1 / 1537** | 0 | 97 |
+
+A lab fix, said before the run: no pinned-pool game reaches a fainted hazard-on-hit user, so no lattice was expected to move,
+and none did.
+
+### Reg M-B
+
+Shared rule (both moves are in `data/tags.json`). Data files byte-identical. Lattice 1200 on release `3c901edd88de`: **0 of
+961**, 0 void, 0 protocol-diverged.
