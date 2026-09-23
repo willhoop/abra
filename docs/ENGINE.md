@@ -1,3 +1,32 @@
+## RAPID SPIN AND MORTAL SPIN CLEAR THEIR SIDE EVEN WHEN A CONTACT TOLL KOS THE USER (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.61.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-6.md` §8.
+
+- **Defect.** The `removesHazards` block required `!m.fainted`; the Champions `spreadMoveHit` raises `AfterHit` with no HP
+  test, and the side clear (`removeSideCondition`) asks none.
+- **Fix.** The live-user test on the Substitute road only; a fainted user sweeps the hazards without the seed / trap pieces
+  (`removeVolatile` refuses at 0 HP).
+- **Probe** `tests/probe_regmc_spin_fainted_user.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_SPIN_NEEDS_LIVE_USER` and on release `0531f23833c0` with the 0.60.0 bytes.
+
+### The Reg M-C hand list, after pass 6 (replaces the pass-5 list under 0.53.0)
+
+Pinned Reg M-C differential (census pin `f3b70bc0c47c`, release `be192e23eb5b`): `--games` 1200 **0 of 954**, 1350 **0 of
+1075**, 1950 **1 of 1537**. Milk Drink's target, the mega-weather Forecast sync, Protean before the terrain bar, the type
+spend at `selfDrops`, the worn ability at a transformed body's faint, the revived body's residual, and the Stone Axe /
+Ceaseless Edge / Rapid Spin / Mortal Spin fainted user left this list as probes (0.54.0-0.61.0).
+
+1. The one 1950 card left: `pair-redirect-priority …2678207112` t5, two Armarouge with identical speed inputs (evidence,
+   not a fix: an exact speed tie; which die the authority rolled -- the turn's `speedSort` or Encore's `insertChoice`
+   splice -- is not isolated). Report §9.
+2. Narration, not board-material: the Ghost Curse line order (pass 5); a second Focus Energy's `-fail` (pass 6 §4); a
+   move-set terrain's `[of]` on `-fieldstart` (pass 6 §3); the `-fail|<user>|move: <Move>` attribute (pass 4).
+3. Named gaps with no card: Milk Drink aimed at the partner (unstaged -- the scripted encoder aims `adjacentAllyOrSelf` at
+   the user); Psychic Terrain's ally exemption; the buff-on-hit and default-order DamagingHit reactors of a transformed
+   corpse (only the punish block and its ordering read the worn ability); the berry-cure pass over a revived pending body.
+4. Carried: `mirrorRevival` (MEASURE); the empirical driver's cross-game `coveragePick` state (MEASURE).
+5. Owed (not run): the census regeneration; the Reg M-B held-out draw (report `## OWED, NOT RUN`).
+
 ## STONE AXE AND CEASELESS EDGE LAY THEIR HAZARD EVEN WHEN A CONTACT TOLL KOS THEIR USER (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.60.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-6.md` §7.

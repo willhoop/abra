@@ -21,6 +21,27 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.61.0] — 2026-09-22
+
+### Fixed
+- **Rapid Spin and Mortal Spin clear their user's side even when a contact toll knocks the user out, in both regulations.**
+  Their `onAfterHit` (`data/moves.ts` :14703-14734, :12323-12354; not in the Champions mod) clears the side through
+  `pokemon.side.removeSideCondition` (no HP test) and the user's Leech Seed and partial trap through `removeVolatile`
+  (which refuses a body at 0 HP); the Champions `spreadMoveHit` raises `AfterHit` with no `pokemon.hp` test. The
+  `removesHazards` block now asks for a live user on the Substitute road only, and on a fainted user sweeps the hazards
+  without the two volatile pieces. No tag moved. Knob `MEDI_SPIN_NEEDS_LIVE_USER`.
+- `tests/probe_regmc_spin_fainted_user.js` (`--regulation regmc`): FAINTS (Garganacl lays Stealth Rock on our side while
+  Garchomp, Rough Skin @ Rocky Helmet, brings Glimmora to 26/158; Glimmora's Mortal Spin; the tolls KO it and the rock
+  still leaves), STANDS (the control). Exit 0 clean; exit 1 under the knob and on release `0531f23833c0` with the 0.60.0
+  engine bytes.
+
+### Notes
+- A lab fix: no pinned-pool game reaches it, and the lattices did not move. The seed / trap half is read off the handler and
+  not staged. Shared rule; Reg M-B data files byte-identical. Reg M-B lattices on release `8f9c8c1eb059`: 1200 / 1350 /
+  1950 read 0 of 961 / 0 of 1069 / 0 of 1497.
+- Pinned Reg M-C differential (census pin `f3b70bc0c47c`, release `be192e23eb5b`): 1950 **1 of 1537** (the Armarouge
+  speed-tie card, evidence only), 1350 **0 of 1075**, 1200 **0 of 954**. `docs/_reports/2026-09-22-regmc-engine-6.md` §8-§10.
+
 ## [0.60.0] — 2026-09-22
 
 ### Fixed

@@ -621,6 +621,10 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
   /* 2026-09-22 (Reg M-C, abra/regmc 0.60.0) -- a `hazardOnHit` hazard (Stone Axe, Ceaseless Edge) laid by a user a contact
    * toll had knocked out (the Champions `spreadMoveHit` raises AfterHit with no HP test). */
   hazardOnHitByFaintedUser: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.61.0) -- a Rapid Spin / Mortal Spin sweep of the user's side by a user a contact toll had
+   * knocked out: the hazards leave (a Side method, no HP test), the user's own Leech Seed and partial trap do not
+   * (`removeVolatile` refuses a body at 0 HP). */
+  hazardSweepByFaintedUser: 0,
   /* ROADMAP #175 -- every damage packet `refusesIndirectDamage` turned away, across all nine gated
    * sites. It replaces MEDFAILS.magicGuardChip, which counted the same event as a KNOWN GAP: the
    * counter moves from the failures object to the capabilities one, which is the whole shape of the
@@ -7079,6 +7083,11 @@ if(REVIVE_PENDING_TAKES_RESIDUAL)MEDFAILS.revivePendingTakesResidualRestored=1;
 const HAZARD_ON_HIT_NEEDS_LIVE_USER=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_HAZARD_ON_HIT_NEEDS_LIVE_USER==='1');
 if(HAZARD_ON_HIT_NEEDS_LIVE_USER)MEDFAILS.hazardOnHitNeedsLiveUserRestored=1;
+/* 2026-09-22 (Reg M-C, abra/regmc 0.61.0) -- MEDI_SPIN_NEEDS_LIVE_USER=1 refuses Rapid Spin's / Mortal Spin's sweep to a user
+ * a contact toll knocked out, as before. */
+const SPIN_NEEDS_LIVE_USER=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_SPIN_NEEDS_LIVE_USER==='1');
+if(SPIN_NEEDS_LIVE_USER)MEDFAILS.spinNeedsLiveUserRestored=1;
 /* 2026-09-05 -- MEDI_CHARGE_REAIMS_FIRST_LIVE_FOE=1 restores the pre-fix release rule: the second turn
  * of a two-turn move is rebuilt against `live(foes)[0]` instead of the slot the charge was aimed at.
  * It restores that and NOTHING else -- the charge turn still records the slot, the wrapper still
@@ -48996,7 +49005,16 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         {
           const _rmh=TAGS.param('move',a.move&&a.move.id,'removesHazards');
-          if(_rmh&&connected&&!m.fainted&&(_rmh.throughSubstitute||!_subAte)
+          /* 2026-09-22 (Reg M-C, abra/regmc 0.61.0) -- AND THE SWEEP, BY THE SAME READING. Rapid Spin (data/moves.ts
+           * :14703-14734) and Mortal Spin (:12323-12354), neither in the Champions mod: `onAfterHit` removes the user's
+           * Leech Seed through `pokemon.removeVolatile` (which returns false at 0 HP), clears the side through
+           * `pokemon.side.removeSideCondition` (a Side method: no HP test) and the partial trap through `removeVolatile`
+           * again; `onAfterSubDamage` gates every piece on `pokemon.hp`. The Champions `spreadMoveHit` raises `AfterHit` with
+           * no HP test (0.53.0). So a user a toll knocked out still clears its side's hazards, and keeps its seed and trap:
+           * on that road the two volatile pieces are switched off rather than the whole sweep refused.
+           * MEDI_SPIN_NEEDS_LIVE_USER=1 refuses the whole sweep to a fainted user again. */
+          const _rmhLive=SPIN_NEEDS_LIVE_USER?!m.fainted:(!_subAte||!m.fainted);
+          if(_rmh&&connected&&_rmhLive&&(_rmh.throughSubstitute||!_subAte)
              &&!(_rmh.refusedBySheerForce&&TAGS.param('ability',m.ability,'removesOwnSecondaries'))){
             /* 2026-09-04 -- `_fsf2` IS UNREAD ON THIS ROAD AND THAT IS A DERIVED CLAIM, NOT AN
              * ASSUMPTION. Every carrier that reaches the damaging branch is `hazardsFrom: 'self'`
@@ -49006,8 +49024,10 @@ function battleTurn(S,rng,actsForA,actsForB){
              * damaging carrier ever gains one of those params, at which point this line needs the
              * target-side selection the Defog site now uses. */
             const _osf=m._sf, _fsf2=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
-            sweepField(_rmh,m,_osf,_fsf2,field,actA.concat(actB),a.move&&a.move.id);
+            const _rmUse=m.fainted?Object.assign({},_rmh,{removesOwnLeechSeed:false,removesOwnPartialTrap:false}):_rmh;
+            sweepField(_rmUse,m,_osf,_fsf2,field,actA.concat(actB),a.move&&a.move.id);
             MEDSEEN.hazardSweepAtAfterHit++;
+            if(m.fainted)MEDSEEN.hazardSweepByFaintedUser++;
           }
         }
         /* 2026-09-22 (abra/regmc 0.45.0) -- ICE SPINNER, THE THIRD `onAfterHit` FAMILY, and the same handler pair:

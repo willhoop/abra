@@ -520,3 +520,174 @@ and none did.
 
 Shared rule (both moves are in `data/tags.json`). Data files byte-identical. Lattice 1200 on release `3c901edd88de`: **0 of
 961**, 0 void, 0 protocol-diverged.
+
+---
+
+## 8. Rapid Spin and Mortal Spin clear their side even when a contact toll knocks the user out (abra/regmc 0.61.0)
+
+Asked for in the brief (pass 5 §5); no card. Both moves Reg M-C legal; neither is in `data/mods/champions/moves.ts`.
+
+### The authority, read whole
+
+- `data/moves.ts` rapidspin :14703-14734 and mortalspin :12323-12354, `onAfterHit(target, pokemon, move)` under `if
+  (!move.hasSheerForce)`: `pokemon.removeVolatile('leechseed')` (refuses a body at 0 HP), `pokemon.side.removeSideCondition(c)`
+  for each hazard with its `-sideend` line (a Side method: no HP test), `pokemon.removeVolatile('partiallytrapped')`.
+  `onAfterSubDamage` gates every piece on `pokemon.hp`.
+- The Champions `spreadMoveHit` raises `AfterHit` with no HP test (pass 5 §5).
+
+### Fix
+
+`_rmhLive = !_subAte || !m.fainted` in place of `!m.fainted`; on a fainted user the sweep runs with `removesOwnLeechSeed`
+and `removesOwnPartialTrap` switched off for that call (a copy of the param, not a tag edit). `MEDSEEN.hazardSweepByFaintedUser`.
+Knob `MEDI_SPIN_NEEDS_LIVE_USER`. The seed / trap half is read off the handler and not staged.
+
+### Probe -- `tests/probe_regmc_spin_fainted_user.js --regulation regmc`
+
+Cast derived: the legal damaging contact `removesHazards` moves whose hazards come from the user's side (Mortal Spin, Rapid
+Spin); the first user to stage (Glimmora, Mortal Spin); Garchomp (Rough Skin) @ Rocky Helmet; Garganacl laying Stealth Rock
+on our side; the lowering found by playing it (Shadow Claw twice, 158 → 26).
+
+| arm | staged | authority |
+|---|---|---|
+| FAINTS | the rock laid, Glimmora lowered, then Mortal Spin into Garchomp | Rough Skin, Rocky Helmet `0 fnt`, `-sideend|p1: A|Stealth Rock|[from] move: Mortal Spin`, `faint` |
+| STANDS | Garchomp idles instead | the same `-sideend`; Glimmora survives |
+
+| run | exit | red |
+|---|---|---|
+| release `0531f23833c0` + the 0.60.0 engine bytes | **1** | FAINTS (the line; boards `p1.hazards.stealthrock`, the entrant's HP) |
+| clean, release `be192e23eb5b` | **0** | none; one sweep per arm, the FAINTS one by a fainted user |
+| `MEDI_SPIN_NEEDS_LIVE_USER=1` | **1** | FAINTS |
+
+16 staged sets, 0 illegal.
+
+### Pinned Reg M-C differential (release `be192e23eb5b`)
+
+| `--games` | before | after | void | protocol-diverged |
+|---|---|---|---|---|
+| 1200 | 0 / 954 | **0 / 954** | 1 | 64 |
+| 1350 | 0 / 1075 | **0 / 1075** | 0 | 72 |
+| 1950 | 1 / 1537 | **1 / 1537** | 0 | 97 |
+
+A lab fix, as expected before the run. Joined: none.
+
+### Reg M-B
+
+Shared rule. Data files byte-identical. Lattices on release `8f9c8c1eb059` in §10.
+
+---
+
+## 9. The one card left: two Armarouge, an exact speed tie (evidence, not a fix)
+
+`pair-redirect-priority …bo3-2678207112 vs …bo3-2678178878`, turn 5. Whimsicott's Encore lands on p2b Armarouge; the
+authority then runs p2b's Expanding Force before p1b's, this engine p1b's first (boards part on `whimsicott.hp` 36/135 and
+`armarouge.hp` 59/142).
+
+Evidence that the two bodies' speeds are equal:
+
+- The frozen pool's sheets (`data/team-pool-frozen-regmc/games.bo3.jsonl`): both are `armarouge`, `Modest`, `Life Orb`,
+  `Flash Fire`, level 50, `evs: null` -- every input to the built Speed stat is the same.
+- The turn-4 boards (both engines agree): `spe` boost 0 on both, no Tailwind on either side, `trickroom_turns` 0, no status.
+- The previous turn is the control: on turn 4 the same pair clicked Expanding Force and both engines ran p1b first. The
+  order flips between turns with no change in any input, which is what a tie re-rolled each turn looks like.
+
+Not isolated, stated: which of the authority's dice decided turn 5. If p2b's queued action was already Expanding Force, the
+Champions Encore (`data/mods/champions/moves.ts` :307-341) leaves the queue alone and the turn's sort decided it
+(`BattleQueue#sort` -> `battle.speedSort`, which shuffles tied entries, sim/battle.ts :429-460, `prng.shuffle` at :456); if it was another move,
+`changeAction` (sim/battle-queue.ts :301) re-inserts it through `insertChoice`, which places it among equal-priority,
+equal-speed actions at `this.battle.random(firstIndex, lastIndex + 1)` (:400). This engine's
+`encoreRelocateQueued` re-sorts on its stored `_tie`. Whether either die is shared with the authority is a question for the
+tie-die machinery, not for this card -- routed as a speed tie, per the brief.
+
+---
+
+## 10. Where the line stands after this pass
+
+### The eight fixes
+
+| # | card | cause (confirmed against the authority) | commit | 1200 | 1350 | 1950 |
+|---|---|---|---|---|---|---|
+| base | | | 0.53.0 `eec3a9b0e36a` | 0 / 954 | 0 / 1075 | 7 / 1537 |
+| 1 | Toxapex healed by Gogoat's Milk Drink | `adjacentAllyOrSelf` (Champions) heals one body; `healParam` spread it (M-C only) | 0.54.0 `6397666428ff` | 0 / 954 | 0 / 1075 | 6 / 1537 |
+| 2 | Castform left Normal | the mega door never ran the Forecast / Mimicry sync (both) | 0.55.0 `b272aada45c2` | 0 / 954 | 0 / 1075 | 5 / 1537 |
+| 3 | Greninja kept Water/Dark | Protean's PrepareHit above the terrain's TryHit (both) | 0.56.0 `f2e0e5560692` | 0 / 954 | 0 / 1075 | 4 / 1537 |
+| 4 | Pawmot's corpse `???` | the type spend belongs at `selfDrops` (both) | 0.57.0 `1d5008367277` | 0 / 954 | 0 / 1075 | 3 / 1537 |
+| 5 | Garchomp untolled | a KO'd transformed body's reactors read the worn ability (both) | 0.58.0 `72bb36048aa0` | 0 / 954 | 0 / 1075 | 2 / 1537 |
+| 6 | revived Rillaboom healed | a revived body awaiting its instaswitch is not active (M-C only) | 0.59.0 `d05944372a1a` | 0 / 954 | 0 / 1075 | 1 / 1537 |
+| 7 | (no card) | Stone Axe / Ceaseless Edge with a fainted user (both) | 0.60.0 `0531f23833c0` | 0 / 954 | 0 / 1075 | 1 / 1537 |
+| 8 | (no card) | Rapid Spin / Mortal Spin with a fainted user (both) | 0.61.0 `be192e23eb5b` | **0 / 954** | **0 / 1075** | **1 / 1537** |
+
+Every step: left = the named card, joined = none. 1200 and 1350 never regressed. Protocol-only games: 1200 67 → 64, 1350 73
+→ 72, 1950 116 → 97 (most of the fall is 0.57.0, the type-spend line order on survivors).
+
+### Reg M-B on the final tree (release `8f9c8c1eb059`, `SHOWDOWN_PATH` the M-B checkout)
+
+| `--games` | games | board-material | void | protocol-only |
+|---|---|---|---|---|
+| 1200 | 961 | **0** | 0 | 0 |
+| 1350 | 1069 | **0** | 0 | 1 |
+| 1950 | 1497 | **0** | 0 | 2 |
+
+The same readings as pass 5's final tree. `data/tags.json`, `data/protocol-events.json`, `data/move-effects.js` byte-identical
+to the base (`git diff --quiet HEAD` before every commit). Six of the eight change Reg M-B behaviour toward the authority
+(2, 3, 4, 5, 7, 8 -- the same handlers in both checkouts); 1 and 6 cannot reach Reg M-B (Milk Drink's retarget and Revival
+Blessing are M-C only).
+
+### Also found, not fixed
+
+- **Narration:** a second consecutive Focus Energy writes `-fail` on the authority and nothing here (§4 probe); a move-set
+  Psychic Terrain's `-fieldstart` carries `[of] <setter>` here and not there (§3 probe).
+- **Milk Drink aimed at the partner** is implemented and counted, not staged (the scripted encoder cannot aim an
+  `adjacentAllyOrSelf` click at the ally).
+- **A transformed corpse's other DamagingHit readers** (the buff-on-hit and default-order reactors) still read the reverted
+  ability; only the punish block and its ordering were moved (§5). No card.
+- **The berry-cure pass above the residual walk** still visits a revived pending body (§6); its status was cleared by the
+  revive, so nothing is known to part.
+- Carried from pass 5: Ghost Curse narration, Psychic Terrain's ally exemption, `unresolved` timing.
+
+### For MEASURE
+
+- The Revival Blessing card was the engine, not `mirrorRevival`: both engines revived the same body; the boards part at the
+  residual heal. Nothing owed to MEASURE from it.
+- The Armarouge card is an exact speed tie (§9). If it should be attributed rather than carried, the question is which tie die
+  the authority rolled on turn 5 and whether the driver shares it.
+
+---
+
+## OWED, NOT RUN
+
+From the MAIN checkout after the merge (none of these was run in this worktree; `status.js --write` must not run from a
+worktree):
+
+```
+node engine/status.js --write
+node engine/quarantine.js --regulation regmc
+```
+
+The census regenerations (the eight probes of this pass are staged tests, not census rows):
+
+```
+node tests/test-mechanics.js --regulation regmc
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown node tests/test-mechanics.js
+```
+
+The Reg M-B held-out draw, owed because six of the eight fixes change paths Reg M-B runs (the mega weather sync, Protean
+before the terrain bar, the type spend at `selfDrops`, the worn ability at a transformed faint, the hazard-on-hit and spin
+fainted user), on top of pass 5's five:
+
+```
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown node engine/engine_release.js cut "abra/regmc 0.61.0, Reg M-B held-out"
+SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown tools\lownode.cmd engine/game_differential.js --steering empirical --arm middle --end-state --census <copy of data/mechanics-census.json> --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen --release <id> --games 12000 --write --out <scratch>
+```
+
+The Armarouge card's die (§9), for whoever owns the tie machinery -- replay it and read which road p2b's turn-5 action took:
+
+```
+node engine/game_differential.js --regulation regmc --steering empirical --arm middle --end-state --census data/verification/census-pin-regmc-f3b70bc0c47c.json --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --release be192e23eb5b --games 1950 --only-game "pair-redirect-priority gen9championsvgc2026regmcbo3-2678207112" --only-game-out data/_scratch-<you>/og-armarouge.json
+```
+
+(`--only-game` needs the config in the selector: a bare seed tag matched three configs in the 1950 lattice.)
+
+Left in the worktree, uncommitted: `data/engine-release-regmc.json` (untracked, the Reg M-C release pointer; it was present
+before this pass) and scratch under `data/_scratch-eng-p6/` (git-ignored). The tracked M-B pointer `data/engine-release.json`
+was moved by this pass's M-B cuts and restored from HEAD before every commit. The new release directories under
+`data/releases/` are left as the cuts wrote them.
