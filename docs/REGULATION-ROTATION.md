@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.55.0 — 2026-09-22.**
+**Version: 0.56.0 — 2026-09-22.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -398,6 +398,7 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | **The new regulation's checkout may override a function the old notes cite from mainline.** 0.45.0 cited `sim/battle-actions.ts`'s `if (moveData.onAfterHit && pokemon.hp)`; the Champions mod ships its own `spreadMoveHit` without the guard, so a user knocked out by a contact toll still runs its move's `onAfterHit`. | A terrain (or a hazard) that should have ended, left standing after the attacker fainted to Rocky Helmet. | Before citing a `sim/` line as the rule, grep `data/mods/champions/scripts.ts` in BOTH checkouts for the same method name (`spreadMoveHit`, `hitStepMoveHitLoop`, `modifyDamage`, `getActionSpeed`...). Fixed 0.53.0 for Ice Spinner; the hazard families are named. |
 | **A tag that admits several target classes is read as the one class the old regulation used.** `healsAlly` admits every friendly class; in Reg M-B its only pair-sized member was Life Dew (`allies`), so the engine read the tag's presence as "heal both". Champions M-C retargets Milk Drink to `adjacentAllyOrSelf` and it joined the tag. | A heal that restores the partner as well as the user. | When a mod row changes a move's `target`, list every tag the move carries and grep the engine for readers that key on the tag's presence rather than on `targetClass`. Fixed 0.54.0 (`healParam`). |
 | **A door that is the third caller of an entry routine can miss the routine's tail.** `megaEvolveNow` ran `applyEntryEffects` (the mega's weather) without the `syncFieldTypes` the switch road ends in; Reg M-B's pool never put a Castform beside a weather mega, Reg M-C's did (Froslass-Mega). | A Forecast / Mimicry body on the wrong forme after a mega's weather or terrain. | When a new regulation adds a weather- or terrain-setting mega, grep every `applyEntryEffects(` caller and check each ends in the same field sync. Fixed 0.55.0. |
+| **A refusal written early in the engine skips every step the authority runs between it and the real refusal.** The Psychic Terrain gate sits at the top of the attack path but refuses at `TryHit`; Protean's `PrepareHit` conversion lies between. Reg M-B's pinned pool never dealt a Protean priority move into Psychic Terrain; Reg M-C's (Greninja + Indeedee) did. | A Protean / Libero body keeping its old types after a terrain refusal. | For each early `continue` in the attack path, list the authority steps between the engine's position and the refusal's real step (`Try`, `PrepareHit`, the hit steps) and check none writes state. Fixed 0.56.0. |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

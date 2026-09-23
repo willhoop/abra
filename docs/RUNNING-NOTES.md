@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.56.0] — 2026-09-22 — **Protean converts its user before Psychic Terrain refuses the priority move, in both regulations**
+
+- **What changed.** `engine/medicham2-browser.js`: the attack path's Psychic Terrain gate runs `proteanConvert` before it
+  refuses (PrepareHit is above TryHit). No tag moved. Knob `MEDI_TERRAIN_BAR_BEFORE_PREPAREHIT`; probe
+  `tests/probe_regmc_protean_before_terrain.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine-6.md` §3;
+  Reg M-B lattice 1200 reads 0 board-material; Reg M-B data files byte-identical.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.55.0] — 2026-09-22 — **A weather a mega evolution raises turns a standing Castform at once, in both regulations**
 
 - **What changed.** `engine/medicham2-browser.js`: `megaEvolveNow` ends in `syncFieldTypes` over the actives (Forecast and

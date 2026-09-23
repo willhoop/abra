@@ -21,6 +21,26 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.56.0] — 2026-09-22
+
+### Fixed
+- **Protean converts its user before Psychic Terrain refuses the priority move, in both regulations.** `trySpreadMoveHit`
+  (`sim/battle-actions.ts` :590-592, no Champions override) runs `PrepareHit` -- Protean's `onPrepareHit` -- above the step
+  list whose step 1 (`TryHit`) is where the terrain refuses. This engine's terrain gate sits above the attack path's
+  `proteanConvert`, so a refused priority move never converted its user: the Reg M-C 1950 card `…bo3-2681855173` t1
+  (Greninja's Water Shuriken into a grounded Indeedee; the authority's `typechange|Water` above the terrain's
+  `-activate`, Greninja left Water/Dark here). The gate now converts the user first. No tag moved. Knob
+  `MEDI_TERRAIN_BAR_BEFORE_PREPAREHIT`.
+- `tests/probe_regmc_protean_before_terrain.js` (`--regulation regmc`): TERRAIN (Greninja switches in while Galarian
+  Slowking raises Psychic Terrain; t2 Water Shuriken into Toxapex), OPEN (the control, no terrain). Exit 0 clean; exit 1
+  under the knob and on release `b272aada45c2` with the 0.55.0 engine bytes.
+
+### Notes
+- Shared rule (Protean, Libero and Psychic Terrain are Reg M-B legal); Reg M-B data files byte-identical. Reg M-B lattice
+  1200 on release `bc918a21928d`: 0 of 961.
+- Pinned Reg M-C differential (census pin `f3b70bc0c47c`, release `f2e0e5560692`): 1950 5 → **4 of 1537**; 1350 **0 of
+  1075** and 1200 **0 of 954** unmoved. `docs/_reports/2026-09-22-regmc-engine-6.md` §3.
+
 ## [0.55.0] — 2026-09-22
 
 ### Fixed

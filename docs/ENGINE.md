@@ -1,3 +1,13 @@
+## PROTEAN CONVERTS ITS USER BEFORE PSYCHIC TERRAIN REFUSES THE PRIORITY MOVE (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.56.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-6.md` §3.
+
+- **Defect.** The terrain gate (a `TryHit` refusal) sits above the attack path's `proteanConvert` (the `PrepareHit`
+  position), so a refused priority move never converted a Protean user.
+- **Fix.** The gate calls `proteanConvert` before it refuses.
+- **Probe** `tests/probe_regmc_protean_before_terrain.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_TERRAIN_BAR_BEFORE_PREPAREHIT` and on release `b272aada45c2` with the 0.55.0 bytes.
+
 ## A WEATHER A MEGA EVOLUTION RAISES TURNS A STANDING CASTFORM AT ONCE (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.55.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-6.md` §2.

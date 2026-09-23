@@ -605,6 +605,9 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
   /* 2026-09-22 (Reg M-C, abra/regmc 0.55.0) -- the field-follower sync (Forecast, Mimicry) run over the actives inside a mega
    * evolution, after the mega forme's entry effects may have raised a weather or a terrain. */
   megaWeatherFormeSynced: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.56.0) -- a Protean / Libero conversion made at `PrepareHit`, ahead of a Psychic
+   * Terrain refusal at `TryHit` that then stops the move. */
+  proteanBeforeTerrainBar: 0,
   /* ROADMAP #175 -- every damage packet `refusesIndirectDamage` turned away, across all nine gated
    * sites. It replaces MEDFAILS.magicGuardChip, which counted the same event as a KNOWN GAP: the
    * counter moves from the failures object to the capabilities one, which is the whole shape of the
@@ -7038,6 +7041,11 @@ if(AIMED_HEAL_SPREADS)MEDFAILS.aimedHealSpreadsRestored=1;
 const MEGA_WEATHER_NO_FORME_SYNC=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_MEGA_WEATHER_NO_FORME_SYNC==='1');
 if(MEGA_WEATHER_NO_FORME_SYNC)MEDFAILS.megaWeatherNoFormeSyncRestored=1;
+/* 2026-09-22 (Reg M-C, abra/regmc 0.56.0) -- MEDI_TERRAIN_BAR_BEFORE_PREPAREHIT=1 lets Psychic Terrain refuse a Protean /
+ * Libero body's priority move before the user converts, as before. */
+const TERRAIN_BAR_BEFORE_PREPAREHIT=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_TERRAIN_BAR_BEFORE_PREPAREHIT==='1');
+if(TERRAIN_BAR_BEFORE_PREPAREHIT)MEDFAILS.terrainBarBeforePrepareHitRestored=1;
 /* 2026-09-05 -- MEDI_CHARGE_REAIMS_FIRST_LIVE_FOE=1 restores the pre-fix release rule: the second turn
  * of a two-turn move is rebuilt against `live(foes)[0]` instead of the slot the charge was aimed at.
  * It restores that and NOTHING else -- the charge turn still records the slot, the wrapper still
@@ -41706,6 +41714,18 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         const _tWhy={};
         if(gatePriority(m,a.move.id,field,0)>priorityRefusedAbove(_tFoes,field,_tAim,_tWhy,'terrain')){
+          /* 2026-09-22 (Reg M-C, abra/regmc 0.56.0) -- PROTEAN SPEAKS FIRST, BECAUSE `PrepareHit` IS ABOVE `TryHit`.
+           * `trySpreadMoveHit` (sim/battle-actions.ts :590-592, no Champions override) runs `singleEvent('Try')`, then
+           * `singleEvent('PrepareHit')` / `runEvent('PrepareHit')` -- where Protean's `onPrepareHit` (data/abilities.ts
+           * :3497-3507, not named by the Champions mod) converts the user -- and only then the step list whose step 1,
+           * `hitStepTryHitEvent`, is where this terrain refuses. This gate sits above the attack path's own
+           * `proteanConvert` call (which is below target resolution, at the PrepareHit position for every other road), so
+           * a refused priority move never converted its user: the Reg M-C 1950 card `omit-spread ...bo3-2681855173` t1
+           * (Greninja's Water Shuriken into a grounded Indeedee: the authority's `-start|typechange|Water|[from] ability:
+           * Protean` above the terrain's `-activate`; Greninja stayed Water/Dark here). A refusal here always names a
+           * target, so the authority's `targets.length` test at `useMoveInner` has passed. `proteanConvert` carries the
+           * once-per-switch-in and the move guards. MEDI_TERRAIN_BAR_BEFORE_PREPAREHIT=1 skips it. */
+          if(!TERRAIN_BAR_BEFORE_PREPAREHIT&&proteanConvert(m,a.move.id,field))MEDSEEN.proteanBeforeTerrainBar++;
           if(TR){
             if(_tWhy.by==='terrain'&&(_tWhy.bodies||[]).length){
               for(const _tb of _tWhy.bodies)TR.terrainAct(_tb,terrainId(field.terrain));
