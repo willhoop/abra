@@ -41051,7 +41051,8 @@
       "mimikyu",
       "mimikyutotem"
      ],
-     "bailsOnImmunity": true
+     "bailsOnImmunity": true,
+     "endsWithSpecies": true
     },
     "breakable": {
      "breakable": true

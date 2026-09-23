@@ -1,3 +1,16 @@
+## DISGUISE UNDER A VOLLEY: REG M-B HOLDS THE NEUTRAL, REG M-C LETS IT GO AT THE BUST. 2026-09-23 (abra/regmc 0.73.0)
+
+Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §2.
+
+- **Defect.** The engine held the neutral in the price and dropped it in the battle, in both regulations. The Reg M-B
+  Champions handler holds it (`effectState.neutral`). Reg M-C's mainline handler asks the species on every arrival.
+  Reg M-B board: 110 against 97. Reg M-C price: 96-112 against 24-28.
+- **Fix.** `flattensTypeMatchup.endsWithSpecies` comes from `tag_dex` (Reg M-C only). The battle holds (`_flatHeld`)
+  where the tag has no such key. The price re-prices on the busted forme where it has one. The narration re-reads the
+  effectiveness at the bust.
+- **Probe** `tests/probe_volley_first_hit_shield.js` DISGUISE, both regulations. It is red under
+  `MEDI_DISGUISE_VOLLEY_OLD` and on the 0.70.0 bytes.
+
 ## THE PRICE OF A VOLLEY INTO MULTISCALE CUTS ONLY THE FIRST ARRIVAL (BOTH REGULATIONS). 2026-09-23 (abra/regmc 0.72.0)
 
 Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §2.

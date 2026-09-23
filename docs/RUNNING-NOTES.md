@@ -53,6 +53,17 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.73.0] — 2026-09-23 — **Disguise under a volley: Reg M-B holds the neutral for the whole move, Reg M-C lets it go at the bust**
+
+- **What changed.** `engine/medicham2-browser.js`: the Disguise volley per regulation (Reg M-B battle hold; Reg M-C
+  price on the busted forme and the `-resisted` re-read). `engine/tag_dex.js` writes `flattensTypeMatchup.endsWithSpecies`
+  (Reg M-C only). `data/tags-regmc.json` moves by 1 row; `data/tags.json` is byte-identical. Knob
+  `MEDI_DISGUISE_VOLLEY_OLD`. The probe gains a DISGUISE arm.
+- **Measured.** NO FIGURE published. Probe green in both regulations. It is red under the knob and on the 0.70.0 bytes
+  (Reg M-B board 110 against 97; Reg M-C price 17 against 4). `docs/_reports/2026-09-23-engine-gate-reds.md` §2.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens; the Reg M-B figures are re-measured by MEASURE).
+
 ## [abra/regmc 0.72.0] — 2026-09-23 — **The price of a volley into Multiscale cuts only the first arrival, in both regulations**
 
 - **What changed.** `engine/medicham2-browser.js`: `dmgRange`'s flat price road splits a volley whose first arrival meets

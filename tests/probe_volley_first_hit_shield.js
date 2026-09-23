@@ -24,6 +24,8 @@
  *
  *   SCALE     a multi-hit volley into a full-HP Multiscale body.
  *   SCALE-CTL the same volley into the same species carrying its other ability (no shield).
+ *   DISGUISE  a multi-hit volley the Mimikyu RESISTS (so a held neutral and the real matchup differ) into a Mimikyu
+ *             (0.73.0). Reg M-B holds the neutral for the whole volley; Reg M-C lets it go at the bust.
  *   PRICE     `dmgRange` for each arm's volley against the damage the authority's arrivals dealt (the engine-diff row).
  */
 'use strict';
@@ -39,7 +41,11 @@ const VOL = D.moves.all().filter(m => K.legal(m) && m.category !== 'Status' && m
 console.log('     volleys: ' + VOL.map(m => m.id + ' x' + m.multihit + ' ' + m.type).join(', '));
 const FILL = SPEC.filter(s => quiet(s) && learns(s, 'protect')).sort((a, b) => bulk(b) - bulk(a));
 const SCALE = SPEC.filter(s => abil(s).includes('multiscale') && abil(s).length > 1);
-console.log('     multiscale bodies (with a second ability for the control): ' + show(SCALE));
+const MIMI = SPEC.filter(s => s.id === 'mimikyu');
+/* what the authority does with the matchup after the bust, read off ITS handler this run (not the tag the engine reads) */
+const HOLDS = /effectState\.neutral/.test(String(D.abilities.get('disguise').onEffectiveness || ''));
+console.log('     multiscale bodies (with a second ability for the control): ' + show(SCALE) + '   mimikyu: ' + show(MIMI)
+  + '   disguise holds the neutral for the volley: ' + HOLDS);
 const KEEP = /^\|(-damage|-activate|detailschange|-hitcount|faint|-resisted|-supereffective|-crit)\|/;
 const OWN = /^\|(-damage|faint)\|/;
 const play = (tag, A, B, script) => K.play(tag, A, B, script, KEEP, () => ({}));
@@ -78,8 +84,13 @@ for (const d of SCALE) {
   break;
 }
 if (S) RUNS.push(['SCALE', S]); if (SC) RUNS.push(['SCALE-CTL', SC]);
-const DG = null;
-if (!S || !SC) { console.log('  NOT STAGED: ' + ['SCALE', 'SCALE-CTL'].filter((t, i) => ![S, SC][i]).join(', ')); process.exit(1); }
+let DG = null;
+for (const d of MIMI) {
+  DG = stage('disguise', d, 'disguise', (m, def) => D.getImmunity(m.type, def) && D.getEffectiveness(m.type, def) < 0);
+  if (DG) break;
+}
+if (DG) RUNS.push(['DISGUISE', DG]);
+if (!S || !SC || !DG) { console.log('  NOT STAGED: ' + ['SCALE', 'SCALE-CTL', 'DISGUISE'].filter((t, i) => ![S, SC, DG][i]).join(', ')); process.exit(1); }
 K.printArms(RUNS);
 
 console.log('\n3. THE FIXTURES, ON THE AUTHORITY');
@@ -96,7 +107,12 @@ if (S && SC) {
   ok(s.length >= 2 && s.length === c.length && s[0] < c[0] && s.slice(1).every((x, i) => x === c[i + 1]),
     'SCALE — only the FIRST arrival is halved; the later ones match the unshielded control');
 }
-if (DG) console.log('     DISGUISE lines ' + DG.sdK.join('  '));
+if (DG) {
+  const res = DG.sdK.some(l => /^\|-resisted\|p2a:/.test(l)), st = steps(DG);
+  console.log('     DISGUISE arrivals ' + JSON.stringify(st) + '   -resisted on the authority: ' + res);
+  ok(st.length >= 2 && st[0] === 0 && res === !HOLDS, 'DISGUISE — arrival 1 is absorbed, and the arrivals after the bust are '
+    + (HOLDS ? 'held NEUTRAL (no -resisted)' : 'at their REAL matchup (-resisted)'));
+}
 
 K.compareArms(RUNS, OWN, '-damage / faint');
 

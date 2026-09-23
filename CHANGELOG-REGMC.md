@@ -21,6 +21,31 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.73.0] — 2026-09-23
+
+### Fixed
+- **A multi-hit volley into an intact Mimikyu now follows each regulation's Disguise.** The Reg M-B Champions mod
+  overrides Disguise (`data/mods/champions/abilities.ts:14-33`): it sets `this.effectState.neutral` on arrival 1 and
+  returns 0 on the later arrivals, before its species test. So arrivals 2..N stay **neutral** after the bust. The Reg
+  M-C mod has no disguise entry. Mainline (`data/abilities.ts:970-1016`) asks `target.species.id` on every arrival.
+  `onUpdate` makes the body Mimikyu-Busted between arrivals, so the later arrivals take their **real** matchup.
+  Three defects, one mechanic:
+  - **Reg M-B battle (board).** The per-arrival re-price read the busted forme's real matchup. Pin Missile into
+    Mimikyu left MEDICHAM on 110/130 against the authority's 97/130. It is now held (`_flatHeld`, set at the bust seam
+    and cleared when the volley ends; `MEDSEEN.effFlattenHeldThroughVolley`). This defect predates this pass. No
+    instrument had staged it.
+  - **Reg M-C price.** `dmgRange` held arrival 1's neutral for the N-1 arrivals left. `forretress pinmissile ->
+    mimikyu` read 96-112 against the authority's x5 24-28 in the Reg M-C damage differential. The price now prices
+    those arrivals on the busted forme (`asBustedForme`, a rename that the tag's `sameStats`/`sameTypes` make complete).
+  - **Reg M-C narration.** The arrivals after the bust were announced with arrival 1's effectiveness, so the
+    `-resisted` line was missing. It is now re-read at the bust seam.
+- `engine/tag_dex.js`: `flattensTypeMatchup.endsWithSpecies` is written when the handler gates on the species and holds
+  no `effectState`. It is written only when true. `data/tags-regmc.json` moves by the disguise row, and
+  `data/tags.json` stays byte-identical. Knob `MEDI_DISGUISE_VOLLEY_OLD`.
+- `tests/probe_volley_first_hit_shield.js` gains the DISGUISE arm (Toxapex Pin Missile into Mimikyu). What the authority
+  does after the bust is read off its own handler. It is green in both regulations. It is red under the knob and on
+  `89ac57f1f81b` (board) / `485d0a6840ad` (price, narration) with the 0.70.0 bytes.
+
 ## [0.72.0] — 2026-09-23
 
 ### Fixed
