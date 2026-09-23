@@ -1,3 +1,31 @@
+## ENGINE PASS 9: THE GATE RUN'S ENGINE REDS, AND THE REG M-C HAND LIST AFTER PASS 9. 2026-09-23 (abra/regmc 0.77.1)
+
+Full account: `docs/_reports/2026-09-23-engine-gate-reds.md`.
+
+- **Re-measured on the final engine** (Reg M-B release `56fc6976821e`, Reg M-C `ca7aa5f578ed`). Everything was written
+  to `data/verification/*.pass9*.json` and not republished; MEASURE republishes from main.
+  - Damage differential: Reg M-C 3 → 0/6000; Reg M-B 0/6000.
+  - Census: Reg M-B 1004 → 1006 live, Reg M-C 1006 → 1010 live, none missing.
+  - `all-mechanics-fire`, Reg M-C: in-scope unproven 7 → 1 (Court Change); diverging abilities 8 → 1 (Illusion, the
+    declared exclusion).
+  - Lattices: Reg M-C board-material 0/954, 0/1266, 0/1497 (protocol-only 64 → 26, 82 → 38, 92 → 41); Reg M-B
+    0/961, 0/1069, 0/1497. The Reg M-B held-out 12,000 draw: 1 → 0 of 7,182 (the same sample, 1 void).
+
+### The Reg M-C hand list, after pass 9 (replaces the pass-8 list below)
+
+The Intimidate reactors, the volley shields, the hazard-on-hit fainted user and six of the seven unproven mechanics are
+now probes or census rows, so they have left this list.
+
+1. STOPPED, needs a Reg M-B tag change (the brief's stop rule): **Court Change** has no MEDICHAM implementation. The
+   authority swaps Reflect across, and ours leaves it (board STATE). **Overdrive** is missing from `SUBPASS`. Deriving
+   either one needs a new tag, and a new tag adds a catalogue row to Reg M-B's `data/tags.json`.
+2. Narration, not board-material: the Ghost Curse line order; a second Focus Energy's `-fail`; a move-set terrain's
+   `[of]` on `-fieldstart`; the `-fail|<user>|move: <Move>` attribute.
+3. Named gaps with no card: Psychic Terrain's ally exemption; a transformed corpse's buff-on-hit and default-order
+   DamagingHit reactors; the berry-cure pass over a revived pending body; Stakeout's special half (`onModifySpA`).
+4. Carried: `mirrorRevival` (MEASURE); the empirical driver's cross-game `coveragePick` state (MEASURE); the roster's
+   Guard Dog and Rattled rules stage one handler each (MEASURE, `tests/roster.js`).
+
 ## THE PLANNER STAGES THE SEVEN UNPROVEN REG M-C MECHANICS; COURT CHANGE IS AN ENGINE GAP. 2026-09-23 (abra/regmc 0.77.0)
 
 Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §4.

@@ -169,7 +169,7 @@ arm('pshot', 'MEDI_DROP_REFUSAL_AFTER_TABLE', () => {
   const after = sd => sd.slice(sd.findIndex(l => /^\|move\|p1a: .*\|Parting Shot/.test(l)));
   return {
     red: { A, B: B(row(hc, [nm(hc), 'Protect'], dex.abilities.get('hypercutter').name)), script: script(hc),
-           shape: sd => { const s = after(sd); const f = s.findIndex(l => /^\|-fail\|p2a: .*\|unboost\|Attack\|\[from\] ability: Hyper Cutter/.test(l));
+           shape: sd => { const s = after(sd); const f = s.findIndex(l => new RegExp('^\\|-fail\\|p2a: .*\\|unboost\\|' + hcLabel() + '\\|\\[from\\] ability: Hyper Cutter').test(l));
              const u = s.findIndex(l => /^\|-unboost\|p2a: .*\|spa\|1/.test(l)); return f > 0 && u > f; },
            shapeWhy: 'Hyper Cutter refuses the Attack drop ABOVE the Special Attack `-unboost`' },
     control: { A, B: B(row(cb, [nm(cb), 'Protect'], dex.abilities.get('clearbody').name)), script: script(cb),
@@ -178,6 +178,13 @@ arm('pshot', 'MEDI_DROP_REFUSAL_AFTER_TABLE', () => {
   };
 });
 
+/* 2026-09-23 (ENGINE pass 9, abra/regmc 0.77.1) -- THE REFUSAL LABEL IS THE SELECTED AUTHORITY'S OWN SPELLING, read off
+ * Hyper Cutter's handler: 'Attack' in the Reg M-B checkout, 'atk' in Reg M-C's. Both shape checks typed Reg M-B's, so under
+ * Reg M-C the FIXTURE read as not staged. Unreadable reads 'UNREADABLE', which no line matches -- never a guessed spelling. */
+function hcLabel() {
+  return (String(dex.abilities.get('hypercutter').onTryBoost || '').replace(/\s+/g, ' ')
+    .match(/add\(\s*["']-fail["']\s*,\s*\w+\s*,\s*["']unboost["']\s*,\s*["']([A-Za-z ]+)["']/) || [])[1] || 'UNREADABLE';
+}
 /* The declared-table road (`boostTableOnto`): Tickle's {atk, def} into Hyper Cutter; control: into a quiet body. */
 arm('table', 'MEDI_DROP_REFUSAL_AFTER_TABLE', () => {
   fresh();
@@ -194,7 +201,7 @@ arm('table', 'MEDI_DROP_REFUSAL_AFTER_TABLE', () => {
   const after = sd => sd.slice(sd.findIndex(l => /^\|move\|p1a: .*\|Tickle/.test(l)));
   return {
     red: { A, B: B(row(hc, [nm(hc), 'Protect'], dex.abilities.get('hypercutter').name)), script: script(hc),
-           shape: sd => { const s = after(sd); const f = s.findIndex(l => /^\|-fail\|p2a: .*\|unboost\|Attack/.test(l));
+           shape: sd => { const s = after(sd); const f = s.findIndex(l => new RegExp('^\\|-fail\\|p2a: .*\\|unboost\\|' + hcLabel() + '\\|').test(l));
              const u = s.findIndex(l => /^\|-unboost\|p2a: .*\|def\|1/.test(l)); return f > 0 && u > f; },
            shapeWhy: 'Hyper Cutter refuses the Attack drop ABOVE the Defense `-unboost`' },
     control: { A, B: B(row(plain, [nm(plain), 'Protect'])), script: script(plain),

@@ -21,6 +21,26 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.77.1] — 2026-09-23
+
+### Fixed
+- `tests/probe_narration_d.js` typed Reg M-B's `'Attack'` in two Hyper Cutter fixture shape checks. Under Reg M-C the
+  authority writes `'atk'`, so the FIXTURE read as not staged. It now reads the label off the selected authority's
+  handler, and it is green in both regulations.
+
+### Notes
+- **The pass-9 re-runs on the final engine** (Reg M-B `56fc6976821e`, Reg M-C `ca7aa5f578ed`) went to
+  `data/verification/*.pass9*.json`. Nothing published was rewritten; MEASURE republishes from main.
+  - Damage differential: Reg M-C 0/6000 (it still exits 1, on Overdrive's `SUBPASS` conformance alone) and Reg M-B 0/6000.
+  - Census: Reg M-B 1006/1006 and Reg M-C 1010/1010.
+  - `all-mechanics-fire`, Reg M-C: in-scope unproven 7 → 1 (Court Change), and diverging abilities 8 → 1 (Illusion,
+    the declared exclusion). Reg M-B is unchanged.
+  - Lattices, Reg M-C: board-material 0/954, 0/1266 and 0/1497; protocol-only 64 → 26, 82 → 38 and 92 → 41.
+  - Lattices, Reg M-B: 0/961, 0/1069 and 0/1497.
+  - Reg M-B held-out 12,000: 1 → 0 board-material games of 7,182 (the same sample, 1 void), so the Ceaseless Edge game is closed.
+- **Stopped, per the brief (a Reg M-B `data/tags.json` change):** Court Change (MEDICHAM has none) and Overdrive in
+  `SUBPASS`. Full account: `docs/_reports/2026-09-23-engine-gate-reds.md`.
+
 ## [0.77.0] — 2026-09-23
 
 ### Fixed

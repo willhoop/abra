@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.77.1] — 2026-09-23 — **ENGINE pass 9 closes: the re-runs on the final engine, the Reg M-C hand list, and a probe that typed Reg M-B's label**
+
+- **What changed.** `tests/probe_narration_d.js` reads Hyper Cutter's refusal label off the authority. `docs/ENGINE.md`
+  gains the pass-9 hand list. The report is `docs/_reports/2026-09-23-engine-gate-reds.md`. No engine byte moved.
+- **Measured.** NO FIGURE published. Re-runs on `56fc6976821e` / `ca7aa5f578ed` were written to `data/verification/`:
+  damage 0/6000 in both regulations; census 1006 and 1010; Reg M-C lattices 0/954, 0/1266, 0/1497 (protocol-only
+  26/38/41); Reg M-B lattices 0/961, 0/1069, 0/1497; Reg M-B held-out 0/7182 (was 1).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.77.0] — 2026-09-23 — **The staging planner stages the seven unproven Reg M-C mechanics; six are proven, and Court Change exposes an engine gap**
 
 - **What changed.** `engine/stage_planner.js`: six trigger shapes (source-side heal, target arrives, holder applies a
