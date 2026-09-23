@@ -1,3 +1,27 @@
+## THE LAB ON THE 0.68.0 ENGINE, AND THE REG M-C HAND LIST AFTER PASS 8. 2026-09-22 (abra/regmc 0.69.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-8.md`.
+
+- **Reg M-C roster** (`485d0a6840ad`, `--reds`): items 166/166 MATCH; abilities 210 MATCH, 3 announcement-only and
+  Illusion deferred; moves 510 MATCH and Copycat deferred. There are **no COULD-NOT-STAGE rows and no shelf rows**, and
+  every stage exits 0.
+- **Census** 1006/1006 (Reg M-C) and 1004/1004 (Reg M-B).
+- **Lattices** Reg M-C 0/954, 0/1075, 0/1537. Reg M-B 0/961, 0/1069, 0/1497.
+
+### The Reg M-C hand list, after pass 8 (replaces the pass-7 list below)
+
+Milk Drink aimed at the partner is now staged (the 0.64.0 roster row, and `tests/probe_regmc_milk_drink_target.js`), so
+it has left this list.
+
+1. Narration, not board-material: the Ghost Curse line order; a second Focus Energy's `-fail`; a move-set terrain's
+   `[of]` on `-fieldstart`; the `-fail|<user>|move: <Move>` attribute.
+2. Named gaps with no card: Psychic Terrain's ally exemption; a transformed corpse's buff-on-hit and default-order
+   DamagingHit reactors; the berry-cure pass over a revived pending body; Stakeout's special half (`onModifySpA`) has
+   no staged special hit — its only legal carriers learn no plain special move neutral into a quiet body.
+3. Carried: `mirrorRevival` (MEASURE); the empirical driver's cross-game `coveragePick` state (MEASURE);
+   `tests/probe_protean_contrary.js` under Reg M-C (its `itemboost` lead is NOT STAGED, which predates this pass).
+4. Owed (not run): the Reg M-B held-out draw (0.67.0 is a shared rule). See the report's `## OWED, NOT RUN` block.
+
 ## JAW LOCK TRAPS BOTH BODIES (REG M-C). 2026-09-22 (abra/regmc 0.68.0)
 
 - **Defect.** A damaging move whose OWN `onHit` traps reached neither `trapsTarget` door, the status click or the

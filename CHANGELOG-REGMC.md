@@ -21,6 +21,26 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.69.0] — 2026-09-22
+
+### Changed
+- **The lab was re-measured on the 0.68.0 engine.** Reg M-C used release `485d0a6840ad` and Reg M-B used
+  `89ac57f1f81b`. Both censuses and all three Reg M-C roster stages were regenerated.
+  - **Census.** Reg M-C `data/mechanics-census-regmc.json` reads **1006 / 1006 live**. Reg M-B
+    `data/mechanics-census.json` reads **1004 / 1004 live**. Both have run_ok true and no row changed status.
+  - **Reg M-C roster** (`--reds --write`, every stage exits 0):
+    - items 166 of 166 FIRED-AND-BOARDS-MATCH;
+    - abilities 210 MATCH, 3 ANNOUNCEMENT-ONLY, 1 DEFERRED-BY-OWNER (Illusion);
+    - moves 510 MATCH, 1 DEFERRED-BY-OWNER (Copycat).
+  - **No COULD-NOT-STAGE, BELOW-USAGE-SHELF, DIFFER or DID-NOT-FIRE row is left in any stage.** On 0.63.0 there were 22
+    COULD-NOT-STAGE rows and 2 shelf rows. No rule failed its red demonstration, and no plant anchor is dead.
+
+### Notes
+- Pinned lattices, bar `games − games_board_never_diverged`: Reg M-C 1200 **0 of 954**, 1350 **0 of 1075**, 1950
+  **0 of 1537**. Reg M-B 1200 **0 of 961**, 1350 **0 of 1069**, 1950 **0 of 1497**. Reg M-B data files byte-identical.
+- The Reg M-B held-out draw is owed: 0.67.0 is a shared rule. Full account and the OWED block:
+  `docs/_reports/2026-09-22-regmc-engine-8.md`.
+
 ## [0.68.0] — 2026-09-22
 
 ### Fixed

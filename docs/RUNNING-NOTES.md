@@ -53,6 +53,17 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.69.0] — 2026-09-22 — **The lab re-measured on the 0.68.0 engine: both censuses, the Reg M-C roster and both regulations' lattices**
+
+- **What changed.** Regenerated artifacts: `data/mechanics-census-regmc.json`, `data/mechanics-census.json` and
+  `data/roster.{items,abilities,moves}-regmc.json`, on releases `485d0a6840ad` (Reg M-C) and `89ac57f1f81b` (Reg M-B). No
+  engine byte moved.
+- **Measured.** NO FIGURE published. Census 1006/1006 (Reg M-C) and 1004/1004 (Reg M-B). Reg M-C roster: 0
+  COULD-NOT-STAGE, 0 shelf, 0 DIFFER, 0 DID-NOT-FIRE; every stage exits 0. Lattices: Reg M-C 0/954, 0/1075, 0/1537;
+  Reg M-B 0/961, 0/1069, 0/1497. `docs/_reports/2026-09-22-regmc-engine-8.md`.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.68.0] — 2026-09-22 — **Jaw Lock traps both bodies under Reg M-C**
 
 - **What changed.** `engine/tag_dex.js` writes `trapsTarget.alsoUser` on an own-`onHit` trap that also traps the source
