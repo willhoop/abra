@@ -611,6 +611,10 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
   /* 2026-09-22 (Reg M-C, abra/regmc 0.57.0) -- a `spendsOwnType` spend (Double Shock, Burn Up) paid at `selfDrops`, above the
    * contact tolls and the faints, where the authority pays its `self: { onHit }`. */
   ownTypeSpentAtSelfDrops: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.58.0) -- a DamagingHit reactor read on a body the hit just knocked out whose faint
+   * bookkeeping had already reverted a transformation: the ability it WORE (`_abAtFaint`) answered, as the authority's does
+   * until `faintMessages` runs `clearVolatile`. */
+  dhAbilityWornAtFaint: 0,
   /* ROADMAP #175 -- every damage packet `refusesIndirectDamage` turned away, across all nine gated
    * sites. It replaces MEDFAILS.magicGuardChip, which counted the same event as a KNOWN GAP: the
    * counter moves from the failures object to the capabilities one, which is the whole shape of the
@@ -7054,6 +7058,11 @@ if(TERRAIN_BAR_BEFORE_PREPAREHIT)MEDFAILS.terrainBarBeforePrepareHitRestored=1;
 const SPEND_TYPE_AFTER_MOVE=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_SPEND_TYPE_AFTER_MOVE==='1');
 if(SPEND_TYPE_AFTER_MOVE)MEDFAILS.spendTypeAfterMoveRestored=1;
+/* 2026-09-22 (Reg M-C, abra/regmc 0.58.0) -- MEDI_DH_READS_REVERTED_ABILITY=1 lets the DamagingHit reactors of a transformed
+ * body a hit just knocked out read the reverted ability (Imposter) again, as before -- so its copied Rough Skin never tolls. */
+const DH_READS_REVERTED_ABILITY=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_DH_READS_REVERTED_ABILITY==='1');
+if(DH_READS_REVERTED_ABILITY)MEDFAILS.dhReadsRevertedAbilityRestored=1;
 /* 2026-09-05 -- MEDI_CHARGE_REAIMS_FIRST_LIVE_FOE=1 restores the pre-fix release rule: the second turn
  * of a two-turn move is rebuilt against `live(foes)[0]` instead of the slot the charge was aimed at.
  * It restores that and NOTHING else -- the charge turn still records the slot, the wrapper still
@@ -30371,7 +30380,24 @@ function faintHousekeeping(m){
   if(TRANSFORM_SURVIVES_FAINT)return false;
   if(!imposterRevert(m))return false;
   MEDSEEN.transformRevertedOnFaint++;
+  m._abRevertedAtFaint=true;   // read by `dhAbilityOf`; cleared by `reviveClear`
   return true;
+}
+/* 2026-09-22 (Reg M-C, abra/regmc 0.58.0) -- THE ABILITY A DamagingHit REACTOR ANSWERS WITH IS THE ONE THE BODY WORE AT THE HIT.
+ *
+ * `faintHousekeeping` reverts a transformation at the HP-zero moment (`noteFaint`), which is this engine's shared door for
+ * every faint site. The authority reverts it in `faintMessages` (`clearVolatile(false)`, sim/battle.ts :2563), which the
+ * Champions `spreadMoveHit` reaches only AFTER `runEvent('DamagingHit')` (data/mods/champions/scripts.ts :315-426) -- and
+ * `runEvent` still collects a handler whose holder is at 0 HP, because `fainted` is set in `faintMessages` too. So a Ditto
+ * transformed into a Rough Skin Garchomp and knocked out by a contact move still charges its killer the copied Rough Skin
+ * (`data/abilities.ts` roughskin :3938-3949 asks no HP): the Reg M-C 1950 card `pair-protect-bust ...bo3-2678161087` t4.
+ * Here the reactor read `imposter`. `_abAtFaint` is the stamp `noteFaint` already takes for exactly this window (Receiver
+ * reads it); this reads it for the DamagingHit reactors, only while `faintHousekeeping`'s revert stands on a body at 0 HP.
+ * MEDI_DH_READS_REVERTED_ABILITY=1 reads the reverted ability again. */
+function dhAbilityOf(tg){
+  if(!tg)return undefined;
+  if(!DH_READS_REVERTED_ABILITY&&tg._abRevertedAtFaint&&tg.curHP<=0&&tg._abAtFaint!==undefined)return tg._abAtFaint;
+  return tg.ability;
 }
 /* ==== 2026-09-22 (Reg M-C, abra/regmc 0.41.0) -- REVIVAL BLESSING REVIVES ======================================
  *
@@ -30409,7 +30435,7 @@ function reviveClear(t){
   /* the status line: `status = ''`, and every counter hanging off it */
   t.status=''; t.frzTurns=0; t.slpTurns=0; t.slpTime=0; t._toxN=0; t.toxTurns=0;
   /* the faint bookkeeping, so a second death is a new one */
-  t._faintOut=undefined; t._abAtFaint=undefined; t._fEpoch=undefined;
+  t._faintOut=undefined; t._abAtFaint=undefined; t._fEpoch=undefined; t._abRevertedAtFaint=false;
 }
 function reviveFainted(user,sd,sf,act,bench,foes,field,S,acts,unresolved,mv){
   const party=(sf&&sf.team&&sf.team.length)?sf.team:[...act,...bench];
@@ -45424,7 +45450,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                 /* (`R._dhItem` is not built yet -- it is stored below this loop, beside `R._dh` -- so the arrival is
                  * paid through `payItemPunish` directly; `_subAte` is false on this road, the doll has its own.) */
                 const _ipI=ROCKY_HELMET_ONCE?null:itemPunishOf(tg);
-                const _ipBefore=!!_ipI&&(+_ipI.order||Infinity)<(+((TAGS.param('ability',tg.ability,'punishesAttacker')||{}).order)||Infinity);
+                const _ipBefore=!!_ipI&&(+_ipI.order||Infinity)<(+((TAGS.param('ability',dhAbilityOf(tg),'punishesAttacker')||{}).order)||Infinity);
                 if(_ipI&&_ipBefore)payItemPunish(m,tg,1,a.move.id,a.move.mv);
                 _reactAddr(()=>_damagingHit(1));
                 if(_ipI&&!_ipBefore)payItemPunish(m,tg,1,a.move.id,a.move.mv);
@@ -45918,7 +45944,17 @@ function battleTurn(S,rng,actsForA,actsForB){
          * THE TERNARY IS LOAD-BEARING, NOT STYLE: `_react` is a `const` declared BELOW the packet
          * loop (it needs `_landed`), so an inline call must never evaluate it. Passing 1 takes the
          * other branch and the dead zone is never entered. */
+        /* 2026-09-22 (Reg M-C, abra/regmc 0.58.0) -- THE REACTORS ANSWER WITH THE ABILITY THE BODY WORE AT THE HIT. See
+         * `dhAbilityOf`: on a transformed body this hit just knocked out, `tg.ability` is already the reverted one. The swap
+         * is held for this call only and put back in `finally`, so nothing outside the reactor block sees it. */
         function _damagingHit(_n){
+          const _abNow=tg.ability, _abWore=dhAbilityOf(tg);
+          if(_abWore===_abNow)return _damagingHitAs(_n);
+          MEDSEEN.dhAbilityWornAtFaint++;
+          tg.ability=_abWore;
+          try{ return _damagingHitAs(_n); } finally{ tg.ability=_abNow; }
+        }
+        function _damagingHitAs(_n){
         const _cntDH=(_n==null?Math.max(0,_react-(R._reactPaid|0)):_n);
         /* WIRE 5 -- punishesAttacker, all of it. Rough Skin (3,762 sheets) and its family were
          * ABSENT: the engine had no concept that touching something can cost you. Unlike
@@ -48598,8 +48634,9 @@ function battleTurn(S,rng,actsForA,actsForB){
        * early is not paid again in the body pass. `MEDI_DH_STEPS_SPLIT=1` restores the four-step layout
        * exactly (the spread of the ternary below). */
       const _dhOrderOf=(R)=>{const tg=R.tg;
-        const _p=tg&&tg.ability?TAGS.param('ability',tg.ability,'punishesAttacker'):null;
-        const _b=tg&&tg.ability?TAGS.param('ability',tg.ability,'buffsHolderOnHit'):null;
+        const _tab=dhAbilityOf(tg);   // 2026-09-22 (abra/regmc 0.58.0) -- the ability worn at the hit, see `dhAbilityOf`
+        const _p=_tab?TAGS.param('ability',_tab,'punishesAttacker'):null;
+        const _b=_tab?TAGS.param('ability',_tab,'buffsHolderOnHit'):null;
         return {pun:(_p&&_p.order!=null)?+_p.order:null, buff:(_b&&_b.order!=null)?+_b.order:null};
       };
       const _stepDamagingHitEarly=(R)=>{

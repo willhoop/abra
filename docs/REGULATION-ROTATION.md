@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.57.0 — 2026-09-22.**
+**Version: 0.58.0 — 2026-09-22.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -399,6 +399,7 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | **A tag that admits several target classes is read as the one class the old regulation used.** `healsAlly` admits every friendly class; in Reg M-B its only pair-sized member was Life Dew (`allies`), so the engine read the tag's presence as "heal both". Champions M-C retargets Milk Drink to `adjacentAllyOrSelf` and it joined the tag. | A heal that restores the partner as well as the user. | When a mod row changes a move's `target`, list every tag the move carries and grep the engine for readers that key on the tag's presence rather than on `targetClass`. Fixed 0.54.0 (`healParam`). |
 | **A door that is the third caller of an entry routine can miss the routine's tail.** `megaEvolveNow` ran `applyEntryEffects` (the mega's weather) without the `syncFieldTypes` the switch road ends in; Reg M-B's pool never put a Castform beside a weather mega, Reg M-C's did (Froslass-Mega). | A Forecast / Mimicry body on the wrong forme after a mega's weather or terrain. | When a new regulation adds a weather- or terrain-setting mega, grep every `applyEntryEffects(` caller and check each ends in the same field sync. Fixed 0.55.0. |
 | **A refusal written early in the engine skips every step the authority runs between it and the real refusal.** The Psychic Terrain gate sits at the top of the attack path but refuses at `TryHit`; Protean's `PrepareHit` conversion lies between. Reg M-B's pinned pool never dealt a Protean priority move into Psychic Terrain; Reg M-C's (Greninja + Indeedee) did. | A Protean / Libero body keeping its old types after a terrain refusal. | For each early `continue` in the attack path, list the authority steps between the engine's position and the refusal's real step (`Try`, `PrepareHit`, the hit steps) and check none writes state. Fixed 0.56.0. |
+| **An engine that does a faint's cleanup at the HP-zero moment is wrong for every handler the authority runs between that moment and `faintMessages`.** `faintHousekeeping` reverts a transformation off `noteFaint`; the DamagingHit reactors run after it here and before `clearVolatile` there. Reg M-B's pool never KO'd a transformed Rough Skin copy with contact; Reg M-C's (Ditto + Garchomp) did. | A toll, a buff or a drop owed by the copied ability, missing on the hit that KO'd the copy. | For every state `noteFaint` rewrites, ask which handlers still read it before `faintMessages` (DamagingHit, AfterHit, the self drops) and route them through the worn value (`_abAtFaint`, `dhAbilityOf`). Fixed 0.58.0 for the DamagingHit reactors. |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

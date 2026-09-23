@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.58.0] — 2026-09-22 — **A transformed body knocked out by a contact move still charges the copied Rough Skin, in both regulations**
+
+- **What changed.** `engine/medicham2-browser.js`: `dhAbilityOf` -- the DamagingHit reactors (and their order) read the
+  ability a body wore at the hit when `faintHousekeeping` has already reverted its transformation. No tag moved. Knob
+  `MEDI_DH_READS_REVERTED_ABILITY`; probe `tests/probe_regmc_transformed_toll_at_faint.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine-6.md` §5;
+  Reg M-B lattice 1200 reads 0 board-material; Reg M-B data files byte-identical.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.57.0] — 2026-09-22 — **Double Shock and Burn Up spend their user's type above the contact tolls, in both regulations**
 
 - **What changed.** `engine/medicham2-browser.js`: the `spendsOwnType` spend moved from the bottom of the attack branch into

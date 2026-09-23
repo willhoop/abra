@@ -21,6 +21,26 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.58.0] — 2026-09-22
+
+### Fixed
+- **A transformed body knocked out by a contact move still charges its killer the copied Rough Skin, in both regulations.**
+  The authority ends a transformation in `faintMessages` (`clearVolatile(false)`, `sim/battle.ts` :2563), below the
+  Champions `spreadMoveHit`'s `runEvent('DamagingHit')`; Rough Skin (`data/abilities.ts` :3938-3949) asks no HP. This engine
+  reverts the transformation at the HP-zero moment (`faintHousekeeping` off `noteFaint`), so the DamagingHit reactors read
+  `imposter`: the Reg M-C 1950 card `…bo3-2678161087` t4 (a Ditto transformed into Garchomp, KO'd by Stomping Tantrum;
+  the authority charges Garchomp 22 HP). The reactors now read the ability the body wore at the hit (`_abAtFaint`, the
+  stamp `noteFaint` already takes for Receiver) through `dhAbilityOf`. No tag moved. Knob `MEDI_DH_READS_REVERTED_ABILITY`.
+- `tests/probe_regmc_transformed_toll_at_faint.js` (`--regulation regmc`): KO (Ditto copies Sharpedo, Rough Skin; Slash KOs
+  it; the toll lands), STANDS (Night Slash, the Ditto survives; the control). Exit 0 clean; exit 1 under the knob and on
+  release `1d5008367277` with the 0.57.0 engine bytes. `tests/probe_transform_faint_revert.js` (Reg M-B) stays green.
+
+### Notes
+- Shared rule (Ditto and Rough Skin are Reg M-B legal); Reg M-B data files byte-identical. Reg M-B lattice 1200 on release
+  `b8c7b5488684`: 0 of 961.
+- Pinned Reg M-C differential (census pin `f3b70bc0c47c`, release `72bb36048aa0`): 1950 3 → **2 of 1537**; 1350 **0 of
+  1075** and 1200 **0 of 954** unmoved. `docs/_reports/2026-09-22-regmc-engine-6.md` §5.
+
 ## [0.57.0] — 2026-09-22
 
 ### Fixed

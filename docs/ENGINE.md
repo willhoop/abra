@@ -1,3 +1,13 @@
+## A TRANSFORMED BODY KNOCKED OUT BY CONTACT STILL CHARGES THE COPIED ROUGH SKIN (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.58.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-6.md` §5.
+
+- **Defect.** `faintHousekeeping` reverts a transformation at HP zero, above the DamagingHit reactors; the authority reverts
+  it in `faintMessages`, below them. A KO'd Ditto's copied Rough Skin never tolled.
+- **Fix.** `dhAbilityOf(tg)`: the reactors and their ordering read `_abAtFaint` while the revert stands on a 0-HP body.
+- **Probe** `tests/probe_regmc_transformed_toll_at_faint.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_DH_READS_REVERTED_ABILITY` and on release `1d5008367277` with the 0.57.0 bytes.
+
 ## DOUBLE SHOCK AND BURN UP SPEND THEIR USER'S TYPE ABOVE THE CONTACT TOLLS (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.57.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-6.md` §4.

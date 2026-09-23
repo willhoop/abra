@@ -320,3 +320,78 @@ survive the toll.
 
 Shared rule (Double Shock and Burn Up are Reg M-B legal). Data files byte-identical. Lattice 1200 on release
 `1ad6fd553b23`: **0 of 961**, 0 void, 0 protocol-diverged.
+
+---
+
+## 5. A transformed body knocked out by a contact move still charges the copied Rough Skin (abra/regmc 0.58.0)
+
+### The card (1950, `pair-protect-bust …bo3-2678161087`, turn 4)
+
+```
+(turn 2: |-transform|p1b: Ditto|p2a: Garchomp|[from] ability: Imposter)
+|move|p2a: Garchomp|Stomping Tantrum|p1b: Ditto
+|-damage|p1b: Ditto|0 fnt
+showdown   |-damage|p2a: Garchomp|54/183|[from] ability: Rough Skin|[of] p1b: Ditto
+           |faint|p1b: Ditto
+medicham2  |faint|p1b: Ditto                  (Garchomp stays at 76/183)
+```
+
+### The authority, read whole
+
+- `data/abilities.ts` roughskin :3938-3949 (neither Rough Skin nor Imposter is in the Champions mod): `onDamagingHitOrder:
+  1`, `onDamagingHit` damages the contact attacker by `source.baseMaxhp / 8`; no test of the holder's HP.
+- `data/mods/champions/scripts.ts` spreadMoveHit :315-426: `runEvent('DamagingHit')` inside the move. `runEvent` still
+  collects a handler whose holder is at 0 HP, because `fainted` is set in `faintMessages`.
+- `sim/battle.ts` faintMessages :2555-2566: `runEvent('Faint')`, the End events, then `clearVolatile(false)` -- which ends the
+  transformation -- then `fainted = true`, `isActive = false`. So the DamagingHit reactors of the body the hit just KO'd
+  answer with the COPIED ability.
+
+### The defect
+
+`faintHousekeeping` (2026-08-27) reverts a transformation at the HP transition, off `noteFaint` -- the one door every
+faint site shares. That is right for everything after `faintMessages` and wrong for the handlers between the HP transition
+and `faintMessages`. `noteFaint` already stamps `_abAtFaint` (the ability worn) for Receiver, one such handler; the
+DamagingHit reactors read `tg.ability`, which by then was `imposter`.
+
+### Fix
+
+`dhAbilityOf(tg)`: `_abAtFaint` when `faintHousekeeping`'s revert stands (`_abRevertedAtFaint`, cleared by `reviveClear`) on
+a body at 0 HP, else `tg.ability`. `_damagingHit` swaps the worn ability in for its own call and restores it in a `finally`;
+the reactor ordering (`_dhOrderOf`, and the Rocky Helmet interleave's `_ipBefore`) reads the same helper.
+`MEDSEEN.dhAbilityWornAtFaint`. Knob `MEDI_DH_READS_REVERTED_ABILITY`. No tag moved.
+
+### Probe -- `tests/probe_regmc_transformed_toll_at_faint.js --regulation regmc`
+
+Cast derived: the contact-toll abilities with no HP test (Iron Barbs, Rough Skin), the Imposter body (Ditto), the carriers
+(Sharpedo, Garchomp). Ditto leads in slot a and copies foe slot b (Imposter's `foe.active[length - 1 - position]`) -- and
+with it the carrier's moves, so it clicks the copied self boost; a first draft had it click Transform, which the copy no
+longer holds. The carrier's contact moves are played until one KOs the copy (Slash) and one leaves it standing (Night
+Slash).
+
+| arm | staged | authority |
+|---|---|---|
+| KO | Sharpedo's Slash into the Ditto-as-Sharpedo | `-damage|p1a: Ditto|0 fnt`, Rough Skin `127/145` on Sharpedo, `faint` |
+| STANDS | Night Slash; the Ditto survives at 38/123 | the same Rough Skin toll |
+
+| run | exit | red |
+|---|---|---|
+| release `1d5008367277` + the 0.57.0 engine bytes | **1** | KO (the toll line, boards: `sharpedo.hp`) |
+| clean, release `72bb36048aa0` | **0** | none; the worn ability read once in KO, never in STANDS |
+| `MEDI_DH_READS_REVERTED_ABILITY=1` | **1** | KO |
+
+7 staged sets, 0 illegal. `tests/probe_transform_faint_revert.js` (Reg M-B, the corpse's species and types after the
+revert) stays green: the revert itself is unchanged.
+
+### Pinned Reg M-C differential (release `72bb36048aa0`)
+
+| `--games` | before | after | void | protocol-diverged |
+|---|---|---|---|---|
+| 1200 | 0 / 954 | **0 / 954** | 1 | 64 |
+| 1350 | 0 / 1075 | **0 / 1075** | 0 | 72 |
+| 1950 | 3 / 1537 | **2 / 1537** | 0 | 99 → 98 |
+
+Left: `…2678161087`. Joined: none.
+
+### Reg M-B
+
+Shared rule. Data files byte-identical. Lattice 1200 on release `b8c7b5488684`: **0 of 961**, 0 void, 0 protocol-diverged.
