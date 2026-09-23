@@ -3422,7 +3422,7 @@
    "why": "Defiant (5.46%) and Competitive. The Intimidate punisher -- dropping their Attack HANDS them an attack boost, so the lead interaction inverts",
    "consumedBy": "onAfterEachBoost",
    "used": true,
-   "n": 2,
+   "n": 3,
    "uses": 15352,
    "examples": [
     "Competitive",
@@ -15758,7 +15758,8 @@
      "hazard": "spikes",
      "maxLayers": 3,
      "throughSubstitute": true,
-     "onlyOnConnect": true
+     "onlyOnConnect": true,
+     "laysForFaintedUser": true
     },
     "formatSecondaryCount": {
      "count": 1
@@ -32354,7 +32355,8 @@
      "hazard": "stealthrock",
      "maxLayers": 1,
      "throughSubstitute": true,
-     "onlyOnConnect": true
+     "onlyOnConnect": true,
+     "laysForFaintedUser": true
     },
     "formatSecondaryCount": {
      "count": 1
@@ -40685,7 +40687,8 @@
      "reflects": null,
      "reflectSkipsAtFloor": null,
      "reflectNeedsLivingSource": null,
-     "allyBlockLine": null
+     "allyBlockLine": null,
+     "failLabel": "def"
     }
    }
   },
@@ -41049,7 +41052,8 @@
       "mimikyu",
       "mimikyutotem"
      ],
-     "bailsOnImmunity": true
+     "bailsOnImmunity": true,
+     "endsWithSpecies": true
     },
     "breakable": {
      "breakable": true
@@ -42072,7 +42076,10 @@
      "reflects": null,
      "reflectSkipsAtFloor": null,
      "reflectNeedsLivingSource": null,
-     "allyBlockLine": null
+     "allyBlockLine": null,
+     "answersWith": {
+      "atk": 1
+     }
     }
    }
   },
@@ -42290,7 +42297,8 @@
      "reflects": null,
      "reflectSkipsAtFloor": null,
      "reflectNeedsLivingSource": null,
-     "allyBlockLine": null
+     "allyBlockLine": null,
+     "failLabel": "atk"
     }
    }
   },
@@ -42486,7 +42494,8 @@
      "reflects": null,
      "reflectSkipsAtFloor": null,
      "reflectNeedsLivingSource": null,
-     "allyBlockLine": null
+     "allyBlockLine": null,
+     "failLabel": "atk"
     },
     "refusesVolatile": {
      "refuses": [
@@ -43156,7 +43165,8 @@
      "reflects": null,
      "reflectSkipsAtFloor": null,
      "reflectNeedsLivingSource": null,
-     "allyBlockLine": null
+     "allyBlockLine": null,
+     "failLabel": "atk"
     }
    }
   },
@@ -43254,7 +43264,8 @@
      "reflects": null,
      "reflectSkipsAtFloor": null,
      "reflectNeedsLivingSource": null,
-     "allyBlockLine": null
+     "allyBlockLine": null,
+     "failLabel": "atk"
     },
     "refusesVolatile": {
      "refuses": [
@@ -43635,10 +43646,21 @@
   "rattled": {
    "name": "Rattled",
    "tags": [
+    "boostsWhenLowered",
     "buffsHolderOnHit"
    ],
    "uses": 0,
    "params": {
+    "boostsWhenLowered": {
+     "retaliates": true,
+     "perStatLowered": false,
+     "boosts": {
+      "spe": 1
+     },
+     "onlyFrom": "Intimidate",
+     "whenStat": "atk",
+     "quietAtCap": true
+    },
     "buffsHolderOnHit": {
      "compounds": true,
      "boosts": {
@@ -44026,7 +44048,8 @@
      "reflects": null,
      "reflectSkipsAtFloor": null,
      "reflectNeedsLivingSource": null,
-     "allyBlockLine": null
+     "allyBlockLine": null,
+     "failLabel": "atk"
     },
     "ignoresTypeImmunity": {
      "movesOfType": "Fighting/Normal",

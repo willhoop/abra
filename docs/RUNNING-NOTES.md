@@ -53,7 +53,7 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
-## [abra/regmc 0.71.0] — 2026-09-23 — **The roster's text proxy and its refused fixtures are repaired; 141 → 11 (Reg M-B), 144 → 12 (Reg M-C)**
+## [abra/regmc 0.78.0] — 2026-09-23 — **The roster's text proxy and its refused fixtures are repaired; 141 → 11 (Reg M-B), 144 → 12 (Reg M-C)**
 
 - **What changed.** `tests/roster.js`, with the text view moved into `tests/roster_text_view.js` and the new
   `tests/test-roster-text-view.js` and `tests/probe_roster_fixture_legality.js`. The text view leaves frozen Hidden
@@ -66,6 +66,94 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
   `docs/_reports/2026-09-23-roster-fixture-legality.md`. The roster artifacts were NOT regenerated (owed).
 - **Basis.** unchanged. **Supersedes.** Nothing published. **Owed to the next major.** none (Reg M-C publishes nothing
   until its gate opens).
+## [abra/regmc 0.77.1] — 2026-09-23 — **ENGINE pass 9 closes: the re-runs on the final engine, the Reg M-C hand list, and a probe that typed Reg M-B's label**
+
+- **What changed.** `tests/probe_narration_d.js` reads Hyper Cutter's refusal label off the authority. `docs/ENGINE.md`
+  gains the pass-9 hand list. The report is `docs/_reports/2026-09-23-engine-gate-reds.md`. No engine byte moved.
+- **Measured.** NO FIGURE published. Re-runs on `56fc6976821e` / `ca7aa5f578ed` were written to `data/verification/`:
+  damage 0/6000 in both regulations; census 1006 and 1010; Reg M-C lattices 0/954, 0/1266, 0/1497 (protocol-only
+  26/38/41); Reg M-B lattices 0/961, 0/1069, 0/1497; Reg M-B held-out 0/7182 (was 1).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
+## [abra/regmc 0.77.0] — 2026-09-23 — **The staging planner stages the seven unproven Reg M-C mechanics; six are proven, and Court Change exposes an engine gap**
+
+- **What changed.** `engine/stage_planner.js`: six trigger shapes (source-side heal, target arrives, holder applies a
+  volatile, switch-out at half, side condition up, party fainted), the scope's re-admissions in the universe, and
+  `--tags`. `engine/all_mechanics_fire.js`: its population takes the scope's re-admissions.
+  `tests/test-stage-planner.js`: the population counts them too. No engine byte and no tag moved.
+- **Measured.** NO FIGURE published. The seven rows on `ca7aa5f578ed`: 5 FIRED with a control, Revival Blessing is
+  resolved on both engines, and Court Change is resolved on the authority only, with the board STATE (an engine gap,
+  stopped: it needs a Reg M-B tag change). The Reg M-B plan is unchanged (0 of 964 fixtures moved).
+  `data/verification/all-mechanics-fire-regmc.pass9-item4.json`, `docs/_reports/2026-09-23-engine-gate-reds.md` §4.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
+## [abra/regmc 0.76.0] — 2026-09-23 — **An Intimidate refusal names the stat as the regulation's own handler spells it ('atk' in Reg M-C)**
+
+- **What changed.** `engine/tag_dex.js` writes `preventsStatDrop.failLabel` where the handler's refusal label is a
+  stat id (Reg M-C: 6 rows). `engine/medicham2-browser.js` writes that label and falls back to `STAT_LABEL`.
+  `data/tags-regmc.json` moves by 6 rows; `data/tags.json` is byte-identical. Knob `MEDI_REFUSAL_LABEL_DISPLAY`. Probe
+  arms and one census row (both regulations).
+- **Measured.** NO FIGURE published. Probe green in both regulations; in Reg M-C it is red under the knob and on
+  `485d0a6840ad`. `docs/_reports/2026-09-23-engine-gate-reds.md` §3.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens; no Reg M-B figure moves).
+
+## [abra/regmc 0.75.0] — 2026-09-23 — **Rattled raises its Speed after an Intimidate drop (Reg M-C)**
+
+- **What changed.** `engine/tag_dex.js`: `boostsWhenLowered` admits an effect-gated reaction (`onlyFrom`, `whenStat`,
+  `quietAtCap`; Rattled alone). `engine/medicham2-browser.js`: `retaliateWhenLowered` honours the gate, and the
+  Intimidate road passes it. `data/tags-regmc.json` moves by 1 row and the catalogue's `n`; `data/tags.json` is
+  byte-identical. Knob `MEDI_RATTLED_IGNORES_INTIMIDATE`. Probe arm and one census row.
+- **Measured.** NO FIGURE published. Probe green in Reg M-C, red under the knob and on `485d0a6840ad` with the 0.70.0
+  bytes. `docs/_reports/2026-09-23-engine-gate-reds.md` §3.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
+## [abra/regmc 0.74.0] — 2026-09-23 — **Guard Dog answers Intimidate with +1 Attack (Reg M-C)**
+
+- **What changed.** `engine/tag_dex.js` writes `preventsStatDrop.answersWith` (Guard Dog alone, Reg M-C only).
+  `engine/medicham2-browser.js` answers a refused drop with that self boost (`answerRefusedDrop`). `data/tags-regmc.json`
+  moves by 1 row; `data/tags.json` is byte-identical. Knob `MEDI_GUARD_DOG_REFUSES_ONLY`. Probe
+  `tests/probe_intimidate_reactors.js`, plus one census row.
+- **Measured.** NO FIGURE published. Probe green in Reg M-C, red under the knob and on `485d0a6840ad` with the 0.70.0
+  bytes. Reg M-C census 1008/1008 (worktree). `docs/_reports/2026-09-23-engine-gate-reds.md` §3.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
+## [abra/regmc 0.73.0] — 2026-09-23 — **Disguise under a volley: Reg M-B holds the neutral for the whole move, Reg M-C lets it go at the bust**
+
+- **What changed.** `engine/medicham2-browser.js`: the Disguise volley per regulation (Reg M-B battle hold; Reg M-C
+  price on the busted forme and the `-resisted` re-read). `engine/tag_dex.js` writes `flattensTypeMatchup.endsWithSpecies`
+  (Reg M-C only). `data/tags-regmc.json` moves by 1 row; `data/tags.json` is byte-identical. Knob
+  `MEDI_DISGUISE_VOLLEY_OLD`. The probe gains a DISGUISE arm.
+- **Measured.** NO FIGURE published. Probe green in both regulations. It is red under the knob and on the 0.70.0 bytes
+  (Reg M-B board 110 against 97; Reg M-C price 17 against 4). `docs/_reports/2026-09-23-engine-gate-reds.md` §2.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens; the Reg M-B figures are re-measured by MEASURE).
+
+## [abra/regmc 0.72.0] — 2026-09-23 — **The price of a volley into Multiscale cuts only the first arrival, in both regulations**
+
+- **What changed.** `engine/medicham2-browser.js`: `dmgRange`'s flat price road splits a volley whose first arrival meets
+  a from-full cut (`_volleyFullHPSplit`; `dmgRangeOneHit` gains `noFullHP`). The battle road is unchanged. Knob
+  `MEDI_VOLLEY_SHIELD_EVERY_ARRIVAL`. Probe `tests/probe_volley_first_hit_shield.js`. No tag moved.
+- **Measured.** NO FIGURE published. Probe green in both regulations. It is red under the knob and on
+  `485d0a6840ad` / `89ac57f1f81b` with the 0.70.0 bytes. `docs/_reports/2026-09-23-engine-gate-reds.md` §2.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
+## [abra/regmc 0.71.0] — 2026-09-23 — **A user a contact toll knocks out lays Stone Axe's / Ceaseless Edge's hazard only where its own handler asks no HP (Reg M-B: never)**
+
+- **What changed.** `engine/tag_dex.js` writes `hazardOnHit.laysForFaintedUser` when the move's own `onAfterHit` asks no
+  `source.hp` (true in Reg M-C, false in Reg M-B). `engine/medicham2-browser.js` lays for a fainted user only on that
+  param. `data/tags-regmc.json` moves by 2 rows; `data/tags.json` is byte-identical. Knob
+  `MEDI_HAZARD_ON_HIT_FAINTED_ALWAYS`. Probe `tests/probe_regmc_hazard_on_hit_fainted_user.js` (both regulations) and one
+  census row.
+- **Measured.** NO FIGURE published. Probe: Reg M-B green clean, red under the knob and on `89ac57f1f81b` with the 0.70.0
+  bytes; Reg M-C green. Census (worktree, not republished): 1005/1005 Reg M-B and 1007/1007 Reg M-C.
+  `docs/_reports/2026-09-23-engine-gate-reds.md` §1.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens; the Reg M-B held-out figure is re-measured by MEASURE).
 
 ## [abra/regmc 0.70.0] — 2026-09-23 — **Both MEDICHAM gates read in main on the finished engine: both CLOSED**
 

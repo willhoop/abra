@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [0.71.0] — 2026-09-23
+## [0.78.0] — 2026-09-23
 
 ### Fixed
 - **`tests/roster.js`'s text view no longer throws on Reg M-B's frozen Hidden Power text (16 typings).** The view (now
@@ -50,6 +50,180 @@ rewritten; what changed and why is stated.
   - Transform. Its sole learner, Ditto, learns nothing else.
 - **No roster stage was run** (light mode). The stage commands and the verdict reading are owed:
   `docs/_reports/2026-09-23-roster-fixture-legality.md`.
+## [0.77.1] — 2026-09-23
+
+### Fixed
+- `tests/probe_narration_d.js` typed Reg M-B's `'Attack'` in two Hyper Cutter fixture shape checks. Under Reg M-C the
+  authority writes `'atk'`, so the FIXTURE read as not staged. It now reads the label off the selected authority's
+  handler, and it is green in both regulations.
+
+### Notes
+- **The pass-9 re-runs on the final engine** (Reg M-B `56fc6976821e`, Reg M-C `ca7aa5f578ed`) went to
+  `data/verification/*.pass9*.json`. Nothing published was rewritten; MEASURE republishes from main.
+  - Damage differential: Reg M-C 0/6000 (it still exits 1, on Overdrive's `SUBPASS` conformance alone) and Reg M-B 0/6000.
+  - Census: Reg M-B 1006/1006 and Reg M-C 1010/1010.
+  - `all-mechanics-fire`, Reg M-C: in-scope unproven 7 → 1 (Court Change), and diverging abilities 8 → 1 (Illusion,
+    the declared exclusion). Reg M-B is unchanged.
+  - Lattices, Reg M-C: board-material 0/954, 0/1266 and 0/1497; protocol-only 64 → 26, 82 → 38 and 92 → 41.
+  - Lattices, Reg M-B: 0/961, 0/1069 and 0/1497.
+  - Reg M-B held-out 12,000: 1 → 0 board-material games of 7,182 (the same sample, 1 void), so the Ceaseless Edge game is closed.
+- **Stopped, per the brief (a Reg M-B `data/tags.json` change):** Court Change (MEDICHAM has none) and Overdrive in
+  `SUBPASS`. Full account: `docs/_reports/2026-09-23-engine-gate-reds.md`.
+
+## [0.77.0] — 2026-09-23
+
+### Fixed
+- **Reg M-C: seven in-scope mechanics were unproven in `all-mechanics-fire-regmc`. The fixtures were the gap, not the
+  format.** The fixes are in `engine/stage_planner.js`, and every shape is read off a handler or a tag param:
+  - **Liquid Ooze** (`onSourceTryHeal`): the planner made the holder drain. A `Source` heal handler needs the RECEIVER
+    to heal off the holder, so the receiver is now chosen to carry a drain move. The heal event runs before the
+    full-HP test (`sim/battle.ts` heal()).
+  - **Stakeout** (`damageBoost.onlyWhen = targetFreshlyArrived`): the receiver switches on the trigger turn, and the
+    holder hits the arrival.
+  - **Binding Band** (no handler; read in the `partiallytrapped` condition's onStart): the holder clicks a move whose
+    `volatileStatus` is that condition. A bearer that learns none is refused, and the next bearer is tried.
+  - **Emergency Exit** (`switchesOutAtHalf`): a halving move (damageCallback) takes the holder from full to half. The
+    control swaps that click for the receiver's Protect. Before this, the row had NO control, because Golisopod has
+    one ability.
+  - **Court Change** (a literal side-condition list and `if (!success) return false`): the receiver raises one of the
+    listed conditions first.
+  - **Revival Blessing** (`revivesFainted.failsWithoutFainted`): the partner clicks a move that faints its user
+    (tag `userFaints`, self-aimed first), and the bench replaces it.
+  - **Aura Guard** had NO ROW. `engine/legal_scope.js` re-admits it through the TeamValidator (Lucario @ Lucarionite
+    Z), but the planner's universe and `all_mechanics_fire`'s population both kept the strict `!isNonstandard`
+    filter. Both now take the scope's re-admissions, and they print them. `tests/test-stage-planner.js` counts its
+    population the same way.
+- `engine/stage_planner.js --tags <path>` plans off a named tag file. The CLI default reads `data/tags.json`, which
+  is Reg M-B's catalogue even under `--regulation regmc`.
+- Measured (`--only` the seven, release `ca7aa5f578ed`, written to
+  `data/verification/all-mechanics-fire-regmc.pass9-item4.json`, not republished): Liquid Ooze, Stakeout, Emergency
+  Exit, Aura Guard and Binding Band read FIRED with a control. Revival Blessing is resolved on both engines with the
+  board clean. **Court Change is resolved on the authority and not on MEDICHAM, and the board reads STATE**
+  (the authority moves Reflect across; ours leaves it). MEDICHAM has no Court Change at all. The fix needs a new
+  derived tag, which adds a catalogue row to Reg M-B's `data/tags.json`, so it was stopped and reported rather than
+  made (`docs/_reports/2026-09-23-engine-gate-reds.md` §4).
+- The Reg M-B plan is unchanged: 964 mechanics and 0 changed fixtures (measured by diffing the plan before and after).
+  `tests/test-stage-planner.js` is green in both regulations. No engine byte moved.
+
+## [0.76.0] — 2026-09-23
+
+### Fixed
+- **Reg M-C: Inner Focus, Oblivious, Own Tempo and Scrappy (and Hyper Cutter and Big Pecks) wrote `-fail|…|unboost|Attack`
+  where the authority writes `atk`.** The Reg M-B checkout's handlers write `this.add('-fail', target, 'unboost',
+  'Attack', ...)` (`data/abilities.ts` innerfocus :2150). The Reg M-C checkout's handlers write the stat id: `'atk'`
+  (:2160), and `'def'` for Big Pecks. medicham2's `STAT_LABEL` is the Reg M-B spelling. This is narration only, and
+  the boards agree. It is the four "diverging" abilities of the Reg M-C `all-mechanics-fire`. `engine/tag_dex.js`
+  now reads the literal into `preventsStatDrop.failLabel` where it is a stat id, and writes it only then.
+  `data/tags-regmc.json` moves by those six rows, and `data/tags.json` stays byte-identical. The engine writes the
+  handler's label when the tag carries one. Nothing is keyed on the regulation id. Knob `MEDI_REFUSAL_LABEL_DISPLAY`.
+- **Why the roster called them clean.** The roster's `ability/stat-drop-reaction` rule grades BOARDS
+  (FIRED-AND-BOARDS-MATCH), and the boards were right. `all_mechanics_fire` grades the protocol line as well. Both
+  instruments were right about what each one reads.
+- `tests/probe_intimidate_reactors.js` gains the four arms. They are green in both regulations. In Reg M-C they are
+  red under the knob and on `485d0a6840ad` with the 0.70.0 bytes. In Reg M-B the knob moves nothing, as it should.
+  There is also a new census row, registered where Inner Focus has a legal carrier (both regulations). Its expected
+  label is read off the selected authority's handler.
+
+## [0.75.0] — 2026-09-23
+
+### Fixed
+- **Reg M-C: Rattled never answered Intimidate.** The handler (`data/abilities.ts` rattled; no Champions override; no
+  Reg M-B carrier) is `onAfterBoost(boost, target, source, effect) { if (effect?.name === "Intimidate" && boost.atk)
+  { this.boost({ spe: 1 }); } }`. The drop lands and Speed rises, with a `-ability|<holder>|Rattled|boost` line. The
+  `boostsWhenLowered` derivation needed a `< 0` in the handler, so it dropped Rattled. The Reg M-C all-mechanics-fire
+  read a STATE divergence (Persian-Alola at spe +1 on the authority and 0 here). `engine/tag_dex.js` now admits the
+  effect-gated shape as `onlyFrom` / `whenStat` / `quietAtCap` (`quietAtCap` because the call passes neither isSelf nor
+  isSecondary, so a capped raise writes no zero line). These are written only on that shape. `data/tags-regmc.json`
+  moves by the rattled row and the catalogue's `n`. `data/tags.json` stays byte-identical. The only road that passes
+  the effect and the landed stat is `applyStatDrop` (Intimidate), so every other drop road keeps its meaning. Knob
+  `MEDI_RATTLED_IGNORES_INTIMIDATE`.
+- **Why the roster called it clean.** The roster's Rattled rule is `ability/speeds-up-when-hit-by-a-type`
+  (`onDamagingHit`). It staged a Crunch and never an Intimidate.
+- `tests/probe_intimidate_reactors.js` gains the RATTLED arm, with a Fur Coat Persian-Alola as the control. It is green
+  in Reg M-C, and red under the knob and on `485d0a6840ad` with the 0.70.0 bytes. It also has a new census row
+  (`boostsWhenLowered`), registered where a legal carrier exists.
+
+## [0.74.0] — 2026-09-23
+
+### Fixed
+- **Reg M-C: Guard Dog refused Intimidate with a bare `-fail` and never raised its Attack.** The handler
+  (`data/abilities.ts` guarddog; no Champions override; no Reg M-B carrier) deletes the drop and then calls
+  `this.boost({ atk: 1 }, target, target, null, false, true)`. So the authority writes
+  `-ability|<holder>|Guard Dog|boost` and `-boost|<holder>|atk|1`, and no `-fail`. The Reg M-C all-mechanics-fire read
+  it as a STATE divergence (Mabosstiff at atk +1 on the authority and 0 here). `engine/tag_dex.js` now reads
+  `preventsStatDrop.answersWith` off the self-boost call and writes it only when present, so `data/tags.json` stays
+  byte-identical and `data/tags-regmc.json` moves by the guarddog row. `refuseStatDrop` answers through
+  `abilityBoostRun`, which is the same road Defiant takes. Knob `MEDI_GUARD_DOG_REFUSES_ONLY`.
+- **Why the roster called it clean.** The roster's shape rule for Guard Dog is `ability/refuses-a-forced-switch`
+  (`onDragOut`). It stages a Roar and never an Intimidate, so the `onTryBoost` half was never played. Its
+  FIRED-AND-BOARDS-MATCH verdict is true of the half it staged.
+- New probe `tests/probe_intimidate_reactors.js` (either regulation). It has the GUARDDOG arm, with a Stakeout
+  Mabosstiff as the control. It is green in Reg M-C, and red under the knob and on `485d0a6840ad` with the 0.70.0
+  bytes. In Reg M-B it reads NOT RUN (exit 2), because there is no carrier. New census row (`preventsStatDrop`),
+  registered only where a legal carrier exists. Reg M-C census 1007 → 1008 live (worktree, not republished).
+
+## [0.73.0] — 2026-09-23
+
+### Fixed
+- **A multi-hit volley into an intact Mimikyu now follows each regulation's Disguise.** The Reg M-B Champions mod
+  overrides Disguise (`data/mods/champions/abilities.ts:14-33`): it sets `this.effectState.neutral` on arrival 1 and
+  returns 0 on the later arrivals, before its species test. So arrivals 2..N stay **neutral** after the bust. The Reg
+  M-C mod has no disguise entry. Mainline (`data/abilities.ts:970-1016`) asks `target.species.id` on every arrival.
+  `onUpdate` makes the body Mimikyu-Busted between arrivals, so the later arrivals take their **real** matchup.
+  Three defects, one mechanic:
+  - **Reg M-B battle (board).** The per-arrival re-price read the busted forme's real matchup. Pin Missile into
+    Mimikyu left MEDICHAM on 110/130 against the authority's 97/130. It is now held (`_flatHeld`, set at the bust seam
+    and cleared when the volley ends; `MEDSEEN.effFlattenHeldThroughVolley`). This defect predates this pass. No
+    instrument had staged it.
+  - **Reg M-C price.** `dmgRange` held arrival 1's neutral for the N-1 arrivals left. `forretress pinmissile ->
+    mimikyu` read 96-112 against the authority's x5 24-28 in the Reg M-C damage differential. The price now prices
+    those arrivals on the busted forme (`asBustedForme`, a rename that the tag's `sameStats`/`sameTypes` make complete).
+  - **Reg M-C narration.** The arrivals after the bust were announced with arrival 1's effectiveness, so the
+    `-resisted` line was missing. It is now re-read at the bust seam.
+- `engine/tag_dex.js`: `flattensTypeMatchup.endsWithSpecies` is written when the handler gates on the species and holds
+  no `effectState`. It is written only when true. `data/tags-regmc.json` moves by the disguise row, and
+  `data/tags.json` stays byte-identical. Knob `MEDI_DISGUISE_VOLLEY_OLD`.
+- `tests/probe_volley_first_hit_shield.js` gains the DISGUISE arm (Toxapex Pin Missile into Mimikyu). What the authority
+  does after the bust is read off its own handler. It is green in both regulations. It is red under the knob and on
+  `89ac57f1f81b` (board) / `485d0a6840ad` (price, narration) with the 0.70.0 bytes.
+
+## [0.72.0] — 2026-09-23
+
+### Fixed
+- **`dmgRange` priced a multi-hit volley into a full-HP Multiscale body with the cut on every arrival.** Multiscale
+  (`data/abilities.ts`, both checkouts; the Champions mod does not override it) halves the damage only while
+  `target.hp >= target.maxhp`, and that is asked inside each arrival's `getDamage`. Arrival 1 leaves the body below
+  full HP, so arrivals 2..N take the whole hit. The flat road priced every arrival off one band. This was the Reg M-C
+  damage differential's `scizormega dualwingbeat -> dragonitemega` (authority x2 61-73, MEDICHAM 40-48) and
+  `heracrossmega pinmissile -> dragonitemega` on `485d0a6840ad`. **The battle was already right**, because `_stepApply`
+  re-prices each arrival against the HP the previous arrival left. The fix is therefore on the price road only
+  (`!hit.wantPackets`). `_volleyFullHPSplit` asks `dmgRangeOneHit` with and without the from-full clause (new
+  `noFullHP` argument), and it splits only when the two differ, so Mold Breaker and a body already below full HP keep
+  their one owner. Counter `MEDSEEN.volleyFullHPSplit`. Knob `MEDI_VOLLEY_SHIELD_EVERY_ARRIVAL`.
+- New probe `tests/probe_volley_first_hit_shield.js` (either regulation). Kangaskhan's Double Hit goes into a Multiscale
+  Dragonite, with an Inner Focus Dragonite as the control. The authority halves arrival 1 only (19 then 39, against
+  39 then 39). The battle boards agree. The price reads 58 against the authority's 58. It is red under the knob and on
+  `485d0a6840ad` / `89ac57f1f81b` with the 0.70.0 bytes (price 38).
+
+## [0.71.0] — 2026-09-23
+
+### Fixed
+- **Reg M-B: Stone Axe and Ceaseless Edge no longer lay their hazard for a user a contact toll knocked out.** The two
+  authorities disagree. Reg M-B's checkout keeps `source.hp` in the move's own `onAfterHit` (`data/moves.ts` stoneaxe
+  :18072-18078, ceaselessedge :2229-2235). Reg M-C's checkout dropped it (:18078-18084, :2229-2235). Both Champions
+  `spreadMoveHit`s raise `AfterHit` with no HP test, so the handler decides. 0.60.0 read only the Reg M-C checkout and
+  changed both regulations. The Reg M-B held-out 12,000 draw on `89ac57f1f81b` parted on it (Ceaseless Edge into Rough
+  Skin: MEDICHAM 2 Spikes layers, Showdown 1). `engine/tag_dex.js` now reads `hazardOnHit.laysForFaintedUser` off the
+  handler and writes it only when true. `data/tags-regmc.json` moves by the stoneaxe and ceaselessedge rows, and
+  `data/tags.json` stays byte-identical. The engine lays for a fainted user only when the tag says so. Knob
+  `MEDI_HAZARD_ON_HIT_FAINTED_ALWAYS`.
+- `tests/probe_regmc_hazard_on_hit_fainted_user.js` plays both regulations (`anyRegulation`), stages each move on its own
+  (Stone Axe was never staged before), and reads what the FAINTS arm expects off the authority's handler. Reg M-B has no
+  legal contact-toll item, so finer chip steps were added. Reg M-B is green clean, and red under the knob and on
+  `89ac57f1f81b` with the 0.70.0 bytes. Reg M-C is green, and red under `MEDI_HAZARD_ON_HIT_NEEDS_LIVE_USER`.
+- New census row (`tests/test-mechanics.js`, `hazardOnHit`): Stone Axe from a 1 HP Kleavor into Rough Skin. Its
+  expectation is read off the selected authority's handler. Census 1004 → 1005 (Reg M-B) and 1006 → 1007 (Reg M-C), all
+  live. It is MISSING under the knob.
 
 ## [0.70.0] — 2026-09-23
 

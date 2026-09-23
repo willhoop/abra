@@ -1,4 +1,4 @@
-## THE ROSTER'S TWO RULER DEFECTS ARE REPAIRED: THE TEXT PROXY AND FIXTURE LEGALITY. 2026-09-23 (abra/regmc 0.71.0)
+## THE ROSTER'S TWO RULER DEFECTS ARE REPAIRED: THE TEXT PROXY AND FIXTURE LEGALITY. 2026-09-23 (abra/regmc 0.78.0)
 
 Full account: `docs/_reports/2026-09-23-roster-fixture-legality.md`. Light mode, so no roster stage was run (owed).
 
@@ -20,6 +20,115 @@ Full account: `docs/_reports/2026-09-23-roster-fixture-legality.md`. Light mode,
   - the Reg M-C volleys into Multiscale / Disguise;
   - the Intimidate-reaction family;
   - Overdrive's missing `SUBPASS`.
+## ENGINE PASS 9: THE GATE RUN'S ENGINE REDS, AND THE REG M-C HAND LIST AFTER PASS 9. 2026-09-23 (abra/regmc 0.77.1)
+
+Full account: `docs/_reports/2026-09-23-engine-gate-reds.md`.
+
+- **Re-measured on the final engine** (Reg M-B release `56fc6976821e`, Reg M-C `ca7aa5f578ed`). Everything was written
+  to `data/verification/*.pass9*.json` and not republished; MEASURE republishes from main.
+  - Damage differential: Reg M-C 3 → 0/6000; Reg M-B 0/6000.
+  - Census: Reg M-B 1004 → 1006 live, Reg M-C 1006 → 1010 live, none missing.
+  - `all-mechanics-fire`, Reg M-C: in-scope unproven 7 → 1 (Court Change); diverging abilities 8 → 1 (Illusion, the
+    declared exclusion).
+  - Lattices: Reg M-C board-material 0/954, 0/1266, 0/1497 (protocol-only 64 → 26, 82 → 38, 92 → 41); Reg M-B
+    0/961, 0/1069, 0/1497. The Reg M-B held-out 12,000 draw: 1 → 0 of 7,182 (the same sample, 1 void).
+
+### The Reg M-C hand list, after pass 9 (replaces the pass-8 list below)
+
+The Intimidate reactors, the volley shields, the hazard-on-hit fainted user and six of the seven unproven mechanics are
+now probes or census rows, so they have left this list.
+
+1. STOPPED, needs a Reg M-B tag change (the brief's stop rule): **Court Change** has no MEDICHAM implementation. The
+   authority swaps Reflect across, and ours leaves it (board STATE). **Overdrive** is missing from `SUBPASS`. Deriving
+   either one needs a new tag, and a new tag adds a catalogue row to Reg M-B's `data/tags.json`.
+2. Narration, not board-material: the Ghost Curse line order; a second Focus Energy's `-fail`; a move-set terrain's
+   `[of]` on `-fieldstart`; the `-fail|<user>|move: <Move>` attribute.
+3. Named gaps with no card: Psychic Terrain's ally exemption; a transformed corpse's buff-on-hit and default-order
+   DamagingHit reactors; the berry-cure pass over a revived pending body; Stakeout's special half (`onModifySpA`).
+4. Carried: `mirrorRevival` (MEASURE); the empirical driver's cross-game `coveragePick` state (MEASURE); the roster's
+   Guard Dog and Rattled rules stage one handler each (MEASURE, `tests/roster.js`).
+
+## THE PLANNER STAGES THE SEVEN UNPROVEN REG M-C MECHANICS; COURT CHANGE IS AN ENGINE GAP. 2026-09-23 (abra/regmc 0.77.0)
+
+Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §4.
+
+- **Fixture gaps closed.** Liquid Ooze (receiver drains), Stakeout (receiver switches in), Binding Band (holder traps),
+  Emergency Exit (Super Fang, with a Protect control), Revival Blessing (the partner faints first), and Court Change
+  (a side condition first) were closed. Aura Guard (the scope's re-admission) is now in the planner and
+  `all_mechanics_fire`.
+- **Result** on `ca7aa5f578ed`: 5 FIRED with a control, and Revival Blessing is resolved on both engines. Court Change
+  is resolved on the authority only (board STATE).
+- **Owed.** MEDICHAM has no Court Change. It needs a `swapsSideConditions`-style tag, which adds a catalogue row to Reg
+  M-B's `data/tags.json`, so it was STOPPED per the brief.
+
+## AN INTIMIDATE REFUSAL NAMES THE STAT AS THE HANDLER SPELLS IT (REG M-C: 'atk'). 2026-09-23 (abra/regmc 0.76.0)
+
+Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §3.
+
+- **Defect.** `STAT_LABEL` is the Reg M-B spelling (`Attack`). The Reg M-C checkout's refusers write the stat id
+  (`atk`, `def`). This is narration only. The roster graded the boards (right), and `all_mechanics_fire` graded the
+  line (wrong).
+- **Fix.** `preventsStatDrop.failLabel` comes from `tag_dex`, where the literal is a stat id. It is derived, never
+  keyed on the regulation.
+- **Probe** `tests/probe_intimidate_reactors.js` (INNERFOCUS / OBLIVIOUS / OWNTEMPO / SCRAPPY), plus a census row. It is
+  red under `MEDI_REFUSAL_LABEL_DISPLAY` in Reg M-C.
+
+## RATTLED RAISES ITS SPEED AFTER AN INTIMIDATE DROP (REG M-C). 2026-09-23 (abra/regmc 0.75.0)
+
+Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §3.
+
+- **Defect.** `boostsWhenLowered` needed a `< 0` in the handler, and Rattled's `effect?.name === 'Intimidate' &&
+  boost.atk` has none, so the Speed never rose. The roster's Rattled rule stages only the `onDamagingHit` half.
+- **Fix.** The tag carries `onlyFrom` / `whenStat` / `quietAtCap`. `retaliateWhenLowered` asks them, and only the
+  Intimidate road passes the effect.
+- **Probe** `tests/probe_intimidate_reactors.js` RATTLED, plus a census row. It is red under
+  `MEDI_RATTLED_IGNORES_INTIMIDATE` and on `485d0a6840ad`.
+
+## GUARD DOG ANSWERS INTIMIDATE WITH +1 ATTACK (REG M-C). 2026-09-23 (abra/regmc 0.74.0)
+
+Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §3.
+
+- **Defect.** Guard Dog was a bare refuser here. The authority's handler raises `{atk: 1}` on the holder in place of
+  the drop. The roster missed it because its Guard Dog rule stages the Roar half only (`onDragOut`).
+- **Fix.** `preventsStatDrop.answersWith` comes from `tag_dex`. `refuseStatDrop` answers through `abilityBoostRun`.
+- **Probe** `tests/probe_intimidate_reactors.js` GUARDDOG, plus a census row. It is red under
+  `MEDI_GUARD_DOG_REFUSES_ONLY` and on `485d0a6840ad`.
+
+## DISGUISE UNDER A VOLLEY: REG M-B HOLDS THE NEUTRAL, REG M-C LETS IT GO AT THE BUST. 2026-09-23 (abra/regmc 0.73.0)
+
+Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §2.
+
+- **Defect.** The engine held the neutral in the price and dropped it in the battle, in both regulations. The Reg M-B
+  Champions handler holds it (`effectState.neutral`). Reg M-C's mainline handler asks the species on every arrival.
+  Reg M-B board: 110 against 97. Reg M-C price: 96-112 against 24-28.
+- **Fix.** `flattensTypeMatchup.endsWithSpecies` comes from `tag_dex` (Reg M-C only). The battle holds (`_flatHeld`)
+  where the tag has no such key. The price re-prices on the busted forme where it has one. The narration re-reads the
+  effectiveness at the bust.
+- **Probe** `tests/probe_volley_first_hit_shield.js` DISGUISE, both regulations. It is red under
+  `MEDI_DISGUISE_VOLLEY_OLD` and on the 0.70.0 bytes.
+
+## THE PRICE OF A VOLLEY INTO MULTISCALE CUTS ONLY THE FIRST ARRIVAL (BOTH REGULATIONS). 2026-09-23 (abra/regmc 0.72.0)
+
+Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §2.
+
+- **Defect.** `dmgRange`'s flat road put Multiscale's x0.5 on every arrival. The authority asks `target.hp >= target.maxhp`
+  per arrival. This was the Reg M-C damage differential's two Dragonite-Mega rows. The battle was already right (the
+  per-arrival re-price).
+- **Fix.** `_volleyFullHPSplit` is used on the price road only. It prices arrival 1 with the cut and the rest without
+  it, and takes the split only when the cut moved arrival 1.
+- **Probe** `tests/probe_volley_first_hit_shield.js` in both regulations. It is red under
+  `MEDI_VOLLEY_SHIELD_EVERY_ARRIVAL` and on the 0.70.0 bytes.
+
+## A USER A CONTACT TOLL KNOCKS OUT LAYS ITS HAZARD ONLY WHERE ITS HANDLER ASKS NO HP (REG M-B: NEVER). 2026-09-23 (abra/regmc 0.71.0)
+
+Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §1.
+
+- **Defect.** 0.60.0 read only the Reg M-C checkout, where the handler asks no HP, and changed both regulations. Reg
+  M-B's `onAfterHit` still asks `source.hp`. The Reg M-B held-out draw on `89ac57f1f81b` parted on it (1/7182).
+- **Fix.** `hazardOnHit.laysForFaintedUser` is read off the handler by `tag_dex` (Reg M-C only). The engine reads it.
+- **Probe** `tests/probe_regmc_hazard_on_hit_fainted_user.js` in both regulations, each move staged. It is red under
+  `MEDI_HAZARD_ON_HIT_FAINTED_ALWAYS` and red on `89ac57f1f81b` with the 0.70.0 bytes (Reg M-B). There is also a census
+  row under `hazardOnHit`.
 
 ## CONTRARY AND THE TERRAIN SEEDS ARE STAGED IN REG M-C. 2026-09-23 (abra/regmc 0.69.1)
 

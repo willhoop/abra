@@ -609,8 +609,12 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * and spends a real turn through `battleTurn`, returning the canonised event stream. It has to: every row
  * that uses it asserts a LINE the turn loop writes -- a `-singleturn`, a `[notarget]` `-fail`, a
  * reflected `-immune` -- and a line exists only in the stream of a turn that was actually played.
+ *
+ * `intimOnto(` added 2026-09-23 (ENGINE pass 9) with the Intimidate-reactor rows, declared HERE and with its reason. It
+ * stages a real doubles board through `battleInit` and switches an Intimidate carrier in through `battleTurn`, so the
+ * reaction it reads is the one the entry road ran, never a handler called by hand.
  */
-const REALTURN = /\bnarRun\(|\bdiceOf\(|\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(|\bsgVolArms\(|\bvolleyInto\(|\bripenHit\(/;
+const REALTURN = /\bnarRun\(|\bdiceOf\(|\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(|\bsgVolArms\(|\bvolleyInto\(|\bripenHit\(|\bintimOnto\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -2636,6 +2640,91 @@ probe('ability', 'onSwitchInDrop', 'Intimidate drops Attack', () => {
                  + `MID-BATTLE SWITCH: none ${swControl}, Intimidate ${swTest}` };
 });
 
+/* 2026-09-23 (ENGINE pass 9, abra/regmc 0.74.0) -- THE INTIMIDATE REACTORS THAT ANSWER RATHER THAN ONLY REFUSE, ONE ROW
+ * PER ABILITY, REGISTERED ONLY WHERE THE SELECTED REGULATION HAS A LEGAL CARRIER (the seed rows' and Spicy Spray's rule:
+ * a row whose subject the regulation lacks can only compare two silences). The expected table is read off the SELECTED
+ * AUTHORITY'S HANDLER on the run, never off the tag the engine reads. CONTROL: the same body with no ability takes -1.
+ * tests/probe_intimidate_reactors.js is the two-engine proof. */
+const INTIM_REACT = (() => {
+  const CS0 = require(D('engine', 'champions_sim.js'));
+  const DX0 = CS0.sim().Dex.forFormat(CS0.FORMAT);
+  const lg = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
+  const carrierOf = ab => STAGING_CANDIDATES().find(k => Object.values(DX0.species.get(k).abilities || {})
+    .some(a => DX0.abilities.get(a).id === ab)) || null;
+  const table = src => { const m = String(src || '').replace(/\s+/g, ' ').match(/this\.boost\(\s*\{([^}]*)\}/); const o = {};
+    if (m) for (const kv of m[1].split(',')) { const q = kv.split(':').map(x => x.trim().replace(/["']/g, '')); if (q.length === 2) o[q[0]] = +q[1]; }
+    return o; };
+  const out = {};
+  for (const [ab, hook] of [['guarddog', 'onTryBoost'], ['rattled', 'onAfterBoost']]) {
+    const A = DX0.abilities.get(ab);
+    if (!lg(A)) continue;
+    const c = carrierOf(ab);
+    if (c) out[ab] = { carrier: c, answer: table(A[hook]) };
+  }
+  return out;
+})();
+const intimOnto = (sp, ab) => {
+  const me = bare('corviknight'), ally = bare('milotic'), inc = bare('incineroar');
+  const f1 = bare(sp), f2 = bare('milotic');
+  inc.ability = 'intimidate'; f1.ability = ab;
+  const trace = [];
+  const S = M.battleInit([me, ally, inc], [f1, f2], { seeded: true, trace });
+  trace.length = 0;
+  M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: inc }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+  return { boosts: Object.assign({}, f1.boosts), lines: trace.map(M.traceCanon).filter(l => /^\|-(ability|fail|boost|unboost)\|p2a/.test(l)) };
+};
+if (INTIM_REACT.guarddog) probe('ability', 'preventsStatDrop',
+    'Guard Dog refuses Intimidate AND answers it with the table its handler raises on itself', () => {
+  const R = INTIM_REACT.guarddog;
+  const control = intimOnto(R.carrier, 'none'), test = intimOnto(R.carrier, 'guarddog');
+  const wantAt = +(R.answer.atk || 0);
+  return { works: control.boosts.at === -1 && wantAt > 0 && test.boosts.at === wantAt
+                  && test.lines.some(l => /^\|-ability\|p2a:[^|]*\|guarddog\|boost$/.test(l))
+                  && !test.lines.some(l => /^\|-fail\|/.test(l)),
+           arms: { control: control.boosts.at, test: test.boosts.at },
+           detail: R.carrier + ' opposite an Intimidate switch-in -- no ability: atk ' + control.boosts.at + ' (must be -1); '
+                 + 'Guard Dog: atk ' + test.boosts.at + ' (the authority\'s handler raises ' + JSON.stringify(R.answer) + ') '
+                 + JSON.stringify(test.lines) };
+});
+
+/* 2026-09-23 (abra/regmc 0.75.0) -- Rattled: the drop LANDS and then the handler's own table is raised (onAfterBoost). */
+if (INTIM_REACT.rattled) probe('ability', 'boostsWhenLowered',
+    'Rattled takes the Intimidate drop and then raises the table its handler names', () => {
+  const R = INTIM_REACT.rattled;
+  const control = intimOnto(R.carrier, 'none'), test = intimOnto(R.carrier, 'rattled');
+  const wantSp = +(R.answer.spe || 0);
+  return { works: control.boosts.at === -1 && control.boosts.sp === 0 && wantSp > 0
+                  && test.boosts.at === -1 && test.boosts.sp === wantSp
+                  && test.lines.some(l => /^\|-ability\|p2a:[^|]*\|rattled\|boost$/.test(l)),
+           arms: { control: [control.boosts.at, control.boosts.sp], test: [test.boosts.at, test.boosts.sp] },
+           detail: R.carrier + ' opposite an Intimidate switch-in -- no ability: atk/spe ' + control.boosts.at + '/' + control.boosts.sp
+                 + ' (must be -1/0); Rattled: ' + test.boosts.at + '/' + test.boosts.sp + ' (the authority handler raises '
+                 + JSON.stringify(R.answer) + ') ' + JSON.stringify(test.lines) };
+});
+
+/* 2026-09-23 (abra/regmc 0.76.0) -- the refusal line's stat label is the SELECTED AUTHORITY'S spelling ('Attack' in the
+ * Reg M-B checkout, 'atk' in Reg M-C's), read off Inner Focus's own `this.add('-fail', ...)` on the run. Registered where
+ * Inner Focus has a legal carrier. MEDI_REFUSAL_LABEL_DISPLAY=1 writes the display name in both. */
+const IF_LABEL = (() => {
+  const CS0 = require(D('engine', 'champions_sim.js'));
+  const DX0 = CS0.sim().Dex.forFormat(CS0.FORMAT);
+  const A = DX0.abilities.get('innerfocus');
+  if (!(A && A.exists && !A.isNonstandard)) return null;
+  const lab = (String(A.onTryBoost || '').replace(/\s+/g, ' ').match(/add\(\s*["']-fail["']\s*,\s*\w+\s*,\s*["']unboost["']\s*,\s*["']([A-Za-z ]+)["']/) || [])[1];
+  const c = STAGING_CANDIDATES().find(k => Object.values(DX0.species.get(k).abilities || {}).some(a => DX0.abilities.get(a).id === 'innerfocus'));
+  return lab && c ? { label: lab, carrier: c } : null;
+})();
+if (IF_LABEL) probe('ability', 'preventsStatDrop',
+    'an Intimidate refusal names the stat the way the selected authority\'s handler spells it', () => {
+  const control = intimOnto(IF_LABEL.carrier, 'none'), test = intimOnto(IF_LABEL.carrier, 'innerfocus');
+  const want = '|unboost|' + IF_LABEL.label.toLowerCase().replace(/[^a-z0-9]/g, '') + '|';
+  const fail = test.lines.find(l => /^\|-fail\|/.test(l)) || '';
+  return { works: control.boosts.at === -1 && test.boosts.at === 0 && fail.includes(want),
+           arms: { control: control.boosts.at, test: [test.boosts.at, fail] },
+           detail: IF_LABEL.carrier + ' opposite an Intimidate switch-in -- no ability: atk ' + control.boosts.at + ' (must be -1); Inner Focus: atk '
+                 + test.boosts.at + ', refusal line ' + JSON.stringify(fail) + ' (must carry ' + JSON.stringify(want) + ', the handler writes "' + IF_LABEL.label + '")' };
+});
+
 /* A STAT CHANGE CLAMPED TO ZERO IS STILL ANNOUNCED, AND THE ENGINE COULD NOT SAY IT AT ALL.
  *
  * `bst()` opened `if(!d) return;` — the magnitude is the delta that actually landed, so a body already
@@ -3166,6 +3255,14 @@ probe('ability', 'preventsStatDrop', 'Mirror Armor RETURNS the drop to its sourc
  *
  * THE ARMS ARE THE EMITTED LINES, so an engine that blocks silently fails this and an engine that
  * announces a drop it did not refuse fails it too. */
+/* 2026-09-23 (ENGINE pass 9, abra/regmc 0.76.0) -- THE SCOPED LABEL IS THE SELECTED AUTHORITY'S OWN SPELLING, read off
+ * Inner Focus's handler on the run: 'Attack' in the Reg M-B checkout, 'atk' in Reg M-C's. This row typed Reg M-B's. */
+const IF_LABEL_CANON = (() => {
+  const CS0 = require(D('engine', 'champions_sim.js'));
+  const A = CS0.sim().Dex.forFormat(CS0.FORMAT).abilities.get('innerfocus');
+  const lab = (String((A && A.onTryBoost) || '').replace(/\s+/g, ' ').match(/add\(\s*["']-fail["']\s*,\s*\w+\s*,\s*["']unboost["']\s*,\s*["']([A-Za-z ]+)["']/) || [])[1] || null;   /* unreadable: the row reads MISSING, never a guessed spelling */
+  return lab ? lab.toLowerCase().replace(/[^a-z0-9]/g, '') : 'UNREADABLE';
+})();
 probe('ability', 'preventsStatDrop', 'a refused stat drop is ANNOUNCED, naming the ability and (when scoped) the stat', () => {
   const lines = (ab1, ab2) => {
     const me = bare('incineroar'), ally = bare('corviknight');
@@ -3179,7 +3276,7 @@ probe('ability', 'preventsStatDrop', 'a refused stat drop is ANNOUNCED, naming t
   return { works: control.length === 2 && control.every(l => /^\|-unboost\|/.test(l))
                   && test.length === 2
                   && test[0] === '|-fail|p2a:metagross|unboost|[from]ability:clearbody|[of]p2a:metagross'
-                  && test[1] === '|-fail|p2b:gallade|unboost|attack|[from]ability:innerfocus|[of]p2b:gallade',
+                  && test[1] === '|-fail|p2b:gallade|unboost|' + IF_LABEL_CANON + '|[from]ability:innerfocus|[of]p2b:gallade',
            arms: { control, test },
            detail: `one Intimidate switch-in, canonised — no abilities: ${JSON.stringify(control)}; `
                  + `Clear Body + Inner Focus: ${JSON.stringify(test)} (the blanket refuser names no `
@@ -14477,6 +14574,39 @@ probe('move', 'hazardOnHit', 'Ceaseless Edge lays Spikes only when it connects -
                  + ' layers (both must be 0)   |   three connecting hits ' + test.threeHits
                  + ' layers (Spikes caps at 3), through a Substitute ' + test.throughSub
                  + ' layer (onAfterSubDamage -- must be 1)' };
+});
+
+/* 2026-09-23 (ENGINE pass 9, abra/regmc 0.71.0) -- A USER A CONTACT TOLL KNOCKS OUT LAYS ITS HAZARD ONLY WHERE ITS OWN
+ * `onAfterHit` ASKS NO HP, AND THE TWO REGULATIONS' AUTHORITIES DISAGREE. Reg M-B's checkout (data/moves.ts stoneaxe
+ * :18072-18078) reads `if (!move.hasSheerForce && source.hp)`; Reg M-C's (:18078-18084) dropped `source.hp`. Both Champions
+ * `spreadMoveHit`s raise AfterHit with no HP test, so the handler decides. 0.60.0 read the Reg M-C checkout and laid for a
+ * fainted user in both regulations; the Reg M-B held-out 12,000 draw on release 89ac57f1f81b parted on it.
+ *
+ * THE EXPECTATION IS READ OFF THE SELECTED AUTHORITY'S HANDLER, NOT OFF THE TAG THE ENGINE READS, so the probe cannot agree
+ * with the engine by construction. CONTROL: the same Kleavor at full HP lays one layer (it survives the toll). TEST: at
+ * 1 HP it dies to the Rough Skin toll and lays one layer or none as its handler says. MEDI_HAZARD_ON_HIT_FAINTED_ALWAYS=1
+ * restores the 0.60.0 reading. tests/probe_regmc_hazard_on_hit_fainted_user.js is the two-engine proof. */
+probe('move', 'hazardOnHit', 'a user a contact toll knocks out lays Stone Axe\'s rock only if its own onAfterHit asks no HP', () => {
+  const CS0 = require(D('engine', 'champions_sim.js'));
+  const axe = CS0.sim().Dex.forFormat(CS0.FORMAT).moves.get('stoneaxe');
+  const deadLays = !!axe.onAfterHit && !/source\.hp/.test(String(axe.onAfterHit));
+  const run = (hp) => {
+    const me = bare('kleavor'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    f1.ability = 'roughskin';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(f1);
+    if (hp) me.curHP = hp;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'stoneaxe', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { fainted: !!me.fainted || me.curHP <= 0, rock: ((f1._sf && f1._sf.hz) || {}).stealthrock || 0 };
+  };
+  const control = run(0), test = run(1);
+  return { works: !control.fainted && control.rock === 1 && test.fainted && test.rock === (deadLays ? 1 : 0),
+           arms: { control, test },
+           detail: CS0.FORMAT + ': the authority\'s onAfterHit ' + (deadLays ? 'asks no HP' : 'asks source.hp')
+                 + ' -- CONTROL full HP ' + JSON.stringify(control) + ' (must survive, 1 layer)   |   TEST 1 HP '
+                 + JSON.stringify(test) + ' (must faint, ' + (deadLays ? 1 : 0) + ' layer)' };
 });
 
 /* ROADMAP #72, THE OTHER HALF -- HAZARDS COME BACK UP. 2026-08-11.
@@ -38650,7 +38780,10 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                            * knobs cannot fire under Reg M-B (no seed is legal there); the heal knob can, on any
                            * row that puts a semi-invulnerable body under Grassy Terrain. Listed so an armed run
                            * refuses to write rather than publishing a pre-fix census. */
-                          'terrainHealSemiInvRestored', 'seedUnconsumedRestored', 'seedNoTerrainChangeRestored']
+                          'terrainHealSemiInvRestored', 'seedUnconsumedRestored', 'seedNoTerrainChangeRestored',
+                          /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.71.0) -- the Stone Axe fainted-user row reads it */
+                          'hazardOnHitFaintedAlwaysRestored',
+                          'volleyShieldEveryArrivalRestored', 'disguiseVolleyOldRestored', 'guardDogRefusesOnlyRestored', 'rattledIgnoresIntimidateRestored', 'refusalLabelDisplayRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

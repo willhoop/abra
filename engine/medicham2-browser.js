@@ -7091,6 +7091,11 @@ if(REVIVE_PENDING_TAKES_RESIDUAL)MEDFAILS.revivePendingTakesResidualRestored=1;
 const HAZARD_ON_HIT_NEEDS_LIVE_USER=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_HAZARD_ON_HIT_NEEDS_LIVE_USER==='1');
 if(HAZARD_ON_HIT_NEEDS_LIVE_USER)MEDFAILS.hazardOnHitNeedsLiveUserRestored=1;
+/* 2026-09-23 (ENGINE pass 9, abra/regmc 0.71.0) -- MEDI_HAZARD_ON_HIT_FAINTED_ALWAYS=1 lets a fainted user lay Stone Axe's /
+ * Ceaseless Edge's hazard whatever its `onAfterHit` asks, as 0.60.0 did in both regulations. */
+const HAZARD_ON_HIT_FAINTED_ALWAYS=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_HAZARD_ON_HIT_FAINTED_ALWAYS==='1');
+if(HAZARD_ON_HIT_FAINTED_ALWAYS)MEDFAILS.hazardOnHitFaintedAlwaysRestored=1;
 /* 2026-09-22 (Reg M-C, abra/regmc 0.61.0) -- MEDI_SPIN_NEEDS_LIVE_USER=1 refuses Rapid Spin's / Mortal Spin's sweep to a user
  * a contact toll knocked out, as before. */
 const SPIN_NEEDS_LIVE_USER=(typeof process!=='undefined'&&process.env
@@ -15514,7 +15519,7 @@ function formeMoveType(moveId,att){
   if(ft.otherwise){MEDSEEN.formeTypedMoveDefault++;return ft.otherwise;}
   return null;
 }
-function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,perHit,absBypass){
+function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,perHit,absBypass,noFullHP){
   stampMoveIds();
   /* BATCH K, 2026-09-07 -- `type` IS THE TYPE THIS FUNCTION ACTUALLY PRICED, AND IT IS ON EVERY
    * RETURN. The type-resist berry is HALVED by this function and SPENT by the battle loop, and the
@@ -17014,7 +17019,8 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
     if(_dr&&_dr.damageMult){
       const _w=_dr.onlyWhen;
       const _ok=_w==='superEffective'?eff>1
-              :_w==='fullHP'?(def.curHP==null||def.st==null||def.curHP>=def.st.hp)
+              /* 2026-09-23 (abra/regmc 0.72.0) -- `noFullHP`: an arrival after the first of a volley (`_volleyFullHPSplit`) */
+              :_w==='fullHP'?(!noFullHP&&(def.curHP==null||def.st==null||def.curHP>=def.st.hp))
               :_w==='special'?mv.c==='S'
               :_w==='physical'?mv.c==='P'
               :_w==='sound'?!!(mv.id&&TAGS.has('move',mv.id,'sound'))
@@ -17776,6 +17782,51 @@ function damageRollIndex(u){
  * `MEDFAILS.moveIdPrestampRestored`, so the defect stays reachable for a paired measurement without
  * swapping a file. Same shape as MEDI_MULTIHIT_ONE_INDEX and MEDI_DAMAGE_SPAN_DRAW. */
 const MOVEID_PRESTAMP_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_MOVEID_PRESTAMP==='1');
+/* 2026-09-23 (ENGINE pass 9, abra/regmc 0.72.0) -- MEDI_VOLLEY_SHIELD_EVERY_ARRIVAL=1 prices a flat volley into a from-full
+ * damage cut (Multiscale, Shadow Shield) with the cut on EVERY arrival again, as before. See `_volleyFullHPSplit`. */
+const VOLLEY_SHIELD_EVERY_ARRIVAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_VOLLEY_SHIELD_EVERY_ARRIVAL==='1');
+if(VOLLEY_SHIELD_EVERY_ARRIVAL)MEDFAILS.volleyShieldEveryArrivalRestored=1;
+/* 2026-09-23 (ENGINE pass 9, abra/regmc 0.73.0) -- MEDI_DISGUISE_VOLLEY_OLD=1 restores the pre-0.73.0 Disguise volley:
+ * the battle re-prices the arrivals after the bust on the busted forme's real matchup in BOTH regulations (Reg M-B's
+ * Champions handler holds the neutral for the whole move), the price holds the neutral in BOTH regulations (Reg M-C's
+ * mainline handler lets go at the bust), and the arrivals after the bust are announced with arrival 1's effectiveness. */
+const DISGUISE_VOLLEY_OLD=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DISGUISE_VOLLEY_OLD==='1');
+if(DISGUISE_VOLLEY_OLD)MEDFAILS.disguiseVolleyOldRestored=1;
+/* The flatten a body's (Mold-Breaker-suppressed) ability applies, or null. One reader for the volley decisions below. */
+function abilityFlattenOf(att,def,mv){
+  const _cat=(mv&&mv.c==='P')?'Physical':(mv&&mv.c==='S')?'Special':'Status';
+  const _ab=suppressedAbility(att,def,_cat);
+  return _ab?TAGS.param('ability',_ab,'flattensTypeMatchup'):null;
+}
+/* Run `fn` with `def` standing as the forme its `formeOnHit` becomes (a rename only: the tag says `sameStats` and
+ * `sameTypes`, which is what makes the rename complete), then put the name back. Null when the ability names no such
+ * forme or the two formes differ in anything this engine models. */
+function asBustedForme(att,def,mv,fn){
+  const _cat=(mv&&mv.c==='P')?'Physical':(mv&&mv.c==='S')?'Special':'Status';
+  const _ab=suppressedAbility(att,def,_cat);
+  const _fh=_ab&&TAGS.param('ability',_ab,'formeOnHit');
+  if(!_fh||!_fh.becomes||!_fh.sameStats||!_fh.sameTypes)return null;
+  const _was=def.name;
+  def.name=pasteKey(_fh.becomes)||String(_fh.becomes).toLowerCase().replace(/[^a-z0-9]/g,'-');
+  try{return fn();}finally{def.name=_was;}
+}
+/* The split price of a flat volley whose first arrival meets a from-full damage cut: arrival 1 at the cut, arrivals 2..N
+ * without it, roll by roll. Returns null when the cut does not change arrival 1 (no such ability, broken through, not at
+ * full HP), so the caller's own road runs untouched. Counts `volleyFullHPSplit`. */
+function _volleyFullHPSplit(att,def,mv,field,spread,isCrit,hit,total){
+  const _dr=TAGS.param('ability',def&&def.ability,'damageReduce');
+  if(!_dr||_dr.onlyWhen!=='fullHP')return null;
+  const _want=!!(hit&&Array.isArray(hit.rolls));
+  const hA=hit?Object.assign({},hit,{rolls:_want?[]:undefined,rollsUnit:undefined}):hit;
+  const hB=hit?Object.assign({},hit,{rolls:_want?[]:undefined,rollsUnit:undefined}):hit;
+  const one=dmgRangeOneHit(att,def,mv,field,spread,isCrit,hA,1,1,null,false,false);
+  const bare=dmgRangeOneHit(att,def,mv,field,spread,isCrit,hB,1,1,null,false,true);
+  if(!one||!bare||(one.min===bare.min&&one.max===bare.max))return null;
+  const k=total-1;
+  MEDSEEN.volleyFullHPSplit=(MEDSEEN.volleyFullHPSplit|0)+1;
+  if(_want){hit.rolls.length=0;for(let i=0;i<16;i++)hit.rolls.push(hA.rolls[i]+Math.floor(hB.rolls[i]*k));}
+  return {min:one.min+Math.floor(bare.min*k),max:one.max+Math.floor(bare.max*k),eff:one.eff,type:one.type};
+}
 function dmgRange(att,def,mv,field,spread,isCrit,hit){
   if(MOVEID_PRESTAMP_RESTORED)MEDFAILS.moveIdPrestampRestored=1;
   else stampMoveIds();
@@ -17812,6 +17863,21 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
      * the range below), so the two cannot disagree about whether the disguise is intact. */
     const _absMulti=!!(_plan.total>1.0000001&&formeOnHitAbsorbs(def,att,mv&&mv.id)&&!FORMEONHIT_CLICK_WIDE_RESTORED);
     if(FORMEONHIT_CLICK_WIDE_RESTORED&&_plan.total>1.0000001&&formeOnHitAbsorbs(def,att,mv&&mv.id))MEDFAILS.formeOnHitClickWideRestored=1;
+    /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.72.0) -- A FROM-FULL CUT MEETS ONLY THE FIRST ARRIVAL OF A VOLLEY.
+     * Multiscale (data/abilities.ts multiscale, both checkouts, no Champions override) is
+     * `onSourceModifyDamage(...) { if (target.hp >= target.maxhp) return this.chainModify(0.5); }`, asked inside each
+     * arrival's `getDamage`; arrival 1 leaves the body below full, so arrivals 2..N take the whole hit. The flat road
+     * priced all N off one arrival's band, so the cut landed N times: the Reg M-C damage differential's
+     * `scizormega dualwingbeat -> dragonitemega` and `heracrossmega pinmissile -> dragonitemega` (release 485d0a6840ad).
+     * THE BATTLE WAS ALREADY RIGHT -- `_stepApply` re-prices arrival k against the HP arrival k-1 left
+     * (tests/probe_volley_first_hit_shield.js SCALE, boards identical) -- so this is the PRICE road only
+     * (`!hit.wantPackets`): the packet road's band and its re-price are untouched. Whether the cut is live on arrival 1
+     * is not re-derived here: `dmgRangeOneHit` is asked with and without the from-full clause (`noFullHP`) and the
+     * split is taken only when the two differ, so Mold Breaker, a body already below full and every other gate of that
+     * clause keep their one owner. MEDI_VOLLEY_SHIELD_EVERY_ARRIVAL=1 restores the old price. */
+    const _fhp=(!VOLLEY_SHIELD_EVERY_ARRIVAL&&!(hit&&hit.wantPackets)&&!_absMulti&&_plan.total>1.0000001)
+      ?_volleyFullHPSplit(att,def,mv,field,spread,isCrit,hit,_plan.total):null;
+    if(_fhp)return _fhp;
     const _flat=dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,1,_plan.total,null,_absMulti);
     if(hit&&hit.wantPackets){
       const _n=Math.round(_plan.total);
@@ -17840,6 +17906,26 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
         MEDFAILS.formeAbsorbArrivalsUnaddressed++;
         if(!MEDFAILS.formeAbsorbArrivalsUnaddressedFirst)
           MEDFAILS.formeAbsorbArrivalsUnaddressedFirst=String((mv&&mv.id)||'?')+' x'+_plan.total;
+      }
+    }
+    /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.73.0) -- AND THE ARRIVALS AFTER THE BUST MEET THE BUSTED FORME'S REAL
+     * MATCHUP WHERE THE HANDLER HOLDS NO STATE. Reg M-C's Disguise is mainline (data/abilities.ts :970-1016; the M-C
+     * Champions mod has no disguise entry): `onEffectiveness` asks `target.species.id` on every arrival, and `onUpdate`
+     * has made the body Mimikyu-Busted before arrival 2. The price held arrival 1's neutral for all N-1:
+     * `forretress pinmissile -> mimikyu` read 96-112 against the authority's x5 24-28 (release 485d0a6840ad). Reg M-B's
+     * Champions handler holds the neutral (`effectState.neutral`), so a row without `endsWithSpecies` keeps the road
+     * below. PRICE ROAD ONLY: the packet road's arrivals are re-priced on the busted body at apply time. */
+    if(_absMulti&&!DISGUISE_VOLLEY_OLD&&!(hit&&hit.wantPackets)){
+      const _fp=abilityFlattenOf(att,def,mv);
+      if(_fp&&_fp.endsWithSpecies){
+        const _want=!!(hit&&Array.isArray(hit.rolls));
+        const hR=hit?Object.assign({},hit,{rolls:_want?[]:undefined,rollsUnit:undefined}):hit;
+        const _rest=asBustedForme(att,def,mv,()=>dmgRangeOneHit(att,def,mv,field,spread,isCrit,hR,1,_plan.total-1,null,true));
+        if(_rest){
+          MEDSEEN.disguiseVolleyRestReal=(MEDSEEN.disguiseVolleyRestReal|0)+1;
+          if(_want){hit.rolls.length=0;for(let i=0;i<16;i++)hit.rolls.push(hR.rolls[i]);}
+          return {min:_rest.min,max:_rest.max,eff:_flat.eff,type:_flat.type};
+        }
       }
     }
     if(_absMulti){
@@ -22423,6 +22509,11 @@ function typeEffAgainst(att,def,mv,mvT){
  * typeEffAgainst so the gate list reads as a list; the caller applies it. */
 function flattenedTotal(att,def,mv,mvT,eff){
   if(!def)return null;
+  /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.73.0) -- THE NEUTRAL A HANDLER HOLDS FOR THE REST OF ITS MOVE. Reg M-B's
+   * Champions Disguise (data/mods/champions/abilities.ts:14-33) returns `this.effectState.neutral`'s 0 on arrivals 2..N
+   * BEFORE its species test, so the busted forme keeps arrival 1's neutral. Set at the bust seam of a volley, cleared
+   * when the volley ends (`_stepApply`). */
+  if(def._flatHeld!=null&&!DISGUISE_VOLLEY_OLD){MEDSEEN.effFlattenHeldThroughVolley=(MEDSEEN.effFlattenHeldThroughVolley|0)+1;return def._flatHeld;}
   const cands=[];
   if(def.item){const p=TAGS.param('item',def.item,'flattensTypeMatchup');if(p)cands.push({p,id:def.item});}
   /* THE SUPPRESSED ABILITY, not the declared one. Disguise carries `breakable`, so a Mold Breaker's
@@ -23330,6 +23421,8 @@ function canTakeStatus(t,st,ignoreTypeImmunity,src,why){
  * one of these handlers); the BLOCK is not. Backwards, that would fire a `-fail` on every Icy Wind
  * and part the two streams in a new place instead of an old one. */
 const STAT_LABEL={at:'Attack',df:'Defense',sa:'Special Attack',sd:'Special Defense',sp:'Speed'};
+const REFUSAL_LABEL_DISPLAY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REFUSAL_LABEL_DISPLAY==='1');
+if(REFUSAL_LABEL_DISPLAY)MEDFAILS.refusalLabelDisplayRestored=1;
 const SD_BLOCK2ENG={atk:'at',def:'df',spa:'sa',spd:'sd',spe:'sp',accuracy:'acc',evasion:'eva'};
 /* STAGED tag_dex enrichment (`preventsStatDrop.onlyFrom`). Read the tag first; this list is only
  * consulted for an artifact generated before that field existed. */
@@ -23497,16 +23590,50 @@ function ownStatDropRefusal(target,engStat,effectName,isSecondary,src,amount){
     if(src===undefined||amount===undefined)MEDSEEN.reflectSourceUnknown++;
     else reflectStatDrop(target,src,engStat,amount,ab);
   }
-  return {ab, label:blocks==='all stats'?'':(STAT_LABEL[engStat]||''),
-          announce:!isSecondary&&_eid!=='octolock'&&REFLECTS_DROP.indexOf(ab)<0};
+  /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.76.0) -- THE LABEL IS THE HANDLER'S OWN SPELLING. Reg M-B's checkout writes
+   * `this.add('-fail', target, 'unboost', 'Attack', ...)` (data/abilities.ts innerfocus :2150); Reg M-C's writes the stat
+   * id, 'atk' (:2160), and so do its Oblivious, Own Tempo, Scrappy, Hyper Cutter and Big Pecks ('def'). tag_dex reads
+   * the literal into `preventsStatDrop.failLabel` where it is a stat id (Reg M-C only); STAT_LABEL stays the Reg M-B
+   * answer. MEDI_REFUSAL_LABEL_DISPLAY=1 writes STAT_LABEL everywhere, as before. */
+  const _lab=blocks==='all stats'?'':((p.failLabel&&!REFUSAL_LABEL_DISPLAY)?p.failLabel:(STAT_LABEL[engStat]||''));
+  if(p.failLabel&&!REFUSAL_LABEL_DISPLAY&&blocks!=='all stats')MEDSEEN.refusalLabelFromHandler=(MEDSEEN.refusalLabelFromHandler|0)+1;
+  return {ab, label:_lab,
+          announce:!isSecondary&&_eid!=='octolock'&&REFLECTS_DROP.indexOf(ab)<0&&!p.answersWith,
+          answer:p.answersWith||null};
 }
 /* The one place a refusal turns into a protocol line, so the shape cannot drift between the four
  * callers. Returns true when the drop was refused. */
 function refuseStatDrop(target,engStat,effectName,isSecondary,src,amount){
   const r=statDropRefusal(target,engStat,effectName,isSecondary,src,amount);
   if(!r)return false;
-  if(TR&&r.announce)TR.failUnboost(target,r.label,r.ab);
+  if(r.answer&&!GUARD_DOG_REFUSES_ONLY){answerRefusedDrop(target,r.ab,r.answer);return true;}
+  if(TR&&(r.announce||(r.answer&&GUARD_DOG_REFUSES_ONLY)))TR.failUnboost(target,r.label,r.ab);
   else if(!isSecondary)veilBoostBlock(r,target,effectName);
+  return true;
+}
+/* 2026-09-23 (ENGINE pass 9, abra/regmc 0.74.0) -- A REFUSAL THAT ANSWERS. Guard Dog (data/abilities.ts guarddog, both
+ * checkouts, no Champions override): `if (effect.name === 'Intimidate' && boost.atk) { delete boost.atk;
+ * this.boost({ atk: 1 }, target, target, null, false, true); }`. The drop is deleted and a SELF boost is raised in its
+ * place: `Battle#boost` with `effect ||= this.effect` (Guard Dog) writes `-ability|<holder>|Guard Dog|boost` above
+ * `-boost|<holder>|atk|1`, and no `-fail` (the handler writes none). isSelf, so a +6 cap writes the zero line. The table
+ * is `preventsStatDrop.answersWith`, read off the handler by tag_dex (Reg M-C only: Guard Dog has no Reg M-B carrier).
+ * Found by the Reg M-C all-mechanics-fire (Mabosstiff: authority atk +1, MEDICHAM 0). MEDI_GUARD_DOG_REFUSES_ONLY=1
+ * restores the bare `-fail` refusal. tests/probe_intimidate_reactors.js GUARDDOG. */
+const GUARD_DOG_REFUSES_ONLY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_GUARD_DOG_REFUSES_ONLY==='1');
+if(GUARD_DOG_REFUSES_ONLY)MEDFAILS.guardDogRefusesOnlyRestored=1;
+function answerRefusedDrop(body,ab,answer){
+  if(!body||!body.boosts||!answer)return false;
+  const _run=abilityBoostRun(body,ab,{isSecondary:false});
+  const _zs=abilityZeroAnnounces(true);
+  for(const k in answer){
+    const _s=SD2ENG[k];
+    if(!_s||body.boosts[_s]==null)continue;
+    const _b=body.boosts[_s];
+    body.boosts[_s]=clamp(_b+(+answer[k]),-6,6);
+    _run.bst(_s,body.boosts[_s]-_b,_zs);
+  }
+  _run.done();
+  MEDSEEN.refusedDropAnswered=(MEDSEEN.refusedDropAnswered|0)+1;
   return true;
 }
 /* WIRE 100 -- ONE OPPONENT-INFLICTED STAT-DROP PATH, shared by Intimidate and Sticky Web, because
@@ -23673,11 +23800,25 @@ function abilityBoostRun(body,ab,opts){
     announced(){return said;}
   };
 }
-function retaliateWhenLowered(f,src){
+/* 2026-09-23 (ENGINE pass 9, abra/regmc 0.75.0) -- `eff` and `landed` are passed by the Intimidate road only (applyStatDrop):
+ * a row gated on one effect and one landed stat (`onlyFrom` / `whenStat`, Rattled's `effect?.name === 'Intimidate' &&
+ * boost.atk`) answers nothing without them, so every other caller keeps its meaning. MEDI_RATTLED_IGNORES_INTIMIDATE=1
+ * refuses every gated row, as before (the row did not exist). tests/probe_intimidate_reactors.js RATTLED. */
+const RATTLED_IGNORES_INTIMIDATE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_RATTLED_IGNORES_INTIMIDATE==='1');
+if(RATTLED_IGNORES_INTIMIDATE)MEDFAILS.rattledIgnoresIntimidateRestored=1;
+function retaliateWhenLowered(f,src,eff,landed){
   if(!f||f.fainted||!f.boosts)return false;
   const ab=(f.ability||'').replace(/[^a-z0-9]/g,'');
   const p=TAGS.param('ability',ab,'boostsWhenLowered');
   if(!p)return false;
+  if(p.onlyFrom){
+    if(RATTLED_IGNORES_INTIMIDATE)return false;
+    const _n=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+    if(_n(eff)!==_n(p.onlyFrom))return false;
+    const _ws=p.whenStat?SD2ENG[p.whenStat]:null;
+    if(_ws&&!(landed&&landed[_ws]))return false;       // `boost.atk` after the cap: a drop the -6 floor zeroed is falsy
+    MEDSEEN.gatedDropReaction=(MEDSEEN.gatedDropReaction|0)+1;
+  }
   if(src===undefined){MEDSEEN.retaliateSourceUnknown++;}
   else{
     if(p.needsSource&&!src)return false;
@@ -23700,7 +23841,7 @@ function retaliateWhenLowered(f,src){
    * zero. Four of the batch's NARRATION-ONLY causes are this one line: a Defiant body at +6 takes
    * Parting Shot's second drop and the authority writes `|-boost|pXY|atk|0`. Both legal carriers
    * pass `(target, target, null, false, true)`; the membership is printed by the probe. */
-  const _zeroSays=abilityZeroAnnounces(true);
+  const _zeroSays=abilityZeroAnnounces(!p.quietAtCap);
   for(const k in bo){const _s=SD2ENG[k];if(_s&&f.boosts[_s]!=null){
     const _b=f.boosts[_s];f.boosts[_s]=clamp(f.boosts[_s]+bo[k],-6,6);
     const _d=f.boosts[_s]-_b;
@@ -23818,7 +23959,7 @@ function applyStatDrop(f,stat,n,eff,src,zeroSays){
   /* WIRE 138 -- THROUGH THE SHARED READER. This block used to be the only place the retaliation
    * happened, which is why every move-driven drop escaped it. `src` is optional and `undefined` keeps
    * the pre-wire behaviour with a counter, so no existing caller changes meaning silently. */
-  if(TAGS.param('ability',ab,'boostsWhenLowered')){retaliateWhenLowered(f,src);return ab;}
+  if(TAGS.param('ability',ab,'boostsWhenLowered')){retaliateWhenLowered(f,src,eff,{[stat]:f.boosts[stat]-_b1});return ab;}
   return ab==='simple'?'simple':'dropped';
 }
 function applyIntimidate(f){ return applyStatDrop(f,'at',1,'Intimidate'); }
@@ -45678,7 +45819,18 @@ function battleTurn(S,rng,actsForA,actsForB){
                * Ours ended that board on 114/130 and the authority on 58/130 -- 56 HP. */
               if(_absPending){
                 const _p=_absPending;_absPending=null;
+                /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.73.0) -- WHAT THE BUST DOES TO THE MATCHUP OF THE ARRIVALS
+                 * LEFT, read off the flatten that absorbed arrival 1 BEFORE the rename (after it the species gate
+                 * reads the busted forme). No `endsWithSpecies` (Reg M-B's Champions handler): the neutral is HELD for
+                 * the rest of the move. `endsWithSpecies` (Reg M-C, mainline): the arrivals after the bust take the
+                 * busted forme's real matchup, and are ANNOUNCED with it (`-resisted` / `-supereffective`). */
+                const _fp0=DISGUISE_VOLLEY_OLD?null:abilityFlattenOf(m,tg,mv);
                 _p.bust();
+                if(_fp0&&_fp0.returns!=null){
+                  if(!_fp0.endsWithSpecies){tg._flatHeld=Math.pow(2,+_fp0.returns);MEDSEEN.disguiseVolleyHeld=(MEDSEEN.disguiseVolleyHeld|0)+1;}
+                  else if(R.effShow){const _rr=dmgRange(m,tg,mv,field,_spreadHit,false,null);
+                    if(_rr&&typeof _rr.eff==='number'){R.effShow=_rr.eff;MEDSEEN.disguiseVolleyEffAfterBust=(MEDSEEN.disguiseVolleyEffAfterBust|0)+1;}}
+                }
                 tg.curHP-=_p.chip;
                 if(TR){const _cf=tg._chipFrom;tg._chipFrom=null;TR.dmg(tg,_cf||undefined);}
                 MEDSEEN.formeAbsorbBustBetweenArrivals++;
@@ -45734,6 +45886,8 @@ function battleTurn(S,rng,actsForA,actsForB){
            * `detailschange` and no chip -- silent, and exactly the shape this file has a rule
            * about. */
           if(_absPending){MEDFAILS.formeAbsorbPendingUnspent++;_absPending=null;}
+          /* 2026-09-23 (abra/regmc 0.73.0) -- the held neutral ends with the move (`move.hit === 1` resets it). */
+          if(tg._flatHeld!=null)delete tg._flatHeld;
           /* BATCH M -- AND THE ROW TOTAL FOLLOWS THE ARRIVALS. `dealt`, `_dealtEach` and the drain
            * below all read one number, and after a re-price that number is no longer the one the
            * price step handed over. `_reDealt` is the existing helper for exactly this -- "an
@@ -49146,7 +49300,13 @@ function battleTurn(S,rng,actsForA,actsForB){
            * contact toll just knocked out still lays the hazard -- unless a Substitute took the hit. Both handlers ask the
            * HP on that road, so the sub road keeps `!m.fainted` for the whole family without a new tag param.
            * MEDI_HAZARD_ON_HIT_NEEDS_LIVE_USER=1 asks for a live user on both roads again. */
-          const _hohLive=HAZARD_ON_HIT_NEEDS_LIVE_USER?!m.fainted:(!_subAte||!m.fainted);
+          /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.71.0) -- AND THE AFTERHIT ROAD IS THE HANDLER'S TOO, WHICH 0.60.0 READ
+           * OFF THE REG M-C CHECKOUT ONLY. Reg M-B's `onAfterHit` (pokemon-showdown data/moves.ts stoneaxe :18072-18078,
+           * ceaselessedge :2229-2235) asks `!move.hasSheerForce && source.hp`, so there a user a toll knocked out lays
+           * nothing -- the held-out 12,000 draw on release 89ac57f1f81b parted on it (Ceaseless Edge, Rough Skin: 2 Spikes
+           * layers against 1). `laysForFaintedUser` is read off the handler by tag_dex; Reg M-C's handlers carry it. */
+          const _hohDeadOk=HAZARD_ON_HIT_FAINTED_ALWAYS||!!(_hoh&&_hoh.laysForFaintedUser);
+          const _hohLive=HAZARD_ON_HIT_NEEDS_LIVE_USER?!m.fainted:(!m.fainted||(!_subAte&&_hohDeadOk));
           if(_hoh&&_hoh.hazard&&connected&&_hohLive&&(_hoh.throughSubstitute||!_subAte)){
             const _hsf=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
             if(_hsf){layHazard(_hsf,_hoh.hazard,_hoh.maxLayers,m,it.side==='A'?'p2':'p1');

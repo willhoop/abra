@@ -4255,8 +4255,17 @@ const MOVE_TAGS = [
        * handlers is reported rather than inferred. `onAfterSubDamage` present means the layer goes
        * down even when a Substitute ate the hit; `onAfterHit` alone would not. A miss and a Protect
        * stop both, because neither handler runs at all. */
+      /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.71.0) -- WHETHER A FAINTED USER STILL LAYS IT IS THE HANDLER'S, AND
+       * THE TWO REGULATIONS' AUTHORITIES DISAGREE. Both Champions `spreadMoveHit`s raise `AfterHit` with no HP test, so
+       * the move's own `onAfterHit` decides. Reg M-B's checkout (data/moves.ts stoneaxe :18072-18078, ceaselessedge
+       * :2229-2235) asks `!move.hasSheerForce && source.hp`; Reg M-C's (:18078-18084, :2229-2235) asks only
+       * `!move.hasSheerForce`. Read off the handler, never off the regulation id. Written ONLY when true, so no Reg M-B
+       * row moves (the same convention as `trapsTarget.alsoUser`). */
+      const aft = String(m.onAfterHit || '');
+      const laysForFaintedUser = !!m.onAfterHit && !/source\.hp/.test(aft);
       return { hazard: h, maxLayers: hazardCap(h),
-               throughSubstitute: !!m.onAfterSubDamage, onlyOnConnect: true };
+               throughSubstitute: !!m.onAfterSubDamage, onlyOnConnect: true,
+               ...(laysForFaintedUser ? { laysForFaintedUser: true } : {}) };
     } },
   /* ROADMAP #72, THE OTHER HALF -- HAZARDS COME BACK UP, AND NOTHING SAID SO. 2026-08-11.
    *
@@ -6530,6 +6539,13 @@ function flattensTypeMatchup(o) {
       .concat([...body.matchAll(/\[([^\]]*)\]\s*\.includes\s*\(\s*target\.species\.id/g)]
         .flatMap(m => [...m[1].matchAll(/['"]([a-z0-9]+)['"]/g)].map(x => x[1]))),
     bailsOnImmunity: /runImmunity/.test(body),
+    /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.72.0) -- A SPECIES-GATED FLATTEN THAT HOLDS NO STATE IS ASKED AGAIN ON
+     * EVERY ARRIVAL. Mainline Disguise (data/abilities.ts disguise, both checkouts) tests `target.species.id` each
+     * time, so once `onUpdate` has changed the forme between arrivals the later arrivals take their real matchup. The
+     * Reg M-B Champions mod (data/mods/champions/abilities.ts:14-33) sets `this.effectState.neutral` on the first
+     * arrival and returns 0 for the rest of the move before the species test; the Reg M-C mod has no disguise entry.
+     * Written ONLY when true (a species gate and no `effectState`), so no Reg M-B row moves. */
+    ...(/species\.id/.test(body) && !/effectState\./.test(body) ? { endsWithSpecies: true } : {}),
   };
 }
 const FLATTENS_TAG = {
@@ -7671,7 +7687,15 @@ const ABILITY_TAGS = [
       const perStat = !!a.onAfterEachBoost;
       const src = String(a.onAfterEachBoost || a.onAfterBoost || '');
       if (!perStat && !a.onAfterBoost) return null;
-      if (!/statsLowered|<\s*0/.test(src)) return null;
+      /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.75.0) -- A REACTION GATED ON ONE EFFECT AND ONE LANDED STAT. Rattled
+       * (data/abilities.ts rattled, both checkouts, no Champions override; no Reg M-B carrier): `onAfterBoost(boost,
+       * target, source, effect) { if (effect?.name === "Intimidate" && boost.atk) { this.boost({ spe: 1 }); } }`. It
+       * names no `< 0`, so the test below dropped it and the engine never raised the Speed. The gate travels as
+       * `onlyFrom` / `whenStat`; `quietAtCap` says the call passes neither isSelf nor isSecondary, so a capped raise
+       * writes NO zero line (sim/battle.ts boost()). All three written only on this shape, so no existing row moves
+       * (printed before wiring over both dexes: rattled alone). */
+      const gate = src.replace(/\s+/g, ' ').match(/effect\??\.name\s*===\s*["']([^"']+)["']\s*&&\s*boost\.(\w+)\s*\)/);
+      if (!/statsLowered|<\s*0/.test(src) && !gate) return null;
       const bm = src.match(/\.boost\(\s*\{([^}]*)\}/);
       const boosts = {};
       if (bm) for (const kv of bm[1].split(',')) {
@@ -7682,6 +7706,10 @@ const ABILITY_TAGS = [
       if (Object.keys(boosts).length) out.boosts = boosts;
       if (/!\s*source/.test(src)) out.needsSource = true;
       if (/isAlly\(\s*source\s*\)/.test(src)) out.notFromAlly = true;
+      if (gate) {
+        out.onlyFrom = gate[1]; out.whenStat = gate[2];
+        if (!/\.boost\(\s*\{[^}]*\}\s*,\s*target\s*,\s*target/.test(src.replace(/\s+/g, ' '))) out.quietAtCap = true;
+      }
       return out;
     } },
   { tag: 'preventsStatDrop', param: 'WHICH stat drops do not apply, and to whom', probe: 'onTryBoost',
@@ -7757,6 +7785,21 @@ const ABILITY_TAGS = [
        * continue` -- the drop is then simply deleted and nobody takes it), and it needs a LIVING
        * source (`if (source.hp)`). */
       const refl = /this\.boost\([^)]*\bsource\b/.test(src);
+      /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.74.0) -- A REFUSAL THAT ANSWERS WITH A SELF BOOST. Guard Dog
+       * (data/abilities.ts guarddog, both checkouts): `delete boost.atk; this.boost({ atk: 1 }, target, target, null, false,
+       * true);`. The table the handler raises on its own holder, read off the call; written ONLY when present, so no
+       * Reg M-B row moves (printed before wiring over both dexes: guarddog alone, and it has no Reg M-B carrier). */
+      const ansM = src.replace(/\s+/g, ' ').match(/this\.boost\(\s*\{([^}]*)\}\s*,\s*target\s*,\s*target\b/);
+      const answersWith = {};
+      if (ansM) for (const kv of ansM[1].split(',')) {
+        const q = kv.split(':').map(x => x.trim().replace(/["']/g, ''));
+        if (q.length === 2 && !isNaN(+q[1])) answersWith[q[0]] = +q[1];
+      }
+      /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.76.0) -- THE REFUSAL LINE'S STAT LABEL, AS THE HANDLER SPELLS IT, where
+       * it spells a stat ID: `this.add("-fail", target, "unboost", "atk", ...)` in the Reg M-C checkout (Inner Focus,
+       * Oblivious, Own Tempo, Scrappy, Hyper Cutter; "def" for Big Pecks), against Reg M-B's "Attack" / "Defense",
+       * which the engine's own display table already writes. Written ONLY on a stat id, so no Reg M-B row moves. */
+      const failLabel = (src.replace(/\s+/g, ' ').match(/add\(\s*["']-fail["']\s*,\s*\w+\s*,\s*["']unboost["']\s*,\s*["'](atk|def|spa|spd|spe)["']/) || [])[1] || null;
       return { blocks: statsBlockedIn(src) || 'all stats',
                onlyFrom: only,
                onlyGrassTypes: /hasType\("Grass"\)/.test(src) || null,
@@ -7764,7 +7807,9 @@ const ABILITY_TAGS = [
                reflects: refl || null,
                reflectSkipsAtFloor: refl ? /boosts\[\w+\]\s*===?\s*-6/.test(src) : null,
                reflectNeedsLivingSource: refl ? /source\.hp/.test(src) : null,
-               allyBlockLine: allyBlockLine || null };
+               allyBlockLine: allyBlockLine || null,
+               ...(Object.keys(answersWith).length ? { answersWith } : {}),
+               ...(failLabel ? { failLabel } : {}) };
     } },
   /* ROADMAP #92 -- AN ABILITY THAT REFUSES ONE NAMED VOLATILE, WHICH IS NOT THE SAME TAG AS ONE THAT
    * REFUSES A STAT DROP. Own Tempo carried `preventsStatDrop` alone -- the Intimidate half -- and its
