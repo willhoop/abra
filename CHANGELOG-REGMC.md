@@ -21,6 +21,23 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.86.0] — 2026-09-23
+
+### Fixed
+- **Two Speed-tied bodies at one residual order ran body-major (both regulations).** `fieldEvent('Residual')` sorts its
+  handler list once by `comparePriority` (order, priority, speed, subOrder), so at order 5 two tied bodies run BOTH
+  Grassy Terrain heals (subOrder 2) before EITHER Leftovers (subOrder 4). The group walk ran each body's whole group in
+  turn. `residualGroupPairs` now reads this order's entries off the shadow handler list built at the phase open and,
+  only when they interleave bodies, walks one (body, step) pair per entry; the group's steps carry their namespace
+  (`stepNs`) so an entry maps to its step. Ambiguous or unmapped groups fall back to body-major, counted. This is the
+  pass-9 narration group G (Grassy Terrain against Leftovers): 2 / 6 / 3 first divergences then, 2 / 7 / 5 on the
+  0.82.0 lattices. Knob `MEDI_RESIDUAL_BODY_MAJOR`.
+- The Rillaboom-mirror variant of group G (both heals Grassy, opposite order) is a tie-die question and is NOT claimed
+  here; it is re-read on the next lattice.
+- New probe `tests/probe_residual_interleave_tie.js` (either regulation): a Snorlax @ Leftovers opposite a bare Snorlax
+  under Grassy Terrain. Green in both; red under the knob and with the 0.85.0 engine bytes. The residual-order probes
+  (`probe_residual_shadow`, both trio probes, `probe_endturn_clock_order`) stay green in both regulations.
+
 ## [0.85.0] — 2026-09-23
 
 ### Fixed

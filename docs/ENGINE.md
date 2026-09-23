@@ -1,3 +1,8 @@
+## SPEED-TIED BODIES AT ONE RESIDUAL ORDER RUN HANDLER-MAJOR (BOTH REGULATIONS). 2026-09-23 (abra/regmc 0.86.0)
+
+- `residualGroupPairs` walks (body, step) pairs off the shadow handler list when it interleaves bodies (Grassy heal,
+  Grassy heal, Leftovers). Knob `MEDI_RESIDUAL_BODY_MAJOR`. Probe `tests/probe_residual_interleave_tie.js`. Reg M-C
+  narration group G (the subOrder half; the mirror tie-die half is re-read on the lattice).
 ## A REVIVED BODY'S SECOND FAINT IS ANNOUNCED (REG M-C). 2026-09-23 (abra/regmc 0.85.0)
 
 - `reviveClear` resets `_traceFainted`, the trace's once-per-body latch. Knob `MEDI_REVIVE_KEEPS_FAINT_LATCH`. Probe

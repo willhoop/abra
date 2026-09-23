@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.86.0] — 2026-09-23 — **Speed-tied bodies at one residual order run handler-major (both regulations)**
+
+- **What changed.** `engine/medicham2-browser.js`: `residualGroupPairs` and `RESIDUAL_GROUPS[].stepNs`; the group walk
+  iterates (body, step) pairs when the shadow handler list interleaves bodies. Knob `MEDI_RESIDUAL_BODY_MAJOR`. Probe
+  `tests/probe_residual_interleave_tie.js`.
+- **Measured.** NO FIGURE published. Probe green in both regulations, red under the knob and on the 0.85.0 bytes; four
+  existing residual-order probes green in both.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.85.0] — 2026-09-23 — **A revived body's second faint is announced (Reg M-C)**
 
 - **What changed.** `engine/medicham2-browser.js` `reviveClear` resets the trace's once-per-body faint latch. Knob

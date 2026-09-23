@@ -11306,7 +11306,9 @@ const RESIDUAL_GROUPS = (() => {
     if (!groups.has(r.order)) groups.set(r.order, []);
   }
   const _OUT = [...groups.entries()].sort((a, b) => a[0] - b[0])
-    .map(([order, steps]) => ({ order, steps: steps.sort((a, b) => a.sub - b.sub).map(s => s.step) }));
+    .map(([order, steps]) => { const st = steps.sort((a, b) => a.sub - b.sub);
+      /* `stepNs` (pass 10) -- each step's namespace, read by `residualGroupPairs` to map a shadow entry to its step */
+      return { order, steps: st.map(s => s.step), stepNs: st.map(s => s.ns) }; });
   /* THE DELIBERATE BREAK, KEPT AND MADE LOUD. Collapsing every step into ONE group reproduces the
    * body-major walk exactly -- one pass over the bodies with every chunk in source order -- which is
    * the only honest control for a restructure like this, and the four ROADMAP #221 probes in
@@ -11861,6 +11863,42 @@ function shadowChipBeforeTrap(m){
     }
   }
   return iChip>=0&&iTrap>=0&&iChip<iTrap;
+}
+/* 2026-09-23 (ENGINE pass 10, abra/regmc 0.86.0) -- THE GROUP WALK'S (body, steps) SEQUENCE. Body-major by default:
+ * `[m, G]` for every body the group's `residualOrder` returned. Handler-major ONLY when the authority's sorted handler
+ * list (the shadow, built at the phase open) interleaves two bodies at this order -- body X, body Y, body X -- which
+ * happens when their Speeds tie and they hold handlers of different subOrders at the same order. Each shadow entry is
+ * mapped to the group's step by its namespace; a group with two steps of one namespace, or an entry no step claims,
+ * is ambiguous and falls back to body-major, COUNTED. Bodies the shadow does not place keep their body-major turn,
+ * after the placed ones. */
+const RESIDUAL_BODY_MAJOR=(typeof process!=='undefined'&&process.env&&process.env.MEDI_RESIDUAL_BODY_MAJOR==='1');
+const _RES_KEY_NS={fieldActive:'field',ability:'ability',item:'item',status:'status',vol:'condition',slot:'condition'};
+function residualGroupPairs(grp,bodies,G){
+  const whole=()=>bodies.map(m=>[m,G]);
+  if(RESIDUAL_BODY_MAJOR){MEDFAILS.residualBodyMajorRestored=1;return whole();}
+  if(!grp||!grp.steps||grp.steps.length<2)return whole();
+  if(_RES_SHADOW_GEN!==_RES_TIE_GEN||!_RES_SHADOW_LIST)return whole();
+  const inBodies=new Set(bodies), ents=[];
+  for(const e of _RES_SHADOW_LIST)if(e.ord===grp.order&&e.who&&inBodies.has(e.who))ents.push(e);
+  /* interleaved? a body whose entries are not contiguous */
+  const last=new Map(); let inter=false;
+  ents.forEach((e,i)=>{ if(last.has(e.who)&&last.get(e.who)!==i-1)inter=true; last.set(e.who,i); });
+  if(!inter)return whole();
+  const byNs=new Map();
+  if(!grp.stepNs)return whole();
+  for(let i=0;i<grp.steps.length;i++){ const ns=grp.stepNs[i], st=grp.steps[i]; if(!ns||!G.has(st))continue;
+    if(byNs.has(ns)){MEDFAILS.residualInterleaveAmbiguous=(MEDFAILS.residualInterleaveAmbiguous||0)+1;return whole();}
+    byNs.set(ns,st); }
+  const out=[], placed=new Set();
+  for(const e of ents){
+    const ns=_RES_KEY_NS[String(e.key).slice(0,String(e.key).indexOf(':'))];
+    const step=ns&&byNs.get(ns);
+    if(!step){MEDFAILS.residualInterleaveUnmapped=(MEDFAILS.residualInterleaveUnmapped||0)+1;return whole();}
+    out.push([e.who,new Set([step])]); placed.add(e.who);
+  }
+  for(const m of bodies)if(!placed.has(m))out.push([m,G]);
+  MEDSEEN.residualInterleaved=(MEDSEEN.residualInterleaved||0)+1;
+  return out;
 }
 function residualHandlerOrderApply(list,order){
   if(_RES_SHADOW_GEN!==_RES_TIE_GEN||!_RES_SHADOW_LIST){
@@ -51516,7 +51554,15 @@ function battleTurn(S,rng,actsForA,actsForB){
     /* ROADMAP #563 -- the group's ORDER is named, so the bodies holding a handler at it come out in
      * the authority's handler-list order (see `residualOrder`'s header). The per-group re-ask above
      * still governs every body the list does not place. */
-    for(const m of residualOrder(actA,actB,field,{order:RESIDUAL_GROUPS[_gi].order,activeOnly:_G.has('weather')})){
+    const _bodies=residualOrder(actA,actB,field,{order:RESIDUAL_GROUPS[_gi].order,activeOnly:_G.has('weather')});
+    /* 2026-09-23 (ENGINE pass 10, abra/regmc 0.86.0) -- WITHIN ONE ORDER THE AUTHORITY IS HANDLER-MAJOR, NOT BODY-MAJOR.
+     * `comparePriority` sorts (order, priority, speed, subOrder), so at order 5 two bodies TIED on Speed run BOTH Grassy
+     * Terrain heals (subOrder 2) before EITHER Leftovers (subOrder 4); this walk ran each body's whole group at once
+     * (heal, Leftovers, then the next body). The shadow list built at the phase open is the authority's sorted
+     * handler list; `residualGroupPairs` reads this order's entries off it and, only when they interleave bodies, hands
+     * the walk one (body, step) pair per entry. Reg M-C narration group G. MEDI_RESIDUAL_BODY_MAJOR=1 restores the old. */
+    const _pairs=residualGroupPairs(RESIDUAL_GROUPS[_gi],_bodies,_G);
+    for(const [m,_Gp] of _pairs){ const _G=_Gp;
       /* 2026-09-22 (Reg M-C, abra/regmc 0.59.0) -- A REVIVED BODY WAITING FOR ITS INSTASWITCH IS NOT ACTIVE, so every
        * handler that reaches it here is refused by the authority's `isActive` test (see `reviveFainted`): Grassy Terrain
        * healed a Rillaboom Revival Blessing had brought back as the turn's last action, on the Reg M-C 1950 card
