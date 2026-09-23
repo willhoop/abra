@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.63.0] — 2026-09-22 — **The lab re-measured on the 0.62.0 engine: both censuses and the Reg M-C roster**
+
+- **What changed.** Regenerated artifacts: `data/mechanics-census-regmc.json`, `data/mechanics-census.json` and
+  `data/roster.{items,abilities,moves}-regmc.json`, all on release `aa7b45c6b8d2`. No engine byte moved.
+- **Measured.** NO FIGURE published. Census: Reg M-C 1006/1006 live, Reg M-B 1004/1004 live. Reg M-C roster: 0 DIFFER and
+  0 DID-NOT-FIRE. 22 COULD-NOT-STAGE rows remain, plus 2 shelf rows over a DIFFER (Bounce, Jaw Lock). The moves stage exits
+  1 on a dead plant anchor that predates this pass. Every row is named in `docs/_reports/2026-09-22-regmc-engine-7.md` §2.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.62.0] — 2026-09-22 — **A mid-turn Encore re-inserts its target's action, so a speed tie resolves the same way in both regulations**
 
 - **What changed.** `engine/medicham2-browser.js`: `encoreInsertChoice` re-inserts a relocated Encore target the way

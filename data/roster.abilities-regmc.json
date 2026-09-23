@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-22T03:21:47.448Z",
+ "generated": "2026-09-23T02:11:33.626Z",
  "by": "tests/roster.js",
  "stage": "abilities",
  "swap_leaf_correction": {
@@ -7,12 +7,12 @@
   "real_ability_rewrite_kept": 68,
   "control_arm_bookkeeping_dropped": 4030
  },
- "engine_release": "fa68d953e73f",
- "engine_release_cut": "2026-09-22T00:29:54.292Z",
- "engine_release_cuts": 10,
+ "engine_release": "aa7b45c6b8d2",
+ "engine_release_cut": "2026-09-23T01:33:59.226Z",
+ "engine_release_cuts": 2,
  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
  "source_digests": {
-  "engine/medicham2-browser.js": "505f79848155",
+  "engine/medicham2-browser.js": "832c0efa264b",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "a68f159b6d5c",
   "engine/position_features.js": "bb71676d3669",
@@ -33,15 +33,15 @@
   "data/regulations.json": "6c7c3e3dd06c",
   "data/quality-filter.json": "042524dd1df7",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "43bf7eb1bcc1",
-  "data/tags.json": "c34d6465c3b6",
+  "data/abra-tags.js": "e5d86eb1d337",
+  "data/tags.json": "e82b7eb5cf8a",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
   "engine/pp.js": "30b12a4ef623",
   "data/rollout-switch-census.json": "b8a5cee2f0a9",
-  "data/engine-data-regmc.js": "f6b756beabd7",
-  "data/tags-regmc.json": "9c0f3391fa1d",
+  "data/engine-data-regmc.js": "a6ad04e92d4e",
+  "data/tags-regmc.json": "9699e1996d59",
   "data/move-priors-regmc.json": "eab0c9b023df",
   "data/move-effects-regmc.js": "8c57407e7641"
  },
@@ -231,11 +231,11 @@
  },
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
-  "DID-NOT-FIRE": 2,
+  "DID-NOT-FIRE": 0,
   "DEFERRED-BY-OWNER": 1,
   "BELOW-USAGE-SHELF": 0,
   "ANNOUNCEMENT-ONLY": 3,
-  "FIRED-AND-BOARDS-MATCH": 199,
+  "FIRED-AND-BOARDS-MATCH": 201,
   "CONTROL-NOT-QUIET": 0,
   "COULD-NOT-STAGE": 9
  },
@@ -256,9 +256,9 @@
   },
   "in_scope": 214,
   "tested": 201,
-  "matched": 199,
+  "matched": 201,
   "differ": 0,
-  "silent": 2,
+  "silent": 0,
   "deferred": 1,
   "unattributable": 0,
   "unattributable_ids": [],
@@ -345,7 +345,7 @@
   }
  },
  "plant_anchors": {
-  "release": "fa68d953e73f",
+  "release": "aa7b45c6b8d2",
   "checked": 64,
   "dead": [],
   "reds_ran": true
@@ -14495,8 +14495,8 @@
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Arboliva; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui) — taken because Harvest, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "arboliva",
@@ -14627,170 +14627,7 @@
      "without": 748
     }
    ],
-   "diffs": [
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "",
-     "field": "field.terrain",
-     "showdown": "grassy",
-     "ours": "",
-     "bucket": "present-in-one-engine-only"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "",
-     "field": "field.terrain_turns",
-     "showdown": 4,
-     "ours": 0,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 968,
-     "ours": 923,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 968,
-     "ours": 923,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "arboliva",
-     "field": "party.hp",
-     "showdown": 890,
-     "ours": 833,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "arboliva",
-     "field": "hp",
-     "showdown": 890,
-     "ours": 833,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "",
-     "field": "field.terrain",
-     "showdown": "grassy",
-     "ours": "",
-     "bucket": "present-in-one-engine-only"
-    },
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "",
-     "field": "field.terrain_turns",
-     "showdown": 3,
-     "ours": 0,
-     "bucket": "off-by-2-or-3"
-    },
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 958,
-     "ours": 868,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 958,
-     "ours": 868,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "arboliva",
-     "field": "party.hp",
-     "showdown": 862,
-     "ours": 748,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p2a",
-     "body": "arboliva",
-     "field": "hp",
-     "showdown": 862,
-     "ours": 748,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 4,
-     "slot": "",
-     "body": "",
-     "field": "field.terrain",
-     "showdown": "grassy",
-     "ours": "",
-     "bucket": "present-in-one-engine-only"
-    },
-    {
-     "turn": 4,
-     "slot": "",
-     "body": "",
-     "field": "field.terrain_turns",
-     "showdown": 2,
-     "ours": 0,
-     "bucket": "off-by-2-or-3"
-    },
-    {
-     "turn": 4,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 978,
-     "ours": 868,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 4,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 978,
-     "ours": 868,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 4,
-     "slot": "",
-     "body": "arboliva",
-     "field": "party.hp",
-     "showdown": 918,
-     "ours": 748,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 4,
-     "slot": "p2a",
-     "body": "arboliva",
-     "field": "hp",
-     "showdown": 918,
-     "ours": 748,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "ability",
@@ -16961,8 +16798,8 @@
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Perrserker; control = Battle Armor; staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked bite,uturn]",
-   "verdict": "DID-NOT-FIRE",
-   "why": "Showdown's board MOVED when the entity was added and ours did not move at all. The staging is known-good because the authority answered it.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "perrserker",
@@ -17021,62 +16858,7 @@
      "without": 792
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 840,
-     "ours": 885,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 1,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 840,
-     "ours": 885,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 702,
-     "ours": 792,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 2,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 702,
-     "ours": 792,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "dragapult",
-     "field": "party.hp",
-     "showdown": 702,
-     "ours": 792,
-     "bucket": "off-by-4-or-more"
-    },
-    {
-     "turn": 3,
-     "slot": "p1a",
-     "body": "dragapult",
-     "field": "hp",
-     "showdown": 702,
-     "ours": 792,
-     "bucket": "off-by-4-or-more"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "ability",

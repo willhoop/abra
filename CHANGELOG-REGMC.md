@@ -21,6 +21,23 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.63.0] — 2026-09-22
+
+### Changed
+- **The lab was re-measured on the 0.62.0 engine (release `aa7b45c6b8d2`).** Both censuses and all three Reg M-C roster
+  stages were regenerated.
+  - Census: Reg M-C `data/mechanics-census-regmc.json` reads **1006 / 1006 live**. Reg M-B `data/mechanics-census.json`
+    reads **1004 / 1004 live**. Both have run_ok true, and no row changed status.
+  - Reg M-C roster (`--reds --write`): 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE across items, abilities and moves.
+    Seed Sower and Steely Spirit left DID-NOT-FIRE, and Mirror Coat left the usage shelf.
+  - Still standing, not fixed here: 22 COULD-NOT-STAGE rows (12 items, 9 abilities, Milk Drink); Bounce and Jaw Lock
+    below the usage shelf, each over an underlying DIFFER; and the moves stage exits 1 on a dead plant anchor
+    (`move/needs-the-terrain-it-names`), which was already dead on `fa68d953e73f`.
+  - Every row is listed by name in `docs/_reports/2026-09-22-regmc-engine-7.md` §2.
+
+### Notes
+- These are artifact regenerations. No engine byte moved. The Reg M-C and Reg M-B lattices from 0.62.0 stand.
+
 ## [0.62.0] — 2026-09-22
 
 ### Fixed
