@@ -53,6 +53,20 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.71.0] — 2026-09-23 — **The roster's text proxy and its refused fixtures are repaired; 141 → 11 (Reg M-B), 144 → 12 (Reg M-C)**
+
+- **What changed.** `tests/roster.js`, with the text view moved into `tests/roster_text_view.js` and the new
+  `tests/test-roster-text-view.js` and `tests/probe_roster_fixture_legality.js`. The text view leaves frozen Hidden
+  Power text unwrapped, and 7 abilities stage again. Refused fixtures are repaired: the control click resolves per
+  body, a Focus Energy restaging pass runs, and bodies learn their own clicks. Legal-first picks run only for rows the
+  restaging could not make legal. No engine byte moved.
+- **Measured.** Distinct refused sets, static sweep of every arm with no roster arm played: Reg M-B 17/77/47 (+2
+  rule-built) → 0/6/3 (+2); Reg M-C 17/80/47 (+2) → 0/7/3 (+2). No row lost staging. The left-over refusals are the
+  Skill Swap lender (no legal quiet-ability body learns it, in either regulation), Heal Bell, Roost and Transform.
+  `docs/_reports/2026-09-23-roster-fixture-legality.md`. The roster artifacts were NOT regenerated (owed).
+- **Basis.** unchanged. **Supersedes.** Nothing published. **Owed to the next major.** none (Reg M-C publishes nothing
+  until its gate opens).
+
 ## [abra/regmc 0.70.0] — 2026-09-23 — **Both MEDICHAM gates read in main on the finished engine: both CLOSED**
 
 - **What changed.** No code. Regenerated on releases `89ac57f1f81b` (Reg M-B) and `485d0a6840ad` (Reg M-C): both

@@ -1,3 +1,26 @@
+## THE ROSTER'S TWO RULER DEFECTS ARE REPAIRED: THE TEXT PROXY AND FIXTURE LEGALITY. 2026-09-23 (abra/regmc 0.71.0)
+
+Full account: `docs/_reports/2026-09-23-roster-fixture-legality.md`. Light mode, so no roster stage was run (owed).
+
+- **Text proxy.** `tests/roster_text_view.js` leaves an entity whose text is a frozen own property unwrapped, and
+  counts it. Reg M-B's 16 Hidden Power typings are those entities. The 7 abilities that threw stage again. The guard
+  is `tests/test-roster-text-view.js`, shown red with the guard removed.
+- **Fixture legality.** `tests/probe_roster_fixture_legality.js` builds every arm and reproduced HEAD's receipts
+  exactly. Refused sets went 141 → 11 (Reg M-B) and 144 → 12 (Reg M-C). No row lost staging, and only rows that held a
+  refused set changed fixture. `tests/probe_roster_learnset_refusals.js` is GREEN in both regulations.
+  `tests/probe_roster_inert_legality.js --strict` reads 0 in both (it was 58).
+- **Left, by name.**
+  - The in-play Skill Swap lender: no legal quiet-ability body learns Skill Swap in either regulation. A decision is
+    owed.
+  - Heal Bell: its sole learner, Chimecho, holds only Levitate.
+  - Roost.
+  - Transform: its sole learner, Ditto, learns nothing else.
+- **Hand list.** Nothing leaves it: this pass fixed the ruler, not a mechanic. Carried forward, from the 0.70.0 report:
+  - Ceaseless Edge Spikes after its user faints;
+  - the Reg M-C volleys into Multiscale / Disguise;
+  - the Intimidate-reaction family;
+  - Overdrive's missing `SUBPASS`.
+
 ## CONTRARY AND THE TERRAIN SEEDS ARE STAGED IN REG M-C. 2026-09-23 (abra/regmc 0.69.1)
 
 - **Cause.** `probe_protean_contrary`'s `itemboost` lead read NOT STAGED under Reg M-C. The seeds are legal there, and
