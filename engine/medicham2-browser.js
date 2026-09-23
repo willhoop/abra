@@ -28427,6 +28427,7 @@ function layHazard(sf,hz,cap,setter,sideLabel,say){
  * false the same way and it writes `|move|<user>|<Move>||[still]` then `|-fail|<user>`. Measured on the authority, a
  * repeated Focus Energy (Reg M-C narration group E). MEDI_SELF_VOLATILE_FAIL_SILENT=1 restores the exclusion. */
 const SELF_VOL_FAIL_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SELF_VOLATILE_FAIL_SILENT==='1');
+const SPEND_TYPE_FAIL_BARE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SPEND_TYPE_FAIL_BARE==='1');   /* 0.83.0, see the spendsOwnType refusal */
 /* 2026-09-23 (ENGINE pass 10, abra/regmc 0.82.0) -- COURT CHANGE SWAPS THE LISTED SIDE CONDITIONS BETWEEN THE SIDES.
  *
  * The authority (M-C checkout data/moves.ts courtchange :3032-3098; no Champions override) walks its own literal list
@@ -41787,7 +41788,16 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _st=TAGS.param('move',a.move.id,'spendsOwnType');
         if(_st&&_st.requires&&!(m.types||[]).includes(_st.requires)){
           MEDSEEN.ownTypeAlreadySpent++;
-          m._lastMove=a.move.id;{if(TR)TR.attrStill();mvFail(m);}continue;
+          m._lastMove=a.move.id;
+          /* 2026-09-23 (ENGINE pass 10, abra/regmc 0.83.0) -- THE REFUSAL NAMES THE MOVE. Both members' `onTryMove`
+           * (Double Shock data/moves.ts:3954-3959, Burn Up :2102-2107, both checkouts, no Champions override) write
+           * `this.add('-fail', pokemon, 'move: <Name>'); this.attrLastMove('[still]');`. This site wrote a bare
+           * `-fail`. The name is the tag row's own display name. Reg M-C narration group C. Knob
+           * MEDI_SPEND_TYPE_FAIL_BARE=1 restores the bare line. */
+          const _stn=(TAGS.tagsFor&&(TAGS.tagsFor('move',a.move.id)||{}).name)||'';
+          if(SPEND_TYPE_FAIL_BARE){MEDFAILS.spendTypeFailBareRestored=1;if(TR)TR.attrStill();mvFail(m);}
+          else mvFailNamed(m,_stn,undefined,true);
+          continue;
         }
       }
       /* ROADMAP #514, 2026-08-27 -- A LATCHED FACT ABOUT THE USER, AND NOTHING READ IT.

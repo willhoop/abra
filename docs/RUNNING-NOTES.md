@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.83.0] — 2026-09-23 — **Double Shock and Burn Up fail naming themselves (both regulations)**
+
+- **What changed.** `engine/medicham2-browser.js`: the `spendsOwnType` refusal writes `-fail|<user>|move: <Name>`.
+  Knob `MEDI_SPEND_TYPE_FAIL_BARE`. Probe `tests/probe_spend_type_fail_named.js`.
+- **Measured.** NO FIGURE published. Probe green in both regulations, red under the knob.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.82.1] — 2026-09-23 — **Pass 9's three probe reds were probe defects; fixed in the probes**
 
 - **What changed.** `tests/probe_disguise_crit.js` accepts a checkout with no Champions `disguise` entry;

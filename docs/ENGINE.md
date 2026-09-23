@@ -1,3 +1,8 @@
+## DOUBLE SHOCK AND BURN UP FAIL NAMING THEMSELVES (BOTH REGULATIONS). 2026-09-23 (abra/regmc 0.83.0)
+
+- The `spendsOwnType` refusal writes the handler's `-fail|<user>|move: <Name>`. Knob `MEDI_SPEND_TYPE_FAIL_BARE`. Probe
+  `tests/probe_spend_type_fail_named.js`. Reg M-C narration group C. Hand list: the `-fail|<user>|move: <Move>` item
+  leaves it for these two moves.
 ## PASS 9'S THREE PROBE REDS WERE THE PROBES. 2026-09-23 (abra/regmc 0.82.1)
 
 Full account: `docs/_reports/2026-09-23-engine-pass10.md` §B. Disguise crit: a Reg M-B-only mod-block assertion.

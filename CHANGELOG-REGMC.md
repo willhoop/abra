@@ -21,6 +21,18 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.83.0] — 2026-09-23
+
+### Fixed
+- **A move that spends its user's type, refused for lacking it, failed with a bare `-fail` (both regulations).** Double
+  Shock's and Burn Up's `onTryMove` (data/moves.ts :3954 / :2102, both checkouts, no Champions override) write
+  `-fail|<user>|move: <Name>` and `[still]`. The engine's `spendsOwnType` refusal wrote `-fail|<user>`. It now names
+  the move (the tag row's display name) through `mvFailNamed`. Reg M-C narration group C (7 / 8 / 12 first
+  divergences on the pass-9 lattices); the Reg M-B defect was real too (Burn Up) and simply not in its pool. Knob
+  `MEDI_SPEND_TYPE_FAIL_BARE`.
+- New probe `tests/probe_spend_type_fail_named.js` (either regulation; members from the `spendsOwnType` tag). Reg M-C:
+  Burn Up and Double Shock; Reg M-B: Burn Up. Green; red under the knob in both.
+
 ## [0.82.1] — 2026-09-23
 
 ### Fixed
