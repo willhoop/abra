@@ -21,6 +21,18 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.85.0] — 2026-09-23
+
+### Fixed
+- **A body revived by Revival Blessing that fell again wrote no `|faint|` (Reg M-C).** `TR.faint` is latched once per
+  body (`_traceFainted`) and `reviveClear` never reset the latch, so the second death was silent while the authority's
+  `faintMessages` writes a line per death. This is the pass-9 narration group D ("`|faint|` line never emitted", 5 / 5 / 5)
+  and the recoil and Life Orb "faint order" rows on the 0.82.0 lattice: replayed with `--only-game` on
+  `…bo3-2684539964`, the Incineroar knocked out on turn 5 had been revived at 85/170 on turn 4. Engine, not instrument.
+  Knob `MEDI_REVIVE_KEEPS_FAINT_LATCH`.
+- `tests/probe_regmc_revive.js` gains an AGAIN arm (the revived body Mementos again). Green; red under the knob and with
+  the 0.84.0 engine bytes.
+
 ## [0.84.0] — 2026-09-23
 
 ### Fixed

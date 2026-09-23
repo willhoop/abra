@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.85.0] — 2026-09-23 — **A revived body's second faint is announced (Reg M-C)**
+
+- **What changed.** `engine/medicham2-browser.js` `reviveClear` resets the trace's once-per-body faint latch. Knob
+  `MEDI_REVIVE_KEEPS_FAINT_LATCH`. `tests/probe_regmc_revive.js` AGAIN arm.
+- **Measured.** NO FIGURE published. Probe green; red under the knob and on the 0.84.0 bytes.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.84.0] — 2026-09-23 — **Steel Roller ends the terrain in its own onHit (both regulations)**
 
 - **What changed.** `engine/medicham2-browser.js`: new step `_stepMoveOnHitTerrain` clears the terrain above the

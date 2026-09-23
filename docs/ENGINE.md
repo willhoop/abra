@@ -1,3 +1,7 @@
+## A REVIVED BODY'S SECOND FAINT IS ANNOUNCED (REG M-C). 2026-09-23 (abra/regmc 0.85.0)
+
+- `reviveClear` resets `_traceFainted`, the trace's once-per-body latch. Knob `MEDI_REVIVE_KEEPS_FAINT_LATCH`. Probe
+  `tests/probe_regmc_revive.js` AGAIN. Reg M-C narration group D, which pass 9 suspected was the instrument: it was not.
 ## STEEL ROLLER ENDS THE TERRAIN IN ITS OWN `onHit`, ABOVE THE TOLLS AND THE FAINT (BOTH REGULATIONS). 2026-09-23 (abra/regmc 0.84.0)
 
 - `_stepMoveOnHitTerrain` (step 3, beside the move's other `onHit`). Knob `MEDI_STEEL_ROLLER_CLEAR_AT_END`. Probe

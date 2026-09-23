@@ -30794,7 +30794,14 @@ function reviveClear(t){
   t.status=''; t.frzTurns=0; t.slpTurns=0; t.slpTime=0; t._toxN=0; t.toxTurns=0;
   /* the faint bookkeeping, so a second death is a new one */
   t._faintOut=undefined; t._abAtFaint=undefined; t._fEpoch=undefined; t._abRevertedAtFaint=false;
+  /* 2026-09-23 (ENGINE pass 10, abra/regmc 0.85.0) -- AND THE TRACE'S ONCE-PER-DEATH LATCH. `TR.faint` returns early on
+   * `_traceFainted`, which the first death set and nothing cleared, so a body revived by Revival Blessing that fell again
+   * never wrote its second `|faint|` (the authority writes one per `faintMessages`). Reg M-C narration group D: the
+   * pass-9 "faint line never emitted" rows, replayed with `--only-game` on `…bo3-2684539964`: Incineroar, revived at 85/170,
+   * knocked out on turn 5 with no line. The engine, not the instrument. MEDI_REVIVE_KEEPS_FAINT_LATCH=1 restores it. */
+  if(REVIVE_KEEPS_FAINT_LATCH)MEDFAILS.reviveKeepsFaintLatchRestored=1; else t._traceFainted=false;
 }
+const REVIVE_KEEPS_FAINT_LATCH=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REVIVE_KEEPS_FAINT_LATCH==='1');
 function reviveFainted(user,sd,sf,act,bench,foes,field,S,acts,unresolved,mv){
   const party=(sf&&sf.team&&sf.team.length)?sf.team:[...act,...bench];
   const t=party.find(x=>x&&x!==user&&x.fainted);

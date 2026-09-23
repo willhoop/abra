@@ -62,7 +62,7 @@ const counters = () => ({ revived: K.M.MEDSEEN.reviveRevived || 0, insta: K.M.ME
   unmodelled: K.M.MEDFAILS.reviveUnmodelled || 0 });
 const play = (tag, A, B, script) => K.play(tag, A, B, script, KEEP, counters);
 
-let BN = null, NW = null, LS = null;
+let BN = null, NW = null, LS = null, AG = null;
 const sdIdx = (R, re) => R.sdK.findIndex(l => re.test(l));
 outer: for (const u of USERS) for (const f of FAINTERS) {
   const km = KOM.find(m => learns(f, m.id));
@@ -90,14 +90,21 @@ outer: for (const u of USERS) for (const f of FAINTERS) {
   const n = play('now', A, foeTeam(sl), [{ p1: [{ m: MV.id }, { m: km.id, t: 0 }], p2: idleBoth(sl) }]);
   /* LAST: the Memento target is FASTER than the reviver and its partner stands behind Protect (+4), so nothing moves after */
   const l = play('last', A, foeTeam(fs2, SCARF.name), [{ p1: [{ m: MV.id }, { m: km.id, t: 0 }], p2: [{ m: K.idle(fs2[0]).id }, P.protect] }]);
-  if (!n.staged || !l.staged) { console.log('   (skip ' + u.id + '/' + f.id + ': ' + (n.why || l.why) + ')'); continue; }
+  /* 2026-09-23 (ENGINE pass 10, abra/regmc 0.85.0) -- AGAIN: the NOW turn, then the revived body Mementos a second time and
+   * falls again. The authority writes a `|faint|` for EACH death; the engine's once-per-body trace latch swallowed the
+   * second (Reg M-C narration group D). */
+  const g = play('again', A, foeTeam(sl), [{ p1: [{ m: MV.id }, { m: km.id, t: 0 }], p2: idleBoth(sl) },
+    { p1: [P.protect, { m: km.id, t: 0 }], p2: [{ m: K.idle(sl[0]).id }, P.protect] }]);
+  if (!n.staged || !l.staged || !g.staged) { console.log('   (skip ' + u.id + '/' + f.id + ': ' + (n.why || l.why || g.why) + ')'); continue; }
+  g.cast = n.cast + '; turn 2 the revived body falls again';
   b.cast = f.id + ' (' + pr + ') ' + km.id + ' turn 1, ' + bn[0].id + ' refills, ' + u.id + ' ' + MV.id + ' turn 2, foes ' + sl.map(s => s.id);
   n.cast = f.id + ' ' + km.id + ' then ' + u.id + ' ' + MV.id + ', slower foes ' + sl.map(s => s.id + '(' + spe(s) + ')') + ' still to move';
   l.cast = f.id + ' ' + km.id + ' then ' + u.id + ' ' + MV.id + ' last, a faster foe @ ' + SCARF.id + ' (+ a Protect) ' + fs2.map(s => s.id + '(' + spe(s) + ')');
-  b.fid = n.fid = l.fid = f.id;
-  BN = b; NW = n; LS = l; break outer;
+  b.fid = n.fid = l.fid = g.fid = f.id;
+  g.cast = f.id + ' ' + km.id + ' then ' + u.id + ' ' + MV.id + '; turn 2 the revived ' + f.id + ' ' + km.id + 's again';
+  BN = b; NW = n; LS = l; AG = g; break outer;
 }
-const RUNS = [['BENCH', BN], ['NOW', NW], ['LAST', LS]];
+const RUNS = [['BENCH', BN], ['NOW', NW], ['LAST', LS], ['AGAIN', AG]];
 K.printArms(RUNS);
 
 console.log('\n3. THE FIXTURES, ON THE AUTHORITY');
@@ -109,12 +116,13 @@ ok(nH >= 0 && nS > nH && NW.sdK.slice(nS).some(l => /^\|move\|p2/.test(l)) && !N
   'NOW — revived, and switched straight back in before the slower foe moves');
 const lH = heal(LS), lS = swF(LS, lH);
 ok(lH >= 0 && lS > lH && LS.sdK.slice(lH, lS).some(l => /^\|upkeep/.test(l)), 'LAST — revived, and switched in after the residual');
+ok(AG.sdK.filter(l => /^\|faint\|p1[ab]:/.test(l) && l.endsWith(':' + AG.fid)).length === 2, 'AGAIN — the authority writes a second `|faint|` for the revived body');
 
 K.compareArms(RUNS, OWN, 'switch / -heal / faint / move / upkeep');
 if (!K.KNOBS.length && !K.MEDI_SRC_PATH) {
   console.log('\n5. THE COUNTERS');
   const c = RUNS.map(([, R]) => R.counters);
-  ok(c.every(x => x.revived === 1 && x.unmodelled === 0) && c[0].insta === 0 && c[1].insta === 1 && c[2].insta === 1,
+  ok(c.every(x => x.revived === 1 && x.unmodelled === 0) && c[0].insta === 0 && c[1].insta === 1 && c[2].insta === 1 && c[3].insta === 1,
     'the engine\'s receipts: one revive per arm, the two active-slot arms switched in, none unmodelled', JSON.stringify(c));
 }
 K.finish();
