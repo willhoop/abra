@@ -21,6 +21,29 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.59.0] — 2026-09-22
+
+### Fixed
+- **A body Revival Blessing brings back into an active slot is not active while its instaswitch waits behind the residual
+  (Reg M-C).** The revive (`sim/battle.ts` :2781-2798) clears `fainted` and sets HP but not `isActive`, which
+  `faintMessages` cleared (:2566) and only `switchIn` restores; `fieldEvent` still finds the body in `side.active`, but
+  `Battle#heal` (:2274), `spreadDamage` (:2109) and `boost` (:2030) refuse a target that is not active. This engine's
+  residual walk healed it: the Reg M-C 1950 card `…bo3-2684749333` t8 (Grassy Terrain on a Rillaboom revived as the
+  turn's last action; 87/175 there, 97/175 here). The cause is the engine's residual, not the driver's `mirrorRevival`:
+  both engines revived the same body and the boards part at the heal. The walk now passes over a body marked
+  `_revivePending` (set when its instaswitch is deferred, cleared when it walks in). No tag moved. Knob
+  `MEDI_REVIVE_PENDING_TAKES_RESIDUAL`.
+- `tests/probe_regmc_revive_residual_inactive.js` (`--regulation regmc`): LAST (Whimsicott Mementos, Pawmot revives it as
+  the turn's last action under a foe Rillaboom's Grassy Surge; no Grassy heal), NOW (a slower foe still to move; it walks
+  straight in and is healed -- the control). Exit 0 clean; exit 1 under the knob and on release `72bb36048aa0` with the
+  0.58.0 engine bytes. `tests/probe_regmc_revive.js` and `tests/probe_regmc_revival_blessing.js` stay green.
+
+### Notes
+- Revival Blessing is not Reg M-B legal, so Reg M-B cannot reach the change; Reg M-B data files byte-identical. Reg M-B
+  lattice 1200 on release `362ef6d4b630`: 0 of 961.
+- Pinned Reg M-C differential (census pin `f3b70bc0c47c`, release `d05944372a1a`): 1950 2 → **1 of 1537**; 1350 **0 of
+  1075** and 1200 **0 of 954** unmoved. `docs/_reports/2026-09-22-regmc-engine-6.md` §6.
+
 ## [0.58.0] — 2026-09-22
 
 ### Fixed

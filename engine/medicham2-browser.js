@@ -615,6 +615,9 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
    * bookkeeping had already reverted a transformation: the ability it WORE (`_abAtFaint`) answered, as the authority's does
    * until `faintMessages` runs `clearVolatile`. */
   dhAbilityWornAtFaint: 0,
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.59.0) -- a residual group passing over a body Revival Blessing brought back into an
+   * active slot whose instaswitch waits behind the residual: not `isActive`, so every heal / damage / boost is refused. */
+  residualSkippedRevivePending: 0,
   /* ROADMAP #175 -- every damage packet `refusesIndirectDamage` turned away, across all nine gated
    * sites. It replaces MEDFAILS.magicGuardChip, which counted the same event as a KNOWN GAP: the
    * counter moves from the failures object to the capabilities one, which is the whole shape of the
@@ -7063,6 +7066,11 @@ if(SPEND_TYPE_AFTER_MOVE)MEDFAILS.spendTypeAfterMoveRestored=1;
 const DH_READS_REVERTED_ABILITY=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_DH_READS_REVERTED_ABILITY==='1');
 if(DH_READS_REVERTED_ABILITY)MEDFAILS.dhReadsRevertedAbilityRestored=1;
+/* 2026-09-22 (Reg M-C, abra/regmc 0.59.0) -- MEDI_REVIVE_PENDING_TAKES_RESIDUAL=1 lets the residual heal and chip a revived
+ * body still waiting for its instaswitch, as before. */
+const REVIVE_PENDING_TAKES_RESIDUAL=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_REVIVE_PENDING_TAKES_RESIDUAL==='1');
+if(REVIVE_PENDING_TAKES_RESIDUAL)MEDFAILS.revivePendingTakesResidualRestored=1;
 /* 2026-09-05 -- MEDI_CHARGE_REAIMS_FIRST_LIVE_FOE=1 restores the pre-fix release rule: the second turn
  * of a two-turn move is rebuilt against `live(foes)[0]` instead of the slot the charge was aimed at.
  * It restores that and NOTHING else -- the charge turn still records the slot, the wrapper still
@@ -30471,10 +30479,17 @@ function reviveFainted(user,sd,sf,act,bench,foes,field,S,acts,unresolved,mv){
   const moveQueued=(acts||[]).some(x=>x&&x.mon&&unresolved&&unresolved.has(x.mon)&&x.a&&x.a.kind!=='pass');
   const go={act,i,bench,foes,sf,t};
   if(moveQueued){reviveInstaswitch(go,field);return true;}
+  /* 2026-09-22 (Reg M-C, abra/regmc 0.59.0) -- AND UNTIL THEN IT IS NOT ACTIVE. `faintMessages` cleared `isActive`
+   * (sim/battle.ts :2566) and only `switchIn` sets it again (sim/battle-actions.ts :135); the revive (:2781-2798) does
+   * not. `fieldEvent` still finds the body in `side.active`, but `Battle#heal` (:2274), `spreadDamage` (:2109) and
+   * `boost` (:2030) all refuse a target that is not active -- so the residual it waits through does nothing to it. See
+   * the residual walk's skip. */
+  t._revivePending=true;
   (S._reviveInsta||(S._reviveInsta=[])).push(go);
   return true;
 }
 function reviveInstaswitch(g,field){
+  g.t._revivePending=false;
   if(g.act[g.i]!==g.t||g.t.fainted)return;
   const _bi=g.bench.indexOf(g.t);
   if(_bi<0)g.bench.push(g.t);
@@ -51035,6 +51050,16 @@ function battleTurn(S,rng,actsForA,actsForB){
      * the authority's handler-list order (see `residualOrder`'s header). The per-group re-ask above
      * still governs every body the list does not place. */
     for(const m of residualOrder(actA,actB,field,{order:RESIDUAL_GROUPS[_gi].order,activeOnly:_G.has('weather')})){
+      /* 2026-09-22 (Reg M-C, abra/regmc 0.59.0) -- A REVIVED BODY WAITING FOR ITS INSTASWITCH IS NOT ACTIVE, so every
+       * handler that reaches it here is refused by the authority's `isActive` test (see `reviveFainted`): Grassy Terrain
+       * healed a Rillaboom Revival Blessing had brought back as the turn's last action, on the Reg M-C 1950 card
+       * `pair-speedctrl ...bo3-2684749333` t8 (87/175 there, 97/175 here). The cause is this walk, not the driver's
+       * `mirrorRevival`: the replay's boards part at the residual heal, after both engines revived the same body.
+       * MEDI_REVIVE_PENDING_TAKES_RESIDUAL=1 walks it again. */
+      if(m&&m._revivePending){
+        if(REVIVE_PENDING_TAKES_RESIDUAL)MEDFAILS.revivePendingTakesResidualRestored=1;
+        else{MEDSEEN.residualSkippedRevivePending++;continue;}
+      }
       /* 2026-09-19 -- AND THE SAME STOP BETWEEN TWO BODIES OF ONE GROUP, because that is where the
        * authority's is. `fieldEvent` runs `this.faintMessages(); if (this.ended) return;` after EVERY
        * handler (sim/battle.ts:565-566), so a burn that takes a side's last body cancels every burn

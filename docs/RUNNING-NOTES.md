@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.59.0] — 2026-09-22 — **A revived body waiting for its instaswitch takes nothing from the residual (Reg M-C)**
+
+- **What changed.** `engine/medicham2-browser.js`: `reviveFainted` marks a body whose instaswitch waits behind the residual
+  (`_revivePending`), and the residual walk passes over it (the authority's `isActive` refusal). No tag moved. Knob
+  `MEDI_REVIVE_PENDING_TAKES_RESIDUAL`; probe `tests/probe_regmc_revive_residual_inactive.js`.
+- **Measured.** NO FIGURE published. The pinned Reg M-C readings are in `docs/_reports/2026-09-22-regmc-engine-6.md` §6;
+  Reg M-B lattice 1200 reads 0 board-material; Reg M-B data files byte-identical.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.58.0] — 2026-09-22 — **A transformed body knocked out by a contact move still charges the copied Rough Skin, in both regulations**
 
 - **What changed.** `engine/medicham2-browser.js`: `dhAbilityOf` -- the DamagingHit reactors (and their order) read the

@@ -1,3 +1,14 @@
+## A REVIVED BODY WAITING FOR ITS INSTASWITCH TAKES NOTHING FROM THE RESIDUAL (REG M-C). 2026-09-22 (abra/regmc 0.59.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-6.md` §6.
+
+- **Defect.** A body Revival Blessing revives into an active slot as the turn's last action stands in `side.active` through
+  the residual but is not `isActive`; the authority's heal / damage / boost refuse it. This engine healed it.
+- **Fix.** `_revivePending` from the deferred instaswitch to the walk-in; the residual walk skips it. Engine, not the
+  driver's `mirrorRevival`.
+- **Probe** `tests/probe_regmc_revive_residual_inactive.js --regulation regmc`: exit 0 clean; exit 1 under
+  `MEDI_REVIVE_PENDING_TAKES_RESIDUAL` and on release `72bb36048aa0` with the 0.58.0 bytes.
+
 ## A TRANSFORMED BODY KNOCKED OUT BY CONTACT STILL CHARGES THE COPIED ROUGH SKIN (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.58.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-6.md` §5.

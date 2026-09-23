@@ -395,3 +395,71 @@ Left: `…2678161087`. Joined: none.
 ### Reg M-B
 
 Shared rule. Data files byte-identical. Lattice 1200 on release `b8c7b5488684`: **0 of 961**, 0 void, 0 protocol-diverged.
+
+---
+
+## 6. A revived body waiting for its instaswitch takes nothing from the residual (abra/regmc 0.59.0)
+
+### The card (1950, `pair-speedctrl …bo3-2684749333`, turn 8)
+
+```
+|move|p1b: Pawmot|Revival Blessing|p1b: Pawmot                  (the turn's last action)
+|-heal|p1: Rillaboom|87/175|[from] move: Revival Blessing
+showdown   |-heal|p1b: Pawmot|19/145|[from] Grassy Terrain   |-heal|p2b: Basculegion|...   |upkeep   |switch|p1a: Rillaboom|...|87/175
+medicham2  |-heal|p1b: Pawmot|...   |-heal|p1a: Rillaboom|97/175|[from] Grassy Terrain   |-heal|p2b: ...   |upkeep   |switch|p1a: Rillaboom|...|97/175
+```
+
+### The authority, read whole
+
+- `sim/battle.ts` :2781-2798 (`case 'revivalblessing'`): `fainted = false`, HP set, and an `instaswitch` appended behind the
+  residual when no move is left; nothing sets `isActive`. `faintMessages` cleared it (:2566); `switchIn` sets it
+  (`sim/battle-actions.ts` :135).
+- `sim/battle.ts` fieldEvent :484-566 collects the body's handlers (it stands in `side.active`), and Grassy Terrain's
+  `onResidual` (`data/moves.ts` :7711-7716, not in the Champions mod) calls `this.heal`, whose `if (!target.isActive)
+  return false;` (:2274) refuses it with no line. `spreadDamage` (:2109) and `boost` (:2030) carry the same test.
+
+### Is this MEASURE's `mirrorRevival`?
+
+No. Both engines revive the same body (the `-heal ... [from] move: Revival Blessing` lines agree, 87/175) and part at the
+residual heal, which is the engine's own walk. The driver's choice of the revived body is not in question on this card.
+
+### Fix
+
+`reviveFainted` marks the body `_revivePending` when its instaswitch is deferred behind the residual; `reviveInstaswitch`
+clears it; the residual group walk passes over a pending body. `MEDSEEN.residualSkippedRevivePending`. Knob
+`MEDI_REVIVE_PENDING_TAKES_RESIDUAL`. No tag moved. Not changed, stated: the berry-cure pass above the walk still visits
+the body (the revive cleared its status, so there is nothing for it to cure).
+
+### Probe -- `tests/probe_regmc_revive_residual_inactive.js --regulation regmc`
+
+Cast derived: the `revivesFainted` move (Revival Blessing) and its user (Pawmot); a grounded Prankster body with a
+self-fainting targeted status move (Whimsicott, Memento); the Grassy Surge carrier (Rillaboom) on the foe side, protecting;
+Choice Scarf (the legal x1.5 Speed item) on the fast foe that makes the revive the turn's last action.
+
+| arm | staged | authority |
+|---|---|---|
+| LAST | Memento, then Revival Blessing last | `-heal|p1:Whimsicott|67/135|[from] move: Revival Blessing`, no Grassy heal for it, `upkeep`, the switch at 67/135 |
+| NOW | a slower foe still to move | the switch at once, then the Grassy heal to 75/135 |
+
+| run | exit | red |
+|---|---|---|
+| release `72bb36048aa0` + the 0.58.0 engine bytes | **1** | LAST (the extra `-heal`, boards `whimsicott.hp`) |
+| clean, release `d05944372a1a` | **0** | none; the pending body passed over in LAST, never in NOW |
+| `MEDI_REVIVE_PENDING_TAKES_RESIDUAL=1` | **1** | LAST |
+
+9 staged sets, 0 illegal.
+
+### Pinned Reg M-C differential (release `d05944372a1a`)
+
+| `--games` | before | after | void | protocol-diverged |
+|---|---|---|---|---|
+| 1200 | 0 / 954 | **0 / 954** | 1 | 64 |
+| 1350 | 0 / 1075 | **0 / 1075** | 0 | 72 |
+| 1950 | 2 / 1537 | **1 / 1537** | 0 | 98 → 97 |
+
+Left: `…2684749333`. Joined: none.
+
+### Reg M-B
+
+Revival Blessing is absent from `data/tags.json`: Reg M-B cannot reach this. Data files byte-identical. Lattice 1200 on
+release `362ef6d4b630`: **0 of 961**, 0 void, 0 protocol-diverged.
