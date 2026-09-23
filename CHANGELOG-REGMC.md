@@ -21,6 +21,22 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.69.1] — 2026-09-23
+
+### Fixed
+- **`tests/probe_protean_contrary.js --regulation regmc` was red on its `itemboost` lead ("NOT STAGED").** The
+  lead derives every legal item that raises a stat. Reg M-B has none, so the lead reads FALSE there. Reg M-C makes
+  the four terrain seeds legal (`boosts` def/spd +1, no Champions override), so the derivation found them and the
+  lead had no arm to stage. This was red from the 0.62.0 engine on. **It was a fixture gap, not an engine defect.**
+  The lead now stages Malamar (Contrary) with a seed on two roads: Electric Seed on Pincurchin's Electric Surge
+  (`onTerrainChange`), and Psychic Seed on switching in to Indeedee's Psychic Surge (`onStart`). Each is a `check`
+  arm against the same Malamar on Suction Cups. The authority reads -1 against +1, and both engines agree on every
+  board at both pins. The arms are staged only when the seed is legal, so Reg M-B keeps its FALSE verdict.
+
+### Notes
+- Probe: Reg M-C **50 of 50 arms clear** (release `485d0a6840ad`). Reg M-B **42 of 42 clear**, itemboost FALSE
+  (release `89ac57f1f81b`). No engine byte moved, so no lattice was re-run.
+
 ## [0.69.0] — 2026-09-22
 
 ### Changed

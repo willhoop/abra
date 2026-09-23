@@ -12,7 +12,9 @@
  * right, so a fix that breaks it is caught.
  *
  * A LEAD WHOSE AUTHORITY DERIVATION FINDS NOTHING TO STAGE IS A RESULT, NOT A FAILURE: lead `itemboost`
- * derives every legal item that raises a stat and prints the (empty) list.
+ * derives every legal item that raises a stat and prints the list. Under Reg M-B it is empty (FALSE);
+ * under Reg M-C the terrain seeds are legal and the lead stages Contrary-seed arms (2026-09-23).
+ * A lead with no knob stages `check` arms against controls: the knob clause does not apply to it.
  */
 'use strict';
 const path = require('path');
@@ -214,11 +216,46 @@ const L3 = {
     const past = ['weaknesspolicy', 'electricseed', 'liechiberry', 'throatspray', 'adrenalineorb', 'roomservice']
       .map(id => id + '=' + dex.items.get(id).isNonstandard).join(' ');
     console.log('    for the record, the usual suspects: ' + past);
+    const ov = overridden('items.ts', hit.map(h => h.replace(/\{.*$/, ''))).concat(overridden('abilities.ts', ['contrary']));
+    console.log('    champions overrides        : ' + (ov.join(',') || 'none'));
     this.cleared = !hit.length;
-    return true;
+    return !ov.length;
   },
-  cases() { return []; },
-  outcome: () => ({}),
+  /* 2026-09-23. Reg M-B carries no stat-raising item, so the lead is FALSE there and stages nothing.
+   * Reg M-C makes the four terrain seeds legal (derived above), so the lead is LIVE there and was
+   * reported `NOT STAGED` from the 0.62.0 engine on. A seed's `boosts` go through `boost()` with the
+   * item as the effect, so Contrary's onChangeBoost inverts them: a Contrary holder's +1 is a -1.
+   * Two roads, each a `check` (the engines must agree) against the same Malamar on Suction Cups:
+   *   terrain — Pincurchin (Electric Surge) leads beside Malamar @ Electric Seed: `onTerrainChange`.
+   *   switchin — Indeedee (Psychic Surge) leads; Malamar @ Psychic Seed switches in turn 1: `onStart`.
+   * Staged only for a seed the regulation carries, so Reg M-B keeps its FALSE verdict. */
+  cases() {
+    const out = [];
+    const OPP = ['corviknight', '', 'Pressure', ['Protect']];
+    for (const pin of PINS) {
+      if (legal(dex.items.get('electricseed'))) {
+        for (const [red, ab] of [[true, 'Contrary'], [false, 'Suction Cups']]) {
+          const id = 'eseed-terrain@' + pin;
+          out.push({ id: (red ? '' : 'ctl-') + id, red: red ? undefined : id, kind: red ? 'check' : 'control', pin,
+                     a: stage([['malamar', 'Electric Seed', ab, ['Protect']], ['tinkaton', '', 'Own Tempo', ['Protect']]].concat(FILL)),
+                     b: stage([['pincurchin', '', 'Electric Surge', ['Protect']], OPP].concat(FILL)),
+                     script: [{ p1: [P, P], p2: [P, P] }] });
+        }
+      }
+      if (legal(dex.items.get('psychicseed'))) {
+        for (const [red, ab] of [[true, 'Contrary'], [false, 'Suction Cups']]) {
+          const id = 'pseed-switchin@' + pin;
+          out.push({ id: (red ? '' : 'ctl-') + id, red: red ? undefined : id, kind: red ? 'check' : 'control', pin,
+                     a: stage([['tinkaton', '', 'Own Tempo', ['Protect']], ['sylveon', '', 'Cute Charm', ['Protect']],
+                               ['malamar', 'Psychic Seed', ab, ['Protect']], ['snorlax', '', 'Immunity', ['Protect']]]),
+                     b: stage([['indeedee', '', 'Psychic Surge', ['Protect']], OPP].concat(FILL)),
+                     script: [{ p1: [{ sw: 'malamar' }, P], p2: [P, P] }] });
+        }
+      }
+    }
+    return out;
+  },
+  outcome: sd => { const o = netBoosts(sd); const r = {}; for (const k in o) if (k.startsWith('p1')) r[k] = o[k]; return r; },
 };
 
 /* =================================================================================================
@@ -444,7 +481,7 @@ for (const L of LEADS) {
       else console.log('    >> and the knob parts them, which is what makes this a red arm.');
     } else if (c.kind === 'control' && !knobAgree) { console.log('    >> OVER-FIRE — a control moved under the knob.'); bad++; }
   }
-  if (!knobBound) {
+  if (!knobBound && L.knob) {
     console.log(NL + '  KNOB ABSENT — `' + L.knob + '` set no `MEDFAILS.' + L.stamp + '` on any arm. The fix has not landed.');
     bad++;
   }

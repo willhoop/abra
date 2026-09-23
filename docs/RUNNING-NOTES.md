@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.69.1] — 2026-09-23 — **The Contrary seed arms are staged in Reg M-C; `probe_protean_contrary` is green in both regulations**
+
+- **What changed.** `tests/probe_protean_contrary.js`, the `itemboost` lead. Reg M-C legalises the terrain seeds, so the
+  lead has something to stage. It now stages Malamar (Contrary against Suction Cups) with an Electric Seed (terrain set
+  on the field) and with a Psychic Seed (switching in to terrain). No engine byte moved.
+- **Measured.** NO FIGURE published. Probe: Reg M-C 50/50 arms clear on `485d0a6840ad`; Reg M-B 42/42 clear, itemboost
+  FALSE, on `89ac57f1f81b`. `docs/_reports/2026-09-23-protean-contrary-regmc.md`.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.69.0] — 2026-09-22 — **The lab re-measured on the 0.68.0 engine: both censuses, the Reg M-C roster and both regulations' lattices**
 
 - **What changed.** Regenerated artifacts: `data/mechanics-census-regmc.json`, `data/mechanics-census.json` and

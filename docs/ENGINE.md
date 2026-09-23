@@ -1,3 +1,13 @@
+## CONTRARY AND THE TERRAIN SEEDS ARE STAGED IN REG M-C. 2026-09-23 (abra/regmc 0.69.1)
+
+- **Cause.** `probe_protean_contrary`'s `itemboost` lead read NOT STAGED under Reg M-C. The seeds are legal there, and
+  the lead only knew the Reg M-B answer (no stat-raising item, FALSE). This was a fixture gap. The engine was right.
+- **Fixture.** Malamar with Contrary holds a seed, and the control is the same Malamar with Suction Cups. The terrain
+  road is an Electric Seed with Pincurchin's Electric Surge. The switch-in road is a Psychic Seed with Indeedee's
+  Psychic Surge. The authority reads -1 against +1, and both engines agree on every board.
+- **Probe** `tests/probe_protean_contrary.js`: green in both regulations. This clears item 3's carried entry in the
+  pass-8 hand list below.
+
 ## THE LAB ON THE 0.68.0 ENGINE, AND THE REG M-C HAND LIST AFTER PASS 8. 2026-09-22 (abra/regmc 0.69.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-8.md`.
