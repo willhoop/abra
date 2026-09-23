@@ -21,6 +21,29 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.82.0] — 2026-09-23
+
+### Fixed
+- **Reg M-C: Court Change did nothing.** MEDICHAM had no kind for it, so the click reached the terminal pass and a
+  Reflect stayed on the side that raised it (the Reg M-C all-mechanics-fire read board STATE; it was the one
+  in-scope unproven move). The authority (M-C checkout `data/moves.ts` courtchange :3032-3098; no Champions override)
+  walks its own literal `sideConditions` list in `onHitField`, moves each listed condition's STATE to the other side
+  (turns and layers intact), fails on `!success`, and writes `-swapsideconditions` then `-activate ... move: Court
+  Change`.
+- `engine/tag_dex.js` derives `swapsSideConditions` with the list read off the handler (`conditions`, `failsWhenNone`).
+  Printed before wiring: Court Change alone in Reg M-C, nothing in Reg M-B (it is `Past` there). So
+  `data/tags-regmc.json` gains one catalogue row and one member row, and **Reg M-B's `data/tags.json`,
+  `data/abra-tags.js`, `data/protocol-events.json` and `data/move-effects.js` are byte-identical.**
+- `swapSideConditions` moves all three places the engine keeps these facts: `sf.sc` (screens, side buffs), `sf.hz`
+  with its lay ordinal and setter, and Tailwind (a field counter here). Both sides' lay sequences are raised to the
+  larger so a later hazard still sorts last. Knob `MEDI_COURT_CHANGE_UNMODELLED`.
+- **Not written: the `-swapsideconditions` line.** Both protocol-events files declare it notEmitted and the driver drops
+  the authority's copy; claiming it means regenerating Reg M-B's `data/protocol-events.json`, which this pass may not
+  touch. Owed.
+- New probe `tests/probe_court_change.js`: SWAP (a foe's Reflect and the user's Tailwind, then Court Change; both
+  clocks run out on the side they were moved to) and BARE (nothing up, the move fails). Green; red under the knob and
+  with the 0.81.0 engine bytes (16 board diffs). Reg M-B: NOT RUN (exit 2), no legal learner.
+
 ## [0.81.0] — 2026-09-23
 
 ### Changed

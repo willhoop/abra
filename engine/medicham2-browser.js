@@ -28427,6 +28427,60 @@ function layHazard(sf,hz,cap,setter,sideLabel,say){
  * false the same way and it writes `|move|<user>|<Move>||[still]` then `|-fail|<user>`. Measured on the authority, a
  * repeated Focus Energy (Reg M-C narration group E). MEDI_SELF_VOLATILE_FAIL_SILENT=1 restores the exclusion. */
 const SELF_VOL_FAIL_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SELF_VOLATILE_FAIL_SILENT==='1');
+/* 2026-09-23 (ENGINE pass 10, abra/regmc 0.82.0) -- COURT CHANGE SWAPS THE LISTED SIDE CONDITIONS BETWEEN THE SIDES.
+ *
+ * The authority (M-C checkout data/moves.ts courtchange :3032-3098; no Champions override) walks its own literal list
+ * -- read into `swapsSideConditions.conditions` by tag_dex, never typed here -- takes every listed condition off the
+ * user's side and off the foe's side, and hands each side the other's. The effect STATE moves whole, so a Reflect keeps
+ * its turns remaining, a Spikes stack keeps its layers and its setter, and a condition's creation order travels with
+ * it. Nothing taken -> `return false` (the generic `-fail` on the user); otherwise `-swapsideconditions` then
+ * `-activate|<user>|move: Court Change`.
+ *
+ * THIS ENGINE KEEPS THE SAME FACTS IN THREE PLACES, SO ALL THREE MOVE: `sf.sc` (screens and side buffs, turns
+ * remaining), `sf.hz` with its lay ordinal `sf.hzOrd` and setter `sf.hzBy`, and Tailwind, which is a FIELD counter
+ * here (`field.twA`/`field.twB`). The lay ordinal is per side (`sf._hzSeq`) where the authority's is battle-global; a
+ * swap brings the other side's ordinals across, so both sequences are raised to the larger one and a hazard laid
+ * afterwards still sorts last, as the authority's would.
+ *
+ * Knob MEDI_COURT_CHANGE_UNMODELLED=1 restores the old terminal pass (no kind at all). */
+function swapSideConditions(m,field,a){
+  const S=m&&m._sf&&m._sf._S;
+  if(!S||!S.sfA||!S.sfB){MEDFAILS.courtChangeNoState=(MEDFAILS.courtChangeNoState||0)+1;mvFail(m);return false;}
+  const L=new Set(a.conds||[]);
+  const own=m._sf, foe=own===S.sfA?S.sfB:S.sfA;
+  let success=false;
+  const take=(sf)=>{
+    const out={sc:{},hz:{},hzOrd:{},hzBy:{}};
+    if(sf.sc)for(const id of Object.keys(sf.sc)){ if(!L.has(id))continue;
+      if(sf.sc[id]>0){out.sc[id]=sf.sc[id];success=true;} delete sf.sc[id]; }
+    if(sf.hz)for(const id of Object.keys(sf.hz)){ if(!L.has(id))continue;
+      if(sf.hz[id]>0){out.hz[id]=sf.hz[id];success=true;
+        if(sf.hzOrd&&sf.hzOrd[id]!=null)out.hzOrd[id]=sf.hzOrd[id];
+        if(sf.hzBy&&sf.hzBy[id]!=null)out.hzBy[id]=sf.hzBy[id];}
+      delete sf.hz[id]; if(sf.hzOrd)delete sf.hzOrd[id]; if(sf.hzBy)delete sf.hzBy[id]; }
+    return out;
+  };
+  const give=(sf,t)=>{
+    for(const id of Object.keys(t.sc))(sf.sc=sf.sc||{})[id]=t.sc[id];
+    for(const id of Object.keys(t.hz)){(sf.hz=sf.hz||{})[id]=t.hz[id];
+      if(t.hzOrd[id]!=null)(sf.hzOrd=sf.hzOrd||{})[id]=t.hzOrd[id];
+      if(t.hzBy[id]!=null)(sf.hzBy=sf.hzBy||{})[id]=t.hzBy[id];}
+  };
+  const tOwn=take(own), tFoe=take(foe);
+  let twSwap=false;
+  if(L.has('tailwind')&&field&&((field.twA|0)>0||(field.twB|0)>0)){success=true;twSwap=true;}
+  if(!success){ if(a.failsWhenNone!==false)mvFail(m); MEDSEEN.courtChangeNothingToSwap=(MEDSEEN.courtChangeNothingToSwap||0)+1; return false; }
+  give(foe,tOwn); give(own,tFoe);
+  if(twSwap){const t=field.twA|0;field.twA=field.twB|0;field.twB=t;}
+  const seq=Math.max(own._hzSeq|0,foe._hzSeq|0); own._hzSeq=seq; foe._hzSeq=seq;
+  MEDSEEN.courtChangeSwapped=(MEDSEEN.courtChangeSwapped||0)+1;
+  /* `-swapsideconditions` is NOT written: data/protocol-events.json declares it notEmitted ("Court Change is not
+   * modelled") and the comparator drops the authority's copy, and the brief pins Reg M-B's protocol-events byte-identical.
+   * Claiming it is owed to a pass allowed to regenerate both protocol-events files. The `-activate` is written. */
+  if(TR)TR.act(m,'move: Court Change');
+  return true;
+}
+const COURT_CHANGE_UNMODELLED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_COURT_CHANGE_UNMODELLED==='1');
 /* ROADMAP #72, THE OTHER HALF -- TAKE THE HAZARDS BACK OFF. ONE function, three call sites, for the
  * same reason layHazard is one function for three: "what does this click remove from the field" is a
  * FACT about the move, and the three sites that need it are a status click (`affect` -- Defog), a
@@ -37947,6 +38001,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * turns, and a second click while it is up FAILS rather than refreshing -- `Side#addSideCondition`
        * returns false when the condition exists and declares no `onSideRestart`, and safeguard declares
        * none, which is the same rule ROADMAP #81 WIRE 8 established for the screens. */
+      if(a.kind==='swapside'){ swapSideConditions(m,field,a); m._lastMove=a.mv; continue; }
       if(a.kind==='sidebuff'){
         const _sf2=m._sf;
         if(_sf2&&_sf2.sc&&_sf2.sc[a.cond]>0){m._lastMove=a.mv;mvFail(m);continue;}
@@ -54600,6 +54655,13 @@ function playerActionPrimary(me,moveId,target,field){
    * already owns the only per-side object it needs (`_sf`, shared by reference across the whole team),
    * which is what makes a body switching in walk under a Safeguard that was set before it arrived --
    * the same argument the hazards and the screens make. */
+  /* 2026-09-23 (ENGINE pass 10, abra/regmc 0.82.0) -- COURT CHANGE (`swapsSideConditions`). It had no kind,
+   * so the click reached the terminal pass and the Reflect it should have carried across stayed put. */
+  {
+    const _sw=TAGS.param('move',id,'swapsSideConditions');
+    if(_sw&&Array.isArray(_sw.conditions)&&_sw.conditions.length&&!COURT_CHANGE_UNMODELLED)
+      return {kind:'swapside',mv:id,conds:_sw.conditions,failsWhenNone:!!_sw.failsWhenNone};
+  }
   {
     const _sb=TAGS.param('move',id,'sideBuff');
     if(_sb&&_sb.sideCondition)return {kind:'sidebuff',mv:id,cond:_sb.sideCondition};

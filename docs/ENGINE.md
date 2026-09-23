@@ -1,3 +1,11 @@
+## COURT CHANGE SWAPS THE SIDE CONDITIONS (REG M-C). 2026-09-23 (abra/regmc 0.82.0)
+
+Full account: `docs/_reports/2026-09-23-engine-pass10.md` §A1.
+
+- New tag `swapsSideConditions` (the handler's literal list), new kind `swapside`, and `swapSideConditions` moves `sf.sc`,
+  `sf.hz` (+ ordinal, setter) and Tailwind. Knob `MEDI_COURT_CHANGE_UNMODELLED`. Probe `tests/probe_court_change.js`.
+- `-swapsideconditions` is still declared notEmitted (claiming it needs a Reg M-B protocol-events regeneration). Owed.
+- Hand list: **Court Change leaves it.**
 ## A REFUSED SELF-AIMED VOLATILE MOVE WRITES `[still]` AND `-fail` (BOTH REGULATIONS). 2026-09-23 (abra/regmc 0.81.0)
 
 Full account: `docs/_reports/2026-09-23-engine-pass10.md` §C.

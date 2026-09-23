@@ -1652,6 +1652,19 @@
    ]
   },
   {
+   "tag": "swapsSideConditions",
+   "kind": "move",
+   "param": "the listed side conditions change sides, state and turns intact",
+   "why": "Court Change: a Reflect, Tailwind or hazard stack laid on one side belongs to the other afterwards",
+   "consumedBy": "swapsSideConditions",
+   "used": true,
+   "n": 1,
+   "uses": 1,
+   "examples": [
+    "Court Change"
+   ]
+  },
+  {
    "tag": "sideBuff",
    "kind": "move",
    "param": "another multi-turn modifier on my side",
@@ -16843,6 +16856,7 @@
     "pp",
     "targetClass",
     "noProtectFlag",
+    "swapsSideConditions",
     "statusCategory",
     "formatSecondaryCount"
    ],
@@ -16869,6 +16883,34 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "swapsSideConditions": {
+     "conditions": [
+      "mist",
+      "lightscreen",
+      "reflect",
+      "spikes",
+      "safeguard",
+      "tailwind",
+      "toxicspikes",
+      "stealthrock",
+      "waterpledge",
+      "firepledge",
+      "grasspledge",
+      "stickyweb",
+      "auroraveil",
+      "luckychant",
+      "gmaxsteelsurge",
+      "gmaxcannonade",
+      "gmaxvinelash",
+      "gmaxwildfire",
+      "gmaxvolcalith"
+     ],
+     "failsWhenNone": true,
+     "announces": [
+      "-swapsideconditions",
+      "-activate"
+     ]
     }
    }
   },

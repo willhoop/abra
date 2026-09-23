@@ -4153,6 +4153,24 @@ const MOVE_TAGS = [
       return { throughSubstitute: /clearTerrain\(\)/.test(sub),
                subNeedsUserHP: /source\.hp/.test(sub), onlyOnConnect: true };
     } },
+  /* 2026-09-23 (ENGINE pass 10, abra/regmc 0.82.0) -- A MOVE THAT SWAPS THE SIDE CONDITIONS BETWEEN THE SIDES. Court
+   * Change (M-C checkout data/moves.ts :3032-3098; no Champions override) walks its OWN literal list
+   * (`const sideConditions = [...]`) inside `onHitField`, moves each listed condition's state to the other side, ends
+   * `if (!success) return false;` and announces `-swapsideconditions` then `-activate ... move: Court Change`. The list
+   * is read off the handler, never typed. MEDICHAM had no kind for it at all, so a Reflect stayed where it was (the
+   * Reg M-C all-mechanics-fire read board STATE). Printed before wiring over the legal moves: courtchange alone in
+   * Reg M-C, and nothing in Reg M-B, so Reg M-B's data/tags.json gains no member row. */
+  { tag: 'swapsSideConditions', param: 'the listed side conditions change sides, state and turns intact',
+    probe: 'swapsSideConditions',
+    why: 'Court Change: a Reflect, Tailwind or hazard stack laid on one side belongs to the other afterwards',
+    of: m => {
+      const h = String(m.onHitField || '');
+      const lit = /const\s+sideConditions\s*=\s*\[([^\]]*)\]/.exec(h);
+      if (!lit || !/swapsideconditions/.test(h)) return null;
+      return { conditions: [...lit[1].matchAll(/["']([a-z0-9]+)["']/g)].map(x => x[1]),
+               failsWhenNone: /if\s*\(\s*!success\s*\)\s*return\s+false/.test(h),
+               announces: ['-swapsideconditions', '-activate'] };
+    } },
   { tag: 'sideBuff', param: 'another multi-turn modifier on my side', probe: 'sideBuff',
     why: 'Safeguard, Mist -- what is left once Tailwind and the screens are split out',
     /* WHAT IT REFUSES IS NOW DERIVED, AND IT HAD TO BE BEFORE ANYTHING COULD READ IT. The param was

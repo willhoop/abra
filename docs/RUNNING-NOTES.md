@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.82.0] — 2026-09-23 — **Court Change swaps the side conditions (Reg M-C)**
+
+- **What changed.** `engine/tag_dex.js` derives `swapsSideConditions` (the handler's own list); `engine/medicham2-browser.js`
+  gives Court Change a kind and moves screens, side buffs, hazards (with ordinal and setter) and Tailwind across.
+  `data/tags-regmc.json` gains the tag on `courtchange`; Reg M-B's tag, protocol and effect files are byte-identical.
+  Knob `MEDI_COURT_CHANGE_UNMODELLED`. Probe `tests/probe_court_change.js`.
+- **Measured.** NO FIGURE published. Probe green; red under the knob and on the 0.81.0 bytes (board).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.81.0] — 2026-09-23 — **A refused self-aimed volatile move fails out loud (both regulations)**
 
 - **What changed.** `engine/medicham2-browser.js`: the `affect` branch's `[still]` + `-fail` announcement now covers a
