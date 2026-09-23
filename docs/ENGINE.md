@@ -1,3 +1,16 @@
+## THE PLANNER STAGES THE SEVEN UNPROVEN REG M-C MECHANICS; COURT CHANGE IS AN ENGINE GAP. 2026-09-23 (abra/regmc 0.77.0)
+
+Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §4.
+
+- **Fixture gaps closed.** Liquid Ooze (receiver drains), Stakeout (receiver switches in), Binding Band (holder traps),
+  Emergency Exit (Super Fang, with a Protect control), Revival Blessing (the partner faints first), and Court Change
+  (a side condition first) were closed. Aura Guard (the scope's re-admission) is now in the planner and
+  `all_mechanics_fire`.
+- **Result** on `ca7aa5f578ed`: 5 FIRED with a control, and Revival Blessing is resolved on both engines. Court Change
+  is resolved on the authority only (board STATE).
+- **Owed.** MEDICHAM has no Court Change. It needs a `swapsSideConditions`-style tag, which adds a catalogue row to Reg
+  M-B's `data/tags.json`, so it was STOPPED per the brief.
+
 ## AN INTIMIDATE REFUSAL NAMES THE STAT AS THE HANDLER SPELLS IT (REG M-C: 'atk'). 2026-09-23 (abra/regmc 0.76.0)
 
 Full account: `docs/_reports/2026-09-23-engine-gate-reds.md` §3.

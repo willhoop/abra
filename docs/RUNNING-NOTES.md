@@ -53,6 +53,19 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.77.0] — 2026-09-23 — **The staging planner stages the seven unproven Reg M-C mechanics; six are proven, and Court Change exposes an engine gap**
+
+- **What changed.** `engine/stage_planner.js`: six trigger shapes (source-side heal, target arrives, holder applies a
+  volatile, switch-out at half, side condition up, party fainted), the scope's re-admissions in the universe, and
+  `--tags`. `engine/all_mechanics_fire.js`: its population takes the scope's re-admissions.
+  `tests/test-stage-planner.js`: the population counts them too. No engine byte and no tag moved.
+- **Measured.** NO FIGURE published. The seven rows on `ca7aa5f578ed`: 5 FIRED with a control, Revival Blessing is
+  resolved on both engines, and Court Change is resolved on the authority only, with the board STATE (an engine gap,
+  stopped: it needs a Reg M-B tag change). The Reg M-B plan is unchanged (0 of 964 fixtures moved).
+  `data/verification/all-mechanics-fire-regmc.pass9-item4.json`, `docs/_reports/2026-09-23-engine-gate-reds.md` §4.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.76.0] — 2026-09-23 — **An Intimidate refusal names the stat as the regulation's own handler spells it ('atk' in Reg M-C)**
 
 - **What changed.** `engine/tag_dex.js` writes `preventsStatDrop.failLabel` where the handler's refusal label is a

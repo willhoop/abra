@@ -368,9 +368,22 @@ for (const [sid, pool] of POOL) for (const mv of pool) {
 }
 for (const v of CARRIERS.values()) v.sort();
 
-const LEGAL_MOVES = dex.moves.all().filter(m => m.exists && !m.isNonstandard).map(m => m.id).sort();
-const LEGAL_ABILITIES = dex.abilities.all().filter(a => a.exists && !a.isNonstandard).map(a => a.id).sort();
-const LEGAL_ITEMS = dex.items.all().filter(i => i.exists && !i.isNonstandard).map(i => i.id).sort();
+/* 2026-09-23 (ENGINE pass 9) -- THE POPULATION INCLUDES WHAT engine/legal_scope.js RE-ADMITS. The scope puts every
+ * `Future`-flagged candidate to the TeamValidator (Reg M-C: Aura Guard, accepted as "Lucario @ Lucarionite Z"); this
+ * population kept the strict filter only, so an in-scope mechanic had NO ROW and the gate's mechanics-staged clause
+ * failed on it. The staging planner carries its fixture. Printed so an admission can never be silent. */
+const SCOPE_READMITTED = { moves: [], abilities: [], items: [] };
+const scopeUnion = (kind, all) => {
+  const strict = all.filter(x => x.exists && !x.isNonstandard).map(x => x.id);
+  const extra = all.filter(x => x.exists && x.isNonstandard && SCOPE.inScope(kind, x.id)).map(x => x.id);
+  SCOPE_READMITTED[kind === 'move' ? 'moves' : kind === 'ability' ? 'abilities' : 'items'] = extra;
+  return strict.concat(extra).sort();
+};
+const LEGAL_MOVES = scopeUnion('move', dex.moves.all());
+const LEGAL_ABILITIES = scopeUnion('ability', dex.abilities.all());
+const LEGAL_ITEMS = scopeUnion('item', dex.items.all());
+console.log('  SCOPE RE-ADMISSIONS in the population (engine/legal_scope.js): '
+  + (Object.entries(SCOPE_READMITTED).filter(([, v]) => v.length).map(([k, v]) => k + ' ' + v.join(',')).join('; ') || 'none'));
 /* ability id -> every legal species that has it in its OWN ability slots. An ability no legal body
  * carries is UNREACHABLE in this format and is reported as that rather than as a failure — the Guard
  * Dog lesson from game_differential's standing block. */

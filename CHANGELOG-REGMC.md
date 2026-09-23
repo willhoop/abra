@@ -21,6 +21,41 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.77.0] — 2026-09-23
+
+### Fixed
+- **Reg M-C: seven in-scope mechanics were unproven in `all-mechanics-fire-regmc`. The fixtures were the gap, not the
+  format.** The fixes are in `engine/stage_planner.js`, and every shape is read off a handler or a tag param:
+  - **Liquid Ooze** (`onSourceTryHeal`): the planner made the holder drain. A `Source` heal handler needs the RECEIVER
+    to heal off the holder, so the receiver is now chosen to carry a drain move. The heal event runs before the
+    full-HP test (`sim/battle.ts` heal()).
+  - **Stakeout** (`damageBoost.onlyWhen = targetFreshlyArrived`): the receiver switches on the trigger turn, and the
+    holder hits the arrival.
+  - **Binding Band** (no handler; read in the `partiallytrapped` condition's onStart): the holder clicks a move whose
+    `volatileStatus` is that condition. A bearer that learns none is refused, and the next bearer is tried.
+  - **Emergency Exit** (`switchesOutAtHalf`): a halving move (damageCallback) takes the holder from full to half. The
+    control swaps that click for the receiver's Protect. Before this, the row had NO control, because Golisopod has
+    one ability.
+  - **Court Change** (a literal side-condition list and `if (!success) return false`): the receiver raises one of the
+    listed conditions first.
+  - **Revival Blessing** (`revivesFainted.failsWithoutFainted`): the partner clicks a move that faints its user
+    (tag `userFaints`, self-aimed first), and the bench replaces it.
+  - **Aura Guard** had NO ROW. `engine/legal_scope.js` re-admits it through the TeamValidator (Lucario @ Lucarionite
+    Z), but the planner's universe and `all_mechanics_fire`'s population both kept the strict `!isNonstandard`
+    filter. Both now take the scope's re-admissions, and they print them. `tests/test-stage-planner.js` counts its
+    population the same way.
+- `engine/stage_planner.js --tags <path>` plans off a named tag file. The CLI default reads `data/tags.json`, which
+  is Reg M-B's catalogue even under `--regulation regmc`.
+- Measured (`--only` the seven, release `ca7aa5f578ed`, written to
+  `data/verification/all-mechanics-fire-regmc.pass9-item4.json`, not republished): Liquid Ooze, Stakeout, Emergency
+  Exit, Aura Guard and Binding Band read FIRED with a control. Revival Blessing is resolved on both engines with the
+  board clean. **Court Change is resolved on the authority and not on MEDICHAM, and the board reads STATE**
+  (the authority moves Reflect across; ours leaves it). MEDICHAM has no Court Change at all. The fix needs a new
+  derived tag, which adds a catalogue row to Reg M-B's `data/tags.json`, so it was stopped and reported rather than
+  made (`docs/_reports/2026-09-23-engine-gate-reds.md` §4).
+- The Reg M-B plan is unchanged: 964 mechanics and 0 changed fixtures (measured by diffing the plan before and after).
+  `tests/test-stage-planner.js` is green in both regulations. No engine byte moved.
+
 ## [0.76.0] — 2026-09-23
 
 ### Fixed

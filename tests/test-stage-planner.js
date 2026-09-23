@@ -124,10 +124,15 @@ C.oneReason = P => {
 };
 const CODES = new Set(['NO-LEGAL-CARRIER', 'NO-LEGAL-READER', 'NEEDS-ENGINE-CAPABILITY', 'NO-TRIGGER-SUPPLIER', 'NEEDS-SECOND-BODY-TYPE',
                        'VALIDATOR-REFUSED', 'HALF-UNSTAGEABLE', 'PLANNER-CANNOT-CONSTRUCT']);
+/* 2026-09-23 (ENGINE pass 9) -- AND WHAT engine/legal_scope.js RE-ADMITS through the TeamValidator (a `Future`-flagged
+ * entity the validator accepts: Reg M-C's Aura Guard). The planner's universe now carries those rows, so the population
+ * this clause counts them against must too; the strict filter alone read 998 rows against a population of 997. */
+let _SCOPE = null;
+const readmitted = (kind, e) => !!(e && e.exists && e.isNonstandard && (_SCOPE || (_SCOPE = LS.derive())).inScope(kind, e.id));
 function population(only) {
   const out = [];
   for (const [kind, all] of [['move', D.moves.all()], ['ability', D.abilities.all()], ['item', D.items.all()]])
-    for (const e of all) if (legal(e)) out.push(kind + ':' + e.id);
+    for (const e of all) if (legal(e) || readmitted(kind, e)) out.push(kind + ':' + e.id);
   return only ? out.filter(k => only.includes(k)) : out;
 }
 C.coverage = (P, only) => {
