@@ -21,6 +21,30 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.62.0] — 2026-09-22
+
+### Fixed
+- **A mid-turn Encore re-inserts its target's action the way the authority does, so a speed tie resolves the same way in
+  both regulations.** Champions' `encore.condition.onStart` calls `queue.changeAction`, which is `cancelAction` +
+  `insertChoice` (`sim/battle-queue.ts` :301, :372-404); `insertChoice` lands the action among the actions it ties with at
+  `battle.random(firstIndex, lastIndex + 1)` -- the FRONT of the tied group under the differential's middle-arm pin. This
+  engine re-bracketed the action and left it in its slot. `encoreInsertChoice` now removes and re-inserts it, drawing the
+  insert position off the shared `tie` stream only where the authority draws. No tag moved. Knob
+  `MEDI_ENCORE_INSERT_KEEPS_PLACE`.
+- This was the last 1950 card, `pair-redirect-priority …bo3-2678207112` turn 5: two identical Armarouge. It was not an
+  unfixable speed tie. The turn's `speedSort` shuffle is pinned to identity in both engines and did not decide it. Encore
+  rewrote p2b's click to Expanding Force, and `insertChoice` put p2b in front of its twin.
+- `tests/probe_encore_insert_tie.js` has four arms: `tie-front` [red]; `tie-no-encore`, `tie-same-move` and `tie-mirror`
+  [controls]. Exit 0 clean under both regulations. Under the knob `tie-front` parts. On release `be192e23eb5b` (the
+  0.61.0 bytes) `tie-front` reads DEFECT and the exit code is 1. `tests/probe_encore_bracket.js` stays 11/11 in both
+  regulations.
+
+### Notes
+- Pinned Reg M-C differential (census pin `f3b70bc0c47c`, release `aa7b45c6b8d2`): 1200 **0 of 954**, 1350 **0 of 1075**,
+  1950 **0 of 1537** (was 1). Protocol-only games 1950 97 → 96. Shared rule. Reg M-B data files byte-identical. Reg M-B
+  lattices on release `3f877319ebf0` read 0 of 961 / 0 of 1069 / 0 of 1497. Full account:
+  `docs/_reports/2026-09-22-regmc-engine-7.md` §1.
+
 ## [0.61.0] — 2026-09-22
 
 ### Fixed

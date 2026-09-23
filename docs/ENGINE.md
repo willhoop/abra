@@ -1,3 +1,30 @@
+## A MID-TURN ENCORE RE-INSERTS ITS TARGET'S ACTION, SO A SPEED TIE RESOLVES AS IN THE AUTHORITY (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.62.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-7.md` §1.
+
+- **Defect.** Champions' Encore calls `queue.changeAction`, which is `cancelAction` + `insertChoice`. `insertChoice`
+  lands the action at `random(firstIndex, lastIndex + 1)` among the actions it ties with, which is the front of the group
+  under the pin. This engine left the action in its slot. The Armarouge card (1950, `…2678207112` t5) was this insert.
+  The turn's `speedSort` shuffle was not the cause: it is pinned to identity in both engines.
+- **Fix.** `encoreInsertChoice` removes the action and re-inserts it. It draws the shared `tie` stream only where the
+  authority draws.
+- **Probe** `tests/probe_encore_insert_tie.js` (either regulation): 4/4 clean. Under `MEDI_ENCORE_INSERT_KEEPS_PLACE`
+  the `tie-front` arm parts. On release `be192e23eb5b` (0.61.0) `tie-front` reads DEFECT.
+
+### The Reg M-C hand list, after pass 7 (replaces the pass-6 list below)
+
+Pinned Reg M-C differential (census pin `f3b70bc0c47c`, release `aa7b45c6b8d2`): `--games` 1200 **0 of 954**, 1350 **0 of
+1075**, 1950 **0 of 1537**. The Armarouge tie is now covered by a probe (0.62.0), so it has left this list. This pass's
+census and roster reds are listed in `docs/_reports/2026-09-22-regmc-engine-7.md` §2.
+
+1. Narration, not board-material: the Ghost Curse line order; a second Focus Energy's `-fail`; a move-set terrain's
+   `[of]` on `-fieldstart`; the `-fail|<user>|move: <Move>` attribute.
+2. Named gaps with no card: Milk Drink aimed at the partner (unstaged); Psychic Terrain's ally exemption; a
+   transformed corpse's buff-on-hit and default-order DamagingHit reactors; the berry-cure pass over a revived pending
+   body.
+3. Carried: `mirrorRevival` (MEASURE); the empirical driver's cross-game `coveragePick` state (MEASURE).
+4. Owed (not run): the Reg M-B held-out draw (see the report's `## OWED, NOT RUN` block).
+
 ## RAPID SPIN AND MORTAL SPIN CLEAR THEIR SIDE EVEN WHEN A CONTACT TOLL KOS THE USER (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.61.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-6.md` §8.

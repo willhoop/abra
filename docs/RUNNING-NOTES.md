@@ -53,6 +53,17 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.62.0] — 2026-09-22 — **A mid-turn Encore re-inserts its target's action, so a speed tie resolves the same way in both regulations**
+
+- **What changed.** `engine/medicham2-browser.js`: `encoreInsertChoice` re-inserts a relocated Encore target the way
+  `insertChoice` does, landing it at the front of its tied group under the pin and drawing the `tie` stream only where the
+  authority draws. No tag moved. Knob `MEDI_ENCORE_INSERT_KEEPS_PLACE`; probe `tests/probe_encore_insert_tie.js`.
+- **Measured.** NO FIGURE published. Pinned Reg M-C lattices on release `aa7b45c6b8d2` read 1200 0/954, 1350 0/1075 and
+  1950 0/1537. The last card was the Armarouge tie, and the insert decided it. Reg M-B lattices 1200/1350/1950 read 0
+  board-material. Reg M-B data files byte-identical. `docs/_reports/2026-09-22-regmc-engine-7.md`.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.61.0] — 2026-09-22 — **Rapid Spin and Mortal Spin clear their side even when a contact toll KOs the user, in both regulations**
 
 - **What changed.** `engine/medicham2-browser.js`: the `removesHazards` block asks for a live user on the Substitute road

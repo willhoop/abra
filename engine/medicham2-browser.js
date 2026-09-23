@@ -3037,6 +3037,11 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
    * one is the target that has already acted, where the authority bumps the duration and swaps at
    * execution. A zero across games with a mid-turn Encore in them is the finding. */
   encoreRelocatedQueuedAction: 0,
+  /* 2026-09-22 (abra/regmc 0.62.0) -- the relocated action re-inserted as `insertChoice` places it:
+   * `encoreInsertTieDrawn` counts inserts that landed inside a tied group and drew the tie die,
+   * `encoreInsertMoved` the ones whose queue index changed. See `encoreInsertChoice`. */
+  encoreInsertTieDrawn: 0,
+  encoreInsertMoved: 0,
   /* 2026-08-29 -- A DEFAULT-TARGET DRAW THAT THE MOVE'S OWN TARGET CLASS SENT TO THE NEAR SIDE
    * (`Battle#getRandomTarget`'s first two clauses). All three draw sites -- Encore at selection,
    * Encore at execution, and the called-move branch -- went straight to the foes before this date,
@@ -3597,6 +3602,9 @@ const MEDFAILS = { oozeNoName: 0, oozeUnderHealBlockUnmodelled: 0, reviveSwitchO
      the queue. A non-zero says an Encore volatile arrived from a road this engine has not modelled --
      loud, because a silent skip here is indistinguishable from the defect this counter's fix closed. */
   encoreRelocateNoQueue: 0,
+  /* 2026-09-22 -- a relocated Encore target re-inserted into a tied group with no tie die in scope. Must
+     read 0; the queue always carries the turn's tie stream. */
+  encoreInsertNoDie: 0,
   /* 2026-09-10 -- `recordItemUsed` was called with no item id, so the spend was not recorded and the
      caller believes it was. It must read 0: every one of the six call sites reads the slot before it
      empties it. A non-zero means a site emptied the slot first, which is the exact shape of the
@@ -21433,6 +21441,14 @@ const TURN_ORDER = { move: 200, next: 3, last: 201, switch: 103, megaEvo: 104, c
 const ENCORE_KEEPS_SELECTED_BRACKET=(typeof process!=='undefined'&&process.env
                                      &&process.env.MEDI_ENCORE_KEEPS_SELECTED_BRACKET==='1');
 if(ENCORE_KEEPS_SELECTED_BRACKET)MEDFAILS.encoreKeepsSelectedBracketRestored=1;
+/* 2026-09-22 (abra/regmc 0.62.0) -- MEDI_ENCORE_INSERT_KEEPS_PLACE=1 puts back the reading this file
+ * held until today: a relocated Encore target keeps its SLOT in the queue and only its bracket moves.
+ * The authority removes the action and re-INSERTS it (`changeAction` -> `insertChoice`), which lands
+ * it at the FRONT of its tied group under the differential's pin. See `encoreInsertChoice`. Loud:
+ * `MEDFAILS.encoreInsertKeepsPlaceRestored` is written at load. */
+const ENCORE_INSERT_KEEPS_PLACE=(typeof process!=='undefined'&&process.env
+                                 &&process.env.MEDI_ENCORE_INSERT_KEEPS_PLACE==='1');
+if(ENCORE_INSERT_KEEPS_PLACE)MEDFAILS.encoreInsertKeepsPlaceRestored=1;
 /* ===== 2026-08-29 -- THE PRIORITY GATES READ THE STATIC MOVE PRIORITY. THE AUTHORITY READS THE
  * ABILITY-MODIFIED ONE, AND IT IS THE SAME NUMBER THE TURN SORT USES. ================================
  *
@@ -21729,9 +21745,68 @@ function encoreRelocateQueued(who, mvId){
     if(ENCORE_KEEPS_SELECTED_BRACKET)return false;
     it._selMv=mvId;
     MEDSEEN.encoreRelocatedQueuedAction++;
+    if(!ENCORE_INSERT_KEEPS_PLACE)encoreInsertChoice(Q,k);
     return true;
   }
   return false;
+}
+/* 2026-09-22 (abra/regmc 0.62.0) -- AND THE ACTION IS RE-INSERTED, NOT LEFT WHERE IT STOOD.
+ *
+ * `BattleQueue#changeAction` (sim/battle-queue.ts:301) is `cancelAction(pokemon)` then
+ * `insertChoice(action)`, and `insertChoice` (:372-404), read whole, places the rebuilt action among
+ * the REMAINING queue without re-sorting it:
+ *
+ *     for (const [i, curAction] of this.list.entries()) {
+ *       const compared = this.battle.comparePriority(actions[0], curAction);
+ *       if (compared <= 0 && firstIndex === null) firstIndex = i;
+ *       if (compared < 0) { lastIndex = i; break; }
+ *     }
+ *     ...
+ *     const index = firstIndex === lastIndex ? firstIndex : this.battle.random(firstIndex, lastIndex + 1);
+ *
+ * So among the actions it TIES with, the relocated one lands at a uniform position from the FRONT of
+ * the tied group to its back -- a die the authority rolls here and this engine never rolled. The sort
+ * that follows the Encorer's action (sim/battle.ts:2919-2925) is a selection sort whose shuffle of a
+ * tied group starts from THIS order, so where the insert put it is where it stays under a pinned
+ * shuffle.
+ *
+ * THE CARD: 1950 lattice `pair-redirect-priority ...bo3-2678207112`, turn 5. Two Armarouge with every
+ * Speed input identical; Whimsicott's Prankster Encore lands on p2b, whose click is rewritten to the
+ * Expanding Force it used on turn 4. The authority re-inserts p2b IN FRONT of p1b (the middle arm pins
+ * `random(m, n)` to `m`, game_differential.js "THE QUEUE INSERTION INDEX"); this engine kept p2b
+ * behind p1b in its original slot, and the boards parted on who fired first.
+ *
+ * THE DIE IS THE TIE STREAM, drawn only where the authority draws (firstIndex !== lastIndex): the front
+ * of the group under the middle arm's constant tie die, a uniform position under real dice. `_tie` is
+ * left alone -- the authority's next re-sort re-shuffles the group anyway, and a stored key reproduces
+ * that distribution. The comparison key is the one `_resortTail` will use, with the bracket re-derived
+ * off `_selMv` (`resolveAction` -> `getActionSpeed` rebuilds it the same way) and the tie field zeroed,
+ * because `comparePriority` has no tie field. No die in scope is counted, never silent. */
+function encoreInsertChoice(Q,k){
+  const acts=Q.acts, it=acts[k], field=Q.field||null;
+  acts.splice(k,1);
+  const kOf=x=>{const o=turnOrderKey(x,field); o.tie=0; return o;};
+  const mine=kOf(it); mine.pri=actionPriority(it,field);
+  let first=null,last=null;
+  for(let i=Q.at+1;i<acts.length;i++){
+    const c=compareTurnOrder(mine,kOf(acts[i]),field);
+    if(c<=0&&first===null)first=i;
+    if(c<0){last=i;break;}
+  }
+  let at;
+  if(first===null)at=acts.length;
+  else {
+    if(last===null)last=acts.length;
+    if(first===last)at=first;
+    else {
+      const r=Q.tieRng; if(!r)MEDFAILS.encoreInsertNoDie++;
+      at=first+Math.floor((r?r():0)*(last+1-first));
+      if(at>last)at=last;
+      MEDSEEN.encoreInsertTieDrawn++;
+    }
+  }
+  acts.splice(at,0,it);
+  if(at!==k)MEDSEEN.encoreInsertMoved++;
 }
 /* The sort key for one queued action. `_qc` is rolled once per turn (WIRE 101), `_order` is written
  * only by After You / Quash, `_tie` is rolled once on first demand.
@@ -33733,7 +33808,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * cursor taken below them would name a different entry. Dropped below the loop, so a volatile
        * applied outside a turn cannot read a stale queue -- that road is counted, not silently taken.
        * `_TURN` has `break`s in it and the drop is on the outer side of all of them. */
-      ENCORE_Q={acts,at:actIdx};
+      ENCORE_Q={acts,at:actIdx,field,tieRng:_tieRng};
       /* 2026-09-06 -- THE MEGA AND CHARGE PHASES ARE ACTIONS OF THEIR OWN AND THEY WERE STANDING IN
        * THE PREVIOUS ACTION'S TAIL.
        *
