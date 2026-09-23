@@ -1,3 +1,23 @@
+## THE REG M-C ROSTER STAGES ITS 22 COULD-NOT-STAGE ROWS; THE DEAD TERRAIN ANCHOR IS RE-AIMED. 2026-09-22 (abra/regmc 0.64.0)
+
+Full account: `docs/_reports/2026-09-22-regmc-engine-8.md`.
+
+- **Why they could not stage.** Fifteen had no shape rule at all and fell to `item/held-and-nothing-more` or
+  `ability/generic`. None of them is in Reg M-B: the ten items are `Past` there and the five abilities have no legal carrier. Those two rules never
+  create what the handler waits for: a Ground move, contact, a drain, a partial trap, a terrain, a hit of a named type, a
+  trap or a half-HP crossing. Two more, Stakeout and Grass Pelt, were claimed by `ability/unconditional-stat-multiplier`,
+  which cannot build an arrival or a terrain. The last five were parsing or fixture faults:
+  - Leek's handler was asked with no user.
+  - Terrain Extender's slash list was read as one name.
+  - Punk Rock was staged with Snore, which fails while its user is awake.
+  - Harvest's hit was sized off a cast aggressor that is not legal here.
+  - Milk Drink's `adjacentAllyOrSelf` click was aimed at the user.
+- **What the lab now says**, on the 0.63.0 engine: 20 MATCH. Stakeout DIFFER and Run Away DID-NOT-FIRE, both real, fixed
+  in 0.65.0 and 0.66.0.
+- **The anchor.** `move/needs-the-terrain-it-names` pointed at `field.terrainT=5`, which Terrain Extender replaced. It now
+  names `field.terrain=_t;field.terrainT=terrainTurns(_t,m.item);…` in the move branch, and the red demonstration is
+  CAUGHT via Steel Roller.
+
 ## A MID-TURN ENCORE RE-INSERTS ITS TARGET'S ACTION, SO A SPEED TIE RESOLVES AS IN THE AUTHORITY (BOTH REGULATIONS). 2026-09-22 (abra/regmc 0.62.0)
 
 Full account: `docs/_reports/2026-09-22-regmc-engine-7.md` §1.

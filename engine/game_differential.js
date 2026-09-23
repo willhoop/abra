@@ -5547,7 +5547,10 @@ function scripted(script, turn, sd, i, act, side) {
    * quietly get a legal one, which is the silent-default failure this repository is built around.
    * `aimOf`/`aimBody` already resolve a negative target through the mover's OWN array (the dispatch
    * site's own note says so); only this encoder was foe-only. Both engines receive the same aim. */
-  if (want.ally && (tt === 'normal' || tt === 'any')) target = -((i === 0 ? 1 : 0) + 1);
+  /* ENGINE pass 8 (abra/regmc 0.64.0): `adjacentAllyOrSelf` joins the class. The authority accepts the partner's
+   * slot for it (`validTargetLoc`: `isAdjacent || isSelf`), and without this clause an `{ ally: true }` ask for Reg
+   * M-C's Milk Drink was refused here and fell through to the SELF aim two lines below — the drinker healed itself. */
+  if (want.ally && (tt === 'normal' || tt === 'any' || tt === 'adjacentAllyOrSelf')) target = -((i === 0 ? 1 : 0) + 1);
   else if (want.ally) { scriptAllyAimRefused++; if (!scriptAllyAimFirst) scriptAllyAimFirst = String(want.m) + ' (' + tt + ')'; }
   if (target !== null) { /* already aimed by the ally clause */ }
   else if (tt === 'normal' || tt === 'any' || tt === 'adjacentFoe') target = (want.t == null ? 0 : want.t) + 1;

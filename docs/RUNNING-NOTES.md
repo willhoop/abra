@@ -53,6 +53,18 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.64.0] — 2026-09-22 — **The Reg M-C roster stages its 22 COULD-NOT-STAGE rows, and the dead terrain anchor is re-aimed**
+
+- **What changed.** `tests/roster.js`: 13 new shape rules, plus fixes to five existing ones: Leek, Terrain Extender,
+  Punk Rock, Harvest, and the Stakeout/Grass Pelt exclusion. The plant anchor `move/needs-the-terrain-it-names` is re-aimed
+  at `terrainTurns(...)`. `engine/game_differential.js` `scripted()` aims an `adjacentAllyOrSelf` click at the partner on
+  `{ ally: true }`. No engine byte moved.
+- **Measured.** NO FIGURE published. Subset roster runs on release `aa7b45c6b8d2`: 20 of the 22 read FIRED-AND-BOARDS-MATCH.
+  Stakeout reads DIFFER and Run Away DID-NOT-FIRE; both are engine defects, fixed in 0.65.0 and 0.66.0. The terrain rule
+  reads CAUGHT. `docs/_reports/2026-09-22-regmc-engine-8.md`.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
+  gate opens).
+
 ## [abra/regmc 0.63.0] — 2026-09-22 — **The lab re-measured on the 0.62.0 engine: both censuses and the Reg M-C roster**
 
 - **What changed.** Regenerated artifacts: `data/mechanics-census-regmc.json`, `data/mechanics-census.json` and

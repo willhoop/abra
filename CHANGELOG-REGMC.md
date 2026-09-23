@@ -21,6 +21,43 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.64.0] — 2026-09-22
+
+### Changed
+- **The Reg M-C roster stages the 22 rows it could not stage.** Each of the 22 read COULD-NOT-STAGE on every Reg M-C
+  roster (12 items, 9 abilities, Milk Drink). Fifteen fell to a residue rule that only holds, attacks and is attacked, so
+  the handler never met the thing it waits for; two were claimed by a rule that cannot build their gate, and five were
+  parsing or fixture faults. `tests/roster.js` now builds that thing, and every body in it is derived
+  (`learnerBody`, `quietBody`, `hitInBand`):
+  - Items, six new shape rules: `item/pops-on-a-hit` (Air Balloon), `item/tolls-a-contact-attacker` (Rocky Helmet),
+    `item/partial-trap-chip` (Binding Band), `item/leaves-on-a-hit` (Eject Button, Red Card, one turn so the vacated slot
+    is not handed a click), `item/spent-when-its-terrain-starts` (the four seeds) and `item/type-gem` (Normal Gem).
+    Terrain Extender: the description's slash list ("Electric/Grassy/Misty/Psychic Terrain") is read as four moves, and
+    the rule's break gains the terrain half. Leek: the crit-ratio handler is asked with one of its own `itemUser` bodies,
+    and that body holds it.
+  - Abilities, seven new shape rules: `ability/speeds-up-when-hit-by-a-type` (Rattled), `ability/reverses-a-drain`
+    (Liquid Ooze), `ability/takes-the-type-of-its-own-click` (Libero; Protean moves here from the generic rule),
+    `ability/escapes-a-trap` (Run Away), `ability/leaves-at-half` (Emergency Exit), `ability/doubles-into-a-fresh-arrival`
+    (Stakeout) and `ability/stat-multiplier-under-a-terrain` (Grass Pelt). `ability/unconditional-stat-multiplier` no longer
+    claims a handler gated on `activeTurns` or a terrain. `ability/base-power-scoped` refuses a click with its own `onTry`
+    (it picked Snore for Punk Rock) and falls back to a spread click inside the scope when the carrier learns no
+    single-target one. Harvest searches for an aggressor when the cast one has no hit in the band.
+  - Milk Drink: `engine/game_differential.js` `scripted()` honours `{ ally: true }` for an `adjacentAllyOrSelf` click. It
+    used to aim that class at the user's own slot whatever the script said.
+
+### Fixed
+- **The moves stage's plant anchor `move/needs-the-terrain-it-names` is re-aimed.** Terrain Extender (0.29.0) changed the
+  literal `field.terrainT=5` to `terrainTurns(_t,m.item)`, and the anchor then matched 0 times on every release after it,
+  so the stage exited 1 on its instrument. The code path is unchanged, and the anchor now names it. `--rule
+  move/needs-the-terrain-it-names --reds` reads CAUGHT via Steel Roller.
+
+### Notes
+- Measured on release `aa7b45c6b8d2` (the 0.63.0 engine), subset runs with `--reds`. Items: 12 of 12 FIRED-AND-BOARDS-MATCH,
+  and all 8 rules involved (6 new, `crit-ratio`, `extends-a-duration`) CAUGHT. Moves: Milk Drink MATCH. Abilities: Emergency
+  Exit, Grass Pelt, Harvest, Libero, Liquid Ooze, Punk Rock and Rattled MATCH (Protean MATCH under its new rule).
+  **Stakeout reads FIRED-AND-BOARDS-DIFFER and Run Away DID-NOT-FIRE.** Both are engine defects, fixed in 0.65.0 and
+  0.66.0. The full stages are re-run at 0.69.0. Full account: `docs/_reports/2026-09-22-regmc-engine-8.md`.
+
 ## [0.63.0] — 2026-09-22
 
 ### Changed
