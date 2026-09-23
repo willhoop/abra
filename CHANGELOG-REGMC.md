@@ -154,6 +154,31 @@ rewritten; what changed and why is stated.
 - Damage differential `--n 6000 --seed 20260804`: Reg M-C 0/6000 and **exit 0** (was exit 1 on the conformance
   clause alone); Reg M-B 0/6000, exit 0. Written to `data/verification/pass10/engine-diff{,-regmc}.json`, not
   republished.
+## [0.79.0] — 2026-09-23
+
+### Fixed
+- **The last refused roster fixtures are rebuilt legal. None was kept, baselined or scoped out.** Distinct refused
+  sets (items / abilities / moves, + rule-built) went from **0 / 6 / 3 (+2) to 0 / 0 / 0 (+0)** under Reg M-B and from
+  **0 / 7 / 3 (+2) to 0 / 0 / 0 (+0)** under Reg M-C. Measured by `tests/probe_roster_fixture_legality.js --strict`
+  (exit 0 in both). No row lost its staging in either regulation.
+  - **Skill Swap lender.** The lender is now a legal Skill Swap learner holding a lendable ability. Lendable means
+    quiet, or announces-only. Announces-only is `fieldFamilyBranch`'s own derived class, and under both regulations
+    its only member is Frisk. The derived lender is Gourgeist-Super lending Frisk. On a board where Focus Energy stays,
+    the lender idles on Sleep Talk only when the script proves that no sleep click can reach its slot. A lender that
+    never attacks is exempt from the crit guard. Knob: `ROSTER_SWAPPER_UNREPAIRED=1`. With the knob on, Reg M-B
+    abilities again refuse 5 sets, plus 2 rule-built.
+  - **Heal Bell.** Chimecho clicks it. Chimecho is the only learner, and its one ability, Levitate, is admitted only on
+    a board proven free of Ground clicks, terrain, hazards and field conditions.
+  - **Roost.** Noivern clicks it, holding Frisk. Nothing on that board holds an item, so Frisk says nothing.
+  - **Transform.** Ditto, holding Limber, clicks it once: at the foe in the subject arm, at its partner in the control
+    arm. Ditto is the only learner and learns nothing else. Limber is admitted because nothing on the board writes
+    paralysis.
+- **The controls still separate.** 13 changed rows (Reg M-B) and 7 (Reg M-C) were played in both engines (named in
+  the report). Each reads FIRED-AND-BOARDS-MATCH, and the engines disagree nowhere in either arm.
+
+### Notes
+- **No roster stage was run** (light mode). The six stage commands are owed:
+  `docs/_reports/2026-09-23-roster-last-refusals.md`.
 
 ## [0.78.0] — 2026-09-23
 

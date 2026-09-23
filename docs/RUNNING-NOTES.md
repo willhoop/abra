@@ -118,6 +118,21 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
   (`data/verification/pass10/engine-diff-regmc.json`, `--n 6000 --seed 20260804`).
 - **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none (Reg M-C publishes nothing until its
   gate opens).
+## [abra/regmc 0.79.0] — 2026-09-23 — **The last refused roster fixtures are rebuilt legal: 11 → 0 (Reg M-B), 12 → 0 (Reg M-C)**
+
+- **What changed.** Only `tests/roster.js` changed; no engine byte moved.
+  - The Skill Swap lender is a legal Skill Swap learner holding a lendable ability: quiet, or announces-only, which in
+    both regulations means Frisk, on Gourgeist-Super.
+  - The lender idles on Sleep Talk where the script proves no sleep click can reach its slot.
+  - Heal Bell, Roost and Transform get legal carriers: Chimecho (Levitate, board proven Ground-free), Noivern (Frisk)
+    and Ditto (Limber). Transform's control re-aims the same click at the partner.
+  - Knob: `ROSTER_SWAPPER_UNREPAIRED=1`.
+- **Measured.** Distinct refused sets, from `tests/probe_roster_fixture_legality.js --strict`, static, with no roster
+  arm played: Reg M-B 0/6/3 (+2) → 0/0/0 (+0); Reg M-C 0/7/3 (+2) → 0/0/0 (+0). No row lost staging. Sampled rows
+  still separate: 13 (Reg M-B) and 7 (Reg M-C), all FIRED-AND-BOARDS-MATCH. No mechanic was scoped out.
+  `docs/_reports/2026-09-23-roster-last-refusals.md`. The roster artifacts were NOT regenerated (owed).
+- **Basis.** unchanged. **Supersedes.** Nothing published. **Owed to the next major.** none (Reg M-C publishes nothing
+  until its gate opens).
 
 ## [abra/regmc 0.78.0] — 2026-09-23 — **The roster's text proxy and its refused fixtures are repaired; 141 → 11 (Reg M-B), 144 → 12 (Reg M-C)**
 
