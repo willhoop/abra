@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.124.0] — 2026-09-24 — **White Herb roster plant re-aimed; Reg M-C census republished**
+- **What changed.** `tests/roster.js` `item/restores-lowered-stats` plant re-aimed at `restoreStatsUpdate`'s negative-stage scan (the old `_rs` anchor matched twice after 0.120.0). `data/mechanics-census-regmc.json` republished from the merged tree.
+- **Measured.** Items stage on `eaa5becc54eb`: 166/166, 28/28 anchors apply once, the rule CAUGHT, exit 0 (`data/roster.items-regmc.json`). Census 1024 live / 0 missing / 1024 probed (`data/mechanics-census-regmc.json` = pin `census-pin-regmc-123aa264f88d`); the one row that differs from the committed census is the Supreme Overlord label.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.123.0] — 2026-09-24 — **Reg M-C lattices after the last three narration fixes: 0 / 0 / 0 narration, 0 boards**
 - **What changed.** Measurement only. Release `015ab5fd1cc1`, pin `ccd979c30997`, pool `data/team-pool-frozen-regmc`, `--steering empirical --arm middle --end-state`, `--games` 1200/1600/1900, serial through `tools\lownode.cmd`. `docs/_reports/2026-09-24-narration-zero.md`.
 - **Measured.** Undeclared narration-only 0/955, 0/1266, 0/1497 (`data/game-differential-regmc.json`, `.g1600-regmc`, `.g1900-regmc`, `end_state[0].summary.by_cause_totals.games_narration_only`); board-material 0/954 usable, 0/1266, 0/1497 (`state.games − state.games_board_never_diverged`). Samples identical to 0.119.0: the same one void game at 1200, 0 threw, every by-cause table reconciles.

@@ -8280,8 +8280,12 @@ const RULES = [
      + 'back before the boundary. THE PARTNER IS THE NEGATIVE and is dropped on the same turn holding '
      + 'nothing; turn 2 is the second, because a single-use restore that fired twice parts there.',
   break: { why: 'the stat restoration is skipped',
-    patch: [["const _rs=TAGS.param('item',m.item,'restoresStats');",
-             "const _rs=null&&TAGS.param('item',m.item,'restoresStats');"]] },
+    /* RE-AIMED 2026-09-24 (abra/regmc 0.124.0). The old anchor was the `_rs` read, and 0.120.0 added a
+     * second copy of that line in `restoreStatsOwed`, so the plant matched twice, refused to apply, and
+     * the stage exited 1 with every row green. This line is `restoreStatsUpdate`'s alone and it is the
+     * door every caller spends the herb through, so blanking it skips the restoration as before. */
+    patch: [["for(const k in m.boosts)if(m.boosts[k]<0){_any=true;break;}",
+             "for(const k in m.boosts)if(false&&m.boosts[k]<0){_any=true;break;}"]] },
   match(e) {
     if (!/lowered stat stages/i.test(e.shortDesc || '')) return null;
     /* THE DROP HAS TO BE NOTHING BUT A DROP, and the first version of this was not. It took the first

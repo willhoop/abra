@@ -21,6 +21,21 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.124.0] — 2026-09-24
+
+### Fixed
+- **The White Herb red demonstration in the item roster aims at one line again.** 0.120.0 added `restoreStatsOwed`,
+  which repeats `restoreStatsUpdate`'s `_rs` read, so the plant for `item/restores-lowered-stats` in `tests/roster.js`
+  matched twice and refused to apply. The items stage then exited 1 with 166/166 rows green, and the gate's roster/items
+  clause read FAIL. The plant now blanks `restoreStatsUpdate`'s own negative-stage scan, the door every caller spends
+  the herb through. Re-run on release `eaa5becc54eb`: 28 of 28 anchors apply once, the rule is CAUGHT (DID-NOT-FIRE
+  on `party.item`, `boosts.atk`), 166/166, exit 0.
+- **The Reg M-C census is republished from the merged tree.** The committed `data/mechanics-census-regmc.json` still
+  carried the Supreme Overlord row under its pre-0.118.1 label ("refuses the authority fallenundefined"), so the HEAD
+  tree did not reproduce it and #442's instrument (`tests/probe_census_reproduces.js`) read RED under Reg M-C. The
+  regenerated census is 1024 live / 0 missing / 1024 probed, pin `data/verification/census-pin-regmc-123aa264f88d.json`;
+  the one difference is that row's label.
+
 ## [0.123.0] — 2026-09-24
 
 ### Changed
