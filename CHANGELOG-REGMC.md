@@ -21,6 +21,111 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.99.0] — 2026-09-24
+
+### Fixed
+- **A caller's move click on a body whose enabled menu is empty is Struggle (both regulations).** `Side#chooseMove`
+  (`sim/side.ts`, identical in the Reg M-B and Reg M-C checkouts) takes a hard lock first, then pushes
+  `moveid: 'struggle'` whatever was named when `getMoves()` is empty, and returns before the mega block. A visible
+  source leaves only Struggle on the request, so a named real move is refused there; Imprison's hidden source on the
+  last active body is rewritten there. The engine played the handed click and let each source's execution gate answer
+  it: `|cant|` for Taunt, Disable, Encore + Disable, a Choice lock + Taunt, Heal Block, Imprison and 0 PP, and for
+  Gigaton Hammer's repeat lock nothing at all (the move landed a second time). One site in `battleTurn`'s action
+  collection now asks `mustStruggle` when the handed move is itself off the menu, and builds Struggle. Knob
+  `MEDI_DISABLED_CLICK_PLAYED`.
+- **Torment's menu half (both regulations).** `torment.condition.onDisableMove` disables the body's last move. Torment
+  has no `onBeforeMove`, so this is its only half, and the engine had neither: a tormented body repeated its move.
+  `moveDisabledBy` now refuses `_lastMove` under the volatile. Knob `MEDI_TORMENT_MENU_OPEN`.
+- The menu's PP read (`moveDisabledBy`) no longer writes the lazy `_pp` table (`ppPeek`). Asking the menu wrote a
+  full-PP row for every slot; `ppSpentMap` reads an absent row as unspent, so no board leaf moves.
+
+### Added
+- `tests/probe_disabled_choice_struggle.js`: Imprison at board level in both engines, and eight disable sources at
+  choice level (Taunt, Disable, Torment, Encore + Disable, Choice lock + Taunt, Heal Block, Gigaton Hammer, 0 PP),
+  each with a boundary-0 control and the knob arm. Red on the base engine (14 assertions in each regulation), green
+  after.
+- Census rows `move/locksTarget` (Torment), `move/cantUseTwice` and `move/forbidsStatusMoves` (the handed click).
+
+### Changed
+- Census rows `move/pp` (twice) and `item/restoresPP` handed a body's ONLY move at 0 PP and asserted `|cant|nopp`. The
+  authority cannot produce that board: it takes the turn as Struggle. They now count the Struggle apart from the move's
+  own clicks and assert it.
+
+### Notes
+- Census: Reg M-B 1,012 of 1,012 live, Reg M-C 1,016 of 1,016 (the base branch measured 1,009 and 1,013). With both knobs
+  set, 6 rows go MISSING.
+- Pinned differential, `--games 45`, `--steering empirical --arm middle`, state mode: base against final is byte-identical
+  per game in both regulations (Reg M-B 43 games, Reg M-C 38), board-material 0 on both arms.
+- `docs/_reports/2026-09-24-disabled-choice-struggle.md`.
+
+## [0.98.0] — 2026-09-24
+
+### Fixed
+- **Heal Block's menu half (both regulations).** `healblock.condition.onDisableMove` disables every heal-flagged slot while
+  the volatile stands. It is a visible disable. The engine refused the click only at execution, so the move stayed on the
+  menu. `moveDisabledBy` now asks `healBlockRefusesClick`, the reader the execution refusal already uses. Knob
+  `MEDI_HEALBLOCK_MENU_OPEN`.
+
+### Added
+- Census row `move/blocksHealing`: "Heal Block takes a heal-flagged move off the menu while it stands, and gives it back
+  after".
+- `tests/probe_move_menu_legality.js` now asserts that every slot agrees at every boundary of each staged game. Before, it
+  checked only the asserted turn. That covers the end of Psychic Noise's two-turn block.
+
+### Notes
+- `legalActions` against the authority (`--games 45`, state mode): 2 disagreeing slots of 5,552 become 0. The
+  probe's legal part is green for the first time. Base release `9cfd07674cc9` against `f9c11b7b9b3c`: per-game fingerprint byte-identical over 38 games.
+  At `--games 1200` (same pins, `--end-state`) the base and the final release are byte-identical per game over 955 games, board-material 0 of 954 on both.
+- `docs/_reports/2026-09-24-move-menu-legality.md`.
+
+## [0.97.0] — 2026-09-24
+
+### Fixed
+- **Imprison's menu half (both regulations).** `imprison.condition.onFoeDisableMove` disables, on every living active foe,
+  each move the imprisoner carries. The engine had only the execution refusal (`onFoeBeforeMove`), so a sealed move stayed
+  on the foes' menus. `moveDisabledBy` now asks `imprisonSealedBy`, the reader the execution refusal already uses. It
+  reaches the foes through `me._sf._S`, so no caller's signature changed. A body with every slot sealed reaches Struggle
+  through `mustStruggle`. Knob `MEDI_IMPRISON_MENU_OPEN`.
+
+### Added
+- Census row `move/sealsMoves`: "Imprison takes the moves it knows off both foes' menus, down to Struggle, and not off
+  its ally's".
+
+### Notes
+- **The exact rule, demonstrated rather than recalled.** The disable is HIDDEN. The request shows the move enabled to the
+  last active body (`restrictData = isLastActive()`, sim/pokemon.ts:1093-1095) and disabled to a body with a live ally on
+  its right. `Side#chooseMove` validates with `getMoves()` and no `restrictData` (sim/side.ts:627, 730-745), so it refuses
+  the click from either slot. On a copy of the authority's own battle, the last active body's Protect was shown enabled
+  and refused: "Can't move: Aegislash's Protect is disabled". Legality therefore loses the move in both slots.
+- `legalActions` against the authority (`--games 45`, state mode): 6 disagreeing slots of 5,552 become 2.
+  Base release `9cfd07674cc9` against `d0b771be7727`: per-game fingerprint byte-identical over 38 games.
+- **Owed, not fixed here (the execution path, not the menu):** a caller-supplied click on a body whose whole menu is
+  sealed. The authority's `Side#chooseMove` rewrites that click to Struggle (side.ts:699-709). MEDICHAM plays the click and
+  refuses it with `|cant|…|move: Imprison|`. The probe's STRUGGLE arm prints this parting.
+  `docs/_reports/2026-09-24-move-menu-legality.md` §3.
+
+## [0.96.0] — 2026-09-24
+
+### Fixed
+- **A Parting Shot that stays in is a move action, so Fake Out leaves the menu (both regulations).** The engine counted a
+  move action (`_mvActs`, the authority's `activeMoveActions`) only for an action whose `kind` was not `switch` or `pass`.
+  `playerAction` builds Parting Shot, Chilly Reception and (Reg M-C) Revival Blessing as `{kind:'switch', mv}`, so a
+  Parting Shot blocked by a Protect left the count at 0. The Champions `fakeout.onDisableMove` reads that count, so Fake
+  Out stayed on MEDICHAM's menu. An action now counts when it carries a move (`actionMoveId`). A bare `pass` still does
+  not count. Knob `MEDI_PIVOT_MOVE_NOT_COUNTED`.
+
+### Added
+- `tests/probe_move_menu_legality.js`: at every turn boundary it compares the moves the authority accepts
+  (`getMoves()`, the call `Side#chooseMove` validates with) with `selectableMoves`, for each of the three menu defects the
+  solver API's legality probe found. Red before this fix and green after it, in both regulations. The imprison and
+  healblock parts stay red until 0.97.0 and 0.98.0.
+- Census row `move/firstTurnOnly`: "a Parting Shot that stays in is a move action: Fake Out leaves the menu".
+
+### Notes
+- `legalActions` against the authority (`--games 45`, state mode): 26 disagreeing slots of 5,552 before, 6 after. The 20
+  Fake Out slots are gone. At `--games 45` the differential is byte-identical per game to the base release
+  (`9cfd07674cc9` against `536641af26ee`, 38 games). `docs/_reports/2026-09-24-move-menu-legality.md`.
+
 ## [0.95.0] — 2026-09-24
 
 ### Added

@@ -613,8 +613,17 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * `intimOnto(` added 2026-09-23 (ENGINE pass 9) with the Intimidate-reactor rows, declared HERE and with its reason. It
  * stages a real doubles board through `battleInit` and switches an Intimidate carrier in through `battleTurn`, so the
  * reaction it reads is the one the entry road ran, never a handler called by hand.
+ *
+ * `menuAfterFirst(`, `imprisonMenu(` and `healBlockMenu(` added 2026-09-24 with the move-menu legality rows, declared
+ * HERE and with their reason. Each stages a real doubles board through `battleInit` and spends a real turn through
+ * `battleTurn`, then reads `selectableMoves` -- the menu the chooser and the solver API read -- off the board that turn
+ * left. The claim is about what a turn DID to the next menu (a move action counted, a volatile standing), which only a
+ * played turn can produce.
+ *
+ * `tormentMenu(` and `handedRun(` added 2026-09-24 with the disabled-choice rows, declared HERE for the same reason:
+ * each spends real turns through `battleTurn`; `handedRun` reads the turn-2 OUTCOME (Struggle's recoil and damage).
  */
-const REALTURN = /\bnarRun\(|\bdiceOf\(|\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(|\bsgVolArms\(|\bvolleyInto\(|\bripenHit\(|\bintimOnto\(/;
+const REALTURN = /\bnarRun\(|\bdiceOf\(|\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(|\bsgVolArms\(|\bvolleyInto\(|\bripenHit\(|\bintimOnto\(|\bmenuAfterFirst\(|\bimprisonMenu\(|\bhealBlockMenu\(|\btormentMenu\(|\bhandedRun\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -21605,6 +21614,159 @@ probe('move', 'firstTurnOnly', 'Fake Out is legal on the first MOVE after arrivi
                  + `which must be 0 — that is the arm separating this from "Fake Out always works"` };
 });
 
+/* 2026-09-24 — A PARTING SHOT THAT STAYS IN IS STILL A MOVE ACTION. `playerAction` builds Parting Shot as
+ * `{kind:'switch', mv}` and the count was taken only for kind not in {switch, pass}, so a Parting Shot
+ * blocked by a Protect (no stat drop, so `delete move.selfSwitch`, data/moves.ts partingshot.onHit) left
+ * `_mvActs` at 0 and Fake Out on the next menu, where the authority's `onDisableMove` reads
+ * `activeMoveActions` 1. Found by the solver API's legal-actions probe (20 of 5,552 Reg M-C slots).
+ * READ OFF THE MENU (`selectableMoves`, what `chooseAction` and `medicham_api.legalActions` read) after a
+ * real turn. CONTROL: the same body PASSES turn 1 (a bare pass is no click), so Fake Out must stay.
+ * Knob MEDI_PIVOT_MOVE_NOT_COUNTED=1. Staged against the authority: tests/probe_move_menu_legality.js. */
+const menuAfterFirst = (first) => {
+  const me = bare('incineroar'), ally = bare('milotic'), benchA = bare('sneasler');
+  const f1 = bare('milotic'), f2 = bare('milotic');
+  me.moves = ['fakeout', 'partingshot'];
+  for (const b of [me, ally, benchA, f1, f2]) unfaintable(b);
+  const S = M.battleInit([me, ally, benchA], [f1, f2], { seeded: true });
+  M.battleTurn(S, rng5,
+    new Map([[me, first ? M.playerAction(me, first, f1, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+    new Map([[f1, M.playerAction(f1, 'protect', me, S.field)], [f2, { kind: 'pass' }]]));
+  return { who: S.actA[0] && S.actA[0].name, menu: M.selectableMoves(S.actA[0]).join(',') };
+};
+probe('move', 'firstTurnOnly', 'a Parting Shot that stays in is a move action: Fake Out leaves the menu', () => {
+  const test = menuAfterFirst('partingshot');
+  const control = menuAfterFirst(null);
+  return { works: test.who === 'incineroar' && !/fakeout/.test(test.menu) && /fakeout/.test(control.menu),
+           arms: { control: control.menu, test: test.menu },
+           detail: `[slot occupant : menu after turn 1]. Parting Shot into a Protect ${test.who} : ${test.menu} `
+                 + `(the user must still be in, and Fake Out must be gone — activeMoveActions is 1). CONTROL, the `
+                 + `same body passing turn 1: ${control.who} : ${control.menu} (Fake Out must stay)` };
+});
+
+/* 2026-09-24 — IMPRISON'S MENU HALF. `imprison.condition.onFoeDisableMove` disables, on every living active foe, each
+ * move the imprisoner carries (a HIDDEN disable, which `Side#chooseMove` still refuses from either slot). The engine
+ * had only the execution refusal, so a sealed move stayed on the menu. Read off `selectableMoves` after a real turn:
+ * foe 1 carries Protect (sealed) and Ice Beam (not), foe 2 carries ONLY Protect and must reach Struggle, and the
+ * imprisoner's ALLY carries Protect and keeps it (`onFoe*` is foes only). CONTROL: the imprisoner passes turn 1.
+ * Knob MEDI_IMPRISON_MENU_OPEN=1. Staged against the authority: tests/probe_move_menu_legality.js --part imprison. */
+const imprisonMenu = (first) => {
+  const me = bare('alakazam'), ally = bare('milotic'), f1 = bare('milotic'), f2 = bare('milotic');
+  me.moves = ['imprison', 'protect']; ally.moves = ['protect', 'scald']; f1.moves = ['protect', 'icebeam']; f2.moves = ['protect'];
+  for (const b of [me, ally, f1, f2]) unfaintable(b);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  M.battleTurn(S, rng5,
+    new Map([[me, first ? M.playerAction(me, first, f1, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return { f1: M.selectableMoves(f1).join(','), f2: M.mustStruggle(f2) ? 'struggle' : M.selectableMoves(f2).join(','),
+           ally: M.selectableMoves(ally).join(','), up: !!(me._vol && me._vol.imprison) };
+};
+probe('move', 'sealsMoves', 'Imprison takes the moves it knows off both foes\' menus, down to Struggle, and not off its ally\'s', () => {
+  const test = imprisonMenu('imprison');
+  const control = imprisonMenu(null);
+  return { works: test.up && test.f1 === 'icebeam' && test.f2 === 'struggle' && /protect/.test(test.ally)
+                  && !control.up && control.f1 === 'protect,icebeam' && control.f2 === 'protect',
+           arms: { control: control.f1 + '|' + control.f2, test: test.f1 + '|' + test.f2 },
+           detail: `[foe 1 menu | foe 2 menu | ally menu] after turn 1. IMPRISON up=${test.up}: ${test.f1} | ${test.f2} | `
+                 + `${test.ally} (Protect must leave both foes, foe 2 must be left only Struggle, the ally keeps Protect). `
+                 + `CONTROL, the imprisoner passing, up=${control.up}: ${control.f1} | ${control.f2} | ${control.ally}` };
+});
+
+/* 2026-09-24 — HEAL BLOCK'S MENU HALF. `healblock.condition.onDisableMove` disables every heal-flagged slot while the
+ * volatile stands (a visible disable). The engine refused the click only at execution, so the move stayed on the menu.
+ * Psychic Noise lands the volatile on turn 1; the victim carries Draining Kiss (heal-flagged) and Calm Mind (not).
+ * Read off `selectableMoves` after the turn, and again after turn 2, when Psychic Noise's two-turn block has run out
+ * (`durationCallback` returns 2 for it) and the move must be back. CONTROL: the blocker passes turn 1.
+ * Knob MEDI_HEALBLOCK_MENU_OPEN=1. Staged against the authority: tests/probe_move_menu_legality.js --part healblock. */
+const healBlockMenu = (first) => {
+  const me = bare('noivern'), ally = bare('milotic'), f1 = bare('aromatisse'), f2 = bare('milotic');
+  me.moves = ['psychicnoise']; f1.moves = ['drainingkiss', 'calmmind'];
+  for (const b of [me, ally, f1, f2]) unfaintable(b);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  M.battleTurn(S, rng5,
+    new Map([[me, first ? M.playerAction(me, first, f1, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  const after1 = M.selectableMoves(f1).join(',');
+  M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+  return { after1, after2: M.selectableMoves(f1).join(',') };
+};
+probe('move', 'blocksHealing', 'Heal Block takes a heal-flagged move off the menu while it stands, and gives it back after', () => {
+  const test = healBlockMenu('psychicnoise');
+  const control = healBlockMenu(null);
+  return { works: test.after1 === 'calmmind' && test.after2 === 'drainingkiss,calmmind'
+                  && control.after1 === 'drainingkiss,calmmind',
+           arms: { control: control.after1, test: test.after1 },
+           detail: `the victim's menu after turn 1 / after turn 2. PSYCHIC NOISE: ${test.after1} / ${test.after2} (Draining `
+                 + `Kiss must leave, then come back when the two-turn block ends). CONTROL, the blocker passing: `
+                 + `${control.after1} / ${control.after2}` };
+});
+
+/* 2026-09-24 — TORMENT'S MENU HALF. `torment.condition.onDisableMove` disables the body's LAST MOVE every time a
+ * request is built (a visible disable, and Torment has no `onBeforeMove`, so it is the only half). The engine had
+ * neither, so a tormented body repeated its move freely. Turn 1: the tormentor torments the victim while the victim
+ * uses Swords Dance; read the victim's `selectableMoves` after the turn. CONTROL: the tormentor passes.
+ * Knob MEDI_TORMENT_MENU_OPEN=1. Staged against the authority: tests/probe_disabled_choice_struggle.js (torment). */
+const tormentMenu = (first) => {
+  const me = bare('annihilape'), ally = bare('milotic'), f1 = bare('aegislash'), f2 = bare('milotic');
+  me.moves = ['torment', 'protect']; f1.moves = ['swordsdance', 'protect'];
+  for (const b of [me, ally, f1, f2]) unfaintable(b);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  M.battleTurn(S, rng5,
+    new Map([[me, first ? M.playerAction(me, first, f1, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+    new Map([[f1, M.playerAction(f1, 'swordsdance', f1, S.field)], [f2, { kind: 'pass' }]]));
+  return { menu: M.selectableMoves(f1).join(','), up: !!(f1._vol && f1._vol.torment) };
+};
+probe('move', 'locksTarget', 'Torment takes the last move used off the menu, and only that one', () => {
+  const test = tormentMenu('torment');
+  const control = tormentMenu(null);
+  return { works: test.up && test.menu === 'protect' && !control.up && control.menu === 'swordsdance,protect',
+           arms: { control: control.menu, test: test.menu },
+           detail: `the victim's menu after it used Swords Dance. TORMENT up=${test.up}: ${test.menu} (Swords Dance must `
+                 + `leave, Protect stay). CONTROL, the tormentor passing, up=${control.up}: ${control.menu}` };
+});
+
+/* 2026-09-24 — A CALLER'S MOVE CLICK ON AN EMPTIED MENU IS STRUGGLE. `Side#chooseMove` (sim/side.ts): with
+ * `getMoves()` empty it pushes `moveid: 'struggle'` whatever was named — a visible source leaves only Struggle on the
+ * request, and Imprison's hidden one is rewritten there. The engine played the handed click and let each source's
+ * execution gate answer (`|cant|`), or, for Gigaton Hammer's repeat lock, landed the move a second time. The OUTCOME
+ * read is Struggle's own: its recoil on the user (a quarter of max HP) and damage to a foe. Turn 1 empties the menu
+ * (or, on the CONTROL, does not); turn 2 hands the body the move. Knob MEDI_DISABLED_CLICK_PLAYED=1. Staged against
+ * the authority: tests/probe_disabled_choice_struggle.js. */
+const handedRun = (meSp, meMoves, t1Me, foeMoves, t1Foe, handed) => {
+  const me = bare(meSp), ally = bare('milotic'), f1 = bare('absol'), f2 = bare('milotic');
+  me.moves = meMoves; f1.moves = foeMoves;
+  for (const b of [me, ally, f1, f2]) unfaintable(b);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  M.battleTurn(S, rng5,
+    new Map([[me, t1Me ? M.playerAction(me, t1Me, f1, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+    new Map([[f1, t1Foe ? M.playerAction(f1, t1Foe, me, S.field) : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  const must = !!M.mustStruggle(me);
+  const hp0 = me.curHP, foes0 = f1.curHP + f2.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, handed, f1, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return { must, recoil: hp0 - me.curHP, quarter: Math.round(me.st.hp / 4), foesLost: foes0 - (f1.curHP + f2.curHP) };
+};
+probe('move', 'cantUseTwice', 'a handed Gigaton Hammer the turn after one is Struggle, not a second Hammer', () => {
+  const test = handedRun('tinkaton', ['gigatonhammer'], 'gigatonhammer', ['protect'], null, 'gigatonhammer');
+  const control = handedRun('tinkaton', ['gigatonhammer'], null, ['protect'], null, 'gigatonhammer');
+  return { works: test.must && test.recoil === test.quarter && test.foesLost > 0
+                  && !control.must && control.recoil === 0 && control.foesLost > 0,
+           arms: { control: control.recoil, test: test.recoil },
+           detail: `turn 2, the Hammer handed in. AFTER A HAMMER: mustStruggle=${test.must}, user lost ${test.recoil} `
+                 + `(Struggle's quarter is ${test.quarter}), foes lost ${test.foesLost}. CONTROL, turn 1 passed: `
+                 + `mustStruggle=${control.must}, user lost ${control.recoil}, foes lost ${control.foesLost} (the Hammer lands)` };
+});
+probe('move', 'forbidsStatusMoves', 'a Taunted body with only status moves Struggles when handed one', () => {
+  const test = handedRun('aegislash', ['swordsdance', 'protect'], null, ['taunt'], 'taunt', 'protect');
+  const control = handedRun('aegislash', ['swordsdance', 'protect'], null, ['taunt'], null, 'protect');
+  return { works: test.must && test.recoil === test.quarter && test.foesLost > 0
+                  && !control.must && control.recoil === 0 && control.foesLost === 0,
+           arms: { control: control.recoil, test: test.recoil },
+           detail: `turn 2, Protect handed in. TAUNTED: mustStruggle=${test.must}, user lost ${test.recoil} (Struggle's `
+                 + `quarter is ${test.quarter}), foes lost ${test.foesLost}. CONTROL, no Taunt: mustStruggle=${control.must}, `
+                 + `user lost ${control.recoil}, foes lost ${control.foesLost} (Protect is played)` };
+});
+
 /* ---- ROADMAP #84 — SHOWDOWN SPLITS "MY MOVE DID NOT HAPPEN" IN TWO, AND THIS ENGINE HAD NEITHER ---
  *
  * `sim/battle-actions.ts:255` says it in a comment that names the move it matters for:
@@ -26404,9 +26566,14 @@ const ppRun = (moveId, turns, stage, chooseAfter, thenMove, foe2Move) => {
       M.battleTurn(B.S, rng5, undefined, undefined);
     }
   }
-  const mv = trace.filter(l => /^\|move\|p1a/.test(l)).map(l => l.split('|')[3]);
-  const tally = {}; for (const x of mv) tally[x] = (tally[x] || 0) + 1;
-  return { clicks: mv.length, byMove: tally,
+  /* 2026-09-24 -- A STRUGGLE IS NOT A CLICK OF THE MOVE UNDER TEST. The body carries ONE move, so once it is at 0 PP
+   * the authority's request reads `[Struggle]` and a handed click of the empty move is Struggle (`Side#chooseMove`,
+   * the `!moves.length` branch) -- never a `|cant|nopp`, which the authority writes only for PP drained AFTER the
+   * choice. The engine now does the same, so the ninth turn is counted as `struggled`, apart from `clicks`. */
+  const all = trace.filter(l => /^\|move\|p1a/.test(l)).map(l => l.split('|')[3]);
+  const mv = all.filter(x => x !== 'struggle');
+  const tally = {}; for (const x of all) tally[x] = (tally[x] || 0) + 1;
+  return { clicks: mv.length, byMove: tally, struggled: all.length - mv.length,
            noPP: trace.filter(l => /^\|cant\|p1a[^|]*\|nopp/.test(l)).length,
            left: B.me._pp ? Object.assign({}, B.me._pp) : null,
            /* THE ENGINE'S OWN ANSWER TO "HOW MUCH HAS THIS BODY SPENT", not a subtraction done here.
@@ -26423,10 +26590,11 @@ probe('move', 'pp', 'an 8-PP move runs out: the ninth click FAILS', () => {
    * the most-clicked move in the format. The arms are 9 clicks against 5, and the number that matters
    * is the CLICKS THAT LANDED rather than the clicks that were asked for. */
   const nine = ppRun('protect', 9), five = ppRun('protect', 5);
-  return { works: nine.clicks === 8 && nine.noPP === 1 && five.clicks === 5 && five.noPP === 0
+  return { works: nine.clicks === 8 && nine.struggled === 1 && nine.noPP === 0 && five.clicks === 5 && five.struggled === 0
                   && nine.left && nine.left.protect === 0 && five.left && five.left.protect === 3,
-           arms: { control: [five.clicks, five.noPP], test: [nine.clicks, nine.noPP] },
-           detail: 'Protect asked 9 times -> ' + nine.clicks + ' |move| lines and ' + nine.noPP
+           arms: { control: [five.clicks, five.struggled], test: [nine.clicks, nine.struggled] },
+           detail: 'Protect asked 9 times -> ' + nine.clicks + ' Protect lines, then ' + nine.struggled
+                 + ' Struggle (the only move a body with its one slot empty can make) and ' + nine.noPP
                  + ' |cant|nopp, leaving ' + JSON.stringify(nine.left) + '. Asked 5 times -> '
                  + five.clicks + ' lines, ' + five.noPP + ' refusals, leaving '
                  + JSON.stringify(five.left) + '. maxpp 8 is READ off a constructed battle in the '
@@ -26534,11 +26702,11 @@ probe('move', 'pp', 'a move built under a non-attack action kind still spends PP
   const nine = ppRun('healbell', 9), five = ppRun('healbell', 5);
   return { works: SEVEN.every(mv => each[mv] === 1)
                   && tf.spent === undefined && !('transform' in tf.spentAll)
-                  && nine.clicks === 8 && nine.noPP === 1 && five.clicks === 5 && five.noPP === 0,
-           arms: { control: [five.clicks, five.noPP], test: [nine.clicks, nine.noPP] },
+                  && nine.clicks === 8 && nine.struggled === 1 && five.clicks === 5 && five.struggled === 0,
+           arms: { control: [five.clicks, five.struggled], test: [nine.clicks, nine.struggled] },
            detail: 'Heal Bell (maxpp 8, built as kind `pass`) asked 9 times -> ' + nine.clicks
-                 + ' |move| lines and ' + nine.noPP + ' |cant|nopp; asked 5 -> ' + five.clicks
-                 + ' and ' + five.noPP + '. One click of each of the seven spends '
+                 + ' Heal Bell lines, then ' + nine.struggled + ' Struggle; asked 5 -> ' + five.clicks
+                 + ' and ' + five.struggled + '. One click of each of the seven spends '
                  + SEVEN.map(mv => mv + ' ' + each[mv]).join(', ') + ' (the authority spends 1 on '
                  + 'every one). Transform is the eighth and left the family: after it resolves this '
                  + 'body carries ' + JSON.stringify(Object.keys(tf.spentAll)) + ' and no `transform` '
@@ -27677,7 +27845,9 @@ const leppaRun = (item, turns) => {
       new Map([[B.me, M.playerAction(B.me, 'protect', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
       PASS2(B.f1, B.f2));
   }
-  return { clicks: trace.filter(l => /^\|move\|p1a/.test(l)).length,
+  /* A Struggle is counted apart from the Protect clicks -- see `ppRun` (2026-09-24). */
+  return { clicks: trace.filter(l => /^\|move\|p1a/.test(l) && l.split('|')[3] !== 'struggle').length,
+           struggled: trace.filter(l => /^\|move\|p1a[^|]*\|struggle/.test(l)).length,
            noPP: trace.filter(l => /nopp/.test(l)).length,
            /* THE BERRY'S OWN ANNOUNCEMENT, kept whole. The probe above reads only the SLOT, so it is
             * green on a line that is two fields short of the authority's. */
@@ -27693,14 +27863,14 @@ probe('item', 'restoresPP', 'Leppa Berry puts a spent move back on the menu', ()
   const leppa = leppaRun('leppaberry', 9);
   const none = leppaRun('', 9);
   const sitrus = leppaRun('sitrusberry', 9);
-  return { works: leppa.clicks === 9 && leppa.noPP === 0 && leppa.item === ''
-                  && none.clicks === 8 && none.noPP === 1
-                  && sitrus.clicks === 8 && sitrus.noPP === 1,
+  return { works: leppa.clicks === 9 && leppa.noPP === 0 && leppa.struggled === 0 && leppa.item === ''
+                  && none.clicks === 8 && none.struggled === 1
+                  && sitrus.clicks === 8 && sitrus.struggled === 1,
            arms: { control: [none.clicks, sitrus.clicks], test: [leppa.clicks, leppa.clicks] },
            detail: 'Protect (maxpp 8) asked 9 times: with a LEPPA BERRY ' + leppa.clicks
                  + ' clicks land, 0 refusals, the berry is spent and the slot reads ' + leppa.left
-                 + '. CONTROL no item ' + none.clicks + ' clicks and ' + none.noPP + ' |cant|nopp; '
-                 + 'CONTROL Sitrus Berry ' + sitrus.clicks + ' and ' + sitrus.noPP + ' — a berry that '
+                 + '. CONTROL no item ' + none.clicks + ' clicks and ' + none.struggled + ' Struggle; '
+                 + 'CONTROL Sitrus Berry ' + sitrus.clicks + ' and ' + sitrus.struggled + ' — a berry that '
                  + 'is HELD and does not restore PP, so the knob is the item\'s tag and not the slot' };
 });
 

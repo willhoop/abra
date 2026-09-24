@@ -412,6 +412,13 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
    * in the dispatch loop and voided the whole turn. They are counted apart from `struggleFromEmptyMenu`
    * because a hot number here is a BUG REPORT, not evidence that Struggle works. */
   struggleFromLockUnbuilt: 0, struggleFromNoOption: 0,
+  /* 2026-09-24 -- A CALLER-SUPPLIED MOVE CLICK ON A BODY WHOSE ENABLED MENU IS EMPTY, TAKEN AS STRUGGLE AT THE CHOICE.
+   * `Side#chooseMove` (sim/side.ts, the `else if (!moves.length)` branch): with `getMoves()` empty it pushes
+   * `moveid: 'struggle'` whatever was named. `struggleFromHandedClick` counts the rewrites and `...First` names the
+   * first one (body:click:source). Counted apart from `struggleFromEmptyMenu`, which is the CHOOSER reaching the same
+   * verdict on its own. A zero on a run whose callers hand clicks onto emptied menus means the rewrite is off the path.
+   * `tormentRefusedAtSelection` is Torment's menu half, `torment.condition.onDisableMove`. */
+  struggleFromHandedClick: 0, struggleFromHandedClickFirst: '', tormentRefusedAtSelection: 0,
   /* ROADMAP #459 -- a LOCK REWRITE THAT DECLINED because the action it was about to rewrite is
      Struggle, which is the authority's `baseMove.id !== 'struggle'` guard on runMove's OverrideAction.
      Counted at BOTH sites and told apart, because until 2026-08-26 they each tested `kind` and a real
@@ -6790,6 +6797,11 @@ if(DISABLER_SEALS_STRUGGLE)MEDFAILS.disablerSealsStruggleRestored=1;
  * Probe: tests/probe_healblock_refuses_heal_move.js. */
 const HEALBLOCK_ALLOWS_HEAL_MOVES=_MK('MEDI_HEALBLOCK_ALLOWS_HEAL_MOVES');
 if(HEALBLOCK_ALLOWS_HEAL_MOVES)MEDFAILS.healBlockAllowsHealMovesRestored=1;
+/* 2026-09-24 -- MEDI_HEALBLOCK_MENU_OPEN=1 leaves Heal Block's MENU half unwired, as before: a heal-flagged move stays on
+ * the blocked body's menu and only the execution refusal (`onBeforeMove`) answers the click. Stamped at LOAD in
+ * `MEDFAILS.healBlockMenuOpenRestored`. Probe: tests/probe_move_menu_legality.js --part healblock. */
+const HEALBLOCK_MENU_OPEN=_MK('MEDI_HEALBLOCK_MENU_OPEN');
+if(HEALBLOCK_MENU_OPEN)MEDFAILS.healBlockMenuOpenRestored=1;
 /* 2026-09-20 -- MEDI_STEALEAT_AT_AFTERHIT=1 restores Bug Bite's and Pluck's steal-eat to the
  * `onAfterHit` step, where this engine had it beside Thief and Knock Off. Their handler is `onHit`
  * (data/moves.ts:1920), which `spreadMoveHit` runs at step 3 -- above the `DamagingHit` reactors --
@@ -7067,6 +7079,13 @@ const TERRAIN_BAR_PRE_REDIRECT=(typeof process!=='undefined'&&process.env
  * the same turn run its queued action, as before. Stamps `MEDFAILS.returnedBodyKeepsActionRestored` when it matters. */
 const RETURNED_BODY_KEEPS_ACTION=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_RETURNED_BODY_KEEPS_ACTION==='1');
+/* 2026-09-24 -- MEDI_PIVOT_MOVE_NOT_COUNTED=1 counts a move action by the action's KIND again, so Parting Shot, Chilly
+ * Reception and Revival Blessing (built as `{kind:'switch', mv}`) and every `{kind:'pass', mv}` move leave
+ * `activeMoveActions` untouched and Fake Out stays on the menu after them. Stamped at LOAD in
+ * `MEDFAILS.pivotMoveNotCountedRestored`. Probe: tests/probe_move_menu_legality.js --part fakeout. */
+const PIVOT_MOVE_NOT_COUNTED=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_PIVOT_MOVE_NOT_COUNTED==='1');
+if(PIVOT_MOVE_NOT_COUNTED)MEDFAILS.pivotMoveNotCountedRestored=1;
 /* 2026-09-22 (Reg M-C, abra/regmc 0.53.0) -- MEDI_AFTERHIT_NEEDS_LIVE_USER=1 refuses Ice Spinner's terrain clear to a user a
  * contact toll knocked out, as before (the mainline `pokemon.hp` guard the Champions mod does not have). */
 const AFTERHIT_NEEDS_LIVE_USER=(typeof process!=='undefined'&&process.env
@@ -7176,6 +7195,20 @@ const HARVEST_GATES_ON_ATEBERRY=(typeof process!=='undefined'&&process.env&&proc
  * carries. It restores that and NOTHING else, so a knob run turns exactly the one `sealsMoves`
  * execution row red and leaves the three over-fire controls green. */
 const IMPRISON_SEALS_NOTHING=(typeof process!=='undefined'&&process.env&&process.env.MEDI_IMPRISON_SEALS_NOTHING==='1');
+/* 2026-09-24 -- MEDI_IMPRISON_MENU_OPEN=1 leaves Imprison's MENU half unwired, as before: a foe's menu keeps every move
+ * the imprisoner knows and only the execution refusal (`onFoeBeforeMove`) answers the click. Stamped at LOAD in
+ * `MEDFAILS.imprisonMenuOpenRestored`. Probe: tests/probe_move_menu_legality.js --part imprison. */
+const IMPRISON_MENU_OPEN=(typeof process!=='undefined'&&process.env&&process.env.MEDI_IMPRISON_MENU_OPEN==='1');
+if(IMPRISON_MENU_OPEN)MEDFAILS.imprisonMenuOpenRestored=1;
+/* 2026-09-24 -- MEDI_DISABLED_CLICK_PLAYED=1 takes the choice-time Struggle rewrite back out: a caller-supplied move
+ * click on a body whose enabled menu is empty is PLAYED again, and whatever execution gate that source has answers it
+ * (`|cant|` for Taunt, Disable, Heal Block, Imprison and 0 PP; nothing at all for Gigaton Hammer's repeat lock).
+ * Stamped at the rewrite site in `MEDFAILS.disabledClickPlayedRestored`. Probe: tests/probe_disabled_choice_struggle.js. */
+const DISABLED_CLICK_PLAYED=_MK('MEDI_DISABLED_CLICK_PLAYED');
+/* 2026-09-24 -- MEDI_TORMENT_MENU_OPEN=1 leaves Torment's MENU half unwired, as before: the tormented body's last move
+ * stays on its menu. Stamped at LOAD in `MEDFAILS.tormentMenuOpenRestored`. Probe: the same file, torment scenario. */
+const TORMENT_MENU_OPEN=_MK('MEDI_TORMENT_MENU_OPEN');
+if(TORMENT_MENU_OPEN)MEDFAILS.tormentMenuOpenRestored=1;
 /* 2026-09-05 -- MEDI_PIVOT_IGNORES_BOUNCE=1 restores the pre-fix pivot branch: a reflectable PIVOT
  * status move is aimed with a bare `reaimToSlot` and never asks `bounceOff`, so the drop lands on the
  * bouncer and the CLICKER switches out. It restores that and NOTHING else -- every other bounce site
@@ -7826,6 +7859,17 @@ function ppLeft(m,id){
 /* Showdown's `deductPP`: subtract, clamp at zero, and return HOW MUCH WAS ACTUALLY TAKEN (0 if the
  * slot was already empty). Spite and Eerie Spell both branch on that return value, so the clamp
  * cannot be left to the caller. */
+/* THE SAME QUESTION WITHOUT THE FIRST-TOUCH WRITE (2026-09-24). `ppLeft` derives a slot into `_pp` on first touch, which
+ * is right for a spend and wrong for a QUESTION: the menu (`moveDisabledBy`) asked it for every slot it walked, so merely
+ * looking at a body's menu wrote a full-PP row for every move on it. `ppSpentMap` reads an absent row as unspent, so
+ * no board leaf moves; what moved was every probe that reads `_pp` to say a slot was never touched (Sleep Talk's called
+ * move, Focus Punch losing focus) once the choice-time Struggle rewrite started asking the menu of handed clicks. */
+function ppPeek(m,id){
+  if(!m||!id) return null;
+  const k=String(id).toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(m._pp&&(k in m._pp)) return m._pp[k];
+  return ppMaxFor(m,k);
+}
 function ppDeduct(m,id,amount){
   if(ppLeft(m,id)==null) return 0;
   const k=String(id).toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -20650,7 +20694,9 @@ function illegalMoveNow(me,id){ return !!moveDisabledBy(me,id); }
  * this wire — Imprison silently sealing nothing again — which is a silent default wearing the shape
  * of a working feature, so it is COUNTED at the read site rather than swallowed.
  *
- * ---- THE GAP, DECLARED RATHER THAN DISCOVERED ----------------------------------------------------
+ * ---- THE GAP, DECLARED RATHER THAN DISCOVERED -- CLOSED 2026-09-24 ------------------------------
+ * The MENU half is now wired in `moveDisabledBy`, which reaches the foes through `me._sf._S` rather than
+ * through a new parameter, so none of the callers named below changed. The paragraph is kept as it stood:
  * `onFoeDisableMove` — the MENU half — is NOT wired. `moveDisabledBy(me, id)` takes ONE BODY, and
  * whether a move is imprisoned is a fact about the FOES, so wiring it is a signature change across
  * `selectableMoves`, `mustStruggle`, `struggleSource`, `illegalMoveNow` and the priors sampler. It is
@@ -20726,7 +20772,12 @@ function imprisonSealedBy(me,mvId,foes){
  * Throat Chop, Gigaton Hammer's lockout, the two locks and PP. Torment, Gravity, Heal Block, Belch,
  * Stuff Cheeks and Gorilla Tactics are NOT here -- three of them are refused at EXECUTION already
  * (so the turn is spent rather than the menu shortened, which is the wrong shape but not a silent
- * one) and the rest have no carrier worth staging. Each is one clause when its probe exists. */
+ * one) and the rest have no carrier worth staging. Each is one clause when its probe exists.
+ *
+ * 2026-09-24 -- Heal Block, Imprison and Torment are here now (`moveDisabledBy`). Still absent, all three legal in
+ * Reg M-B and Reg M-C: Gravity, Belch and Stuff Cheeks. Gorilla Tactics has no legal carrier in either. Until each is
+ * here, a body emptied by one of them cannot reach `mustStruggle`, so the choice-time Struggle rewrite cannot fire
+ * for it either. */
 /* ROADMAP #295 -- THE SEAL IS ONE FACT, AND IT WAS ONLY EVER ASKED AT SELECTION.
  *
  * Showdown answers Disable in TWO handlers off one condition, exactly as it answers Taunt:
@@ -20779,7 +20830,7 @@ function moveDisabledBy(me,id){
    * execution is only reachable through a caller that supplies the click itself. This is the menu
    * half, and it sits with Taunt and Disable because it is the same question: may this body select
    * this move right now. An unknown PP (null) is NOT a refusal -- see ppLeft. */
-  {const _l=ppLeft(me,id); if(_l!=null&&_l<=0){ MEDSEEN.ppRefusedAtSelection++; return 'nopp'; }}
+  {const _l=ppPeek(me,id); if(_l!=null&&_l<=0){ MEDSEEN.ppRefusedAtSelection++; return 'nopp'; }}
   /* ROADMAP #173 -- FIRST-TURN-ONLY IS A DISABLED SLOT IN THIS FORMAT, not a move that fails when you
    * click it. The Champions mod's own desc: "This move cannot be selected unless it is the user's
    * first turn on the field." It belongs here for the same reason 0 PP does -- this is the one place
@@ -20787,6 +20838,44 @@ function moveDisabledBy(me,id){
    * (the move-list filter, the priors sampler's ban, `mustStruggle`) is a caller of this. Placed LAST
    * so the existing sources keep naming themselves first on a body that is refused twice over. */
   if(firstTurnOnlyRefused(me,id)){ MEDSEEN.firstTurnOnlyRefusedAtSelection++; return 'firstturnonly'; }
+  /* 2026-09-24 -- IMPRISON'S MENU HALF, `onFoeDisableMove` (data/moves.ts imprison.condition; no Champions row):
+   *     for (const moveSlot of this.effectState.source.moveSlots) { if (moveSlot.id === 'struggle') continue;
+   *       pokemon.disableMove(moveSlot.id, true); }  pokemon.maybeDisabled = true;
+   * A HIDDEN disable, raised on every living active foe of the holder (`onFoe*` handlers are gathered from
+   * `target.foes()`, sim/battle.ts:1060). HIDDEN is a question about the REQUEST, not about legality: the request is
+   * built with `restrictData = isLastActive()` (sim/pokemon.ts:1093-1095), so the last active body is SHOWN the move
+   * enabled, but `Side#chooseMove` validates with `getMoves()` and no `restrictData` (sim/side.ts:627, 730-745), which
+   * turns 'hidden' into `true` -- so the authority REJECTS the click from either slot. Demonstrated on a copy of the
+   * authority's own battle by tests/probe_move_menu_legality.js --part imprison: slot 1's Protect is shown enabled and
+   * refused with "Can't move: ...'s Protect is disabled". So the menu -- the set the authority will ACCEPT -- loses the
+   * move in both slots, and a body left with nothing reaches Struggle through `mustStruggle`, as `getMoves` does.
+   *
+   * THE FOES COME FROM `me._sf._S`, the back-reference `battleInit` writes and `abilityStarted` already reads, so the
+   * one-body signature every caller uses stays as it is (the gap this replaces was declared above `imprisonSealedBy` as
+   * "a signature change across five callers"). A body built outside a battle has no side and no foes, and no Imprison
+   * can reach it. The seal itself is `imprisonSealedBy`, the one reader the execution refusal already uses. */
+  if(!IMPRISON_MENU_OPEN){
+    const _S=me._sf&&me._sf._S;
+    const _foes=_S?((me._sf===_S.sfA)?_S.actB:(me._sf===_S.sfB?_S.actA:null)):null;
+    if(_foes&&imprisonSealedBy(me,id,_foes)){ MEDSEEN.imprisonRefusedAtSelection=(MEDSEEN.imprisonRefusedAtSelection|0)+1; return 'imprison'; }
+  }
+  /* 2026-09-24 -- HEAL BLOCK'S MENU HALF, `healblock.condition.onDisableMove` (data/moves.ts; no Champions row):
+   *     for (const moveSlot of pokemon.moveSlots) { if (this.dex.moves.get(moveSlot.id).flags['heal'])
+   *       pokemon.disableMove(moveSlot.id); }
+   * A VISIBLE disable, so the request and the legal set agree. Asked through `healBlockRefusesClick`, the one reader the
+   * execution refusal (`onBeforeMove`) already uses -- its own comment named this as the caller it was built for. The
+   * API legality probe found it on Golisopod's Leech Life after a Psychic Noise (2 of 5,552 Reg M-C slots). */
+  /* 2026-09-24 -- TORMENT'S MENU HALF, `torment.condition.onDisableMove` (data/moves.ts; no Champions row, identical
+   * in the Reg M-B and Reg M-C checkouts):
+   *     onDisableMove(pokemon) { if (pokemon.lastMove && pokemon.lastMove.id !== 'struggle') pokemon.disableMove(pokemon.lastMove.id); }
+   * A VISIBLE disable of the body's last move, re-asked every time a request is built, and Torment has NO
+   * `onBeforeMove`, so this is its only half. `_lastMove` is the same `lastMove` read WIRE 44's `cantUseTwiceLocked`
+   * uses. This file's #152 comment listed Torment as absent from here; it was absent everywhere, so a tormented body
+   * repeated its move freely. tests/probe_disabled_choice_struggle.js staged it: the authority's menu was empty and
+   * this engine's still offered the move. */
+  if(!TORMENT_MENU_OPEN&&me._vol&&me._vol.torment&&me._lastMove&&me._lastMove===id&&id!=='struggle'){
+    MEDSEEN.tormentRefusedAtSelection++; return 'torment'; }
+  if(!HEALBLOCK_MENU_OPEN&&healBlockRefusesClick(me,id)){ MEDSEEN.healBlockRefusedAtSelection=(MEDSEEN.healBlockRefusedAtSelection|0)+1; return 'healblock'; }
   return null;
 }
 /* WHICH MOVE THE LOCK LEAVES ON THE MENU, or null for a free body.
@@ -32839,7 +32928,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_la&&_la.kind==='attack'){ MEDSEEN.lockedIntoMove++; _a=_la; }
         else MEDFAILS.lockActionUnbuilt++;
       }
-      const _selMv=(_a&&_a.kind==='attack'&&_a.move&&_a.move.id)||(_a&&_a.mv)||null;
+      let _selMv=(_a&&_a.kind==='attack'&&_a.move&&_a.move.id)||(_a&&_a.mv)||null;
       /* WIRE 144 -- and the Choice rewrite declines while a HARD lock holds, so two locks disagreeing
        * about which move to force cannot silently hand the turn to the weaker one. */
       /* WIRE 145 -- CALL SITE TWO, AND IT FAILED IN THE OPPOSITE DIRECTION TO CALL SITE ONE. This also
@@ -32886,6 +32975,50 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _lkNow=LOCK_STALE_ON_HANDED_ACTION?mon._lock:lockStillBinds(mon);
       if(!LOCK_STALE_ON_HANDED_ACTION&&_lkWas&&!_lkNow&&_a&&_a.kind!=='switch'&&_a.kind!=='pass')
         MEDSEEN.choiceLockRereadOnHandedAction++;
+      /* 2026-09-24 -- A HANDED-IN MOVE CLICK ON AN EMPTIED MENU IS STRUGGLE, DECIDED AT THE CHOICE.
+       *
+       * THE AUTHORITY, `Side#chooseMove` (sim/side.ts; the same code in the Reg M-B and Reg M-C checkouts), in order:
+       *   1. the named move must be on the REQUEST, or the choice is refused;
+       *   2. `getLockedMove() || getSemiLockedMove()` -- a charge, a rampage, a recharge -- pushes that move and returns;
+       *   3. `const moves = pokemon.getMoves();` ... `else if (!moves.length) { ... moveid: 'struggle' ... return true; }`
+       * `getMoves()` there carries no `restrictData`, so a slot is out when any `onDisableMove` source disabled it OR its
+       * PP is 0 (sim/pokemon.ts getMoves), and Imprison's HIDDEN disable counts too. Every source ends the same way:
+       * the only move the body can make is Struggle. A VISIBLE source already reads `[Struggle]` on the request, so a
+       * named real move is refused at step 1 and Struggle is the only click accepted; Imprison on the LAST ACTIVE body
+       * shows the moves enabled, so the named click passes step 1 and is REWRITTEN at step 3. Neither plays the move and
+       * neither writes a `|cant|` for it. `return true` also comes BEFORE the mega block, so a mega asked alongside is
+       * dropped -- the Struggle built here carries none.
+       *
+       * THIS ENGINE PLAYED THE CLICK. `chooseAction` has asked `mustStruggle` since #152, but a caller's action (`forced`
+       * -- the solver API's `step`, every rollout candidate, the differential) went straight to execution, where each
+       * source answered it its own way: `|cant|` for Taunt, Disable, Heal Block, Imprison and 0 PP, the lock rewrite
+       * then `|cant|` for Encore + Disable, and for Gigaton Hammer's repeat lock NOTHING -- the move landed a second
+       * time. One predicate is the authority's (`mustStruggle`), so this is one site and not one clause per source.
+       *
+       * THE MENU IS ASKED ONLY WHEN THE CLICK ITSELF IS OFF IT. `mustStruggle` walks every slot, and the menu readers
+       * count their refusals; asking it on every handed action would bump those counters on bodies nobody refused. The
+       * handed move being selectable (not disabled, and not overridden by a lock pointing elsewhere) already means the
+       * menu is not empty, so the gate is exact and not a heuristic. It sits BELOW the lock read (`_lkNow`), so the
+       * item re-read and its counter run exactly as before, and ABOVE the lock rewrite, which then declines on the
+       * Struggle (`_declineStruggle`). `_selMv` is re-read here because Struggle is what the authority records as the
+       * SELECTED move (priority 0), unlike a lock's override. A hard lock and a recharge are step 2 and win first.
+       * Only a CALLER's click is rewritten: the chooser reached this verdict itself. Knob MEDI_DISABLED_CLICK_PLAYED. */
+      if(_a&&_a===forced&&!mon._charging&&!mon._recharge&&!(mon._mtLock&&mon._mtLock.left>0)&&!isStruggleAction(_a)){
+        const _clk=actionMoveId(_a);
+        if(_clk&&((_lkNow&&_lkNow!==_clk)||moveDisabledBy(mon,_clk))&&mustStruggle(mon)){
+          if(DISABLED_CLICK_PLAYED) MEDFAILS.disabledClickPlayedRestored=1;
+          else{
+            const _src=struggleSource(mon);
+            const _sa=struggleAction(mon,foes,field,rng,'choice');
+            if(_sa){
+              MEDSEEN.struggleFromHandedClick++;
+              if(!MEDSEEN.struggleFromHandedClickFirst) MEDSEEN.struggleFromHandedClickFirst=(mon._ident||mon.name)+':'+_clk+':'+_src;
+              _a=_sa;
+              _selMv=(_a.kind==='attack'&&_a.move&&_a.move.id)||_a.mv||null;
+            }
+          }
+        }
+      }
       if(_a&&_lkNow&&!(mon._mtLock&&mon._mtLock.left>0)
          &&_a.kind!=='switch'&&_a.kind!=='pass'
          &&actionMoveId(_a)!==_lkNow){
@@ -34449,7 +34582,30 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(m.fainted||m.curHP<=0)continue;
       /* 2026-09-22 (Reg M-C, abra/regmc 0.41.0) -- a revived body's queued action died with its instaswitch (`reviveFainted`) */
       if(it._reviveCancelled){MEDSEEN.reviveActionCancelled++;continue;}
-      if(it.a&&it.a.kind!=='switch'&&it.a.kind!=='pass')m._mvActs=((m._mvActs)|0)+1;
+      /* 2026-09-24 -- A MOVE ACTION IS AN ACTION THAT CARRIES A MOVE, WHATEVER KIND IT WEARS.
+       * `runAction` sends every `choice: 'move'` through `runMove`, whose first line is
+       * `pokemon.activeMoveActions++` (sim/battle-actions.ts:203), and `sdChoiceOf` already says which of
+       * this engine's actions Showdown queues as a move: everything but a BARE switch. The test that stood
+       * here was `kind` not in {switch, pass}, and `playerAction` builds Parting Shot, Chilly Reception and
+       * Revival Blessing as `{kind:'switch', mv}` -- so a Parting Shot that did NOT switch its user out
+       * (blocked by a Protect, or into a stat floor) left the count at 0 and Fake Out on the next menu.
+       * The solver API's legal-actions probe found it: 20 of 5,552 Reg M-C slots, every one an Incineroar
+       * whose authority read `activeMoveActions: 1` beside `lastMove partingshot`.
+       *
+       * A BARE `{kind:'pass'}` (no `mv`) STAYS UNCOUNTED, deliberately: it is a caller's "this body does
+       * nothing" (every PASS2 in tests/test-mechanics.js), not a click, so it keeps its old answer.
+       * `actionMoveId` is this file's one reader of "which move is this action", so the pivot and the
+       * `{kind:'pass', mv}` family are picked up by shape and not by name. Probe:
+       * tests/probe_move_menu_legality.js --part fakeout. MEDI_PIVOT_MOVE_NOT_COUNTED=1 restores the kind test. */
+      if(it.a&&(PIVOT_MOVE_NOT_COUNTED
+          ? (it.a.kind!=='switch'&&it.a.kind!=='pass')
+          : ((it.a.kind!=='switch'&&it.a.kind!=='pass')||!!actionMoveId(it.a)))){
+        if(!PIVOT_MOVE_NOT_COUNTED&&(it.a.kind==='switch'||it.a.kind==='pass')){
+          MEDSEEN.moveActionCountedOnPivotShape=(MEDSEEN.moveActionCountedOnPivotShape|0)+1;
+          if(!MEDSEEN.moveActionCountedOnPivotShapeFirst)MEDSEEN.moveActionCountedOnPivotShapeFirst=String(actionMoveId(it.a));
+        }
+        m._mvActs=((m._mvActs)|0)+1;
+      }
       /* ROADMAP #232 -- THE SHIELD FAMILY'S GATE USED TO BE CALLED HERE, ABOVE THE `BeforeMove` GATES,
        * AND THE COMMENT THAT STOOD ON THIS LINE NAMED THE DEFECT AND LEFT IT: *"a flinched or sleeping
        * body should not shield either, but that is a second defect with no failing probe on it."*

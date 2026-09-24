@@ -1,3 +1,47 @@
+## A HANDED MOVE CLICK ON AN EMPTIED MENU IS STRUGGLE; TORMENT'S MENU HALF (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.99.0)
+
+Full account: `docs/_reports/2026-09-24-disabled-choice-struggle.md`.
+
+- `Side#chooseMove`: with `getMoves()` empty, any move choice is Struggle. The engine now rewrites a caller's click the
+  same way, at one site, for every source that empties the menu. Knob `MEDI_DISABLED_CLICK_PLAYED`. Torment's menu half
+  is wired in `moveDisabledBy`. Knob `MEDI_TORMENT_MENU_OPEN`. Probe `tests/probe_disabled_choice_struggle.js`, plus
+  three census rows.
+- Hand list: **the caller-supplied click on a fully sealed body (0.97.0) leaves it**, and so does Torment. New items:
+  the menu halves of Gravity, Belch and Stuff Cheeks (legal in both regulations; until each is wired, a body emptied by
+  one of them cannot reach the rewrite). And a handed click of a disabled move while other slots stay open: the
+  authority refuses that CHOICE, and the engine has no refusal to give, so it still plays the source's `|cant|`.
+  `medicham_api.legalActions` never offers such a click.
+
+## HEAL BLOCK'S MENU HALF IS WIRED; THE API LEGALITY PROBE IS GREEN (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.98.0)
+
+Full account: `docs/_reports/2026-09-24-move-menu-legality.md`.
+
+- `moveDisabledBy` asks `healBlockRefusesClick`. Knob `MEDI_HEALBLOCK_MENU_OPEN`. Probe
+  `tests/probe_move_menu_legality.js --part healblock`, plus a census row.
+- `tests/probe_medicham_api_differential.js --part legal` now finds 0 disagreeing slots of 5,552; it found 26
+  before 0.96.0. Hand list: **the Heal Block menu item leaves it.** Still open: the caller-supplied click on a fully sealed
+  body (0.97.0).
+
+## IMPRISON'S MENU HALF IS WIRED (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.97.0)
+
+Full account: `docs/_reports/2026-09-24-move-menu-legality.md`.
+
+- `moveDisabledBy` asks `imprisonSealedBy` of the body's living foes, which it reaches through `me._sf._S`. Knob
+  `MEDI_IMPRISON_MENU_OPEN`. Probe `tests/probe_move_menu_legality.js --part imprison`, plus a census row.
+- The disable is hidden only in the REQUEST. `Side#chooseMove` refuses the click from either slot, shown on the
+  authority's own battle. So the menu loses the move in both slots.
+- Hand list: **the Imprison menu item leaves it.** New item: a caller-supplied click on a fully sealed body. The
+  authority rewrites it to Struggle at choice time; MEDICHAM plays it and writes `cant` (the probe's STRUGGLE arm).
+
+## A PARTING SHOT THAT STAYS IN IS A MOVE ACTION; FAKE OUT LEAVES THE MENU (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.96.0)
+
+Full account: `docs/_reports/2026-09-24-move-menu-legality.md`.
+
+- The `_mvActs` increment tested `kind` not in {switch, pass}. It now tests whether the action carries a move
+  (`actionMoveId`), which is `sdChoiceOf`'s rule. Knob `MEDI_PIVOT_MOVE_NOT_COUNTED`. Probe
+  `tests/probe_move_menu_legality.js --part fakeout`, plus a census row.
+- The API legality probe drops from 26 to 6 slots. Hand list: **the Fake Out menu item leaves it.**
+
 ## THE SOLVER-FACING API LANDS, ADDITIVE; ITS LEGALITY PROBE FINDS THREE MENU DEFECTS. 2026-09-24 (abra/regmc 0.95.0)
 
 Full account: `docs/_reports/2026-09-24-solver-engine-api.md`.

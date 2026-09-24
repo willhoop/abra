@@ -53,6 +53,53 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.99.0] — 2026-09-24 — **A handed move click on an emptied menu is Struggle; Torment's menu half**
+
+- **What changed.** `engine/medicham2-browser.js`: the choice-time Struggle rewrite in `battleTurn`'s action collection
+  (`Side#chooseMove`'s `!moves.length` branch), Torment in `moveDisabledBy`, and a pure PP read for the menu (`ppPeek`).
+  New probe `tests/probe_disabled_choice_struggle.js`; three new census rows; three PP census rows now assert the
+  authority's Struggle instead of `|cant|nopp`.
+- **Measured.** Probe red on the base engine (14 assertions, each regulation), green after. Census Reg M-B 1,012/1,012,
+  Reg M-C 1,016/1,016. Pinned differential at `--games 45` (census pins `c3affea174af` and `regmc-f3b70bc0c47c`, the
+  frozen pools): base and final byte-identical per game, 43 and 38 games, board-material 0.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
+## [abra/regmc 0.98.0] — 2026-09-24 — **Heal Block's menu half: a heal-flagged move leaves the menu while the block stands**
+
+- **What changed.** `engine/medicham2-browser.js` `moveDisabledBy`: `healBlockRefusesClick`. One census row. The menu
+  probe now checks every boundary. `tests/probe_move_menu_legality.js` is green in all three parts, in both regulations.
+- **Measured.** API legality probe: 2 disagreeing slots of 5,552 become 0 (Reg M-C pinned pool, census pin
+  `f3b70bc0c47c`, `--games 45`, release `f9c11b7b9b3c`). Base release `9cfd07674cc9` against `f9c11b7b9b3c`: per-game fingerprint byte-identical over 38 games.
+  At `--games 1200` (same pins, `--end-state`) the base and the final release are byte-identical per game over 955 games, board-material 0 of 954 on both.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
+## [abra/regmc 0.97.0] — 2026-09-24 — **Imprison's menu half: a sealed move leaves every foe's menu**
+
+- **What changed.** `engine/medicham2-browser.js` `moveDisabledBy`: `imprisonSealedBy` against the body's living foes
+  (through `me._sf._S`). One census row. `tests/probe_move_menu_legality.js --part imprison` is red before this change and
+  green after it, in both regulations.
+- **Measured.** API legality probe: 6 disagreeing slots of 5,552 become 2 (Reg M-C pinned pool, census pin
+  `f3b70bc0c47c`, `--games 45`, release `d0b771be7727`). Base release `9cfd07674cc9` against `d0b771be7727`: per-game fingerprint byte-identical over 38 games.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
+## [abra/regmc 0.96.0] — 2026-09-24 — **A Parting Shot that stays in is a move action: Fake Out leaves the menu**
+
+- **What changed.** `engine/medicham2-browser.js`: `_mvActs` counts an action that carries a move, whatever its `kind`
+  (Parting Shot, Chilly Reception and Revival Blessing are built as `{kind:'switch', mv}`). New probe
+  `tests/probe_move_menu_legality.js` and one census row.
+- **Measured.** `tests/probe_medicham_api_differential.js --part legal`: 26 disagreeing slots of 5,552 become 6 (Reg M-C
+  pinned pool, census pin `f3b70bc0c47c`, `--games 45`, release `536641af26ee`). Base release `9cfd07674cc9` against
+  `536641af26ee`: per-game fingerprint byte-identical over 38 games. The new census row is live in both regulations and `live` did not fall; the census files are not committed here (the lab pass re-measures them in main).
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 0.95.0] — 2026-09-24 — **The solver-facing MEDICHAM API (clone, legalActions, step, isTerminal), additive**
 
 - **What changed.** New `engine/medicham_api.js` (in release `SOURCES`). `engine/medicham2-browser.js` gets exports and
