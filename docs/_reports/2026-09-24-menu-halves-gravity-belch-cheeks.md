@@ -93,6 +93,53 @@ non-charge flagged move, a self-target preferred. In both regulations that is St
   knob `MEDI_GRAVITY_CHOSEN_PLAYED`. The effect string comes from the row's own `announceOnCancel.desc`, which is derived
   from the move's name.
 
+## 3. Belch and Stuff Cheeks: no menu half in this format
+
+### The rule, read whole
+
+Mainline, `data/moves.ts` (present in both checkouts; the probe reads it from each):
+
+- `belch.onDisableMove(pokemon) { if (!pokemon.ateBerry) pokemon.disableMove('belch'); }` and
+  `onTry(source) { return source.ateBerry; }`.
+- `stuffcheeks.onDisableMove(pokemon) { if (!pokemon.getItem().isBerry) pokemon.disableMove('stuffcheeks'); }` and
+  `onTry(source) { return source.getItem().isBerry; }`.
+
+`data/mods/champions/moves.ts`, in both checkouts: `belch: { inherit: true, onDisableMove: undefined, // no inherit }`
+and the same for `stuffcheeks`. In the resolved format (`Dex.forFormat(...).moves.get(id)`), `onDisableMove` is
+`undefined` and `onTry` is a function, in both regulations. So the format **offers** the click and refuses it at use:
+`|move|<body>|<Move>||[still]` then `|-fail|<body>`. Neither move is a menu source, so neither can empty a menu, and the
+Struggle rewrite has nothing to do for either.
+
+### What the engine does
+
+It already does this. It keeps both moves on the menu (`moveDisabledBy` has no clause for either). The Belch gate
+(ROADMAP #514, `failsWithoutUserLatch`) and the Stuff Cheeks gate (ROADMAP #308, `berryRequiredAbsent`) refuse at use
+with the authority's lines. Census rows cover both refusals with controls: `move/failsWithoutUserLatch` "Belch is
+refused until its user has actually eaten a berry" and `move/forcesBerryEat` "Stuff Cheeks eats the user's berry, and
+FAILS with no berry to eat".
+
+The 0.91.0 report and the engine's #152 comment listed both menu halves as missing. That was wrong. The engine comments
+are corrected. The Belch gate's comment also claimed that `gatesSelection` would "re-arm the menu with no edit here" if a
+regulation restored the handler. Nothing reads `gatesSelection`, so it would not. It is `false` in both regulations
+today, so nothing is wrong now. A regulation that restores either handler owes a `moveDisabledBy` clause.
+
+### The guard
+
+`tests/probe_disabled_choice_struggle.js --part berry`. For each move it prints whether mainline has the handler and
+whether the resolved format has it, and it **fails** if the format has it, because that would be open work and not a
+guard. It then stages a legal carrier holding no item (Belch: Garbodor into Alakazam; Stuff Cheeks: Simipour into
+Aegislash, the same fixture in both regulations). At boundary 0 it asserts:
+
+- the authority's `getMoves()` keeps the move, and a named click is accepted as itself;
+- MEDICHAM's menu agrees;
+- MEDICHAM plays the handed move with no `cant`;
+- the authority **failed** the click on turn 1 (a `|-fail|` line), so the fixture reaches `onTry`;
+- the two streams agree for the whole staged game.
+
+It is green in both regulations, before and after, because there is nothing to fix. **There is no red arm, and none is
+claimed.** The instrument's ability to see a menu difference is shown by the Gravity arms in the same file: the same
+`menuAgree` comparison goes red under `MEDI_GRAVITY_MENU_OPEN`.
+
 ## 4. Measurements
 
 **Probe** `tests/probe_disabled_choice_struggle.js`. It cuts its own release into the throwaway store.

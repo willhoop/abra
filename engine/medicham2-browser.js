@@ -20734,7 +20734,10 @@ function imprisonSealedBy(me,mvId,foes){
  * for it either.
  *
  * 2026-09-24 (later) -- Gravity is here now (`gravitySealsMove`, off `groundsField.menuSeals`), with its execution half
- * beside Heal Block's. Staged: tests/probe_disabled_choice_struggle.js, the gravity scenario and --part gravity. */
+ * beside Heal Block's. Staged: tests/probe_disabled_choice_struggle.js, the gravity scenario and --part gravity.
+ * BELCH WAS NEVER ABSENT: the Champions mod deletes its `onDisableMove` (data/mods/champions/moves.ts, both checkouts),
+ * so the format offers the click and refuses it at `onTry`, which the Belch gate below already does. Guarded by the
+ * same probe, --part berry. */
 /* ROADMAP #295 -- THE SEAL IS ONE FACT, AND IT WAS ONLY EVER ASKED AT SELECTION.
  *
  * Showdown answers Disable in TWO handlers off one condition, exactly as it answers Taunt:
@@ -42149,7 +42152,10 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `|move|...|Belch||[still]` then `|-fail|`. Touching `moveDisabledBy` would make our menu
        * disagree with Showdown's and emit nothing where the authority emits two lines: a NEW
        * divergence traded for an old one. `gatesSelection` carries the format's own answer to that
-       * question so a regulation that restores the handler re-arms the menu with no edit here.
+       * question. 2026-09-24 CORRECTION: this said a regulation that restores the handler "re-arms the menu with no
+       * edit here". Nothing reads `gatesSelection` (grep), so it would not. It is `false` in both regulations, so
+       * nothing is wrong today; a regulation that restores the handler owes a `moveDisabledBy` clause. Guarded by
+       * tests/probe_disabled_choice_struggle.js --part berry, which refuses if the resolved format has the handler.
        *
        * THE ENGINE FIELD IS DERIVED FROM THE AUTHORITY'S OWN NAME. This file's convention is
        * `_<Pokemon field>` and its own header says so (:8596, "_ateBerry -- it was a berry and it was

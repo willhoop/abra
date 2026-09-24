@@ -2,7 +2,7 @@
 /* tests/probe_disabled_choice_struggle.js — A MOVE CLICK ON A BODY WHOSE WHOLE MENU IS DISABLED IS STRUGGLE.
  * ==================================================================================================
  *
- *   SHOWDOWN_PATH=<checkout> node tests/probe_disabled_choice_struggle.js [--regulation regmc] [--part imprison|sources|gravity|all]
+ *   SHOWDOWN_PATH=<checkout> node tests/probe_disabled_choice_struggle.js [--regulation regmc] [--part imprison|sources|gravity|berry|all]
  *
  * ================= THE AUTHORITY'S RULE, READ WHOLE (sim/side.ts chooseMove, sim/pokemon.ts getMoves) ==
  *
@@ -54,6 +54,9 @@
  *   Struggle scenario is one of the sources above; `--part gravity` adds the two-slot MENU arm (knob
  *   MEDI_GRAVITY_MENU_OPEN) and the SAME-TURN arm, where a flagged move chosen before a faster Gravity landed must be
  *   refused identically in both engines (knob MEDI_GRAVITY_CHOSEN_PLAYED).
+ *
+ * BERRY (2026-09-24, `--part berry`, also in `all`). Belch and Stuff Cheeks have NO menu half in this format (the
+ *   Champions mod deletes both handlers). A guard, not a fix: the move stays on both menus and fails at onTry in both.
  */
 'use strict';
 const path = require('path');
@@ -639,7 +642,59 @@ function partGravityMenu(SC) {
   }
 }
 
+/* ================================================================================================
+ * BELCH AND STUFF CHEEKS: NO MENU HALF IN THIS FORMAT, AND THE ENGINE MUST NOT INVENT ONE
+ * ================================================================================================
+ * Mainline gives both an `onDisableMove` (Belch: `if (!pokemon.ateBerry) disableMove('belch')`; Stuff Cheeks:
+ * `if (!pokemon.getItem().isBerry) disableMove('stuffcheeks')`). data/mods/champions/moves.ts sets
+ * `onDisableMove: undefined, // no inherit` on both, in both checkouts, so the format OFFERS the click and the move
+ * fails at `onTry` instead. This part reads that off the resolved format (and refuses if a checkout restores the handler,
+ * because then this is open work, not a guard), then stages a body with no berry at boundary 0:
+ *   MENU   the authority's getMoves() keeps the move enabled; MEDICHAM's menu must agree.
+ *   CLICK  the body clicks it on turn 1; both engines must play it and fail it identically (the streams agree).
+ * There is nothing to fix here, so there is no red arm: this is the guard that a later "menu half" does not over-fire. */
+function partBerryMenu() {
+  console.log(NL + '  === BELCH / STUFF CHEEKS: selectable without a berry in this format; the click fails at onTry ===');
+  const mvSrc = fs.readFileSync(path.join(process.env.SHOWDOWN_PATH, 'data', 'moves.ts'), 'utf8').split(String.fromCharCode(13)).join('');
+  for (const X of ['belch']) {
+    const m = dex.moves.get(X);
+    console.log(NL + '    --- ' + X + ' ---');
+    if (!LEGALM(m)) { console.log('      NOT IN THIS FORMAT'); continue; }
+    const i = mvSrc.indexOf('\n\t' + X + ': {');
+    const blk = i < 0 ? '' : mvSrc.slice(i, mvSrc.indexOf('\n\t},', i));
+    const mainline = /onDisableMove\(/.test(blk);
+    const formatHas = typeof m.onDisableMove === 'function';
+    console.log('      mainline data/moves.ts has onDisableMove: ' + mainline + '   the resolved format has it: ' + formatHas
+      + '   onTry: ' + (typeof m.onTry === 'function'));
+    if (formatHas) { console.log('      THIS CHECKOUT GIVES ' + X + ' A MENU HALF — it is open work, not a guard.'); bad++; continue; }
+    const V = POOL.filter(s => learns(s, X) && CAN_IDLE(s) && cleanVictim(s)).sort((a, b) => a.name.localeCompare(b.name))[0];
+    const Z = V && POOL.find(s => s !== V && CAN_IDLE(s) && cleanVictim(s) && (m.target === 'self' || dex.getImmunity(m.type, s)));
+    if (!V || !Z) { console.log('      NO LEGAL FIXTURE'); cannot++; continue; }
+    const F = POOL.filter(s => ![V, Z].includes(s) && CAN_IDLE(s) && cleanVictim(s)).slice(0, 6);
+    const P1 = () => [mon(V.name, [m.name, idleName(V)]), mon(F[0].name, [idleName(F[0])]), mon(F[1].name, [idleName(F[1])]), mon(F[2].name, [idleName(F[2])])];
+    const P2 = () => [mon(Z.name, [idleName(Z)]), mon(F[3].name, [idleName(F[3])]), mon(F[4].name, [idleName(F[4])]), mon(F[5].name, [idleName(F[5])])];
+    const h = T0(m);
+    const I = s => ({ m: norm(idleName(s)) });
+    const script = [{ p1: [{ m: X, t: h.t }, I(F[0])], p2: [I(Z), I(F[3])] }];
+    let chk = null, failLine = null;
+    const R = play(null, P1(), P2(), script, 'berrymenu/' + X, (t, S, battle, M) => {
+      if (t === 0) chk = choiceCheck(S, battle, M, harness(null).A, 0, h);
+      if (t === 1) failLine = (battle.log || []).find(l => /^\|-fail\|p1a: /.test(l)) || null;
+    });
+    console.log('      body ' + V.name + ' (no item)   foe ' + Z.name);
+    if (!R.staged || !chk) { console.log('      CANNOT STAGE — ' + (R.why || 'boundary 0 not reached')); cannot++; continue; }
+    console.log('        ' + fmt(chk).split(NL).join(NL + '        '));
+    console.log('      streams: ' + (R.div ? 'PART — sd ' + R.div.sd + '  /  me ' + R.div.me : 'agree for the whole staged game'));
+    ok(!chk.sdEmpty && chk.sdMoves.includes(X) && chk.named.accepted && chk.named.moveid === X, 'the authority offers ' + X + ' with no berry and accepts it as itself', chk.shown);
+    ok(menuAgree(chk), 'MEDICHAM\'s menu agrees (it keeps ' + X + ')', chk.meMenu.join(','));
+    ok(chk.meMove === X && !chk.meCant, 'MEDICHAM plays the handed ' + X + ' (no cant, no rewrite)', chk.meMove + (chk.meCant ? ' cant ' + chk.meCant : ''));
+    ok(!!failLine, 'the authority FAILED the click on turn 1 (the fixture reaches onTry)', failLine);
+    ok(!R.div, 'the streams agree: the click fails at onTry the same way in both engines', R.div && JSON.stringify(R.div));
+  }
+}
+
 if (PART === 'all' || PART === 'imprison') partImprison();
+if (PART === 'all' || PART === 'berry') partBerryMenu();
 if (PART === 'gravity') partGravityMenu(null);
 if (PART === 'all' || PART === 'sources') partSources();
 

@@ -21,6 +21,23 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.92.1] — 2026-09-24
+
+### Added
+- `tests/probe_disabled_choice_struggle.js --part berry` (also in `all`), Belch: **Belch has no menu half in this format.**
+  Mainline's `belch.onDisableMove` (`if (!pokemon.ateBerry) disableMove('belch')`) is deleted by the Champions mod
+  (`onDisableMove: undefined, // no inherit`) in both checkouts, so the authority offers the click and refuses it at
+  `onTry`. The probe reads that off the resolved format (and fails if a checkout restores the handler), stages a body
+  that has eaten no berry, and asserts that both menus keep Belch, the handed click is played, the authority fails it on
+  turn 1, and the streams agree. Green in both regulations. The engine already did this (ROADMAP #514); nothing in it
+  changes but comments.
+
+### Changed
+- `engine/medicham2-browser.js` comments. The #152 list and the 0.91.0 report named Belch's menu half as missing; it
+  does not exist in this format. The Belch gate's comment said `gatesSelection` "re-arms the menu with no edit here"
+  if a regulation restores the handler. Nothing reads `gatesSelection`, so it would not. It is `false` in both
+  regulations; the probe is the guard.
+
 ## [0.92.0] — 2026-09-24
 
 ### Fixed

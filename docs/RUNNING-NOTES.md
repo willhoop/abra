@@ -53,6 +53,17 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.92.1] — 2026-09-24 — **Belch has no menu half in this format; a guard, not a fix**
+
+- **What changed.** `tests/probe_disabled_choice_struggle.js --part berry` (Belch). Comments in
+  `engine/medicham2-browser.js` corrected: Belch's menu half was listed as missing and a comment claimed an unread tag
+  field would re-arm it.
+- **Measured.** Probe arm green in both regulations: both menus keep Belch with no berry eaten, the authority fails the
+  click at `onTry` on turn 1, and the streams agree. NO FIGURE moves.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 0.92.0] — 2026-09-24 — **Gravity's menu half and its execution half**
 
 - **What changed.** `engine/medicham2-browser.js`: `gravitySealsMove` in `moveDisabledBy` (the menu) and beside Heal

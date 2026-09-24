@@ -1,3 +1,11 @@
+## BELCH HAS NO MENU HALF IN THIS FORMAT (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.92.1)
+
+Full account: `docs/_reports/2026-09-24-menu-halves-gravity-belch-cheeks.md` §3.
+
+- The Champions mod deletes `belch.onDisableMove` in both checkouts. The format offers the click and refuses it at
+  `onTry`, which the engine already did. Guard: `tests/probe_disabled_choice_struggle.js --part berry`.
+- Hand list: **Belch's menu half leaves it** (it was never owed). Still on it: Stuff Cheeks' menu half.
+
 ## GRAVITY'S MENU HALF AND ITS EXECUTION HALF (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.92.0)
 
 Full account: `docs/_reports/2026-09-24-menu-halves-gravity-belch-cheeks.md`.
