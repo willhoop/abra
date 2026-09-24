@@ -1,3 +1,7 @@
+## BEAK BLAST'S BURN LANDS AT THE `Hit` EVENT, ABOVE THE ATTACKER'S SECONDARY (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.88.0)
+
+- `_stepPreTurnHit` (step 3, above `_stepHitEvent`) pays the `preTurnShield` `punishAttacker` status. Knob
+  `MEDI_BEAK_BLAST_BURN_AT_DAMAGING_HIT`. Probe `tests/probe_beak_blast_burn_order.js`. Reg M-C narration group N.
 ## A GHOST'S CURSE FOLLOWS THE REGULATION'S LINE ORDER, AND ITS `[of]` NAMES THE USER'S SLOT. 2026-09-24 (abra/regmc 0.87.0)
 
 - `typeSplitMove.costBeforeVolatile` (derived; Reg M-C only) puts the user's `-damage` above the `-start`; the `[of]`

@@ -21,6 +21,26 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.88.0] — 2026-09-24
+
+### Fixed
+- **Beak Blast burned its attacker below the attacker's own secondary (both regulations).** The burn is the volatile's
+  `onHit` (`beakblast.condition.onHit` -> `source.trySetStatus('brn', target)`; data/moves.ts:1119-1146, byte-identical
+  in both checkouts, the Champions mod overrides only basePower and pp). A volatile's `onHit` is raised by
+  `runEvent('Hit')` inside `runMoveEffects` (sim/battle-actions.ts:1283), above `selfDrops` (:1096) and `secondaries`
+  (:1099). The engine paid it in the DamagingHit pass, below the secondaries, so a Dire Claw into a charging Toucannon
+  wrote the Toucannon's sleep above the attacker's burn. This is Reg M-C narration group N ("burn against sleep"; the
+  triage called it unexplained because the burn's source was outside the captured window). A new step
+  `_stepPreTurnHit` pays a `preTurnShield` `punishAttacker` status at step 3, above `_stepHitEvent` (a Condition's
+  subOrder 2 before an Ability's 7, sim/battle.ts:957-972); the DamagingHit site skips a row already paid. Focus
+  Punch's and Shell Trap's `hit` flag carries no line and did not move. Knob `MEDI_BEAK_BLAST_BURN_AT_DAMAGING_HIT`.
+  Counter `MEDSEEN.beakBurnAtHitEvent`.
+- New probe `tests/probe_beak_blast_burn_order.js` (either regulation): STATUS (a derived contact move whose secondary
+  inflicts a non-burn status) and PLAIN (a contact move with no secondary, the control). Green in both; red on the
+  0.87.0 bytes in both and under the knob in both. `probe_curse_ghost_order`, `probe_hit_event_buff_order`,
+  `probe_stealeat_before_reactors` and `probe_steel_roller_onhit` stay green in both.
+- Pinned differential, --games 300, same pins as 0.87.0: Reg M-C 259 games, 0 diverged, 0 board-material on 8051cc3c92a7 (0.87.0) and 9715a04eb0fe (fix); Reg M-B 260 games, 2 diverged, 1 board-material on 19c1f3a33ed3 and 8910b1cd2bbd, the same two games and first lines. Nothing moved.
+
 ## [0.87.0] — 2026-09-24
 
 ### Fixed
