@@ -17215,6 +17215,67 @@ probe('move', 'changesTargetType', 'Trick-or-Treat adds Ghost; Soak rewrites to 
                  + `Soak: ${soak.before.join('/')} -> ${soak.after.join('/')}` };
 });
 
+/* 2026-09-24 -- A SECOND ADDED TYPE REPLACES THE FIRST. `Pokemon#addType` writes `this.addedType = newType`
+ * (sim/pokemon.ts, both checkouts), one slot, so Trick-or-Treat then Forest's Curse leaves Normal/Grass on a
+ * Snorlax and the Ghost is GONE. This engine appended, so the Ghost stayed and so did its immunity. The OUTCOME
+ * is Close Combat: CONTROL is Trick-or-Treat alone (Normal/Ghost: immune, 0); TEST adds Forest's Curse on top
+ * (the Ghost is replaced: it lands). MEDI_ADDED_TYPE_APPENDS=1 restores the append;
+ * tests/probe_added_type_replaced.js is the two-engine proof. */
+probe('move', 'changesTargetType', 'a second added type REPLACES the first — Forest\'s Curse after Trick-or-Treat removes the Ghost', () => {
+  const run = (curse) => {
+    const me = bare('gourgeist'), ally = bare('sneasler');
+    const f1 = bare('snorlax'), f2 = bare('milotic');
+    unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'trickortreat', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    M.battleTurn(S, rng5, new Map([[me, curse ? M.playerAction(me, 'forestscurse', f1, S.field) : { kind: 'pass' }],
+                                   [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const types = (f1.types || []).join('/');
+    const before = f1.curHP;
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, M.playerAction(ally, 'closecombat', f1, S.field)]]), PASS2(f1, f2));
+    return { types, dealt: before - f1.curHP };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.dealt === 0 && test.dealt > 0 && test.types.split('/').indexOf('Ghost') < 0
+                  && test.types.split('/').indexOf('Grass') >= 0,
+           arms: { control: control.dealt, test: test.dealt },
+           detail: 'Snorlax takes Sneasler\'s Close Combat — Trick-or-Treat only ' + JSON.stringify(control)
+                 + ' (a Ghost: immune); Trick-or-Treat then Forest\'s Curse ' + JSON.stringify(test)
+                 + ' (the Grass REPLACES the Ghost: it lands)' };
+});
+
+/* 2026-09-24 -- REFLECT TYPE AT A TYPELESS TARGET THAT CARRIES AN ADDED TYPE. The authority copies `getTypes(true)`
+ * (the BASE list, less '???'), reads an empty one as ['Normal'] when an added type stands, and carries the added type
+ * across on its own (data/moves.ts `reflecttype`, no Champions override, both checkouts). So a Burned-Up Arcanine
+ * that was Trick-or-Treated copies as Normal/Ghost, and a Normal/Ghost body is IMMUNE to Shadow Ball; this engine
+ * copied Ghost alone, which Shadow Ball hits super-effectively. CONTROL: no Burn Up — Arcanine is Fire/Ghost, the
+ * copy is Fire/Ghost and Shadow Ball lands. TEST: Burn Up first — the copy must be Normal/Ghost and take 0.
+ * MEDI_REFLECT_TYPE_FOLDS_ADDED=1 restores the fold; tests/probe_reflect_type_typeless_added.js is the two-engine
+ * proof. */
+probe('move', 'changesTargetType', 'Reflect Type at a typeless target with an added type copies NORMAL plus the added type', () => {
+  const run = (burn) => {
+    const me = bare('gourgeist'), ally = bare('stunfisk');
+    const f1 = bare('arcanine'), f2 = bare('gengar');
+    unfaintable(me); unfaintable(ally); unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, PASS2(me, ally), new Map([[f1, burn ? M.playerAction(f1, 'burnup', ally, S.field) : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const burned = (f1.types || []).join('/');
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'trickortreat', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, M.playerAction(ally, 'reflecttype', f1, S.field)]]), PASS2(f1, f2));
+    const types = (ally.types || []).join('/');
+    const before = ally.curHP;
+    M.battleTurn(S, rng5, PASS2(me, ally), new Map([[f1, { kind: 'pass' }], [f2, M.playerAction(f2, 'shadowball', ally, S.field)]]));
+    return { burned, types, dealt: before - ally.curHP };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.burned === 'Fire' && test.burned === '???' && control.dealt > 0 && test.dealt === 0
+                  && test.types.split('/').sort().join('/') === 'Ghost/Normal',
+           arms: { control: control.dealt, test: test.dealt },
+           detail: 'Stunfisk Reflect Types a Trick-or-Treated Arcanine, then takes Gengar\'s Shadow Ball — no Burn Up '
+                 + JSON.stringify(control) + ' (Fire/Ghost: it lands); Burn Up first ' + JSON.stringify(test)
+                 + ' (the base list is empty, so Normal + Ghost: immune)' };
+});
+
 /* WIRE 106 -- `decorate -> goodasgold/suckerpunch/upperhand`: the caller's target was dropped at
  * classification, so a foe-aimed Decorate boosted the ALLY. Showdown boosts the FOE, and Good as
  * Gold refuses it. */
@@ -38931,6 +38992,10 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           'transformNoCopiedStart', 'mimicryTransformBlind', 'bondReactDrawnRestored',
                           /* 2026-09-24 -- tests/probe_mimicry_terrain_event_only.js */
                           'mimicrySyncEveryCallRestored',
+                          /* 2026-09-24 -- tests/probe_added_type_replaced.js */
+                          'addedTypeAppendsRestored',
+                          /* 2026-09-24 -- tests/probe_reflect_type_typeless_added.js */
+                          'reflectTypeFoldsAddedRestored',
                           /* 2026-09-19 -- tests/probe_helpinghand_moved_ally.js */
                           'helpingHandMovedAllyRestored', 'roundUnpromotedRestored', 'bounceKindBlindRestored',
                           'punishHazardOnAttackerSideRestored', 'punishWeatherIfClearRestored',

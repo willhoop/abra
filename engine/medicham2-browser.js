@@ -87,7 +87,7 @@ const TAGS = (function(){
  * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
-const MEDSEEN = { ateExcludedMove: 0, ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatMultPaid: 0, terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+const MEDSEEN = { addedTypeReplaced: 0, addedTypeCopied: 0, typeCopyNormalForTypeless: 0, addedTypeBroadcast: 0, ateExcludedMove: 0, ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatMultPaid: 0, terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
    * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
@@ -27933,6 +27933,32 @@ function syncFieldTypes(field,bodies){ syncTerrainTypes(field,bodies); syncWeath
  * (`source.transformInto(target)`, data/moves.ts) and its line is bare. The caller supplies the
  * string because by the time this function returns the holder is already carrying the COPIED
  * ability, and the id of the one that CAUSED the copy is no longer readable off the body. */
+/* 2026-09-24 -- THE ADDED TYPE IS ONE SLOT, AND IT RIDES ON THE TYPES ARRAY IT WAS WRITTEN INTO.
+ *
+ *     setType(newType) { ... this.types = newType; this.addedType = ''; ... }
+ *     addType(newType) { if (this.terastallized) return false; this.addedType = newType; return true; }
+ *     getTypes(excludeAdded) { ... if (!excludeAdded && this.addedType) return types.concat(this.addedType); }
+ *                                   sim/pokemon.ts, both checkouts byte-identical; no Champions override
+ *
+ * The authority holds ONE added type beside the base list; this engine folds it onto the END of `types`.
+ * `types._added` names that last element as the added one. It is a property OF THE ARRAY on purpose:
+ * every wholesale write here (`m.types=[...]`, `.slice()`, `.map()`, `.filter()`) is a `setType` in the
+ * authority and builds a NEW array, which carries no `_added` -- so every one of those nineteen sites clears
+ * the added type exactly as `setType` does, without being threaded. The only writes that must KEEP it are
+ * the ones the authority does not route through `setType`: a second add (below), Roost's `onType` (which
+ * filters `this.types` and never touches `addedType`) and Transform (`this.addedType = pokemon.addedType`,
+ * sim/pokemon.ts `transformInto`). Those three carry it by hand. `MEDI_ADDED_TYPE_APPENDS=1` restores the
+ * old append (a second add kept the first). tests/probe_added_type_replaced.js. */
+const ADDED_TYPE_APPENDS=_MK('MEDI_ADDED_TYPE_APPENDS');
+if(ADDED_TYPE_APPENDS)MEDFAILS.addedTypeAppendsRestored=1;
+/* 2026-09-24 -- `MEDI_REFLECT_TYPE_FOLDS_ADDED=1` restores Reflect Type copying the added type as a BASE type (and
+ * so failing on an empty base list the authority reads as Normal), and the single folded turn-boundary typechange
+ * line. tests/probe_reflect_type_typeless_added.js. */
+const REFLECT_TYPE_FOLDS_ADDED=_MK('MEDI_REFLECT_TYPE_FOLDS_ADDED');
+if(REFLECT_TYPE_FOLDS_ADDED)MEDFAILS.reflectTypeFoldsAddedRestored=1;
+function addedTypeOf(m){ const ts=m&&m.types; return (ts&&ts._added&&ts[ts.length-1]===ts._added)?ts._added:null; }
+function baseTypesOf(m){ const ts=(m&&m.types)||[]; return addedTypeOf(m)?ts.slice(0,-1):ts.slice(); }
+function withAddedType(base,added){ const ts=added?[...base,added]:base.slice(); if(added)ts._added=added; return ts; }
 function transformOnto(m,t,from){
   const st=Object.assign({},t.st); st.hp=m.st.hp;      // EVERY STAT EXCEPT HP
   /* ROADMAP #139 -- THE BODY IT WAS, KEPT, so the switch-out can put it back. Taken BEFORE a field is
@@ -27941,7 +27967,8 @@ function transformOnto(m,t,from){
                    _bsAtk:m._bsAtk,moves:(m.moves||[]).slice(),ability:m.ability,baseAbility:m.baseAbility,
                    _pp:m._pp?Object.assign({},m._pp):null,_ppMax:m._ppMax?Object.assign({},m._ppMax):null};
   m.name=t.name;
-  m.types=(t.types||[]).slice();
+  /* the added type travels with the copy: `this.addedType = pokemon.addedType` (sim/pokemon.ts transformInto) */
+  m.types=withAddedType(baseTypesOf(t),addedTypeOf(t));
   m.st=st;
   m.wt=t.wt;
   m._bsAtk=t._bsAtk;                                    // WIRE 83, Beat Up reads the species standing
@@ -32724,9 +32751,9 @@ function battleTurn(S,rng,actsForA,actsForB){
    * threaded: a site that does not hold anything back cannot make this fire, which is the authority's
    * own arrangement rather than a shortcut.
    *
-   * `addedType` HAS NO MEMBER IN THIS ENGINE and the second line is therefore not emitted; this
-   * engine models an added type by pushing it onto `types` (the `changesTargetType.adds` branch), so
-   * there is no field to read. Named rather than silently skipped.
+   * The second line (`typeadd`) was not emitted until 2026-09-24, because this engine had no added-type
+   * slot. It has one now (`types._added`, see `addedTypeOf`), and the sweep at the foot of this function
+   * writes the base list and then the `typeadd`, as the authority does.
    *
    * `MEDI_APPARENT_TYPE_BLIND=1` restores the silence. tests/probe_apparent_type_broadcast.js. */
   if(TR)TR.turn(S.turn+1);
@@ -39077,8 +39104,8 @@ function battleTurn(S,rng,actsForA,actsForB){
        *     }                                      data/moves.ts:14887-14903, no Champions override
        *
        * Arceus and Silvally are not in this format and nothing terastallizes, so the two first guards
-       * cannot fire and are not modelled; `addedType` (Forest's Curse / Trick-or-Treat) is folded into
-       * this engine's `types` list, so the empty-list refusal is the only one left. The flags are
+       * cannot fire and are not modelled. Since 2026-09-24 the added type (Forest's Curse / Trick-or-Treat)
+       * is copied separately and an empty base list with one standing reads Normal (see below). The flags are
        * `protect` and `bypasssub` and NOT `reflectable`: a shield refuses it, a doll does not, and a
        * Magic Bounce body does not bounce it. The rebuild on leaving the field is `switchOut`'s
        * `typesRestoredOnSwitchOut`, the same line that undoes a Soak. Measured on the pool, top corner,
@@ -39091,8 +39118,18 @@ function battleTurn(S,rng,actsForA,actsForB){
         {const _rf=abilityRefusalUnderShield(m,t,a.mv);if(_rf){announceTryHitRefusal(_rf,t);continue;}}
         if(shieldRefuses(t,a.mv)){ if(!SHIELD_REFUSAL_UNANNOUNCED)shieldRefusalAnnounce(t); else mvFail(m); continue; }
         if(moveClassBlocked(t,a.mv,m)||pranksterBlocked(m,t,a.mv)){mvFail(m);continue;}
-        const _nt=(t.types||[]).filter(x=>x&&x!=='???');
-        if(!_nt.length){mvFail(m);continue;}
+        /* 2026-09-24 -- THE BASE LIST AND THE ADDED TYPE ARE COPIED SEPARATELY. `getTypes(true)` EXCLUDES
+         * the added type; an empty base list with an added type standing reads `['Normal']`, not a failure;
+         * and `source.addedType = target.addedType` carries the added type across on its own (see
+         * `addedTypeOf`). A Burned-Up Arcanine that was then Trick-or-Treated copies as Normal + Ghost; this
+         * branch copied the whole list less '???', i.e. Ghost alone. `MEDI_REFLECT_TYPE_FOLDS_ADDED=1`
+         * restores that. tests/probe_reflect_type_typeless_added.js. */
+        const _tAdded=REFLECT_TYPE_FOLDS_ADDED?null:addedTypeOf(t);
+        let _nt=(REFLECT_TYPE_FOLDS_ADDED?(t.types||[]):baseTypesOf(t)).filter(x=>x&&x!=='???');
+        if(!_nt.length){
+          if(!_tAdded){mvFail(m);continue;}
+          _nt=['Normal']; MEDSEEN.typeCopyNormalForTypeless++;
+        }
         /* 2026-09-12 -- THE APPARENT TYPE IS HELD BACK WHEN THE TARGET IS NOT AN ALLY, and that
            hold-back is the ONLY thing in this format that makes the turn-boundary broadcast fire at
            all (see the sweep at the top of battleTurn). The authority:
@@ -39101,8 +39138,10 @@ function battleTurn(S,rng,actsForA,actsForB){
            `_sf` is this engine's side object and identity on it IS `isAlly`; `knownType` is otherwise
            true on every body here (no Illusion, and Zoroark is closeted), so the ally arm reduces to
            "same side" exactly. Recorded BEFORE the write, because it is the OLD string. */
-        const _oldApparent=(m.types||[]).join('/');
-        m.types=_nt.slice();
+        /* `apparentType` is `this.types.join('/')` at the last `setType` -- the BASE list, never the added type */
+        const _oldApparent=(REFLECT_TYPE_FOLDS_ADDED?(m.types||[]):baseTypesOf(m)).join('/');
+        m.types=withAddedType(_nt,_tAdded);
+        if(_tAdded)MEDSEEN.addedTypeCopied++;
         m._apparentTypes=(t._sf&&m._sf&&t._sf===m._sf)?null:_oldApparent;
         if(m._apparentTypes!=null)MEDSEEN.apparentTypeHeldBack++;
         MEDSEEN.typeCopiedToUser++;
@@ -39182,7 +39221,12 @@ function battleTurn(S,rng,actsForA,actsForB){
             else mvFail(m);
             MEDSEEN.typeWriteRefused++;
           }
-          else if(_ct.adds){ t.types=[...t.types,_ty];
+          /* 2026-09-24 -- A SECOND ADD REPLACES THE FIRST: `addType` writes `this.addedType = newType`,
+           * one slot (see `addedTypeOf`). Trick-or-Treat then Forest's Curse is [base..., Grass] in the
+           * authority; the old append left [base..., Ghost, Grass]. */
+          else if(_ct.adds){
+            if(ADDED_TYPE_APPENDS) t.types=[...t.types,_ty];
+            else { if(addedTypeOf(t))MEDSEEN.addedTypeReplaced++; t.types=withAddedType(baseTypesOf(t),_ty); }
             if(TR)TR.vstart(t,'typeadd',_ty+'|'+ATTR.from(ATTR.move(a.mv))); }
           else if(_ct.replaces){ t.types=[_ty]; if(TR)TR.vstart(t,'typechange',_ty); }
           else { MEDFAILS.typeWriterShapeUnknown++;
@@ -41260,8 +41304,13 @@ function battleTurn(S,rng,actsForA,actsForB){
            if(!_had){
              const _left=m.types.filter(t=>_trt.removes.indexOf(t)<0);
              if(_left.length!==m.types.length){
-               m._typeWas=m.types.slice();
-               m.types=_left.length?_left:['Normal'];
+               /* Roost's `onType` filters the base list and never touches `addedType`, so the added
+                * type survives the drop and the restore (see `addedTypeOf`). */
+               const _ad=ADDED_TYPE_APPENDS?null:addedTypeOf(m);
+               m._typeWas=m.types.slice(); if(_ad)m._typeWas._added=_ad;
+               if(_ad){ const _lb=baseTypesOf(m).filter(t=>_trt.removes.indexOf(t)<0);
+                        m.types=withAddedType(_lb.length?_lb:['Normal'],_ad); }
+               else m.types=_left.length?_left:['Normal'];
                MEDSEEN.roostTypeDropped++;
                _dropped=true;
              }
@@ -54525,9 +54574,8 @@ function battleTurn(S,rng,actsForA,actsForB){
    * NOT REACHED ON A DECIDED BATTLE, which is the authority's own guard: `turnLoop` returns on
    * `this.ended` and `nextTurn` is never called, so a body that has just won owes no broadcast.
    *
-   * `addedType` HAS NO MEMBER IN THIS ENGINE and the second line is therefore not emitted -- an added
-   * type is pushed onto `types` here (the `changesTargetType.adds` branch), so there is no separate
-   * field to read. Named rather than silently skipped.
+   * Since 2026-09-24 the second line IS emitted: the added type is `types._added` (`addedTypeOf`), the
+   * typechange carries the base list only, and a `[silent]` typeadd follows it.
    *
    * `MEDI_APPARENT_TYPE_BLIND=1` restores the silence. tests/probe_apparent_type_broadcast.js. */
   if(APPARENT_TYPE_BLIND)MEDFAILS.apparentTypeBlindRestored=1;
@@ -54535,10 +54583,16 @@ function battleTurn(S,rng,actsForA,actsForB){
     for(const _b of [...actA,...actB]){
       if(!_b||_b.fainted||_b.curHP<=0)continue;
       if(_b._apparentTypes==null)continue;
-      const _real=(_b.types||[]).join('/');
+      /* 2026-09-24 -- `realTypeString = seenPokemon.getTypes(true).join('/')` is the BASE list, and the
+       * added type follows on its own line: `if (pokemon.addedType) this.add('-start', pokemon, 'typeadd',
+       * pokemon.addedType, '[silent]')` (sim/battle.ts nextTurn, "The typechange message removes the added
+       * type, so put it back"). `MEDI_REFLECT_TYPE_FOLDS_ADDED=1` restores the folded single line. */
+      const _bAdded=REFLECT_TYPE_FOLDS_ADDED?null:addedTypeOf(_b);
+      const _real=(REFLECT_TYPE_FOLDS_ADDED?(_b.types||[]):baseTypesOf(_b)).join('/');
       if(_real!==_b._apparentTypes){
         TR.vstart(_b,'typechange',_real+'|[silent]');
         MEDSEEN.apparentTypeBroadcast++;
+        if(_bAdded){ TR.vstart(_b,'typeadd',_bAdded+'|[silent]'); MEDSEEN.addedTypeBroadcast++; }
       }
       _b._apparentTypes=null;
     }

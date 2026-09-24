@@ -53,6 +53,38 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.110.0] — 2026-09-24 — **Reflect Type at a typeless target with an added type copies Normal + the added type (both regulations)**
+
+- **What changed.** `engine/medicham2-browser.js`: Reflect Type's typecopy branch reads the target's base list and
+  added slot separately (Normal for an empty base list with an added type standing; the added type carried across);
+  the turn-boundary broadcast writes the base list then a `[silent]` typeadd. Knob `MEDI_REFLECT_TYPE_FOLDS_ADDED`.
+  Probe `tests/probe_reflect_type_typeless_added.js`; census row "Reflect Type at a typeless target with an added
+  type copies NORMAL plus the added type" in `tests/test-mechanics.js`.
+- **Measured.** Probe: RED on the base bytes (Reg M-B `0996f70743f9`, Reg M-C `321b4f63b586` and the 0.109.0 bytes
+  `d4b43852870d`; the RED arm parts on `p1b types` ghost/normal vs ghost, and two arms part on the broadcast lines),
+  GREEN on the fix (`52ae91d50129`, `28c6364d97a8`), RED under the knob. Census, this tree: Reg M-B 1009 live / 0
+  missing (1008 / 1 missing under the knob), Reg M-C 1013 / 0; artifacts NOT republished. Pinned differential, the
+  0.109.0 flags and pins: Reg M-B 260 / 1 / 0 (the same declared game), Reg M-C 259 / 0 / 0. Roster `--stage moves
+  --only reflecttype,trickortreat,forestscurse,burnup`: 4 FIRED-AND-BOARDS-MATCH, 0 DIFFER, in both regulations.
+  Worktree releases; receipts for the report only, not published figures.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
+## [abra/regmc 0.109.0] — 2026-09-24 — **A second added type replaces the first (both regulations)**
+
+- **What changed.** `engine/medicham2-browser.js`: the added type rides on the `types` array (`types._added`); the
+  `changesTargetType.adds` branch replaces a standing added type instead of appending; Roost's drop and Transform
+  carry it. Knob `MEDI_ADDED_TYPE_APPENDS`. Probe `tests/probe_added_type_replaced.js`; census row "a second added
+  type REPLACES the first" in `tests/test-mechanics.js`.
+- **Measured.** Probe: RED on the base bytes (Reg M-B `0996f70743f9`, Reg M-C `321b4f63b586`; both orders part on
+  `p2a types`, e.g. grass/normal vs ghost/grass/normal), GREEN on the fix (`ad7726f19a85`, `d4b43852870d`), RED under
+  the knob. Census, this tree: Reg M-B 1008 live / 0 missing (1007 / 1 missing under the knob), Reg M-C 1012 live /
+  0 missing; artifacts NOT republished. Pinned differential (`--steering empirical --arm middle --end-state --games
+  300`): Reg M-B, census pin `833a997d7e42`, `data/team-pool-frozen`, 260 games / 1 protocol-diverged / 0
+  board-material on base and fix (the same declared Supreme Overlord `fallenundefined` game); Reg M-C, census pin
+  `0d03e83f0e65`, `data/team-pool-frozen-regmc`, 259 / 0 / 0 on both. The pool holds no added-type game.
+  Worktree releases; receipts for the report only, not published figures.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.108.0] — 2026-09-24 — **Gravity refuses a gravity-flagged move that is called or chosen (both regulations)**
 - **What changed.** `engine/tag_dex.js` derives `refusedByPseudoWeather` off Gravity's own `onBeforeMove` / `onModifyMove`. It has 5 members, spliced into `data/tags.json` and `data/tags-regmc.json`, and nothing else moved. `data/abra-tags.js` is rebuilt. `engine/medicham2-browser.js` `pseudoWeatherRefusal` refuses the move at Heal Block's site, for a called (`_copied`) action and a chosen one. Knobs `MEDI_GRAVITY_CALLED_MOVE_PLAYS` and `MEDI_GRAVITY_CLICKED_MOVE_PLAYS`. Probe `tests/probe_gravity_called_move.js`. Census row `refusedByPseudoWeather`. Full account `docs/_reports/2026-09-24-ate-picker-gravity-called.md`.
 - **Measured.** Probe, both engines against the authority. Sleep Talk → High Jump Kick, Copycat after it, the no-Gravity control, and a chosen Bounce. Pre-fix engine bytes: 6 RED in both regulations. Fixed: green in both. Each knob: red on its own arms. Legal callers are Sleep Talk and Copycat only (the other five are `Past` in both regulations). Census `data/mechanics-census-regmc.json` now ~~1012~~ live on the branch, one row more than 0.107.0 (this one); 1021 live on the merged tree (merge note below). The Reg M-B census on this tree reads 1008 and is parked at `data/verification/mechanics-census-f801ab8410ce.json`. The published one stays at HEAD, as 0.87.0 and 0.106.0 did.
