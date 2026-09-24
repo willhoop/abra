@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.119.1] — 2026-09-24 — **Solver merge pass closed: plan, log and ledgers**
+- **What changed.** `docs/SOLVER-PLAN.md` edited but still untracked: staged, it fails four docs-currency clauses (closed-line version default, untraceable figures) (v1 built for MAG, DODUO, XATU, SLOWKING, MILTANK; CHOMP is the preview solver, JOLTEON its optional pre-screen). `solver/LOG.md` landing entry. Ledgers restamped. Account `docs/_reports/2026-09-24-solver-merge.md`.
+- **Measured.** NO FIGURE. `data/provenance-stamp.json` `verified` 3 (was 11), because three engine merges moved the tree past the gate artifacts' releases.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** `docs/MODELS.md` (solver models section).
+
 ## [abra/regmc 0.119.0] — 2026-09-24 — **Reg M-C lattices after the two narration fixes: 0 / 2 / 1 narration, 0 boards**
 - **What changed.** Measurement only. Release `aed9780fc4e3`, pin `ccd979c30997`, pool `data/team-pool-frozen-regmc`, `--games` 1200/1600/1900. `docs/_reports/2026-09-24-narration-last.md`.
 - **Measured.** Undeclared narration-only 0/955, 2/1266, 1/1497 (`data/game-differential-regmc.json`, `.g1600-regmc`, `.g1900-regmc`, `end_state[0].summary.by_cause_totals.games_narration_only`); board-material 0/954 usable, 0/1266, 0/1497. The 3 left: White Herb holder order (side order, not speed), a Grassy Terrain heal on an inferred tie, and the Emergency Exit game the harness cannot express.

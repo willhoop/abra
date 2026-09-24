@@ -8,6 +8,73 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-24
 
+### Landed in main (merge coordinator, 2026-09-24)
+- Merged to main in order, each tested there: engine name-cache PATCH (0.112.2), MAG v1 + DODUO v1 (0.113.0),
+  XATU v1 (0.114.0), SLOWKING v1 + MILTANK v1 skeleton + arena (0.115.0), worker pool + playout fixes (0.116.0),
+  lean playouts (0.116.1), Supreme Overlord / Revival Blessing narration (0.117.0-0.119.0). Duplicate cherry-picks
+  resolved to main's bytes. Engine merges proved on a pinned Reg M-C `--games 1200` differential: 955/955 games
+  identical per game for the cache and lean merges; narration merge 3 -> 0 protocol divergences, boards 0.
+- Detail: `docs/_reports/2026-09-24-solver-merge.md`.
+
+### Handover from the MEDICHAM chat
+- Will handed the Reg M-C engine to this chat. State at handover (from `docs/_reports/2026-09-23-engine-pass10.md`):
+  the M-C gate is NOT open. The pass-10 engine was never re-measured (lattices, roster, gate re-read owed on
+  fresh releases), `probe_court_change` can't stage under Reg M-B (it counts against the gate), and Reg M-C
+  narration items are still open.
+- Dispatched: (1) ENGINE, in main — the owed gate re-read, measurement only, on frozen releases;
+  (2) ENGINE, in a worktree — the additive solver API (clone, RNG handle, legalActions, step, terminal check)
+  from the interface brief. Not merged until the re-read finishes.
+
+### Solver engine API (branch `worktree-agent-a1ac483af93614de1`, commit 76691522, unmerged)
+- `engine/medicham_api.js`: clone, RNG handle, legalActions, step (non-mutating), terminal check that
+  doesn't treat the 20-turn cap as game over. The two battle leaks are fixed opt-in, only for API-built battles.
+- Tests pass: clone round trip, no input mutation, no cross-battle leaks. Differential byte-identical at
+  --games 1200 (955 games), and 22,283/22,283 turns replay identically on clones.
+- legalActions vs Showdown: 5,526/5,552 slots agree. The 26 are MEDICHAM move-menu bugs: Fake Out after
+  a Parting Shot that didn't switch (20), Imprison (4), Heal Block (2). A separate agent is fixing them.
+- Owed: the release-list change resets the differential's instrument stamp; status.js --write was skipped
+  (corrupts from a worktree); mid-turn-choice callback (step 6) not done.
+- Detail: that branch's `docs/_reports/2026-09-24-solver-engine-api.md`.
+
+### Overnight results (2026-09-24), all unmerged unless noted
+- **MILTANK playout speed** (branch `playout-speed`): the engine turn is ~80% of a playout; the low count was
+  mostly machine load. Worker pool matches in-process exactly; empty-cell bug 34.8% → 6.3%. PRE-GATE vs
+  prior-greedy, 200 games: 1 s × 4 workers 0.565 (0.496–0.632); 1 s in-process 0.590 (0.521–0.656);
+  **5 s × 4 workers 0.640 (0.571–0.703)**. Engine turn now ~3× slower than 2026-08-28; profiling
+  dispatched (tags.js name cleanup ≈13%).
+- **MAG v1 / DODUO v1** (branch worktree-agent-ae26f145ebead8fac): joint log-loss 2.730 vs v0 2.921; recall@16
+  87.2% vs 83.1%; switch turns 80.6%, turn 1 81.6%. Test 3,826/3,826 re-run by coordinator (needs
+  SHOWDOWN_PATH set to the M-C checkout when run from a worktree). PyTorch 2.14.0+cpu installed.
+- **XATU v1** (branch worktree-agent-aae6baa63246ab32f): back-two never excludes the truth (0/10,942);
+  turn-1 log-loss 1.348 vs 1.792 uniform; top-1 47% vs 19%. Spread narrowing is weak (~30 of 33 values survive).
+- **Engine fixes queued for merge:** Court Change scope; Emergency Exit/Berserk, White Herb; Curse, Beak
+  Blast burn; Lightning Rod, Magic Bounce; mega-stone take guard (Magic Room); API; Fake Out/Imprison/Heal
+  Block menus; disabled → Struggle + Torment; Gravity menu + execution + called moves; -ate Weather Ball
+  exclusion + picker; roster staging (Natural Cure, Regenerator, Effect Spore, Belch, berry); Mimicry
+  terrain-only; Reflect Type added-type corners; #310/#442 instruments; #310 closed. In flight: Burn Up
+  added type, engine turn speed.
+- **Will's calls pending:** narration baseline (recommend ratchet at today's count); the unpublished Reg M-B
+  roster/census readings.
+
+### Gate re-read after pass 10 (commit 7c9f7534, abra/regmc 0.87.0)
+- **Reg M-C CLOSED, 5 of 10 clauses fail** (release ec377f6f8159). Boards 0 of 955 / 1,266 / 1,497 at
+  --games 1200/1600/1900; damage 0 of 6,000. Failing: Pixilate damage (Refrigerate unproven); roster can't stage
+  Natural Cure, Regenerator, Belch, Effect Spore, plus a toothless berry self-test; narration 6/12/9 games
+  with NO baseline stamped (Will's call); register rows #310 and #442 can't answer under M-C.
+- **Reg M-B CLOSED, 4 of 10.** Boards and narration 0. Roster/mechanics, plus #442 failing. New M-B readings
+  (roster 193/200, 494/497, census 1,006) are unpublished because the closed M-B docs say 196/200, 496/497, 1,004.
+  Will's call. Saved in data/verification/*-7822a83cc49b.json.
+- Dispatched: merge coordinator (7 branches, renumbered, in main); -ate abilities; roster staging; register
+  rows #310/#442; Gravity/Belch/Stuff Cheeks menu halves; playout speed.
+- Also finished: all-disabled menu → Struggle, plus Torment's menu half (branch disabled-choice-struggle). SLOWKING +
+  MILTANK v1 + arena built (PRE-GATE: 0.530 vs prior-greedy, CI 0.461–0.598; only ~23 playouts per 1 s decision).
+
+### Super drive (Will, 2026-09-24)
+- Running in parallel worktrees: Court Change M-B fixture; narration (Emergency Exit/Berserk + White Herb;
+  Curse + burn/sleep order; Lightning Rod + Magic Bounce + the faint-line instrument question); the
+  move-menu bugs. Gate re-read continues in main. Merge order: gate re-read → fixes one at a time → API
+  → fresh gate re-read.
+
 ### Lean playouts (PRE-GATE)
 - MILTANK's playouts now run in MEDICHAM's lean mode (`newBattle({lean:true})` / `API.makeLean`): the same boards, no
   protocol, no process counters, tag answers from a table. `MILTANK_LEAN=0` plays full.

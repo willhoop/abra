@@ -21,6 +21,23 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.119.1] — 2026-09-24
+
+### Changed
+- **Solver merge pass closed.** `docs/SOLVER-PLAN.md` (plan version 0.2.0; still untracked, see Notes): MAG, DODUO, XATU, SLOWKING and
+  MILTANK read "v1 built", and Will's 2026-09-24 decision is applied: CHOMP is the team-preview solver, rebuilt under
+  `solver/chomp/` (both open sheets, a mixed strategy over the 90 bring/lead options, PORYGON2-scored, solved by
+  SLOWKING); JOLTEON is CHOMP's optional pre-screen. `solver/LOG.md` records the landing. Ledgers restamped by
+  `node engine/status.js --write`. Account: `docs/_reports/2026-09-24-solver-merge.md`.
+
+### Notes
+- PATCH: no figure moves. `data/provenance-stamp.json` `verified` reads 3 (was 11): the gate artifacts are stamped on
+  releases the merged engine no longer matches. A gate re-read on a fresh release is owed.
+- `docs/SOLVER-PLAN.md` stays untracked. Staged, it fails `tests/test-docs-current.js` on four clauses: its version
+  header defaults it onto the closed abra/regmb line (floor 7.0.0), which also drags that line's owed backlog over the
+  cap, and 44 of its figures carry no trace. Tracking it needs a decision: a declared pin or exemption in
+  `data/docs-currency-baseline.json`, or an `abra/regmc` line with traced figures.
+
 ## [0.119.0] — 2026-09-24
 
 ### Changed
