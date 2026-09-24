@@ -21,6 +21,11 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.88.0] — 2026-09-24
+
+### Fixed
+- **The -ate abilities no longer convert or boost Weather Ball (both regulations).** Every -ate `onModifyType` (Pixilate, Refrigerate, Aerilate, Dragonize, Galvanize; the Champions mod overrides none of them in either checkout) skips the moves on its own `noModifyType` list, and those moves never take the `[4915,4096]`. `convertsMoveType` carried the type and the multiplier but not the list, so a Pixilate or Refrigerate Weather Ball converted and took x1.2 in every sky, and hit a Ghost the authority is immune to. `tag_dex` now derives `except` off the handler; `convertsMoveTypeTo` honours it (one function, so the damage calc and the battle loop both see it); a param with no `except` field is counted (`convertsExceptMissing`). Legal Weather Ball holders: Sylveon, Aurorus, Altaria-Mega, Glalie-Mega; Galvanize and Normalize have no legal holder in either regulation. Knob `MEDI_ATE_EXCLUSION_BLIND`. Probe `tests/probe_ate_abilities.js` (all 16 rolls, quiet control): Reg M-B 16 RED → 0 of 23 rows, Reg M-C 16 RED → 0 of 24; census row `convertsMoveTypeExcept`. `tests/probe_pair.js` gains `runModifyType` and refuses an attacker ability with `onModifyType` without it. `data/tags.json` and `data/tags-regmc.json` carry only the spliced `except` fields. `docs/_reports/2026-09-24-ate-abilities.md`.
+
 ## [0.87.0] — 2026-09-24
 
 ### Changed

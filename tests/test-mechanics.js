@@ -9739,6 +9739,24 @@ probe('ability', 'convertsMoveType', 'Aerilate makes Body Slam hit a Ghost', () 
                  + `Aerilate ${test}` };
 });
 
+/* 2026-09-24 -- THE HANDLER'S `noModifyType` LIST, THROUGH A REAL TURN. Every -ate `onModifyType` skips Weather Ball
+ * (and Terrain Pulse, Judgment, ...): no retype and no x1.2. This engine converted it, so a Pixilate Sylveon's
+ * no-weather Weather Ball hit a Ghost the authority is immune to -- the Reg M-C gate's "Pixilate parts boards".
+ * The live arm is the same body's Body Slam, which MUST still convert (so an ability switched off wholesale cannot
+ * pass); the control is the same Weather Ball with no ability. Knob MEDI_ATE_EXCLUSION_BLIND=1 turns this red.
+ * Exact rolls in both regulations: tests/probe_ate_abilities.js. */
+probe('ability', 'convertsMoveTypeExcept', 'Pixilate leaves Weather Ball Normal: it cannot touch a Ghost', () => {
+  const hit = (ab, mv) => turnDamage(['sylveon', 'incineroar', 'gengar', 'garchomp'],
+    (B) => { B.me.ability = ab; unfaintable(B.f1); }, mv);
+  /* The ARMS are the two moves off the same Pixilate body, so they must DIFFER (a converted hit against an immune
+   * one); the no-ability Weather Ball is the extra control that says the 0 is the type chart and not a dead click. */
+  const control = hit('pixilate', 'bodyslam'), plain = hit('none', 'weatherball'), test = hit('pixilate', 'weatherball');
+  return { works: control > 0 && plain === 0 && test === 0,
+           arms: { control, test },
+           detail: `into a Ghost, no weather -- Pixilate Body Slam ${control} (must convert), Weather Ball no ability `
+                 + `${plain}, Pixilate Weather Ball ${test} (both must be 0: the handler skips Weather Ball)` };
+});
+
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). THE CONTROL IS STILL A COPY OF THE MOVE WITH
  * ITS ID CHANGED, so the tag lookup misses and the copy is a single 25-BP hit by construction -- an
  * identical result across that knob would mean multiHit is unwired, not that it does not matter

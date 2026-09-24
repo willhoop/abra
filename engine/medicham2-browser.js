@@ -87,7 +87,7 @@ const TAGS = (function(){
  * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
-const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatMultPaid: 0, terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+const MEDSEEN = { ateExcludedMove: 0, ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatMultPaid: 0, terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
    * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
@@ -5383,6 +5383,9 @@ const MEDFAILS = { oozeNoName: 0, oozeUnderHealBlockUnmodelled: 0, reviveSwitchO
      a capitalised TYPE ("Normal moves"), a lowercase FLAG ("sound moves") or "its moves"; anything
      else would silently mean "the ability does not apply", which is how Liquid Voice was inert. */
   convertsUnparsed: 0, convertsUnparsedFirst: '',
+  /* 2026-09-24 -- a `convertsMoveType` param with no `except` list (the handler's `noModifyType`): the artifact
+     predates the derivation, so an -ate Weather Ball would convert here and not in the authority. Counted. */
+  convertsExceptMissing: 0, convertsExceptMissingFirst: '',
   /* 2026-09-12 -- a Charge spend asked about a move id with NO row in `MC.moves`. `effMoveType` would
      then answer '' -- indistinguishable from "this move is not Electric" -- so the bank would survive
      a click that should have spent it, for a reason that is not about the move. Named, not defaulted. */
@@ -15129,6 +15132,7 @@ function hitProb(att,def,id,field,ctx){
  *
  * ONE IMPLEMENTATION NOW. The conversion is this function; dmgRange calls it for the type and keeps
  * only the POWER half (`damageMult`), which is a power question and belongs where the power lives. */
+const ATE_EXCLUSION_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ATE_EXCLUSION_BLIND==='1');
 function convertsMoveTypeTo(mv,moveId,att,curT){
   const _cm=att&&TAGS.param('ability',att.ability,'convertsMoveType');
   if(!_cm||!_cm.into)return null;
@@ -15147,6 +15151,18 @@ function convertsMoveTypeTo(mv,moveId,att,curT){
     if(!_m){MEDFAILS.convertsUnparsed++;if(!MEDFAILS.convertsUnparsedFirst)MEDFAILS.convertsUnparsedFirst=_from;}
     else if(/^[A-Z]/.test(_m[1])) _applies=(curT===_m[1]);
     else _applies=!!(moveId&&TAGS.has('move',moveId,_m[1].toLowerCase()));
+  }
+  /* 2026-09-24 -- THE HANDLER'S `noModifyType` LIST. Every -ate `onModifyType` (data/abilities.ts; the Champions mod
+   * overrides none of them in either checkout) skips `judgment, multiattack, naturalgift, revelationdance,
+   * technoblast, terrainpulse, weatherball` -- no retype AND, because `typeChangerBoosted` is never set, no x1.2.
+   * This function applied both to Weather Ball: a Pixilate Sylveon's no-weather Weather Ball was a boosted Fairy STAB
+   * hit (52 top roll into Feraligatr against the authority's 29) and HIT A GHOST the authority is immune to; in sun or
+   * rain it carried a spurious x1.2. The list is the tag's (`except`, read off the handler by tag_dex), never typed
+   * here. An artifact with no `except` field predates the derivation and is COUNTED, not trusted as "no exclusions".
+   * MEDI_ATE_EXCLUSION_BLIND=1 restores the old path. Probe: tests/probe_ate_abilities.js (both regulations). */
+  if(_applies&&moveId){
+    if(!Array.isArray(_cm.except)){MEDFAILS.convertsExceptMissing++;if(!MEDFAILS.convertsExceptMissingFirst)MEDFAILS.convertsExceptMissingFirst=String(att.ability);}
+    else if(!ATE_EXCLUSION_BLIND&&_cm.except.includes(String(moveId))){MEDSEEN.ateExcludedMove++;return null;}
   }
   return (_applies&&curT!==_cm.into)?_cm:null;
 }
