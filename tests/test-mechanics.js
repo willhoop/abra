@@ -39204,7 +39204,10 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           'reviveHealInlineRestored',
                           /* 2026-09-24 (ENGINE, narration-zero) -- two owed White Herbs spent in side order.
                            * tests/probe_regmc_white_herb_speed_order.js */
-                          'herbSideOrderRestored']
+                          'herbSideOrderRestored',
+                          /* 2026-09-24 (ENGINE, narration-zero) -- a spent flinch dropped from the residual list.
+                           * tests/probe_regmc_flinch_residual_list.js */
+                          'flinchGoneAtResidualRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

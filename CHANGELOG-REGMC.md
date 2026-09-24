@@ -21,6 +21,21 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.117.0] — 2026-09-24
+
+### Fixed
+- **A spent flinch still stands in the residual handler list, so a speed tie heals in the authority's order (Reg M-C).**
+  The authority's flinch is `duration: 1` and its `onBeforeMove` writes `cant` without removing it
+  (`data/conditions.ts` flinch), so `fieldEvent('Residual')` collects it (`sim/battle.ts` :484-524) and the selection
+  sort's swaps (:429-460) move a tied pair differently around it. This engine cleared `_flinch` at the `cant` and at the
+  foot of the action loop, both above the residual list's build. Field case: Reg M-C lattice 1600, omit-weather
+  `…2684772479 vs …2684878616` t1 — both Rillaboom at 137 (read off the authority's own residual list, a measured tie),
+  the Grassy Terrain heals came out p2a-first here and p1a-first there. `_flinchHeld` now carries the volatile to the
+  build. Knob `MEDI_FLINCH_GONE_AT_RESIDUAL` (in the census `DELIBERATE_BREAK`). Probe
+  `tests/probe_regmc_flinch_residual_list.js`: RED before, GREEN after, RED under the knob, with a control that moves the
+  flinch to the other body. The tie die is not involved: the differential pins the authority's shuffle to the identity,
+  and the answer is the list's shape. Census 1024 live.
+
 ## [0.116.0] — 2026-09-24
 
 ### Fixed

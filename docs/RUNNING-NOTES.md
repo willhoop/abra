@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.117.0] — 2026-09-24 — **A spent flinch still stands in the residual handler list, so a speed tie heals in the authority's order (Reg M-C)**
+- **What changed.** `engine/medicham2-browser.js`: `_flinchHeld` carries the flinch volatile from its two clears (the `cant`, the foot of the action loop) to the residual list's build, where the `flinch` reader sees it; dropped right after the build and on every switch-out and turn exit. Knob `MEDI_FLINCH_GONE_AT_RESIDUAL`. Probe `tests/probe_regmc_flinch_residual_list.js`.
+- **Measured.** The field game (1600 omit-weather `…2684772479`) is a real tie: both Rillaboom at 137, read off the authority's own residual list by a preload hook. Probe RED before (base engine: FLINCH diverges at the `-heal`, counter 0), GREEN after (release `a44ee1a83d38`), RED under the knob; the CONTROL arm (the flinch on the other body) is green on both and heals the pair the other way on the authority. The `--only-game` replay of the field game on `a44ee1a83d38` has no protocol or board divergence. Census 1024 live / 0 missing.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.116.0] — 2026-09-24 — **Two White Herbs owed in one pass are spent fastest holder first (Reg M-C)**
 - **What changed.** `engine/medicham2-browser.js` `restoreStatsAll`: the owed holders are found first and, when two or more are owed, ordered by `sdSpeedSortEntries` on the cached action speed; all six call sites pass the field. Knob `MEDI_HERB_SIDE_ORDER`. Probe `tests/probe_regmc_white_herb_speed_order.js`.
 - **Measured.** Probe RED before (base engine, 3 assertions: LEAD and AFTERMOVE diverge at the `-enditem`, counter 0), GREEN after (release `4a74cd6c09eb`), RED under the knob (2 assertions); the CONTROL arm (speeds swapped) is green on both. Census 1024 live / 0 missing before and after. Lattice effect is measured in the lattice row.

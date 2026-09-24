@@ -12318,6 +12318,8 @@ function residualShadowShield(m){
 /* PRESENCE, per artifact volatile row. The default is `m._vol[id] > 0`, which is where this engine
  * keeps the per-body clocks the walk already spends; everything below is a member it keeps in a named
  * field instead. Written as one table so `residualShadowUnread` can name what has neither. */
+const FLINCH_GONE_AT_RESIDUAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FLINCH_GONE_AT_RESIDUAL==='1');
+if(FLINCH_GONE_AT_RESIDUAL)MEDFAILS.flinchGoneAtResidualRestored=1;
 const RESIDUAL_SHADOW_VOL={
   leechseed:    m=>!!m._seededBy,
   curse:        m=>!!m._ptDmg,
@@ -12328,7 +12330,15 @@ const RESIDUAL_SHADOW_VOL={
   perishsong:   m=>m._perish!=null,
   roost:        m=>!!m._typeWas,
   stall:        m=>(m.tookProtectTurns|0)>0,
-  flinch:       m=>!!m._flinch,
+  /* 2026-09-24 (Reg M-C, narration to zero, cause B) -- A SPENT FLINCH IS STILL IN THE RESIDUAL LIST. The authority's
+   * flinch is `duration: 1` and its `onBeforeMove` writes `cant` without removing it (data/conditions.ts flinch), so it
+   * is collected by `fieldEvent('Residual')` under `getKey = 'duration'` and expires there. This engine clears `_flinch`
+   * at the `cant` and at the foot of the action loop, both above the list's build; `_flinchHeld` carries the volatile
+   * from either clear to the build and is dropped right after it. A fainted body's volatiles are cleared by
+   * `faintMessages`, so it holds none. The selection sort's swaps depend on what stands between a tied pair: Reg M-C
+   * lattice 1600 omit-weather `…2684772479 vs …2684878616` t1 healed the two 137-Speed Rillaboom in the opposite order.
+   * MEDI_FLINCH_GONE_AT_RESIDUAL=1 never sets `_flinchHeld`. tests/probe_regmc_flinch_residual_list.js */
+  flinch:       m=>!m.fainted&&!!(m._flinch||m._flinchHeld),
   mustrecharge: m=>!!m._recharge,
   lockedmove:   m=>!!m._mtLock,
   uproar:       m=>!!(m._mtLock&&m._mtLock.vol==='uproar'),
@@ -30243,7 +30253,7 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
   }
   if(out._transformed)imposterRevert(out);
   out._wasOut=true;
-  out._lock=null; out._lockT=0; out._lockHadMove=false; out._flinch=false;
+  out._lock=null; out._lockT=0; out._lockHadMove=false; out._flinch=false; out._flinchHeld=false;
   /* ROADMAP #84 -- a body that leaves the field forgets how its last turn ended, exactly as
      `Pokemon.clearVolatile` does (sim/pokemon.ts:1551). Without this a Stomping Tantrum user could
      pivot out, come back three turns later and still be doubling off a flinch it took before it left. */
@@ -31260,7 +31270,7 @@ function reviveClear(t){
   t._charging=null; t._invuln=false; t._ttmWrap=null; t._ttmTgtSlot=null;
   t._sub=0; t._noSound=0; t._noRepeat=null; t._noRepeatT=0; t._recharge=false; t._trap=null; t._trapHard=null;
   t._mtLock=null; t._vol={}; t._guarantee=null; t._encoreMove=null; t._sealed=null; t._volGave=null; t._volSrc=null;
-  t._protectMove=null; t._lastMove=null; t._lastAim=null; t._lock=null; t._lockT=0; t._lockHadMove=false; t._flinch=false;
+  t._protectMove=null; t._lastMove=null; t._lastAim=null; t._lock=null; t._lockT=0; t._lockHadMove=false; t._flinch=false; t._flinchHeld=false;
   t._mvRes=undefined; t._mvResLast=undefined; t._metroLast=null; t._metroN=0; t._timesAttacked=0; t._perish=null;
   t._yawn=null; t._ptDmg=null; t._healBlock=0; t._cud=null;
   t.boosts={at:0,df:0,sa:0,sd:0,sp:0,acc:0,eva:0};
@@ -35654,6 +35664,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* 2026-09-11 -- a defrost thaw that was waiting for the move to be USED is refused with it. */
         if(m._thawAtUse){m._thawAtUse=null;MEDSEEN.thawDeferredRefused++;}
         m._flinch=false;m._mvRes=false;if(TR)TR.cant(m,'flinch');
+        if(!FLINCH_GONE_AT_RESIDUAL)m._flinchHeld=true;   /* the volatile stands until the residual; see FLINCH_GONE_AT_RESIDUAL */
         {const _bf=TAGS.param('ability',m.ability,'boostsOnFlinch');
          if(_bf&&_bf.boosts&&m.boosts&&!m.fainted){
            const _sg=invSign(m);
@@ -52079,7 +52090,7 @@ function battleTurn(S,rng,actsForA,actsForB){
      * flinched Pokemon tried to act, so a flinch landed by a SLOWER attacker (impossible to use this
      * turn) sat on the flag and stole the target's NEXT turn instead. Fake Out's +3 priority hid this
      * because it almost always moved first; adding Rock Slide's flinch would have made it common. */
-    [...actA,...actB].forEach(m=>{if(m)m._flinch=false;});
+    [...actA,...actB].forEach(m=>{if(m){if(m._flinch&&!FLINCH_GONE_AT_RESIDUAL)m._flinchHeld=true;m._flinch=false;}});
     /* 2026-08-24 -- THE RESIDUAL PHASE OPENS HERE, AND THE SPEED-TIE COIN IS DRAWN ONCE FOR ALL OF IT.
      * The authority speed-sorts its residual handler list ONCE (sim/battle.ts:505) and walks it; this
      * engine re-asks `residualOrder` per order-group because speeds move during the walk. Bumping the
@@ -52100,6 +52111,8 @@ function battleTurn(S,rng,actsForA,actsForB){
      * order of the bodies that hold a handler at each group's order off this list, so it is built
      * whether or not a side clock can tie. Under `MEDI_RESIDUAL_SORTS_BODIES=1` the old gate stands. */
     residualShadowRank(field,sfA,sfB,actA,actB,!RESIDUAL_SORTS_BODIES);
+    /* 2026-09-24 -- the spent flinch has now stood in the list; it expires in this residual (`duration: 1`). */
+    for(const m of [...actA,...actB])if(m&&m._flinchHeld){ m._flinchHeld=false; MEDSEEN.flinchHeldToResidual=(MEDSEEN.flinchHeldToResidual|0)+1; }
     /* ~~2026-08-26 -- AND `stall`'S DURATION IS SPENT HERE, because THIS is where the residual opens.
      * Above every remaining `break _TURN` and below the two that skip the residual entirely, which is
      * the whole point: a turn that ended before this line never spends the clock, exactly as
@@ -54576,7 +54589,7 @@ function battleTurn(S,rng,actsForA,actsForB){
    *
    * It was invisible for as long as it was because that arm ran on `Math.random` and reported the
    * leak on roughly half its runs -- see the seeding note beside it. */
-  [...actA,...actB].forEach(m=>{if(m)m._flinch=false;});
+  [...actA,...actB].forEach(m=>{if(m){m._flinch=false;m._flinchHeld=false;}});
   /* 2026-08-29 -- AND THE LIVE QUEUE IS DROPPED ON EVERY EXIT, beside the flinch clear and for the
    * identical reason: every `break _TURN` jumps over anything inside the block. Nothing outside a turn
    * may read a cursor into a queue that has already been played -- and a caller that tries is COUNTED

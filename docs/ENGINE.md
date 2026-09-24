@@ -1,3 +1,11 @@
+## A SPENT FLINCH STILL STANDS IN THE RESIDUAL HANDLER LIST (REG M-C). 2026-09-24 (abra/regmc 0.117.0)
+
+- `_flinchHeld` carries the flinch volatile to the residual list's build; the selection sort's swaps depend on it at a
+  speed tie. Knob `MEDI_FLINCH_GONE_AT_RESIDUAL`. Probe `tests/probe_regmc_flinch_residual_list.js` (RED -> GREEN,
+  FLINCH / moved-flinch CONTROL).
+- Hand list: **narration cause (b), the Grassy Terrain heal order, leaves it.** It was a measured tie (137 = 137), and
+  the defect was the list, not the die. Report `docs/_reports/2026-09-24-narration-zero.md`.
+
 ## TWO WHITE HERBS OWED IN ONE PASS ARE SPENT FASTEST HOLDER FIRST (REG M-C). 2026-09-24 (abra/regmc 0.116.0)
 
 - `restoreStatsAll` orders the owed holders by the cached action speed (`sdSpeedSortEntries`) when two or more are
