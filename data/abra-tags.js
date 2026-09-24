@@ -1032,6 +1032,17 @@ window.ABRA_TAGS={
    "examples": []
   },
   {
+   "tag": "refusedByPseudoWeather",
+   "kind": "move",
+   "param": "a pseudo-weather that refuses this move when chosen and/or when called",
+   "why": "Gravity refuses High Jump Kick, Flying Press and Magnet Rise; nothing carried the move flag, so a Sleep Talk or a Copycat under Gravity played the move",
+   "consumedBy": "refusedByPseudoWeather",
+   "used": true,
+   "n": 5,
+   "uses": 0,
+   "examples": []
+  },
+  {
    "tag": "neverMissesAttack",
    "kind": "move",
    "param": "P(hit) = 1 on a DAMAGING move",
@@ -14469,6 +14480,7 @@ window.ABRA_TAGS={
     "targetClass",
     "contact",
     "noExtraHit",
+    "refusedByPseudoWeather",
     "inflictsParalysis",
     "chargeTurn",
     "semiInvulnerable",
@@ -14496,6 +14508,18 @@ window.ABRA_TAGS={
     "noExtraHit": {
      "because": [
       "charge"
+     ]
+    },
+    "refusedByPseudoWeather": {
+     "by": [
+      {
+       "pseudoWeather": "gravity",
+       "flag": "gravity",
+       "line": "move: Gravity",
+       "beforeMove": true,
+       "modifyMove": true,
+       "exceptZ": true
+      }
      ]
     },
     "inflictsParalysis": {
@@ -19886,6 +19910,7 @@ window.ABRA_TAGS={
     "targetClass",
     "contact",
     "noExtraHit",
+    "refusedByPseudoWeather",
     "chargeTurn",
     "semiInvulnerable",
     "formatSecondaryCount",
@@ -19911,6 +19936,18 @@ window.ABRA_TAGS={
     "noExtraHit": {
      "because": [
       "charge"
+     ]
+    },
+    "refusedByPseudoWeather": {
+     "by": [
+      {
+       "pseudoWeather": "gravity",
+       "flag": "gravity",
+       "line": "move: Gravity",
+       "beforeMove": true,
+       "modifyMove": true,
+       "exceptZ": true
+      }
      ]
     },
     "chargeTurn": {
@@ -19965,6 +20002,7 @@ window.ABRA_TAGS={
     "targetClass",
     "contact",
     "overridesEffectiveness",
+    "refusedByPseudoWeather",
     "formatSecondaryCount",
     "punishesMinimize",
     "callRefusalFlags"
@@ -19989,6 +20027,18 @@ window.ABRA_TAGS={
      "overrides": true,
      "perType": null,
      "addsType": "Flying"
+    },
+    "refusedByPseudoWeather": {
+     "by": [
+      {
+       "pseudoWeather": "gravity",
+       "flag": "gravity",
+       "line": "move: Gravity",
+       "beforeMove": true,
+       "modifyMove": true,
+       "exceptZ": true
+      }
+     ]
     },
     "formatSecondaryCount": {
      "count": 0
@@ -21969,6 +22019,7 @@ window.ABRA_TAGS={
     "crashOnMiss",
     "targetClass",
     "contact",
+    "refusedByPseudoWeather",
     "formatSecondaryCount"
    ],
    "uses": 337,
@@ -21989,6 +22040,18 @@ window.ABRA_TAGS={
     },
     "contact": {
      "contact": true
+    },
+    "refusedByPseudoWeather": {
+     "by": [
+      {
+       "pseudoWeather": "gravity",
+       "flag": "gravity",
+       "line": "move: Gravity",
+       "beforeMove": true,
+       "modifyMove": true,
+       "exceptZ": true
+      }
+     ]
     },
     "formatSecondaryCount": {
      "count": 0
@@ -24375,6 +24438,7 @@ window.ABRA_TAGS={
     "pp",
     "failsIfVolatile",
     "targetClass",
+    "refusedByPseudoWeather",
     "neverMisses",
     "noProtectFlag",
     "failsWithoutWeather",
@@ -24403,6 +24467,18 @@ window.ABRA_TAGS={
      "mustPressure": false,
      "pressureScope": "none",
      "chooseable": false
+    },
+    "refusedByPseudoWeather": {
+     "by": [
+      {
+       "pseudoWeather": "gravity",
+       "flag": "gravity",
+       "line": "move: Gravity",
+       "beforeMove": true,
+       "modifyMove": true,
+       "exceptZ": true
+      }
+     ]
     },
     "neverMisses": {
      "pHit": 1,

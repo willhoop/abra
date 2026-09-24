@@ -28099,6 +28099,41 @@ probe('move', 'callsAnotherMove', 'Sleep Talk calls one of the user OWN moves, f
                  + 'the called move used to re-enter the sleep gate and spend a second tick' };
 });
 
+/* 2026-09-24 -- GRAVITY REFUSES A GRAVITY-FLAGGED MOVE, CALLED OR CHOSEN, through a real turn. The condition's
+ * `onModifyMove` half refuses the move Sleep Talk calls (useMoveInner skips BeforeMove); its `onBeforeMove` half refuses
+ * the move the body chose. Same line both ways: `|cant|<body>|move: Gravity|<move>`. The CONTROL is the identical
+ * Sleep Talk with no Gravity up, so a High Jump Kick that never fires at all cannot pass. Knobs
+ * MEDI_GRAVITY_CALLED_MOVE_PLAYS=1 / MEDI_GRAVITY_CLICKED_MOVE_PLAYS=1 turn this red; both engines, both regulations,
+ * with a Copycat arm: tests/probe_gravity_called_move.js. */
+probe('move', 'refusedByPseudoWeather', 'Gravity refuses a High Jump Kick that Sleep Talk calls, and one the body chooses', () => {
+  const gBoard = (o) => {
+    const B = board('abomasnow', 'venusaur', 'feraligatr', 'charizard');
+    B.me.moves = o.moves; B.me.item = '';
+    unfaintable(B.f1); unfaintable(B.f2);
+    if (o.asleep) { B.me.status = 'slp'; B.me.slpTurns = 0; }
+    if (o.gravity) B.S.field.gravity = 5;
+    const trace = []; B.S._trace = trace;
+    const hp = B.f1.curHP + B.f2.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, o.mv, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, { kind: 'pass' }], [B.f2, { kind: 'pass' }]]));
+    return { dealt: hp - B.f1.curHP - B.f2.curHP, lines: trace.join(' ') };
+  };
+  const cant = /\|cant\|p1a: abomasnow\|move: Gravity\|high ?jump ?kick/i;
+  const control = gBoard({ mv: 'sleeptalk', asleep: true, gravity: false, moves: ['sleeptalk', 'highjumpkick'] });
+  const called = gBoard({ mv: 'sleeptalk', asleep: true, gravity: true, moves: ['sleeptalk', 'highjumpkick'] });
+  /* MERGED 2026-09-24 (abra/regmc 0.108.0): the chosen arm keeps a second, unflagged slot. With Gravity's MENU half
+   * (0.100.0) a body whose ONLY move is High Jump Kick has an empty menu under Gravity, and a handed click on an empty
+   * menu is Struggle (0.99.0) -- as `Side#chooseMove` makes it. That arm then measured the rewrite, not this refusal.
+   * With Sleep Talk still selectable the click reaches execution, which is the half this row asks about. */
+  const chosen = gBoard({ mv: 'highjumpkick', asleep: false, gravity: true, moves: ['highjumpkick', 'sleeptalk'] });
+  return { works: control.dealt > 0 && called.dealt === 0 && cant.test(called.lines) && chosen.dealt === 0 && cant.test(chosen.lines),
+           arms: { control: control.dealt, test: [called.dealt, chosen.dealt] },
+           detail: '[HP the foe pair loses] - Sleep Talk -> High Jump Kick, no Gravity ' + control.dealt + ' (must land); '
+                 + 'under Gravity ' + called.dealt + ' (must be 0, `cant ... move: Gravity` ' + cant.test(called.lines) + '); '
+                 + 'High Jump Kick CHOSEN under Gravity ' + chosen.dealt + ' (must be 0, cant ' + cant.test(chosen.lines) + ')' };
+});
+
 probe('move', 'callRefusalFlags', 'Sleep Talk will not reach for a CHARGE move, and says so', () => {
   /* THE POOL FILTER, MEASURED BY ITS OUTCOME RATHER THAN BY ITS MEMBERSHIP. `callsAnotherMove` carries
    * `refusesFlags: ['nosleeptalk','charge']`, read off the handler own walk of `pokemon.moveSlots`,
