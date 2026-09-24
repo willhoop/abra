@@ -1,3 +1,8 @@
+## A BOUNCED STATUS MOVE THAT FAILS WRITES ITS `-fail` ON THE BOUNCER (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.88.0)
+
+- `mvFailBounced` (the `affect` whole-move volatile refusal, both Yawn refusals). Knob `MEDI_BOUNCED_FAIL_NAMES_CLICKER`.
+  Probe `tests/probe_bounced_fail_names_bouncer.js`. Reg M-C narration group M.
+- Hand list: **Magic Bounce leaves the pass-10 Reg M-C narration list**; the probe carries it.
 ## A CHARGE MOVE DRAWS ITS REDIRECT ON THE CHARGE TURN UNDER REG M-C. 2026-09-24 (abra/regmc 0.87.0)
 
 - `chargeStateOf(...).drawBlocked` reads `chargeTurn.drawnWhileCharging` (derived by `engine/tag_dex.js` from the

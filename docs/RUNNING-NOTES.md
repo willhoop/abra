@@ -53,6 +53,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.88.0] — 2026-09-24 — **A bounced status move that fails writes its `-fail` on the bouncer**
+
+- **What changed.** `engine/medicham2-browser.js` `mvFailBounced` at the `affect` whole-move volatile refusal and both
+  Yawn refusals: the `-fail` names the bouncer and the bouncer's move result is false; the clicker's is left alone
+  (the authority's `null`). Knob `MEDI_BOUNCED_FAIL_NAMES_CLICKER`. New probe `tests/probe_bounced_fail_names_bouncer.js`.
+- **Measured.** NO FIGURE published. Probe green in both regulations, red under the knob and on the 0.87.0 bytes.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.87.0] — 2026-09-24 — **Reg M-C: a charge move draws its redirect on the turn it charges**
 
 - **What changed.** `engine/tag_dex.js` reads `Pokemon#getMoveTargets` from the compiled checkout and writes

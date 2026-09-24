@@ -2918,6 +2918,8 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
    *                            because its loop simply finds no match and falls through. */
   disableRefusedByOnStart: 0,
   volRefusedAnnounceOwed: 0, volRefusedSilent: 0, volFailLinesWritten: 0, encoreRefusedByOnStart: 0,
+  /* 2026-09-24 (abra/regmc 0.88.0) -- a bounced status move's `-fail` written on the BOUNCER (`mvFailBounced`) */
+  bouncedFailNamedBouncer: 0,
   /* ROADMAP #241(3) -- FAILURES RECORDED WITH NO LINE AT ALL, because the authority's handler
    * returned `null` and wrote its own. Counts CALLS to mvFailSilent -- i.e. `|-fail|` lines this
    * engine used to write and no longer does -- and not refusals, and not turns. Today its only caller
@@ -20253,6 +20255,24 @@ function bestMoveVs(att,def,field){ let best=null,bs=-1e18;
  *
  * TR is module-level and may be null; the state write is not conditional and the announcement is. */
 function mvFail(mon){ if(mon)mon._mvRes=false; if(TR)TR.fail(mon); }
+/* 2026-09-24 (abra/regmc 0.88.0) -- A BOUNCED STATUS MOVE THAT FAILS FAILS FOR THE BOUNCER.
+ *
+ * `magicbounce.onTryHit` (data/abilities.ts, both checkouts; no Champions row) re-uses the move as the BOUNCER's:
+ * `this.actions.useMove(newMove, target, { target: source }); return null;`. When that move then does nothing,
+ * `runMoveEffects` writes `this.battle.add('-fail', source)` with `source` = the move's user, the bouncer
+ * (sim/battle-actions.ts:1306). And the two results split the same way: `useMove` stores the bounced move's result on
+ * the BOUNCER (`pokemon.moveThisTurnResult = moveResult`, :371-374), while the clicker's own `trySpreadMoveHit` had its
+ * only target dropped by a `null` and ends `if (!moveResult && !atLeastOneFailure) pokemon.moveThisTurnResult = null`
+ * (:616) -- null, not false, so Stomping Tantrum does not double for it. `mvFail(clicker)` named the clicker AND wrote
+ * its result false. Reg M-C narration group M (`...bo3-2684711995`, turn 6: a Whimsicott's Encore bounced by a
+ * Hatterene). The abilitywrite branch's `_failAw` already names the bouncer and leaves the clicker alone.
+ * MEDI_BOUNCED_FAIL_NAMES_CLICKER=1 restores `mvFail(clicker)`. tests/probe_bounced_fail_names_bouncer.js. */
+function mvFailBounced(clicker,bouncer){
+  if(!bouncer||bouncer===clicker){mvFail(clicker);return;}
+  if(BOUNCED_FAIL_NAMES_CLICKER){MEDFAILS.bouncedFailNamesClickerRestored=1;mvFail(clicker);return;}
+  bouncer._mvRes=false; if(TR)TR.fail(bouncer); MEDSEEN.bouncedFailNamedBouncer++;
+}
+const BOUNCED_FAIL_NAMES_CLICKER=(typeof process!=='undefined'&&process.env&&process.env.MEDI_BOUNCED_FAIL_NAMES_CLICKER==='1');
 /* ROADMAP #256 -- THE SAME STATE WRITE WITH NO SECOND ANNOUNCEMENT, AND IT IS A SEPARATE FUNCTION
  * RATHER THAN A FLAG SO A CALL SITE CANNOT SILENTLY LOSE THE `|-fail|` IT OWES.
  *
@@ -37157,7 +37177,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            &&!(a.si.effects[0].chance<100)){
           MEDSEEN.volFailLinesWritten++;
           if(TR)TR.attrStill();
-          mvFail(m);
+          mvFailBounced(m,_bInfo.bouncedBy);
         }
         continue;
       }
@@ -39453,7 +39473,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(!_yBlocked&&t._yawn!=null){
           MEDSEEN.volFailLinesWritten++;
           if(TR)TR.attrStill();
-          mvFail(m);
+          mvFailBounced(m,_by.bounced?src:null);
         }
         /* NARRATION BATCH S, 2026-09-09 -- AND THE ALREADY-STATUSED CLAUSE NOW HAS A CONSEQUENCE.
          * `yawn.onTryHit(target) { if (target.status || !target.runStatusImmunity('slp')) return
@@ -39482,7 +39502,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           MEDSEEN.yawnRefusedOnStatus++;
           if(!MEDSEEN.yawnRefusedOnStatusFirst)MEDSEEN.yawnRefusedOnStatusFirst=String(t.status);
           if(TR)TR.attrStill();
-          mvFail(m);
+          mvFailBounced(m,_by.bounced?src:null);
         }
         /* NARRATION BATCH T, 2026-09-09 -- SAFEGUARD REFUSES THE DROWSE ITSELF, AND THIS IS A BOARD
          * FIX RATHER THAN A LINE.

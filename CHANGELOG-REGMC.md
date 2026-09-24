@@ -21,6 +21,27 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.88.0] — 2026-09-24
+
+### Fixed
+- **A bounced status move that fails writes its `-fail` on the bouncer, in both regulations.** `magicbounce.onTryHit`
+  (`data/abilities.ts`, both checkouts, no Champions row) re-uses the move as the bouncer's (`useMove(newMove, target,
+  { target: source })`), so when it does nothing `runMoveEffects` writes `-fail` on its `source`, the bouncer
+  (`sim/battle-actions.ts:1306`). The results split the same way: `useMove` stores the bounced move's result on the
+  bouncer (:371-374), and the clicker's own move ends `moveThisTurnResult = null` (:616), not false. MEDICHAM called
+  `mvFail(clicker)`, naming the clicker and writing its result false. Reg M-C narration group M (`…bo3-2684711995`,
+  turn 6: a Whimsicott's Encore bounced by a Hatterene). New `mvFailBounced(clicker, bouncer)` at the three sites a
+  bounced status move can fail: the `affect` branch's whole-move volatile refusal and both Yawn refusals. Knob
+  `MEDI_BOUNCED_FAIL_NAMES_CLICKER`. The `abilitywrite` branch's `_failAw` already named the bouncer and is unchanged.
+- New `tests/probe_bounced_fail_names_bouncer.js` (both regulations; derived cast, Hawlucha's Encore into Hatterene):
+  BOUNCE and a knob-cleared CONTROL (Hatterene on Healer, where the authority's `-fail` names the clicker). Green in
+  both; red under the knob in both, on release `d43292131dd6` (the 0.87.0 bytes, Reg M-C) and with `--medi` on the
+  0.87.0 bytes (Reg M-B). Fourteen related bounce, Yawn, Encore, Pressure and charge probes stay green in both.
+
+### Notes
+- `tests/probe_pivot_magic_bounce.js` and `tests/probe_yawn_safeguard_refusal.js` hardcode the Reg M-B checkout and
+  throw under `--regulation regmc` (the pass-9 trap, not touched here); both are green with the M-C checkout named.
+
 ## [0.87.0] — 2026-09-24
 
 ### Fixed
