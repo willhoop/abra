@@ -2,7 +2,8 @@
  * every pool worker run. Two copies of this loop would drift, and a drift here would be invisible: the
  * pool would still return a matrix, just not the one the serial search would have built.
  *
- *   job = { S, side, opp, rows, cols, belief:{sheet, revealed:Set}, depth, baseSeed }
+ *   job = { S, side, opp, rows, cols, belief:{sheet, revealed:Set}, depth, baseSeed[, leafCtx] }
+ *       leafCtx = { mode:'pory2', sheets } selects the PORYGON2 leaf (solver/miltank/rollout.js); absent = heuristic
  *   playPass(API, R, job, p, deadline) -> { p, v: Float64Array(m·n), stopped }
  *       cells are played from startCell(p) onward, wrapping (see startCell below)
  *       v[i·n+j] is the value of cell (i, j) for `side`, NaN if the clock ran out before it was played
@@ -33,7 +34,7 @@ function playPass(API, R, job, p, deadline) {
   for (let t = 0; t < mn; t++) {
     const c = (off + t) % mn, i = (c / n) | 0, j = c - i * n;
     const jA = job.side === 'A' ? job.rows[i] : job.cols[j], jB = job.side === 'A' ? job.cols[j] : job.rows[i];
-    const vA = R.playout(W, jA, jB, seed, job.depth);
+    const vA = R.playout(W, jA, jB, seed, job.depth, job.leafCtx);
     v[c] = job.side === 'A' ? vA : 1 - vA;
     if (Date.now() >= deadline) { stopped = true; break; }
   }

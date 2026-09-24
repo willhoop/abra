@@ -16,19 +16,21 @@
  *      mix — never the argmax; mixing is the point of a simultaneous-move root.
  *
  *   const MT = require('./solver/miltank/search.js').create(API, { prior: PA, rollout: R });
- *   MT.decide(S, side, ctx, { budgetMs, k1, k2, reserveSwitch, depth, coin, solver:'rm'|'lp' }) -> { joint, info }
+ *   MT.decide(S, side, ctx, { budgetMs, k1, k2, reserveSwitch, depth, coin, solver:'rm'|'lp', leaf:'heuristic'|'pory2' }) -> { joint, info }
+ *   The leaf defaults to env MILTANK_LEAF, else the heuristic. `pory2` = PORYGON2 v0 (PRE-GATE), solver/porygon2/leaf.js.
  *
  * `info` carries the counters for the decision: cells, passes, playouts, unfilled cells, the solved
  * value and SLOWKING's gap, the time spent. A cell with no playout when the clock ran out is filled
  * with the mean of the filled cells and COUNTED (`unfilled`) — never silently.
  */
 'use strict';
+const LEAF_ENV = (typeof process !== 'undefined' && process.env && process.env.MILTANK_LEAF) || '';
 const SK = require('../slowking/matrix.js');
 const C = require('./cells.js');
 
 function create(API, deps) {
   const PA = deps.prior, R = deps.rollout;
-  const COUNTERS = { decisions: 0, forced: 0, cells: 0, playouts: 0, unfilled: 0, reservedSwitch: 0, reservedMega: 0, rmIters: 0, overBudget: 0 };
+  const COUNTERS = { decisions: 0, forced: 0, cells: 0, playouts: 0, unfilled: 0, reservedSwitch: 0, reservedMega: 0, rmIters: 0, overBudget: 0, pory2Decisions: 0 };
 
   function rank(scores, joints, k, reserveSwitch, wantMega) {
     const idx = scores.map((p, i) => i).sort((a, b) => scores[b] - scores[a] || a - b);
@@ -63,7 +65,12 @@ function create(API, deps) {
     const colsI = rank(Array.from(sOp), laOp.joint, k2, rs, megaOp);
     const rows = rowsI.map(i => laMe.joint[i]), cols = colsI.map(i => laOp.joint[i]);
     const belief = { sheet: ctx.G.sheets[opp === 'A' ? 'p1' : 'p2'], revealed: PA.revealed(S, opp) };
-    return { job: { S, side, opp, rows, cols, belief, depth: o.depth == null ? 2 : o.depth } };
+    const job = { S, side, opp, rows, cols, belief, depth: o.depth == null ? 2 : o.depth };
+    /* THE LEAF: o.leaf, else env MILTANK_LEAF, else the heuristic. PORYGON2 needs both open sheets (p1 = side A). */
+    const leafMode = o.leaf || LEAF_ENV || 'heuristic';
+    if (leafMode === 'pory2') { job.leafCtx = { mode: 'pory2', sheets: ctx.G.sheets }; COUNTERS.pory2Decisions++; }
+    else if (leafMode !== 'heuristic') throw new Error('MILTANK: unknown leaf ' + leafMode);
+    return { job };
   }
   /* 3. SOLVE the mean matrix and sample the row mix. */
   function finishDecision(job, acc, o, t0, budget, coin, extra) {
