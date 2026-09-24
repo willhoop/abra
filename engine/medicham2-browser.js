@@ -3389,6 +3389,7 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
    * fact worth seeing rather than a silent path. */
   terrainRetyped: 0, terrainTypeKept: 0,
   terrainTypeBaseUntransformed: 0,   // 2026-09-18 -- Mimicry reverted a TRANSFORMED body to its untransformed species
+  terrainTypeHeldByEvent: 0,   // 2026-09-24 -- a sync under a terrain the holder already answered wrote nothing (Mimicry is an event)
   /* ROADMAP #175 -- FORECAST. `weatherRetyped` counts every rewrite in both directions;
    * `formeWeatherRestoreOnly` counts the members this consumer DECLINES by declared shape (Ice Face's
    * snow give-back, which is owned by `formeOnHit`) and is a receipt that the refusal is deliberate
@@ -27626,6 +27627,27 @@ function itemRoomSync(field,bodies){
 const MIMICRY_TRANSFORM_BLIND=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_MIMICRY_TRANSFORM_BLIND==='1');
 if(MIMICRY_TRANSFORM_BLIND)MEDFAILS.mimicryTransformBlind=1;
+/* 2026-09-24 -- THE SYNC ANSWERS ONLY A TERRAIN IT HAS NOT ALREADY ANSWERED FOR THIS BODY.
+ *
+ * The authority's Mimicry is an EVENT, not a standing property: `onStart` fires `singleEvent('TerrainChange')`
+ * on the holder and `onTerrainChange` answers `field.setTerrain` / `clearTerrain` -- nothing per turn, nothing
+ * on a weather change, nothing on ANOTHER body's entry (data/abilities.ts `mimicry`, :2571-2603 Reg M-B,
+ * :2581-2613 Reg M-C, no Champions override in either). This file calls the sync from seventeen sites,
+ * including the head of every turn, so a Mimicry body whose typing another handler rewrote under an
+ * UNCHANGED terrain -- Reflect Type is the legal one, measured on the roster's Stunfisk-Galar at a
+ * Goodra-Hisui -- was put back to its base typing (or re-Electrified under a standing terrain) at the next
+ * call, where the authority keeps the copy.
+ *
+ * So each holder remembers the terrain it last answered (`_terrainTypeSeen`) and a call under that same
+ * terrain writes nothing. The memory is cleared where the authority fires the event without the terrain
+ * moving -- the holder's own Start: entry (`runEntryPass`, the lead pass), a mid-battle ability start
+ * (`abilityStarted`) -- and on switch-out. Every site that SETS or CLEARS a terrain still reaches the sync,
+ * and there the terrain differs from what the holder last answered, so the event is served unchanged.
+ * `MEDI_MIMICRY_SYNC_EVERY_CALL=1` restores the every-call sync. tests/probe_mimicry_terrain_event_only.js. */
+const MIMICRY_SYNC_EVERY_CALL=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_MIMICRY_SYNC_EVERY_CALL==='1');
+if(MIMICRY_SYNC_EVERY_CALL)MEDFAILS.mimicrySyncEveryCallRestored=1;
+function terrainTypeEventOwed(m){ if(m)m._terrainTypeSeen=undefined; }
 function syncTerrainTypes(field,bodies){
   const _now=terrainId((field&&field.terrain)||'');
   for(const m of bodies||[]){
@@ -27651,7 +27673,10 @@ function syncTerrainTypes(field,bodies){
       if(!want){ MEDFAILS.terrainTypeNoBase++;
                  if(!MEDFAILS.terrainTypeNoBaseFirst)MEDFAILS.terrainTypeNoBaseFirst=String(m.name||'?'); continue; }
     }
+    const _answered=(m._terrainTypeSeen===_now);
+    m._terrainTypeSeen=_now;
     if((m.types||[]).join('/')===want.join('/'))continue;
+    if(_answered&&!MIMICRY_SYNC_EVERY_CALL){ MEDSEEN.terrainTypeHeldByEvent++; continue; }
     if(!m._ttWas)m._ttWas=(m.types||[]).slice();
     m.types=want.slice();
     MEDSEEN.terrainRetyped++;
@@ -28255,6 +28280,7 @@ function abilityStarted(m,field){
    * Forecast's is `singleEvent('WeatherChange', ...)` (:1462-1464); the entry pass reaches them through
    * `syncFieldTypes` over the actives, a Start that arrives mid-battle reached neither. ONE body, the
    * one that started -- the sync is idempotent and writes nothing when the types already match. */
+  terrainTypeEventOwed(m);   // 2026-09-24 -- a Start fires TerrainChange whatever the terrain
   syncFieldTypes(field,[m]);
 }
 /* The other half, called from `switchOut` beside the type restore and for the same reason: leaving the
@@ -29504,7 +29530,7 @@ function runEntryPass(nx,foes,act,i,field,sf,announce){
   if(AURA_STALE)MEDFAILS.auraStaleRestored=1;
   else if(refreshAura(field,[...(act||[]),...(foes||[])]))MEDSEEN.auraResyncedOnEntry++;
   if(NO_ENTRY_FIELD_SYNC)MEDFAILS.entryFieldSyncSkipped=(MEDFAILS.entryFieldSyncSkipped||0)+1;
-  else {MEDSEEN.entryFieldSync++;syncFieldTypes(field,[...(act||[]),...(foes||[])]);}
+  else {MEDSEEN.entryFieldSync++;terrainTypeEventOwed(nx);syncFieldTypes(field,[...(act||[]),...(foes||[])]);}
 }
 /* ---- ROADMAP #81 WIRE 12 -- WHAT A BATON PASS ACTUALLY HANDS OVER --------------------------------
  *
@@ -30294,6 +30320,7 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    if(_row&&Array.isArray(_row.t)&&out.types&&out.types.join('/')!==_row.t.join('/')){
      out.types=_row.t.slice(); MEDSEEN.typesRestoredOnSwitchOut++;
    }}
+  terrainTypeEventOwed(out);   // 2026-09-24 -- Mimicry: the next entry is a Start, which fires TerrainChange
   /* ROADMAP #307 -- AND SO DOES A REWRITTEN ABILITY, by the same line of the same function the type
    * restore two blocks up is read from: `clearVolatile` is `this.ability = this.baseAbility`
    * (`sim/pokemon.ts:1528`). Measured on the bench leaf before this was written -- 3 of 2,029 benched
@@ -31396,6 +31423,7 @@ function battleInit(teamA,teamB,opts){
      * setter would otherwise be typed against a field that did not exist yet. One sync once the sky is
      * final is the authority's shape too -- `onStart` fires the TerrainChange event, and the terrain
      * is whatever it is by then. */
+    [...S.actA,...S.actB].forEach(terrainTypeEventOwed);   // 2026-09-24 -- every lead's own Start
     syncFieldTypes(S.field,[...S.actA,...S.actB]);
   }
   traceRelease(_trPrev);

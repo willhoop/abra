@@ -18844,6 +18844,43 @@ probe('ability', 'typeFollowsTerrain', 'Mimicry retypes Stunfisk-Galar under Ele
                  + `ALLOWED TO END ${ended.hurt},${ended.types} (must be 0 and Ground/Steel again)` };
 });
 
+/* 2026-09-24 — MIMICRY IS AN EVENT, NOT A STANDING SYNC. The authority's handler is `onStart` (which fires
+ * `singleEvent('TerrainChange')` on the holder) and `onTerrainChange` — nothing per turn (data/abilities.ts `mimicry`,
+ * :2571-2603 Reg M-B, :2581-2613 Reg M-C, no Champions override). This engine re-ran it at the head of every turn,
+ * so a Stunfisk-Galar that Reflect Typed a Goodra-Hisui was put back to Ground/Steel one boundary later — the
+ * roster's Reflect Type row, FIRED-AND-BOARDS-DIFFER in both regulations. CONTROL: the same body with no ability
+ * keeps the copy (so the copy itself is not what moves). TEST: with Mimicry and no terrain change it keeps the copy
+ * too. LIVE: a terrain arriving on turn 3 still retypes it — the gate must not deafen the event.
+ * MEDI_MIMICRY_SYNC_EVERY_CALL=1 restores the per-turn sync; tests/probe_mimicry_terrain_event_only.js is the
+ * two-engine proof. */
+probe('ability', 'typeFollowsTerrain', 'Mimicry answers a terrain CHANGE, not every turn — a Reflect Type copy under an unchanged terrain holds', () => {
+  const run = (ab, terrainTurn) => {
+    const me = bare('stunfisk-galar'), ally = bare('milotic'), f1 = bare('goodra-hisui'), f2 = bare('garchomp');
+    me.ability = ab;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const seen = [];
+    for (let t = 1; t <= 4; t++) {
+      if (t === terrainTurn) { S.field.terrain = 'electric'; S.field.terrainT = 5; }
+      M.battleTurn(S, rng5, new Map([[me, t === 1 ? M.playerAction(me, 'reflecttype', f1, S.field) : { kind: 'pass' }],
+                                     [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+      seen.push((me.types || []).join('/'));
+    }
+    return { seen, copied: (f1.types || []).join('/') };
+  };
+  const control = run('none', 0), test = run('mimicry', 0), live = run('mimicry', 3);
+  const cp = control.copied;
+  const held = (r) => r.seen.every(x => x === cp);
+  return { works: cp !== 'Ground/Steel' && held(control) && held(test)
+                  && live.seen[0] === cp && live.seen[1] === cp && live.seen[2] === 'Electric' && live.seen[3] === 'Electric',
+           /* The no-ability arm and the test arm agree BY DESIGN (both keep the copy), so the arms reported are the two
+            * Mimicry arms, which must differ: the terrain CHANGE retypes, the unchanged terrain does not. */
+           arms: { control: live.seen, test: test.seen },
+           detail: `Stunfisk-Galar Reflect Types Goodra-Hisui (${cp}) on turn 1, its types at the end of turns 1-4 — `
+                 + `NO ability ${JSON.stringify(control.seen)} (the copy holds); Mimicry, no terrain change `
+                 + `${JSON.stringify(test.seen)} (must hold too — no TerrainChange fired); Mimicry, Electric Terrain from `
+                 + `turn 3 ${JSON.stringify(live.seen)} (must turn Electric on turn 3 — the event still fires)` };
+});
+
 /* ROADMAP #175 — FORECAST. THREE SKIES, THREE DIFFERENT ANSWERS, WHICH IS THE POINT.
  *
  * Castform is the only Forecast body in Reg M-B and it is NORMAL until the sky says otherwise:
@@ -38839,6 +38876,8 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           'eatEventUpdateOnlyRestored', 'stealEatStripOnlyRestored',
                           'kingsRockOncePerMoveRestored', 'accEvaSeparateRestored',
                           'transformNoCopiedStart', 'mimicryTransformBlind', 'bondReactDrawnRestored',
+                          /* 2026-09-24 -- tests/probe_mimicry_terrain_event_only.js */
+                          'mimicrySyncEveryCallRestored',
                           /* 2026-09-19 -- tests/probe_helpinghand_moved_ally.js */
                           'helpingHandMovedAllyRestored', 'roundUnpromotedRestored', 'bounceKindBlindRestored',
                           'punishHazardOnAttackerSideRestored', 'punishWeatherIfClearRestored',

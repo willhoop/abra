@@ -21,6 +21,27 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.105.0] — 2026-09-24
+
+### Fixed
+- **Mimicry answers a terrain change, not every turn (both regulations) — Reflect Type's hidden board mismatch.** The
+  roster's Reflect Type row (shelved on usage, underlying FIRED-AND-BOARDS-DIFFER in both regulations) was not a
+  Reflect Type defect: its aggressor is Stunfisk-Galar, whose only ability is Mimicry. The authority fires Mimicry on
+  its holder's Start and on `setTerrain` / `clearTerrain` only (data/abilities.ts `mimicry`, no Champions override,
+  identical in both checkouts). `syncTerrainTypes` re-ran it from every call site, the head of each turn included, so
+  a copied typing reverted to Ground/Steel one boundary later (or went back to Electric under a standing terrain).
+  Each holder now remembers the terrain it last answered; the memory is cleared on the lead pass, on entry, on a
+  mid-battle ability start and on switch-out. Knob `MEDI_MIMICRY_SYNC_EVERY_CALL`.
+- New probe `tests/probe_mimicry_terrain_event_only.js` (two engines, whole board): two red arms, a live arm (a
+  terrain set after the copy still retypes) and a no-Mimicry control. Red on the base bytes in both regulations, green
+  on the fix, red again under the knob. New census row `typeFollowsTerrain`; the knob is a `DELIBERATE_BREAK`.
+
+### Notes
+- Reflect Type itself matches the authority for every reachable case but one, filed and not fixed: a typeless target
+  carrying an added type (the authority copies Normal plus the added type). Separately filed: a second added type
+  replaces the first in the authority, where this engine appends it (Trick-or-Treat then Forest's Curse).
+  Terastallization is out of scope (the Champions mod's `canTerastallize` returns null).
+
 ## [0.104.0] — 2026-09-24
 
 ### Fixed
