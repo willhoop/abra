@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.88.1] — 2026-09-24 — **Census refuses the two new knobs; the faint-line row was the engine**
+
+- **What changed.** `tests/test-mechanics.js` `DELIBERATE_BREAK` gains the 0.87.0 and 0.88.0 knob receipts. Report
+  `docs/_reports/2026-09-24-narration-lightningrod-magicbounce.md`.
+- **Measured.** NO FIGURE published. Scratch lattices (not `data/`): Reg M-C `--games 1200`, board-material 0/954 on
+  `ec377f6f8159` and on `148b03f6132e`; narration games 6 -> 4. The faint-line row is the 0.85.0 revive latch, shown
+  with `--only-game` and its knob.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.88.0] — 2026-09-24 — **A bounced status move that fails writes its `-fail` on the bouncer**
 
 - **What changed.** `engine/medicham2-browser.js` `mvFailBounced` at the `affect` whole-move volatile refusal and both

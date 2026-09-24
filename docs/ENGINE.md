@@ -1,3 +1,8 @@
+## THE FAINT-LINE ROW WAS THE ENGINE, NOT THE INSTRUMENT. 2026-09-24 (abra/regmc 0.88.1)
+
+- `--only-game` on `omit-protect …bo3-2678516446`: clean on `ec377f6f8159`, the pass-9 card back under
+  `MEDI_REVIVE_KEEPS_FAINT_LATCH=1` (a revived Farigiraf). Hand list: the faint-line question leaves the pass-10 list.
+  Report `docs/_reports/2026-09-24-narration-lightningrod-magicbounce.md`.
 ## A BOUNCED STATUS MOVE THAT FAILS WRITES ITS `-fail` ON THE BOUNCER (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.88.0)
 
 - `mvFailBounced` (the `affect` whole-move volatile refusal, both Yawn refusals). Knob `MEDI_BOUNCED_FAIL_NAMES_CLICKER`.

@@ -21,6 +21,17 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.88.1] — 2026-09-24
+
+### Changed
+- `tests/test-mechanics.js` lists `chargeTurnNeverDrawsRestored` and `bouncedFailNamesClickerRestored` in
+  `DELIBERATE_BREAK`, so a census run with either 0.87.0 / 0.88.0 knob armed refuses to write.
+- The pass-10 "faint-line instrument question" is answered: the ENGINE, already fixed at 0.85.0. `--only-game` on
+  `omit-protect …bo3-2678516446` (release `ec377f6f8159`, `--games 1200`) writes Farigiraf's `|faint|` in both engines;
+  with `MEDI_REVIVE_KEEPS_FAINT_LATCH=1` the pass-9 card returns exactly (Farigiraf was revived on turn 7).
+- Report: `docs/_reports/2026-09-24-narration-lightningrod-magicbounce.md` (both fixes, the control, and the pinned
+  1200 lattices: Reg M-C board-material 0/954 before and after, narration 6 -> 4, the two gone being K and M).
+
 ## [0.88.0] — 2026-09-24
 
 ### Fixed

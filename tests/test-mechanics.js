@@ -38783,7 +38783,9 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           'terrainHealSemiInvRestored', 'seedUnconsumedRestored', 'seedNoTerrainChangeRestored',
                           /* 2026-09-23 (ENGINE pass 9, abra/regmc 0.71.0) -- the Stone Axe fainted-user row reads it */
                           'hazardOnHitFaintedAlwaysRestored',
-                          'volleyShieldEveryArrivalRestored', 'disguiseVolleyOldRestored', 'guardDogRefusesOnlyRestored', 'rattledIgnoresIntimidateRestored', 'refusalLabelDisplayRestored']
+                          'volleyShieldEveryArrivalRestored', 'disguiseVolleyOldRestored', 'guardDogRefusesOnlyRestored', 'rattledIgnoresIntimidateRestored', 'refusalLabelDisplayRestored',
+                          /* 2026-09-24 (abra/regmc 0.87.0 / 0.88.0) -- the charge-turn draw and the bounced -fail */
+                          'chargeTurnNeverDrawsRestored', 'bouncedFailNamesClickerRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '
