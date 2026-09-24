@@ -53,6 +53,17 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.90.0] — 2026-09-24 — **Heal Block's menu half: a heal-flagged move leaves the menu while the block stands**
+
+- **What changed.** `engine/medicham2-browser.js` `moveDisabledBy`: `healBlockRefusesClick`. One census row. The menu
+  probe now checks every boundary. `tests/probe_move_menu_legality.js` is green in all three parts, in both regulations.
+- **Measured.** API legality probe: 2 disagreeing slots of 5,552 become 0 (Reg M-C pinned pool, census pin
+  `f3b70bc0c47c`, `--games 45`, release `f9c11b7b9b3c`). Base release `9cfd07674cc9` against `f9c11b7b9b3c`: per-game fingerprint byte-identical over 38 games.
+  At `--games 1200` (same pins, `--end-state`) the base and the final release are byte-identical per game over 955 games, board-material 0 of 954 on both.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 0.89.0] — 2026-09-24 — **Imprison's menu half: a sealed move leaves every foe's menu**
 
 - **What changed.** `engine/medicham2-browser.js` `moveDisabledBy`: `imprisonSealedBy` against the body's living foes

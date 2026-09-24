@@ -276,6 +276,7 @@ function partFakeout() {
     pivotAgree = !!u && u.agree;
     ok(pivotAgree, 'MEDICHAM agrees: Fake Out is off its menu too', u && ('medicham ' + u.me_legal.join(',')));
     ok(!P.div, 'the streams agree for the whole staged game', P.div && JSON.stringify(P.div));
+    { const d = disagreements(P); ok(!d.length, 'every slot agrees at every boundary of the staged game, not only the one asserted above', d.map(x => 't' + x.turn + ' ' + x.sd + '[' + x.i + '] authority ' + x.sd_legal.join(',') + ' | medicham ' + x.me_legal.join(',')).join(NL)); }
   }
   if (PASSMV) {
     const Q = arm('PASSMV (first action ' + PASSMV + ')', PASS_T == null ? { m: PASSMV } : { m: PASSMV, t: PASS_T }, null);
@@ -377,6 +378,7 @@ function partImprison() {
     const ally = rows.find(x => x.sd === 'p2' && x.i === 1);
     ok(!!ally && ally.sd_legal.includes('protect') && ally.agree, 'the imprisoner\'s own ally keeps Protect in both engines (onFoe* is foes only)', ally && ally.me_legal.join(','));
     ok(!Sd.div, 'the streams agree for the whole staged game', Sd.div && JSON.stringify(Sd.div));
+    { const d = disagreements(Sd); ok(!d.length, 'every slot agrees at every boundary of the staged game, not only the one asserted above', d.map(x => 't' + x.turn + ' ' + x.sd + '[' + x.i + '] authority ' + x.sd_legal.join(',') + ' | medicham ' + x.me_legal.join(',')).join(NL)); }
     /* STRUGGLE: every slot of the last-active victim is one the imprisoner knows. `getMoves()` comes
      * back empty, so the authority's only legal click is Struggle (sim/pokemon.ts:1041, side.ts:699)
      * — and MEDICHAM's `mustStruggle` is the same question asked of the same menu. */
@@ -461,6 +463,7 @@ function partHealblock() {
     ok(!!u && u.agree, 'MEDICHAM agrees: ' + HEAL.id + ' is off its menu too', u && ('medicham ' + u.me_legal.join(',')));
     ok(!B.fainted, 'no body fainted, so the fixture is clean');
     ok(!B.div, 'the streams agree for the whole staged game', B.div && JSON.stringify(B.div));
+    { const d = disagreements(B); ok(!d.length, 'every slot agrees at every boundary of the staged game, not only the one asserted above', d.map(x => 't' + x.turn + ' ' + x.sd + '[' + x.i + '] authority ' + x.sd_legal.join(',') + ' | medicham ' + x.me_legal.join(',')).join(NL)); }
     if (!OUTSIDE.includes(K)) {
       const Rk = arm('BLOCKED', { m: NOISE.id, t: 0 }, K);
       if (Rk) {

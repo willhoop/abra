@@ -21,6 +21,26 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.90.0] — 2026-09-24
+
+### Fixed
+- **Heal Block's menu half (both regulations).** `healblock.condition.onDisableMove` disables every heal-flagged slot while
+  the volatile stands. It is a visible disable. The engine refused the click only at execution, so the move stayed on the
+  menu. `moveDisabledBy` now asks `healBlockRefusesClick`, the reader the execution refusal already uses. Knob
+  `MEDI_HEALBLOCK_MENU_OPEN`.
+
+### Added
+- Census row `move/blocksHealing`: "Heal Block takes a heal-flagged move off the menu while it stands, and gives it back
+  after".
+- `tests/probe_move_menu_legality.js` now asserts that every slot agrees at every boundary of each staged game. Before, it
+  checked only the asserted turn. That covers the end of Psychic Noise's two-turn block.
+
+### Notes
+- `legalActions` against the authority (`--games 45`, state mode): 2 disagreeing slots of 5,552 become 0. The
+  probe's legal part is green for the first time. Base release `9cfd07674cc9` against `f9c11b7b9b3c`: per-game fingerprint byte-identical over 38 games.
+  At `--games 1200` (same pins, `--end-state`) the base and the final release are byte-identical per game over 955 games, board-material 0 of 954 on both.
+- `docs/_reports/2026-09-24-move-menu-legality.md`.
+
 ## [0.89.0] — 2026-09-24
 
 ### Fixed

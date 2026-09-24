@@ -6775,6 +6775,11 @@ if(DISABLER_SEALS_STRUGGLE)MEDFAILS.disablerSealsStruggleRestored=1;
  * Probe: tests/probe_healblock_refuses_heal_move.js. */
 const HEALBLOCK_ALLOWS_HEAL_MOVES=_MK('MEDI_HEALBLOCK_ALLOWS_HEAL_MOVES');
 if(HEALBLOCK_ALLOWS_HEAL_MOVES)MEDFAILS.healBlockAllowsHealMovesRestored=1;
+/* 2026-09-24 -- MEDI_HEALBLOCK_MENU_OPEN=1 leaves Heal Block's MENU half unwired, as before: a heal-flagged move stays on
+ * the blocked body's menu and only the execution refusal (`onBeforeMove`) answers the click. Stamped at LOAD in
+ * `MEDFAILS.healBlockMenuOpenRestored`. Probe: tests/probe_move_menu_legality.js --part healblock. */
+const HEALBLOCK_MENU_OPEN=_MK('MEDI_HEALBLOCK_MENU_OPEN');
+if(HEALBLOCK_MENU_OPEN)MEDFAILS.healBlockMenuOpenRestored=1;
 /* 2026-09-20 -- MEDI_STEALEAT_AT_AFTERHIT=1 restores Bug Bite's and Pluck's steal-eat to the
  * `onAfterHit` step, where this engine had it beside Thief and Knock Off. Their handler is `onHit`
  * (data/moves.ts:1920), which `spreadMoveHit` runs at step 3 -- above the `DamagingHit` reactors --
@@ -20765,6 +20770,13 @@ function moveDisabledBy(me,id){
     const _foes=_S?((me._sf===_S.sfA)?_S.actB:(me._sf===_S.sfB?_S.actA:null)):null;
     if(_foes&&imprisonSealedBy(me,id,_foes)){ MEDSEEN.imprisonRefusedAtSelection=(MEDSEEN.imprisonRefusedAtSelection|0)+1; return 'imprison'; }
   }
+  /* 2026-09-24 -- HEAL BLOCK'S MENU HALF, `healblock.condition.onDisableMove` (data/moves.ts; no Champions row):
+   *     for (const moveSlot of pokemon.moveSlots) { if (this.dex.moves.get(moveSlot.id).flags['heal'])
+   *       pokemon.disableMove(moveSlot.id); }
+   * A VISIBLE disable, so the request and the legal set agree. Asked through `healBlockRefusesClick`, the one reader the
+   * execution refusal (`onBeforeMove`) already uses -- its own comment named this as the caller it was built for. The
+   * API legality probe found it on Golisopod's Leech Life after a Psychic Noise (2 of 5,552 Reg M-C slots). */
+  if(!HEALBLOCK_MENU_OPEN&&healBlockRefusesClick(me,id)){ MEDSEEN.healBlockRefusedAtSelection=(MEDSEEN.healBlockRefusedAtSelection|0)+1; return 'healblock'; }
   return null;
 }
 /* WHICH MOVE THE LOCK LEAVES ON THE MENU, or null for a free body.

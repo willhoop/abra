@@ -1,3 +1,13 @@
+## HEAL BLOCK'S MENU HALF IS WIRED; THE API LEGALITY PROBE IS GREEN (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.90.0)
+
+Full account: `docs/_reports/2026-09-24-move-menu-legality.md`.
+
+- `moveDisabledBy` asks `healBlockRefusesClick`. Knob `MEDI_HEALBLOCK_MENU_OPEN`. Probe
+  `tests/probe_move_menu_legality.js --part healblock`, plus a census row.
+- `tests/probe_medicham_api_differential.js --part legal` now finds 0 disagreeing slots of 5,552; it found 26
+  before 0.88.0. Hand list: **the Heal Block menu item leaves it.** Still open: the caller-supplied click on a fully sealed
+  body (0.89.0).
+
 ## IMPRISON'S MENU HALF IS WIRED (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.89.0)
 
 Full account: `docs/_reports/2026-09-24-move-menu-legality.md`.

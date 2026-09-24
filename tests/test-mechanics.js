@@ -21668,6 +21668,35 @@ probe('move', 'sealsMoves', 'Imprison takes the moves it knows off both foes\' m
                  + `CONTROL, the imprisoner passing, up=${control.up}: ${control.f1} | ${control.f2} | ${control.ally}` };
 });
 
+/* 2026-09-24 — HEAL BLOCK'S MENU HALF. `healblock.condition.onDisableMove` disables every heal-flagged slot while the
+ * volatile stands (a visible disable). The engine refused the click only at execution, so the move stayed on the menu.
+ * Psychic Noise lands the volatile on turn 1; the victim carries Draining Kiss (heal-flagged) and Calm Mind (not).
+ * Read off `selectableMoves` after the turn, and again after turn 2, when Psychic Noise's two-turn block has run out
+ * (`durationCallback` returns 2 for it) and the move must be back. CONTROL: the blocker passes turn 1.
+ * Knob MEDI_HEALBLOCK_MENU_OPEN=1. Staged against the authority: tests/probe_move_menu_legality.js --part healblock. */
+const healBlockMenu = (first) => {
+  const me = bare('noivern'), ally = bare('milotic'), f1 = bare('aromatisse'), f2 = bare('milotic');
+  me.moves = ['psychicnoise']; f1.moves = ['drainingkiss', 'calmmind'];
+  for (const b of [me, ally, f1, f2]) unfaintable(b);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  M.battleTurn(S, rng5,
+    new Map([[me, first ? M.playerAction(me, first, f1, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  const after1 = M.selectableMoves(f1).join(',');
+  M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+  return { after1, after2: M.selectableMoves(f1).join(',') };
+};
+probe('move', 'blocksHealing', 'Heal Block takes a heal-flagged move off the menu while it stands, and gives it back after', () => {
+  const test = healBlockMenu('psychicnoise');
+  const control = healBlockMenu(null);
+  return { works: test.after1 === 'calmmind' && test.after2 === 'drainingkiss,calmmind'
+                  && control.after1 === 'drainingkiss,calmmind',
+           arms: { control: control.after1, test: test.after1 },
+           detail: `the victim's menu after turn 1 / after turn 2. PSYCHIC NOISE: ${test.after1} / ${test.after2} (Draining `
+                 + `Kiss must leave, then come back when the two-turn block ends). CONTROL, the blocker passing: `
+                 + `${control.after1} / ${control.after2}` };
+});
+
 /* ---- ROADMAP #84 — SHOWDOWN SPLITS "MY MOVE DID NOT HAPPEN" IN TWO, AND THIS ENGINE HAD NEITHER ---
  *
  * `sim/battle-actions.ts:255` says it in a comment that names the move it matters for:
