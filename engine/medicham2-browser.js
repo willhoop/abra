@@ -15,7 +15,7 @@
  * Under node it loads the module; in the browser it expects window.ABRA_TAGS (the same JSON) and
  * degrades to a null lookup if the page did not ship it -- which keeps the site working while
  * making the absence visible through TAGS.missing rather than silently scoring everything at x1. */
-const TAGS = (function(){
+const TAGS_FULL = (function(){
   /* AN A/B SWITCH, so both arms of a head-to-head share one binary. ABRA_TAGS_OFF=1 makes every
    * lookup return null, which reverts the engine to exactly its pre-wire behaviour -- the honest
    * control for "did wiring the artifact make the bot stronger". Without this the comparison would
@@ -66,6 +66,15 @@ const TAGS = (function(){
     hits(){ return {}; }
   };
 })();
+/* ---- LEAN MODE, 2026-09-24 (docs/_reports/2026-09-24-lean-mode.md) -- THE TAG ACCESSOR IS A BINDING, NOT A CONSTANT.
+ * `TAGS` is the counting API above for every battle, every probe and every gate. Only `leanRun` (beside
+ * `battleTurn`) rebinds it, to `TAGS_LEAN` -- engine/tags.js `leanView()`: the same answers out of a lookup table,
+ * with no ASKED/COUNT instrument -- and it puts the counting API back in a `finally`. A tag source with no lean
+ * view (the ABRA_TAGS_OFF stub, the browser fallback) is its own lean view. */
+let TAGS = TAGS_FULL;
+const TAGS_LEAN = (TAGS_FULL && typeof TAGS_FULL.leanView === 'function') ? TAGS_FULL.leanView() : TAGS_FULL;
+/* True only inside `leanRun`. Every lean-only branch in this file reads it; with it false the file is the file it was. */
+let LEAN = false;
 
 /* EVERY SWALLOWED FAILURE IN THIS FILE COUNTS ITSELF. Two catch blocks here fall back to a
  * plausible-looking default (skip the Encore click; leave a second mega un-reverted) and used to say
@@ -87,7 +96,7 @@ const TAGS = (function(){
  * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
-const MEDSEEN = { spendClearedAddedType: 0, addedTypeReplaced: 0, addedTypeCopied: 0, typeCopyNormalForTypeless: 0, addedTypeBroadcast: 0, ateExcludedMove: 0, ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatMultPaid: 0, terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+let MEDSEEN = { spendClearedAddedType: 0, addedTypeReplaced: 0, addedTypeCopied: 0, typeCopyNormalForTypeless: 0, addedTypeBroadcast: 0, ateExcludedMove: 0, ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatMultPaid: 0, terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
    * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
@@ -3505,7 +3514,7 @@ const MEDSEEN = { spendClearedAddedType: 0, addedTypeReplaced: 0, addedTypeCopie
   dollSecondaryDrawn: 0, secAddrSkippedDollRow: 0, secAddrDollWithNoLiveRowYet: 0,
   updateEventSorted: 0, updateSpeedCacheStamped: 0, updateSortCachedDiffersLive: 0, updateTieResolved: 0,
   volSeqStamped: 0, volStepShadowOrdered: 0 };
-const MEDFAILS = { oozeNoName: 0, oozeUnderHealBlockUnmodelled: 0, reviveSwitchOutUnmodelled: 0, reviveNoHpFraction: 0, allyBasePowerUnusable: 0, critItemLockUnparsed: 0, encoreAction: 0, anticipationNoState: 0, anticipationMoveUnknown: 0, sweepActivateNoName: 0,
+let MEDFAILS = { oozeNoName: 0, oozeUnderHealBlockUnmodelled: 0, reviveSwitchOutUnmodelled: 0, reviveNoHpFraction: 0, allyBasePowerUnusable: 0, critItemLockUnparsed: 0, encoreAction: 0, anticipationNoState: 0, anticipationMoveUnknown: 0, sweepActivateNoName: 0,
   /* 2026-09-19 -- a body reached the Update sort with no cached `pokemon.speed` stamp (it fell back to live
    * speed), and a tied Update group resolved with no die in scope. Both should stay 0. */
   updateSpeedUncached: 0, updateOrderTieNoDie: 0,
@@ -12086,6 +12095,9 @@ function sdEachEventOrder(actA,actB,field){
   for(const x of (actA||[]))if(sdUpstreamActive(x))L.push({m:x,s:'A'});
   for(const x of (actB||[]))if(sdUpstreamActive(x))L.push({m:x,s:'B'});
   for(const e of L){
+    /* LEAN: with a cached stamp the live speed is read by the counter below and by nothing else, so it is not computed.
+     * Without a stamp it IS the sort key, and it is computed exactly as in a full battle. */
+    if(LEAN&&e.m._sdSpe!=null){ e.spe=e.m._sdSpe; continue; }
     const live=sdActionSpeed(e.m,field,e.s);
     if(e.m._sdSpe==null){ MEDFAILS.updateSpeedUncached++; e.spe=live; }
     else { e.spe=e.m._sdSpe; if(e.spe!==live)MEDSEEN.updateSortCachedDiffersLive++; }
@@ -31346,6 +31358,16 @@ function lastFaintSeq(arr,ep){ let n=-1;
   for(const m of arr) if(m&&m.fainted&&m._fEpoch===ep&&m._faintSeq>n)n=m._faintSeq;
   return n; }
 function battleInit(teamA,teamB,opts){
+  /* 2026-09-24 -- LEAN MODE (see `leanRun`): the lead-in runs lean too, and the battle is marked so every turn does.
+   * A lean battle writes no protocol, so a trace sink is refused rather than silently dropped. The lean view's table
+   * is rebuilt per lean battle, so an in-place tag edit made between two battles is seen by the second. */
+  if(opts&&opts.lean&&!LEAN){
+    if(opts.trace)throw new Error('battleInit: {lean:true} and {trace} are exclusive -- a lean battle writes no protocol');
+    if(TAGS_LEAN&&typeof TAGS_LEAN.reset==='function')TAGS_LEAN.reset();
+    const S=leanRun(()=>battleInit(teamA,teamB,opts));
+    S._lean=true;
+    return S;
+  }
   _FAINT_EPOCH++; _FAINT_EPOCH_ACTIVE=_FAINT_EPOCH;
   /* A LINE STILL OWED WHEN A NEW BATTLE OPENS IS A DRAIN THAT NEVER RAN. Cleared, and LOUD -- a
    * silently-carried queue would emit a corpse's `|faint|` into somebody else's game. */
@@ -32414,7 +32436,7 @@ function midEventDraw(cat, seed) {
   const n = MID_NTH.get(base) || 0;
   MID_NTH.set(base, n + 1);
   const ctx = base + '|' + n;
-  MID_LOG.push(ctx);
+  if(!LEAN)MID_LOG.push(ctx);   /* LEAN: the address log has no reader in the engine; the repeat map above feeds the dice and stays */
   return midEventValue(ctx);
 }
 /* THE FACTORY. Returns the same shape `rngStreams` returns, so `battleTurn` passes it straight through
@@ -32708,13 +32730,60 @@ function oozeReverse(healer,holder,srcId,amt){
   if(healer.curHP<=0)queueFaint(healer,'reversesHeal');
   return true;
 }
+/* ---- LEAN MODE, 2026-09-24 (docs/_reports/2026-09-24-lean-mode.md) --------------------------------------------------
+ *
+ * A SEARCH PLAYOUT NEEDS THE BOARD AND NOTHING ELSE. A battle built with `battleInit(A, B, {lean:true})` (the solver API's
+ * `newBattle({lean:true})`) carries `S._lean`, and every turn it plays runs inside `leanRun`, which for that turn only:
+ *   - rebinds `TAGS` to the lean view (engine/tags.js `leanView`): identical answers, no ASKED/COUNT counting, a table
+ *     lookup in place of `norm` + an array scan per question;
+ *   - rebinds `MEDSEEN` and `MEDFAILS` to a private SINK, so the process counters every gate, probe and census reads are
+ *     never touched by a playout (a lean battle's counters are discarded, not recorded);
+ *   - refuses a trace sink (a lean battle writes no protocol; `TR` stays null), skips the event-address LOG (not the
+ *     repeat map, which feeds the dice), and skips three pieces of work whose ONLY reader is a counter:
+ *       the live speed `sdEachEventOrder` computes beside a cached stamp (and Magician's copy of it),
+ *       the Eject Button same-speed tie witness, and the Emergency Exit "other door" witness at the top of the turn;
+ *   - builds an attack action without its PRICE (`playerActionPrimary`'s `d`/`acc`, a click's valuation, which no step of
+ *     a turn reads outside the MEDI_ORB_STALE_RANGE restore arm) -- `null`, which any reader would throw on.
+ * NOTHING THAT DECIDES ORDER IS TOUCHED. The Update speed re-sort, every `effSpeed` that feeds a sort, `volSeqSync` and
+ * the residual handler sort run exactly as in a full battle (Will, 2026-09-24).
+ *
+ * BOARD-IDENTICAL, NOT BYTE-IDENTICAL, AND THE DIFFERENCE IS DECLARED. `solver/tests/test-lean-mode.js` plays every game
+ * of the Reg M-C `--games 1200` lattice (through tests/medicham_api_diffhook.js MEDI_API_HOOK=lean) and a slice of the
+ * human-dataset sheets twice, lean and full, on the same seeds and the same choices, and requires the whole battle graph
+ * to agree after every turn, less `LEAN_EXEMPT` (the flag, and `_eeHP`, whose only reader is a counter). `MEDI_LEAN_BREAK=1` makes a lean turn skip
+ * Leftovers' residual heal, a real board handler, and the test must go RED on it; the knob stamps the REAL MEDFAILS.
+ *
+ * A FULL BATTLE READS ONE EXTRA FIELD PER TURN (`S._lean`) AND NOTHING ELSE CHANGES FOR IT. */
+const LEAN_BREAK=(typeof process!=='undefined'&&process.env&&process.env.MEDI_LEAN_BREAK==='1');
+let _LEAN_SEEN=null,_LEAN_FAILS=null;
+function leanRun(fn){
+  if(LEAN)return fn();
+  if(LEAN_BREAK)MEDFAILS.leanBreakRestored=1;
+  if(!_LEAN_SEEN){ _LEAN_SEEN=structuredClone(MEDSEEN); _LEAN_FAILS=structuredClone(MEDFAILS); }
+  const pT=TAGS,pS=MEDSEEN,pF=MEDFAILS,pTR=TR;
+  LEAN=true; TAGS=TAGS_LEAN; MEDSEEN=_LEAN_SEEN; MEDFAILS=_LEAN_FAILS; TR=null;
+  try{ return fn(); }
+  finally{ LEAN=false; TAGS=pT; MEDSEEN=pS; MEDFAILS=pF; TR=pTR; }
+}
+/* THE ENTRY IS A THIN DOOR, 2026-09-24. The two delegations below used to be the first lines of the turn body itself,
+ * so a scoped battle (every battle engine/medicham_api.js builds) ENTERED the ~22,000-line body twice per turn -- once
+ * only to delegate -- and paid the body's frame set-up both times. They are the same two tests in the same order; the
+ * body below is the old body from its third statement on, called once. */
 function battleTurn(S,rng,actsForA,actsForB){
   /* 2026-09-24 -- a battle that carries its own scratch steps inside it; see battleScopeRun. `S._scope`
    * is never set by anything but a caller that asked for one, so every other battle skips this line. */
   if(S&&S._scope&&S._scope!==_SCOPE_CUR)return battleScopeRun(S._scope,()=>battleTurn(S,rng,actsForA,actsForB));
+  /* 2026-09-24 -- LEAN MODE: a battle built lean plays every turn inside `leanRun` (see above). */
+  if(S&&S._lean&&!LEAN){
+    if(S._trace)throw new Error('battleTurn: a lean battle carries no trace sink (S._trace is set) -- build it without lean to get a protocol');
+    return leanRun(()=>battleTurnBody(S,rng,actsForA,actsForB));
+  }
+  return battleTurnBody(S,rng,actsForA,actsForB);
+}
+function battleTurnBody(S,rng,actsForA,actsForB){
   /* 2026-09-21 (Reg M-C, abra/regmc 0.22.0) -- the Emergency Exit doors this engine does not model (the residual and the
    * hazards, sim/battle.ts:2863-2874) are COUNTED: a holder above half at the last look and at or below it now. */
-  for(const _b of [...((S&&S.actA)||[]),...((S&&S.actB)||[])]){
+  if(!LEAN)for(const _b of [...((S&&S.actA)||[]),...((S&&S.actB)||[])]){   /* LEAN: a counter's witness only (`_eeHP` has no other reader) */
     if(!_b||_b.fainted||_b.curHP<=0||!TAGS.param('ability',_b.ability,'switchesOutAtHalf'))continue;
     const _h=_b.st.hp/2;
     if(_b._eeHP!=null&&_b._eeHP>_h&&_b.curHP<=_h)MEDFAILS.emergencyExitOtherDoorUnmodelled++;
@@ -51004,7 +51073,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                                      &&TAGS.param('item',R.tg.item,'ejectsHolderOnHit'));
         if(_eRows.length>1){
           _eRows.sort((x,y)=>effSpeed(y.tg,field,sideOfBody(y.tg,actA)) - effSpeed(x.tg,field,sideOfBody(x.tg,actA)));
-          for(let _k=1;_k<_eRows.length;_k++)
+          if(!LEAN)for(let _k=1;_k<_eRows.length;_k++)   /* LEAN: a tie witness for a counter only */
             if(effSpeed(_eRows[_k].tg,field,sideOfBody(_eRows[_k].tg,actA))===effSpeed(_eRows[_k-1].tg,field,sideOfBody(_eRows[_k-1].tg,actA)))MEDFAILS.ejectSwitchOrderTie++;
         }
         const _fsE=TAGS.param('move',a.move.id,'forcesSwitch');
@@ -51434,6 +51503,7 @@ function battleTurn(S,rng,actsForA,actsForB){
               const _L=[];
               for(const R of _rows){
                 if(R.out||!R.tg||R.tg===m||_L.some(e=>e.m===R.tg))continue;
+                if(LEAN&&R.tg._sdSpe!=null){_L.push({m:R.tg,spe:R.tg._sdSpe});continue;}   /* LEAN: see sdEachEventOrder */
                 const _live=sdActionSpeed(R.tg,field);
                 if(R.tg._sdSpe==null){MEDFAILS.updateSpeedUncached++;_L.push({m:R.tg,spe:_live});}
                 else _L.push({m:R.tg,spe:R.tg._sdSpe});
@@ -52997,7 +53067,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * this is a no-op today and the point is next month: a second passive-heal item joins by
        * EXISTING rather than by someone remembering to add a name here. docs/TAGS.md invariant 3. */
       if(_G.has('leftovers')){const _ph=TAGS.param('item',m.item,'passiveHeal');
-       if(_ph&&_ph.heal&&!healBlocked(m)){const _h0=m.curHP;
+       if(_ph&&_ph.heal&&!healBlocked(m)&&!(LEAN&&LEAN_BREAK)){const _h0=m.curHP;   /* MEDI_LEAN_BREAK: the lean test's deliberate break */
          /* 2026-09-19 -- RIPEN'S `onTryHeal` ANNOUNCES ITSELF FOR A LEFTOVERS HEAL, and TryHeal is raised
           * ABOVE `Battle#heal`'s full-HP return (sim/battle.ts:2268 against :2272), so a full-HP holder
           * announces too. The names and the line are the tag's (`doublesBerryEffect.announcesHealFrom`,
@@ -54977,6 +55047,10 @@ function playerActionPrimary(me,moveId,target,field){
     const spread=SPREAD.has(id)||terrainWidensToSpread(id,me,field);
     /* WIRE 131 — `acc` is the chance THIS click lands on THIS target, not the move's printed number.
      * Both bodies are in hand here and the old line used neither. */
+    /* LEAN (2026-09-24): `d` and `acc` are the click's PRICE, read by callers that value a click and, inside a turn, by
+     * nothing but the MEDI_ORB_STALE_RANGE restore arm. A lean battle is played, not valued, so it carries `null` for
+     * both -- a null that anything reading `.min`/`.max` would throw on, which is the loud form of "never read". */
+    if(LEAN&&!ORB_STALE_RANGE)return {kind:'attack',move:{id,mv,spread,d:null,acc:null},target,rescript:_rescript||undefined};
     return {kind:'attack',move:{id,mv,spread,d:dmgRange(me,target,mv,field,spread),acc:hitProb(me,target,id,field)},
             target,rescript:_rescript||undefined};
   }
@@ -55708,6 +55782,9 @@ root.natureShift=natureShift; root.natureStat=natureStat; root.natureL50=natureL
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,rngStreams,RNG_STREAMS,
   /* force-fire-b, 2026-09-19 -- the pure trap verdict, exported so a harness can ASK this engine whether a body could leave at a boundary, beside the authority's request, without making the switch choice the authority would refuse. */
   switchTrapVerdict,
+  /* 2026-09-24 -- LEAN MODE: run a caller's own engine calls (a playout's menu reads, the API's action build) under the
+   * lean binding. EXPORT ONLY; see `leanRun`. */
+  leanRun,
   /* 2026-09-24 (abra/regmc 0.95.0) -- EXPORT ONLY, for engine/medicham_api.js (the solver-facing wrapper).
    * The menu (`selectableMoves`, `mustStruggle`), the game-over predicate WITHOUT the horizon cap
    * (`sideWiped`; `battleOver` also stops at `maxTurns`), a move's target class as the engine reads it,

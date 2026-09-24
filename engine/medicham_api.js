@@ -20,6 +20,15 @@
  *   atHorizon(S, cap)            S.turn >= cap -- the question `battleOver` was mixing in
  *   horizonScore(S)              `battleResult` -- the HP heuristic at a cap, named as the heuristic it is
  *   digest(S)                    sha256 of the canonical battle, stamps rank-normalised
+ *   leanRun(fn)                  run fn under the engine's lean binding (see LEAN below)
+ *   makeLean(S)                  make an existing battle lean from its next turn on (a playout's own copy)
+ *
+ * LEAN (2026-09-24, docs/_reports/2026-09-24-lean-mode.md). `newBattle(a, b, {lean: true, rng})` builds a battle that
+ * plays every turn in the engine's lean mode: the same BOARD, no protocol, no process counters touched, tag questions
+ * answered from a lookup table. It is for search playouts. A lean battle refuses a trace sink (newBattle, clone and the
+ * engine all throw), and a battle's lean flag rides on the battle (`S._lean`), so a clone or a v8 copy of it is lean too.
+ * `solver/tests/test-lean-mode.js` holds lean BOARD-identical to a full battle, turn by turn. Nothing changes for a battle built
+ * without the flag.
  *
  * WHAT IT IS NOT, YET. The mid-turn decisions (who replaces a faint, where a pivot goes) are still
  * PRE-COMMITTED: a joint action may carry `replaceWith`/`pivotTo` exactly as the engine already reads
@@ -86,7 +95,7 @@ function bind(M) {
   const STREAMS = ['any'].concat(M.RNG_STREAMS);
   /* SAID ON EVERY RUN THAT USES THEM: which capabilities fired. A zero is the finding. */
   const COUNTERS = { battles: 0, adopted: 0, clones: 0, steps: 0, stepsInPlace: 0, legalCalls: 0,
-                     forcedSlots: 0, sharedScratch: 0 };
+                     forcedSlots: 0, sharedScratch: 0, leanBattles: 0, leanSteps: 0 };
   /* THE DELIBERATE BREAKS, for the acceptance tests to show they can see a fault. Each one is loud: it
    * stamps MEDFAILS the moment it acts, so a run that had one on cannot pass for a clean run. */
   const env = (k) => typeof process !== 'undefined' && process.env && process.env[k] === '1';
@@ -137,6 +146,12 @@ function bind(M) {
     if (!opts.rng && !opts.seeded) throw new Error('newBattle: opts.rng is required (pass makeRng(seed)), or seeded: true for a literal seeded board -- ROADMAP #310');
     const init = { autoMega: opts.autoMega === true, seeded: !!opts.seeded };
     if (opts.trace) init.trace = opts.trace;
+    if (opts.lean) {
+      if (opts.trace) throw new Error('newBattle: {lean:true} and {trace} are exclusive -- a lean battle writes no protocol');
+      if (typeof M.leanRun !== 'function') throw new Error('newBattle: {lean:true} needs an engine with leanRun (abra/regmc lean mode); this one predates it');
+      init.lean = true;
+      COUNTERS.leanBattles++;
+    }
     let S;
     if (RED_SHARED_SCRATCH) {
       M.MEDFAILS.apiSharedScratchRestored = 1; COUNTERS.sharedScratch++;
@@ -175,6 +190,7 @@ function bind(M) {
       if (had) S._trace = undefined;
       try { T = structuredClone(S); } finally { if (had) S._trace = tr; }
     }
+    if (opts && opts.trace && S._lean) throw new Error('medicham_api.clone: a lean battle cannot be given a trace sink');
     if (had) { if (opts && opts.trace) T._trace = opts.trace; else delete T._trace; }
     else if (opts && opts.trace) T._trace = opts.trace;
     /* DELIBERATE BREAK for the differential's clone arm: one body field left out of every copy. */
@@ -347,7 +363,9 @@ function bind(M) {
     }
     DEPTH++;
     try {
-      M.battleTurn(S, rng, toActs(S, 'A', jA), toActs(S, 'B', jB));
+      /* LEAN: the action build (playerAction's tag reads) runs under the lean binding too; the turn enters it itself */
+      if (S._lean) { M.leanRun(() => M.battleTurn(S, rng, toActs(S, 'A', jA), toActs(S, 'B', jB))); COUNTERS.leanSteps++; }
+      else M.battleTurn(S, rng, toActs(S, 'A', jA), toActs(S, 'B', jB));
     } finally { DEPTH--; }
     COUNTERS.stepsInPlace++;
     return S;
@@ -422,7 +440,19 @@ function bind(M) {
   }
   const digest = (S) => crypto.createHash('sha256').update(digestString(S)).digest('hex');
 
-  return { bind, M, COUNTERS, makeRng, makeEventDice, newBattle, adopt, clone, legalActions, step, stepInPlace,
+  const leanRun = (fn) => {
+    if (typeof M.leanRun !== 'function') throw new Error('medicham_api.leanRun: this engine predates lean mode');
+    return M.leanRun(fn);
+  };
+  /* Make an existing battle lean from its next turn on -- a playout's own throwaway copy of a full position. The
+   * flag is the only state lean mode keeps, so this is the whole conversion; a battle with a trace sink is refused. */
+  const makeLean = (S) => {
+    if (typeof M.leanRun !== 'function') throw new Error('medicham_api.makeLean: this engine predates lean mode');
+    if (S && S._trace) throw new Error('medicham_api.makeLean: this battle carries a trace sink; a lean battle writes no protocol');
+    S._lean = true;
+    return S;
+  };
+  return { bind, M, COUNTERS, leanRun, makeLean, makeRng, makeEventDice, newBattle, adopt, clone, legalActions, step, stepInPlace,
            isTerminal, atHorizon, winner, horizonScore, digest, digestString, validTargetLoc, CHOOSABLE_TARGETS };
 }
 

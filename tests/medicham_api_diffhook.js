@@ -14,6 +14,10 @@
  *                           and the same turn is played on `API.clone(S)` by `API.stepInPlace` -- the body of
  *                           `API.step` -- on a replay of the real turn's dice; the two must agree on the digest,
  *                           the protocol and the dice consumed. Written to MEDI_API_HOOK_OUT at exit. T4, second leg.
+ *   MEDI_API_HOOK=lean      (2026-09-24) a FULL copy and a LEAN copy (`newBattle({lean:true})`'s mode) of each battle
+ *                           play the whole game beside the real one, on its turns' choices and a replay of its dice;
+ *                           the lean board must equal the full board after every turn (see viaLean). Written to
+ *                           MEDI_API_HOOK_OUT at exit. Driven by solver/tests/test-lean-mode.js.
  *   MEDI_API_LEGAL_PROBE=<file>   at every move request where both engines stand on the same turn, the
  *                           API's `legalActions(S, side)` is compared, slot by slot, with the legal set the
  *                           AUTHORITY derives from its own objects -- T3. Written to <file> at exit.
@@ -87,6 +91,7 @@ function patchEngine(M, file) {
     STAT.turns_routed++;
     if (HOOK === 'inplace') return API.stepInPlace(S, a, b, rng);
     if (HOOK === 'clone') return viaShadow(M, S, rng, a, b);
+    if (HOOK === 'lean') return viaLean(M, S, rng, a, b);
     throw new Error('medicham_api_diffhook: unknown MEDI_API_HOOK=' + HOOK);
   };
 }
@@ -127,7 +132,7 @@ function recorder(r) {
   return { rec: o, logs };
 }
 function replayer(shape, logs) {
-  const at = {}; const out = { over: 0, left: () => Object.keys(logs).reduce((n, k) => n + logs[k].length - (at[k] || 0), 0) };
+  const at = {}; const out = { over: 0, left: () => Object.keys(logs).reduce((n, k) => n + logs[k].length - (at[k] || 0), 0), at: () => Object.assign({}, at) };
   const f = (k) => () => { const i = at[k] || 0; if (i >= logs[k].length) { out.over++; return 0.5; } at[k] = i + 1; return logs[k][i]; };
   if (typeof shape === 'function') { out.rng = f('fn'); return out; }
   const o = {};
@@ -183,6 +188,133 @@ function viaShadow(M, S, rng, a, b) {
         lines: sameLines ? null : { real: realLines.slice(0, 12), copy: tr.slice(0, 12) } });
     }
   }
+  return out;
+}
+
+/* ---- LEAN: a whole LEAN GAME played beside the real one (solver/tests/test-lean-mode.js) -----------------------
+ *
+ * MEDI_API_HOOK=lean. At a battle's first routed turn two copies are taken with `API.clone` (which leaves the
+ * differential's trace sink behind): F, a FULL battle, and L, the same copy made lean (`API.makeLean`). From then on
+ * neither is re-synchronised while it agrees: every real turn is also played on F and on L, each with the real turn's
+ * two action maps translated onto its own bodies and its own REPLAY of the real turn's dice, exactly as the shadow step
+ * above does it. So F and L are two whole games on the same seeds and the same choices, one full and one lean.
+ *
+ * THE CLAIM IS L == F, after every turn: the whole battle graph through `API.digestString` (every body's HP, status,
+ * boosts, item, ability, types, volatiles, PP, the field, the turn), less LEAN_EXEMPT, and the SAME DRAWS stream by
+ * stream (each copy runs on its own replay of the real turn's recording).
+ * F is compared with the real battle too (`full_track_*`), less TRACE_ONLY -- that says the full copy is playing the
+ * real game and the comparison is not two copies agreeing somewhere off to the side. Both are untraced, so a field a
+ * trace writes is not lean mode's business and is not excused in the L == F check.
+ *
+ * LEAN_EXEMPT, each with its reason. Nothing else is excused:
+ *   _lean    the flag itself;
+ *   _eeHP    the Emergency Exit "other door" witness, skipped by a lean turn; its only reader is a MEDFAILS counter at
+ *            the top of the turn (engine/medicham2-browser.js battleTurnBody), so it cannot reach a board.
+ * TRACE_ONLY (F vs the real, traced battle only): `_trace`; `_chipFrom` (a formeOnHit chip's `[from]` tag, reset only
+ * under `if(TR)`); `_traceFainted` (the trace's own faint-line latch, read only by TRACE.faint).
+ *
+ * On a disagreement both copies are re-taken from the real battle, so one fault is counted once and the rest of the
+ * game is still checked. They are also re-taken BEFORE a turn when the real battle's board moved since the last turn
+ * ended -- the differential's planted-divergence proofs write into it between turns -- and that is counted
+ * (`lean_retaken_edited`). Every routed turn is then compared, or named: a real turn that threw, or (never expected) one
+ * whose actions could not be translated onto the copies. A lean turn touches no process counter (it writes to a discarded sink); the full copy's
+ * counters are put back after each turn, so the artifact's counters are the real turn's alone. */
+const LEAN_EXEMPT = new Set(['_lean', '_eeHP']);
+const TRACE_ONLY = new Set(['_trace', '_chipFrom', '_traceFainted']);
+const LEAN_PAIR = new WeakMap();
+STAT.lean_turns = 0; STAT.lean_agree = 0; STAT.lean_disagree = 0; STAT.lean_battles = 0; STAT.lean_resynced = 0; STAT.lean_real_turn_threw = 0; STAT.lean_untranslated = 0; STAT.lean_retaken_edited = 0;
+STAT.full_track_agree = 0; STAT.full_track_disagree = 0; STAT.lean_disagreements = []; STAT.full_track_disagreements = [];
+STAT.lean_exempt = [...LEAN_EXEMPT]; STAT.trace_only = [...TRACE_ONLY];
+function canonLess(S, drop) {
+  /* the sink is blanked IN PLACE for the copy (as API.clone does), so it is neither copied nor reordered */
+  const had = Object.prototype.hasOwnProperty.call(S, '_trace'), tr = S._trace;
+  let T;
+  if (had) S._trace = undefined;
+  try { T = structuredClone(S); } finally { if (had) S._trace = tr; }
+  const seen = new Set();
+  (function strip(v) {
+    if (!v || typeof v !== 'object' || seen.has(v)) return; seen.add(v);
+    if (v instanceof Map) { for (const [k, x] of v) { strip(k); strip(x); } return; }
+    if (v instanceof Set) { for (const x of v) strip(x); return; }
+    for (const k of Object.keys(v)) { if (drop.has(k)) delete v[k]; else strip(v[k]); }
+  })(T);
+  return API.digestString(T);
+}
+function firstDiff(x, y) { let i = 0; while (i < x.length && x[i] === y[i]) i++; return { at: i, a: x.slice(Math.max(0, i - 160), i + 80), b: y.slice(Math.max(0, i - 160), i + 80) }; }
+function leanPair(S) { STAT.lean_battles++; return { F: API.clone(S), L: API.makeLean(API.clone(S)) }; }
+function translate(S, T, a) {
+  const fwd = new Map(); correspond(S, T, fwd);
+  const fwdDeep = (v, seen) => {
+    if (!v || typeof v !== 'object') return v;
+    if (fwd.has(v)) return fwd.get(v);
+    seen = seen || new Map(); if (seen.has(v)) return seen.get(v);
+    if (Array.isArray(v)) { const o = []; seen.set(v, o); for (const x of v) o.push(fwdDeep(x, seen)); return o; }
+    /* an action may carry its own Map or Set (the shadow step above refuses one; the lean pair translates it, entry by
+     * entry, so no turn goes uncompared for want of it) */
+    if (v instanceof Map) { const o = new Map(); seen.set(v, o); for (const [k, x] of v) o.set(fwdDeep(k, seen), fwdDeep(x, seen)); return o; }
+    if (v instanceof Set) { const o = new Set(); seen.set(v, o); for (const x of v) o.add(fwdDeep(x, seen)); return o; }
+    const o = {}; seen.set(v, o); for (const k of Object.keys(v)) o[k] = fwdDeep(v[k], seen); return o;
+  };
+  return a instanceof Map ? new Map([...a].map(([k, v]) => [fwd.get(k) || k, fwdDeep(v)])) : a;
+}
+function viaLean(M, S, rng, a, b) {
+  STAT.lean_turns++;
+  let pr = LEAN_PAIR.get(S);
+  /* THE REAL BATTLE EDITED BETWEEN TURNS (the differential's planted-divergence proofs write HP, boosts, status,
+   * volatiles and items straight into it) is no longer the battle the pair copied, so the pair is re-taken from it
+   * before the turn. Seen by the real battle's own board moving since the end of the last compared turn. */
+  const cS0 = pr ? canonLess(S, TRACE_ONLY) : null;
+  if (pr && pr.lastS !== cS0) { STAT.lean_retaken_edited++; pr = null; }
+  if (!pr) { pr = leanPair(S); LEAN_PAIR.set(S, pr); }
+  let fa, fb, la, lb;
+  try { fa = translate(S, pr.F, a); fb = translate(S, pr.F, b); la = translate(S, pr.L, a); lb = translate(S, pr.L, b); }
+  catch (e) {   /* the harness could not map this turn's actions; the real turn is still played, untouched, and counted */
+    STAT.lean_untranslated++; LEAN_PAIR.delete(S);
+    STAT.lean_untranslated_why = STAT.lean_untranslated_why || {};
+    const why = String(e && e.message || e).slice(0, 160); STAT.lean_untranslated_why[why] = (STAT.lean_untranslated_why[why] || 0) + 1;
+    return ORIG(S, rng, a, b);
+  }
+  const R = recorder(rng);
+  const mark = S._trace ? S._trace.length : 0;
+  let out;
+  /* a REAL turn that throws is the differential's to handle (its planted-divergence proofs can make one); nothing was
+   * played to compare, so it is counted apart and the pair is re-taken at the next turn */
+  try { out = ORIG(S, R.rec, a, b); }                     // THE REAL TURN, untouched
+  catch (e) { STAT.lean_real_turn_threw++; LEAN_PAIR.delete(S); throw e; }
+  const lines = S._trace ? S._trace.slice(mark) : null;
+  const sSeen = snap(M.MEDSEEN), sFail = snap(M.MEDFAILS);
+  const PF = replayer(rng, R.logs), PL = replayer(rng, R.logs);
+  let errF = null, errL = null;
+  try { API.stepInPlace(pr.F, fa, fb, PF.rng); } catch (e) { errF = e; }
+  try { API.stepInPlace(pr.L, la, lb, PL.rng); } catch (e) { errL = e; }
+  restore(M.MEDSEEN, sSeen); restore(M.MEDFAILS, sFail);
+  const cF = errF ? null : canonLess(pr.F, LEAN_EXEMPT), cL = errL ? null : canonLess(pr.L, LEAN_EXEMPT);
+  const diceF = PF.over === 0 && PF.left() === 0, diceL = PL.over === 0 && PL.left() === 0;
+  /* THE LEAN CLAIM IS AGAINST THE FULL COPY: the same board AND the same draws, stream by stream (both ran on their own
+   * replay of the same recording). Whether the FULL copy consumed exactly the real turn's draws is the tracking
+   * question below, and a miss there is the harness (the real battle was edited between turns), not lean mode. */
+  const sameDiceLF = PL.over === PF.over && JSON.stringify(PL.at()) === JSON.stringify(PF.at());
+  const leanOk = !errF && !errL && cF === cL && sameDiceLF;
+  const cS1 = canonLess(S, TRACE_ONLY);
+  pr.lastS = cS1;
+  const trackOk = !errF && diceF && cS1 === canonLess(pr.F, TRACE_ONLY);
+  if (trackOk) STAT.full_track_agree++;
+  else {
+    STAT.full_track_disagree++;
+    if (STAT.full_track_disagreements.length < 50) STAT.full_track_disagreements.push({ turn: S.turn, error: errF ? String(errF.stack).slice(0, 300) : null, diceF,
+      where: errF ? null : firstDiff(canonLess(S, TRACE_ONLY), canonLess(pr.F, TRACE_ONLY)) });
+  }
+  if (leanOk) STAT.lean_agree++;
+  else {
+    STAT.lean_disagree++;
+    if (STAT.lean_disagreements.length < 200) STAT.lean_disagreements.push({ turn: S.turn,
+      error: (errL || errF) ? String((errL || errF).stack).slice(0, 400) : null, sameBoard: !!(cF && cL && cF === cL), sameDice: sameDiceLF, leanDiceExact: diceL, fullDiceExact: diceF,
+      dice_over: PL.over, dice_left: PL.left(), dice_left_full: PF.left(), dice_by_stream: { lean: PL.at(), full: PF.at(), recorded: Object.fromEntries(Object.entries(R.logs).map(([k, v]) => [k, v.length])) },
+      teams: [(S.sfA && S.sfA.team || []).map(m => m && (m._ident || m.name)), (S.sfB && S.sfB.team || []).map(m => m && (m._ident || m.name))],
+      real_turn_lines: lines ? lines.slice(0, 60).map(l => Array.isArray(l) ? l.join('|') : String(l)) : null,
+      where: (cF && cL && cF !== cL) ? firstDiff(cF, cL) : null });
+  }
+  if (!leanOk || !trackOk) { STAT.lean_resynced++; const np = leanPair(S); np.lastS = cS1; LEAN_PAIR.set(S, np); }
   return out;
 }
 

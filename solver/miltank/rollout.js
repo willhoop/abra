@@ -37,16 +37,25 @@
  * swap forgets `_sf`), `crn` (a cell's dice ignore the seed), `peek` (the world keeps the opponent's TRUE
  * unrevealed bodies — the search sees hidden information), `prepare` (a prepared copy loses the battle's
  * scratch scope), `rng` (the playout's five dice streams collapse into one). Loud: exported as BROKEN.
+ *
+ * LEAN PLAYOUTS (2026-09-24, docs/_reports/2026-09-24-lean-mode.md). A playout's own copy is made LEAN
+ * (`API.makeLean`) and the whole playout -- its turns, the random joints' menu reads and the leaf -- runs under the
+ * engine's lean binding (`API.leanRun`): the same boards (solver/tests/test-lean-mode.js), no protocol, no process
+ * counters, tag answers from a table. The world and the prepared buffer are NOT made lean, so their digests are
+ * unchanged. `opts.lean === false` or env `MILTANK_LEAN=0` plays full, for an A/B; `values_sha` in
+ * solver/bench/playout_bench.js must not move between the two, and `COUNTERS.leanPlayouts` says which ran.
  */
 'use strict';
 const BREAK = (typeof process !== 'undefined' && process.env && process.env.MILTANK_BREAK) || '';
+const LEAN_OFF = typeof process !== 'undefined' && process.env && process.env.MILTANK_LEAN === '0';
 const v8 = require('v8');
 const live = m => !!(m && !m.fainted && m.curHP > 0);
 
 function create(API, opts) {
   const M = API.M;
   const buildBody = opts.buildBody;
-  const COUNTERS = { playouts: 0, playoutTurns: 0, worlds: 0, bodiesSwapped: 0, wipes: 0, leafHeuristic: 0, prepared: 0, fastClones: 0 };
+  const COUNTERS = { playouts: 0, playoutTurns: 0, worlds: 0, bodiesSwapped: 0, wipes: 0, leafHeuristic: 0, prepared: 0, fastClones: 0, leanPlayouts: 0 };
+  const LEAN = !LEAN_OFF && opts.lean !== false && typeof API.makeLean === 'function';
 
   function targetType(m, id) {
     const tc = M.moveTargetClass(id);
@@ -187,8 +196,7 @@ function create(API, opts) {
     return M.rngStreams({ seed });
   }
 
-  function playout(W, jA, jB, seed, depth) {
-    const S = copy(W);
+  function playFrom(S, jA, jB, seed, depth) {
     const rng = dice(BREAK === 'crn' ? Math.floor(Math.random() * 1e9) : seed);
     const coin = M.rngStreams({ seed: seed + 7919 }).any;
     API.stepInPlace(S, jA, jB, rng);
@@ -199,8 +207,15 @@ function create(API, opts) {
     }
     return leaf(S);
   }
+  function playout(W, jA, jB, seed, depth) {
+    const S = copy(W);
+    if (!LEAN) return playFrom(S, jA, jB, seed, depth);
+    API.makeLean(S);
+    COUNTERS.leanPlayouts++;
+    return API.leanRun(() => playFrom(S, jA, jB, seed, depth));
+  }
 
-  return { COUNTERS, slotSupport, randomJoint, leaf, sampleWorld, swapBody, body, prepare, copy, dice, playout, BROKEN: BREAK || null };
+  return { COUNTERS, LEAN, slotSupport, randomJoint, leaf, sampleWorld, swapBody, body, prepare, copy, dice, playout, BROKEN: BREAK || null };
 }
 
 module.exports = { create };
