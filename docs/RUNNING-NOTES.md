@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.90.0] — 2026-09-24 — **The roster stages Belch again; the berry-already-eaten red demonstration bites (both regulations)**
+- **What changed.** `tests/roster.js`, rule `move/needs-a-berry-already-eaten`: on `bottom-tie-first` the chip is a crit, so its count is priced with `CRIT_DAMAGE_MULT` (read off the format's `modifyDamage`, null → refuse) and must leave the eater standing. No engine byte moved.
+- **Measured.** Targeted runs, `--rule move/needs-a-berry-already-eaten --reds`: 4 of 4 FIRED-AND-BOARDS-MATCH on `7822a83cc49b` (Belch: Salazzle, one crit Crunch ~91 into 143 HP) and `ec377f6f8159` (Toxtricity, ~81 into 150); red demonstration CAUGHT via Belch (FIRED-AND-BOARDS-DIFFER on `party.hp`). Was Belch COULD-NOT-STAGE and the demonstration NOT CAUGHT in both 0.87.0 artifacts.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 0.89.0] — 2026-09-24 — **The roster stages Effect Spore again (both regulations)**
 - **What changed.** `tests/roster.js`, rule `ability/contact-statuses-the-attacker-by-chance`: the die must land in a band whose status the aggressor takes (typing and the tag's `attackerStatusImmunity`, here `powder`), the aggressor must learn the Focus Energy idle when a band can write sleep (so the #318 restaging pass does not swap it for an immune body), and a precondition reads the aggressor's status off Showdown's board. No engine byte moved.
 - **Measured.** Targeted runs, `--rule ability/contact-statuses-the-attacker-by-chance --reds`: 4 of 4 FIRED-AND-BOARDS-MATCH on `7822a83cc49b` and `ec377f6f8159` (Effect Spore: Beedrill, X-Scissor, coin 0.0139 in the `slp` band); plant CAUGHT via Effect Spore on `party.status`. Was COULD-NOT-STAGE ("THE STAGING IS INERT") in both 0.87.0 artifacts.

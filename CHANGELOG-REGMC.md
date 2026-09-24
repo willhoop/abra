@@ -21,6 +21,18 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.90.0] — 2026-09-24
+
+### Fixed
+- **The roster stages Belch again, and the "berry already eaten" red demonstration bites, in both regulations.**
+  Belch runs on `bottom-tie-first`, where every crit lands, and its eater is now a legal learner (Salazzle under
+  Reg M-B, Toxtricity under Reg M-C) rather than the old bulky body. The chip count was priced without the crit,
+  so the second Crunch KO'd the eater, its replacement was handed the eater's click, and Showdown refused `pass`.
+  Belch is the only member of `move/needs-a-berry-already-eaten` that reads the eaten flag, so with it unstaged the
+  rule's plant moved nothing and read NOT CAUGHT. The chip is now priced with the crit multiplier READ off the
+  format's own `modifyDamage`, and a chip count that would also KO the eater is refused by name. Test code only
+  (`tests/roster.js`).
+
 ## [0.89.0] — 2026-09-24
 
 ### Fixed

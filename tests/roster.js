@@ -4363,7 +4363,22 @@ function quietLearner(o, ids) {
  * its corner is the exact inverse; both engines are pinned to it identically, so it is a different
  * corner of the same die and not a loosened one. */
 const BOTTOM_ARM = 'bottom-tie-first';
-const alwaysHits = m => (m.accuracy === true || m.accuracy === 100);
+/* THE CRIT DAMAGE MULTIPLIER, READ OFF THE FORMAT'S OWN `modifyDamage` (the Champions mod overrides it in
+ * `scripts`, so the mod's copy is asked first and the base simulator's second). Null when the line cannot
+ * be found, and every caller refuses rather than guessing. 2026-09-24, for the berry-eater's chip count. */
+const CRIT_DAMAGE_MULT = (() => {
+  const S = (dex.data && dex.data.Scripts) || {};
+  let fn = S.actions && S.actions.modifyDamage;
+  if (typeof fn !== 'function') {
+    try { fn = require(require(D('engine', 'showdown_path.js')).resolve() + '/dist/sim/battle-actions.js')
+      .BattleActions.prototype.modifyDamage; }
+    catch (err) { fn = null; console.error('  roster: the base simulator\'s modifyDamage could not be read ('
+      + String((err && err.message) || err).split('\n')[0] + ') — CRIT_DAMAGE_MULT is null and a crit-priced chip refuses'); }
+  }
+  const m = /critModifier\s*\|\|\s*\(\s*this\.battle\.gen\s*>=\s*6\s*\?\s*([\d.]+)/.exec(String(fn || ''));
+  return m ? +m[1] : null;
+})();
+const alwaysHits =m => (m.accuracy === true || m.accuracy === 100);
 function armFor(m) { return (alwaysHits(m) && !(m.critRatio > 1) && !m.willCrit) ? PRIMARY_ARM_ID : BOTTOM_ARM; }
 function armNote(m) {
   if (armFor(m) === PRIMARY_ARM_ID) return '';
@@ -16414,10 +16429,26 @@ const RULES = [
      * count was computed one roll too generous, the body never crossed the half-HP line, the berry
      * was never eaten and the gate stayed shut. It did not read as a pass: `precondition.ok` said
      * THE PRECONDITION DID NOT LAND, which is the whole reason that check exists. */
+    /* AND UNDER THE BOTTOM ARM EVERY CRIT LANDS, SO THE CHIP IS A CRIT — 2026-09-24. Since #318 the eater is a
+     * legal learner of the move (Salazzle under Reg M-B, Toxtricity under Reg M-C), not the old bulky body, and
+     * Belch runs on `bottom-tie-first`. The chip count was priced WITHOUT the crit: two Crunches "61 a time into
+     * 143 HP" were really two crits, the second one KO'd the eater, its bench replacement was handed the
+     * eater's click, and Showdown refused `pass` ("Can't pass: Your Milotic must make a move") in both
+     * regulations. The multiplier is READ off the format's own `modifyDamage`, never typed, and the count must
+     * now also leave the eater STANDING — crossing half HP is useless to a body that faints doing it. */
+    const onBottom = arm === BOTTOM_ARM;
+    const critX = onBottom ? CRIT_DAMAGE_MULT : 1;
+    if (onBottom && !(critX > 1)) return cannot('the crit damage multiplier could not be read off this format\'s '
+      + '`modifyDamage`, and under ' + BOTTOM_ARM + ' every chip is a crit — the chip count cannot be priced');
     const per = Math.floor(maxRoll(dex.species.get(self ? CK.species : b0.species),
-                                   chip, eatSp) * 0.85);
+                                   chip, eatSp) * 0.85 * critX);
     const hp = flatL50(eatSp.baseStats).hp;
     const need = per > 0 ? Math.ceil((hp / 2) / per) : 0;
+    /* the eater must survive the last chip — 10% headroom for the rounding this estimate does not model */
+    if (need && need * per * 1.1 >= hp) return cannot('the derived chip ' + chip.name + ' deals ~' + per
+      + (onBottom ? ' (a crit, as every chip is on ' + BOTTOM_ARM + ')' : '') + ' into ' + pretty(eatSp.id)
+      + '\'s ' + hp + ' HP, so the ' + need + ' chip(s) that cross the half-HP line would also KO it — a body '
+      + 'that faints before it clicks cannot show the gate');
     /* SIX CHIP TURNS IS THE CEILING AND IT IS A COST DECISION, NOT A CORRECTNESS ONE. The chipper is
      * whichever quiet body the move's own type can be aimed at, which for a POISON move is not the
      * hardest hitter in the pool — Belch needs five. Each turn is two more games; the alternative is
