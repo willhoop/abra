@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.119.0] — 2026-09-24 — **Reg M-C lattices after the last three narration fixes: 0 / 0 / 0 narration, 0 boards**
+- **What changed.** Measurement only. Release `015ab5fd1cc1`, pin `ccd979c30997`, pool `data/team-pool-frozen-regmc`, `--steering empirical --arm middle --end-state`, `--games` 1200/1600/1900, serial through `tools\lownode.cmd`. `docs/_reports/2026-09-24-narration-zero.md`.
+- **Measured.** Undeclared narration-only 0/955, 0/1266, 0/1497 (`data/game-differential-regmc.json`, `.g1600-regmc`, `.g1900-regmc`, `end_state[0].summary.by_cause_totals.games_narration_only`); board-material 0/954 usable, 0/1266, 0/1497 (`state.games − state.games_board_never_diverged`). Samples identical to 0.115.0: the same one void game at 1200, 0 threw, every by-cause table reconciles.
+- **Basis.** unchanged.
+- **Supersedes.** ~~Reg M-C narration 0/955, 2/1266, 1/1497~~ (0.115.0 row).
+- **Owed to the next major.** none.
+
 ## [abra/regmc 0.118.0] — 2026-09-24 — **Emergency Exit answers a residual that takes its holder to half (Reg M-C)**
 - **What changed.** `engine/medicham2-browser.js` `emergencyExitResidualDoor`: the residual head records each standing body's HP, and below the residual's Update pass a holder that crossed half raises the ability and switches out through `switchOut`, beside `refill`. Knob `MEDI_EMERGENCY_EXIT_NO_RESIDUAL`. Probe `tests/probe_regmc_emergency_exit_residual.js`.
 - **Measured.** An engine defect, not an instrument limit: the door was counted (`MEDFAILS.emergencyExitOtherDoorUnmodelled`) and not modelled, and once the engine places a body the harness expresses it with no change. Probe RED before (base engine, 3 assertions), GREEN after (release `015ab5fd1cc1`), RED under the knob (2); the CONTROL arm (no ability, same chip) is green on both. The `--only-game` replay of the field game (1900 omit-spread `…2679451964`) on `015ab5fd1cc1` has no protocol or board divergence. Census 1024 live / 0 missing.

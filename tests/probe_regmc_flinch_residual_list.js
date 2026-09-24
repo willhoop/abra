@@ -23,7 +23,7 @@
  *
  * ================= THE ARMS (both engines play the same scripted turn; SHOWDOWN IS THE ANSWER) ====
  *
- *   The field case's species is not legal in this dex, so the shape is rebuilt from what is: a tied pair T (the same
+ *   The field case's own cast found no staging under a first cut's filters, so the shape is rebuilt: a tied pair T (the same
  *   species and set on both sides, a Leftovers each, order 5 / subOrder 4) and two faster bodies carrying an order-5
  *   ABILITY residual (Shed Skin / Hydration / Healer: nothing to cure, so no line and no die), p2b the fastest.
  *   FLINCH   p2a Fake Outs p1a; p1b and p1a hit p2a, p2b hits p1a. p1a flinches. Both tied bodies are hurt.

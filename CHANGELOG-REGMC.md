@@ -21,6 +21,17 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.119.0] — 2026-09-24
+
+### Changed
+- **The three Reg M-C lattices re-read after the last three narration fixes: undeclared narration-only games 0/955,
+  0/1266, 0/1497 (were 0, 2, 1); board-material 0 on all three.** Release `015ab5fd1cc1` (the tree at 0.118.0), census
+  pin `ccd979c30997`, pool `data/team-pool-frozen-regmc`, `--steering empirical --arm middle --end-state`, `--games`
+  1200/1600/1900, serial through `tools\lownode.cmd`. The samples are identical to 0.115.0's (955/1266/1497 played,
+  the same one void game at 1200, 0 threw). All three causes were engine defects: White Herb holder order (0.116.0), a
+  spent flinch missing from the residual handler list (0.117.0), and Emergency Exit's residual door (0.118.0). The
+  census reads 1024 live / 0 missing after each fix. `docs/_reports/2026-09-24-narration-zero.md`.
+
 ## [0.118.0] — 2026-09-24
 
 ### Fixed

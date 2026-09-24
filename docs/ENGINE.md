@@ -1,3 +1,10 @@
+## REG M-C NARRATION AFTER THE LAST THREE FIXES: 0 / 0 / 0, BOARDS 0. 2026-09-24 (abra/regmc 0.119.0)
+
+- Release `015ab5fd1cc1`, pinned as 0.115.0, same samples. The three hand-list causes filed in 0.115.0 are closed
+  (0.116.0, 0.117.0, 0.118.0); the hand list carries no Reg M-C narration cause. Census 1024 live.
+- Still counted, not modelled: Emergency Exit's hazard door, and an exit beside a corpse refill in one request.
+  Report `docs/_reports/2026-09-24-narration-zero.md`.
+
 ## EMERGENCY EXIT ANSWERS A RESIDUAL THAT TAKES ITS HOLDER TO HALF (REG M-C). 2026-09-24 (abra/regmc 0.118.0)
 
 - `emergencyExitResidualDoor`, below the residual's Update pass and above `refill`. Engine defect, not instrument: the
