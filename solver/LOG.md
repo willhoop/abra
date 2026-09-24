@@ -20,6 +20,8 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 - Leaf cost: 0.85 ms median per position. Of that, 0.64 ms is the engine facts and 0.16 ms is the net.
 - MILTANK leaf: `MILTANK_LEAF=pory2` or `o.leaf`. PRE-GATE arena, 200 games, 1 s, depth 0 on both sides:
   PORYGON2 leaf vs heuristic leaf **0.515 (0.446–0.583)**. That is a tie, so V2 is not shown.
+  Against the default (heuristic after depth-2 random rollouts): **0.605 (0.536–0.670)**. That is confounded
+  with depth, and the heuristic depth-0 vs depth-2 control is owed.
 - Detail: `docs/_reports/2026-09-24-porygon2-v0.md`.
 
 ### Landed in main (merge coordinator, 2026-09-24)
