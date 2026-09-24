@@ -32,21 +32,42 @@
 process.on('uncaughtException', (e) => { console.log('CANNOT ANSWER — the probe threw: ' + String(e && e.stack || e).split('\n').slice(0, 4).join(' | ')); console.log('ABRA-EXIT 2 CANNOT-ANSWER'); process.exit(2); });
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
-process.env.SHOWDOWN_PATH = process.env.SHOWDOWN_PATH || 'C:/Users/willj/Projects/Pokemon/pokemon-showdown';
+/* EITHER REGULATION -- 2026-09-24 (MEASURE, abra/regmc). This line used to force SHOWDOWN_PATH to Reg M-B's
+ * checkout, and the register runs this probe with `--release aefcb93baf14`, a release cut for Reg M-B's table.
+ * Under `ABRA_REGULATION=regmc` both refused (engine_release.open: "cut for the damage table
+ * data/engine-data.js ... this run selected regmc"), so the row read CANNOT-ANSWER in Reg M-C for a reason
+ * that has nothing to do with Trace. The checkout now comes from engine/showdown_path.js, which resolves the
+ * SELECTED regulation's authority (and still honours an explicit SHOWDOWN_PATH). A named release is honoured
+ * when it serves the selected regulation; when it was cut for the OTHER regulation the probe measures that
+ * regulation's CURRENT release instead and prints both ids -- a release is a photograph for one regulation,
+ * and the question "does a rollout's Trace draw from a stream" is asked of whichever engine the regulation
+ * runs. The cast (Gardevoir, Snorlax, Garchomp, Incineroar; Trace, Synchronize, Rough Skin, Intimidate) is
+ * checked for legality against the selected format below, as before, so an M-C run that lost one refuses. */
+const REGN = require(path.join(ROOT, 'engine', 'regulation.js'));
+require(path.join(ROOT, 'engine', 'showdown_path.js'));
 const arg = (n, d) => { const i = process.argv.indexOf(n); return i >= 0 ? process.argv[i + 1] : d; };
-const REL_ID = arg('--release', '2b5a6585d8cf');
+const REL_ASKED = arg('--release', '2b5a6585d8cf');
 const N = +arg('--n', 3);
 const cannot = (why) => { console.log('CANNOT ANSWER — ' + why); console.log('ABRA-EXIT 2 CANNOT-ANSWER'); process.exit(2); };
 
 let REL, M, RL, dex;
 try {
-  REL = require(path.join(ROOT, 'engine', 'engine_release.js')).open(REL_ID);
+  const ER = require(path.join(ROOT, 'engine', 'engine_release.js'));
+  try { REL = ER.open(REL_ASKED); }
+  catch (e) {
+    if (!/was cut for the damage table/.test(String(e && e.message))) throw e;
+    const cur = ER.currentId();
+    if (!cur) throw new Error('release ' + REL_ASKED + ' was cut for the other regulation, and ' + REGN.ID + ' has no current release pointer');
+    console.log('  release ' + REL_ASKED + ' was cut for the other regulation; measuring ' + REGN.ID + ' on its current release ' + cur);
+    REL = ER.open(cur);
+  }
   M = REL.require('engine/medicham2-browser.js', { want: ['buildMon', 'battleInit', 'MEDSEEN'] });
   RL = REL.require('engine/rollout_leaf.js', { want: ['rolloutWinProb'] });
   const CS = REL.require('engine/champions_sim.js');
   dex = CS.sim().Dex.forFormat(CS.FORMAT);
-} catch (e) { cannot('release ' + REL_ID + ' would not open: ' + String(e && e.message || e)); }
-console.log('\ntests/probe_rollout_trace_stream.js — ROADMAP #310   release ' + REL.id);
+} catch (e) { cannot('release ' + REL_ASKED + ' would not open: ' + String(e && e.message || e)); }
+console.log('\ntests/probe_rollout_trace_stream.js — ROADMAP #310   regulation ' + REGN.ID + ' (' + REGN.FORMAT + ')   release ' + REL.id
+  + '   authority ' + process.env.SHOWDOWN_PATH);
 
 /* legality, derived: the lead's abilities and the foes' copyability come from the format */
 const legal = s => s.exists && !s.isNonstandard && s.tier !== 'Illegal';

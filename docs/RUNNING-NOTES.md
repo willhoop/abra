@@ -53,6 +53,12 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.100.3] — 2026-09-24 — **#310 and #442 answer in both regulations; Reg M-B's #442 red is a stale census**
+- **What changed.** `tests/probe_rollout_trace_stream.js` and `tests/probe_census_reproduces.js` stop hardcoding Reg M-B (checkout via `engine/showdown_path.js`; #310 falls back to the selected regulation's current release; #442 reads `artifactFor('data/mechanics-census.json')` and classes OVERCLAIM / UNDERCLAIM ONLY). ROADMAP #310 and #442 annotated. Full account `docs/_reports/2026-09-24-register-310-442.md`.
+- **Measured.** #310: GREEN under Reg M-C (`ec377f6f8159`) and Reg M-B (`aefcb93baf14`, `7822a83cc49b`). #442 at `7c9f7534`: Reg M-C 1010/1010 reproduced (`data/mechanics-census-regmc.json`), GREEN, `--plant` red; Reg M-B: the committed `data/mechanics-census.json` reads 1004 live, and the tree reproduces two rows more. The reproduced count, 1006, is the one `data/verification/mechanics-census-7822a83cc49b.json` holds. UNDERCLAIM ONLY.
+- **Basis.** unchanged. **Supersedes.** Nothing.
+- **Owed to the next major.** none. The Reg M-B census republish is the same fold-in the 0.87.0 row already owes Will.
+
 ## [abra/regmc 0.100.2] — 2026-09-24 — **Stuff Cheeks has no menu half in this format; a guard, not a fix**
 
 - **What changed.** `tests/probe_disabled_choice_struggle.js --part berry` now stages Stuff Cheeks too. The engine's #152

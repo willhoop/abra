@@ -40,6 +40,19 @@ _stamped 2026-09-24 04:20_
 
 <!-- /GENERATED -->
 
+## #310 AND #442 ANSWER IN BOTH REGULATIONS. NEITHER CANNOT-ANSWER WAS THE ENGINE; REG M-B'S #442 RED IS A STALE CENSUS. 2026-09-24 (abra/regmc 0.100.3)
+
+- **Why they could not answer under Reg M-C.** Both instruments hardcoded Reg M-B: a forced `SHOWDOWN_PATH`, a
+  release pinned to a Reg M-B cut (#310), and the census read by its Reg M-B filename (#442). Both now resolve the
+  checkout through `engine/showdown_path.js`; #442 names the census with `artifactFor`; #310 falls back, printed,
+  to the selected regulation's current release. The #310 cast is legal in both formats (derived).
+- **#310.** Rollout half GREEN in both. The residual (unseeded `battleInit` callers with no `rng`) is code, not
+  regulation, and stays open in both.
+- **#442.** Reg M-C GREEN (1010/1010 reproduced; `--plant` goes red). Reg M-B RED, UNDERCLAIM ONLY: committed
+  1004, tree 1006, the two extra rows are live pass-9 probes added after the census was last committed. Not an
+  engine defect, not an instrument fault. Republishing the Reg M-B census is Will's call (0.87.0 held it back).
+- Full account: `docs/_reports/2026-09-24-register-310-442.md`.
+
 ## BOTH GATES READ IN MAIN ON THE FINISHED ENGINE: BOTH CLOSED, REG M-B ON THE RULER ONLY. 2026-09-23 (abra/regmc 0.70.0)
 
 - **Reg M-B.** Every engine-facing clause passes: board-material 0/961, 0/1069, 0/1497; damage 0/6000; mechanics 0.
