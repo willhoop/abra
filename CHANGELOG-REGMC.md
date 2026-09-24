@@ -21,6 +21,17 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.111.4] — 2026-09-24
+
+### Fixed
+- **Three probes read the active regulation's Showdown checkout.** `tests/probe_mimicry_terrain_event_only.js`,
+  `tests/probe_added_type_replaced.js` and `tests/probe_reflect_type_typeless_added.js` defaulted `SHOWDOWN_PATH`
+  to the Reg M-B checkout, so under `--regulation regmc` with no `SHOWDOWN_PATH` they handed Reg M-C's format to Reg
+  M-B's checkout and could only CANNOT-ANSWER (shown: exit 2, "champions_sim: REFUSING to resolve format
+  gen9championsvgc2026regmc", release `318ccd937118`, 3 of 3). They now require `engine/showdown_path.js` (an
+  explicit `SHOWDOWN_PATH` still wins). After: 6 of 6 exit 0 with `SHOWDOWN_PATH` unset — Reg M-C on `318ccd937118`,
+  Reg M-B on `d9d69d58ef31`.
+
 ## [0.111.3] — 2026-09-24
 
 ### Fixed

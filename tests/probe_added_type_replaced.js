@@ -2,8 +2,8 @@
 /* tests/probe_added_type_replaced.js — A SECOND ADDED TYPE REPLACES THE FIRST.
  * ==================================================================================================
  *
- *   SHOWDOWN_PATH=<Reg M-B checkout> node tests/probe_added_type_replaced.js --release <M-B id>
- *   SHOWDOWN_PATH=<Reg M-C checkout> ABRA_REGULATION=regmc node tests/probe_added_type_replaced.js --release <M-C id>
+ *   node tests/probe_added_type_replaced.js --release <M-B id>
+ *   ABRA_REGULATION=regmc node tests/probe_added_type_replaced.js --release <M-C id>
  *   MEDI_ADDED_TYPE_APPENDS=1 ...        (the red demonstration: the old append)
  *
  * FILED in docs/_reports/2026-09-24-reflect-type.md §3, gap 2. The authority keeps ONE added type:
@@ -23,7 +23,11 @@
  * ================================================================================================ */
 'use strict';
 process.on('uncaughtException', (e) => { console.log('CANNOT ANSWER — the probe threw: ' + String(e && e.stack || e).split('\n').slice(0, 4).join(' | ')); console.log('ABRA-EXIT 2 CANNOT-ANSWER'); process.exit(2); });
-process.env.SHOWDOWN_PATH = process.env.SHOWDOWN_PATH || 'C:/Users/willj/Projects/Pokemon/pokemon-showdown';
+/* 2026-09-24 -- the ACTIVE regulation's checkout, not a Reg M-B literal: under --regulation regmc the literal
+ * handed Reg M-C's format to Reg M-B's checkout and the probe could only CANNOT-ANSWER. engine/showdown_path.js is
+ * the one answer (an explicit SHOWDOWN_PATH still wins) and sets process.env.SHOWDOWN_PATH for the requires below. */
+require(require('path').join(__dirname, '..', 'engine', 'showdown_path.js'));
+if (!process.env.SHOWDOWN_PATH) { console.log('CANNOT ANSWER — engine/showdown_path.js found no Showdown checkout for this regulation'); console.log('ABRA-EXIT 2 CANNOT-ANSWER'); process.exit(2); }
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const cannot = (why) => { console.log('CANNOT ANSWER — ' + why); console.log('ABRA-EXIT 2 CANNOT-ANSWER'); process.exit(2); };

@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.111.4] — 2026-09-24 — **Three probes stop hard-coding Reg M-B's checkout**
+- **What changed.** The Mimicry, added-type and Reflect Type probes resolve their checkout through `engine/showdown_path.js`.
+- **Measured.** NO FIGURE. Reg M-C with `SHOWDOWN_PATH` unset: 3 of 3 CANNOT-ANSWER before, 3 of 3 exit 0 after; Reg M-B 3 of 3 exit 0.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.111.3] — 2026-09-24 — **Gravity's four knobs refuse a census write**
 - **What changed.** `tests/test-mechanics.js` `DELIBERATE_BREAK` gains the four Gravity `MEDFAILS` keys.
 - **Measured.** NO FIGURE. Each knob armed alone stamps a key the list now holds (4 of 4; 0 of 4 before).
