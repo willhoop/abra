@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.115.0] — 2026-09-24 — **Solver SLOWKING v1, MILTANK v1 skeleton and the offline arena land in main**
+- **What changed.** `solver/slowking/`, `solver/miltank/`, `solver/arena/` and three tests. Branch `worktree-agent-a849abbf8c6348200` (562dc055); its cherry-pick of the API commit resolved to main's bytes (no duplicate code). Report `docs/_reports/2026-09-24-slowking-miltank-arena.md`.
+- **Measured.** NO FIGURE: the arena numbers are PRE-GATE. Tests GREEN on main: slowking 1,559, miltank 3,414, arena 15.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** `docs/MODELS.md` (solver models section).
+
 ## [abra/regmc 0.114.0] — 2026-09-24 — **Solver XATU v1 lands in main**
 - **What changed.** `solver/xatu/` (bring belief, Stat Point spreads, tracker) and `solver/xatu/model/bring-v1.json`. Branch `worktree-agent-aae6baa63246ab32f` (d9be8073). Report `docs/_reports/2026-09-24-xatu-v1.md`.
 - **Measured.** Turn-1 back-pair log-loss 1.348 against 1.792 uniform; true bring ruled out 0 of 10,942 held-out sides (the report). Four XATU tests GREEN on main.

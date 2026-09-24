@@ -21,6 +21,21 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.115.0] — 2026-09-24
+
+### Added
+- **Solver SLOWKING v1 (RM+ and exact LP), MILTANK v1 search skeleton and the offline arena.** Code
+  `solver/slowking/`, `solver/miltank/`, `solver/arena/`. Tests on main: `test-slowking` 1,559/1,559,
+  `test-miltank` 3,414/3,414, `test-arena` 15/15. The arena result is PRE-GATE (MEDICHAM's gate is not open), so no
+  strength figure is published here; see `docs/_reports/2026-09-24-slowking-miltank-arena.md`. Merged from branch
+  `worktree-agent-a849abbf8c6348200` (562dc055).
+
+### Notes
+- MINOR: new solver capability. No ABRA published figure moves.
+- The branch carried a cherry-pick of the solver API commit (43053310), which main already held as 8ae6561a (0.87.0,
+  merged at 0.95.0). Every file that commit touched was resolved to main's bytes, so the merge adds no engine,
+  test or ledger change and no duplicate 0.87.0 entry.
+
 ## [0.114.0] — 2026-09-24
 
 ### Added

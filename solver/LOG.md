@@ -8,6 +8,22 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-24
 
+### SLOWKING v1, MILTANK v1 skeleton, offline arena (PRE-GATE)
+- SLOWKING: RM+ plus an exact LP. Agreement on 200 random games. RM+ stays under the proven
+  Δ(√m+√n)/√T bound on 90 runs. `solver/tests/test-slowking.js` GREEN 1,559/1,559 and red on 3 breaks.
+- MILTANK v1: prior-ranked joints with reserved switch/mega slots, uniform-belief worlds, CRN playouts,
+  SLOWKING, and a sampled move. `test-miltank.js` GREEN 3,414/3,414 and red on 5 breaks. `test-arena.js`
+  GREEN 15/15.
+- Fixed while building: the engine reorders `sf.team` on switches. Bodies now carry `_solverSheet`.
+- Arena, PRE-GATE shakedown (200 games each, 1 s per decision, k 6×6, depth 1):
+  - MILTANK vs prior-greedy: 0.530 (CI 0.461–0.598).
+  - MILTANK vs random: 0.940.
+  - Prior vs random: 0.945.
+  - The search is starved: median 23 playouts for 36 cells, and 28% of cells unfilled. Cheaper cells come
+    before any strength claim.
+- Detail: `docs/_reports/2026-09-24-slowking-miltank-arena.md`. Code: `solver/slowking/`,
+  `solver/miltank/`, `solver/arena/`.
+
 ### MAG v1 + DODUO v1 (successors to prior v0)
 - MAG v1 = per-slot scorer (v0 features + species identities, candidate-set pooling); DODUO v1 = joint
   coordinator over MAG (pairwise MLP + bilinear + v0 pair indicators). PyTorch 2.14.0+cpu (PyPI).
