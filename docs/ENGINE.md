@@ -1,3 +1,10 @@
+## REVIVAL BLESSING REVIVES BELOW THE UPDATE PASS; THE REVIVER'S LEPPA IS EATEN FIRST (REG M-C). 2026-09-24 (abra/regmc 0.114.0)
+
+- The move only raises the request; the revive is the answer's action, after `eachEvent('Update')`. The move now queues
+  the revive (`reviveReady`) and `reviveApplyPending` runs it below the next `_updateAll()`. Knob
+  `MEDI_REVIVE_HEAL_INLINE`. Probe `tests/probe_regmc_revive_leppa_order.js` (RED -> GREEN, three arms).
+- Hand list: **the Revival Blessing / Leppa ordering cause leaves it.** Report `docs/_reports/2026-09-24-narration-last.md`.
+
 ## SUPREME OVERLORD WRITES `fallenundefined` WHEN NOTHING HAD FALLEN (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.113.0)
 
 - The authority's `onEnd` is unguarded, so a body that entered on nobody fallen closes with `fallenundefined` at its

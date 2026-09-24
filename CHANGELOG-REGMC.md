@@ -21,6 +21,20 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.114.0] — 2026-09-24
+
+### Fixed
+- **Revival Blessing revives below the Update pass, so the reviver's Leppa Berry is eaten first (Reg M-C).** The move
+  only raises a switch request: runAction's tail runs `eachEvent('Update')` and then `makeRequest('switch')`
+  (`sim/battle.ts:2860-2911`, M-C checkout), and the revive is the answer's `revivalblessing` action (order 6,
+  `:2781-2798`), which writes the `-heal`. The move's one PP is spent as it runs, so a held Leppa Berry is eaten between
+  the move and the heal. The engine revived inside the move. Now the move checks the revive can happen (`reviveReady`)
+  and queues it; `reviveApplyPending` runs it right below the next `_updateAll()`. Knob `MEDI_REVIVE_HEAL_INLINE` (in
+  `DELIBERATE_BREAK`). Probe `tests/probe_regmc_revive_leppa_order.js`: RED before (release `098d7fdf95bc`, all three
+  arms), GREEN after (`aed9780fc4e3`), RED under the knob. `probe_regmc_revive`, `probe_regmc_revive_residual_inactive`,
+  `probe_regmc_revival_blessing`, `test-revive-mirror` and `test-precharge-order` stay green. Field case: the third Reg
+  M-C narration game at `--games 1200`. Revival Blessing is `Past` in Reg M-B, so the path is not reached there.
+
 ## [0.113.0] — 2026-09-24
 
 ### Fixed

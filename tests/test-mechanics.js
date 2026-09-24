@@ -39190,7 +39190,10 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           'gravityClickedMovePlaysRestored', 'gravityCalledMovePlaysRestored',
                           /* 2026-09-24 (ENGINE, narration-last) -- Supreme Overlord's zero-count close.
                            * tests/probe_fallen_undefined.js */
-                          'fallenUndefinedSilentRestored']
+                          'fallenUndefinedSilentRestored',
+                          /* 2026-09-24 (ENGINE, narration-last) -- Revival Blessing below the Update pass.
+                           * tests/probe_regmc_revive_leppa_order.js */
+                          'reviveHealInlineRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

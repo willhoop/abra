@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.114.0] — 2026-09-24 — **Revival Blessing revives below the Update pass; the reviver's Leppa Berry is eaten first (Reg M-C)**
+- **What changed.** `engine/medicham2-browser.js`: the revive is queued at the move (`reviveReady`) and run by `reviveApplyPending` below the next `_updateAll()`. Knob `MEDI_REVIVE_HEAL_INLINE`. Probe `tests/probe_regmc_revive_leppa_order.js`.
+- **Measured.** Probe RED before (`098d7fdf95bc`, 3 arms), GREEN after (`aed9780fc4e3`), RED under the knob; the four existing revive probes stay green. Lattice effect is measured in the 0.115.0 row.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.113.0] — 2026-09-24 — **Supreme Overlord writes `fallenundefined` when nothing had fallen (both regulations)**
 - **What changed.** `engine/medicham2-browser.js` `fallenCloseField`: the switch-out and faint closes write the authority's unguarded `fallen${undefined}`. Knob `MEDI_FALLEN_UNDEFINED_SILENT`. Probe `tests/probe_fallen_undefined.js`.
 - **Measured.** Probe RED before (`11a681c6a683`), GREEN after in both regulations (`098d7fdf95bc`, `4e3411cbe0b9`), RED under the knob. Lattice effect is measured in the 0.115.0 row.
