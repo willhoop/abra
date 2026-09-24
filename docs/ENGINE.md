@@ -1,3 +1,12 @@
+## A TYPE SPEND CLEARS THE ADDED TYPE: BURN UP (BOTH REGULATIONS), DOUBLE SHOCK (REG M-C). 2026-09-24 (abra/regmc 0.98.0)
+
+- Both `spendsOwnType` sites map the BASE list (`getTypes(true)`) through `spentOwnTypes`, so the spend drops the
+  added type as `setType` does. A `.map()` of the whole list had lost the `_added` marker but kept the element,
+  promoting the added type to a base type. Knob `MEDI_SPEND_TYPE_KEEPS_ADDED`. Probe
+  `tests/probe_spend_type_clears_added.js`; census row "a type spend (Burn Up / Double Shock) clears the added type".
+- Hand list: **the Burn Up added-type item filed in 0.97.0 leaves it.** Report
+  `docs/_reports/2026-09-24-burnup-added-type.md`.
+
 ## REFLECT TYPE AT A TYPELESS TARGET WITH AN ADDED TYPE COPIES NORMAL + THE ADDED TYPE (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.97.0)
 
 - The typecopy branch reads the target's BASE list (`getTypes(true)`) and its added slot separately: an empty base

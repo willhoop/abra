@@ -17249,6 +17249,34 @@ probe('move', 'changesTargetType', 'Reflect Type at a typeless target with an ad
                  + ' (the base list is empty, so Normal + Ghost: immune)' };
 });
 
+/* 2026-09-24 -- A TYPE SPEND CLEARS THE ADDED TYPE. Burn Up and Double Shock write
+ * `setType(getTypes(true).map(Fire -> '???'))` (data/moves.ts, both checkouts, no Champions override of the
+ * handler): the BASE list, mapped, and `setType` empties `addedType`. So a Trick-or-Treated Arcanine that Burns Up
+ * is ['???'] and Close Combat LANDS; this engine mapped the whole list, kept the Ghost, and the Close Combat was
+ * refused. CONTROL: Trick-or-Treat, no Burn Up (Fire/Ghost: immune, 0). TEST: Burn Up after it (lands).
+ * MEDI_SPEND_TYPE_KEEPS_ADDED=1 restores the whole-list map; tests/probe_spend_type_clears_added.js is the
+ * two-engine proof (Double Shock in Reg M-C). */
+probe('move', 'spendsOwnType', 'a type spend (Burn Up / Double Shock) clears the added type — Trick-or-Treat then Burn Up is typeless', () => {
+  const run = (burn) => {
+    const me = bare('gourgeist'), ally = bare('sneasler');
+    const f1 = bare('arcanine'), f2 = bare('milotic');
+    unfaintable(ally); unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'trickortreat', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    M.battleTurn(S, rng5, PASS2(me, ally), new Map([[f1, burn ? M.playerAction(f1, 'burnup', ally, S.field) : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const types = (f1.types || []).join('/');
+    const before = f1.curHP;
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, M.playerAction(ally, 'closecombat', f1, S.field)]]), PASS2(f1, f2));
+    return { types, dealt: before - f1.curHP };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.dealt === 0 && test.dealt > 0 && test.types === '???',
+           arms: { control: control.dealt, test: test.dealt },
+           detail: 'Arcanine takes Sneasler\'s Close Combat — Trick-or-Treat only ' + JSON.stringify(control)
+                 + ' (Fire/Ghost: immune); Trick-or-Treat then Burn Up ' + JSON.stringify(test)
+                 + ' (the spend clears the added Ghost: it lands)' };
+});
+
 /* WIRE 106 -- `decorate -> goodasgold/suckerpunch/upperhand`: the caller's target was dropped at
  * classification, so a foe-aimed Decorate boosted the ALLY. Showdown boosts the FOE, and Good as
  * Gold refuses it. */
@@ -38734,6 +38762,8 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           'addedTypeAppendsRestored',
                           /* 2026-09-24 -- tests/probe_reflect_type_typeless_added.js */
                           'reflectTypeFoldsAddedRestored',
+                          /* 2026-09-24 -- tests/probe_spend_type_clears_added.js */
+                          'spendTypeKeepsAddedRestored',
                           /* 2026-09-19 -- tests/probe_helpinghand_moved_ally.js */
                           'helpingHandMovedAllyRestored', 'roundUnpromotedRestored', 'bounceKindBlindRestored',
                           'punishHazardOnAttackerSideRestored', 'punishWeatherIfClearRestored',
