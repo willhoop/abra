@@ -1,3 +1,9 @@
+## A MEGA STONE REFUSES EVERY ITEM MOVER, INSIDE MAGIC ROOM TOO (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.94.0)
+
+- `itemRefusesTake` reads the hold (`itemOn`), not the slot the room / Klutz park empties; Corrosive Gas asks the stone;
+  Thief, Covet and Symbiosis ask it with the receiver as holder. Knob `MEDI_STONE_TAKE_UNGUARDED`. Probe
+  `tests/probe_megastone_take_guard.js` (8 red arms, 2 controls). Reg M-B pool `--games 300` game `…2659015200`.
+
 ## THE FAINT-LINE ROW WAS THE ENGINE, NOT THE INSTRUMENT. 2026-09-24 (abra/regmc 0.93.1)
 
 - `--only-game` on `omit-protect …bo3-2678516446`: clean on `ec377f6f8159`, the pass-9 card back under
