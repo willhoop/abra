@@ -21,6 +21,34 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.87.0] — 2026-09-24
+
+### Added
+- **The solver-facing MEDICHAM API, `engine/medicham_api.js`.** A wrapper beside the engine: `makeRng`/`makeEventDice`,
+  `newBattle`, `clone` (structuredClone without the trace sink), `legalActions` (per-slot options and the joint set as
+  Showdown choice strings), `step` (a new battle; the input is never touched), `stepInPlace`, `isTerminal`/`winner` (the
+  wipe only, not the 20-turn cap; `battleOver` is unchanged for its callers), `atHorizon`, `horizonScore`, `digest`.
+  Brief: `docs/_reports/2026-09-23-engine-interface-brief.md` steps 2, 3, 4 and the additive half of 5. The mid-turn
+  choice callback (step 6) is not done. Frozen in every release (`SOURCES`).
+- **An opt-in per-battle scratch in the engine** (`battleScopeNew`/`battleScopeRun`). A battle the API builds keeps its
+  own event-dice repeat map and the three trace-singleton fields, so the two cross-battle leaks the brief names are
+  closed for API battles. A battle nobody gives a scope takes the old code path, so no existing caller changes.
+- Exports: `selectableMoves`, `mustStruggle`, `sideWiped`, `moveTargetClass`, `moveTagParam`. No existing caller's
+  `need:` list was touched.
+- `tests/test-medicham-api.js` (the clone round trip, step purity, interleaving and endings; each shown red under a
+  deliberate break) and `tests/probe_medicham_api_differential.js` (heavy, on demand: the API inside the differential).
+
+### Notes
+- **No published figure moves.** On release `9cfd07674cc9` at `--games 1200` (Reg M-C pinned pool, census pin
+  `f3b70bc0c47c`), the differential is byte-identical per game to the base-commit release `ec377f6f8159`. It is also
+  byte-identical routed through `stepInPlace` and under a clone-and-step shadow of every turn (22,283 of 22,283 turns
+  equal).
+- **`legalActions` agrees with the authority on 5,526 of 5,552 slots.** The 26 are the ENGINE's move menu, read
+  faithfully, and are 3 engine defects left open because fixing them changes play: Fake Out stays selectable after a
+  Parting Shot that did not switch out, the menu half of Imprison, and the menu half of Heal Block. `docs/ENGINE.md`.
+- `engine/engine_release.js` is in the differential's `driver_code` closure, so adding a SOURCE moves that stamp
+  (`64a2dc4f5568` to `dea7bd773a94`). Runs on either side of this commit read as different instruments.
+
 ## [0.86.1] — 2026-09-23
 
 ### Fixed

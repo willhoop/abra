@@ -1,3 +1,19 @@
+## THE SOLVER-FACING API LANDS, ADDITIVE; ITS LEGALITY PROBE FINDS THREE MENU DEFECTS. 2026-09-24 (abra/regmc 0.87.0)
+
+Full account: `docs/_reports/2026-09-24-solver-engine-api.md`.
+
+- `engine/medicham_api.js`: clone / legalActions / step / isTerminal / winner / digest. The engine only gains exports
+  and an opt-in battle scope (`battleScopeRun`), which closes the event-dice (`MID_NTH`) and trace-field leaks for API
+  battles. The differential is byte-identical at `--games 1200`. `tests/test-medicham-api.js` is green, and each
+  clause goes red under its knob.
+- **Open, with a failing probe** (`tests/probe_medicham_api_differential.js --part legal`: 26 of 5,552 slots). The
+  engine's MENU (`moveDisabledBy`) offers moves the authority disables:
+  - **Fake Out** after a Parting Shot that stayed in. `_mvActs` is 0 where `activeMoveActions` is 1: 20 slots.
+  - **Imprison's menu half** (`onFoeDisableMove`), already declared above `illegalMoveNow`: 4 slots.
+  - **Heal Block's menu half** (`onDisableMove`). Only the execution refusal is wired: 2 slots.
+
+  Not fixed here: each fix changes what the engine's own chooser plays.
+
 ## SPEED-TIED BODIES AT ONE RESIDUAL ORDER RUN HANDLER-MAJOR (BOTH REGULATIONS). 2026-09-23 (abra/regmc 0.86.0)
 
 - `residualGroupPairs` walks (body, step) pairs off the shadow handler list when it interleaves bodies (Grassy heal,
