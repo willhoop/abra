@@ -20214,7 +20214,11 @@ probe('ability', 'boostsFromFallen', 'Supreme Overlord ANNOUNCES the dead it wal
                  + `after the |switch|, and NOTHING at 0)` };
 });
 
-probe('ability', 'boostsFromFallen', 'Supreme Overlord closes its fallen marker on the way OUT, and refuses the authority fallenundefined', () => {
+/* 2026-09-24 (ENGINE, narration-last) -- THE ZERO ARM FLIPPED. It asserted that the engine REFUSES the authority's
+ * `fallenundefined` (onEnd interpolates an effectState.fallen that the guarded onStart never assigned). The bar is now
+ * the authority, bugs included, so the zero arm must carry exactly that line. tests/probe_fallen_undefined.js;
+ * MEDI_FALLEN_UNDEFINED_SILENT=1 restores the refusal and turns both zero arms red. */
+probe('ability', 'boostsFromFallen', 'Supreme Overlord closes its fallen marker on the way OUT, and writes the authority fallenundefined at zero', () => {
   const at = (n, ab) => overlordLines(n, ab, 'switch').left;
   const ends = (a) => a.filter(l => /^\|-end\|/.test(l));
   const zero = at(0, 'supremeoverlord'), one = at(1, 'supremeoverlord');
@@ -20226,11 +20230,11 @@ probe('ability', 'boostsFromFallen', 'Supreme Overlord closes its fallen marker 
   const before = [one, two, three].every(a => /^\|-end\|/.test(a[0]) && /^\|switch\|/.test(a[1] || ''));
   const shape = (a, n) => JSON.stringify(ends(a)) === JSON.stringify(['|-end|p1a: kingambit|fallen' + n + '|[silent]']);
   const ok = shape(one, 1) && shape(two, 2) && shape(three, 3) && before
-          && ends(zero).length === 0 && ends(off).length === 0;
+          && shape(zero, 'undefined') && /^\|switch\|/.test(zero[1] || '') && ends(off).length === 0;
   return { works: ok, arms: { control: [ends(zero).length, ends(off).length], test: ends(three) },
            detail: `exit lines on the p1a slot — 0 fallen ${JSON.stringify(ends(zero))} (the authority `
-                 + `writes fallenundefined here and engine/quarantine.js declares it AUTHORITY-WRONG, `
-                 + `so this MUST stay empty); 1 ${JSON.stringify(ends(one))}; 2 ${JSON.stringify(ends(two))}; `
+                 + `writes fallenundefined here, above the incoming |switch|, and so must the engine); `
+                 + `1 ${JSON.stringify(ends(one))}; 2 ${JSON.stringify(ends(two))}; `
                  + `3 ${JSON.stringify(ends(three))}; no ability at 3 fallen ${JSON.stringify(ends(off))}` };
 });
 
@@ -20247,12 +20251,16 @@ probe('ability', 'boostsFromFallen', 'A Supreme Overlord that DIES closes its ma
   const ok = died(two) && died(zero) && died(off)
           && JSON.stringify(ends(two)) === JSON.stringify(['|-end|p1a: kingambit|fallen2|[silent]'])
           && two.indexOf('|faint|p1a: kingambit') < two.indexOf(ends(two)[0])
-          && ends(zero).length === 0 && ends(off).length === 0;
+          /* 2026-09-24 -- and at zero the authority's `fallenundefined`, directly below the faint */
+          && JSON.stringify(ends(zero)) === JSON.stringify(['|-end|p1a: kingambit|fallenundefined|[silent]'])
+          && zero.indexOf('|faint|p1a: kingambit') === zero.indexOf(ends(zero)[0]) - 1
+          && ends(off).length === 0;
   return { works: ok, arms: { control: [died(two), ends(zero).length, ends(off).length], test: ends(two) },
            detail: `a Kingambit killed on the field — 2 fallen ${JSON.stringify(two)}; 0 fallen `
                  + `${JSON.stringify(zero)}; the same death with no ability ${JSON.stringify(off)}. `
                  + `The faint must land in every arm (${died(two)}/${died(zero)}/${died(off)}) and the `
-                 + `marker must carry the SNAPSHOT 2, not the freshly-incremented 3` };
+                 + `marker must carry the SNAPSHOT 2, not the freshly-incremented 3; at 0 fallen the `
+                 + `authority's fallenundefined, directly below the faint` };
 });
 
 probe('ability', 'boostsFromFallen', 'The marker a Supreme Overlord closes is the one it OPENED, not the count at the door', () => {

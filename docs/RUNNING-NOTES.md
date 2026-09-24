@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.114.1] — 2026-09-24 — **Two Supreme Overlord census rows expect `fallenundefined` at zero**
+- **What changed.** `tests/test-mechanics.js`: the zero arms of the two `boostsFromFallen` close rows require the authority's line instead of its absence.
+- **Measured.** Reg M-C census 1022 live / 2 missing on the 0.114.0 engine with the old rows; 1024 / 0 / 1024 with the new rows (`tests/test-mechanics.js --regulation regmc`; artifact not republished, the committed census stays the lattice pin).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.114.0] — 2026-09-24 — **Revival Blessing revives below the Update pass; the reviver's Leppa Berry is eaten first (Reg M-C)**
 - **What changed.** `engine/medicham2-browser.js`: the revive is queued at the move (`reviveReady`) and run by `reviveApplyPending` below the next `_updateAll()`. Knob `MEDI_REVIVE_HEAL_INLINE`. Probe `tests/probe_regmc_revive_leppa_order.js`.
 - **Measured.** Probe RED before (`098d7fdf95bc`, 3 arms), GREEN after (`aed9780fc4e3`), RED under the knob; the four existing revive probes stay green. Lattice effect is measured in the 0.115.0 row.

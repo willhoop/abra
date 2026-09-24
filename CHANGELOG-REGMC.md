@@ -21,6 +21,17 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.114.1] — 2026-09-24
+
+### Fixed
+- **Two Supreme Overlord census rows now expect the authority's `fallenundefined` at zero.** Both rows asserted the
+  refusal that 0.113.0 withdrew: "closes its fallen marker on the way OUT" and "A Supreme Overlord that DIES closes its
+  marker too". So the census read 1022 live, 2 missing, on the 0.113.0 and 0.114.0 engines. The zero arms now require
+  the `-end … fallenundefined|[silent]` line: above the incoming `|switch|` on the way out, and directly below the
+  `|faint|` on a death. The first row's label says so. `tests/test-mechanics.js --regulation regmc` reads 1024 live,
+  0 missing, 1024 probed. This belongs to cause 2 (0.113.0); it is a separate commit only because the history was not
+  rewritten.
+
 ## [0.114.0] — 2026-09-24
 
 ### Fixed
