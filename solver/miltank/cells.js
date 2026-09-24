@@ -4,6 +4,7 @@
  *
  *   job = { S, side, opp, rows, cols, belief:{sheet, revealed:Set}, depth, baseSeed }
  *   playPass(API, R, job, p, deadline) -> { p, v: Float64Array(m·n), stopped }
+ *       cells are played from startCell(p) onward, wrapping (see startCell below)
  *       v[i·n+j] is the value of cell (i, j) for `side`, NaN if the clock ran out before it was played
  *   accumulate(m, n, [v0, v1, …])     -> { sum:[m][n], cnt:[m][n], passes, playouts }
  *       adds the passes IN THE ORDER GIVEN, which callers make pass order — the serial loop's order
@@ -27,17 +28,31 @@ function playPass(API, R, job, p, deadline) {
   const seed = job.baseSeed + p * STRIDE;
   const wcoin = API.M.rngStreams({ seed: seed + 1 }).any;
   const W = R.prepare(R.sampleWorld(job.S, job.opp, job.belief, wcoin));
+  const mn = m * n, off = startCell(p, mn);
   let stopped = false;
-  for (let i = 0; i < m && !stopped; i++) {
-    for (let j = 0; j < n; j++) {
-      const jA = job.side === 'A' ? job.rows[i] : job.cols[j], jB = job.side === 'A' ? job.cols[j] : job.rows[i];
-      const vA = R.playout(W, jA, jB, seed, job.depth);
-      v[i * n + j] = job.side === 'A' ? vA : 1 - vA;
-      if (Date.now() >= deadline) { stopped = true; break; }
-    }
+  for (let t = 0; t < mn; t++) {
+    const c = (off + t) % mn, i = (c / n) | 0, j = c - i * n;
+    const jA = job.side === 'A' ? job.rows[i] : job.cols[j], jB = job.side === 'A' ? job.cols[j] : job.rows[i];
+    const vA = R.playout(W, jA, jB, seed, job.depth);
+    v[c] = job.side === 'A' ? vA : 1 - vA;
+    if (Date.now() >= deadline) { stopped = true; break; }
   }
   return { p, v, stopped };
 }
+
+/* WHERE PASS p STARTS IN THE MATRIX. Pass 0 starts at cell (0,0), as the first version did. Later passes
+ * start at the golden-ratio point frac(p·φ)·m·n and wrap, so passes cut short by the clock cover
+ * DIFFERENT cells. This matters for the pool: with every pass starting at (0,0), four workers each cut
+ * short mid-pass all filled the same top rows, and the 1 s arena run left 34.8% of cells empty against
+ * 28% for one process (docs/_reports/2026-09-24-playout-speed.md). A cell's value does not depend on the
+ * order it is played in — each playout copies the world and seeds its own dice — so a FULL pass is
+ * unchanged; only which cells a cut-short pass reaches moves. */
+const PHI = (Math.sqrt(5) - 1) / 2;
+function startCell(p, mn) {
+  if (BREAK_ROTATE || p === 0) return 0;
+  return Math.floor(((p * PHI) % 1) * mn) % mn;
+}
+const BREAK_ROTATE = (typeof process !== 'undefined' && process.env && process.env.MILTANK_POOL_BREAK === 'rotate');
 
 function accumulate(m, n, vs) {
   const sum = Array.from({ length: m }, () => new Float64Array(n));
@@ -61,4 +76,4 @@ function fillSerial(API, R, job, deadline, maxPasses) {
   return accumulate(job.rows.length, job.cols.length, vs);
 }
 
-module.exports = { playPass, accumulate, fillSerial, STRIDE };
+module.exports = { playPass, accumulate, fillSerial, startCell, STRIDE };

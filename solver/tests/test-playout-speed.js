@@ -10,11 +10,15 @@
  *   POOL    the worker pool at a pass cap returns the serial fill's matrix BIT FOR BIT (sum and count of
  *           every cell, 3 workers, a pass cap that is not a multiple of 3), and decideAsync through the
  *           pool returns decide()'s joint, value and playout count.
+ *   COVER   passes cut short by the clock start at DIFFERENT cells: eight passes each stopped after one
+ *           playout fill at least six distinct cells, and the value each one wrote equals that cell's value
+ *           in a full pass (a cell's value does not depend on the order it was played in).
  *
  * RED, unless --no-red: re-runs itself under each deliberate break and REQUIRES the named clause to fail:
  *   MILTANK_BREAK=prepare -> CLONE     (the prepared copy drops the battle's scratch scope)
  *   MILTANK_BREAK=rng     -> IDENT     (the playout's dice streams collapse into one stream)
  *   MILTANK_POOL_BREAK=stride -> POOL  (every worker replays passes 0,1,2,… instead of its own stride)
+ *   MILTANK_POOL_BREAK=rotate -> COVER (every pass starts at cell (0,0) again, as the first version did)
  */
 'use strict';
 require('../arena/env.js');
@@ -75,6 +79,24 @@ async function main() {
   ok('IDENT', cells > 200, 'too few cells to answer: ' + cells);
   console.log('  CLONE: ' + worlds + ' worlds; IDENT: ' + cells + ' playouts against the pre-change playout');
 
+  /* ---------- COVER ---------- */
+  {
+    let distinctMin = Infinity, n = 0;
+    for (const J of jobs.slice(0, 6)) {
+      const cells = new Set();
+      for (let p = 0; p < 8; p++) {
+        const cut = C.playPass(API, R, J, p, 0);            // deadline already past: exactly one playout
+        const full = C.playPass(API, R, J, p, Infinity);
+        const c = cut.v.findIndex(x => x === x);
+        cells.add(c);
+        ok('COVER', cut.v.filter(x => x === x).length === 1 && Object.is(cut.v[c], full.v[c]), 'pass ' + p + ': a cut-short cell differs from the full pass');
+      }
+      distinctMin = Math.min(distinctMin, cells.size); n++;
+    }
+    ok('COVER', distinctMin >= 6, 'eight cut-short passes reached only ' + distinctMin + ' distinct cells');
+    console.log('  COVER: ' + n + ' positions, fewest distinct start cells over 8 passes: ' + distinctMin);
+  }
+
   /* ---------- POOL ---------- */
   const pool = await require('../miltank/pool.js').create({ workers: 3 });
   try {
@@ -106,7 +128,7 @@ async function main() {
   console.log('test-playout-speed: ' + (checks - fails) + '/' + checks + ' checks' + (brk ? '  [BREAK ' + brk + ']' : '') + '  failed clauses: ' + ([...failed].join(',') || 'none'));
 
   if (!NO_RED && !brk) {
-    const need = [['MILTANK_BREAK', 'prepare', 'CLONE'], ['MILTANK_BREAK', 'rng', 'IDENT'], ['MILTANK_POOL_BREAK', 'stride', 'POOL']];
+    const need = [['MILTANK_BREAK', 'prepare', 'CLONE'], ['MILTANK_BREAK', 'rng', 'IDENT'], ['MILTANK_POOL_BREAK', 'stride', 'POOL'], ['MILTANK_POOL_BREAK', 'rotate', 'COVER']];
     let blind = 0;
     for (const [envk, v, clause] of need) {
       const res = cp.spawnSync(process.execPath, [__filename, '--no-red', '--games', String(GAMES)], { env: Object.assign({}, process.env, { [envk]: v }), encoding: 'utf8' });
