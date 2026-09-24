@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.87.0 — 2026-09-24.**
+**Version: 0.88.0 — 2026-09-24.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -418,6 +418,7 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | **A move that is `Past` in the old regulation can have NO engine implementation at all, and nothing reports it until something stages it.** Court Change reached the terminal pass (a no-op turn); only the planner's constructed fixture (a side condition raised first) showed the board STATE divergence. | `all_mechanics_fire` reads resolved-on-the-authority-only for a newly legal move. | For each newly legal move, check that `playerAction` returns a kind other than the terminal pass. Fixed 0.82.0 (`swapsSideConditions`). |
 | **A probe written under one regulation hard-codes that regulation's checkout, release or mod block.** Pass 9 found three: a default `SHOWDOWN_PATH` to the Reg M-B checkout, a default `--release` pinned to a Reg M-B release, and an assertion that the Champions mod carry a `disguise` block. Each read red or CANNOT ANSWER under Reg M-C with a correct engine. | A probe reds or throws under the new regulation on an assertion about the checkout, not the mechanic. | Grep `tests/` for literal checkout paths and release ids; resolve through `engine/showdown_path.js` and the newest release for the selected regulation. Fixed 0.82.1. |
 | **A once-per-body latch is correct until a regulation adds a way to come back.** The trace wrote `|faint|` once per body and never reset it, which was right while nothing revived; Reg M-C's Revival Blessing lets a body die twice, and the second death was silent. | Whole-game narration rows reading "`|faint|` never emitted" on a body that had been revived. | On a rotation, list every per-body latch (`_traceFainted`, `_faintOut`, …) and check each is reset by every road that returns a body to play. Fixed 0.85.0. |
+| **A Champions mod override can disappear between regulations, and every engine road built to mirror it keeps running.** Reg M-B's mod QUEUES White Herb's after-move restore (data/mods/champions/items.ts:1023-1037); Reg M-C's mod has no whiteherb entry, so mainline's immediate restore stands. The engine's queued road (`pivotHerbSweep`, built for Reg M-B) went on firing under Reg M-C, and the herb came out below a Parting Shot's `|switch|` instead of above it. | One whole-game narration row (Parting Shot into a White Herb holder); `tests/probe_narration_b_line_order.js`'s `herb` arm, written against the Reg M-B override, read FIXTURE FAILED under Reg M-C. | On a rotation, diff the two checkouts' `data/mods/champions/*.ts` by entry name and list every override that was added or removed. For each, find the engine road that mirrors it and make it read a DERIVED tag param (here `restoresStats.afterMoveImmediate`), never the regulation's name. A probe that stages an override must print NOT APPLICABLE where the tag says the override is absent. Fixed 0.88.0. |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

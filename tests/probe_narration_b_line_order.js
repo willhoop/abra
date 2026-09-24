@@ -272,6 +272,17 @@ arm('lock', 'MEDI_LOCK_END_NEEDS_HIT', () => {
 });
 
 arm('herb', 'MEDI_PIVOT_HERB_AFTER_ENTRY', () => {
+  /* 2026-09-24 (abra/regmc 0.88.0) -- THIS ARM STAGES A MOD OVERRIDE, AND A REGULATION WITHOUT IT HAS NO SUCH SHAPE.
+   * The queued White Herb exists only where the regulation's Champions mod overrides whiteherb (Reg M-B checkout
+   * data/mods/champions/items.ts:1023-1037). Reg M-C's mod has no entry, so its herb is spent inside AfterMove, ABOVE the
+   * pivot's `|switch|`, and this arm's fixture can never stage there. The regulation's own tag says which
+   * (`restoresStats.afterMoveImmediate`); the Reg M-C shape is tests/probe_herb_before_pivot_switch.js. */
+  {
+    const T = JSON.parse(require('fs').readFileSync(D(require(D('engine', 'regulation.js')).TAGS_FILE), 'utf8'));
+    const rs = (((T.items || {}).whiteherb || {}).params || {}).restoresStats;
+    if (rs && rs.afterMoveImmediate) return { na: 'this regulation\'s White Herb is not queued (restoresStats.afterMoveImmediate); '
+      + 'its order is tests/probe_herb_before_pivot_switch.js' };
+  }
   fresh();
   const pivot = take(SPECIES.filter(s => learns(s, 'partingshot') && learns(s, 'protect')), 'Parting Shot user');
   const p1b = take(SPECIES.filter(s => learns(s, 'protect')), 'pivot partner');
@@ -376,13 +387,14 @@ function play(G, sc, name) {
 }
 const divOf = r => r.div ? (r.div.agreedLines + '  SD ' + r.div.sdRaw + '  <>  US ' + r.div.meRaw) : 'none';
 
-let bad = 0, ran = 0;
+let bad = 0, ran = 0, na = 0;
 for (const A of ARMS) {
   if (ONLY && A.id !== ONLY) continue;
   console.log(NL + '================================================================');
   console.log('  ' + A.id + '    knob ' + A.knob);
   let fx;
   try { fx = A.build(); } catch (e) { console.log('  ' + String(e.message || e)); bad++; continue; }
+  if (fx && fx.na) { console.log('  NOT APPLICABLE in this regulation — ' + fx.na); na++; continue; }
   for (const kind of ['red', 'control']) {
     const sc = fx[kind];
     const clean = play(harness(null), sc, A.id + ' ' + kind + ' clean');
@@ -408,7 +420,7 @@ for (const A of ARMS) {
   }
 }
 console.log(NL + '================================================================');
-if (!ran) { console.log('NOT RUN — no arm matched --only ' + ONLY + '. This is not a pass.'); process.exit(2); }
+if (!ran) { console.log('NOT RUN — ' + (na ? na + ' arm(s) not applicable in this regulation and none ran' : 'no arm matched --only ' + ONLY) + '. This is not a pass.'); process.exit(2); }
 console.log(bad ? 'FAIL — ' + bad + ' problem(s) over ' + ran + ' arm(s)' : 'PASS — ' + ran + ' arm(s)');
 console.log('release ' + REL_ID);
 process.exit(bad ? 1 : 0);

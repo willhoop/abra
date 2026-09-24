@@ -53,6 +53,18 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.88.0] — 2026-09-24 — **White Herb is spent above a pivot's `|switch|` where the regulation does not queue it (Reg M-C)**
+
+- **What changed.** `engine/medicham2-browser.js`: `pivotFrom(mvId, fn, who)` runs `herbBeforePivotSwitch(who)`, which
+  restores every holder whose tag carries `restoresStats.afterMoveImmediate` (Reg M-C's; Reg M-B's queued override has
+  none) before the switch. Knob `MEDI_HERB_IMMEDIATE_AFTER_PIVOT`. Probe `tests/probe_herb_before_pivot_switch.js`.
+  `tests/probe_narration_b_line_order.js` `herb` arm prints NOT APPLICABLE where the tag says the queue is absent.
+- **Measured.** NO FIGURE published. Probe red on the 0.87.0 bytes and under the knob in Reg M-C, green after; green in
+  Reg M-B before and after. Pinned `--games 300` differentials, same flags and pins as 0.87.0: Reg M-C release
+  `a1dd33b2d616` 0/259 board-material, 0 protocol-diverged → `924597092811` 0/259, 0; Reg M-B `4662992b5cc1` 1/260, 2 →
+  `1d13b44973d2` 1/260, 2, identical first divergences (the pre-existing Alakazite game). Scratch outputs, not published.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.87.0] — 2026-09-24 — **A recoil KO's `|faint|` is written at the move's tail, below Berserk and Emergency Exit (both regulations)**
 
 - **What changed.** `engine/medicham2-browser.js`: the recoil site queues the attacker's faint (`queueFaint`, state

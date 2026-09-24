@@ -1,3 +1,11 @@
+## WHITE HERB IS SPENT ABOVE A PIVOT'S `|switch|` WHERE THE REGULATION DOES NOT QUEUE IT (REG M-C). 2026-09-24 (abra/regmc 0.88.0)
+
+- `pivotFrom(mvId, fn, who)` first runs `herbBeforePivotSwitch(who)`: every holder whose tag carries
+  `restoresStats.afterMoveImmediate` (Reg M-C) is restored before the switch; Reg M-B keeps the queued
+  `pivotHerbSweep`. Knob `MEDI_HERB_IMMEDIATE_AFTER_PIVOT`. Probe `tests/probe_herb_before_pivot_switch.js`. Leaves the
+  pass-10 Reg M-C narration list ("White Herb"). The mirror-Incineroar turn-0 row filed beside it in the triage is a
+  speed-tie question (group G) and is NOT claimed. `tests/probe_midturn_herb_resort.js` is a Reg M-B probe and reads
+  red under Reg M-C before and after this change (report §4).
 ## A RECOIL KO'S `|faint|` IS WRITTEN AT THE MOVE'S TAIL, BELOW BERSERK AND EMERGENCY EXIT (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.87.0)
 
 - The recoil site queues (`queueFaint(m,'recoil')`); `drainFaints('moveTail')` is `runMove`'s `faintMessages()`, below

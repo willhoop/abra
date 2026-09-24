@@ -29527,7 +29527,30 @@ function midAddrOwnAction(){
   MID_MOVE='-';MID_TGT='-';
   return {stale,restore(){MID_MOVE=_am;MID_TGT=_at;}};
 }
-function pivotFrom(mvId,fn){
+/* 2026-09-24 (abra/regmc 0.88.0) -- WHITE HERB ABOVE A PIVOT'S `|switch|`, WHERE THE REGULATION'S HERB IS NOT QUEUED.
+ * Reg M-C's checkout carries no Champions whiteherb override (data/mods/champions/items.ts has no entry), so
+ * data/items.ts:7658-7705 stands: `onAnyAfterMove` runs `onStart` INSIDE `runMove`'s AfterMove, before `runAction`
+ * answers the pivot's `switchFlag` with the switch request. Reg M-B's mod QUEUES it (items.ts:1023-1037, order 99) and
+ * `pivotHerbSweep` below keeps that road. The two are told apart by the derived tag
+ * (`restoresStats.afterMoveImmediate`), never by a regulation name. Reg M-C pinned pool `...2682994376` t2: showdown
+ * spends the herb before the Parting Shot switch, medicham after it. MEDI_HERB_IMMEDIATE_AFTER_PIVOT=1 restores the
+ * post-switch spend. tests/probe_herb_before_pivot_switch.js */
+const HERB_IMMEDIATE_AFTER_PIVOT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HERB_IMMEDIATE_AFTER_PIVOT==='1');
+if(HERB_IMMEDIATE_AFTER_PIVOT)MEDFAILS.herbImmediateAfterPivotRestored=1;
+function herbBeforePivotSwitch(who){
+  if(HERB_IMMEDIATE_AFTER_PIVOT||!who)return 0;
+  const S=who._sf&&who._sf._S;
+  if(!S){MEDFAILS.herbBeforePivotNoState=(MEDFAILS.herbBeforePivotNoState||0)+1;return 0;}
+  let n=0;
+  for(const x of [...(S.actA||[]),...(S.actB||[])]){
+    const p=x&&TAGS.param('item',x.item,'restoresStats');
+    if(p&&p.afterMoveImmediate&&restoreStatsUpdate(x))n++;
+  }
+  if(n)MEDSEEN.herbBeforePivotSwitch=(MEDSEEN.herbBeforePivotSwitch||0)+n;
+  return n;
+}
+function pivotFrom(mvId,fn,who){
+  herbBeforePivotSwitch(who);
   PIVOT_DEPTH++;
   const _am=MID_MOVE,_at=MID_TGT;
   if(PIVOT_ENTRY_MOVE_ADDR)MEDFAILS.pivotEntryMoveAddrRestored=1;
@@ -40129,7 +40152,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* `a.to` names the replacement when the caller chose one. A switch action without it keeps
            the old behaviour of taking whoever is first, so nothing that used this before changes. */
         if(idx>=0)pivotFrom(a.mv,()=>switchOut(_pvOwn,idx,_pvBench,_pvFoes,_pvSf,field,
-                                               _bi.bouncedBy?undefined:a.to));
+                                               _bi.bouncedBy?undefined:a.to),_pvOut);
         continue;
       }
       /* ---- ROADMAP #81 WIRE 12 -- CURSE, BOTH HALVES --------------------------------------------
@@ -40335,7 +40358,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         const idx=own.indexOf(m);
         if(idx<0){mvFail(m);continue;}
-        if(pivotFrom(a.mv,()=>switchOut(own,idx,bench,foes,sf,field,a.to||a.pivotTo,_ps||{passesBoosts:false,passesVolatiles:[]})))
+        if(pivotFrom(a.mv,()=>switchOut(own,idx,bench,foes,sf,field,a.to||a.pivotTo,_ps||{passesBoosts:false,passesVolatiles:[]}),m))
           MEDSEEN.passesStateSwitch++;
         continue;
       }
@@ -50915,7 +50938,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_redCardDrag){MEDSEEN.pivotRefusedByRedCard=(MEDSEEN.pivotRefusedByRedCard|0)+1;}
         else if(m._pivotCancelledByEject){MEDSEEN.ejectButtonCancelledPivot++;}
         else if(_ejectOwed.length){ if(idx>=0&&!_ejectOwed.some(e=>e.tg===m))_ejectOwed.push({pivot:true,tg:m,own,idx,bench,foes,sf}); }
-        else if(idx>=0)pivotFrom(a.move.id,()=>switchOut(own,idx,bench,foes,sf,field,a.pivotTo));
+        else if(idx>=0)pivotFrom(a.move.id,()=>switchOut(own,idx,bench,foes,sf,field,a.pivotTo),m);
       }
       /* WIRE 40 -- DRAGON TAIL AND CIRCLE THROW, the DAMAGING half of forcesSwitch. They carry base
          power, so they arrived here as ordinary attacks and the drag -- which is the entire reason a
@@ -51061,7 +51084,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         for(const e of _ord){
           if(e.pivot){
             const _i=e.own.indexOf(e.tg);
-            if(_i>=0&&!e.tg.fainted&&e.tg.curHP>0)pivotFrom(a.move.id,()=>switchOut(e.own,_i,e.bench,e.foes,e.sf,field,a.pivotTo));
+            if(_i>=0&&!e.tg.fainted&&e.tg.curHP>0)pivotFrom(a.move.id,()=>switchOut(e.own,_i,e.bench,e.foes,e.sf,field,a.pivotTo),e.tg);
             continue;
           }
           const tg=e.tg, _i=e.bx.own.indexOf(tg);

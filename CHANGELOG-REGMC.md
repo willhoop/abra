@@ -21,6 +21,24 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.88.0] — 2026-09-24
+
+### Fixed
+- **White Herb was spent below a pivot's `|switch|` in Reg M-C, where the regulation's herb is not queued.** Reg M-B's
+  checkout overrides whiteherb in the Champions mod to QUEUE the restore (data/mods/champions/items.ts:1023-1037,
+  order 99), so the pivot's `|switch|` comes first; Reg M-C's mod has no whiteherb entry, so data/items.ts:7658-7705
+  stands and `onAnyAfterMove` spends the herb inside `runMove`'s AfterMove, ABOVE the switch `runAction` asks for.
+  MEDICHAM used the queued road in both. `pivotFrom` now takes the leaving body and first spends every herb whose tag
+  says the restore is immediate (`restoresStats.afterMoveImmediate`, derived by tag_dex); Reg M-B has no such tag and
+  keeps `pivotHerbSweep`. This is the pass-10 narration item "White Herb" (Reg M-C pool `…2682994376` t2, Parting
+  Shot). Knob `MEDI_HERB_IMMEDIATE_AFTER_PIVOT`.
+- New probe `tests/probe_herb_before_pivot_switch.js` (either regulation): Parting Shot into a White Herb holder + a
+  no-herb control. Reg M-C: red on the 0.87.0 engine and under the knob, green after. Reg M-B: green before and after
+  (the queued order is kept).
+- `tests/probe_narration_b_line_order.js`'s `herb` arm stages the Reg M-B mod override; under a regulation whose
+  White Herb tag is `afterMoveImmediate` it now prints NOT APPLICABLE instead of a fixture failure it could never pass.
+  It was red under Reg M-C before this change for that reason alone.
+
 ## [0.87.0] — 2026-09-24
 
 ### Fixed
