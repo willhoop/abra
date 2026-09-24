@@ -29,7 +29,8 @@ const near = (a, b) => Math.abs(a - b) < 5e-4;
 }
 
 const o = { x: 'random', y: 'prior', games: 6, seed: 5, budget: 0, depth: 1, k1: 4, k2: 4, cap: 60 };
-const r1 = AR.run(o);
+(async () => {
+const r1 = await AR.run(o);
 {
   const g = r1.per_game;
   for (let i = 0; i + 1 < g.length; i += 2) {
@@ -44,7 +45,7 @@ const r1 = AR.run(o);
   ok('PLAY', r1.result.score_x >= 0 && r1.result.score_x <= 1 && r1.result.ci95_x[0] <= r1.result.score_x && r1.result.score_x <= r1.result.ci95_x[1], 'score/CI inconsistent');
 }
 {
-  const r2 = AR.run(o);
+  const r2 = await AR.run(o);
   ok('DET', JSON.stringify(r2.per_game.map(g => [g.vX, g.turns])) === JSON.stringify(r1.per_game.map(g => [g.vX, g.turns])), 'two identical runs differ');
 }
 
@@ -57,3 +58,4 @@ if (!NO_RED && !AR.BROKEN) {
   if (!seen) process.exit(3);
 }
 process.exit(fails ? 1 : 0);
+})().catch(e => { console.log('CANNOT ANSWER: ' + (e && e.stack || e)); process.exit(2); });

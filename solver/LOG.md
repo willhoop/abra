@@ -8,6 +8,21 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-24
 
+### Playout speed and worker pool (PRE-GATE)
+- About 80% of a playout is the engine turn (`battleTurn`). Solver overhead was about 8%: the clone plus the
+  makeRng wrapper, now cut to about 4%. The earlier "23 playouts" figure was mostly machine load (the machine
+  was 90–100% busy all day).
+- Worker-process pool (`solver/miltank/pool.js`). It is bit-identical to serial at a pass cap. Cut-short
+  passes now start at golden-ratio offsets; before that, the pool left 34.8% of cells empty.
+  `test-playout-speed.js` GREEN 1,184/1,184 and red on 4 breaks.
+- Arena against prior-greedy, 200 games:
+  - 1 s, 4 workers: 0.565 (0.496–0.632), median 72 playouts.
+  - 1 s, in-process: 0.590 (0.521–0.656), median 50.
+  - **5 s, 4 workers: 0.640 (0.571–0.703)**, median 623, 0.12% of cells unfilled.
+- Scaling could not be measured on a saturated machine. A playout costs about 10 ms of CPU at any worker
+  count.
+- Detail: `docs/_reports/2026-09-24-playout-speed.md`.
+
 ### SLOWKING v1, MILTANK v1 skeleton, offline arena (PRE-GATE)
 - SLOWKING: RM+ plus an exact LP. Agreement on 200 random games. RM+ stays under the proven
   Δ(√m+√n)/√T bound on 90 runs. `solver/tests/test-slowking.js` GREEN 1,559/1,559 and red on 3 breaks.

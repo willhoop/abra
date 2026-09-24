@@ -21,6 +21,19 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.116.0] — 2026-09-24
+
+### Changed
+- **MILTANK playouts: a worker-process pool and cheaper playouts.** Prepared-world copies, unwrapped dice, one shared
+  pass (`solver/miltank/cells.js`), and a worker pool (`solver/miltank/pool.js`) that is bit-identical to serial at a
+  pass cap. Cut-short passes start at golden-ratio offsets, so the pool no longer leaves 34.8% of cells empty at 1 s.
+  Benches under `solver/bench/`. Tests on main: `test-playout-speed` 1,184/1,184, `test-miltank` 3,414/3,414,
+  `test-arena` 15/15, `test-slowking` 1,559/1,559. The arena re-run is PRE-GATE, so no strength figure is published
+  here; see `docs/_reports/2026-09-24-playout-speed.md`. Merged from branch `playout-speed` (eaf93368).
+
+### Notes
+- MINOR: solver-only change. No ABRA published figure moves, and MEDICHAM is untouched.
+
 ## [0.115.0] — 2026-09-24
 
 ### Added

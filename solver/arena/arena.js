@@ -1,7 +1,7 @@
 /* solver/arena/arena.js — the offline arena: bot X vs bot Y for N games inside MEDICHAM, Reg M-C.
  *
  *   tools\lownode.cmd solver\arena\arena.js --x miltank --y prior --games 100 [--budget 1000] [--seed 1]
- *        [--depth 2] [--k1 8] [--k2 8] [--cap 60] [--human <games.jsonl>] [--out <summary.json>]
+ *        [--depth 2] [--k1 8] [--k2 8] [--cap 60] [--workers N] [--human <games.jsonl>] [--out <summary.json>]
  *
  * PRE-GATE. MEDICHAM's Reg M-C gate is NOT open. Every number this prints is a SHAKEDOWN of the
  * harness, not a result about any bot, and the artifact says so in its first field.
@@ -14,6 +14,8 @@
  *  - A game ends on a wipe (`isTerminal`), or at `--cap` turns, where the engine's HP rule
  *    (`horizonScore`) decides it and the game is COUNTED as capped.
  *  - Per-decision time is measured around every `choose` call, for both bots.
+ *  - `--workers N` (N >= 1) fills MILTANK's cells in N worker processes (solver/miltank/pool.js); 0 = in-process.
+ *    The worker count is part of the sample definition: at a fixed clock it buys more playouts per decision.
  *  - Win rate: W, D, L and score = (W + D/2)/N with a Wilson 95% interval; plus the paired view — team
  *    pairs X took both games of, split, or lost both.
  *  - Everything that fired is counted (the API's, the prior adapter's, the rollout's and MILTANK's
@@ -53,14 +55,15 @@ function stats(a) {
 }
 const sha = f => { try { return crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex').slice(0, 16); } catch (e) { return null; } };
 
-function run(o) {
+async function run(o) {
   const N = Math.ceil((o.games || 100) / 2) * 2;
   const L = T.loadGames({ file: o.human, n: N / 2, seed: o.seed, M });
   if (L.refused) throw new Error(L.refused);
   if (L.games.length < N / 2) throw new Error('only ' + L.games.length + ' buildable team pairs');
+  const pool = o.workers > 0 && (o.x === 'miltank' || o.y === 'miltank') ? await require('../miltank/pool.js').create({ workers: o.workers }) : null;
   const B = makeBots(API, { prior: PA, miltank: MT });
   const mk = (name, seed) => name === 'random' ? B.random(seed) : name === 'prior' ? B.prior()
-    : name === 'miltank' ? B.miltank(seed, { budgetMs: o.budget, depth: o.depth, k1: o.k1, k2: o.k2 }) : null;
+    : name === 'miltank' ? B.miltank(seed, { budgetMs: o.budget, depth: o.depth, k1: o.k1, k2: o.k2, pool }) : null;
   const X = mk(o.x, o.seed * 1000 + 1), Y = mk(o.y, o.seed * 1000 + 2);
   if (!X || !Y) throw new Error('unknown bot');
   const times = { X: [], Y: [] }, rec = [];
@@ -80,8 +83,8 @@ function run(o) {
     let err = null;
     try {
       while (!API.isTerminal(S) && S.turn < o.cap) {
-        let t = Date.now(); const cA = bA.choose(S, 'A', ctx); const dA = Date.now() - t;
-        t = Date.now(); const cB = bB.choose(S, 'B', ctx); const dB = Date.now() - t;
+        let t = Date.now(); const cA = await bA.choose(S, 'A', ctx); const dA = Date.now() - t;
+        t = Date.now(); const cB = await bB.choose(S, 'B', ctx); const dB = Date.now() - t;
         (xIsA ? times.X : times.Y).push(dA); (xIsA ? times.Y : times.X).push(dB);
         if (cA.info && cA.info.playouts != null) (xIsA ? infos.X : infos.Y).push(cA.info);
         if (cB.info && cB.info.playouts != null) (xIsA ? infos.Y : infos.X).push(cB.info);
@@ -105,6 +108,7 @@ function run(o) {
       console.log(`  ${gi + 1}/${N}  ${o.x} W${res.W} D${res.D} L${res.L}  score ${(n ? (res.W + res.D / 2) / n : 0).toFixed(3)}  capped ${res.capped} errors ${res.errors}  ${((Date.now() - t0) / 1000).toFixed(0)}s`);
     }
   }
+  if (pool) pool.close();
   const n = res.W + res.D + res.L;
   const score = n ? (res.W + res.D / 2) / n : null;
   const ci = wilson(res.W + res.D / 2, n);
@@ -113,7 +117,8 @@ function run(o) {
   const warn = [];
   if (o.x === 'miltank' || o.y === 'miltank') {
     for (const k of ['playouts', 'cells']) if (!MT.COUNTERS[k]) warn.push('MILTANK ' + k + ' = 0');
-    if (!R.COUNTERS.worlds) warn.push('rollout worlds = 0');
+    if (!R.COUNTERS.worlds && !(pool && pool.counters.worlds)) warn.push('rollout worlds = 0');
+    if (pool && !pool.counters.playouts) warn.push('pool workers played 0 playouts');
     if (!MT.COUNTERS.reservedSwitch) warn.push('reserved switch slots = 0');
   }
   if (o.x === 'prior' || o.y === 'prior' || o.x === 'miltank' || o.y === 'miltank') if (!PA.COUNTERS.optionsMatched) warn.push('prior matched no option');
@@ -128,14 +133,14 @@ function run(o) {
       unfilled_share: +(a.reduce((s, i) => s + i.unfilled, 0) / a.reduce((s, i) => s + i.m * i.n, 0)).toFixed(4),
       slowking_gap: { mean: +(a.reduce((s, i) => s + i.gap, 0) / a.length).toExponential(2), max: +Math.max(...a.map(i => i.gap)).toExponential(2) },
       mix_support: stats(a.map(i => i.support)) }])),
-    flags: { games: N, seed: o.seed, budget_ms: o.budget, depth: o.depth, k1: o.k1, k2: o.k2, cap: o.cap, reserve_switch: 2 },
+    flags: { games: N, seed: o.seed, budget_ms: o.budget, depth: o.depth, k1: o.k1, k2: o.k2, cap: o.cap, reserve_switch: 2, workers: o.workers || 0 },
     sample: { human_file: L.file, manifest_generated: manifest, scanned: L.scanned, eligible: L.eligible, skipped: L.skipped, stride: L.stride,
               ids_sha256: crypto.createHash('sha256').update(L.games.map(g => g.id).join('\n')).digest('hex').slice(0, 16) },
     provenance: { head, regulation: ENV.regulation, checkout: ENV.checkout, engine: sha(path.join(ROOT, 'engine', 'medicham2-browser.js')),
                   api: sha(path.join(ROOT, 'engine', 'medicham_api.js')), engine_data: sha(path.join(ROOT, 'data', 'engine-data-regmc.js')),
                   prior_model: sha(path.join(ROOT, 'solver', 'prior', 'model', 'prior-v0.json')), node: process.version,
                   note: 'live tree, not a frozen engine release: PRE-GATE shakedown only' },
-    counters: { api: API.COUNTERS, prior: PA.COUNTERS, rollout: R.COUNTERS, miltank: MT.COUNTERS },
+    counters: { api: API.COUNTERS, prior: PA.COUNTERS, rollout: R.COUNTERS, rollout_workers: pool ? pool.counters : null, miltank: MT.COUNTERS },
     warnings: warn,
     wall_s: Math.round((Date.now() - t0) / 1000),
     per_game: rec,
@@ -145,16 +150,17 @@ function run(o) {
 if (require.main === module) {
   const o = { x: flag('--x', 'miltank'), y: flag('--y', 'prior'), games: +flag('--games', 100), seed: +flag('--seed', 1),
               budget: +flag('--budget', 1000), depth: +flag('--depth', 2), k1: +flag('--k1', 8), k2: +flag('--k2', 8),
-              cap: +flag('--cap', 60), human: flag('--human', undefined) };
+              cap: +flag('--cap', 60), workers: +flag('--workers', 0), human: flag('--human', undefined) };
   const out = flag('--out', path.join(ROOT, 'solver', 'out', 'arena', `${o.x}-vs-${o.y}-g${o.games}-s${o.seed}.json`));
   console.log('ARENA (PRE-GATE shakedown) ' + o.x + ' vs ' + o.y + '  ' + JSON.stringify(o));
-  const r = run(o);
+  run(o).then(r => {
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, JSON.stringify(r, null, 1));
   const { per_game, ...head } = r;
   console.log(JSON.stringify(head, null, 1));
   console.log('wrote ' + out);
   process.exit(r.result.errors ? 1 : 0);
+  }, e => { console.error(e); process.exit(1); });
 }
 
 module.exports = { run, wilson, BROKEN: BREAK || null };

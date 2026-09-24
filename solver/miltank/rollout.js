@@ -6,7 +6,8 @@
  *   R.leaf(S)                          value in [0,1] for side A (terminal: the winner; else the heuristic)
  *   R.sampleWorld(S, oppSide, belief, coin)  a clone of S with the opponent's UNREVEALED bench re-drawn
  *                                      (belief = { sheet: [6 rows], revealed: Set(current team idx) })
- *   R.playout(W, jA, jB, seed, depth)  clone W, step (jA, jB) on seeded dice, `depth` random turns, leaf
+ *   R.prepare(W)                       a world serialised once, for many playouts (see prepare below)
+ *   R.playout(W, jA, jB, seed, depth)  copy W (or a prepared W), step (jA, jB) on seeded dice, `depth` random turns, leaf
  *
  * THE PLAYOUT POLICY IS NOT A LEGALITY AUTHORITY. `legalActions` is, and it costs ~2 ms a call because
  * it snapshots and restores every process-wide counter so that it can be a pure read (the differential
@@ -34,16 +35,18 @@
  *
  * DELIBERATE BREAKS (env MILTANK_BREAK): `support` (offer a move the menu refused), `swapstamp` (the
  * swap forgets `_sf`), `crn` (a cell's dice ignore the seed), `peek` (the world keeps the opponent's TRUE
- * unrevealed bodies — the search sees hidden information). Loud: exported as BROKEN.
+ * unrevealed bodies — the search sees hidden information), `prepare` (a prepared copy loses the battle's
+ * scratch scope), `rng` (the playout's five dice streams collapse into one). Loud: exported as BROKEN.
  */
 'use strict';
 const BREAK = (typeof process !== 'undefined' && process.env && process.env.MILTANK_BREAK) || '';
+const v8 = require('v8');
 const live = m => !!(m && !m.fainted && m.curHP > 0);
 
 function create(API, opts) {
   const M = API.M;
   const buildBody = opts.buildBody;
-  const COUNTERS = { playouts: 0, playoutTurns: 0, worlds: 0, bodiesSwapped: 0, wipes: 0, leafHeuristic: 0 };
+  const COUNTERS = { playouts: 0, playoutTurns: 0, worlds: 0, bodiesSwapped: 0, wipes: 0, leafHeuristic: 0, prepared: 0, fastClones: 0 };
 
   function targetType(m, id) {
     const tc = M.moveTargetClass(id);
@@ -130,8 +133,11 @@ function create(API, opts) {
    * per world, and carry their row as `_solverSheet` like every arena body. */
   const cache = new Map();
   function body(row, s) {
-    if (!cache.has(row)) cache.set(row, buildBody(M, row));
-    const b = cache.get(row);
+    /* keyed by the row's CONTENT, not its identity: a pool worker receives a fresh copy of the sheet with
+     * every decision, and an identity key would rebuild every body and grow the cache without bound */
+    const key = JSON.stringify(row);
+    if (!cache.has(key)) cache.set(key, buildBody(M, row));
+    const b = cache.get(key);
     if (!b) return null;
     const c = structuredClone(b); c._solverSheet = s;
     return c;
@@ -152,9 +158,38 @@ function create(API, opts) {
     return W;
   }
 
+  /* PREPARE A WORLD ONCE, PLAY IT MANY TIMES. A pass plays every cell from the same world, and each
+   * playout needs its own copy. `API.clone` is structuredClone: serialise AND deserialise, per copy. Here
+   * the world is serialised once (`v8.serialize` — the same V8 ValueSerializer structuredClone runs) and
+   * each playout only deserialises. The copy is the same graph: solver/tests/test-playout-speed.js asserts
+   * the digest of a prepared copy equals `API.clone`'s on every position, and that the values do not move.
+   * A prepared world is a SNAPSHOT: mutating W after prepare() is not seen, which is why it is a separate
+   * handle and not a cache keyed on W. The trace sink is an I/O handle and a world must not carry one
+   * (sampleWorld's API.clone already drops it); prepare() refuses one rather than copy it. */
+  function prepare(W) {
+    if (Object.prototype.hasOwnProperty.call(W, '_trace') && W._trace) throw new Error('rollout.prepare: a world must not carry a trace sink');
+    COUNTERS.prepared++;
+    return { prepared: true, buf: v8.serialize(W) };
+  }
+
+  /* the playout's own copy of a world: prepared -> deserialise, plain -> API.clone */
+  function copy(W) {
+    if (!(W && W.prepared)) return API.clone(W);
+    const S = v8.deserialize(W.buf);
+    COUNTERS.fastClones++;
+    if (BREAK === 'prepare') delete S._scope;   // DELIBERATE BREAK: the copy loses the battle's own dice scratch
+    return S;
+  }
+  /* the engine's own seeded streams, unwrapped: API.makeRng adds draw COUNTS (for fork) on top of the same
+   * generators, and a playout never forks — the draws are identical and the wrapper costs 0.1 ms a call */
+  function dice(seed) {
+    if (BREAK === 'rng') return M.rngStreams(M.rngStreams({ seed }).any);   // DELIBERATE BREAK: every stream is one stream
+    return M.rngStreams({ seed });
+  }
+
   function playout(W, jA, jB, seed, depth) {
-    const S = API.clone(W);
-    const rng = API.makeRng(BREAK === 'crn' ? Math.floor(Math.random() * 1e9) : seed);
+    const S = copy(W);
+    const rng = dice(BREAK === 'crn' ? Math.floor(Math.random() * 1e9) : seed);
     const coin = M.rngStreams({ seed: seed + 7919 }).any;
     API.stepInPlace(S, jA, jB, rng);
     COUNTERS.playouts++;
@@ -165,7 +200,7 @@ function create(API, opts) {
     return leaf(S);
   }
 
-  return { COUNTERS, slotSupport, randomJoint, leaf, sampleWorld, swapBody, body, playout, BROKEN: BREAK || null };
+  return { COUNTERS, slotSupport, randomJoint, leaf, sampleWorld, swapBody, body, prepare, copy, dice, playout, BROKEN: BREAK || null };
 }
 
 module.exports = { create };

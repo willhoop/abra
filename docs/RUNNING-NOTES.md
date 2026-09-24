@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.116.0] — 2026-09-24 — **MILTANK worker pool and playout fixes land in main**
+- **What changed.** `solver/miltank/` gains `cells.js`, `pool.js`, `pool_worker.js`; rollout and search share one pass; benches in `solver/bench/`. Branch `playout-speed` (eaf93368), stacked on 0.115.0. Report `docs/_reports/2026-09-24-playout-speed.md`.
+- **Measured.** NO FIGURE: the arena numbers are PRE-GATE. Tests GREEN on main: playout-speed 1,184, miltank 3,414, arena 15, slowking 1,559.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** `docs/MODELS.md` (solver models section).
+
 ## [abra/regmc 0.115.0] — 2026-09-24 — **Solver SLOWKING v1, MILTANK v1 skeleton and the offline arena land in main**
 - **What changed.** `solver/slowking/`, `solver/miltank/`, `solver/arena/` and three tests. Branch `worktree-agent-a849abbf8c6348200` (562dc055); its cherry-pick of the API commit resolved to main's bytes (no duplicate code). Report `docs/_reports/2026-09-24-slowking-miltank-arena.md`.
 - **Measured.** NO FIGURE: the arena numbers are PRE-GATE. Tests GREEN on main: slowking 1,559, miltank 3,414, arena 15.
