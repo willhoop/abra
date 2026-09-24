@@ -7204,6 +7204,11 @@ const STICKYHOLD_REFUSES_AT_ZERO=_knob('MEDI_STICKYHOLD_REFUSES_AT_ZERO');
 if(STICKYHOLD_REFUSES_AT_ZERO)MEDFAILS.stickyHoldRefusesAtZeroRestored=1;
 if(STICKYHOLD_SILENT)MEDFAILS.stickyHoldSilentRestored=1;
 if(STICKYHOLD_UNBREAKABLE)MEDFAILS.stickyHoldUnbreakableRestored=1;
+/* 2026-09-24: MEDI_STONE_TAKE_UNGUARDED=1 restores the four pre-fix reads of the mega stone's `onTakeItem` at once --
+ * `itemRefusesTake` on the SLOT (blind under Magic Room / Klutz), Corrosive Gas asking no stone, and Thief / Covet /
+ * Symbiosis never asking the RECEIVER. See `itemRefusesTake`. tests/probe_megastone_take_guard.js is the arm. */
+const STONE_TAKE_UNGUARDED=_knob('MEDI_STONE_TAKE_UNGUARDED');
+if(STONE_TAKE_UNGUARDED)MEDFAILS.stoneTakeUnguardedRestored=1;
 const OBLIVIOUS_MOVEID_BLIND=_knob('MEDI_OBLIVIOUS_MOVEID_BLIND');
 if(OBLIVIOUS_MOVEID_BLIND)MEDFAILS.obliviousMoveIdBlindRestored=1;
 const SPITE_IGNORES_BOUNCE=_knob('MEDI_SPITE_IGNORES_BOUNCE');
@@ -12557,7 +12562,14 @@ function effWeight(m){
   MEDSEEN.weightModified++;
   return (p.truncates?Math.trunc(hg):hg)/10;
 }
-function itemRefusesTake(m){ return stoneRefusesBody(m&&m.item,m); }
+/* 2026-09-24 -- THE STONE IS ASKED ABOUT WHAT THE BODY HOLDS, NOT WHAT IT CAN USE. `Battle#singleEvent` and
+ * `Battle#runEvent` skip an item's handlers under `ignoringItem()` (Magic Room, Klutz, Embargo) for every event
+ * EXCEPT `Start`, `SwitchIn` and `TakeItem` (sim/battle.ts:607 and :874, both checkouts). So a stone refuses to leave
+ * its own species inside a Magic Room and off a Klutz body exactly as anywhere else. This read `m.item`, the SLOT,
+ * which the room park empties -- so under a room every caller (Knock Off, Trick, Pickpocket, Magician, Symbiosis)
+ * saw no stone and took it. Found on the pinned Reg M-B pool, --games 300, game …2659015200: Magic Room, then Knock
+ * Off stripped a Mega Alakazam's own Alakazite. `MEDI_STONE_TAKE_UNGUARDED=1` restores the slot read. */
+function itemRefusesTake(m){ return stoneRefusesBody(STONE_TAKE_UNGUARDED?(m&&m.item):itemOn(m),m); }
 /* NARRATION BATCH Y, 2026-09-09 -- THE SAME RULE, ASKED OF AN (ITEM, BODY) PAIR. The mega stone's
  * `onTakeItem(item, source) { if (item.megaEvolves === source.baseSpecies.baseSpecies) return false; }`
  * is asked TWICE by Trick (data/moves.ts, `trick.onHit`): once through `takeItem` for the body that HOLDS
@@ -13689,6 +13701,11 @@ function passItemFromAlly(spender){
   if(!itemOn(giver))return false;
   if(itemOn(spender))return false;           // setItem fails on a body that is already holding one
   if(itemRefusesTake(giver))return false;    // the TakeItem event, through the predicate that owns it
+  /* 2026-09-24 -- and asked AGAIN with the RECEIVER as holder: `singleEvent('TakeItem', myItem, source.itemState,
+   * pokemon, ...)` in symbiosis.onAllyAfterUseItem (data/abilities.ts, no Champions override), which puts the item
+   * back silently on refusal. An Alakazite cannot be handed to an Alakazam. MEDI_STONE_TAKE_UNGUARDED=1 skips it. */
+  if(!STONE_TAKE_UNGUARDED&&stoneRefusesBody(itemOn(giver),spender)){
+    MEDSEEN.symbiosisRefusedByReceiverStone=(MEDSEEN.symbiosisRefusedByReceiverStone|0)+1;return false;}
   const _it=itemLose(giver);
   if(!_it)return false;
   if(!itemGive(spender,_it)){itemGive(giver,_it);return false;}   // handed BACK, as setItem's failure path does
@@ -38539,7 +38556,13 @@ function battleTurn(S,rng,actsForA,actsForB){
                    else if(_yours)TR.enditem(t,_yours,'[silent]',null,'[from] move: '+a.mv);
                    if(itemOn(m))TR.item(m,itemOn(m),'[from] move: '+a.mv);
                    else if(_mi)TR.enditem(m,_mi,'[silent]',null,'[from] move: '+a.mv);}}
-          else if(_ti.removes){const _lost=itemLose(t);
+          else if(_ti.removes){
+            /* 2026-09-24 -- CORROSIVE GAS IS `target.takeItem(source)` (data/moves.ts corrosivegas.onHit, no Champions
+             * override), so a stone on its own species refuses and the `else` writes the `-fail` below. This branch
+             * took the item without asking. `MEDI_STONE_TAKE_UNGUARDED=1` restores the unasked strip. */
+            const _stoneKept=!STONE_TAKE_UNGUARDED&&itemRefusesTake(t);
+            if(_stoneKept)MEDSEEN.corrosiveGasRefusedByStone=(MEDSEEN.corrosiveGasRefusedByStone|0)+1;
+            const _lost=_stoneKept?'':itemLose(t);
             if(TR&&_lost)TR.enditem(t,_lost,'[from] move: '+a.mv,m);
             /* THE EMPTY-HANDED TARGET IS ANNOUNCED, and it is the handler's own line rather than the
              * generic mover-named one: `this.add('-fail', target, 'move: Corrosive Gas')` sits in the
@@ -49311,6 +49334,15 @@ function battleTurn(S,rng,actsForA,actsForB){
         else if(_ri&&itemOn(tg)&&!itemRefusesTake(tg)&&abilityRefusesItemLoss(tg,m)){
           if(STICKYHOLD_SILENT)MEDFAILS.stickyHoldSilentRestored=1;
           else if(tg.curHP>0&&!tg.fainted){MEDSEEN.itemLossRefusalAnnounced++;if(TR)TR.act(tg,'ability: '+abilityLabel(tg.ability));}
+        }
+        /* 2026-09-24 -- THE THIEF IS ASKED TOO. Thief's and Covet's `onAfterHit` (data/moves.ts, no Champions override)
+         * follow `target.takeItem(source)` with `singleEvent('TakeItem', yourItem, target.itemState, source, ...)` --
+         * the stone's handler again, with the THIEF as holder -- and on refusal put the item back
+         * (`target.item = yourItem.id; return;`) with no line. So a body cannot steal its own species' stone off
+         * someone else. Not modelled: `takeItem` has already run by then, so an Unburden victim's `onTakeItem` has
+         * fired on an item it keeps. `MEDI_STONE_TAKE_UNGUARDED=1` restores the unasked theft. */
+        else if(_ri&&_ri.steals&&!STONE_TAKE_UNGUARDED&&itemOn(tg)&&!itemRefusesTake(tg)&&stoneRefusesBody(itemOn(tg),m)){
+          MEDSEEN.stealRefusedByReceiverStone=(MEDSEEN.stealRefusedByReceiverStone|0)+1;
         }
         else if(_ri&&itemOn(tg)&&!itemRefusesTake(tg)){
           const _taken=itemLose(tg);

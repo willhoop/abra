@@ -21,6 +21,23 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.87.0] — 2026-09-24
+
+### Fixed
+- **A mega stone's `onTakeItem` is asked by every item mover, and Magic Room does not silence it (both regulations).**
+  `Battle#singleEvent` / `runEvent` skip item handlers under `ignoringItem()` for every event except `Start`,
+  `SwitchIn` and `TakeItem` (sim/battle.ts:607, :874). `itemRefusesTake` read the item SLOT, which the Magic Room /
+  Klutz park empties, so under a room or on a Klutz body Knock Off, Trick, Pickpocket, Magician and Symbiosis took a
+  stone off its own species. It now reads the hold (`itemOn`). In the same pass: Corrosive Gas asks the stone (and
+  writes the handler's `-fail`), and Thief, Covet and Symbiosis ask it again with the RECEIVER as holder, as their
+  handlers' second `singleEvent('TakeItem', ...)` does. Found on the pinned Reg M-B pool, `--games 300`, game
+  `…2659015200` (Magic Room, then Knock Off stripped a Mega Alakazam's own Alakazite). Knob
+  `MEDI_STONE_TAKE_UNGUARDED`.
+- New probe `tests/probe_megastone_take_guard.js`: eight red arms (Knock Off in a room, the same after mega, Knock Off
+  into Klutz, Trick in a room, Corrosive Gas, Thief and Covet by the stone's own species, Symbiosis into it) and two
+  controls. Red on the base bytes in both regulations, green in both after, red again under the knob; controls never
+  move.
+
 ## [0.86.1] — 2026-09-23
 
 ### Fixed

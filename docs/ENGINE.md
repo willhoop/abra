@@ -1,3 +1,8 @@
+## A MEGA STONE REFUSES EVERY ITEM MOVER, INSIDE MAGIC ROOM TOO (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.87.0)
+
+- `itemRefusesTake` reads the hold (`itemOn`), not the slot the room / Klutz park empties; Corrosive Gas asks the stone;
+  Thief, Covet and Symbiosis ask it with the receiver as holder. Knob `MEDI_STONE_TAKE_UNGUARDED`. Probe
+  `tests/probe_megastone_take_guard.js` (8 red arms, 2 controls). Reg M-B pool `--games 300` game `…2659015200`.
 ## SPEED-TIED BODIES AT ONE RESIDUAL ORDER RUN HANDLER-MAJOR (BOTH REGULATIONS). 2026-09-23 (abra/regmc 0.86.0)
 
 - `residualGroupPairs` walks (body, step) pairs off the shadow handler list when it interleaves bodies (Grassy heal,

@@ -53,6 +53,20 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.87.0] — 2026-09-24 — **A mega stone refuses every item mover, inside Magic Room too (both regulations)**
+
+- **What changed.** `engine/medicham2-browser.js`: `itemRefusesTake` reads the hold (`itemOn`) instead of the slot the
+  Magic Room / Klutz park empties; Corrosive Gas's `removes` branch asks the stone; Thief, Covet (`removesItem.steals`)
+  and Symbiosis (`passItemFromAlly`) ask it again with the receiver as holder. Knob `MEDI_STONE_TAKE_UNGUARDED`. Probe
+  `tests/probe_megastone_take_guard.js`.
+- **Measured.** Probe: 8 red arms red on the base bytes in both regulations (releases `7822a83cc49b`, `628259ab78da`),
+  green on the fix (`e2e3ff4950f9`, `019abc63aaaf`), red again under the knob; 2 controls never move. Pinned Reg M-B
+  differential, `--steering empirical --arm middle --end-state --games 300`, census pin `833a997d7e42`,
+  `data/team-pool-frozen`: base 260 games / 2 diverged / 1 board-material (`…2659015200`, the Alakazite) → fix 260 / 1 /
+  0 (the declared Supreme Overlord row remains). Reg M-C, same flags, census pin `0d03e83f0e65`, `data/team-pool-frozen-regmc`: 259 / 0 / 0 before and after.
+  Worktree releases; receipts for the report only, not published figures.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.86.1] — 2026-09-23 — **probe_volley_collapse_clamp reads the regulation's own checkout**
 
 A probe fix, no engine change. `tests/probe_volley_collapse_clamp.js` hardcoded the Reg M-B checkout as its `SHOWDOWN_PATH` default and read CANNOT-ANSWER under Reg M-C; it now selects the regulation's checkout through `engine/showdown_path.js`. **Supersedes.** Nothing. **Basis.** unchanged. Owes no living-document fold-in.
