@@ -164,11 +164,19 @@ function create(API) {
     sfMe.fainted = teamMe.filter(m => !live(m)).length;
     sfOp.fainted = teamOp.filter(m => !live(m)).length;
 
-    /* ---- came in this turn: Fake Out and first-turn moves read `_turnsOut` ---- */
+    /* ---- came in this turn: first-turn-only moves (Fake Out) read the MOVE-ACTION count `_mvActs` (the engine's
+     * mirror of Showdown's activeMoveActions, zeroed on switch-in; engine/medicham2-browser.js firstTurnOnlyRefused),
+     * and `_turnsOut` is kept with it. A body active at the start of the previous turn has had its move action; a body
+     * that came in since (a switch, a pivot, a replacement) has not. */
     const prev = turns.length >= 2 ? turns[turns.length - 2].state : null;
     for (const [p, list] of [[me, mine.map(x => ({ b: x.b, s: x.s }))], [opp, theirs.map(x => ({ b: x.b, s: x.s }))]]) {
       const was = prev && prev.sides[p] ? prev.sides[p].active || [] : [];
-      for (const x of list) x.b._turnsOut = (turnN > 1 && was.includes(x.s)) ? 1 : 0;
+      const now = (st.sides[p] && st.sides[p].active) || [];
+      for (const x of list) {
+        const stayed = turnN > 1 && was.includes(x.s) && now.includes(x.s);
+        x.b._turnsOut = stayed ? 1 : 0;
+        x.b._mvActs = stayed ? 1 : 0;
+      }
     }
 
     /* ---- field ---- */
