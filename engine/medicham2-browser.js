@@ -31969,8 +31969,12 @@ function midEventValue(ctx) { return midEventHash(ctx) / 4294967296; }
  * is deliberate: a mode flag would mean the instrumented engine and the shipped engine take different
  * branches, and then the thing being measured is not the thing that plays. */
 let MID_S = null, MID_TURN = 0, MID_MOVE = '-', MID_TGT = '-', MID_ATT = '-';
-const MID_NTH = new Map();
-const MID_LOG = [];
+/* `let`, not `const`, since 2026-09-24 (abra/regmc 0.95.0): `battleScopeRun` below swaps a battle's OWN
+ * repeat map in while that battle steps. Nothing else reassigns them, and a caller that never creates a
+ * scope never reaches the swap, so for every existing caller these are the same two objects for the life
+ * of the process, exactly as before. */
+let MID_NTH = new Map();
+let MID_LOG = [];
 /* ---- 2026-08-25 -- `clearActiveMove`, WHICH THIS ENGINE NEVER CALLED, SO THE ADDRESS OUTLIVED THE
  * ACTION AND EVERY END-OF-TURN DIE WAS ADDRESSED TO A MOVE THAT HAD ALREADY FINISHED.
  *
@@ -32170,6 +32174,45 @@ function midEventDice(opt) {
   return d;
 }
 const midEventLog = () => MID_LOG.slice();
+/* ---- 2026-09-24 (abra/regmc 0.95.0) -- A BATTLE'S OWN SCRATCH, FOR A CALLER THAT ASKS FOR ONE -------
+ *
+ * THE TWO CROSS-BATTLE LEAKS in docs/_reports/2026-09-23-engine-interface-brief.md §1.2. `MID_NTH` keys a
+ * repeat count on `seed|turn|cat|move|target` with no battle identity, so two battles stepped alternately
+ * on one event-dice seed share it (48 of 96 self pairs diverged in docs/_reports/2026-09-11-interleave.md).
+ * `TRACE.drag`, `TRACE._pendRedir` and `TRACE._mvLine` are fields of the one trace singleton that
+ * `traceBind` does not reset, so a parked redirect or a move-line index can survive into another battle's
+ * sink.
+ *
+ * THE FIX IS OPT-IN, AND THAT IS WHAT MAKES IT PROVABLY NEUTRAL. A scope exists only on a battle whose
+ * caller created one (`engine/medicham_api.js` does, for every battle it builds). `battleTurn` swaps a
+ * scope in only when `S._scope` is set, so for every caller that never makes one the code path is the
+ * old one: the same two objects, the same singleton fields, not one extra read on a live stream. The brief
+ * proposed moving the state onto `S` unconditionally and resetting the trace fields in `traceBind`; both
+ * change what an existing sequential caller sees (a `_mvLine` carried across turns of ONE battle is read
+ * by `attr` before the next `mv`), so neither was taken.
+ *
+ * WHAT A SCOPE HOLDS: the repeat map, the address log, and the three trace fields. Saved and restored
+ * around the call, so a legacy battle stepped between two scoped ones sees exactly the process state it
+ * would have seen had the scoped ones never run. The scope is plain data (a Map, an array, a boolean, an
+ * index, and a parked `{m, label}` whose `m` is a body of that battle), so `structuredClone` of the battle
+ * copies it with the battle and a clone's dice continue from the parent's counts. */
+let _SCOPE_CUR = null;
+function battleScopeNew() {
+  return { nth: new Map(), log: [], drag: false, pendRedir: null, mvLine: null };
+}
+function battleScopeRun(scope, fn) {
+  if (!scope || scope === _SCOPE_CUR) return fn();
+  const pN = MID_NTH, pL = MID_LOG, pC = _SCOPE_CUR;
+  const pD = TRACE.drag, pP = TRACE._pendRedir, pM = TRACE._mvLine;
+  MID_NTH = scope.nth; MID_LOG = scope.log; _SCOPE_CUR = scope;
+  TRACE.drag = scope.drag; TRACE._pendRedir = scope.pendRedir; TRACE._mvLine = scope.mvLine;
+  try { return fn(); }
+  finally {
+    scope.drag = TRACE.drag; scope.pendRedir = TRACE._pendRedir; scope.mvLine = TRACE._mvLine;
+    MID_NTH = pN; MID_LOG = pL; _SCOPE_CUR = pC;
+    TRACE.drag = pD; TRACE._pendRedir = pP; TRACE._mvLine = pM;
+  }
+}
 /* ROADMAP #511 / 2026-09-19 -- THE FROM-FULL SURVIVAL CLAMP, ONE IMPLEMENTATION, TWO ROADS. Lifted out of the
  * attack step verbatim so the Future Sight payout (`condition:futuremove`) calls the same code the direct
  * hit does: `focussash.onDamage` / `sturdy.onDamage` are `Damage`-event handlers and the payout's
@@ -32364,6 +32407,9 @@ function oozeReverse(healer,holder,srcId,amt){
   return true;
 }
 function battleTurn(S,rng,actsForA,actsForB){
+  /* 2026-09-24 -- a battle that carries its own scratch steps inside it; see battleScopeRun. `S._scope`
+   * is never set by anything but a caller that asked for one, so every other battle skips this line. */
+  if(S&&S._scope&&S._scope!==_SCOPE_CUR)return battleScopeRun(S._scope,()=>battleTurn(S,rng,actsForA,actsForB));
   /* 2026-09-21 (Reg M-C, abra/regmc 0.22.0) -- the Emergency Exit doors this engine does not model (the residual and the
    * hazards, sim/battle.ts:2863-2874) are COUNTED: a holder above half at the last look and at or below it now. */
   for(const _b of [...((S&&S.actA)||[]),...((S&&S.actB)||[])]){
@@ -55226,6 +55272,16 @@ root.natureShift=natureShift; root.natureStat=natureStat; root.natureL50=natureL
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,rngStreams,RNG_STREAMS,
   /* force-fire-b, 2026-09-19 -- the pure trap verdict, exported so a harness can ASK this engine whether a body could leave at a boundary, beside the authority's request, without making the switch choice the authority would refuse. */
   switchTrapVerdict,
+  /* 2026-09-24 (abra/regmc 0.95.0) -- EXPORT ONLY, for engine/medicham_api.js (the solver-facing wrapper).
+   * The menu (`selectableMoves`, `mustStruggle`), the game-over predicate WITHOUT the horizon cap
+   * (`sideWiped`; `battleOver` also stops at `maxTurns`), a move's target class as the engine reads it,
+   * and the opt-in per-battle scratch (`battleScopeNew`/`battleScopeRun`). No call site in this file
+   * changed to add them. NOTE `selectableMoves` is not pure: `lockStillBinds` drops a Choice lock whose
+   * item is gone, and `moveDisabledBy` bumps MEDSEEN -- a caller that must not move the board asks it of a
+   * copy (the API does). */
+  selectableMoves,mustStruggle,sideWiped,battleScopeNew,battleScopeRun,
+  moveTargetClass:(id)=>TAGS.param('move',id,'targetClass'),
+  moveTagParam:(id,tag)=>TAGS.param('move',id,tag),
   /* ROADMAP #262 -- EVENT-ADDRESSED DICE. `midEventDice` is a drop-in `rngStreams` struct whose value
    * is a pure function of the event being rolled for; `midEventLog` is every address this engine asked
    * about since the last `midEventDice` call, in order, so an instrument can DIFF the two engines'

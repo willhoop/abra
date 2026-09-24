@@ -53,6 +53,20 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.95.0] — 2026-09-24 — **The solver-facing MEDICHAM API (clone, legalActions, step, isTerminal), additive**
+
+- **What changed.** New `engine/medicham_api.js` (in release `SOURCES`). `engine/medicham2-browser.js` gets exports and
+  an opt-in per-battle scope, which only a battle built by the API carries. Tests: `tests/test-medicham-api.js`,
+  `tests/probe_medicham_api_differential.js`.
+- **Measured.** NO FIGURE published. The differential is byte-identical per game against the base commit's release
+  `ec377f6f8159`, via `stepInPlace`, and under a clone-and-step shadow, on release `9cfd07674cc9`, at `--games 1200`,
+  Reg M-C pinned pool, census pin `f3b70bc0c47c` (955 games, 22,283 shadow turns equal). `legalActions` agrees with the
+  authority on 5,526 of 5,552 slots (`--games 45`, state mode). The other 26 slots are 3 engine menu defects:
+  `docs/_reports/2026-09-24-solver-engine-api.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** `docs/ABRA-technical-docs.md` (the API as an interface).
+
 ## [abra/regmc 0.94.0] — 2026-09-24 — **A mega stone refuses every item mover, inside Magic Room too (both regulations)**
 
 - **What changed.** `engine/medicham2-browser.js`: `itemRefusesTake` reads the hold (`itemOn`) instead of the slot the

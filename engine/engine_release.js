@@ -218,6 +218,12 @@ const SOURCES = [
    * does NOT do is repair the 485 already-cut snapshots whose frozen rollout_leaf.js reads this
    * file — those bytes cannot be changed, which is why the refusal below exists as well. */
   'data/rollout-switch-census.json',
+  /* 2026-09-24 (ENGINE, abra/regmc 0.95.0) -- THE SOLVER-FACING WRAPPER, frozen in the commit that lands it
+   * (docs/_reports/2026-09-23-engine-interface-brief.md §5). Its CONTENT changes what a solver measurement
+   * plays -- what `clone` copies, what `legalActions` offers, what `step` hands the engine -- so a solver
+   * run that REL.requires it must read the snapshot's copy, not the live one. No existing caller requires
+   * it, so adding it strands nothing that could open a release before. */
+  'engine/medicham_api.js',
 ];
 
 /* ---- A REGULATION'S OWN DAMAGE TABLE ENTERS THE RELEASE CUT WHILE IT IS SELECTED — 2026-09-21 ----
