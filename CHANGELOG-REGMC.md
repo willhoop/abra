@@ -21,6 +21,22 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.118.0] — 2026-09-24
+
+### Fixed
+- **Emergency Exit answers a residual that takes its holder to half (Reg M-C).** The authority records
+  `residualPokemon` at the residual's head (`sim/battle.ts` :2815) and, below the residual's `eachEvent('Update')`
+  (:2860-2867), raises `EmergencyExit` for each body still standing that went from above half to at or below it; the
+  Champions handler sets `switchFlag` and writes `-activate`, and the switch request (:2905-2911) is answered by an
+  `instaswitch`. This engine counted that door (`MEDFAILS.emergencyExitOtherDoorUnmodelled`) and did nothing, so the
+  harness could not place its body: Reg M-C lattice 1900, omit-spread `…2679451964 vs …2679546173` t2, a burn chip on
+  Golisopod. **An engine defect, not an instrument limit** — the harness's forced-switch mirror expresses the switch
+  unchanged once the engine makes it. `emergencyExitResidualDoor` now does it, below `residualUpdatePass` and above
+  `refill`; declared: an exit and a refill in the same request go exits-first (`MEDFAILS.eeResidualBesideRefill`), and
+  the hazard door stays counted. Knob `MEDI_EMERGENCY_EXIT_NO_RESIDUAL` (in the census `DELIBERATE_BREAK`). Probe
+  `tests/probe_regmc_emergency_exit_residual.js`: RED before, GREEN after, RED under the knob, with a no-ability control.
+  Census 1024 live.
+
 ## [0.117.0] — 2026-09-24
 
 ### Fixed

@@ -14163,6 +14163,47 @@ function emergencyExitAsk(tg,bx,owed,m){
   MEDSEEN.emergencyExitAsked++;
   return true;
 }
+/* 2026-09-24 (Reg M-C, narration to zero, cause C) -- THE RESIDUAL DOOR, which until now was COUNTED and not modelled.
+ * sim/battle.ts :2815 records `residualPokemon` (every active body standing, and its HP) at the head of the residual;
+ * :2860-2867, below the residual's `eachEvent('Update')`, asks `EmergencyExit` of each one still standing that went from
+ * above half to at or below it; the Champions handler is `emergencyExitAsk`'s. The switch request at :2905-2911 is the
+ * same one that fills the dead slots, and each answer is an `instaswitch` (sim/side.ts :1011), a bare `|switch|` with no
+ * `[from]`, whose SwitchOut and entry run as any switch does -- `switchOut`, the road the Eject Button and the in-move
+ * Emergency Exit already take. Field case: Reg M-C lattice 1900, omit-spread `…2679451964 vs …2679546173` t2, a burn chip
+ * took Golisopod from 78/150 to 69/150; this engine wrote nothing and the harness could not place its body.
+ * The exits walk by the leaving body's speed, as the eject road does. DECLARED, NOT MODELLED: when a dead slot is filled in
+ * the same request, the authority sorts the exits and the refills as one queue; here the exits go first, counted in
+ * `MEDFAILS.eeResidualBesideRefill`. The hazard door (a `runSwitch` entrant) stays counted, not modelled.
+ * MEDI_EMERGENCY_EXIT_NO_RESIDUAL=1 skips the door. tests/probe_regmc_emergency_exit_residual.js */
+const EMERGENCY_EXIT_NO_RESIDUAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_EMERGENCY_EXIT_NO_RESIDUAL==='1');
+if(EMERGENCY_EXIT_NO_RESIDUAL)MEDFAILS.emergencyExitNoResidualRestored=1;
+function emergencyExitResidualDoor(S,actA,actB,benchA,benchB,sfA,sfB,field,refillsOwed){
+  const owed=[];
+  for(const [own,bench,foes,sf] of [[actA,benchA,actB,sfA],[actB,benchB,actA,sfB]]){
+    for(const m of own){
+      if(!m||!TAGS.param('ability',m.ability,'switchesOutAtHalf'))continue;
+      const pre=m._eeResHP; m._eeResHP=null;
+      if(m.fainted||m.curHP<=0||pre==null)continue;
+      const h=m.st.hp/2;
+      if(pre>h&&m.curHP<=h&&!EMERGENCY_EXIT_NO_RESIDUAL)emergencyExitAsk(m,{own,bench,foes,sf},owed,null);
+      m._eeHP=m.curHP;   /* this door is modelled: the top-of-turn `emergencyExitOtherDoorUnmodelled` must not count it */
+    }
+  }
+  if(!owed.length)return 0;
+  if(refillsOwed)MEDFAILS.eeResidualBesideRefill=(MEDFAILS.eeResidualBesideRefill|0)+1;
+  const _spe=e=>effSpeed(e.tg,field,e.bx.own===actA?'A':'B');
+  const ord=owed.slice().sort((x,y)=>_spe(y)-_spe(x));
+  for(let k=1;k<ord.length;k++)if(_spe(ord[k])===_spe(ord[k-1]))MEDFAILS.ejectSwitchOrderTie++;
+  let n=0;
+  for(const e of ord){
+    const tg=e.tg,_i=e.bx.own.indexOf(tg);
+    if(_i<0||tg.fainted||tg.curHP<=0||!canDragIn(e.bx.bench))continue;
+    const _want=(S&&S.replaceWith)?S.replaceWith[e.bx.own===actA?'A':'B']:undefined;
+    if(switchOut(e.bx.own,_i,e.bx.bench,e.bx.foes,e.bx.sf,field,_want)){n++;MEDSEEN.emergencyExitSwitched++;}
+  }
+  MEDSEEN.emergencyExitResidual=(MEDSEEN.emergencyExitResidual|0)+n;
+  return n;
+}
 const EJECT_BUTTON_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_EJECT_BUTTON_INERT==='1');
 const EJECT_BUTTON_MAINLINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_EJECT_BUTTON_MAINLINE==='1');
 if(RED_CARD_INERT)MEDFAILS.redCardInertRestored=1;
@@ -52100,6 +52141,9 @@ function battleTurn(S,rng,actsForA,actsForB){
      * and the insertion clock is read once more so the shadow list below sees every volatile added since the
      * last Update pass. */
     sdUpdateSpeed(actA,actB,field);
+    /* 2026-09-24 -- `residualPokemon = getAllActive().map(p => [p, hp])` (sim/battle.ts:2815), read by the Emergency
+     * Exit residual door below the residual's Update pass. See `emergencyExitResidualDoor`. */
+    for(const _m of [...actA,...actB])if(_m)_m._eeResHP=(!_m.fainted&&_m.curHP>0)?_m.curHP:null;
     volSeqSyncAll(actA,actB);
     _RES_TIE_GEN++;
     /* 2026-08-27 -- AND THE AUTHORITY'S HANDLER LIST IS REBUILT HERE, for the same reason and at the
@@ -54474,6 +54518,11 @@ function battleTurn(S,rng,actsForA,actsForB){
      * AND IT IS BELOW THE WIPE BREAK, which is `if (this.ended) return true;` at :2833 -- a residual
      * that took a side's last body ends the battle and this Update never runs. */
     residualUpdatePass(actA,actB,field,-1);
+    /* 2026-09-24 (Reg M-C, narration to zero, cause C) -- THE EMERGENCY EXIT RESIDUAL DOOR. `runAction`'s tail, below
+     * this Update pass (sim/battle.ts:2860-2867): every body of `residualPokemon` still standing that went from above half
+     * to at or below it raises `EmergencyExit`; the request that follows (:2905-2911) is the same one that fills the dead
+     * slots, so the exits go here, beside `refill`. See `emergencyExitResidualDoor`. */
+    emergencyExitResidualDoor(S,actA,actB,benchA,benchB,sfA,sfB,field,_refills.length>0);
     refill();
     /* ===== 2026-09-21 -- AND A REPLACEMENT THAT DIES ON ARRIVAL IS ITSELF REPLACED ================
      *

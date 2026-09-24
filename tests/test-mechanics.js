@@ -39207,7 +39207,10 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           'herbSideOrderRestored',
                           /* 2026-09-24 (ENGINE, narration-zero) -- a spent flinch dropped from the residual list.
                            * tests/probe_regmc_flinch_residual_list.js */
-                          'flinchGoneAtResidualRestored']
+                          'flinchGoneAtResidualRestored',
+                          /* 2026-09-24 (ENGINE, narration-zero) -- the Emergency Exit residual door skipped.
+                           * tests/probe_regmc_emergency_exit_residual.js */
+                          'emergencyExitNoResidualRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

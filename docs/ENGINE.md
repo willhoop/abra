@@ -1,3 +1,11 @@
+## EMERGENCY EXIT ANSWERS A RESIDUAL THAT TAKES ITS HOLDER TO HALF (REG M-C). 2026-09-24 (abra/regmc 0.118.0)
+
+- `emergencyExitResidualDoor`, below the residual's Update pass and above `refill`. Engine defect, not instrument: the
+  harness expresses the switch unchanged. Knob `MEDI_EMERGENCY_EXIT_NO_RESIDUAL`. Probe
+  `tests/probe_regmc_emergency_exit_residual.js` (RED -> GREEN, RESIDUAL / no-ability CONTROL).
+- Hand list: **narration cause (c), the Emergency Exit game, leaves it.** Still counted, not modelled: the hazard door
+  (an entrant brought to half by hazards). Report `docs/_reports/2026-09-24-narration-zero.md`.
+
 ## A SPENT FLINCH STILL STANDS IN THE RESIDUAL HANDLER LIST (REG M-C). 2026-09-24 (abra/regmc 0.117.0)
 
 - `_flinchHeld` carries the flinch volatile to the residual list's build; the selection sort's swaps depend on it at a
