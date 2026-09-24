@@ -21,6 +21,62 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.123.0] — 2026-09-24
+
+### Changed
+- **The three Reg M-C lattices re-read after the last three narration fixes: undeclared narration-only games 0/955,
+  0/1266, 0/1497 (were 0, 2, 1); board-material 0 on all three.** Release `015ab5fd1cc1` (the tree at 0.122.0), census
+  pin `ccd979c30997`, pool `data/team-pool-frozen-regmc`, `--steering empirical --arm middle --end-state`, `--games`
+  1200/1600/1900, serial through `tools\lownode.cmd`. The samples are identical to 0.119.0's (955/1266/1497 played,
+  the same one void game at 1200, 0 threw). All three causes were engine defects: White Herb holder order (0.120.0), a
+  spent flinch missing from the residual handler list (0.121.0), and Emergency Exit's residual door (0.122.0). The
+  census reads 1024 live / 0 missing after each fix. `docs/_reports/2026-09-24-narration-zero.md`.
+
+## [0.122.0] — 2026-09-24
+
+### Fixed
+- **Emergency Exit answers a residual that takes its holder to half (Reg M-C).** The authority records
+  `residualPokemon` at the residual's head (`sim/battle.ts` :2815) and, below the residual's `eachEvent('Update')`
+  (:2860-2867), raises `EmergencyExit` for each body still standing that went from above half to at or below it; the
+  Champions handler sets `switchFlag` and writes `-activate`, and the switch request (:2905-2911) is answered by an
+  `instaswitch`. This engine counted that door (`MEDFAILS.emergencyExitOtherDoorUnmodelled`) and did nothing, so the
+  harness could not place its body: Reg M-C lattice 1900, omit-spread `…2679451964 vs …2679546173` t2, a burn chip on
+  Golisopod. **An engine defect, not an instrument limit** — the harness's forced-switch mirror expresses the switch
+  unchanged once the engine makes it. `emergencyExitResidualDoor` now does it, below `residualUpdatePass` and above
+  `refill`; declared: an exit and a refill in the same request go exits-first (`MEDFAILS.eeResidualBesideRefill`), and
+  the hazard door stays counted. Knob `MEDI_EMERGENCY_EXIT_NO_RESIDUAL` (in the census `DELIBERATE_BREAK`). Probe
+  `tests/probe_regmc_emergency_exit_residual.js`: RED before, GREEN after, RED under the knob, with a no-ability control.
+  Census 1024 live.
+
+## [0.121.0] — 2026-09-24
+
+### Fixed
+- **A spent flinch still stands in the residual handler list, so a speed tie heals in the authority's order (Reg M-C).**
+  The authority's flinch is `duration: 1` and its `onBeforeMove` writes `cant` without removing it
+  (`data/conditions.ts` flinch), so `fieldEvent('Residual')` collects it (`sim/battle.ts` :484-524) and the selection
+  sort's swaps (:429-460) move a tied pair differently around it. This engine cleared `_flinch` at the `cant` and at the
+  foot of the action loop, both above the residual list's build. Field case: Reg M-C lattice 1600, omit-weather
+  `…2684772479 vs …2684878616` t1 — both Rillaboom at 137 (read off the authority's own residual list, a measured tie),
+  the Grassy Terrain heals came out p2a-first here and p1a-first there. `_flinchHeld` now carries the volatile to the
+  build. Knob `MEDI_FLINCH_GONE_AT_RESIDUAL` (in the census `DELIBERATE_BREAK`). Probe
+  `tests/probe_regmc_flinch_residual_list.js`: RED before, GREEN after, RED under the knob, with a control that moves the
+  flinch to the other body. The tie die is not involved: the differential pins the authority's shuffle to the identity,
+  and the answer is the list's shape. Census 1024 live.
+
+## [0.120.0] — 2026-09-24
+
+### Fixed
+- **Two White Herbs owed in one pass are spent fastest holder first (Reg M-C).** Every White Herb trigger
+  (`onAnySwitchIn` at priority -2, `onAnyAfterMove`, `onAnyAfterMega`) is one handler per active holder in a list the
+  authority speed-sorts (`fieldEvent` / `runEvent`, `sim/battle.ts` :484-507 and :794; `resolvePriority` :1001-1013
+  gives each `speed = pokemon.speed`). `restoreStatsAll` walked `[...actA, ...actB]`, so a faster p2 holder was spent
+  after a slower p1 holder. Field case: Reg M-C lattice 1600, baseline `…2681884715 vs …2681855448`, two Intimidate +
+  White Herb Incineroar leads. Now the owed holders are found first and, when two or more are owed, ordered by
+  `sdSpeedSortEntries` on the cached action speed (a tie goes to the shared tie die; the SwitchIn `speedOrder` tie
+  rank is declared, not modelled). Knob `MEDI_HERB_SIDE_ORDER` (in the census `DELIBERATE_BREAK`). Probe
+  `tests/probe_regmc_white_herb_speed_order.js`: RED before, GREEN after, RED under the knob, with a speed-swapped
+  control. `tests/probe_red_demo.js`'s WIRE 11 herb reversal is re-aimed at the new first lines. Census 1024 live.
+
 ## [0.119.1] — 2026-09-24
 
 ### Changed

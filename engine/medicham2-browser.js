@@ -12340,6 +12340,8 @@ function residualShadowShield(m){
 /* PRESENCE, per artifact volatile row. The default is `m._vol[id] > 0`, which is where this engine
  * keeps the per-body clocks the walk already spends; everything below is a member it keeps in a named
  * field instead. Written as one table so `residualShadowUnread` can name what has neither. */
+const FLINCH_GONE_AT_RESIDUAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FLINCH_GONE_AT_RESIDUAL==='1');
+if(FLINCH_GONE_AT_RESIDUAL)MEDFAILS.flinchGoneAtResidualRestored=1;
 const RESIDUAL_SHADOW_VOL={
   leechseed:    m=>!!m._seededBy,
   curse:        m=>!!m._ptDmg,
@@ -12350,7 +12352,15 @@ const RESIDUAL_SHADOW_VOL={
   perishsong:   m=>m._perish!=null,
   roost:        m=>!!m._typeWas,
   stall:        m=>(m.tookProtectTurns|0)>0,
-  flinch:       m=>!!m._flinch,
+  /* 2026-09-24 (Reg M-C, narration to zero, cause B) -- A SPENT FLINCH IS STILL IN THE RESIDUAL LIST. The authority's
+   * flinch is `duration: 1` and its `onBeforeMove` writes `cant` without removing it (data/conditions.ts flinch), so it
+   * is collected by `fieldEvent('Residual')` under `getKey = 'duration'` and expires there. This engine clears `_flinch`
+   * at the `cant` and at the foot of the action loop, both above the list's build; `_flinchHeld` carries the volatile
+   * from either clear to the build and is dropped right after it. A fainted body's volatiles are cleared by
+   * `faintMessages`, so it holds none. The selection sort's swaps depend on what stands between a tied pair: Reg M-C
+   * lattice 1600 omit-weather `…2684772479 vs …2684878616` t1 healed the two 137-Speed Rillaboom in the opposite order.
+   * MEDI_FLINCH_GONE_AT_RESIDUAL=1 never sets `_flinchHeld`. tests/probe_regmc_flinch_residual_list.js */
+  flinch:       m=>!m.fainted&&!!(m._flinch||m._flinchHeld),
   mustrecharge: m=>!!m._recharge,
   lockedmove:   m=>!!m._mtLock,
   uproar:       m=>!!(m._mtLock&&m._mtLock.vol==='uproar'),
@@ -14174,6 +14184,47 @@ function emergencyExitAsk(tg,bx,owed,m){
   tg._eeHP=tg.curHP;
   MEDSEEN.emergencyExitAsked++;
   return true;
+}
+/* 2026-09-24 (Reg M-C, narration to zero, cause C) -- THE RESIDUAL DOOR, which until now was COUNTED and not modelled.
+ * sim/battle.ts :2815 records `residualPokemon` (every active body standing, and its HP) at the head of the residual;
+ * :2860-2867, below the residual's `eachEvent('Update')`, asks `EmergencyExit` of each one still standing that went from
+ * above half to at or below it; the Champions handler is `emergencyExitAsk`'s. The switch request at :2905-2911 is the
+ * same one that fills the dead slots, and each answer is an `instaswitch` (sim/side.ts :1011), a bare `|switch|` with no
+ * `[from]`, whose SwitchOut and entry run as any switch does -- `switchOut`, the road the Eject Button and the in-move
+ * Emergency Exit already take. Field case: Reg M-C lattice 1900, omit-spread `…2679451964 vs …2679546173` t2, a burn chip
+ * took Golisopod from 78/150 to 69/150; this engine wrote nothing and the harness could not place its body.
+ * The exits walk by the leaving body's speed, as the eject road does. DECLARED, NOT MODELLED: when a dead slot is filled in
+ * the same request, the authority sorts the exits and the refills as one queue; here the exits go first, counted in
+ * `MEDFAILS.eeResidualBesideRefill`. The hazard door (a `runSwitch` entrant) stays counted, not modelled.
+ * MEDI_EMERGENCY_EXIT_NO_RESIDUAL=1 skips the door. tests/probe_regmc_emergency_exit_residual.js */
+const EMERGENCY_EXIT_NO_RESIDUAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_EMERGENCY_EXIT_NO_RESIDUAL==='1');
+if(EMERGENCY_EXIT_NO_RESIDUAL)MEDFAILS.emergencyExitNoResidualRestored=1;
+function emergencyExitResidualDoor(S,actA,actB,benchA,benchB,sfA,sfB,field,refillsOwed){
+  const owed=[];
+  for(const [own,bench,foes,sf] of [[actA,benchA,actB,sfA],[actB,benchB,actA,sfB]]){
+    for(const m of own){
+      if(!m||!TAGS.param('ability',m.ability,'switchesOutAtHalf'))continue;
+      const pre=m._eeResHP; m._eeResHP=null;
+      if(m.fainted||m.curHP<=0||pre==null)continue;
+      const h=m.st.hp/2;
+      if(pre>h&&m.curHP<=h&&!EMERGENCY_EXIT_NO_RESIDUAL)emergencyExitAsk(m,{own,bench,foes,sf},owed,null);
+      m._eeHP=m.curHP;   /* this door is modelled: the top-of-turn `emergencyExitOtherDoorUnmodelled` must not count it */
+    }
+  }
+  if(!owed.length)return 0;
+  if(refillsOwed)MEDFAILS.eeResidualBesideRefill=(MEDFAILS.eeResidualBesideRefill|0)+1;
+  const _spe=e=>effSpeed(e.tg,field,e.bx.own===actA?'A':'B');
+  const ord=owed.slice().sort((x,y)=>_spe(y)-_spe(x));
+  for(let k=1;k<ord.length;k++)if(_spe(ord[k])===_spe(ord[k-1]))MEDFAILS.ejectSwitchOrderTie++;
+  let n=0;
+  for(const e of ord){
+    const tg=e.tg,_i=e.bx.own.indexOf(tg);
+    if(_i<0||tg.fainted||tg.curHP<=0||!canDragIn(e.bx.bench))continue;
+    const _want=(S&&S.replaceWith)?S.replaceWith[e.bx.own===actA?'A':'B']:undefined;
+    if(switchOut(e.bx.own,_i,e.bx.bench,e.bx.foes,e.bx.sf,field,_want)){n++;MEDSEEN.emergencyExitSwitched++;}
+  }
+  MEDSEEN.emergencyExitResidual=(MEDSEEN.emergencyExitResidual|0)+n;
+  return n;
 }
 const EJECT_BUTTON_INERT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_EJECT_BUTTON_INERT==='1');
 const EJECT_BUTTON_MAINLINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_EJECT_BUTTON_MAINLINE==='1');
@@ -24647,9 +24698,48 @@ function herbAtWin(a,b){
   if(n)MEDSEEN.herbAtWin=(MEDSEEN.herbAtWin||0)+n;
   return n;
 }
-function restoreStatsAll(a,b){
+/* 2026-09-24 (Reg M-C, narration to zero, cause A) -- TWO HERBS OWED IN ONE PASS ARE SPENT FASTEST HOLDER FIRST.
+ *
+ * Every White Herb trigger is one handler per active holder in a list the authority speed-sorts (M-C checkout, read
+ * whole): `onAnySwitchIn` is concatenated per active body by `fieldEvent` and `speedSort`ed (sim/battle.ts :484-507),
+ * `onAnyAfterMove` / `onAnyAfterMega` go through `runEvent`'s `speedSort(handlers)` (:794), and `resolvePriority` gives
+ * each handler `speed = pokemon.speed` -- the CACHED action speed (:1003; the SwitchIn fraction :1008-1013 only splits
+ * ties). This walk was `[...a, ...b]`, SIDE order, so a faster p2 holder was spent after a slower p1 holder: Reg M-C
+ * lattice 1600 baseline `...2681884715 vs ...2681855448` t0, two Intimidate + White Herb Incineroar leads.
+ *
+ * WHO IS OWED IS DECIDED FIRST and the sort runs only when two or more are owed, so the common pass (none or one owed)
+ * orders nothing and draws nothing. The key is the Update cache `_sdSpe` where stamped, else the live action speed
+ * (`sdActionSpeed`, -speed under Trick Room), through `sdSpeedSortEntries` -- one sort implementation. A tie is broken by
+ * the shared tie die there. DECLARED, NOT MODELLED: at a SwitchIn the authority breaks a tie with `runSwitch`'s
+ * `speedOrder` rank instead of a fresh draw, and it sorts the herbs among every other handler of the event (a swap with
+ * an untied handler can move a tied pair); both only matter at an exact tie between two owed holders.
+ * `MEDI_HERB_SIDE_ORDER=1` restores the side-order walk. tests/probe_regmc_white_herb_speed_order.js */
+const HERB_SIDE_ORDER=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HERB_SIDE_ORDER==='1');
+function restoreStatsOwed(m){
+  if(!m||m.fainted||m.curHP<=0||!m.item||!m.boosts)return false;
+  const _rs=TAGS.param('item',m.item,'restoresStats');
+  if(!(_rs&&_rs.restores))return false;
+  for(const k in m.boosts)if(m.boosts[k]<0)return true;
+  return false;
+}
+function restoreStatsAll(a,b,field){
+  const L=[];
+  for(const x of (a||[]))if(restoreStatsOwed(x))L.push({m:x,s:'A'});
+  for(const x of (b||[]))if(restoreStatsOwed(x))L.push({m:x,s:'B'});
+  if(L.length>1){
+    if(HERB_SIDE_ORDER)MEDFAILS.herbSideOrderRestored=1;
+    else{
+      const f=field||fieldOfBody(L[0].m);
+      if(!f)MEDFAILS.herbOrderNoField=(MEDFAILS.herbOrderNoField||0)+1;
+      else{
+        for(const e of L)e.spe=(e.m._sdSpe!=null)?e.m._sdSpe:sdActionSpeed(e.m,f,e.s);
+        sdSpeedSortEntries(L,'herb');
+        MEDSEEN.herbSpeedOrdered=(MEDSEEN.herbSpeedOrdered||0)+1;
+      }
+    }
+  }
   let n=0;
-  for(const x of [...(a||[]),...(b||[])])if(x&&restoreStatsUpdate(x))n++;
+  for(const e of L)if(restoreStatsUpdate(e.m))n++;
   return n;
 }
 /* WIRE 133 -- IS THERE A SIDE BUFF ON THE TARGET'S SIDE THAT REFUSES THIS?
@@ -27212,7 +27302,7 @@ function megaEvolveNow(S,m,auto){
   /* ROADMAP #81 WIRE 11 -- `onAnyAfterMega`, White Herb's third trigger and the one that only exists
    * because a mega evolution can carry an Intimidate into a slot that had none. Same helper, same
    * whole-field pass, for the same reason: the drop lands on the FOES and the herb is theirs. */
-  restoreStatsAll(S.actA,S.actB);
+  restoreStatsAll(S.actA,S.actB,S.field);
   /* 2026-08-12 -- THE FIELD'S `onAny` FACTS ARE RECOMPUTED, BECAUSE A MEGA CAN CREATE ONE MID-TURN.
    *
    * `field.aura`, `field.wSup` and the sleep refusal are all computed ONCE at the top of the turn,
@@ -29971,7 +30061,7 @@ function pivotHerbSweep(sf){
   if(PIVOT_HERB_AFTER_ENTRY){MEDFAILS.pivotHerbAfterEntryRestored=1;return;}
   const S=sf&&sf._S;
   if(!S){MEDFAILS.pivotHerbNoState=(MEDFAILS.pivotHerbNoState||0)+1;return;}
-  const n=restoreStatsAll(S.actA,S.actB);
+  const n=restoreStatsAll(S.actA,S.actB,S.field);
   if(n)MEDSEEN.pivotHerbBeforeEntry+=n;
 }
 function switchOut(act,i,bench,foes,sf,field,wanted,pass){
@@ -30226,7 +30316,7 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
   }
   if(out._transformed)imposterRevert(out);
   out._wasOut=true;
-  out._lock=null; out._lockT=0; out._lockHadMove=false; out._flinch=false;
+  out._lock=null; out._lockT=0; out._lockHadMove=false; out._flinch=false; out._flinchHeld=false;
   /* ROADMAP #84 -- a body that leaves the field forgets how its last turn ended, exactly as
      `Pokemon.clearVolatile` does (sim/pokemon.ts:1551). Without this a Stomping Tantrum user could
      pivot out, come back three turns later and still be doubling off a flinch it took before it left. */
@@ -31243,7 +31333,7 @@ function reviveClear(t){
   t._charging=null; t._invuln=false; t._ttmWrap=null; t._ttmTgtSlot=null;
   t._sub=0; t._noSound=0; t._noRepeat=null; t._noRepeatT=0; t._recharge=false; t._trap=null; t._trapHard=null;
   t._mtLock=null; t._vol={}; t._guarantee=null; t._encoreMove=null; t._sealed=null; t._volGave=null; t._volSrc=null;
-  t._protectMove=null; t._lastMove=null; t._lastAim=null; t._lock=null; t._lockT=0; t._lockHadMove=false; t._flinch=false;
+  t._protectMove=null; t._lastMove=null; t._lastAim=null; t._lock=null; t._lockT=0; t._lockHadMove=false; t._flinch=false; t._flinchHeld=false;
   t._mvRes=undefined; t._mvResLast=undefined; t._metroLast=null; t._metroN=0; t._timesAttacked=0; t._perish=null;
   t._yawn=null; t._ptDmg=null; t._healBlock=0; t._cud=null;
   t.boosts={at:0,df:0,sa:0,sd:0,sp:0,acc:0,eva:0};
@@ -31605,7 +31695,7 @@ function battleInit(teamA,teamB,opts){
      * priority -2, i.e. AFTER every entry ability has had its say, which is exactly what "one pass
      * once the whole lead has landed" reproduces: a herb spent against the first Intimidate would
      * otherwise be gone before the second one arrived. */
-    restoreStatsAll(S.actA,S.actB);
+    restoreStatsAll(S.actA,S.actB,S.field);
     /* ROADMAP #175 -- AND THE TERRAIN-DRIVEN RETYPE AFTER THE WHOLE LEAD HAS LANDED, for the reason
      * the White Herb pass above it exists: a Mimicry body that arrives BEFORE its ally's terrain
      * setter would otherwise be typed against a field that did not exist yet. One sync once the sky is
@@ -34249,7 +34339,7 @@ function battleTurnBody(S,rng,actsForA,actsForB){
      * IT CANNOT OVER-FIRE. It is the SAME expression the top-of-turn site runs, over whoever is
      * standing there now; running it more often can only move the answer toward the live one. The
      * counter it stamps rises only when the answer actually CHANGED. */
-    const _updateAll=()=>{ _updateEvent(); restoreStatsAll(actA,actB);
+    const _updateAll=()=>{ _updateEvent(); restoreStatsAll(actA,actB,field);
       if(WSUP_STALE)MEDFAILS.wSupStaleRestored=1;
       else recomputeWeatherSuppression(field,[...actA,...actB]);
       /* ROADMAP #542 (a) -- THIS IS THE SITE THAT CATCHES A FAINT. `auraStateOf` already skips a
@@ -35694,6 +35784,7 @@ function battleTurnBody(S,rng,actsForA,actsForB){
         /* 2026-09-11 -- a defrost thaw that was waiting for the move to be USED is refused with it. */
         if(m._thawAtUse){m._thawAtUse=null;MEDSEEN.thawDeferredRefused++;}
         m._flinch=false;m._mvRes=false;if(TR)TR.cant(m,'flinch');
+        if(!FLINCH_GONE_AT_RESIDUAL)m._flinchHeld=true;   /* the volatile stands until the residual; see FLINCH_GONE_AT_RESIDUAL */
         {const _bf=TAGS.param('ability',m.ability,'boostsOnFlinch');
          if(_bf&&_bf.boosts&&m.boosts&&!m.fainted){
            const _sg=invSign(m);
@@ -51789,7 +51880,7 @@ function battleTurnBody(S,rng,actsForA,actsForB){
        * M-B and Emergency Exit has no Reg M-B carrier); every other road keeps its post-action pass. The pass is the
        * herb's one reader, `restoreStatsAll`. tests/probe_regmc_white_herb_before_switch.js */
       if((_redCardDrag||_ejectOwed.length)&&!HERB_AFTER_OWED_SWITCH){
-        const _hn=restoreStatsAll(actA,actB); if(_hn)MEDSEEN.herbBeforeOwedSwitch=(MEDSEEN.herbBeforeOwedSwitch||0)+_hn;
+        const _hn=restoreStatsAll(actA,actB,field); if(_hn)MEDSEEN.herbBeforeOwedSwitch=(MEDSEEN.herbBeforeOwedSwitch||0)+_hn;
       }
       /* 2026-09-24 (abra/regmc 0.88.0) -- `runMove`'s `this.battle.faintMessages()` (sim/battle-actions.ts:347): BELOW
        * `AfterMove` (the herb just above) and ABOVE every switch the action owes (the Red Card drag and the eject
@@ -52120,7 +52211,7 @@ function battleTurnBody(S,rng,actsForA,actsForB){
      * flinched Pokemon tried to act, so a flinch landed by a SLOWER attacker (impossible to use this
      * turn) sat on the flag and stole the target's NEXT turn instead. Fake Out's +3 priority hid this
      * because it almost always moved first; adding Rock Slide's flinch would have made it common. */
-    [...actA,...actB].forEach(m=>{if(m)m._flinch=false;});
+    [...actA,...actB].forEach(m=>{if(m){if(m._flinch&&!FLINCH_GONE_AT_RESIDUAL)m._flinchHeld=true;m._flinch=false;}});
     /* 2026-08-24 -- THE RESIDUAL PHASE OPENS HERE, AND THE SPEED-TIE COIN IS DRAWN ONCE FOR ALL OF IT.
      * The authority speed-sorts its residual handler list ONCE (sim/battle.ts:505) and walks it; this
      * engine re-asks `residualOrder` per order-group because speeds move during the walk. Bumping the
@@ -52130,6 +52221,9 @@ function battleTurnBody(S,rng,actsForA,actsForB){
      * and the insertion clock is read once more so the shadow list below sees every volatile added since the
      * last Update pass. */
     sdUpdateSpeed(actA,actB,field);
+    /* 2026-09-24 -- `residualPokemon = getAllActive().map(p => [p, hp])` (sim/battle.ts:2815), read by the Emergency
+     * Exit residual door below the residual's Update pass. See `emergencyExitResidualDoor`. */
+    for(const _m of [...actA,...actB])if(_m)_m._eeResHP=(!_m.fainted&&_m.curHP>0)?_m.curHP:null;
     volSeqSyncAll(actA,actB);
     _RES_TIE_GEN++;
     /* 2026-08-27 -- AND THE AUTHORITY'S HANDLER LIST IS REBUILT HERE, for the same reason and at the
@@ -52141,6 +52235,8 @@ function battleTurnBody(S,rng,actsForA,actsForB){
      * order of the bodies that hold a handler at each group's order off this list, so it is built
      * whether or not a side clock can tie. Under `MEDI_RESIDUAL_SORTS_BODIES=1` the old gate stands. */
     residualShadowRank(field,sfA,sfB,actA,actB,!RESIDUAL_SORTS_BODIES);
+    /* 2026-09-24 -- the spent flinch has now stood in the list; it expires in this residual (`duration: 1`). */
+    for(const m of [...actA,...actB])if(m&&m._flinchHeld){ m._flinchHeld=false; MEDSEEN.flinchHeldToResidual=(MEDSEEN.flinchHeldToResidual|0)+1; }
     /* ~~2026-08-26 -- AND `stall`'S DURATION IS SPENT HERE, because THIS is where the residual opens.
      * Above every remaining `break _TURN` and below the two that skip the residual entirely, which is
      * the whole point: a turn that ended before this line never spends the clock, exactly as
@@ -54427,7 +54523,7 @@ function battleTurnBody(S,rng,actsForA,actsForB){
        * IT IS `restoreStatsAll` AND NOT A SECOND COPY OF THE RULE -- what the herb DOES has one
        * implementation and only the trigger is new (CLAUDE.md, facts are global). */
       if(REFILL_NO_HERB)MEDFAILS.refillHerbPassSkipped=(MEDFAILS.refillHerbPassSkipped||0)+1;
-      else MEDSEEN.refillHerbPass+=restoreStatsAll(actA,actB);
+      else MEDSEEN.refillHerbPass+=restoreStatsAll(actA,actB,field);
     };
     /* `|upkeep|` CLOSES the residual and the faint replacements follow it -- Showdown's own order,
      * where the switch request resolves between `|upkeep|` and the next `|turn|`. */
@@ -54502,6 +54598,11 @@ function battleTurnBody(S,rng,actsForA,actsForB){
      * AND IT IS BELOW THE WIPE BREAK, which is `if (this.ended) return true;` at :2833 -- a residual
      * that took a side's last body ends the battle and this Update never runs. */
     residualUpdatePass(actA,actB,field,-1);
+    /* 2026-09-24 (Reg M-C, narration to zero, cause C) -- THE EMERGENCY EXIT RESIDUAL DOOR. `runAction`'s tail, below
+     * this Update pass (sim/battle.ts:2860-2867): every body of `residualPokemon` still standing that went from above half
+     * to at or below it raises `EmergencyExit`; the request that follows (:2905-2911) is the same one that fills the dead
+     * slots, so the exits go here, beside `refill`. See `emergencyExitResidualDoor`. */
+    emergencyExitResidualDoor(S,actA,actB,benchA,benchB,sfA,sfB,field,_refills.length>0);
     refill();
     /* ===== 2026-09-21 -- AND A REPLACEMENT THAT DIES ON ARRIVAL IS ITSELF REPLACED ================
      *
@@ -54617,7 +54718,7 @@ function battleTurnBody(S,rng,actsForA,actsForB){
    *
    * It was invisible for as long as it was because that arm ran on `Math.random` and reported the
    * leak on roughly half its runs -- see the seeding note beside it. */
-  [...actA,...actB].forEach(m=>{if(m)m._flinch=false;});
+  [...actA,...actB].forEach(m=>{if(m){m._flinch=false;m._flinchHeld=false;}});
   /* 2026-08-29 -- AND THE LIVE QUEUE IS DROPPED ON EVERY EXIT, beside the flinch clear and for the
    * identical reason: every `break _TURN` jumps over anything inside the block. Nothing outside a turn
    * may read a cursor into a queue that has already been played -- and a caller that tries is COUNTED

@@ -1,3 +1,33 @@
+## REG M-C NARRATION AFTER THE LAST THREE FIXES: 0 / 0 / 0, BOARDS 0. 2026-09-24 (abra/regmc 0.123.0)
+
+- Release `015ab5fd1cc1`, pinned as 0.119.0, same samples. The three hand-list causes filed in 0.119.0 are closed
+  (0.120.0, 0.121.0, 0.122.0); the hand list carries no Reg M-C narration cause. Census 1024 live.
+- Still counted, not modelled: Emergency Exit's hazard door, and an exit beside a corpse refill in one request.
+  Report `docs/_reports/2026-09-24-narration-zero.md`.
+
+## EMERGENCY EXIT ANSWERS A RESIDUAL THAT TAKES ITS HOLDER TO HALF (REG M-C). 2026-09-24 (abra/regmc 0.122.0)
+
+- `emergencyExitResidualDoor`, below the residual's Update pass and above `refill`. Engine defect, not instrument: the
+  harness expresses the switch unchanged. Knob `MEDI_EMERGENCY_EXIT_NO_RESIDUAL`. Probe
+  `tests/probe_regmc_emergency_exit_residual.js` (RED -> GREEN, RESIDUAL / no-ability CONTROL).
+- Hand list: **narration cause (c), the Emergency Exit game, leaves it.** Still counted, not modelled: the hazard door
+  (an entrant brought to half by hazards). Report `docs/_reports/2026-09-24-narration-zero.md`.
+
+## A SPENT FLINCH STILL STANDS IN THE RESIDUAL HANDLER LIST (REG M-C). 2026-09-24 (abra/regmc 0.121.0)
+
+- `_flinchHeld` carries the flinch volatile to the residual list's build; the selection sort's swaps depend on it at a
+  speed tie. Knob `MEDI_FLINCH_GONE_AT_RESIDUAL`. Probe `tests/probe_regmc_flinch_residual_list.js` (RED -> GREEN,
+  FLINCH / moved-flinch CONTROL).
+- Hand list: **narration cause (b), the Grassy Terrain heal order, leaves it.** It was a measured tie (137 = 137), and
+  the defect was the list, not the die. Report `docs/_reports/2026-09-24-narration-zero.md`.
+
+## TWO WHITE HERBS OWED IN ONE PASS ARE SPENT FASTEST HOLDER FIRST (REG M-C). 2026-09-24 (abra/regmc 0.120.0)
+
+- `restoreStatsAll` orders the owed holders by the cached action speed (`sdSpeedSortEntries`) when two or more are
+  owed. Knob `MEDI_HERB_SIDE_ORDER`. Probe `tests/probe_regmc_white_herb_speed_order.js` (RED -> GREEN, LEAD /
+  AFTERMOVE / speed-swapped CONTROL).
+- Hand list: **narration cause (a), White Herb holder order, leaves it.** Report `docs/_reports/2026-09-24-narration-zero.md`.
+
 ## REG M-C NARRATION AFTER THE TWO FIXES: 0 / 2 / 1, BOARDS 0. 2026-09-24 (abra/regmc 0.119.0)
 
 - Release `aed9780fc4e3`, pinned as 0.112.0, same samples. The Leppa ordering and `fallenundefined` are gone from every

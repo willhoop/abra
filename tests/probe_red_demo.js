@@ -4042,9 +4042,12 @@ const W11_SPREAD_REVERT = [[
   '        const _price=(isCrit)=>dmgRange(m,tg,mv,field,_spreadHit,isCrit,_hitCtx);',
   '        const _price=(isCrit)=>dmgRange(m,tg,mv,field,a.move.spread&&targets.length>1,isCrit,_hitCtx);']];
 
+/* RE-AIMED 2026-09-24: `restoreStatsAll` orders the owed holders by speed before it spends (Reg M-C narration cause
+ * A) and gained a `field` argument. The reversal is unchanged in substance -- the pass returns 0 at its first line and
+ * the rest of the body is unreachable. */
 const W11_HERB_REVERT = [[
-  'function restoreStatsAll(a,b){\n  let n=0;\n  for(const x of [...(a||[]),...(b||[])])if(x&&restoreStatsUpdate(x))n++;\n  return n;\n}',
-  'function restoreStatsAll(a,b){\n  return 0;   /* WIRE 11 REVERTED: the residual keeps its own call, the other three do nothing */\n}']];
+  'function restoreStatsAll(a,b,field){\n  const L=[];',
+  'function restoreStatsAll(a,b,field){\n  return 0;   /* WIRE 11 REVERTED: the residual keeps its own call, the other three do nothing */\n  const L=[];']];
 
 const W11_ORDER_REVERT = [
   /* RE-AIMED 2026-08-14 (ROADMAP #273), AND THE FIRST DRAFT OF THE RE-AIM THREW RATHER THAN FLIPPING,
