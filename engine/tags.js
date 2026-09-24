@@ -195,12 +195,85 @@ function __setDB(obj) {
   return DB;
 }
 
+/* ---- LEAN VIEW, 2026-09-24 (docs/_reports/2026-09-24-lean-mode.md) -------------------------------------
+ *
+ * THE SAME ANSWERS, NO COUNTERS, AND A LOOKUP TABLE INSTEAD OF A SCAN. A search playout (engine/medicham_api.js
+ * `newBattle({lean:true})`) asks ~1,700 tag questions a turn and reads none of the ASKED/COUNT instrument, so
+ * the medicham2 engine swaps this view in for the length of a LEAN turn and puts the counting API back after.
+ * Nothing else ever receives it: every probe, gate and differential keeps the counting API above.
+ *
+ * Every answer is the counting function's answer, byte for byte:
+ *   param  -> null, the SAME `rec.params[tag]` object, or a FRESH `{}` per call (never a shared one);
+ *   has    -> the same boolean;   tagsFor -> the same record object or null;
+ *   withTag, reactorsTo -> computed exactly as above, uncounted, never cached (they are not hot).
+ * PRE-BUILT PER RECORD. One table per kind maps a RAW id (a string) to the record `norm(id)` resolves to and
+ * that record's ANSWER OBJECT: every tag it carries -> the value `param` returns (FRESH standing for "a new {}
+ * per call"). A tag the record does not carry is absent from it, so a question is one Map read and one keyed
+ * read. An id is resolved the first time it is asked; the tables are THROWN AWAY whenever the artifact object
+ * changes (`__setDB`, or a first load) and whenever a lean battle is built (`reset()`), so an in-place edit made
+ * between two battles is seen by the second. A non-string id takes the uncached road, as `norm` does. */
+function leanView() {
+  let forDB = null;
+  let MV = null, IT = null, AB = null;
+  const FRESH = { fresh: true };
+  function rebuild() { forDB = load(); MV = new Map(); IT = new Map(); AB = new Map(); }
+  function answers(rec) {
+    const o = Object.create(null);
+    if (rec.tags) for (const tag of rec.tags) {
+      if (typeof tag !== 'string' || tag in o) continue;
+      const p = rec.params && rec.params[tag];
+      o[tag] = p ? p : FRESH;
+    }
+    return o;
+  }
+  function resolve(kind, id) {
+    const t = forDB[TABLE[kind]];
+    const rec = t ? t[norm(id)] : null;
+    return rec ? { rec, a: answers(rec) } : null;
+  }
+  function entry(kind, id) {
+    if (forDB !== DB || forDB === null) rebuild();
+    const m = kind === 'move' ? MV : kind === 'item' ? IT : kind === 'ability' ? AB : null;
+    if (m === null) return null;                 /* an unknown kind: the counting API answers null too */
+    if (typeof id !== 'string') return resolve(kind, id);
+    let e = m.get(id);
+    if (e === undefined) { e = resolve(kind, id); m.set(id, e); }
+    return e;
+  }
+  return {
+    lean: true,
+    reset() { forDB = null; },
+    tagsFor(kind, id) { const e = entry(kind, id); return e === null ? null : e.rec; },
+    param(kind, id, tag) {
+      const e = entry(kind, id);
+      if (e === null) return null;
+      const v = e.a[tag];
+      return v === undefined ? null : (v === FRESH ? {} : v);
+    },
+    has(kind, id, tag) {
+      const e = entry(kind, id);
+      return e !== null && e.a[tag] !== undefined;
+    },
+    withTag(kind, tag) {
+      const T2 = load()[TABLE[kind]];
+      if (!T2) return [];
+      return Object.keys(T2).filter(id => (T2[id].tags || []).includes(tag));
+    },
+    reactorsTo(key) {
+      const db = load();
+      const l = db.linkage && db.linkage[key];
+      return l || { abilities: [], items: [], moves: [] };
+    },
+    norm, hits, asked, resetHits, __setDB, __onSetDB,
+  };
+}
+
 /* PUBLISHED BOTH WAYS, like engine/mc_key.js and engine/board.js. In node this is the module; in a
  * browser it REPLACES globalThis.ABRA_TAGS — the raw data table published by data/abra-tags.js —
  * with this same API over that data. board.js tests ABRA_TAGS for `.has`, so the object it finds has
  * to be the accessor, not the artifact. Sharing the artifact was never enough; the ACCESSOR has to
  * be shared too (docs/ARTIFACT-ACCESS-RULES.md R1). */
-const _API = { tagsFor, param, has, reactorsTo, hits, asked, resetHits, norm, withTag, __setDB, __onSetDB };
+const _API = { tagsFor, param, has, reactorsTo, hits, asked, resetHits, norm, withTag, __setDB, __onSetDB, leanView };
 if (typeof module !== 'undefined' && module.exports) module.exports = _API;
 if (!HAS_REQUIRE && typeof globalThis !== 'undefined') {
   if (globalThis.ABRA_TAGS && !globalThis.ABRA_TAGS.has) DB = globalThis.ABRA_TAGS;   // keep the data

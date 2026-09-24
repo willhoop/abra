@@ -8,6 +8,15 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-24
 
+### Lean playouts (PRE-GATE)
+- MILTANK's playouts now run in MEDICHAM's lean mode (`newBattle({lean:true})` / `API.makeLean`): the same boards, no
+  protocol, no process counters, tag answers from a table. `MILTANK_LEAN=0` plays full.
+- Speed, paired in one process on the same cells: 1.25x to 1.33x playouts per main-thread CPU-second (block medians, three runs). Cell values hash equal; `playout_bench.js` prints the
+  same `values_sha` and `decide_sha` with lean on and off.
+- Proof of identity: `solver/tests/test-lean-mode.js` (the Reg M-C `--games 1200` lattice and 300 human-sheet games,
+  red on a deliberate break). `test-playout-speed.js` and `test-miltank.js` GREEN.
+- Detail: `docs/_reports/2026-09-24-lean-mode.md`.
+
 ### Playout speed and worker pool (PRE-GATE)
 - About 80% of a playout is the engine turn (`battleTurn`). Solver overhead was about 8%: the clone plus the
   makeRng wrapper, now cut to about 4%. The earlier "23 playouts" figure was mostly machine load (the machine

@@ -21,6 +21,38 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.116.1] — 2026-09-24
+
+### Added
+- **Re-proved on main at merge.** Pinned Reg M-C differential at `--games 1200` (census pin `ccd979c30997`, frozen pool),
+  release `eff9468cefc0` (main before) against `7403f5d61204` (after): 955 of 955 `MEDI_SAMPLE_DUMP` rows identical.
+  `solver/tests/test-lean-mode.js --release 7403f5d61204` PASS: 22,283 lattice turns and 2,518 human-sheet turns equal,
+  red on `MEDI_LEAN_BREAK=1`. Merged from `worktree-agent-a48f2802cb3153322` (9fa55fa5); its cherry-picks of the memo
+  and the four playout-speed commits resolved to main's bytes (0.112.2, 0.115.0, 0.116.0).
+- **Lean mode for search playouts (Reg M-C solver; the engine code serves both regulations).**
+  `engine/medicham_api.js` `newBattle(a, b, {lean: true, rng})` and `makeLean(S)` build a battle whose every turn runs
+  inside the engine's new `leanRun`. For that turn, tag questions are answered from a per-battle lookup table
+  (`engine/tags.js` `leanView()`: the same answers, no `ASKED`/`COUNT` counting), `MEDSEEN`/`MEDFAILS` are rebound to
+  a discarded sink, a trace sink is refused, the event-address log is not written, and four pieces of work whose only
+  reader is a counter are skipped. An attack action's price (`d`, `acc`, a valuation no turn step reads) is `null`.
+  Nothing that decides order was touched: the Update speed re-sort, every speed read that feeds a sort, `volSeqSync`
+  and the residual handler sort run as in a full battle (Will's constraint, 2026-09-24).
+- **MILTANK's playouts are lean.** `solver/miltank/rollout.js` makes each playout's own copy lean and runs the playout
+  under `API.leanRun`; `MILTANK_LEAN=0` plays full. The solver files come from branch `playout-speed` (four commits,
+  cherry-picked unchanged).
+- **`solver/tests/test-lean-mode.js`** holds lean BOARD-identical to full on the Reg M-C `--games 1200` lattice (through
+  `tests/medicham_api_diffhook.js` `MEDI_API_HOOK=lean`) and on human-dataset sheets, and must go red on
+  `MEDI_LEAN_BREAK=1` (a lean turn skips Leftovers' heal).
+
+### Changed
+- **The turn's entry is a thin door.** `battleTurn` now only delegates (scope, then lean) to `battleTurnBody`, so a
+  battle built by the solver API no longer enters the ~22,000-line body twice a turn. Same bytes.
+
+### Notes
+- **No figure moves, so this is a PATCH.** Non-lean plays the same bytes as main: the pinned `game_differential.js` (`--steering empirical --arm middle --end-state --games 1200`, one census pin and one frozen pool per regulation, `MEDI_SAMPLE_DUMP` per game) matches base per game, 955 of 955 on Reg M-C (releases `318ccd937118` base, `1886fadf0679` patch) and 961 of 961 on Reg M-B (`d9d69d58ef31`, `4f4dd1005ade`), and each artifact matches outside the two fields that name the engine. Lean against full: every game of the Reg M-C `--games 1200` lattice (955 games, the hooked run's fingerprint equal to the plain run's), 22,283 turns, every board and every per-stream draw equal to a full copy's (`solver/tests/test-lean-mode.js`); 300 human-sheet games, 2,518 turns, every board, every per-stream draw count and every winner equal. `MEDI_LEAN_BREAK=1` turns both red.
+- **Speed**, lean against full in one process on the same turns, paired blocks of main-thread CPU: per turn 1.18x to 1.35x (block medians over three runs; whole-run 1.22x to 1.33x), per MILTANK playout 1.25x to 1.33x (block medians; whole-run 1.17x to 1.41x), with the cell values hashed equal.
+  Full account: `docs/_reports/2026-09-24-lean-mode.md`.
+
 ## [0.116.0] — 2026-09-24
 
 ### Changed

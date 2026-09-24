@@ -1,3 +1,19 @@
+## LEAN MODE FOR SEARCH PLAYOUTS: THE SAME BOARDS, LESS WORK PER TURN. 2026-09-24 (abra/regmc 0.116.1)
+
+- `newBattle(a, b, {lean: true, rng})` (and `API.makeLean(S)`) build a battle whose every turn runs inside the engine's
+  `leanRun`. For that turn, tag questions are answered from a per-battle table (`engine/tags.js` `leanView`, the same
+  answers, no `ASKED`/`COUNT`), `MEDSEEN`/`MEDFAILS` are rebound to a discarded sink, and a trace sink is refused. Work
+  whose only reader is a counter is skipped: `sdEachEventOrder`'s live speed beside a cached stamp, Magician's copy of
+  it, the Eject Button tie witness, and the Emergency Exit other-door witness. An attack action's price (`d`, `acc`) is
+  `null`. The Update speed re-sort, every speed read that feeds an order, `volSeqSync` and the residual sort are
+  untouched (Will's constraint).
+- For every battle, the turn's entry is now a thin door (`battleTurn` delegates to `battleTurnBody`), so an API battle
+  no longer enters the ~22,000-line body twice per turn. It plays the same bytes.
+- Proof: non-lean plays the same bytes as main per game on the pinned `--games 1200` differential (955 of 955 on Reg M-C, 961 of 961 on Reg M-B). Lean is board-identical on the Reg M-C `--games 1200` lattice and on 300 human-sheet
+  games (`solver/tests/test-lean-mode.js`, red on `MEDI_LEAN_BREAK=1`). Speed, paired main-thread CPU: 1.18x to 1.35x
+  per turn, 1.25x to 1.33x per MILTANK playout (block medians). MILTANK's playouts are lean (`MILTANK_LEAN=0` turns it off).
+- Hand list: unchanged. No mechanic moved; no census row can. Report `docs/_reports/2026-09-24-lean-mode.md`.
+
 ## A TURN COSTS LESS CPU AND PLAYS THE SAME BYTES: TWO NORMALISERS MEMOISED. 2026-09-24 (abra/regmc 0.112.2)
 
 - `engine/tags.js` `norm()` and `_shadowId()` in the simulator each cache a string by value and answer `''` for a
