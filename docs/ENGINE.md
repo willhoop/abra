@@ -1,3 +1,15 @@
+## REFLECT TYPE AT A TYPELESS TARGET WITH AN ADDED TYPE COPIES NORMAL + THE ADDED TYPE (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.97.0)
+
+- The typecopy branch reads the target's BASE list (`getTypes(true)`) and its added slot separately: an empty base
+  list with an added type standing reads Normal, and the added type is carried across on its own. The turn-boundary
+  broadcast now writes the base list and then a `[silent]` typeadd. Knob `MEDI_REFLECT_TYPE_FOLDS_ADDED`. Probe
+  `tests/probe_reflect_type_typeless_added.js`; census row "Reflect Type at a typeless target with an added type
+  copies NORMAL plus the added type".
+- Hand list: **the typeless-target gap leaves it; both Reflect Type corners filed in 0.95.0 are closed.** Added,
+  measured, not fixed: Burn Up on a body carrying an added type — the authority's `setType` clears it
+  (Trick-or-Treated Arcanine → `???`), ours keeps the Ghost (`???/Ghost`); both regulations. Report
+  `docs/_reports/2026-09-24-reflect-type-corners.md` §6.
+
 ## A SECOND ADDED TYPE REPLACES THE FIRST (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.96.0)
 
 - The authority holds one added type (`addType` writes `this.addedType = newType`); the `changesTargetType.adds`

@@ -53,6 +53,22 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.97.0] — 2026-09-24 — **Reflect Type at a typeless target with an added type copies Normal + the added type (both regulations)**
+
+- **What changed.** `engine/medicham2-browser.js`: Reflect Type's typecopy branch reads the target's base list and
+  added slot separately (Normal for an empty base list with an added type standing; the added type carried across);
+  the turn-boundary broadcast writes the base list then a `[silent]` typeadd. Knob `MEDI_REFLECT_TYPE_FOLDS_ADDED`.
+  Probe `tests/probe_reflect_type_typeless_added.js`; census row "Reflect Type at a typeless target with an added
+  type copies NORMAL plus the added type" in `tests/test-mechanics.js`.
+- **Measured.** Probe: RED on the base bytes (Reg M-B `0996f70743f9`, Reg M-C `321b4f63b586` and the 0.96.0 bytes
+  `d4b43852870d`; the RED arm parts on `p1b types` ghost/normal vs ghost, and two arms part on the broadcast lines),
+  GREEN on the fix (`52ae91d50129`, `28c6364d97a8`), RED under the knob. Census, this tree: Reg M-B 1009 live / 0
+  missing (1008 / 1 missing under the knob), Reg M-C 1013 / 0; artifacts NOT republished. Pinned differential, the
+  0.96.0 flags and pins: Reg M-B 260 / 1 / 0 (the same declared game), Reg M-C 259 / 0 / 0. Roster `--stage moves
+  --only reflecttype,trickortreat,forestscurse,burnup`: 4 FIRED-AND-BOARDS-MATCH, 0 DIFFER, in both regulations.
+  Worktree releases; receipts for the report only, not published figures.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.96.0] — 2026-09-24 — **A second added type replaces the first (both regulations)**
 
 - **What changed.** `engine/medicham2-browser.js`: the added type rides on the `types` array (`types._added`); the

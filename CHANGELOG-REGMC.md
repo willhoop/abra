@@ -21,6 +21,29 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.97.0] — 2026-09-24
+
+### Fixed
+- **Reflect Type at a typeless target that carries an added type copies Normal plus the added type (both
+  regulations).** The authority copies `getTypes(true)` — the BASE list, which excludes the added type — less `???`,
+  reads an empty one as `['Normal']` when an added type stands, and carries the added type across on its own
+  (`source.addedType = target.addedType`; data/moves.ts `reflecttype`, no Champions override, both checkouts). A
+  Burned-Up Arcanine that was then Trick-or-Treated copies as Normal/Ghost there; this engine copied Ghost alone.
+  The typecopy branch now reads the base list and the added slot (0.96.0's `types._added`) separately, and the
+  user's own `apparentType` is its base list, as `setType` writes it.
+- **The turn-boundary type broadcast writes the base list and then a `[silent]` typeadd** (sim/battle.ts
+  `nextTurn`). It wrote the whole list as one typechange, so a Reflect Type at a foe carrying an added type parted
+  the protocol stream (narration only; boards agreed). Knob `MEDI_REFLECT_TYPE_FOLDS_ADDED` restores both halves.
+- New probe `tests/probe_reflect_type_typeless_added.js` (two engines, whole board and the broadcast lines): red on
+  the base bytes in both regulations, green on the fix, red under the knob; a no-add control (the copy fails in both)
+  and a non-typeless control. New census row (`changesTargetType`, "Reflect Type at a typeless target with an added
+  type copies NORMAL plus the added type"); the knob is a `DELIBERATE_BREAK`.
+
+### Notes
+- Filed in 0.95.0's report as gap 1. Reachable in both formats through Burn Up (legal in both, mono-Fire learners);
+  Double Shock is `Past` in Reg M-B and its one Reg M-C learner is dual-typed, so it cannot empty a base list.
+  Report `docs/_reports/2026-09-24-reflect-type-corners.md`.
+
 ## [0.96.0] — 2026-09-24
 
 ### Fixed

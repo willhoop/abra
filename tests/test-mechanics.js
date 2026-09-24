@@ -17217,6 +17217,38 @@ probe('move', 'changesTargetType', 'a second added type REPLACES the first — F
                  + ' (the Grass REPLACES the Ghost: it lands)' };
 });
 
+/* 2026-09-24 -- REFLECT TYPE AT A TYPELESS TARGET THAT CARRIES AN ADDED TYPE. The authority copies `getTypes(true)`
+ * (the BASE list, less '???'), reads an empty one as ['Normal'] when an added type stands, and carries the added type
+ * across on its own (data/moves.ts `reflecttype`, no Champions override, both checkouts). So a Burned-Up Arcanine
+ * that was Trick-or-Treated copies as Normal/Ghost, and a Normal/Ghost body is IMMUNE to Shadow Ball; this engine
+ * copied Ghost alone, which Shadow Ball hits super-effectively. CONTROL: no Burn Up — Arcanine is Fire/Ghost, the
+ * copy is Fire/Ghost and Shadow Ball lands. TEST: Burn Up first — the copy must be Normal/Ghost and take 0.
+ * MEDI_REFLECT_TYPE_FOLDS_ADDED=1 restores the fold; tests/probe_reflect_type_typeless_added.js is the two-engine
+ * proof. */
+probe('move', 'changesTargetType', 'Reflect Type at a typeless target with an added type copies NORMAL plus the added type', () => {
+  const run = (burn) => {
+    const me = bare('gourgeist'), ally = bare('stunfisk');
+    const f1 = bare('arcanine'), f2 = bare('gengar');
+    unfaintable(me); unfaintable(ally); unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, PASS2(me, ally), new Map([[f1, burn ? M.playerAction(f1, 'burnup', ally, S.field) : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const burned = (f1.types || []).join('/');
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'trickortreat', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, M.playerAction(ally, 'reflecttype', f1, S.field)]]), PASS2(f1, f2));
+    const types = (ally.types || []).join('/');
+    const before = ally.curHP;
+    M.battleTurn(S, rng5, PASS2(me, ally), new Map([[f1, { kind: 'pass' }], [f2, M.playerAction(f2, 'shadowball', ally, S.field)]]));
+    return { burned, types, dealt: before - ally.curHP };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.burned === 'Fire' && test.burned === '???' && control.dealt > 0 && test.dealt === 0
+                  && test.types.split('/').sort().join('/') === 'Ghost/Normal',
+           arms: { control: control.dealt, test: test.dealt },
+           detail: 'Stunfisk Reflect Types a Trick-or-Treated Arcanine, then takes Gengar\'s Shadow Ball — no Burn Up '
+                 + JSON.stringify(control) + ' (Fire/Ghost: it lands); Burn Up first ' + JSON.stringify(test)
+                 + ' (the base list is empty, so Normal + Ghost: immune)' };
+});
+
 /* WIRE 106 -- `decorate -> goodasgold/suckerpunch/upperhand`: the caller's target was dropped at
  * classification, so a foe-aimed Decorate boosted the ALLY. Showdown boosts the FOE, and Good as
  * Gold refuses it. */
@@ -38700,6 +38732,8 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           'mimicrySyncEveryCallRestored',
                           /* 2026-09-24 -- tests/probe_added_type_replaced.js */
                           'addedTypeAppendsRestored',
+                          /* 2026-09-24 -- tests/probe_reflect_type_typeless_added.js */
+                          'reflectTypeFoldsAddedRestored',
                           /* 2026-09-19 -- tests/probe_helpinghand_moved_ally.js */
                           'helpingHandMovedAllyRestored', 'roundUnpromotedRestored', 'bounceKindBlindRestored',
                           'punishHazardOnAttackerSideRestored', 'punishWeatherIfClearRestored',
