@@ -8880,22 +8880,68 @@ const RULES = [
       acc.cum += (+x.chance || 0);
       if (takes.includes(x)) acc.bar = acc.cum;
       return acc; }, { cum: 0, bar: 0 }).bar;
-    const clicks = contactClicksAt(C.species, atkSp);
-    if (!clicks.length) return cannot('no 100-accuracy physical CONTACT click exists that the '
+    /* ---- THE DIE PICKS A BRANCH, AND THE AGGRESSOR HAS TO TAKE THAT BRANCH — 2026-09-24 --------------
+     *
+     * EFFECT SPORE READ "THE STAGING IS INERT" IN BOTH REGULATIONS (7822a83cc49b, ec377f6f8159), and it was
+     * the fixture both times. The old test asked only that the die fall below the running total of the
+     * branches the aggressor takes. Effect Spore's cumulative roll is sleep / paralysis / poison in artifact
+     * order and the chosen die (Body Slam, turn 3, 0.2637) falls in the POISON band — and the body that
+     * actually threw it was not Dragapult: Effect Spore can write sleep, so the idle click stays Focus
+     * Energy, Dragapult cannot learn it, and the #318 restaging pass swapped in a Focus Energy learner —
+     * Archaludon under Reg M-B (Steel: refuses poison) and Rillaboom under Reg M-C (Grass: refuses the
+     * handler's POWDER gate, `source.runStatusImmunity('powder')`, carried on the tag as
+     * `attackerStatusImmunity`). Showdown rolled the coin, the aggressor refused it, and no board moved.
+     *
+     * So (1) the die must fall in a band whose status the aggressor takes (by the band it lands in, not by
+     * a running total), (2) the tag's own `attackerStatusImmunity` is asked of the aggressor's typing, and
+     * (3) when a band can write sleep the aggressor must also learn the Focus Energy idle, so the restaging
+     * pass has nothing to swap. CAST.ATTACKER is still asked first, so a member whose old fixture was
+     * sound keeps it byte for byte. A PRECONDITION reads the status off SHOWDOWN's board: if anything
+     * still refuses it, the row says so instead of reading inert. */
+    const codeOf = s => { const st = String(s || '').toLowerCase();
+      return st === 'paralysis' ? 'par' : st === 'poison' ? 'psn' : st === 'burn' ? 'brn'
+           : st === 'sleep' ? 'slp' : st === 'freeze' ? 'frz' : st; };
+    const bands = []; { let lo = 0; for (const x of p.inflicts) { const hi = lo + (+x.chance || 0);
+      bands.push({ lo, hi, st: codeOf(x.status) }); lo = hi; } }
+    const bandOf = die => bands.find(b => die >= b.lo && die < b.hi) || null;
+    const gate = p.attackerStatusImmunity ? String(p.attackerStatusImmunity) : null;
+    const takesSt = (sp, st) => dex.getImmunity(st, sp.types) !== false
+      && !(gate && dex.getImmunity(gate, sp.types) === false);
+    const needsIdle = bands.some(b => b.st === 'slp');
+    const aggressors = [atkSp].concat(CANDIDATES.filter(s => s.id !== atkSp.id && s.id !== idOf(C.species)
+      && buildableSpecies(s.id) && (!needsIdle || learnsLegally(s.id, INERT))));
+    let pick = null, aSp = null, aAb = null, band = null, clicks = [];
+    for (const sp of aggressors) {
+      if (sp !== atkSp && !bands.some(b => takesSt(sp, b.st))) continue;
+      if (sp === atkSp && needsIdle && !learnsLegally(sp.id, INERT)) continue;
+      const cl = contactClicksAt(C.species, sp);
+      if (sp === atkSp) clicks = cl;
+      const got = cl.find(c => { const b = bandOf(c.die); return b && takesSt(sp, b.st); });
+      if (got) { pick = got; aSp = sp; band = bandOf(got.die);
+        aAb = sp === atkSp ? CAST.ATTACKER().ability : carrierAbility(sp); break; }
+    }
+    if (!clicks.length && !pick) return cannot('no 100-accuracy physical CONTACT click exists that the '
       + 'aggressor can legally throw at ' + pretty(C.species) + ' without being immune to it, and '
       + 'contact is this ability\'s own trigger');
-    const pick = clicks.find(c => c.die < reach);
-    if (!pick) return cannot(noCoinWhy(clicks, reach, pretty(e.id)));
+    if (!pick) return cannot(noCoinWhy(clicks, reach, pretty(e.id)) + ' (and no other legal aggressor '
+      + 'that learns ' + (needsIdle ? 'the idle click and ' : '') + 'a contact click lands its die in a band it can take)');
     return stageAbility(e, C, { hpA: 6, hpB: 6, moves: [INERT], arm: LIVE_ARM,
       coin: [MIDE.seed, pick.turn, 'any', pick.mv.id, REACT_SLOT, 0].join('|'),
-      note: atkSp.name + ' clicks ' + pick.mv.name + ' at the carrier on turn(s) 1..' + pick.turn
+      note: aSp.name + ' clicks ' + pick.mv.name + ' at the carrier on turn(s) 1..' + pick.turn
           + '; the `' + LIVE_ARM + '` arm addresses the post-hit coin `'
           + [MIDE.seed, pick.turn, 'any', pick.mv.id, REACT_SLOT, 0].join('|') + '` = '
-          + pick.die.toFixed(4) + ', below the ' + (reach * 100).toFixed(1) + '% this ability can '
-          + 'reach on a ' + atkSp.name + ', so the roll is CHOSEN to come up rather than hoped at',
-      a0: mon(atkSp.id, '', CAST.ATTACKER().ability, [pick.mv.id]),
+          + pick.die.toFixed(4) + ', inside the `' + band.st + '` band [' + band.lo.toFixed(2) + ', '
+          + band.hi.toFixed(2) + ') of this ability\'s roll, a status ' + aSp.name + ' can take'
+          + (gate ? ' (and it passes the handler\'s `' + gate + '` gate)' : '')
+          + ', so the roll is CHOSEN to come up rather than hoped at',
+      a0: mon(aSp.id, '', aAb, [pick.mv.id]),
       script: Array.from({ length: pick.turn },
-                         () => turn([click(pick.mv.id, 0), IDLE], [IDLE, IDLE])) });
+                         () => turn([click(pick.mv.id, 0), IDLE], [IDLE, IDLE])),
+      precondition: { turn: pick.turn, why: 'SHOWDOWN\'s own board shows the aggressor carrying `' + band.st
+          + '` once the chosen coin has come up — a status the aggressor refused would leave the row inert '
+          + 'for a reason about the fixture',
+        ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p1', 0);
+          return !!(A && idOf(String(A.status || '')) === band.st); }) } });
   } },
 
 /* ---- 2. A HIT THAT PLANTS A VOLATILE ON THE ATTACKER BY CHANCE -----------------------------------

@@ -21,6 +21,19 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.89.0] — 2026-09-24
+
+### Fixed
+- **The roster stages Effect Spore again, in both regulations.** Its fixture chose the die by a running total and
+  never asked which branch it fell in: Body Slam's turn-3 coin (0.2637) lands in the POISON band, and the body that
+  actually threw it was not the one the rule reasoned about — Effect Spore can write sleep, so the idle click stays
+  Focus Energy, Dragapult cannot learn it, and the learnset restaging pass swapped in Archaludon (Reg M-B, Steel:
+  refuses poison) or Rillaboom (Reg M-C, Grass: fails the handler's powder gate). Showdown rolled the coin, the
+  aggressor refused it, and the row read inert. The rule now picks an aggressor whose band it can take (typing and
+  the tag's own `attackerStatusImmunity`), which learns the idle click when a band can write sleep, and reads the
+  status off Showdown's board as a precondition. Static, Flame Body and Poison Point keep their fixtures. Test code
+  only (`tests/roster.js`).
+
 ## [0.88.0] — 2026-09-24
 
 ### Fixed

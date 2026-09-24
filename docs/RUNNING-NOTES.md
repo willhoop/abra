@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.89.0] — 2026-09-24 — **The roster stages Effect Spore again (both regulations)**
+- **What changed.** `tests/roster.js`, rule `ability/contact-statuses-the-attacker-by-chance`: the die must land in a band whose status the aggressor takes (typing and the tag's `attackerStatusImmunity`, here `powder`), the aggressor must learn the Focus Energy idle when a band can write sleep (so the #318 restaging pass does not swap it for an immune body), and a precondition reads the aggressor's status off Showdown's board. No engine byte moved.
+- **Measured.** Targeted runs, `--rule ability/contact-statuses-the-attacker-by-chance --reds`: 4 of 4 FIRED-AND-BOARDS-MATCH on `7822a83cc49b` and `ec377f6f8159` (Effect Spore: Beedrill, X-Scissor, coin 0.0139 in the `slp` band); plant CAUGHT via Effect Spore on `party.status`. Was COULD-NOT-STAGE ("THE STAGING IS INERT") in both 0.87.0 artifacts.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 0.88.0] — 2026-09-24 — **The roster stages Natural Cure and Regenerator again (both regulations)**
 - **What changed.** `tests/roster.js`, the switch-out fixture in `abilityScenario` and a new shape rule `ability/switch-out-cures` (an `onSwitchOut` calling `clearStatus`/`cureStatus`). Side A slot 1 no longer clicks a move its body does not carry (Showdown refused the resulting `pass`), and the carrier is given a derived major status before it leaves so Natural Cure has something to remove. No engine byte moved.
 - **Measured.** Targeted runs, `--only naturalcure,regenerator --reds`: both FIRED-AND-BOARDS-MATCH on `7822a83cc49b` (Reg M-B) and `ec377f6f8159` (Reg M-C); both plants CAUGHT (cure → DID-NOT-FIRE on `party.status`; heal → DID-NOT-FIRE on `party.hp`). Was COULD-NOT-STAGE (subject arm threw) in `data/verification/roster.abilities-7822a83cc49b.json` and `data/roster.abilities-regmc.json`. Full account `docs/_reports/2026-09-24-roster-staging.md`.
