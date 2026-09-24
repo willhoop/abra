@@ -1,3 +1,22 @@
+## THE FAINT-LINE ROW WAS THE ENGINE, NOT THE INSTRUMENT. 2026-09-24 (abra/regmc 0.93.1)
+
+- `--only-game` on `omit-protect …bo3-2678516446`: clean on `ec377f6f8159`, the pass-9 card back under
+  `MEDI_REVIVE_KEEPS_FAINT_LATCH=1` (a revived Farigiraf). Hand list: the faint-line question leaves the pass-10 list.
+  Report `docs/_reports/2026-09-24-narration-lightningrod-magicbounce.md`.
+## A BOUNCED STATUS MOVE THAT FAILS WRITES ITS `-fail` ON THE BOUNCER (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.93.0)
+
+- `mvFailBounced` (the `affect` whole-move volatile refusal, both Yawn refusals). Knob `MEDI_BOUNCED_FAIL_NAMES_CLICKER`.
+  Probe `tests/probe_bounced_fail_names_bouncer.js`. Reg M-C narration group M.
+- Hand list: **Magic Bounce leaves the pass-10 Reg M-C narration list**; the probe carries it.
+## A CHARGE MOVE DRAWS ITS REDIRECT ON THE CHARGE TURN UNDER REG M-C. 2026-09-24 (abra/regmc 0.92.0)
+
+- `chargeStateOf(...).drawBlocked` reads `chargeTurn.drawnWhileCharging` (derived by `engine/tag_dex.js` from the
+  compiled `Pokemon#getMoveTargets`; the Reg M-C checkout has no `isCharging` guard). Knob
+  `MEDI_CHARGE_TURN_NEVER_DRAWS`. Probe `tests/probe_redirect_above_prepare.js` ROD-NORAIN and PRESSURE-NORAIN. Reg M-C
+  narration group K.
+- Hand list: **Lightning Rod leaves the pass-10 Reg M-C narration list**; the probe carries it. `engine/status.js
+  --write` was not run from the worktree (it writes a worktree's missing untracked files as fact); owed at merge.
+
 ## BEAK BLAST'S BURN LANDS AT THE `Hit` EVENT, ABOVE THE ATTACKER'S SECONDARY (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.91.0)
 
 - `_stepPreTurnHit` (step 3, above `_stepHitEvent`) pays the `preTurnShield` `punishAttacker` status. Knob

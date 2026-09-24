@@ -53,6 +53,34 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.93.1] — 2026-09-24 — **Census refuses the two new knobs; the faint-line row was the engine**
+
+- **What changed.** `tests/test-mechanics.js` `DELIBERATE_BREAK` gains the 0.92.0 and 0.93.0 knob receipts. Report
+  `docs/_reports/2026-09-24-narration-lightningrod-magicbounce.md`.
+- **Measured.** NO FIGURE published. Scratch lattices (not `data/`): Reg M-C `--games 1200`, board-material 0/954 on
+  `ec377f6f8159` and on `148b03f6132e`; narration games 6 -> 4. The faint-line row is the 0.85.0 revive latch, shown
+  with `--only-game` and its knob.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
+## [abra/regmc 0.93.0] — 2026-09-24 — **A bounced status move that fails writes its `-fail` on the bouncer**
+
+- **What changed.** `engine/medicham2-browser.js` `mvFailBounced` at the `affect` whole-move volatile refusal and both
+  Yawn refusals: the `-fail` names the bouncer and the bouncer's move result is false; the clicker's is left alone
+  (the authority's `null`). Knob `MEDI_BOUNCED_FAIL_NAMES_CLICKER`. New probe `tests/probe_bounced_fail_names_bouncer.js`.
+- **Measured.** NO FIGURE published. Probe green in both regulations, red under the knob and on the 0.92.0 bytes.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
+## [abra/regmc 0.92.0] — 2026-09-24 — **Reg M-C: a charge move draws its redirect on the turn it charges**
+
+- **What changed.** `engine/tag_dex.js` reads `Pokemon#getMoveTargets` from the compiled checkout and writes
+  `chargeTurn.drawnWhileCharging` when the `isCharging` guard is absent (the Reg M-C checkout, upstream `efe4948`).
+  `engine/medicham2-browser.js` `chargeStateOf` returns `drawBlocked`, read by the attack-branch draw and the Pressure PP
+  site. `data/tags-regmc.json` ten rows; `data/tags.json` unchanged. Knob `MEDI_CHARGE_TURN_NEVER_DRAWS`. Probe
+  `tests/probe_redirect_above_prepare.js` (regulation-aware, new PRESSURE-NORAIN arm).
+- **Measured.** NO FIGURE published. Probe green in both regulations; red under the knob and on the 0.86.1 bytes under
+  Reg M-C. Pinned-lattice spot check in `docs/_reports/2026-09-24-narration-lightningrod-magicbounce.md`.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.91.0] — 2026-09-24 — **Beak Blast's burn lands at the Hit event, above the attacker's secondary (both regulations)**
 
 - **What changed.** `engine/medicham2-browser.js`: new step `_stepPreTurnHit` (step 3, above `_stepHitEvent`) pays a

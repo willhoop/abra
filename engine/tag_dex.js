@@ -536,6 +536,33 @@ const CHOOSABLE_TARGETS = (() => {
   return set;
 })();
 
+/* 2026-09-24 (abra/regmc 0.92.0) -- DOES `RedirectTarget` RUN ON A TURN A CHARGE MOVE SPENDS CHARGING? READ OUT
+ * OF THE COMPILED `Pokemon#getMoveTargets`, BECAUSE THE TWO CHECKOUTS ANSWER DIFFERENTLY AND NO MOVE FIELD SAYS SO.
+ *
+ *   Reg M-B checkout (20ad99f) sim/pokemon.ts:829-836
+ *       if (activePerHalf > 1 && !move.tracksTarget) {
+ *         const isCharging = move.flags['charge'] && !this.volatiles['twoturnmove'] && ...;
+ *         if (!isCharging) target = this.battle.priorityEvent('RedirectTarget', ...); }
+ *   Reg M-C checkout (f10d679) sim/pokemon.ts:829-831 -- upstream efe4948 "Remove unnecessary redirection code"
+ *       if (activePerHalf > 1 && !move.tracksTarget) {
+ *         target = this.battle.priorityEvent('RedirectTarget', ...); }
+ *
+ * So under Reg M-C a Lightning Rod announces its `-activate` on the charge turn too (the release still strikes the
+ * remembered `lastMoveTargetLoc`, data/conditions.ts twoturnmove.onStart, identical in both). The Champions mods
+ * override `getMoveTargets` in neither checkout. TRUE when the method draws and carries no `flags["charge"]` test in
+ * front of the draw. A method that cannot be read, or that names no `RedirectTarget`, THROWS: a silent false would
+ * keep the old regulation's guard on the new one, which is the defect this derivation removes. */
+const DRAWN_WHILE_CHARGING = (() => {
+  const p = path.join(process.env.SHOWDOWN_PATH || '', 'dist', 'sim', 'pokemon.js');
+  const P = require(p).Pokemon.prototype;
+  const src = String(P && P.getMoveTargets || '').replace(/\s+/g, ' ');
+  const at = src.indexOf('"RedirectTarget"') >= 0 ? src.indexOf('"RedirectTarget"') : src.indexOf("'RedirectTarget'");
+  if (at < 0) throw new Error('getMoveTargets in ' + p + ' names no RedirectTarget -- drawnWhileCharging would be a guess');
+  const before = src.slice(Math.max(0, src.lastIndexOf('tracksTarget', at)), at);
+  return !/flags\[["']charge["']\]/.test(before);
+})();
+console.log('  chargeTurn.drawnWhileCharging: ' + DRAWN_WHILE_CHARGING + '  (Pokemon#getMoveTargets, ' + (process.env.SHOWDOWN_PATH || '?') + ')');
+
 /* The two files that would have to read a parameter for it to reach a decision. */
 /* the descriptive declaration, read rather than restated -- see engine/tag_descriptive.js */
 const { DESCRIPTIVE } = require('./tag_descriptive.js');
@@ -5190,7 +5217,10 @@ const MOVE_TAGS = [
         const kv = part.split(':').map(x => x.trim());
         if (kv.length === 2 && /^-?\d+$/.test(kv[1])) boosts[kv[0]] = parseInt(kv[1], 10);
       }
-      return Object.keys(boosts).length ? { charge: true, boosts } : { charge: true };
+      const out = Object.keys(boosts).length ? { charge: true, boosts } : { charge: true };
+      /* written only when true, so a checkout that keeps the charge guard (Reg M-B) writes the row as before */
+      if (DRAWN_WHILE_CHARGING) out.drawnWhileCharging = true;
+      return out;
     } },
   { tag: 'chargeSkippedByWeather', param: 'the charge turn DISAPPEARS under one weather', probe: 'chargeSkip',
     why: 'Electro Shot in rain, Solar Beam and Solar Blade in sun. Same move, no downside, and the '

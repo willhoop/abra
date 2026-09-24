@@ -2929,6 +2929,8 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
    *                            because its loop simply finds no match and falls through. */
   disableRefusedByOnStart: 0,
   volRefusedAnnounceOwed: 0, volRefusedSilent: 0, volFailLinesWritten: 0, encoreRefusedByOnStart: 0,
+  /* 2026-09-24 (abra/regmc 0.93.0) -- a bounced status move's `-fail` written on the BOUNCER (`mvFailBounced`) */
+  bouncedFailNamedBouncer: 0,
   /* ROADMAP #241(3) -- FAILURES RECORDED WITH NO LINE AT ALL, because the authority's handler
    * returned `null` and wrote its own. Counts CALLS to mvFailSilent -- i.e. `|-fail|` lines this
    * engine used to write and no longer does -- and not refusals, and not turns. Today its only caller
@@ -20273,6 +20275,24 @@ function bestMoveVs(att,def,field){ let best=null,bs=-1e18;
  *
  * TR is module-level and may be null; the state write is not conditional and the announcement is. */
 function mvFail(mon){ if(mon)mon._mvRes=false; if(TR)TR.fail(mon); }
+/* 2026-09-24 (abra/regmc 0.93.0) -- A BOUNCED STATUS MOVE THAT FAILS FAILS FOR THE BOUNCER.
+ *
+ * `magicbounce.onTryHit` (data/abilities.ts, both checkouts; no Champions row) re-uses the move as the BOUNCER's:
+ * `this.actions.useMove(newMove, target, { target: source }); return null;`. When that move then does nothing,
+ * `runMoveEffects` writes `this.battle.add('-fail', source)` with `source` = the move's user, the bouncer
+ * (sim/battle-actions.ts:1306). And the two results split the same way: `useMove` stores the bounced move's result on
+ * the BOUNCER (`pokemon.moveThisTurnResult = moveResult`, :371-374), while the clicker's own `trySpreadMoveHit` had its
+ * only target dropped by a `null` and ends `if (!moveResult && !atLeastOneFailure) pokemon.moveThisTurnResult = null`
+ * (:616) -- null, not false, so Stomping Tantrum does not double for it. `mvFail(clicker)` named the clicker AND wrote
+ * its result false. Reg M-C narration group M (`...bo3-2684711995`, turn 6: a Whimsicott's Encore bounced by a
+ * Hatterene). The abilitywrite branch's `_failAw` already names the bouncer and leaves the clicker alone.
+ * MEDI_BOUNCED_FAIL_NAMES_CLICKER=1 restores `mvFail(clicker)`. tests/probe_bounced_fail_names_bouncer.js. */
+function mvFailBounced(clicker,bouncer){
+  if(!bouncer||bouncer===clicker){mvFail(clicker);return;}
+  if(BOUNCED_FAIL_NAMES_CLICKER){MEDFAILS.bouncedFailNamesClickerRestored=1;mvFail(clicker);return;}
+  bouncer._mvRes=false; if(TR)TR.fail(bouncer); MEDSEEN.bouncedFailNamedBouncer++;
+}
+const BOUNCED_FAIL_NAMES_CLICKER=(typeof process!=='undefined'&&process.env&&process.env.MEDI_BOUNCED_FAIL_NAMES_CLICKER==='1');
 /* ROADMAP #256 -- THE SAME STATE WRITE WITH NO SECOND ANNOUNCEMENT, AND IT IS A SEPARATE FUNCTION
  * RATHER THAN A FLAG SO A CALL SITE CANNOT SILENTLY LOSE THE `|-fail|` IT OWES.
  *
@@ -31652,8 +31672,21 @@ function chargeStateOf(m,mvId,field){
   let skipWeather=false;
   if(flag){const _sk=TAGS.param('move',mvId,'chargeSkippedByWeather');
            skipWeather=!!(_sk&&_sk.skipsIn&&effWeatherOf(field,m)===_sk.skipsIn);}
-  return {flag,release,herb,skipWeather,charging:flag&&!release&&!skipWeather&&!herb};
+  const charging=flag&&!release&&!skipWeather&&!herb;
+  /* 2026-09-24 (abra/regmc 0.92.0) -- AND WHETHER THAT CHARGING TURN STILL DRAWS, WHICH IS THE REGULATION'S ANSWER.
+   * The Reg M-C checkout dropped the `isCharging` guard from `getMoveTargets` (upstream efe4948), so there the draw runs
+   * on the charge turn too: a Lightning Rod announces its `-activate` above the `-prepare`, and Pressure is priced off
+   * the drawn body. The release still strikes the remembered slot (`_ttmTgtSlot`), which nothing here touches.
+   * `chargeTurn.drawnWhileCharging` is read off the compiled method by engine/tag_dex.js and written only when true,
+   * so Reg M-B (guard present) reads as before. MEDI_CHARGE_TURN_NEVER_DRAWS=1 keeps the guard in every regulation. */
+  let drawBlocked=charging;
+  if(charging){const _ct=TAGS.param('move',mvId,'chargeTurn');
+    if(_ct&&_ct.drawnWhileCharging){
+      if(CHARGE_TURN_NEVER_DRAWS)MEDFAILS.chargeTurnNeverDrawsRestored=1;
+      else drawBlocked=false;}}
+  return {flag,release,herb,skipWeather,charging,drawBlocked};
 }
+const CHARGE_TURN_NEVER_DRAWS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CHARGE_TURN_NEVER_DRAWS==='1');
 /* `quiet` (2026-09-19) -- the PP site asks the same question once per action before the attack branch
  * does, and must not count a draw twice; it suppresses the two counters below and nothing else. */
 function redirectDrawnTo(user,aimed,foes,mvObj,mvId,field,scripted,allies,quiet){
@@ -35502,7 +35535,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * tests/probe_pp_pressure_redirect.js. */
           let _aimP=_aim;
           if(a.kind==='attack'&&!_wide&&_aim&&!_aim.fainted&&_aim.curHP>0&&!(a.move&&a.move.spread)
-             &&!chargeStateOf(m,_ppId,field).charging){
+             &&!chargeStateOf(m,_ppId,field).drawBlocked){
             const _drP=redirectDrawnTo(m,_aim,_pFoes,(a.move&&a.move.mv)||MC.moves[_ppId],_ppId,field,
                                        !!a.rescript,it.side==='A'?actA:actB,true);
             if(_drP&&_drP.to&&_drP.to!==_aim){
@@ -37190,7 +37223,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            &&!(a.si.effects[0].chance<100)){
           MEDSEEN.volFailLinesWritten++;
           if(TR)TR.attrStill();
-          mvFail(m);
+          mvFailBounced(m,_bInfo.bouncedBy);
         }
         continue;
       }
@@ -39486,7 +39519,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(!_yBlocked&&t._yawn!=null){
           MEDSEEN.volFailLinesWritten++;
           if(TR)TR.attrStill();
-          mvFail(m);
+          mvFailBounced(m,_by.bounced?src:null);
         }
         /* NARRATION BATCH S, 2026-09-09 -- AND THE ALREADY-STATUSED CLAUSE NOW HAS A CONSEQUENCE.
          * `yawn.onTryHit(target) { if (target.status || !target.runStatusImmunity('slp')) return
@@ -39515,7 +39548,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           MEDSEEN.yawnRefusedOnStatus++;
           if(!MEDSEEN.yawnRefusedOnStatusFirst)MEDSEEN.yawnRefusedOnStatusFirst=String(t.status);
           if(TR)TR.attrStill();
-          mvFail(m);
+          mvFailBounced(m,_by.bounced?src:null);
         }
         /* NARRATION BATCH T, 2026-09-09 -- SAFEGUARD REFUSES THE DROWSE ITSELF, AND THIS IS A BOARD
          * FIX RATHER THAN A LINE.
@@ -41464,7 +41497,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * question (Pressure is charged off the REDIRECTED body, and a charging turn draws nothing). */
       const _chs=chargeStateOf(m,a.move.id,field);
       const _chgFlag=_chs.flag, _chgRelease=_chs.release, _chgHerb=_chs.herb, _chgSkipWeather=_chs.skipWeather;
-      const _isCharging=_chs.charging;
+      const _isCharging=_chs.charging, _drawBlocked=_chs.drawBlocked;
       const mv=a.move.mv;
       /* 2026-09-01 -- THE FIELD REWRITES THE TARGET, AND IT IS ANSWERED HERE BECAUSE THE AUTHORITY
        * ANSWERS IT HERE. `onModifyMove` runs inside `useMove`, not at the moment the action was
@@ -41546,7 +41579,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * a flag on the mon would survive into a turn that redirected nothing. */
       let _aimRedirected=false;
       const _drawRedirect=()=>{
-        if(!a.move.spread&&targets.length&&!_isCharging){
+        if(!a.move.spread&&targets.length&&!_drawBlocked){
           const _dr=redirectDrawnTo(m,targets[0],foes,mv,a.move.id,field,!!a.rescript,
                                     it.side==='A'?actA:actB);
           const drawer=_dr&&!_dr.announce?_dr.to:null;

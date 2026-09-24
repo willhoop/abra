@@ -57,13 +57,34 @@
  * exactly as it stood before this pass. Under it ROD-RAIN goes RED and both controls stay green. Any
  * run carrying it also carries `MEDFAILS.redirectBelowChargeRestored`.
  *
- *   SHOWDOWN_PATH=... node tests/probe_redirect_above_prepare.js
- *   MEDI_REDIRECT_BELOW_CHARGE=1 SHOWDOWN_PATH=... node tests/probe_redirect_above_prepare.js
+ * ================= 2026-09-24 (abra/regmc 0.92.0) — THE REG M-C CHECKOUT HAS NO `isCharging` GUARD =====
+ *
+ * Upstream efe4948 ("Remove unnecessary redirection code") took the guard out of `getMoveTargets`, and
+ * the Reg M-C checkout (f10d679) carries that commit; the Reg M-B checkout (20ad99f) does not. So under
+ * Reg M-C a REAL charge turn draws too: the rod writes `-activate` above the `-prepare` on turn 1 AND
+ * again on the release (which strikes the remembered slot, `twoturnmove.onStart`, and is drawn again).
+ * ROD-NORAIN's expectation is therefore READ off the selected checkout, never off the regulation id,
+ * and §0 asserts `chargeTurn.drawnWhileCharging` in the regulation's tag file agrees with the source.
+ *
+ *   PRESSURE-NORAIN  the same dry board with a PRESSURE body (derived) at the aimed slot. The charge turn
+ *                    is the turn PP is paid; where the draw runs on it, the aimed Pressure body is no
+ *                    longer a pressure target and the move costs 1, not 2. BOARD-material (`pp`).
+ *
+ * RED-FIRST KNOB for this half: `MEDI_CHARGE_TURN_NEVER_DRAWS=1` keeps the guard in every regulation.
+ * Under Reg M-C it turns ROD-NORAIN and PRESSURE-NORAIN red; under Reg M-B it changes nothing, which is
+ * the point (the tag is not written there).
+ *
+ *   node tests/probe_redirect_above_prepare.js                          # Reg M-B, green
+ *   node tests/probe_redirect_above_prepare.js --regulation regmc       # Reg M-C, green
+ *   MEDI_CHARGE_TURN_NEVER_DRAWS=1 node tests/probe_redirect_above_prepare.js --regulation regmc   # RED
+ *   MEDI_REDIRECT_BELOW_CHARGE=1 node tests/probe_redirect_above_prepare.js                        # RED
  * ================================================================================================ */
 'use strict';
-process.env.SHOWDOWN_PATH = process.env.SHOWDOWN_PATH || 'C:/Users/willj/Projects/Pokemon/pokemon-showdown';
 const path = require('path'), fs = require('fs');
 const ROOT = path.join(__dirname, '..');
+/* the regulation brings its checkout (engine/showdown_path.js); a typed default here was the pass-9 trap */
+require(path.join(ROOT, 'engine', 'showdown_path.js'));
+const REGN = require(path.join(ROOT, 'engine', 'regulation.js'));
 if (process.argv.indexOf('--games') < 0) process.argv.push('--games', '8');
 
 const NL = '\n';
@@ -72,6 +93,7 @@ if (!process.env.SHOWDOWN_PATH) {
 }
 const SB = require(path.join(ROOT, 'tests', 'staged_board.js'));
 const KNOB = process.env.MEDI_REDIRECT_BELOW_CHARGE === '1';
+const KNOB2 = process.env.MEDI_CHARGE_TURN_NEVER_DRAWS === '1';
 
 let bad = 0;
 const ok = (cond, what, detail) => {
@@ -81,7 +103,9 @@ const ok = (cond, what, detail) => {
 };
 
 console.log(NL + 'tests/probe_redirect_above_prepare.js — the redirect draw is above `-prepare`, and off on a real charge turn');
+console.log('  regulation ' + REGN.ID + '   checkout ' + process.env.SHOWDOWN_PATH);
 console.log('  MEDI_REDIRECT_BELOW_CHARGE=' + (KNOB ? '1  (PRE-FIX ENGINE: the draw runs below the charge)' : '0'));
+console.log('  MEDI_CHARGE_TURN_NEVER_DRAWS=' + (KNOB2 ? '1  (PRE-0.92.0 ENGINE: a charging turn never draws)' : '0'));
 
 /* ==================================================================================================
  * 0. THE AUTHORITY — read this run.
@@ -101,12 +125,21 @@ const idxPrepare = ACTIONS.indexOf("this.battle.singleEvent('PrepareHit', move, 
 ok(idxTargets > 0 && idxPrepare > 0 && idxTargets < idxPrepare,
    '`getMoveTargets` (which holds the redirect) runs ABOVE the `PrepareHit` that writes `-prepare`',
    'getMoveTargets at char ' + idxTargets + ', PrepareHit at char ' + idxPrepare);
-ok(/const isCharging = move\.flags\['charge'\] && !this\.volatiles\['twoturnmove'\]/.test(POKEMON)
-   && /if \(!isCharging\) \{\s*\n\s*target = this\.battle\.priorityEvent\('RedirectTarget'/.test(POKEMON),
-   'the draw is SKIPPED on a real charge turn — `if (!isCharging) ... RedirectTarget`',
-   (POKEMON.match(/const isCharging = [\s\S]{0,320}/) || ['not found'])[0]);
-ok(/!\(move\.id === 'electroshot' && \['raindance', 'primordialsea'\]\.includes\(this\.effectiveWeather\(move\)\)\)/.test(POKEMON),
+/* WHICH ANSWER THIS CHECKOUT GIVES, read rather than assumed from the regulation id. */
+const GUARD = /const isCharging = move\.flags\['charge'\] && !this\.volatiles\['twoturnmove'\]/.test(POKEMON)
+   && /if \(!isCharging\) \{\s*\n\s*target = this\.battle\.priorityEvent\('RedirectTarget'/.test(POKEMON);
+const UNGUARDED = /if \(this\.battle\.activePerHalf > 1 && !move\.tracksTarget\) \{\s*\n\s*target = this\.battle\.priorityEvent\('RedirectTarget'/.test(POKEMON);
+ok(GUARD !== UNGUARDED, 'the checkout reads as exactly ONE of: the draw guarded by `isCharging` / the draw unguarded',
+   (POKEMON.match(/if \(this\.battle\.activePerHalf > 1 && !move\.tracksTarget\) \{[\s\S]{0,420}/) || ['not found'])[0]);
+console.log('  this checkout: ' + (GUARD ? 'GUARDED — a real charge turn draws nothing' : 'UNGUARDED — a real charge turn draws too'));
+if (GUARD) ok(/!\(move\.id === 'electroshot' && \['raindance', 'primordialsea'\]\.includes\(this\.effectiveWeather\(move\)\)\)/.test(POKEMON),
    'and a charge SKIPPED BY WEATHER is not "charging" — Electro Shot in rain draws normally');
+{
+  const T = JSON.parse(fs.readFileSync(path.join(ROOT, REGN.TAGS_FILE), 'utf8'));
+  const ct = ((T.moves.electroshot || {}).params || {}).chargeTurn || {};
+  ok(!!ct.drawnWhileCharging === !GUARD, REGN.TAGS_FILE + ' `chargeTurn.drawnWhileCharging` agrees with the checkout ('
+     + JSON.stringify(ct) + ')');
+}
 const ES = (new RegExp('\\n\\telectroshot: \\{\\n([\\s\\S]*?)\\n\\t\\},\\n').exec(MOVES) || [])[1] || '';
 ok(/this\.add\('-prepare', attacker, move\.name\);/.test(ES),
    "`electroshot.onTryMove` writes `-prepare` — the line the draw must precede");
@@ -192,12 +225,33 @@ const ROD_NORAIN = play('ROD-NORAIN', A_ROD,   B_DRY,  [
   { p1: [IDLE, SHOT], p2: [PRO, IDLE] },
   { p1: [IDLE, SHOT], p2: [PRO, IDLE] },
 ]);
+/* THE PRESSURE BODY IS DERIVED: a legal species whose abilities include Pressure and that learns an idle
+ * self-targeting move, so it does nothing but stand in the aimed slot. */
+const PRESS = (() => {
+  const legalX = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
+  const IDLES = ['swordsdance', 'nastyplot', 'calmmind', 'bulkup', 'irondefense', 'agility'];
+  for (const s of dex.species.all()) {
+    if (!legalX(s) || s.isMega || s.battleOnly || !Object.values(s.abilities).includes('Pressure')) continue;
+    if (['farigiraf', 'incineroar', 'milotic', 'politoed'].includes(s.id)) continue;
+    const ls = (dex.species.getLearnsetData(s.id) || {}).learnset || {};
+    const idle = IDLES.find(m => ls[m] && legalX(dex.moves.get(m)));
+    if (idle) return { id: s.id, idle: dex.moves.get(idle).name };
+  }
+  return null;
+})();
+console.log('  PRESSURE body (derived): ' + (PRESS ? PRESS.id + ' with ' + PRESS.idle : 'NONE'));
+const B_PRESS = PRESS ? [B_DRY[0], mon(PRESS.id, '', 'Pressure', [PRESS.idle])].concat(B_DRY.slice(2)) : null;
+const P_IDLE = PRESS ? { m: PRESS.idle.toLowerCase().replace(/[^a-z0-9]/g, '') } : null;
+const PRESS_NORAIN = B_PRESS ? play('PRESSURE-NORAIN', A_ROD, B_PRESS, [
+  { p1: [IDLE, SHOT], p2: [PRO, P_IDLE] },
+  { p1: [IDLE, SHOT], p2: [PRO, P_IDLE] },
+]) : { staged: false, why: 'no legal Pressure body learns an idle move' };
 
 /* ==================================================================================================
  * 2. THE JUDGEMENT
  * ============================================================================================== */
 console.log(NL + '1. THE ARMS');
-const arms = [['ROD-RAIN', ROD_RAIN], ['NO-ROD-RAIN', NOROD_RAIN], ['ROD-NORAIN', ROD_NORAIN]];
+const arms = [['ROD-RAIN', ROD_RAIN], ['NO-ROD-RAIN', NOROD_RAIN], ['ROD-NORAIN', ROD_NORAIN], ['PRESSURE-NORAIN', PRESS_NORAIN]];
 for (const [tag, R] of arms) {
   if (!R.staged) { ok(false, tag + ' — NOT STAGED', R.why); continue; }
   console.log(NL + '  ' + tag);
@@ -225,9 +279,12 @@ if (NOROD_RAIN.staged) {
 }
 if (ROD_NORAIN.staged) {
   const first = ROD_NORAIN.sdSeq[0] || '';
-  ok(/^\|-prepare\|/.test(first),
+  if (GUARD) ok(/^\|-prepare\|/.test(first),
      'ROD-NORAIN — on a REAL charge turn the authority writes the prepare with NO rod line above it, '
      + 'because `isCharging` skips the draw', ROD_NORAIN.sdSeq.join(' | '));
+  else ok(/lightningrod/.test(first) && /^\|-prepare\|/.test(ROD_NORAIN.sdSeq[1] || ''),
+     'ROD-NORAIN — this checkout has no `isCharging` guard, so on the REAL charge turn the rod line is written '
+     + 'ABOVE the prepare', ROD_NORAIN.sdSeq.join(' | '));
   ok(ROD_NORAIN.sdSeq.some(l => /lightningrod/.test(l)),
      'ROD-NORAIN — and the draw DOES run on the release turn, so this arm is not vacuous',
      ROD_NORAIN.sdSeq.join(' | '));

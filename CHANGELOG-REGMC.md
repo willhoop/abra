@@ -21,6 +21,64 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.93.1] — 2026-09-24
+
+### Changed
+- `tests/test-mechanics.js` lists `chargeTurnNeverDrawsRestored` and `bouncedFailNamesClickerRestored` in
+  `DELIBERATE_BREAK`, so a census run with either 0.92.0 / 0.93.0 knob armed refuses to write.
+- The pass-10 "faint-line instrument question" is answered: the ENGINE, already fixed at 0.85.0. `--only-game` on
+  `omit-protect …bo3-2678516446` (release `ec377f6f8159`, `--games 1200`) writes Farigiraf's `|faint|` in both engines;
+  with `MEDI_REVIVE_KEEPS_FAINT_LATCH=1` the pass-9 card returns exactly (Farigiraf was revived on turn 7).
+- Report: `docs/_reports/2026-09-24-narration-lightningrod-magicbounce.md` (both fixes, the control, and the pinned
+  1200 lattices: Reg M-C board-material 0/954 before and after, narration 6 -> 4, the two gone being K and M).
+
+## [0.93.0] — 2026-09-24
+
+### Fixed
+- **A bounced status move that fails writes its `-fail` on the bouncer, in both regulations.** `magicbounce.onTryHit`
+  (`data/abilities.ts`, both checkouts, no Champions row) re-uses the move as the bouncer's (`useMove(newMove, target,
+  { target: source })`), so when it does nothing `runMoveEffects` writes `-fail` on its `source`, the bouncer
+  (`sim/battle-actions.ts:1306`). The results split the same way: `useMove` stores the bounced move's result on the
+  bouncer (:371-374), and the clicker's own move ends `moveThisTurnResult = null` (:616), not false. MEDICHAM called
+  `mvFail(clicker)`, naming the clicker and writing its result false. Reg M-C narration group M (`…bo3-2684711995`,
+  turn 6: a Whimsicott's Encore bounced by a Hatterene). New `mvFailBounced(clicker, bouncer)` at the three sites a
+  bounced status move can fail: the `affect` branch's whole-move volatile refusal and both Yawn refusals. Knob
+  `MEDI_BOUNCED_FAIL_NAMES_CLICKER`. The `abilitywrite` branch's `_failAw` already named the bouncer and is unchanged.
+- New `tests/probe_bounced_fail_names_bouncer.js` (both regulations; derived cast, Hawlucha's Encore into Hatterene):
+  BOUNCE and a knob-cleared CONTROL (Hatterene on Healer, where the authority's `-fail` names the clicker). Green in
+  both; red under the knob in both, on release `d43292131dd6` (the 0.92.0 bytes, Reg M-C) and with `--medi` on the
+  0.92.0 bytes (Reg M-B). Fourteen related bounce, Yawn, Encore, Pressure and charge probes stay green in both.
+
+### Notes
+- `tests/probe_pivot_magic_bounce.js` and `tests/probe_yawn_safeguard_refusal.js` hardcode the Reg M-B checkout and
+  throw under `--regulation regmc` (the pass-9 trap, not touched here); both are green with the M-C checkout named.
+
+## [0.92.0] — 2026-09-24
+
+### Fixed
+- **Reg M-C: a charge move draws its redirect on the turn it charges (Lightning Rod, Storm Drain, Follow Me, Rage
+  Powder).** The Reg M-C checkout carries upstream `efe4948` ("Remove unnecessary redirection code"), which took the
+  `isCharging` guard out of `Pokemon#getMoveTargets` (`sim/pokemon.ts:829-831`; the Reg M-B checkout keeps it at
+  `:829-836`, and neither Champions mod overrides the method). So under Reg M-C `RedirectTarget` runs on the charge turn:
+  a Lightning Rod writes `-activate` above the `-prepare`, and Pressure is priced off the drawn body. The release still
+  strikes the remembered slot (`twoturnmove.onStart`, byte-identical in both). This is Reg M-C narration group K
+  (`…bo3-2679514203`, turn 8, Archaludon's Electro Shot past a Raichu). `engine/tag_dex.js` reads the method out of the
+  compiled simulator and writes `chargeTurn.drawnWhileCharging` only when the guard is absent; `chargeStateOf` returns
+  `drawBlocked`, which both draw sites (the attack branch and the Pressure PP site) now read. `data/tags-regmc.json`
+  gains the param on its ten `chargeTurn` rows and nothing else; `data/tags.json` is byte-identical. Knob
+  `MEDI_CHARGE_TURN_NEVER_DRAWS`.
+- `tests/probe_redirect_above_prepare.js` reads the guard off the selected checkout (it hardcoded the Reg M-B checkout,
+  the pass-9 trap), asserts the tag agrees with the source, and gains a PRESSURE-NORAIN arm (a derived Pressure body in
+  the aimed slot). Reg M-C: green; red under the knob and on release `ec377f6f8159` with the 0.86.1 bytes (ROD-NORAIN
+  protocol, and PRESSURE-NORAIN's board: `p1.pp[1].electroshot` 2 against 1). Reg M-B: green, green under the knob,
+  red under `MEDI_REDIRECT_BELOW_CHARGE`.
+
+### Notes
+- `data/tags-regmc.json` was regenerated in a worktree with no store, so its usage counts read zero; the ten param
+  additions were merged into the committed file and the tag SETS were checked identical on every row (0 differences).
+- The PP half is board-material, so the pinned-lattice check is in the report:
+  `docs/_reports/2026-09-24-narration-lightningrod-magicbounce.md`.
+
 ## [0.91.0] — 2026-09-24
 
 ### Fixed
