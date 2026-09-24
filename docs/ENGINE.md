@@ -1,3 +1,14 @@
+## IMPRISON'S MENU HALF IS WIRED (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.89.0)
+
+Full account: `docs/_reports/2026-09-24-move-menu-legality.md`.
+
+- `moveDisabledBy` asks `imprisonSealedBy` of the body's living foes, which it reaches through `me._sf._S`. Knob
+  `MEDI_IMPRISON_MENU_OPEN`. Probe `tests/probe_move_menu_legality.js --part imprison`, plus a census row.
+- The disable is hidden only in the REQUEST. `Side#chooseMove` refuses the click from either slot, shown on the
+  authority's own battle. So the menu loses the move in both slots.
+- Hand list: **the Imprison menu item leaves it.** New item: a caller-supplied click on a fully sealed body. The
+  authority rewrites it to Struggle at choice time; MEDICHAM plays it and writes `cant` (the probe's STRUGGLE arm).
+
 ## A PARTING SHOT THAT STAYS IN IS A MOVE ACTION; FAKE OUT LEAVES THE MENU (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.88.0)
 
 Full account: `docs/_reports/2026-09-24-move-menu-legality.md`.

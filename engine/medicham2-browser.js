@@ -7168,6 +7168,11 @@ const HARVEST_GATES_ON_ATEBERRY=(typeof process!=='undefined'&&process.env&&proc
  * carries. It restores that and NOTHING else, so a knob run turns exactly the one `sealsMoves`
  * execution row red and leaves the three over-fire controls green. */
 const IMPRISON_SEALS_NOTHING=(typeof process!=='undefined'&&process.env&&process.env.MEDI_IMPRISON_SEALS_NOTHING==='1');
+/* 2026-09-24 -- MEDI_IMPRISON_MENU_OPEN=1 leaves Imprison's MENU half unwired, as before: a foe's menu keeps every move
+ * the imprisoner knows and only the execution refusal (`onFoeBeforeMove`) answers the click. Stamped at LOAD in
+ * `MEDFAILS.imprisonMenuOpenRestored`. Probe: tests/probe_move_menu_legality.js --part imprison. */
+const IMPRISON_MENU_OPEN=(typeof process!=='undefined'&&process.env&&process.env.MEDI_IMPRISON_MENU_OPEN==='1');
+if(IMPRISON_MENU_OPEN)MEDFAILS.imprisonMenuOpenRestored=1;
 /* 2026-09-05 -- MEDI_PIVOT_IGNORES_BOUNCE=1 restores the pre-fix pivot branch: a reflectable PIVOT
  * status move is aimed with a bare `reaimToSlot` and never asks `bounceOff`, so the drop lands on the
  * bouncer and the CLICKER switches out. It restores that and NOTHING else -- every other bounce site
@@ -20600,7 +20605,9 @@ function illegalMoveNow(me,id){ return !!moveDisabledBy(me,id); }
  * this wire — Imprison silently sealing nothing again — which is a silent default wearing the shape
  * of a working feature, so it is COUNTED at the read site rather than swallowed.
  *
- * ---- THE GAP, DECLARED RATHER THAN DISCOVERED ----------------------------------------------------
+ * ---- THE GAP, DECLARED RATHER THAN DISCOVERED -- CLOSED 2026-09-24 ------------------------------
+ * The MENU half is now wired in `moveDisabledBy`, which reaches the foes through `me._sf._S` rather than
+ * through a new parameter, so none of the callers named below changed. The paragraph is kept as it stood:
  * `onFoeDisableMove` — the MENU half — is NOT wired. `moveDisabledBy(me, id)` takes ONE BODY, and
  * whether a move is imprisoned is a fact about the FOES, so wiring it is a signature change across
  * `selectableMoves`, `mustStruggle`, `struggleSource`, `illegalMoveNow` and the priors sampler. It is
@@ -20737,6 +20744,27 @@ function moveDisabledBy(me,id){
    * (the move-list filter, the priors sampler's ban, `mustStruggle`) is a caller of this. Placed LAST
    * so the existing sources keep naming themselves first on a body that is refused twice over. */
   if(firstTurnOnlyRefused(me,id)){ MEDSEEN.firstTurnOnlyRefusedAtSelection++; return 'firstturnonly'; }
+  /* 2026-09-24 -- IMPRISON'S MENU HALF, `onFoeDisableMove` (data/moves.ts imprison.condition; no Champions row):
+   *     for (const moveSlot of this.effectState.source.moveSlots) { if (moveSlot.id === 'struggle') continue;
+   *       pokemon.disableMove(moveSlot.id, true); }  pokemon.maybeDisabled = true;
+   * A HIDDEN disable, raised on every living active foe of the holder (`onFoe*` handlers are gathered from
+   * `target.foes()`, sim/battle.ts:1060). HIDDEN is a question about the REQUEST, not about legality: the request is
+   * built with `restrictData = isLastActive()` (sim/pokemon.ts:1093-1095), so the last active body is SHOWN the move
+   * enabled, but `Side#chooseMove` validates with `getMoves()` and no `restrictData` (sim/side.ts:627, 730-745), which
+   * turns 'hidden' into `true` -- so the authority REJECTS the click from either slot. Demonstrated on a copy of the
+   * authority's own battle by tests/probe_move_menu_legality.js --part imprison: slot 1's Protect is shown enabled and
+   * refused with "Can't move: ...'s Protect is disabled". So the menu -- the set the authority will ACCEPT -- loses the
+   * move in both slots, and a body left with nothing reaches Struggle through `mustStruggle`, as `getMoves` does.
+   *
+   * THE FOES COME FROM `me._sf._S`, the back-reference `battleInit` writes and `abilityStarted` already reads, so the
+   * one-body signature every caller uses stays as it is (the gap this replaces was declared above `imprisonSealedBy` as
+   * "a signature change across five callers"). A body built outside a battle has no side and no foes, and no Imprison
+   * can reach it. The seal itself is `imprisonSealedBy`, the one reader the execution refusal already uses. */
+  if(!IMPRISON_MENU_OPEN){
+    const _S=me._sf&&me._sf._S;
+    const _foes=_S?((me._sf===_S.sfA)?_S.actB:(me._sf===_S.sfB?_S.actA:null)):null;
+    if(_foes&&imprisonSealedBy(me,id,_foes)){ MEDSEEN.imprisonRefusedAtSelection=(MEDSEEN.imprisonRefusedAtSelection|0)+1; return 'imprison'; }
+  }
   return null;
 }
 /* WHICH MOVE THE LOCK LEAVES ON THE MENU, or null for a free body.

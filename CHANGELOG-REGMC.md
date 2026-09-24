@@ -21,6 +21,32 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.89.0] — 2026-09-24
+
+### Fixed
+- **Imprison's menu half (both regulations).** `imprison.condition.onFoeDisableMove` disables, on every living active foe,
+  each move the imprisoner carries. The engine had only the execution refusal (`onFoeBeforeMove`), so a sealed move stayed
+  on the foes' menus. `moveDisabledBy` now asks `imprisonSealedBy`, the reader the execution refusal already uses. It
+  reaches the foes through `me._sf._S`, so no caller's signature changed. A body with every slot sealed reaches Struggle
+  through `mustStruggle`. Knob `MEDI_IMPRISON_MENU_OPEN`.
+
+### Added
+- Census row `move/sealsMoves`: "Imprison takes the moves it knows off both foes' menus, down to Struggle, and not off
+  its ally's".
+
+### Notes
+- **The exact rule, demonstrated rather than recalled.** The disable is HIDDEN. The request shows the move enabled to the
+  last active body (`restrictData = isLastActive()`, sim/pokemon.ts:1093-1095) and disabled to a body with a live ally on
+  its right. `Side#chooseMove` validates with `getMoves()` and no `restrictData` (sim/side.ts:627, 730-745), so it refuses
+  the click from either slot. On a copy of the authority's own battle, the last active body's Protect was shown enabled
+  and refused: "Can't move: Aegislash's Protect is disabled". Legality therefore loses the move in both slots.
+- `legalActions` against the authority (`--games 45`, state mode): 6 disagreeing slots of 5,552 become 2.
+  Base release `9cfd07674cc9` against `d0b771be7727`: per-game fingerprint byte-identical over 38 games.
+- **Owed, not fixed here (the execution path, not the menu):** a caller-supplied click on a body whose whole menu is
+  sealed. The authority's `Side#chooseMove` rewrites that click to Struggle (side.ts:699-709). MEDICHAM plays the click and
+  refuses it with `|cant|…|move: Imprison|`. The probe's STRUGGLE arm prints this parting.
+  `docs/_reports/2026-09-24-move-menu-legality.md` §3.
+
 ## [0.88.0] — 2026-09-24
 
 ### Fixed

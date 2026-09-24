@@ -21640,6 +21640,34 @@ probe('move', 'firstTurnOnly', 'a Parting Shot that stays in is a move action: F
                  + `same body passing turn 1: ${control.who} : ${control.menu} (Fake Out must stay)` };
 });
 
+/* 2026-09-24 — IMPRISON'S MENU HALF. `imprison.condition.onFoeDisableMove` disables, on every living active foe, each
+ * move the imprisoner carries (a HIDDEN disable, which `Side#chooseMove` still refuses from either slot). The engine
+ * had only the execution refusal, so a sealed move stayed on the menu. Read off `selectableMoves` after a real turn:
+ * foe 1 carries Protect (sealed) and Ice Beam (not), foe 2 carries ONLY Protect and must reach Struggle, and the
+ * imprisoner's ALLY carries Protect and keeps it (`onFoe*` is foes only). CONTROL: the imprisoner passes turn 1.
+ * Knob MEDI_IMPRISON_MENU_OPEN=1. Staged against the authority: tests/probe_move_menu_legality.js --part imprison. */
+const imprisonMenu = (first) => {
+  const me = bare('alakazam'), ally = bare('milotic'), f1 = bare('milotic'), f2 = bare('milotic');
+  me.moves = ['imprison', 'protect']; ally.moves = ['protect', 'scald']; f1.moves = ['protect', 'icebeam']; f2.moves = ['protect'];
+  for (const b of [me, ally, f1, f2]) unfaintable(b);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  M.battleTurn(S, rng5,
+    new Map([[me, first ? M.playerAction(me, first, f1, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  return { f1: M.selectableMoves(f1).join(','), f2: M.mustStruggle(f2) ? 'struggle' : M.selectableMoves(f2).join(','),
+           ally: M.selectableMoves(ally).join(','), up: !!(me._vol && me._vol.imprison) };
+};
+probe('move', 'sealsMoves', 'Imprison takes the moves it knows off both foes\' menus, down to Struggle, and not off its ally\'s', () => {
+  const test = imprisonMenu('imprison');
+  const control = imprisonMenu(null);
+  return { works: test.up && test.f1 === 'icebeam' && test.f2 === 'struggle' && /protect/.test(test.ally)
+                  && !control.up && control.f1 === 'protect,icebeam' && control.f2 === 'protect',
+           arms: { control: control.f1 + '|' + control.f2, test: test.f1 + '|' + test.f2 },
+           detail: `[foe 1 menu | foe 2 menu | ally menu] after turn 1. IMPRISON up=${test.up}: ${test.f1} | ${test.f2} | `
+                 + `${test.ally} (Protect must leave both foes, foe 2 must be left only Struggle, the ally keeps Protect). `
+                 + `CONTROL, the imprisoner passing, up=${control.up}: ${control.f1} | ${control.f2} | ${control.ally}` };
+});
+
 /* ---- ROADMAP #84 — SHOWDOWN SPLITS "MY MOVE DID NOT HAPPEN" IN TWO, AND THIS ENGINE HAD NEITHER ---
  *
  * `sim/battle-actions.ts:255` says it in a comment that names the move it matters for:

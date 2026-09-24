@@ -53,6 +53,17 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.89.0] — 2026-09-24 — **Imprison's menu half: a sealed move leaves every foe's menu**
+
+- **What changed.** `engine/medicham2-browser.js` `moveDisabledBy`: `imprisonSealedBy` against the body's living foes
+  (through `me._sf._S`). One census row. `tests/probe_move_menu_legality.js --part imprison` is red before this change and
+  green after it, in both regulations.
+- **Measured.** API legality probe: 6 disagreeing slots of 5,552 become 2 (Reg M-C pinned pool, census pin
+  `f3b70bc0c47c`, `--games 45`, release `d0b771be7727`). Base release `9cfd07674cc9` against `d0b771be7727`: per-game fingerprint byte-identical over 38 games.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 0.88.0] — 2026-09-24 — **A Parting Shot that stays in is a move action: Fake Out leaves the menu**
 
 - **What changed.** `engine/medicham2-browser.js`: `_mvActs` counts an action that carries a move, whatever its `kind`
