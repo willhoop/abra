@@ -28,7 +28,8 @@ function makeBots(API, deps) {
   }
   function miltank(seed, o) {
     const coin = coinOf(seed);
-    return { name: 'miltank', choose(S, side, ctx) { return MT.decide(S, side, ctx, Object.assign({ coin }, o)); } };
+    /* with o.pool the cells are filled by worker processes and choose() returns a promise (the arena awaits it) */
+    return { name: 'miltank', choose(S, side, ctx) { const q = Object.assign({ coin }, o); return q.pool ? MT.decideAsync(S, side, ctx, q) : MT.decide(S, side, ctx, q); } };
   }
   return { random, prior, miltank };
 }
