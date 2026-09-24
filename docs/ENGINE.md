@@ -1,3 +1,9 @@
+## EVERY ENGINE `battleInit` HANDS THE LEAD-IN A STREAM; ROADMAP #310 CLOSES (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.92.0)
+
+- Eight driver sites plus `battle()` and the `seeded:false` rollout road now pass `rng`; no published output moves
+  (before/after identical, counters show the stream reached). Probe `tests/probe_rollout_trace_stream.js` (static
+  caller clause, PREVIEW, BATTLE). Hand list: nothing leaves it, #310 was a register row and not a hand-list item.
+  Report `docs/_reports/2026-09-24-register-310-close.md`.
 ## BEAK BLAST'S BURN LANDS AT THE `Hit` EVENT, ABOVE THE ATTACKER'S SECONDARY (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.91.0)
 
 - `_stepPreTurnHit` (step 3, above `_stepHitEvent`) pays the `preTurnShield` `punishAttacker` status. Knob

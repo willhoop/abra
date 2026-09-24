@@ -1,0 +1,288 @@
+{
+ "version": "1.6.0",
+ "updated": "2026-09-21",
+ "changelog": {
+  "1.6.0": "exclude_custom_ruleset added 2026-09-21, and exclude_nonstandard_ruleset given the reader it never had. Will: 'yes clean the store filter it all out'. A DETECTOR, not a declaration: engine/scan_custom_rulesets.js streams data/games.ladder.raw-logs.jsonl and reads the `N custom rule(s):` infobox Showdown itself emits, writing the id set to data/custom-ruleset-ids.json. 6,978 raw logs carry it, 6,952 distinct ids, all 6,952 present in the store = 7.37% of 94,360. 129 alter legality or the pick count; the other 6,823 set a different information regime, overwhelmingly `Best of = 3` - bo3 tournament games misfiled in the bo1 ladder store. THE 1,176 IN docs/_reports/2026-09-21-six-bring-game.md IS SUPERSEDED: that scan's regex required the plural `custom rules:` and missed every one-rule room; its per-string joined counts (691 / 170 / 101 / 56) reproduce here exactly, and the residue is 5,768 single-rule rows plus one 8-row string. Measured on data/games.ladder.jsonl of 2026-09-21 (94,360 games): the clean ladder corpus moves 33,539 -> 28,454 (-5,085, -15.16%). Contamination is 2.06x DENSER in the clean corpus than in the store (15.16% vs 7.37%), the same enrichment exclude_illegal_teams found and for the same reason - bots do not play custom-rules rooms. NO PUBLISHED Reg M-B FIGURE IS AFFECTED: data/team-pool-frozen is bo3 + ots, and those two stores share ZERO ids with the ladder store. IT IS A FLOOR: 17,527 rows (18.57%) have no local raw log and were never asked.",
+  "1.4.0": "exclude_corrupt_winner added (ROADMAP #558). A DECLARATION, not a detector: two named ladder games whose stored `winner` is neither player, because the pre-2026-08-28 fetch split a multi-byte character across two HTTP chunks and left U+FFFD in the `|win|` line only. Both replays re-fetch clean with the winner a player (receipts under the rule). The rows are not repaired because build/compress-stores.js cannot express a correction (docs/_reports/2026-09-10-corrupted-winners.md). Will, 2026-09-11: 'exclude now, fix later'. Measured on the live store of 2026-09-11 (92,594 ladder games): gen9championsvgc2026regmb-2662690089 passed every other rule and gen9championsvgc2026regmb-2672145722 was already excluded by require_full_bring, so the clean ladder corpus moves 32,193 -> 32,192 (-1). No bo3 or ots game is affected: neither id is in those stores.",
+  "1.3.0": "exclude_illegal_teams added. Games whose revealed team is rejected by Showdown's own TeamValidator with a SPECIES-level or ITEM-level reason are excluded. Keyed on data/store-validation.json, which marks and does not delete. MOVE-level rejections are deliberately NOT keyed: a learnset contradiction is the Illusion signature (engine/illusion.js), so keying on it would throw away the Zoroark corpus. Measured on the verdict of 2026-08-27T05:14:06Z over 67,384 ladder games: 77 games carry a species or item reason, 49 of them survived the other five rules, so the clean ladder corpus moves 18,908 -> 18,859 (-0.259%). Contamination is 2.27x DENSER in the clean corpus than in the raw store, because bots do not play custom-rules rooms. 65 species lose all clean support (335 -> 270) - they were never in this regulation.",
+  "1.2.0": "exclude_forfeits narrowed to forfeits BEFORE ANY ACTION, after measuring that the player who quit was behind on mons in 86.8% of cases and ahead in 0.9%. Clean open-sheet games 2,114 -> 2,860 (+35%); clean ladder games 2,653 -> 3,571 (+35%). Mean game length in the clean corpus moves 8.46 -> 8.09 turns; median (8) and p90 (12) do not move, because require_full_bring already excluded the genuinely abandoned games. EVERY number computed on a clean corpus before this date was computed on a different, smaller population and needs re-running.",
+  "1.5.0": "exclude_nonstandard_ruleset added 2026-09-21. A DECLARATION, not a detector: one named ladder game played under a custom ruleset that removed pick-4, so both sides brought six and it tripped engine/sanity_check.py's `nobody brings more than four`. The extractor was proven innocent byte for byte before anything was declared. THE BIGGER FINDING IS NOT THIS ROW: 1,176 store rows carry custom rules and 129 of them ALTER LEGALITY (`!obtainable`, `+past`, and specific unbans). Those trip no store-shape check, are admitted into the clean corpus today, and are a FLOOR — 18.6% of rows have no local raw log to check. They need their own measured pass."
+ },
+ "purpose": "The single definition of a USABLE game. Every model reads this file instead of deciding for itself, so 'which games did that number come from' has one answer.",
+ "why": "Before this existed, each model applied its own ad-hoc filtering or none at all. 55.2% of stored games involve a bot and 24.0% end in a forfeit, so a model that filtered nothing was reporting a statistic about bot ladder behaviour and calling it the metagame.",
+ "rules": {
+  "exclude_bot_games": {
+   "on": true,
+   "test": "either player's `bot` flag is true",
+   "rationale": "Bot games are not evidence about human play. 11 accounts named pcrlbot<16-hex> account for essentially the entire bot population, playing 338-409 games each.",
+   "detection": "username regex /^pcrlbot|bot\\d|^[a-z]+bot$/i applied at ingest",
+   "known_limitation": "Detection is NAME-ONLY and catches only self-identifying accounts. It missed five high-volume accounts that the behavioural rule now catches. Never describe the surviving set as verified human."
+  },
+  "exclude_behavioural_bots": {
+   "on": true,
+   "test": "either player's account played >= min_games in the window AND used exactly one distinct team",
+   "min_games": 50,
+   "max_distinct_teams": 1,
+   "rationale": "Name-based detection only catches accounts that announce themselves. These five did not, and they appeared in 52.2% of the games the name filter called clean. The decisive signal is team invariance: Carchdraw84172 played 459 games with exactly one team, 367 of them in a single day - a game every four minutes for twenty-four hours without changing a slot. Active human accounts (15-60 games) reuse their most-common team about 64% of the time, never 100%.",
+   "evidence": {
+    "caught": [
+     "Carchdraw84172 (459 games, 1 team)",
+     "Natsitimer52906 (426, 1)",
+     "Ironbough29517 (294, 1)",
+     "Duskglade57204 (267, 1)",
+     "Scoobsicle40912 (147, 1)",
+     "HospitalityCheck (55, 1) - crossed the threshold on 2026-07-25 as the store grew to 8,356. Unlike the other five its name is NOT machine-shaped, so the corroborating evidence below does not extend to it."
+    ],
+    "false_positive_check": "No account with >=50 games in this store has more than one distinct team, so the rule separates cleanly. It is stable for thresholds between 50 and 100 games.",
+    "corroborating": "The original five share a machine-shaped name (Word+5 digits), forfeit 16-23% of games against a human median of 42%, and run the same two-day burst pattern. HospitalityCheck matches the team-invariance rule (55 games, 1 team) but not the naming pattern, and sits just above the 50-game threshold - it is the weakest of the six and the one to re-examine first if the rule is ever loosened."
+   },
+   "known_limitation": "Threshold-based, so a bot playing under 50 games or varying its team escapes. This raises the floor on bot detection; it does not establish one. The remaining set must still be described as 'no bot detected', never as 'human'."
+  },
+  "exclude_forfeits": {
+   "on": true,
+   "test": "`forfeit` is true AND the game contains no move or switch event",
+   "rationale": "A forfeit AFTER real play is a resignation, and a resignation is the outcome of a decided game. A forfeit before anyone acted is not evidence about anything.",
+   "superseded_rationale": "Until 2026-07-28 this rule dropped EVERY forfeit, on the stated reason that 'a forfeit records who quit, not who was winning'. That was never tested and it is false in this corpus - see measured below. It is kept here rather than deleted so the change is visible.",
+   "measured": {
+    "on": "data/games.ots.jsonl, 2026-07-28",
+    "forfeits_total": 1532,
+    "forfeits_with_no_action": 4,
+    "forfeits_with_action": 1528,
+    "forfeiter_was_behind_on_mons": "1,326 of 1,528 = 86.8%",
+    "forfeiter_was_even": "189 = 12.4%",
+    "forfeiter_was_ahead": "13 = 0.9%",
+    "mean_mon_differential": "+1.42 (positive = the player who quit was down)",
+    "conclusion": "People resign lost positions and very rarely quit while winning. The old rule discarded 1,528 decided games in order to exclude 4 undecided ones."
+   },
+   "known_limitation": "13 games (0.9%) were forfeited by the player who was AHEAD on material - the genuine 'had to leave' cases. Those are now recorded as losses for a player who was winning. This is a real contamination and it is stated rather than hidden; it is two orders of magnitude smaller than the evidence the previous rule destroyed to avoid it."
+  },
+  "min_turns": {
+   "on": true,
+   "value": 3,
+   "test": "length(turns) >= 3",
+   "rationale": "Under three turns there is not enough play to reveal a bring, a lead trade, or a damage exchange. These are disconnects and instant concessions."
+  },
+  "require_full_bring": {
+   "on": true,
+   "test": "both players' `brought` has exactly 4 entries",
+   "rationale": "`brought` is what the replay REVEALED was brought, not what was selected. A short game reveals two or three. Any analysis of the bring must condition on all four being observed.",
+   "known_limitation": "This conditions on game length, so the filtered set skews toward longer games. A bring statistic computed here is 'the bring, among games long enough to show it', which is not the same as 'the bring'. State it that way."
+  },
+  "exclude_illegal_teams": {
+   "on": true,
+   "test": "the game's id carries a SPECIES-level or ITEM-level rejection in data/store-validation.json",
+   "source": "data/store-validation.json",
+   "source_generator": "engine/validate_store.js",
+   "classes": [
+    "species",
+    "item"
+   ],
+   "classes_not_keyed": [
+    "move",
+    "ability",
+    "other"
+   ],
+   "item_reason_pattern": "'s item .+ does not exist in Gen \\d",
+   "why_the_item_class_is_narrowed_by_a_pattern": "engine/validate_store.js's `item` class holds THREE phrasings and only one of them is unfakeable. \"X's item Choice Specs does not exist in Gen 9.\" is a declared item this format does not contain - contamination. \"ogerponwellspring needs to hold Wellspring Mask to be in its Wellspring forme.\" and the \"(It will revert to its Teal forme...)\" note that follows it are the OPPOSITE shape: they fire because the replay revealed a forme and never revealed the item, which is our closed-sheet storage convention and not anybody's team. That is a real false-positive path and it is why the class is not keyed wholesale. Measured 2026-08-27: it costs nothing today - all 18 forme-requirement complaints sit in games that are ALSO species-flagged (ogerponwellspring and ogerponcornerstone are themselves out of format), so narrowing removes zero games from the union. It is here so that a legal Ogerpon game in a future regulation is not deleted silently. The reader counts what the pattern skipped and prints it.",
+   "rationale": "Will, 2026-08-27: 'lets continue to use showdowns validation feature. if somethings not valid then throw it out right?' and 'but also items too for open team sheets, we know which choice items are legal.' The store contains games played in custom-rules rooms under this format's name. They are not evidence about this regulation - they are evidence about a different game. Showdown's own TeamValidator is the authority the SERVER uses, so it is the one asked; a hand-rolled legality check is how this repo gets a rule in one place and a different rule in another.",
+   "why_moves_are_not_keyed": "ONE TEST DECIDES WHETHER A CLASS MAY BE KEYED: can a legal team produce it? A SPECIES rejection cannot be faked - Illusion changes what a body APPEARS to be, it cannot put an out-of-format body in the replay. An ITEM rejection cannot be faked either - the item is declared on the sheet and a disguise does not change it. A MOVE rejection CAN be faked, and usually is: a disguised Zoroark appears in the replay as another species carrying Zoroark's moves, so the validator says 'X can't learn Y' - the same sentence a custom-rules game produces. 1,175 games in the store are move-only rejections and 1,020 of them have an Illusion carrier on the same side. Keying on move would delete the corpus engine/illusion.js exists to study. DO NOT 'COMPLETE' THIS RULE BY ADDING move.",
+   "measured": {
+    "verdict": "data/store-validation.json generated 2026-08-27T05:14:06.849Z",
+    "judged_games": 67384,
+    "species_games": 76,
+    "item_games": 35,
+    "union_species_or_item": 77,
+    "union_note": "76 + 35 is NOT the answer. The classes overlap: 34 of the 35 item games also carry a species reason, so the deduplicated union is 77 (0.114% of judged).",
+    "move_only_games": 1175,
+    "move_only_with_illusion_carrier_same_side": 1020,
+    "removed_from_the_clean_corpus": 49,
+    "clean_ladder_before_after": "18,908 -> 18,859",
+    "enrichment": "2.27x - the flagged rate is 0.114% of the raw store and 0.259% of the clean corpus, because the bot and forfeit rules remove bot games and bots do not play custom-rules rooms. The corpus the models read is dirtier than the store is.",
+    "species_losing_all_clean_support": 65,
+    "distinct_species_in_clean_corpus": "335 -> 270"
+   },
+   "known_limitation": "THREE, and none of them is hidden. (1) COVERAGE: engine/validate_store.js judges data/games.ladder.jsonl only, so this rule is a NO-OP on games.bo3.jsonl and games.ots.jsonl - those corpora are unfiltered for legality, not clean. (2) FRESHNESS: the verdict is a snapshot. Games appended after it was generated have not been judged and pass unexamined; the reader prints the verdict's stamp and its judged-game count so the gap is visible rather than assumed. (3) NO DRIFT DETECTOR: engine/validate_store.js's header cites engine/format_drift.js as the thing that separates a contaminated game from a stale rulebook, and THAT FILE DOES NOT EXIST (checked 2026-08-27; the only references to the name in the whole repository are that comment and reports quoting it). So this rule cannot tell 'played under custom rules' from 'our Showdown checkout is behind the regulation'. It is safe in the direction that matters today - the eleven items it actually sees are Booster Energy, Throat Spray, Eviolite, Salamencite, Diancite, Covert Cloak, Misty Seed, Choice Specs, Clear Amulet, Red Card and Assault Vest: four are on this format's explicit ban list, two are mega stones for species the format does not contain, and the rest are held by bodies that are themselves out of format - but if the regulation turns over and the checkout lags, this rule will delete legitimate games and nothing will say so. The mitigation available today is that the rule removes 0.26% of the clean corpus and prints exactly what it removed."
+  },
+  "exclude_corrupt_winner": {
+   "on": true,
+   "reason": "corrupt_winner",
+   "test": "the game's id is a key of `declared` below. NOTHING here tests `winner` against the players: the rule excludes exactly the ids a person has declared, with evidence, and no other.",
+   "register": "ROADMAP #558",
+   "report": "docs/_reports/2026-09-10-corrupted-winners.md",
+   "declared": {
+    "gen9championsvgc2026regmb-2662690089": {
+     "defect": "stored `winner` carries 3 U+FFFD. The `|win|` line is the ONLY protocol line that differs from the re-fetched log, which rules out Showdown having changed the replay.",
+     "players": [
+      "blackred123永雏塔菲侠",
+      "MadMax_1704"
+     ],
+     "refetched_winner": "blackred123永雏塔菲侠",
+     "refetched_log_sha256": "64fda03cfca8b32adc16f2f2db80a46eba77826b2924f52e11de5c46ef51fb04",
+     "corrected_row_sha256": "7f67ba5683f3893b96889e55794dcd939cd8a04462dad9e9f254ae900fdd8284",
+     "corrected_row_note": "NOT a one-field repair: the stored row predates `preTurn`, so extract() over the fetched log also rewrites `turns`.",
+     "other_reasons_when_declared": "none. It passed every other rule, so this declaration removes it from the clean corpus."
+    },
+    "gen9championsvgc2026regmb-2672145722": {
+     "defect": "stored `winner` carries 2 U+FFFD. The `|win|` line is the ONLY protocol line that differs from the re-fetched log, which rules out Showdown having changed the replay.",
+     "players": [
+      "It’sJustKen VGC",
+      "mythofoxical"
+     ],
+     "refetched_winner": "It’sJustKen VGC",
+     "refetched_log_sha256": "0119e8cd4b935c14ff212499b92b5377596aba3a0b8c53e78bce7af6fcd382ce",
+     "corrected_row_sha256": "2eb81b40eae8d1718b44622df6077f69fc81c45090ff86e87dde24bb4344da18",
+     "corrected_row_note": "a one-field repair: extract() over the stored raw log is byte-identical to the stored row, and the corrected row differs in `winner` only.",
+     "other_reasons_when_declared": "partial_bring (p1 revealed 3). Already excluded, so this declaration removes nothing from the clean corpus."
+    }
+   },
+   "rationale": "Will, 2026-09-11: 'exclude now, fix later'. These two rows record a winner who did not play, so anything that reads the outcome (a win rate, a backtest, a matchup cell) scores them for nobody. The correct fix is a hash-bound correction in the store tooling, and build/compress-stores.js cannot express one today: first occurrence wins, a correction shard trips the shrink guard, and --check compares ids and counts, not content. That fix is OPS's. Until it lands the rows are excluded by name, with their evidence, rather than left in.",
+   "why_a_declaration_and_not_a_check": "A rule keyed on `winner not in (p1, p2)` would be a silent filter: it would remove the next such game with no evidence and no register row. engine/sanity_check.py already counts every bad winner in the store. It attributes a declared id to this rule and FAILS on an undeclared one, so a new corrupt row must be investigated and declared, never absorbed.",
+   "expires": "Per id, when the hash-bound correction for that id lands in the store. The entry comes OUT of `declared` in the same pass. engine/sanity_check.py fails on a declared id whose stored winner is one of the players, so a declaration cannot outlive its defect and become a silent filter on a good game.",
+   "measured": {
+    "on": "data/games.ladder.jsonl, 2026-09-11, 92,594 games",
+    "clean_ladder_before_after": "32,193 -> 32,192",
+    "removed_from_the_clean_corpus": 1,
+    "flagged_anywhere": 2
+   },
+   "known_limitation": "THREE. (1) LADDER ONLY: both ids are absent from games.bo3.jsonl and games.ots.jsonl, so the rule is a no-op there. (2) NOT THE WIDER DAMAGE: the chunk-split defect recorded in engine/durable-ingest.js's header also left 194 raw logs with 496 U+FFFD in nicknames and usernames. Those are NOT declared, because their `winner` still matches a player: the outcome is intact and only a name string is damaged. (3) NOT A BOT REASON: engine/quality_bots.js does not key on corrupt_winner. Its three census callers read clicks and sheets and never `winner`, and a corrupt winner does not make a game non-human or out of format."
+  },
+  "exclude_nonstandard_ruleset": {
+   "on": true,
+   "reason": "nonstandard_ruleset",
+   "test": "the game's id is a key of `declared` below. DECLARED, NEVER DETECTED — the rule excludes exactly the ids a person has declared, with evidence, and no other. It is deliberately separate from exclude_corrupt_winner: that game's winner was corrupt, this game's winner is fine and its RULESET is not.",
+   "register": "see report",
+   "report": "docs/_reports/2026-09-21-six-bring-game.md",
+   "declared": {
+    "gen9championsvgc2026regmb-2676161109": {
+     "defect": "played under 12 custom rules including `!Picked Team Size` and `!Min Team Size`, which remove the pick-4 restriction. Both sides brought six.",
+     "evidence": "custom-rule infobox in the raw log; `|teamsize|p1|6` and `|teamsize|p2|6`, against 4/4 on 76,569 of 76,569 archived logs that emit teamsize. Zero other archived logs emit anything but 4.",
+     "rated": "Tournament battle",
+     "refetched_log_sha256": "fd4c808dc988c50e2308efe214e88a1ef256cef52be9818aaaead6c23d24e212",
+     "row_sha256": "60b26f313249b91411d265eb9f7cf79036da88554d1cdbf0b67fa003e4582f5b",
+     "extractor": "INNOCENT — extract() over the refetched log reproduces the stored row byte for byte. Do not touch it.",
+     "already_excluded_by": "require_full_bring (`brought` is 6, and that rule tests `!== 4`), so this declaration removes nothing from the clean corpus. It exists so the store-shape check can distinguish a KNOWN contaminated row from a new one.",
+     "report": "docs/_reports/2026-09-21-six-bring-game.md"
+    }
+   },
+   "why_it_is_not_redundant_with_exclude_custom_ruleset": "The detector below reads Showdown's custom-rule infobox out of data/games.ladder.raw-logs.jsonl. THIS ROW'S RAW LOG IS NOT ON DISK - it is one of the 17,527 store rows the scan cannot ask - so the detector does not contain it and never will. A declaration is the only thing that can cover a row whose evidence was fetched by hand. Verified: the id is absent from data/custom-ruleset-ids.json `ids`.",
+   "known_limitation": "This rule had NO READER in either engine/quality.js or engine/quality.py from 1.5.0 until 1.6.0 - a rule written down and honoured by nobody, which is this project's signature failure mode. Both readers honour it now."
+  },
+  "exclude_custom_ruleset": {
+   "on": true,
+   "reason": "custom_ruleset",
+   "test": "the game's id is a key of `ids` in data/custom-ruleset-ids.json. THIS ONE IS A DETECTOR, unlike its declared sibling above: the id set is DERIVED on every run by engine/scan_custom_rulesets.js from the `N custom rule(s):` infobox Showdown itself emits into the raw log. No id is typed by a person, and a new contaminated game is caught by re-running the scan rather than by somebody noticing it.",
+   "source": "data/custom-ruleset-ids.json",
+   "source_generator": "engine/scan_custom_rulesets.js",
+   "report": "docs/_reports/2026-09-21-custom-ruleset-filter.md",
+   "rationale": "Will, 2026-09-21: 'yes clean the store filter it all out'. THE STORE IS NOT EDITED - `store raw, analyze on top`: every game stays and the ANALYSIS excludes. A ladder game played under custom rules is not the game this project models, and the store's collector cannot tell the difference because engine/durable-ingest.js discovers replays by FORMAT ID and Showdown indexes a custom-rule battle under its base format id.",
+   "why_both_kinds_are_excluded": "TWO KINDS, AND THE MINORITY IS THE ONE THAT LOOKS WORSE. 129 of the 6,952 alter what a team may legally CONTAIN or how many are picked (`!obtainable`, `+past`, `+jirachi`, `+salamencite`, `!Picked Team Size`) - those admit entities the regulation does not contain. The other 6,823 set a different INFORMATION REGIME: 5,210 are a bare `Best of = 3` and ~1,000 more combine bo3 with forced or removed open team sheets. Those are bo3 tournament games sitting in the bo1 ladder store. This project keeps TWO human stores and treats bo3 as a different metagame under a different information regime, so those rows are MISFILED, not merely odd. Neither kind is evidence about the bo1 ladder, so neither stays.",
+   "why_a_detector_and_not_a_declaration": "The opposite judgement from exclude_corrupt_winner, and for a stated reason. A declaration is right when the population is small, hand-verified and each row needs its own receipt. Here the evidence is Showdown's own broadcast, it is machine-readable, and the population is 6,952 - typing that list is how a hand-maintained ban list of four went stale without anybody noticing. The set is re-derived, and the run prints what it could not see.",
+   "measured": {
+    "on": "data/games.ladder.jsonl, 2026-09-21, 94,360 games (mtime 2026-09-20T22:33); raw logs data/games.ladder.raw-logs.jsonl, 77,235 records (mtime 2026-09-04T05:30Z)",
+    "verdict": "data/custom-ruleset-ids.json generated 2026-09-21",
+    "raw_logs_with_a_custom_rule_infobox": 6978,
+    "distinct_ids": 6952,
+    "distinct_rule_strings": 30,
+    "joined_to_the_store": 6952,
+    "share_of_the_store": "7.37%",
+    "alter_legality_or_pick": 129,
+    "alter_legality_union_with_the_wider_entity_classifier": 149,
+    "information_regime_only": 6823,
+    "top_rule_strings": "Best of = 3 (5,210) | Force Open Team Sheets, Best of = 3 (691) | Force Open Team Sheets (470) | Best of = 3, !OpenTeamSheets (172) | Best of = 3, !Open Team Sheets (101)",
+    "clean_ladder_before_after": "33,539 -> 28,454",
+    "removed_from_the_clean_corpus": 5085,
+    "flagged_anywhere": 6952,
+    "enrichment": "2.06x - 7.37% of the raw store and 15.16% of the previously-clean corpus. The same direction exclude_illegal_teams found, and the same reason: the bot and forfeit rules remove bot games, and bots do not play custom-rules rooms. The corpus the models read was dirtier than the store.",
+    "side_effect_on_the_legality_rule": "exclude_illegal_teams' removed_from_clean falls 101 -> 28 on the same store, because 73 of the games it alone excluded are now ALSO flagged custom_ruleset. Its flagged_anywhere is unchanged at 155. Nothing was lost; the attribution moved.",
+    "untestable": "17,527 store rows (18.57%) have no local raw log and were never asked the question",
+    "no_published_figure_is_affected": "data/team-pool-frozen holds games.bo3.jsonl (13,214) and games.ots.jsonl (4,167) and NO ladder rows - measured 2026-09-21, zero of the 6,952 ids appear in either, and the ots store shares zero ids with the ladder store at all. Reg M-B's published engine figures rest on that pool, so this is a cleanup and not a retraction.",
+    "bo3_and_ots": "zero hits in data/games.bo3.jsonl (33,332 ids) and data/games.ots.jsonl (4,167). For bo3 that is STRUCTURAL - its ids are namespaced `...regmbbo3-` - and for ots there is no local raw-log file to scan, so neither zero is a clean bill of health."
+   },
+   "known_limitation": "THREE. (1) IT IS A FLOOR, NOT A CENSUS. The infobox lives in the RAW log and 17,527 store rows (18.57%) have no local raw log, so they were never asked the question. engine/quality.js and engine/quality.py both carry that share out to funnel() and PRINT it, because a filter that cannot see part of its population must say how much or 'we cleaned the corpus' quietly becomes 'we cleaned the part we could read'. (2) LADDER ONLY. The scan reads data/games.ladder.raw-logs.jsonl. data/games.bo3.jsonl uses a different format-id namespace (`...regmbbo3-`) so this rule is a structural no-op there, and data/games.ots.jsonl has NO local raw-log file at all - measured: zero of its 4,167 ids are in the derived set, but that zero is a fact about coverage, not a clean bill of health. (3) THE LEGALITY SPLIT IS A REPORTED BREAKDOWN AND IS ITSELF A LOWER BOUND. `alter_legality_or_pick` is the 2026-09-21 investigation's classifier, kept unchanged so the two runs compare; it misses `+golisopod`, `+electrium z` and the `- Garchomp, - Kingambit, ...` restricted-event ban lists, which the scan's wider `entity_token` classifier catches. The UNION is 149 raw-log rows. Nothing turns on the split - both kinds are excluded either way."
+  }
+ },
+ "provenance": {
+  "store": "data/games.ladder.jsonl",
+  "measured_on": "2026-09-21",
+  "store_size": 94360,
+  "funnel": {
+   "collected": 94360,
+   "after_bot_filter": 55256,
+   "after_behavioural_bots": 49215,
+   "after_forfeit_filter": 49017,
+   "after_min_turns": 46368,
+   "after_full_bring": 33641,
+   "after_legality": 33540,
+   "after_corrupt_winner": 33539,
+   "after_nonstandard_ruleset": 33539,
+   "after_custom_ruleset": 28454
+  },
+  "why_this_block_was_restamped_2026_09_21": "RESTAMPED BECAUSE THE FILTER CHANGED, NOT BECAUSE IT DRIFTED - and the before/after was measured on ONE store read so the two are comparable. On data/games.ladder.jsonl of 2026-09-21 (94,360 games, mtime 2026-09-20T22:33) the funnel BEFORE exclude_custom_ruleset ended at clean 33,539 (35.5%) and AFTER at 28,454 (30.2%). Every stage above after_corrupt_winner is IDENTICAL in the two runs; the only thing that moved is the new last stage. The 2026-09-10 block below (92,431 games, clean 32,080, 34.7%) is superseded and kept. tests/test-quality.js allows 3 points of clean-share drift and the change is 4.5, so leaving the old block in place would have made the gate red for the right reason at the wrong number.",
+  "why_this_block_was_restamped": "RESTAMPED 2026-09-10 BY MEASURE, WITH A CONTROL THAT SAYS THE FILTER DID NOT MOVE. tests/test-quality.js was RED at 34.7% live against 28.0% recorded (drift 6.7 pts, tolerance 3). The control: reasons() computed over the WHOLE live store with full-population behavioural-bot detection, then split by store order. The first 67,384 games -- the exact prefix the 2026-08-27 block measured -- read 18,801 clean, 27.9%, against the 28.0% recorded. The filter is unchanged to 0.1 of a point on the same games. The 25,047 games ingested 2026-08-27 07:00 -> 2026-09-09 17:11 read 13,279 clean, 53.0%, and that is what pulls the whole store to 34.7%. IT IS ONE RULE AND IT IS THE NAME-BASED BOT RULE: `bot` fires on 53.2% of the prefix and 13.0% of the tail (partial_bring is flat at 32.0% -> 32.3%, short 7.7% -> 6.5%, behavioural_bot 6.2% -> 10.0%, forfeit 0.9% -> 0.6%, illegal_team 0.1% -> 0.3%). A composition change in what the ladder collector is storing, not a filter regression -- and it is OPS's question why named bots fell off, not a reason to widen a tolerance. The tolerance is NOT changed, for the reason the 2026-08-27 note already gives.",
+  "open_sheet_funnel": {
+   "store": "data/games.ots.jsonl",
+   "collected": 4167,
+   "after_bot_filter": 4138,
+   "after_behavioural_bots": 4088,
+   "after_forfeit_filter": 4084,
+   "after_min_turns": 3865,
+   "after_full_bring": 2860,
+   "clean": 2860,
+   "why_it_matters": "Open-sheet games are the only regime MAG can be fitted on. This is the corpus that grew by 35%."
+  },
+  "note": "These counts are measured on the DEDUPLICATED store. Prior figures are kept rather than deleted so every change is visible: 2,020 clean was computed BEFORE deduplication and is superseded; 927 clean of 7,547 was measured on 2026-07-24 and is superseded by the reparse of 2026-07-25, which recovered 356 games the parsed store had lost and added 453 collected by the hourly Action. A sixth behavioural bot (HospitalityCheck) crossed the threshold at this size. The 2026-07-28 jump in clean SHARE (12.7% -> 17.3%) is NOT store growth: it is the forfeit rule change in 1.2.0, which readmitted resignations from decided games.",
+  "clean": 28454,
+  "superseded": {
+   "2026-09-10": {
+    "store_size": 92431,
+    "clean": 32080,
+    "funnel": {
+     "collected": 92431,
+     "after_bot_filter": 53330,
+     "after_behavioural_bots": 47289,
+     "after_forfeit_filter": 47101,
+     "after_min_turns": 44458,
+     "after_full_bring": 32181,
+     "after_legality": 32080
+    },
+    "note": "measured before exclude_custom_ruleset existed. Superseded 2026-09-21: on a store of 94,360 the same six rules give clean 33,539 and the new rule takes it to 28,454. The share moves 34.7% -> 30.2%, and 4.5 of those points are the new rule rather than drift - the before/after was measured on one store read."
+   },
+   "2026-07-28": {
+    "store_size": 20688,
+    "clean": 3571,
+    "funnel": {
+     "collected": 20688,
+     "after_bot_filter": 7311,
+     "after_behavioural_bots": 5235,
+     "after_forfeit_filter": 5209,
+     "after_min_turns": 4872,
+     "after_full_bring": 3571
+    },
+    "note": "measured before exclude_illegal_teams existed; the open_sheet_funnel block above is from this same date and has NOT been re-measured - engine/validate_store.js judges the ladder store only, so the legality rule is a no-op on games.ots.jsonl and that funnel is unaffected in value, not verified in date."
+   },
+   "2026-07-25": {
+    "store_size": 8356,
+    "clean": 1061,
+    "note": "all forfeits excluded"
+   },
+   "2026-07-24": {
+    "store_size": 7547,
+    "clean": 927
+   },
+   "2026-08-27": {
+    "store_size": 67384,
+    "clean": 18859,
+    "funnel": {
+     "collected": 67384,
+     "after_bot_filter": 31531,
+     "after_behavioural_bots": 27901,
+     "after_forfeit_filter": 27793,
+     "after_min_turns": 26142,
+     "after_full_bring": 18908,
+     "after_legality": 18859
+    },
+    "note": "tests/test-quality.js compares the LIVE clean share against the share recorded here and allows 3 points of drift. It was RED before this change and not because of it: the block below was measured on 2026-07-28 at a store of 20,688 games and 17.3% clean, and the store has since grown to 67,384 games at 28.0% clean - a drift of 10.8 points. The filter did not change; the recorded number went stale and nothing re-derived it. It is restamped rather than the tolerance being widened, because a tolerance that absorbs staleness stops being a check."
+   }
+  }
+ }
+}

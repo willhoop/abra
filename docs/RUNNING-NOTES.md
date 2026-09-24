@@ -53,6 +53,25 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.92.0] — 2026-09-24 — **Every engine `battleInit` hands the lead-in a stream; ROADMAP #310 closes (both regulations)**
+
+- **What changed.** Eight driver call sites that ran `battleInit` with no `rng` now pass an explicit seeded stream:
+  `engine/bench_speed.js`, `engine/game_differential.js` (`mediSpan`, `oneHitDamage`: `STAGE_LEAD_SEED`),
+  `engine/million_run.js` (self-play and staged arms), `engine/replay_differential.js` (the pin; a game-id seed),
+  `engine/speed_vs_pokeenv.js`. Two more the list had missed: `engine/medicham2-browser.js` `battle()` and
+  `engine/rollout_leaf.js` on the `seeded:false` preview road. `tests/probe_rollout_trace_stream.js` gains a static
+  caller clause and PREVIEW/BATTLE cells. Report `docs/_reports/2026-09-24-register-310-close.md`.
+- **Measured.** NO FIGURE published. Probe RED on the pre-fix bytes (10 unseeded sites; PREVIEW `traceChoiceNoDie` +3,
+  BATTLE +1) in both regulations, GREEN after (Reg M-B `f78b4633203d`, Reg M-C `c8c113f0df05`). Before/after on the same
+  release, scratch outputs: pinned differential `--games 45` byte-identical except clock and driver digest (Reg M-B
+  `03eee67c9898`, Reg M-C `c8c113f0df05` 38 games); `replay_differential` 150 games identical, `entryOrderTieNoDie`
+  974 → 0 and `traceChoiceNoDie` 3 → 0; `million_run` self-play and staged logs identical (both refuse to write on this
+  tree, before and after), self-play `entryOrderTieNoDie` 14 → 0; `bench_speed` 3,351 turns both; `speed_vs_pokeenv`
+  440 turns both, lead ties with no die 80 → 0. Census regenerated: Reg M-C 1010 → 1010 live (committed); Reg M-B
+  1006 live on the tree against 1004 committed (the +2 predates this change, 0.87.1), NOT committed: the 7.0.0 documents
+  cite 1,004. 0 missing in both.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.91.0] — 2026-09-24 — **Beak Blast's burn lands at the Hit event, above the attacker's secondary (both regulations)**
 
 - **What changed.** `engine/medicham2-browser.js`: new step `_stepPreTurnHit` (step 3, above `_stepHitEvent`) pays a

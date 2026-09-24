@@ -1325,7 +1325,12 @@ function rolloutWinProb(board, side, opts) {
       const surv = ['a', 'b'].filter(L => { const m = board.slot(side, L); return m && !m.fainted; }).length;
       if (at !== surv) { const [body] = A.splice(at, 1); A.splice(surv, 0, body); }
     }
-    const S = MEDI.battleInit(A, Bt, { seeded: SEEDED });
+    /* ROADMAP #310, 2026-09-24 -- the TEAM-PREVIEW road (`seeded:false`, engine/miltank.js) runs the
+     * lead entry pass, so a Trace lead and a tied lead pair draw at this call, and they drew nothing:
+     * `eligible[0]` and array order. They now draw from this playout's own stream, the one the sampling
+     * and the turns already use. The SEEDED road is untouched on purpose: it runs no lead pass, and
+     * handing it `rng` would park a live stream in MEDICHAM's switch-in slot before the first turn. */
+    const S = MEDI.battleInit(A, Bt, SEEDED ? { seeded: true } : { seeded: false, rng });
     /* ROADMAP #245. Board-seeded only: a `buildTeams` caller (team preview) supplies its own bodies
      * and there is no position behind them to check against, so asking would compare a hypothetical
      * bring against a real graveyard and invent a mismatch. */
