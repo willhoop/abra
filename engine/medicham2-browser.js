@@ -5128,6 +5128,9 @@ const MEDFAILS = { oozeNoName: 0, oozeUnderHealBlockUnmodelled: 0, reviveSwitchO
    * behaviour to the pre-fix engine and would otherwise be invisible. `imprisonNoName` is a sealing
    * move the artifact carries with no display name, so the `|cant|` line went out with an id. */
   imprisonTableFailed: 0, imprisonTableFailedFirst: '', imprisonTableEmpty: 0, imprisonNoName: 0,
+  /* 2026-09-24 -- the GRAVITY seal table (`gravitySealTable`): the derivation throwing, a field up with no derived set, a
+   * row with no `cant` name. Each nonzero means Gravity's menu or execution half silently sealed nothing. */
+  gravitySealTableThrew: 0, gravitySealTableThrewFirst: '', gravityNoSealSet: 0, gravitySealNoName: 0,
   /* A heal whose SIZE no artifact this engine reads can state — Rest (full, plus sleep), Synthesis /
    * Moonlight / Morning Sun (weather-dependent), Wish (delayed a turn), Healing Wish (the user
    * faints), Strength Sap (scales off the TARGET's Attack). The tag says
@@ -6582,7 +6585,7 @@ function forbidByVolatile(){
  * demand would keep serving the old membership and score this wire READ-AND-IGNORED -- the false-DEAD
  * direction. tags.js publishes the hook for exactly this; `SPREAD` and the terrain tables do not
  * register one, which is a separate pre-existing gap and is not fixed here. */
-if(TAGS&&typeof TAGS.__onSetDB==='function') TAGS.__onSetDB(function(){ _forbidVol=null; _volDur=null; _impSeal=null; });
+if(TAGS&&typeof TAGS.__onSetDB==='function') TAGS.__onSetDB(function(){ _forbidVol=null; _volDur=null; _impSeal=null; _gravSeal=null; });
 /* ============ ROADMAP #111 -- THE VOLATILE DURATION FAMILY, AS ONE MECHANISM ======================
  *
  * `Battle#residualEvent` (sim/battle.js:341-348) decrements EVERY handler carrying BOTH an `end` and
@@ -7194,6 +7197,14 @@ const DISABLED_CLICK_PLAYED=_MK('MEDI_DISABLED_CLICK_PLAYED');
  * stays on its menu. Stamped at LOAD in `MEDFAILS.tormentMenuOpenRestored`. Probe: the same file, torment scenario. */
 const TORMENT_MENU_OPEN=_MK('MEDI_TORMENT_MENU_OPEN');
 if(TORMENT_MENU_OPEN)MEDFAILS.tormentMenuOpenRestored=1;
+/* 2026-09-24 -- MEDI_GRAVITY_MENU_OPEN=1 leaves Gravity's MENU half unwired, as before: a gravity-flagged move stays on
+ * every body's menu while the field stands. MEDI_GRAVITY_CHOSEN_PLAYED=1 leaves its EXECUTION half unwired, as before: a
+ * flagged move chosen before Gravity landed is played. Both stamped at LOAD (`MEDFAILS.gravityMenuOpenRestored`,
+ * `MEDFAILS.gravityChosenPlayedRestored`). Probe: tests/probe_disabled_choice_struggle.js (gravity scenario, --part gravity). */
+const GRAVITY_MENU_OPEN=_MK('MEDI_GRAVITY_MENU_OPEN');
+if(GRAVITY_MENU_OPEN)MEDFAILS.gravityMenuOpenRestored=1;
+const GRAVITY_CHOSEN_PLAYED=_MK('MEDI_GRAVITY_CHOSEN_PLAYED');
+if(GRAVITY_CHOSEN_PLAYED)MEDFAILS.gravityChosenPlayedRestored=1;
 /* 2026-09-05 -- MEDI_PIVOT_IGNORES_BOUNCE=1 restores the pre-fix pivot branch: a reflectable PIVOT
  * status move is aimed with a bare `reaimToSlot` and never asks `bounceOff`, so the drop lands on the
  * bouncer and the CLICKER switches out. It restores that and NOTHING else -- every other bounce site
@@ -20720,7 +20731,10 @@ function imprisonSealedBy(me,mvId,foes){
  * 2026-09-24 -- Heal Block, Imprison and Torment are here now (`moveDisabledBy`). Still absent, all three legal in
  * Reg M-B and Reg M-C: Gravity, Belch and Stuff Cheeks. Gorilla Tactics has no legal carrier in either. Until each is
  * here, a body emptied by one of them cannot reach `mustStruggle`, so the choice-time Struggle rewrite cannot fire
- * for it either. */
+ * for it either.
+ *
+ * 2026-09-24 (later) -- Gravity is here now (`gravitySealsMove`, off `groundsField.menuSeals`), with its execution half
+ * beside Heal Block's. Staged: tests/probe_disabled_choice_struggle.js, the gravity scenario and --part gravity. */
 /* ROADMAP #295 -- THE SEAL IS ONE FACT, AND IT WAS ONLY EVER ASKED AT SELECTION.
  *
  * Showdown answers Disable in TWO handlers off one condition, exactly as it answers Taunt:
@@ -20754,6 +20768,55 @@ function sealedMoveRefuses(me,id){
  * and the marker site below cannot come to disagree about what the lock is. */
 function cantUseTwiceLocked(me,id){
   return !!(me&&id&&me._lastMove===id&&TAGS.param('move',id,'cantUseTwice'));
+}
+/* 2026-09-24 -- GRAVITY SEALS A FLAG, AND WHICH MOVES CARRY IT IS THE ARTIFACT'S ANSWER, NOT THIS FILE'S.
+ *
+ * `gravity.condition` (data/moves.ts; no Champions row, identical in the Reg M-B and Reg M-C checkouts):
+ *     onDisableMove(pokemon) { for (const moveSlot of pokemon.moveSlots) {
+ *       if (this.dex.moves.get(moveSlot.id).flags['gravity']) pokemon.disableMove(moveSlot.id); } }
+ *     onBeforeMovePriority: 6,
+ *     onBeforeMove(pokemon, target, move) { if (move.flags['gravity'] && !move.isZ) {
+ *       this.add('cant', pokemon, 'move: Gravity', move); return false; } }
+ * A FIELD condition, so both handlers reach every active body on both sides, the setter's own included.
+ *
+ * `groundsField.menuSeals` (engine/tag_dex.js) carries the flag read out of onDisableMove, every legal move carrying
+ * it, and whether onBeforeMove refuses a move already chosen. Read by tag SHAPE: the row whose `pseudoWeather` is the
+ * field key that is up. Returns `{move, name, refusesChosen}` for a sealed click, or null. A field that is up with no
+ * derived set is COUNTED (`MEDFAILS.gravityNoSealSet`), because an empty set looks exactly like the pre-fix engine. */
+let _gravSeal=null;
+function gravitySealTable(){
+  if(_gravSeal) return _gravSeal;
+  _gravSeal=[];
+  try{
+    for(const id of (TAGS.withTag?TAGS.withTag('move','groundsField'):[])){
+      const gf=TAGS.param('move',id,'groundsField');
+      const ms=gf&&gf.menuSeals;
+      if(!ms||!Array.isArray(ms.moves)||!gf.pseudoWeather) continue;
+      /* the `cant` effect string is the condition's own `'move: ' + name`, which the same row already derived for its
+       * `-activate` line (`announceOnCancel.desc`). */
+      const desc=(gf.announceOnCancel&&gf.announceOnCancel.desc)||null;
+      if(!desc) MEDFAILS.gravitySealNoName++;
+      _gravSeal.push({field:gf.pseudoWeather,move:id,desc:desc||('move: '+id),set:new Set(ms.moves),refusesChosen:ms.refusesChosen===true});
+    }
+  }catch(e){
+    MEDFAILS.gravitySealTableThrew++;
+    if(!MEDFAILS.gravitySealTableThrewFirst) MEDFAILS.gravitySealTableThrewFirst=String((e&&e.message)||e);
+  }
+  return _gravSeal;
+}
+function gravitySealsMove(me,id){
+  if(!me||!id||id==='struggle') return null;
+  const fld=fieldOfBody(me);
+  if(!fld) return null;
+  const tbl=gravitySealTable();
+  let up=false;
+  for(const r of tbl){
+    if(!(fld[r.field]>0)) continue;
+    up=true;
+    if(r.set.has(id)) return r;
+  }
+  if(!up&&fld.gravity>0&&!tbl.length){ MEDFAILS.gravityNoSealSet++; }
+  return null;
 }
 function moveDisabledBy(me,id){
   if(!me||!id) return null;
@@ -20816,6 +20879,10 @@ function moveDisabledBy(me,id){
    * uses. This file's #152 comment listed Torment as absent from here; it was absent everywhere, so a tormented body
    * repeated its move freely. tests/probe_disabled_choice_struggle.js staged it: the authority's menu was empty and
    * this engine's still offered the move. */
+  /* 2026-09-24 -- GRAVITY'S MENU HALF, `gravity.condition.onDisableMove` -- a VISIBLE disable of every gravity-flagged
+   * slot while the field stands (see `gravitySealsMove`). tests/probe_disabled_choice_struggle.js staged it: the
+   * authority's menu dropped Magnet Rise under Gravity and this engine's still offered it. */
+  if(!GRAVITY_MENU_OPEN&&gravitySealsMove(me,id)){ MEDSEEN.gravityRefusedAtSelection=(MEDSEEN.gravityRefusedAtSelection|0)+1; return 'gravity'; }
   if(!TORMENT_MENU_OPEN&&me._vol&&me._vol.torment&&me._lastMove&&me._lastMove===id&&id!=='struggle'){
     MEDSEEN.tormentRefusedAtSelection++; return 'torment'; }
   if(!HEALBLOCK_MENU_OPEN&&healBlockRefusesClick(me,id)){ MEDSEEN.healBlockRefusedAtSelection=(MEDSEEN.healBlockRefusedAtSelection|0)+1; return 'healblock'; }
@@ -35396,6 +35463,23 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* `cant|POKEMON|move: Heal Block|MOVE` -- data/moves.ts:8313, which names the refused move
            * the way Taunt's line does and Throat Chop's does not. */
           if(TR)TR.cant(m,'move: Heal Block',_hbid);
+          continue; }
+      }
+      /* 2026-09-24 -- GRAVITY REFUSES A FLAGGED MOVE ALREADY CHOSEN, `gravity.condition.onBeforeMove`:
+       *     onBeforeMovePriority: 6,
+       *     onBeforeMove(pokemon, target, move) { if (move.flags['gravity'] && !move.isZ) {
+       *       this.add('cant', pokemon, 'move: Gravity', move); return false; } }
+       * Priority 6, the same as Throat Chop and Heal Block, so it sits beside them. A body that chose Magnet Rise, High
+       * Jump Kick or Flying Press on the turn a faster Gravity landed is refused with that line; this engine played the
+       * move (tests/probe_disabled_choice_struggle.js --part gravity, the same-turn arm). No PP and no `_lastMove`, for
+       * Heal Block's reason above. `onModifyMove` carries the same refusal for a CALLED move (a caller whose
+       * called move carries the flag); that door is NOT wired here and NOT probed -- it is named, not claimed. */
+      if(!GRAVITY_CHOSEN_PLAYED){
+        const _gid=actionMoveId(a);
+        const _gs=_gid?gravitySealsMove(m,_gid):null;
+        if(_gs&&_gs.refusesChosen){ MEDSEEN.gravityRefusedMove=(MEDSEEN.gravityRefusedMove|0)+1;
+          m._mvRes=false;
+          if(TR)TR.cant(m,_gs.desc,_gid);
           continue; }
       }
       /* WIRE 119 -- TAUNT AT EXECUTION TIME, AND THIS IS WIRE 77's PLACE FOR WIRE 77's REASON.

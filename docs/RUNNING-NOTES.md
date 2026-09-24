@@ -53,6 +53,19 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.92.0] — 2026-09-24 — **Gravity's menu half and its execution half**
+
+- **What changed.** `engine/medicham2-browser.js`: `gravitySealsMove` in `moveDisabledBy` (the menu) and beside Heal
+  Block's refusal (a flagged move chosen before a faster Gravity landed). New tag parameter `groundsField.menuSeals`
+  (`engine/tag_dex.js`, the Gravity row of `data/tags.json` / `data/tags-regmc.json`, `data/abra-tags.js`). Probe arms in
+  `tests/probe_disabled_choice_struggle.js`; two census rows.
+- **Measured.** Probe red on the base engine (6 assertions each regulation, 4 of them on the defect), green after. Census Reg M-B 1,014/1,014,
+  Reg M-C 1,018/1,018. Pinned differential at `--games 45` (census pins `c3affea174af` and `regmc-f3b70bc0c47c`, the
+  frozen pools): base and final byte-identical per game, 43 and 38 games, board-material 0. API legality 5,552 of 5,552.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 0.91.0] — 2026-09-24 — **A handed move click on an emptied menu is Struggle; Torment's menu half**
 
 - **What changed.** `engine/medicham2-browser.js`: the choice-time Struggle rewrite in `battleTurn`'s action collection

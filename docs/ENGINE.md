@@ -1,3 +1,15 @@
+## GRAVITY'S MENU HALF AND ITS EXECUTION HALF (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.92.0)
+
+Full account: `docs/_reports/2026-09-24-menu-halves-gravity-belch-cheeks.md`.
+
+- `moveDisabledBy` refuses a gravity-flagged move while Gravity stands (`gravitySealsMove`, off the new tag parameter
+  `groundsField.menuSeals`), so a body left with only flagged moves reaches the 0.91.0 Struggle rewrite. The execution
+  half (`|cant|...|move: Gravity|...` for a flagged move chosen before a faster Gravity) was also missing and is wired
+  beside Heal Block's. Knobs `MEDI_GRAVITY_MENU_OPEN`, `MEDI_GRAVITY_CHOSEN_PLAYED`. Probe
+  `tests/probe_disabled_choice_struggle.js` (gravity scenario and `--part gravity`), plus two census rows.
+- Hand list: **Gravity's menu half leaves it.** Still on it from 0.91.0: the menu halves of Belch and Stuff Cheeks. New
+  item: Gravity's `onModifyMove` refusal of a CALLED flagged move is not wired and not probed.
+
 ## A HANDED MOVE CLICK ON AN EMPTIED MENU IS STRUGGLE; TORMENT'S MENU HALF (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.91.0)
 
 Full account: `docs/_reports/2026-09-24-disabled-choice-struggle.md`.

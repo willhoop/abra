@@ -623,7 +623,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * `tormentMenu(` and `handedRun(` added 2026-09-24 with the disabled-choice rows, declared HERE for the same reason:
  * each spends real turns through `battleTurn`; `handedRun` reads the turn-2 OUTCOME (Struggle's recoil and damage).
  */
-const REALTURN = /\bnarRun\(|\bdiceOf\(|\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(|\bsgVolArms\(|\bvolleyInto\(|\bripenHit\(|\bintimOnto\(|\bmenuAfterFirst\(|\bimprisonMenu\(|\bhealBlockMenu\(|\btormentMenu\(|\bhandedRun\(/;
+const REALTURN = /\bnarRun\(|\bdiceOf\(|\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(|\bsgVolArms\(|\bvolleyInto\(|\bripenHit\(|\bintimOnto\(|\bmenuAfterFirst\(|\bimprisonMenu\(|\bhealBlockMenu\(|\btormentMenu\(|\bhandedRun\(|\bgravityMenu\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -21755,6 +21755,45 @@ probe('move', 'cantUseTwice', 'a handed Gigaton Hammer the turn after one is Str
            detail: `turn 2, the Hammer handed in. AFTER A HAMMER: mustStruggle=${test.must}, user lost ${test.recoil} `
                  + `(Struggle's quarter is ${test.quarter}), foes lost ${test.foesLost}. CONTROL, turn 1 passed: `
                  + `mustStruggle=${control.must}, user lost ${control.recoil}, foes lost ${control.foesLost} (the Hammer lands)` };
+});
+/* 2026-09-24 — GRAVITY'S MENU HALF AND ITS EXECUTION HALF. `gravity.condition.onDisableMove` disables every slot whose move
+ * carries `flags.gravity` on every active body while the field stands; `onBeforeMove` (priority 6) refuses one already
+ * chosen with `|cant|<body>|move: Gravity|<move>` and no PP. The engine had neither: a grounded body kept Magnet Rise on
+ * its menu, and a Magnet Rise chosen on the turn a faster Gravity landed was played and paid for. Turn 1: the setter
+ * (Starmie, base 115) clicks Gravity; the victim (Steelix, base 30) clicks Dragon Dance or Magnet Rise. CONTROL: the
+ * setter passes. The flagged set is `groundsField.menuSeals` in the tag file, derived from the handler.
+ * Knobs MEDI_GRAVITY_MENU_OPEN=1 and MEDI_GRAVITY_CHOSEN_PLAYED=1. Staged against the authority:
+ * tests/probe_disabled_choice_struggle.js (gravity scenario and --part gravity). */
+const gravityMenu = (setGravity, victimClick) => {
+  const me = bare('starmie'), ally = bare('milotic'), f1 = bare('steelix'), f2 = bare('milotic');
+  me.moves = ['gravity', 'protect']; f1.moves = ['dragondance', 'magnetrise'];
+  for (const b of [me, ally, f1, f2]) unfaintable(b);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  const trace = []; S._trace = trace;
+  M.battleTurn(S, rng5,
+    new Map([[me, setGravity ? M.playerAction(me, 'gravity', null, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+    new Map([[f1, M.playerAction(f1, victimClick, f1, S.field)], [f2, { kind: 'pass' }]]));
+  const spent = M.ppSpentMap(f1) || {};
+  return { menu: M.selectableMoves(f1).join(','), gravity: S.field.gravity | 0, rose: !!(f1._vol && f1._vol.magnetrise),
+           spent: spent.magnetrise | 0,
+           cant: trace.filter(l => /^\|cant\|p2a[^|]*\|move: Gravity\|/i.test(String(l))).length };
+};
+probe('move', 'groundsField', 'Gravity takes a gravity-flagged move off the menu, and only that one', () => {
+  const test = gravityMenu(true, 'dragondance');
+  const control = gravityMenu(false, 'dragondance');
+  return { works: test.gravity > 0 && test.menu === 'dragondance' && control.gravity === 0 && control.menu === 'dragondance,magnetrise',
+           arms: { control: control.menu, test: test.menu },
+           detail: `the grounded body's menu after turn 1. GRAVITY up (field.gravity=${test.gravity}): ${test.menu} (Magnet `
+                 + `Rise must leave, Dragon Dance stay). CONTROL, the setter passing (field.gravity=${control.gravity}): ${control.menu}` };
+});
+probe('move', 'groundsField', 'a Magnet Rise chosen before a faster Gravity lands is refused, and spends no PP', () => {
+  const test = gravityMenu(true, 'magnetrise');
+  const control = gravityMenu(false, 'magnetrise');
+  return { works: test.gravity > 0 && test.cant === 1 && !test.rose && test.spent === 0
+                  && control.gravity === 0 && control.cant === 0 && control.rose && control.spent === 1,
+           arms: { control: [control.rose, control.spent], test: [test.rose, test.spent] },
+           detail: `turn 1, Magnet Rise clicked. GRAVITY landing first: cant lines ${test.cant}, volatile up=${test.rose}, `
+                 + `PP spent ${test.spent}. CONTROL, no Gravity: cant ${control.cant}, volatile up=${control.rose}, PP spent ${control.spent}` };
 });
 probe('move', 'forbidsStatusMoves', 'a Taunted body with only status moves Struggles when handed one', () => {
   const test = handedRun('aegislash', ['swordsdance', 'protect'], null, ['taunt'], 'taunt', 'protect');

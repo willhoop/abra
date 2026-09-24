@@ -2,7 +2,7 @@
 /* tests/probe_disabled_choice_struggle.js — A MOVE CLICK ON A BODY WHOSE WHOLE MENU IS DISABLED IS STRUGGLE.
  * ==================================================================================================
  *
- *   SHOWDOWN_PATH=<checkout> node tests/probe_disabled_choice_struggle.js [--regulation regmc] [--part imprison|sources|all]
+ *   SHOWDOWN_PATH=<checkout> node tests/probe_disabled_choice_struggle.js [--regulation regmc] [--part imprison|sources|gravity|all]
  *
  * ================= THE AUTHORITY'S RULE, READ WHOLE (sim/side.ts chooseMove, sim/pokemon.ts getMoves) ==
  *
@@ -49,6 +49,11 @@
  *   The CONTROL is the same scenario at boundary 0, before any source has landed: the handed move must be
  *   EXECUTED AS ITSELF (the rewrite must not over-fire), and the authority must accept it.
  *   The knob arm repeats every CLAIM under MEDI_DISABLED_CLICK_PLAYED=1 and prints what comes back.
+ *
+ * GRAVITY (2026-09-24, also run inside `sources`). A field source: every gravity-flagged slot on every active body. The
+ *   Struggle scenario is one of the sources above; `--part gravity` adds the two-slot MENU arm (knob
+ *   MEDI_GRAVITY_MENU_OPEN) and the SAME-TURN arm, where a flagged move chosen before a faster Gravity landed must be
+ *   refused identically in both engines (knob MEDI_GRAVITY_CHOSEN_PLAYED).
  */
 'use strict';
 const path = require('path');
@@ -63,6 +68,10 @@ const PART = ARGV('--part') || 'all';
 const KNOB = 'MEDI_DISABLED_CLICK_PLAYED';
 const OUTSIDE = process.env[KNOB] === '1';
 const OUTSIDE_T = process.env.MEDI_TORMENT_MENU_OPEN === '1';
+const GRAVITY_KNOB = 'MEDI_GRAVITY_MENU_OPEN';
+const OUTSIDE_G = process.env[GRAVITY_KNOB] === '1';
+const GRAVITY_EXEC_KNOB = 'MEDI_GRAVITY_CHOSEN_PLAYED';
+const OUTSIDE_GX = process.env[GRAVITY_EXEC_KNOB] === '1';
 if (OUTSIDE) console.log(NL + '  ' + KNOB + '=1 WAS SET FROM OUTSIDE: the claims must FAIL and this run must exit 1.');
 
 require(D('tests', '_live_release.js'));
@@ -112,6 +121,8 @@ function harness(knob) {
   if (_G && _cur === key) return { G: _G, M: _M, A: _A };
   if (!OUTSIDE) delete process.env[KNOB];
   if (process.env[TORMENT_KNOB] === '1' && !OUTSIDE_T) delete process.env[TORMENT_KNOB];
+  if (process.env[GRAVITY_KNOB] === '1' && !OUTSIDE_G) delete process.env[GRAVITY_KNOB];
+  if (process.env[GRAVITY_EXEC_KNOB] === '1' && !OUTSIDE_GX) delete process.env[GRAVITY_EXEC_KNOB];
   if (name) process.env[name] = '1';
   delete require.cache[require.resolve(MEDI_PATH)];
   delete require.cache[require.resolve(GD_PATH)];
@@ -157,6 +168,27 @@ const HP_BOOST = 8;
 const idleName = s => IDLE_HI(s).name;
 const moveName = id => dex.moves.get(id).name;
 const firstLegal = (...ids) => ids.find(id => LEGALM(dex.moves.get(id))) || null;
+/* GRAVITY'S FIXTURE, derived. The sealed set is every LEGAL move carrying the Showdown flag `gravity` (the flag the
+ * condition's own onDisableMove reads); two-turn members (flags.charge) are left out of the victim's pick, because a
+ * charge is a hard lock that Gravity cancels by a different road. A self-targeted member is preferred (no damage roll,
+ * no crash), then the setter is the FASTEST legal Gravity user, so the same-turn arm has Gravity land first, and the
+ * victim the SLOWEST carrier. "Any legal user can set it": the setter is picked from every learner, not a named one. */
+const GRAVITY_FLAGGED = () => dex.moves.all().filter(m => LEGALM(m) && m.flags && m.flags.gravity).map(m => m.id).sort();
+const T0 = m => ({ id: m.id, t: ['normal', 'any', 'adjacentFoe'].includes(m.target) ? 0 : null });
+const GRAVITY_FIXTURE = () => {
+  if (!LEGALM(dex.moves.get('gravity'))) return null;
+  const setters = POOL.filter(s => learns(s, 'gravity') && CAN_IDLE(s) && cleanVictim(s))
+    .sort((a, b) => b.baseStats.spe - a.baseStats.spe || a.name.localeCompare(b.name));
+  const cands = GRAVITY_FLAGGED().map(id => dex.moves.get(id)).filter(m => !m.flags.charge)
+    .sort((a, b) => (a.target === 'self' ? 0 : 1) - (b.target === 'self' ? 0 : 1) || a.id.localeCompare(b.id));
+  for (const Z of setters) for (const gm of cands) {
+    if (gm.target !== 'self' && !dex.getImmunity(gm.type, Z)) continue;
+    const V = POOL.filter(s => s !== Z && learns(s, gm.id) && CAN_IDLE(s) && cleanVictim(s) && s.baseStats.spe < Z.baseStats.spe)
+      .sort((a, b) => a.baseStats.spe - b.baseStats.spe || a.name.localeCompare(b.name))[0];
+    if (V) return { Z, V, gm };
+  }
+  return null;
+};
 
 /* ---- ONE DIRECTED GAME ------------------------------------------------------------------------------ */
 function play(knob, P1, P2, script, tag, onBoard) {
@@ -412,6 +444,16 @@ function scenarios() {
       V, Z, handed: { id: REP.id, t: 0 }, at: 1,
       script: [{ p1: [{ m: REP.id, t: 0 }, I(F[0])], p2: [I(Z), I(H)] }] });
   });
+  add('gravity', 'data/moves.ts gravity.condition.onDisableMove: every gravity-flagged slot, for every active body', () => {
+    const G = GRAVITY_FIXTURE();
+    if (!G) return null;
+    const { Z, V, gm } = G;
+    const H = POOL.find(s => ![Z, V].includes(s) && CAN_IDLE(s) && cleanVictim(s)); const F = fillers([Z.name, V.name, H.name], 5);
+    const tt = T0(gm);
+    return Object.assign(team(V, [gm.name], Z, [dex.moves.get('gravity').name, idleName(Z)], H, [idleName(H)], F), {
+      V, Z, handed: tt, at: 1,
+      script: [{ p1: [{ m: gm.id, t: tt.t }, I(F[0])], p2: [{ m: 'gravity' }, I(H)] }] });
+  });
   add('pp', 'sim/pokemon.ts getMoves: `else if (moveSlot.pp <= 0) disabled = true`', () => {
     const V = POOL.filter(s => IDLE_LO(s) && cleanVictim(s)).sort((a, b) => IDLE_LO(a).pp - IDLE_LO(b).pp || a.name.localeCompare(b.name))[0];
     if (!V) return null;
@@ -505,6 +547,7 @@ function partSources() {
       }
     }
   }
+  partGravityMenu(SC);
   if (!OUTSIDE && claims.length) {
     console.log(NL + '    --- the knob arm: every CLAIM again under ' + KNOB + '=1 ---');
     let back = 0;
@@ -524,7 +567,80 @@ function partSources() {
   }
 }
 
+/* ================================================================================================
+ * GRAVITY'S MENU HALF, with a second slot left open, and its execution half on the same turn
+ * ================================================================================================
+ * The rule is read off the checkout's resolved format, not recalled: `gravity.condition.onDisableMove` disables every
+ * slot whose move carries `flags.gravity`; `onBeforeMove` (priority 6) and `onModifyMove` write
+ * `|cant|<body>|move: Gravity|<move>` for one that was already chosen. The run refuses if either handler is absent.
+ *   MENU   the victim carries its self-boost and a gravity-flagged move; turn 1 it idles and the setter sets Gravity.
+ *          At boundary 1 the authority's menu is the self-boost alone; MEDICHAM's must agree, and a handed self-boost is
+ *          played as itself (the menu is not empty, so nothing is rewritten).
+ *   SAME TURN  the victim CLICKS the flagged move on turn 1 while the (faster) setter lands Gravity first: the streams must
+ *          agree, which is the execution half the menu half does not cover.
+ *   KNOB   MEDI_GRAVITY_MENU_OPEN=1 must bring the menu defect back and stamp MEDFAILS.gravityMenuOpenRestored. */
+function partGravityMenu(SC) {
+  const g = (SC || scenarios()).find(x => x.name === 'gravity' && !x.missing);
+  console.log(NL + '    --- gravity, two slots: a gravity-flagged move leaves the menu, the other stays ---');
+  const gv = dex.moves.get('gravity');
+  const hasDis = !!(gv.condition && typeof gv.condition.onDisableMove === 'function' && /flags\[['"]gravity['"]\]/.test(String(gv.condition.onDisableMove)));
+  const hasBefore = !!(gv.condition && typeof gv.condition.onBeforeMove === 'function' && /['"]cant['"]/.test(String(gv.condition.onBeforeMove)));
+  console.log('      gravity.condition.onDisableMove reads flags.gravity : ' + hasDis + '   onBeforeMove writes cant : ' + hasBefore);
+  console.log('      legal gravity-flagged moves: ' + GRAVITY_FLAGGED().join(', '));
+  if (!hasDis) { console.log('      THE CHECKOUT HAS NO GRAVITY MENU HALF — the probe is wrong, not the engine.'); bad++; return; }
+  if (!g) { console.log('      NO LEGAL FIXTURE'); cannot++; return; }
+  const gm = g.handed.id;
+  const P1 = () => { const a = g.P1(); a[0] = mon(g.V.name, [idleName(g.V), dex.moves.get(gm).name]); return a; };
+  const I = s => ({ m: norm(idleName(s)) });
+  const idleV = norm(idleName(g.V));
+  const scMenu = [{ p1: [I(g.V), g.script[0].p1[1]], p2: [{ m: 'gravity' }, g.script[0].p2[1]] }];
+  const arm = (knob) => {
+    let chk = null;
+    const R = play(knob, P1(), g.P2(), scMenu, 'gravity2' + (knob ? '/knob' : ''), (k, S, battle, M) => {
+      if (k === 1) chk = choiceCheck(S, battle, M, harness(knob).A, 0, { id: idleV });
+    });
+    console.log('      [' + (knob ? 'under ' + knob + '=1' : 'this engine') + ']');
+    if (!R.staged || !chk) { console.log('        CANNOT STAGE — ' + (R.why || 'boundary 1 not reached')); cannot++; return null; }
+    console.log('        ' + fmt(chk).split(NL).join(NL + '        '));
+    return { chk, R };
+  };
+  const A1 = arm(null);
+  if (A1) {
+    ok(!A1.chk.sdEmpty && A1.chk.sdMoves.join(',') === idleV, 'the authority leaves ' + idleV + ' alone on the menu (' + gm + ' is disabled)', A1.chk.sdMoves.join(','));
+    ok(menuAgree(A1.chk), 'MEDICHAM\'s menu agrees', A1.chk.meMenu.join(','));
+    ok(A1.chk.meMove === idleV && !A1.chk.meCant, 'and a handed ' + idleV + ' is played as itself (the menu is not empty)', A1.chk.meMove);
+  }
+  if (!OUTSIDE_G) {
+    const K1 = arm(GRAVITY_KNOB);
+    if (K1) {
+      ok(!menuAgree(K1.chk), 'THE GRAVITY KNOB BRINGS THE MENU DEFECT BACK — MEDICHAM offers ' + gm + ' again', K1.chk.meMenu.join(','));
+      ok(K1.R.fails.gravityMenuOpenRestored === 1, 'and it stamps MEDFAILS.gravityMenuOpenRestored', String(K1.R.fails.gravityMenuOpenRestored));
+    }
+    harness(null);
+  }
+  /* SAME TURN: the execution half. The setter is the fastest legal Gravity user and the victim the slowest carrier. */
+  console.log(NL + '    --- gravity, same turn: a flagged move chosen before Gravity landed ---');
+  const scSame = [{ p1: [{ m: gm, t: g.handed.t }, scMenu[0].p1[1]], p2: scMenu[0].p2 }];
+  const R2 = play(null, P1(), g.P2(), scSame, 'gravity-sameturn', null);
+  if (!R2.staged) { console.log('      CANNOT STAGE — ' + R2.why); cannot++; }
+  else {
+    console.log('      setter ' + g.Z.name + ' (base spe ' + g.Z.baseStats.spe + ')   victim ' + g.V.name + ' (base spe ' + g.V.baseStats.spe + ') clicks ' + gm);
+    console.log('      streams: ' + (R2.div ? 'PART — sd ' + R2.div.sd + '  /  me ' + R2.div.me : 'agree for the whole staged game'));
+    ok(!R2.div, 'the streams agree: the already-chosen ' + gm + ' is refused the same way in both engines', R2.div && JSON.stringify(R2.div));
+  }
+  if (R2.staged && !OUTSIDE_GX) {
+    const K2 = play(GRAVITY_EXEC_KNOB, P1(), g.P2(), scSame, 'gravity-sameturn/knob', null);
+    console.log('      [under ' + GRAVITY_EXEC_KNOB + '=1] streams: ' + (!K2.staged ? 'CANNOT STAGE ' + K2.why : K2.div ? 'PART — sd ' + K2.div.sd + '  /  me ' + K2.div.me : 'agree'));
+    if (K2.staged) {
+      ok(!!K2.div, 'THE EXECUTION KNOB BRINGS THE DEFECT BACK — the streams part again, so the same-turn arm is live', K2.div ? K2.div.me : 'agree');
+      ok(K2.fails.gravityChosenPlayedRestored === 1, 'and it stamps MEDFAILS.gravityChosenPlayedRestored', String(K2.fails.gravityChosenPlayedRestored));
+    } else cannot++;
+    harness(null);
+  }
+}
+
 if (PART === 'all' || PART === 'imprison') partImprison();
+if (PART === 'gravity') partGravityMenu(null);
 if (PART === 'all' || PART === 'sources') partSources();
 
 console.log(NL + (bad ? '  RED — ' + bad + ' failing assertion(s)' : cannot ? '  CANNOT ANSWER — ' + cannot + ' arm(s) could not be staged' : '  GREEN — a handed click on an emptied menu is Struggle in both engines') + NL);
