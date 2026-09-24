@@ -2246,6 +2246,9 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
   ejectButtonSpent: 0, ejectButtonSwitched: 0, ejectButtonKeptPivot: 0, ejectButtonCancelledPivot: 0,
   /* 2026-09-21 (Reg M-C, abra/regmc 0.22.0) -- Emergency Exit asked / switched / cleared the other switches (mainline). */
   emergencyExitAsked: 0, emergencyExitSwitched: 0, emergencyExitClearedOthers: 0,
+  /* 2026-09-24 (abra/regmc 0.88.0) -- a recoil KO's `|faint|` queued rather than written; the move-tail drain that
+   * writes it (the authority's `runMove` `faintMessages()`, sim/battle-actions.ts:347). */
+  recoilFaintDeferred: 0, faintDrainMoveTail: 0,
   /* 2026-09-22 (Reg M-C, abra/regmc 0.26.0) -- `exposesUser` (Glaive Rush): armed on the user at the self-drop step;
    * a damage calc into a holder multiplied; a move into a holder that could not miss; the volatile dropped at the
    * holder's own BeforeMove gate. */
@@ -5447,6 +5450,8 @@ const MEDFAILS = { oozeNoName: 0, oozeUnderHealBlockUnmodelled: 0, reviveSwitchO
    * MUST READ 0 on any shipping run; see the knob beside PIVOT_HERB_AFTER_ENTRY. */
   pivotEntryMoveAddrRestored: 0,
   smartInvulnMissLineRestored: 0, hpThresholdBoostAboveRecoilRestored: 0,
+  /* 2026-09-24 -- MEDI_RECOIL_FAINT_INLINE=1; see the knob. MUST READ 0. */
+  recoilFaintInlineRestored: 0,
   /* NARRATION BATCH D, 2026-09-19 -- three knobs; see the knob block beside VOL_ARTIFACT_ORDER. MUST READ 0. */
   dropRefusalAfterTableRestored: 0, sweepUnattributedRestored: 0, magicianEnditemLineRestored: 0,
   magicianDeadThiefTakesRestored: 0,
@@ -19866,6 +19871,13 @@ if(SWALLOW_REFUSALS)MEDFAILS.swallowedRefusalsRestored=1;
 const RECOIL_ON_A_CORPSE=(typeof process!=='undefined'&&process.env
                           &&process.env.MEDI_RECOIL_ON_A_CORPSE==='1');
 if(RECOIL_ON_A_CORPSE)MEDFAILS.recoilOnCorpseRestored=1;
+/* 2026-09-24 (abra/regmc 0.88.0) -- MEDI_RECOIL_FAINT_INLINE=1 writes a recoil KO's `|faint|` where the HP reaches zero
+ * again, i.e. the engine before this date: ABOVE Berserk's boost and Emergency Exit's `-activate`. See the recoil block
+ * and `drainFaints('moveTail')`; stamps `MEDFAILS.recoilFaintInlineRestored`. LOAD TIME.
+ * tests/probe_recoil_faint_below_after_move_secondary.js. */
+const RECOIL_FAINT_INLINE=(typeof process!=='undefined'&&process.env
+                           &&process.env.MEDI_RECOIL_FAINT_INLINE==='1');
+if(RECOIL_FAINT_INLINE)MEDFAILS.recoilFaintInlineRestored=1;
 /* 2026-09-19 -- MEDI_RECOIL_ON_A_WHIFF=1 TAKES THE `move.totalDamage` GATE BACK OUT OF THE MAX-HP
  * RECOIL PAYMENT, i.e. the engine exactly as it stood before: a Struggle that hit nothing -- a body
  * gone semi-invulnerable -- still charges its user a quarter of its own maximum, and still says so.
@@ -29515,7 +29527,30 @@ function midAddrOwnAction(){
   MID_MOVE='-';MID_TGT='-';
   return {stale,restore(){MID_MOVE=_am;MID_TGT=_at;}};
 }
-function pivotFrom(mvId,fn){
+/* 2026-09-24 (abra/regmc 0.89.0) -- WHITE HERB ABOVE A PIVOT'S `|switch|`, WHERE THE REGULATION'S HERB IS NOT QUEUED.
+ * Reg M-C's checkout carries no Champions whiteherb override (data/mods/champions/items.ts has no entry), so
+ * data/items.ts:7658-7705 stands: `onAnyAfterMove` runs `onStart` INSIDE `runMove`'s AfterMove, before `runAction`
+ * answers the pivot's `switchFlag` with the switch request. Reg M-B's mod QUEUES it (items.ts:1023-1037, order 99) and
+ * `pivotHerbSweep` below keeps that road. The two are told apart by the derived tag
+ * (`restoresStats.afterMoveImmediate`), never by a regulation name. Reg M-C pinned pool `...2682994376` t2: showdown
+ * spends the herb before the Parting Shot switch, medicham after it. MEDI_HERB_IMMEDIATE_AFTER_PIVOT=1 restores the
+ * post-switch spend. tests/probe_herb_before_pivot_switch.js */
+const HERB_IMMEDIATE_AFTER_PIVOT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HERB_IMMEDIATE_AFTER_PIVOT==='1');
+if(HERB_IMMEDIATE_AFTER_PIVOT)MEDFAILS.herbImmediateAfterPivotRestored=1;
+function herbBeforePivotSwitch(who){
+  if(HERB_IMMEDIATE_AFTER_PIVOT||!who)return 0;
+  const S=who._sf&&who._sf._S;
+  if(!S){MEDFAILS.herbBeforePivotNoState=(MEDFAILS.herbBeforePivotNoState||0)+1;return 0;}
+  let n=0;
+  for(const x of [...(S.actA||[]),...(S.actB||[])]){
+    const p=x&&TAGS.param('item',x.item,'restoresStats');
+    if(p&&p.afterMoveImmediate&&restoreStatsUpdate(x))n++;
+  }
+  if(n)MEDSEEN.herbBeforePivotSwitch=(MEDSEEN.herbBeforePivotSwitch||0)+n;
+  return n;
+}
+function pivotFrom(mvId,fn,who){
+  herbBeforePivotSwitch(who);
   PIVOT_DEPTH++;
   const _am=MID_MOVE,_at=MID_TGT;
   if(PIVOT_ENTRY_MOVE_ADDR)MEDFAILS.pivotEntryMoveAddrRestored=1;
@@ -40117,7 +40152,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* `a.to` names the replacement when the caller chose one. A switch action without it keeps
            the old behaviour of taking whoever is first, so nothing that used this before changes. */
         if(idx>=0)pivotFrom(a.mv,()=>switchOut(_pvOwn,idx,_pvBench,_pvFoes,_pvSf,field,
-                                               _bi.bouncedBy?undefined:a.to));
+                                               _bi.bouncedBy?undefined:a.to),_pvOut);
         continue;
       }
       /* ---- ROADMAP #81 WIRE 12 -- CURSE, BOTH HALVES --------------------------------------------
@@ -40323,7 +40358,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         const idx=own.indexOf(m);
         if(idx<0){mvFail(m);continue;}
-        if(pivotFrom(a.mv,()=>switchOut(own,idx,bench,foes,sf,field,a.to||a.pivotTo,_ps||{passesBoosts:false,passesVolatiles:[]})))
+        if(pivotFrom(a.mv,()=>switchOut(own,idx,bench,foes,sf,field,a.to||a.pivotTo,_ps||{passesBoosts:false,passesVolatiles:[]}),m))
           MEDSEEN.passesStateSwitch++;
         continue;
       }
@@ -50121,7 +50156,21 @@ function battleTurn(S,rng,actsForA,actsForB){
          * 'Recoil' and not 'recoil'. Struggle's is a different string for a different reason; see the
          * maxhp block below. Routed through the one derivation rather than spelled here. */
         if(TR)TR.dmg(m,ATTR.from(ATTR.cond('Recoil')));
-        if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);}}
+        /* 2026-09-24 (abra/regmc 0.88.0) -- AND THE RECOIL KO'S `|faint|` IS OWED BY THE MOVE'S TAIL, NOT BY THIS LINE.
+         * `applyRecoilDamage` -> `battle.damage` -> `Pokemon#faint()` only QUEUES (sim/pokemon.ts); the hit loop's own
+         * `faintMessages` (data/mods/champions/scripts.ts:547, both checkouts) ran ABOVE the recoil (:554), so the next
+         * drain is `runMove`'s (sim/battle-actions.ts:347) -- below the second Update (:575), below
+         * `afterMoveSecondaryEvent` (:577, Berserk's boost) and below the Emergency Exit door (:587). This engine wrote
+         * it here, above both. Reg M-C pinned pool, release ec377f6f8159, `omit-spread ...bo3-2682655109` t5 (Wood
+         * Hammer into a Golisopod): showdown `-activate Emergency Exit` then `faint Rillaboom`; medicham the reverse.
+         * THE LINE MOVES, THE STATE DOES NOT: `queueFaint` sets hp, `fainted` and the kill order where this site always
+         * did. What also moves is `sourceOffField`'s window (`_faintOut === false` until the drain), which is the
+         * authority's own `isActive` still being true on the second Update.
+         * MEDI_RECOIL_FAINT_INLINE=1 restores the inline line. tests/probe_recoil_faint_below_after_move_secondary.js */
+        if(m.curHP<=0){
+          if(RECOIL_FAINT_INLINE){m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);}
+          else{queueFaint(m,'recoil');MEDSEEN.recoilFaintDeferred++;}
+        }}
       /* ROADMAP #139 -- THE OTHER RECOIL, AND IT IS A DIFFERENT CURRENCY. The block above reads
        * `mv.rc`, a share of the DAMAGE DEALT. Steel Beam and Struggle pay a share of the USER'S OWN
        * MAXIMUM instead, and the move table carries no `rc` for either -- so Steel Beam, a 140 base
@@ -50889,7 +50938,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_redCardDrag){MEDSEEN.pivotRefusedByRedCard=(MEDSEEN.pivotRefusedByRedCard|0)+1;}
         else if(m._pivotCancelledByEject){MEDSEEN.ejectButtonCancelledPivot++;}
         else if(_ejectOwed.length){ if(idx>=0&&!_ejectOwed.some(e=>e.tg===m))_ejectOwed.push({pivot:true,tg:m,own,idx,bench,foes,sf}); }
-        else if(idx>=0)pivotFrom(a.move.id,()=>switchOut(own,idx,bench,foes,sf,field,a.pivotTo));
+        else if(idx>=0)pivotFrom(a.move.id,()=>switchOut(own,idx,bench,foes,sf,field,a.pivotTo),m);
       }
       /* WIRE 40 -- DRAGON TAIL AND CIRCLE THROW, the DAMAGING half of forcesSwitch. They carry base
          power, so they arrived here as ordinary attacks and the drag -- which is the entire reason a
@@ -51012,6 +51061,11 @@ function battleTurn(S,rng,actsForA,actsForB){
       if((_redCardDrag||_ejectOwed.length)&&!HERB_AFTER_OWED_SWITCH){
         const _hn=restoreStatsAll(actA,actB); if(_hn)MEDSEEN.herbBeforeOwedSwitch=(MEDSEEN.herbBeforeOwedSwitch||0)+_hn;
       }
+      /* 2026-09-24 (abra/regmc 0.88.0) -- `runMove`'s `this.battle.faintMessages()` (sim/battle-actions.ts:347): BELOW
+       * `AfterMove` (the herb just above) and ABOVE every switch the action owes (the Red Card drag and the eject
+       * switches below are `runAction`'s, sim/battle.ts). Today the only line it can find is a recoil KO's -- see the
+       * recoil block. Counted, so a drain that stops firing is readable. */
+      if(drainFaints('moveTail'))MEDSEEN.faintDrainMoveTail++;
       if(_redCardDrag&&!m.fainted&&m.curHP>0){
         const _mb=sideBoxOf(m,it,actA,actB,benchA,benchB,sfA,sfB), _mi=_mb.own.indexOf(m);
         if(_mi>=0&&canDragIn(_mb.bench)){
@@ -51030,7 +51084,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         for(const e of _ord){
           if(e.pivot){
             const _i=e.own.indexOf(e.tg);
-            if(_i>=0&&!e.tg.fainted&&e.tg.curHP>0)pivotFrom(a.move.id,()=>switchOut(e.own,_i,e.bench,e.foes,e.sf,field,a.pivotTo));
+            if(_i>=0&&!e.tg.fainted&&e.tg.curHP>0)pivotFrom(a.move.id,()=>switchOut(e.own,_i,e.bench,e.foes,e.sf,field,a.pivotTo),e.tg);
             continue;
           }
           const tg=e.tg, _i=e.bx.own.indexOf(tg);

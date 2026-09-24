@@ -53,6 +53,33 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.89.0] — 2026-09-24 — **White Herb is spent above a pivot's `|switch|` where the regulation does not queue it (Reg M-C)**
+
+- **What changed.** `engine/medicham2-browser.js`: `pivotFrom(mvId, fn, who)` runs `herbBeforePivotSwitch(who)`, which
+  restores every holder whose tag carries `restoresStats.afterMoveImmediate` (Reg M-C's; Reg M-B's queued override has
+  none) before the switch. Knob `MEDI_HERB_IMMEDIATE_AFTER_PIVOT`. Probe `tests/probe_herb_before_pivot_switch.js`.
+  `tests/probe_narration_b_line_order.js` `herb` arm prints NOT APPLICABLE where the tag says the queue is absent.
+- **Measured.** NO FIGURE published. Probe red on the 0.88.0 bytes and under the knob in Reg M-C, green after; green in
+  Reg M-B before and after. Pinned `--games 300` differentials, same flags and pins as 0.88.0: Reg M-C release
+  `a1dd33b2d616` 0/259 board-material, 0 protocol-diverged → `924597092811` 0/259, 0; Reg M-B `4662992b5cc1` 1/260, 2 →
+  `1d13b44973d2` 1/260, 2, identical first divergences (the pre-existing Alakazite game). Scratch outputs, not published.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
+## [abra/regmc 0.88.0] — 2026-09-24 — **A recoil KO's `|faint|` is written at the move's tail, below Berserk and Emergency Exit (both regulations)**
+
+- **What changed.** `engine/medicham2-browser.js`: the recoil site queues the attacker's faint (`queueFaint`, state
+  unchanged); `drainFaints('moveTail')` is `runMove`'s `faintMessages()` (sim/battle-actions.ts:347). Knob
+  `MEDI_RECOIL_FAINT_INLINE`. Probe `tests/probe_recoil_faint_below_after_move_secondary.js`.
+- **Measured.** NO FIGURE published. Probe red on the 0.86.1 bytes in both regulations and under the knob, green after.
+  Pinned Reg M-C differential, `--games 300 --steering empirical --arm middle --end-state`, census pin
+  `census-pin-regmc-f3b70bc0c47c`, pool `team-pool-frozen-regmc` (25903b43fc7b): release `ec377f6f8159` 0/259
+  board-material, 0 protocol-diverged; release `a1dd33b2d616` 0/259, 0. Reg M-B, same flags, census pin
+  `census-pin-c716f46ab0a7`, pool `team-pool-frozen` (3f9ce5a4f431): release `7822a83cc49b` 1/260 board-material,
+  2 protocol-diverged; release `4662992b5cc1` the same 1/260 and 2, same games, same first divergences. The one
+  board-material game is pre-existing and not this change (a Knock Off strips Alakazam's Alakazite in MEDICHAM,
+  `omit-spread …bo3-2659155127` t3); it is routed in the report. Scratch outputs, not published.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.87.1] — 2026-09-24 — **Court Change is NOT-IN-REGULATION under Reg M-B, and the probe now proves it**
 
 A probe fix, no engine change. `tests/probe_court_change.js` exited 2 under Reg M-B and pass 10 counted that as COULD-NOT-STAGE. Derived this run: Court Change is `isNonstandard: 'Past'` in `gen9championsvgc2026regmb`, 0 of 264 legal non-mega species learn it, `engine/legal_scope.js` answers NOT-LEGAL, and the TeamValidator refuses it as "does not exist in Gen 9". The probe asserts all of that and exits 0; the gate never read the probe, and scope-out rows are not counted by `engine/quarantine.js` `rosterStage`. `docs/_reports/2026-09-24-court-change-fixture.md`. **Supersedes.** The pass-10 note that `probe_court_change` counts against the Reg M-B gate as COULD-NOT-STAGE. **Basis.** unchanged. Owes no living-document fold-in.

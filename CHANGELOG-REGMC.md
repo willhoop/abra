@@ -21,6 +21,39 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.89.0] — 2026-09-24
+
+### Fixed
+- **White Herb was spent below a pivot's `|switch|` in Reg M-C, where the regulation's herb is not queued.** Reg M-B's
+  checkout overrides whiteherb in the Champions mod to QUEUE the restore (data/mods/champions/items.ts:1023-1037,
+  order 99), so the pivot's `|switch|` comes first; Reg M-C's mod has no whiteherb entry, so data/items.ts:7658-7705
+  stands and `onAnyAfterMove` spends the herb inside `runMove`'s AfterMove, ABOVE the switch `runAction` asks for.
+  MEDICHAM used the queued road in both. `pivotFrom` now takes the leaving body and first spends every herb whose tag
+  says the restore is immediate (`restoresStats.afterMoveImmediate`, derived by tag_dex); Reg M-B has no such tag and
+  keeps `pivotHerbSweep`. This is the pass-10 narration item "White Herb" (Reg M-C pool `…2682994376` t2, Parting
+  Shot). Knob `MEDI_HERB_IMMEDIATE_AFTER_PIVOT`.
+- New probe `tests/probe_herb_before_pivot_switch.js` (either regulation): Parting Shot into a White Herb holder + a
+  no-herb control. Reg M-C: red on the 0.88.0 engine and under the knob, green after. Reg M-B: green before and after
+  (the queued order is kept).
+- `tests/probe_narration_b_line_order.js`'s `herb` arm stages the Reg M-B mod override; under a regulation whose
+  White Herb tag is `afterMoveImmediate` it now prints NOT APPLICABLE instead of a fixture failure it could never pass.
+  It was red under Reg M-C before this change for that reason alone.
+
+## [0.88.0] — 2026-09-24
+
+### Fixed
+- **A recoil KO's `|faint|` came out above Berserk's boost and Emergency Exit's `-activate` (both regulations).** The
+  Champions hit loop drains the faint queue (`faintMessages`, data/mods/champions/scripts.ts:547) BEFORE it pays the
+  recoil (:554), so the attacker's recoil KO only queues and its line is written by `runMove`'s own drain
+  (sim/battle-actions.ts:347) -- below `afterMoveSecondaryEvent` (:577, Berserk) and the Emergency Exit door (:587).
+  MEDICHAM wrote the line where the HP reached zero. The recoil site now queues (`queueFaint`, state unchanged) and a new
+  move-tail drain (`drainFaints('moveTail')`) sits below the AfterMove herb and above every switch the action owes.
+  This is the pass-10 narration item "Emergency Exit / Berserk timing" (Reg M-C pool `omit-spread …bo3-2682655109` t5).
+  Knob `MEDI_RECOIL_FAINT_INLINE`.
+- New probe `tests/probe_recoil_faint_below_after_move_secondary.js` (either regulation): Berserk KO + control in both,
+  Emergency Exit KO + control in Reg M-C (no Reg M-B carrier). Red on the 0.86.1 engine in both regulations and under
+  the knob; green after. Board-material on a pinned Reg M-C `--games 300` differential: see `docs/RUNNING-NOTES.md`.
+
 ## [0.87.1] — 2026-09-24
 
 ### Fixed
