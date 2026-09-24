@@ -21,6 +21,11 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.87.1] — 2026-09-24
+
+### Fixed
+- **The register instruments for #310 and #442 answer in both regulations.** Both hardcoded Reg M-B (a forced `SHOWDOWN_PATH`; #310 also a Reg M-B release, #442 the census by its Reg M-B filename), so under Reg M-C they read CANNOT-ANSWER for reasons unrelated to the defects. `tests/probe_rollout_trace_stream.js` and `tests/probe_census_reproduces.js` now resolve the checkout through `engine/showdown_path.js`; #310 falls back, printed, to the selected regulation's current release when the named one was cut for the other regulation; #442 names the census with `artifactFor` and classes a difference OVERCLAIM or UNDERCLAIM ONLY. Readings: #310 GREEN in both (the residual unseeded callers stay open); #442 Reg M-C GREEN, Reg M-B RED as UNDERCLAIM ONLY (committed census 1004, tree 1006: two live pass-9 probes landed after the census was last committed). No engine change. `docs/_reports/2026-09-24-register-310-442.md`.
+
 ## [0.87.0] — 2026-09-24
 
 ### Changed
