@@ -24,6 +24,7 @@
  */
 'use strict';
 const SK = require('../slowking/matrix.js');
+const C = require('./cells.js');
 
 function create(API, deps) {
   const PA = deps.prior, R = deps.rollout;
@@ -47,17 +48,13 @@ function create(API, deps) {
     return keep.slice(0, Math.max(k, keep.length));
   }
 
-  function decide(S, side, ctx, o) {
-    o = o || {};
-    const t0 = Date.now();
-    const budget = o.budgetMs == null ? 1000 : o.budgetMs;
-    const k1 = o.k1 || 8, k2 = o.k2 || 8, depth = o.depth == null ? 2 : o.depth;
+  /* 1. CANDIDATES: legal sets, prior scores, the ranked rows and columns. Consumes no coin. */
+  function prepareDecision(S, side, ctx, o) {
+    const k1 = o.k1 || 8, k2 = o.k2 || 8;
     const rs = o.reserveSwitch == null ? 2 : o.reserveSwitch;
-    const coin = o.coin || Math.random;
     const opp = side === 'A' ? 'B' : 'A';
-    COUNTERS.decisions++;
     const laMe = API.legalActions(S, side), laOp = API.legalActions(S, opp);
-    if (laMe.joint.length === 1) { COUNTERS.forced++; return { joint: laMe.joint[0], info: { forced: true, ms: Date.now() - t0 } }; }
+    if (laMe.joint.length === 1) return { forced: laMe.joint[0] };
     const sMe = PA.scoreJoints(ctx, S, side, side, laMe);
     const sOp = PA.scoreJoints(ctx, S, opp, side, laOp);
     const megaMe = laMe.joint.some(j => j.some(x => x && x.mega));
@@ -65,30 +62,13 @@ function create(API, deps) {
     const rowsI = rank(Array.from(sMe), laMe.joint, k1, rs, megaMe);
     const colsI = rank(Array.from(sOp), laOp.joint, k2, rs, megaOp);
     const rows = rowsI.map(i => laMe.joint[i]), cols = colsI.map(i => laOp.joint[i]);
-    const m = rows.length, n = cols.length;
-    const sum = Array.from({ length: m }, () => new Float64Array(n));
-    const cnt = Array.from({ length: m }, () => new Uint32Array(n));
-    const P = PA.revealed(S, opp);
-    const oppSheetKey = opp === 'A' ? 'p1' : 'p2';
-    const belief = { sheet: ctx.G.sheets[oppSheetKey], revealed: P };
-    const deadline = t0 + budget;
-    const baseSeed = Math.floor(coin() * 1e9);
-    let passes = 0, playouts = 0, stop = false;
-    while (!stop) {
-      const seed = baseSeed + passes * 104729;
-      const wcoin = API.M.rngStreams({ seed: seed + 1 }).any;
-      const W = R.sampleWorld(S, opp, belief, wcoin);
-      for (let i = 0; i < m && !stop; i++) {
-        for (let j = 0; j < n; j++) {
-          const jA = side === 'A' ? rows[i] : cols[j], jB = side === 'A' ? cols[j] : rows[i];
-          const vA = R.playout(W, jA, jB, seed, depth);
-          sum[i][j] += side === 'A' ? vA : 1 - vA; cnt[i][j]++; playouts++;
-          if (Date.now() >= deadline) { stop = true; break; }
-        }
-      }
-      passes++;
-      if (o.maxPasses && passes >= o.maxPasses) stop = true;
-    }
+    const belief = { sheet: ctx.G.sheets[opp === 'A' ? 'p1' : 'p2'], revealed: PA.revealed(S, opp) };
+    return { job: { S, side, opp, rows, cols, belief, depth: o.depth == null ? 2 : o.depth } };
+  }
+  /* 3. SOLVE the mean matrix and sample the row mix. */
+  function finishDecision(job, acc, o, t0, budget, coin, extra) {
+    const { rows } = job, m = rows.length, n = job.cols.length;
+    const { sum, cnt, passes, playouts } = acc;
     let tot = 0, nf = 0;
     for (let i = 0; i < m; i++) for (let j = 0; j < n; j++) if (cnt[i][j]) { tot += sum[i][j] / cnt[i][j]; nf++; }
     const mean = nf ? tot / nf : 0.5;
@@ -99,11 +79,42 @@ function create(API, deps) {
     const ms = Date.now() - t0;
     COUNTERS.cells += m * n; COUNTERS.playouts += playouts; COUNTERS.unfilled += unfilled; COUNTERS.rmIters += sol.iters || 0;
     if (ms > budget * 1.5 + 50) COUNTERS.overBudget++;
-    return { joint: rows[pick], info: { m, n, passes, playouts, unfilled, value: sol.value, gap: sol.gap, rm_iters: sol.iters,
-             support: sol.x.filter(v => v > 1e-3).length, pick, ms } };
+    return { joint: rows[pick], info: Object.assign({ m, n, passes, playouts, unfilled, value: sol.value, gap: sol.gap, rm_iters: sol.iters,
+             support: sol.x.filter(v => v > 1e-3).length, pick, ms }, extra || {}) };
+  }
+  function begin(S, side, ctx, o) {
+    const t0 = Date.now();
+    const budget = o.budgetMs == null ? 1000 : o.budgetMs;
+    const coin = o.coin || Math.random;
+    COUNTERS.decisions++;
+    const d = prepareDecision(S, side, ctx, o);
+    if (d.forced) { COUNTERS.forced++; return { done: { joint: d.forced, info: { forced: true, ms: Date.now() - t0 } } }; }
+    /* the coin is drawn in the same order in both paths: baseSeed now, the mix sample after the solve */
+    d.job.baseSeed = Math.floor(coin() * 1e9);
+    return { t0, budget, coin, job: d.job };
   }
 
-  return { COUNTERS, decide, rank };
+  /* 2. CELLS, in this process: solver/miltank/cells.js, passes 0, 1, 2, … */
+  function decide(S, side, ctx, o) {
+    o = o || {};
+    const b = begin(S, side, ctx, o);
+    if (b.done) return b.done;
+    const acc = C.fillSerial(API, R, b.job, b.t0 + b.budget, o.maxPasses);
+    return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin);
+  }
+  /* 2'. CELLS across worker processes (o.pool = solver/miltank/pool.js). The SAME passes: with a pass cap
+   * the matrix, the value and the pick are identical to decide()'s (solver/tests/test-playout-speed.js). */
+  async function decideAsync(S, side, ctx, o) {
+    o = o || {};
+    if (!o.pool) return decide(S, side, ctx, o);
+    const b = begin(S, side, ctx, o);
+    if (b.done) return b.done;
+    const acc = await o.pool.fill(Object.assign({}, b.job, { budgetMs: b.t0 + b.budget - Date.now(), maxPasses: o.maxPasses || 0 }));
+    COUNTERS.pooled = (COUNTERS.pooled || 0) + 1;
+    return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin, { workers: acc.workers });
+  }
+
+  return { COUNTERS, decide, decideAsync, rank };
 }
 
 module.exports = { create };
