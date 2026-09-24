@@ -21,6 +21,21 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.87.0] — 2026-09-24
+
+### Fixed
+- **A recoil KO's `|faint|` came out above Berserk's boost and Emergency Exit's `-activate` (both regulations).** The
+  Champions hit loop drains the faint queue (`faintMessages`, data/mods/champions/scripts.ts:547) BEFORE it pays the
+  recoil (:554), so the attacker's recoil KO only queues and its line is written by `runMove`'s own drain
+  (sim/battle-actions.ts:347) -- below `afterMoveSecondaryEvent` (:577, Berserk) and the Emergency Exit door (:587).
+  MEDICHAM wrote the line where the HP reached zero. The recoil site now queues (`queueFaint`, state unchanged) and a new
+  move-tail drain (`drainFaints('moveTail')`) sits below the AfterMove herb and above every switch the action owes.
+  This is the pass-10 narration item "Emergency Exit / Berserk timing" (Reg M-C pool `omit-spread …bo3-2682655109` t5).
+  Knob `MEDI_RECOIL_FAINT_INLINE`.
+- New probe `tests/probe_recoil_faint_below_after_move_secondary.js` (either regulation): Berserk KO + control in both,
+  Emergency Exit KO + control in Reg M-C (no Reg M-B carrier). Red on the 0.86.1 engine in both regulations and under
+  the knob; green after. Board-material on a pinned Reg M-C `--games 300` differential: see `docs/RUNNING-NOTES.md`.
+
 ## [0.86.1] — 2026-09-23
 
 ### Fixed

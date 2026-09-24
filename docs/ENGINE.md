@@ -1,3 +1,9 @@
+## A RECOIL KO'S `|faint|` IS WRITTEN AT THE MOVE'S TAIL, BELOW BERSERK AND EMERGENCY EXIT (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.87.0)
+
+- The recoil site queues (`queueFaint(m,'recoil')`); `drainFaints('moveTail')` is `runMove`'s `faintMessages()`, below
+  the AfterMove herb and above the action's owed switches. Knob `MEDI_RECOIL_FAINT_INLINE`. Probe
+  `tests/probe_recoil_faint_below_after_move_secondary.js`. Leaves the pass-10 Reg M-C narration list
+  ("Emergency Exit / Berserk timing"). Full account: `docs/_reports/2026-09-24-narration-emergencyexit-whiteherb.md`.
 ## SPEED-TIED BODIES AT ONE RESIDUAL ORDER RUN HANDLER-MAJOR (BOTH REGULATIONS). 2026-09-23 (abra/regmc 0.86.0)
 
 - `residualGroupPairs` walks (body, step) pairs off the shadow handler list when it interleaves bodies (Grassy heal,

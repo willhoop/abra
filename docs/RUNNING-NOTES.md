@@ -53,6 +53,21 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.87.0] — 2026-09-24 — **A recoil KO's `|faint|` is written at the move's tail, below Berserk and Emergency Exit (both regulations)**
+
+- **What changed.** `engine/medicham2-browser.js`: the recoil site queues the attacker's faint (`queueFaint`, state
+  unchanged); `drainFaints('moveTail')` is `runMove`'s `faintMessages()` (sim/battle-actions.ts:347). Knob
+  `MEDI_RECOIL_FAINT_INLINE`. Probe `tests/probe_recoil_faint_below_after_move_secondary.js`.
+- **Measured.** NO FIGURE published. Probe red on the 0.86.1 bytes in both regulations and under the knob, green after.
+  Pinned Reg M-C differential, `--games 300 --steering empirical --arm middle --end-state`, census pin
+  `census-pin-regmc-f3b70bc0c47c`, pool `team-pool-frozen-regmc` (25903b43fc7b): release `ec377f6f8159` 0/259
+  board-material, 0 protocol-diverged; release `a1dd33b2d616` 0/259, 0. Reg M-B, same flags, census pin
+  `census-pin-c716f46ab0a7`, pool `team-pool-frozen` (3f9ce5a4f431): release `7822a83cc49b` 1/260 board-material,
+  2 protocol-diverged; release `4662992b5cc1` the same 1/260 and 2, same games, same first divergences. The one
+  board-material game is pre-existing and not this change (a Knock Off strips Alakazam's Alakazite in MEDICHAM,
+  `omit-spread …bo3-2659155127` t3); it is routed in the report. Scratch outputs, not published.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.86.1] — 2026-09-23 — **probe_volley_collapse_clamp reads the regulation's own checkout**
 
 A probe fix, no engine change. `tests/probe_volley_collapse_clamp.js` hardcoded the Reg M-B checkout as its `SHOWDOWN_PATH` default and read CANNOT-ANSWER under Reg M-C; it now selects the regulation's checkout through `engine/showdown_path.js`. **Supersedes.** Nothing. **Basis.** unchanged. Owes no living-document fold-in.
