@@ -191,6 +191,31 @@ const dex = Dex.forFormat(CS.FORMAT);
 /* THE SIM'S OWN `Pokemon` CLASS, for the one derivation that reads a METHOD rather than a data row
  * (`suppressesAbility` reads `ignoringAbility`). `CS.sim()` does not hand it out. */
 const SIM_POKEMON = require(process.env.SHOWDOWN_PATH + '/dist/sim').Pokemon;
+/* 2026-09-24 -- THE PSEUDO-WEATHERS THAT REFUSE A FLAGGED MOVE, for `refusedByPseudoWeather`. A legal move that sets a
+ * pseudo-weather, whose condition's onBeforeMove / onModifyMove writes `this.add('cant', ..., '<line>', move)` behind
+ * `move.flags['<flag>']`. Built once; each half is recorded only where its handler carries the refusal. */
+let PW_REFUSERS = null;
+function pseudoWeatherRefusers() {
+  if (PW_REFUSERS) return PW_REFUSERS;
+  const out = new Map();
+  for (const mv of dex.moves.all()) {
+    if (!mv.exists || mv.isNonstandard || !mv.pseudoWeather || !mv.condition) continue;
+    for (const [half, h] of [['beforeMove', mv.condition.onBeforeMove], ['modifyMove', mv.condition.onModifyMove]]) {
+      if (typeof h !== 'function') continue;
+      const s = String(h);
+      const f = s.match(/move\.flags\[\s*["']([a-z]+)["']\s*\]/);
+      const c = s.match(/add\(\s*["']cant["']\s*,\s*\w+\s*,\s*["']([^"']+)["']\s*,\s*move\s*\)/);
+      if (!f || !c || !/return\s+false/.test(s)) continue;
+      const k = mv.pseudoWeather + '/' + f[1];
+      const row = out.get(k) || { pseudoWeather: mv.pseudoWeather, flag: f[1], line: c[1], beforeMove: false, modifyMove: false,
+                                  exceptZ: /!\s*move\.isZ/.test(s) };
+      row[half] = true;
+      out.set(k, row);
+    }
+  }
+  PW_REFUSERS = [...out.values()];
+  return PW_REFUSERS;
+}
 /* THE SCREEN DERIVATIONS, in their own module because a probe has to run the identical rule with the
  * authority's descriptions blanked and this file exports nothing. See engine/screen_tags.js. */
 const SCREEN_TAGS = require('./screen_tags.js');
@@ -3390,6 +3415,23 @@ const MOVE_TAGS = [
     why: 'Encore, Taunt and Disable go through a doll in the real game; a missing member is blocked by '
        + 'every substitute in every rollout',
     of: m => (m.flags && m.flags.bypasssub) ? { bypasssub: true } : null },
+  /* 2026-09-24 -- A MOVE A PSEUDO-WEATHER REFUSES, READ OFF THE PSEUDO-WEATHER'S OWN HANDLERS. Gravity's condition
+   * (data/moves.ts, no Champions override in either checkout) carries two identical refusals:
+   *     onBeforeMove(pokemon, target, move) { if (move.flags['gravity'] && !move.isZ) { this.add('cant', pokemon, 'move: Gravity', move); return false; } }
+   *     onModifyMove(move, pokemon, target) { ...the same... }
+   * `BeforeMove` runs only for the move a body CHOSE; a move another move CALLS (Sleep Talk, Copycat) goes through
+   * `useMoveInner`, which skips BeforeMove and runs ModifyMove. So each half is recorded separately. The flag and the
+   * line come out of the handler text, and the pseudo-weather out of every legal move that sets one -- no name here.
+   * Printed before wiring: gravity -> bounce, fly, flyingpress, highjumpkick, magnetrise in both regulations. */
+  { tag: 'refusedByPseudoWeather', param: 'a pseudo-weather that refuses this move when chosen and/or when called',
+    probe: 'refusedByPseudoWeather',
+    why: 'Gravity refuses High Jump Kick, Flying Press and Magnet Rise; nothing carried the move flag, so a Sleep Talk or a '
+       + 'Copycat under Gravity played the move',
+    of: m => {
+      const by = [];
+      for (const pw of pseudoWeatherRefusers()) if (m.flags && m.flags[pw.flag]) by.push(Object.assign({}, pw));
+      return by.length ? { by } : null;
+    } },
   /* SPLIT on Will's point -- "by never misses i was really thinking about the class of ATTACKING
    * moves like aerial ace". He is right, and the numbers are stark:
    *

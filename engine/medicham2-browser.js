@@ -2264,6 +2264,9 @@ const MEDSEEN = { ateExcludedMove: 0, ejectEntryAddrCleared: 0, typelessStabRefu
   /* 2026-09-20 -- a click refused by Heal Block's `onBeforeMove` rather than merely healing nothing.
    * tests/probe_healblock_refuses_heal_move.js. */
   healBlockRefusedMove: 0,
+  /* 2026-09-24 -- a move a pseudo-weather refused (Gravity), split by the half that refused it: the CHOSEN move at
+   * `onBeforeMove`, the CALLED move (Sleep Talk, Copycat) at `onModifyMove`. tests/probe_gravity_called_move.js. */
+  pseudoWeatherRefusedClicked: 0, pseudoWeatherRefusedCalled: 0,
   /* 2026-09-20 -- Bug Bite's / Pluck's strip resolved at step 3 (`singleEvent('Hit', …)`) rather than
    * at `onAfterHit`, which is where this engine had it. tests/probe_stealeat_before_reactors.js. */
   stealEatAtHitEvent: 0,
@@ -3855,6 +3858,12 @@ const MEDFAILS = { oozeNoName: 0, oozeUnderHealBlockUnmodelled: 0, reviveSwitchO
    * of refused, which `healblock.condition.onBeforeMove` stops outright. Stamped at LOAD.
    * tests/probe_healblock_refuses_heal_move.js. */
   healBlockAllowsHealMovesRestored: 0,
+  /* 2026-09-24 -- MEDI_GRAVITY_CALLED_MOVE_PLAYS=1 / MEDI_GRAVITY_CLICKED_MOVE_PLAYS=1 were set: a gravity-flagged move is
+   * played under Gravity when called / when chosen. Stamped at LOAD. tests/probe_gravity_called_move.js. */
+  gravityCalledMovePlaysRestored: 0, gravityClickedMovePlaysRestored: 0,
+  /* 2026-09-24 -- a `refusedByPseudoWeather` row named a pseudo-weather this engine keeps no field clock for, so the
+   * refusal could not be asked. Loud rather than a silent pass; the first offender is named. */
+  pseudoWeatherRefusalUnmapped: 0, pseudoWeatherRefusalUnmappedFirst: '',
   /* 2026-09-20 -- MEDI_STEALEAT_AT_AFTERHIT=1 was set: Bug Bite's and Pluck's `onHit` steal-eat is
    * resolved at the `onAfterHit` step, below the DamagingHit reactors. Stamped at LOAD.
    * tests/probe_stealeat_before_reactors.js. */
@@ -6778,6 +6787,14 @@ if(DISABLER_SEALS_STRUGGLE)MEDFAILS.disablerSealsStruggleRestored=1;
  * Probe: tests/probe_healblock_refuses_heal_move.js. */
 const HEALBLOCK_ALLOWS_HEAL_MOVES=_MK('MEDI_HEALBLOCK_ALLOWS_HEAL_MOVES');
 if(HEALBLOCK_ALLOWS_HEAL_MOVES)MEDFAILS.healBlockAllowsHealMovesRestored=1;
+/* 2026-09-24 -- MEDI_GRAVITY_CALLED_MOVE_PLAYS=1 restores the CALLED half of Gravity's refusal as absent: a Sleep Talk or a
+ * Copycat under Gravity plays High Jump Kick / Flying Press / Magnet Rise. MEDI_GRAVITY_CLICKED_MOVE_PLAYS=1 does the same
+ * for the CHOSEN move. The authority refuses both (`gravity.condition.onModifyMove` / `onBeforeMove`, data/moves.ts).
+ * Stamped at LOAD. Probe: tests/probe_gravity_called_move.js. */
+const GRAVITY_CALLED_MOVE_PLAYS=_MK('MEDI_GRAVITY_CALLED_MOVE_PLAYS');
+if(GRAVITY_CALLED_MOVE_PLAYS)MEDFAILS.gravityCalledMovePlaysRestored=1;
+const GRAVITY_CLICKED_MOVE_PLAYS=_MK('MEDI_GRAVITY_CLICKED_MOVE_PLAYS');
+if(GRAVITY_CLICKED_MOVE_PLAYS)MEDFAILS.gravityClickedMovePlaysRestored=1;
 /* 2026-09-20 -- MEDI_STEALEAT_AT_AFTERHIT=1 restores Bug Bite's and Pluck's steal-eat to the
  * `onAfterHit` step, where this engine had it beside Thief and Knock Off. Their handler is `onHit`
  * (data/moves.ts:1920), which `spreadMoveHit` runs at step 3 -- above the `DamagingHit` reactors --
@@ -10095,6 +10112,26 @@ function carriesHealFlag(mvId){
 function healBlockRefusesClick(m,mvId){
   if(HEALBLOCK_ALLOWS_HEAL_MOVES)return false;
   return healBlocked(m)&&carriesHealFlag(mvId);
+}
+/* 2026-09-24 -- WHICH PSEUDO-WEATHER REFUSES THIS MOVE NOW, or null. Gravity's condition refuses a gravity-flagged move
+ * in TWO handlers with one line (data/moves.ts gravity.condition; no Champions override in either checkout):
+ * `onBeforeMove` for the move the body CHOSE, and `onModifyMove` for a move another move CALLED -- `useMoveInner`
+ * (sim/battle-actions.ts) skips BeforeMove and runs ModifyMove, then returns before the `|move|` line on a false.
+ * Read off `refusedByPseudoWeather` (engine/tag_dex.js), which carries the flag's pseudo-weather, the line and which
+ * half each handler covers. `called` picks the half. A row naming a pseudo-weather with no field clock is COUNTED. */
+function pseudoWeatherRefusal(mvId,field,called){
+  if(!mvId||!field)return null;
+  const p=TAGS.param('move',mvId,'refusedByPseudoWeather');
+  if(!p||!Array.isArray(p.by))return null;
+  for(const r of p.by){
+    if(!(called?r.modifyMove:r.beforeMove))continue;
+    if(called?GRAVITY_CALLED_MOVE_PLAYS:GRAVITY_CLICKED_MOVE_PLAYS)continue;
+    const k=RESIDUAL_FOLLOWER_FIELD[r.pseudoWeather];
+    if(!k){MEDFAILS.pseudoWeatherRefusalUnmapped++;
+      if(!MEDFAILS.pseudoWeatherRefusalUnmappedFirst)MEDFAILS.pseudoWeatherRefusalUnmappedFirst=String(r.pseudoWeather);continue;}
+    if(field[k]>0)return r;
+  }
+  return null;
 }
 /* ROADMAP #175 -- INDIRECT DAMAGE IS A CLASS, AND `refusesIndirectDamage` IS ITS ONE GATE.
  *
@@ -35210,6 +35247,31 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* `cant|POKEMON|move: Heal Block|MOVE` -- data/moves.ts:8313, which names the refused move
            * the way Taunt's line does and Throat Chop's does not. */
           if(TR)TR.cant(m,'move: Heal Block',_hbid);
+          continue; }
+      }
+      /* 2026-09-24 -- GRAVITY REFUSES A GRAVITY-FLAGGED MOVE, CHOSEN OR CALLED. Heal Block's place for Heal Block's reason:
+       * the same `onBeforeMovePriority: 6`, the same shape (`this.add('cant', pokemon, 'move: Gravity', move); return
+       * false;`), and it crosses every kind (Magnet Rise is a status move, High Jump Kick an attack). Unlike Heal Block,
+       * this site is also where a CALLED move is refused: Sleep Talk / Copycat splice the called move in with `_copied`,
+       * which skips the BeforeMove gate above exactly as `useMoveInner` does, and Gravity's `onModifyMove` half is what
+       * the authority runs for it. See `pseudoWeatherRefusal`.
+       *
+       * A CALLED move refused here IS the battle's last move. `useMoveInner` has already made it the active move, and
+       * `runAction`'s bare `clearActiveMove()` (sim/battle.ts) commits it -- so a Copycat after it copies the refused
+       * move (measured on the authority: `|cant|p1b: Samurott|move: Gravity|High Jump Kick`). It becomes PENDING
+       * exactly as an announced move does at the commit site below. A CHOSEN move refused at BeforeMove never does
+       * (`clearActiveMove(true)`), and spends no PP and sets no `_lastMove`, as Heal Block's does not. */
+      {
+        const _pwid=actionMoveId(a);
+        const _pwr=_pwid&&pseudoWeatherRefusal(_pwid,field,!!it._copied);
+        if(_pwr){
+          m._mvRes=false;
+          /* the caller's own pending id (Sleep Talk's) is REPLACED, not committed: `useMoveInner` swapped the active
+           * move, so the caller is never `battle.lastMove` */
+          if(it._copied){MEDSEEN.pseudoWeatherRefusedCalled++;
+            field._pendingLastMove=_pwid;field._pendingLastBy=m;}
+          else MEDSEEN.pseudoWeatherRefusedClicked++;
+          if(TR)TR.cant(m,_pwr.line,_pwid);
           continue; }
       }
       /* WIRE 119 -- TAUNT AT EXECUTION TIME, AND THIS IS WIRE 77's PLACE FOR WIRE 77's REASON.

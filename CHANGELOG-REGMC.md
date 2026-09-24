@@ -21,6 +21,11 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.90.0] — 2026-09-24
+
+### Fixed
+- **Gravity refuses a gravity-flagged move, whether a caller calls it or the body chooses it (both regulations).** `gravity.condition` refuses the move in `onBeforeMove`, for the move a body chose, and in `onModifyMove`, for a move that Sleep Talk or Copycat calls through `useMoveInner`. The line is `|cant|<body>|move: Gravity|<move>`, and the Champions mod overrides neither. Neither half was wired, because no artifact carried the move flag. So a Sleep Talk under Gravity played High Jump Kick, a Copycat after it played it again, and a body that chose Bounce the turn Gravity went up started its charge. The only legal callers are Sleep Talk and Copycat: Metronome, Assist, Me First, Mirror Move and Nature Power are `Past` in both regulations. `tag_dex` derives `refusedByPseudoWeather` off every pseudo-weather's own refusal handlers. It has 5 members, spliced into `data/tags.json` and `data/tags-regmc.json`; nothing else in either file moved. `pseudoWeatherRefusal` asks it at Heal Block's site, for called and chosen actions alike. A refused called move becomes the pending last move, so Copycat copies it, as the authority does. Knobs `MEDI_GRAVITY_CALLED_MOVE_PLAYS` and `MEDI_GRAVITY_CLICKED_MOVE_PLAYS`. Probe `tests/probe_gravity_called_move.js`, both engines against the authority. Pre-fix engine: 6 RED in both regulations. Fixed: green. Each knob: red on its own arms. Census row `refusedByPseudoWeather`: Reg M-C 1011 → 1012 live. The Reg M-B census is parked at 1008. The menu half (`onDisableMove`) is still open. `docs/_reports/2026-09-24-ate-picker-gravity-called.md`.
+
 ## [0.89.0] — 2026-09-24
 
 ### Fixed

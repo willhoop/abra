@@ -1,3 +1,15 @@
+## GRAVITY REFUSES A GRAVITY-FLAGGED MOVE, CALLED OR CHOSEN (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.90.0)
+
+- Tag `refusedByPseudoWeather`, derived off Gravity's own `onBeforeMove` / `onModifyMove` (5 members).
+  `pseudoWeatherRefusal` is asked at Heal Block's site, for a `_copied` (called) action and a chosen one alike. A
+  refused called move becomes the pending last move, so Copycat copies it, as the authority does. Knobs
+  `MEDI_GRAVITY_CALLED_MOVE_PLAYS` and `MEDI_GRAVITY_CLICKED_MOVE_PLAYS`. Probe `tests/probe_gravity_called_move.js`,
+  plus census row `refusedByPseudoWeather` (Reg M-C 1012 live). Legal callers: Sleep Talk and Copycat only; the other
+  five callers are `Past` in both regulations. Full account `docs/_reports/2026-09-24-ate-picker-gravity-called.md`.
+- Hand list: **Gravity's called-move half and its chosen-move half leave it.** Both were unwired, and the chosen half
+  was not on the list. Still open: **Gravity's menu half** (`onDisableMove`), with Belch's and Stuff Cheeks'. So is
+  the site's ordering below confusion and paralysis, which it shares with Throat Chop and Heal Block.
+
 ## THE STAGED HARNESS TRIGGERS AN -ATE ABILITY WITH A MOVE IT CONVERTS (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.89.0)
 
 - `fixture_preflight.excludedMoveIds` reads a handler's excluded move ids off its text (polarity rule). The ids ride
