@@ -1,0 +1,116 @@
+{
+ "generated": "2026-09-24T20:11:12.610Z",
+ "source": {
+  "path": "solver/out/human/games.jsonl",
+  "sha256": "9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8",
+  "games": 26888,
+  "side_games": 53776
+ },
+ "clock": {
+  "unit": "requests one side must still answer from turn t on (turn prompts + replacement prompts + mid-turn switch prompts)",
+  "min_side_games_per_row": 200,
+  "last_turn": 17,
+  "byTurn": {
+   "1": {
+    "n": 53776,
+    "mean": 8.542,
+    "p90": 13
+   },
+   "2": {
+    "n": 53146,
+    "mean": 7.431,
+    "p90": 12
+   },
+   "3": {
+    "n": 51516,
+    "mean": 6.308,
+    "p90": 10
+   },
+   "4": {
+    "n": 48910,
+    "mean": 5.257,
+    "p90": 9
+   },
+   "5": {
+    "n": 44256,
+    "mean": 4.374,
+    "p90": 8
+   },
+   "6": {
+    "n": 37094,
+    "mean": 3.731,
+    "p90": 7
+   },
+   "7": {
+    "n": 28432,
+    "mean": 3.287,
+    "p90": 7
+   },
+   "8": {
+    "n": 19942,
+    "mean": 3.015,
+    "p90": 6
+   },
+   "9": {
+    "n": 13112,
+    "mean": 2.845,
+    "p90": 6
+   },
+   "10": {
+    "n": 8142,
+    "mean": 2.776,
+    "p90": 6
+   },
+   "11": {
+    "n": 4986,
+    "mean": 2.734,
+    "p90": 6
+   },
+   "12": {
+    "n": 2922,
+    "mean": 2.8,
+    "p90": 6
+   },
+   "13": {
+    "n": 1764,
+    "mean": 2.842,
+    "p90": 5
+   },
+   "14": {
+    "n": 1040,
+    "mean": 2.998,
+    "p90": 6
+   },
+   "15": {
+    "n": 590,
+    "mean": 3.417,
+    "p90": 8
+   },
+   "16": {
+    "n": 372,
+    "mean": 3.718,
+    "p90": 8
+   },
+   "17": {
+    "n": 220,
+    "mean": 4.514,
+    "p90": 8
+   }
+  }
+ },
+ "bo3": {
+  "same_four": {
+   "won": 0.6098,
+   "lost": 0.2966
+  },
+  "same_lead_pair": {
+   "won": 0.4711,
+   "lost": 0.223
+  },
+  "source": {
+   "path": "solver/out/meta/bo3.json",
+   "sha256": "1b8d4a4283217f2728873f197c4c9caa040b9722a751060bc2a4daf7493622e2",
+   "field": "summary.by_previous_result"
+  }
+ }
+}

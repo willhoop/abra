@@ -1,0 +1,183 @@
+{
+ "generated": "2026-09-24T20:11:13.137Z",
+ "format": "gen9championsvgc2026regmcbo3",
+ "source": {
+  "path": "solver/out/human/games.jsonl",
+  "sha256": "9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8",
+  "games": 26888,
+  "side_games": 53776
+ },
+ "spread_rule": "32 HP, 32 in the attack stat its moves use more (dex move category), 2 Spe; nature from the sheet",
+ "validator": "Showdown TeamValidator.get(gen9championsvgc2026regmcbo3) on the Reg M-C checkout — every team below passed",
+ "refused": 0,
+ "teams": [
+  {
+   "id": "T1",
+   "from_game": "gen9championsvgc2026regmcbo3-2684022039",
+   "date": "2026-09-19T08:02:43.000Z",
+   "rating": 1606,
+   "species": [
+    "Froslass",
+    "Basculegion",
+    "Kingambit",
+    "Sneasler",
+    "Lycanroc-Dusk",
+    "Rillaboom"
+   ],
+   "bring": [
+    0,
+    2,
+    3,
+    5
+   ],
+   "packed": "Froslass||Froslassite|CursedBody|Blizzard,ShadowBall,AuroraVeil,Protect|Timid|32,,,32,,2|F||||]Basculegion||SitrusBerry|Adaptability|WaveCrash,LastRespects,AquaJet,Protect|Adamant|32,32,,,,2|M||||]Kingambit||BlackGlasses|Defiant|KowtowCleave,SuckerPunch,SwordsDance,Protect|Adamant|32,32,,,,2|F||||]Sneasler||WhiteHerb|Unburden|CloseCombat,GunkShot,FakeOut,Protect|Adamant|32,32,,,,2|M||||]Lycanroc-Dusk||FocusSash|ToughClaws|CloseCombat,Accelerock,RockSlide,Protect|Adamant|32,32,,,,2|M||||]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,GrassyGlide,FakeOut,Uturn|Adamant|32,32,,,,2|M||||"
+  },
+  {
+   "id": "T2",
+   "from_game": "gen9championsvgc2026regmcbo3-2685967003",
+   "date": "2026-09-22T18:57:40.000Z",
+   "rating": 1549,
+   "species": [
+    "Indeedee-F",
+    "Gardevoir",
+    "Sneasler",
+    "Basculegion",
+    "Pelipper",
+    "Archaludon"
+   ],
+   "bring": [
+    1,
+    0,
+    2,
+    3
+   ],
+   "packed": "Indeedee-F||SitrusBerry|PsychicSurge|TrickRoom,FollowMe,HelpingHand,Psychic|Bold|32,,,32,,2|F||||]Gardevoir||Gardevoirite|Synchronize|HyperVoice,ExpandingForce,Protect,ShadowBall|Modest|32,,,32,,2|F||||]Sneasler||PsychicSeed|Unburden|CloseCombat,DireClaw,RockTomb,Protect|Adamant|32,32,,,,2|F||||]Basculegion||ChoiceScarf|Adaptability|WaveCrash,AquaJet,FlipTurn,LastRespects|Jolly|32,32,,,,2|M||||]Pelipper||FocusSash|Drizzle|WeatherBall,Tailwind,Hurricane,Protect|Modest|32,,,32,,2|M||||]Archaludon||Leftovers|Stamina|DragonPulse,FlashCannon,ElectroShot,Protect|Modest|32,,,32,,2|F||||"
+  },
+  {
+   "id": "T3",
+   "from_game": "gen9championsvgc2026regmcbo3-2685619468",
+   "date": "2026-09-22T06:04:44.000Z",
+   "rating": 1536,
+   "species": [
+    "Garchomp",
+    "Delphox",
+    "Kingambit",
+    "Whimsicott",
+    "Basculegion",
+    "Sneasler"
+   ],
+   "bring": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "packed": "Garchomp||GarchompiteZ|RoughSkin|DracoMeteor,Flamethrower,PowerGem,Protect|Modest|32,,,32,,2|M||||]Delphox||Delphoxite|Blaze|HeatWave,Psychic,NastyPlot,Protect|Timid|32,,,32,,2|F||||]Kingambit||LifeOrb|Defiant|KowtowCleave,LowKick,SuckerPunch,Protect|Adamant|32,32,,,,2|F||||]Whimsicott||FairyFeather|Prankster|Moonblast,Tailwind,Encore,Protect|Timid|32,,,32,,2|F||||]Basculegion||MysticWater|Adaptability|WaveCrash,LastRespects,AquaJet,Protect|Adamant|32,32,,,,2|M||||]Sneasler||FocusSash|PoisonTouch|FakeOut,CloseCombat,GunkShot,QuickGuard|Jolly|32,32,,,,2|F||||"
+  },
+  {
+   "id": "T4",
+   "from_game": "gen9championsvgc2026regmcbo3-2685967003",
+   "date": "2026-09-22T18:57:40.000Z",
+   "rating": 1518,
+   "species": [
+    "Rillaboom",
+    "Sneasler",
+    "Arcanine-Hisui",
+    "Froslass",
+    "Raichu",
+    "Kingambit"
+   ],
+   "bring": [
+    4,
+    5,
+    0,
+    1
+   ],
+   "packed": "Rillaboom||MiracleSeed|GrassySurge|WoodHammer,GrassyGlide,HighHorsepower,FakeOut|Adamant|32,32,,,,2|F||||]Sneasler||GrassySeed|Unburden|Protect,CloseCombat,DireClaw,RockSlide|Adamant|32,32,,,,2|F||||]Arcanine-Hisui||FocusSash|RockHead|Protect,FlareBlitz,HeadSmash,ExtremeSpeed|Jolly|32,32,,,,2|F||||]Froslass||Froslassite|CursedBody|Protect,Blizzard,ShadowBall,AuroraVeil|Timid|32,,,32,,2|F||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|32,,,32,,2|M||||]Kingambit||LifeOrb|Defiant|KowtowCleave,SuckerPunch,SwordsDance,Protect|Adamant|32,32,,,,2|F||||"
+  },
+  {
+   "id": "T5",
+   "from_game": "gen9championsvgc2026regmcbo3-2685861544",
+   "date": "2026-09-22T15:58:58.000Z",
+   "rating": 1505,
+   "species": [
+    "Froslass",
+    "Rillaboom",
+    "Volcarona",
+    "Kingambit",
+    "Garchomp",
+    "Sneasler"
+   ],
+   "bring": [
+    2,
+    4,
+    1,
+    5
+   ],
+   "packed": "Froslass||Froslassite|CursedBody|Blizzard,ShadowBall,AuroraVeil,Protect|Timid|32,,,32,,2|F||||]Rillaboom||OccaBerry|GrassySurge|GrassyGlide,WoodHammer,HighHorsepower,FakeOut|Adamant|32,32,,,,2|M||||]Volcarona||GrassySeed|FlameBody|Protect,HeatWave,GigaDrain,QuiverDance|Modest|32,,,32,,2|F||||]Kingambit||LifeOrb|Defiant|Protect,KowtowCleave,SuckerPunch,SwordsDance|Adamant|32,32,,,,2|F||||]Garchomp||ChoiceScarf|RoughSkin|DragonClaw,StompingTantrum,RockSlide,RockTomb|Adamant|32,32,,,,2|F||||]Sneasler||WhiteHerb|Unburden|Protect,CloseCombat,DireClaw,FakeOut|Adamant|32,32,,,,2|F||||"
+  },
+  {
+   "id": "T6",
+   "from_game": "gen9championsvgc2026regmcbo3-2685716107",
+   "date": "2026-09-22T11:16:57.000Z",
+   "rating": 1500,
+   "species": [
+    "Basculegion",
+    "Froslass",
+    "Sneasler",
+    "Kingambit",
+    "Rillaboom",
+    "Blaziken"
+   ],
+   "bring": [
+    1,
+    0,
+    3,
+    5
+   ],
+   "packed": "Basculegion||ChoiceScarf|Adaptability|WaveCrash,AquaJet,LastRespects,FlipTurn|Jolly|32,32,,,,2|M||||]Froslass||Froslassite|CursedBody|Blizzard,ShadowBall,AuroraVeil,Protect|Timid|32,,,32,,2|F||||]Sneasler||GrassySeed|Unburden|CloseCombat,GunkShot,Protect,Coaching|Adamant|32,32,,,,2|F||||]Kingambit||BlackGlasses|Defiant|KowtowCleave,SuckerPunch,SwordsDance,Protect|Adamant|32,32,,,,2|M||||]Rillaboom||OccaBerry|GrassySurge|WoodHammer,GrassyGlide,FakeOut,HighHorsepower|Adamant|32,32,,,,2|F||||]Blaziken||Blazikenite|SpeedBoost|CloseCombat,FlareBlitz,RockSlide,Protect|Adamant|32,32,,,,2|F||||"
+  },
+  {
+   "id": "T7",
+   "from_game": "gen9championsvgc2026regmcbo3-2686084077",
+   "date": "2026-09-22T22:48:38.000Z",
+   "rating": 1469,
+   "species": [
+    "Rillaboom",
+    "Salamence",
+    "Primarina",
+    "Raichu",
+    "Ceruledge",
+    "Sneasler"
+   ],
+   "bring": [
+    3,
+    2,
+    0,
+    4
+   ],
+   "packed": "Rillaboom||MiracleSeed|GrassySurge|FakeOut,WoodHammer,GrassyGlide,HighHorsepower|Adamant|32,32,,,,2|F||||]Salamence||Salamencite|Intimidate|HyperVoice,DracoMeteor,Tailwind,Protect|Timid|32,,,32,,2|M||||]Primarina||LifeOrb|LiquidVoice|HyperVoice,Moonblast,CalmMind,Protect|Modest|32,,,32,,2|M||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|32,,,32,,2|M||||]Ceruledge||GrassySeed|FlashFire|BitterBlade,ShadowSneak,SwordsDance,Protect|Adamant|32,32,,,,2|F||||]Sneasler||WhiteHerb|Unburden|CloseCombat,DireClaw,ThroatChop,Protect|Adamant|32,32,,,,2|F||||"
+  },
+  {
+   "id": "T8",
+   "from_game": "gen9championsvgc2026regmcbo3-2685827972",
+   "date": "2026-09-22T15:07:09.000Z",
+   "rating": 1468,
+   "species": [
+    "Sneasler",
+    "Froslass",
+    "Pelipper",
+    "Archaludon",
+    "Swampert",
+    "Hydreigon"
+   ],
+   "bring": [
+    1,
+    0,
+    2,
+    3
+   ],
+   "packed": "Sneasler||WhiteHerb|Unburden|DireClaw,CloseCombat,FakeOut,RockTomb|Adamant|32,32,,,,2|M||||]Froslass||Froslassite|CursedBody|Blizzard,ShadowBall,AuroraVeil,Protect|Timid|32,,,32,,2|F||||]Pelipper||FocusSash|Drizzle|Hurricane,WeatherBall,Tailwind,Protect|Modest|32,,,32,,2|F||||]Archaludon||Leftovers|Stamina|ElectroShot,DragonPulse,FlashCannon,Protect|Calm|32,,,32,,2|F||||]Swampert||Swampertite|Torrent|WaveCrash,Earthquake,IcePunch,Protect|Adamant|32,32,,,,2|F||||]Hydreigon||ChoiceScarf|Levitate|Snarl,DarkPulse,DracoMeteor,Uturn|Modest|32,,,32,,2|M||||"
+  }
+ ]
+}
