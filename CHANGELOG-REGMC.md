@@ -21,6 +21,23 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.115.0] — 2026-09-24
+
+### Changed
+- **The three Reg M-C lattices re-read after the two narration fixes: undeclared narration-only games 0/955, 2/1266,
+  1/1497 (were 3, 5, 6); board-material 0 on all three.** Release `aed9780fc4e3`, census pin `ccd979c30997`, pool
+  `data/team-pool-frozen-regmc`, `--steering empirical --arm middle --end-state`, `--games` 1200/1600/1900, serial
+  through `tools\lownode.cmd`. The samples are identical to 0.112.0's: 955/1266/1497 games, and the same one void game.
+  Both named causes are gone from every lattice. The 3 games left are three other causes, all present in the 0.112.0
+  artifacts, read from the full dumps (`data/verification/gd-regmc-narration-last-g{1600,1900}.json`):
+  - White Herb order after two Intimidates. `restoreStatsAll` walks the holders in side order; the authority
+    speed-sorts them.
+  - A Grassy Terrain residual heal order on an inferred speed tie.
+  - The Emergency Exit "stopped emitting" game, whose placement the harness cannot express.
+  The Reg M-C census, re-run on this tree, reads 1024 live / 0 missing (parked at
+  `data/verification/mechanics-census-regmc-narration-last.json`; the committed census stays the pin).
+  `docs/_reports/2026-09-24-narration-last.md`.
+
 ## [0.114.1] — 2026-09-24
 
 ### Fixed

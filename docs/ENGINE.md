@@ -1,3 +1,18 @@
+## REG M-C NARRATION AFTER THE TWO FIXES: 0 / 2 / 1, BOARDS 0. 2026-09-24 (abra/regmc 0.115.0)
+
+- Release `aed9780fc4e3`, pinned as 0.112.0, same samples. The Leppa ordering and `fallenundefined` are gone from every
+  lattice. The census reads 1024 live after 0.114.1; the first re-run read 1022, because two census rows still asserted
+  the refusal that 0.113.0 withdrew.
+- Hand list: **three narration causes join it**, from the full dumps:
+  - (a) White Herb holders are walked in side order by `restoreStatsAll`. The authority's `onAnySwitchIn`
+    (priority -2) speed-sorts them. This is a real ordering defect: 1600 lattice, baseline `…2681884715 vs …2681855448`.
+  - (b) A Grassy Terrain residual heal order on an inferred Rillaboom speed tie. It needs an `--only-game` replay with
+    speeds. 1600 lattice, omit-weather `…2684772479 vs …2684878616`.
+  - (c) The Emergency Exit game the harness cannot express ("stopped emitting"). 1900 lattice, omit-spread
+    `…2679451964 vs …2679546173`.
+  Also owed: withdraw the Reg M-B `AUTHORITY-WRONG` `fallenundefined` declaration in `engine/quarantine.js` (MEASURE).
+  Report `docs/_reports/2026-09-24-narration-last.md`.
+
 ## REVIVAL BLESSING REVIVES BELOW THE UPDATE PASS; THE REVIVER'S LEPPA IS EATEN FIRST (REG M-C). 2026-09-24 (abra/regmc 0.114.0)
 
 - The move only raises the request; the revive is the answer's action, after `eachEvent('Update')`. The move now queues

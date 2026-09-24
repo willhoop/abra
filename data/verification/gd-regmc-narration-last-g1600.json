@@ -1,0 +1,710 @@
+{
+  "what": "DIVERGING GAMES WITH THE LINES EITHER SIDE OF THE SPLIT. A debugging view, not a measurement. Both the RAW emitted line and the REDUCED line the comparator decides on are kept: the reduced form is what decided, the raw form is what has to be fixed.",
+  "generated": "2026-09-24T18:31:21.255Z",
+  "by": "engine/game_differential.js --dump-out data/verification/gd-regmc-narration-last-g1600.json",
+  "engine_release": "aed9780fc4e3",
+  "team_store_pinned_to": "data/team-pool-frozen-regmc",
+  "closet": {
+    "ability": "illusion",
+    "species": [
+      "zoroark",
+      "zoroarkhisui"
+    ],
+    "teams_dropped": 26,
+    "teams_dropped_by_config": {
+      "baseline": 2,
+      "omit-protect": 4,
+      "omit-priority": 1,
+      "omit-weather": 3,
+      "omit-intimidate": 4,
+      "pair-protect-bust": 10,
+      "pair-redirect-priority": 1,
+      "pair-speedctrl": 1
+    },
+    "carrier_sheet_slot": {
+      "0": 4,
+      "1": 6,
+      "2": 4,
+      "3": 3,
+      "5": 9
+    },
+    "bodies_a_pair_brings": 4,
+    "teams_whose_only_carrier_sits_past_the_bodies_brought": 9,
+    "dropped": [
+      {
+        "config": "baseline",
+        "team": "gen9championsvgc2026regmcbo3-2679708690",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 0
+          }
+        ]
+      },
+      {
+        "config": "baseline",
+        "team": "gen9championsvgc2026regmcbo3-2683540874",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 3
+          }
+        ]
+      },
+      {
+        "config": "omit-protect",
+        "team": "gen9championsvgc2026regmcbo3-2680465410",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 5
+          }
+        ]
+      },
+      {
+        "config": "omit-protect",
+        "team": "gen9championsvgc2026regmcbo3-2682094893",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 5
+          }
+        ]
+      },
+      {
+        "config": "omit-protect",
+        "team": "gen9championsvgc2026regmcbo3-2684023224",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 5
+          }
+        ]
+      },
+      {
+        "config": "omit-protect",
+        "team": "gen9championsvgc2026regmc-2679458155",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 3
+          }
+        ]
+      },
+      {
+        "config": "omit-priority",
+        "team": "gen9championsvgc2026regmcbo3-2684023224",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 5
+          }
+        ]
+      },
+      {
+        "config": "omit-weather",
+        "team": "gen9championsvgc2026regmcbo3-2680886402",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroark",
+            "slot": 5
+          }
+        ]
+      },
+      {
+        "config": "omit-weather",
+        "team": "gen9championsvgc2026regmcbo3-2681446822",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 0
+          }
+        ]
+      },
+      {
+        "config": "omit-weather",
+        "team": "gen9championsvgc2026regmcbo3-2684023224",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 5
+          }
+        ]
+      },
+      {
+        "config": "omit-intimidate",
+        "team": "gen9championsvgc2026regmcbo3-2679403703",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 1
+          }
+        ]
+      },
+      {
+        "config": "omit-intimidate",
+        "team": "gen9championsvgc2026regmcbo3-2680886402",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroark",
+            "slot": 5
+          }
+        ]
+      },
+      {
+        "config": "omit-intimidate",
+        "team": "gen9championsvgc2026regmcbo3-2682094893",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 5
+          }
+        ]
+      },
+      {
+        "config": "omit-intimidate",
+        "team": "gen9championsvgc2026regmcbo3-2682752596",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 2
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2679403703",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 1
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2679658664",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 1
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2679730174",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 1
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2680177765",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 2
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2681126185",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 0
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2682563945",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 2
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2682567838",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 2
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2683904807",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 0
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmc-2678281589",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 3
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmc-2680116037",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 1
+          }
+        ]
+      },
+      {
+        "config": "pair-redirect-priority",
+        "team": "gen9championsvgc2026regmcbo3-2683475093",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 5
+          }
+        ]
+      },
+      {
+        "config": "pair-speedctrl",
+        "team": "gen9championsvgc2026regmcbo3-2679730174",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 1
+          }
+        ]
+      }
+    ],
+    "by": "Will",
+    "on": "2026-08-11",
+    "authority": "ROADMAP #160",
+    "why": "OUR shelf, not the format's: zoroark is isNonstandard:null and legal to bring. ROADMAP #160 — Illusion is in the closet because a body pretending to be another body makes every divergence it causes unreadable as a rule defect. Derived from the ABILITY so a carrier added next regulation is covered without an edit. THE RULE IS APPLIED TO THE SHEET AND THE BATTLE BRINGS ONLY THE FIRST 4 BUILDABLE BODIES, so a team whose carrier sits past that index is dropped for a body that never enters either engine (see carrier_sheet_slot). Narrowing the rule would CHANGE THE SAMPLE and therefore the headline rate, so it is declared here and owed, not done quietly.",
+    "says": "26 team(s) dropped from the pool before pairing for carrying illusion (zoroark, zoroarkhisui)"
+  },
+  "games": 2,
+  "of_diverged": 2,
+  "pool_considered": 2,
+  "arms_in_dump": {
+    "shown": {
+      "middle": 2
+    },
+    "diverged_in_arm": {
+      "middle": 2
+    }
+  },
+  "divergences": [
+    {
+      "arm": "middle",
+      "config": "baseline",
+      "seed": "gen9championsvgc2026regmcbo3-2681884715 vs gen9championsvgc2026regmcbo3-2681855448",
+      "agreed_lines": 10,
+      "cls": "ordering",
+      "cause": "ordering :: |-enditem|p2b|whiteherb <> |-enditem|p1b|whiteherb",
+      "end_reason": "both engines ended the battle",
+      "ended_showdown": true,
+      "ended_medicham": true,
+      "final_roster": {
+        "mediResult": 0,
+        "medicham": {
+          "p1": [
+            {
+              "name": "hatterene",
+              "key": "hatterene",
+              "hp": 0,
+              "fainted": true,
+              "faintSeq": 2110,
+              "where": "active"
+            },
+            {
+              "name": "incineroar",
+              "key": "incineroar",
+              "hp": 0,
+              "fainted": true,
+              "faintSeq": 2111,
+              "where": "active"
+            }
+          ],
+          "p2": [
+            {
+              "name": "incineroar",
+              "key": "incineroar",
+              "hp": 61,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            },
+            {
+              "name": "rillaboom",
+              "key": "rillaboom",
+              "hp": 138,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            },
+            {
+              "name": "basculegion",
+              "key": "basculegion",
+              "hp": 195,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "bench"
+            }
+          ]
+        },
+        "showdown": {
+          "p1": {
+            "pokemonLeft": 0,
+            "teamSize": 4,
+            "mons": [
+              {
+                "name": "hatterene",
+                "key": "hatterene",
+                "hp": 0,
+                "fainted": true,
+                "where": "active",
+                "isActive": false
+              },
+              {
+                "name": "incineroar",
+                "key": "incineroar",
+                "hp": 0,
+                "fainted": true,
+                "where": "active",
+                "isActive": false
+              },
+              {
+                "name": "farigiraf",
+                "key": "farigiraf",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench",
+                "isActive": false
+              },
+              {
+                "name": "indeedeef",
+                "key": "indeedeef",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench",
+                "isActive": false
+              }
+            ]
+          },
+          "p2": {
+            "pokemonLeft": 3,
+            "teamSize": 4,
+            "mons": [
+              {
+                "name": "incineroar",
+                "key": "incineroar",
+                "hp": 61,
+                "fainted": false,
+                "where": "active",
+                "isActive": true
+              },
+              {
+                "name": "rillaboom",
+                "key": "rillaboom",
+                "hp": 138,
+                "fainted": false,
+                "where": "active",
+                "isActive": true
+              },
+              {
+                "name": "farigiraf",
+                "key": "farigiraf",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench",
+                "isActive": false
+              },
+              {
+                "name": "basculegion",
+                "key": "basculegion",
+                "hp": 195,
+                "fainted": false,
+                "where": "bench",
+                "isActive": false
+              }
+            ]
+          },
+          "winner": "B"
+        }
+      },
+      "at": {
+        "showdown_raw": "|-enditem|p2b: Incineroar|White Herb",
+        "medicham_raw": "|-enditem|p1b: Incineroar|whiteherb",
+        "showdown": "|-enditem|p2b:incineroar|whiteherb",
+        "medicham": "|-enditem|p1b:incineroar|whiteherb"
+      },
+      "before": [
+        "|switch|p1a:farigiraf|farigiraf,l50|195/195",
+        "|switch|p1b:incineroar|incineroar,l50|170/170",
+        "|switch|p2a:farigiraf|farigiraf,l50|195/195",
+        "|switch|p2b:incineroar|incineroar,l50|170/170",
+        "|-ability|p2b:incineroar|intimidate|boost",
+        "|-unboost|p1a:farigiraf|atk|1",
+        "|-unboost|p1b:incineroar|atk|1",
+        "|-ability|p1b:incineroar|intimidate|boost",
+        "|-unboost|p2a:farigiraf|atk|1",
+        "|-unboost|p2b:incineroar|atk|1"
+      ],
+      "before_raw": [
+        "|switch|p1a: Farigiraf|farigiraf, L50|195/195",
+        "|switch|p1b: Incineroar|incineroar, L50|170/170",
+        "|switch|p2a: Farigiraf|farigiraf, L50|195/195",
+        "|switch|p2b: Incineroar|incineroar, L50|170/170",
+        "|-ability|p2b: Incineroar|intimidate|boost",
+        "|-unboost|p1a: Farigiraf|atk|1",
+        "|-unboost|p1b: Incineroar|atk|1",
+        "|-ability|p1b: Incineroar|intimidate|boost",
+        "|-unboost|p2a: Farigiraf|atk|1",
+        "|-unboost|p2b: Incineroar|atk|1"
+      ],
+      "after": {
+        "showdown": [
+          "|-enditem|p2b: Incineroar|White Herb",
+          "|-clearnegativeboost|p2b: Incineroar|[silent]",
+          "|-enditem|p1b: Incineroar|White Herb",
+          "|-clearnegativeboost|p1b: Incineroar|[silent]",
+          "|turn|1"
+        ],
+        "medicham": [
+          "|-enditem|p1b: Incineroar|whiteherb",
+          "|-clearnegativeboost|p1b: Incineroar|[silent]",
+          "|-enditem|p2b: Incineroar|whiteherb",
+          "|-clearnegativeboost|p2b: Incineroar|[silent]"
+        ]
+      }
+    },
+    {
+      "arm": "middle",
+      "config": "omit-weather",
+      "seed": "gen9championsvgc2026regmcbo3-2684772479 vs gen9championsvgc2026regmcbo3-2684878616",
+      "agreed_lines": 21,
+      "cls": "ordering",
+      "cause": "ordering :: |-heal|p1a|H/H|[from]grassyterrain <> |-heal|p2a|H/H|[from]grassyterrain",
+      "end_reason": "both engines ended the battle",
+      "ended_showdown": true,
+      "ended_medicham": true,
+      "final_roster": {
+        "mediResult": 1,
+        "medicham": {
+          "p1": [
+            {
+              "name": "salamencemega",
+              "key": "salamence",
+              "hp": 70,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            },
+            {
+              "name": "milotic",
+              "key": "milotic",
+              "hp": 170,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            }
+          ],
+          "p2": [
+            {
+              "name": "incineroar",
+              "key": "incineroar",
+              "hp": 0,
+              "fainted": true,
+              "faintSeq": 5206,
+              "where": "active"
+            },
+            {
+              "name": "basculegion",
+              "key": "basculegion",
+              "hp": 0,
+              "fainted": true,
+              "faintSeq": 5205,
+              "where": "active"
+            }
+          ]
+        },
+        "showdown": {
+          "p1": {
+            "pokemonLeft": 2,
+            "teamSize": 4,
+            "mons": [
+              {
+                "name": "salamencemega",
+                "key": "salamence",
+                "hp": 70,
+                "fainted": false,
+                "where": "active",
+                "isActive": true
+              },
+              {
+                "name": "milotic",
+                "key": "milotic",
+                "hp": 170,
+                "fainted": false,
+                "where": "active",
+                "isActive": true
+              },
+              {
+                "name": "rillaboom",
+                "key": "rillaboom",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench",
+                "isActive": false
+              },
+              {
+                "name": "sneasler",
+                "key": "sneasler",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench",
+                "isActive": false
+              }
+            ]
+          },
+          "p2": {
+            "pokemonLeft": 0,
+            "teamSize": 4,
+            "mons": [
+              {
+                "name": "incineroar",
+                "key": "incineroar",
+                "hp": 0,
+                "fainted": true,
+                "where": "active",
+                "isActive": false
+              },
+              {
+                "name": "basculegion",
+                "key": "basculegion",
+                "hp": 0,
+                "fainted": true,
+                "where": "active",
+                "isActive": false
+              },
+              {
+                "name": "rillaboom",
+                "key": "rillaboom",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench",
+                "isActive": false
+              },
+              {
+                "name": "garchompmegaz",
+                "key": "garchomp",
+                "hp": 0,
+                "fainted": true,
+                "where": "bench",
+                "isActive": false
+              }
+            ]
+          },
+          "winner": "A"
+        }
+      },
+      "at": {
+        "showdown_raw": "|-heal|p1a: Rillaboom|147/175|[from] Grassy Terrain",
+        "medicham_raw": "|-heal|p2a: Rillaboom|168/175|[from] Grassy Terrain",
+        "showdown": "|-heal|p1a:rillaboom|147/175|[from]grassyterrain",
+        "medicham": "|-heal|p2a:rillaboom|168/175|[from]grassyterrain"
+      },
+      "before": [
+        "|-enditem|p1b:sneasler|grassyseed",
+        "|-boost|p1b:sneasler|def|1",
+        "|-ability|p2b:incineroar|intimidate|boost",
+        "|-unboost|p1a:rillaboom|atk|1",
+        "|-unboost|p1b:sneasler|atk|1",
+        "|turn|1",
+        "|move|p1b:sneasler|protect",
+        "|-singleturn|p1b:sneasler|protect",
+        "|move|p2a:rillaboom|fakeout",
+        "|-damage|p1a:rillaboom|137/175",
+        "|-damage|p2a:rillaboom|158/175|[from]lifeorb",
+        "|cant|p1a:rillaboom|flinch",
+        "|move|p2b:incineroar|partingshot",
+        "|-unboost|p1a:rillaboom|atk|1",
+        "|-unboost|p1a:rillaboom|spa|1",
+        "|switch|p2b:basculegion|basculegion,l50|195/195"
+      ],
+      "before_raw": [
+        "|-enditem|p1b: Sneasler|grassyseed",
+        "|-boost|p1b: Sneasler|def|1|[from] item: grassyseed",
+        "|-ability|p2b: Incineroar|intimidate|boost",
+        "|-unboost|p1a: Rillaboom|atk|1",
+        "|-unboost|p1b: Sneasler|atk|1",
+        "|turn|1",
+        "|move|p1b: Sneasler|protect|p1b: Sneasler",
+        "|-singleturn|p1b: Sneasler|Protect",
+        "|move|p2a: Rillaboom|fakeout|p1a: Rillaboom",
+        "|-damage|p1a: Rillaboom|137/175",
+        "|-damage|p2a: Rillaboom|158/175|[from] item: Life Orb",
+        "|cant|p1a: Rillaboom|flinch",
+        "|move|p2b: Incineroar|partingshot|p1a: Rillaboom",
+        "|-unboost|p1a: Rillaboom|atk|1",
+        "|-unboost|p1a: Rillaboom|spa|1",
+        "|switch|p2b: Basculegion|basculegion, L50|195/195|[from] partingshot"
+      ],
+      "after": {
+        "showdown": [
+          "|-heal|p1a: Rillaboom|147/175|[from] Grassy Terrain",
+          "|-heal|p2a: Rillaboom|168/175|[from] Grassy Terrain",
+          "|upkeep",
+          "|turn|2"
+        ],
+        "medicham": [
+          "|-heal|p2a: Rillaboom|168/175|[from] Grassy Terrain",
+          "|-heal|p1a: Rillaboom|147/175|[from] Grassy Terrain",
+          "|upkeep"
+        ]
+      }
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-24T15:42:33.479Z",
+  "generated": "2026-09-24T18:22:51.483Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:de38d17e15a2/credit:observed-effect/v1/nature:real",
   "games_requested": 1200,
@@ -52,7 +52,7 @@
       "damage_roll": "MINIMUM",
       "speed_tie": "to the EARLIER body",
       "games": 955,
-      "diverged": 3,
+      "diverged": 0,
       "threw": 0,
       "median_turns": 9,
       "end_reasons": {
@@ -67,18 +67,7 @@
         "negative": 1610,
         "click": 1105903
       },
-      "classes": [
-        {
-          "cls": "event missing from medicham2",
-          "games": 2,
-          "distinct_causes": 2
-        },
-        {
-          "cls": "ordering",
-          "games": 1,
-          "distinct_causes": 1
-        }
-      ]
+      "classes": []
     }
   ],
   "speed_ties": {
@@ -96,7 +85,7 @@
   },
   "games": 955,
   "turns_cap": 50,
-  "elapsed_s": 263.9,
+  "elapsed_s": 443.7,
   "credit_turn_profile": {
     "rows_with_any_credit": 270,
     "credits_with_no_turn_index": 0,
@@ -600,11 +589,11 @@
     "rates": {
       "with_megas": {
         "games": 949,
-        "diverged": 3
+        "diverged": 0
       },
       "control_same_pairs_no_stones": {
         "games": 949,
-        "diverged": 11
+        "diverged": 5
       },
       "pairs_with_no_stone_at_all": {
         "games": 6,
@@ -612,16 +601,16 @@
       },
       "whole_control_arm": {
         "games": 955,
-        "diverged": 11,
+        "diverged": 5,
         "note": "every stone stripped — this is what the 2026-08-06 run measured"
       }
     },
     "pairing_broken": 0,
     "cost_of_the_megas": {
       "stone_carrying_pairs": 949,
-      "mega_arm_parted_earlier": 1,
-      "mega_arm_parted_later": 11,
-      "parted_at_the_same_line": 937,
+      "mega_arm_parted_earlier": 0,
+      "mega_arm_parted_later": 5,
+      "parted_at_the_same_line": 944,
       "first_divergence_is_a_mega_line": 0,
       "first_divergence_is_a_detailschange_line": 0,
       "on_a_mega_line": [],
@@ -649,7 +638,7 @@
       {
         "id": "stat-attribution",
         "why": "a stat line's meaning is (body, stat, direction, amount). `[from] ability: X` and `[of] Y` say WHICH effect moved it, which the two engines tag inconsistently; the four fields that decide the board are kept.",
-        "lines_collapsed": 27554,
+        "lines_collapsed": 27560,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -664,7 +653,7 @@
       {
         "id": "source-tag",
         "why": "`[of] pXy` names the BODY behind an effect whose name is already carried by `[from]`. The two engines tag it inconsistently on -heal, -activate and -damage.",
-        "lines_collapsed": 152878,
+        "lines_collapsed": 152955,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -679,7 +668,7 @@
       {
         "id": "effect-namespace",
         "why": "Showdown writes an effect sometimes bare and sometimes namespaced — `|-sidestart|p1: A|Reflect` against this engine's `move: reflect`. The NAME is kept; only the namespace goes.",
-        "lines_collapsed": 516716,
+        "lines_collapsed": 516994,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -694,7 +683,7 @@
       {
         "id": "display-flags",
         "why": "`[silent]`, `[still]`, `[miss]` and `[spread]` are rendering hints. The state each one decorates is a separate event — `-miss` for a miss, `-prepare` for a charge, one `-damage` per body actually hit for a spread — and all of those are kept.",
-        "lines_collapsed": 152939,
+        "lines_collapsed": 153141,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -709,7 +698,7 @@
       {
         "id": "move-target-field",
         "why": "THE BIGGEST ONE, AND THE ONE THAT NEEDS THE ARGUMENT. A `|move|` line means \"this body used this move\". Showdown additionally names ONE nominal target plus `[spread]`; this engine names its own user on a spread move. WHO WAS ACTUALLY HIT is not in this field on either side — it is in the `-damage` / `-status` / `-unboost` / `-enditem` lines that follow, which are kept and compared body by body. A redirection bug is therefore caught one line later rather than not at all, and the `distinct` pair below is exactly that case.",
-        "lines_collapsed": 1117945,
+        "lines_collapsed": 1118667,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -724,7 +713,7 @@
       {
         "id": "switch-cause",
         "why": "a pivot switch is tagged `[from] U-turn` by Showdown; the pivot itself is the `|move|` line immediately before it, which is kept. The species and the HP on the switch line are kept.",
-        "lines_collapsed": 16580,
+        "lines_collapsed": 16586,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -737,7 +726,7 @@
         ]
       }
     ],
-    "total_lines_collapsed": 1984612,
+    "total_lines_collapsed": 1985903,
     "ability_lines": [
       {
         "body": "p1a:gardevoir",
@@ -2831,8 +2820,8 @@
         "body": "p1a:salamence",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 6527,
-        "medicham2": 6527,
+        "showdown": 6528,
+        "medicham2": 6528,
         "gap": 0
       },
       {
@@ -2847,8 +2836,8 @@
         "body": "p2a:salamence",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 4247,
-        "medicham2": 4247,
+        "showdown": 4248,
+        "medicham2": 4248,
         "gap": 0
       },
       {
@@ -2871,8 +2860,8 @@
         "body": "p2b:incineroar",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 3282,
-        "medicham2": 3282,
+        "showdown": 3283,
+        "medicham2": 3283,
         "gap": 0
       },
       {
@@ -2895,8 +2884,8 @@
         "body": "p2b:salamence",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 1561,
-        "medicham2": 1561,
+        "showdown": 1562,
+        "medicham2": 1562,
         "gap": 0
       },
       {
@@ -3135,8 +3124,8 @@
         "body": "p2a:aerodactyl",
         "ability": "unnerve",
         "tail": "",
-        "showdown": 184,
-        "medicham2": 184,
+        "showdown": 187,
+        "medicham2": 187,
         "gap": 0
       },
       {
@@ -3348,6 +3337,14 @@
         "gap": 0
       },
       {
+        "body": "p2b:arcanine",
+        "ability": "intimidate",
+        "tail": "boost",
+        "showdown": 55,
+        "medicham2": 55,
+        "gap": 0
+      },
+      {
         "body": "p1a:overqwil",
         "ability": "intimidate",
         "tail": "boost",
@@ -3369,14 +3366,6 @@
         "tail": "boost",
         "showdown": 54,
         "medicham2": 54,
-        "gap": 0
-      },
-      {
-        "body": "p2b:arcanine",
-        "ability": "intimidate",
-        "tail": "boost",
-        "showdown": 53,
-        "medicham2": 53,
         "gap": 0
       },
       {
@@ -4297,12 +4286,12 @@
     },
     "verdict": "the predicted DAMAGE bug does not reproduce — medicham2 prices both halves correctly because playerAction computes the range at CLICK time, before the item is stripped. AND THE ITEM DISPOSITION AGREES TOO: both engines record Colbur as EATEN, writing `[eat]` then `[weaken]` and setting lastItem/ateBerry, which the `last_item` and `ate_berry` board leaves have compared since 2026-09-10. This clause claimed the opposite until that date while the two `*_enditem` lists above it said otherwise."
   },
-  "diverged": 3,
+  "diverged": 0,
   "threw": 0,
   "mid_void": {
     "void_games": 1,
     "usable_games": 954,
-    "diverged_among_usable": 3,
+    "diverged_among_usable": 0,
     "void_game_tags": [
       {
         "config": "pair-speedctrl",
@@ -4313,7 +4302,7 @@
         "board_parted_at_turn": null
       }
     ],
-    "diverged_rate_over_usable": 0.0031,
+    "diverged_rate_over_usable": 0,
     "mid_battle_bound_at_install": true,
     "empty_address_games_counted_void": false,
     "overlap_floor": 0.9,
@@ -4324,7 +4313,7 @@
     "by_reason_detail": {
       "shared-addresses-agree": {
         "games": 954,
-        "diverged": 3,
+        "diverged": 0,
         "median_turns": 9,
         "max_turns": 50
       },
@@ -4826,18 +4815,7 @@
       "protocol_parted_during_turn1_board_identical_anyway": 0,
       "by_field": [],
       "by_cause": [],
-      "by_protocol_class": [
-        {
-          "cls": "event missing from medicham2",
-          "games": 2,
-          "board_identical_at_end_of_turn1": 2
-        },
-        {
-          "cls": "ordering",
-          "games": 1,
-          "board_identical_at_end_of_turn1": 1
-        }
-      ],
+      "by_protocol_class": [],
       "cases": [],
       "party_rows_suppressed_as_a_second_view_of_a_standing_body": 0,
       "display_name_lookups_that_missed": 5
@@ -4853,8 +4831,8 @@
     "void_games_counted_against_the_engine": false,
     "game_agreement": 1,
     "median_turn_of_first_board_divergence": null,
-    "protocol_diverged_games": 3,
-    "protocol_diverged_board_never_did": 3,
+    "protocol_diverged_games": 0,
+    "protocol_diverged_board_never_did": 0,
     "protocol_diverged_board_held_longer": 0,
     "board_parted_before_the_protocol_did": 0,
     "families": [],
@@ -5780,122 +5758,38 @@
           "NO-COMPARABLE-BOARD": 0,
           "THREW": 0
         },
-        "protocol_parted": 3,
-        "protocol_never_parted": 952,
+        "protocol_parted": 0,
+        "protocol_never_parted": 955,
         "of_the_games_whose_protocol_parted": {
-          "SAME-END-STATE": 3,
+          "SAME-END-STATE": 0,
           "DIFFERENT-END-STATE": 0,
           "ENDED-APART": 0,
           "NO-COMPARABLE-BOARD": 0,
           "THREW": 0
         },
         "of_the_games_whose_protocol_never_parted": {
-          "SAME-END-STATE": 952,
+          "SAME-END-STATE": 955,
           "DIFFERENT-END-STATE": 0,
           "ENDED-APART": 0,
           "NO-COMPARABLE-BOARD": 0,
           "THREW": 0
         },
-        "wording_rate_of_all_parted_games": 1,
-        "wording_rate_of_parted_games_with_a_comparable_end": 1,
-        "parted_games_with_a_comparable_end": 3,
-        "by_shape": [
-          {
-            "shape": "EMISSION",
-            "games": 2,
-            "verdicts": {
-              "SAME-END-STATE": 2,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            }
-          },
-          {
-            "shape": "RULE",
-            "games": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            }
-          }
-        ],
-        "by_cause": [
-          {
-            "cause": "ordering :: |-enditem|p2a|leppaberry|[eat] <> |-heal|p2:|H/H|[from]revivalblessing",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-end|p1b|fallenundefined <> |switch|p1b|swampertmega,l50|H/H",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-end|p2b|fallenundefined <> |move|p1a|highhorsepower",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          }
-        ],
+        "wording_rate_of_all_parted_games": null,
+        "wording_rate_of_parted_games_with_a_comparable_end": null,
+        "parted_games_with_a_comparable_end": 0,
+        "by_shape": [],
+        "by_cause": [],
         "by_cause_totals": {
-          "causes": 3,
-          "games": 3,
+          "causes": 0,
+          "games": 0,
           "BOARD_MATERIAL": 0,
-          "NARRATION_ONLY": 3,
+          "NARRATION_ONLY": 0,
           "UNKNOWN": 0,
           "games_board_material": 0,
           "games_board_material_same_turn": 0,
           "games_board_material_board_parted_later": 0,
           "games_board_material_board_parted_earlier": 0,
-          "games_narration_only": 3,
+          "games_narration_only": 0,
           "games_unknown": 0,
           "by_cause_reconciles": true,
           "bounded_by": "NARRATION-ONLY is bounded by board_state.js NOT_COMPARED (published in this artifact as end_state_not_compared) and by the turn cap: a board that would part after the cap reads as narration here."
@@ -6115,272 +6009,9 @@
     "bottom-tie-first: the STALL counter is on the corner as well, so both engines refuse a consecutive Protect under this pin and neither is guessing  [ROADMAP #222 — measured, the free-die variant was worse]",
     "bottom-tie-first: the RANGE form is untouched by the tie pin: random(2,5) — THE SLEEP DURATION — is 2"
   ],
-  "classes": [
-    {
-      "cls": "ordering",
-      "games": 1,
-      "causes": [
-        {
-          "cause": "ordering :: |-enditem|p2a|leppaberry|[eat] <> |-heal|p2:|H/H|[from]revivalblessing",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p2a: Pawmot|Pawmot, L50|145/145",
-            "|turn|2",
-            "|switch|p1b: Rillaboom|Rillaboom, L50|175/175",
-            "|move|p1a: Whimsicott|Tailwind|p1a: Whimsicott",
-            "|-sidestart|p1: A|move: Tailwind",
-            "|move|p2a: Pawmot|Revival Blessing|p2a: Pawmot"
-          ],
-          "sdAfter": [
-            "|-enditem|p2a: Pawmot|Leppa Berry|[eat]",
-            "|-activate|p2a: Pawmot|item: Leppa Berry|Revival Blessing|[consumed]",
-            "|-heal|p2: Rillaboom|87/175|[from] move: Revival Blessing",
-            "|move|p2b: Incineroar|Flare Blitz|p1a: Whimsicott",
-            "|-supereffective|p1a: Whimsicott|1",
-            "|-damage|p1a: Whimsicott|0 fnt",
-            "|faint|p1a: Whimsicott",
-            "|-damage|p2b: Incineroar|101/170|[from] Recoil",
-            "|-weather|SunnyDay|[upkeep]",
-            "|-heal|p2b: Incineroar|111/170|[from] Grassy Terrain"
-          ],
-          "meAfter": [
-            "|-heal|p2: Rillaboom|87/175|[from] move: revivalblessing",
-            "|-enditem|p2a: Pawmot|leppaberry|[eat]",
-            "|-activate|p2a: Pawmot|item: leppaberry|revivalblessing|[consumed]",
-            "|move|p2b: Incineroar|flareblitz|p1a: Whimsicott",
-            "|-supereffective|p1a: Whimsicott|1",
-            "|-damage|p1a: Whimsicott|0 fnt",
-            "|faint|p1a: Whimsicott",
-            "|-damage|p2b: Incineroar|101/170|[from] Recoil",
-            "|-weather|sunnyday|[upkeep]",
-            "|-heal|p2b: Incineroar|111/170|[from] Grassy Terrain"
-          ],
-          "species": "Pawmot",
-          "attribution": {
-            "showdown": [],
-            "medicham": [
-              "[from] move: revivalblessing"
-            ]
-          },
-          "example": {
-            "config": "baseline",
-            "seed": "gen9championsvgc2026regmcbo3-2680802524 vs gen9championsvgc2026regmcbo3-2680902499",
-            "turn": 2
-          },
-          "mentions": [
-            {
-              "kind": "items",
-              "id": "leppaberry",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 45
-            },
-            {
-              "kind": "conditions",
-              "id": "revivalblessing",
-              "legal": null,
-              "carriers": null,
-              "reachable": null,
-              "nonstandard": null,
-              "uses": null
-            },
-            {
-              "kind": "moves",
-              "id": "revivalblessing",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 748
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 748
-        }
-      ]
-    },
-    {
-      "cls": "event missing from medicham2",
-      "games": 2,
-      "causes": [
-        {
-          "cause": "event missing from medicham2 :: |-end|p1b|fallenundefined <> |switch|p1b|swampertmega,l50|H/H",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|-heal|p2b: Milotic|54/170|[from] Grassy Terrain",
-            "|-heal|p2b: Milotic|64/170|[from] item: Leftovers",
-            "|-heal|p1a: Rillaboom|99/175|[from] Grassy Terrain",
-            "|-heal|p1b: Kingambit|156/175|[from] Grassy Terrain",
-            "|upkeep",
-            "|turn|5"
-          ],
-          "sdAfter": [
-            "|-end|p1b: Kingambit|fallenundefined|[silent]",
-            "|switch|p1b: Swampert|Swampert-Mega, L50|61/175",
-            "|move|p2b: Milotic|Protect|p2b: Milotic",
-            "|-singleturn|p2b: Milotic|Protect",
-            "|move|p2a: Aerodactyl|Rock Slide|p1b: Swampert|[spread] p1a,p1b",
-            "|-resisted|p1b: Swampert|1",
-            "|-damage|p1a: Rillaboom|68/175",
-            "|-damage|p1b: Swampert|40/175",
-            "|move|p1a: Rillaboom|Wood Hammer|p2a: Aerodactyl",
-            "|-enditem|p2a: Aerodactyl|Focus Sash"
-          ],
-          "meAfter": [
-            "|switch|p1b: Swampert|swampert-mega, L50|61/175",
-            "|move|p2b: Milotic|protect|p2b: Milotic",
-            "|-singleturn|p2b: Milotic|Protect",
-            "|move|p2a: Aerodactyl|rockslide|p1b: Swampert",
-            "|-resisted|p1b: Swampert|1",
-            "|-damage|p1a: Rillaboom|68/175",
-            "|-damage|p1b: Swampert|40/175",
-            "|move|p1a: Rillaboom|woodhammer|p2a: Aerodactyl",
-            "|-enditem|p2a: Aerodactyl|focussash",
-            "|-damage|p2a: Aerodactyl|1/155"
-          ],
-          "species": "Kingambit",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-weather",
-            "seed": "gen9championsvgc2026regmcbo3-2680753653 vs gen9championsvgc2026regmcbo3-2680781897",
-            "turn": 5
-          },
-          "mentions": [
-            {
-              "kind": "species",
-              "id": "swampertmega",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": null
-        },
-        {
-          "cause": "event missing from medicham2 :: |-end|p2b|fallenundefined <> |move|p1a|highhorsepower",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|-crit|p2b: Kingambit",
-            "|-resisted|p1a: Rillaboom|1",
-            "|-damage|p2b: Kingambit|0 fnt",
-            "|-damage|p1a: Rillaboom|152/175",
-            "|-damage|p1b: Grimmsnarl|122/170",
-            "|faint|p2b: Kingambit"
-          ],
-          "sdAfter": [
-            "|-end|p2b: Kingambit|fallenundefined|[silent]",
-            "|move|p1a: Rillaboom|High Horsepower|p2a: Garchomp|[miss]",
-            "|-miss|p1a: Rillaboom|p2a: Garchomp",
-            "|-weather|none",
-            "|upkeep",
-            "|switch|p2b: Sneasler|Sneasler, L50|155/155",
-            "|turn|7"
-          ],
-          "meAfter": [
-            "|move|p1a: Rillaboom|highhorsepower|p2a: Garchomp",
-            "|-miss|p1a: Rillaboom|p2a: Garchomp",
-            "|-weather|none",
-            "|upkeep",
-            "|switch|p2b: Sneasler|sneasler, L50|155/155"
-          ],
-          "species": "Kingambit",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-intimidate",
-            "seed": "gen9championsvgc2026regmcbo3-2679731104 vs gen9championsvgc2026regmcbo3-2679711048",
-            "turn": 6
-          },
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "highhorsepower",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 12331
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 12331
-        }
-      ]
-    }
-  ],
+  "classes": [],
   "order_probe": [],
-  "first_divergences": [
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmcbo3-2680802524 vs gen9championsvgc2026regmcbo3-2680902499",
-      "index": 33,
-      "agreed_lines": 33,
-      "turn": 2,
-      "cls": "ordering",
-      "cause": "ordering :: |-enditem|p2a|leppaberry|[eat] <> |-heal|p2:|H/H|[from]revivalblessing",
-      "showdown": "|-enditem|p2a: Pawmot|Leppa Berry|[eat]",
-      "medicham": "|-heal|p2: Rillaboom|87/175|[from] move: revivalblessing",
-      "showdown_before": [
-        "|switch|p2a: Pawmot|Pawmot, L50|145/145",
-        "|turn|2",
-        "|switch|p1b: Rillaboom|Rillaboom, L50|175/175",
-        "|move|p1a: Whimsicott|Tailwind|p1a: Whimsicott",
-        "|-sidestart|p1: A|move: Tailwind",
-        "|move|p2a: Pawmot|Revival Blessing|p2a: Pawmot"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmcbo3-2680753653 vs gen9championsvgc2026regmcbo3-2680781897",
-      "index": 78,
-      "agreed_lines": 78,
-      "turn": 5,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-end|p1b|fallenundefined <> |switch|p1b|swampertmega,l50|H/H",
-      "showdown": "|-end|p1b: Kingambit|fallenundefined|[silent]",
-      "medicham": "|switch|p1b: Swampert|swampert-mega, L50|61/175",
-      "showdown_before": [
-        "|-heal|p2b: Milotic|54/170|[from] Grassy Terrain",
-        "|-heal|p2b: Milotic|64/170|[from] item: Leftovers",
-        "|-heal|p1a: Rillaboom|99/175|[from] Grassy Terrain",
-        "|-heal|p1b: Kingambit|156/175|[from] Grassy Terrain",
-        "|upkeep",
-        "|turn|5"
-      ]
-    },
-    {
-      "config": "omit-intimidate",
-      "seed": "gen9championsvgc2026regmcbo3-2679731104 vs gen9championsvgc2026regmcbo3-2679711048",
-      "index": 99,
-      "agreed_lines": 99,
-      "turn": 6,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-end|p2b|fallenundefined <> |move|p1a|highhorsepower",
-      "showdown": "|-end|p2b: Kingambit|fallenundefined|[silent]",
-      "medicham": "|move|p1a: Rillaboom|highhorsepower|p2a: Garchomp",
-      "showdown_before": [
-        "|-crit|p2b: Kingambit",
-        "|-resisted|p1a: Rillaboom|1",
-        "|-damage|p2b: Kingambit|0 fnt",
-        "|-damage|p1a: Rillaboom|152/175",
-        "|-damage|p1b: Grimmsnarl|122/170",
-        "|faint|p2b: Kingambit"
-      ]
-    }
-  ],
+  "first_divergences": [],
   "errors": [],
   "credit": {
     "policy": "observed-effect/v1",
@@ -22011,7 +21642,7 @@
     "driver_inputs": [
       {
         "file": "data/move-priors-regmc.json",
-        "read_from": "release 78fb4a85b1a0",
+        "read_from": "release aed9780fc4e3",
         "digest": "eab0c9b023df",
         "generated": "2026-09-21",
         "rows": 280,
@@ -22037,7 +21668,7 @@
         "rows": 48,
         "what": "the DECLARED SKIP LIST — every event medicham2 says it does not emit is removed from the Showdown side before alignment, so this decides what can count as a divergence",
         "derived_from_medicham2": "1e35c4df04aa",
-        "medicham2_played": "0ac4441bffc4"
+        "medicham2_played": "59ca4d2fcfea"
       }
     ],
     "driver_code": {
@@ -22069,18 +21700,18 @@
         "engine/board_state.js": "e1a59f82e80a",
         "engine/diff_swarm.js": "1c50526141d6",
         "engine/divergence_shape.js": "94b5c6548142",
-        "engine/effect_kind.js": "ad0ae817aac2",
-        "engine/empirical_driver.js": "4f2f2e1e6df6",
+        "engine/effect_kind.js": "10a7c982994f",
+        "engine/empirical_driver.js": "e6ad4a3a7b43",
         "engine/end_state_severity.js": "6cd7666b4a02",
         "engine/engine_release.js": "675f2ba369bd",
         "engine/fixture_legality.js": "42bb3443d333",
         "engine/game_differential.js": "0eb15a0b3fea",
         "engine/names.js": "ba54d547c0a0",
         "engine/run_stamp.js": "9b44ac36f0d1",
-        "engine/steering.js": "7c85e3d88fb2"
+        "engine/steering.js": "c61ad94ed8f0"
       },
       "digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content) — a line ending is not part of the instrument. `files_raw`/`raw_digest` carry the byte answer.",
-      "raw_digest": "79e9dcf0aeed",
+      "raw_digest": "eaf130366f51",
       "digest": "826ceca498e5",
       "unresolved": [
         "engine/game_differential.js -> ./tests/roster.js (does not resolve on disk)",
@@ -22099,9 +21730,9 @@
     "input_digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content)",
     "input_rows": 1024,
     "input_generated": "2026-09-24T14:57:42.761Z",
-    "input_live_digest": "a4f3f145cf49",
+    "input_live_digest": "ccd979c30997",
     "pinned": true,
-    "matches_live": false,
+    "matches_live": true,
     "selects_from": 952,
     "unmeasurable": 72,
     "credit": "observed-effect/v1 — a row is exercised when a board leaf in a family the tag's own params name changed across the turn, or when a declared negative case was reached and did not fire. A click alone counts for nothing. ROADMAP #91.",
@@ -22111,12 +21742,12 @@
     "team_store_pinned_to": "data/team-pool-frozen-regmc"
   },
   "baseline_comparability": null,
-  "engine_release": "78fb4a85b1a0",
-  "engine_release_cut": "2026-09-24T14:49:22.261Z",
-  "engine_release_cuts": 23,
+  "engine_release": "aed9780fc4e3",
+  "engine_release_cut": "2026-09-24T18:09:07.011Z",
+  "engine_release_cuts": 8,
   "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
   "source_digests": {
-    "engine/medicham2-browser.js": "0ac4441bffc4",
+    "engine/medicham2-browser.js": "59ca4d2fcfea",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "eacf05ff8d30",
     "engine/position_features.js": "bb71676d3669",
@@ -22146,7 +21777,7 @@
     "data/rollout-switch-census.json": "b8a5cee2f0a9",
     "engine/medicham_api.js": "1702ceba861d",
     "data/engine-data-regmc.js": "a6ad04e92d4e",
-    "data/tags-regmc.json": "cc833be25a3d",
+    "data/tags-regmc.json": "ac1a00fa40ee",
     "data/move-priors-regmc.json": "eab0c9b023df",
     "data/move-effects-regmc.js": "8c57407e7641"
   },

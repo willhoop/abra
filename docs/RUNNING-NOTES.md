@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.115.0] — 2026-09-24 — **Reg M-C lattices after the two narration fixes: 0 / 2 / 1 narration, 0 boards**
+- **What changed.** Measurement only. Release `aed9780fc4e3`, pin `ccd979c30997`, pool `data/team-pool-frozen-regmc`, `--games` 1200/1600/1900. `docs/_reports/2026-09-24-narration-last.md`.
+- **Measured.** Undeclared narration-only 0/955, 2/1266, 1/1497 (`data/game-differential-regmc.json`, `.g1600-regmc`, `.g1900-regmc`, `end_state[0].summary.by_cause_totals.games_narration_only`); board-material 0/954 usable, 0/1266, 0/1497. The 3 left: White Herb holder order (side order, not speed), a Grassy Terrain heal on an inferred tie, and the Emergency Exit game the harness cannot express.
+- **Basis.** unchanged.
+- **Supersedes.** ~~Reg M-C narration 3/955, 5/1266, 6/1497~~ (0.112.0 row).
+- **Owed to the next major.** none. Narration is still CANNOT-ANSWER until Will stamps a baseline or the 3 are fixed.
+
 ## [abra/regmc 0.114.1] — 2026-09-24 — **Two Supreme Overlord census rows expect `fallenundefined` at zero**
 - **What changed.** `tests/test-mechanics.js`: the zero arms of the two `boostsFromFallen` close rows require the authority's line instead of its absence.
 - **Measured.** Reg M-C census 1022 live / 2 missing on the 0.114.0 engine with the old rows; 1024 / 0 / 1024 with the new rows (`tests/test-mechanics.js --regulation regmc`; artifact not republished, the committed census stays the lattice pin).
