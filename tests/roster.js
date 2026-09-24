@@ -4363,7 +4363,22 @@ function quietLearner(o, ids) {
  * its corner is the exact inverse; both engines are pinned to it identically, so it is a different
  * corner of the same die and not a loosened one. */
 const BOTTOM_ARM = 'bottom-tie-first';
-const alwaysHits = m => (m.accuracy === true || m.accuracy === 100);
+/* THE CRIT DAMAGE MULTIPLIER, READ OFF THE FORMAT'S OWN `modifyDamage` (the Champions mod overrides it in
+ * `scripts`, so the mod's copy is asked first and the base simulator's second). Null when the line cannot
+ * be found, and every caller refuses rather than guessing. 2026-09-24, for the berry-eater's chip count. */
+const CRIT_DAMAGE_MULT = (() => {
+  const S = (dex.data && dex.data.Scripts) || {};
+  let fn = S.actions && S.actions.modifyDamage;
+  if (typeof fn !== 'function') {
+    try { fn = require(require(D('engine', 'showdown_path.js')).resolve() + '/dist/sim/battle-actions.js')
+      .BattleActions.prototype.modifyDamage; }
+    catch (err) { fn = null; console.error('  roster: the base simulator\'s modifyDamage could not be read ('
+      + String((err && err.message) || err).split('\n')[0] + ') — CRIT_DAMAGE_MULT is null and a crit-priced chip refuses'); }
+  }
+  const m = /critModifier\s*\|\|\s*\(\s*this\.battle\.gen\s*>=\s*6\s*\?\s*([\d.]+)/.exec(String(fn || ''));
+  return m ? +m[1] : null;
+})();
+const alwaysHits =m => (m.accuracy === true || m.accuracy === 100);
 function armFor(m) { return (alwaysHits(m) && !(m.critRatio > 1) && !m.willCrit) ? PRIMARY_ARM_ID : BOTTOM_ARM; }
 function armNote(m) {
   if (armFor(m) === PRIMARY_ARM_ID) return '';
@@ -6220,6 +6235,8 @@ function abilityScenario(e, C, kind) {
     /* 2026-09-23: A CARRIER THAT LEARNS NO U-TURN LEAVES BY SWITCHING. Altaria (Natural Cure) and Toxapex
      * (Regenerator) learn no self-switching move at all in this format; the ability reads the switch-out, not the
      * move that caused it, so the carrier's turn-2 exit is a plain switch to the bench body. */
+    /* PLACEHOLDER ONLY — the switch-out script is REBUILT below, once the control is chosen, because its turn-1
+     * click on side A slot 1 depends on WHICH body stands there (2026-09-24, see the block after the control choice). */
     script = [turn([click(hitThem.id, 0), click(hitThem.id, 1)], [IDLE, IDLE]),
               turn([IDLE, IDLE], [(!LEGAL_FIRST || learnsLegally(base.id, 'uturn')) ? click('uturn', 0) : { sw: benchSp.id }, click('uturn', 0)])];
   } else {
@@ -6322,6 +6339,44 @@ function abilityScenario(e, C, kind) {
       script = [turn([IDLE, IDLE], [C.tier === 'MEGA' ? { m: INERT, mega: true } : IDLE, IDLE])]
         .concat(script);
   }
+  /* ---- THE SWITCH-OUT SCRIPT IS BUILT HERE, ONCE THE BODY IN SIDE A SLOT 1 IS KNOWN — 2026-09-24 ----------
+   *
+   * TWO FIXTURE FAULTS, BOTH MEASURED ON RELEASES 7822a83cc49b (Reg M-B) AND ec377f6f8159 (Reg M-C):
+   *
+   *   (1) THE SUBJECT ARM THREW. Turn 1 handed side A slot 1 the aggressor's hit, and when the Skill Swap
+   *       lender stands in that slot (Gourgeist-Super, which learns no such hit) the click resolved to
+   *       `pass` and Showdown refused it: "Can't pass: Your Gourgeist must make a move". Both members
+   *       read COULD-NOT-STAGE. Slot 1 now clicks only a move the body standing there actually carries.
+   *
+   *   (2) NATURAL CURE WAS NEVER EXERCISED. Its last green (2e9db8bb11fd) moved ONE leaf family — the
+   *       ability field the control rewrites — because nothing ever put a status on the carrier, so the
+   *       cure had nothing to remove. So slot 1 now puts a MAJOR STATUS on the carrier: a Status-category
+   *       move DERIVED per body (the one it learns legally, not refused by the carrier's typing, 100
+   *       accuracy first, paralysis first because it writes no residual HP), with a precondition read off
+   *       SHOWDOWN's board that the status actually landed. A sub-100 carrier pins the row to
+   *       `bottom-tie-first`, which lands every sub-100 roll in BOTH engines — the same argument Belch rests on.
+   *       Regenerator is unaffected by the status (it reads HP) and keeps its chip.
+   *
+   * THE PARTNER STAYS THE NEGATIVE. It used to be chipped by slot 1; it is now chipped by slot 0 on a turn
+   * of its own, where the aggressor's hit reaches it, so a partner that pivots without the ability still
+   * has HP a wrongly-applied heal could restore. */
+  let soPlan = null;
+  if (kind === 'switchout') {
+    const a1Sp = controlKind === 'abilityswap' ? SWAPPER.species
+      : (controlKind === 'suppress' && gastroLender()) ? gastroLender().species : CAST.ATTACKER2().species;
+    const a1Carries = controlKind === 'abilityswap' ? (!LEGAL_FIRST || learnsLegally(SWAPPER.species, hitThem.id))
+      : !(controlKind === 'suppress' && gastroLender());
+    const st = switchOutStatusFor(a1Sp, dex.species.get(base.id));
+    const partnerTypes = dex.species.get(partnerId).types;
+    const chipPartner = dex.getImmunity(hitThem.type, partnerTypes) !== false;
+    const exit = turn([IDLE, IDLE], [(!LEGAL_FIRST || learnsLegally(base.id, 'uturn')) ? click('uturn', 0) : { sw: benchSp.id }, click('uturn', 0)]);
+    const turns = st
+      ? [turn([click(hitThem.id, 0), mclick(st.m, 0)], [IDLE, IDLE]),
+         turn([chipPartner ? click(hitThem.id, 1) : IDLE, IDLE], [IDLE, IDLE]), exit]
+      : [turn([click(hitThem.id, 0), a1Carries ? click(hitThem.id, 1) : IDLE], [IDLE, IDLE]), exit];
+    script = script.slice(0, script.length - 2).concat(turns);
+    soPlan = { status: st, statusTurn: script.length - (st ? 2 : 1), a1Sp };
+  }
   /* WHERE THE CARRIER STANDS depends on the arm. The residual arm needs it on the BENCH so it can
    * walk in mid-turn; every other arm leads with it. `subject` follows, because the control arm swaps
    * the ability on every body of that side carrying it and the ignored-leaf bookkeeping is keyed on
@@ -6347,6 +6402,9 @@ function abilityScenario(e, C, kind) {
     b1: partner,
     b2: onBench ? carrier : mon(benchSp.id, '', carrierAbility(benchSp) || '', [INERT]), script });
   sc.controlAbility = controlAbility;
+  /* the switch-out status click travels on the body that throws it, in BOTH arms (the Skill Swap control only
+   * ever APPENDS its move to this slot, so the status click survives into the control arm) */
+  if (soPlan && soPlan.status) sc.A[1] = { ...sc.A[1], moves: (sc.A[1].moves || []).concat([soPlan.status.m.id]) };
   /* WHETHER THE CONTROL ABILITY IS ITSELF ACTIVE, carried onto the entry and printed on any finding.
    * Bellibolt has Static, Electromorphosis and Damp and NOTHING QUIET, so Damp is controlled by
    * Electromorphosis and Electromorphosis by Static — and a delta between two live abilities cannot
@@ -6385,7 +6443,42 @@ function abilityScenario(e, C, kind) {
       + '; control = ' + (controlKind === 'abilityswap' ? controlNote
                         : controlKind === 'suppress' ? 'Gastro Acid suppression' : C.control)
       + (sc.controlQuiet ? '' : ' (NOT A QUIET ABILITY — see the caveat on any finding)')
-      + '; staged as ' + kind, scenario: sc, tier: C.tier, controlQuiet: sc.controlQuiet };
+      + '; staged as ' + kind
+      + (soPlan && soPlan.status ? '; ' + pretty(soPlan.a1Sp) + ' puts ' + soPlan.status.m.name + ' ('
+          + soPlan.status.m.status + ', ' + soPlan.status.acc + ' accuracy) on the carrier before it leaves'
+          + (soPlan.status.acc < 100 ? ' — pinned to ' + BOTTOM_ARM + ' so the roll lands in both engines' : '')
+        : kind === 'switchout' ? '; NO status click this body learns reaches the carrier, so a cure has nothing to act on' : ''),
+    scenario: sc, tier: C.tier, controlQuiet: sc.controlQuiet,
+    ...(soPlan && soPlan.status ? {
+      arm: soPlan.status.acc < 100 ? BOTTOM_ARM : undefined,
+      precondition: { turn: soPlan.statusTurn, why: 'SHOWDOWN\'s own board shows the carrier carrying `'
+          + soPlan.status.m.status + '` before it leaves — a status that never landed leaves a cure nothing to remove',
+        ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p2', 0);
+          return !!(A && idOf(A.species) === idOf(base.id) && idOf(String(A.status || '')) === idOf(soPlan.status.m.status)); }) } } : {}) };
+}
+
+/* A MAJOR STATUS FOR THE SWITCH-OUT CARRIER, DERIVED — 2026-09-24. Status-category only (a damaging carrier
+ * would add a second hit to a Regenerator reading), single-target, learned LEGALLY by the thrower, and not
+ * refused by the carrier's typing (move type, status and powder, all off the authority's own type chart).
+ * 100 accuracy first; paralysis first, because it writes no residual HP into a row that also reads HP. */
+function switchOutCures(e) { return typeof e.onSwitchOut === 'function' && /\b(?:cureStatus|clearStatus)\s*\(/.test(String(e.onSwitchOut)); }
+function switchOutStatusFor(throwerId, carrierSp) {
+  const RANK = ['par', 'brn', 'psn', 'tox'];
+  const types = carrierSp.types;
+  let best = null;
+  for (const m of dex.moves.all()) {
+    if (!m.exists || m.isNonstandard || m.category !== 'Status' || !RANK.includes(m.status)) continue;
+    if (!SCOPE.inScope('move', m.id)) continue;
+    if (!(m.target === 'normal' || m.target === 'any')) continue;
+    if (dex.getImmunity(m.type, types) === false || refusesStatusByType(types, m.status)
+        || (m.flags.powder && refusesStatusByType(types, 'powder'))) continue;
+    if (!learnsLegally(throwerId, m.id)) continue;
+    const acc = m.accuracy === true ? 100 : m.accuracy;
+    const key = [acc >= 100 ? 0 : 1, RANK.indexOf(m.status), -acc, m.id];
+    const lt = (a, b) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] < b[i]; return false; };
+    if (!best || lt(key, best.key)) best = { m, acc, key };
+  }
+  return best;
 }
 
 /* ---- WHAT THE AUTHORITY'S OWN `isGrounded` SAYS, PARSED RATHER THAN COPIED ----------------------
@@ -8802,22 +8895,68 @@ const RULES = [
       acc.cum += (+x.chance || 0);
       if (takes.includes(x)) acc.bar = acc.cum;
       return acc; }, { cum: 0, bar: 0 }).bar;
-    const clicks = contactClicksAt(C.species, atkSp);
-    if (!clicks.length) return cannot('no 100-accuracy physical CONTACT click exists that the '
+    /* ---- THE DIE PICKS A BRANCH, AND THE AGGRESSOR HAS TO TAKE THAT BRANCH — 2026-09-24 --------------
+     *
+     * EFFECT SPORE READ "THE STAGING IS INERT" IN BOTH REGULATIONS (7822a83cc49b, ec377f6f8159), and it was
+     * the fixture both times. The old test asked only that the die fall below the running total of the
+     * branches the aggressor takes. Effect Spore's cumulative roll is sleep / paralysis / poison in artifact
+     * order and the chosen die (Body Slam, turn 3, 0.2637) falls in the POISON band — and the body that
+     * actually threw it was not Dragapult: Effect Spore can write sleep, so the idle click stays Focus
+     * Energy, Dragapult cannot learn it, and the #318 restaging pass swapped in a Focus Energy learner —
+     * Archaludon under Reg M-B (Steel: refuses poison) and Rillaboom under Reg M-C (Grass: refuses the
+     * handler's POWDER gate, `source.runStatusImmunity('powder')`, carried on the tag as
+     * `attackerStatusImmunity`). Showdown rolled the coin, the aggressor refused it, and no board moved.
+     *
+     * So (1) the die must fall in a band whose status the aggressor takes (by the band it lands in, not by
+     * a running total), (2) the tag's own `attackerStatusImmunity` is asked of the aggressor's typing, and
+     * (3) when a band can write sleep the aggressor must also learn the Focus Energy idle, so the restaging
+     * pass has nothing to swap. CAST.ATTACKER is still asked first, so a member whose old fixture was
+     * sound keeps it byte for byte. A PRECONDITION reads the status off SHOWDOWN's board: if anything
+     * still refuses it, the row says so instead of reading inert. */
+    const codeOf = s => { const st = String(s || '').toLowerCase();
+      return st === 'paralysis' ? 'par' : st === 'poison' ? 'psn' : st === 'burn' ? 'brn'
+           : st === 'sleep' ? 'slp' : st === 'freeze' ? 'frz' : st; };
+    const bands = []; { let lo = 0; for (const x of p.inflicts) { const hi = lo + (+x.chance || 0);
+      bands.push({ lo, hi, st: codeOf(x.status) }); lo = hi; } }
+    const bandOf = die => bands.find(b => die >= b.lo && die < b.hi) || null;
+    const gate = p.attackerStatusImmunity ? String(p.attackerStatusImmunity) : null;
+    const takesSt = (sp, st) => dex.getImmunity(st, sp.types) !== false
+      && !(gate && dex.getImmunity(gate, sp.types) === false);
+    const needsIdle = bands.some(b => b.st === 'slp');
+    const aggressors = [atkSp].concat(CANDIDATES.filter(s => s.id !== atkSp.id && s.id !== idOf(C.species)
+      && buildableSpecies(s.id) && (!needsIdle || learnsLegally(s.id, INERT))));
+    let pick = null, aSp = null, aAb = null, band = null, clicks = [];
+    for (const sp of aggressors) {
+      if (sp !== atkSp && !bands.some(b => takesSt(sp, b.st))) continue;
+      if (sp === atkSp && needsIdle && !learnsLegally(sp.id, INERT)) continue;
+      const cl = contactClicksAt(C.species, sp);
+      if (sp === atkSp) clicks = cl;
+      const got = cl.find(c => { const b = bandOf(c.die); return b && takesSt(sp, b.st); });
+      if (got) { pick = got; aSp = sp; band = bandOf(got.die);
+        aAb = sp === atkSp ? CAST.ATTACKER().ability : carrierAbility(sp); break; }
+    }
+    if (!clicks.length && !pick) return cannot('no 100-accuracy physical CONTACT click exists that the '
       + 'aggressor can legally throw at ' + pretty(C.species) + ' without being immune to it, and '
       + 'contact is this ability\'s own trigger');
-    const pick = clicks.find(c => c.die < reach);
-    if (!pick) return cannot(noCoinWhy(clicks, reach, pretty(e.id)));
+    if (!pick) return cannot(noCoinWhy(clicks, reach, pretty(e.id)) + ' (and no other legal aggressor '
+      + 'that learns ' + (needsIdle ? 'the idle click and ' : '') + 'a contact click lands its die in a band it can take)');
     return stageAbility(e, C, { hpA: 6, hpB: 6, moves: [INERT], arm: LIVE_ARM,
       coin: [MIDE.seed, pick.turn, 'any', pick.mv.id, REACT_SLOT, 0].join('|'),
-      note: atkSp.name + ' clicks ' + pick.mv.name + ' at the carrier on turn(s) 1..' + pick.turn
+      note: aSp.name + ' clicks ' + pick.mv.name + ' at the carrier on turn(s) 1..' + pick.turn
           + '; the `' + LIVE_ARM + '` arm addresses the post-hit coin `'
           + [MIDE.seed, pick.turn, 'any', pick.mv.id, REACT_SLOT, 0].join('|') + '` = '
-          + pick.die.toFixed(4) + ', below the ' + (reach * 100).toFixed(1) + '% this ability can '
-          + 'reach on a ' + atkSp.name + ', so the roll is CHOSEN to come up rather than hoped at',
-      a0: mon(atkSp.id, '', CAST.ATTACKER().ability, [pick.mv.id]),
+          + pick.die.toFixed(4) + ', inside the `' + band.st + '` band [' + band.lo.toFixed(2) + ', '
+          + band.hi.toFixed(2) + ') of this ability\'s roll, a status ' + aSp.name + ' can take'
+          + (gate ? ' (and it passes the handler\'s `' + gate + '` gate)' : '')
+          + ', so the roll is CHOSEN to come up rather than hoped at',
+      a0: mon(aSp.id, '', aAb, [pick.mv.id]),
       script: Array.from({ length: pick.turn },
-                         () => turn([click(pick.mv.id, 0), IDLE], [IDLE, IDLE])) });
+                         () => turn([click(pick.mv.id, 0), IDLE], [IDLE, IDLE])),
+      precondition: { turn: pick.turn, why: 'SHOWDOWN\'s own board shows the aggressor carrying `' + band.st
+          + '` once the chosen coin has come up — a status the aggressor refused would leave the row inert '
+          + 'for a reason about the fixture',
+        ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p1', 0);
+          return !!(A && idOf(String(A.status || '')) === band.st); }) } });
   } },
 
 /* ---- 2. A HIT THAT PLANTS A VOLATILE ON THE ATTACKER BY CHANCE -----------------------------------
@@ -13697,7 +13836,25 @@ const RULES = [
   break: { why: 'the switch-out heal is skipped',
     patch: [["{const _hs=TAGS.param('ability',out.ability,'healsOnSwitchOut');",
              "{const _hs=null&&TAGS.param('ability',out.ability,'healsOnSwitchOut');"]] },
-  match(e) { if (!e.onSwitchOut) return null;
+  match(e) { if (!e.onSwitchOut || switchOutCures(e)) return null;
+    return abilityScenario(e, carrierFor(e), 'switchout'); } },
+
+/* ---- THE SWITCH-OUT CURE IS ITS OWN RULE BECAUSE IT NEEDS ITS OWN RED — 2026-09-24 --------------
+ *
+ * Natural Cure sat in `ability/switch-out` beside Regenerator, and that rule's one plant skips the HEAL. A
+ * rule's red demonstration stops at the first member that flips, so the cure could never be shown to have
+ * teeth by the heal plant — and its green was vacuous anyway: nothing had ever put a status on the carrier
+ * (the 2e9db8bb11fd green moved only the ability field the control itself rewrites). Same staging, same
+ * status click (see `switchOutScript` in `abilityScenario`); its own plant, aimed at the cure branch.
+ * MATCHED ON THE HANDLER'S SHAPE — an `onSwitchOut` that calls `cureStatus` or `clearStatus` — never on a name. */
+{ id: 'ability/switch-out-cures', kind: 'ability',
+  reads: 'onSwitchOut whose handler calls cureStatus or clearStatus',
+  why: 'the carrier is given a MAJOR STATUS (a derived Status-category click from side A slot 1, precondition '
+     + 'read off Showdown\'s board) and then leaves the field; the cure is read off the PARTY row because by '
+     + 'the boundary the body is on the bench. The Skill-Swap control leaves the status in place.',
+  break: { why: 'the switch-out cure is skipped, so the carrier keeps its status on the bench',
+    patch: [["if(_sot.does==='cure'){", "if(false&&_sot.does==='cure'){"]] },
+  match(e) { if (!e.onSwitchOut || !switchOutCures(e)) return null;
     return abilityScenario(e, carrierFor(e), 'switchout'); } },
 
 /* ---- THE PIN IS WHAT MAKES AN ACCURACY MODIFIER A BOARD LEAF — 2026-09-12 -----------------------
@@ -16272,10 +16429,26 @@ const RULES = [
      * count was computed one roll too generous, the body never crossed the half-HP line, the berry
      * was never eaten and the gate stayed shut. It did not read as a pass: `precondition.ok` said
      * THE PRECONDITION DID NOT LAND, which is the whole reason that check exists. */
+    /* AND UNDER THE BOTTOM ARM EVERY CRIT LANDS, SO THE CHIP IS A CRIT — 2026-09-24. Since #318 the eater is a
+     * legal learner of the move (Salazzle under Reg M-B, Toxtricity under Reg M-C), not the old bulky body, and
+     * Belch runs on `bottom-tie-first`. The chip count was priced WITHOUT the crit: two Crunches "61 a time into
+     * 143 HP" were really two crits, the second one KO'd the eater, its bench replacement was handed the
+     * eater's click, and Showdown refused `pass` ("Can't pass: Your Milotic must make a move") in both
+     * regulations. The multiplier is READ off the format's own `modifyDamage`, never typed, and the count must
+     * now also leave the eater STANDING — crossing half HP is useless to a body that faints doing it. */
+    const onBottom = arm === BOTTOM_ARM;
+    const critX = onBottom ? CRIT_DAMAGE_MULT : 1;
+    if (onBottom && !(critX > 1)) return cannot('the crit damage multiplier could not be read off this format\'s '
+      + '`modifyDamage`, and under ' + BOTTOM_ARM + ' every chip is a crit — the chip count cannot be priced');
     const per = Math.floor(maxRoll(dex.species.get(self ? CK.species : b0.species),
-                                   chip, eatSp) * 0.85);
+                                   chip, eatSp) * 0.85 * critX);
     const hp = flatL50(eatSp.baseStats).hp;
     const need = per > 0 ? Math.ceil((hp / 2) / per) : 0;
+    /* the eater must survive the last chip — 10% headroom for the rounding this estimate does not model */
+    if (need && need * per * 1.1 >= hp) return cannot('the derived chip ' + chip.name + ' deals ~' + per
+      + (onBottom ? ' (a crit, as every chip is on ' + BOTTOM_ARM + ')' : '') + ' into ' + pretty(eatSp.id)
+      + '\'s ' + hp + ' HP, so the ' + need + ' chip(s) that cross the half-HP line would also KO it — a body '
+      + 'that faints before it clicks cannot show the gate');
     /* SIX CHIP TURNS IS THE CEILING AND IT IS A COST DECISION, NOT A CORRECTNESS ONE. The chipper is
      * whichever quiet body the move's own type can be aimed at, which for a POISON move is not the
      * hardest hitter in the pool — Belch needs five. Each turn is two more games; the alternative is

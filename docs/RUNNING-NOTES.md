@@ -53,6 +53,27 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.104.0] — 2026-09-24 — **The roster stages Belch again; the berry-already-eaten red demonstration bites (both regulations)**
+- **What changed.** `tests/roster.js`, rule `move/needs-a-berry-already-eaten`: on `bottom-tie-first` the chip is a crit, so its count is priced with `CRIT_DAMAGE_MULT` (read off the format's `modifyDamage`, null → refuse) and must leave the eater standing. No engine byte moved.
+- **Measured.** Targeted runs, `--rule move/needs-a-berry-already-eaten --reds`: 4 of 4 FIRED-AND-BOARDS-MATCH on `7822a83cc49b` (Belch: Salazzle, one crit Crunch ~91 into 143 HP) and `ec377f6f8159` (Toxtricity, ~81 into 150); red demonstration CAUGHT via Belch (FIRED-AND-BOARDS-DIFFER on `party.hp`). Was Belch COULD-NOT-STAGE and the demonstration NOT CAUGHT in both 0.87.0 artifacts.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
+## [abra/regmc 0.103.0] — 2026-09-24 — **The roster stages Effect Spore again (both regulations)**
+- **What changed.** `tests/roster.js`, rule `ability/contact-statuses-the-attacker-by-chance`: the die must land in a band whose status the aggressor takes (typing and the tag's `attackerStatusImmunity`, here `powder`), the aggressor must learn the Focus Energy idle when a band can write sleep (so the #318 restaging pass does not swap it for an immune body), and a precondition reads the aggressor's status off Showdown's board. No engine byte moved.
+- **Measured.** Targeted runs, `--rule ability/contact-statuses-the-attacker-by-chance --reds`: 4 of 4 FIRED-AND-BOARDS-MATCH on `7822a83cc49b` and `ec377f6f8159` (Effect Spore: Beedrill, X-Scissor, coin 0.0139 in the `slp` band); plant CAUGHT via Effect Spore on `party.status`. Was COULD-NOT-STAGE ("THE STAGING IS INERT") in both 0.87.0 artifacts.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
+## [abra/regmc 0.102.0] — 2026-09-24 — **The roster stages Natural Cure and Regenerator again (both regulations)**
+- **What changed.** `tests/roster.js`, the switch-out fixture in `abilityScenario` and a new shape rule `ability/switch-out-cures` (an `onSwitchOut` calling `clearStatus`/`cureStatus`). Side A slot 1 no longer clicks a move its body does not carry (Showdown refused the resulting `pass`), and the carrier is given a derived major status before it leaves so Natural Cure has something to remove. No engine byte moved.
+- **Measured.** Targeted runs, `--only naturalcure,regenerator --reds`: both FIRED-AND-BOARDS-MATCH on `7822a83cc49b` (Reg M-B) and `ec377f6f8159` (Reg M-C); both plants CAUGHT (cure → DID-NOT-FIRE on `party.status`; heal → DID-NOT-FIRE on `party.hp`). Was COULD-NOT-STAGE (subject arm threw) in `data/verification/roster.abilities-7822a83cc49b.json` and `data/roster.abilities-regmc.json`. Full account `docs/_reports/2026-09-24-roster-staging.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published; the 0.87.0 gate reading's "3 COULD-NOT-STAGE" is re-read in the full-stage run.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 0.101.0] — 2026-09-24 — **Every engine `battleInit` hands the lead-in a stream; ROADMAP #310 closes (both regulations)**
 
 - **What changed.** Eight driver call sites that ran `battleInit` with no `rng` now pass an explicit seeded stream:
