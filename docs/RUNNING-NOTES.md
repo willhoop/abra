@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.112.0] — 2026-09-24 — **Both gates re-read on the merged engine: each fails ONE clause**
+- **What changed.** Measurement only. Releases `78fb4a85b1a0` / `fb8073869b72`. `docs/_reports/2026-09-24-gate-reread-merged.md`.
+- **Measured.** Reg M-C: 1 of 10 clauses fail. Narration CANNOT-ANSWER (no baseline) at 3/955, 5/1266 and 6/1497 undeclared (`data/game-differential-regmc.json`, `.g1600-regmc`, `.g1900-regmc`). Board-material 0/955, 0/1266, 0/1497. Roster abilities 210/214 and moves 510/511 (`data/roster.{abilities,moves}-regmc.json`). Census 1024 live (`data/mechanics-census-regmc.json`). Reg M-B: 1 of 10. #442 is RED (census 1004 committed, 1020 reproduced, parked at `data/verification/mechanics-census-fb8073869b72.json`). Board-material and narration 0 on 961/1069/1497.
+- **Basis.** unchanged.
+- **Supersedes.** ~~Reg M-C 5 of 10 failing; narration 6/12/9~~ (0.87.0 row). ~~Reg M-B 4 of 10 failing~~ (0.87.0 row).
+- **Owed to the next major.** The Reg M-B census figure 1,004 in the closed documents is superseded by 1,020 once Will decides the fold-in. The Reg M-C narration baseline is Will's call.
+
 ## [abra/regmc 0.111.4] — 2026-09-24 — **Three probes stop hard-coding Reg M-B's checkout**
 - **What changed.** The Mimicry, added-type and Reflect Type probes resolve their checkout through `engine/showdown_path.js`.
 - **Measured.** NO FIGURE. Reg M-C with `SHOWDOWN_PATH` unset: 3 of 3 CANNOT-ANSWER before, 3 of 3 exit 0 after; Reg M-B 3 of 3 exit 0.

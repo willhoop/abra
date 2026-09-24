@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-24T05:12:59.682Z",
+  "generated": "2026-09-24T16:08:07.530Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:de38d17e15a2/credit:observed-effect/v1/nature:real",
   "games_requested": 1350,
@@ -60,11 +60,11 @@
       },
       "turn1_boards_identical": 1069,
       "turn1_boards_reached": 1069,
-      "rows_credited": 279,
+      "rows_credited": 280,
       "credit_events": {
-        "effect": 623871,
+        "effect": 624619,
         "negative": 1149,
-        "click": 1263718
+        "click": 1265228
       },
       "classes": [
         {
@@ -90,9 +90,9 @@
   },
   "games": 1069,
   "turns_cap": 50,
-  "elapsed_s": 1287.8,
+  "elapsed_s": 325,
   "credit_turn_profile": {
-    "rows_with_any_credit": 279,
+    "rows_with_any_credit": 280,
     "credits_with_no_turn_index": 0,
     "deepest_first_credit_turn": 17,
     "by_first_turn": [
@@ -100,89 +100,95 @@
         "turn": 1,
         "rows_first_here": 245,
         "rows_first_by_here": 245,
-        "pct_of_credited": 87.81
+        "pct_of_credited": 87.5
       },
       {
         "turn": 2,
         "rows_first_here": 15,
         "rows_first_by_here": 260,
-        "pct_of_credited": 93.19
+        "pct_of_credited": 92.86
       },
       {
         "turn": 3,
         "rows_first_here": 4,
         "rows_first_by_here": 264,
-        "pct_of_credited": 94.62
+        "pct_of_credited": 94.29
       },
       {
         "turn": 4,
         "rows_first_here": 8,
         "rows_first_by_here": 272,
-        "pct_of_credited": 97.49
+        "pct_of_credited": 97.14
       },
       {
         "turn": 5,
         "rows_first_here": 1,
         "rows_first_by_here": 273,
-        "pct_of_credited": 97.85
+        "pct_of_credited": 97.5
       },
       {
         "turn": 6,
         "rows_first_here": 2,
         "rows_first_by_here": 275,
-        "pct_of_credited": 98.57
+        "pct_of_credited": 98.21
       },
       {
         "turn": 7,
         "rows_first_here": 1,
         "rows_first_by_here": 276,
-        "pct_of_credited": 98.92
+        "pct_of_credited": 98.57
       },
       {
         "turn": 8,
         "rows_first_here": 1,
         "rows_first_by_here": 277,
-        "pct_of_credited": 99.28
+        "pct_of_credited": 98.93
+      },
+      {
+        "turn": 10,
+        "rows_first_here": 1,
+        "rows_first_by_here": 278,
+        "pct_of_credited": 99.29
       },
       {
         "turn": 17,
         "rows_first_here": 2,
-        "rows_first_by_here": 279,
+        "rows_first_by_here": 280,
         "pct_of_credited": 100
       }
     ],
     "credit_events_by_turn": {
-      "1": 94666,
-      "2": 94244,
-      "3": 94587,
-      "4": 94810,
-      "5": 90869,
-      "6": 84644,
-      "7": 76905,
-      "8": 63726,
-      "9": 50847,
-      "10": 40140,
-      "11": 30558,
-      "12": 21616,
-      "13": 16348,
-      "14": 12065,
-      "15": 8880,
-      "16": 6653,
-      "17": 5001,
-      "18": 3238,
-      "19": 2788,
+      "1": 94976,
+      "2": 94336,
+      "3": 94676,
+      "4": 94884,
+      "5": 90935,
+      "6": 84728,
+      "7": 76986,
+      "8": 63795,
+      "9": 50909,
+      "10": 40183,
+      "11": 30592,
+      "12": 21632,
+      "13": 16364,
+      "14": 12073,
+      "15": 8887,
+      "16": 6656,
+      "17": 5003,
+      "18": 3239,
+      "19": 2790,
       "20": 1967,
       "21": 1368,
-      "22": 1112,
+      "22": 1114,
       "23": 954,
       "24": 650,
-      "25": 709,
+      "25": 711,
       "26": 734,
-      "27": 655,
+      "27": 659,
       "28": 507,
       "29": 467,
       "30": 407,
-      "31": 412,
+      "31": 414,
       "32": 298,
       "33": 149,
       "34": 127,
@@ -194,6 +200,7 @@
     ],
     "rows_first_credited_at_turn_9_or_later": [
       "move:flingsOwnItem",
+      "move:refusedByPseudoWeather",
       "move:sideBuff"
     ]
   },
@@ -5943,11 +5950,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 33644
+              "uses": 32810
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 33644
+          "max_uses": 32810
         }
       ]
     }
@@ -5979,14 +5986,16 @@
     "policy": "observed-effect/v1",
     "rule": "a census row is exercised when a board leaf in a family THE TAG'S OWN PARAMS NAME changed across the turn, in either engine, inside the scope of an entity that was in play; or when a blocking tag's declared negative case was reached and correctly did not fire. A click alone counts for NOTHING but an attempt.",
     "why": "Primarina clicked Haze on turn 1 into a board with zero boosts on it. Haze is a no-op there, the census marked it exercised, and because the census STEERS the sample a falsely credited row then steered every later run AWAY from testing it.",
-    "rows_with_an_observed_effect": 404,
-    "rows_that_can_be_witnessed_on_a_board": 437,
-    "rows_that_name_no_board_leaf": 499,
-    "rows_credited_by_a_connected_click_only": 475,
-    "rows_clicked_or_present_that_did_nothing": 15,
+    "rows_with_an_observed_effect": 408,
+    "rows_that_can_be_witnessed_on_a_board": 444,
+    "rows_that_name_no_board_leaf": 505,
+    "rows_credited_by_a_connected_click_only": 480,
+    "rows_clicked_or_present_that_did_nothing": 18,
     "rows_clicked_or_present_that_did_nothing_list": [
       "ability:clearsScreensOnEntry",
       "ability:clearsScreensOnEntry",
+      "move:groundsField",
+      "move:groundsField",
       "move:groundsField",
       "move:groundsField",
       "move:groundsField",
@@ -5998,6 +6007,7 @@
       "move:removesHazards",
       "move:removesHazards",
       "move:sharesHP",
+      "move:spendsOwnType",
       "move:spendsOwnType",
       "move:suppressesItems"
     ],
@@ -6630,9 +6640,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 468,
+        "credit": 624,
         "of_which": {
-          "effect": 1038,
+          "effect": 1384,
           "negative": 0,
           "click": 0
         },
@@ -7292,11 +7302,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 9,
+        "credit": 12,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 21
+          "click": 28
         },
         "attempts": 0
       },
@@ -7992,9 +8002,9 @@
         "from": [
           "the tag name matches taunt|forbidsstatusmoves"
         ],
-        "credit": 69,
+        "credit": 92,
         "of_which": {
-          "effect": 162,
+          "effect": 216,
           "negative": 0,
           "click": 0
         },
@@ -8009,9 +8019,9 @@
         "from": [
           "the tag name matches taunt|forbidsstatusmoves"
         ],
-        "credit": 69,
+        "credit": 92,
         "of_which": {
-          "effect": 162,
+          "effect": 216,
           "negative": 0,
           "click": 0
         },
@@ -8026,9 +8036,9 @@
         "from": [
           "the tag name matches taunt|forbidsstatusmoves"
         ],
-        "credit": 69,
+        "credit": 92,
         "of_which": {
-          "effect": 162,
+          "effect": 216,
           "negative": 0,
           "click": 0
         },
@@ -8595,9 +8605,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 2198,
+        "credit": 2355,
         "of_which": {
-          "effect": 4858,
+          "effect": 5205,
           "negative": 0,
           "click": 0
         },
@@ -8613,9 +8623,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 2198,
+        "credit": 2355,
         "of_which": {
-          "effect": 4858,
+          "effect": 5205,
           "negative": 0,
           "click": 0
         },
@@ -8631,9 +8641,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 2198,
+        "credit": 2355,
         "of_which": {
-          "effect": 4858,
+          "effect": 5205,
           "negative": 0,
           "click": 0
         },
@@ -8649,9 +8659,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 2198,
+        "credit": 2355,
         "of_which": {
-          "effect": 4858,
+          "effect": 5205,
           "negative": 0,
           "click": 0
         },
@@ -10307,11 +10317,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 42,
+        "credit": 84,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 91
+          "click": 182
         },
         "attempts": 0
       },
@@ -11572,11 +11582,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 9,
+        "credit": 12,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 21
+          "click": 28
         },
         "attempts": 0
       },
@@ -11587,11 +11597,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 9,
+        "credit": 12,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 21
+          "click": 28
         },
         "attempts": 0
       },
@@ -11976,9 +11986,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 2198,
+        "credit": 2355,
         "of_which": {
-          "effect": 4858,
+          "effect": 5205,
           "negative": 0,
           "click": 0
         },
@@ -12181,11 +12191,54 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 152,
+        "credit": 190,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 312
+          "click": 390
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:changesTargetType",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 190,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 390
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:changesTargetType",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 190,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 390
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:spendsOwnType",
+        "kind": "effect",
+        "families": [
+          "species"
+        ],
+        "from": [
+          "param key `becomes`"
+        ],
+        "credit": 0,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 0
         },
         "attempts": 0
       },
@@ -12747,6 +12800,19 @@
         "attempts": 0
       },
       {
+        "key": "ability:typeFollowsTerrain",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 0,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
         "key": "ability:formeFollowsWeather",
         "kind": "effect",
         "families": [
@@ -12929,11 +12995,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 152,
+        "credit": 190,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 312
+          "click": 390
         },
         "attempts": 0
       },
@@ -13779,11 +13845,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 152,
+        "credit": 190,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 312
+          "click": 390
         },
         "attempts": 0
       },
@@ -13844,11 +13910,139 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 649,
+        "credit": 1298,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1334
+          "click": 2668
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:firstTurnOnly",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 1298,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 2668
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:sealsMoves",
+        "kind": "effect",
+        "families": [
+          "encore",
+          "disable"
+        ],
+        "from": [
+          "the tag name matches encore|locksTarget|sealsMove"
+        ],
+        "credit": 2355,
+        "of_which": {
+          "effect": 5205,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:blocksHealing",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [
+          "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
+        ],
+        "credit": 12,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 28
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:locksTarget",
+        "kind": "effect",
+        "families": [
+          "encore",
+          "disable"
+        ],
+        "from": [
+          "the tag name matches encore|locksTarget|sealsMove"
+        ],
+        "credit": 624,
+        "of_which": {
+          "effect": 1384,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:cantUseTwice",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 84,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 182
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:groundsField",
+        "kind": "effect",
+        "families": [
+          "trickroom"
+        ],
+        "from": [
+          "param key `pseudoWeather`"
+        ],
+        "credit": 0,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:groundsField",
+        "kind": "effect",
+        "families": [
+          "trickroom"
+        ],
+        "from": [
+          "param key `pseudoWeather`"
+        ],
+        "credit": 0,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:forbidsStatusMoves",
+        "kind": "effect",
+        "families": [
+          "taunt"
+        ],
+        "from": [
+          "the tag name matches taunt|forbidsstatusmoves"
+        ],
+        "credit": 92,
+        "of_which": {
+          "effect": 216,
+          "negative": 0,
+          "click": 0
         },
         "attempts": 0
       },
@@ -14781,9 +14975,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 2198,
+        "credit": 2355,
         "of_which": {
-          "effect": 4858,
+          "effect": 5205,
           "negative": 0,
           "click": 0
         },
@@ -14799,9 +14993,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 2198,
+        "credit": 2355,
         "of_which": {
-          "effect": 4858,
+          "effect": 5205,
           "negative": 0,
           "click": 0
         },
@@ -14817,9 +15011,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 2198,
+        "credit": 2355,
         "of_which": {
-          "effect": 4858,
+          "effect": 5205,
           "negative": 0,
           "click": 0
         },
@@ -14978,9 +15172,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 2198,
+        "credit": 2355,
         "of_which": {
-          "effect": 4858,
+          "effect": 5205,
           "negative": 0,
           "click": 0
         },
@@ -15009,9 +15203,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 468,
+        "credit": 624,
         "of_which": {
-          "effect": 1038,
+          "effect": 1384,
           "negative": 0,
           "click": 0
         },
@@ -15027,9 +15221,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 2198,
+        "credit": 2355,
         "of_which": {
-          "effect": 4858,
+          "effect": 5205,
           "negative": 0,
           "click": 0
         },
@@ -16332,6 +16526,23 @@
         "attempts": 0
       },
       {
+        "key": "move:refusedByPseudoWeather",
+        "kind": "effect",
+        "families": [
+          "trickroom"
+        ],
+        "from": [
+          "param key `pseudoWeather`"
+        ],
+        "credit": 1,
+        "of_which": {
+          "effect": 1,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
         "key": "move:callRefusalFlags",
         "kind": "no-board-leaf",
         "families": [],
@@ -17366,9 +17577,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 2198,
+        "credit": 2355,
         "of_which": {
-          "effect": 4858,
+          "effect": 5205,
           "negative": 0,
           "click": 0
         },
@@ -18434,11 +18645,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 152,
+        "credit": 190,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 312
+          "click": 390
         },
         "attempts": 0
       },
@@ -18656,11 +18867,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 152,
+        "credit": 190,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 312
+          "click": 390
         },
         "attempts": 0
       },
@@ -19926,9 +20137,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 2198,
+        "credit": 2355,
         "of_which": {
-          "effect": 4858,
+          "effect": 5205,
           "negative": 0,
           "click": 0
         },
@@ -19997,9 +20208,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 2198,
+        "credit": 2355,
         "of_which": {
-          "effect": 4858,
+          "effect": 5205,
           "negative": 0,
           "click": 0
         },
@@ -20015,9 +20226,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 2198,
+        "credit": 2355,
         "of_which": {
-          "effect": 4858,
+          "effect": 5205,
           "negative": 0,
           "click": 0
         },
@@ -20235,11 +20446,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 152,
+        "credit": 190,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 312
+          "click": 390
         },
         "attempts": 0
       },
@@ -20261,11 +20472,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 152,
+        "credit": 190,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 312
+          "click": 390
         },
         "attempts": 0
       },
@@ -20550,11 +20761,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 152,
+        "credit": 190,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 312
+          "click": 390
         },
         "attempts": 0
       },
@@ -20604,9 +20815,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 468,
+        "credit": 624,
         "of_which": {
-          "effect": 1038,
+          "effect": 1384,
           "negative": 0,
           "click": 0
         },
@@ -20657,13 +20868,13 @@
     ]
   },
   "coverage": {
-    "measurable": 936,
-    "exercised": 904,
+    "measurable": 949,
+    "exercised": 916,
     "exercised_note": "THE OLD NUMBER — an entity of this row connected or stood on the field. It is kept so the drop to credit.rows_with_an_observed_effect is readable, and it is NOT the coverage claim any more.",
-    "exercised_by_a_connected_move": 536,
-    "move_targets": 547,
+    "exercised_by_a_connected_move": 548,
+    "move_targets": 559,
     "present_on_the_field_only": 368,
-    "ability_or_item_targets": 389,
+    "ability_or_item_targets": 390,
     "median_completed_turns_before_divergence": 9,
     "unmeasurable_by_this_instrument": [
       {
@@ -20716,6 +20927,10 @@
       },
       {
         "key": "move:targetsASlot",
+        "why": "names"
+      },
+      {
+        "key": "ability:convertsMoveTypeExcept",
         "why": "names"
       },
       {
@@ -20956,6 +21171,7 @@
       "ability:fractionalPriority",
       "ability:addsOwnSecondary",
       "move:guaranteesNextMove",
+      "ability:typeFollowsTerrain",
       "ability:typeFollowsTerrain",
       "ability:inheritsAllyAbility",
       "move:boostsAlliesWithAbility",
@@ -21371,7 +21587,7 @@
     "driver_inputs": [
       {
         "file": "data/move-priors.json",
-        "read_from": "release 7822a83cc49b",
+        "read_from": "release fb8073869b72",
         "digest": "e667fe8ab457",
         "generated": "2026-08-22",
         "rows": 345,
@@ -21397,7 +21613,7 @@
         "rows": 48,
         "what": "the DECLARED SKIP LIST — every event medicham2 says it does not emit is removed from the Showdown side before alignment, so this decides what can count as a divergence",
         "derived_from_medicham2": "1e35c4df04aa",
-        "medicham2_played": "b0e25d70943c"
+        "medicham2_played": "0ac4441bffc4"
       }
     ],
     "driver_code": {
@@ -21418,9 +21634,9 @@
         "engine/effect_kind.js": "10a7c982994f",
         "engine/empirical_driver.js": "e6ad4a3a7b43",
         "engine/end_state_severity.js": "6cd7666b4a02",
-        "engine/engine_release.js": "eb76aba46bee",
+        "engine/engine_release.js": "675f2ba369bd",
         "engine/fixture_legality.js": "3dcb1fd37648",
-        "engine/game_differential.js": "fa9545187558",
+        "engine/game_differential.js": "0eb15a0b3fea",
         "engine/names.js": "ba54d547c0a0",
         "engine/run_stamp.js": "9b44ac36f0d1",
         "engine/steering.js": "c61ad94ed8f0"
@@ -21432,16 +21648,16 @@
         "engine/effect_kind.js": "ad0ae817aac2",
         "engine/empirical_driver.js": "4f2f2e1e6df6",
         "engine/end_state_severity.js": "6cd7666b4a02",
-        "engine/engine_release.js": "eb76aba46bee",
+        "engine/engine_release.js": "675f2ba369bd",
         "engine/fixture_legality.js": "42bb3443d333",
-        "engine/game_differential.js": "fa9545187558",
+        "engine/game_differential.js": "0eb15a0b3fea",
         "engine/names.js": "ba54d547c0a0",
         "engine/run_stamp.js": "9b44ac36f0d1",
         "engine/steering.js": "7c85e3d88fb2"
       },
       "digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content) — a line ending is not part of the instrument. `files_raw`/`raw_digest` carry the byte answer.",
-      "raw_digest": "c63d89b9a0c7",
-      "digest": "64a2dc4f5568",
+      "raw_digest": "79e9dcf0aeed",
+      "digest": "826ceca498e5",
       "unresolved": [
         "engine/game_differential.js -> ./tests/roster.js (does not resolve on disk)",
         "engine/game_differential.js -> ./engine/\n * game_differential.js (does not resolve on disk)",
@@ -21453,17 +21669,17 @@
       "does_not_cover": "a computed require path, a dynamic import, the Showdown checkout beyond `showdown_commit`, and data/protocol-events.json (read as data, not required)."
     },
     "input": "data/mechanics-census.json",
-    "input_read_from": "data/verification/census-pin-9250024640bf.json",
-    "input_digest": "9250024640bf",
-    "input_raw_digest": "9250024640bf",
+    "input_read_from": "data/verification/census-pin-8fe58c13659e.json",
+    "input_digest": "8fe58c13659e",
+    "input_raw_digest": "8fe58c13659e",
     "input_digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content)",
-    "input_rows": 1006,
-    "input_generated": "2026-09-24T04:11:11.555Z",
-    "input_live_digest": "9250024640bf",
+    "input_rows": 1020,
+    "input_generated": "2026-09-24T15:57:56.830Z",
+    "input_live_digest": "8fe58c13659e",
     "pinned": true,
     "matches_live": true,
-    "selects_from": 936,
-    "unmeasurable": 70,
+    "selects_from": 949,
+    "unmeasurable": 71,
     "credit": "observed-effect/v1 — a row is exercised when a board leaf in a family the tag's own params name changed across the turn, or when a declared negative case was reached and did not fire. A click alone counts for nothing. ROADMAP #91.",
     "team_pool_digest": "7e7a37ded7fc",
     "team_pool_teams": 8778,
@@ -21471,14 +21687,14 @@
     "team_store_pinned_to": "data/team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "7822a83cc49b",
-  "engine_release_cut": "2026-09-24T01:32:27.912Z",
-  "engine_release_cuts": 3,
+  "engine_release": "fb8073869b72",
+  "engine_release_cut": "2026-09-24T14:56:01.812Z",
+  "engine_release_cuts": 1,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "b0e25d70943c",
+    "engine/medicham2-browser.js": "0ac4441bffc4",
     "engine/board.js": "c85a3b756c98",
-    "engine/rollout_leaf.js": "a68f159b6d5c",
+    "engine/rollout_leaf.js": "eacf05ff8d30",
     "engine/position_features.js": "bb71676d3669",
     "engine/tags.js": "5a57b5020d15",
     "engine/champions_sim.js": "8094725f52a8",
@@ -21497,13 +21713,14 @@
     "data/regulations.json": "6c7c3e3dd06c",
     "data/quality-filter.json": "042524dd1df7",
     "data/engine-data.js": "bbc417dfae0e",
-    "data/abra-tags.js": "756f4ac8350d",
-    "data/tags.json": "4535d8829442",
+    "data/abra-tags.js": "fc30f9a9392e",
+    "data/tags.json": "26ee107ce6a8",
     "data/policy-weights.json": "626c1d240782",
     "data/policy-weights-joint.json": "e2aca467ff04",
     "data/move-priors.json": "e667fe8ab457",
     "engine/pp.js": "30b12a4ef623",
-    "data/rollout-switch-census.json": "b599f8d581b5"
+    "data/rollout-switch-census.json": "b599f8d581b5",
+    "engine/medicham_api.js": "1702ceba861d"
   },
   "driver_code_stable": true
 }

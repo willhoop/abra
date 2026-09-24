@@ -1,3 +1,18 @@
+## BOTH GATES RE-READ ON THE MERGED ENGINE: REG M-C 1 OF 10 FAILS, REG M-B 1 OF 10 FAILS. 2026-09-24 (abra/regmc 0.111.2 – 0.112.0)
+
+- Releases `78fb4a85b1a0` (Reg M-C) and `fb8073869b72` (Reg M-B), pass-10 protocol. Board-material is 0 on every lattice
+  of both regulations. Damage is 0/6000. Every roster stage passes, with 0 COULD-NOT-STAGE (Effect Spore, Natural Cure,
+  Regenerator and Belch now stage). Mechanics-staged passes in both regulations (Pixilate and Refrigerate no longer part).
+- **Reg M-C's one red: NARRATION CANNOT-ANSWER.** No baseline has been stamped. Undeclared narration-only games are
+  3/955, 5/1266 and 6/1497: the Revival Blessing / Leppa ordering, and Showdown's `-end … fallenundefined` that MEDICHAM
+  does not write. **Reg M-B's one red: #442.** The committed census reads 1004 and the tree reproduces 1020 (UNDERCLAIM).
+  Republishing it is Will's call. Report `docs/_reports/2026-09-24-gate-reread-merged.md`.
+- Hand list: **the merge pass's owed items leave it.** `tag_dex` Reg M-B exit 1 (0.111.2, root-caused: a tag empty
+  because its members are out of this regulation is now derived as inapplicable and named), the four Gravity knobs
+  in `DELIBERATE_BREAK` (0.111.3), and the three probes on Reg M-B's checkout (0.111.4). **Still on it:** the one
+  unexplained `probe_bounced_fail_names_bouncer` red. It is 5 of 5 green and deterministic. The "torn pointer" reading is
+  refuted, because the probe cuts its own release through `game_differential.js`. And the two Reg M-C narration causes above.
+
 ## A TYPE SPEND CLEARS THE ADDED TYPE: BURN UP (BOTH REGULATIONS), DOUBLE SHOCK (REG M-C). 2026-09-24 (abra/regmc 0.111.0)
 
 - Both `spendsOwnType` sites map the BASE list (`getTypes(true)`) through `spentOwnTypes`, so the spend drops the
@@ -2169,13 +2184,11 @@ has zeroed.
 ```
 ENGINE — does the simulator do what Pokémon does
   1004/1004 probed mechanics live, 0 missing   (census 2026-09-23 00:17)
-    the census probes what somebody thought to probe: 304 of 307 in-scope tags carry a probe, 3 carry none (9 of 316
+    the census probes what somebody thought to probe: 304 of 307 in-scope tags carry a probe, 3 carry none (20 of 327
     tags have no in-scope carrier); 0 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 1.4 days old). node engine/coverage.js
+    (all-mechanics-fire.json, 1.1 h old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    older than its input abra-tags.js
-    pinned to engine release 7822a83cc49b — engine/medicham2-browser.js matches the frozen copy; live is 0ac4441bffc4 now (a PRE-CHANGE measurement of that release, not corruption)
-    (+4 more — node engine/provenance.js)
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/fb8073869b72/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "fb8073869b72".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -2187,12 +2200,12 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 8af4bdbb88f4 now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 304/307 in-scope probed, 3 unprobed;  306/307 have an engine consumer on every in-scope row, 1 do not;  9 of 316 tags have no in-scope carrier
+  tag coverage: 304/307 in-scope probed, 3 unprobed;  307/307 have an engine consumer on every in-scope row, 0 do not;  20 of 327 tags have no in-scope carrier
     consumedBy comes from engine/tag_dex.js grepping board.js and medicham2-browser.js for a hint
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-24 10:03_
+_stamped 2026-09-24 13:29_
 
 <!-- /GENERATED -->
 

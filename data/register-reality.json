@@ -1,8 +1,8 @@
 {
-  "generated": "2026-09-24T07:24:51.003Z",
+  "generated": "2026-09-24T17:22:17.054Z",
   "by": "engine/register_reality.js",
   "tree_state": {
-    "head": "cf59f23a8979fc6a93c0072da8d5c2a64bb343a1",
+    "head": "980827341cf6e0920110e80789d0d22c40e3ce2f",
     "dirty_at_start": [
       "M data/all-mechanics-fire-regmc.json",
       "M data/all-mechanics-fire.json",
@@ -17,8 +17,10 @@
       "M data/game-differential.json",
       "M data/mechanics-census-regmc.json",
       "M data/mechanics-census.json",
+      "M data/provenance-stamp.json",
       "M data/published-samples-regmc.json",
       "M data/published-samples.json",
+      "M data/register-reality-regmc.json",
       "M data/roster.abilities-regmc.json",
       "M data/roster.abilities.json",
       "M data/roster.abilities.prev.json",
@@ -29,6 +31,11 @@
       "M data/roster.moves-regmc.json",
       "M data/roster.moves.json",
       "M data/roster.moves.prev.json",
+      "M docs/ENGINE.md",
+      "M docs/MEASURE.md",
+      "M docs/OPS.md",
+      "M docs/SEARCH.md",
+      "M docs/WEB.md",
       "M solver/LOG.md"
     ],
     "dirty_at_end": [
@@ -49,6 +56,7 @@
       "M data/provenance-stamp.json",
       "M data/published-samples-regmc.json",
       "M data/published-samples.json",
+      "M data/register-reality-regmc.json",
       "M data/roster.abilities-regmc.json",
       "M data/roster.abilities.json",
       "M data/roster.abilities.prev.json",
@@ -59,6 +67,11 @@
       "M data/roster.moves-regmc.json",
       "M data/roster.moves.json",
       "M data/roster.moves.prev.json",
+      "M docs/ENGINE.md",
+      "M docs/MEASURE.md",
+      "M docs/OPS.md",
+      "M docs/SEARCH.md",
+      "M docs/WEB.md",
       "M solver/LOG.md"
     ],
     "moved_during_the_run": true,
@@ -71,10 +84,10 @@
   "counts": {
     "register_rows": 539,
     "id_rows": 585,
-    "open_asserting_breakage": 20,
+    "open_asserting_breakage": 19,
     "marked": 205,
-    "open_asserting_breakage_and_marked": 2,
-    "stale_rows": 4,
+    "open_asserting_breakage_and_marked": 1,
+    "stale_rows": 3,
     "premature_closes": 10,
     "unrunnable": 3,
     "cannot_answer": 12,
@@ -354,7 +367,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 4514,
+      "ms": 1287,
       "verdict": "CONFIRMED"
     },
     {
@@ -368,7 +381,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29894,
+      "ms": 2409,
       "verdict": "CONFIRMED"
     },
     {
@@ -382,7 +395,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 142277,
+      "ms": 1794,
       "verdict": "CONFIRMED"
     },
     {
@@ -396,7 +409,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 17975,
+      "ms": 1481,
       "verdict": "CONFIRMED"
     },
     {
@@ -410,7 +423,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 37020,
+      "ms": 2541,
       "verdict": "CONFIRMED"
     },
     {
@@ -424,7 +437,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 1532,
+      "ms": 805,
       "verdict": "PREMATURE CLOSE"
     },
     {
@@ -438,7 +451,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1525,
+      "ms": 1221,
       "verdict": "CONFIRMED"
     },
     {
@@ -452,7 +465,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 108,
+      "ms": 66,
       "verdict": "CONFIRMED"
     },
     {
@@ -466,7 +479,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 85,
+      "ms": 60,
       "verdict": "CONFIRMED"
     },
     {
@@ -480,7 +493,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1020,
+      "ms": 617,
       "verdict": "CONFIRMED"
     },
     {
@@ -494,7 +507,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 357,
+      "ms": 268,
       "verdict": "CONFIRMED"
     },
     {
@@ -508,7 +521,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 357,
+      "ms": 268,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -523,7 +536,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 357,
+      "ms": 268,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -538,7 +551,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 908,
+      "ms": 699,
       "verdict": "CONFIRMED"
     },
     {
@@ -552,7 +565,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 908,
+      "ms": 699,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -567,7 +580,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 908,
+      "ms": 699,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -582,7 +595,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1833,
+      "ms": 1234,
       "verdict": "CONFIRMED"
     },
     {
@@ -596,7 +609,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1097,
+      "ms": 808,
       "verdict": "CONFIRMED"
     },
     {
@@ -610,7 +623,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1097,
+      "ms": 808,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -625,7 +638,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1097,
+      "ms": 808,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -640,7 +653,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1097,
+      "ms": 808,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -655,7 +668,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 822,
+      "ms": 648,
       "verdict": "CONFIRMED"
     },
     {
@@ -669,7 +682,7 @@
       "kind": "CANNOT-ANSWER",
       "declared": "CANNOT-ANSWER",
       "why": "exit 2 — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to report about this row, and a refusal is not evidence in either direction",
-      "ms": 19861,
+      "ms": 42335,
       "verdict": "INSTRUMENT CANNOT ANSWER"
     },
     {
@@ -683,7 +696,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1926,
+      "ms": 5113,
       "verdict": "CONFIRMED"
     },
     {
@@ -697,7 +710,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 85,
+      "ms": 200,
       "verdict": "CONFIRMED"
     },
     {
@@ -711,7 +724,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1926,
+      "ms": 5113,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -726,7 +739,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1563,
+      "ms": 4496,
       "verdict": "CONFIRMED"
     },
     {
@@ -740,7 +753,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1192,
+      "ms": 2969,
       "verdict": "CONFIRMED"
     },
     {
@@ -754,7 +767,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "verdict": "CONFIRMED"
     },
     {
@@ -768,7 +781,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 108,
+      "ms": 70,
       "verdict": "CONFIRMED"
     },
     {
@@ -782,7 +795,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1568,
+      "ms": 928,
       "verdict": "CONFIRMED"
     },
     {
@@ -796,7 +809,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 37020,
+      "ms": 2541,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -811,23 +824,23 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 37020,
+      "ms": 2541,
       "cached": true,
       "verdict": "CONFIRMED"
     },
     {
       "n": 310,
       "title": "EVERY ROLLOUT STILL TAKES A FIXED TRACE INDEX; ONLY THE DIFFERENTIAL GOT A STREAM.** `batt",
-      "closed": false,
+      "closed": true,
       "saysBroken": true,
-      "cmd": "node tests/probe_rollout_trace_stream.js --release aefcb93baf14",
+      "cmd": "node tests/probe_rollout_trace_stream.js --release f78b4633203d",
       "owed": null,
       "green": true,
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 1539,
-      "verdict": "STALE ROW"
+      "ms": 1071,
+      "verdict": "CONFIRMED"
     },
     {
       "n": 314,
@@ -840,7 +853,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 37020,
+      "ms": 2541,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -855,7 +868,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1770,
+      "ms": 1860,
       "verdict": "CONFIRMED"
     },
     {
@@ -869,7 +882,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 10143,
+      "ms": 5654,
       "verdict": "CONFIRMED"
     },
     {
@@ -883,7 +896,7 @@
       "kind": "CANNOT-ANSWER",
       "declared": "CANNOT-ANSWER",
       "why": "exit 2 — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to report about this row, and a refusal is not evidence in either direction",
-      "ms": 42720,
+      "ms": 7928,
       "verdict": "INSTRUMENT CANNOT ANSWER"
     },
     {
@@ -897,7 +910,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 197957,
+      "ms": 23636,
       "verdict": "CONFIRMED"
     },
     {
@@ -911,7 +924,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1417,
+      "ms": 1395,
       "verdict": "CONFIRMED"
     },
     {
@@ -925,7 +938,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 477712,
+      "ms": 238401,
       "verdict": "CONFIRMED"
     },
     {
@@ -939,7 +952,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3275,
+      "ms": 1824,
       "verdict": "CONFIRMED"
     },
     {
@@ -953,7 +966,7 @@
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 1555,
+      "ms": 239,
       "verdict": "CONFIRMED"
     },
     {
@@ -967,7 +980,7 @@
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 255,
+      "ms": 198,
       "verdict": "CONFIRMED"
     },
     {
@@ -981,7 +994,7 @@
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 188,
+      "ms": 103,
       "verdict": "CONFIRMED"
     },
     {
@@ -995,7 +1008,7 @@
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 921,
+      "ms": 444,
       "verdict": "CONFIRMED"
     },
     {
@@ -1009,7 +1022,7 @@
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 4952,
+      "ms": 2509,
       "verdict": "CONFIRMED"
     },
     {
@@ -1023,7 +1036,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 101980,
+      "ms": 226919,
       "verdict": "CONFIRMED"
     },
     {
@@ -1037,7 +1050,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1413,
+      "ms": 1235,
       "verdict": "CONFIRMED"
     },
     {
@@ -1051,7 +1064,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2315,
+      "ms": 1662,
       "verdict": "CONFIRMED"
     },
     {
@@ -1065,7 +1078,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1080,7 +1093,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1095,7 +1108,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2553,
+      "ms": 1132,
       "verdict": "CONFIRMED"
     },
     {
@@ -1109,7 +1122,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1312,
+      "ms": 1182,
       "verdict": "CONFIRMED"
     },
     {
@@ -1123,7 +1136,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 6486,
+      "ms": 5183,
       "verdict": "CONFIRMED"
     },
     {
@@ -1137,7 +1150,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1608,
+      "ms": 1561,
       "verdict": "CONFIRMED"
     },
     {
@@ -1151,7 +1164,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 21976,
+      "ms": 7812,
       "verdict": "CONFIRMED"
     },
     {
@@ -1165,7 +1178,7 @@
       "kind": "CANNOT-ANSWER",
       "declared": "CANNOT-ANSWER",
       "why": "exit 2 — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to report about this row, and a refusal is not evidence in either direction",
-      "ms": 533,
+      "ms": 58,
       "verdict": "INSTRUMENT CANNOT ANSWER"
     },
     {
@@ -1179,7 +1192,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 108,
+      "ms": 70,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1194,7 +1207,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1568,
+      "ms": 928,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1209,7 +1222,7 @@
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 702,
+      "ms": 75,
       "verdict": "CONFIRMED"
     },
     {
@@ -1223,7 +1236,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 11849,
+      "ms": 1619,
       "verdict": "CONFIRMED"
     },
     {
@@ -1237,7 +1250,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 21976,
+      "ms": 7812,
       "cached": true,
       "verdict": "PREMATURE CLOSE"
     },
@@ -1252,7 +1265,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 142277,
+      "ms": 1794,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1267,7 +1280,7 @@
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 3311,
+      "ms": 340,
       "verdict": "CONFIRMED"
     },
     {
@@ -1281,7 +1294,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 12456,
+      "ms": 1198,
       "verdict": "STALE ROW"
     },
     {
@@ -1295,7 +1308,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 12423,
+      "ms": 1311,
       "verdict": "CONFIRMED"
     },
     {
@@ -1309,7 +1322,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1324,7 +1337,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1339,7 +1352,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 11353,
+      "ms": 1180,
       "verdict": "CONFIRMED"
     },
     {
@@ -1353,7 +1366,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1833,
+      "ms": 1234,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1368,7 +1381,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 12456,
+      "ms": 1198,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1383,7 +1396,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 142277,
+      "ms": 1794,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1398,7 +1411,7 @@
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 92201,
+      "ms": 3573,
       "verdict": "CONFIRMED"
     },
     {
@@ -1412,7 +1425,7 @@
       "kind": "CANNOT-ANSWER",
       "declared": "CANNOT-ANSWER",
       "why": "exit 2 — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to report about this row, and a refusal is not evidence in either direction",
-      "ms": 19861,
+      "ms": 42335,
       "cached": true,
       "verdict": "INSTRUMENT CANNOT ANSWER"
     },
@@ -1427,7 +1440,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1442,7 +1455,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 7374,
+      "ms": 726,
       "verdict": "CONFIRMED"
     },
     {
@@ -1456,7 +1469,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3564,
+      "ms": 767,
       "verdict": "CONFIRMED"
     },
     {
@@ -1470,7 +1483,7 @@
       "kind": "CANNOT-ANSWER",
       "declared": "CANNOT-ANSWER",
       "why": "exit 4 — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to report about this row, and a refusal is not evidence in either direction",
-      "ms": 1610,
+      "ms": 932,
       "verdict": "INSTRUMENT CANNOT ANSWER"
     },
     {
@@ -1484,7 +1497,7 @@
       "kind": "CANNOT-ANSWER",
       "declared": "CANNOT-ANSWER",
       "why": "exit 2 — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to report about this row, and a refusal is not evidence in either direction",
-      "ms": 851,
+      "ms": 788,
       "verdict": "INSTRUMENT CANNOT ANSWER"
     },
     {
@@ -1498,7 +1511,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1513,7 +1526,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1528,7 +1541,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1543,7 +1556,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1558,7 +1571,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1573,7 +1586,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1588,7 +1601,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1603,7 +1616,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1618,7 +1631,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1633,7 +1646,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1648,7 +1661,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1663,7 +1676,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1678,7 +1691,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 31411,
+      "ms": 40488,
       "verdict": "CONFIRMED"
     },
     {
@@ -1692,7 +1705,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1353,
+      "ms": 6219,
       "verdict": "CONFIRMED"
     },
     {
@@ -1706,7 +1719,7 @@
       "kind": "CANNOT-ANSWER",
       "declared": "CANNOT-ANSWER",
       "why": "exit 2 — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to report about this row, and a refusal is not evidence in either direction",
-      "ms": 1183,
+      "ms": 2088,
       "verdict": "INSTRUMENT CANNOT ANSWER"
     },
     {
@@ -1720,7 +1733,7 @@
       "kind": "VERDICT-RED",
       "declared": "VERDICT-RED",
       "why": "exit 1 (declared VERDICT-RED)",
-      "ms": 80328,
+      "ms": 125910,
       "verdict": "CONFIRMED"
     },
     {
@@ -1734,7 +1747,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "STALE ROW"
     },
@@ -1749,7 +1762,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1764,7 +1777,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1353,
+      "ms": 6219,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1779,7 +1792,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 46775,
+      "ms": 4936,
       "verdict": "CONFIRMED"
     },
     {
@@ -1793,7 +1806,7 @@
       "kind": "CANNOT-ANSWER",
       "declared": "CANNOT-ANSWER",
       "why": "exit 2 — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to report about this row, and a refusal is not evidence in either direction",
-      "ms": 19861,
+      "ms": 42335,
       "cached": true,
       "verdict": "INSTRUMENT CANNOT ANSWER"
     },
@@ -1808,7 +1821,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 16673,
+      "ms": 2535,
       "verdict": "CONFIRMED"
     },
     {
@@ -1822,7 +1835,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1837,7 +1850,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1852,7 +1865,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1867,7 +1880,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1882,7 +1895,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1897,7 +1910,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1912,7 +1925,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1927,7 +1940,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1942,7 +1955,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1957,7 +1970,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1972,7 +1985,7 @@
       "kind": "CANNOT-ANSWER",
       "declared": "CANNOT-ANSWER",
       "why": "exit 2 — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to report about this row, and a refusal is not evidence in either direction",
-      "ms": 373,
+      "ms": 80,
       "verdict": "INSTRUMENT CANNOT ANSWER"
     },
     {
@@ -1986,7 +1999,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 24846,
+      "ms": 3340,
       "verdict": "CONFIRMED"
     },
     {
@@ -2000,7 +2013,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 9725,
+      "ms": 3047,
       "verdict": "CONFIRMED"
     },
     {
@@ -2014,7 +2027,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2861,
+      "ms": 3076,
       "verdict": "CONFIRMED"
     },
     {
@@ -2028,7 +2041,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 184,
+      "ms": 225,
       "verdict": "CONFIRMED"
     },
     {
@@ -2042,7 +2055,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 37402,
+      "ms": 48512,
       "verdict": "CONFIRMED"
     },
     {
@@ -2056,7 +2069,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 830,
+      "ms": 6615,
       "verdict": "CONFIRMED"
     },
     {
@@ -2070,7 +2083,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2832,
+      "ms": 23664,
       "verdict": "CONFIRMED"
     },
     {
@@ -2084,7 +2097,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2774,
+      "ms": 22528,
       "verdict": "CONFIRMED"
     },
     {
@@ -2098,7 +2111,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3441,
+      "ms": 27060,
       "verdict": "CONFIRMED"
     },
     {
@@ -2112,7 +2125,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3847,
+      "ms": 24947,
       "verdict": "CONFIRMED"
     },
     {
@@ -2126,7 +2139,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3809,
+      "ms": 16180,
       "verdict": "CONFIRMED"
     },
     {
@@ -2140,7 +2153,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 4445,
+      "ms": 30451,
       "verdict": "CONFIRMED"
     },
     {
@@ -2154,7 +2167,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3643,
+      "ms": 4522,
       "verdict": "CONFIRMED"
     },
     {
@@ -2168,7 +2181,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 11790,
+      "ms": 1379,
       "verdict": "CONFIRMED"
     },
     {
@@ -2182,7 +2195,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 44035,
+      "ms": 5517,
       "verdict": "CONFIRMED"
     },
     {
@@ -2196,7 +2209,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 67156,
+      "ms": 9028,
       "verdict": "CONFIRMED"
     },
     {
@@ -2210,7 +2223,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 4654,
+      "ms": 5542,
       "verdict": "CONFIRMED"
     },
     {
@@ -2220,12 +2233,11 @@
       "saysBroken": false,
       "cmd": "node -r ./tests/_live_release.js tests/test-middle-identity.js",
       "owed": null,
-      "green": true,
-      "kind": "VERDICT-GREEN",
-      "declared": null,
-      "why": "exit 0",
-      "ms": 326108,
-      "verdict": "CONFIRMED"
+      "green": null,
+      "kind": "NOT-STARTED",
+      "why": "the instrument could not be run: spawnSync C:\\Program Files\\nodejs\\node.exe ETIMEDOUT",
+      "ms": 600427,
+      "verdict": "INSTRUMENT UNRUNNABLE"
     },
     {
       "n": 490,
@@ -2238,7 +2250,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3134,
+      "ms": 30893,
       "verdict": "CONFIRMED"
     },
     {
@@ -2252,7 +2264,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 15132,
+      "ms": 30872,
       "verdict": "PREMATURE CLOSE"
     },
     {
@@ -2266,7 +2278,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25309,
+      "ms": 19367,
       "verdict": "CONFIRMED"
     },
     {
@@ -2280,7 +2292,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 300708,
+      "ms": 234602,
       "verdict": "CONFIRMED"
     },
     {
@@ -2294,7 +2306,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2728,
+      "ms": 2716,
       "verdict": "CONFIRMED"
     },
     {
@@ -2308,7 +2320,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1076,
+      "ms": 847,
       "verdict": "CONFIRMED"
     },
     {
@@ -2322,7 +2334,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 37020,
+      "ms": 2541,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2337,7 +2349,7 @@
       "kind": "CANNOT-ANSWER",
       "declared": "CANNOT-ANSWER",
       "why": "exit 2 — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to report about this row, and a refusal is not evidence in either direction",
-      "ms": 1348,
+      "ms": 1229,
       "verdict": "INSTRUMENT CANNOT ANSWER"
     },
     {
@@ -2351,7 +2363,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1568,
+      "ms": 928,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2366,7 +2378,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 15132,
+      "ms": 30872,
       "cached": true,
       "verdict": "PREMATURE CLOSE"
     },
@@ -2377,11 +2389,12 @@
       "saysBroken": false,
       "cmd": "node -r ./tests/_live_release.js tests/probe_trace_list.js",
       "owed": null,
-      "green": null,
-      "kind": "NOT-STARTED",
-      "why": "the instrument could not be run: spawnSync C:\\Program Files\\nodejs\\node.exe ETIMEDOUT",
-      "ms": 600604,
-      "verdict": "INSTRUMENT UNRUNNABLE"
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 506208,
+      "verdict": "CONFIRMED"
     },
     {
       "n": 524,
@@ -2394,7 +2407,7 @@
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 3704,
+      "ms": 167,
       "verdict": "CONFIRMED"
     },
     {
@@ -2408,7 +2421,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 44035,
+      "ms": 5517,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2423,7 +2436,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 15905,
+      "ms": 5296,
       "verdict": "CONFIRMED"
     },
     {
@@ -2437,7 +2450,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1338,
+      "ms": 681,
       "verdict": "STALE ROW"
     },
     {
@@ -2451,7 +2464,7 @@
       "kind": "CANNOT-ANSWER",
       "declared": "CANNOT-ANSWER",
       "why": "exit 2 — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to report about this row, and a refusal is not evidence in either direction",
-      "ms": 2246,
+      "ms": 929,
       "verdict": "INSTRUMENT CANNOT ANSWER"
     },
     {
@@ -2465,7 +2478,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 17752,
+      "ms": 36977,
       "verdict": "CONFIRMED"
     },
     {
@@ -2479,7 +2492,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 185,
+      "ms": 155,
       "verdict": "CONFIRMED"
     },
     {
@@ -2493,7 +2506,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23312,
+      "ms": 21792,
       "verdict": "CONFIRMED"
     },
     {
@@ -2507,7 +2520,7 @@
       "kind": "CANNOT-ANSWER",
       "declared": "CANNOT-ANSWER",
       "why": "exit 2 — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to report about this row, and a refusal is not evidence in either direction",
-      "ms": 10943,
+      "ms": 2179,
       "verdict": "INSTRUMENT CANNOT ANSWER"
     },
     {
@@ -2521,7 +2534,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25544,
+      "ms": 9610,
       "verdict": "CONFIRMED"
     },
     {
@@ -2535,7 +2548,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23341,
+      "ms": 3936,
       "verdict": "CONFIRMED"
     },
     {
@@ -2549,7 +2562,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 49481,
+      "ms": 9777,
       "verdict": "CONFIRMED"
     },
     {
@@ -2563,7 +2576,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 19744,
+      "ms": 3461,
       "verdict": "CONFIRMED"
     },
     {
@@ -2616,7 +2629,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 85,
+      "ms": 60,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2631,7 +2644,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2646,7 +2659,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 338137,
+      "ms": 91063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2714,7 +2727,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 22867,
+      "ms": 6691,
       "verdict": "CONFIRMED"
     },
     {
@@ -2741,7 +2754,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 477712,
+      "ms": 238401,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2769,7 +2782,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 505268,
+      "ms": 100665,
       "verdict": "PREMATURE CLOSE"
     },
     {
@@ -2782,7 +2795,7 @@
       "green": null,
       "kind": "NOT-STARTED",
       "why": "the instrument could not be run: spawnSync C:\\Program Files\\nodejs\\node.exe ETIMEDOUT",
-      "ms": 600107,
+      "ms": 600025,
       "verdict": "INSTRUMENT UNRUNNABLE"
     },
     {
@@ -2795,7 +2808,7 @@
       "green": null,
       "kind": "NOT-STARTED",
       "why": "the instrument could not be run: spawnSync C:\\Program Files\\nodejs\\node.exe ETIMEDOUT",
-      "ms": 600107,
+      "ms": 600025,
       "cached": true,
       "verdict": "INSTRUMENT UNRUNNABLE"
     },
@@ -2810,7 +2823,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 10062,
+      "ms": 8909,
       "verdict": "CONFIRMED"
     },
     {
@@ -2824,7 +2837,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 8406,
+      "ms": 4341,
       "verdict": "CONFIRMED"
     },
     {
@@ -2838,7 +2851,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 6751,
+      "ms": 2927,
       "verdict": "CONFIRMED"
     },
     {
@@ -2852,7 +2865,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 134640,
+      "ms": 21386,
       "verdict": "CONFIRMED"
     },
     {
@@ -2866,7 +2879,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25483,
+      "ms": 1612,
       "verdict": "CONFIRMED"
     },
     {
@@ -2880,7 +2893,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25823,
+      "ms": 1865,
       "verdict": "CONFIRMED"
     },
     {
@@ -2894,7 +2907,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 18275,
+      "ms": 3550,
       "verdict": "CONFIRMED"
     },
     {
@@ -2908,7 +2921,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3141,
+      "ms": 1474,
       "verdict": "CONFIRMED"
     },
     {
@@ -2922,7 +2935,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3863,
+      "ms": 1792,
       "verdict": "CONFIRMED"
     },
     {
@@ -2936,7 +2949,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3567,
+      "ms": 1868,
       "verdict": "CONFIRMED"
     },
     {
@@ -2950,7 +2963,7 @@
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 5395,
+      "ms": 2797,
       "verdict": "CONFIRMED"
     },
     {
@@ -2964,7 +2977,7 @@
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 5693,
+      "ms": 2827,
       "verdict": "CONFIRMED"
     },
     {
@@ -2978,7 +2991,7 @@
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 6824,
+      "ms": 3210,
       "verdict": "CONFIRMED"
     },
     {
@@ -2992,7 +3005,7 @@
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 5988,
+      "ms": 2986,
       "verdict": "CONFIRMED"
     },
     {
@@ -3006,7 +3019,7 @@
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 6144,
+      "ms": 2936,
       "verdict": "CONFIRMED"
     },
     {
@@ -3020,7 +3033,7 @@
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 6817,
+      "ms": 2944,
       "verdict": "CONFIRMED"
     },
     {
@@ -3034,7 +3047,7 @@
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 39957,
+      "ms": 3063,
       "verdict": "CONFIRMED"
     },
     {
@@ -3048,7 +3061,7 @@
       "kind": "VERDICT-GREEN",
       "declared": "VERDICT-GREEN",
       "why": "exit 0",
-      "ms": 38669,
+      "ms": 2979,
       "verdict": "CONFIRMED"
     },
     {
@@ -3062,7 +3075,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 15671,
+      "ms": 936,
       "verdict": "PREMATURE CLOSE"
     },
     {
@@ -3076,7 +3089,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 37020,
+      "ms": 2541,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -3104,7 +3117,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 83815,
+      "ms": 27798,
       "verdict": "PREMATURE CLOSE"
     },
     {
@@ -3118,7 +3131,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 20317,
+      "ms": 69477,
       "verdict": "PREMATURE CLOSE"
     },
     {
@@ -3132,7 +3145,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 4259,
+      "ms": 10643,
       "verdict": "CONFIRMED"
     },
     {
@@ -3146,7 +3159,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 75063,
+      "ms": 48317,
       "verdict": "CONFIRMED"
     },
     {
@@ -3160,7 +3173,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 118209,
+      "ms": 9726,
       "verdict": "PREMATURE CLOSE"
     },
     {
@@ -3174,7 +3187,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 23172,
+      "ms": 9830,
       "verdict": "PREMATURE CLOSE"
     },
     {
@@ -3188,7 +3201,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 101985,
+      "ms": 10104,
       "verdict": "CONFIRMED"
     },
     {
@@ -3202,7 +3215,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 105368,
+      "ms": 10362,
       "verdict": "CONFIRMED"
     },
     {

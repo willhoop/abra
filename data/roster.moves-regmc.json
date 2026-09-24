@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-24T10:08:42.541Z",
+ "generated": "2026-09-24T15:02:34.642Z",
  "by": "tests/roster.js",
  "stage": "moves",
  "swap_leaf_correction": {
@@ -7,14 +7,14 @@
   "real_ability_rewrite_kept": 0,
   "control_arm_bookkeeping_dropped": 0
  },
- "engine_release": "ec377f6f8159",
- "engine_release_cut": "2026-09-24T08:36:36.060Z",
- "engine_release_cuts": 1,
+ "engine_release": "78fb4a85b1a0",
+ "engine_release_cut": "2026-09-24T14:49:22.261Z",
+ "engine_release_cuts": 6,
  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
  "source_digests": {
-  "engine/medicham2-browser.js": "b0e25d70943c",
+  "engine/medicham2-browser.js": "0ac4441bffc4",
   "engine/board.js": "c85a3b756c98",
-  "engine/rollout_leaf.js": "a68f159b6d5c",
+  "engine/rollout_leaf.js": "eacf05ff8d30",
   "engine/position_features.js": "bb71676d3669",
   "engine/tags.js": "5a57b5020d15",
   "engine/champions_sim.js": "8094725f52a8",
@@ -33,15 +33,16 @@
   "data/regulations.json": "6c7c3e3dd06c",
   "data/quality-filter.json": "042524dd1df7",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "756f4ac8350d",
-  "data/tags.json": "4535d8829442",
+  "data/abra-tags.js": "fc30f9a9392e",
+  "data/tags.json": "26ee107ce6a8",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
   "engine/pp.js": "30b12a4ef623",
   "data/rollout-switch-census.json": "b8a5cee2f0a9",
+  "engine/medicham_api.js": "1702ceba861d",
   "data/engine-data-regmc.js": "a6ad04e92d4e",
-  "data/tags-regmc.json": "2faa539f391f",
+  "data/tags-regmc.json": "cc833be25a3d",
   "data/move-priors-regmc.json": "eab0c9b023df",
   "data/move-effects-regmc.js": "8c57407e7641"
  },
@@ -57,9 +58,9 @@
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
   "DEFERRED-BY-OWNER": 1,
-  "BELOW-USAGE-SHELF": 1,
+  "BELOW-USAGE-SHELF": 0,
   "ANNOUNCEMENT-ONLY": 0,
-  "FIRED-AND-BOARDS-MATCH": 509,
+  "FIRED-AND-BOARDS-MATCH": 510,
   "CONTROL-NOT-QUIET": 0,
   "COULD-NOT-STAGE": 0
  },
@@ -76,8 +77,8 @@
    "no-legal-carrier": 4
   },
   "in_scope": 511,
-  "tested": 509,
-  "matched": 509,
+  "tested": 510,
+  "matched": 510,
   "differ": 0,
   "silent": 0,
   "deferred": 1,
@@ -98,7 +99,7 @@
   }
  },
  "plant_anchors": {
-  "release": "ec377f6f8159",
+  "release": "78fb4a85b1a0",
   "checked": 37,
   "dead": [],
   "reds_ran": true
@@ -34836,8 +34837,8 @@
    "rule": "move/generic-status",
    "reads": "nothing matched above — this is the second residue, and it is the WEAK one",
    "note": "generic: clicked ONCE on turn 2 by the aggressor at Goodra-Hisui, both sides chipped and holding an item",
-   "verdict": "BELOW-USAGE-SHELF",
-   "why": "SHELVED ON USAGE BY A THRESHOLD — NOT AN OWNER RULING, AND NOT MEASURED CLEAN. 0 click(s) across 24,832 stored games, under the shelf of 25. Counted from the store by engine/click_counts.js, NOT from tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played against the authority every run; it does not hold the gate. Underlying verdict without the shelf: FIRED-AND-BOARDS-DIFFER — ",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "goodrahisui",
@@ -34852,19 +34853,12 @@
    "coin_missing": false,
    "underlying": null,
    "deferred": null,
-   "underlying_verdict": "FIRED-AND-BOARDS-DIFFER",
+   "underlying_verdict": null,
    "announcement": null,
-   "usage_shelf": true,
-   "clicks_in_store": 0,
-   "usage_shelf_threshold": 25,
-   "shelf": {
-    "by": "tests/roster.js USAGE_SHELF_BELOW",
-    "on": "2026-08-10",
-    "rule": "clicks < 25",
-    "clicks": 0,
-    "source": "engine/click_counts.js",
-    "why": "A THRESHOLD, NOT A RULING. 0 click(s) is below the shelf of 25. No owner deferred this entity by name; if one had, it would be in the DEFERRED map and would outrank this rule."
-   },
+   "usage_shelf": false,
+   "clicks_in_store": null,
+   "usage_shelf_threshold": null,
+   "shelf": null,
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
@@ -34919,26 +34913,7 @@
      "without": 2
     }
    ],
-   "diffs": [
-    {
-     "turn": 3,
-     "slot": "",
-     "body": "stunfiskgalar",
-     "field": "party.types",
-     "showdown": "dragon/steel",
-     "ours": "ground/steel",
-     "bucket": "different-value"
-    },
-    {
-     "turn": 3,
-     "slot": "p1a",
-     "body": "stunfiskgalar",
-     "field": "types",
-     "showdown": "dragon/steel",
-     "ours": "ground/steel",
-     "bucket": "different-value"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "move",

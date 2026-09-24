@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-24T02:23:02.032Z",
+  "generated": "2026-09-24T15:48:45.221Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:de38d17e15a2/credit:observed-effect/v1/nature:real",
   "games_requested": 1600,
@@ -52,7 +52,7 @@
       "damage_roll": "MINIMUM",
       "speed_tie": "to the EARLIER body",
       "games": 1266,
-      "diverged": 12,
+      "diverged": 5,
       "threw": 0,
       "median_turns": 9,
       "end_reasons": {
@@ -63,20 +63,20 @@
       "turn1_boards_reached": 1266,
       "rows_credited": 272,
       "credit_events": {
-        "effect": 674498,
+        "effect": 674736,
         "negative": 2249,
-        "click": 1432507
+        "click": 1434352
       },
       "classes": [
         {
-          "cls": "ordering",
-          "games": 8,
-          "distinct_causes": 7
+          "cls": "event missing from medicham2",
+          "games": 3,
+          "distinct_causes": 3
         },
         {
-          "cls": "event missing from medicham2",
-          "games": 4,
-          "distinct_causes": 4
+          "cls": "ordering",
+          "games": 2,
+          "distinct_causes": 2
         }
       ]
     }
@@ -96,7 +96,7 @@
   },
   "games": 1266,
   "turns_cap": 50,
-  "elapsed_s": 218.8,
+  "elapsed_s": 357,
   "credit_turn_profile": {
     "rows_with_any_credit": 272,
     "credits_with_no_turn_index": 0,
@@ -152,28 +152,28 @@
       }
     ],
     "credit_events_by_turn": {
-      "1": 102103,
-      "2": 104480,
-      "3": 103205,
-      "4": 104449,
-      "5": 99689,
-      "6": 92576,
-      "7": 83933,
-      "8": 70604,
-      "9": 56854,
-      "10": 44890,
-      "11": 33971,
-      "12": 24847,
-      "13": 19601,
-      "14": 13025,
-      "15": 9934,
-      "16": 6685,
-      "17": 4750,
-      "18": 3228,
+      "1": 102452,
+      "2": 104532,
+      "3": 103300,
+      "4": 104543,
+      "5": 99770,
+      "6": 92647,
+      "7": 84001,
+      "8": 70641,
+      "9": 56906,
+      "10": 44916,
+      "11": 33988,
+      "12": 24857,
+      "13": 19612,
+      "14": 13029,
+      "15": 9938,
+      "16": 6688,
+      "17": 4754,
+      "18": 3230,
       "19": 2061,
       "20": 1458,
-      "21": 1099,
-      "22": 917,
+      "21": 1101,
+      "22": 918,
       "23": 878,
       "24": 597,
       "25": 451,
@@ -595,11 +595,11 @@
     "rates": {
       "with_megas": {
         "games": 1259,
-        "diverged": 11
+        "diverged": 4
       },
       "control_same_pairs_no_stones": {
         "games": 1259,
-        "diverged": 23
+        "diverged": 15
       },
       "pairs_with_no_stone_at_all": {
         "games": 7,
@@ -607,16 +607,16 @@
       },
       "whole_control_arm": {
         "games": 1266,
-        "diverged": 24,
+        "diverged": 16,
         "note": "every stone stripped — this is what the 2026-08-06 run measured"
       }
     },
     "pairing_broken": 0,
     "cost_of_the_megas": {
       "stone_carrying_pairs": 1259,
-      "mega_arm_parted_earlier": 3,
-      "mega_arm_parted_later": 19,
-      "parted_at_the_same_line": 1237,
+      "mega_arm_parted_earlier": 0,
+      "mega_arm_parted_later": 13,
+      "parted_at_the_same_line": 1246,
       "first_divergence_is_a_mega_line": 0,
       "first_divergence_is_a_detailschange_line": 0,
       "on_a_mega_line": [],
@@ -644,7 +644,7 @@
       {
         "id": "stat-attribution",
         "why": "a stat line's meaning is (body, stat, direction, amount). `[from] ability: X` and `[of] Y` say WHICH effect moved it, which the two engines tag inconsistently; the four fields that decide the board are kept.",
-        "lines_collapsed": 33595,
+        "lines_collapsed": 33620,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -659,7 +659,7 @@
       {
         "id": "source-tag",
         "why": "`[of] pXy` names the BODY behind an effect whose name is already carried by `[from]`. The two engines tag it inconsistently on -heal, -activate and -damage.",
-        "lines_collapsed": 204179,
+        "lines_collapsed": 204342,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -674,7 +674,7 @@
       {
         "id": "effect-namespace",
         "why": "Showdown writes an effect sometimes bare and sometimes namespaced — `|-sidestart|p1: A|Reflect` against this engine's `move: reflect`. The NAME is kept; only the namespace goes.",
-        "lines_collapsed": 683085,
+        "lines_collapsed": 683709,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -689,7 +689,7 @@
       {
         "id": "display-flags",
         "why": "`[silent]`, `[still]`, `[miss]` and `[spread]` are rendering hints. The state each one decorates is a separate event — `-miss` for a miss, `-prepare` for a charge, one `-damage` per body actually hit for a spread — and all of those are kept.",
-        "lines_collapsed": 192768,
+        "lines_collapsed": 192945,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -704,7 +704,7 @@
       {
         "id": "move-target-field",
         "why": "THE BIGGEST ONE, AND THE ONE THAT NEEDS THE ARGUMENT. A `|move|` line means \"this body used this move\". Showdown additionally names ONE nominal target plus `[spread]`; this engine names its own user on a spread move. WHO WAS ACTUALLY HIT is not in this field on either side — it is in the `-damage` / `-status` / `-unboost` / `-enditem` lines that follow, which are kept and compared body by body. A redirection bug is therefore caught one line later rather than not at all, and the `distinct` pair below is exactly that case.",
-        "lines_collapsed": 1453096,
+        "lines_collapsed": 1454358,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -719,7 +719,7 @@
       {
         "id": "switch-cause",
         "why": "a pivot switch is tagged `[from] U-turn` by Showdown; the pivot itself is the `|move|` line immediately before it, which is kept. The species and the HP on the switch line are kept.",
-        "lines_collapsed": 19781,
+        "lines_collapsed": 19797,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -732,15 +732,15 @@
         ]
       }
     ],
-    "total_lines_collapsed": 2586504,
+    "total_lines_collapsed": 2588771,
     "ability_lines": [
       {
         "body": "p1a:gardevoir",
         "ability": "psychicsurge",
         "tail": "trace|[from]ability:trace",
         "showdown": 0,
-        "medicham2": 116,
-        "gap": -116
+        "medicham2": 118,
+        "gap": -118
       },
       {
         "body": "p1a:gardevoir",
@@ -866,9 +866,9 @@
         "body": "p1a:gardevoir",
         "ability": "psychicsurge",
         "tail": "trace|[from]ability:trace|[of]p2b:indeedee",
-        "showdown": 59,
+        "showdown": 61,
         "medicham2": 0,
-        "gap": 59
+        "gap": 61
       },
       {
         "body": "p1a:gardevoir",
@@ -3138,56 +3138,56 @@
         "body": "p1a:salamence",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 7948,
-        "medicham2": 7948,
+        "showdown": 7950,
+        "medicham2": 7950,
         "gap": 0
       },
       {
         "body": "p2a:incineroar",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 5720,
-        "medicham2": 5720,
+        "showdown": 5724,
+        "medicham2": 5724,
         "gap": 0
       },
       {
         "body": "p1a:incineroar",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 5673,
-        "medicham2": 5673,
+        "showdown": 5680,
+        "medicham2": 5680,
         "gap": 0
       },
       {
         "body": "p2a:salamence",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 5182,
-        "medicham2": 5182,
+        "showdown": 5185,
+        "medicham2": 5185,
         "gap": 0
       },
       {
         "body": "p2b:incineroar",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 4257,
-        "medicham2": 4257,
+        "showdown": 4259,
+        "medicham2": 4259,
         "gap": 0
       },
       {
         "body": "p1b:incineroar",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 4027,
-        "medicham2": 4027,
+        "showdown": 4036,
+        "medicham2": 4036,
         "gap": 0
       },
       {
         "body": "p2b:salamence",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 2698,
-        "medicham2": 2698,
+        "showdown": 2700,
+        "medicham2": 2700,
         "gap": 0
       },
       {
@@ -3202,8 +3202,8 @@
         "body": "p2a:archaludon",
         "ability": "stamina",
         "tail": "boost",
-        "showdown": 2320,
-        "medicham2": 2320,
+        "showdown": 2324,
+        "medicham2": 2324,
         "gap": 0
       },
       {
@@ -3250,8 +3250,8 @@
         "body": "p2b:archaludon",
         "ability": "stamina",
         "tail": "boost",
-        "showdown": 769,
-        "medicham2": 769,
+        "showdown": 772,
+        "medicham2": 772,
         "gap": 0
       },
       {
@@ -3282,8 +3282,8 @@
         "body": "p2b:kingambit",
         "ability": "defiant",
         "tail": "boost",
-        "showdown": 511,
-        "medicham2": 511,
+        "showdown": 513,
+        "medicham2": 513,
         "gap": 0
       },
       {
@@ -3330,8 +3330,8 @@
         "body": "p1a:blaziken",
         "ability": "speedboost",
         "tail": "boost",
-        "showdown": 396,
-        "medicham2": 396,
+        "showdown": 399,
+        "medicham2": 399,
         "gap": 0
       },
       {
@@ -3615,6 +3615,14 @@
         "gap": 0
       },
       {
+        "body": "p2b:espathra",
+        "ability": "speedboost",
+        "tail": "boost",
+        "showdown": 90,
+        "medicham2": 90,
+        "gap": 0
+      },
+      {
         "body": "p1a:drampa",
         "ability": "cloudnine",
         "tail": "",
@@ -3641,14 +3649,6 @@
       {
         "body": "p2a:gyarados",
         "ability": "intimidate",
-        "tail": "boost",
-        "showdown": 84,
-        "medicham2": 84,
-        "gap": 0
-      },
-      {
-        "body": "p2b:espathra",
-        "ability": "speedboost",
         "tail": "boost",
         "showdown": 84,
         "medicham2": 84,
@@ -3738,16 +3738,16 @@
         "body": "p1b:raichu",
         "ability": "lightningrod",
         "tail": "boost",
-        "showdown": 61,
-        "medicham2": 61,
+        "showdown": 67,
+        "medicham2": 67,
         "gap": 0
       },
       {
         "body": "p2b:scrafty",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 58,
-        "medicham2": 58,
+        "showdown": 61,
+        "medicham2": 61,
         "gap": 0
       },
       {
@@ -3839,6 +3839,14 @@
         "gap": 0
       },
       {
+        "body": "p2b:raichu",
+        "ability": "lightningrod",
+        "tail": "boost",
+        "showdown": 40,
+        "medicham2": 40,
+        "gap": 0
+      },
+      {
         "body": "p1b:tinkaton",
         "ability": "moldbreaker",
         "tail": "",
@@ -3852,14 +3860,6 @@
         "tail": "boost",
         "showdown": 40,
         "medicham2": 40,
-        "gap": 0
-      },
-      {
-        "body": "p2b:raichu",
-        "ability": "lightningrod",
-        "tail": "boost",
-        "showdown": 39,
-        "medicham2": 39,
         "gap": 0
       },
       {
@@ -4820,14 +4820,14 @@
     },
     "verdict": "the predicted DAMAGE bug does not reproduce — medicham2 prices both halves correctly because playerAction computes the range at CLICK time, before the item is stripped. AND THE ITEM DISPOSITION AGREES TOO: both engines record Colbur as EATEN, writing `[eat]` then `[weaken]` and setting lastItem/ateBerry, which the `last_item` and `ate_berry` board leaves have compared since 2026-09-10. This clause claimed the opposite until that date while the two `*_enditem` lists above it said otherwise."
   },
-  "diverged": 12,
+  "diverged": 5,
   "threw": 0,
   "mid_void": {
     "void_games": 0,
     "usable_games": 1266,
-    "diverged_among_usable": 12,
+    "diverged_among_usable": 5,
     "void_game_tags": [],
-    "diverged_rate_over_usable": 0.0095,
+    "diverged_rate_over_usable": 0.0039,
     "mid_battle_bound_at_install": true,
     "empty_address_games_counted_void": false,
     "overlap_floor": 0.9,
@@ -4837,7 +4837,7 @@
     "by_reason_detail": {
       "shared-addresses-agree": {
         "games": 1266,
-        "diverged": 12,
+        "diverged": 5,
         "median_turns": 9,
         "max_turns": 50
       }
@@ -5325,14 +5325,14 @@
       "by_cause": [],
       "by_protocol_class": [
         {
-          "cls": "ordering",
-          "games": 8,
-          "board_identical_at_end_of_turn1": 8
+          "cls": "event missing from medicham2",
+          "games": 3,
+          "board_identical_at_end_of_turn1": 3
         },
         {
-          "cls": "event missing from medicham2",
-          "games": 4,
-          "board_identical_at_end_of_turn1": 4
+          "cls": "ordering",
+          "games": 2,
+          "board_identical_at_end_of_turn1": 2
         }
       ],
       "cases": [],
@@ -5350,8 +5350,8 @@
     "void_games_counted_against_the_engine": false,
     "game_agreement": 1,
     "median_turn_of_first_board_divergence": null,
-    "protocol_diverged_games": 12,
-    "protocol_diverged_board_never_did": 12,
+    "protocol_diverged_games": 5,
+    "protocol_diverged_board_never_did": 5,
     "protocol_diverged_board_held_longer": 0,
     "board_parted_before_the_protocol_did": 0,
     "families": [],
@@ -6277,17 +6277,17 @@
           "NO-COMPARABLE-BOARD": 0,
           "THREW": 0
         },
-        "protocol_parted": 12,
-        "protocol_never_parted": 1254,
+        "protocol_parted": 5,
+        "protocol_never_parted": 1261,
         "of_the_games_whose_protocol_parted": {
-          "SAME-END-STATE": 12,
+          "SAME-END-STATE": 5,
           "DIFFERENT-END-STATE": 0,
           "ENDED-APART": 0,
           "NO-COMPARABLE-BOARD": 0,
           "THREW": 0
         },
         "of_the_games_whose_protocol_never_parted": {
-          "SAME-END-STATE": 1254,
+          "SAME-END-STATE": 1261,
           "DIFFERENT-END-STATE": 0,
           "ENDED-APART": 0,
           "NO-COMPARABLE-BOARD": 0,
@@ -6295,13 +6295,13 @@
         },
         "wording_rate_of_all_parted_games": 1,
         "wording_rate_of_parted_games_with_a_comparable_end": 1,
-        "parted_games_with_a_comparable_end": 12,
+        "parted_games_with_a_comparable_end": 5,
         "by_shape": [
           {
-            "shape": "EMISSION",
-            "games": 9,
+            "shape": "ORDERING",
+            "games": 2,
             "verdicts": {
-              "SAME-END-STATE": 9,
+              "SAME-END-STATE": 2,
               "DIFFERENT-END-STATE": 0,
               "ENDED-APART": 0,
               "NO-COMPARABLE-BOARD": 0,
@@ -6309,7 +6309,7 @@
             }
           },
           {
-            "shape": "ORDERING",
+            "shape": "EMISSION",
             "games": 2,
             "verdicts": {
               "SAME-END-STATE": 2,
@@ -6333,47 +6333,7 @@
         ],
         "by_cause": [
           {
-            "cause": "ordering :: |-activate|p1a|emergencyexit <> |faint|p2b",
-            "games": 2,
-            "board_parted": 0,
-            "board_never_parted": 2,
-            "verdicts": {
-              "SAME-END-STATE": 2,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 2,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
             "cause": "ordering :: |-enditem|p2b|whiteherb <> |-enditem|p1b|whiteherb",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "ordering :: |-enditem|p2a|whiteherb <> |switch|p1b|golisopod,l50|H/H",
             "games": 1,
             "board_parted": 0,
             "board_never_parted": 1,
@@ -6433,87 +6393,7 @@
             "first_board_divergence_turns": []
           },
           {
-            "cause": "event missing from medicham2 :: |-activate|p1b|lightningrod <> |-prepare|p2b|electroshot",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "ordering :: |-activate|p1a|emergencyexit <> |faint|p2a",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "ordering :: |-damage|p2a|H/H <> |-start|p1a|curse",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
             "cause": "event missing from medicham2 :: |-end|p1a|fallenundefined <> |move|p2b|strugglebug",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "ordering :: |-enditem|p2a|whiteherb <> |switch|p1b|sinistcha,l50|H/H",
             "games": 1,
             "board_parted": 0,
             "board_never_parted": 1,
@@ -6554,16 +6434,16 @@
           }
         ],
         "by_cause_totals": {
-          "causes": 11,
-          "games": 12,
+          "causes": 5,
+          "games": 5,
           "BOARD_MATERIAL": 0,
-          "NARRATION_ONLY": 11,
+          "NARRATION_ONLY": 5,
           "UNKNOWN": 0,
           "games_board_material": 0,
           "games_board_material_same_turn": 0,
           "games_board_material_board_parted_later": 0,
           "games_board_material_board_parted_earlier": 0,
-          "games_narration_only": 12,
+          "games_narration_only": 5,
           "games_unknown": 0,
           "by_cause_reconciles": true,
           "bounded_by": "NARRATION-ONLY is bounded by board_state.js NOT_COMPARED (published in this artifact as end_state_not_compared) and by the turn cap: a board that would part after the cap reads as narration here."
@@ -6786,7 +6666,7 @@
   "classes": [
     {
       "cls": "ordering",
-      "games": 8,
+      "games": 2,
       "causes": [
         {
           "cause": "ordering :: |-enditem|p2b|whiteherb <> |-enditem|p1b|whiteherb",
@@ -6831,71 +6711,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 4012
+              "uses": 3776
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 4012
-        },
-        {
-          "cause": "ordering :: |-enditem|p2a|whiteherb <> |switch|p1b|golisopod,l50|H/H",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|-unboost|p1a: Golisopod|atk|1",
-            "|-unboost|p1b: Incineroar|atk|1",
-            "|switch|p1a: Garchomp|Garchomp, L50|183/183",
-            "|move|p1b: Incineroar|Parting Shot|p2a: Sneasler",
-            "|-unboost|p2a: Sneasler|atk|1",
-            "|-unboost|p2a: Sneasler|spa|1"
-          ],
-          "sdAfter": [
-            "|-enditem|p2a: Sneasler|White Herb",
-            "|-clearnegativeboost|p2a: Sneasler|[silent]",
-            "|switch|p1b: Golisopod|Golisopod, L50|150/150|[from] Parting Shot",
-            "|upkeep",
-            "|turn|3"
-          ],
-          "meAfter": [
-            "|switch|p1b: Golisopod|golisopod, L50|150/150|[from] partingshot",
-            "|-enditem|p2a: Sneasler|whiteherb",
-            "|-clearnegativeboost|p2a: Sneasler|[silent]",
-            "|upkeep"
-          ],
-          "species": "Sneasler",
-          "attribution": {
-            "showdown": [],
-            "medicham": [
-              "[from] partingshot"
-            ]
-          },
-          "example": {
-            "config": "baseline",
-            "seed": "gen9championsvgc2026regmcbo3-2682994376 vs gen9championsvgc2026regmcbo3-2682972403",
-            "turn": 2
-          },
-          "mentions": [
-            {
-              "kind": "items",
-              "id": "whiteherb",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 4012
-            },
-            {
-              "kind": "species",
-              "id": "golisopod",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 4012
+          "max_uses": 3776
         },
         {
           "cause": "ordering :: |-heal|p1a|H/H|[from]grassyterrain <> |-heal|p2a|H/H|[from]grassyterrain",
@@ -6951,253 +6771,17 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 10
+              "uses": 7
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 10
-        },
-        {
-          "cause": "ordering :: |-activate|p1a|emergencyexit <> |faint|p2b",
-          "n": 2,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p1a: Golisopod|Golisopod, L50|150/150",
-            "|move|p1b: Archaludon|Protect|p1b: Archaludon",
-            "|-singleturn|p1b: Archaludon|Protect",
-            "|move|p2b: Rillaboom|Wood Hammer|p1a: Golisopod",
-            "|-damage|p1a: Golisopod|33/150",
-            "|-damage|p2b: Rillaboom|0 fnt|[from] Recoil"
-          ],
-          "sdAfter": [
-            "|-activate|p1a: Golisopod|ability: Emergency Exit",
-            "|faint|p2b: Rillaboom",
-            "|switch|p1a: Pelipper|Pelipper, L50|62/135",
-            "|move|p2a: Kingambit|Kowtow Cleave|p1a: Pelipper",
-            "|-damage|p1a: Pelipper|0 fnt",
-            "|faint|p1a: Pelipper",
-            "|-damage|p2a: Kingambit|158/175|[from] item: Life Orb",
-            "|-weather|RainDance|[upkeep]",
-            "|-heal|p2a: Kingambit|168/175|[from] Grassy Terrain",
-            "|-fieldend|move: Grassy Terrain"
-          ],
-          "meAfter": [
-            "|faint|p2b: Rillaboom",
-            "|-activate|p1a: Golisopod|ability: Emergency Exit",
-            "|switch|p1a: Pelipper|pelipper, L50|62/135",
-            "|move|p2a: Kingambit|kowtowcleave|p1a: Pelipper",
-            "|-damage|p1a: Pelipper|0 fnt",
-            "|faint|p1a: Pelipper",
-            "|-damage|p2a: Kingambit|158/175|[from] item: Life Orb",
-            "|-weather|raindance|[upkeep]",
-            "|-heal|p2a: Kingambit|168/175|[from] Grassy Terrain",
-            "|-fieldend|move: grassyterrain"
-          ],
-          "species": "Golisopod",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-spread",
-            "seed": "gen9championsvgc2026regmcbo3-2682655109 vs gen9championsvgc2026regmcbo3-2682620646",
-            "turn": 5
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "emergencyexit",
-              "legal": true,
-              "carriers": 1,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 5015
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 5015
-        },
-        {
-          "cause": "ordering :: |-activate|p1a|emergencyexit <> |faint|p2a",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|-singleturn|p1b: Armarouge|Protect",
-            "|move|p2b: Indeedee|Follow Me|p2b: Indeedee",
-            "|-singleturn|p2b: Indeedee|move: Follow Me",
-            "|move|p2a: Rillaboom|Wood Hammer|p1a: Golisopod",
-            "|-damage|p1a: Golisopod|38/150",
-            "|-damage|p2a: Rillaboom|0 fnt|[from] Recoil"
-          ],
-          "sdAfter": [
-            "|-activate|p1a: Golisopod|ability: Emergency Exit",
-            "|faint|p2a: Rillaboom",
-            "|switch|p1a: Gardevoir|Gardevoir, L50|143/143",
-            "|-ability|p1a: Gardevoir|Psychic Surge|Trace|[from] ability: Trace|[of] p2b: Indeedee",
-            "|upkeep",
-            "|switch|p2a: Dragapult|Dragapult, L50|163/163",
-            "|turn|3"
-          ],
-          "meAfter": [
-            "|faint|p2a: Rillaboom",
-            "|-activate|p1a: Golisopod|ability: Emergency Exit",
-            "|switch|p1a: Gardevoir|gardevoir, L50|143/143",
-            "|-ability|p1a: Gardevoir|psychicsurge|trace|[from] ability: trace",
-            "|upkeep",
-            "|switch|p2a: Dragapult|dragapult, L50|163/163"
-          ],
-          "species": "Golisopod",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "pair-redirect-priority",
-            "seed": "gen9championsvgc2026regmcbo3-2678973074 vs gen9championsvgc2026regmcbo3-2678951502",
-            "turn": 2
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "emergencyexit",
-              "legal": true,
-              "carriers": 1,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 5015
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 5015
-        },
-        {
-          "cause": "ordering :: |-damage|p2a|H/H <> |-start|p1a|curse",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|-fail|p1a: Charizard",
-            "|move|p2b: Maushold|Follow Me|p2b: Maushold",
-            "|-singleturn|p2b: Maushold|move: Follow Me",
-            "|move|p1b: Rillaboom|Grassy Glide|p2b: Maushold",
-            "|-damage|p2b: Maushold|83/149",
-            "|move|p2a: Golurk|Curse|p1a: Charizard"
-          ],
-          "sdAfter": [
-            "|-damage|p2a: Golurk|2/164",
-            "|-start|p1a: Charizard|Curse|[of] p2a: Golurk",
-            "|-weather|SunnyDay|[upkeep]",
-            "|-heal|p2b: Maushold|92/149|[from] Grassy Terrain",
-            "|-heal|p2a: Golurk|12/164|[from] Grassy Terrain",
-            "|-damage|p1a: Charizard|115/153|[from] Curse",
-            "|upkeep",
-            "|turn|3"
-          ],
-          "meAfter": [
-            "|-start|p1a: Charizard|Curse|[of] golurk-mega",
-            "|-damage|p2a: Golurk|2/164",
-            "|-weather|sunnyday|[upkeep]",
-            "|-heal|p2b: Maushold|92/149|[from] Grassy Terrain",
-            "|-heal|p2a: Golurk|12/164|[from] Grassy Terrain",
-            "|-damage|p1a: Charizard|115/153|[from] Curse",
-            "|upkeep"
-          ],
-          "species": "Golurk",
-          "attribution": {
-            "showdown": [],
-            "medicham": [
-              "[of] golurk-mega"
-            ]
-          },
-          "example": {
-            "config": "pair-redirect-priority",
-            "seed": "gen9championsvgc2026regmcbo3-2679027089 vs gen9championsvgc2026regmcbo3-2679006984",
-            "turn": 2
-          },
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "curse",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 73
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 73
-        },
-        {
-          "cause": "ordering :: |-enditem|p2a|whiteherb <> |switch|p1b|sinistcha,l50|H/H",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|-singleturn|p1a: Golisopod|Protect",
-            "|move|p2a: Incineroar|Fake Out|p1a: Golisopod",
-            "|-activate|p1a: Golisopod|move: Psychic Terrain",
-            "|move|p1b: Incineroar|Parting Shot|p2a: Incineroar",
-            "|-unboost|p2a: Incineroar|atk|1",
-            "|-unboost|p2a: Incineroar|spa|1"
-          ],
-          "sdAfter": [
-            "|-enditem|p2a: Incineroar|White Herb",
-            "|-clearnegativeboost|p2a: Incineroar|[silent]",
-            "|switch|p1b: Sinistcha|Sinistcha, L50|146/146|[from] Parting Shot",
-            "|move|p2b: Farigiraf|Expanding Force|p1a: Golisopod|[spread] p1b",
-            "|-activate|p1a: Golisopod|move: Protect",
-            "|-damage|p1b: Sinistcha|55/146",
-            "|upkeep",
-            "|turn|4"
-          ],
-          "meAfter": [
-            "|switch|p1b: Sinistcha|sinistcha, L50|146/146|[from] partingshot",
-            "|-enditem|p2a: Incineroar|whiteherb",
-            "|-clearnegativeboost|p2a: Incineroar|[silent]",
-            "|move|p2b: Farigiraf|expandingforce|p1a: Golisopod",
-            "|-activate|p1a: Golisopod|move: Protect",
-            "|-damage|p1b: Sinistcha|55/146",
-            "|upkeep"
-          ],
-          "species": "Incineroar",
-          "attribution": {
-            "showdown": [],
-            "medicham": [
-              "[from] partingshot"
-            ]
-          },
-          "example": {
-            "config": "pair-redirect-priority",
-            "seed": "gen9championsvgc2026regmcbo3-2681374288 vs gen9championsvgc2026regmcbo3-2681358545",
-            "turn": 3
-          },
-          "mentions": [
-            {
-              "kind": "items",
-              "id": "whiteherb",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 4012
-            },
-            {
-              "kind": "species",
-              "id": "sinistcha",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 4012
+          "max_uses": 7
         }
       ]
     },
     {
       "cls": "event missing from medicham2",
-      "games": 4,
+      "games": 3,
       "causes": [
         {
           "cause": "event missing from medicham2 :: |-end|p1a|fallenundefined <> |faint|p1b",
@@ -7240,71 +6824,6 @@
             "turn": 3
           },
           "mentions": []
-        },
-        {
-          "cause": "event missing from medicham2 :: |-activate|p1b|lightningrod <> |-prepare|p2b|electroshot",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|move|p2a: Basculegion|Last Respects|p1a: Incineroar",
-            "|-resisted|p1a: Incineroar|1",
-            "|-damage|p1a: Incineroar|58/170",
-            "|-enditem|p1a: Incineroar|Sitrus Berry|[eat]",
-            "|-heal|p1a: Incineroar|100/170|[from] item: Sitrus Berry",
-            "|move|p2b: Archaludon|Electro Shot||[still]"
-          ],
-          "sdAfter": [
-            "|-activate|p1b: Raichu|ability: Lightning Rod",
-            "|-prepare|p2b: Archaludon|Electro Shot",
-            "|-boost|p2b: Archaludon|spa|1",
-            "|move|p1a: Incineroar|Flare Blitz|p2a: Basculegion",
-            "|-resisted|p2a: Basculegion|1",
-            "|-damage|p2a: Basculegion|26/195",
-            "|-damage|p1a: Incineroar|74/170|[from] Recoil",
-            "|upkeep",
-            "|turn|9"
-          ],
-          "meAfter": [
-            "|-prepare|p2b: Archaludon|electroshot",
-            "|-boost|p2b: Archaludon|spa|1",
-            "|move|p1a: Incineroar|flareblitz|p2a: Basculegion",
-            "|-resisted|p2a: Basculegion|1",
-            "|-damage|p2a: Basculegion|26/195",
-            "|-damage|p1a: Incineroar|74/170|[from] Recoil",
-            "|upkeep"
-          ],
-          "species": "Raichu",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-spread",
-            "seed": "gen9championsvgc2026regmcbo3-2679514203 vs gen9championsvgc2026regmcbo3-2679481493",
-            "turn": 8
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "lightningrod",
-              "legal": true,
-              "carriers": 6,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 4710
-            },
-            {
-              "kind": "moves",
-              "id": "electroshot",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 3824
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 4710
         },
         {
           "cause": "event missing from medicham2 :: |-end|p1a|fallenundefined <> |move|p2b|strugglebug",
@@ -7354,11 +6873,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 746
+              "uses": 710
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 746
+          "max_uses": 710
         },
         {
           "cause": "event missing from medicham2 :: |-end|p2b|fallenundefined <> |switch|p2b|indeedeef,l50|H/H",
@@ -7443,25 +6962,6 @@
       ]
     },
     {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmcbo3-2682994376 vs gen9championsvgc2026regmcbo3-2682972403",
-      "index": 32,
-      "agreed_lines": 32,
-      "turn": 2,
-      "cls": "ordering",
-      "cause": "ordering :: |-enditem|p2a|whiteherb <> |switch|p1b|golisopod,l50|H/H",
-      "showdown": "|-enditem|p2a: Sneasler|White Herb",
-      "medicham": "|switch|p1b: Golisopod|golisopod, L50|150/150|[from] partingshot",
-      "showdown_before": [
-        "|-unboost|p1a: Golisopod|atk|1",
-        "|-unboost|p1b: Incineroar|atk|1",
-        "|switch|p1a: Garchomp|Garchomp, L50|183/183",
-        "|move|p1b: Incineroar|Parting Shot|p2a: Sneasler",
-        "|-unboost|p2a: Sneasler|atk|1",
-        "|-unboost|p2a: Sneasler|spa|1"
-      ]
-    },
-    {
       "config": "omit-weather",
       "seed": "gen9championsvgc2026regmcbo3-2680737571 vs gen9championsvgc2026regmcbo3-2680767838",
       "index": 51,
@@ -7500,82 +7000,6 @@
       ]
     },
     {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmcbo3-2679514203 vs gen9championsvgc2026regmcbo3-2679481493",
-      "index": 127,
-      "agreed_lines": 127,
-      "turn": 8,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-activate|p1b|lightningrod <> |-prepare|p2b|electroshot",
-      "showdown": "|-activate|p1b: Raichu|ability: Lightning Rod",
-      "medicham": "|-prepare|p2b: Archaludon|electroshot",
-      "showdown_before": [
-        "|move|p2a: Basculegion|Last Respects|p1a: Incineroar",
-        "|-resisted|p1a: Incineroar|1",
-        "|-damage|p1a: Incineroar|58/170",
-        "|-enditem|p1a: Incineroar|Sitrus Berry|[eat]",
-        "|-heal|p1a: Incineroar|100/170|[from] item: Sitrus Berry",
-        "|move|p2b: Archaludon|Electro Shot||[still]"
-      ]
-    },
-    {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmcbo3-2682655109 vs gen9championsvgc2026regmcbo3-2682620646",
-      "index": 83,
-      "agreed_lines": 83,
-      "turn": 5,
-      "cls": "ordering",
-      "cause": "ordering :: |-activate|p1a|emergencyexit <> |faint|p2b",
-      "showdown": "|-activate|p1a: Golisopod|ability: Emergency Exit",
-      "medicham": "|faint|p2b: Rillaboom",
-      "showdown_before": [
-        "|switch|p1a: Golisopod|Golisopod, L50|150/150",
-        "|move|p1b: Archaludon|Protect|p1b: Archaludon",
-        "|-singleturn|p1b: Archaludon|Protect",
-        "|move|p2b: Rillaboom|Wood Hammer|p1a: Golisopod",
-        "|-damage|p1a: Golisopod|33/150",
-        "|-damage|p2b: Rillaboom|0 fnt|[from] Recoil"
-      ]
-    },
-    {
-      "config": "pair-redirect-priority",
-      "seed": "gen9championsvgc2026regmcbo3-2678973074 vs gen9championsvgc2026regmcbo3-2678951502",
-      "index": 28,
-      "agreed_lines": 28,
-      "turn": 2,
-      "cls": "ordering",
-      "cause": "ordering :: |-activate|p1a|emergencyexit <> |faint|p2a",
-      "showdown": "|-activate|p1a: Golisopod|ability: Emergency Exit",
-      "medicham": "|faint|p2a: Rillaboom",
-      "showdown_before": [
-        "|-singleturn|p1b: Armarouge|Protect",
-        "|move|p2b: Indeedee|Follow Me|p2b: Indeedee",
-        "|-singleturn|p2b: Indeedee|move: Follow Me",
-        "|move|p2a: Rillaboom|Wood Hammer|p1a: Golisopod",
-        "|-damage|p1a: Golisopod|38/150",
-        "|-damage|p2a: Rillaboom|0 fnt|[from] Recoil"
-      ]
-    },
-    {
-      "config": "pair-redirect-priority",
-      "seed": "gen9championsvgc2026regmcbo3-2679027089 vs gen9championsvgc2026regmcbo3-2679006984",
-      "index": 33,
-      "agreed_lines": 33,
-      "turn": 2,
-      "cls": "ordering",
-      "cause": "ordering :: |-damage|p2a|H/H <> |-start|p1a|curse",
-      "showdown": "|-damage|p2a: Golurk|2/164",
-      "medicham": "|-start|p1a: Charizard|Curse|[of] golurk-mega",
-      "showdown_before": [
-        "|-fail|p1a: Charizard",
-        "|move|p2b: Maushold|Follow Me|p2b: Maushold",
-        "|-singleturn|p2b: Maushold|move: Follow Me",
-        "|move|p1b: Rillaboom|Grassy Glide|p2b: Maushold",
-        "|-damage|p2b: Maushold|83/149",
-        "|move|p2a: Golurk|Curse|p1a: Charizard"
-      ]
-    },
-    {
       "config": "pair-redirect-priority",
       "seed": "gen9championsvgc2026regmcbo3-2680737571 vs gen9championsvgc2026regmcbo3-2680760363",
       "index": 74,
@@ -7592,44 +7016,6 @@
         "|-unboost|p2a: Sneasler|def|1",
         "|-unboost|p2a: Sneasler|spd|1",
         "|faint|p1a: Kingambit"
-      ]
-    },
-    {
-      "config": "pair-redirect-priority",
-      "seed": "gen9championsvgc2026regmcbo3-2681374288 vs gen9championsvgc2026regmcbo3-2681358545",
-      "index": 49,
-      "agreed_lines": 49,
-      "turn": 3,
-      "cls": "ordering",
-      "cause": "ordering :: |-enditem|p2a|whiteherb <> |switch|p1b|sinistcha,l50|H/H",
-      "showdown": "|-enditem|p2a: Incineroar|White Herb",
-      "medicham": "|switch|p1b: Sinistcha|sinistcha, L50|146/146|[from] partingshot",
-      "showdown_before": [
-        "|-singleturn|p1a: Golisopod|Protect",
-        "|move|p2a: Incineroar|Fake Out|p1a: Golisopod",
-        "|-activate|p1a: Golisopod|move: Psychic Terrain",
-        "|move|p1b: Incineroar|Parting Shot|p2a: Incineroar",
-        "|-unboost|p2a: Incineroar|atk|1",
-        "|-unboost|p2a: Incineroar|spa|1"
-      ]
-    },
-    {
-      "config": "pair-redirect-priority",
-      "seed": "gen9championsvgc2026regmc-2679193782 vs gen9championsvgc2026regmc-2679300581",
-      "index": 57,
-      "agreed_lines": 57,
-      "turn": 4,
-      "cls": "ordering",
-      "cause": "ordering :: |-activate|p1a|emergencyexit <> |faint|p2b",
-      "showdown": "|-activate|p1a: Golisopod|ability: Emergency Exit",
-      "medicham": "|faint|p2b: Incineroar",
-      "showdown_before": [
-        "|-damage|p2a: Blastoise|0 fnt",
-        "|-damage|p2b: Incineroar|8/170",
-        "|faint|p2a: Blastoise",
-        "|move|p2b: Incineroar|Flare Blitz|p1a: Golisopod",
-        "|-damage|p1a: Golisopod|63/150",
-        "|-damage|p2b: Incineroar|0 fnt|[from] Recoil"
       ]
     },
     {
@@ -7657,18 +7043,21 @@
     "policy": "observed-effect/v1",
     "rule": "a census row is exercised when a board leaf in a family THE TAG'S OWN PARAMS NAME changed across the turn, in either engine, inside the scope of an entity that was in play; or when a blocking tag's declared negative case was reached and correctly did not fire. A click alone counts for NOTHING but an attempt.",
     "why": "Primarina clicked Haze on turn 1 into a board with zero boosts on it. Haze is a no-op there, the census marked it exercised, and because the census STEERS the sample a falsely credited row then steered every later run AWAY from testing it.",
-    "rows_with_an_observed_effect": 392,
-    "rows_that_can_be_witnessed_on_a_board": 439,
-    "rows_that_name_no_board_leaf": 500,
-    "rows_credited_by_a_connected_click_only": 477,
-    "rows_clicked_or_present_that_did_nothing": 6,
+    "rows_with_an_observed_effect": 396,
+    "rows_that_can_be_witnessed_on_a_board": 446,
+    "rows_that_name_no_board_leaf": 506,
+    "rows_credited_by_a_connected_click_only": 482,
+    "rows_clicked_or_present_that_did_nothing": 9,
     "rows_clicked_or_present_that_did_nothing_list": [
       "ability:clearsScreensOnEntry",
       "ability:clearsScreensOnEntry",
       "move:groundsField",
       "move:groundsField",
       "move:groundsField",
-      "move:groundsField"
+      "move:groundsField",
+      "move:groundsField",
+      "move:groundsField",
+      "move:refusedByPseudoWeather"
     ],
     "turns_credited_over": 29138,
     "attribution_limit": "credit is at TURN granularity, scoped to the user's slot, the target's slot, the field and both sides. Two mechanics acting on one body in one turn can both be credited. That is weaker than a per-effect trace and strictly tighter than the click it replaces, which is the whole claim.",
@@ -8299,9 +7688,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 117,
+        "credit": 156,
         "of_which": {
-          "effect": 246,
+          "effect": 328,
           "negative": 0,
           "click": 0
         },
@@ -8992,11 +8381,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 3,
+        "credit": 4,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 9
+          "click": 12
         },
         "attempts": 0
       },
@@ -9692,9 +9081,9 @@
         "from": [
           "the tag name matches taunt|forbidsstatusmoves"
         ],
-        "credit": 30,
+        "credit": 40,
         "of_which": {
-          "effect": 75,
+          "effect": 100,
           "negative": 0,
           "click": 0
         },
@@ -9709,9 +9098,9 @@
         "from": [
           "the tag name matches taunt|forbidsstatusmoves"
         ],
-        "credit": 30,
+        "credit": 40,
         "of_which": {
-          "effect": 75,
+          "effect": 100,
           "negative": 0,
           "click": 0
         },
@@ -9726,9 +9115,9 @@
         "from": [
           "the tag name matches taunt|forbidsstatusmoves"
         ],
-        "credit": 30,
+        "credit": 40,
         "of_which": {
-          "effect": 75,
+          "effect": 100,
           "negative": 0,
           "click": 0
         },
@@ -10295,9 +9684,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 546,
+        "credit": 585,
         "of_which": {
-          "effect": 1190,
+          "effect": 1275,
           "negative": 0,
           "click": 0
         },
@@ -10313,9 +9702,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 546,
+        "credit": 585,
         "of_which": {
-          "effect": 1190,
+          "effect": 1275,
           "negative": 0,
           "click": 0
         },
@@ -10331,9 +9720,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 546,
+        "credit": 585,
         "of_which": {
-          "effect": 1190,
+          "effect": 1275,
           "negative": 0,
           "click": 0
         },
@@ -10349,9 +9738,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 546,
+        "credit": 585,
         "of_which": {
-          "effect": 1190,
+          "effect": 1275,
           "negative": 0,
           "click": 0
         },
@@ -12007,11 +11396,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 6,
+        "credit": 12,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 12
+          "click": 24
         },
         "attempts": 0
       },
@@ -13272,11 +12661,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 3,
+        "credit": 4,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 9
+          "click": 12
         },
         "attempts": 0
       },
@@ -13287,11 +12676,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 3,
+        "credit": 4,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 9
+          "click": 12
         },
         "attempts": 0
       },
@@ -13676,9 +13065,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 546,
+        "credit": 585,
         "of_which": {
-          "effect": 1190,
+          "effect": 1275,
           "negative": 0,
           "click": 0
         },
@@ -13881,11 +13270,54 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 16,
+        "credit": 20,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 48
+          "click": 60
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:changesTargetType",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 20,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 60
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:changesTargetType",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 20,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 60
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:spendsOwnType",
+        "kind": "effect",
+        "families": [
+          "species"
+        ],
+        "from": [
+          "param key `becomes`"
+        ],
+        "credit": 48,
+        "of_which": {
+          "effect": 92,
+          "negative": 0,
+          "click": 0
         },
         "attempts": 0
       },
@@ -14447,6 +13879,19 @@
         "attempts": 0
       },
       {
+        "key": "ability:typeFollowsTerrain",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 0,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
         "key": "ability:formeFollowsWeather",
         "kind": "effect",
         "families": [
@@ -14629,11 +14074,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 16,
+        "credit": 20,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 48
+          "click": 60
         },
         "attempts": 0
       },
@@ -15479,11 +14924,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 16,
+        "credit": 20,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 48
+          "click": 60
         },
         "attempts": 0
       },
@@ -15544,11 +14989,139 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 860,
+        "credit": 1720,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1818
+          "click": 3636
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:firstTurnOnly",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 1720,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 3636
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:sealsMoves",
+        "kind": "effect",
+        "families": [
+          "encore",
+          "disable"
+        ],
+        "from": [
+          "the tag name matches encore|locksTarget|sealsMove"
+        ],
+        "credit": 585,
+        "of_which": {
+          "effect": 1275,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:blocksHealing",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [
+          "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
+        ],
+        "credit": 4,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 12
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:locksTarget",
+        "kind": "effect",
+        "families": [
+          "encore",
+          "disable"
+        ],
+        "from": [
+          "the tag name matches encore|locksTarget|sealsMove"
+        ],
+        "credit": 156,
+        "of_which": {
+          "effect": 328,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:cantUseTwice",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 12,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 24
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:groundsField",
+        "kind": "effect",
+        "families": [
+          "trickroom"
+        ],
+        "from": [
+          "param key `pseudoWeather`"
+        ],
+        "credit": 0,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:groundsField",
+        "kind": "effect",
+        "families": [
+          "trickroom"
+        ],
+        "from": [
+          "param key `pseudoWeather`"
+        ],
+        "credit": 0,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:forbidsStatusMoves",
+        "kind": "effect",
+        "families": [
+          "taunt"
+        ],
+        "from": [
+          "the tag name matches taunt|forbidsstatusmoves"
+        ],
+        "credit": 40,
+        "of_which": {
+          "effect": 100,
+          "negative": 0,
+          "click": 0
         },
         "attempts": 0
       },
@@ -16481,9 +16054,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 546,
+        "credit": 585,
         "of_which": {
-          "effect": 1190,
+          "effect": 1275,
           "negative": 0,
           "click": 0
         },
@@ -16499,9 +16072,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 546,
+        "credit": 585,
         "of_which": {
-          "effect": 1190,
+          "effect": 1275,
           "negative": 0,
           "click": 0
         },
@@ -16517,9 +16090,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 546,
+        "credit": 585,
         "of_which": {
-          "effect": 1190,
+          "effect": 1275,
           "negative": 0,
           "click": 0
         },
@@ -16678,9 +16251,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 546,
+        "credit": 585,
         "of_which": {
-          "effect": 1190,
+          "effect": 1275,
           "negative": 0,
           "click": 0
         },
@@ -16709,9 +16282,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 117,
+        "credit": 156,
         "of_which": {
-          "effect": 246,
+          "effect": 328,
           "negative": 0,
           "click": 0
         },
@@ -16727,9 +16300,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 546,
+        "credit": 585,
         "of_which": {
-          "effect": 1190,
+          "effect": 1275,
           "negative": 0,
           "click": 0
         },
@@ -18032,6 +17605,23 @@
         "attempts": 0
       },
       {
+        "key": "move:refusedByPseudoWeather",
+        "kind": "effect",
+        "families": [
+          "trickroom"
+        ],
+        "from": [
+          "param key `pseudoWeather`"
+        ],
+        "credit": 0,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
         "key": "move:callRefusalFlags",
         "kind": "no-board-leaf",
         "families": [],
@@ -19066,9 +18656,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 546,
+        "credit": 585,
         "of_which": {
-          "effect": 1190,
+          "effect": 1275,
           "negative": 0,
           "click": 0
         },
@@ -19400,9 +18990,9 @@
         "from": [
           "param key `becomes`"
         ],
-        "credit": 24,
+        "credit": 48,
         "of_which": {
-          "effect": 46,
+          "effect": 92,
           "negative": 0,
           "click": 0
         },
@@ -20134,11 +19724,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 16,
+        "credit": 20,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 48
+          "click": 60
         },
         "attempts": 0
       },
@@ -20356,11 +19946,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 16,
+        "credit": 20,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 48
+          "click": 60
         },
         "attempts": 0
       },
@@ -21604,9 +21194,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 546,
+        "credit": 585,
         "of_which": {
-          "effect": 1190,
+          "effect": 1275,
           "negative": 0,
           "click": 0
         },
@@ -21675,9 +21265,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 546,
+        "credit": 585,
         "of_which": {
-          "effect": 1190,
+          "effect": 1275,
           "negative": 0,
           "click": 0
         },
@@ -21693,9 +21283,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 546,
+        "credit": 585,
         "of_which": {
-          "effect": 1190,
+          "effect": 1275,
           "negative": 0,
           "click": 0
         },
@@ -21913,11 +21503,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 16,
+        "credit": 20,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 48
+          "click": 60
         },
         "attempts": 0
       },
@@ -21939,11 +21529,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 16,
+        "credit": 20,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 48
+          "click": 60
         },
         "attempts": 0
       },
@@ -22228,11 +21818,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 16,
+        "credit": 20,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 48
+          "click": 60
         },
         "attempts": 0
       },
@@ -22282,9 +21872,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 117,
+        "credit": 156,
         "of_which": {
-          "effect": 246,
+          "effect": 328,
           "negative": 0,
           "click": 0
         },
@@ -22373,13 +21963,13 @@
     ]
   },
   "coverage": {
-    "measurable": 939,
-    "exercised": 882,
+    "measurable": 952,
+    "exercised": 894,
     "exercised_note": "THE OLD NUMBER — an entity of this row connected or stood on the field. It is kept so the drop to credit.rows_with_an_observed_effect is readable, and it is NOT the coverage claim any more.",
-    "exercised_by_a_connected_move": 516,
-    "move_targets": 547,
+    "exercised_by_a_connected_move": 528,
+    "move_targets": 559,
     "present_on_the_field_only": 366,
-    "ability_or_item_targets": 392,
+    "ability_or_item_targets": 393,
     "median_completed_turns_before_divergence": 9,
     "unmeasurable_by_this_instrument": [
       {
@@ -22432,6 +22022,10 @@
       },
       {
         "key": "move:targetsASlot",
+        "why": "names"
+      },
+      {
+        "key": "ability:convertsMoveTypeExcept",
         "why": "names"
       },
       {
@@ -22678,6 +22272,7 @@
       "move:preTurnShield",
       "ability:addsOwnSecondary",
       "move:guaranteesNextMove",
+      "ability:typeFollowsTerrain",
       "ability:typeFollowsTerrain",
       "ability:formeFollowsWeather",
       "ability:formeFollowsWeather",
@@ -23078,7 +22673,7 @@
     "driver_inputs": [
       {
         "file": "data/move-priors-regmc.json",
-        "read_from": "release ec377f6f8159",
+        "read_from": "release 78fb4a85b1a0",
         "digest": "eab0c9b023df",
         "generated": "2026-09-21",
         "rows": 280,
@@ -23104,7 +22699,7 @@
         "rows": 48,
         "what": "the DECLARED SKIP LIST — every event medicham2 says it does not emit is removed from the Showdown side before alignment, so this decides what can count as a divergence",
         "derived_from_medicham2": "1e35c4df04aa",
-        "medicham2_played": "b0e25d70943c"
+        "medicham2_played": "0ac4441bffc4"
       }
     ],
     "driver_code": {
@@ -23125,9 +22720,9 @@
         "engine/effect_kind.js": "10a7c982994f",
         "engine/empirical_driver.js": "e6ad4a3a7b43",
         "engine/end_state_severity.js": "6cd7666b4a02",
-        "engine/engine_release.js": "eb76aba46bee",
+        "engine/engine_release.js": "675f2ba369bd",
         "engine/fixture_legality.js": "3dcb1fd37648",
-        "engine/game_differential.js": "fa9545187558",
+        "engine/game_differential.js": "0eb15a0b3fea",
         "engine/names.js": "ba54d547c0a0",
         "engine/run_stamp.js": "9b44ac36f0d1",
         "engine/steering.js": "c61ad94ed8f0"
@@ -23139,16 +22734,16 @@
         "engine/effect_kind.js": "ad0ae817aac2",
         "engine/empirical_driver.js": "4f2f2e1e6df6",
         "engine/end_state_severity.js": "6cd7666b4a02",
-        "engine/engine_release.js": "eb76aba46bee",
+        "engine/engine_release.js": "675f2ba369bd",
         "engine/fixture_legality.js": "42bb3443d333",
-        "engine/game_differential.js": "fa9545187558",
+        "engine/game_differential.js": "0eb15a0b3fea",
         "engine/names.js": "ba54d547c0a0",
         "engine/run_stamp.js": "9b44ac36f0d1",
         "engine/steering.js": "7c85e3d88fb2"
       },
       "digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content) — a line ending is not part of the instrument. `files_raw`/`raw_digest` carry the byte answer.",
-      "raw_digest": "c63d89b9a0c7",
-      "digest": "64a2dc4f5568",
+      "raw_digest": "79e9dcf0aeed",
+      "digest": "826ceca498e5",
       "unresolved": [
         "engine/game_differential.js -> ./tests/roster.js (does not resolve on disk)",
         "engine/game_differential.js -> ./engine/\n * game_differential.js (does not resolve on disk)",
@@ -23160,17 +22755,17 @@
       "does_not_cover": "a computed require path, a dynamic import, the Showdown checkout beyond `showdown_commit`, and data/protocol-events.json (read as data, not required)."
     },
     "input": "data/mechanics-census.json",
-    "input_read_from": "data/verification/census-pin-regmc-53bfaafa023d.json",
-    "input_digest": "53bfaafa023d",
-    "input_raw_digest": "53bfaafa023d",
+    "input_read_from": "data/verification/census-pin-regmc-ccd979c30997.json",
+    "input_digest": "ccd979c30997",
+    "input_raw_digest": "ccd979c30997",
     "input_digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content)",
-    "input_rows": 1010,
-    "input_generated": "2026-09-24T02:11:14.278Z",
-    "input_live_digest": "53bfaafa023d",
+    "input_rows": 1024,
+    "input_generated": "2026-09-24T14:57:42.761Z",
+    "input_live_digest": "a4f3f145cf49",
     "pinned": true,
-    "matches_live": true,
-    "selects_from": 939,
-    "unmeasurable": 71,
+    "matches_live": false,
+    "selects_from": 952,
+    "unmeasurable": 72,
     "credit": "observed-effect/v1 — a row is exercised when a board leaf in a family the tag's own params name changed across the turn, or when a declared negative case was reached and did not fire. A click alone counts for nothing. ROADMAP #91.",
     "team_pool_digest": "2d8e6931a914",
     "team_pool_teams": 11608,
@@ -23178,14 +22773,14 @@
     "team_store_pinned_to": "data/team-pool-frozen-regmc"
   },
   "baseline_comparability": null,
-  "engine_release": "ec377f6f8159",
-  "engine_release_cut": "2026-09-24T01:32:29.858Z",
-  "engine_release_cuts": 3,
+  "engine_release": "78fb4a85b1a0",
+  "engine_release_cut": "2026-09-24T14:49:22.261Z",
+  "engine_release_cuts": 23,
   "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
   "source_digests": {
-    "engine/medicham2-browser.js": "b0e25d70943c",
+    "engine/medicham2-browser.js": "0ac4441bffc4",
     "engine/board.js": "c85a3b756c98",
-    "engine/rollout_leaf.js": "a68f159b6d5c",
+    "engine/rollout_leaf.js": "eacf05ff8d30",
     "engine/position_features.js": "bb71676d3669",
     "engine/tags.js": "5a57b5020d15",
     "engine/champions_sim.js": "8094725f52a8",
@@ -23204,15 +22799,16 @@
     "data/regulations.json": "6c7c3e3dd06c",
     "data/quality-filter.json": "042524dd1df7",
     "data/engine-data.js": "bbc417dfae0e",
-    "data/abra-tags.js": "756f4ac8350d",
-    "data/tags.json": "4535d8829442",
+    "data/abra-tags.js": "fc30f9a9392e",
+    "data/tags.json": "26ee107ce6a8",
     "data/policy-weights.json": "626c1d240782",
     "data/policy-weights-joint.json": "e2aca467ff04",
     "data/move-priors.json": "e667fe8ab457",
     "engine/pp.js": "30b12a4ef623",
     "data/rollout-switch-census.json": "b8a5cee2f0a9",
+    "engine/medicham_api.js": "1702ceba861d",
     "data/engine-data-regmc.js": "a6ad04e92d4e",
-    "data/tags-regmc.json": "2faa539f391f",
+    "data/tags-regmc.json": "cc833be25a3d",
     "data/move-priors-regmc.json": "eab0c9b023df",
     "data/move-effects-regmc.js": "8c57407e7641"
   },

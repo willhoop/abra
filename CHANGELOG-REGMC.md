@@ -21,6 +21,21 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.112.0] — 2026-09-24
+
+### Changed
+- **Both MEDICHAM gates re-read on the merged engine; both still CLOSED, each on ONE clause.** Releases
+  `78fb4a85b1a0` (Reg M-C) and `fb8073869b72` (Reg M-B), pass-10 protocol, every run pinned and serial through
+  `tools\lownode.cmd`. **Reg M-C: 1 of 10 fails (was 5).** Narration is CANNOT-ANSWER because no baseline exists;
+  undeclared narration-only games are 3/955, 5/1266 and 6/1497 (were 6, 12 and 9). Board-material is 0 on all three
+  lattices. Roster: 166/166, 210/214 and 510/511, 0 COULD-NOT-STAGE. Mechanics staged: 0 diverge; 4,867 games.
+  Register clause PASS. **Reg M-B: 1 of 10 fails (was 4).** #442's instrument is RED because the committed census
+  (1004) is older than the engine (1020 reproduced). Every other clause passes; board-material and narration are 0 on
+  961/1069/1497. Census pins `ccd979c30997` (Reg M-C, 1024 live) and `8fe58c13659e` (Reg M-B, 1020 live). The Reg M-B
+  census reading is parked at `data/verification/mechanics-census-fb8073869b72.json` and not republished; its roster
+  and staged-harness readings equal the closed documents' figures and are committed. No narration baseline was
+  stamped. `docs/_reports/2026-09-24-gate-reread-merged.md`.
+
 ## [0.111.4] — 2026-09-24
 
 ### Fixed
