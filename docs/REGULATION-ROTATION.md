@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.111.1 — 2026-09-24.**
+**Version: 0.111.2 — 2026-09-24.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 

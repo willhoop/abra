@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.111.2] — 2026-09-24 — **Two id-normalisers are memoised; a simulated turn costs less CPU and plays identically (both regulations)**
+- **What changed.** `engine/tags.js` `norm()` and `engine/medicham2-browser.js` `_shadowId()` cache a string input by value, and answer `''` at once for any falsy input. Both are pure, and any other input still takes the original expression. Nothing else moved. Full account `docs/_reports/2026-09-24-engine-turn-speed.md`.
+- **Measured.** NO FIGURE published. Identity, both regulations: the same bytes per game. A per-game harness over 300 playouts per regulation matched base on every protocol trace, end board, `MEDSEEN`/`MEDFAILS` counter and tags `ASKED`/`COUNT` counter (a knob-flipped control differed on 300 of 300). The pinned `game_differential.js` (`--steering empirical --arm middle --end-state --games 300` and `--games 1200`, same census pin and frozen pool per regulation, `MEDI_SAMPLE_DUMP` per game) matched too, except for the release id and the simulator digest. 16 probes in each regulation printed the same output. Speed: over five paired in-process A/B runs on main-thread CPU, turns per CPU-second rose +8% to +17% (Reg M-B +15%, +17%, +8%; Reg M-C +8%, +10%). The turn now costs ~1.75x the CPU it cost on 2026-08-28 (release `5f3f7141227c`), not 3x.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.111.1] — 2026-09-24 — **Ledgers restamped after the merge pass's last merge**
 - **What changed.** `node engine/status.js --write` after 0.111.0; generated blocks only.
 - **Measured.** NO FIGURE published.

@@ -21,6 +21,27 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.111.2] — 2026-09-24
+
+### Changed
+- **A simulated turn costs less CPU, and every game plays the same bytes (both regulations).** On every
+  `param`/`has`/`tagsFor` lookup, `engine/tags.js` `norm()` ran a lower-case-and-strip regex, and a turn makes
+  hundreds of these lookups. `volSeqSync` calls `engine/medicham2-browser.js` `_shadowId()` up to seven times per
+  body per Update pass, mostly on an empty field. Both functions are pure. Each now caches a string by value and
+  answers `''` at once for a falsy input. Any other input takes the original expression. In a paired in-process
+  A/B on main-thread CPU, turns per CPU-second rose 8% to 17% over five runs in both regulations. Both arms of
+  each run played the same turns.
+
+### Notes
+- **No figure moves, so this is a PATCH.** The pinned differential is identical per game in both regulations
+  (`MEDI_SAMPLE_DUMP` trajectories at `--games 1200`: 961 of 961 games on Reg M-B and 955 of 955 on Reg M-C; the
+  `--games 300` artifacts match as well). So is a 300-playout per-game harness that
+  also hashes every counter. So are 16 probes in each regulation. Full account:
+  `docs/_reports/2026-09-24-engine-turn-speed.md`.
+- **The turn has become about 1.75x dearer in CPU since 2026-08-28, not 3x.** This is a paired bisect over 20
+  releases. The playout-speed report's 3x compared an idle-machine figure against a run on a machine at 100% load.
+  The steps, and the hot spots that would need a behaviour-affecting change, are listed in the report as proposals.
+
 ## [0.111.1] — 2026-09-24
 
 ### Changed

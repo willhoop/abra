@@ -69,7 +69,25 @@ function load() {
   return DB;
 }
 
-const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+/* MEMOISED, 2026-09-24 (docs/_reports/2026-09-24-engine-turn-speed.md). Every `param`/`has`/`tagsFor`
+ * ran this regex, and a simulated turn asks hundreds of times: the lower-case-and-strip was ~6.5% of a
+ * playout's CPU on its own. The function is pure on a string, so a string input is cached by value and
+ * the answer is the same bytes. Anything that is not a string (null, undefined, a number, an object
+ * whose toString could change) takes the original expression every time, uncached. The cap only bounds
+ * memory against an unbounded caller; clearing a pure cache cannot change an answer. */
+const _NORM = new Map();
+const _NORM_CAP = 65536;
+const norm = s => {
+  if (!s) return '';   /* every falsy s: `String(s || '')` is '' and so is its normal form */
+  if (typeof s !== 'string') return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  let v = _NORM.get(s);
+  if (v === undefined) {
+    v = s.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (_NORM.size >= _NORM_CAP) _NORM.clear();
+    _NORM.set(s, v);
+  }
+  return v;
+};
 
 /* kind: 'move' | 'item' | 'ability' */
 const TABLE = { move: 'moves', item: 'items', ability: 'abilities' };
