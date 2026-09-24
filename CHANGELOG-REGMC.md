@@ -21,6 +21,19 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.114.0] — 2026-09-24
+
+### Added
+- **Solver XATU v1: back-two and Stat Point belief under open team sheets.** Code `solver/xatu/`; model
+  `solver/xatu/model/bring-v1.json` (10 KB), tracked. On 10,942 held-out sides, turn-1 log-loss on the true back
+  pair is 1.348 against 1.792 uniform, and the true bring is never ruled out (0 of 10,942), per
+  `docs/_reports/2026-09-24-xatu-v1.md`. Tests on main: `test-xatu-api` 6,335, `test-xatu-bring` 33,
+  `test-xatu-sd` 584, `test-xatu-selfplay` 6, all passed. Merged from branch `worktree-agent-aae6baa63246ab32f`
+  (d9be8073).
+
+### Notes
+- MINOR: new solver capability. No ABRA published figure moves, and MEDICHAM is untouched.
+
 ## [0.113.0] — 2026-09-24
 
 ### Added

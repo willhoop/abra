@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.114.0] — 2026-09-24 — **Solver XATU v1 lands in main**
+- **What changed.** `solver/xatu/` (bring belief, Stat Point spreads, tracker) and `solver/xatu/model/bring-v1.json`. Branch `worktree-agent-aae6baa63246ab32f` (d9be8073). Report `docs/_reports/2026-09-24-xatu-v1.md`.
+- **Measured.** Turn-1 back-pair log-loss 1.348 against 1.792 uniform; true bring ruled out 0 of 10,942 held-out sides (the report). Four XATU tests GREEN on main.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** `docs/MODELS.md` (solver models section).
+
 ## [abra/regmc 0.113.0] — 2026-09-24 — **Solver MAG v1 and DODUO v1 land in main**
 - **What changed.** `solver/mag/` (features, inference, training) and two tracked model files. Branch `worktree-agent-ae26f145ebead8fac` (76883f3f). Report `docs/_reports/2026-09-24-mag-doduo-v1.md`.
 - **Measured.** DODUO joint log-loss 2.730 against prior v0 2.921 on 25,477 held-out exact joints: `solver/mag/model/mag-doduo-v1.metrics.json`. Test GREEN 3,826/3,826 on main.
