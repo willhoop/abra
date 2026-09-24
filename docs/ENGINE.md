@@ -1,3 +1,17 @@
+## A HANDED MOVE CLICK ON AN EMPTIED MENU IS STRUGGLE; TORMENT'S MENU HALF (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.91.0)
+
+Full account: `docs/_reports/2026-09-24-disabled-choice-struggle.md`.
+
+- `Side#chooseMove`: with `getMoves()` empty, any move choice is Struggle. The engine now rewrites a caller's click the
+  same way, at one site, for every source that empties the menu. Knob `MEDI_DISABLED_CLICK_PLAYED`. Torment's menu half
+  is wired in `moveDisabledBy`. Knob `MEDI_TORMENT_MENU_OPEN`. Probe `tests/probe_disabled_choice_struggle.js`, plus
+  three census rows.
+- Hand list: **the caller-supplied click on a fully sealed body (0.89.0) leaves it**, and so does Torment. New items:
+  the menu halves of Gravity, Belch and Stuff Cheeks (legal in both regulations; until each is wired, a body emptied by
+  one of them cannot reach the rewrite). And a handed click of a disabled move while other slots stay open: the
+  authority refuses that CHOICE, and the engine has no refusal to give, so it still plays the source's `|cant|`.
+  `medicham_api.legalActions` never offers such a click.
+
 ## HEAL BLOCK'S MENU HALF IS WIRED; THE API LEGALITY PROBE IS GREEN (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.90.0)
 
 Full account: `docs/_reports/2026-09-24-move-menu-legality.md`.

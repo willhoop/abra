@@ -21,6 +21,43 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.91.0] — 2026-09-24
+
+### Fixed
+- **A caller's move click on a body whose enabled menu is empty is Struggle (both regulations).** `Side#chooseMove`
+  (`sim/side.ts`, identical in the Reg M-B and Reg M-C checkouts) takes a hard lock first, then pushes
+  `moveid: 'struggle'` whatever was named when `getMoves()` is empty, and returns before the mega block. A visible
+  source leaves only Struggle on the request, so a named real move is refused there; Imprison's hidden source on the
+  last active body is rewritten there. The engine played the handed click and let each source's execution gate answer
+  it: `|cant|` for Taunt, Disable, Encore + Disable, a Choice lock + Taunt, Heal Block, Imprison and 0 PP, and for
+  Gigaton Hammer's repeat lock nothing at all (the move landed a second time). One site in `battleTurn`'s action
+  collection now asks `mustStruggle` when the handed move is itself off the menu, and builds Struggle. Knob
+  `MEDI_DISABLED_CLICK_PLAYED`.
+- **Torment's menu half (both regulations).** `torment.condition.onDisableMove` disables the body's last move. Torment
+  has no `onBeforeMove`, so this is its only half, and the engine had neither: a tormented body repeated its move.
+  `moveDisabledBy` now refuses `_lastMove` under the volatile. Knob `MEDI_TORMENT_MENU_OPEN`.
+- The menu's PP read (`moveDisabledBy`) no longer writes the lazy `_pp` table (`ppPeek`). Asking the menu wrote a
+  full-PP row for every slot; `ppSpentMap` reads an absent row as unspent, so no board leaf moves.
+
+### Added
+- `tests/probe_disabled_choice_struggle.js`: Imprison at board level in both engines, and eight disable sources at
+  choice level (Taunt, Disable, Torment, Encore + Disable, Choice lock + Taunt, Heal Block, Gigaton Hammer, 0 PP),
+  each with a boundary-0 control and the knob arm. Red on the base engine (14 assertions in each regulation), green
+  after.
+- Census rows `move/locksTarget` (Torment), `move/cantUseTwice` and `move/forbidsStatusMoves` (the handed click).
+
+### Changed
+- Census rows `move/pp` (twice) and `item/restoresPP` handed a body's ONLY move at 0 PP and asserted `|cant|nopp`. The
+  authority cannot produce that board: it takes the turn as Struggle. They now count the Struggle apart from the move's
+  own clicks and assert it.
+
+### Notes
+- Census: Reg M-B 1,012 of 1,012 live, Reg M-C 1,016 of 1,016 (the base branch measured 1,009 and 1,013). With both knobs
+  set, 6 rows go MISSING.
+- Pinned differential, `--games 45`, `--steering empirical --arm middle`, state mode: base against final is byte-identical
+  per game in both regulations (Reg M-B 43 games, Reg M-C 38), board-material 0 on both arms.
+- `docs/_reports/2026-09-24-disabled-choice-struggle.md`.
+
 ## [0.90.0] — 2026-09-24
 
 ### Fixed

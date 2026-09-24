@@ -53,6 +53,19 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.91.0] — 2026-09-24 — **A handed move click on an emptied menu is Struggle; Torment's menu half**
+
+- **What changed.** `engine/medicham2-browser.js`: the choice-time Struggle rewrite in `battleTurn`'s action collection
+  (`Side#chooseMove`'s `!moves.length` branch), Torment in `moveDisabledBy`, and a pure PP read for the menu (`ppPeek`).
+  New probe `tests/probe_disabled_choice_struggle.js`; three new census rows; three PP census rows now assert the
+  authority's Struggle instead of `|cant|nopp`.
+- **Measured.** Probe red on the base engine (14 assertions, each regulation), green after. Census Reg M-B 1,012/1,012,
+  Reg M-C 1,016/1,016. Pinned differential at `--games 45` (census pins `c3affea174af` and `regmc-f3b70bc0c47c`, the
+  frozen pools): base and final byte-identical per game, 43 and 38 games, board-material 0.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 0.90.0] — 2026-09-24 — **Heal Block's menu half: a heal-flagged move leaves the menu while the block stands**
 
 - **What changed.** `engine/medicham2-browser.js` `moveDisabledBy`: `healBlockRefusesClick`. One census row. The menu
