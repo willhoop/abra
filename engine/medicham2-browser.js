@@ -1986,6 +1986,10 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
   immunityGateRefused: 0,
   passesStateSwitch: 0, passesStateBoosts: 0, passesStateVolatiles: 0,
   curseGhost: 0, curseNonGhost: 0,
+  /* 2026-09-24 -- a Ghost Curse that paid its cost ABOVE the volatile, because the regulation's handler does
+   * (`typeSplitMove.costBeforeVolatile`, Reg M-C only). Zero over a Reg M-C run holding a Ghost Curse means the
+   * param is not reaching the engine. */
+  curseCostFirst: 0,
   /* WIRE 132 -- the three recoveries the mega path now makes, each named so a ZERO is readable.
    * megaKeyFromSuffix: the artifact's `megaStone.into` had no answer and the concatenated guess was
    * taken; megaMovesFromBase: a mega row with `mv: []` inherited the base row's moves; 
@@ -28467,6 +28471,8 @@ function layHazard(sf,hz,cap,setter,sideLabel,say){
 const SELF_VOL_FAIL_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SELF_VOLATILE_FAIL_SILENT==='1');
 const SPEND_TYPE_FAIL_BARE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SPEND_TYPE_FAIL_BARE==='1');   /* 0.83.0, see the spendsOwnType refusal */
 const STEEL_ROLLER_CLEAR_AT_END=(typeof process!=='undefined'&&process.env&&process.env.MEDI_STEEL_ROLLER_CLEAR_AT_END==='1');   /* 0.84.0, see `_stepMoveOnHitTerrain` */
+const CURSE_ORDER_FIXED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CURSE_ORDER_FIXED==='1');   /* 2026-09-24, see the `typesplit` branch */
+const CURSE_OF_SPECIES=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CURSE_OF_SPECIES==='1');     /* 2026-09-24, see the `typesplit` branch */
 /* 2026-09-23 (ENGINE pass 10, abra/regmc 0.82.0) -- COURT CHANGE SWAPS THE LISTED SIDE CONDITIONS BETWEEN THE SIDES.
  *
  * The authority (M-C checkout data/moves.ts courtchange :3032-3098; no Champions override) walks its own literal list
@@ -40182,18 +40188,34 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(t._ptDmg){mvFail(m);continue;}
         /* The volatile lands BEFORE the cost, which is `moveHit`'s own order (volatileStatus then
            onHit) and is the same order WIRE 7 established for the Substitute. */
+        /* 2026-09-24 -- AND WHICH COMES FIRST IS THE REGULATION'S HANDLER, READ OFF THE TAG. Reg M-B declares
+           `volatileStatus: 'curse'` and so adds it above `onHit` (the order above). The Reg M-C mod
+           (data/mods/champions/moves.ts:165-194) has no declared volatile: its `onHit` pays
+           `directDamage(source.maxhp / 2)` and THEN `target.addVolatile('curse')`, so the user's `-damage` precedes
+           the `-start`. `typeSplitMove.costBeforeVolatile` carries that, and is written only where it is true.
+           A user the cost kills still curses (the add is the next statement); its `|faint|` waits for the
+           volatile, as `faintMessages` does. MEDI_CURSE_ORDER_FIXED=1 restores the volatile-first order.
+           The `[of]` is `${source}`, i.e. `Pokemon#toString()` -- the side-and-slot identifier, not the species
+           (condition.onStart, both checkouts). MEDI_CURSE_OF_SPECIES=1 restores the species name. */
         const _pt=TAGS.param('move',a.mv,'perTurnHP');
-        if(_pt&&_pt.effect==='damage'&&_pt.on==='target'&&_pt.per){
-          t._ptDmg={per:+_pt.per,by:a.mv};
-          if(TR)TR.vstart(t,'Curse','[of] '+(m.name||''));
-        }
+        const _curseVol=()=>{
+          if(_pt&&_pt.effect==='damage'&&_pt.on==='target'&&_pt.per){
+            t._ptDmg={per:+_pt.per,by:a.mv};
+            if(TR){ if(CURSE_OF_SPECIES)TR.vstart(t,'Curse','[of] '+(m.name||'')); else TR.vstart(t,'Curse',null,null,m); }
+          }
+        };
+        const _costFirst=!!_ts.costBeforeVolatile&&!CURSE_ORDER_FIXED;
+        if(!_costFirst)_curseVol();
+        let _costKilled=false;
         if(_ts.hasTypeCostFraction&&m.st){
           /* `directDamage` -- it ignores the target's own doll and cannot be prevented, and
              `clampIntRange` TRUNCS, so a 135 HP Gengar pays 67 and not 68. */
           m.curHP-=Math.max(1,Math.trunc(m.st.hp*+_ts.hasTypeCostFraction));
           if(TR)TR.dmg(m);
-          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;faintLineOut(m);}
+          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;_costKilled=true;}
         }
+        if(_costFirst){_curseVol();MEDSEEN.curseCostFirst++;}
+        if(_costKilled)faintLineOut(m);
         MEDSEEN.curseGhost++;
         continue;
       }

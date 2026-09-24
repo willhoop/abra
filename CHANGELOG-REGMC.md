@@ -21,6 +21,27 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.87.0] — 2026-09-24
+
+### Fixed
+- **A Ghost's Curse wrote its lines in Reg M-B's order under Reg M-C, and named its user by species (both regulations
+  for the name).** Reg M-B's Curse declares `volatileStatus: 'curse'`, so `runMoveEffects` adds it above the move's
+  `onHit` and the `-start` precedes the user's `-damage` (pokemon-showdown data/moves.ts:3266-3310, no Champions
+  override). The Reg M-C mod sets `volatileStatus: undefined` and its `onHit` pays `directDamage(source.maxhp / 2)`
+  and THEN `target.addVolatile('curse')` (pokemon-showdown-mc data/mods/champions/moves.ts:165-194), so the `-damage`
+  comes first. `tag_dex` derives `typeSplitMove.costBeforeVolatile` off the handler (written only when true: Reg M-C
+  Curse, nothing in Reg M-B); the engine's `typesplit` branch pays the cost first when it is set, and a user the cost
+  kills announces its `|faint|` after the `-start`. The `[of]` is `${source}` in `condition.onStart` in both checkouts,
+  i.e. the side-and-slot identifier; the engine wrote the species name. Reg M-C narration group J. Knobs
+  `MEDI_CURSE_ORDER_FIXED`, `MEDI_CURSE_OF_SPECIES`. Counter `MEDSEEN.curseCostFirst`.
+- `data/tags-regmc.json`: the one param added on `moves.curse` (a leaf diff against the full regeneration found exactly
+  that leaf; the regeneration itself was discarded because it also re-read the store's usage counts). `data/tags.json`
+  and `data/abra-tags.js` are unchanged: the derivation writes nothing for Reg M-B.
+- New probe `tests/probe_curse_ghost_order.js` (either regulation): GHOST, AGAIN (already cursed: fails, pays once)
+  and PLAIN (non-Ghost self-boost) arms. Green in both; red on the 0.86.1 engine bytes in both (Reg M-C on order and
+  name, Reg M-B on the name); red under each knob where it applies.
+- Pinned differential, --games 300, --arm middle --steering empirical --end-state, census pins regmc-0d03e83f0e65 / 833a997d7e42, frozen team pools: Reg M-C 259 games, 0 diverged, 0 board-material on both release ec377f6f8159 (base) and 8051cc3c92a7 (fix); Reg M-B 260 games, 2 diverged, 1 board-material on both 7822a83cc49b and 19c1f3a33ed3, the same two games and the same first lines (neither is Curse). Nothing moved.
+
 ## [0.86.1] — 2026-09-23
 
 ### Fixed

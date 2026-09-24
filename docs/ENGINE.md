@@ -1,3 +1,8 @@
+## A GHOST'S CURSE FOLLOWS THE REGULATION'S LINE ORDER, AND ITS `[of]` NAMES THE USER'S SLOT. 2026-09-24 (abra/regmc 0.87.0)
+
+- `typeSplitMove.costBeforeVolatile` (derived; Reg M-C only) puts the user's `-damage` above the `-start`; the `[of]`
+  is the identifier in both regulations. Knobs `MEDI_CURSE_ORDER_FIXED`, `MEDI_CURSE_OF_SPECIES`. Probe
+  `tests/probe_curse_ghost_order.js`. Reg M-C narration group J.
 ## SPEED-TIED BODIES AT ONE RESIDUAL ORDER RUN HANDLER-MAJOR (BOTH REGULATIONS). 2026-09-23 (abra/regmc 0.86.0)
 
 - `residualGroupPairs` walks (body, step) pairs off the shadow handler list when it interleaves bodies (Grassy heal,

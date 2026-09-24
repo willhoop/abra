@@ -10173,7 +10173,8 @@
       "def": 1
      },
      "hasTypeVolatile": "curse",
-     "hasTypeCostFraction": 0.5
+     "hasTypeCostFraction": 0.5,
+     "costBeforeVolatile": true
     },
     "lowersTarget": {
      "boosts": "via onHit",

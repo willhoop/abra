@@ -53,6 +53,15 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.87.0] — 2026-09-24 — **A Ghost's Curse: the regulation's line order, and `[of]` names the user's slot**
+
+- **What changed.** `engine/tag_dex.js`: `typeSplitMove.costBeforeVolatile` (Reg M-C Curse only). `data/tags-regmc.json`:
+  that one leaf. `engine/medicham2-browser.js`: the `typesplit` branch pays the cost above the volatile when the param
+  says so, and writes `[of] <identifier>`. Knobs `MEDI_CURSE_ORDER_FIXED`, `MEDI_CURSE_OF_SPECIES`. Probe
+  `tests/probe_curse_ghost_order.js`. Reg M-C narration group J. Report `docs/_reports/2026-09-24-narration-curse-burnsleep.md`.
+- **Measured.** NO FIGURE published. Probe green in both regulations, red on the 0.86.1 bytes. Pinned differential, --games 300, --arm middle --steering empirical --end-state, census pins regmc-0d03e83f0e65 / 833a997d7e42, frozen team pools: Reg M-C 259 games, 0 diverged, 0 board-material on both release ec377f6f8159 (base) and 8051cc3c92a7 (fix); Reg M-B 260 games, 2 diverged, 1 board-material on both 7822a83cc49b and 19c1f3a33ed3, the same two games and the same first lines (neither is Curse). Nothing moved.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.86.1] — 2026-09-23 — **probe_volley_collapse_clamp reads the regulation's own checkout**
 
 A probe fix, no engine change. `tests/probe_volley_collapse_clamp.js` hardcoded the Reg M-B checkout as its `SHOWDOWN_PATH` default and read CANNOT-ANSWER under Reg M-C; it now selects the regulation's checkout through `engine/showdown_path.js`. **Supersedes.** Nothing. **Basis.** unchanged. Owes no living-document fold-in.

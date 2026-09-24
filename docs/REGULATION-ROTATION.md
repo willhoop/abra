@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.86.1 — 2026-09-23.**
+**Version: 0.87.0 — 2026-09-24.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -418,6 +418,7 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | **A move that is `Past` in the old regulation can have NO engine implementation at all, and nothing reports it until something stages it.** Court Change reached the terminal pass (a no-op turn); only the planner's constructed fixture (a side condition raised first) showed the board STATE divergence. | `all_mechanics_fire` reads resolved-on-the-authority-only for a newly legal move. | For each newly legal move, check that `playerAction` returns a kind other than the terminal pass. Fixed 0.82.0 (`swapsSideConditions`). |
 | **A probe written under one regulation hard-codes that regulation's checkout, release or mod block.** Pass 9 found three: a default `SHOWDOWN_PATH` to the Reg M-B checkout, a default `--release` pinned to a Reg M-B release, and an assertion that the Champions mod carry a `disguise` block. Each read red or CANNOT ANSWER under Reg M-C with a correct engine. | A probe reds or throws under the new regulation on an assertion about the checkout, not the mechanic. | Grep `tests/` for literal checkout paths and release ids; resolve through `engine/showdown_path.js` and the newest release for the selected regulation. Fixed 0.82.1. |
 | **A once-per-body latch is correct until a regulation adds a way to come back.** The trace wrote `|faint|` once per body and never reset it, which was right while nothing revived; Reg M-C's Revival Blessing lets a body die twice, and the second death was silent. | Whole-game narration rows reading "`|faint|` never emitted" on a body that had been revived. | On a rotation, list every per-body latch (`_traceFainted`, `_faintOut`, …) and check each is reset by every road that returns a body to play. Fixed 0.85.0. |
+| **A mod can delete a declared `volatileStatus` and add the volatile inside `onHit`, which moves the volatile BELOW the move's own effects.** Reg M-B's Curse declares `volatileStatus: 'curse'` (added by `runMoveEffects` above `onHit`); the Reg M-C mod sets it `undefined` and calls `directDamage` and then `addVolatile` inside `onHit`, so the user's `-damage` now precedes the `-start`. No rule changed; only where the add happens. | A two-line swap on one move's `-start` and `-damage`, narration only, in the new regulation alone. | On a rotation, list every mod entry that sets `volatileStatus: undefined` (or drops `volatileStatus`/`sideCondition`) and re-read its `onHit` for the order of the add against the move's other lines; derive it into a tag param. Fixed 0.87.0 (`typeSplitMove.costBeforeVolatile`). |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 
