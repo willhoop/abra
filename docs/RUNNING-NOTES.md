@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.116.0] — 2026-09-24 — **Two White Herbs owed in one pass are spent fastest holder first (Reg M-C)**
+- **What changed.** `engine/medicham2-browser.js` `restoreStatsAll`: the owed holders are found first and, when two or more are owed, ordered by `sdSpeedSortEntries` on the cached action speed; all six call sites pass the field. Knob `MEDI_HERB_SIDE_ORDER`. Probe `tests/probe_regmc_white_herb_speed_order.js`.
+- **Measured.** Probe RED before (base engine, 3 assertions: LEAD and AFTERMOVE diverge at the `-enditem`, counter 0), GREEN after (release `4a74cd6c09eb`), RED under the knob (2 assertions); the CONTROL arm (speeds swapped) is green on both. Census 1024 live / 0 missing before and after. Lattice effect is measured in the lattice row.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.115.0] — 2026-09-24 — **Reg M-C lattices after the two narration fixes: 0 / 2 / 1 narration, 0 boards**
 - **What changed.** Measurement only. Release `aed9780fc4e3`, pin `ccd979c30997`, pool `data/team-pool-frozen-regmc`, `--games` 1200/1600/1900. `docs/_reports/2026-09-24-narration-last.md`.
 - **Measured.** Undeclared narration-only 0/955, 2/1266, 1/1497 (`data/game-differential-regmc.json`, `.g1600-regmc`, `.g1900-regmc`, `end_state[0].summary.by_cause_totals.games_narration_only`); board-material 0/954 usable, 0/1266, 0/1497. The 3 left: White Herb holder order (side order, not speed), a Grassy Terrain heal on an inferred tie, and the Emergency Exit game the harness cannot express.

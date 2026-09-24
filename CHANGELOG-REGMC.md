@@ -21,6 +21,20 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.116.0] — 2026-09-24
+
+### Fixed
+- **Two White Herbs owed in one pass are spent fastest holder first (Reg M-C).** Every White Herb trigger
+  (`onAnySwitchIn` at priority -2, `onAnyAfterMove`, `onAnyAfterMega`) is one handler per active holder in a list the
+  authority speed-sorts (`fieldEvent` / `runEvent`, `sim/battle.ts` :484-507 and :794; `resolvePriority` :1001-1013
+  gives each `speed = pokemon.speed`). `restoreStatsAll` walked `[...actA, ...actB]`, so a faster p2 holder was spent
+  after a slower p1 holder. Field case: Reg M-C lattice 1600, baseline `…2681884715 vs …2681855448`, two Intimidate +
+  White Herb Incineroar leads. Now the owed holders are found first and, when two or more are owed, ordered by
+  `sdSpeedSortEntries` on the cached action speed (a tie goes to the shared tie die; the SwitchIn `speedOrder` tie
+  rank is declared, not modelled). Knob `MEDI_HERB_SIDE_ORDER` (in the census `DELIBERATE_BREAK`). Probe
+  `tests/probe_regmc_white_herb_speed_order.js`: RED before, GREEN after, RED under the knob, with a speed-swapped
+  control. `tests/probe_red_demo.js`'s WIRE 11 herb reversal is re-aimed at the new first lines. Census 1024 live.
+
 ## [0.115.0] — 2026-09-24
 
 ### Changed

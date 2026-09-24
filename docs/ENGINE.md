@@ -1,3 +1,10 @@
+## TWO WHITE HERBS OWED IN ONE PASS ARE SPENT FASTEST HOLDER FIRST (REG M-C). 2026-09-24 (abra/regmc 0.116.0)
+
+- `restoreStatsAll` orders the owed holders by the cached action speed (`sdSpeedSortEntries`) when two or more are
+  owed. Knob `MEDI_HERB_SIDE_ORDER`. Probe `tests/probe_regmc_white_herb_speed_order.js` (RED -> GREEN, LEAD /
+  AFTERMOVE / speed-swapped CONTROL).
+- Hand list: **narration cause (a), White Herb holder order, leaves it.** Report `docs/_reports/2026-09-24-narration-zero.md`.
+
 ## REG M-C NARRATION AFTER THE TWO FIXES: 0 / 2 / 1, BOARDS 0. 2026-09-24 (abra/regmc 0.115.0)
 
 - Release `aed9780fc4e3`, pinned as 0.112.0, same samples. The Leppa ordering and `fallenundefined` are gone from every

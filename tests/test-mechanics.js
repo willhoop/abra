@@ -39201,7 +39201,10 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           'fallenUndefinedSilentRestored',
                           /* 2026-09-24 (ENGINE, narration-last) -- Revival Blessing below the Update pass.
                            * tests/probe_regmc_revive_leppa_order.js */
-                          'reviveHealInlineRestored']
+                          'reviveHealInlineRestored',
+                          /* 2026-09-24 (ENGINE, narration-zero) -- two owed White Herbs spent in side order.
+                           * tests/probe_regmc_white_herb_speed_order.js */
+                          'herbSideOrderRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

@@ -24625,9 +24625,48 @@ function herbAtWin(a,b){
   if(n)MEDSEEN.herbAtWin=(MEDSEEN.herbAtWin||0)+n;
   return n;
 }
-function restoreStatsAll(a,b){
+/* 2026-09-24 (Reg M-C, narration to zero, cause A) -- TWO HERBS OWED IN ONE PASS ARE SPENT FASTEST HOLDER FIRST.
+ *
+ * Every White Herb trigger is one handler per active holder in a list the authority speed-sorts (M-C checkout, read
+ * whole): `onAnySwitchIn` is concatenated per active body by `fieldEvent` and `speedSort`ed (sim/battle.ts :484-507),
+ * `onAnyAfterMove` / `onAnyAfterMega` go through `runEvent`'s `speedSort(handlers)` (:794), and `resolvePriority` gives
+ * each handler `speed = pokemon.speed` -- the CACHED action speed (:1003; the SwitchIn fraction :1008-1013 only splits
+ * ties). This walk was `[...a, ...b]`, SIDE order, so a faster p2 holder was spent after a slower p1 holder: Reg M-C
+ * lattice 1600 baseline `...2681884715 vs ...2681855448` t0, two Intimidate + White Herb Incineroar leads.
+ *
+ * WHO IS OWED IS DECIDED FIRST and the sort runs only when two or more are owed, so the common pass (none or one owed)
+ * orders nothing and draws nothing. The key is the Update cache `_sdSpe` where stamped, else the live action speed
+ * (`sdActionSpeed`, -speed under Trick Room), through `sdSpeedSortEntries` -- one sort implementation. A tie is broken by
+ * the shared tie die there. DECLARED, NOT MODELLED: at a SwitchIn the authority breaks a tie with `runSwitch`'s
+ * `speedOrder` rank instead of a fresh draw, and it sorts the herbs among every other handler of the event (a swap with
+ * an untied handler can move a tied pair); both only matter at an exact tie between two owed holders.
+ * `MEDI_HERB_SIDE_ORDER=1` restores the side-order walk. tests/probe_regmc_white_herb_speed_order.js */
+const HERB_SIDE_ORDER=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HERB_SIDE_ORDER==='1');
+function restoreStatsOwed(m){
+  if(!m||m.fainted||m.curHP<=0||!m.item||!m.boosts)return false;
+  const _rs=TAGS.param('item',m.item,'restoresStats');
+  if(!(_rs&&_rs.restores))return false;
+  for(const k in m.boosts)if(m.boosts[k]<0)return true;
+  return false;
+}
+function restoreStatsAll(a,b,field){
+  const L=[];
+  for(const x of (a||[]))if(restoreStatsOwed(x))L.push({m:x,s:'A'});
+  for(const x of (b||[]))if(restoreStatsOwed(x))L.push({m:x,s:'B'});
+  if(L.length>1){
+    if(HERB_SIDE_ORDER)MEDFAILS.herbSideOrderRestored=1;
+    else{
+      const f=field||fieldOfBody(L[0].m);
+      if(!f)MEDFAILS.herbOrderNoField=(MEDFAILS.herbOrderNoField||0)+1;
+      else{
+        for(const e of L)e.spe=(e.m._sdSpe!=null)?e.m._sdSpe:sdActionSpeed(e.m,f,e.s);
+        sdSpeedSortEntries(L,'herb');
+        MEDSEEN.herbSpeedOrdered=(MEDSEEN.herbSpeedOrdered||0)+1;
+      }
+    }
+  }
   let n=0;
-  for(const x of [...(a||[]),...(b||[])])if(x&&restoreStatsUpdate(x))n++;
+  for(const e of L)if(restoreStatsUpdate(e.m))n++;
   return n;
 }
 /* WIRE 133 -- IS THERE A SIDE BUFF ON THE TARGET'S SIDE THAT REFUSES THIS?
@@ -27190,7 +27229,7 @@ function megaEvolveNow(S,m,auto){
   /* ROADMAP #81 WIRE 11 -- `onAnyAfterMega`, White Herb's third trigger and the one that only exists
    * because a mega evolution can carry an Intimidate into a slot that had none. Same helper, same
    * whole-field pass, for the same reason: the drop lands on the FOES and the herb is theirs. */
-  restoreStatsAll(S.actA,S.actB);
+  restoreStatsAll(S.actA,S.actB,S.field);
   /* 2026-08-12 -- THE FIELD'S `onAny` FACTS ARE RECOMPUTED, BECAUSE A MEGA CAN CREATE ONE MID-TURN.
    *
    * `field.aura`, `field.wSup` and the sleep refusal are all computed ONCE at the top of the turn,
@@ -29949,7 +29988,7 @@ function pivotHerbSweep(sf){
   if(PIVOT_HERB_AFTER_ENTRY){MEDFAILS.pivotHerbAfterEntryRestored=1;return;}
   const S=sf&&sf._S;
   if(!S){MEDFAILS.pivotHerbNoState=(MEDFAILS.pivotHerbNoState||0)+1;return;}
-  const n=restoreStatsAll(S.actA,S.actB);
+  const n=restoreStatsAll(S.actA,S.actB,S.field);
   if(n)MEDSEEN.pivotHerbBeforeEntry+=n;
 }
 function switchOut(act,i,bench,foes,sf,field,wanted,pass){
@@ -31573,7 +31612,7 @@ function battleInit(teamA,teamB,opts){
      * priority -2, i.e. AFTER every entry ability has had its say, which is exactly what "one pass
      * once the whole lead has landed" reproduces: a herb spent against the first Intimidate would
      * otherwise be gone before the second one arrived. */
-    restoreStatsAll(S.actA,S.actB);
+    restoreStatsAll(S.actA,S.actB,S.field);
     /* ROADMAP #175 -- AND THE TERRAIN-DRIVEN RETYPE AFTER THE WHOLE LEAD HAS LANDED, for the reason
      * the White Herb pass above it exists: a Mimicry body that arrives BEFORE its ally's terrain
      * setter would otherwise be typed against a field that did not exist yet. One sync once the sky is
@@ -34170,7 +34209,7 @@ function battleTurn(S,rng,actsForA,actsForB){
      * IT CANNOT OVER-FIRE. It is the SAME expression the top-of-turn site runs, over whoever is
      * standing there now; running it more often can only move the answer toward the live one. The
      * counter it stamps rises only when the answer actually CHANGED. */
-    const _updateAll=()=>{ _updateEvent(); restoreStatsAll(actA,actB);
+    const _updateAll=()=>{ _updateEvent(); restoreStatsAll(actA,actB,field);
       if(WSUP_STALE)MEDFAILS.wSupStaleRestored=1;
       else recomputeWeatherSuppression(field,[...actA,...actB]);
       /* ROADMAP #542 (a) -- THIS IS THE SITE THAT CATCHES A FAINT. `auraStateOf` already skips a
@@ -51709,7 +51748,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * M-B and Emergency Exit has no Reg M-B carrier); every other road keeps its post-action pass. The pass is the
        * herb's one reader, `restoreStatsAll`. tests/probe_regmc_white_herb_before_switch.js */
       if((_redCardDrag||_ejectOwed.length)&&!HERB_AFTER_OWED_SWITCH){
-        const _hn=restoreStatsAll(actA,actB); if(_hn)MEDSEEN.herbBeforeOwedSwitch=(MEDSEEN.herbBeforeOwedSwitch||0)+_hn;
+        const _hn=restoreStatsAll(actA,actB,field); if(_hn)MEDSEEN.herbBeforeOwedSwitch=(MEDSEEN.herbBeforeOwedSwitch||0)+_hn;
       }
       /* 2026-09-24 (abra/regmc 0.88.0) -- `runMove`'s `this.battle.faintMessages()` (sim/battle-actions.ts:347): BELOW
        * `AfterMove` (the herb just above) and ABOVE every switch the action owes (the Red Card drag and the eject
@@ -54347,7 +54386,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * IT IS `restoreStatsAll` AND NOT A SECOND COPY OF THE RULE -- what the herb DOES has one
        * implementation and only the trigger is new (CLAUDE.md, facts are global). */
       if(REFILL_NO_HERB)MEDFAILS.refillHerbPassSkipped=(MEDFAILS.refillHerbPassSkipped||0)+1;
-      else MEDSEEN.refillHerbPass+=restoreStatsAll(actA,actB);
+      else MEDSEEN.refillHerbPass+=restoreStatsAll(actA,actB,field);
     };
     /* `|upkeep|` CLOSES the residual and the faint replacements follow it -- Showdown's own order,
      * where the switch request resolves between `|upkeep|` and the next `|turn|`. */
