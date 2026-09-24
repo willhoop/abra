@@ -53,6 +53,12 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.110.1] — 2026-09-24 — **Merge pass: fifteen branches into main; ledgers restamped**
+- **What changed.** Fifteen finished branches merged one at a time and renumbered 0.87.1-0.110.0; `node engine/status.js
+  --write` restamped the division ledgers. Report `docs/_reports/2026-09-24-merge-pass.md`.
+- **Measured.** NO FIGURE published.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.110.0] — 2026-09-24 — **Reflect Type at a typeless target with an added type copies Normal + the added type (both regulations)**
 
 - **What changed.** `engine/medicham2-browser.js`: Reflect Type's typecopy branch reads the target's base list and

@@ -21,6 +21,16 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.110.1] — 2026-09-24
+
+### Changed
+- **Merge pass: fifteen branches merged into main as 0.87.1-0.110.0, and the division ledgers restamped.** Each branch's
+  entries were renumbered above main's top with content unchanged; the reconciliations (the solver API's `newBattle` now
+  requires a stream, one Gravity execution gate for both Gravity merges, the Gravity census row's chosen arm, the
+  MEDSEEN union) are recorded as merge notes in 0.101.0 and 0.108.0. `node engine/status.js --write` restamped the
+  five ledgers' generated blocks. No engine byte moves in this entry and no figure moves.
+  `docs/_reports/2026-09-24-merge-pass.md`.
+
 ## [0.110.0] — 2026-09-24
 
 ### Fixed
