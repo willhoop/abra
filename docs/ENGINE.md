@@ -1,3 +1,14 @@
+## STUFF CHEEKS HAS NO MENU HALF IN THIS FORMAT (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.92.2)
+
+Full account: `docs/_reports/2026-09-24-menu-halves-gravity-belch-cheeks.md` §3.
+
+- The Champions mod deletes `stuffcheeks.onDisableMove` in both checkouts, as it does Belch's. Guard: the same
+  `--part berry` arm.
+- Hand list: **Stuff Cheeks' menu half leaves it** (it was never owed). With Gravity wired, every `onDisableMove` /
+  `onFoeDisableMove` source a legal entity reaches is answered. Remaining from these passes: Gravity's `onModifyMove`
+  refusal of a called flagged move (not wired, not probed), and a handed click of a disabled move while other slots stay
+  open (a caller contract: the authority refuses the choice, and `legalActions` never offers it).
+
 ## BELCH HAS NO MENU HALF IN THIS FORMAT (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.92.1)
 
 Full account: `docs/_reports/2026-09-24-menu-halves-gravity-belch-cheeks.md` §3.

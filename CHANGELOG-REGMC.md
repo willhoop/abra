@@ -21,6 +21,22 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.92.2] — 2026-09-24
+
+### Added
+- `tests/probe_disabled_choice_struggle.js --part berry`, Stuff Cheeks: **Stuff Cheeks has no menu half in this format.**
+  The Champions mod deletes `stuffcheeks.onDisableMove` in both checkouts, as it does Belch's. The authority offers the
+  click and refuses it at `onTry` (no berry held), which the engine already did (ROADMAP #308). The same arm as Belch's,
+  green in both regulations.
+
+### Changed
+- `engine/medicham2-browser.js` #152 comment: with Gravity wired, every `onDisableMove` / `onFoeDisableMove` source a legal
+  entity reaches in either regulation is answered; Gorilla Tactics has no legal carrier in either.
+
+### Notes
+- The whole probe on the final tree: GREEN, 89 checks, in each regulation (releases `ec9ae9436155` / `44adf7e1e687`). The
+  pinned differential re-run on those releases is byte-identical per game to the base (43 and 38 games, board-material 0).
+
 ## [0.92.1] — 2026-09-24
 
 ### Added

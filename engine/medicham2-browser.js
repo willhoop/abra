@@ -20737,7 +20737,9 @@ function imprisonSealedBy(me,mvId,foes){
  * beside Heal Block's. Staged: tests/probe_disabled_choice_struggle.js, the gravity scenario and --part gravity.
  * BELCH WAS NEVER ABSENT: the Champions mod deletes its `onDisableMove` (data/mods/champions/moves.ts, both checkouts),
  * so the format offers the click and refuses it at `onTry`, which the Belch gate below already does. Guarded by the
- * same probe, --part berry. */
+ * same probe, --part berry. STUFF CHEEKS LIKEWISE: the mod deletes its `onDisableMove` too, and the `statcode` branch
+ * refuses it at `onTry` (`berryRequiredAbsent`). With Gravity here, every `onDisableMove` / `onFoeDisableMove` source a
+ * legal entity reaches in either regulation is answered; Gorilla Tactics has no legal carrier in either. */
 /* ROADMAP #295 -- THE SEAL IS ONE FACT, AND IT WAS ONLY EVER ASKED AT SELECTION.
  *
  * Showdown answers Disable in TWO handlers off one condition, exactly as it answers Taunt:

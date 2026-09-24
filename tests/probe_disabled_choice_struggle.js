@@ -656,7 +656,7 @@ function partGravityMenu(SC) {
 function partBerryMenu() {
   console.log(NL + '  === BELCH / STUFF CHEEKS: selectable without a berry in this format; the click fails at onTry ===');
   const mvSrc = fs.readFileSync(path.join(process.env.SHOWDOWN_PATH, 'data', 'moves.ts'), 'utf8').split(String.fromCharCode(13)).join('');
-  for (const X of ['belch']) {
+  for (const X of ['belch', 'stuffcheeks']) {
     const m = dex.moves.get(X);
     console.log(NL + '    --- ' + X + ' ---');
     if (!LEGALM(m)) { console.log('      NOT IN THIS FORMAT'); continue; }

@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.92.2] — 2026-09-24 — **Stuff Cheeks has no menu half in this format; a guard, not a fix**
+
+- **What changed.** `tests/probe_disabled_choice_struggle.js --part berry` now stages Stuff Cheeks too. The engine's #152
+  comment now says every reachable `onDisableMove` source is answered (Gorilla Tactics has no legal carrier).
+- **Measured.** Whole probe GREEN, 89 checks, each regulation. Pinned differential at `--games 45` on the final releases:
+  byte-identical per game to the base, 43 and 38 games, board-material 0. NO FIGURE moves.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 0.92.1] — 2026-09-24 — **Belch has no menu half in this format; a guard, not a fix**
 
 - **What changed.** `tests/probe_disabled_choice_struggle.js --part berry` (Belch). Comments in

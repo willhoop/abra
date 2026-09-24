@@ -1,6 +1,6 @@
 # The menu halves of Gravity, Belch and Stuff Cheeks
 
-**Date.** 2026-09-24. **Division.** ENGINE. **Line.** abra/regmc 0.92.0 (the coordinator renumbers at merge).
+**Date.** 2026-09-24. **Division.** ENGINE. **Line.** abra/regmc 0.92.0, 0.92.1, 0.92.2, one per source (the coordinator renumbers at merge).
 **Status.** A findings record. It is historical and is never cited as current state.
 
 **Branch.** `menu-halves-gravity-belch-cheeks`, based on `disabled-choice-struggle` (`7542e5ab`). One commit per source.
@@ -147,7 +147,8 @@ claimed.** The instrument's ability to see a menu difference is shown by the Gra
 | | Reg M-B | Reg M-C |
 |---|---|---|
 | base engine | RED, 6 assertions (release `ecaa79e28f15`) | RED, 6 (release `4c0296817626`) |
-| final engine | GREEN, 79 checks (release `4b492bbea02f`) | GREEN, 79 checks (release `bf89d956f5b6`) |
+| Gravity commit | GREEN, 79 checks (release `4b492bbea02f`) | GREEN, 79 checks (release `bf89d956f5b6`) |
+| final tree (+ the berry arms, + comments) | GREEN, 89 checks (release `ec9ae9436155`) | GREEN, 89 checks (release `44adf7e1e687`) |
 
 Of the six base reds, four are about the defect: the Struggle scenario's menu, its executed move, the two-slot menu, and
 the same-turn stream. The other two are knob stamps, which the base engine cannot carry. Controls: every source's
@@ -162,7 +163,8 @@ the defect back on 9 of 9 sources, Gravity included (`cant move: Gravity magnetr
 | Reg M-B | 1,012 / 1,012 | **1,014 / 1,014** | 1,012 / 1,014 (the two new rows MISSING) |
 | Reg M-C | 1,016 / 1,016 | **1,018 / 1,018** | — |
 
-Threw 0, hollow 0, direct-call 1 (unchanged).
+Threw 0, hollow 0, direct-call 1 (unchanged). Measured on the Gravity engine before the commit gate made the seal-table counters declared `MEDFAILS`
+keys (`x++` on a declared 0 instead of `(x|0)+1`); nothing else in the engine moved after it except comments.
 
 **Pinned differential** (`--games 45 --steering empirical --arm middle --state`, `MEDI_SAMPLE_DUMP` fingerprints,
 `--live` throwaway releases):
@@ -172,7 +174,9 @@ Threw 0, hollow 0, direct-call 1 (unchanged).
 | Reg M-B | census `data/verification/census-pin-c3affea174af.json`, pool main's `data/team-pool-frozen` | 43 | **0** | 0 / 0 |
 | Reg M-C | census `data/verification/census-pin-regmc-f3b70bc0c47c.json`, pool main's `data/team-pool-frozen-regmc` | 38 | **0** | 0 / 0 |
 
-The dumps differ only in `generated` and `engine_release`.
+The dumps differ only in `generated` and `engine_release`. Measured first on the Gravity commit's releases
+(`4b492bbea02f` / `bf89d956f5b6`), then re-run on the final tree (`ec9ae9436155` / `44adf7e1e687`), whose engine
+differs only in comments and the declared `MEDFAILS` keys: again 0 rows differing, board-material 0.
 
 **API legality probe** (`tests/probe_medicham_api_differential.js --part all`, Reg M-C, the same pins, `--games 45`,
 final `bf89d956f5b6` against base `4c0296817626`): `legalActions` agrees on **5,552 of 5,552** slots (1,388 turns). The
