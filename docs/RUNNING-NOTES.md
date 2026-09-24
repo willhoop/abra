@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.112.1] — 2026-09-24 — **Provenance stamp committed after the re-read**
+- **What changed.** `data/provenance-stamp.json` from `status.js --write`.
+- **Measured.** `verified` 7 -> 11 artifacts by content digest (`data/provenance-stamp.json`); 3 before the re-read.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.112.0] — 2026-09-24 — **Both gates re-read on the merged engine: each fails ONE clause**
 - **What changed.** Measurement only. Releases `78fb4a85b1a0` / `fb8073869b72`. `docs/_reports/2026-09-24-gate-reread-merged.md`.
 - **Measured.** Reg M-C: 1 of 10 clauses fail. Narration CANNOT-ANSWER (no baseline) at 3/955, 5/1266 and 6/1497 undeclared (`data/game-differential-regmc.json`, `.g1600-regmc`, `.g1900-regmc`). Board-material 0/955, 0/1266, 0/1497. Roster abilities 210/214 and moves 510/511 (`data/roster.{abilities,moves}-regmc.json`). Census 1024 live (`data/mechanics-census-regmc.json`). Reg M-B: 1 of 10. #442 is RED (census 1004 committed, 1020 reproduced, parked at `data/verification/mechanics-census-fb8073869b72.json`). Board-material and narration 0 on 961/1069/1497.

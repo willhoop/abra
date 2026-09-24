@@ -21,6 +21,14 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.112.1] — 2026-09-24
+
+### Changed
+- **`data/provenance-stamp.json` committed from `node engine/status.js --write`.** The merge pass held it back because
+  `verified` had fallen 7 -> 3. Run again before this pass's measurement, it still read 3, because the stamped gate
+  artifacts pointed at releases the merged tree no longer matched. After the 0.112.0 re-read it reads **11**, verified
+  by content digest. The only other change is the `generated` timestamp.
+
 ## [0.112.0] — 2026-09-24
 
 ### Changed
