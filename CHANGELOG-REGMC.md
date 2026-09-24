@@ -21,6 +21,21 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.113.0] — 2026-09-24
+
+### Fixed
+- **Supreme Overlord closes with `fallenundefined` when nothing had fallen, as the authority does (both regulations).**
+  `supremeoverlord.onEnd` writes `fallen${this.effectState.fallen}` unguarded while its `onStart` assigns the count only
+  when `side.totalFainted` is non-zero (`data/abilities.ts:4730-4750`, M-C checkout; the Champions mod does not override
+  it). So a body that entered on nobody fallen writes `|-end|<body>|fallenundefined|[silent]` at its switch-out and
+  below its `|faint|`. The engine had refused that line as the authority's typo; the bar is now to match the authority.
+  One function, `fallenCloseField`, feeds both close sites; the entry line is unchanged (onStart writes nothing at zero).
+  Knob `MEDI_FALLEN_UNDEFINED_SILENT` (in `DELIBERATE_BREAK`). Probe `tests/probe_fallen_undefined.js`: RED before
+  (Reg M-C release `11a681c6a683`, 3 assertions), GREEN after (Reg M-C `098d7fdf95bc`, Reg M-B `4e3411cbe0b9`), RED under
+  the knob in both. Field cases: 2 of the 3 Reg M-C narration games at `--games 1200`
+  (`data/verification/gd-regmc-merged-dump.json`). Reg M-B's `AUTHORITY-WRONG` declaration of the same line in
+  `engine/quarantine.js` now covers nothing; it is left for MEASURE to withdraw.
+
 ## [0.112.1] — 2026-09-24
 
 ### Changed

@@ -2401,7 +2401,7 @@ const MEDSEEN = { spendClearedAddedType: 0, addedTypeReplaced: 0, addedTypeCopie
    * different moments and a single total could not tell "the exit line is missing" from "nothing ever
    * entered on a corpse". Entry and switch-out pair up over a game; the faint counter is the one that
    * needs its own reading, since a body that dies never reaches `switchOut` at all. */
-  fallenAnnouncedOnEntry: 0, fallenClosedOnSwitchOut: 0, fallenClosedOnFaint: 0,
+  fallenAnnouncedOnEntry: 0, fallenClosedOnSwitchOut: 0, fallenClosedOnFaint: 0, fallenUndefinedClosed: 0,
   /* WIRE 136 -- a forme change performed as a RENAME because the target forme has no row and the
    * artifact states it is identical to the base in stats and types. Mimikyu-Busted is the one. */
   formeRenamedNoRow: 0,
@@ -5889,9 +5889,9 @@ const TRACE=(function(){
      * places is the silent default this file is built to avoid. The `_traceFainted` latch above
      * already makes it once-per-body. */
     faint(m){ if(m._traceFainted)return; m._traceFainted=true; this.push(['faint',ident(m)]);
-              const _fn=fallenShown(m);
-              if(_fn>0){ this.push(['-end',ident(m),'fallen'+_fn,'[silent]']);
-                         MEDSEEN.fallenClosedOnFaint++; } },
+              const _fn=fallenCloseField(m);
+              if(_fn){ this.push(['-end',ident(m),_fn,'[silent]']);
+                       MEDSEEN.fallenClosedOnFaint++; } },
     /* --- stages, status, volatiles --- */
     /* ROADMAP #289 -- A CLAMPED STAT CHANGE IS STILL ANNOUNCED, AND ITS MAGNITUDE IS ZERO.
      *
@@ -27375,6 +27375,26 @@ function fallenShown(mon){
   if(!p)return 0;
   return Math.min(+mon._fallenStuck||0,+p.max||5,5);
 }
+/* 2026-09-24 (ENGINE, abra/regmc narration, "the last two causes") -- THE CLOSE WRITES `fallenundefined` WHEN NOTHING
+ * HAD FALLEN, BECAUSE THE AUTHORITY DOES. The paragraph above refused the zero case as a typo; the bar is now to match
+ * the authority including its bugs (Will, 2026-09-24), and this is the refusal withdrawn. `onEnd` writes
+ * `fallen${this.effectState.fallen}` unguarded (data/abilities.ts:4739-4741 in the M-C checkout, not overridden by
+ * Champions; the same block in the M-B checkout), and `effectState.fallen` is assigned only when the guarded onStart
+ * ran with a non-zero count -- so a body that entered on nobody fallen closes with the literal `fallenundefined`.
+ * `ability End` runs at the switch-out (sim/battle-actions.ts:103) and at the faint (sim/battle.ts:2556), which are the
+ * two callers of this. The ENTRY stays on `fallenShown`, which is right: onStart writes nothing at zero.
+ * Returns the whole `fallenN` field, or null for a body that writes no close at all.
+ * Field cases: Reg M-C lattice 1200 (release 78fb4a85b1a0), two of its three narration games.
+ * MEDI_FALLEN_UNDEFINED_SILENT=1 restores the silence at zero. tests/probe_fallen_undefined.js */
+const FALLEN_UNDEFINED_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FALLEN_UNDEFINED_SILENT==='1');
+function fallenCloseField(mon){
+  const n=fallenShown(mon);
+  if(n>0)return 'fallen'+n;
+  if(!mon||NO_FALLEN_LINES||!TAGS.param('ability',mon.ability,'boostsFromFallen'))return null;
+  if(FALLEN_UNDEFINED_SILENT){MEDFAILS.fallenUndefinedSilentRestored=1;return null;}
+  MEDSEEN.fallenUndefinedClosed++;
+  return 'fallenundefined';
+}
 /* WIRE 133 -- ONE FORME SWAP, CALLED FROM BOTH MOMENTS.
  *
  * `switchOut` needs it (Zero to Hero fires as the body leaves) and `bringIn` still needs it as a
@@ -29944,8 +29964,8 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * A body that DIED never reaches here (`out.fainted` returns null one line up); its `-end` is
    * written from the faint funnel in TRACE, which is the other of the authority's two End moments
    * (sim/battle.ts:2553). */
-  {const _fn=fallenShown(out);
-   if(_fn>0&&TR){TR.vend(out,'fallen'+_fn,'[silent]');MEDSEEN.fallenClosedOnSwitchOut++;}}
+  {const _fn=TR?fallenCloseField(out):null;
+   if(_fn&&TR){TR.vend(out,_fn,'[silent]');MEDSEEN.fallenClosedOnSwitchOut++;}}
   /* NARRATION BATCH R, 2026-09-08 -- AND THE ABSORBED GIFT CLOSES AT THE SAME MOMENT AND FOR THE
    * SAME REASON: both are the outgoing body's ability End (sim/battle-actions.ts, at the comment
    * "will definitely switch out at this point"), which the authority fires ABOVE the replacement's

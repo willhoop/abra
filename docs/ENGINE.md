@@ -1,3 +1,10 @@
+## SUPREME OVERLORD WRITES `fallenundefined` WHEN NOTHING HAD FALLEN (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.113.0)
+
+- The authority's `onEnd` is unguarded, so a body that entered on nobody fallen closes with `fallenundefined` at its
+  switch-out and below its faint. `fallenCloseField` writes it; the entry stays silent at zero. Knob
+  `MEDI_FALLEN_UNDEFINED_SILENT`. Probe `tests/probe_fallen_undefined.js` (RED -> GREEN in both regulations).
+- Hand list: **the `-end … fallenundefined` narration cause leaves it.** Report `docs/_reports/2026-09-24-narration-last.md`.
+
 ## BOTH GATES RE-READ ON THE MERGED ENGINE: REG M-C 1 OF 10 FAILS, REG M-B 1 OF 10 FAILS. 2026-09-24 (abra/regmc 0.111.2 – 0.112.0)
 
 - Releases `78fb4a85b1a0` (Reg M-C) and `fb8073869b72` (Reg M-B), pass-10 protocol. Board-material is 0 on every lattice

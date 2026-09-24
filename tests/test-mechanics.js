@@ -39187,7 +39187,10 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                            * tests/probe_gravity_called_move.js; all four stamped at LOAD. The census row
                            * `refusedByPseudoWeather` reads the refusal, so an armed run would publish a pre-fix count. */
                           'gravityMenuOpenRestored', 'gravityChosenPlayedRestored',
-                          'gravityClickedMovePlaysRestored', 'gravityCalledMovePlaysRestored']
+                          'gravityClickedMovePlaysRestored', 'gravityCalledMovePlaysRestored',
+                          /* 2026-09-24 (ENGINE, narration-last) -- Supreme Overlord's zero-count close.
+                           * tests/probe_fallen_undefined.js */
+                          'fallenUndefinedSilentRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.113.0] — 2026-09-24 — **Supreme Overlord writes `fallenundefined` when nothing had fallen (both regulations)**
+- **What changed.** `engine/medicham2-browser.js` `fallenCloseField`: the switch-out and faint closes write the authority's unguarded `fallen${undefined}`. Knob `MEDI_FALLEN_UNDEFINED_SILENT`. Probe `tests/probe_fallen_undefined.js`.
+- **Measured.** Probe RED before (`11a681c6a683`), GREEN after in both regulations (`098d7fdf95bc`, `4e3411cbe0b9`), RED under the knob. Lattice effect is measured in the 0.115.0 row.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.112.1] — 2026-09-24 — **Provenance stamp committed after the re-read**
 - **What changed.** `data/provenance-stamp.json` from `status.js --write`.
 - **Measured.** `verified` 7 -> 11 artifacts by content digest (`data/provenance-stamp.json`); 3 before the re-read.
