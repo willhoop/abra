@@ -1,3 +1,16 @@
+## A TURN COSTS LESS CPU AND PLAYS THE SAME BYTES: TWO NORMALISERS MEMOISED. 2026-09-24 (abra/regmc 0.108.1)
+
+- `engine/tags.js` `norm()` and `_shadowId()` in the simulator each cache a string by value and answer `''` for a
+  falsy input. Both are pure. Paired main-thread CPU gain is +8% to +17% over five runs in both regulations. Identity is per game in both regulations
+  (differential `MEDI_SAMPLE_DUMP`, a counter-hashing harness, and 16 probes). No mechanic moved, and no probe or
+  census row changed.
+- Why the turn got dearer: ~1.75x CPU since `5f3f7141227c` (2026-08-28), in steps. The report lists them and lists
+  the remaining hot spots as PROPOSALS. The largest are `volSeqSync` at every Update pass (~9%),
+  `sdEachEventOrder` computing a live speed only for a diagnostic counter, `residualOrder` re-deriving `effSpeed`
+  once per order group, and ~1,700 tag lookups per turn. Each of these moves a counter or needs an invalidation
+  argument, so none was touched. Full account `docs/_reports/2026-09-24-engine-turn-speed.md`.
+- Hand list: unchanged.
+
 ## GRAVITY REFUSES A GRAVITY-FLAGGED MOVE, CALLED OR CHOSEN (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.108.0)
 
 - Tag `refusedByPseudoWeather`, derived off Gravity's own `onBeforeMove` / `onModifyMove` (5 members).

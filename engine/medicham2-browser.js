@@ -12299,7 +12299,17 @@ const RESIDUAL_SHADOW_ROWS=(()=>{
   }
   return out;
 })();
-const _shadowId=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+/* MEMOISED 2026-09-24 (docs/_reports/2026-09-24-engine-turn-speed.md): `volSeqSync` asks this for up to seven
+ * rows per body per Update pass, mostly of an empty field. Pure on a string, so a string is cached by value;
+ * any other input takes the original expression. Same bytes out. */
+const _SHADOW_ID=new Map();
+const _shadowId=s=>{
+  if(!s)return '';   /* every falsy s: `String(s||'')` is '' and so is its normal form */
+  if(typeof s!=='string')return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  let v=_SHADOW_ID.get(s);
+  if(v===undefined){v=s.toLowerCase().replace(/[^a-z0-9]/g,'');if(_SHADOW_ID.size>=4096)_SHADOW_ID.clear();_SHADOW_ID.set(s,v);}
+  return v;
+};
 /* The three statuses the artifact carries, in BOTH spellings this engine uses for them. Sleep,
  * freeze and paralysis are absent on purpose: they own no residual handler and no `duration`, so the
  * authority never collects them -- which is the artifact's answer, not one written here. */
