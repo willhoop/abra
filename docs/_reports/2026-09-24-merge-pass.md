@@ -1,7 +1,7 @@
 # Merge pass into main — 2026-09-24
 
 Merge coordinator run. Sixteen finished branches merged into `main` one at a time, each renumbered on the
-`abra/regmc` line above main's top, each pushed before the next. Start: `7c9f7534` (0.87.0). Ledger restamp: 0.110.1 (`803a19ba`). Last merge: Burn Up / Double Shock, 0.111.0.
+`abra/regmc` line above main's top, each pushed before the next. Start: `7c9f7534` (0.87.0). Ledger restamp: 0.110.1 (`803a19ba`). Last merge: Burn Up / Double Shock, 0.111.0 (`85aac6b6`); ledgers restamped again as 0.111.1.
 
 ## 1. What merged
 
@@ -38,7 +38,7 @@ provisional version replaced; nothing else in an entry changed except the merge 
 were renumbered only on lines the branch added (never on main's lines), so main's real 0.87.0 / 0.87.1 references
 survive. Stacked branches had their references to the parent's provisional numbers mapped to the parent's merged
 numbers (e.g. menu-halves' "0.91.0 Struggle rewrite" reads 0.99.0; the Gravity branch's "0.88.0" reads 0.106.0).
-The version header of `docs/REGMC.md` and `docs/REGULATION-ROTATION.md` is 0.111.0.
+The version header of `docs/REGMC.md` and `docs/REGULATION-ROTATION.md` is 0.111.1.
 
 Branch 7's first commit (`8ae6561a`, the solver API) is content-identical to branch 6's `76691522`; it resolved to
 main's copy and its entry was not duplicated. Engine resolution was cross-checked with an independent

@@ -2174,7 +2174,7 @@ ENGINE — does the simulator do what Pokémon does
     (all-mechanics-fire.json, 1.4 days old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
     older than its input abra-tags.js
-    pinned to engine release 7822a83cc49b — engine/medicham2-browser.js matches the frozen copy; live is 8956c41ee146 now (a PRE-CHANGE measurement of that release, not corruption)
+    pinned to engine release 7822a83cc49b — engine/medicham2-browser.js matches the frozen copy; live is 0ac4441bffc4 now (a PRE-CHANGE measurement of that release, not corruption)
     (+4 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
@@ -2192,7 +2192,7 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-24 09:37_
+_stamped 2026-09-24 10:03_
 
 <!-- /GENERATED -->
 

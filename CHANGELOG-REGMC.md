@@ -21,6 +21,12 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.111.1] — 2026-09-24
+
+### Changed
+- **Ledgers restamped after the last merge of the pass (0.111.0).** `node engine/status.js --write`; generated blocks
+  only (engine digest, timestamps). No engine byte and no figure moves. `docs/_reports/2026-09-24-merge-pass.md`.
+
 ## [0.111.0] — 2026-09-24
 
 ### Fixed

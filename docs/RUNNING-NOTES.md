@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.111.1] — 2026-09-24 — **Ledgers restamped after the merge pass's last merge**
+- **What changed.** `node engine/status.js --write` after 0.111.0; generated blocks only.
+- **Measured.** NO FIGURE published.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.111.0] — 2026-09-24 — **A type spend clears the added type: Burn Up (both regulations), Double Shock (Reg M-C)**
 
 - **What changed.** `engine/medicham2-browser.js`: both `spendsOwnType` sites map the BASE list through
