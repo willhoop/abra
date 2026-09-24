@@ -39181,7 +39181,13 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           'hazardOnHitFaintedAlwaysRestored',
                           'volleyShieldEveryArrivalRestored', 'disguiseVolleyOldRestored', 'guardDogRefusesOnlyRestored', 'rattledIgnoresIntimidateRestored', 'refusalLabelDisplayRestored',
                           /* 2026-09-24 (abra/regmc 0.92.0 / 0.93.0) -- the charge-turn draw and the bounced -fail */
-                          'chargeTurnNeverDrawsRestored', 'bouncedFailNamesClickerRestored']
+                          'chargeTurnNeverDrawsRestored', 'bouncedFailNamesClickerRestored',
+                          /* 2026-09-24 (abra/regmc 0.100.0 / 0.108.0) -- Gravity's menu half, its chosen half and its
+                           * called half. tests/probe_disabled_choice_struggle.js --part gravity and
+                           * tests/probe_gravity_called_move.js; all four stamped at LOAD. The census row
+                           * `refusedByPseudoWeather` reads the refusal, so an armed run would publish a pre-fix count. */
+                          'gravityMenuOpenRestored', 'gravityChosenPlayedRestored',
+                          'gravityClickedMovePlaysRestored', 'gravityCalledMovePlaysRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

@@ -21,6 +21,15 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.111.3] — 2026-09-24
+
+### Fixed
+- **The four Gravity knobs are in the census's deliberate-break list.** `MEDFAILS.gravityMenuOpenRestored`,
+  `gravityChosenPlayedRestored`, `gravityClickedMovePlaysRestored` and `gravityCalledMovePlaysRestored` (0.100.0 /
+  0.108.0) were missing from `DELIBERATE_BREAK` in `tests/test-mechanics.js`, so a census run with one armed would
+  have written. Checked: each knob, loaded alone, stamps its key and the key is now in the list (all four read
+  NOT-LISTED at 0.111.2).
+
 ## [0.111.2] — 2026-09-24
 
 ### Fixed
