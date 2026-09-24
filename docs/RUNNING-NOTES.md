@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.113.0] — 2026-09-24 — **Solver MAG v1 and DODUO v1 land in main**
+- **What changed.** `solver/mag/` (features, inference, training) and two tracked model files. Branch `worktree-agent-ae26f145ebead8fac` (76883f3f). Report `docs/_reports/2026-09-24-mag-doduo-v1.md`.
+- **Measured.** DODUO joint log-loss 2.730 against prior v0 2.921 on 25,477 held-out exact joints: `solver/mag/model/mag-doduo-v1.metrics.json`. Test GREEN 3,826/3,826 on main.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** `docs/MODELS.md` (solver models section).
+
 ## [abra/regmc 0.112.2] — 2026-09-24 — **Two id-normalisers are memoised; a simulated turn costs less CPU and plays identically (both regulations)**
 - **What changed.** `engine/tags.js` `norm()` and `engine/medicham2-browser.js` `_shadowId()` cache a string input by value, and answer `''` at once for any falsy input. Both are pure, and any other input still takes the original expression. Nothing else moved. Full account `docs/_reports/2026-09-24-engine-turn-speed.md`.
 - **Measured.** NO FIGURE published. Identity, both regulations: the same bytes per game. A per-game harness over 300 playouts per regulation matched base on every protocol trace, end board, `MEDSEEN`/`MEDFAILS` counter and tags `ASKED`/`COUNT` counter (a knob-flipped control differed on 300 of 300). The pinned `game_differential.js` (`--steering empirical --arm middle --end-state --games 300` and `--games 1200`, same census pin and frozen pool per regulation, `MEDI_SAMPLE_DUMP` per game) matched too, except for the release id and the simulator digest. 16 probes in each regulation printed the same output. Speed: over five paired in-process A/B runs on main-thread CPU, turns per CPU-second rose +8% to +17% (Reg M-B +15%, +17%, +8%; Reg M-C +8%, +10%). The turn now costs ~1.75x the CPU it cost on 2026-08-28 (release `5f3f7141227c`), not 3x. Re-proved on main at merge: pinned Reg M-C differential `--games 1200`, releases `11a681c6a683` -> `eff9468cefc0`, 955 of 955 per-game rows identical.

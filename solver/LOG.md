@@ -6,6 +6,21 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ---
 
+## 2026-09-24
+
+### MAG v1 + DODUO v1 (successors to prior v0)
+- MAG v1 = per-slot scorer (v0 features + species identities, candidate-set pooling); DODUO v1 = joint
+  coordinator over MAG (pairwise MLP + bilinear + v0 pair indicators). PyTorch 2.14.0+cpu (PyPI).
+- Same player split as v0 (val/test tensors byte-identical). Test players, exact joints: DODUO log-loss
+  **2.730 vs v0 2.921**, recall@4/8/12/16 **55.4 / 72.5 / 81.4 / 87.2** vs 50.3 / 66.5 / 76.5 / 83.1; every
+  paired CI clear of zero. MAG alone (no pair term) 2.823, @16 85.7 — also beats v0.
+- Weak spots improved most, still weakest: switch @16 74.8 → 80.6, turn 1 @16 76.0 → 81.6.
+- Node forward pass matches Python to 2.1e-14 on 76 decisions; `solver/tests/test-mag-doduo.js` GREEN
+  3,826/3,826, red on four deliberate breaks first. Dataset sha256 stamped in both model files.
+- Detail: `docs/_reports/2026-09-24-mag-doduo-v1.md`; code `solver/mag/`.
+
+---
+
 ## 2026-09-23
 
 ### Human policy prior v0

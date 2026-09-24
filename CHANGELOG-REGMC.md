@@ -21,6 +21,19 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.113.0] — 2026-09-24
+
+### Added
+- **Solver MAG v1 (per-slot scorer) and DODUO v1 (joint coordinator), successors to the human policy prior v0.**
+  Code `solver/mag/`; models `solver/mag/model/mag-v1.json` (1.5 MB) and `doduo-v1.json` (0.5 MB), tracked. On the
+  held-out test players (25,477 exact joints), DODUO joint log-loss is 2.730 (95% CI 2.699–2.761) against v0's
+  2.921, read from `solver/mag/model/mag-doduo-v1.metrics.json`. The node forward pass matches Python to 2.1e-14.
+  `solver/tests/test-mag-doduo.js` GREEN 3,826/3,826 on main. Merged from branch
+  `worktree-agent-ae26f145ebead8fac` (76883f3f). Report `docs/_reports/2026-09-24-mag-doduo-v1.md`.
+
+### Notes
+- MINOR: new solver capability. No ABRA published figure moves, and MEDICHAM is untouched.
+
 ## [0.112.2] — 2026-09-24
 
 ### Changed
