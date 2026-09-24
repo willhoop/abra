@@ -21,6 +21,72 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.100.2] — 2026-09-24
+
+### Added
+- `tests/probe_disabled_choice_struggle.js --part berry`, Stuff Cheeks: **Stuff Cheeks has no menu half in this format.**
+  The Champions mod deletes `stuffcheeks.onDisableMove` in both checkouts, as it does Belch's. The authority offers the
+  click and refuses it at `onTry` (no berry held), which the engine already did (ROADMAP #308). The same arm as Belch's,
+  green in both regulations.
+
+### Changed
+- `engine/medicham2-browser.js` #152 comment: with Gravity wired, every `onDisableMove` / `onFoeDisableMove` source a legal
+  entity reaches in either regulation is answered; Gorilla Tactics has no legal carrier in either.
+
+### Notes
+- The whole probe on the final tree: GREEN, 89 checks, in each regulation (releases `ec9ae9436155` / `44adf7e1e687`). The
+  pinned differential re-run on those releases is byte-identical per game to the base (43 and 38 games, board-material 0).
+
+## [0.100.1] — 2026-09-24
+
+### Added
+- `tests/probe_disabled_choice_struggle.js --part berry` (also in `all`), Belch: **Belch has no menu half in this format.**
+  Mainline's `belch.onDisableMove` (`if (!pokemon.ateBerry) disableMove('belch')`) is deleted by the Champions mod
+  (`onDisableMove: undefined, // no inherit`) in both checkouts, so the authority offers the click and refuses it at
+  `onTry`. The probe reads that off the resolved format (and fails if a checkout restores the handler), stages a body
+  that has eaten no berry, and asserts that both menus keep Belch, the handed click is played, the authority fails it on
+  turn 1, and the streams agree. Green in both regulations. The engine already did this (ROADMAP #514); nothing in it
+  changes but comments.
+
+### Changed
+- `engine/medicham2-browser.js` comments. The #152 list and the 0.99.0 report named Belch's menu half as missing; it
+  does not exist in this format. The Belch gate's comment said `gatesSelection` "re-arms the menu with no edit here"
+  if a regulation restores the handler. Nothing reads `gatesSelection`, so it would not. It is `false` in both
+  regulations; the probe is the guard.
+
+## [0.100.0] — 2026-09-24
+
+### Fixed
+- **Gravity's menu half (both regulations).** `gravity.condition.onDisableMove` (no Champions row, identical in both
+  checkouts) disables every slot whose move carries `flags.gravity`, on every active body, while the field stands. The
+  engine offered them: a grounded body kept Magnet Rise on its menu, and a body whose only moves were flagged could not
+  reach `mustStruggle`, so the 0.99.0 choice-time Struggle rewrite could not fire for it. `moveDisabledBy` now asks
+  `gravitySealsMove`. Knob `MEDI_GRAVITY_MENU_OPEN`.
+- **Gravity's execution half (both regulations), found by the same probe.** `onBeforeMove` (priority 6) refuses a flagged
+  move that was already chosen when a faster Gravity landed: `|cant|<body>|move: Gravity|<move>`, no PP. The engine
+  played it (a Magnet Rise went up under Gravity and spent its PP). The refusal sits beside Heal Block's, which has the
+  same priority. Knob `MEDI_GRAVITY_CHOSEN_PLAYED`.
+
+### Added
+- Tag parameter `groundsField.menuSeals` (`engine/tag_dex.js`): the flag read out of the condition's own
+  `onDisableMove`, every legal move carrying it (Bounce, Fly, Flying Press, High Jump Kick, Magnet Rise in both
+  regulations), and whether `onBeforeMove` refuses a chosen one. Written into the Gravity row of `data/tags.json` and
+  `data/tags-regmc.json` by that derivation run against each regulation's checkout; `data/abra-tags.js` rebuilt. A full
+  `tag_dex.js` regeneration cannot run in an isolated worktree (it needs the store), so the rest of both files is
+  unchanged; a regeneration in main should reproduce the row byte for byte.
+- `tests/probe_disabled_choice_struggle.js`: a Gravity source (the Struggle scenario), and `--part gravity` (a two-slot
+  menu arm and a same-turn arm, each with its knob). Census rows `move/groundsField` x2 (the menu, and the same-turn
+  refusal with its PP).
+
+### Notes
+- Probe: red on the base engine (6 assertions in each regulation: 4 on the defect, 2 knob stamps the base cannot carry; releases `ecaa79e28f15` / `4c0296817626`), green after
+  (79 checks each). Census: Reg M-B 1,012 -> 1,014 live of 1,014, Reg M-C 1,016 -> 1,018 of 1,018; both knobs set, the
+  two new rows go MISSING (1,012 of 1,014).
+- Pinned differential, `--games 45 --steering empirical --arm middle --state`: base and final per-game fingerprints
+  byte-identical in both regulations (43 and 38 games), board-material 0 on every arm. API legality (Reg M-C): 5,552 of
+  5,552 slots agree.
+- `docs/_reports/2026-09-24-menu-halves-gravity-belch-cheeks.md`.
+
 ## [0.99.0] — 2026-09-24
 
 ### Fixed

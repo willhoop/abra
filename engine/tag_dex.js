@@ -5350,10 +5350,25 @@ const MOVE_TAGS = [
       }
       const ann = /this\.add\(\s*['"]-activate['"]/.test(fs)
         ? { event: '-activate', desc: 'move: ' + m.name, onlyIfSomethingApplied: true } : null;
+      /* 2026-09-24 -- THE MENU HALF AND THE EXECUTION HALF, OFF THE CONDITION'S OWN HANDLERS.
+       *     onDisableMove(pokemon) { for (const moveSlot of pokemon.moveSlots) {
+       *       if (this.dex.moves.get(moveSlot.id).flags['gravity']) pokemon.disableMove(moveSlot.id); } }
+       *     onBeforeMove(pokemon, target, move) { if (move.flags['gravity'] && !move.isZ) {
+       *       this.add('cant', pokemon, 'move: Gravity', move); return false; } }
+       * The FLAG is read out of onDisableMove and the set is every legal move carrying it, so a member added to the
+       * format arrives with a regenerated artifact. `refusesChosen` is whether onBeforeMove writes a `cant` for a move
+       * already chosen. Absent handlers -> no `menuSeals`, and the engine seals nothing. */
+      const dm = String(c.onDisableMove || '');
+      const sf = dm.match(/flags\[\s*["']([a-z]+)["']\s*\]/);
+      const menuSeals = sf ? {
+        flag: sf[1],
+        moves: dex.moves.all().filter(x => x.exists && !x.isNonstandard && x.flags && x.flags[sf[1]]).map(x => x.id).sort(),
+        refusesChosen: /["']cant["']/.test(String(c.onBeforeMove || '')),
+      } : null;
       return { pseudoWeather: m.pseudoWeather, turns: +c.duration || 5,
                accuracyMult: mm ? (+mm[1] / +mm[2]) : null,
                cancels: { charges, volatiles, cancelsTheQueuedMove: /cancelMove\(/.test(fs) },
-               announceOnCancel: ann };
+               announceOnCancel: ann, menuSeals };
     } },
   /* ROADMAP #147 -- ROOST, AND THE ENGINE HAD NO WAY TO SAY "NOT THIS TYPE, THIS TURN".
    *

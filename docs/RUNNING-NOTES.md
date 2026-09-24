@@ -53,6 +53,40 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.100.2] — 2026-09-24 — **Stuff Cheeks has no menu half in this format; a guard, not a fix**
+
+- **What changed.** `tests/probe_disabled_choice_struggle.js --part berry` now stages Stuff Cheeks too. The engine's #152
+  comment now says every reachable `onDisableMove` source is answered (Gorilla Tactics has no legal carrier).
+- **Measured.** Whole probe GREEN, 89 checks, each regulation. Pinned differential at `--games 45` on the final releases:
+  byte-identical per game to the base, 43 and 38 games, board-material 0. NO FIGURE moves.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
+## [abra/regmc 0.100.1] — 2026-09-24 — **Belch has no menu half in this format; a guard, not a fix**
+
+- **What changed.** `tests/probe_disabled_choice_struggle.js --part berry` (Belch). Comments in
+  `engine/medicham2-browser.js` corrected: Belch's menu half was listed as missing and a comment claimed an unread tag
+  field would re-arm it.
+- **Measured.** Probe arm green in both regulations: both menus keep Belch with no berry eaten, the authority fails the
+  click at `onTry` on turn 1, and the streams agree. NO FIGURE moves.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
+## [abra/regmc 0.100.0] — 2026-09-24 — **Gravity's menu half and its execution half**
+
+- **What changed.** `engine/medicham2-browser.js`: `gravitySealsMove` in `moveDisabledBy` (the menu) and beside Heal
+  Block's refusal (a flagged move chosen before a faster Gravity landed). New tag parameter `groundsField.menuSeals`
+  (`engine/tag_dex.js`, the Gravity row of `data/tags.json` / `data/tags-regmc.json`, `data/abra-tags.js`). Probe arms in
+  `tests/probe_disabled_choice_struggle.js`; two census rows.
+- **Measured.** Probe red on the base engine (6 assertions each regulation, 4 of them on the defect), green after. Census Reg M-B 1,014/1,014,
+  Reg M-C 1,018/1,018. Pinned differential at `--games 45` (census pins `c3affea174af` and `regmc-f3b70bc0c47c`, the
+  frozen pools): base and final byte-identical per game, 43 and 38 games, board-material 0. API legality 5,552 of 5,552.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 0.99.0] — 2026-09-24 — **A handed move click on an emptied menu is Struggle; Torment's menu half**
 
 - **What changed.** `engine/medicham2-browser.js`: the choice-time Struggle rewrite in `battleTurn`'s action collection

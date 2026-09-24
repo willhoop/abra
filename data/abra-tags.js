@@ -20948,6 +20948,17 @@ window.ABRA_TAGS={
       "event": "-activate",
       "desc": "move: Gravity",
       "onlyIfSomethingApplied": true
+     },
+     "menuSeals": {
+      "flag": "gravity",
+      "moves": [
+       "bounce",
+       "fly",
+       "flyingpress",
+       "highjumpkick",
+       "magnetrise"
+      ],
+      "refusesChosen": true
      }
     },
     "formatSecondaryCount": {
