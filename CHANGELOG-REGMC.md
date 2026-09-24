@@ -21,6 +21,32 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.87.0] — 2026-09-24
+
+### Fixed
+- **Reg M-C: a charge move draws its redirect on the turn it charges (Lightning Rod, Storm Drain, Follow Me, Rage
+  Powder).** The Reg M-C checkout carries upstream `efe4948` ("Remove unnecessary redirection code"), which took the
+  `isCharging` guard out of `Pokemon#getMoveTargets` (`sim/pokemon.ts:829-831`; the Reg M-B checkout keeps it at
+  `:829-836`, and neither Champions mod overrides the method). So under Reg M-C `RedirectTarget` runs on the charge turn:
+  a Lightning Rod writes `-activate` above the `-prepare`, and Pressure is priced off the drawn body. The release still
+  strikes the remembered slot (`twoturnmove.onStart`, byte-identical in both). This is Reg M-C narration group K
+  (`…bo3-2679514203`, turn 8, Archaludon's Electro Shot past a Raichu). `engine/tag_dex.js` reads the method out of the
+  compiled simulator and writes `chargeTurn.drawnWhileCharging` only when the guard is absent; `chargeStateOf` returns
+  `drawBlocked`, which both draw sites (the attack branch and the Pressure PP site) now read. `data/tags-regmc.json`
+  gains the param on its ten `chargeTurn` rows and nothing else; `data/tags.json` is byte-identical. Knob
+  `MEDI_CHARGE_TURN_NEVER_DRAWS`.
+- `tests/probe_redirect_above_prepare.js` reads the guard off the selected checkout (it hardcoded the Reg M-B checkout,
+  the pass-9 trap), asserts the tag agrees with the source, and gains a PRESSURE-NORAIN arm (a derived Pressure body in
+  the aimed slot). Reg M-C: green; red under the knob and on release `ec377f6f8159` with the 0.86.1 bytes (ROD-NORAIN
+  protocol, and PRESSURE-NORAIN's board: `p1.pp[1].electroshot` 2 against 1). Reg M-B: green, green under the knob,
+  red under `MEDI_REDIRECT_BELOW_CHARGE`.
+
+### Notes
+- `data/tags-regmc.json` was regenerated in a worktree with no store, so its usage counts read zero; the ten param
+  additions were merged into the committed file and the tag SETS were checked identical on every row (0 differences).
+- The PP half is board-material, so the pinned-lattice check is in the report:
+  `docs/_reports/2026-09-24-narration-lightningrod-magicbounce.md`.
+
 ## [0.86.1] — 2026-09-23
 
 ### Fixed

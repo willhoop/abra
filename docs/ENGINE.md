@@ -1,3 +1,11 @@
+## A CHARGE MOVE DRAWS ITS REDIRECT ON THE CHARGE TURN UNDER REG M-C. 2026-09-24 (abra/regmc 0.87.0)
+
+- `chargeStateOf(...).drawBlocked` reads `chargeTurn.drawnWhileCharging` (derived by `engine/tag_dex.js` from the
+  compiled `Pokemon#getMoveTargets`; the Reg M-C checkout has no `isCharging` guard). Knob
+  `MEDI_CHARGE_TURN_NEVER_DRAWS`. Probe `tests/probe_redirect_above_prepare.js` ROD-NORAIN and PRESSURE-NORAIN. Reg M-C
+  narration group K.
+- Hand list: **Lightning Rod leaves the pass-10 Reg M-C narration list**; the probe carries it. `engine/status.js
+  --write` was not run from the worktree (it writes a worktree's missing untracked files as fact); owed at merge.
 ## SPEED-TIED BODIES AT ONE RESIDUAL ORDER RUN HANDLER-MAJOR (BOTH REGULATIONS). 2026-09-23 (abra/regmc 0.86.0)
 
 - `residualGroupPairs` walks (body, step) pairs off the shadow handler list when it interleaves bodies (Grassy heal,

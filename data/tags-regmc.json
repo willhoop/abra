@@ -15204,7 +15204,8 @@
      "via": "secondary"
     },
     "chargeTurn": {
-     "charge": true
+     "charge": true,
+     "drawnWhileCharging": true
     },
     "semiInvulnerable": {
      "untargetable": true,
@@ -17600,7 +17601,8 @@
      ]
     },
     "chargeTurn": {
-     "charge": true
+     "charge": true,
+     "drawnWhileCharging": true
     },
     "semiInvulnerable": {
      "untargetable": true,
@@ -17720,7 +17722,8 @@
      ]
     },
     "chargeTurn": {
-     "charge": true
+     "charge": true,
+     "drawnWhileCharging": true
     },
     "semiInvulnerable": {
      "untargetable": true,
@@ -18807,7 +18810,8 @@
      "charge": true,
      "boosts": {
       "spa": 1
-     }
+     },
+     "drawnWhileCharging": true
     },
     "chargeSkippedByWeather": {
      "skipsIn": "rain"
@@ -20555,7 +20559,8 @@
      ]
     },
     "chargeTurn": {
-     "charge": true
+     "charge": true,
+     "drawnWhileCharging": true
     },
     "semiInvulnerable": {
      "untargetable": true,
@@ -25588,7 +25593,8 @@
      "charge": true,
      "boosts": {
       "spa": 1
-     }
+     },
+     "drawnWhileCharging": true
     },
     "formatSecondaryCount": {
      "count": 0
@@ -27165,7 +27171,8 @@
      "from": "DERIVED:BattleActions.prototype.hitStepBreakProtect"
     },
     "chargeTurn": {
-     "charge": true
+     "charge": true,
+     "drawnWhileCharging": true
     },
     "semiInvulnerable": {
      "untargetable": true,
@@ -31015,7 +31022,8 @@
      ]
     },
     "chargeTurn": {
-     "charge": true
+     "charge": true,
+     "drawnWhileCharging": true
     },
     "formatSecondaryCount": {
      "count": 1
@@ -31714,7 +31722,8 @@
      ]
     },
     "chargeTurn": {
-     "charge": true
+     "charge": true,
+     "drawnWhileCharging": true
     },
     "chargeSkippedByWeather": {
      "skipsIn": "sun"
@@ -31803,7 +31812,8 @@
      ]
     },
     "chargeTurn": {
-     "charge": true
+     "charge": true,
+     "drawnWhileCharging": true
     },
     "chargeSkippedByWeather": {
      "skipsIn": "sun"

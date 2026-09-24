@@ -53,6 +53,17 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.87.0] — 2026-09-24 — **Reg M-C: a charge move draws its redirect on the turn it charges**
+
+- **What changed.** `engine/tag_dex.js` reads `Pokemon#getMoveTargets` from the compiled checkout and writes
+  `chargeTurn.drawnWhileCharging` when the `isCharging` guard is absent (the Reg M-C checkout, upstream `efe4948`).
+  `engine/medicham2-browser.js` `chargeStateOf` returns `drawBlocked`, read by the attack-branch draw and the Pressure PP
+  site. `data/tags-regmc.json` ten rows; `data/tags.json` unchanged. Knob `MEDI_CHARGE_TURN_NEVER_DRAWS`. Probe
+  `tests/probe_redirect_above_prepare.js` (regulation-aware, new PRESSURE-NORAIN arm).
+- **Measured.** NO FIGURE published. Probe green in both regulations; red under the knob and on the 0.86.1 bytes under
+  Reg M-C. Pinned-lattice spot check in `docs/_reports/2026-09-24-narration-lightningrod-magicbounce.md`.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.86.1] — 2026-09-23 — **probe_volley_collapse_clamp reads the regulation's own checkout**
 
 A probe fix, no engine change. `tests/probe_volley_collapse_clamp.js` hardcoded the Reg M-B checkout as its `SHOWDOWN_PATH` default and read CANNOT-ANSWER under Reg M-C; it now selects the regulation's checkout through `engine/showdown_path.js`. **Supersedes.** Nothing. **Basis.** unchanged. Owes no living-document fold-in.
