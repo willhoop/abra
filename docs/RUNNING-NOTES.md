@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.88.0] — 2026-09-24 — **The roster stages Natural Cure and Regenerator again (both regulations)**
+- **What changed.** `tests/roster.js`, the switch-out fixture in `abilityScenario` and a new shape rule `ability/switch-out-cures` (an `onSwitchOut` calling `clearStatus`/`cureStatus`). Side A slot 1 no longer clicks a move its body does not carry (Showdown refused the resulting `pass`), and the carrier is given a derived major status before it leaves so Natural Cure has something to remove. No engine byte moved.
+- **Measured.** Targeted runs, `--only naturalcure,regenerator --reds`: both FIRED-AND-BOARDS-MATCH on `7822a83cc49b` (Reg M-B) and `ec377f6f8159` (Reg M-C); both plants CAUGHT (cure → DID-NOT-FIRE on `party.status`; heal → DID-NOT-FIRE on `party.hp`). Was COULD-NOT-STAGE (subject arm threw) in `data/verification/roster.abilities-7822a83cc49b.json` and `data/roster.abilities-regmc.json`. Full account `docs/_reports/2026-09-24-roster-staging.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published; the 0.87.0 gate reading's "3 COULD-NOT-STAGE" is re-read in the full-stage run.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 0.87.0] — 2026-09-24 — **Both MEDICHAM gates re-read on the pass-10 engine: both CLOSED (Reg M-C 5 of 10, Reg M-B 4 of 10)**
 - **What changed.** Measurement only; no engine, test or tool byte moved. Releases `ec377f6f8159` (Reg M-C) and `7822a83cc49b` (Reg M-B); census pins `census-pin-regmc-53bfaafa023d`, `census-pin-9250024640bf`; pools `data/team-pool-frozen-regmc`, `data/team-pool-frozen`; `--steering empirical --arm middle --end-state`, `--games` 1200/1600/1900 (Reg M-C) and 1200/1350/1950 (Reg M-B). Full account `docs/_reports/2026-09-24-gate-reread-pass10.md`.
 - **Measured.** Reg M-C: damage 0/6000 at every index (`data/engine-diff-regmc.json`); board-material 0/955, 0/1266, 0/1497; undeclared narration 6/955, 12/1266, 9/1497 (`data/game-differential{-regmc,.g1600-regmc,.g1900-regmc}.json`); roster 166/166, 207/214, 508/511 (`data/roster.*-regmc.json`). Reg M-B: damage 0/6000; board-material 0/961, 0/1069, 0/1497; narration 0 undeclared; roster 148/148, 193/200, 494/497. Both: Pixilate and Refrigerate part boards (`data/all-mechanics-fire{,-regmc}.json`); Effect Spore, Natural Cure, Regenerator, Belch COULD-NOT-STAGE; the `needs-a-berry-already-eaten` red demonstration NOT CAUGHT.

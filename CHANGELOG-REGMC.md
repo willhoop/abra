@@ -21,6 +21,18 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.88.0] — 2026-09-24
+
+### Fixed
+- **The roster stages Natural Cure and Regenerator again, in both regulations.** The switch-out fixture handed side
+  A slot 1 the aggressor's hit; when the Skill Swap lender stood there (Gourgeist-Super, which does not learn it)
+  the click resolved to `pass` and Showdown refused it, so both rows read COULD-NOT-STAGE. Slot 1 now clicks only
+  what its body carries. Natural Cure was also never exercised: its last green moved only the ability field the
+  control rewrites, because nothing put a status on the carrier. The fixture now gives the carrier a DERIVED major
+  status (Will-O-Wisp off the lender, pinned to `bottom-tie-first`, precondition read off Showdown's board), and
+  Natural Cure has its own rule, `ability/switch-out-cures`, whose plant skips the cure. Test code only
+  (`tests/roster.js`); no engine byte moved.
+
 ## [0.87.0] — 2026-09-24
 
 ### Changed
