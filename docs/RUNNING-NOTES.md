@@ -53,6 +53,18 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.88.0] — 2026-09-24 — **A Parting Shot that stays in is a move action: Fake Out leaves the menu**
+
+- **What changed.** `engine/medicham2-browser.js`: `_mvActs` counts an action that carries a move, whatever its `kind`
+  (Parting Shot, Chilly Reception and Revival Blessing are built as `{kind:'switch', mv}`). New probe
+  `tests/probe_move_menu_legality.js` and one census row.
+- **Measured.** `tests/probe_medicham_api_differential.js --part legal`: 26 disagreeing slots of 5,552 become 6 (Reg M-C
+  pinned pool, census pin `f3b70bc0c47c`, `--games 45`, release `536641af26ee`). Base release `9cfd07674cc9` against
+  `536641af26ee`: per-game fingerprint byte-identical over 38 games. The new census row is live in both regulations and `live` did not fall; the census files are not committed here (the lab pass re-measures them in main).
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 0.87.0] — 2026-09-24 — **The solver-facing MEDICHAM API (clone, legalActions, step, isTerminal), additive**
 
 - **What changed.** New `engine/medicham_api.js` (in release `SOURCES`). `engine/medicham2-browser.js` gets exports and

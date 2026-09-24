@@ -7052,6 +7052,13 @@ const TERRAIN_BAR_PRE_REDIRECT=(typeof process!=='undefined'&&process.env
  * the same turn run its queued action, as before. Stamps `MEDFAILS.returnedBodyKeepsActionRestored` when it matters. */
 const RETURNED_BODY_KEEPS_ACTION=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_RETURNED_BODY_KEEPS_ACTION==='1');
+/* 2026-09-24 -- MEDI_PIVOT_MOVE_NOT_COUNTED=1 counts a move action by the action's KIND again, so Parting Shot, Chilly
+ * Reception and Revival Blessing (built as `{kind:'switch', mv}`) and every `{kind:'pass', mv}` move leave
+ * `activeMoveActions` untouched and Fake Out stays on the menu after them. Stamped at LOAD in
+ * `MEDFAILS.pivotMoveNotCountedRestored`. Probe: tests/probe_move_menu_legality.js --part fakeout. */
+const PIVOT_MOVE_NOT_COUNTED=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_PIVOT_MOVE_NOT_COUNTED==='1');
+if(PIVOT_MOVE_NOT_COUNTED)MEDFAILS.pivotMoveNotCountedRestored=1;
 /* 2026-09-22 (Reg M-C, abra/regmc 0.53.0) -- MEDI_AFTERHIT_NEEDS_LIVE_USER=1 refuses Ice Spinner's terrain clear to a user a
  * contact toll knocked out, as before (the mainline `pokemon.hp` guard the Champions mod does not have). */
 const AFTERHIT_NEEDS_LIVE_USER=(typeof process!=='undefined'&&process.env
@@ -34353,7 +34360,30 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(m.fainted||m.curHP<=0)continue;
       /* 2026-09-22 (Reg M-C, abra/regmc 0.41.0) -- a revived body's queued action died with its instaswitch (`reviveFainted`) */
       if(it._reviveCancelled){MEDSEEN.reviveActionCancelled++;continue;}
-      if(it.a&&it.a.kind!=='switch'&&it.a.kind!=='pass')m._mvActs=((m._mvActs)|0)+1;
+      /* 2026-09-24 -- A MOVE ACTION IS AN ACTION THAT CARRIES A MOVE, WHATEVER KIND IT WEARS.
+       * `runAction` sends every `choice: 'move'` through `runMove`, whose first line is
+       * `pokemon.activeMoveActions++` (sim/battle-actions.ts:203), and `sdChoiceOf` already says which of
+       * this engine's actions Showdown queues as a move: everything but a BARE switch. The test that stood
+       * here was `kind` not in {switch, pass}, and `playerAction` builds Parting Shot, Chilly Reception and
+       * Revival Blessing as `{kind:'switch', mv}` -- so a Parting Shot that did NOT switch its user out
+       * (blocked by a Protect, or into a stat floor) left the count at 0 and Fake Out on the next menu.
+       * The solver API's legal-actions probe found it: 20 of 5,552 Reg M-C slots, every one an Incineroar
+       * whose authority read `activeMoveActions: 1` beside `lastMove partingshot`.
+       *
+       * A BARE `{kind:'pass'}` (no `mv`) STAYS UNCOUNTED, deliberately: it is a caller's "this body does
+       * nothing" (every PASS2 in tests/test-mechanics.js), not a click, so it keeps its old answer.
+       * `actionMoveId` is this file's one reader of "which move is this action", so the pivot and the
+       * `{kind:'pass', mv}` family are picked up by shape and not by name. Probe:
+       * tests/probe_move_menu_legality.js --part fakeout. MEDI_PIVOT_MOVE_NOT_COUNTED=1 restores the kind test. */
+      if(it.a&&(PIVOT_MOVE_NOT_COUNTED
+          ? (it.a.kind!=='switch'&&it.a.kind!=='pass')
+          : ((it.a.kind!=='switch'&&it.a.kind!=='pass')||!!actionMoveId(it.a)))){
+        if(!PIVOT_MOVE_NOT_COUNTED&&(it.a.kind==='switch'||it.a.kind==='pass')){
+          MEDSEEN.moveActionCountedOnPivotShape=(MEDSEEN.moveActionCountedOnPivotShape|0)+1;
+          if(!MEDSEEN.moveActionCountedOnPivotShapeFirst)MEDSEEN.moveActionCountedOnPivotShapeFirst=String(actionMoveId(it.a));
+        }
+        m._mvActs=((m._mvActs)|0)+1;
+      }
       /* ROADMAP #232 -- THE SHIELD FAMILY'S GATE USED TO BE CALLED HERE, ABOVE THE `BeforeMove` GATES,
        * AND THE COMMENT THAT STOOD ON THIS LINE NAMED THE DEFECT AND LEFT IT: *"a flinched or sleeping
        * body should not shield either, but that is a second defect with no failing probe on it."*

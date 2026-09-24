@@ -1,3 +1,12 @@
+## A PARTING SHOT THAT STAYS IN IS A MOVE ACTION; FAKE OUT LEAVES THE MENU (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.88.0)
+
+Full account: `docs/_reports/2026-09-24-move-menu-legality.md`.
+
+- The `_mvActs` increment tested `kind` not in {switch, pass}. It now tests whether the action carries a move
+  (`actionMoveId`), which is `sdChoiceOf`'s rule. Knob `MEDI_PIVOT_MOVE_NOT_COUNTED`. Probe
+  `tests/probe_move_menu_legality.js --part fakeout`, plus a census row.
+- The API legality probe drops from 26 to 6 slots. Hand list: **the Fake Out menu item leaves it.**
+
 ## THE SOLVER-FACING API LANDS, ADDITIVE; ITS LEGALITY PROBE FINDS THREE MENU DEFECTS. 2026-09-24 (abra/regmc 0.87.0)
 
 Full account: `docs/_reports/2026-09-24-solver-engine-api.md`.

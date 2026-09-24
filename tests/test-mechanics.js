@@ -613,8 +613,14 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * `intimOnto(` added 2026-09-23 (ENGINE pass 9) with the Intimidate-reactor rows, declared HERE and with its reason. It
  * stages a real doubles board through `battleInit` and switches an Intimidate carrier in through `battleTurn`, so the
  * reaction it reads is the one the entry road ran, never a handler called by hand.
+ *
+ * `menuAfterFirst(`, `imprisonMenu(` and `healBlockMenu(` added 2026-09-24 with the move-menu legality rows, declared
+ * HERE and with their reason. Each stages a real doubles board through `battleInit` and spends a real turn through
+ * `battleTurn`, then reads `selectableMoves` -- the menu the chooser and the solver API read -- off the board that turn
+ * left. The claim is about what a turn DID to the next menu (a move action counted, a volatile standing), which only a
+ * played turn can produce.
  */
-const REALTURN = /\bnarRun\(|\bdiceOf\(|\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(|\bsgVolArms\(|\bvolleyInto\(|\bripenHit\(|\bintimOnto\(/;
+const REALTURN = /\bnarRun\(|\bdiceOf\(|\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(|\bsgVolArms\(|\bvolleyInto\(|\bripenHit\(|\bintimOnto\(|\bmenuAfterFirst\(|\bimprisonMenu\(|\bhealBlockMenu\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -21603,6 +21609,35 @@ probe('move', 'firstTurnOnly', 'Fake Out is legal on the first MOVE after arrivi
                  + `${pivoted.dealt} — it must LAND (activeMoveActions is 0; a switch is not a move `
                  + `action). The SAME body clicking again on turn 3 ${again.who}:${again.dealt}, `
                  + `which must be 0 — that is the arm separating this from "Fake Out always works"` };
+});
+
+/* 2026-09-24 — A PARTING SHOT THAT STAYS IN IS STILL A MOVE ACTION. `playerAction` builds Parting Shot as
+ * `{kind:'switch', mv}` and the count was taken only for kind not in {switch, pass}, so a Parting Shot
+ * blocked by a Protect (no stat drop, so `delete move.selfSwitch`, data/moves.ts partingshot.onHit) left
+ * `_mvActs` at 0 and Fake Out on the next menu, where the authority's `onDisableMove` reads
+ * `activeMoveActions` 1. Found by the solver API's legal-actions probe (20 of 5,552 Reg M-C slots).
+ * READ OFF THE MENU (`selectableMoves`, what `chooseAction` and `medicham_api.legalActions` read) after a
+ * real turn. CONTROL: the same body PASSES turn 1 (a bare pass is no click), so Fake Out must stay.
+ * Knob MEDI_PIVOT_MOVE_NOT_COUNTED=1. Staged against the authority: tests/probe_move_menu_legality.js. */
+const menuAfterFirst = (first) => {
+  const me = bare('incineroar'), ally = bare('milotic'), benchA = bare('sneasler');
+  const f1 = bare('milotic'), f2 = bare('milotic');
+  me.moves = ['fakeout', 'partingshot'];
+  for (const b of [me, ally, benchA, f1, f2]) unfaintable(b);
+  const S = M.battleInit([me, ally, benchA], [f1, f2], { seeded: true });
+  M.battleTurn(S, rng5,
+    new Map([[me, first ? M.playerAction(me, first, f1, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+    new Map([[f1, M.playerAction(f1, 'protect', me, S.field)], [f2, { kind: 'pass' }]]));
+  return { who: S.actA[0] && S.actA[0].name, menu: M.selectableMoves(S.actA[0]).join(',') };
+};
+probe('move', 'firstTurnOnly', 'a Parting Shot that stays in is a move action: Fake Out leaves the menu', () => {
+  const test = menuAfterFirst('partingshot');
+  const control = menuAfterFirst(null);
+  return { works: test.who === 'incineroar' && !/fakeout/.test(test.menu) && /fakeout/.test(control.menu),
+           arms: { control: control.menu, test: test.menu },
+           detail: `[slot occupant : menu after turn 1]. Parting Shot into a Protect ${test.who} : ${test.menu} `
+                 + `(the user must still be in, and Fake Out must be gone — activeMoveActions is 1). CONTROL, the `
+                 + `same body passing turn 1: ${control.who} : ${control.menu} (Fake Out must stay)` };
 });
 
 /* ---- ROADMAP #84 — SHOWDOWN SPLITS "MY MOVE DID NOT HAPPEN" IN TWO, AND THIS ENGINE HAD NEITHER ---

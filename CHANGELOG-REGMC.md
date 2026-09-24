@@ -21,6 +21,28 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.88.0] — 2026-09-24
+
+### Fixed
+- **A Parting Shot that stays in is a move action, so Fake Out leaves the menu (both regulations).** The engine counted a
+  move action (`_mvActs`, the authority's `activeMoveActions`) only for an action whose `kind` was not `switch` or `pass`.
+  `playerAction` builds Parting Shot, Chilly Reception and (Reg M-C) Revival Blessing as `{kind:'switch', mv}`, so a
+  Parting Shot blocked by a Protect left the count at 0. The Champions `fakeout.onDisableMove` reads that count, so Fake
+  Out stayed on MEDICHAM's menu. An action now counts when it carries a move (`actionMoveId`). A bare `pass` still does
+  not count. Knob `MEDI_PIVOT_MOVE_NOT_COUNTED`.
+
+### Added
+- `tests/probe_move_menu_legality.js`: at every turn boundary it compares the moves the authority accepts
+  (`getMoves()`, the call `Side#chooseMove` validates with) with `selectableMoves`, for each of the three menu defects the
+  solver API's legality probe found. Red before this fix and green after it, in both regulations. The imprison and
+  healblock parts stay red until 0.89.0 and 0.90.0.
+- Census row `move/firstTurnOnly`: "a Parting Shot that stays in is a move action: Fake Out leaves the menu".
+
+### Notes
+- `legalActions` against the authority (`--games 45`, state mode): 26 disagreeing slots of 5,552 before, 6 after. The 20
+  Fake Out slots are gone. At `--games 45` the differential is byte-identical per game to the base release
+  (`9cfd07674cc9` against `536641af26ee`, 38 games). `docs/_reports/2026-09-24-move-menu-legality.md`.
+
 ## [0.87.0] — 2026-09-24
 
 ### Added
