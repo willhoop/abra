@@ -54469,7 +54469,11 @@ function battleResult(S){
   const ha=hp(S.actA,S.benchA),hb=hp(S.actB,S.benchB);return ha>hb?1:(ha<hb?0:0.5);
 }
 function battle(teamA,teamB,ov,rng){ rng=rng||Math.random;
-  const S=battleInit(teamA,teamB);
+  /* ROADMAP #310, 2026-09-24 -- THE CALLER'S STREAM REACHES THE LEAD-IN. This was `battleInit(teamA,teamB)`,
+   * so a Trace LEAD took `eligible[0]` and a tied lead pair kept array order (`traceChoiceNoDie`,
+   * `entryOrderTieNoDie`) while every turn after it drew from `rng`. One stream, the one the turns use: a
+   * one-call game has no second die to hand over, and a seed invented here would be a die nobody chose. */
+  const S=battleInit(teamA,teamB,{rng});
   while(!battleOver(S))battleTurn(S,rng);
   return battleResult(S);
 }

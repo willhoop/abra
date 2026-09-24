@@ -21,6 +21,26 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.101.0] — 2026-09-24
+
+### Fixed
+- **ROADMAP #310 closes: every engine `battleInit` hands the lead-in a random stream (both regulations).** With no
+  `opts.rng`, a Trace lead took `eligible[0]` and a tied lead pair kept array order (`traceChoiceNoDie`,
+  `entryOrderTieNoDie`). The eight sites the row named now pass an explicit seeded stream, each chosen so the turn
+  dice do not move: `bench_speed.js` (the playout seed), `game_differential.js` `mediSpan`/`oneHitDamage`
+  (`STAGE_LEAD_SEED`), `million_run.js` (a separate stream keyed on seed and game or trial), `replay_differential.js`
+  (the sweep's pin; a game-id seed for the lead weather board), `speed_vs_pokeenv.js` (the game seed). The instrument
+  found two more: `medicham2-browser.js` `battle()` now passes the caller's stream, and `rollout_leaf.js` passes the
+  playout stream on the `seeded:false` preview road only.
+- `tests/probe_rollout_trace_stream.js` (either regulation): a static clause over every `battleInit(` in `engine/`
+  (15 sites; a planted `{}` must read UNSEEDED; `--plant-caller` shows it RED) and two behavioural cells, PREVIEW and
+  BATTLE. RED on the pre-fix bytes in both regulations, GREEN after. No published output moves: before/after runs on
+  one release are identical apart from clocks, and the counters show the stream is reached.
+- **Merge note (added at merge into main).** The solver API (`engine/medicham_api.js`, 0.95.0) landed on main after this
+  branch was cut, and its `newBattle` passed `battleInit` an options object that carried a stream only when the caller
+  gave one, so the static clause read two UNSEEDED sites. `newBattle` now refuses a battle with neither `rng` nor
+  `seeded: true` and hands `battleInit` the stream explicitly. Every existing caller already passes `rng`.
+
 ## [0.100.3] — 2026-09-24
 
 ### Fixed

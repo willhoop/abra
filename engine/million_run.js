@@ -753,13 +753,19 @@ const slotIdent = (S, m) => {
  * and reported "not flagged". A red proof that cannot reach the mechanic is not a red proof.
  * Splitting them also makes the pinned arm play the SAME teams as the free arm, so the only
  * difference between the two is the dice, which is what the proof is about. */
-function playGame(rng, half, teamRng) {
+/* ROADMAP #310, 2026-09-24 -- THE LEAD-IN GETS ITS OWN SEEDED STREAM. `battleInit` ran with no `rng`, so a
+ * Trace lead took `eligible[0]` and a tied lead pair kept array order (MEDSEEN.traceChoiceNoDie,
+ * MEDFAILS.entryOrderTieNoDie). It is a SEPARATE stream keyed on (SEED, game index), not a draw off `rng`:
+ * drawing off the turn stream would shift every later die of the game, and the pinned red proof below
+ * replays the free arm's games with only the TURN dice changed -- so game g gets the same lead-in in both. */
+const leadSeed = (g, salt) => (SEED ^ 0x2c1b3c6d ^ Math.imul(salt | 0, 0x9E3779B1) ^ Math.imul((g | 0) + 1, 2654435761)) >>> 0;
+function playGame(rng, half, teamRng, g) {
   const mk = () => { let m = null, guard = 0; while (!m && guard++ < 30) m = M.buildMon(pickSpecies(teamRng), {}); return m; };
   const A = []; const B = [];
   for (let i = 0; i < TEAM; i++) { const a = mk(), b = mk(); if (a) A.push(a); if (b) B.push(b); }
   if (A.length < 2 || B.length < 2) return;
   const trace = [];
-  const S = M.battleInit(A, B, { trace });
+  const S = M.battleInit(A, B, { trace, rng: { seed: leadSeed(g, 0) } });
   S.maxTurns = TURN_CAP;
   diag.games++;
   for (let t = 0; t < TURN_CAP && !M.battleOver(S); t++) {
@@ -1242,7 +1248,7 @@ console.log('\n  playing ' + GAMES + ' games, team ' + TEAM + ', turn cap ' + TU
 const rng = mulberry32(SEED);
 const teamRng = mulberry32(SEED ^ 0x5f3759df);
 const seen0 = Object.assign({}, M.MEDSEEN);
-for (let g = 0; g < GAMES; g++) playGame(rng, g < GAMES / 2 ? 0 : 1, teamRng);
+for (let g = 0; g < GAMES; g++) playGame(rng, g < GAMES / 2 ? 0 : 1, teamRng, g);
 const elapsed = Date.now() - t0;
 const seenDelta = {};
 for (const k of Object.keys(M.MEDSEEN)) if (M.MEDSEEN[k] !== (seen0[k] || 0)) seenDelta[k] = M.MEDSEEN[k] - (seen0[k] || 0);
@@ -1259,7 +1265,7 @@ const diagFree = JSON.parse(JSON.stringify(diag));     // snapshot BEFORE the pi
 trials.clear();
 const PIN_GAMES = Math.max(60, Math.min(GAMES, 200));
 const pinTeamRng = mulberry32(SEED ^ 0x5f3759df);        // the SAME team sequence as the free arm
-for (let g = 0; g < PIN_GAMES; g++) playGame(pinnedRng, g < PIN_GAMES / 2 ? 0 : 1, pinTeamRng);
+for (let g = 0; g < PIN_GAMES; g++) playGame(pinnedRng, g < PIN_GAMES / 2 ? 0 : 1, pinTeamRng, g);
 const pinnedRows = [...trials.values()];
 trials.clear();
 
@@ -1862,9 +1868,10 @@ function speciesGender(speciesKey) {
 }
 
 /* ---- ONE TRIAL ---------------------------------------------------------------------------------- */
-function stagedPlay(board, rng) {
+/* ROADMAP #310 -- `lead` is the (fixture, trial) lead-in seed; see `leadSeed` above playGame. */
+function stagedPlay(board, rng, lead) {
   const trace = [];
-  const S = M.battleInit(board.A, board.B, { trace });
+  const S = M.battleInit(board.A, board.B, { trace, rng: { seed: lead >>> 0 } });
   S.maxTurns = 8;
   if (board.after) board.after(S);
   for (const step of board.script) {
@@ -2590,7 +2597,7 @@ function stagedArm(gate) {
         out.refused['build threw: ' + e.message] = (out.refused['build threw: ' + e.message] || 0) + 1; continue; }
       if (!board) { out.refused['board not buildable'] = (out.refused['board not buildable'] || 0) + 1; continue; }
       let r;
-      try { r = stagedPlay(board, dice(fx.idx, i)); } catch (e) {
+      try { r = stagedPlay(board, dice(fx.idx, i), leadSeed(i, fx.idx + 1)); } catch (e) {
         out.refused['the turn threw: ' + e.message] = (out.refused['the turn threw: ' + e.message] || 0) + 1; continue; }
       let obs;
       try { obs = fx.read(r.S, r.trace, board, mode); } catch (e) {

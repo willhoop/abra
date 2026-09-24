@@ -7112,10 +7112,18 @@ function damageInterior(sc) {
 }
 /* medicham2's own damage span for the staged hit, read from the engine's own `dmgRange` after
  * `battleInit` has applied the entry abilities — so an Intimidate on the field is priced in. */
+/* ROADMAP #310, 2026-09-24 -- THE STAGED HIT'S LEAD-IN GETS A NAMED, SEEDED STREAM. `mediSpan` and
+ * `oneHitDamage` called `battleInit(A, B, {})`, so a Trace lead would take `eligible[0]` and a tied lead
+ * pair would keep array order, uncounted by anything this file reads. No staged board here puts a Trace
+ * body or a lead speed tie on the field today (the before/after artifacts are byte-identical apart from
+ * their clocks: docs/_reports/2026-09-24-register-310-close.md), so this moves nothing; it exists so the
+ * day a fixture does, the lead-in rolls a die it can name instead of taking slot 0. A constant, not the
+ * arm's stream: these are single-hit stagings outside the game loop and have no arm. */
+const STAGE_LEAD_SEED = 20260924;
 function mediSpan(pairA, pairB, script) {
   const A = freshBodies(pairA), B = freshBodies(pairB);
   if (A.some(x => !x) || B.some(x => !x)) return null;
-  const S = M.battleInit(A, B, {});
+  const S = M.battleInit(A, B, { rng: { seed: STAGE_LEAD_SEED } });
   const w = script[0].p1[0]; if (!w) return null;
   const mv = (globalThis.MC && globalThis.MC.moves) ? globalThis.MC.moves[id(w.m)] : null;
   if (!mv) return null;
@@ -7156,7 +7164,7 @@ function oneHitDamage(pairA, pairB, script, opt) {
     return before - battle.p2.active[0].hp;
   }
   const A = freshBodies(pairA), B = freshBodies(pairB);
-  const S = M.battleInit(A, B, {});
+  const S = M.battleInit(A, B, { rng: { seed: STAGE_LEAD_SEED } });   /* ROADMAP #310; see mediSpan */
   const before = S.actB[0].curHP;
   const step = script[0];
   const mk = (own, foes, acts) => { const map = new Map();

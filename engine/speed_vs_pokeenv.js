@@ -182,7 +182,10 @@ async function armMedicham(n) {
   let done = 0, turns = 0;
   for (let g = 0; g < n; g++) {
     try {
-      const S = MC.battleInit(build(), build(), {});
+      /* ROADMAP #310, 2026-09-24 -- the lead-in gets its own seeded stream. This is a MIRROR match (one team
+       * built twice), so every lead pair TIES on speed, and with no stream the tie kept array order on every
+       * game. A separate stream, so the turn dice below are the same sequence as before. */
+      const S = MC.battleInit(build(), build(), { rng: { seed: 20260811 + g } });
       const rng = mulberry(20260811 + g);
       let guard = 0;
       while (!MC.battleOver(S) && guard++ < 60) {

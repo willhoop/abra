@@ -53,6 +53,27 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.101.0] — 2026-09-24 — **Every engine `battleInit` hands the lead-in a stream; ROADMAP #310 closes (both regulations)**
+
+- **What changed.** Eight driver call sites that ran `battleInit` with no `rng` now pass an explicit seeded stream:
+  `engine/bench_speed.js`, `engine/game_differential.js` (`mediSpan`, `oneHitDamage`: `STAGE_LEAD_SEED`),
+  `engine/million_run.js` (self-play and staged arms), `engine/replay_differential.js` (the pin; a game-id seed),
+  `engine/speed_vs_pokeenv.js`. Two more the list had missed: `engine/medicham2-browser.js` `battle()` and
+  `engine/rollout_leaf.js` on the `seeded:false` preview road. `tests/probe_rollout_trace_stream.js` gains a static
+  caller clause and PREVIEW/BATTLE cells. Report `docs/_reports/2026-09-24-register-310-close.md`.
+- **Measured.** NO FIGURE published. Probe RED on the pre-fix bytes (10 unseeded sites; PREVIEW `traceChoiceNoDie` +3,
+  BATTLE +1) in both regulations, GREEN after (Reg M-B `f78b4633203d`, Reg M-C `c8c113f0df05`). Before/after on the same
+  release, scratch outputs: pinned differential `--games 45` byte-identical except clock and driver digest (Reg M-B
+  `03eee67c9898`, Reg M-C `c8c113f0df05` 38 games); `replay_differential` 150 games identical, `entryOrderTieNoDie`
+  974 → 0 and `traceChoiceNoDie` 3 → 0; `million_run` self-play and staged logs identical (both refuse to write on this
+  tree, before and after), self-play `entryOrderTieNoDie` 14 → 0; `bench_speed` 3,351 turns both; `speed_vs_pokeenv`
+  440 turns both, lead ties with no die 80 → 0. Census regenerated: Reg M-C 1010 → 1010 live (committed); Reg M-B
+  1006 live on the tree against 1004 committed (the +2 predates this change, 0.100.3), NOT committed: the 7.0.0 documents
+  cite 1,004. 0 missing in both.
+- **Merge note.** At merge the static clause found `engine/medicham_api.js` `newBattle` (0.95.0, landed after this
+  branch was cut) passing no stream by default. It now requires `rng` unless `seeded: true`; all callers already pass one.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.100.3] — 2026-09-24 — **#310 and #442 answer in both regulations; Reg M-B's #442 red is a stale census**
 - **What changed.** `tests/probe_rollout_trace_stream.js` and `tests/probe_census_reproduces.js` stop hardcoding Reg M-B (checkout via `engine/showdown_path.js`; #310 falls back to the selected regulation's current release; #442 reads `artifactFor('data/mechanics-census.json')` and classes OVERCLAIM / UNDERCLAIM ONLY). ROADMAP #310 and #442 annotated. Full account `docs/_reports/2026-09-24-register-310-442.md`.
 - **Measured.** #310: GREEN under Reg M-C (`ec377f6f8159`) and Reg M-B (`aefcb93baf14`, `7822a83cc49b`). #442 at `7c9f7534`: Reg M-C 1010/1010 reproduced (`data/mechanics-census-regmc.json`), GREEN, `--plant` red; Reg M-B: the committed `data/mechanics-census.json` reads 1004 live, and the tree reproduces two rows more. The reproduced count, 1006, is the one `data/verification/mechanics-census-7822a83cc49b.json` holds. UNDERCLAIM ONLY.

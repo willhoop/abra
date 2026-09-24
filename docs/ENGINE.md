@@ -1,3 +1,10 @@
+## EVERY ENGINE `battleInit` HANDS THE LEAD-IN A STREAM; ROADMAP #310 CLOSES (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.101.0)
+
+- Eight driver sites plus `battle()` and the `seeded:false` rollout road now pass `rng`; no published output moves
+  (before/after identical, counters show the stream reached). Probe `tests/probe_rollout_trace_stream.js` (static
+  caller clause, PREVIEW, BATTLE). Hand list: nothing leaves it, #310 was a register row and not a hand-list item.
+  Report `docs/_reports/2026-09-24-register-310-close.md`.
+
 ## STUFF CHEEKS HAS NO MENU HALF IN THIS FORMAT (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.100.2)
 
 Full account: `docs/_reports/2026-09-24-menu-halves-gravity-belch-cheeks.md` §3.

@@ -941,6 +941,12 @@ const ORDER = { agree: 0, differ: 0, spread: 0, 'ability-priority': 0, tie: 0, '
  * LADDER, and that is the shape of every sample-size failure in this repository. */
 const PINS = [0, 0.05, 0.13, 0.5, 0.9, 0.999];
 
+/* ROADMAP #310 -- FNV-1a over the game id: the lead-in seed for `replayGame`'s entry-weather board. */
+function gameSeed(game) {
+  const t = String(game && game.id || ''); let h = 0x811c9dc5;
+  for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 0x01000193) >>> 0;
+  return h >>> 0;
+}
 function reachableEffects(game, board, clicks, sets, megaHere, natures) {
   const seen = { status: new Set(), weather: new Set(), fainted: new Set(), moved: new Set() };
   let threw = null;
@@ -968,7 +974,11 @@ function reachableEffects(game, board, clicks, sets, megaHere, natures) {
       }
       const A = teams.p1.filter(Boolean), B = teams.p2.filter(Boolean);
       if (!A.length || !B.length) return { seen, threw: null, ran: false };
-      S = M.battleInit(A, B, { autoMega: false });
+      /* ROADMAP #310, 2026-09-24 -- THE PIN REACHES THE ENTRY PASS TOO. This was `{ autoMega: false }`, so a
+       * Trace body took `eligible[0]` under every pin and a tied entry pair kept array order: the sweep could
+       * never reach the other copy, which is the one question this function asks. The stream is the pin the
+       * turn below already uses, so the whole staged turn sits in one corner. */
+      S = M.battleInit(A, B, { autoMega: false, rng: () => p });
       S.maxTurns = 999;
       /* THE ENTRY EFFECTS ARE PART OF THE ANSWER AND OVERWRITING THEM WAS A BUG. `battleInit` applies
        * entry abilities, so a Drought Charizard-Mega-Y sets the sun right here — and the first version
@@ -1122,7 +1132,10 @@ function replayGame(game, opt) {
     const A = lead.filter(x => x[0][1] === '1').map(x => x[1]);
     const B = lead.filter(x => x[0][1] === '2').map(x => x[1]);
     if (A.length && B.length) {
-      const S0 = M.battleInit(A, B, { autoMega: false });
+      /* ROADMAP #310, 2026-09-24 -- a seeded stream keyed on the game, so a Trace lead and a tied pair of
+       * lead weather setters DRAW (they took `eligible[0]` and array order), and a re-run of the same game
+       * draws the same. */
+      const S0 = M.battleInit(A, B, { autoMega: false, rng: { seed: gameSeed(game) } });
       if (S0.field.weather) {
         board.weather = S0.field.weather; board.weatherT = 5;
         board.derived.push('the LEADS\' entry weather (' + S0.field.weather + ') — the store drops every '

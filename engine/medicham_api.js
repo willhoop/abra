@@ -130,16 +130,20 @@ function bind(M) {
   /* ---- BATTLES --------------------------------------------------------------------------------- */
   function newBattle(teamA, teamB, opts) {
     opts = opts || {};
+    /* A LEAD-IN NEEDS A STREAM (ROADMAP #310, merged 0.101.0). Without `rng` a Trace lead takes the fixed
+     * eligible[0], the defect #310 closed at every other `battleInit` site. Every caller already passes
+     * one, so a missing stream is refused loudly rather than defaulted; `seeded: true` is the literal
+     * seeded board and needs none. */
+    if (!opts.rng && !opts.seeded) throw new Error('newBattle: opts.rng is required (pass makeRng(seed)), or seeded: true for a literal seeded board -- ROADMAP #310');
     const init = { autoMega: opts.autoMega === true, seeded: !!opts.seeded };
-    if (opts.rng) init.rng = opts.rng;
     if (opts.trace) init.trace = opts.trace;
     let S;
     if (RED_SHARED_SCRATCH) {
       M.MEDFAILS.apiSharedScratchRestored = 1; COUNTERS.sharedScratch++;
-      S = M.battleInit(teamA, teamB, init);
+      S = M.battleInit(teamA, teamB, { ...init, rng: opts.rng });
     } else {
       const scope = M.battleScopeNew();
-      S = M.battleScopeRun(scope, () => M.battleInit(teamA, teamB, init));
+      S = M.battleScopeRun(scope, () => M.battleInit(teamA, teamB, { ...init, rng: opts.rng }));
       S._scope = scope;
     }
     /* NO HORIZON unless the caller names one. `battleTurn` refuses to play once `battleOver`, and

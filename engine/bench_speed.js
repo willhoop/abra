@@ -175,8 +175,11 @@ function bodies(sheet) {
  * `game_differential.freshBodies(pair)` is the repo's rebuild and is what the differential itself
  * uses between games; it is timed SEPARATELY below so the build cost is never folded into ms/turn. */
 function freshBodies(pair) { return GD.freshBodies(pair).filter(Boolean); }
-function freshState(A, Bt, cap) {
-  const S = MEDI.battleInit(A, Bt, {});
+/* ROADMAP #310, 2026-09-24 -- `seed` is the playout's own seed, handed to `battleInit` as a SEPARATE seeded
+ * stream so a Trace lead and a tied lead pair draw (they took `eligible[0]` and array order). Separate, not
+ * the turn stream: drawing off it would shift every later die of the playout. */
+function freshState(A, Bt, cap, seed) {
+  const S = MEDI.battleInit(A, Bt, { rng: { seed: seed >>> 0 } });
   S.maxTurns = cap;
   S._explore = 1.0;
   return S;
@@ -266,8 +269,9 @@ function armPlayout(pairs, cap, playoutsPerPair) {
       const A = freshBodies(p.A), Bt = freshBodies(p.B);
       buildNs += process.hrtime.bigint() - a;
       a = process.hrtime.bigint();
-      const S = freshState(A, Bt, cap);
-      RL.runPlayout(S, mulberry(p.ia * 7919 + i * 104729 + 13), 1.0, 'uniform', null, CENSUS.switchRate);
+      const seed = p.ia * 7919 + i * 104729 + 13;
+      const S = freshState(A, Bt, cap, seed);
+      RL.runPlayout(S, mulberry(seed), 1.0, 'uniform', null, CENSUS.switchRate);
       playNs += process.hrtime.bigint() - a;
       const tn = S.turn || 0;
       turns += tn; played++; turnDist.push(tn);
