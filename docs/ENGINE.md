@@ -1,3 +1,14 @@
+## THE STAGED HARNESS TRIGGERS AN -ATE ABILITY WITH A MOVE IT CONVERTS (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.89.0)
+
+- `fixture_preflight.excludedMoveIds` reads a handler's excluded move ids off its text (polarity rule). The ids ride
+  on the need as `except`, and `satisfiesNeed` refuses them. `stage_planner.triggersOf` had been dropping the field.
+  Knob `FIXTURE_PREFLIGHT_EXCLUSION_BLIND`. Probe `tests/probe_ate_picker.js`. Full account
+  `docs/_reports/2026-09-24-ate-picker-gravity-called.md`.
+- Hand list: **the 0.88.0 "staged harness chose Weather Ball" item leaves it.** Pixilate now fires on the planner
+  stage with Hyper Voice in both regulations. Still owed: Refrigerate's control is the planner's move-swap fallback,
+  because Snow Warning is loud. Magician's excluded Fling has no need to ride on, so it cannot steer a pick. It is not
+  live, and the probe prints it.
+
 ## THE -ATE ABILITIES LEAVE WEATHER BALL ALONE (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.88.0)
 
 - `convertsMoveType.except` is the handler's `noModifyType` list; `convertsMoveTypeTo` honours it. Knob

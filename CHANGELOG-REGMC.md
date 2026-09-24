@@ -21,6 +21,11 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.89.0] — 2026-09-24
+
+### Fixed
+- **The staged harness no longer triggers an -ate ability with the move its handler skips (both regulations).** `fixture_preflight` derived Pixilate's need as `type=Normal` and nothing else, and `stage_planner.triggersOf` copied only the kind and values. So Weather Ball, which is on every -ate handler's own `noModifyType` list, met it. The planner staged Pixilate and Refrigerate with Weather Ball in both regulations, and on the 0.88.0 engine Pixilate's planner arm read DID-NOT-FIRE. The row showed FIRED only through the legacy fallback. `excludedMoveIds` now reads a handler's excluded move ids off its own text, with the flags' polarity rule. It covers a bound literal list, an inline list and `move.id ===/!==`. The ids ride on the need as `except`, and `satisfiesNeed` refuses them. `stage_planner` carries them. Knob `FIXTURE_PREFLIGHT_EXCLUSION_BLIND`. Probe `tests/probe_ate_picker.js`. Fixed: 0 RED in both regulations. Blind: 2 RED (Pixilate, Refrigerate on Weather Ball). `all_mechanics_fire.js --only` on the fixed-engine releases: Pixilate now FIRES on the planner stage with Hyper Voice in both regulations. `docs/_reports/2026-09-24-ate-picker-gravity-called.md`.
+
 ## [0.88.0] — 2026-09-24
 
 ### Fixed

@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.88.0 — 2026-09-24.**
+**Version: 0.89.0 — 2026-09-24.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -419,6 +419,7 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | **A probe written under one regulation hard-codes that regulation's checkout, release or mod block.** Pass 9 found three: a default `SHOWDOWN_PATH` to the Reg M-B checkout, a default `--release` pinned to a Reg M-B release, and an assertion that the Champions mod carry a `disguise` block. Each read red or CANNOT ANSWER under Reg M-C with a correct engine. | A probe reds or throws under the new regulation on an assertion about the checkout, not the mechanic. | Grep `tests/` for literal checkout paths and release ids; resolve through `engine/showdown_path.js` and the newest release for the selected regulation. Fixed 0.82.1. |
 | **A once-per-body latch is correct until a regulation adds a way to come back.** The trace wrote `|faint|` once per body and never reset it, which was right while nothing revived; Reg M-C's Revival Blessing lets a body die twice, and the second death was silent. | Whole-game narration rows reading "`|faint|` never emitted" on a body that had been revived. | On a rotation, list every per-body latch (`_traceFainted`, `_faintOut`, …) and check each is reset by every road that returns a body to play. Fixed 0.85.0. |
 | **A handler's inline exclusion list is part of the mechanic, and a tag that reads only the headline drops it.** Every -ate `onModifyType` opens with `const noModifyType = [...]` (Weather Ball, Terrain Pulse, ...); `convertsMoveType` carried the type and the multiplier and not the list, in both regulations, so a Pixilate or Refrigerate Weather Ball converted and took x1.2. | The Reg M-C staged harness reported "Pixilate parts boards" and "Refrigerate unproven" (its control clicked a different move); neither the damage differential nor the pinned pool clicks an -ate Weather Ball, so nothing else saw it. | When a tag reads a handler, grep the handler for a literal array or an `includes(move.id)` and carry it as a param. A probe that stages the ability must also stage one move on the list. Fixed 0.88.0 (`convertsMoveType.except`). |
+| **The staged harness's move picker reads the same handlers, and it dropped the same list.** `fixture_preflight` derived an -ate need as `type=Normal` alone, and `stage_planner.triggersOf` copied only its kind and values. So the planner staged Pixilate and Refrigerate with Weather Ball, the one Normal move the handler skips, in both regulations. | On the fixed engine Pixilate's planner arm read DID-NOT-FIRE, and the row printed FIRED only because the legacy fallback rescued it. Nothing flagged it. | When a derived need gains a field, check that every copier of the need carries it. `tests/probe_ate_picker.js` plans every exclusion-bearing row and prints every handler that excludes a move id, so a new regulation's member arrives named. Fixed 0.89.0 (`except` on the need). |
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

@@ -615,7 +615,9 @@ function triggersOf(kind, e, Uv) {
     /* CONTACT READ THROUGH THE AUTHORITY'S HELPER, which PRE's flag regex does not see */
     for (const h of H) { const sh = splitHandler(h.name); if (sh && !sh.prefix && sh.base === 'damaginghit' && /checkMoveMakesContact\(/.test(h.src)
       && !mn.needs.some(n => n.kind === 'flag' && n.values.includes('contact'))) mn.needs.push({ kind: 'flag', values: ['contact'], by: 'receiver', handler: h.name, damagingOnly: true }); }
-    for (const n of mn.needs) add({ kind: 'click', by: n.by, need: { kind: n.kind, values: n.values || [], damagingOnly: !!n.damagingOnly || (kind === 'abilities' && STAT_CALC.test((splitHandler(n.handler) || {}).base || '')) },
+    /* `except` (2026-09-24): the move ids the handler itself skips (the -ate family's noModifyType) ride on the need,
+     * so PRE.satisfiesNeed refuses Weather Ball for Pixilate. Dropping it here is how Reg M-C staged Weather Ball. */
+    for (const n of mn.needs) add({ kind: 'click', by: n.by, need: { kind: n.kind, values: n.values || [], ...(n.except ? { except: n.except } : {}), damagingOnly: !!n.damagingOnly || (kind === 'abilities' && STAT_CALC.test((splitHandler(n.handler) || {}).base || '')) },
                                     handler: n.handler, source: 'fixture_preflight.moveNeeds' });
     if (kind === 'abilities') for (const t of derivedAbilityTriggers(e, mn.needs)) add(t);
     for (const u of mn.undetermined) {

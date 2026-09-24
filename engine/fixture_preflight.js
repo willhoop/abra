@@ -814,7 +814,36 @@ function cuesOf(base, src) {
     if (!seen.has(n.kind)) seen.set(n.kind, n);
     else for (const v of n.values) if (!seen.get(n.kind).values.includes(v)) seen.get(n.kind).values.push(v);
   }
-  return { needs: [...seen.values()], undet };
+  /* 2026-09-24 -- THE MOVE IDS THE HANDLER EXCLUDES TRAVEL ON EVERY NEED IT EMITS. Pixilate's need is
+   * `type=Normal`, and Weather Ball is Normal -- and on the handler's own `noModifyType` list. The staged
+   * harness picked it for Pixilate and Refrigerate (Reg M-C), which is the one Normal move the handler
+   * skips. See `excludedMoveIds`. `FIXTURE_PREFLIGHT_EXCLUSION_BLIND=1` drops the list (the red arm). */
+  const except = excludedMoveIds(src, G);
+  if (except.length && process.env.FIXTURE_PREFLIGHT_EXCLUSION_BLIND !== '1') for (const n of seen.values()) n.except = except;
+  return { needs: [...seen.values()], undet, except };
+}
+/* THE MOVE IDS A HANDLER EXCLUDES, READ OFF ITS OWN TEXT WITH THE SAME POLARITY RULE AS THE FLAGS.
+ * Three shapes: a literal list bound to a name and tested with `<name>.includes(move.id)` (the -ate family's
+ * `noModifyType`), an inline `[...].includes(move.id)`, and `move.id ===/!== "<id>"`. An occurrence is an
+ * EXCLUSION when it is seen inside a guard and is not required -- `!list.includes(move.id)` in a guard that
+ * DOES something, or `move.id === "x"` in a bare-return guard. A required id (Dazzling's
+ * `!targetAllExceptions.includes(move.id)` in a bare return, Stance Change's `move.id !== "kingsshield"`) is
+ * never an exclusion and is left to the `moveid` clause that already reads requirements. */
+function excludedMoveIds(src, G) {
+  const ids = new Set();
+  const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const judge = (re, vals) => { const p = polarity(src, G, re); if (p.seen && !p.required) for (const v of vals) ids.add(v); };
+  for (const m of src.matchAll(/(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*\[([^\]]{0,400}?)\]/g)) {
+    const vals = [...m[2].matchAll(/["']([a-z0-9]+)["']/g)].map(x => x[1]);
+    if (vals.length) judge(new RegExp(esc(m[1]) + '\\.includes\\(\\s*move\\.id\\s*\\)', 'g'), vals);
+  }
+  for (const m of src.matchAll(/\[([^\]]{0,400}?)\]\s*\.includes\(\s*move\.id\s*\)/g)) {
+    const vals = [...m[1].matchAll(/["']([a-z0-9]+)["']/g)].map(x => x[1]);
+    if (vals.length) judge(new RegExp(esc(m[0]), 'g'), vals);
+  }
+  for (const m of src.matchAll(/move\.id\s*[!=]==\s*["']([a-z0-9]+)["']/g))
+    judge(new RegExp('move\\.id\\s*[!=]==\\s*["\']' + m[1] + '["\']', 'g'), [m[1]]);
+  return [...ids].sort();
 }
 /** moveNeeds(entity) -> {needs:[{kind,values,by,handler,undetermined}], undetermined:[...]}
  *  `entity` is a Dex ability or item. Reads its OWN handlers; no list anywhere. */
@@ -865,6 +894,8 @@ function satisfiesNeed(moveId, need, ctx) {
    * Rest is Psychic, and it was clearing Twisted Spoon's requirement without ever entering the code
    * that reads it. Applied here rather than inside each case so no kind can forget it. */
   if (need.damagingOnly && mv.category === 'Status') return false;
+  /* A MOVE THE HANDLER ITSELF EXCLUDES SUPPLIES NOTHING, whatever its type (see `excludedMoveIds`). */
+  if (need.except && need.except.includes(mv.id)) return false;
   switch (need.kind) {
     case 'type': return need.values.includes(mv.type);
     case 'category': return need.values.includes(mv.category);
@@ -1275,7 +1306,7 @@ function check(sc) {
 }
 
 module.exports = { check, legal, learnable, statusOf,
-                   moveNeeds, satisfiesNeed, learnsetOf, EVENT_ROLE,
+                   moveNeeds, satisfiesNeed, learnsetOf, EVENT_ROLE, excludedMoveIds, guardsOf,
                    boardNeeds, readByOthers, statusesRead,
                    /* the carrier half of `learnable` — see the block above `statusOf` */
                    carriers, playable, dex: D };
