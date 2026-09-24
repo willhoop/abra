@@ -39276,7 +39276,16 @@ window.ABRA_TAGS={
     "convertsMoveType": {
      "converts": "Normal moves",
      "into": "Dragon",
-     "damageMult": 1.2
+     "damageMult": 1.2,
+     "except": [
+      "judgment",
+      "multiattack",
+      "naturalgift",
+      "revelationdance",
+      "technoblast",
+      "terrainpulse",
+      "weatherball"
+     ]
     },
     "damageBoost": {
      "mult": 1.2,
@@ -39491,7 +39500,16 @@ window.ABRA_TAGS={
     "convertsMoveType": {
      "converts": "Normal moves",
      "into": "Flying",
-     "damageMult": 1.2
+     "damageMult": 1.2,
+     "except": [
+      "judgment",
+      "multiattack",
+      "naturalgift",
+      "revelationdance",
+      "technoblast",
+      "terrainpulse",
+      "weatherball"
+     ]
     },
     "damageBoost": {
      "mult": 1.2,
@@ -41613,7 +41631,8 @@ window.ABRA_TAGS={
     "convertsMoveType": {
      "converts": "sound moves",
      "into": "Water",
-     "damageMult": 1
+     "damageMult": 1,
+     "except": []
     }
    }
   },
@@ -42158,7 +42177,16 @@ window.ABRA_TAGS={
     "convertsMoveType": {
      "converts": "Normal moves",
      "into": "Fairy",
-     "damageMult": 1.2
+     "damageMult": 1.2,
+     "except": [
+      "judgment",
+      "multiattack",
+      "naturalgift",
+      "revelationdance",
+      "technoblast",
+      "terrainpulse",
+      "weatherball"
+     ]
     },
     "damageBoost": {
      "mult": 1.2,
@@ -42488,7 +42516,16 @@ window.ABRA_TAGS={
     "convertsMoveType": {
      "converts": "Normal moves",
      "into": "Ice",
-     "damageMult": 1.2
+     "damageMult": 1.2,
+     "except": [
+      "judgment",
+      "multiattack",
+      "naturalgift",
+      "revelationdance",
+      "technoblast",
+      "terrainpulse",
+      "weatherball"
+     ]
     },
     "damageBoost": {
      "mult": 1.2,

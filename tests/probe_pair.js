@@ -267,7 +267,18 @@ function damage(o) {
    * unconverted damage — the exact silent wrong answer that produced the Weather Ball report. */
   const mv = dex.moves.get(o.move);
   if (!mv.exists) throw new Error('probe_pair: no such move: ' + o.move);
-  if (mv.onModifyType && !o.iKnowMoveHitSkipsModifyType) {
+  /* 2026-09-24 (the -ate abilities) -- THE SAME HOLE ON THE ATTACKER'S ABILITY. Pixilate, Refrigerate, Aerilate,
+   * Dragonize, Galvanize and Normalize carry `onModifyType` on the ABILITY, not the move, so the refusal below let a
+   * Pixilate Body Slam through as a NORMAL move on the authority's side -- the silent wrong answer again, one handler
+   * over. `runModifyType: true` runs the four events `useMoveInner` runs (sim/battle-actions.ts, identical in both
+   * checkouts: singleEvent ModifyType + ModifyMove on the move, then runEvent ModifyType + ModifyMove) before moveHit,
+   * which is the honest answer for both cases and is why neither refusal applies under it. */
+  const attAbDex = dex.abilities.get(o.attAb || QUIET_ABILITY);
+  if (!o.runModifyType && attAbDex.onModifyType && !o.iKnowMoveHitSkipsModifyType) {
+    throw new Error('probe_pair: the attacker\'s ability "' + attAbDex.name + '" has onModifyType, and moveHit never runs '
+      + 'ModifyType — the authority would answer for the UNCONVERTED move. Pass runModifyType:true.');
+  }
+  if (mv.onModifyType && !o.iKnowMoveHitSkipsModifyType && !o.runModifyType) {
     throw new Error('probe_pair: "' + mv.name + '" has onModifyType, and this file calls moveHit '
       + 'directly, which never runs ModifyType — the reported type would be its UNCONVERTED one. '
       + 'Drive a real battle through battle.choose() instead (tests/staged_board.js does). '
@@ -337,6 +348,13 @@ function damage(o) {
 
   battle.random = (n) => (n === 16 ? roll : 0);
   const active = battle.dex.getActiveMove(mv.id);
+  if (o.runModifyType) {
+    battle.setActiveMove(active, src, tgt);
+    battle.singleEvent('ModifyType', active, null, src, tgt, active, active);
+    battle.singleEvent('ModifyMove', active, null, src, tgt, active, active);
+    battle.runEvent('ModifyType', src, tgt, active, active);
+    battle.runEvent('ModifyMove', src, tgt, active, active);
+  }
   active.willCrit = !!o.crit || !!mv.willCrit;
   active.hit = 1;
   if (o.spread) active.spreadHit = true;
@@ -344,7 +362,7 @@ function damage(o) {
   battle.actions.moveHit(tgt, src, active);
   const showdown = before - tgt.hp;
 
-  const out = { showdown, medicham: ours, agree: showdown === ours,
+  const out = { showdown, medicham: ours, agree: showdown === ours, sdType: active.type,
                 roll, rollFactor: +((100 - roll) / 100).toFixed(2) };
 
   /* REFUSAL 4 — THE KNOB CHECK, on the AUTHORITY only. If Showdown gives the same answer with and

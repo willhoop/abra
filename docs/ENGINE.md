@@ -1,3 +1,14 @@
+## THE -ATE ABILITIES LEAVE WEATHER BALL ALONE (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.106.0)
+
+- `convertsMoveType.except` is the handler's `noModifyType` list; `convertsMoveTypeTo` honours it. Knob
+  `MEDI_ATE_EXCLUSION_BLIND`. Probe `tests/probe_ate_abilities.js` (all 16 rolls, both regulations); census row
+  `convertsMoveTypeExcept`. Full account `docs/_reports/2026-09-24-ate-abilities.md`.
+- Hand list: **Pixilate and Refrigerate leave it** (the 0.87.0 "mechanics staged" finding). Owed to the instrument's
+  owner, not ENGINE: the staged harness chose **Weather Ball** as both abilities' trigger, which is exactly the move
+  the handler skips, so on this engine its Pixilate arm will read the ability as inert. The planner must pick a
+  trigger off `convertsMoveType.except` (Body Slam / Hyper Voice), and Refrigerate's control must be the same move
+  with the ability removed, not a different move.
+
 ## MIMICRY ANSWERS A TERRAIN CHANGE, NOT EVERY TURN — REFLECT TYPE'S HIDDEN DIFFER (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.105.0)
 
 - The Reflect Type roster row's underlying FIRED-AND-BOARDS-DIFFER was Mimicry, the aggressor's only ability: the

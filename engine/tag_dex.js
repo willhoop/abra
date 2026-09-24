@@ -8103,7 +8103,15 @@ const ABILITY_TAGS = [
       const mult = raw ? (+raw > 100 ? +(raw / 4096).toFixed(2) : +raw) : 1;
       const from = /flags\.sound|flags\["sound"\]/.test(src) ? 'sound moves'
                  : /type\s*===?\s*"Normal"/.test(src) ? 'Normal moves' : 'its moves';
-      return { converts: from, into: to, damageMult: mult };
+      /* 2026-09-24 -- THE HANDLER'S OWN EXCLUSION LIST. Every -ate handler opens with `const noModifyType = [...]`
+       * and converts nothing on it (Weather Ball, Terrain Pulse, Judgment, ...; Normalize adds Struggle and Hidden
+       * Power). It was not read, so a Pixilate Weather Ball with no weather was a boosted Fairy STAB hit here and a
+       * plain Normal one in the authority -- the Reg M-C gate's "Pixilate parts boards" finding. Read off the
+       * handler, so a list that grows next regulation is picked up. ALWAYS written (empty for Liquid Voice), so an
+       * artifact that predates the field is distinguishable from one that has no exclusions. */
+      const exl = (src.match(/noModifyType\s*=\s*\[([^\]]*)\]/) || [])[1];
+      const except = exl ? (exl.match(/[a-z0-9]+/g) || []) : [];
+      return { converts: from, into: to, damageMult: mult, except };
     } },
   /* Will: "moody idk what to do." Neither do I, and that is the honest entry. It moves a RANDOM
    * stat +2 and another -1 every turn, so there is no state to read and no decision to condition
