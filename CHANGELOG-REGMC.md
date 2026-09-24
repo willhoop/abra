@@ -21,6 +21,11 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.86.2] — 2026-09-24
+
+### Fixed
+- **probe_court_change reports NOT-IN-REGULATION under Reg M-B instead of exiting 2.** Pass 10 booked its exit 2 ("no legal Court Change learner with a quiet ability") as COULD-NOT-STAGE. It was never a fixture gap: under `gen9championsvgc2026regmb` Court Change is `isNonstandard: 'Past'`, 0 of the format's legal species learn it, and `engine/legal_scope.js` answers NOT-LEGAL. The probe now asks `legal_scope` first and, when the move is out, asserts it three ways (scope code; dex flag and zero legal learners; the TeamValidator refusing a legal body with the move as an existence problem while accepting the same body without it) and exits 0. An in-scope move with no learner is now exit 1, never exit 2. Shown RED on a deliberate break (the arm's Court Change swapped for a pairing-only refusal: exit 1). Reg M-C unchanged: exit 0, knob exit 1. No engine change; no figure moves.
+
 ## [0.86.1] — 2026-09-23
 
 ### Fixed

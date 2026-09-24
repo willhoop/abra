@@ -5,7 +5,8 @@
  *   node tests/probe_court_change.js --regulation regmc
  *   ... --release <id> --medi <path>   the pre-fix release and engine bytes (the RED proof)
  *   MEDI_COURT_CHANGE_UNMODELLED=1     restores the old terminal pass (must exit 1)
- *   SHOWDOWN_PATH=<M-B checkout> node tests/probe_court_change.js   -> NOT RUN (exit 2): no legal learner in Reg M-B
+ *   SHOWDOWN_PATH=<M-B checkout> node tests/probe_court_change.js   -> NOT-IN-REGULATION, asserted (exit 0; 1 if any
+ *                                                                      of the three out-of-regulation checks fails)
  *
  * ================= THE AUTHORITY (M-C checkout data/moves.ts courtchange :3032-3098; no Champions override) ======
  *
@@ -23,10 +24,49 @@
 const K = require('./regmc_probe_kit.js').open('probe_court_change', ['MEDI_COURT_CHANGE_UNMODELLED'], { anyRegulation: true });
 const { D, ok, SPEC, learns, quiet, bulk, mon, pickDistinct, show, P, idle } = K;
 
+/* ================= IS THE MOVE IN THIS REGULATION AT ALL? (2026-09-24, abra/regmc 0.86.2) ======================
+ *
+ * Until 0.86.2 a regulation with no quiet-ability learner exited 2 "NOT RUN", and pass 10 booked that as
+ * COULD-NOT-STAGE against the gate. Under Reg M-B that was never a fixture gap: Court Change is
+ * `isNonstandard: 'Past'` there, no legal species learns it (0 of the format's legal species; the only
+ * learner in the whole dex is Cinderace, itself `Past`), and engine/legal_scope.js answers NOT-LEGAL.
+ * A move the regulation cannot put on a sheet is NOT-IN-REGULATION, which the gate does not count
+ * (engine/quarantine.js rosterStage: "OUT OF SCOPE ... not counted at all").
+ *
+ * So the out-of-regulation arm is ASSERTED, not assumed, three ways -- and each can go red:
+ *   (a) the one scope implementation says out (NOT-LEGAL under Reg M-B: the format does not list the move);
+ *   (b) the format's own dex marks the move nonstandard and no legal species learns it;
+ *   (c) the TeamValidator refuses a legal body carrying it as an EXISTENCE problem, and accepts the SAME body
+ *       without it (the control, cleared explicitly: the refusal must be about Court Change and nothing else).
+ * In a regulation where the move IS in scope, a missing learner is a real failure (exit 1), never exit 2. */
+const SCOPE = require('../engine/legal_scope.js').derive();
+const V = SCOPE.verdict('move', 'courtchange');
+console.log('\n0. SCOPE (' + K.CS.FORMAT + ') — engine/legal_scope.js: ' + (V.inScope ? 'IN' : 'OUT') + ' ' + V.code + ' — ' + V.why);
+if (!V.inScope) {
+  const LEARNERS = SPEC.filter(s => learns(s, 'courtchange'));
+  const mv = D.moves.get('courtchange');
+  console.log('  NOT-IN-REGULATION — Court Change: isNonstandard=' + JSON.stringify(mv.isNonstandard)
+    + ', legal learners ' + LEARNERS.length + ' of ' + SPEC.length + ' legal species');
+  /* NOT-LEGAL is legal_scope's own answer for an entity the format does not list at all (`verdict`'s fallback);
+   * the three OUT_CODES are for a legal entity nothing can reach. Either is out of the regulation. */
+  ok(V.code === 'NOT-LEGAL' || require('../engine/legal_scope.js').OUT_CODES.includes(V.code),
+    'legal_scope files Court Change out of scope (' + V.code + ')');
+  ok(!!mv.isNonstandard && LEARNERS.length === 0, 'the format marks the move nonstandard and no legal species learns it',
+    LEARNERS.length ? show(LEARNERS) : null);
+  const body = SPEC.filter(s => learns(s, 'protect')).find(s => K.CS.checkLegal({ species: s.id, ability: s.abilities[0], moves: ['Protect'] }).legal);
+  const ctl = body ? K.CS.checkLegal({ species: body.id, ability: body.abilities[0], moves: ['Protect'] }) : null;
+  const arm = body ? K.CS.checkLegal({ species: body.id, ability: body.abilities[0], moves: ['Protect', 'Court Change'] }) : null;
+  ok(!!ctl && ctl.legal && !ctl.unavailable, 'CONTROL — ' + (body ? body.id : '(no body)') + ' with Protect alone is accepted by the validator',
+    ctl && !ctl.legal ? ctl.problems.join(' | ') : null);
+  ok(!!arm && !arm.legal && !arm.unavailable && arm.banned.some(p => /court change/i.test(p)),
+    'ARM — the same body with Court Change is refused as an EXISTENCE problem naming the move', arm ? arm.problems.join(' | ') : null);
+  K.finish();
+}
+
 console.log('\n1. THE CAST, DERIVED THIS RUN (' + K.CS.FORMAT + ')');
 const QUIET = s => quiet(s) && learns(s, 'protect') && idle(s);
 const USER = SPEC.filter(s => learns(s, 'courtchange') && QUIET(s)).sort((a, b) => bulk(b) - bulk(a));
-if (!USER.length) { console.log('  NOT RUN — no legal Court Change learner with a quiet ability in ' + K.CS.FORMAT); process.exit(2); }
+if (!USER.length) { ok(false, 'Court Change is IN scope here, yet no legal learner with a quiet ability was found — construct one; this is not NOT-IN-REGULATION'); K.finish(); }
 const REF = SPEC.filter(s => learns(s, 'reflect') && QUIET(s)).sort((a, b) => bulk(b) - bulk(a));
 const TW = SPEC.filter(s => learns(s, 'tailwind') && QUIET(s)).sort((a, b) => bulk(b) - bulk(a));
 const FILL = SPEC.filter(QUIET).sort((a, b) => bulk(b) - bulk(a));

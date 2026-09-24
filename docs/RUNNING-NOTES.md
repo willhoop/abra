@@ -53,6 +53,10 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.86.2] — 2026-09-24 — **Court Change is NOT-IN-REGULATION under Reg M-B, and the probe now proves it**
+
+A probe fix, no engine change. `tests/probe_court_change.js` exited 2 under Reg M-B and pass 10 counted that as COULD-NOT-STAGE. Derived this run: Court Change is `isNonstandard: 'Past'` in `gen9championsvgc2026regmb`, 0 of 264 legal non-mega species learn it, `engine/legal_scope.js` answers NOT-LEGAL, and the TeamValidator refuses it as "does not exist in Gen 9". The probe asserts all of that and exits 0; the gate never read the probe, and scope-out rows are not counted by `engine/quarantine.js` `rosterStage`. `docs/_reports/2026-09-24-court-change-fixture.md`. **Supersedes.** The pass-10 note that `probe_court_change` counts against the Reg M-B gate as COULD-NOT-STAGE. **Basis.** unchanged. Owes no living-document fold-in.
+
 ## [abra/regmc 0.86.1] — 2026-09-23 — **probe_volley_collapse_clamp reads the regulation's own checkout**
 
 A probe fix, no engine change. `tests/probe_volley_collapse_clamp.js` hardcoded the Reg M-B checkout as its `SHOWDOWN_PATH` default and read CANNOT-ANSWER under Reg M-C; it now selects the regulation's checkout through `engine/showdown_path.js`. **Supersedes.** Nothing. **Basis.** unchanged. Owes no living-document fold-in.

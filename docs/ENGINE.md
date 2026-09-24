@@ -21,6 +21,13 @@
 Full account: `docs/_reports/2026-09-23-engine-pass10.md` §B. Disguise crit: a Reg M-B-only mod-block assertion.
 Volley collapse clamp: a stale default release pin. Ability zero boost: a Reg M-B default checkout. All green in both
 regulations; no engine change.
+## COURT CHANGE IS NOT IN REG M-B; THE PROBE NOW SAYS SO AND PROVES IT. 2026-09-24 (abra/regmc 0.86.2)
+
+Full account: `docs/_reports/2026-09-24-court-change-fixture.md`.
+
+- `tests/probe_court_change.js` asks `engine/legal_scope.js` first. Out of scope: asserts NOT-IN-REGULATION three ways
+  and exits 0. In scope with no learner: exit 1. It never exits 2 on a regulation question again.
+- Not a COULD-NOT-STAGE against the Reg M-B gate: no gate reads this probe, and scope-out rows are uncounted.
 ## COURT CHANGE SWAPS THE SIDE CONDITIONS (REG M-C). 2026-09-23 (abra/regmc 0.82.0)
 
 Full account: `docs/_reports/2026-09-23-engine-pass10.md` §A1.
