@@ -1986,6 +1986,14 @@ const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatM
   immunityGateRefused: 0,
   passesStateSwitch: 0, passesStateBoosts: 0, passesStateVolatiles: 0,
   curseGhost: 0, curseNonGhost: 0,
+  /* 2026-09-24 -- a Ghost Curse that paid its cost ABOVE the volatile, because the regulation's handler does
+   * (`typeSplitMove.costBeforeVolatile`, Reg M-C only). Zero over a Reg M-C run holding a Ghost Curse means the
+   * param is not reaching the engine. */
+  curseCostFirst: 0,
+  /* 2026-09-24 -- a pre-turn shield's punish (Beak Blast's burn -- read off `preTurnShield.mode`, never a name) PAID at
+   * `runMoveEffects`' `runEvent('Hit')`, above the attacker's own secondaries. Zero over a run where a charging Beak
+   * Blast body was touched by a contact move means the step is not firing. */
+  beakBurnAtHitEvent: 0,
   /* WIRE 132 -- the three recoveries the mega path now makes, each named so a ZERO is readable.
    * megaKeyFromSuffix: the artifact's `megaStone.into` had no answer and the concatenated guess was
    * taken; megaMovesFromBase: a mega row with `mv: []` inherited the base row's moves; 
@@ -28479,6 +28487,9 @@ function layHazard(sf,hz,cap,setter,sideLabel,say){
 const SELF_VOL_FAIL_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SELF_VOLATILE_FAIL_SILENT==='1');
 const SPEND_TYPE_FAIL_BARE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SPEND_TYPE_FAIL_BARE==='1');   /* 0.83.0, see the spendsOwnType refusal */
 const STEEL_ROLLER_CLEAR_AT_END=(typeof process!=='undefined'&&process.env&&process.env.MEDI_STEEL_ROLLER_CLEAR_AT_END==='1');   /* 0.84.0, see `_stepMoveOnHitTerrain` */
+const CURSE_ORDER_FIXED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CURSE_ORDER_FIXED==='1');   /* 2026-09-24, see the `typesplit` branch */
+const CURSE_OF_SPECIES=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CURSE_OF_SPECIES==='1');     /* 2026-09-24, see the `typesplit` branch */
+const BEAK_BURN_AT_DAMAGING_HIT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_BEAK_BLAST_BURN_AT_DAMAGING_HIT==='1');   /* 2026-09-24, see `_stepPreTurnHit` */
 /* 2026-09-23 (ENGINE pass 10, abra/regmc 0.82.0) -- COURT CHANGE SWAPS THE LISTED SIDE CONDITIONS BETWEEN THE SIDES.
  *
  * The authority (M-C checkout data/moves.ts courtchange :3032-3098; no Champions override) walks its own literal list
@@ -40217,18 +40228,34 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(t._ptDmg){mvFail(m);continue;}
         /* The volatile lands BEFORE the cost, which is `moveHit`'s own order (volatileStatus then
            onHit) and is the same order WIRE 7 established for the Substitute. */
+        /* 2026-09-24 -- AND WHICH COMES FIRST IS THE REGULATION'S HANDLER, READ OFF THE TAG. Reg M-B declares
+           `volatileStatus: 'curse'` and so adds it above `onHit` (the order above). The Reg M-C mod
+           (data/mods/champions/moves.ts:165-194) has no declared volatile: its `onHit` pays
+           `directDamage(source.maxhp / 2)` and THEN `target.addVolatile('curse')`, so the user's `-damage` precedes
+           the `-start`. `typeSplitMove.costBeforeVolatile` carries that, and is written only where it is true.
+           A user the cost kills still curses (the add is the next statement); its `|faint|` waits for the
+           volatile, as `faintMessages` does. MEDI_CURSE_ORDER_FIXED=1 restores the volatile-first order.
+           The `[of]` is `${source}`, i.e. `Pokemon#toString()` -- the side-and-slot identifier, not the species
+           (condition.onStart, both checkouts). MEDI_CURSE_OF_SPECIES=1 restores the species name. */
         const _pt=TAGS.param('move',a.mv,'perTurnHP');
-        if(_pt&&_pt.effect==='damage'&&_pt.on==='target'&&_pt.per){
-          t._ptDmg={per:+_pt.per,by:a.mv};
-          if(TR)TR.vstart(t,'Curse','[of] '+(m.name||''));
-        }
+        const _curseVol=()=>{
+          if(_pt&&_pt.effect==='damage'&&_pt.on==='target'&&_pt.per){
+            t._ptDmg={per:+_pt.per,by:a.mv};
+            if(TR){ if(CURSE_OF_SPECIES)TR.vstart(t,'Curse','[of] '+(m.name||'')); else TR.vstart(t,'Curse',null,null,m); }
+          }
+        };
+        const _costFirst=!!_ts.costBeforeVolatile&&!CURSE_ORDER_FIXED;
+        if(!_costFirst)_curseVol();
+        let _costKilled=false;
         if(_ts.hasTypeCostFraction&&m.st){
           /* `directDamage` -- it ignores the target's own doll and cannot be prevented, and
              `clampIntRange` TRUNCS, so a 135 HP Gengar pays 67 and not 68. */
           m.curHP-=Math.max(1,Math.trunc(m.st.hp*+_ts.hasTypeCostFraction));
           if(TR)TR.dmg(m);
-          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;faintLineOut(m);}
+          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;_costKilled=true;}
         }
+        if(_costFirst){_curseVol();MEDSEEN.curseCostFirst++;}
+        if(_costKilled)faintLineOut(m);
         MEDSEEN.curseGhost++;
         continue;
       }
@@ -46477,7 +46504,8 @@ function battleTurn(S,rng,actsForA,actsForB){
                    :/* damaging */ mv.c==='P'||mv.c==='S';
           if(_tr){
             tg._preTurn.hit=true;
-            if(_ps.mode==='punishAttacker'&&_ps.status&&!m.fainted)
+            /* 2026-09-24 -- the punish is normally already paid, one event higher, by `_stepPreTurnHit`. */
+            if(_ps.mode==='punishAttacker'&&_ps.status&&!m.fainted&&!R._preTurnPunishPaid)
               applyStatus(m,CODE_OF_STATUS[_ps.status]||_ps.status);
           }
         }
@@ -49195,6 +49223,40 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(CLEAR_SMOG_KEEPS_BOOSTS){ if(Object.values(tg.boosts).some(v=>v))MEDFAILS.clearSmogKeepsBoostsRestored=1; }
         else { for(const _k in tg.boosts)tg.boosts[_k]=0; MEDSEEN.clearsBoostsOnHit++; }
       };
+      /* ==== 2026-09-24 -- STEP 3, `runMoveEffects`: A PRE-TURN SHIELD'S PUNISH IS A VOLATILE'S `onHit` ==============
+       *
+       *     beakblast.condition.onHit(target, source, move) {
+       *       if (this.checkMoveMakesContact(move, source, target)) source.trySetStatus('brn', target);
+       *     }                    (data/moves.ts:1119-1146, byte-identical in both checkouts; the Champions mod
+       *                           overrides only basePower and pp)
+       *
+       * A volatile's `onHit` is raised by `runEvent('Hit', target, source, move)` inside `runMoveEffects`
+       * (sim/battle-actions.ts:1283), ABOVE `selfDrops` (:1096) and `secondaries` (:1099). This engine paid it in the
+       * DamagingHit pass, below the secondaries, so a Dire Claw into a charging Toucannon wrote the Toucannon's sleep
+       * above the attacker's burn (Reg M-C narration group N, `…2683663169` turn 2). Inside one `runEvent('Hit')` a
+       * Condition (subOrder 2) runs before an Ability (7; sim/battle.ts:957-972), so this sits ABOVE `_stepHitEvent`.
+       *
+       * THE GATE IS THE DAMAGINGHIT PASS'S OWN: a hit that reached the body (`R._dh` built, `R.react` > 0 -- a doll
+       * that took the hit leaves the Hit event unraised, `targets[i] = null` at :1062) and the trigger read off
+       * `preTurnShield` (contact / physical / damaging). An interior arrival of a volley still pays in its own
+       * DamagingHit call, which runs first; the `m.status` guard then keeps this from paying twice. Only the
+       * `punishAttacker` mode moves -- Focus Punch's and Shell Trap's `hit` flag carries no line and stays where it is.
+       * MEDI_BEAK_BLAST_BURN_AT_DAMAGING_HIT=1 restores the old position. */
+      const _stepPreTurnHit=(R)=>{const tg=R.tg;
+        if(BEAK_BURN_AT_DAMAGING_HIT)return;
+        if(!R.hit&&!R.fainted)return;
+        if(!R._dh||!((R.react|0)>0))return;
+        if(!tg._preTurn||!tg._preTurn.id||m.fainted||m.status)return;
+        const _ps=tg._preTurn.p;
+        if(_ps.mode!=='punishAttacker'||!_ps.status)return;
+        if(_ps.foesOnly&&tg._sf===m._sf)return;
+        const _tr=_ps.trigger==='contact'?mvMakesContact(a.move.id,m,a.move.mv)
+                 :_ps.trigger==='physical'?mv.c==='P'
+                 :/* damaging */ mv.c==='P'||mv.c==='S';
+        if(!_tr)return;
+        R._preTurnPunishPaid=true; MEDSEEN.beakBurnAtHitEvent++;
+        applyStatus(m,CODE_OF_STATUS[_ps.status]||_ps.status);
+      };
       const _stepHitEvent=(R)=>{
         if(HIT_BUFF_AT_DAMAGING_HIT||R._buffDone)return;
         if(!R.hit&&!R.fainted)return;
@@ -49823,6 +49885,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                      * steal-eat sits above the ability Hit event below it and far above the reactors. */
                     _stepStealEatAtHit,
                     _stepMoveOnHitTerrain,             // 2026-09-23 -- Steel Roller's own `onHit` clear, same event
+                    _stepPreTurnHit,                  // 2026-09-24 -- step 3, `runEvent('Hit')`: a volatile's onHit (Beak Blast)
                     _stepHitEvent,                    // 2026-09-19 -- step 3, `runMoveEffects`: an `onHit` stat ability
                     _stepSelfPay,_stepEffects,
                     /* NARRATION BATCH Y, 2026-09-09 -- ONE `DamagingHit`, in the authority's sort order: every

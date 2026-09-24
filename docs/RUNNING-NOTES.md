@@ -53,6 +53,24 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.91.0] — 2026-09-24 — **Beak Blast's burn lands at the Hit event, above the attacker's secondary (both regulations)**
+
+- **What changed.** `engine/medicham2-browser.js`: new step `_stepPreTurnHit` (step 3, above `_stepHitEvent`) pays a
+  pre-turn shield's `punishAttacker` status; the DamagingHit site skips a paid row. Knob
+  `MEDI_BEAK_BLAST_BURN_AT_DAMAGING_HIT`. Probe `tests/probe_beak_blast_burn_order.js`. Reg M-C narration group N.
+  Report `docs/_reports/2026-09-24-narration-curse-burnsleep.md`.
+- **Measured.** NO FIGURE published. Probe green in both regulations, red on the 0.90.0 bytes and under the knob. Pinned differential, --games 300, same pins as 0.90.0: Reg M-C 259 games, 0 diverged, 0 board-material on 8051cc3c92a7 (0.90.0) and 9715a04eb0fe (fix); Reg M-B 260 games, 2 diverged, 1 board-material on 19c1f3a33ed3 and 8910b1cd2bbd, the same two games and first lines. Nothing moved.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
+## [abra/regmc 0.90.0] — 2026-09-24 — **A Ghost's Curse: the regulation's line order, and `[of]` names the user's slot**
+
+- **What changed.** `engine/tag_dex.js`: `typeSplitMove.costBeforeVolatile` (Reg M-C Curse only). `data/tags-regmc.json`:
+  that one leaf. `engine/medicham2-browser.js`: the `typesplit` branch pays the cost above the volatile when the param
+  says so, and writes `[of] <identifier>`. Knobs `MEDI_CURSE_ORDER_FIXED`, `MEDI_CURSE_OF_SPECIES`. Probe
+  `tests/probe_curse_ghost_order.js`. Reg M-C narration group J. Report `docs/_reports/2026-09-24-narration-curse-burnsleep.md`.
+- **Measured.** NO FIGURE published. Probe green in both regulations, red on the 0.86.1 bytes. Pinned differential, --games 300, --arm middle --steering empirical --end-state, census pins regmc-0d03e83f0e65 / 833a997d7e42, frozen team pools: Reg M-C 259 games, 0 diverged, 0 board-material on both release ec377f6f8159 (base) and 8051cc3c92a7 (fix); Reg M-B 260 games, 2 diverged, 1 board-material on both 7822a83cc49b and 19c1f3a33ed3, the same two games and the same first lines (neither is Curse). Nothing moved.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.89.0] — 2026-09-24 — **White Herb is spent above a pivot's `|switch|` where the regulation does not queue it (Reg M-C)**
 
 - **What changed.** `engine/medicham2-browser.js`: `pivotFrom(mvId, fn, who)` runs `herbBeforePivotSwitch(who)`, which

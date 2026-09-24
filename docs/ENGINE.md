@@ -1,3 +1,13 @@
+## BEAK BLAST'S BURN LANDS AT THE `Hit` EVENT, ABOVE THE ATTACKER'S SECONDARY (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.91.0)
+
+- `_stepPreTurnHit` (step 3, above `_stepHitEvent`) pays the `preTurnShield` `punishAttacker` status. Knob
+  `MEDI_BEAK_BLAST_BURN_AT_DAMAGING_HIT`. Probe `tests/probe_beak_blast_burn_order.js`. Reg M-C narration group N.
+## A GHOST'S CURSE FOLLOWS THE REGULATION'S LINE ORDER, AND ITS `[of]` NAMES THE USER'S SLOT. 2026-09-24 (abra/regmc 0.90.0)
+
+- `typeSplitMove.costBeforeVolatile` (derived; Reg M-C only) puts the user's `-damage` above the `-start`; the `[of]`
+  is the identifier in both regulations. Knobs `MEDI_CURSE_ORDER_FIXED`, `MEDI_CURSE_OF_SPECIES`. Probe
+  `tests/probe_curse_ghost_order.js`. Reg M-C narration group J.
+
 ## WHITE HERB IS SPENT ABOVE A PIVOT'S `|switch|` WHERE THE REGULATION DOES NOT QUEUE IT (REG M-C). 2026-09-24 (abra/regmc 0.89.0)
 
 - `pivotFrom(mvId, fn, who)` first runs `herbBeforePivotSwitch(who)`: every holder whose tag carries

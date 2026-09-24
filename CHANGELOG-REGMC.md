@@ -21,6 +21,47 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.91.0] — 2026-09-24
+
+### Fixed
+- **Beak Blast burned its attacker below the attacker's own secondary (both regulations).** The burn is the volatile's
+  `onHit` (`beakblast.condition.onHit` -> `source.trySetStatus('brn', target)`; data/moves.ts:1119-1146, byte-identical
+  in both checkouts, the Champions mod overrides only basePower and pp). A volatile's `onHit` is raised by
+  `runEvent('Hit')` inside `runMoveEffects` (sim/battle-actions.ts:1283), above `selfDrops` (:1096) and `secondaries`
+  (:1099). The engine paid it in the DamagingHit pass, below the secondaries, so a Dire Claw into a charging Toucannon
+  wrote the Toucannon's sleep above the attacker's burn. This is Reg M-C narration group N ("burn against sleep"; the
+  triage called it unexplained because the burn's source was outside the captured window). A new step
+  `_stepPreTurnHit` pays a `preTurnShield` `punishAttacker` status at step 3, above `_stepHitEvent` (a Condition's
+  subOrder 2 before an Ability's 7, sim/battle.ts:957-972); the DamagingHit site skips a row already paid. Focus
+  Punch's and Shell Trap's `hit` flag carries no line and did not move. Knob `MEDI_BEAK_BLAST_BURN_AT_DAMAGING_HIT`.
+  Counter `MEDSEEN.beakBurnAtHitEvent`.
+- New probe `tests/probe_beak_blast_burn_order.js` (either regulation): STATUS (a derived contact move whose secondary
+  inflicts a non-burn status) and PLAIN (a contact move with no secondary, the control). Green in both; red on the
+  0.90.0 bytes in both and under the knob in both. `probe_curse_ghost_order`, `probe_hit_event_buff_order`,
+  `probe_stealeat_before_reactors` and `probe_steel_roller_onhit` stay green in both.
+- Pinned differential, --games 300, same pins as 0.90.0: Reg M-C 259 games, 0 diverged, 0 board-material on 8051cc3c92a7 (0.90.0) and 9715a04eb0fe (fix); Reg M-B 260 games, 2 diverged, 1 board-material on 19c1f3a33ed3 and 8910b1cd2bbd, the same two games and first lines. Nothing moved.
+
+## [0.90.0] — 2026-09-24
+
+### Fixed
+- **A Ghost's Curse wrote its lines in Reg M-B's order under Reg M-C, and named its user by species (both regulations
+  for the name).** Reg M-B's Curse declares `volatileStatus: 'curse'`, so `runMoveEffects` adds it above the move's
+  `onHit` and the `-start` precedes the user's `-damage` (pokemon-showdown data/moves.ts:3266-3310, no Champions
+  override). The Reg M-C mod sets `volatileStatus: undefined` and its `onHit` pays `directDamage(source.maxhp / 2)`
+  and THEN `target.addVolatile('curse')` (pokemon-showdown-mc data/mods/champions/moves.ts:165-194), so the `-damage`
+  comes first. `tag_dex` derives `typeSplitMove.costBeforeVolatile` off the handler (written only when true: Reg M-C
+  Curse, nothing in Reg M-B); the engine's `typesplit` branch pays the cost first when it is set, and a user the cost
+  kills announces its `|faint|` after the `-start`. The `[of]` is `${source}` in `condition.onStart` in both checkouts,
+  i.e. the side-and-slot identifier; the engine wrote the species name. Reg M-C narration group J. Knobs
+  `MEDI_CURSE_ORDER_FIXED`, `MEDI_CURSE_OF_SPECIES`. Counter `MEDSEEN.curseCostFirst`.
+- `data/tags-regmc.json`: the one param added on `moves.curse` (a leaf diff against the full regeneration found exactly
+  that leaf; the regeneration itself was discarded because it also re-read the store's usage counts). `data/tags.json`
+  and `data/abra-tags.js` are unchanged: the derivation writes nothing for Reg M-B.
+- New probe `tests/probe_curse_ghost_order.js` (either regulation): GHOST, AGAIN (already cursed: fails, pays once)
+  and PLAIN (non-Ghost self-boost) arms. Green in both; red on the 0.86.1 engine bytes in both (Reg M-C on order and
+  name, Reg M-B on the name); red under each knob where it applies.
+- Pinned differential, --games 300, --arm middle --steering empirical --end-state, census pins regmc-0d03e83f0e65 / 833a997d7e42, frozen team pools: Reg M-C 259 games, 0 diverged, 0 board-material on both release ec377f6f8159 (base) and 8051cc3c92a7 (fix); Reg M-B 260 games, 2 diverged, 1 board-material on both 7822a83cc49b and 19c1f3a33ed3, the same two games and the same first lines (neither is Curse). Nothing moved.
+
 ## [0.89.0] — 2026-09-24
 
 ### Fixed

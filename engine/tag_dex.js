@@ -4611,6 +4611,16 @@ const MOVE_TAGS = [
       const dd = String(m.onHit || '').replace(/\s+/g, ' ')
         .match(/directDamage\(\s*\w+\.maxhp\s*\/\s*(\d+)/);
       if (dd) p.hasTypeCostFraction = 1 / +dd[1];
+      /* 2026-09-24 -- WHICH COMES FIRST, THE COST OR THE VOLATILE. With `volatileStatus` declared (Reg M-B, mainline
+       * data/moves.ts:3266-3310), `runMoveEffects` adds the volatile ABOVE the move's own `onHit`, so the `-start`
+       * precedes the user's `-damage`. The Reg M-C mod (data/mods/champions/moves.ts:165-194) sets `volatileStatus:
+       * undefined` and its `onHit` calls `directDamage(...)` and only THEN `target.addVolatile('curse')`. So the order
+       * is read off the handler: true when there is no declared volatile and the cost is written above the add.
+       * Written ONLY when true, so no Reg M-B row moves. */
+      if (!m.volatileStatus && volLit && dd) {
+        const iCost = hitSrc.indexOf('directDamage('), iVol = hitSrc.indexOf('addVolatile(');
+        if (iCost >= 0 && iVol > iCost) p.costBeforeVolatile = true;
+      }
       return p;
     } },
   { tag: 'lowersUser', param: 'WHICH of my own stats drop, as the price of the move', probe: 'movesLowerMe',
