@@ -1,3 +1,12 @@
+## A SECOND ADDED TYPE REPLACES THE FIRST (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.96.0)
+
+- The authority holds one added type (`addType` writes `this.addedType = newType`); the `changesTargetType.adds`
+  branch appended, so Trick-or-Treat then Forest's Curse kept the Ghost. The added type now rides on the array
+  (`types._added`, helpers `addedTypeOf` / `baseTypesOf` / `withAddedType`): every wholesale `types=` write builds a
+  new array and so clears it, as `setType` does; Roost's drop and Transform carry it. Knob `MEDI_ADDED_TYPE_APPENDS`.
+  Probe `tests/probe_added_type_replaced.js`; census row "a second added type REPLACES the first".
+- Hand list: **the second-added-type gap leaves it.** Report `docs/_reports/2026-09-24-reflect-type-corners.md`.
+
 ## MIMICRY ANSWERS A TERRAIN CHANGE, NOT EVERY TURN — REFLECT TYPE'S HIDDEN DIFFER (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.95.0)
 
 - The Reflect Type roster row's underlying FIRED-AND-BOARDS-DIFFER was Mimicry, the aggressor's only ability: the

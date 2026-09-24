@@ -53,6 +53,22 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.96.0] — 2026-09-24 — **A second added type replaces the first (both regulations)**
+
+- **What changed.** `engine/medicham2-browser.js`: the added type rides on the `types` array (`types._added`); the
+  `changesTargetType.adds` branch replaces a standing added type instead of appending; Roost's drop and Transform
+  carry it. Knob `MEDI_ADDED_TYPE_APPENDS`. Probe `tests/probe_added_type_replaced.js`; census row "a second added
+  type REPLACES the first" in `tests/test-mechanics.js`.
+- **Measured.** Probe: RED on the base bytes (Reg M-B `0996f70743f9`, Reg M-C `321b4f63b586`; both orders part on
+  `p2a types`, e.g. grass/normal vs ghost/grass/normal), GREEN on the fix (`ad7726f19a85`, `d4b43852870d`), RED under
+  the knob. Census, this tree: Reg M-B 1008 live / 0 missing (1007 / 1 missing under the knob), Reg M-C 1012 live /
+  0 missing; artifacts NOT republished. Pinned differential (`--steering empirical --arm middle --end-state --games
+  300`): Reg M-B, census pin `833a997d7e42`, `data/team-pool-frozen`, 260 games / 1 protocol-diverged / 0
+  board-material on base and fix (the same declared Supreme Overlord `fallenundefined` game); Reg M-C, census pin
+  `0d03e83f0e65`, `data/team-pool-frozen-regmc`, 259 / 0 / 0 on both. The pool holds no added-type game.
+  Worktree releases; receipts for the report only, not published figures.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.95.0] — 2026-09-24 — **Mimicry answers a terrain change, not every turn: Reflect Type's hidden DIFFER (both regulations)**
 
 - **What changed.** `engine/medicham2-browser.js` `syncTerrainTypes`: a Mimicry holder remembers the terrain it last

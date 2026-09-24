@@ -21,6 +21,24 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.96.0] — 2026-09-24
+
+### Fixed
+- **A second added type replaces the first (both regulations).** The authority keeps ONE added type:
+  `Pokemon#addType` writes `this.addedType = newType` (sim/pokemon.ts, byte-identical in both checkouts, no
+  Champions override). This engine's `changesTargetType.adds` branch appended, so Trick-or-Treat then Forest's
+  Curse left a Snorlax Normal/Ghost/Grass (still immune to Fighting) where the authority has Normal/Grass. The added
+  type now rides on the `types` array as `types._added`; a wholesale type write builds a new array and so clears it,
+  exactly as `setType` clears `addedType`. Roost's type drop and Transform carry it by hand, as the authority does.
+  Knob `MEDI_ADDED_TYPE_APPENDS`.
+- New probe `tests/probe_added_type_replaced.js` (two engines, whole board): both orders red on the base bytes in
+  both regulations, green on the fix, red under the knob; a one-add control agrees throughout. New census row
+  (`changesTargetType`, "a second added type REPLACES the first"); the knob is a `DELIBERATE_BREAK`.
+
+### Notes
+- Filed in 0.95.0's report as gap 2. Both added-type moves (Trick-or-Treat, Forest's Curse) are legal in both
+  formats, derived from `Dex.forFormat`. Report `docs/_reports/2026-09-24-reflect-type-corners.md`.
+
 ## [0.95.0] — 2026-09-24
 
 ### Fixed

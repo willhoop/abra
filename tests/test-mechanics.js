@@ -17188,6 +17188,35 @@ probe('move', 'changesTargetType', 'Trick-or-Treat adds Ghost; Soak rewrites to 
                  + `Soak: ${soak.before.join('/')} -> ${soak.after.join('/')}` };
 });
 
+/* 2026-09-24 -- A SECOND ADDED TYPE REPLACES THE FIRST. `Pokemon#addType` writes `this.addedType = newType`
+ * (sim/pokemon.ts, both checkouts), one slot, so Trick-or-Treat then Forest's Curse leaves Normal/Grass on a
+ * Snorlax and the Ghost is GONE. This engine appended, so the Ghost stayed and so did its immunity. The OUTCOME
+ * is Close Combat: CONTROL is Trick-or-Treat alone (Normal/Ghost: immune, 0); TEST adds Forest's Curse on top
+ * (the Ghost is replaced: it lands). MEDI_ADDED_TYPE_APPENDS=1 restores the append;
+ * tests/probe_added_type_replaced.js is the two-engine proof. */
+probe('move', 'changesTargetType', 'a second added type REPLACES the first — Forest\'s Curse after Trick-or-Treat removes the Ghost', () => {
+  const run = (curse) => {
+    const me = bare('gourgeist'), ally = bare('sneasler');
+    const f1 = bare('snorlax'), f2 = bare('milotic');
+    unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'trickortreat', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    M.battleTurn(S, rng5, new Map([[me, curse ? M.playerAction(me, 'forestscurse', f1, S.field) : { kind: 'pass' }],
+                                   [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const types = (f1.types || []).join('/');
+    const before = f1.curHP;
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, M.playerAction(ally, 'closecombat', f1, S.field)]]), PASS2(f1, f2));
+    return { types, dealt: before - f1.curHP };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.dealt === 0 && test.dealt > 0 && test.types.split('/').indexOf('Ghost') < 0
+                  && test.types.split('/').indexOf('Grass') >= 0,
+           arms: { control: control.dealt, test: test.dealt },
+           detail: 'Snorlax takes Sneasler\'s Close Combat — Trick-or-Treat only ' + JSON.stringify(control)
+                 + ' (a Ghost: immune); Trick-or-Treat then Forest\'s Curse ' + JSON.stringify(test)
+                 + ' (the Grass REPLACES the Ghost: it lands)' };
+});
+
 /* WIRE 106 -- `decorate -> goodasgold/suckerpunch/upperhand`: the caller's target was dropped at
  * classification, so a foe-aimed Decorate boosted the ALLY. Showdown boosts the FOE, and Good as
  * Gold refuses it. */
@@ -38669,6 +38698,8 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           'transformNoCopiedStart', 'mimicryTransformBlind', 'bondReactDrawnRestored',
                           /* 2026-09-24 -- tests/probe_mimicry_terrain_event_only.js */
                           'mimicrySyncEveryCallRestored',
+                          /* 2026-09-24 -- tests/probe_added_type_replaced.js */
+                          'addedTypeAppendsRestored',
                           /* 2026-09-19 -- tests/probe_helpinghand_moved_ally.js */
                           'helpingHandMovedAllyRestored', 'roundUnpromotedRestored', 'bounceKindBlindRestored',
                           'punishHazardOnAttackerSideRestored', 'punishWeatherIfClearRestored',

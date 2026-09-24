@@ -87,7 +87,7 @@ const TAGS = (function(){
  * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
-const MEDSEEN = { ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatMultPaid: 0, terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+const MEDSEEN = { addedTypeReplaced: 0, ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatMultPaid: 0, terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
    * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
@@ -27719,6 +27719,27 @@ function syncFieldTypes(field,bodies){ syncTerrainTypes(field,bodies); syncWeath
  * (`source.transformInto(target)`, data/moves.ts) and its line is bare. The caller supplies the
  * string because by the time this function returns the holder is already carrying the COPIED
  * ability, and the id of the one that CAUSED the copy is no longer readable off the body. */
+/* 2026-09-24 -- THE ADDED TYPE IS ONE SLOT, AND IT RIDES ON THE TYPES ARRAY IT WAS WRITTEN INTO.
+ *
+ *     setType(newType) { ... this.types = newType; this.addedType = ''; ... }
+ *     addType(newType) { if (this.terastallized) return false; this.addedType = newType; return true; }
+ *     getTypes(excludeAdded) { ... if (!excludeAdded && this.addedType) return types.concat(this.addedType); }
+ *                                   sim/pokemon.ts, both checkouts byte-identical; no Champions override
+ *
+ * The authority holds ONE added type beside the base list; this engine folds it onto the END of `types`.
+ * `types._added` names that last element as the added one. It is a property OF THE ARRAY on purpose:
+ * every wholesale write here (`m.types=[...]`, `.slice()`, `.map()`, `.filter()`) is a `setType` in the
+ * authority and builds a NEW array, which carries no `_added` -- so every one of those nineteen sites clears
+ * the added type exactly as `setType` does, without being threaded. The only writes that must KEEP it are
+ * the ones the authority does not route through `setType`: a second add (below), Roost's `onType` (which
+ * filters `this.types` and never touches `addedType`) and Transform (`this.addedType = pokemon.addedType`,
+ * sim/pokemon.ts `transformInto`). Those three carry it by hand. `MEDI_ADDED_TYPE_APPENDS=1` restores the
+ * old append (a second add kept the first). tests/probe_added_type_replaced.js. */
+const ADDED_TYPE_APPENDS=_MK('MEDI_ADDED_TYPE_APPENDS');
+if(ADDED_TYPE_APPENDS)MEDFAILS.addedTypeAppendsRestored=1;
+function addedTypeOf(m){ const ts=m&&m.types; return (ts&&ts._added&&ts[ts.length-1]===ts._added)?ts._added:null; }
+function baseTypesOf(m){ const ts=(m&&m.types)||[]; return addedTypeOf(m)?ts.slice(0,-1):ts.slice(); }
+function withAddedType(base,added){ const ts=added?[...base,added]:base.slice(); if(added)ts._added=added; return ts; }
 function transformOnto(m,t,from){
   const st=Object.assign({},t.st); st.hp=m.st.hp;      // EVERY STAT EXCEPT HP
   /* ROADMAP #139 -- THE BODY IT WAS, KEPT, so the switch-out can put it back. Taken BEFORE a field is
@@ -27727,7 +27748,8 @@ function transformOnto(m,t,from){
                    _bsAtk:m._bsAtk,moves:(m.moves||[]).slice(),ability:m.ability,baseAbility:m.baseAbility,
                    _pp:m._pp?Object.assign({},m._pp):null,_ppMax:m._ppMax?Object.assign({},m._ppMax):null};
   m.name=t.name;
-  m.types=(t.types||[]).slice();
+  /* the added type travels with the copy: `this.addedType = pokemon.addedType` (sim/pokemon.ts transformInto) */
+  m.types=withAddedType(baseTypesOf(t),addedTypeOf(t));
   m.st=st;
   m.wt=t.wt;
   m._bsAtk=t._bsAtk;                                    // WIRE 83, Beat Up reads the species standing
@@ -38822,7 +38844,12 @@ function battleTurn(S,rng,actsForA,actsForB){
             else mvFail(m);
             MEDSEEN.typeWriteRefused++;
           }
-          else if(_ct.adds){ t.types=[...t.types,_ty];
+          /* 2026-09-24 -- A SECOND ADD REPLACES THE FIRST: `addType` writes `this.addedType = newType`,
+           * one slot (see `addedTypeOf`). Trick-or-Treat then Forest's Curse is [base..., Grass] in the
+           * authority; the old append left [base..., Ghost, Grass]. */
+          else if(_ct.adds){
+            if(ADDED_TYPE_APPENDS) t.types=[...t.types,_ty];
+            else { if(addedTypeOf(t))MEDSEEN.addedTypeReplaced++; t.types=withAddedType(baseTypesOf(t),_ty); }
             if(TR)TR.vstart(t,'typeadd',_ty+'|'+ATTR.from(ATTR.move(a.mv))); }
           else if(_ct.replaces){ t.types=[_ty]; if(TR)TR.vstart(t,'typechange',_ty); }
           else { MEDFAILS.typeWriterShapeUnknown++;
@@ -40900,8 +40927,13 @@ function battleTurn(S,rng,actsForA,actsForB){
            if(!_had){
              const _left=m.types.filter(t=>_trt.removes.indexOf(t)<0);
              if(_left.length!==m.types.length){
-               m._typeWas=m.types.slice();
-               m.types=_left.length?_left:['Normal'];
+               /* Roost's `onType` filters the base list and never touches `addedType`, so the added
+                * type survives the drop and the restore (see `addedTypeOf`). */
+               const _ad=ADDED_TYPE_APPENDS?null:addedTypeOf(m);
+               m._typeWas=m.types.slice(); if(_ad)m._typeWas._added=_ad;
+               if(_ad){ const _lb=baseTypesOf(m).filter(t=>_trt.removes.indexOf(t)<0);
+                        m.types=withAddedType(_lb.length?_lb:['Normal'],_ad); }
+               else m.types=_left.length?_left:['Normal'];
                MEDSEEN.roostTypeDropped++;
                _dropped=true;
              }
