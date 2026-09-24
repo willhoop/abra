@@ -21,6 +21,28 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.111.0] — 2026-09-24
+
+### Fixed
+- **A type spend clears the added type (Burn Up both regulations, Double Shock Reg M-C).** Both handlers write
+  `pokemon.setType(pokemon.getTypes(true).map(Fire|Electric → '???'))` (data/moves.ts `burnup` / `doubleshock`
+  `self.onHit`, both checkouts; the Champions mods override neither handler). `getTypes(true)` is the BASE list and
+  `setType` writes `addedType = ''`, so a Trick-or-Treated Arcanine that Burns Up is `???` there and its spend line
+  reads `???`. This engine mapped the whole `types` array: the new array lost the `types._added` marker but kept
+  the added element, so the Ghost (or Forest's Curse's Grass) survived as a base type — and so did its immunities.
+  Both `spendsOwnType` sites now map the base list through one helper, `spentOwnTypes`. Knob
+  `MEDI_SPEND_TYPE_KEEPS_ADDED` restores the whole-list map; counter `MEDSEEN.spendClearedAddedType`.
+- The 0.109.0 comment claiming every `.map()` / `.filter()` write clears the added type is corrected: those two
+  keep the element and promote it. The two spends were the only such writes (audited, every `types=` site).
+- New probe `tests/probe_spend_type_clears_added.js` (two engines, whole board, the spend line and the broadcast):
+  red on the base bytes in both regulations, green on the fix, red under the knob; a no-add control and an
+  add-after-the-spend control. New census row (`spendsOwnType`, "a type spend (Burn Up / Double Shock) clears the
+  added type"); the knob is a `DELIBERATE_BREAK`.
+
+### Notes
+- Filed in 0.110.0's report §6. Roost, the only other type removal, goes through the `Type` event and never touches
+  `addedType`; it is already carried by hand (0.109.0). Report `docs/_reports/2026-09-24-burnup-added-type.md`.
+
 ## [0.110.1] — 2026-09-24
 
 ### Changed

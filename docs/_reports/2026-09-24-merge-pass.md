@@ -1,7 +1,7 @@
 # Merge pass into main — 2026-09-24
 
-Merge coordinator run. Fifteen finished branches merged into `main` one at a time, each renumbered on the
-`abra/regmc` line above main's top, each pushed before the next. Start: `7c9f7534` (0.87.0). Last merge: `ba56e7ac` (0.110.0). Ledger restamp and this report: 0.110.1.
+Merge coordinator run. Sixteen finished branches merged into `main` one at a time, each renumbered on the
+`abra/regmc` line above main's top, each pushed before the next. Start: `7c9f7534` (0.87.0). Ledger restamp: 0.110.1 (`803a19ba`). Last merge: Burn Up / Double Shock, 0.111.0.
 
 ## 1. What merged
 
@@ -22,6 +22,7 @@ Merge coordinator run. Fifteen finished branches merged into `main` one at a tim
 | 13 | `worktree-agent-ae31bbcb8893a2a9c` -ate / Weather Ball | 0.88.0 | 0.106.0 | `43e46c3c` | `probe_ate_abilities` 0/0 |
 | 14 | `worktree-agent-a222541d6335eb8a2` -ate picker, Gravity called/chosen | 0.89.0, 0.90.0 | 0.107.0, 0.108.0 | `497b6cb1` | `probe_gravity_called_move`, `probe_disabled_choice_struggle`, `probe_ate_picker`, `probe_ate_abilities` 0/0; three knobs red |
 | 15 | `worktree-agent-a5e52bc57194e4279` Reflect Type added-type corners | 0.96.0, 0.97.0 | 0.109.0, 0.110.0 | `ba56e7ac` | `probe_added_type_replaced`, `probe_reflect_type_typeless_added`, `probe_mimicry_terrain_event_only` 0/0 |
+| 16 | `worktree-agent-a5d2cc4be7acae7ef` Burn Up / Double Shock clear the added type (stacked on 15) | 0.98.0 | 0.111.0 | this pass's last merge | `probe_spend_type_clears_added`, `probe_added_type_replaced`, `probe_reflect_type_typeless_added`, `probe_mimicry_terrain_event_only` 0/0 on releases `d9d69d58ef31` / `318ccd937118` |
 
 Bot ingest commits (`c800312d`, `1475265d`) were merged in twice (`100dbfc2`, `fb138058`).
 
@@ -37,7 +38,7 @@ provisional version replaced; nothing else in an entry changed except the merge 
 were renumbered only on lines the branch added (never on main's lines), so main's real 0.87.0 / 0.87.1 references
 survive. Stacked branches had their references to the parent's provisional numbers mapped to the parent's merged
 numbers (e.g. menu-halves' "0.91.0 Struggle rewrite" reads 0.99.0; the Gravity branch's "0.88.0" reads 0.106.0).
-The version header of `docs/REGMC.md` and `docs/REGULATION-ROTATION.md` is 0.110.0.
+The version header of `docs/REGMC.md` and `docs/REGULATION-ROTATION.md` is 0.111.0.
 
 Branch 7's first commit (`8ae6561a`, the solver API) is content-identical to branch 6's `76691522`; it resolved to
 main's copy and its entry was not duplicated. Engine resolution was cross-checked with an independent
@@ -61,7 +62,7 @@ main's copy and its entry was not duplicated. Engine resolution was cross-checke
    menu half, that body's menu is empty under Gravity and its click is Struggle (0.99.0), so the row read MISSING
    (25 HP dealt). The arm now keeps Sleep Talk in a second slot. The 0.108.0 notes row's branch-time "1012" is struck
    (`~~1012~~`), not deleted.
-4. **MEDSEEN counter object (merge 15)**: union of both sides' keys.
+4. **MEDSEEN counter object (merges 15 and 16)**: union of both sides' keys.
 5. **ROADMAP #310/#442, the #310 probe and the #310/#442 report (merge 10)**: branch 10 carried a hand copy of branch
    9's change; re-merged three-way against branch 9's (renumbered) text, result equal to branch 10's.
 6. Split-heading artefacts of the doc conflicts (a duplicated `##` heading in `docs/ENGINE.md` four times, a duplicated
@@ -84,8 +85,8 @@ main's copy and its entry was not duplicated. Engine resolution was cross-checke
 
 | | before | after (committed) |
 |---|---|---|
-| Reg M-C `data/mechanics-census-regmc.json` | 1010 live, 0 missing | **1023 live, 0 missing** (commit `ba56e7ac`) |
-| Reg M-B `data/mechanics-census.json` | 1004 (published) | **unchanged, not committed** — tree reads 1019 live, 0 missing; Will's call |
+| Reg M-C `data/mechanics-census-regmc.json` | 1010 live, 0 missing | **1024 live, 0 missing** (after merge 16; 1021 after merge 14, 1023 after 15) |
+| Reg M-B `data/mechanics-census.json` | 1004 (published) | **unchanged, not committed** — tree reads 1020 live, 0 missing after merge 16; Will's call |
 
 ## 6. Final probe pass
 

@@ -53,6 +53,21 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.111.0] — 2026-09-24 — **A type spend clears the added type: Burn Up (both regulations), Double Shock (Reg M-C)**
+
+- **What changed.** `engine/medicham2-browser.js`: both `spendsOwnType` sites map the BASE list through
+  `spentOwnTypes`, so the spend drops the added type as `setType` does. Knob `MEDI_SPEND_TYPE_KEEPS_ADDED`. Probe
+  `tests/probe_spend_type_clears_added.js`; census row "a type spend (Burn Up / Double Shock) clears the added type"
+  in `tests/test-mechanics.js`, knob added to `DELIBERATE_BREAK`.
+- **Measured.** Probe: RED on the base bytes (Reg M-B `8a5bcd3a2fe0`: Burn Up after Trick-or-Treat / Forest's Curse
+  parts on `p2a types`, "" vs "/ghost" and "/grass"; Reg M-C `eff34d26faec`: the same plus Double Shock, "/fighting" vs
+  "/fighting/ghost"), GREEN on the fix (`05d94c04b0b1`, `720f9963856a`), RED under the knob (4 and 6 red-arm
+  failures). Census, this tree: Reg M-B 1010 live / 0 missing (1009 / 1 under the knob, which refuses to write),
+  Reg M-C 1014 / 0; artifacts NOT republished. Pinned differential, the 0.109.0 flags and pins: Reg M-B 260 / 1 / 0
+  (the same declared Supreme Overlord game), Reg M-C 259 / 0 / 0. Roster moves on the touched moves: 0 DIFFER both
+  regulations. Worktree releases; receipts for the report only, not published figures.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.110.1] — 2026-09-24 — **Merge pass: fifteen branches into main; ledgers restamped**
 - **What changed.** Fifteen finished branches merged one at a time and renumbered 0.87.1-0.110.0; `node engine/status.js
   --write` restamped the division ledgers. Report `docs/_reports/2026-09-24-merge-pass.md`.

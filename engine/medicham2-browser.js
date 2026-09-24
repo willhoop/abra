@@ -87,7 +87,7 @@ const TAGS = (function(){
  * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
-const MEDSEEN = { addedTypeReplaced: 0, addedTypeCopied: 0, typeCopyNormalForTypeless: 0, addedTypeBroadcast: 0, ateExcludedMove: 0, ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatMultPaid: 0, terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+const MEDSEEN = { spendClearedAddedType: 0, addedTypeReplaced: 0, addedTypeCopied: 0, typeCopyNormalForTypeless: 0, addedTypeBroadcast: 0, ateExcludedMove: 0, ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatMultPaid: 0, terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
    * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
@@ -27945,7 +27945,10 @@ function syncFieldTypes(field,bodies){ syncTerrainTypes(field,bodies); syncWeath
  * every wholesale write here (`m.types=[...]`, `.slice()`, `.map()`, `.filter()`) is a `setType` in the
  * authority and builds a NEW array, which carries no `_added` -- so every one of those nineteen sites clears
  * the added type exactly as `setType` does, without being threaded. The only writes that must KEEP it are
- * the ones the authority does not route through `setType`: a second add (below), Roost's `onType` (which
+ * the ones the authority does not route through `setType`. (CORRECTED 2026-09-24: a `.map()` or `.filter()` of
+ * the whole list builds a new array that still HOLDS the added element, so it does not clear it -- it promotes
+ * it to a base type. The two type spends did exactly that; see `spentOwnTypes` below.) The writes that keep it
+ * are a second add (below), Roost's `onType` (which
  * filters `this.types` and never touches `addedType`) and Transform (`this.addedType = pokemon.addedType`,
  * sim/pokemon.ts `transformInto`). Those three carry it by hand. `MEDI_ADDED_TYPE_APPENDS=1` restores the
  * old append (a second add kept the first). tests/probe_added_type_replaced.js. */
@@ -27959,6 +27962,26 @@ if(REFLECT_TYPE_FOLDS_ADDED)MEDFAILS.reflectTypeFoldsAddedRestored=1;
 function addedTypeOf(m){ const ts=m&&m.types; return (ts&&ts._added&&ts[ts.length-1]===ts._added)?ts._added:null; }
 function baseTypesOf(m){ const ts=(m&&m.types)||[]; return addedTypeOf(m)?ts.slice(0,-1):ts.slice(); }
 function withAddedType(base,added){ const ts=added?[...base,added]:base.slice(); if(added)ts._added=added; return ts; }
+/* 2026-09-24 -- A TYPE SPEND MAPS THE BASE LIST AND DROPS THE ADDED TYPE. The note above is right about a
+ * FRESH array and wrong about `.map()`: a map of the whole `types` array carries no `_added` but still carries
+ * the added ELEMENT, so the added type survives as if it were a base type. Both spends are
+ *
+ *     self: { onHit(pokemon) { pokemon.setType(pokemon.getTypes(true).map(type => type === "Fire" ? "???" : type));
+ *                              this.add('-start', pokemon, 'typechange', pokemon.getTypes().join('/'), '[from] move: Burn Up'); } }
+ *                  data/moves.ts `burnup` :2108-2113 (both checkouts), `doubleshock` :3961-3966 (M-B) / :3960-3965 (M-C);
+ *                  the Champions mods override neither handler
+ *
+ * -- `getTypes(true)` is the BASE list, and `setType` writes `addedType = ''`. So a Trick-or-Treated Arcanine
+ * that Burns Up is ['???'] and its spend line reads `???`; this engine kept `???/Ghost`. The two `spendsOwnType`
+ * sites (`_stepSelfPay` and the MEDI_SPEND_TYPE_AFTER_MOVE site) both map through here.
+ * `MEDI_SPEND_TYPE_KEEPS_ADDED=1` restores the whole-list map. tests/probe_spend_type_clears_added.js. */
+const SPEND_TYPE_KEEPS_ADDED=_MK('MEDI_SPEND_TYPE_KEEPS_ADDED');
+if(SPEND_TYPE_KEEPS_ADDED)MEDFAILS.spendTypeKeepsAddedRestored=1;
+function spentOwnTypes(m,removes,becomes){
+  if(SPEND_TYPE_KEEPS_ADDED)return (m.types||[]).map(t=>t===removes?becomes:t);
+  if(addedTypeOf(m))MEDSEEN.spendClearedAddedType++;
+  return baseTypesOf(m).map(t=>t===removes?becomes:t);
+}
 function transformOnto(m,t,from){
   const st=Object.assign({},t.st); st.hp=m.st.hp;      // EVERY STAT EXCEPT HP
   /* ROADMAP #139 -- THE BODY IT WAS, KEPT, so the switch-out can put it back. Taken BEFORE a field is
@@ -50348,7 +50371,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(!SPEND_TYPE_AFTER_MOVE){
           const _st2=TAGS.param('move',a.move.id,'spendsOwnType');
           if(_st2&&_st2.removes&&connected&&Array.isArray(m.types)&&m.types.includes(_st2.removes)){
-            m.types=m.types.map(t=>t===_st2.removes?(_st2.becomes||'???'):t);
+            m.types=spentOwnTypes(m,_st2.removes,_st2.becomes||'???');
             MEDSEEN.ownTypeSpent++; MEDSEEN.ownTypeSpentAtSelfDrops++;
             if(TR)TR.vstart(m,'typechange',m.types.join('/')+'|'+ATTR.from(ATTR.move(a.move.id)));
           }
@@ -51174,7 +51197,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(SPEND_TYPE_AFTER_MOVE){
         const _st2=TAGS.param('move',a.move.id,'spendsOwnType');
         if(_st2&&_st2.removes&&connected&&Array.isArray(m.types)&&m.types.includes(_st2.removes)){
-          m.types=m.types.map(t=>t===_st2.removes?(_st2.becomes||'???'):t);
+          m.types=spentOwnTypes(m,_st2.removes,_st2.becomes||'???');
           MEDSEEN.ownTypeSpent++;
           /* ROADMAP #234 -- `add('-start', pokemon, 'typechange', getTypes().join('/'),
            * '[from] move: Burn Up')`, the handler's own fifth field. */

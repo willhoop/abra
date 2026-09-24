@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-24T13:02:28.217Z",
+  "generated": "2026-09-24T13:48:22.296Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 1023,
-  "live": 1023,
+  "probed": 1024,
+  "live": 1024,
   "missing": 0,
-  "armed": 1023,
+  "armed": 1024,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -4483,7 +4483,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 27.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4574,6 +4574,16 @@
       "label": "Reflect Type at a typeless target with an added type copies NORMAL plus the added type",
       "live": true,
       "detail": "Stunfisk Reflect Types a Trick-or-Treated Arcanine, then takes Gengar's Shadow Ball — no Burn Up {\"burned\":\"Fire\",\"types\":\"Fire/Ghost\",\"dealt\":186} (Fire/Ghost: it lands); Burn Up first {\"burned\":\"???\",\"types\":\"Normal/Ghost\",\"dealt\":0} (the base list is empty, so Normal + Ghost: immune)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "spendsOwnType",
+      "label": "a type spend (Burn Up / Double Shock) clears the added type — Trick-or-Treat then Burn Up is typeless",
+      "live": true,
+      "detail": "Arcanine takes Sneasler's Close Combat — Trick-or-Treat only {\"types\":\"Fire/Ghost\",\"dealt\":0} (Fire/Ghost: immune); Trick-or-Treat then Burn Up {\"types\":\"???\",\"dealt\":163} (the spend clears the added Ghost: it lands)",
       "hollow": false,
       "armed": true,
       "directCall": false
