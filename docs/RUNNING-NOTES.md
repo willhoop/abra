@@ -53,6 +53,29 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.119.0] — 2026-09-24 — **Reg M-C lattices after the two narration fixes: 0 / 2 / 1 narration, 0 boards**
+- **What changed.** Measurement only. Release `aed9780fc4e3`, pin `ccd979c30997`, pool `data/team-pool-frozen-regmc`, `--games` 1200/1600/1900. `docs/_reports/2026-09-24-narration-last.md`.
+- **Measured.** Undeclared narration-only 0/955, 2/1266, 1/1497 (`data/game-differential-regmc.json`, `.g1600-regmc`, `.g1900-regmc`, `end_state[0].summary.by_cause_totals.games_narration_only`); board-material 0/954 usable, 0/1266, 0/1497. The 3 left: White Herb holder order (side order, not speed), a Grassy Terrain heal on an inferred tie, and the Emergency Exit game the harness cannot express.
+- **Merge.** Re-proved on main at `--games 1200`: releases `7403f5d61204` -> `21d6c31b6ab1`, same 955 games, protocol divergences 3 -> 0, boards 0. Both probes green, red arm exits 1.
+- **Basis.** unchanged.
+- **Supersedes.** ~~Reg M-C narration 3/955, 5/1266, 6/1497~~ (0.112.0 row).
+- **Owed to the next major.** none. Narration is still CANNOT-ANSWER until Will stamps a baseline or the 3 are fixed.
+
+## [abra/regmc 0.118.1] — 2026-09-24 — **Two Supreme Overlord census rows expect `fallenundefined` at zero**
+- **What changed.** `tests/test-mechanics.js`: the zero arms of the two `boostsFromFallen` close rows require the authority's line instead of its absence.
+- **Measured.** Reg M-C census 1022 live / 2 missing on the 0.118.0 engine with the old rows; 1024 / 0 / 1024 with the new rows (`tests/test-mechanics.js --regulation regmc`; artifact not republished, the committed census stays the lattice pin).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
+## [abra/regmc 0.118.0] — 2026-09-24 — **Revival Blessing revives below the Update pass; the reviver's Leppa Berry is eaten first (Reg M-C)**
+- **What changed.** `engine/medicham2-browser.js`: the revive is queued at the move (`reviveReady`) and run by `reviveApplyPending` below the next `_updateAll()`. Knob `MEDI_REVIVE_HEAL_INLINE`. Probe `tests/probe_regmc_revive_leppa_order.js`.
+- **Measured.** Probe RED before (`098d7fdf95bc`, 3 arms), GREEN after (`aed9780fc4e3`), RED under the knob; the four existing revive probes stay green. Lattice effect is measured in the 0.119.0 row.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
+## [abra/regmc 0.117.0] — 2026-09-24 — **Supreme Overlord writes `fallenundefined` when nothing had fallen (both regulations)**
+- **What changed.** `engine/medicham2-browser.js` `fallenCloseField`: the switch-out and faint closes write the authority's unguarded `fallen${undefined}`. Knob `MEDI_FALLEN_UNDEFINED_SILENT`. Probe `tests/probe_fallen_undefined.js`.
+- **Measured.** Probe RED before (`11a681c6a683`), GREEN after in both regulations (`098d7fdf95bc`, `4e3411cbe0b9`), RED under the knob. Lattice effect is measured in the 0.119.0 row.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.116.1] — 2026-09-24 — **Lean mode for search playouts: the same boards, less work per turn; MILTANK's playouts use it**
 - **What changed.** `newBattle({lean:true})` / `makeLean(S)` (`engine/medicham_api.js`) run every turn inside the engine's `leanRun`: tag answers from a per-battle table (`engine/tags.js` `leanView`), counters to a discarded sink, no trace, no event-address log, four counter-only computations skipped, and no price on an attack action. Order-deciding code untouched (Will). The turn's entry is a thin door for every battle (`battleTurn` -> `battleTurnBody`). `solver/miltank/rollout.js` (cherry-picked from `playout-speed`) makes each playout lean. New test `solver/tests/test-lean-mode.js`; new hook mode `MEDI_API_HOOK=lean` in `tests/medicham_api_diffhook.js`. Report `docs/_reports/2026-09-24-lean-mode.md`.
 - **Measured.** NO FIGURE published. Non-lean plays the same bytes as main: the pinned `game_differential.js` (`--steering empirical --arm middle --end-state --games 1200`, one census pin and one frozen pool per regulation, `MEDI_SAMPLE_DUMP` per game) matches base per game, 955 of 955 on Reg M-C (releases `318ccd937118` base, `1886fadf0679` patch) and 961 of 961 on Reg M-B (`d9d69d58ef31`, `4f4dd1005ade`), and each artifact matches outside the two fields that name the engine. Lean against full: every game of the Reg M-C `--games 1200` lattice (955 games, the hooked run's fingerprint equal to the plain run's), 22,283 turns, every board and every per-stream draw equal to a full copy's (`solver/tests/test-lean-mode.js`); 300 human-sheet games, 2,518 turns, every board, every per-stream draw count and every winner equal. `MEDI_LEAN_BREAK=1` turns both red. Speed, lean against full in one process, paired main-thread CPU: 1.18x to 1.35x per turn and 1.25x to 1.33x per MILTANK playout (block medians).

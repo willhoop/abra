@@ -1,0 +1,589 @@
+{
+  "what": "DIVERGING GAMES WITH THE LINES EITHER SIDE OF THE SPLIT. A debugging view, not a measurement. Both the RAW emitted line and the REDUCED line the comparator decides on are kept: the reduced form is what decided, the raw form is what has to be fixed.",
+  "generated": "2026-09-24T18:42:34.847Z",
+  "by": "engine/game_differential.js --dump-out data/verification/gd-regmc-narration-last-g1900.json",
+  "engine_release": "aed9780fc4e3",
+  "team_store_pinned_to": "data/team-pool-frozen-regmc",
+  "closet": {
+    "ability": "illusion",
+    "species": [
+      "zoroark",
+      "zoroarkhisui"
+    ],
+    "teams_dropped": 32,
+    "teams_dropped_by_config": {
+      "baseline": 3,
+      "omit-protect": 4,
+      "omit-priority": 1,
+      "omit-weather": 3,
+      "omit-intimidate": 7,
+      "omit-spread": 1,
+      "pair-protect-bust": 11,
+      "pair-speedctrl": 2
+    },
+    "carrier_sheet_slot": {
+      "0": 4,
+      "1": 5,
+      "2": 5,
+      "3": 6,
+      "4": 5,
+      "5": 7
+    },
+    "bodies_a_pair_brings": 4,
+    "teams_whose_only_carrier_sits_past_the_bodies_brought": 12,
+    "dropped": [
+      {
+        "config": "baseline",
+        "team": "gen9championsvgc2026regmcbo3-2681195252",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 0
+          }
+        ]
+      },
+      {
+        "config": "baseline",
+        "team": "gen9championsvgc2026regmcbo3-2684878631",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 4
+          }
+        ]
+      },
+      {
+        "config": "baseline",
+        "team": "gen9championsvgc2026regmc-2679458155",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 3
+          }
+        ]
+      },
+      {
+        "config": "omit-protect",
+        "team": "gen9championsvgc2026regmcbo3-2680465410",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 5
+          }
+        ]
+      },
+      {
+        "config": "omit-protect",
+        "team": "gen9championsvgc2026regmcbo3-2682094893",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 5
+          }
+        ]
+      },
+      {
+        "config": "omit-protect",
+        "team": "gen9championsvgc2026regmcbo3-2684023224",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 5
+          }
+        ]
+      },
+      {
+        "config": "omit-protect",
+        "team": "gen9championsvgc2026regmc-2679458155",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 3
+          }
+        ]
+      },
+      {
+        "config": "omit-priority",
+        "team": "gen9championsvgc2026regmcbo3-2684023224",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 5
+          }
+        ]
+      },
+      {
+        "config": "omit-weather",
+        "team": "gen9championsvgc2026regmcbo3-2678946504",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 0
+          }
+        ]
+      },
+      {
+        "config": "omit-weather",
+        "team": "gen9championsvgc2026regmcbo3-2681273128",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 4
+          }
+        ]
+      },
+      {
+        "config": "omit-weather",
+        "team": "gen9championsvgc2026regmc-2679458155",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 3
+          }
+        ]
+      },
+      {
+        "config": "omit-intimidate",
+        "team": "gen9championsvgc2026regmcbo3-2679700044",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 4
+          }
+        ]
+      },
+      {
+        "config": "omit-intimidate",
+        "team": "gen9championsvgc2026regmcbo3-2680115088",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 3
+          }
+        ]
+      },
+      {
+        "config": "omit-intimidate",
+        "team": "gen9championsvgc2026regmcbo3-2680177765",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 2
+          }
+        ]
+      },
+      {
+        "config": "omit-intimidate",
+        "team": "gen9championsvgc2026regmcbo3-2680465410",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 5
+          }
+        ]
+      },
+      {
+        "config": "omit-intimidate",
+        "team": "gen9championsvgc2026regmcbo3-2681273128",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 4
+          }
+        ]
+      },
+      {
+        "config": "omit-intimidate",
+        "team": "gen9championsvgc2026regmcbo3-2683281336",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 3
+          }
+        ]
+      },
+      {
+        "config": "omit-intimidate",
+        "team": "gen9championsvgc2026regmcbo3-2684246893",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 4
+          }
+        ]
+      },
+      {
+        "config": "omit-spread",
+        "team": "gen9championsvgc2026regmcbo3-2680115088",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 3
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2679403703",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 1
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2679658664",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 1
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2679730174",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 1
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2679783509",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 1
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2680177765",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 2
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2680167757",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 2
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2680704880",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 1
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2681136597",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 2
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2681126185",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 0
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2681813368",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 5
+          }
+        ]
+      },
+      {
+        "config": "pair-protect-bust",
+        "team": "gen9championsvgc2026regmcbo3-2681796105",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 2
+          }
+        ]
+      },
+      {
+        "config": "pair-speedctrl",
+        "team": "gen9championsvgc2026regmcbo3-2678820180",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 5
+          }
+        ]
+      },
+      {
+        "config": "pair-speedctrl",
+        "team": "gen9championsvgc2026regmcbo3-2684434170",
+        "sheet_length": 6,
+        "carriers": [
+          {
+            "species": "zoroarkhisui",
+            "slot": 0
+          }
+        ]
+      }
+    ],
+    "by": "Will",
+    "on": "2026-08-11",
+    "authority": "ROADMAP #160",
+    "why": "OUR shelf, not the format's: zoroark is isNonstandard:null and legal to bring. ROADMAP #160 — Illusion is in the closet because a body pretending to be another body makes every divergence it causes unreadable as a rule defect. Derived from the ABILITY so a carrier added next regulation is covered without an edit. THE RULE IS APPLIED TO THE SHEET AND THE BATTLE BRINGS ONLY THE FIRST 4 BUILDABLE BODIES, so a team whose carrier sits past that index is dropped for a body that never enters either engine (see carrier_sheet_slot). Narrowing the rule would CHANGE THE SAMPLE and therefore the headline rate, so it is declared here and owed, not done quietly.",
+    "says": "32 team(s) dropped from the pool before pairing for carrying illusion (zoroark, zoroarkhisui)"
+  },
+  "games": 1,
+  "of_diverged": 1,
+  "pool_considered": 1,
+  "arms_in_dump": {
+    "shown": {
+      "middle": 1
+    },
+    "diverged_in_arm": {
+      "middle": 1
+    }
+  },
+  "divergences": [
+    {
+      "arm": "middle",
+      "config": "omit-spread",
+      "seed": "gen9championsvgc2026regmcbo3-2679451964 vs gen9championsvgc2026regmcbo3-2679546173",
+      "agreed_lines": 30,
+      "cls": "medicham2 stopped emitting while showdown continued",
+      "cause": "medicham2 stopped emitting while showdown continued :: |-activate|p1a|emergencyexit",
+      "end_reason": "the boards parted — medicham2's placement cannot be expressed to showdown (p1: slot 1 holds golisopod, which showdown already has ACTIVE on the field)",
+      "ended_showdown": false,
+      "ended_medicham": false,
+      "final_roster": {
+        "mediResult": 0,
+        "medicham": {
+          "p1": [
+            {
+              "name": "golisopod",
+              "key": "golisopod",
+              "hp": 69,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            },
+            {
+              "name": "armarouge",
+              "key": "armarouge",
+              "hp": 160,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            },
+            {
+              "name": "indeedeef",
+              "key": "indeedeef",
+              "hp": 136,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "bench"
+            },
+            {
+              "name": "milotic",
+              "key": "milotic",
+              "hp": 170,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "bench"
+            }
+          ],
+          "p2": [
+            {
+              "name": "lucariomegaz",
+              "key": "lucario",
+              "hp": 145,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            },
+            {
+              "name": "dragapult",
+              "key": "dragapult",
+              "hp": 163,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "active"
+            },
+            {
+              "name": "rillaboom",
+              "key": "rillaboom",
+              "hp": 175,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "bench"
+            },
+            {
+              "name": "pawmot",
+              "key": "pawmot",
+              "hp": 145,
+              "fainted": false,
+              "faintSeq": null,
+              "where": "bench"
+            }
+          ]
+        },
+        "showdown": {
+          "p1": {
+            "pokemonLeft": 4,
+            "teamSize": 4,
+            "mons": [
+              {
+                "name": "golisopod",
+                "key": "golisopod",
+                "hp": 69,
+                "fainted": false,
+                "where": "active",
+                "isActive": true
+              },
+              {
+                "name": "armarouge",
+                "key": "armarouge",
+                "hp": 160,
+                "fainted": false,
+                "where": "active",
+                "isActive": true
+              },
+              {
+                "name": "indeedeef",
+                "key": "indeedeef",
+                "hp": 136,
+                "fainted": false,
+                "where": "bench",
+                "isActive": false
+              },
+              {
+                "name": "milotic",
+                "key": "milotic",
+                "hp": 170,
+                "fainted": false,
+                "where": "bench",
+                "isActive": false
+              }
+            ]
+          },
+          "p2": {
+            "pokemonLeft": 4,
+            "teamSize": 4,
+            "mons": [
+              {
+                "name": "lucariomegaz",
+                "key": "lucario",
+                "hp": 145,
+                "fainted": false,
+                "where": "active",
+                "isActive": true
+              },
+              {
+                "name": "dragapult",
+                "key": "dragapult",
+                "hp": 163,
+                "fainted": false,
+                "where": "active",
+                "isActive": true
+              },
+              {
+                "name": "rillaboom",
+                "key": "rillaboom",
+                "hp": 175,
+                "fainted": false,
+                "where": "bench",
+                "isActive": false
+              },
+              {
+                "name": "pawmot",
+                "key": "pawmot",
+                "hp": 145,
+                "fainted": false,
+                "where": "bench",
+                "isActive": false
+              }
+            ]
+          },
+          "winner": null
+        }
+      },
+      "at": {
+        "showdown_raw": "|-activate|p1a: Golisopod|ability: Emergency Exit",
+        "medicham_raw": "(medicham2 emitted nothing further)",
+        "showdown": "|-activate|p1a:golisopod|emergencyexit",
+        "medicham": "(medicham2 emitted nothing further)"
+      },
+      "before": [
+        "|-damage|p1a:golisopod|78/150brn",
+        "|-unboost|p1a:golisopod|spd|1",
+        "|-damage|p1a:golisopod|69/150brn|[from]brn",
+        "|upkeep"
+      ],
+      "before_raw": [],
+      "after": {
+        "showdown": [
+          "|-activate|p1a: Golisopod|ability: Emergency Exit"
+        ],
+        "medicham": []
+      }
+    }
+  ]
+}

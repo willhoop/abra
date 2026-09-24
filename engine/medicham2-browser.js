@@ -96,7 +96,7 @@ let LEAN = false;
  * That is the general shape rather than a flinch quirk: any mechanic resolved and cleared within one
  * turn is unobservable from outside and needs a counter here. Add to this object rather than writing
  * a fifth external probe. */
-let MEDSEEN = { spendClearedAddedType: 0, addedTypeReplaced: 0, addedTypeCopied: 0, typeCopyNormalForTypeless: 0, addedTypeBroadcast: 0, ateExcludedMove: 0, ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatMultPaid: 0, terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
+let MEDSEEN = { spendClearedAddedType: 0, addedTypeReplaced: 0, addedTypeCopied: 0, typeCopyNormalForTypeless: 0, addedTypeBroadcast: 0, ateExcludedMove: 0, ejectEntryAddrCleared: 0, typelessStabRefused: 0, terrainStatMultPaid: 0, terrainClearedAfterHit: 0, terrainClearAfterHitNoTerrain: 0, hpThresholdSheerForceRefused: 0, punishTerrainSet: 0, punishTerrainAlreadyUp: 0, oozeReversed: 0, oozeRefusedIndirect: 0, reviveRevived: 0, reviveAppliedAfterUpdate: 0, reviveInstaswitch: 0, reviveInstaswitchAfterResidual: 0, reviveActionCancelled: 0, allyBasePowerBoost: 0, critItemLockedOut: 0, floorDropReachesNoRefuser: 0, sweepBeforeOwnBoost: 0, sweepActivateAnnounced: 0, flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-31 -- HOW MANY TIMES THE KING'S ROCK DIE WAS TAKEN (WIRE 103), which is a different
    * question from how many flinches landed and could not be read off `flinch` at all: at 10% a
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
@@ -2410,7 +2410,7 @@ let MEDSEEN = { spendClearedAddedType: 0, addedTypeReplaced: 0, addedTypeCopied:
    * different moments and a single total could not tell "the exit line is missing" from "nothing ever
    * entered on a corpse". Entry and switch-out pair up over a game; the faint counter is the one that
    * needs its own reading, since a body that dies never reaches `switchOut` at all. */
-  fallenAnnouncedOnEntry: 0, fallenClosedOnSwitchOut: 0, fallenClosedOnFaint: 0,
+  fallenAnnouncedOnEntry: 0, fallenClosedOnSwitchOut: 0, fallenClosedOnFaint: 0, fallenUndefinedClosed: 0,
   /* WIRE 136 -- a forme change performed as a RENAME because the target forme has no row and the
    * artifact states it is identical to the base in stats and types. Mimikyu-Busted is the one. */
   formeRenamedNoRow: 0,
@@ -3514,7 +3514,7 @@ let MEDSEEN = { spendClearedAddedType: 0, addedTypeReplaced: 0, addedTypeCopied:
   dollSecondaryDrawn: 0, secAddrSkippedDollRow: 0, secAddrDollWithNoLiveRowYet: 0,
   updateEventSorted: 0, updateSpeedCacheStamped: 0, updateSortCachedDiffersLive: 0, updateTieResolved: 0,
   volSeqStamped: 0, volStepShadowOrdered: 0 };
-let MEDFAILS = { oozeNoName: 0, oozeUnderHealBlockUnmodelled: 0, reviveSwitchOutUnmodelled: 0, reviveNoHpFraction: 0, allyBasePowerUnusable: 0, critItemLockUnparsed: 0, encoreAction: 0, anticipationNoState: 0, anticipationMoveUnknown: 0, sweepActivateNoName: 0,
+let MEDFAILS = { oozeNoName: 0, oozeUnderHealBlockUnmodelled: 0, reviveSwitchOutUnmodelled: 0, reviveNoHpFraction: 0, reviveDeferredLost: 0, allyBasePowerUnusable: 0, critItemLockUnparsed: 0, encoreAction: 0, anticipationNoState: 0, anticipationMoveUnknown: 0, sweepActivateNoName: 0,
   /* 2026-09-19 -- a body reached the Update sort with no cached `pokemon.speed` stamp (it fell back to live
    * speed), and a tied Update group resolved with no die in scope. Both should stay 0. */
   updateSpeedUncached: 0, updateOrderTieNoDie: 0,
@@ -5898,9 +5898,9 @@ const TRACE=(function(){
      * places is the silent default this file is built to avoid. The `_traceFainted` latch above
      * already makes it once-per-body. */
     faint(m){ if(m._traceFainted)return; m._traceFainted=true; this.push(['faint',ident(m)]);
-              const _fn=fallenShown(m);
-              if(_fn>0){ this.push(['-end',ident(m),'fallen'+_fn,'[silent]']);
-                         MEDSEEN.fallenClosedOnFaint++; } },
+              const _fn=fallenCloseField(m);
+              if(_fn){ this.push(['-end',ident(m),_fn,'[silent]']);
+                       MEDSEEN.fallenClosedOnFaint++; } },
     /* --- stages, status, volatiles --- */
     /* ROADMAP #289 -- A CLAMPED STAT CHANGE IS STILL ANNOUNCED, AND ITS MAGNITUDE IS ZERO.
      *
@@ -7675,6 +7675,9 @@ const REVIVE_AS_PIVOT=(typeof process!=='undefined'&&process.env&&process.env.ME
  * body in the party the move is counted `MEDFAILS.reviveUnmodelled` and played as a pivot that brings a LIVE bench body in.
  * tests/probe_regmc_revive.js */
 const REVIVE_UNMODELLED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REVIVE_UNMODELLED==='1');
+/* 2026-09-24 (ENGINE, narration-last) -- MEDI_REVIVE_HEAL_INLINE=1 revives inside the move again, above the Update pass that
+ * eats the reviver's Leppa Berry. See `reviveApplyPending`. tests/probe_regmc_revive_leppa_order.js */
+const REVIVE_HEAL_INLINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REVIVE_HEAL_INLINE==='1');
 if(REVIVE_UNMODELLED)MEDFAILS.reviveUnmodelledRestored=1;
 let _volExposed=null;
 function exposedVolatiles(){
@@ -27397,6 +27400,26 @@ function fallenShown(mon){
   if(!p)return 0;
   return Math.min(+mon._fallenStuck||0,+p.max||5,5);
 }
+/* 2026-09-24 (ENGINE, abra/regmc narration, "the last two causes") -- THE CLOSE WRITES `fallenundefined` WHEN NOTHING
+ * HAD FALLEN, BECAUSE THE AUTHORITY DOES. The paragraph above refused the zero case as a typo; the bar is now to match
+ * the authority including its bugs (Will, 2026-09-24), and this is the refusal withdrawn. `onEnd` writes
+ * `fallen${this.effectState.fallen}` unguarded (data/abilities.ts:4739-4741 in the M-C checkout, not overridden by
+ * Champions; the same block in the M-B checkout), and `effectState.fallen` is assigned only when the guarded onStart
+ * ran with a non-zero count -- so a body that entered on nobody fallen closes with the literal `fallenundefined`.
+ * `ability End` runs at the switch-out (sim/battle-actions.ts:103) and at the faint (sim/battle.ts:2556), which are the
+ * two callers of this. The ENTRY stays on `fallenShown`, which is right: onStart writes nothing at zero.
+ * Returns the whole `fallenN` field, or null for a body that writes no close at all.
+ * Field cases: Reg M-C lattice 1200 (release 78fb4a85b1a0), two of its three narration games.
+ * MEDI_FALLEN_UNDEFINED_SILENT=1 restores the silence at zero. tests/probe_fallen_undefined.js */
+const FALLEN_UNDEFINED_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FALLEN_UNDEFINED_SILENT==='1');
+function fallenCloseField(mon){
+  const n=fallenShown(mon);
+  if(n>0)return 'fallen'+n;
+  if(!mon||NO_FALLEN_LINES||!TAGS.param('ability',mon.ability,'boostsFromFallen'))return null;
+  if(FALLEN_UNDEFINED_SILENT){MEDFAILS.fallenUndefinedSilentRestored=1;return null;}
+  MEDSEEN.fallenUndefinedClosed++;
+  return 'fallenundefined';
+}
 /* WIRE 133 -- ONE FORME SWAP, CALLED FROM BOTH MOMENTS.
  *
  * `switchOut` needs it (Zero to Hero fires as the body leaves) and `bringIn` still needs it as a
@@ -29966,8 +29989,8 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * A body that DIED never reaches here (`out.fainted` returns null one line up); its `-end` is
    * written from the faint funnel in TRACE, which is the other of the authority's two End moments
    * (sim/battle.ts:2553). */
-  {const _fn=fallenShown(out);
-   if(_fn>0&&TR){TR.vend(out,'fallen'+_fn,'[silent]');MEDSEEN.fallenClosedOnSwitchOut++;}}
+  {const _fn=TR?fallenCloseField(out):null;
+   if(_fn&&TR){TR.vend(out,_fn,'[silent]');MEDSEEN.fallenClosedOnSwitchOut++;}}
   /* NARRATION BATCH R, 2026-09-08 -- AND THE ABSORBED GIFT CLOSES AT THE SAME MOMENT AND FOR THE
    * SAME REASON: both are the outgoing body's ability End (sim/battle-actions.ts, at the comment
    * "will definitely switch out at this point"), which the authority fires ABOVE the replacement's
@@ -31236,6 +31259,36 @@ function reviveClear(t){
   if(REVIVE_KEEPS_FAINT_LATCH)MEDFAILS.reviveKeepsFaintLatchRestored=1; else t._traceFainted=false;
 }
 const REVIVE_KEEPS_FAINT_LATCH=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REVIVE_KEEPS_FAINT_LATCH==='1');
+/* 2026-09-24 (ENGINE, narration-last) -- THE MOVE DOES NOT REVIVE; THE ANSWER TO ITS REQUEST DOES, ONE UPDATE PASS LATER.
+ *
+ * Revival Blessing's action only raises a switch request: runAction's tail runs `eachEvent('Update')` (sim/battle.ts
+ * :2860-2862, gen >= 5) and THEN `makeRequest('switch'); return true` (:2907-2911), and the revive is the `revivalblessing`
+ * ACTION the answer queues (order 6, :2781-2798), which writes the `-heal`. So an `onUpdate` item is spent between the move
+ * and the heal -- the reviver's own Leppa Berry, since the move's one PP (`pp: 1, noPPBoosts`) is spent as it runs:
+ *     |-enditem|p2a: Pawmot|Leppa Berry|[eat]  |-activate|…|item: Leppa Berry|Revival Blessing|[consumed]  |-heal|p2: …
+ * This engine revived inside the move, above that pass (Reg M-C lattice 1200, release 78fb4a85b1a0, baseline
+ * `…2680802524 vs …2680902499`). The move now checks the revive CAN happen (`reviveReady`, the same refusals
+ * `reviveFainted` makes) and queues it; `reviveApplyPending` runs it right below the next `_updateAll()` -- the loop top
+ * before the next action, or the one after the last action -- and above the re-sort and the mega phase, where the
+ * authority's order-6 action sits. The party cannot change in between (an Update pass faints nobody), so the body picked
+ * is the one the move would have picked. MEDI_REVIVE_HEAL_INLINE=1 restores the in-move revive.
+ * tests/probe_regmc_revive_leppa_order.js */
+function reviveReady(user,sf,act,bench,mv){
+  const party=(sf&&sf.team&&sf.team.length)?sf.team:[...act,...bench];
+  const t=party.find(x=>x&&x!==user&&x.fainted);
+  if(!t||!t.st)return false;
+  const pr=TAGS.param('move',mv,'revivesFainted')||{};
+  return typeof pr.hpFraction==='number';
+}
+function reviveApplyPending(S){
+  const q=S&&S._revivePendingApply;
+  if(!q||!q.length)return;
+  S._revivePendingApply=[];
+  for(const g of q){
+    if(reviveFainted.apply(null,g))MEDSEEN.reviveAppliedAfterUpdate++;
+    else{MEDFAILS.reviveDeferredLost++;if(!MEDFAILS.reviveDeferredLostFirst)MEDFAILS.reviveDeferredLostFirst=String(g[10]);}
+  }
+}
 function reviveFainted(user,sd,sf,act,bench,foes,field,S,acts,unresolved,mv){
   const party=(sf&&sf.team&&sf.team.length)?sf.team:[...act,...bench];
   const t=party.find(x=>x&&x!==user&&x.fainted);
@@ -34764,6 +34817,7 @@ function battleTurnBody(S,rng,actsForA,actsForB){
        * one there: the loop-top schedule cannot see the action that ended it. */
       if(sideWiped(S)){herbAtWin(actA,actB);MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedMidAction++;break _TURN;}
       _updateAll();
+      reviveApplyPending(S);   // 2026-09-24 -- the previous action's Revival Blessing, answered below its Update pass
       /* 2026-09-08 -- ...AND THE POST-ACTION RE-SORT RUNS HERE, below the Update pass and above the
        * mega phase, which is the authority's own order: `eachEvent('Update')` at sim/battle.ts:2856,
        * the re-sort at :2915-2923 as the last statement of `runAction`, and the megaEvo action (queue
@@ -40368,8 +40422,13 @@ function battleTurnBody(S,rng,actsForA,actsForB){
           /* 2026-09-22 (Reg M-C, abra/regmc 0.41.0) -- AND WITH ONE, IT REVIVES. See `reviveFainted`. */
           if(!REVIVE_UNMODELLED){
             m._lastMove=a.mv; m._mvRes=true;
-            if(reviveFainted(m,it.side==='A'?'p1':'p2',_rsf,it.side==='A'?actA:actB,it.side==='A'?benchA:benchB,
-                             it.side==='A'?actB:actA,field,S,acts,unresolved,a.mv))continue;
+            const _rargs=[m,it.side==='A'?'p1':'p2',_rsf,it.side==='A'?actA:actB,it.side==='A'?benchA:benchB,
+                          it.side==='A'?actB:actA,field,S,acts,unresolved,a.mv];
+            /* 2026-09-24 -- queued, and run below the next Update pass. See `reviveApplyPending`. */
+            if(REVIVE_HEAL_INLINE){MEDFAILS.reviveHealInlineRestored=1;if(reviveFainted.apply(null,_rargs))continue;}
+            else if(reviveReady(m,_rsf,_rargs[3],_rargs[4],a.mv)){
+              (S._revivePendingApply||(S._revivePendingApply=[])).push(_rargs);continue;
+            }
           }
           MEDFAILS.reviveUnmodelled=(MEDFAILS.reviveUnmodelled||0)+1;
           if(!MEDFAILS.reviveUnmodelledFirst)MEDFAILS.reviveUnmodelledFirst=String(a.mv);
@@ -52049,6 +52108,7 @@ function battleTurnBody(S,rng,actsForA,actsForB){
      * body that wipes a side is usually the last one with an action left. */
     if(sideWiped(S)){herbAtWin(actA,actB);MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedBeforeResidual++;break _TURN;}
     _updateAll();   // ROADMAP #81 WIRE 7 -- after the LAST action, the half the loop-top call cannot reach
+    reviveApplyPending(S);   // 2026-09-24 -- and the last action's Revival Blessing, before the residual
     /* 2026-08-26 -- HOW MANY SHIELDS NEVER REACHED THEIR OWN GATE. A capability that cannot prove it
      * ran is assumed broken, and the inverse holds too: a REFUSAL that cannot prove it fired looks
      * exactly like a gate that moved to a line nothing reaches. Counted at the end of the turn rather

@@ -21,6 +21,69 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.119.0] — 2026-09-24
+
+### Changed
+- **The three Reg M-C lattices re-read after the two narration fixes: undeclared narration-only games 0/955, 2/1266,
+  1/1497 (were 3, 5, 6); board-material 0 on all three.** Release `aed9780fc4e3`, census pin `ccd979c30997`, pool
+  `data/team-pool-frozen-regmc`, `--steering empirical --arm middle --end-state`, `--games` 1200/1600/1900, serial
+  through `tools\lownode.cmd`. The samples are identical to 0.112.0's: 955/1266/1497 games, and the same one void game.
+  Both named causes are gone from every lattice. The 3 games left are three other causes, all present in the 0.112.0
+  artifacts, read from the full dumps (`data/verification/gd-regmc-narration-last-g{1600,1900}.json`):
+  - White Herb order after two Intimidates. `restoreStatsAll` walks the holders in side order; the authority
+    speed-sorts them.
+  - A Grassy Terrain residual heal order on an inferred speed tie.
+  - The Emergency Exit "stopped emitting" game, whose placement the harness cannot express.
+  The Reg M-C census, re-run on this tree, reads 1024 live / 0 missing (parked at
+  `data/verification/mechanics-census-regmc-narration-last.json`; the committed census stays the pin).
+  `docs/_reports/2026-09-24-narration-last.md`.
+
+### Notes
+- **Re-proved on main at merge (engine with the memo and lean mode).** Pinned Reg M-C `--games 1200` (census pin
+  `ccd979c30997`, frozen pool), release `7403f5d61204` (before) against `21d6c31b6ab1` (after): the same 955 games,
+  protocol divergences 3 -> 0, board partings 0 -> 0, 952 rows byte-identical and 3 with a changed stream. Both probes
+  green; `MEDI_REVIVE_HEAL_INLINE=1` exits 1. Branch `worktree-agent-aa8012f2866b8d4dc` (91230995).
+
+## [0.118.1] — 2026-09-24
+
+### Fixed
+- **Two Supreme Overlord census rows now expect the authority's `fallenundefined` at zero.** Both rows asserted the
+  refusal that 0.117.0 withdrew: "closes its fallen marker on the way OUT" and "A Supreme Overlord that DIES closes its
+  marker too". So the census read 1022 live, 2 missing, on the 0.117.0 and 0.118.0 engines. The zero arms now require
+  the `-end … fallenundefined|[silent]` line: above the incoming `|switch|` on the way out, and directly below the
+  `|faint|` on a death. The first row's label says so. `tests/test-mechanics.js --regulation regmc` reads 1024 live,
+  0 missing, 1024 probed. This belongs to cause 2 (0.117.0); it is a separate commit only because the history was not
+  rewritten.
+
+## [0.118.0] — 2026-09-24
+
+### Fixed
+- **Revival Blessing revives below the Update pass, so the reviver's Leppa Berry is eaten first (Reg M-C).** The move
+  only raises a switch request: runAction's tail runs `eachEvent('Update')` and then `makeRequest('switch')`
+  (`sim/battle.ts:2860-2911`, M-C checkout), and the revive is the answer's `revivalblessing` action (order 6,
+  `:2781-2798`), which writes the `-heal`. The move's one PP is spent as it runs, so a held Leppa Berry is eaten between
+  the move and the heal. The engine revived inside the move. Now the move checks the revive can happen (`reviveReady`)
+  and queues it; `reviveApplyPending` runs it right below the next `_updateAll()`. Knob `MEDI_REVIVE_HEAL_INLINE` (in
+  `DELIBERATE_BREAK`). Probe `tests/probe_regmc_revive_leppa_order.js`: RED before (release `098d7fdf95bc`, all three
+  arms), GREEN after (`aed9780fc4e3`), RED under the knob. `probe_regmc_revive`, `probe_regmc_revive_residual_inactive`,
+  `probe_regmc_revival_blessing`, `test-revive-mirror` and `test-precharge-order` stay green. Field case: the third Reg
+  M-C narration game at `--games 1200`. Revival Blessing is `Past` in Reg M-B, so the path is not reached there.
+
+## [0.117.0] — 2026-09-24
+
+### Fixed
+- **Supreme Overlord closes with `fallenundefined` when nothing had fallen, as the authority does (both regulations).**
+  `supremeoverlord.onEnd` writes `fallen${this.effectState.fallen}` unguarded while its `onStart` assigns the count only
+  when `side.totalFainted` is non-zero (`data/abilities.ts:4730-4750`, M-C checkout; the Champions mod does not override
+  it). So a body that entered on nobody fallen writes `|-end|<body>|fallenundefined|[silent]` at its switch-out and
+  below its `|faint|`. The engine had refused that line as the authority's typo; the bar is now to match the authority.
+  One function, `fallenCloseField`, feeds both close sites; the entry line is unchanged (onStart writes nothing at zero).
+  Knob `MEDI_FALLEN_UNDEFINED_SILENT` (in `DELIBERATE_BREAK`). Probe `tests/probe_fallen_undefined.js`: RED before
+  (Reg M-C release `11a681c6a683`, 3 assertions), GREEN after (Reg M-C `098d7fdf95bc`, Reg M-B `4e3411cbe0b9`), RED under
+  the knob in both. Field cases: 2 of the 3 Reg M-C narration games at `--games 1200`
+  (`data/verification/gd-regmc-merged-dump.json`). Reg M-B's `AUTHORITY-WRONG` declaration of the same line in
+  `engine/quarantine.js` now covers nothing; it is left for MEASURE to withdraw.
+
 ## [0.116.1] — 2026-09-24
 
 ### Added

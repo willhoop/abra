@@ -1,3 +1,32 @@
+## REG M-C NARRATION AFTER THE TWO FIXES: 0 / 2 / 1, BOARDS 0. 2026-09-24 (abra/regmc 0.119.0)
+
+- Release `aed9780fc4e3`, pinned as 0.112.0, same samples. The Leppa ordering and `fallenundefined` are gone from every
+  lattice. The census reads 1024 live after 0.118.1; the first re-run read 1022, because two census rows still asserted
+  the refusal that 0.117.0 withdrew.
+- Hand list: **three narration causes join it**, from the full dumps:
+  - (a) White Herb holders are walked in side order by `restoreStatsAll`. The authority's `onAnySwitchIn`
+    (priority -2) speed-sorts them. This is a real ordering defect: 1600 lattice, baseline `…2681884715 vs …2681855448`.
+  - (b) A Grassy Terrain residual heal order on an inferred Rillaboom speed tie. It needs an `--only-game` replay with
+    speeds. 1600 lattice, omit-weather `…2684772479 vs …2684878616`.
+  - (c) The Emergency Exit game the harness cannot express ("stopped emitting"). 1900 lattice, omit-spread
+    `…2679451964 vs …2679546173`.
+  Also owed: withdraw the Reg M-B `AUTHORITY-WRONG` `fallenundefined` declaration in `engine/quarantine.js` (MEASURE).
+  Report `docs/_reports/2026-09-24-narration-last.md`.
+
+## REVIVAL BLESSING REVIVES BELOW THE UPDATE PASS; THE REVIVER'S LEPPA IS EATEN FIRST (REG M-C). 2026-09-24 (abra/regmc 0.118.0)
+
+- The move only raises the request; the revive is the answer's action, after `eachEvent('Update')`. The move now queues
+  the revive (`reviveReady`) and `reviveApplyPending` runs it below the next `_updateAll()`. Knob
+  `MEDI_REVIVE_HEAL_INLINE`. Probe `tests/probe_regmc_revive_leppa_order.js` (RED -> GREEN, three arms).
+- Hand list: **the Revival Blessing / Leppa ordering cause leaves it.** Report `docs/_reports/2026-09-24-narration-last.md`.
+
+## SUPREME OVERLORD WRITES `fallenundefined` WHEN NOTHING HAD FALLEN (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.117.0)
+
+- The authority's `onEnd` is unguarded, so a body that entered on nobody fallen closes with `fallenundefined` at its
+  switch-out and below its faint. `fallenCloseField` writes it; the entry stays silent at zero. Knob
+  `MEDI_FALLEN_UNDEFINED_SILENT`. Probe `tests/probe_fallen_undefined.js` (RED -> GREEN in both regulations).
+- Hand list: **the `-end … fallenundefined` narration cause leaves it.** Report `docs/_reports/2026-09-24-narration-last.md`.
+
 ## LEAN MODE FOR SEARCH PLAYOUTS: THE SAME BOARDS, LESS WORK PER TURN. 2026-09-24 (abra/regmc 0.116.1)
 
 - `newBattle(a, b, {lean: true, rng})` (and `API.makeLean(S)`) build a battle whose every turn runs inside the engine's
