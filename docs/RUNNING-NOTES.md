@@ -53,6 +53,22 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.95.0] — 2026-09-24 — **Mimicry answers a terrain change, not every turn: Reflect Type's hidden DIFFER (both regulations)**
+
+- **What changed.** `engine/medicham2-browser.js` `syncTerrainTypes`: a Mimicry holder remembers the terrain it last
+  answered (`_terrainTypeSeen`) and a later call under the same terrain writes nothing; cleared on the lead pass,
+  `runEntryPass`, `abilityStarted` and `switchOut`. Knob `MEDI_MIMICRY_SYNC_EVERY_CALL`. Probe
+  `tests/probe_mimicry_terrain_event_only.js`; census row `typeFollowsTerrain` in `tests/test-mechanics.js`.
+- **Measured.** Roster `--stage moves --only reflecttype`: underlying FIRED-AND-BOARDS-DIFFER (`p1a types`
+  dragon/steel vs ground/steel) → FIRED-AND-BOARDS-MATCH, Reg M-B (`07a490f0ee37` → `3010f1e7f5dd`) and Reg M-C
+  (`36135edbaf7a` → `4168135a562f`). Probe red → green in both, red under the knob. Census: the new row is LIVE in both
+  regulations and MISSING under the knob; the census artifacts were NOT republished (MEASURE republishes from main),
+  counts in `docs/_reports/2026-09-24-reflect-type.md` §4c. Pinned Reg M-B differential (`--steering empirical --arm middle --end-state --games 300`, census pin `833a997d7e42`,
+  `data/team-pool-frozen`): 260 games / 1 diverged / 0 board-material on both releases, the same single game.
+  Reg M-C, same flags, census pin `0d03e83f0e65`, `data/team-pool-frozen-regmc`: 259 / 0 / 0 on both. Full roster moves
+  stage on the fix: shelf 1 → 0, DIFFER 0, in both regulations. Worktree releases; receipts for the report only, not published figures.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.94.0] — 2026-09-24 — **A mega stone refuses every item mover, inside Magic Room too (both regulations)**
 
 - **What changed.** `engine/medicham2-browser.js`: `itemRefusesTake` reads the hold (`itemOn`) instead of the slot the

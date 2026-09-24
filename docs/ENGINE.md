@@ -1,3 +1,16 @@
+## MIMICRY ANSWERS A TERRAIN CHANGE, NOT EVERY TURN — REFLECT TYPE'S HIDDEN DIFFER (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.95.0)
+
+- The Reflect Type roster row's underlying FIRED-AND-BOARDS-DIFFER was Mimicry, the aggressor's only ability: the
+  authority fires it on the holder's Start and on a terrain change, and `syncTerrainTypes` re-ran it from every call
+  site, the head of each turn included, so the copied typing reverted a boundary later. Each holder now remembers the
+  terrain it last answered (`_terrainTypeSeen`, cleared on the lead pass, entry, `abilityStarted` and switch-out).
+  Knob `MEDI_MIMICRY_SYNC_EVERY_CALL`. Probe `tests/probe_mimicry_terrain_event_only.js`; census row
+  `typeFollowsTerrain`, LIVE in both regulations (artifacts not republished). Roster `--only reflecttype`: DIFFER →
+  MATCH in both.
+- Hand list: **Reflect Type's shelved DIFFER leaves it.** Filed, not fixed: a typeless target with an added type
+  (authority copies Normal + added), and a second added type REPLACING the first (Trick-or-Treat then Forest's Curse —
+  ours appends). Report `docs/_reports/2026-09-24-reflect-type.md`.
+
 ## A MEGA STONE REFUSES EVERY ITEM MOVER, INSIDE MAGIC ROOM TOO (BOTH REGULATIONS). 2026-09-24 (abra/regmc 0.94.0)
 
 - `itemRefusesTake` reads the hold (`itemOn`), not the slot the room / Klutz park empties; Corrosive Gas asks the stone;
