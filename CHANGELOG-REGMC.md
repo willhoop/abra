@@ -21,6 +21,11 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.86.1] — 2026-09-23
+
+### Fixed
+- **probe_volley_collapse_clamp reads the regulation's own checkout.** It defaulted `SHOWDOWN_PATH` to the Reg M-B checkout, so under `--regulation regmc` it resolved the wrong authority and could only CANNOT-ANSWER. It now requires `engine/showdown_path.js` like its siblings. Reg M-C: exit 0 (9 fixture sets, 0 illegal). No engine change; no figure moves.
+
 ## [0.86.0] — 2026-09-23
 
 ### Fixed

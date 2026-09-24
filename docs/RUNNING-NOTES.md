@@ -53,6 +53,10 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.86.1] — 2026-09-23 — **probe_volley_collapse_clamp reads the regulation's own checkout**
+
+A probe fix, no engine change. `tests/probe_volley_collapse_clamp.js` hardcoded the Reg M-B checkout as its `SHOWDOWN_PATH` default and read CANNOT-ANSWER under Reg M-C; it now selects the regulation's checkout through `engine/showdown_path.js`. **Supersedes.** Nothing. **Basis.** unchanged. Owes no living-document fold-in.
+
 ## [abra/regmc 0.86.0] — 2026-09-23 — **Speed-tied bodies at one residual order run handler-major (both regulations)**
 
 - **What changed.** `engine/medicham2-browser.js`: `residualGroupPairs` and `RESIDUAL_GROUPS[].stepNs`; the group walk

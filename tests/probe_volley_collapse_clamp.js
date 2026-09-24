@@ -24,7 +24,9 @@
 'use strict';
 /* A THROW IS NOT A VERDICT: node exits 1 on an uncaught exception, which the register reads as RED. */
 process.on('uncaughtException', (e) => { console.log('CANNOT ANSWER — the probe threw: ' + String(e && e.stack || e).split('\n').slice(0, 4).join(' | ')); console.log('ABRA-EXIT 2 CANNOT-ANSWER'); process.exit(2); });
-process.env.SHOWDOWN_PATH = process.env.SHOWDOWN_PATH || 'C:/Users/willj/Projects/Pokemon/pokemon-showdown';
+/* The regulation's own checkout (engine/showdown_path.js), not a hardcoded Reg M-B default: under
+ * --regulation regmc the old default resolved the M-B checkout and the probe could only CANNOT-ANSWER. */
+require(require('path').join(__dirname, '..', 'engine', 'showdown_path.js'));
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
 /* 2026-09-23 (ENGINE pass 10) -- NO DEFAULT PIN. This line pushed `--release 2b5a6585d8cf`, the Reg M-B release the
