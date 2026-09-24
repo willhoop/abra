@@ -11567,7 +11567,74 @@ if (PREDICATE_THREW.length) {
   if (PREDICATE_THREW.length > 40) console.error('    ... and ' + (PREDICATE_THREW.length - 40) + ' more');
 }
 
-const emptyTags = all.filter(r => r.n === 0 && !EXPECTED_EMPTY.has(r.tag));
+/* 2026-09-24 -- A TAG THAT IS EMPTY BECAUSE ITS MEMBERS ARE OUT OF THIS REGULATION IS NOT A BUG, AND
+ * WHICH ONES THOSE ARE IS DERIVED, NOT LISTED. The tag files are per regulation and the predicates are
+ * shared: a tag written for Reg M-C (Revival Blessing, Court Change, the gems, Red Card, Emergency
+ * Exit ...) runs over Reg M-B's scope too, where every member is `Past`. `EXPECTED_EMPTY` is a Reg M-B
+ * list of NAMES, so each such tag read "MATCHED NOTHING -- a bug" and `node engine/tag_dex.js` exited 1
+ * on twelve of them after the 0.111.1 merge. Adding twelve names would be the ban list of four again: it
+ * goes stale the day either regulation moves. So each empty tag is re-run over the entities of its
+ * kind that EXIST in the dex and are OUT of this regulation's scope (the same scope verdict `collect`
+ * and `LEGAL_CARRIED` ask). A tag that matches one of them is INAPPLICABLE HERE and is printed with the
+ * members it would have had; a tag that matches nothing anywhere is still a bug and still fails. */
+const OUT_OF_SCOPE = {
+  move:    { tags: MOVE_TAGS,    pool: dex.moves.all().filter(o => o && o.exists && !SCOPE_V.isLegal('move', o.id || o.name)) },
+  item:    { tags: ITEM_TAGS,    pool: dex.items.all().filter(o => o && o.exists && !SCOPE_V.isLegal('item', o.id || o.name)) },
+  ability: { tags: ABILITY_TAGS, pool: dex.abilities.all().filter(o => o && o.exists
+    && !LEGAL_CARRIED.has(norm(o.id || o.name)) && !CONFERRED.has(norm(o.id || o.name))) },
+};
+const INAPPLICABLE = new Map();
+for (const r of all) {
+  if (r.n !== 0 || EXPECTED_EMPTY.has(r.tag)) continue;
+  const k = OUT_OF_SCOPE[r.kind];
+  const t = k && k.tags.find(x => x.tag === r.tag);
+  if (!t) continue;
+  const would = [];
+  for (const o of k.pool) {
+    let v = null;
+    try { v = t.of(o); } catch (e) { v = null; noteThrow(r.kind + ' (out of scope)', t.tag, o, (e && e.message) || e); }
+    if (v) would.push(o.name);
+  }
+  if (would.length) INAPPLICABLE.set(r.tag, { kind: r.kind, would });
+}
+/* THE SECOND WAY A TAG IS INAPPLICABLE: THE HANDLER IT READS IS NOT IN THIS REGULATION'S AUTHORITY AT
+ * ALL. `escapesTrap` on abilities is Run Away under Reg M-C's Champions mod, which gives it
+ * `onTrapPokemon`; Reg M-B's checkout gives NO ability that handler, so the predicate matches nothing in
+ * scope or out of it. Out-of-scope matching cannot tell that from a broken predicate. What can is the
+ * other regulation's own catalogue: if a sibling regulation's tag file records members for this
+ * tag and kind, the predicate works and the mechanic is simply absent here. Read from the committed
+ * artifact, printed with the regulation and the members it names; a tag no regulation populates still
+ * fails. */
+{
+  let RT = {};
+  try { RT = (JSON.parse(fs.readFileSync(D('data', 'regulations.json'), 'utf8')).runtime) || {}; }
+  catch (e) { console.error('tag_dex: reading data/regulations.json for sibling catalogues: ' + ((e && e.message) || e)); RT = {}; }
+  for (const [rid, ent] of Object.entries(RT)) {
+    if (rid.startsWith('_') || rid === REGN.ID) continue;
+    const file = (ent && ent.tags) || 'data/tags.json';
+    if (file === TAGS_OUT) continue;
+    let other = null;
+    try { other = JSON.parse(fs.readFileSync(D(file), 'utf8')); } catch (e) {
+      console.log(`  (sibling catalogue ${file} for ${rid} unreadable: ${(e && e.message) || e})`); continue; }
+    for (const r of all) {
+      if (r.n !== 0 || EXPECTED_EMPTY.has(r.tag) || INAPPLICABLE.has(r.tag)) continue;
+      const o = (other.tags || []).find(x => x.tag === r.tag && x.kind === r.kind && x.n > 0);
+      if (!o) continue;
+      const tbl = other[{ move: 'moves', item: 'items', ability: 'abilities' }[r.kind]] || {};
+      const names = Object.values(tbl).filter(e => e && (e.tags || []).includes(r.tag)).map(e => e.name);
+      INAPPLICABLE.set(r.tag, { kind: r.kind, would: [`(no handler in this authority; ${rid} carries ${o.n}: `
+        + (names.join(', ') || 'unnamed') + ` per ${file})`] });
+    }
+  }
+}
+if (INAPPLICABLE.size) {
+  console.log('');
+  console.log(`  ${INAPPLICABLE.size} tag(s) are EMPTY IN ${REGN.ID} because every member is out of its scope `
+    + '(derived: the predicate matches only out-of-regulation entities). Named, not failed:');
+  for (const [tag, v] of INAPPLICABLE)
+    console.log(`    ${tag}  (${v.kind})  would match: ${v.would.slice(0, 8).join(', ')}${v.would.length > 8 ? ' ... +' + (v.would.length - 8) : ''}`);
+}
+const emptyTags = all.filter(r => r.n === 0 && !EXPECTED_EMPTY.has(r.tag) && !INAPPLICABLE.has(r.tag));
 if (emptyTags.length) {
   console.log('');
   console.log(`  ${emptyTags.length} TAG(S) MATCHED NOTHING -- a bug, not an empty category:`);

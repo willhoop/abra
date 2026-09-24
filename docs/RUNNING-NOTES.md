@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.111.2] — 2026-09-24 — **tag_dex no longer fails a tag the regulation lacks; both tag files regenerated**
+- **What changed.** `engine/tag_dex.js`: an empty tag is INAPPLICABLE (printed with its would-be members) when its predicate matches only out-of-scope entities or a sibling regulation's catalogue carries it; otherwise it still fails. `data/tags.json`, `data/tags-regmc.json` regenerated.
+- **Measured.** Reg M-B `tag_dex` exit 1 -> 0 (12 tags named inapplicable, 0 unmatched). Entity tags/params identical to the hand-merged files in both regulations; metadata only (see CHANGELOG-REGMC 0.111.2).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none.
+
 ## [abra/regmc 0.111.1] — 2026-09-24 — **Ledgers restamped after the merge pass's last merge**
 - **What changed.** `node engine/status.js --write` after 0.111.0; generated blocks only.
 - **Measured.** NO FIGURE published.

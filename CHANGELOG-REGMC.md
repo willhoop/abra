@@ -21,6 +21,28 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.111.2] — 2026-09-24
+
+### Fixed
+- **`node engine/tag_dex.js` exited 1 under Reg M-B on twelve tags that are empty BECAUSE the regulation lacks
+  them.** The predicates are shared and the tag files are per regulation, so tags written for Reg M-C (Revival
+  Blessing, Court Change, Glaive Rush, the gems, the terrain seeds, Rocky Helmet, Air Balloon, Red Card, Eject
+  Button, Emergency Exit / Wimp Out, Liquid Ooze, Run Away) read "MATCHED NOTHING -- a bug" against Reg M-B's
+  hand list `EXPECTED_EMPTY`. Root cause fixed by derivation, not by twelve more names: an empty tag is re-run
+  over the entities of its kind that exist and are OUT of this regulation's scope (the same scope verdict
+  `collect` asks), and a tag no entity here carries a handler for is checked against the sibling regulation's
+  own catalogue. Either way the tag is printed with the members it would have had; a tag that matches nothing
+  anywhere still fails. Reg M-B: 11 by out-of-scope members, 1 (`escapesTrap` on abilities: Run Away has
+  `onTrapPokemon` only in Reg M-C's mod) by the sibling catalogue; exit 0.
+- **Both tag files regenerated.** Every entity row's tags and params are identical to the hand-merged files
+  (param key ORDER differs on 51 / 53 moves). What moved: Reg M-B gains the 12 zero-member tag rows it lacked;
+  both files' `bypassesSubstitute` and `allyBasePowerBoost` rows now name their consumer (were `null`); Reg M-C's
+  `punishesAttacker` count reads 14 and `condStatMult` 3 — the member lists already held 14 and 3 entries and
+  only the counts were stale. Usage weights moved with the stores
+  (`sheet_entries` 316,656 -> 309,600 Reg M-B, 215,244 -> 205,836 Reg M-C; store-side, OPS's to explain).
+  Gravity's row `refusedByPseudoWeather` is identical in both files: five moves (bounce, fly, flyingpress,
+  highjumpkick, magnetrise) = the legal `flags.gravity` moves of both formats, one `move: Gravity` line.
+
 ## [0.111.1] — 2026-09-24
 
 ### Changed
