@@ -1,12 +1,12 @@
 {
-  "generated": "2026-09-23T05:46:53.380Z",
+  "generated": "2026-09-24T02:13:03.353Z",
   "by": "tests/test-engine-diff.js",
-  "engine_release": "485d0a6840ad",
-  "engine_release_cut": "2026-09-23T04:14:02.257Z",
-  "engine_release_cuts": 1,
+  "engine_release": "ec377f6f8159",
+  "engine_release_cut": "2026-09-24T01:32:29.858Z",
+  "engine_release_cuts": 3,
   "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
   "source_digests": {
-    "engine/medicham2-browser.js": "a6eb84612af1",
+    "engine/medicham2-browser.js": "b0e25d70943c",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "a68f159b6d5c",
     "engine/position_features.js": "bb71676d3669",
@@ -27,15 +27,15 @@
     "data/regulations.json": "6c7c3e3dd06c",
     "data/quality-filter.json": "042524dd1df7",
     "data/engine-data.js": "bbc417dfae0e",
-    "data/abra-tags.js": "e5d86eb1d337",
-    "data/tags.json": "e82b7eb5cf8a",
+    "data/abra-tags.js": "756f4ac8350d",
+    "data/tags.json": "4535d8829442",
     "data/policy-weights.json": "626c1d240782",
     "data/policy-weights-joint.json": "e2aca467ff04",
     "data/move-priors.json": "e667fe8ab457",
     "engine/pp.js": "30b12a4ef623",
     "data/rollout-switch-census.json": "b8a5cee2f0a9",
     "data/engine-data-regmc.js": "a6ad04e92d4e",
-    "data/tags-regmc.json": "f0a9eee9ed32",
+    "data/tags-regmc.json": "2faa539f391f",
     "data/move-priors-regmc.json": "eab0c9b023df",
     "data/move-effects-regmc.js": "8c57407e7641"
   },
@@ -44,40 +44,9 @@
   "seed": 20260804,
   "requested": 6000,
   "compared": 6000,
-  "agreed": 5997,
-  "disagreed": 3,
-  "worst": [
-    {
-      "att": "scizormega",
-      "mv": "dualwingbeat",
-      "def": "dragonitemega",
-      "showdown": "x2 61-73",
-      "medicham": "40-48",
-      "rel": 0.34328358208955223,
-      "uses": 8105,
-      "suspect": false
-    },
-    {
-      "att": "heracrossmega",
-      "mv": "pinmissile",
-      "def": "dragonitemega",
-      "showdown": "x5 67-81",
-      "medicham": "35-45",
-      "rel": 0.4594594594594595,
-      "uses": 69,
-      "suspect": false
-    },
-    {
-      "att": "forretress",
-      "mv": "pinmissile",
-      "def": "mimikyu",
-      "showdown": "x5 24-28",
-      "medicham": "96-112",
-      "rel": 3,
-      "uses": 69,
-      "suspect": false
-    }
-  ],
+  "agreed": 6000,
+  "disagreed": 0,
+  "worst": [],
   "plant": null,
   "arms": [
     {
@@ -85,640 +54,144 @@
       "what": "Showdown damage roll index 0 (MAXIMUM) against MEDICHAM's `max`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5997,
-      "disagreed": 3,
-      "worst": [
-        {
-          "att": "scizormega",
-          "mv": "dualwingbeat",
-          "def": "dragonitemega",
-          "showdown": "x2 73",
-          "medicham": "48",
-          "rel": 0.3424657534246575,
-          "uses": 8105,
-          "suspect": false
-        },
-        {
-          "att": "heracrossmega",
-          "mv": "pinmissile",
-          "def": "dragonitemega",
-          "showdown": "x5 81",
-          "medicham": "45",
-          "rel": 0.4444444444444444,
-          "uses": 69,
-          "suspect": false
-        },
-        {
-          "att": "forretress",
-          "mv": "pinmissile",
-          "def": "mimikyu",
-          "showdown": "x5 28",
-          "medicham": "112",
-          "rel": 3,
-          "uses": 69,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "bottom",
       "what": "Showdown damage roll index 15 (MINIMUM) against MEDICHAM's `min`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5997,
-      "disagreed": 3,
-      "worst": [
-        {
-          "att": "scizormega",
-          "mv": "dualwingbeat",
-          "def": "dragonitemega",
-          "showdown": "x2 61",
-          "medicham": "40",
-          "rel": 0.3442622950819672,
-          "uses": 8105,
-          "suspect": false
-        },
-        {
-          "att": "heracrossmega",
-          "mv": "pinmissile",
-          "def": "dragonitemega",
-          "showdown": "x5 67",
-          "medicham": "35",
-          "rel": 0.47761194029850745,
-          "uses": 69,
-          "suspect": false
-        },
-        {
-          "att": "forretress",
-          "mv": "pinmissile",
-          "def": "mimikyu",
-          "showdown": "x5 24",
-          "medicham": "96",
-          "rel": 3,
-          "uses": 69,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx01",
       "what": "Showdown damage roll index 1 (roll 99%) against MEDICHAM's own `rolls[1]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5997,
-      "disagreed": 3,
-      "worst": [
-        {
-          "att": "scizormega",
-          "mv": "dualwingbeat",
-          "def": "dragonitemega",
-          "showdown": "x2 72",
-          "medicham": "48",
-          "rel": 0.3333333333333333,
-          "uses": 8105,
-          "suspect": false
-        },
-        {
-          "att": "heracrossmega",
-          "mv": "pinmissile",
-          "def": "dragonitemega",
-          "showdown": "x5 76",
-          "medicham": "40",
-          "rel": 0.47368421052631576,
-          "uses": 69,
-          "suspect": false
-        },
-        {
-          "att": "forretress",
-          "mv": "pinmissile",
-          "def": "mimikyu",
-          "showdown": "x5 24",
-          "medicham": "108",
-          "rel": 3.5,
-          "uses": 69,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx02",
       "what": "Showdown damage roll index 2 (roll 98%) against MEDICHAM's own `rolls[2]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5997,
-      "disagreed": 3,
-      "worst": [
-        {
-          "att": "scizormega",
-          "mv": "dualwingbeat",
-          "def": "dragonitemega",
-          "showdown": "x2 72",
-          "medicham": "48",
-          "rel": 0.3333333333333333,
-          "uses": 8105,
-          "suspect": false
-        },
-        {
-          "att": "heracrossmega",
-          "mv": "pinmissile",
-          "def": "dragonitemega",
-          "showdown": "x5 76",
-          "medicham": "40",
-          "rel": 0.47368421052631576,
-          "uses": 69,
-          "suspect": false
-        },
-        {
-          "att": "forretress",
-          "mv": "pinmissile",
-          "def": "mimikyu",
-          "showdown": "x5 24",
-          "medicham": "108",
-          "rel": 3.5,
-          "uses": 69,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx03",
       "what": "Showdown damage roll index 3 (roll 97%) against MEDICHAM's own `rolls[3]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5997,
-      "disagreed": 3,
-      "worst": [
-        {
-          "att": "scizormega",
-          "mv": "dualwingbeat",
-          "def": "dragonitemega",
-          "showdown": "x2 70",
-          "medicham": "46",
-          "rel": 0.34285714285714286,
-          "uses": 8105,
-          "suspect": false
-        },
-        {
-          "att": "heracrossmega",
-          "mv": "pinmissile",
-          "def": "dragonitemega",
-          "showdown": "x5 76",
-          "medicham": "40",
-          "rel": 0.47368421052631576,
-          "uses": 69,
-          "suspect": false
-        },
-        {
-          "att": "forretress",
-          "mv": "pinmissile",
-          "def": "mimikyu",
-          "showdown": "x5 24",
-          "medicham": "108",
-          "rel": 3.5,
-          "uses": 69,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx04",
       "what": "Showdown damage roll index 4 (roll 96%) against MEDICHAM's own `rolls[4]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5997,
-      "disagreed": 3,
-      "worst": [
-        {
-          "att": "scizormega",
-          "mv": "dualwingbeat",
-          "def": "dragonitemega",
-          "showdown": "x2 70",
-          "medicham": "46",
-          "rel": 0.34285714285714286,
-          "uses": 8105,
-          "suspect": false
-        },
-        {
-          "att": "heracrossmega",
-          "mv": "pinmissile",
-          "def": "dragonitemega",
-          "showdown": "x5 76",
-          "medicham": "40",
-          "rel": 0.47368421052631576,
-          "uses": 69,
-          "suspect": false
-        },
-        {
-          "att": "forretress",
-          "mv": "pinmissile",
-          "def": "mimikyu",
-          "showdown": "x5 24",
-          "medicham": "108",
-          "rel": 3.5,
-          "uses": 69,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx05",
       "what": "Showdown damage roll index 5 (roll 95%) against MEDICHAM's own `rolls[5]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5997,
-      "disagreed": 3,
-      "worst": [
-        {
-          "att": "scizormega",
-          "mv": "dualwingbeat",
-          "def": "dragonitemega",
-          "showdown": "x2 69",
-          "medicham": "46",
-          "rel": 0.3333333333333333,
-          "uses": 8105,
-          "suspect": false
-        },
-        {
-          "att": "heracrossmega",
-          "mv": "pinmissile",
-          "def": "dragonitemega",
-          "showdown": "x5 72",
-          "medicham": "40",
-          "rel": 0.4444444444444444,
-          "uses": 69,
-          "suspect": false
-        },
-        {
-          "att": "forretress",
-          "mv": "pinmissile",
-          "def": "mimikyu",
-          "showdown": "x5 24",
-          "medicham": "108",
-          "rel": 3.5,
-          "uses": 69,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx06",
       "what": "Showdown damage roll index 6 (roll 94%) against MEDICHAM's own `rolls[6]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5997,
-      "disagreed": 3,
-      "worst": [
-        {
-          "att": "scizormega",
-          "mv": "dualwingbeat",
-          "def": "dragonitemega",
-          "showdown": "x2 69",
-          "medicham": "46",
-          "rel": 0.3333333333333333,
-          "uses": 8105,
-          "suspect": false
-        },
-        {
-          "att": "heracrossmega",
-          "mv": "pinmissile",
-          "def": "dragonitemega",
-          "showdown": "x5 72",
-          "medicham": "40",
-          "rel": 0.4444444444444444,
-          "uses": 69,
-          "suspect": false
-        },
-        {
-          "att": "forretress",
-          "mv": "pinmissile",
-          "def": "mimikyu",
-          "showdown": "x5 24",
-          "medicham": "100",
-          "rel": 3.1666666666666665,
-          "uses": 69,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx07",
       "what": "Showdown damage roll index 7 (roll 93%) against MEDICHAM's own `rolls[7]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5997,
-      "disagreed": 3,
-      "worst": [
-        {
-          "att": "scizormega",
-          "mv": "dualwingbeat",
-          "def": "dragonitemega",
-          "showdown": "x2 67",
-          "medicham": "44",
-          "rel": 0.34328358208955223,
-          "uses": 8105,
-          "suspect": false
-        },
-        {
-          "att": "heracrossmega",
-          "mv": "pinmissile",
-          "def": "dragonitemega",
-          "showdown": "x5 72",
-          "medicham": "40",
-          "rel": 0.4444444444444444,
-          "uses": 69,
-          "suspect": false
-        },
-        {
-          "att": "forretress",
-          "mv": "pinmissile",
-          "def": "mimikyu",
-          "showdown": "x5 24",
-          "medicham": "100",
-          "rel": 3.1666666666666665,
-          "uses": 69,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx08",
       "what": "Showdown damage roll index 8 (roll 92%) against MEDICHAM's own `rolls[8]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5997,
-      "disagreed": 3,
-      "worst": [
-        {
-          "att": "scizormega",
-          "mv": "dualwingbeat",
-          "def": "dragonitemega",
-          "showdown": "x2 67",
-          "medicham": "44",
-          "rel": 0.34328358208955223,
-          "uses": 8105,
-          "suspect": false
-        },
-        {
-          "att": "heracrossmega",
-          "mv": "pinmissile",
-          "def": "dragonitemega",
-          "showdown": "x5 72",
-          "medicham": "40",
-          "rel": 0.4444444444444444,
-          "uses": 69,
-          "suspect": false
-        },
-        {
-          "att": "forretress",
-          "mv": "pinmissile",
-          "def": "mimikyu",
-          "showdown": "x5 24",
-          "medicham": "100",
-          "rel": 3.1666666666666665,
-          "uses": 69,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx09",
       "what": "Showdown damage roll index 9 (roll 91%) against MEDICHAM's own `rolls[9]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5997,
-      "disagreed": 3,
-      "worst": [
-        {
-          "att": "scizormega",
-          "mv": "dualwingbeat",
-          "def": "dragonitemega",
-          "showdown": "x2 66",
-          "medicham": "44",
-          "rel": 0.3333333333333333,
-          "uses": 8105,
-          "suspect": false
-        },
-        {
-          "att": "heracrossmega",
-          "mv": "pinmissile",
-          "def": "dragonitemega",
-          "showdown": "x5 67",
-          "medicham": "35",
-          "rel": 0.47761194029850745,
-          "uses": 69,
-          "suspect": false
-        },
-        {
-          "att": "forretress",
-          "mv": "pinmissile",
-          "def": "mimikyu",
-          "showdown": "x5 24",
-          "medicham": "100",
-          "rel": 3.1666666666666665,
-          "uses": 69,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx10",
       "what": "Showdown damage roll index 10 (roll 90%) against MEDICHAM's own `rolls[10]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5997,
-      "disagreed": 3,
-      "worst": [
-        {
-          "att": "scizormega",
-          "mv": "dualwingbeat",
-          "def": "dragonitemega",
-          "showdown": "x2 66",
-          "medicham": "44",
-          "rel": 0.3333333333333333,
-          "uses": 8105,
-          "suspect": false
-        },
-        {
-          "att": "heracrossmega",
-          "mv": "pinmissile",
-          "def": "dragonitemega",
-          "showdown": "x5 67",
-          "medicham": "35",
-          "rel": 0.47761194029850745,
-          "uses": 69,
-          "suspect": false
-        },
-        {
-          "att": "forretress",
-          "mv": "pinmissile",
-          "def": "mimikyu",
-          "showdown": "x5 24",
-          "medicham": "100",
-          "rel": 3.1666666666666665,
-          "uses": 69,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx11",
       "what": "Showdown damage roll index 11 (roll 89%) against MEDICHAM's own `rolls[11]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5997,
-      "disagreed": 3,
-      "worst": [
-        {
-          "att": "scizormega",
-          "mv": "dualwingbeat",
-          "def": "dragonitemega",
-          "showdown": "x2 64",
-          "medicham": "42",
-          "rel": 0.34375,
-          "uses": 8105,
-          "suspect": false
-        },
-        {
-          "att": "heracrossmega",
-          "mv": "pinmissile",
-          "def": "dragonitemega",
-          "showdown": "x5 67",
-          "medicham": "35",
-          "rel": 0.47761194029850745,
-          "uses": 69,
-          "suspect": false
-        },
-        {
-          "att": "forretress",
-          "mv": "pinmissile",
-          "def": "mimikyu",
-          "showdown": "x5 24",
-          "medicham": "96",
-          "rel": 3,
-          "uses": 69,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx12",
       "what": "Showdown damage roll index 12 (roll 88%) against MEDICHAM's own `rolls[12]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5997,
-      "disagreed": 3,
-      "worst": [
-        {
-          "att": "scizormega",
-          "mv": "dualwingbeat",
-          "def": "dragonitemega",
-          "showdown": "x2 64",
-          "medicham": "42",
-          "rel": 0.34375,
-          "uses": 8105,
-          "suspect": false
-        },
-        {
-          "att": "heracrossmega",
-          "mv": "pinmissile",
-          "def": "dragonitemega",
-          "showdown": "x5 67",
-          "medicham": "35",
-          "rel": 0.47761194029850745,
-          "uses": 69,
-          "suspect": false
-        },
-        {
-          "att": "forretress",
-          "mv": "pinmissile",
-          "def": "mimikyu",
-          "showdown": "x5 24",
-          "medicham": "96",
-          "rel": 3,
-          "uses": 69,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx13",
       "what": "Showdown damage roll index 13 (roll 87%) against MEDICHAM's own `rolls[13]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5997,
-      "disagreed": 3,
-      "worst": [
-        {
-          "att": "scizormega",
-          "mv": "dualwingbeat",
-          "def": "dragonitemega",
-          "showdown": "x2 63",
-          "medicham": "42",
-          "rel": 0.3333333333333333,
-          "uses": 8105,
-          "suspect": false
-        },
-        {
-          "att": "heracrossmega",
-          "mv": "pinmissile",
-          "def": "dragonitemega",
-          "showdown": "x5 67",
-          "medicham": "35",
-          "rel": 0.47761194029850745,
-          "uses": 69,
-          "suspect": false
-        },
-        {
-          "att": "forretress",
-          "mv": "pinmissile",
-          "def": "mimikyu",
-          "showdown": "x5 24",
-          "medicham": "96",
-          "rel": 3,
-          "uses": 69,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     },
     {
       "arm": "idx14",
       "what": "Showdown damage roll index 14 (roll 86%) against MEDICHAM's own `rolls[14]`",
       "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
       "compared": 6000,
-      "agreed": 5997,
-      "disagreed": 3,
-      "worst": [
-        {
-          "att": "scizormega",
-          "mv": "dualwingbeat",
-          "def": "dragonitemega",
-          "showdown": "x2 63",
-          "medicham": "42",
-          "rel": 0.3333333333333333,
-          "uses": 8105,
-          "suspect": false
-        },
-        {
-          "att": "heracrossmega",
-          "mv": "pinmissile",
-          "def": "dragonitemega",
-          "showdown": "x5 67",
-          "medicham": "35",
-          "rel": 0.47761194029850745,
-          "uses": 69,
-          "suspect": false
-        },
-        {
-          "att": "forretress",
-          "mv": "pinmissile",
-          "def": "mimikyu",
-          "showdown": "x5 24",
-          "medicham": "96",
-          "rel": 3,
-          "uses": 69,
-          "suspect": false
-        }
-      ]
+      "agreed": 6000,
+      "disagreed": 0,
+      "worst": []
     }
   ],
   "band_missing": 0,
@@ -852,13 +325,8 @@
   },
   "substitute_bypass_conformance": {
     "compared": 515,
-    "inSet": 51,
-    "missing": [
-      {
-        "id": "overdrive",
-        "uses": 0
-      }
-    ],
+    "inSet": 52,
+    "missing": [],
     "extra": []
   }
 }

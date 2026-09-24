@@ -1938,11 +1938,11 @@ has zeroed.
 ```
 ENGINE — does the simulator do what Pokémon does
   1004/1004 probed mechanics live, 0 missing   (census 2026-09-23 00:17)
-    the census probes what somebody thought to probe: 304 of 305 in-scope tags carry a probe, 1 carry none (9 of 314
+    the census probes what somebody thought to probe: 304 of 306 in-scope tags carry a probe, 2 carry none (9 of 315
     tags have no in-scope carrier); 0 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 2.5 h old). node engine/coverage.js
+    (all-mechanics-fire.json, 1.1 days old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/89ac57f1f81b/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "89ac57f1f81b".
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/7822a83cc49b/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "7822a83cc49b".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -1954,12 +1954,12 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 8af4bdbb88f4 now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 304/305 in-scope probed, 1 unprobed;  305/305 have an engine consumer on every in-scope row, 0 do not;  9 of 314 tags have no in-scope carrier
+  tag coverage: 304/306 in-scope probed, 2 unprobed;  305/306 have an engine consumer on every in-scope row, 1 do not;  9 of 315 tags have no in-scope carrier
     consumedBy comes from engine/tag_dex.js grepping board.js and medicham2-browser.js for a hint
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-23 03:16_
+_stamped 2026-09-24 04:20_
 
 <!-- /GENERATED -->
 

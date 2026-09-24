@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.87.0] — 2026-09-24 — **Both MEDICHAM gates re-read on the pass-10 engine: both CLOSED (Reg M-C 5 of 10, Reg M-B 4 of 10)**
+- **What changed.** Measurement only; no engine, test or tool byte moved. Releases `ec377f6f8159` (Reg M-C) and `7822a83cc49b` (Reg M-B); census pins `census-pin-regmc-53bfaafa023d`, `census-pin-9250024640bf`; pools `data/team-pool-frozen-regmc`, `data/team-pool-frozen`; `--steering empirical --arm middle --end-state`, `--games` 1200/1600/1900 (Reg M-C) and 1200/1350/1950 (Reg M-B). Full account `docs/_reports/2026-09-24-gate-reread-pass10.md`.
+- **Measured.** Reg M-C: damage 0/6000 at every index (`data/engine-diff-regmc.json`); board-material 0/955, 0/1266, 0/1497; undeclared narration 6/955, 12/1266, 9/1497 (`data/game-differential{-regmc,.g1600-regmc,.g1900-regmc}.json`); roster 166/166, 207/214, 508/511 (`data/roster.*-regmc.json`). Reg M-B: damage 0/6000; board-material 0/961, 0/1069, 0/1497; narration 0 undeclared; roster 148/148, 193/200, 494/497. Both: Pixilate and Refrigerate part boards (`data/all-mechanics-fire{,-regmc}.json`); Effect Spore, Natural Cure, Regenerator, Belch COULD-NOT-STAGE; the `needs-a-berry-already-eaten` red demonstration NOT CAUGHT.
+- **Basis.** unchanged — same instruments, same pinned pools, same lattice sizes; only the engine release moved.
+- **Supersedes.** ~~Reg M-C damage 3/6000~~ now 0/6000; ~~Reg M-C narration 64/955, 82/1266, 92/1497~~ now 6, 12, 9 (all on `485d0a6840ad`, report only, not published in a living document).
+- **Owed to the next major.** The Reg M-B roster, census and staged-harness readings (193/200, 494/497, 1006/1006) are parked in `data/verification/*-7822a83cc49b.json` and NOT republished, because `docs/SUMMARY.md`, `docs/ABRA-technical-docs.md` and the deck still publish 196/200, 496/497 and 1,004 from the HEAD artifacts. The fold-in is Will's call. The Reg M-C narration baseline stamp is also a decision for Will, and it was not taken.
+
 ## [abra/regmc 0.86.1] — 2026-09-23 — **probe_volley_collapse_clamp reads the regulation's own checkout**
 
 A probe fix, no engine change. `tests/probe_volley_collapse_clamp.js` hardcoded the Reg M-B checkout as its `SHOWDOWN_PATH` default and read CANNOT-ANSWER under Reg M-C; it now selects the regulation's checkout through `engine/showdown_path.js`. **Supersedes.** Nothing. **Basis.** unchanged. Owes no living-document fold-in.

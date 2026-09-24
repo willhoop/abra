@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-23T06:00:38.087Z",
+  "generated": "2026-09-24T02:19:08.213Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:de38d17e15a2/credit:observed-effect/v1/nature:real",
   "games_requested": 1200,
@@ -52,7 +52,7 @@
       "damage_roll": "MINIMUM",
       "speed_tie": "to the EARLIER body",
       "games": 955,
-      "diverged": 64,
+      "diverged": 6,
       "threw": 0,
       "median_turns": 9,
       "end_reasons": {
@@ -63,38 +63,23 @@
       "turn1_boards_reached": 955,
       "rows_credited": 270,
       "credit_events": {
-        "effect": 512951,
+        "effect": 514832,
         "negative": 1610,
-        "click": 1096383
+        "click": 1104467
       },
       "classes": [
         {
-          "cls": "-fail field 4",
-          "games": 38,
-          "distinct_causes": 13
-        },
-        {
           "cls": "event missing from medicham2",
-          "games": 10,
-          "distinct_causes": 10
+          "games": 3,
+          "distinct_causes": 3
         },
         {
           "cls": "ordering",
-          "games": 7,
-          "distinct_causes": 6
-        },
-        {
-          "cls": "-fail field 3",
-          "games": 7,
+          "games": 2,
           "distinct_causes": 2
         },
         {
           "cls": "-fail: a different body",
-          "games": 1,
-          "distinct_causes": 1
-        },
-        {
-          "cls": "medicham2 stopped emitting while showdown continued",
           "games": 1,
           "distinct_causes": 1
         }
@@ -116,7 +101,7 @@
   },
   "games": 955,
   "turns_cap": 50,
-  "elapsed_s": 368.3,
+  "elapsed_s": 167.1,
   "credit_turn_profile": {
     "rows_with_any_credit": 270,
     "credits_with_no_turn_index": 0,
@@ -184,32 +169,32 @@
       }
     ],
     "credit_events_by_turn": {
-      "1": 77228,
-      "2": 78638,
-      "3": 77546,
-      "4": 78806,
-      "5": 75780,
-      "6": 71256,
-      "7": 64434,
-      "8": 53246,
-      "9": 44264,
-      "10": 34018,
-      "11": 26303,
-      "12": 19384,
-      "13": 15160,
-      "14": 10733,
-      "15": 8117,
-      "16": 5823,
-      "17": 4200,
-      "18": 2933,
-      "19": 2016,
-      "20": 1177,
-      "21": 832,
-      "22": 496,
-      "23": 499,
-      "24": 443,
+      "1": 77766,
+      "2": 78905,
+      "3": 77843,
+      "4": 79132,
+      "5": 76111,
+      "6": 71561,
+      "7": 64725,
+      "8": 53495,
+      "9": 44469,
+      "10": 34175,
+      "11": 26418,
+      "12": 19483,
+      "13": 15224,
+      "14": 10783,
+      "15": 8161,
+      "16": 5856,
+      "17": 4224,
+      "18": 2953,
+      "19": 2030,
+      "20": 1183,
+      "21": 837,
+      "22": 499,
+      "23": 501,
+      "24": 445,
       "25": 317,
-      "26": 300,
+      "26": 301,
       "27": 149,
       "28": 273,
       "29": 114,
@@ -620,11 +605,11 @@
     "rates": {
       "with_megas": {
         "games": 949,
-        "diverged": 64
+        "diverged": 6
       },
       "control_same_pairs_no_stones": {
         "games": 949,
-        "diverged": 74
+        "diverged": 14
       },
       "pairs_with_no_stone_at_all": {
         "games": 6,
@@ -632,16 +617,16 @@
       },
       "whole_control_arm": {
         "games": 955,
-        "diverged": 74,
+        "diverged": 14,
         "note": "every stone stripped — this is what the 2026-08-06 run measured"
       }
     },
     "pairing_broken": 0,
     "cost_of_the_megas": {
       "stone_carrying_pairs": 949,
-      "mega_arm_parted_earlier": 16,
-      "mega_arm_parted_later": 35,
-      "parted_at_the_same_line": 898,
+      "mega_arm_parted_earlier": 2,
+      "mega_arm_parted_later": 13,
+      "parted_at_the_same_line": 934,
       "first_divergence_is_a_mega_line": 0,
       "first_divergence_is_a_detailschange_line": 0,
       "on_a_mega_line": [],
@@ -669,7 +654,7 @@
       {
         "id": "stat-attribution",
         "why": "a stat line's meaning is (body, stat, direction, amount). `[from] ability: X` and `[of] Y` say WHICH effect moved it, which the two engines tag inconsistently; the four fields that decide the board are kept.",
-        "lines_collapsed": 27381,
+        "lines_collapsed": 27538,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -684,7 +669,7 @@
       {
         "id": "source-tag",
         "why": "`[of] pXy` names the BODY behind an effect whose name is already carried by `[from]`. The two engines tag it inconsistently on -heal, -activate and -damage.",
-        "lines_collapsed": 151747,
+        "lines_collapsed": 152818,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -699,7 +684,7 @@
       {
         "id": "effect-namespace",
         "why": "Showdown writes an effect sometimes bare and sometimes namespaced — `|-sidestart|p1: A|Reflect` against this engine's `move: reflect`. The NAME is kept; only the namespace goes.",
-        "lines_collapsed": 512305,
+        "lines_collapsed": 516391,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -714,7 +699,7 @@
       {
         "id": "display-flags",
         "why": "`[silent]`, `[still]`, `[miss]` and `[spread]` are rendering hints. The state each one decorates is a separate event — `-miss` for a miss, `-prepare` for a charge, one `-damage` per body actually hit for a spread — and all of those are kept.",
-        "lines_collapsed": 151671,
+        "lines_collapsed": 152861,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -729,7 +714,7 @@
       {
         "id": "move-target-field",
         "why": "THE BIGGEST ONE, AND THE ONE THAT NEEDS THE ARGUMENT. A `|move|` line means \"this body used this move\". Showdown additionally names ONE nominal target plus `[spread]`; this engine names its own user on a spread move. WHO WAS ACTUALLY HIT is not in this field on either side — it is in the `-damage` / `-status` / `-unboost` / `-enditem` lines that follow, which are kept and compared body by body. A redirection bug is therefore caught one line later rather than not at all, and the `distinct` pair below is exactly that case.",
-        "lines_collapsed": 1109101,
+        "lines_collapsed": 1117353,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -744,7 +729,7 @@
       {
         "id": "switch-cause",
         "why": "a pivot switch is tagged `[from] U-turn` by Showdown; the pivot itself is the `|move|` line immediately before it, which is kept. The species and the HP on the switch line are kept.",
-        "lines_collapsed": 16444,
+        "lines_collapsed": 16578,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -757,7 +742,7 @@
         ]
       }
     ],
-    "total_lines_collapsed": 1968649,
+    "total_lines_collapsed": 1983539,
     "ability_lines": [
       {
         "body": "p1a:gardevoir",
@@ -788,16 +773,16 @@
         "ability": "psychicsurge",
         "tail": "trace|[from]ability:trace",
         "showdown": 0,
-        "medicham2": 92,
-        "gap": -92
+        "medicham2": 94,
+        "gap": -94
       },
       {
         "body": "p2a:gardevoir",
         "ability": "psychicsurge",
         "tail": "trace|[from]ability:trace|[of]p1b:indeedee",
-        "showdown": 87,
+        "showdown": 89,
         "medicham2": 0,
-        "gap": 87
+        "gap": 89
       },
       {
         "body": "p2a:gardevoir",
@@ -988,8 +973,8 @@
         "ability": "drizzle",
         "tail": "trace|[from]ability:trace",
         "showdown": 0,
-        "medicham2": 39,
-        "gap": -39
+        "medicham2": 40,
+        "gap": -40
       },
       {
         "body": "p2b:gardevoir",
@@ -1672,6 +1657,22 @@
         "gap": -16
       },
       {
+        "body": "p1a:alakazam",
+        "ability": "blaze",
+        "tail": "trace|[from]ability:trace|[of]p2b:charizard",
+        "showdown": 16,
+        "medicham2": 0,
+        "gap": 16
+      },
+      {
+        "body": "p1a:alakazam",
+        "ability": "blaze",
+        "tail": "trace|[from]ability:trace",
+        "showdown": 0,
+        "medicham2": 16,
+        "gap": -16
+      },
+      {
         "body": "p2a:gardevoir",
         "ability": "defiant",
         "tail": "trace|[from]ability:trace|[of]p1a:kingambit",
@@ -1694,22 +1695,6 @@
         "showdown": 15,
         "medicham2": 0,
         "gap": 15
-      },
-      {
-        "body": "p1a:alakazam",
-        "ability": "blaze",
-        "tail": "trace|[from]ability:trace|[of]p2b:charizard",
-        "showdown": 15,
-        "medicham2": 0,
-        "gap": 15
-      },
-      {
-        "body": "p1a:alakazam",
-        "ability": "blaze",
-        "tail": "trace|[from]ability:trace",
-        "showdown": 0,
-        "medicham2": 15,
-        "gap": -15
       },
       {
         "body": "p1a:gardevoir",
@@ -1816,6 +1801,22 @@
         "gap": 13
       },
       {
+        "body": "p2b:alakazam",
+        "ability": "levitate",
+        "tail": "trace|[from]ability:trace|[of]p1b:rotom",
+        "showdown": 13,
+        "medicham2": 0,
+        "gap": 13
+      },
+      {
+        "body": "p2b:alakazam",
+        "ability": "levitate",
+        "tail": "trace|[from]ability:trace",
+        "showdown": 0,
+        "medicham2": 13,
+        "gap": -13
+      },
+      {
         "body": "p2b:gardevoir",
         "ability": "drought",
         "tail": "trace|[from]ability:trace|[of]p1b:torkoal",
@@ -1906,22 +1907,6 @@
       {
         "body": "p2a:gardevoir",
         "ability": "libero",
-        "tail": "trace|[from]ability:trace",
-        "showdown": 0,
-        "medicham2": 12,
-        "gap": -12
-      },
-      {
-        "body": "p2b:alakazam",
-        "ability": "levitate",
-        "tail": "trace|[from]ability:trace|[of]p1b:rotom",
-        "showdown": 12,
-        "medicham2": 0,
-        "gap": 12
-      },
-      {
-        "body": "p2b:alakazam",
-        "ability": "levitate",
         "tail": "trace|[from]ability:trace",
         "showdown": 0,
         "medicham2": 12,
@@ -2120,6 +2105,14 @@
         "gap": -9
       },
       {
+        "body": "p2a:gardevoir",
+        "ability": "drizzle",
+        "tail": "trace|[from]ability:trace|[of]p1a:pelipper",
+        "showdown": 9,
+        "medicham2": 0,
+        "gap": 9
+      },
+      {
         "body": "p1a:gardevoir",
         "ability": "unburden",
         "tail": "trace|[from]ability:trace|[of]p2a:sneasler",
@@ -2216,6 +2209,22 @@
         "gap": -8
       },
       {
+        "body": "p2a:alakazam",
+        "ability": "flamebody",
+        "tail": "trace|[from]ability:trace|[of]p1a:volcarona",
+        "showdown": 8,
+        "medicham2": 0,
+        "gap": 8
+      },
+      {
+        "body": "p2a:alakazam",
+        "ability": "flamebody",
+        "tail": "trace|[from]ability:trace",
+        "showdown": 0,
+        "medicham2": 8,
+        "gap": -8
+      },
+      {
         "body": "p1b:gardevoir",
         "ability": "thermalexchange",
         "tail": "trace|[from]ability:trace|[of]p2a:baxcalibur",
@@ -2230,14 +2239,6 @@
         "showdown": 0,
         "medicham2": 8,
         "gap": -8
-      },
-      {
-        "body": "p2a:gardevoir",
-        "ability": "drizzle",
-        "tail": "trace|[from]ability:trace|[of]p1a:pelipper",
-        "showdown": 8,
-        "medicham2": 0,
-        "gap": 8
       },
       {
         "body": "p2a:alakazam",
@@ -2336,22 +2337,6 @@
         "gap": -7
       },
       {
-        "body": "p2a:alakazam",
-        "ability": "flamebody",
-        "tail": "trace|[from]ability:trace|[of]p1a:volcarona",
-        "showdown": 7,
-        "medicham2": 0,
-        "gap": 7
-      },
-      {
-        "body": "p2a:alakazam",
-        "ability": "flamebody",
-        "tail": "trace|[from]ability:trace",
-        "showdown": 0,
-        "medicham2": 7,
-        "gap": -7
-      },
-      {
         "body": "p1a:gardevoir",
         "ability": "thermalexchange",
         "tail": "trace|[from]ability:trace|[of]p2a:baxcalibur",
@@ -2368,6 +2353,22 @@
         "gap": -7
       },
       {
+        "body": "p2a:gardevoir",
+        "ability": "torrent",
+        "tail": "trace|[from]ability:trace|[of]p1a:swampert",
+        "showdown": 7,
+        "medicham2": 0,
+        "gap": 7
+      },
+      {
+        "body": "p2a:gardevoir",
+        "ability": "torrent",
+        "tail": "trace|[from]ability:trace",
+        "showdown": 0,
+        "medicham2": 7,
+        "gap": -7
+      },
+      {
         "body": "p2a:alakazam",
         "ability": "clearbody",
         "tail": "trace|[from]ability:trace|[of]p1b:metagross",
@@ -2378,6 +2379,22 @@
       {
         "body": "p2a:alakazam",
         "ability": "clearbody",
+        "tail": "trace|[from]ability:trace",
+        "showdown": 0,
+        "medicham2": 7,
+        "gap": -7
+      },
+      {
+        "body": "p2b:alakazam",
+        "ability": "intimidate",
+        "tail": "trace|[from]ability:trace|[of]p1b:incineroar",
+        "showdown": 7,
+        "medicham2": 0,
+        "gap": 7
+      },
+      {
+        "body": "p2b:alakazam",
+        "ability": "intimidate",
         "tail": "trace|[from]ability:trace",
         "showdown": 0,
         "medicham2": 7,
@@ -2544,22 +2561,6 @@
         "gap": -6
       },
       {
-        "body": "p2a:gardevoir",
-        "ability": "torrent",
-        "tail": "trace|[from]ability:trace|[of]p1a:swampert",
-        "showdown": 6,
-        "medicham2": 0,
-        "gap": 6
-      },
-      {
-        "body": "p2a:gardevoir",
-        "ability": "torrent",
-        "tail": "trace|[from]ability:trace",
-        "showdown": 0,
-        "medicham2": 6,
-        "gap": -6
-      },
-      {
         "body": "p2b:gardevoir",
         "ability": "stamina",
         "tail": "trace|[from]ability:trace|[of]p1a:archaludon",
@@ -2584,7 +2585,7 @@
         "gap": 6
       },
       {
-        "body": "p2b:alakazam",
+        "body": "p2a:alakazam",
         "ability": "intimidate",
         "tail": "trace|[from]ability:trace|[of]p1b:incineroar",
         "showdown": 6,
@@ -2592,7 +2593,7 @@
         "gap": 6
       },
       {
-        "body": "p2b:alakazam",
+        "body": "p2a:alakazam",
         "ability": "intimidate",
         "tail": "trace|[from]ability:trace",
         "showdown": 0,
@@ -2729,22 +2730,6 @@
       },
       {
         "body": "p2a:alakazam",
-        "ability": "intimidate",
-        "tail": "trace|[from]ability:trace|[of]p1b:incineroar",
-        "showdown": 5,
-        "medicham2": 0,
-        "gap": 5
-      },
-      {
-        "body": "p2a:alakazam",
-        "ability": "intimidate",
-        "tail": "trace|[from]ability:trace",
-        "showdown": 0,
-        "medicham2": 5,
-        "gap": -5
-      },
-      {
-        "body": "p2a:alakazam",
         "ability": "drizzle",
         "tail": "trace|[from]ability:trace|[of]p1a:pelipper",
         "showdown": 4,
@@ -2827,17 +2812,17 @@
         "body": "p2b:alakazam",
         "ability": "unnerve",
         "tail": "trace|[from]ability:trace|[of]p1a:aerodactyl",
-        "showdown": 2,
+        "showdown": 3,
         "medicham2": 0,
-        "gap": 2
+        "gap": 3
       },
       {
         "body": "p2b:alakazam",
         "ability": "unnerve",
         "tail": "trace|[from]ability:trace",
         "showdown": 0,
-        "medicham2": 2,
-        "gap": -2
+        "medicham2": 3,
+        "gap": -3
       },
       {
         "body": "p1a:planted",
@@ -2851,56 +2836,56 @@
         "body": "p1a:salamence",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 6502,
-        "medicham2": 6502,
+        "showdown": 6527,
+        "medicham2": 6527,
         "gap": 0
       },
       {
         "body": "p2a:incineroar",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 4241,
-        "medicham2": 4241,
+        "showdown": 4291,
+        "medicham2": 4291,
         "gap": 0
       },
       {
         "body": "p2a:salamence",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 4211,
-        "medicham2": 4211,
+        "showdown": 4247,
+        "medicham2": 4247,
         "gap": 0
       },
       {
         "body": "p1a:incineroar",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 4116,
-        "medicham2": 4116,
+        "showdown": 4163,
+        "medicham2": 4163,
         "gap": 0
       },
       {
         "body": "p1b:incineroar",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 3500,
-        "medicham2": 3500,
+        "showdown": 3533,
+        "medicham2": 3533,
         "gap": 0
       },
       {
         "body": "p2b:incineroar",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 3264,
-        "medicham2": 3264,
+        "showdown": 3281,
+        "medicham2": 3281,
         "gap": 0
       },
       {
         "body": "p1a:archaludon",
         "ability": "stamina",
         "tail": "boost",
-        "showdown": 1831,
-        "medicham2": 1831,
+        "showdown": 1866,
+        "medicham2": 1866,
         "gap": 0
       },
       {
@@ -2915,8 +2900,8 @@
         "body": "p2b:salamence",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 1541,
-        "medicham2": 1541,
+        "showdown": 1561,
+        "medicham2": 1561,
         "gap": 0
       },
       {
@@ -2931,16 +2916,16 @@
         "body": "p1b:salamence",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 1256,
-        "medicham2": 1256,
+        "showdown": 1266,
+        "medicham2": 1266,
         "gap": 0
       },
       {
         "body": "p1a:kingambit",
         "ability": "defiant",
         "tail": "boost",
-        "showdown": 888,
-        "medicham2": 888,
+        "showdown": 895,
+        "medicham2": 895,
         "gap": 0
       },
       {
@@ -2971,8 +2956,8 @@
         "body": "p1b:kingambit",
         "ability": "defiant",
         "tail": "boost",
-        "showdown": 433,
-        "medicham2": 433,
+        "showdown": 440,
+        "medicham2": 440,
         "gap": 0
       },
       {
@@ -2987,48 +2972,48 @@
         "body": "p1a:blaziken",
         "ability": "speedboost",
         "tail": "boost",
-        "showdown": 392,
-        "medicham2": 392,
+        "showdown": 398,
+        "medicham2": 398,
         "gap": 0
       },
       {
         "body": "p1a:staraptor",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 387,
-        "medicham2": 387,
-        "gap": 0
-      },
-      {
-        "body": "p2b:kingambit",
-        "ability": "defiant",
-        "tail": "boost",
-        "showdown": 356,
-        "medicham2": 356,
+        "showdown": 391,
+        "medicham2": 391,
         "gap": 0
       },
       {
         "body": "p2a:staraptor",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 355,
-        "medicham2": 355,
+        "showdown": 360,
+        "medicham2": 360,
         "gap": 0
       },
       {
-        "body": "p1a:floette",
-        "ability": "fairyaura",
-        "tail": "",
-        "showdown": 326,
-        "medicham2": 326,
+        "body": "p2b:kingambit",
+        "ability": "defiant",
+        "tail": "boost",
+        "showdown": 357,
+        "medicham2": 357,
         "gap": 0
       },
       {
         "body": "p2b:blaziken",
         "ability": "speedboost",
         "tail": "boost",
-        "showdown": 324,
-        "medicham2": 324,
+        "showdown": 332,
+        "medicham2": 332,
+        "gap": 0
+      },
+      {
+        "body": "p1a:floette",
+        "ability": "fairyaura",
+        "tail": "",
+        "showdown": 330,
+        "medicham2": 330,
         "gap": 0
       },
       {
@@ -3048,6 +3033,14 @@
         "gap": 0
       },
       {
+        "body": "p1b:milotic",
+        "ability": "competitive",
+        "tail": "boost",
+        "showdown": 266,
+        "medicham2": 266,
+        "gap": 0
+      },
+      {
         "body": "p1a:espathra",
         "ability": "speedboost",
         "tail": "boost",
@@ -3056,19 +3049,19 @@
         "gap": 0
       },
       {
-        "body": "p1b:milotic",
-        "ability": "competitive",
-        "tail": "boost",
-        "showdown": 255,
-        "medicham2": 255,
-        "gap": 0
-      },
-      {
         "body": "p2b:staraptor",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 250,
-        "medicham2": 250,
+        "showdown": 251,
+        "medicham2": 251,
+        "gap": 0
+      },
+      {
+        "body": "p1b:blaziken",
+        "ability": "speedboost",
+        "tail": "boost",
+        "showdown": 248,
+        "medicham2": 248,
         "gap": 0
       },
       {
@@ -3096,27 +3089,19 @@
         "gap": 0
       },
       {
-        "body": "p1b:blaziken",
-        "ability": "speedboost",
-        "tail": "boost",
-        "showdown": 238,
-        "medicham2": 238,
-        "gap": 0
-      },
-      {
         "body": "p1a:aerodactyl",
         "ability": "unnerve",
         "tail": "",
-        "showdown": 231,
-        "medicham2": 231,
+        "showdown": 233,
+        "medicham2": 233,
         "gap": 0
       },
       {
         "body": "p2b:floette",
         "ability": "fairyaura",
         "tail": "",
-        "showdown": 226,
-        "medicham2": 226,
+        "showdown": 229,
+        "medicham2": 229,
         "gap": 0
       },
       {
@@ -3147,8 +3132,16 @@
         "body": "p2b:milotic",
         "ability": "competitive",
         "tail": "boost",
-        "showdown": 189,
-        "medicham2": 189,
+        "showdown": 196,
+        "medicham2": 196,
+        "gap": 0
+      },
+      {
+        "body": "p2a:aerodactyl",
+        "ability": "unnerve",
+        "tail": "",
+        "showdown": 184,
+        "medicham2": 184,
         "gap": 0
       },
       {
@@ -3160,19 +3153,11 @@
         "gap": 0
       },
       {
-        "body": "p2a:aerodactyl",
-        "ability": "unnerve",
-        "tail": "",
-        "showdown": 182,
-        "medicham2": 182,
-        "gap": 0
-      },
-      {
         "body": "p1b:aerodactyl",
         "ability": "unnerve",
         "tail": "",
-        "showdown": 179,
-        "medicham2": 179,
+        "showdown": 183,
+        "medicham2": 183,
         "gap": 0
       },
       {
@@ -3195,8 +3180,8 @@
         "body": "p1a:milotic",
         "ability": "competitive",
         "tail": "boost",
-        "showdown": 153,
-        "medicham2": 153,
+        "showdown": 159,
+        "medicham2": 159,
         "gap": 0
       },
       {
@@ -3219,8 +3204,8 @@
         "body": "p1a:altaria",
         "ability": "cloudnine",
         "tail": "",
-        "showdown": 141,
-        "medicham2": 141,
+        "showdown": 143,
+        "medicham2": 143,
         "gap": 0
       },
       {
@@ -3243,8 +3228,8 @@
         "body": "p2b:mawile",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 113,
-        "medicham2": 113,
+        "showdown": 114,
+        "medicham2": 114,
         "gap": 0
       },
       {
@@ -3259,8 +3244,8 @@
         "body": "p2a:annihilape",
         "ability": "defiant",
         "tail": "boost",
-        "showdown": 106,
-        "medicham2": 106,
+        "showdown": 107,
+        "medicham2": 107,
         "gap": 0
       },
       {
@@ -3275,8 +3260,8 @@
         "body": "p1b:arcanine",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 93,
-        "medicham2": 93,
+        "showdown": 95,
+        "medicham2": 95,
         "gap": 0
       },
       {
@@ -3304,19 +3289,19 @@
         "gap": 0
       },
       {
+        "body": "p2a:gyarados",
+        "ability": "intimidate",
+        "tail": "boost",
+        "showdown": 81,
+        "medicham2": 81,
+        "gap": 0
+      },
+      {
         "body": "p2a:gardevoir",
         "ability": "intimidate",
         "tail": "boost",
         "showdown": 80,
         "medicham2": 80,
-        "gap": 0
-      },
-      {
-        "body": "p2a:gyarados",
-        "ability": "intimidate",
-        "tail": "boost",
-        "showdown": 78,
-        "medicham2": 78,
         "gap": 0
       },
       {
@@ -3328,19 +3313,19 @@
         "gap": 0
       },
       {
+        "body": "p2b:gyarados",
+        "ability": "intimidate",
+        "tail": "boost",
+        "showdown": 62,
+        "medicham2": 62,
+        "gap": 0
+      },
+      {
         "body": "p2b:krookodile",
         "ability": "moxie",
         "tail": "boost",
         "showdown": 61,
         "medicham2": 61,
-        "gap": 0
-      },
-      {
-        "body": "p2b:gyarados",
-        "ability": "intimidate",
-        "tail": "boost",
-        "showdown": 60,
-        "medicham2": 60,
         "gap": 0
       },
       {
@@ -3360,9 +3345,9 @@
         "gap": 0
       },
       {
-        "body": "p2a:weavile",
-        "ability": "pressure",
-        "tail": "",
+        "body": "p2b:annihilape",
+        "ability": "defiant",
+        "tail": "boost",
         "showdown": 55,
         "medicham2": 55,
         "gap": 0
@@ -3371,16 +3356,24 @@
         "body": "p1a:overqwil",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 54,
-        "medicham2": 54,
+        "showdown": 55,
+        "medicham2": 55,
         "gap": 0
       },
       {
-        "body": "p2b:annihilape",
-        "ability": "defiant",
+        "body": "p2a:weavile",
+        "ability": "pressure",
+        "tail": "",
+        "showdown": 55,
+        "medicham2": 55,
+        "gap": 0
+      },
+      {
+        "body": "p1a:arcanine",
+        "ability": "intimidate",
         "tail": "boost",
-        "showdown": 53,
-        "medicham2": 53,
+        "showdown": 54,
+        "medicham2": 54,
         "gap": 0
       },
       {
@@ -3392,16 +3385,16 @@
         "gap": 0
       },
       {
-        "body": "p1a:arcanine",
-        "ability": "intimidate",
-        "tail": "boost",
+        "body": "p2b:aerodactyl",
+        "ability": "unnerve",
+        "tail": "",
         "showdown": 52,
         "medicham2": 52,
         "gap": 0
       },
       {
-        "body": "p2b:aerodactyl",
-        "ability": "unnerve",
+        "body": "p1b:altaria",
+        "ability": "cloudnine",
         "tail": "",
         "showdown": 51,
         "medicham2": 51,
@@ -3416,19 +3409,19 @@
         "gap": 0
       },
       {
-        "body": "p2a:milotic",
-        "ability": "competitive",
-        "tail": "boost",
+        "body": "p1b:corviknight",
+        "ability": "mirrorarmor",
+        "tail": "",
         "showdown": 50,
         "medicham2": 50,
         "gap": 0
       },
       {
-        "body": "p1b:altaria",
-        "ability": "cloudnine",
-        "tail": "",
-        "showdown": 49,
-        "medicham2": 49,
+        "body": "p2a:milotic",
+        "ability": "competitive",
+        "tail": "boost",
+        "showdown": 50,
+        "medicham2": 50,
         "gap": 0
       },
       {
@@ -3440,7 +3433,7 @@
         "gap": 0
       },
       {
-        "body": "p1b:corviknight",
+        "body": "p2b:corviknight",
         "ability": "mirrorarmor",
         "tail": "",
         "showdown": 48,
@@ -3448,11 +3441,11 @@
         "gap": 0
       },
       {
-        "body": "p2b:corviknight",
-        "ability": "mirrorarmor",
-        "tail": "",
-        "showdown": 48,
-        "medicham2": 48,
+        "body": "p2a:scrafty",
+        "ability": "intimidate",
+        "tail": "boost",
+        "showdown": 47,
+        "medicham2": 47,
         "gap": 0
       },
       {
@@ -3464,19 +3457,11 @@
         "gap": 0
       },
       {
-        "body": "p2a:scrafty",
+        "body": "p1b:overqwil",
         "ability": "intimidate",
         "tail": "boost",
         "showdown": 45,
         "medicham2": 45,
-        "gap": 0
-      },
-      {
-        "body": "p1b:overqwil",
-        "ability": "intimidate",
-        "tail": "boost",
-        "showdown": 42,
-        "medicham2": 42,
         "gap": 0
       },
       {
@@ -3485,6 +3470,14 @@
         "tail": "",
         "showdown": 41,
         "medicham2": 41,
+        "gap": 0
+      },
+      {
+        "body": "p2a:raichu",
+        "ability": "lightningrod",
+        "tail": "boost",
+        "showdown": 40,
+        "medicham2": 40,
         "gap": 0
       },
       {
@@ -3512,8 +3505,8 @@
         "gap": 0
       },
       {
-        "body": "p2a:raichu",
-        "ability": "lightningrod",
+        "body": "p2a:arcanine",
+        "ability": "intimidate",
         "tail": "boost",
         "showdown": 37,
         "medicham2": 37,
@@ -3531,14 +3524,6 @@
         "body": "p1a:goodra",
         "ability": "gooey",
         "tail": "",
-        "showdown": 36,
-        "medicham2": 36,
-        "gap": 0
-      },
-      {
-        "body": "p2a:arcanine",
-        "ability": "intimidate",
-        "tail": "boost",
         "showdown": 36,
         "medicham2": 36,
         "gap": 0
@@ -3624,16 +3609,16 @@
         "gap": 0
       },
       {
-        "body": "p2a:empoleon",
-        "ability": "competitive",
+        "body": "p1a:baxcalibur",
+        "ability": "thermalexchange",
         "tail": "boost",
-        "showdown": 26,
-        "medicham2": 26,
+        "showdown": 27,
+        "medicham2": 27,
         "gap": 0
       },
       {
-        "body": "p1a:baxcalibur",
-        "ability": "thermalexchange",
+        "body": "p2a:empoleon",
+        "ability": "competitive",
         "tail": "boost",
         "showdown": 26,
         "medicham2": 26,
@@ -3976,6 +3961,14 @@
         "gap": 0
       },
       {
+        "body": "p2b:alakazam",
+        "ability": "intimidate",
+        "tail": "boost",
+        "showdown": 7,
+        "medicham2": 7,
+        "gap": 0
+      },
+      {
         "body": "p2a:starmie",
         "ability": "intimidate",
         "tail": "boost",
@@ -3992,7 +3985,7 @@
         "gap": 0
       },
       {
-        "body": "p2b:alakazam",
+        "body": "p2a:alakazam",
         "ability": "intimidate",
         "tail": "boost",
         "showdown": 6,
@@ -4019,14 +4012,6 @@
         "body": "p1a:aerodactyl",
         "ability": "pressure",
         "tail": "",
-        "showdown": 5,
-        "medicham2": 5,
-        "gap": 0
-      },
-      {
-        "body": "p2a:alakazam",
-        "ability": "intimidate",
-        "tail": "boost",
         "showdown": 5,
         "medicham2": 5,
         "gap": 0
@@ -4067,8 +4052,8 @@
         "body": "p2b:alakazam",
         "ability": "unnerve",
         "tail": "",
-        "showdown": 2,
-        "medicham2": 2,
+        "showdown": 3,
+        "medicham2": 3,
         "gap": 0
       }
     ],
@@ -4317,12 +4302,12 @@
     },
     "verdict": "the predicted DAMAGE bug does not reproduce — medicham2 prices both halves correctly because playerAction computes the range at CLICK time, before the item is stripped. AND THE ITEM DISPOSITION AGREES TOO: both engines record Colbur as EATEN, writing `[eat]` then `[weaken]` and setting lastItem/ateBerry, which the `last_item` and `ate_berry` board leaves have compared since 2026-09-10. This clause claimed the opposite until that date while the two `*_enditem` lists above it said otherwise."
   },
-  "diverged": 64,
+  "diverged": 6,
   "threw": 0,
   "mid_void": {
     "void_games": 1,
     "usable_games": 954,
-    "diverged_among_usable": 64,
+    "diverged_among_usable": 6,
     "void_game_tags": [
       {
         "config": "pair-speedctrl",
@@ -4333,7 +4318,7 @@
         "board_parted_at_turn": null
       }
     ],
-    "diverged_rate_over_usable": 0.0671,
+    "diverged_rate_over_usable": 0.0063,
     "mid_battle_bound_at_install": true,
     "empty_address_games_counted_void": false,
     "overlap_floor": 0.9,
@@ -4344,7 +4329,7 @@
     "by_reason_detail": {
       "shared-addresses-agree": {
         "games": 954,
-        "diverged": 64,
+        "diverged": 6,
         "median_turns": 9,
         "max_turns": 50
       },
@@ -4842,38 +4827,23 @@
       "rate_of_all_games": 1,
       "rate_of_games_that_reached_it": 1,
       "never_reached_turn1": 0,
-      "protocol_parted_during_turn1": 5,
-      "protocol_parted_during_turn1_board_identical_anyway": 5,
+      "protocol_parted_during_turn1": 0,
+      "protocol_parted_during_turn1_board_identical_anyway": 0,
       "by_field": [],
       "by_cause": [],
       "by_protocol_class": [
         {
-          "cls": "-fail field 4",
-          "games": 38,
-          "board_identical_at_end_of_turn1": 38
-        },
-        {
           "cls": "event missing from medicham2",
-          "games": 10,
-          "board_identical_at_end_of_turn1": 10
+          "games": 3,
+          "board_identical_at_end_of_turn1": 3
         },
         {
           "cls": "ordering",
-          "games": 7,
-          "board_identical_at_end_of_turn1": 7
-        },
-        {
-          "cls": "-fail field 3",
-          "games": 7,
-          "board_identical_at_end_of_turn1": 7
+          "games": 2,
+          "board_identical_at_end_of_turn1": 2
         },
         {
           "cls": "-fail: a different body",
-          "games": 1,
-          "board_identical_at_end_of_turn1": 1
-        },
-        {
-          "cls": "medicham2 stopped emitting while showdown continued",
           "games": 1,
           "board_identical_at_end_of_turn1": 1
         }
@@ -4893,8 +4863,8 @@
     "void_games_counted_against_the_engine": false,
     "game_agreement": 1,
     "median_turn_of_first_board_divergence": null,
-    "protocol_diverged_games": 64,
-    "protocol_diverged_board_never_did": 64,
+    "protocol_diverged_games": 6,
+    "protocol_diverged_board_never_did": 6,
     "protocol_diverged_board_held_longer": 0,
     "board_parted_before_the_protocol_did": 0,
     "families": [],
@@ -5820,17 +5790,17 @@
           "NO-COMPARABLE-BOARD": 0,
           "THREW": 0
         },
-        "protocol_parted": 64,
-        "protocol_never_parted": 891,
+        "protocol_parted": 6,
+        "protocol_never_parted": 949,
         "of_the_games_whose_protocol_parted": {
-          "SAME-END-STATE": 64,
+          "SAME-END-STATE": 6,
           "DIFFERENT-END-STATE": 0,
           "ENDED-APART": 0,
           "NO-COMPARABLE-BOARD": 0,
           "THREW": 0
         },
         "of_the_games_whose_protocol_never_parted": {
-          "SAME-END-STATE": 891,
+          "SAME-END-STATE": 949,
           "DIFFERENT-END-STATE": 0,
           "ENDED-APART": 0,
           "NO-COMPARABLE-BOARD": 0,
@@ -5838,35 +5808,13 @@
         },
         "wording_rate_of_all_parted_games": 1,
         "wording_rate_of_parted_games_with_a_comparable_end": 1,
-        "parted_games_with_a_comparable_end": 64,
+        "parted_games_with_a_comparable_end": 6,
         "by_shape": [
           {
-            "shape": "FIELD",
-            "games": 45,
-            "verdicts": {
-              "SAME-END-STATE": 45,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            }
-          },
-          {
             "shape": "EMISSION",
-            "games": 14,
+            "games": 4,
             "verdicts": {
-              "SAME-END-STATE": 14,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            }
-          },
-          {
-            "shape": "ORDERING",
-            "games": 3,
-            "verdicts": {
-              "SAME-END-STATE": 3,
+              "SAME-END-STATE": 4,
               "DIFFERENT-END-STATE": 0,
               "ENDED-APART": 0,
               "NO-COMPARABLE-BOARD": 0,
@@ -5885,7 +5833,7 @@
             }
           },
           {
-            "shape": "UNPARSED",
+            "shape": "ORDERING",
             "games": 1,
             "verdicts": {
               "SAME-END-STATE": 1,
@@ -5898,327 +5846,7 @@
         ],
         "by_cause": [
           {
-            "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]innerfocus <> |-fail|p1a|unboost|attack|[from]innerfocus",
-            "games": 8,
-            "board_parted": 0,
-            "board_never_parted": 8,
-            "verdicts": {
-              "SAME-END-STATE": 8,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 8,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "-fail field 4 :: |-fail|p2a|unboost|atk|[from]innerfocus <> |-fail|p2a|unboost|attack|[from]innerfocus",
-            "games": 7,
-            "board_parted": 0,
-            "board_never_parted": 7,
-            "verdicts": {
-              "SAME-END-STATE": 7,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 7,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "-fail field 4 :: |-fail|p1b|unboost|atk|[from]innerfocus <> |-fail|p1b|unboost|attack|[from]innerfocus",
-            "games": 5,
-            "board_parted": 0,
-            "board_never_parted": 5,
-            "verdicts": {
-              "SAME-END-STATE": 5,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 5,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "-fail field 4 :: |-fail|p2a|unboost|atk|[from]scrappy <> |-fail|p2a|unboost|attack|[from]scrappy",
-            "games": 4,
-            "board_parted": 0,
-            "board_never_parted": 4,
-            "verdicts": {
-              "SAME-END-STATE": 4,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 4,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "-fail field 3 :: |-fail|p2b|doubleshock <> |-fail|p2b",
-            "games": 4,
-            "board_parted": 0,
-            "board_never_parted": 4,
-            "verdicts": {
-              "SAME-END-STATE": 4,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 4,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "-fail field 4 :: |-fail|p2b|unboost|atk|[from]innerfocus <> |-fail|p2b|unboost|attack|[from]innerfocus",
-            "games": 3,
-            "board_parted": 0,
-            "board_never_parted": 3,
-            "verdicts": {
-              "SAME-END-STATE": 3,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 3,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "-fail field 3 :: |-fail|p1b|doubleshock <> |-fail|p1b",
-            "games": 3,
-            "board_parted": 0,
-            "board_never_parted": 3,
-            "verdicts": {
-              "SAME-END-STATE": 3,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 3,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]oblivious <> |-fail|p1a|unboost|attack|[from]oblivious",
-            "games": 2,
-            "board_parted": 0,
-            "board_never_parted": 2,
-            "verdicts": {
-              "SAME-END-STATE": 2,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 2,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "ordering :: |-fieldend|grassyterrain <> |faint|p2a",
-            "games": 2,
-            "board_parted": 0,
-            "board_never_parted": 2,
-            "verdicts": {
-              "SAME-END-STATE": 2,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 2,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]hypercutter <> |-fail|p1a|unboost|attack|[from]hypercutter",
-            "games": 2,
-            "board_parted": 0,
-            "board_never_parted": 2,
-            "verdicts": {
-              "SAME-END-STATE": 2,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 2,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "-fail field 4 :: |-fail|p1b|unboost|atk|[from]oblivious <> |-fail|p1b|unboost|attack|[from]oblivious",
-            "games": 2,
-            "board_parted": 0,
-            "board_never_parted": 2,
-            "verdicts": {
-              "SAME-END-STATE": 2,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 2,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
             "cause": "ordering :: |-enditem|p2a|leppaberry|[eat] <> |-heal|p2:|H/H|[from]revivalblessing",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-fail|p1a <> |move|p1b|direclaw",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]scrappy <> |-fail|p1a|unboost|attack|[from]scrappy",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |faint|p1a <> |upkeep",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "ordering :: |-fieldend|psychicterrain <> |faint|p2a",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-fail|p1a <> |move|p2a|flareblitz",
             "games": 1,
             "board_parted": 0,
             "board_never_parted": 1,
@@ -6298,67 +5926,7 @@
             "first_board_divergence_turns": []
           },
           {
-            "cause": "ordering :: |-heal|p2b|H/H|[from]grassyterrain <> |-heal|p1b|H/H|[from]leftovers",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
             "cause": "event missing from medicham2 :: |-activate|p1b|lightningrod <> |-prepare|p2b|electroshot",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |faint|p1a <> |-weather|raindance|[upkeep]",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "medicham2 stopped emitting while showdown continued :: |faint|p2a",
             "games": 1,
             "board_parted": 0,
             "board_never_parted": 1,
@@ -6396,179 +5964,19 @@
             "board_parted_earlier": 0,
             "materiality": "NARRATION-ONLY",
             "first_board_divergence_turns": []
-          },
-          {
-            "cause": "-fail field 4 :: |-fail|p2b|unboost|atk|[from]scrappy <> |-fail|p2b|unboost|attack|[from]scrappy",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |faint|p1a <> |-damage|p2a|H/H|[from]recoil",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "-fail field 4 :: |-fail|p2b|unboost|atk|[from]hypercutter <> |-fail|p2b|unboost|attack|[from]hypercutter",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "-fail field 4 :: |-fail|p1b|unboost|atk|[from]scrappy <> |-fail|p1b|unboost|attack|[from]scrappy",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "ordering :: |-heal|p2a|H/H|[from]grassyterrain <> |-heal|p1b|H/H|[from]leftovers",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p2a|lastrespects",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |faint|p2a <> |-damage|p1a|H/H|[from]lifeorb",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "-fail field 4 :: |-fail|p2a|unboost|atk|[from]hypercutter <> |-fail|p2a|unboost|attack|[from]hypercutter",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
           }
         ],
         "by_cause_totals": {
-          "causes": 33,
-          "games": 64,
+          "causes": 6,
+          "games": 6,
           "BOARD_MATERIAL": 0,
-          "NARRATION_ONLY": 33,
+          "NARRATION_ONLY": 6,
           "UNKNOWN": 0,
           "games_board_material": 0,
           "games_board_material_same_turn": 0,
           "games_board_material_board_parted_later": 0,
           "games_board_material_board_parted_earlier": 0,
-          "games_narration_only": 64,
+          "games_narration_only": 6,
           "games_unknown": 0,
           "by_cause_reconciles": true,
           "bounded_by": "NARRATION-ONLY is bounded by board_state.js NOT_COMPARED (published in this artifact as end_state_not_compared) and by the turn cap: a board that would part after the cap reads as narration here."
@@ -6790,757 +6198,8 @@
   ],
   "classes": [
     {
-      "cls": "-fail field 4",
-      "games": 38,
-      "causes": [
-        {
-          "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]oblivious <> |-fail|p1a|unboost|attack|[from]oblivious",
-          "n": 2,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p1a: Slowbro|Slowbro, L50|170/170",
-            "|switch|p1b: Indeedee|Indeedee-F, L50|145/145",
-            "|switch|p2a: Annihilape|Annihilape, L50|185/185",
-            "|switch|p2b: Salamence|Salamence, L50|170/170",
-            "|-ability|p2b: Salamence|Intimidate|boost"
-          ],
-          "sdAfter": [
-            "|-fail|p1a: Slowbro|unboost|atk|[from] ability: Oblivious|[of] p1a: Slowbro",
-            "|-unboost|p1b: Indeedee|atk|1",
-            "|-fieldstart|move: Psychic Terrain|[from] ability: Psychic Surge|[of] p1b: Indeedee",
-            "|turn|1"
-          ],
-          "meAfter": [
-            "|-fail|p1a: Slowbro|unboost|Attack|[from] ability: oblivious|[of] p1a: Slowbro",
-            "|-unboost|p1b: Indeedee|atk|1",
-            "|-fieldstart|move: psychicterrain|[from] ability: psychicsurge|[of] p1b: Indeedee"
-          ],
-          "species": "Slowbro",
-          "attribution": {
-            "showdown": [
-              "[from] ability: Oblivious",
-              "[of] p1a: Slowbro"
-            ],
-            "medicham": [
-              "[from] ability: oblivious",
-              "[of] p1a: Slowbro"
-            ]
-          },
-          "example": {
-            "config": "baseline",
-            "seed": "gen9championsvgc2026regmcbo3-2678436190 vs gen9championsvgc2026regmcbo3-2678542121",
-            "turn": 0
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "oblivious",
-              "legal": true,
-              "carriers": 4,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 318
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 318
-        },
-        {
-          "cause": "-fail field 4 :: |-fail|p2b|unboost|atk|[from]innerfocus <> |-fail|p2b|unboost|attack|[from]innerfocus",
-          "n": 3,
-          "void_n": 0,
-          "showdown_before": [
-            "|-weather|SunnyDay|[upkeep]",
-            "|upkeep",
-            "|turn|2",
-            "|switch|p1b: Incineroar|Incineroar, L50|170/170",
-            "|-ability|p1b: Incineroar|Intimidate|boost",
-            "|-unboost|p2a: Salamence|atk|1"
-          ],
-          "sdAfter": [
-            "|-fail|p2b: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p2b: Lucario",
-            "|move|p2a: Salamence|Double-Edge|p1a: Charizard",
-            "|-damage|p1a: Charizard|30/153",
-            "|-damage|p2a: Salamence|129/170|[from] Recoil",
-            "|move|p1a: Charizard|Heat Wave|p2b: Lucario|[spread] p2a,p2b",
-            "|-resisted|p2a: Salamence|1",
-            "|-supereffective|p2b: Lucario|1",
-            "|-damage|p2a: Salamence|56/170",
-            "|-damage|p2b: Lucario|0 fnt",
-            "|faint|p2b: Lucario"
-          ],
-          "meAfter": [
-            "|-fail|p2b: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p2b: Lucario",
-            "|move|p2a: Salamence|doubleedge|p1a: Charizard",
-            "|-damage|p1a: Charizard|30/153",
-            "|-damage|p2a: Salamence|129/170|[from] Recoil",
-            "|move|p1a: Charizard|heatwave|p2b: Lucario",
-            "|-resisted|p2a: Salamence|1",
-            "|-supereffective|p2b: Lucario|1",
-            "|-damage|p2a: Salamence|56/170",
-            "|-damage|p2b: Lucario|0 fnt",
-            "|faint|p2b: Lucario"
-          ],
-          "species": "Lucario",
-          "attribution": {
-            "showdown": [
-              "[from] ability: Inner Focus",
-              "[of] p2b: Lucario"
-            ],
-            "medicham": [
-              "[from] ability: innerfocus",
-              "[of] p2b: Lucario"
-            ]
-          },
-          "example": {
-            "config": "baseline",
-            "seed": "gen9championsvgc2026regmcbo3-2679828264 vs gen9championsvgc2026regmcbo3-2679871588",
-            "turn": 2
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "innerfocus",
-              "legal": true,
-              "carriers": 12,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 2069
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 2069
-        },
-        {
-          "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]scrappy <> |-fail|p1a|unboost|attack|[from]scrappy",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|turn|1",
-            "|detailschange|p1a: Lopunny|Lopunny-Mega, L50",
-            "|-mega|p1a: Lopunny|Lopunny|Lopunnite",
-            "|detailschange|p2a: Scrafty|Scrafty-Mega, L50",
-            "|-mega|p2a: Scrafty|Scrafty|Scraftinite",
-            "|-ability|p2a: Scrafty|Intimidate|boost"
-          ],
-          "sdAfter": [
-            "|-fail|p1a: Lopunny|unboost|atk|[from] ability: Scrappy|[of] p1a: Lopunny",
-            "|-unboost|p1b: Kingambit|atk|1",
-            "|-ability|p1b: Kingambit|Defiant|boost",
-            "|-boost|p1b: Kingambit|atk|2",
-            "|move|p1a: Lopunny|Fake Out||[still]",
-            "|cant|p2b: Farigiraf|ability: Armor Tail|Fake Out|[of] p1a: Lopunny",
-            "|move|p2a: Scrafty|Fake Out|p1a: Lopunny",
-            "|-damage|p1a: Lopunny|112/140",
-            "|move|p1b: Kingambit|Kowtow Cleave|p2a: Scrafty",
-            "|-resisted|p2a: Scrafty|2"
-          ],
-          "meAfter": [
-            "|-fail|p1a: Lopunny|unboost|Attack|[from] ability: scrappy|[of] p1a: Lopunny",
-            "|-unboost|p1b: Kingambit|atk|1",
-            "|-ability|p1b: Kingambit|defiant|boost",
-            "|-boost|p1b: Kingambit|atk|2",
-            "|move|p1a: Lopunny|fakeout||[still]",
-            "|cant|p2b: Farigiraf|ability: armortail|fakeout|[of] p1a: Lopunny",
-            "|move|p2a: Scrafty|fakeout|p1a: Lopunny",
-            "|-damage|p1a: Lopunny|112/140",
-            "|move|p1b: Kingambit|kowtowcleave|p2a: Scrafty",
-            "|-resisted|p2a: Scrafty|2"
-          ],
-          "species": "Lopunny",
-          "attribution": {
-            "showdown": [
-              "[from] ability: Scrappy",
-              "[of] p1a: Lopunny"
-            ],
-            "medicham": [
-              "[from] ability: scrappy",
-              "[of] p1a: Lopunny"
-            ]
-          },
-          "example": {
-            "config": "baseline",
-            "seed": "gen9championsvgc2026regmcbo3-2682477113 vs gen9championsvgc2026regmcbo3-2682449297",
-            "turn": 1
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "scrappy",
-              "legal": true,
-              "carriers": 5,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 307
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 307
-        },
-        {
-          "cause": "-fail field 4 :: |-fail|p2a|unboost|atk|[from]scrappy <> |-fail|p2a|unboost|attack|[from]scrappy",
-          "n": 4,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p1a: Golisopod|Golisopod, L50|150/150",
-            "|switch|p1b: Salamence|Salamence, L50|170/170",
-            "|switch|p2a: Sirfetch’d|Sirfetch’d, L50|137/137",
-            "|switch|p2b: Salamence|Salamence, L50|170/170",
-            "|-ability|p1b: Salamence|Intimidate|boost"
-          ],
-          "sdAfter": [
-            "|-fail|p2a: Sirfetch’d|unboost|atk|[from] ability: Scrappy|[of] p2a: Sirfetch’d",
-            "|-unboost|p2b: Salamence|atk|1",
-            "|-ability|p2b: Salamence|Intimidate|boost",
-            "|-unboost|p1a: Golisopod|atk|1",
-            "|-unboost|p1b: Salamence|atk|1",
-            "|turn|1"
-          ],
-          "meAfter": [
-            "|-fail|p2a: Sirfetch’d|unboost|Attack|[from] ability: scrappy|[of] p2a: Sirfetch’d",
-            "|-unboost|p2b: Salamence|atk|1",
-            "|-ability|p2b: Salamence|intimidate|boost",
-            "|-unboost|p1a: Golisopod|atk|1",
-            "|-unboost|p1b: Salamence|atk|1"
-          ],
-          "species": "Sirfetch’d",
-          "attribution": {
-            "showdown": [
-              "[from] ability: Scrappy",
-              "[of] p2a: Sirfetch’d"
-            ],
-            "medicham": [
-              "[from] ability: scrappy",
-              "[of] p2a: Sirfetch’d"
-            ]
-          },
-          "example": {
-            "config": "baseline",
-            "seed": "gen9championsvgc2026regmc-2680622216 vs gen9championsvgc2026regmc-2680853649",
-            "turn": 0
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "scrappy",
-              "legal": true,
-              "carriers": 5,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 307
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 307
-        },
-        {
-          "cause": "-fail field 4 :: |-fail|p2a|unboost|atk|[from]innerfocus <> |-fail|p2a|unboost|attack|[from]innerfocus",
-          "n": 7,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p1a: Salamence|Salamence, L50|170/170",
-            "|switch|p1b: Froslass|Froslass, L50|145/145",
-            "|switch|p2a: Lucario|Lucario, L50|145/145",
-            "|switch|p2b: Indeedee|Indeedee-F, L50|145/145",
-            "|-ability|p1a: Salamence|Intimidate|boost"
-          ],
-          "sdAfter": [
-            "|-fail|p2a: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p2a: Lucario",
-            "|-unboost|p2b: Indeedee|atk|1",
-            "|-fieldstart|move: Psychic Terrain|[from] ability: Psychic Surge|[of] p2b: Indeedee",
-            "|-enditem|p2b: Indeedee|Psychic Seed",
-            "|-boost|p2b: Indeedee|spd|1|[from] item: Psychic Seed",
-            "|turn|1"
-          ],
-          "meAfter": [
-            "|-fail|p2a: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p2a: Lucario",
-            "|-unboost|p2b: Indeedee|atk|1",
-            "|-fieldstart|move: psychicterrain|[from] ability: psychicsurge|[of] p2b: Indeedee",
-            "|-enditem|p2b: Indeedee|psychicseed",
-            "|-boost|p2b: Indeedee|spd|1|[from] item: psychicseed"
-          ],
-          "species": "Lucario",
-          "attribution": {
-            "showdown": [
-              "[from] ability: Inner Focus",
-              "[of] p2a: Lucario"
-            ],
-            "medicham": [
-              "[from] ability: innerfocus",
-              "[of] p2a: Lucario"
-            ]
-          },
-          "example": {
-            "config": "omit-weather",
-            "seed": "gen9championsvgc2026regmcbo3-2679830982 vs gen9championsvgc2026regmcbo3-2679871627",
-            "turn": 0
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "innerfocus",
-              "legal": true,
-              "carriers": 12,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 2069
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 2069
-        },
-        {
-          "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]innerfocus <> |-fail|p1a|unboost|attack|[from]innerfocus",
-          "n": 8,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p1a: Lucario|Lucario, L50|145/145",
-            "|switch|p1b: Aerodactyl|Aerodactyl, L50|155/155",
-            "|switch|p2a: Staraptor|Staraptor, L50|160/160",
-            "|switch|p2b: Garchomp|Garchomp, L50|183/183",
-            "|-ability|p1b: Aerodactyl|Unnerve",
-            "|-ability|p2a: Staraptor|Intimidate|boost"
-          ],
-          "sdAfter": [
-            "|-fail|p1a: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p1a: Lucario",
-            "|-unboost|p1b: Aerodactyl|atk|1",
-            "|turn|1"
-          ],
-          "meAfter": [
-            "|-fail|p1a: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p1a: Lucario",
-            "|-unboost|p1b: Aerodactyl|atk|1"
-          ],
-          "species": "Lucario",
-          "attribution": {
-            "showdown": [
-              "[from] ability: Inner Focus",
-              "[of] p1a: Lucario"
-            ],
-            "medicham": [
-              "[from] ability: innerfocus",
-              "[of] p1a: Lucario"
-            ]
-          },
-          "example": {
-            "config": "omit-weather",
-            "seed": "gen9championsvgc2026regmcbo3-2680926426 vs gen9championsvgc2026regmcbo3-2681047983",
-            "turn": 0
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "innerfocus",
-              "legal": true,
-              "carriers": 12,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 2069
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 2069
-        },
-        {
-          "cause": "-fail field 4 :: |-fail|p1b|unboost|atk|[from]innerfocus <> |-fail|p1b|unboost|attack|[from]innerfocus",
-          "n": 5,
-          "void_n": 0,
-          "showdown_before": [
-            "|-heal|p2b: Sneasler|23/155|[from] Grassy Terrain",
-            "|-heal|p1a: Floette|96/149|[from] Grassy Terrain",
-            "|upkeep",
-            "|switch|p2a: Incineroar|Incineroar, L50|170/170",
-            "|-ability|p2a: Incineroar|Intimidate|boost",
-            "|-unboost|p1a: Floette|atk|1"
-          ],
-          "sdAfter": [
-            "|-fail|p1b: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p1b: Lucario",
-            "|turn|3"
-          ],
-          "meAfter": [
-            "|-fail|p1b: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p1b: Lucario"
-          ],
-          "species": "Lucario",
-          "attribution": {
-            "showdown": [
-              "[from] ability: Inner Focus",
-              "[of] p1b: Lucario"
-            ],
-            "medicham": [
-              "[from] ability: innerfocus",
-              "[of] p1b: Lucario"
-            ]
-          },
-          "example": {
-            "config": "omit-weather",
-            "seed": "gen9championsvgc2026regmcbo3-2681633603 vs gen9championsvgc2026regmcbo3-2681785793",
-            "turn": 2
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "innerfocus",
-              "legal": true,
-              "carriers": 12,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 2069
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 2069
-        },
-        {
-          "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]hypercutter <> |-fail|p1a|unboost|attack|[from]hypercutter",
-          "n": 2,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p2a: Gengar|Gengar, L50|135/135",
-            "|switch|p2b: Whimsicott|Whimsicott, L50|135/135",
-            "|-weather|RainDance|[from] ability: Drizzle|[of] p1b: Pelipper",
-            "|turn|1",
-            "|switch|p2a: Incineroar|Incineroar, L50|170/170",
-            "|-ability|p2a: Incineroar|Intimidate|boost"
-          ],
-          "sdAfter": [
-            "|-fail|p1a: Mawile|unboost|atk|[from] ability: Hyper Cutter|[of] p1a: Mawile",
-            "|-unboost|p1b: Pelipper|atk|1",
-            "|detailschange|p1a: Mawile|Mawile-Mega, L50",
-            "|-mega|p1a: Mawile|Mawile|Mawilite",
-            "|move|p1a: Mawile|Protect|p1a: Mawile",
-            "|-singleturn|p1a: Mawile|Protect",
-            "|move|p2b: Whimsicott|Tickle|p1a: Mawile",
-            "|-activate|p1a: Mawile|move: Protect",
-            "|move|p1b: Pelipper|Weather Ball|p2a: Incineroar",
-            "|-supereffective|p2a: Incineroar|1"
-          ],
-          "meAfter": [
-            "|-fail|p1a: Mawile|unboost|Attack|[from] ability: hypercutter|[of] p1a: Mawile",
-            "|-unboost|p1b: Pelipper|atk|1",
-            "|detailschange|p1a: Mawile|mawile-mega, L50",
-            "|-mega|p1a: Mawile|Mawile|mawilite",
-            "|move|p1a: Mawile|protect|p1a: Mawile",
-            "|-singleturn|p1a: Mawile|Protect",
-            "|move|p2b: Whimsicott|tickle|p1a: Mawile",
-            "|-activate|p1a: Mawile|move: Protect",
-            "|move|p1b: Pelipper|weatherball|p2a: Incineroar",
-            "|-supereffective|p2a: Incineroar|1"
-          ],
-          "species": "Mawile",
-          "attribution": {
-            "showdown": [
-              "[from] ability: Hyper Cutter",
-              "[of] p1a: Mawile"
-            ],
-            "medicham": [
-              "[from] ability: hypercutter",
-              "[of] p1a: Mawile"
-            ]
-          },
-          "example": {
-            "config": "omit-spread",
-            "seed": "gen9championsvgc2026regmcbo3-2679935168 vs gen9championsvgc2026regmcbo3-2679919461",
-            "turn": 1
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "hypercutter",
-              "legal": true,
-              "carriers": 4,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 443
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 443
-        },
-        {
-          "cause": "-fail field 4 :: |-fail|p2b|unboost|atk|[from]scrappy <> |-fail|p2b|unboost|attack|[from]scrappy",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|-heal|p2b: Sirfetch’d|41/137|[from] Grassy Terrain",
-            "|upkeep",
-            "|turn|5",
-            "|switch|p1b: Incineroar|Incineroar, L50|170/170",
-            "|-ability|p1b: Incineroar|Intimidate|boost",
-            "|-unboost|p2a: Weavile|atk|1"
-          ],
-          "sdAfter": [
-            "|-fail|p2b: Sirfetch’d|unboost|atk|[from] ability: Scrappy|[of] p2b: Sirfetch’d",
-            "|move|p2a: Weavile|Triple Axel|p1a: Floette|[miss]",
-            "|-miss|p2a: Weavile|p1a: Floette",
-            "|move|p1a: Floette|Dazzling Gleam|p2a: Weavile|[spread] p2a,p2b",
-            "|-supereffective|p2a: Weavile|1",
-            "|-supereffective|p2b: Sirfetch’d|1",
-            "|-crit|p2b: Sirfetch’d",
-            "|-damage|p2a: Weavile|0 fnt",
-            "|-damage|p2b: Sirfetch’d|0 fnt",
-            "|faint|p2a: Weavile"
-          ],
-          "meAfter": [
-            "|-fail|p2b: Sirfetch’d|unboost|Attack|[from] ability: scrappy|[of] p2b: Sirfetch’d",
-            "|move|p2a: Weavile|tripleaxel|p1a: Floette",
-            "|-miss|p2a: Weavile|p1a: Floette",
-            "|move|p1a: Floette|dazzlinggleam|p2a: Weavile",
-            "|-supereffective|p2a: Weavile|1",
-            "|-supereffective|p2b: Sirfetch’d|1",
-            "|-crit|p2b: Sirfetch’d",
-            "|-damage|p2a: Weavile|0 fnt",
-            "|-damage|p2b: Sirfetch’d|0 fnt",
-            "|faint|p2a: Weavile"
-          ],
-          "species": "Sirfetch’d",
-          "attribution": {
-            "showdown": [
-              "[from] ability: Scrappy",
-              "[of] p2b: Sirfetch’d"
-            ],
-            "medicham": [
-              "[from] ability: scrappy",
-              "[of] p2b: Sirfetch’d"
-            ]
-          },
-          "example": {
-            "config": "pair-protect-bust",
-            "seed": "gen9championsvgc2026regmcbo3-2679555413 vs gen9championsvgc2026regmcbo3-2679596346",
-            "turn": 5
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "scrappy",
-              "legal": true,
-              "carriers": 5,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 307
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 307
-        },
-        {
-          "cause": "-fail field 4 :: |-fail|p2b|unboost|atk|[from]hypercutter <> |-fail|p2b|unboost|attack|[from]hypercutter",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|faint|p2a: Incineroar",
-            "|-weather|none",
-            "|upkeep",
-            "|turn|6",
-            "|switch|p1a: Incineroar|Incineroar, L50|170/170",
-            "|-ability|p1a: Incineroar|Intimidate|boost"
-          ],
-          "sdAfter": [
-            "|-fail|p2b: Mawile|unboost|atk|[from] ability: Hyper Cutter|[of] p2b: Mawile",
-            "|move|p1b: Milotic|Protect|p1b: Milotic",
-            "|-singleturn|p1b: Milotic|Protect",
-            "|move|p2b: Mawile|Protect||[still]",
-            "|-fail|p2b: Mawile",
-            "|upkeep",
-            "|turn|7"
-          ],
-          "meAfter": [
-            "|-fail|p2b: Mawile|unboost|Attack|[from] ability: hypercutter|[of] p2b: Mawile",
-            "|move|p1b: Milotic|protect|p1b: Milotic",
-            "|-singleturn|p1b: Milotic|Protect",
-            "|move|p2b: Mawile|protect||[still]",
-            "|-fail|p2b: Mawile",
-            "|upkeep"
-          ],
-          "species": "Mawile",
-          "attribution": {
-            "showdown": [
-              "[from] ability: Hyper Cutter",
-              "[of] p2b: Mawile"
-            ],
-            "medicham": [
-              "[from] ability: hypercutter",
-              "[of] p2b: Mawile"
-            ]
-          },
-          "example": {
-            "config": "pair-protect-bust",
-            "seed": "gen9championsvgc2026regmcbo3-2682545956 vs gen9championsvgc2026regmcbo3-2682572969",
-            "turn": 6
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "hypercutter",
-              "legal": true,
-              "carriers": 4,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 443
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 443
-        },
-        {
-          "cause": "-fail field 4 :: |-fail|p1b|unboost|atk|[from]scrappy <> |-fail|p1b|unboost|attack|[from]scrappy",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p1a: Indeedee|Indeedee-F, L50|145/145",
-            "|switch|p1b: Sirfetch’d|Sirfetch’d, L50|137/137",
-            "|switch|p2a: Salamence|Salamence, L50|170/170",
-            "|switch|p2b: Armarouge|Armarouge, L50|160/160",
-            "|-ability|p2a: Salamence|Intimidate|boost",
-            "|-unboost|p1a: Indeedee|atk|1"
-          ],
-          "sdAfter": [
-            "|-fail|p1b: Sirfetch’d|unboost|atk|[from] ability: Scrappy|[of] p1b: Sirfetch’d",
-            "|-fieldstart|move: Psychic Terrain|[from] ability: Psychic Surge|[of] p1a: Indeedee",
-            "|-enditem|p1a: Indeedee|Psychic Seed",
-            "|-boost|p1a: Indeedee|spd|1|[from] item: Psychic Seed",
-            "|turn|1"
-          ],
-          "meAfter": [
-            "|-fail|p1b: Sirfetch’d|unboost|Attack|[from] ability: scrappy|[of] p1b: Sirfetch’d",
-            "|-fieldstart|move: psychicterrain|[from] ability: psychicsurge|[of] p1a: Indeedee",
-            "|-enditem|p1a: Indeedee|psychicseed",
-            "|-boost|p1a: Indeedee|spd|1|[from] item: psychicseed"
-          ],
-          "species": "Sirfetch’d",
-          "attribution": {
-            "showdown": [
-              "[from] ability: Scrappy",
-              "[of] p1b: Sirfetch’d"
-            ],
-            "medicham": [
-              "[from] ability: scrappy",
-              "[of] p1b: Sirfetch’d"
-            ]
-          },
-          "example": {
-            "config": "pair-redirect-priority",
-            "seed": "gen9championsvgc2026regmcbo3-2682386820 vs gen9championsvgc2026regmcbo3-2682360023",
-            "turn": 0
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "scrappy",
-              "legal": true,
-              "carriers": 5,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 307
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 307
-        },
-        {
-          "cause": "-fail field 4 :: |-fail|p2a|unboost|atk|[from]hypercutter <> |-fail|p2a|unboost|attack|[from]hypercutter",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p1a: Salamence|Salamence, L50|170/170",
-            "|switch|p1b: Metagross|Metagross, L50|155/155",
-            "|switch|p2a: Crabominable|Crabominable, L50|172/172",
-            "|switch|p2b: Armarouge|Armarouge, L50|160/160",
-            "|-ability|p1a: Salamence|Intimidate|boost"
-          ],
-          "sdAfter": [
-            "|-fail|p2a: Crabominable|unboost|atk|[from] ability: Hyper Cutter|[of] p2a: Crabominable",
-            "|-unboost|p2b: Armarouge|atk|1",
-            "|turn|1"
-          ],
-          "meAfter": [
-            "|-fail|p2a: Crabominable|unboost|Attack|[from] ability: hypercutter|[of] p2a: Crabominable",
-            "|-unboost|p2b: Armarouge|atk|1"
-          ],
-          "species": "Crabominable",
-          "attribution": {
-            "showdown": [
-              "[from] ability: Hyper Cutter",
-              "[of] p2a: Crabominable"
-            ],
-            "medicham": [
-              "[from] ability: hypercutter",
-              "[of] p2a: Crabominable"
-            ]
-          },
-          "example": {
-            "config": "pair-speedctrl",
-            "seed": "gen9championsvgc2026regmcbo3-2678043802 vs gen9championsvgc2026regmcbo3-2678015756",
-            "turn": 0
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "hypercutter",
-              "legal": true,
-              "carriers": 4,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 443
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 443
-        },
-        {
-          "cause": "-fail field 4 :: |-fail|p1b|unboost|atk|[from]oblivious <> |-fail|p1b|unboost|attack|[from]oblivious",
-          "n": 2,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p2b: Rillaboom|Rillaboom, L50|175/175",
-            "|-ability|p1a: Salamence|Intimidate|boost",
-            "|-unboost|p2a: Salamence|atk|1",
-            "|-unboost|p2b: Rillaboom|atk|1",
-            "|-ability|p2a: Salamence|Intimidate|boost",
-            "|-unboost|p1a: Salamence|atk|1"
-          ],
-          "sdAfter": [
-            "|-fail|p1b: Mamoswine|unboost|atk|[from] ability: Oblivious|[of] p1b: Mamoswine",
-            "|-fieldstart|move: Grassy Terrain|[from] ability: Grassy Surge|[of] p2b: Rillaboom",
-            "|turn|1"
-          ],
-          "meAfter": [
-            "|-fail|p1b: Mamoswine|unboost|Attack|[from] ability: oblivious|[of] p1b: Mamoswine",
-            "|-fieldstart|move: grassyterrain|[from] ability: grassysurge|[of] p2b: Rillaboom"
-          ],
-          "species": "Mamoswine",
-          "attribution": {
-            "showdown": [
-              "[from] ability: Oblivious",
-              "[of] p1b: Mamoswine"
-            ],
-            "medicham": [
-              "[from] ability: oblivious",
-              "[of] p1b: Mamoswine"
-            ]
-          },
-          "example": {
-            "config": "pair-speedctrl",
-            "seed": "gen9championsvgc2026regmcbo3-2678661989 vs gen9championsvgc2026regmcbo3-2678782609",
-            "turn": 0
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "oblivious",
-              "legal": true,
-              "carriers": 4,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 318
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 318
-        }
-      ]
-    },
-    {
       "cls": "ordering",
-      "games": 7,
+      "games": 2,
       "causes": [
         {
           "cause": "ordering :: |-enditem|p2a|leppaberry|[eat] <> |-heal|p2:|H/H|[from]revivalblessing",
@@ -7623,216 +6282,6 @@
           "max_uses": 767
         },
         {
-          "cause": "ordering :: |-fieldend|grassyterrain <> |faint|p2a",
-          "n": 2,
-          "void_n": 0,
-          "showdown_before": [
-            "|move|p2a: Baxcalibur|Dragon Dance|p2a: Baxcalibur",
-            "|-boost|p2a: Baxcalibur|atk|1",
-            "|-boost|p2a: Baxcalibur|spe|1",
-            "|move|p1a: Metagross|Steel Roller|p2a: Baxcalibur",
-            "|-supereffective|p2a: Baxcalibur|1",
-            "|-damage|p2a: Baxcalibur|0 fnt"
-          ],
-          "sdAfter": [
-            "|-fieldend|move: Grassy Terrain",
-            "|faint|p2a: Baxcalibur",
-            "|move|p2b: Mawile|Play Rough|p1a: Metagross",
-            "|-resisted|p1a: Metagross|1",
-            "|-damage|p1a: Metagross|0 fnt",
-            "|faint|p1a: Metagross",
-            "|upkeep",
-            "|switch|p1a: Kommo-o|Kommo-o, L50|150/150",
-            "|switch|p2a: Rillaboom|Rillaboom, L50|175/175",
-            "|-fieldstart|move: Grassy Terrain|[from] ability: Grassy Surge|[of] p2a: Rillaboom"
-          ],
-          "meAfter": [
-            "|faint|p2a: Baxcalibur",
-            "|-fieldend|move: grassyterrain",
-            "|move|p2b: Mawile|playrough|p1a: Metagross",
-            "|-resisted|p1a: Metagross|1",
-            "|-damage|p1a: Metagross|0 fnt",
-            "|faint|p1a: Metagross",
-            "|upkeep",
-            "|switch|p1a: Kommo-o|kommoo, L50|150/150",
-            "|switch|p2a: Rillaboom|rillaboom, L50|175/175",
-            "|-fieldstart|move: grassyterrain|[from] ability: grassysurge|[of] p2a: Rillaboom"
-          ],
-          "species": "Baxcalibur",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "baseline",
-            "seed": "gen9championsvgc2026regmc-2678386444 vs gen9championsvgc2026regmc-2678608021",
-            "turn": 3
-          },
-          "mentions": [
-            {
-              "kind": "conditions",
-              "id": "grassyterrain",
-              "legal": null,
-              "carriers": null,
-              "reachable": null,
-              "nonstandard": null,
-              "uses": null
-            },
-            {
-              "kind": "moves",
-              "id": "grassyterrain",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 10
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 10
-        },
-        {
-          "cause": "ordering :: |-fieldend|psychicterrain <> |faint|p2a",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|-mega|p1a: Metagross|Metagross|Metagrossite",
-            "|move|p2b: Indeedee|Helping Hand|p2a: Hatterene",
-            "|-singleturn|p2a: Hatterene|Helping Hand|[of] p2b: Indeedee",
-            "|move|p1a: Metagross|Steel Roller|p2a: Hatterene",
-            "|-supereffective|p2a: Hatterene|1",
-            "|-damage|p2a: Hatterene|0 fnt"
-          ],
-          "sdAfter": [
-            "|-fieldend|move: Psychic Terrain",
-            "|faint|p2a: Hatterene",
-            "|move|p1b: Garchomp|Rock Slide|p2b: Indeedee",
-            "|-crit|p2b: Indeedee",
-            "|-damage|p2b: Indeedee|16/145",
-            "|-damage|p1b: Garchomp|165/183|[from] item: Life Orb",
-            "|upkeep",
-            "|switch|p2a: Golisopod|Golisopod, L50|150/150",
-            "|turn|2"
-          ],
-          "meAfter": [
-            "|faint|p2a: Hatterene",
-            "|-fieldend|move: psychicterrain",
-            "|move|p1b: Garchomp|rockslide|p2b: Indeedee",
-            "|-crit|p2b: Indeedee",
-            "|-damage|p2b: Indeedee|16/145",
-            "|-damage|p1b: Garchomp|165/183|[from] item: Life Orb",
-            "|upkeep",
-            "|switch|p2a: Golisopod|golisopod, L50|150/150"
-          ],
-          "species": "Hatterene",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-weather",
-            "seed": "gen9championsvgc2026regmcbo3-2679021074 vs gen9championsvgc2026regmcbo3-2679001298",
-            "turn": 1
-          },
-          "mentions": [
-            {
-              "kind": "conditions",
-              "id": "psychicterrain",
-              "legal": null,
-              "carriers": null,
-              "reachable": null,
-              "nonstandard": null,
-              "uses": null
-            },
-            {
-              "kind": "moves",
-              "id": "psychicterrain",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 55
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 55
-        },
-        {
-          "cause": "ordering :: |-heal|p2b|H/H|[from]grassyterrain <> |-heal|p1b|H/H|[from]leftovers",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|move|p2a: Golisopod|Leech Life|p1a: Rillaboom",
-            "|-supereffective|p1a: Rillaboom|1",
-            "|-damage|p1a: Rillaboom|0 fnt",
-            "|-heal|p2a: Golisopod|98/150|[from] drain|[of] p1a: Rillaboom",
-            "|faint|p1a: Rillaboom",
-            "|-heal|p1b: Milotic|143/170|[from] Grassy Terrain"
-          ],
-          "sdAfter": [
-            "|-heal|p2b: Milotic|163/170|[from] Grassy Terrain",
-            "|-heal|p1b: Milotic|153/170|[from] item: Leftovers",
-            "|-heal|p2b: Milotic|170/170|[from] item: Leftovers",
-            "|-heal|p2a: Golisopod|107/150|[from] Grassy Terrain",
-            "|upkeep",
-            "|switch|p1a: Golisopod|Golisopod-Mega, L50|114/150",
-            "|turn|7"
-          ],
-          "meAfter": [
-            "|-heal|p1b: Milotic|153/170|[from] item: leftovers",
-            "|-heal|p2b: Milotic|163/170|[from] Grassy Terrain",
-            "|-heal|p2b: Milotic|170/170|[from] item: leftovers",
-            "|-heal|p2a: Golisopod|107/150|[from] Grassy Terrain",
-            "|upkeep",
-            "|switch|p1a: Golisopod|golisopod-mega, L50|114/150"
-          ],
-          "species": "Milotic",
-          "attribution": {
-            "showdown": [
-              "[from] Grassy Terrain"
-            ],
-            "medicham": [
-              "[from] item: leftovers"
-            ]
-          },
-          "example": {
-            "config": "omit-intimidate",
-            "seed": "gen9championsvgc2026regmcbo3-2684169278 vs gen9championsvgc2026regmcbo3-2684216556",
-            "turn": 6
-          },
-          "mentions": [
-            {
-              "kind": "conditions",
-              "id": "grassyterrain",
-              "legal": null,
-              "carriers": null,
-              "reachable": null,
-              "nonstandard": null,
-              "uses": null
-            },
-            {
-              "kind": "moves",
-              "id": "grassyterrain",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 10
-            },
-            {
-              "kind": "items",
-              "id": "leftovers",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 10416
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 10416
-        },
-        {
           "cause": "ordering :: |-activate|p1a|emergencyexit <> |faint|p2b",
           "n": 1,
           "void_n": 0,
@@ -7891,230 +6340,13 @@
           ],
           "cannot_occur_in_format": false,
           "max_uses": 5015
-        },
-        {
-          "cause": "ordering :: |-heal|p2a|H/H|[from]grassyterrain <> |-heal|p1b|H/H|[from]leftovers",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|-damage|p2a: Rillaboom|108/175|[from] Recoil",
-            "|move|p1b: Rillaboom|Wood Hammer|p2a: Rillaboom",
-            "|-resisted|p2a: Rillaboom|1",
-            "|-damage|p2a: Rillaboom|19/175",
-            "|-damage|p1b: Rillaboom|146/175|[from] Recoil",
-            "|-heal|p1b: Rillaboom|156/175|[from] Grassy Terrain"
-          ],
-          "sdAfter": [
-            "|-heal|p2a: Rillaboom|29/175|[from] Grassy Terrain",
-            "|-heal|p1b: Rillaboom|166/175|[from] item: Leftovers",
-            "|upkeep",
-            "|switch|p1a: Incineroar|Incineroar, L50|170/170",
-            "|-ability|p1a: Incineroar|Intimidate|boost",
-            "|-unboost|p2a: Rillaboom|atk|1",
-            "|-unboost|p2b: Gengar|atk|1",
-            "|turn|5"
-          ],
-          "meAfter": [
-            "|-heal|p1b: Rillaboom|166/175|[from] item: leftovers",
-            "|-heal|p2a: Rillaboom|29/175|[from] Grassy Terrain",
-            "|upkeep",
-            "|switch|p1a: Incineroar|incineroar, L50|170/170",
-            "|-ability|p1a: Incineroar|intimidate|boost",
-            "|-unboost|p2a: Rillaboom|atk|1",
-            "|-unboost|p2b: Gengar|atk|1"
-          ],
-          "species": "Rillaboom",
-          "attribution": {
-            "showdown": [
-              "[from] Grassy Terrain"
-            ],
-            "medicham": [
-              "[from] item: leftovers"
-            ]
-          },
-          "example": {
-            "config": "pair-redirect-priority",
-            "seed": "gen9championsvgc2026regmcbo3-2682659124 vs gen9championsvgc2026regmcbo3-2682728836",
-            "turn": 4
-          },
-          "mentions": [
-            {
-              "kind": "conditions",
-              "id": "grassyterrain",
-              "legal": null,
-              "carriers": null,
-              "reachable": null,
-              "nonstandard": null,
-              "uses": null
-            },
-            {
-              "kind": "moves",
-              "id": "grassyterrain",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 10
-            },
-            {
-              "kind": "items",
-              "id": "leftovers",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 10416
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 10416
         }
       ]
     },
     {
       "cls": "event missing from medicham2",
-      "games": 10,
+      "games": 3,
       "causes": [
-        {
-          "cause": "event missing from medicham2 :: |-fail|p1a <> |move|p1b|direclaw",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|upkeep",
-            "|turn|3",
-            "|switch|p2a: Lucario|Lucario-Mega-Z, L50|145/145",
-            "|move|p2b: Sylveon|Detect|p2b: Sylveon",
-            "|-singleturn|p2b: Sylveon|Protect",
-            "|move|p1a: Banette|Destiny Bond||[still]"
-          ],
-          "sdAfter": [
-            "|-fail|p1a: Banette",
-            "|move|p1b: Sneasler|Dire Claw|p2a: Lucario",
-            "|-immune|p2a: Lucario",
-            "|upkeep",
-            "|turn|4"
-          ],
-          "meAfter": [
-            "|move|p1b: Sneasler|direclaw|p2a: Lucario",
-            "|-immune|p2a: Lucario",
-            "|upkeep"
-          ],
-          "species": "Banette",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "baseline",
-            "seed": "gen9championsvgc2026regmcbo3-2682171123 vs gen9championsvgc2026regmcbo3-2682271572",
-            "turn": 3
-          },
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "direclaw",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 14675
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 14675
-        },
-        {
-          "cause": "event missing from medicham2 :: |faint|p1a <> |upkeep",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|move|p1b: Pawmot|Close Combat|p2a: Golisopod",
-            "|-damage|p2a: Golisopod|54/150",
-            "|-unboost|p1b: Pawmot|def|1",
-            "|-unboost|p1b: Pawmot|spd|1",
-            "|move|p2a: Golisopod|Iron Head|p1a: Farigiraf",
-            "|-damage|p1a: Farigiraf|0 fnt"
-          ],
-          "sdAfter": [
-            "|faint|p1a: Farigiraf",
-            "|upkeep",
-            "|turn|9"
-          ],
-          "meAfter": [
-            "|upkeep"
-          ],
-          "species": "Farigiraf",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-protect",
-            "seed": "gen9championsvgc2026regmcbo3-2678516446 vs gen9championsvgc2026regmcbo3-2678608972",
-            "turn": 8
-          },
-          "mentions": []
-        },
-        {
-          "cause": "event missing from medicham2 :: |-fail|p1a <> |move|p2a|flareblitz",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|-unboost|p1a: Farigiraf|atk|1",
-            "|-unboost|p1b: Salamence|atk|1",
-            "|turn|10",
-            "|move|p1b: Salamence|Protect|p1b: Salamence",
-            "|-singleturn|p1b: Salamence|Protect",
-            "|move|p1a: Farigiraf|Imprison||[still]"
-          ],
-          "sdAfter": [
-            "|-fail|p1a: Farigiraf",
-            "|move|p2a: Incineroar|Flare Blitz|p1a: Farigiraf",
-            "|-damage|p1a: Farigiraf|23/195",
-            "|-enditem|p1a: Farigiraf|Sitrus Berry|[eat]",
-            "|-heal|p1a: Farigiraf|71/195|[from] item: Sitrus Berry",
-            "|-damage|p2a: Incineroar|127/170|[from] Recoil",
-            "|move|p2b: Salamence|Hyper Voice|p1a: Farigiraf|[spread] p1a",
-            "|-activate|p1b: Salamence|move: Protect",
-            "|-damage|p1a: Farigiraf|13/195",
-            "|-heal|p1a: Farigiraf|25/195|[from] Grassy Terrain"
-          ],
-          "meAfter": [
-            "|move|p2a: Incineroar|flareblitz|p1a: Farigiraf",
-            "|-damage|p1a: Farigiraf|23/195",
-            "|-enditem|p1a: Farigiraf|sitrusberry|[eat]",
-            "|-heal|p1a: Farigiraf|71/195|[from] item: sitrusberry",
-            "|-damage|p2a: Incineroar|127/170|[from] Recoil",
-            "|move|p2b: Salamence|hypervoice|p1a: Farigiraf",
-            "|-activate|p1b: Salamence|move: Protect",
-            "|-damage|p1a: Farigiraf|13/195",
-            "|-heal|p1a: Farigiraf|25/195|[from] Grassy Terrain",
-            "|-heal|p2a: Incineroar|137/170|[from] Grassy Terrain"
-          ],
-          "species": "Farigiraf",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-weather",
-            "seed": "gen9championsvgc2026regmcbo3-2679181337 vs gen9championsvgc2026regmcbo3-2679415848",
-            "turn": 10
-          },
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "flareblitz",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 17973
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 17973
-        },
         {
           "cause": "event missing from medicham2 :: |-end|p1b|fallenundefined <> |switch|p1b|swampertmega,l50|H/H",
           "n": 1,
@@ -8291,305 +6523,6 @@
           ],
           "cannot_occur_in_format": false,
           "max_uses": 4710
-        },
-        {
-          "cause": "event missing from medicham2 :: |faint|p1a <> |-weather|raindance|[upkeep]",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|move|p1b: Pelipper|Weather Ball|p2a: Raichu",
-            "|-crit|p2a: Raichu",
-            "|-damage|p2a: Raichu|0 fnt",
-            "|faint|p2a: Raichu",
-            "|move|p2b: Baxcalibur|Glaive Rush|p1a: Rillaboom",
-            "|-damage|p1a: Rillaboom|0 fnt"
-          ],
-          "sdAfter": [
-            "|faint|p1a: Rillaboom",
-            "|-weather|RainDance|[upkeep]",
-            "|upkeep",
-            "|switch|p1a: Pawmot|Pawmot, L50|145/145",
-            "|turn|13"
-          ],
-          "meAfter": [
-            "|-weather|raindance|[upkeep]",
-            "|upkeep",
-            "|switch|p1a: Pawmot|pawmot, L50|145/145"
-          ],
-          "species": "Rillaboom",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-spread",
-            "seed": "gen9championsvgc2026regmcbo3-2679699611 vs gen9championsvgc2026regmcbo3-2679788103",
-            "turn": 12
-          },
-          "mentions": [
-            {
-              "kind": "conditions",
-              "id": "raindance",
-              "legal": null,
-              "carriers": null,
-              "reachable": null,
-              "nonstandard": null,
-              "uses": null
-            },
-            {
-              "kind": "moves",
-              "id": "raindance",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 829
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 829
-        },
-        {
-          "cause": "event missing from medicham2 :: |faint|p1a <> |-damage|p2a|H/H|[from]recoil",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|-heal|p1a: Golisopod|127/150|[from] drain|[of] p2a: Incineroar",
-            "|-enditem|p2a: Incineroar|Sitrus Berry|[eat]",
-            "|-heal|p2a: Incineroar|109/170|[from] item: Sitrus Berry",
-            "|move|p2a: Incineroar|Flare Blitz|p1a: Golisopod",
-            "|-supereffective|p1a: Golisopod|2",
-            "|-damage|p1a: Golisopod|0 fnt"
-          ],
-          "sdAfter": [
-            "|faint|p1a: Golisopod",
-            "|-damage|p2a: Incineroar|67/170|[from] Recoil",
-            "|-heal|p2b: Kingambit|77/175|[from] Grassy Terrain",
-            "|-heal|p2a: Incineroar|77/170|[from] Grassy Terrain",
-            "|upkeep",
-            "|switch|p1a: Sinistcha|Sinistcha, L50|146/146",
-            "|turn|6"
-          ],
-          "meAfter": [
-            "|-damage|p2a: Incineroar|67/170|[from] Recoil",
-            "|-heal|p2b: Kingambit|77/175|[from] Grassy Terrain",
-            "|-heal|p2a: Incineroar|77/170|[from] Grassy Terrain",
-            "|upkeep",
-            "|switch|p1a: Sinistcha|sinistcha, L50|146/146"
-          ],
-          "species": "Golisopod",
-          "attribution": {
-            "showdown": [],
-            "medicham": [
-              "[from] Recoil"
-            ]
-          },
-          "example": {
-            "config": "pair-protect-bust",
-            "seed": "gen9championsvgc2026regmcbo3-2681985200 vs gen9championsvgc2026regmcbo3-2681949669",
-            "turn": 5
-          },
-          "mentions": []
-        },
-        {
-          "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p2a|lastrespects",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|-fieldend|move: Trick Room",
-            "|upkeep",
-            "|turn|8",
-            "|move|p2b: Gallade|Wide Guard|p2b: Gallade",
-            "|-singleturn|p2b: Gallade|Wide Guard",
-            "|move|p1b: Inteleon|Focus Energy||[still]"
-          ],
-          "sdAfter": [
-            "|-fail|p1b: Inteleon",
-            "|move|p2a: Basculegion|Last Respects|p1a: Swampert",
-            "|-damage|p1a: Swampert|0 fnt",
-            "|faint|p1a: Swampert",
-            "|upkeep",
-            "|turn|9"
-          ],
-          "meAfter": [
-            "|move|p2a: Basculegion|lastrespects|p1a: Swampert",
-            "|-damage|p1a: Swampert|0 fnt",
-            "|faint|p1a: Swampert",
-            "|upkeep"
-          ],
-          "species": "Inteleon",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "pair-redirect-priority",
-            "seed": "gen9championsvgc2026regmcbo3-2682705367 vs gen9championsvgc2026regmcbo3-2682673807",
-            "turn": 8
-          },
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "lastrespects",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 7580
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 7580
-        },
-        {
-          "cause": "event missing from medicham2 :: |faint|p2a <> |-damage|p1a|H/H|[from]lifeorb",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|move|p1b: Garchomp|Stomping Tantrum|p2a: Incineroar",
-            "|-supereffective|p2a: Incineroar|1",
-            "|-damage|p2a: Incineroar|11/170",
-            "|move|p1a: Gholdengo|Shadow Ball|p2a: Incineroar",
-            "|-resisted|p2a: Incineroar|1",
-            "|-damage|p2a: Incineroar|0 fnt"
-          ],
-          "sdAfter": [
-            "|faint|p2a: Incineroar",
-            "|-damage|p1a: Gholdengo|130/162|[from] item: Life Orb",
-            "|-weather|none",
-            "|upkeep",
-            "|switch|p2a: Delphox|Delphox-Mega, L50|75/150",
-            "|turn|6"
-          ],
-          "meAfter": [
-            "|-damage|p1a: Gholdengo|130/162|[from] item: Life Orb",
-            "|-weather|none",
-            "|upkeep",
-            "|switch|p2a: Delphox|delphox-mega, L50|75/150"
-          ],
-          "species": "Incineroar",
-          "attribution": {
-            "showdown": [],
-            "medicham": [
-              "[from] item: Life Orb"
-            ]
-          },
-          "example": {
-            "config": "pair-redirect-priority",
-            "seed": "gen9championsvgc2026regmcbo3-2684539964 vs gen9championsvgc2026regmcbo3-2684590245",
-            "turn": 5
-          },
-          "mentions": [
-            {
-              "kind": "items",
-              "id": "lifeorb",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 21226
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 21226
-        }
-      ]
-    },
-    {
-      "cls": "-fail field 3",
-      "games": 7,
-      "causes": [
-        {
-          "cause": "-fail field 3 :: |-fail|p1b|doubleshock <> |-fail|p1b",
-          "n": 3,
-          "void_n": 0,
-          "showdown_before": [
-            "|turn|3",
-            "|switch|p1a: Gholdengo|Gholdengo, L50|162/162",
-            "|move|p2b: Lucario|Detect|p2b: Lucario",
-            "|-singleturn|p2b: Lucario|Protect",
-            "|cant|p2a: Tsareena|frz",
-            "|move|p1b: Pawmot|Double Shock||[still]"
-          ],
-          "sdAfter": [
-            "|-fail|p1b: Pawmot|move: Double Shock",
-            "|upkeep",
-            "|turn|4"
-          ],
-          "meAfter": [
-            "|-fail|p1b: Pawmot",
-            "|upkeep"
-          ],
-          "species": "Pawmot",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-weather",
-            "seed": "gen9championsvgc2026regmcbo3-2678911741 vs gen9championsvgc2026regmcbo3-2678966945",
-            "turn": 3
-          },
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "doubleshock",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 1058
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 1058
-        },
-        {
-          "cause": "-fail field 3 :: |-fail|p2b|doubleshock <> |-fail|p2b",
-          "n": 4,
-          "void_n": 0,
-          "showdown_before": [
-            "|-miss|p1a: Charizard|p2a: Froslass",
-            "|-miss|p1a: Charizard|p2b: Pawmot",
-            "|move|p2a: Froslass|Blizzard|p1a: Charizard|[spread] p1a",
-            "|-activate|p1b: Kingambit|move: Protect",
-            "|-damage|p1a: Charizard|98/153",
-            "|move|p2b: Pawmot|Double Shock||[still]"
-          ],
-          "sdAfter": [
-            "|-fail|p2b: Pawmot|move: Double Shock",
-            "|-weather|SunnyDay|[upkeep]",
-            "|upkeep",
-            "|turn|6"
-          ],
-          "meAfter": [
-            "|-fail|p2b: Pawmot",
-            "|-weather|sunnyday|[upkeep]",
-            "|upkeep"
-          ],
-          "species": "Pawmot",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-weather",
-            "seed": "gen9championsvgc2026regmc-2678461378 vs gen9championsvgc2026regmc-2678678460",
-            "turn": 5
-          },
-          "mentions": [
-            {
-              "kind": "moves",
-              "id": "doubleshock",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 1058
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 1058
         }
       ]
     },
@@ -8646,74 +6579,10 @@
           "mentions": []
         }
       ]
-    },
-    {
-      "cls": "medicham2 stopped emitting while showdown continued",
-      "games": 1,
-      "causes": [
-        {
-          "cause": "medicham2 stopped emitting while showdown continued :: |faint|p2a",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [],
-          "sdAfter": [
-            "|faint|p2a: Gengar"
-          ],
-          "meAfter": [],
-          "species": "Gengar",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-spread",
-            "seed": "gen9championsvgc2026regmcbo3-2680818179 vs gen9championsvgc2026regmcbo3-2680794129",
-            "turn": 8
-          },
-          "mentions": []
-        }
-      ]
     }
   ],
   "order_probe": [],
   "first_divergences": [
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmcbo3-2678436190 vs gen9championsvgc2026regmcbo3-2678542121",
-      "index": 5,
-      "agreed_lines": 5,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]oblivious <> |-fail|p1a|unboost|attack|[from]oblivious",
-      "showdown": "|-fail|p1a: Slowbro|unboost|atk|[from] ability: Oblivious|[of] p1a: Slowbro",
-      "medicham": "|-fail|p1a: Slowbro|unboost|Attack|[from] ability: oblivious|[of] p1a: Slowbro",
-      "showdown_before": [
-        "|switch|p1a: Slowbro|Slowbro, L50|170/170",
-        "|switch|p1b: Indeedee|Indeedee-F, L50|145/145",
-        "|switch|p2a: Annihilape|Annihilape, L50|185/185",
-        "|switch|p2b: Salamence|Salamence, L50|170/170",
-        "|-ability|p2b: Salamence|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmcbo3-2679828264 vs gen9championsvgc2026regmcbo3-2679871588",
-      "index": 29,
-      "agreed_lines": 29,
-      "turn": 2,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p2b|unboost|atk|[from]innerfocus <> |-fail|p2b|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p2b: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p2b: Lucario",
-      "medicham": "|-fail|p2b: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p2b: Lucario",
-      "showdown_before": [
-        "|-weather|SunnyDay|[upkeep]",
-        "|upkeep",
-        "|turn|2",
-        "|switch|p1b: Incineroar|Incineroar, L50|170/170",
-        "|-ability|p1b: Incineroar|Intimidate|boost",
-        "|-unboost|p2a: Salamence|atk|1"
-      ]
-    },
     {
       "config": "baseline",
       "seed": "gen9championsvgc2026regmcbo3-2680802524 vs gen9championsvgc2026regmcbo3-2680902499",
@@ -8731,212 +6600,6 @@
         "|move|p1a: Whimsicott|Tailwind|p1a: Whimsicott",
         "|-sidestart|p1: A|move: Tailwind",
         "|move|p2a: Pawmot|Revival Blessing|p2a: Pawmot"
-      ]
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmcbo3-2682171123 vs gen9championsvgc2026regmcbo3-2682271572",
-      "index": 39,
-      "agreed_lines": 39,
-      "turn": 3,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-fail|p1a <> |move|p1b|direclaw",
-      "showdown": "|-fail|p1a: Banette",
-      "medicham": "|move|p1b: Sneasler|direclaw|p2a: Lucario",
-      "showdown_before": [
-        "|upkeep",
-        "|turn|3",
-        "|switch|p2a: Lucario|Lucario-Mega-Z, L50|145/145",
-        "|move|p2b: Sylveon|Detect|p2b: Sylveon",
-        "|-singleturn|p2b: Sylveon|Protect",
-        "|move|p1a: Banette|Destiny Bond||[still]"
-      ]
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmcbo3-2682477113 vs gen9championsvgc2026regmcbo3-2682449297",
-      "index": 15,
-      "agreed_lines": 15,
-      "turn": 1,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]scrappy <> |-fail|p1a|unboost|attack|[from]scrappy",
-      "showdown": "|-fail|p1a: Lopunny|unboost|atk|[from] ability: Scrappy|[of] p1a: Lopunny",
-      "medicham": "|-fail|p1a: Lopunny|unboost|Attack|[from] ability: scrappy|[of] p1a: Lopunny",
-      "showdown_before": [
-        "|turn|1",
-        "|detailschange|p1a: Lopunny|Lopunny-Mega, L50",
-        "|-mega|p1a: Lopunny|Lopunny|Lopunnite",
-        "|detailschange|p2a: Scrafty|Scrafty-Mega, L50",
-        "|-mega|p2a: Scrafty|Scrafty|Scraftinite",
-        "|-ability|p2a: Scrafty|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmc-2678386444 vs gen9championsvgc2026regmc-2678608021",
-      "index": 47,
-      "agreed_lines": 47,
-      "turn": 3,
-      "cls": "ordering",
-      "cause": "ordering :: |-fieldend|grassyterrain <> |faint|p2a",
-      "showdown": "|-fieldend|move: Grassy Terrain",
-      "medicham": "|faint|p2a: Baxcalibur",
-      "showdown_before": [
-        "|move|p2a: Baxcalibur|Dragon Dance|p2a: Baxcalibur",
-        "|-boost|p2a: Baxcalibur|atk|1",
-        "|-boost|p2a: Baxcalibur|spe|1",
-        "|move|p1a: Metagross|Steel Roller|p2a: Baxcalibur",
-        "|-supereffective|p2a: Baxcalibur|1",
-        "|-damage|p2a: Baxcalibur|0 fnt"
-      ]
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmc-2680622216 vs gen9championsvgc2026regmc-2680853649",
-      "index": 5,
-      "agreed_lines": 5,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p2a|unboost|atk|[from]scrappy <> |-fail|p2a|unboost|attack|[from]scrappy",
-      "showdown": "|-fail|p2a: Sirfetch’d|unboost|atk|[from] ability: Scrappy|[of] p2a: Sirfetch’d",
-      "medicham": "|-fail|p2a: Sirfetch’d|unboost|Attack|[from] ability: scrappy|[of] p2a: Sirfetch’d",
-      "showdown_before": [
-        "|switch|p1a: Golisopod|Golisopod, L50|150/150",
-        "|switch|p1b: Salamence|Salamence, L50|170/170",
-        "|switch|p2a: Sirfetch’d|Sirfetch’d, L50|137/137",
-        "|switch|p2b: Salamence|Salamence, L50|170/170",
-        "|-ability|p1b: Salamence|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "omit-protect",
-      "seed": "gen9championsvgc2026regmcbo3-2678516446 vs gen9championsvgc2026regmcbo3-2678608972",
-      "index": 120,
-      "agreed_lines": 120,
-      "turn": 8,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |faint|p1a <> |upkeep",
-      "showdown": "|faint|p1a: Farigiraf",
-      "medicham": "|upkeep",
-      "showdown_before": [
-        "|move|p1b: Pawmot|Close Combat|p2a: Golisopod",
-        "|-damage|p2a: Golisopod|54/150",
-        "|-unboost|p1b: Pawmot|def|1",
-        "|-unboost|p1b: Pawmot|spd|1",
-        "|move|p2a: Golisopod|Iron Head|p1a: Farigiraf",
-        "|-damage|p1a: Farigiraf|0 fnt"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmcbo3-2678911741 vs gen9championsvgc2026regmcbo3-2678966945",
-      "index": 38,
-      "agreed_lines": 38,
-      "turn": 3,
-      "cls": "-fail field 3",
-      "cause": "-fail field 3 :: |-fail|p1b|doubleshock <> |-fail|p1b",
-      "showdown": "|-fail|p1b: Pawmot|move: Double Shock",
-      "medicham": "|-fail|p1b: Pawmot",
-      "showdown_before": [
-        "|turn|3",
-        "|switch|p1a: Gholdengo|Gholdengo, L50|162/162",
-        "|move|p2b: Lucario|Detect|p2b: Lucario",
-        "|-singleturn|p2b: Lucario|Protect",
-        "|cant|p2a: Tsareena|frz",
-        "|move|p1b: Pawmot|Double Shock||[still]"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmcbo3-2679021074 vs gen9championsvgc2026regmcbo3-2679001298",
-      "index": 14,
-      "agreed_lines": 14,
-      "turn": 1,
-      "cls": "ordering",
-      "cause": "ordering :: |-fieldend|psychicterrain <> |faint|p2a",
-      "showdown": "|-fieldend|move: Psychic Terrain",
-      "medicham": "|faint|p2a: Hatterene",
-      "showdown_before": [
-        "|-mega|p1a: Metagross|Metagross|Metagrossite",
-        "|move|p2b: Indeedee|Helping Hand|p2a: Hatterene",
-        "|-singleturn|p2a: Hatterene|Helping Hand|[of] p2b: Indeedee",
-        "|move|p1a: Metagross|Steel Roller|p2a: Hatterene",
-        "|-supereffective|p2a: Hatterene|1",
-        "|-damage|p2a: Hatterene|0 fnt"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmcbo3-2679098791 vs gen9championsvgc2026regmcbo3-2679083115",
-      "index": 38,
-      "agreed_lines": 38,
-      "turn": 2,
-      "cls": "-fail field 3",
-      "cause": "-fail field 3 :: |-fail|p1b|doubleshock <> |-fail|p1b",
-      "showdown": "|-fail|p1b: Pawmot|move: Double Shock",
-      "medicham": "|-fail|p1b: Pawmot",
-      "showdown_before": [
-        "|move|p2b: Floette|Protect|p2b: Floette",
-        "|-singleturn|p2b: Floette|Protect",
-        "|move|p1a: Rillaboom|Grassy Glide|p2a: Incineroar",
-        "|-resisted|p2a: Incineroar|1",
-        "|-damage|p2a: Incineroar|150/170",
-        "|move|p1b: Pawmot|Double Shock||[still]"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmcbo3-2679181337 vs gen9championsvgc2026regmcbo3-2679415848",
-      "index": 142,
-      "agreed_lines": 142,
-      "turn": 10,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-fail|p1a <> |move|p2a|flareblitz",
-      "showdown": "|-fail|p1a: Farigiraf",
-      "medicham": "|move|p2a: Incineroar|flareblitz|p1a: Farigiraf",
-      "showdown_before": [
-        "|-unboost|p1a: Farigiraf|atk|1",
-        "|-unboost|p1b: Salamence|atk|1",
-        "|turn|10",
-        "|move|p1b: Salamence|Protect|p1b: Salamence",
-        "|-singleturn|p1b: Salamence|Protect",
-        "|move|p1a: Farigiraf|Imprison||[still]"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmcbo3-2679830982 vs gen9championsvgc2026regmcbo3-2679871627",
-      "index": 5,
-      "agreed_lines": 5,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p2a|unboost|atk|[from]innerfocus <> |-fail|p2a|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p2a: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p2a: Lucario",
-      "medicham": "|-fail|p2a: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p2a: Lucario",
-      "showdown_before": [
-        "|switch|p1a: Salamence|Salamence, L50|170/170",
-        "|switch|p1b: Froslass|Froslass, L50|145/145",
-        "|switch|p2a: Lucario|Lucario, L50|145/145",
-        "|switch|p2b: Indeedee|Indeedee-F, L50|145/145",
-        "|-ability|p1a: Salamence|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmcbo3-2680281779 vs gen9championsvgc2026regmcbo3-2680252342",
-      "index": 5,
-      "agreed_lines": 5,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p2a|unboost|atk|[from]innerfocus <> |-fail|p2a|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p2a: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p2a: Lucario",
-      "medicham": "|-fail|p2a: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p2a: Lucario",
-      "showdown_before": [
-        "|switch|p1a: Metagross|Metagross, L50|155/155",
-        "|switch|p1b: Incineroar|Incineroar, L50|170/170",
-        "|switch|p2a: Lucario|Lucario, L50|145/145",
-        "|switch|p2b: Froslass|Froslass, L50|145/145",
-        "|-ability|p1b: Incineroar|Intimidate|boost"
       ]
     },
     {
@@ -8960,80 +6623,6 @@
     },
     {
       "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmcbo3-2680926426 vs gen9championsvgc2026regmcbo3-2681047983",
-      "index": 6,
-      "agreed_lines": 6,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]innerfocus <> |-fail|p1a|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p1a: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p1a: Lucario",
-      "medicham": "|-fail|p1a: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p1a: Lucario",
-      "showdown_before": [
-        "|switch|p1a: Lucario|Lucario, L50|145/145",
-        "|switch|p1b: Aerodactyl|Aerodactyl, L50|155/155",
-        "|switch|p2a: Staraptor|Staraptor, L50|160/160",
-        "|switch|p2b: Garchomp|Garchomp, L50|183/183",
-        "|-ability|p1b: Aerodactyl|Unnerve",
-        "|-ability|p2a: Staraptor|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmcbo3-2681488507 vs gen9championsvgc2026regmcbo3-2681464185",
-      "index": 5,
-      "agreed_lines": 5,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]innerfocus <> |-fail|p1a|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p1a: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p1a: Lucario",
-      "medicham": "|-fail|p1a: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p1a: Lucario",
-      "showdown_before": [
-        "|switch|p1a: Lucario|Lucario, L50|145/145",
-        "|switch|p1b: Pawmot|Pawmot, L50|145/145",
-        "|switch|p2a: Salamence|Salamence, L50|170/170",
-        "|switch|p2b: Gholdengo|Gholdengo, L50|162/162",
-        "|-ability|p2a: Salamence|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmcbo3-2681633603 vs gen9championsvgc2026regmcbo3-2681785793",
-      "index": 36,
-      "agreed_lines": 36,
-      "turn": 2,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1b|unboost|atk|[from]innerfocus <> |-fail|p1b|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p1b: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p1b: Lucario",
-      "medicham": "|-fail|p1b: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p1b: Lucario",
-      "showdown_before": [
-        "|-heal|p2b: Sneasler|23/155|[from] Grassy Terrain",
-        "|-heal|p1a: Floette|96/149|[from] Grassy Terrain",
-        "|upkeep",
-        "|switch|p2a: Incineroar|Incineroar, L50|170/170",
-        "|-ability|p2a: Incineroar|Intimidate|boost",
-        "|-unboost|p1a: Floette|atk|1"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmcbo3-2682241181 vs gen9championsvgc2026regmcbo3-2682209164",
-      "index": 5,
-      "agreed_lines": 5,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]innerfocus <> |-fail|p1a|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p1a: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p1a: Lucario",
-      "medicham": "|-fail|p1a: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p1a: Lucario",
-      "showdown_before": [
-        "|switch|p1a: Lucario|Lucario, L50|145/145",
-        "|switch|p1b: Salamence|Salamence, L50|170/170",
-        "|switch|p2a: Salamence|Salamence, L50|170/170",
-        "|switch|p2b: Gholdengo|Gholdengo, L50|162/162",
-        "|-ability|p2a: Salamence|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "omit-weather",
       "seed": "gen9championsvgc2026regmcbo3-2684711995 vs gen9championsvgc2026regmcbo3-2684791124",
       "index": 66,
       "agreed_lines": 66,
@@ -9049,25 +6638,6 @@
         "|-singleturn|p2b: Indeedee|move: Follow Me",
         "|move|p2a: Whimsicott|Encore|p1a: Hatterene",
         "|move|p1a: Hatterene|Encore||[from] ability: Magic Bounce|[still]"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmc-2678461378 vs gen9championsvgc2026regmc-2678678460",
-      "index": 73,
-      "agreed_lines": 73,
-      "turn": 5,
-      "cls": "-fail field 3",
-      "cause": "-fail field 3 :: |-fail|p2b|doubleshock <> |-fail|p2b",
-      "showdown": "|-fail|p2b: Pawmot|move: Double Shock",
-      "medicham": "|-fail|p2b: Pawmot",
-      "showdown_before": [
-        "|-miss|p1a: Charizard|p2a: Froslass",
-        "|-miss|p1a: Charizard|p2b: Pawmot",
-        "|move|p2a: Froslass|Blizzard|p1a: Charizard|[spread] p1a",
-        "|-activate|p1b: Kingambit|move: Protect",
-        "|-damage|p1a: Charizard|98/153",
-        "|move|p2b: Pawmot|Double Shock||[still]"
       ]
     },
     {
@@ -9087,81 +6657,6 @@
         "|-damage|p1a: Rillaboom|152/175",
         "|-damage|p1b: Grimmsnarl|122/170",
         "|faint|p2b: Kingambit"
-      ]
-    },
-    {
-      "config": "omit-intimidate",
-      "seed": "gen9championsvgc2026regmcbo3-2684169278 vs gen9championsvgc2026regmcbo3-2684216556",
-      "index": 111,
-      "agreed_lines": 111,
-      "turn": 6,
-      "cls": "ordering",
-      "cause": "ordering :: |-heal|p2b|H/H|[from]grassyterrain <> |-heal|p1b|H/H|[from]leftovers",
-      "showdown": "|-heal|p2b: Milotic|163/170|[from] Grassy Terrain",
-      "medicham": "|-heal|p1b: Milotic|153/170|[from] item: leftovers",
-      "showdown_before": [
-        "|move|p2a: Golisopod|Leech Life|p1a: Rillaboom",
-        "|-supereffective|p1a: Rillaboom|1",
-        "|-damage|p1a: Rillaboom|0 fnt",
-        "|-heal|p2a: Golisopod|98/150|[from] drain|[of] p1a: Rillaboom",
-        "|faint|p1a: Rillaboom",
-        "|-heal|p1b: Milotic|143/170|[from] Grassy Terrain"
-      ]
-    },
-    {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmcbo3-2678277350 vs gen9championsvgc2026regmcbo3-2678247233",
-      "index": 25,
-      "agreed_lines": 25,
-      "turn": 2,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1b|unboost|atk|[from]innerfocus <> |-fail|p1b|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p1b: Dragonite|unboost|atk|[from] ability: Inner Focus|[of] p1b: Dragonite",
-      "medicham": "|-fail|p1b: Dragonite|unboost|Attack|[from] ability: innerfocus|[of] p1b: Dragonite",
-      "showdown_before": [
-        "|-damage|p1a: Incineroar|92/170",
-        "|upkeep",
-        "|turn|2",
-        "|switch|p2b: Gyarados|Gyarados, L50|170/170",
-        "|-ability|p2b: Gyarados|Intimidate|boost",
-        "|-unboost|p1a: Incineroar|atk|1"
-      ]
-    },
-    {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmcbo3-2678461337 vs gen9championsvgc2026regmcbo3-2678447563",
-      "index": 6,
-      "agreed_lines": 6,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]oblivious <> |-fail|p1a|unboost|attack|[from]oblivious",
-      "showdown": "|-fail|p1a: Slowbro|unboost|atk|[from] ability: Oblivious|[of] p1a: Slowbro",
-      "medicham": "|-fail|p1a: Slowbro|unboost|Attack|[from] ability: oblivious|[of] p1a: Slowbro",
-      "showdown_before": [
-        "|switch|p1a: Slowbro|Slowbro, L50|170/170",
-        "|switch|p1b: Indeedee|Indeedee-F, L50|145/145",
-        "|switch|p2a: Incineroar|Incineroar, L50|170/170",
-        "|switch|p2b: Lucario|Lucario, L50|145/145",
-        "|-fieldstart|move: Psychic Terrain|[from] ability: Psychic Surge|[of] p1b: Indeedee",
-        "|-ability|p2a: Incineroar|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmcbo3-2678529005 vs gen9championsvgc2026regmcbo3-2678523449",
-      "index": 5,
-      "agreed_lines": 5,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p2a|unboost|atk|[from]innerfocus <> |-fail|p2a|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p2a: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p2a: Lucario",
-      "medicham": "|-fail|p2a: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p2a: Lucario",
-      "showdown_before": [
-        "|switch|p1a: Staraptor|Staraptor, L50|160/160",
-        "|switch|p1b: Metagross|Metagross, L50|155/155",
-        "|switch|p2a: Lucario|Lucario, L50|145/145",
-        "|switch|p2b: Basculegion|Basculegion, L50|195/195",
-        "|-ability|p1a: Staraptor|Intimidate|boost"
       ]
     },
     {
@@ -9185,151 +6680,6 @@
     },
     {
       "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmcbo3-2679699611 vs gen9championsvgc2026regmcbo3-2679788103",
-      "index": 178,
-      "agreed_lines": 178,
-      "turn": 12,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |faint|p1a <> |-weather|raindance|[upkeep]",
-      "showdown": "|faint|p1a: Rillaboom",
-      "medicham": "|-weather|raindance|[upkeep]",
-      "showdown_before": [
-        "|move|p1b: Pelipper|Weather Ball|p2a: Raichu",
-        "|-crit|p2a: Raichu",
-        "|-damage|p2a: Raichu|0 fnt",
-        "|faint|p2a: Raichu",
-        "|move|p2b: Baxcalibur|Glaive Rush|p1a: Rillaboom",
-        "|-damage|p1a: Rillaboom|0 fnt"
-      ]
-    },
-    {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmcbo3-2679935168 vs gen9championsvgc2026regmcbo3-2679919461",
-      "index": 8,
-      "agreed_lines": 8,
-      "turn": 1,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]hypercutter <> |-fail|p1a|unboost|attack|[from]hypercutter",
-      "showdown": "|-fail|p1a: Mawile|unboost|atk|[from] ability: Hyper Cutter|[of] p1a: Mawile",
-      "medicham": "|-fail|p1a: Mawile|unboost|Attack|[from] ability: hypercutter|[of] p1a: Mawile",
-      "showdown_before": [
-        "|switch|p2a: Gengar|Gengar, L50|135/135",
-        "|switch|p2b: Whimsicott|Whimsicott, L50|135/135",
-        "|-weather|RainDance|[from] ability: Drizzle|[of] p1b: Pelipper",
-        "|turn|1",
-        "|switch|p2a: Incineroar|Incineroar, L50|170/170",
-        "|-ability|p2a: Incineroar|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmcbo3-2680167484 vs gen9championsvgc2026regmcbo3-2680203385",
-      "index": 6,
-      "agreed_lines": 6,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1b|unboost|atk|[from]innerfocus <> |-fail|p1b|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p1b: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p1b: Lucario",
-      "medicham": "|-fail|p1b: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p1b: Lucario",
-      "showdown_before": [
-        "|switch|p1a: Baxcalibur|Baxcalibur, L50|190/190",
-        "|switch|p1b: Lucario|Lucario, L50|145/145",
-        "|switch|p2a: Lucario|Lucario, L50|145/145",
-        "|switch|p2b: Salamence|Salamence, L50|170/170",
-        "|-ability|p2b: Salamence|Intimidate|boost",
-        "|-unboost|p1a: Baxcalibur|atk|1"
-      ]
-    },
-    {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmcbo3-2680818179 vs gen9championsvgc2026regmcbo3-2680794129",
-      "index": 155,
-      "agreed_lines": 155,
-      "turn": 8,
-      "cls": "medicham2 stopped emitting while showdown continued",
-      "cause": "medicham2 stopped emitting while showdown continued :: |faint|p2a",
-      "showdown": "|faint|p2a: Gengar",
-      "medicham": "(medicham2 emitted nothing further)",
-      "showdown_before": null
-    },
-    {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmcbo3-2681338047 vs gen9championsvgc2026regmcbo3-2681406142",
-      "index": 165,
-      "agreed_lines": 165,
-      "turn": 9,
-      "cls": "-fail field 3",
-      "cause": "-fail field 3 :: |-fail|p2b|doubleshock <> |-fail|p2b",
-      "showdown": "|-fail|p2b: Pawmot|move: Double Shock",
-      "medicham": "|-fail|p2b: Pawmot",
-      "showdown_before": [
-        "|-heal|p2a: Rillaboom|44/175|[from] Grassy Terrain",
-        "|-heal|p1a: Politoed|124/165|[from] Grassy Terrain",
-        "|-heal|p1b: Incineroar|170/170|[from] Grassy Terrain",
-        "|upkeep",
-        "|turn|9",
-        "|move|p2b: Pawmot|Double Shock||[still]"
-      ]
-    },
-    {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmcbo3-2681404350 vs gen9championsvgc2026regmcbo3-2681388456",
-      "index": 37,
-      "agreed_lines": 37,
-      "turn": 2,
-      "cls": "-fail field 3",
-      "cause": "-fail field 3 :: |-fail|p1b|doubleshock <> |-fail|p1b",
-      "showdown": "|-fail|p1b: Pawmot|move: Double Shock",
-      "medicham": "|-fail|p1b: Pawmot",
-      "showdown_before": [
-        "|-start|p1a: Glimmora|perish3|[silent]",
-        "|-start|p1b: Pawmot|perish3|[silent]",
-        "|-start|p2a: Rillaboom|perish3|[silent]",
-        "|-start|p2b: Gengar|perish3|[silent]",
-        "|-fieldactivate|move: Perish Song",
-        "|move|p1b: Pawmot|Double Shock||[still]"
-      ]
-    },
-    {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmcbo3-2682117772 vs gen9championsvgc2026regmcbo3-2682100696",
-      "index": 82,
-      "agreed_lines": 82,
-      "turn": 7,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1b|unboost|atk|[from]innerfocus <> |-fail|p1b|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p1b: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p1b: Lucario",
-      "medicham": "|-fail|p1b: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p1b: Lucario",
-      "showdown_before": [
-        "|-heal|p2a: Golisopod|59/150|[from] Grassy Terrain",
-        "|upkeep",
-        "|turn|7",
-        "|switch|p2b: Incineroar|Incineroar, L50|170/170",
-        "|-ability|p2b: Incineroar|Intimidate|boost",
-        "|-unboost|p1a: Rillaboom|atk|1"
-      ]
-    },
-    {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmcbo3-2682569602 vs gen9championsvgc2026regmcbo3-2682603015",
-      "index": 6,
-      "agreed_lines": 6,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p2a|unboost|atk|[from]scrappy <> |-fail|p2a|unboost|attack|[from]scrappy",
-      "showdown": "|-fail|p2a: Sirfetch’d|unboost|atk|[from] ability: Scrappy|[of] p2a: Sirfetch’d",
-      "medicham": "|-fail|p2a: Sirfetch’d|unboost|Attack|[from] ability: scrappy|[of] p2a: Sirfetch’d",
-      "showdown_before": [
-        "|switch|p1a: Rillaboom|Rillaboom, L50|175/175",
-        "|switch|p1b: Incineroar|Incineroar, L50|170/170",
-        "|switch|p2a: Sirfetch’d|Sirfetch’d, L50|137/137",
-        "|switch|p2b: Golisopod|Golisopod, L50|150/150",
-        "|-fieldstart|move: Grassy Terrain|[from] ability: Grassy Surge|[of] p1a: Rillaboom",
-        "|-ability|p1b: Incineroar|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "omit-spread",
       "seed": "gen9championsvgc2026regmcbo3-2682655109 vs gen9championsvgc2026regmcbo3-2682620646",
       "index": 83,
       "agreed_lines": 83,
@@ -9346,455 +6696,6 @@
         "|-damage|p1a: Golisopod|33/150",
         "|-damage|p2b: Rillaboom|0 fnt|[from] Recoil"
       ]
-    },
-    {
-      "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmcbo3-2677993355 vs gen9championsvgc2026regmcbo3-2677974511",
-      "index": 5,
-      "agreed_lines": 5,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p2a|unboost|atk|[from]innerfocus <> |-fail|p2a|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p2a: Umbreon|unboost|atk|[from] ability: Inner Focus|[of] p2a: Umbreon",
-      "medicham": "|-fail|p2a: Umbreon|unboost|Attack|[from] ability: innerfocus|[of] p2a: Umbreon",
-      "showdown_before": [
-        "|switch|p1a: Staraptor|Staraptor, L50|160/160",
-        "|switch|p1b: Kingambit|Kingambit, L50|175/175",
-        "|switch|p2a: Umbreon|Umbreon, L50|170/170",
-        "|switch|p2b: Blaziken|Blaziken, L50|155/155",
-        "|-ability|p1a: Staraptor|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmcbo3-2678725619 vs gen9championsvgc2026regmcbo3-2678676511",
-      "index": 42,
-      "agreed_lines": 42,
-      "turn": 3,
-      "cls": "-fail field 3",
-      "cause": "-fail field 3 :: |-fail|p2b|doubleshock <> |-fail|p2b",
-      "showdown": "|-fail|p2b: Pawmot|move: Double Shock",
-      "medicham": "|-fail|p2b: Pawmot",
-      "showdown_before": [
-        "|turn|3",
-        "|switch|p1a: Aerodactyl|Aerodactyl, L50|155/155",
-        "|-ability|p1a: Aerodactyl|Unnerve",
-        "|move|p2a: Froslass|Protect|p2a: Froslass",
-        "|-singleturn|p2a: Froslass|Protect",
-        "|move|p2b: Pawmot|Double Shock||[still]"
-      ]
-    },
-    {
-      "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmcbo3-2679309677 vs gen9championsvgc2026regmcbo3-2679429479",
-      "index": 5,
-      "agreed_lines": 5,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]hypercutter <> |-fail|p1a|unboost|attack|[from]hypercutter",
-      "showdown": "|-fail|p1a: Mawile|unboost|atk|[from] ability: Hyper Cutter|[of] p1a: Mawile",
-      "medicham": "|-fail|p1a: Mawile|unboost|Attack|[from] ability: hypercutter|[of] p1a: Mawile",
-      "showdown_before": [
-        "|switch|p1a: Mawile|Mawile, L50|125/125",
-        "|switch|p1b: Milotic|Milotic, L50|170/170",
-        "|switch|p2a: Golisopod|Golisopod, L50|150/150",
-        "|switch|p2b: Salamence|Salamence, L50|170/170",
-        "|-ability|p2b: Salamence|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmcbo3-2679555413 vs gen9championsvgc2026regmcbo3-2679596346",
-      "index": 66,
-      "agreed_lines": 66,
-      "turn": 5,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p2b|unboost|atk|[from]scrappy <> |-fail|p2b|unboost|attack|[from]scrappy",
-      "showdown": "|-fail|p2b: Sirfetch’d|unboost|atk|[from] ability: Scrappy|[of] p2b: Sirfetch’d",
-      "medicham": "|-fail|p2b: Sirfetch’d|unboost|Attack|[from] ability: scrappy|[of] p2b: Sirfetch’d",
-      "showdown_before": [
-        "|-heal|p2b: Sirfetch’d|41/137|[from] Grassy Terrain",
-        "|upkeep",
-        "|turn|5",
-        "|switch|p1b: Incineroar|Incineroar, L50|170/170",
-        "|-ability|p1b: Incineroar|Intimidate|boost",
-        "|-unboost|p2a: Weavile|atk|1"
-      ]
-    },
-    {
-      "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmcbo3-2680957904 vs gen9championsvgc2026regmcbo3-2680931624",
-      "index": 39,
-      "agreed_lines": 39,
-      "turn": 3,
-      "cls": "-fail field 3",
-      "cause": "-fail field 3 :: |-fail|p2b|doubleshock <> |-fail|p2b",
-      "showdown": "|-fail|p2b: Pawmot|move: Double Shock",
-      "medicham": "|-fail|p2b: Pawmot",
-      "showdown_before": [
-        "|-weather|RainDance|[upkeep]",
-        "|upkeep",
-        "|turn|3",
-        "|move|p1b: Ditto|Tailwind|p1b: Ditto",
-        "|-sidestart|p1: A|move: Tailwind",
-        "|move|p2b: Pawmot|Double Shock||[still]"
-      ]
-    },
-    {
-      "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmcbo3-2681677015 vs gen9championsvgc2026regmcbo3-2681683839",
-      "index": 5,
-      "agreed_lines": 5,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p2a|unboost|atk|[from]scrappy <> |-fail|p2a|unboost|attack|[from]scrappy",
-      "showdown": "|-fail|p2a: Sirfetch’d|unboost|atk|[from] ability: Scrappy|[of] p2a: Sirfetch’d",
-      "medicham": "|-fail|p2a: Sirfetch’d|unboost|Attack|[from] ability: scrappy|[of] p2a: Sirfetch’d",
-      "showdown_before": [
-        "|switch|p1a: Salamence|Salamence, L50|170/170",
-        "|switch|p1b: Whimsicott|Whimsicott, L50|135/135",
-        "|switch|p2a: Sirfetch’d|Sirfetch’d, L50|137/137",
-        "|switch|p2b: Farigiraf|Farigiraf, L50|195/195",
-        "|-ability|p1a: Salamence|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmcbo3-2681757474 vs gen9championsvgc2026regmcbo3-2681743191",
-      "index": 6,
-      "agreed_lines": 6,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p2b|unboost|atk|[from]innerfocus <> |-fail|p2b|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p2b: Dragonite|unboost|atk|[from] ability: Inner Focus|[of] p2b: Dragonite",
-      "medicham": "|-fail|p2b: Dragonite|unboost|Attack|[from] ability: innerfocus|[of] p2b: Dragonite",
-      "showdown_before": [
-        "|switch|p1a: Salamence|Salamence, L50|170/170",
-        "|switch|p1b: Milotic|Milotic, L50|170/170",
-        "|switch|p2a: Baxcalibur|Baxcalibur, L50|190/190",
-        "|switch|p2b: Dragonite|Dragonite, L50|166/166",
-        "|-ability|p1a: Salamence|Intimidate|boost",
-        "|-unboost|p2a: Baxcalibur|atk|1"
-      ]
-    },
-    {
-      "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmcbo3-2681838111 vs gen9championsvgc2026regmcbo3-2681920591",
-      "index": 6,
-      "agreed_lines": 6,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1b|unboost|atk|[from]innerfocus <> |-fail|p1b|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p1b: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p1b: Lucario",
-      "medicham": "|-fail|p1b: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p1b: Lucario",
-      "showdown_before": [
-        "|switch|p1a: Overqwil|Overqwil, L50|160/160",
-        "|switch|p1b: Lucario|Lucario, L50|145/145",
-        "|switch|p2a: Salamence|Salamence, L50|170/170",
-        "|switch|p2b: Rillaboom|Rillaboom, L50|175/175",
-        "|-ability|p2a: Salamence|Intimidate|boost",
-        "|-unboost|p1a: Overqwil|atk|1"
-      ]
-    },
-    {
-      "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmcbo3-2681985200 vs gen9championsvgc2026regmcbo3-2681949669",
-      "index": 74,
-      "agreed_lines": 74,
-      "turn": 5,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |faint|p1a <> |-damage|p2a|H/H|[from]recoil",
-      "showdown": "|faint|p1a: Golisopod",
-      "medicham": "|-damage|p2a: Incineroar|67/170|[from] Recoil",
-      "showdown_before": [
-        "|-heal|p1a: Golisopod|127/150|[from] drain|[of] p2a: Incineroar",
-        "|-enditem|p2a: Incineroar|Sitrus Berry|[eat]",
-        "|-heal|p2a: Incineroar|109/170|[from] item: Sitrus Berry",
-        "|move|p2a: Incineroar|Flare Blitz|p1a: Golisopod",
-        "|-supereffective|p1a: Golisopod|2",
-        "|-damage|p1a: Golisopod|0 fnt"
-      ]
-    },
-    {
-      "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmcbo3-2682107200 vs gen9championsvgc2026regmcbo3-2682101773",
-      "index": 49,
-      "agreed_lines": 49,
-      "turn": 3,
-      "cls": "ordering",
-      "cause": "ordering :: |-fieldend|grassyterrain <> |faint|p2a",
-      "showdown": "|-fieldend|move: Grassy Terrain",
-      "medicham": "|faint|p2a: Farigiraf",
-      "showdown_before": [
-        "|-unboost|p1b: Indeedee|atk|1",
-        "|move|p1b: Indeedee|Mystical Fire|p2a: Farigiraf",
-        "|-damage|p2a: Farigiraf|45/195",
-        "|-unboost|p2a: Farigiraf|spa|1",
-        "|move|p1a: Metagross|Steel Roller|p2a: Farigiraf",
-        "|-damage|p2a: Farigiraf|0 fnt"
-      ]
-    },
-    {
-      "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmcbo3-2682545956 vs gen9championsvgc2026regmcbo3-2682572969",
-      "index": 87,
-      "agreed_lines": 87,
-      "turn": 6,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p2b|unboost|atk|[from]hypercutter <> |-fail|p2b|unboost|attack|[from]hypercutter",
-      "showdown": "|-fail|p2b: Mawile|unboost|atk|[from] ability: Hyper Cutter|[of] p2b: Mawile",
-      "medicham": "|-fail|p2b: Mawile|unboost|Attack|[from] ability: hypercutter|[of] p2b: Mawile",
-      "showdown_before": [
-        "|faint|p2a: Incineroar",
-        "|-weather|none",
-        "|upkeep",
-        "|turn|6",
-        "|switch|p1a: Incineroar|Incineroar, L50|170/170",
-        "|-ability|p1a: Incineroar|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "pair-redirect-priority",
-      "seed": "gen9championsvgc2026regmcbo3-2680316415 vs gen9championsvgc2026regmcbo3-2680278982",
-      "index": 6,
-      "agreed_lines": 6,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p2b|unboost|atk|[from]innerfocus <> |-fail|p2b|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p2b: Alakazam|unboost|atk|[from] ability: Inner Focus|[of] p2b: Alakazam",
-      "medicham": "|-fail|p2b: Alakazam|unboost|Attack|[from] ability: innerfocus|[of] p2b: Alakazam",
-      "showdown_before": [
-        "|switch|p1a: Salamence|Salamence, L50|170/170",
-        "|switch|p1b: Rotom|Rotom-Wash, L50|125/125",
-        "|switch|p2a: Indeedee|Indeedee-F, L50|145/145",
-        "|switch|p2b: Alakazam|Alakazam, L50|130/130",
-        "|-ability|p1a: Salamence|Intimidate|boost",
-        "|-unboost|p2a: Indeedee|atk|1"
-      ]
-    },
-    {
-      "config": "pair-redirect-priority",
-      "seed": "gen9championsvgc2026regmcbo3-2682386820 vs gen9championsvgc2026regmcbo3-2682360023",
-      "index": 6,
-      "agreed_lines": 6,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1b|unboost|atk|[from]scrappy <> |-fail|p1b|unboost|attack|[from]scrappy",
-      "showdown": "|-fail|p1b: Sirfetch’d|unboost|atk|[from] ability: Scrappy|[of] p1b: Sirfetch’d",
-      "medicham": "|-fail|p1b: Sirfetch’d|unboost|Attack|[from] ability: scrappy|[of] p1b: Sirfetch’d",
-      "showdown_before": [
-        "|switch|p1a: Indeedee|Indeedee-F, L50|145/145",
-        "|switch|p1b: Sirfetch’d|Sirfetch’d, L50|137/137",
-        "|switch|p2a: Salamence|Salamence, L50|170/170",
-        "|switch|p2b: Armarouge|Armarouge, L50|160/160",
-        "|-ability|p2a: Salamence|Intimidate|boost",
-        "|-unboost|p1a: Indeedee|atk|1"
-      ]
-    },
-    {
-      "config": "pair-redirect-priority",
-      "seed": "gen9championsvgc2026regmcbo3-2682659124 vs gen9championsvgc2026regmcbo3-2682728836",
-      "index": 66,
-      "agreed_lines": 66,
-      "turn": 4,
-      "cls": "ordering",
-      "cause": "ordering :: |-heal|p2a|H/H|[from]grassyterrain <> |-heal|p1b|H/H|[from]leftovers",
-      "showdown": "|-heal|p2a: Rillaboom|29/175|[from] Grassy Terrain",
-      "medicham": "|-heal|p1b: Rillaboom|166/175|[from] item: leftovers",
-      "showdown_before": [
-        "|-damage|p2a: Rillaboom|108/175|[from] Recoil",
-        "|move|p1b: Rillaboom|Wood Hammer|p2a: Rillaboom",
-        "|-resisted|p2a: Rillaboom|1",
-        "|-damage|p2a: Rillaboom|19/175",
-        "|-damage|p1b: Rillaboom|146/175|[from] Recoil",
-        "|-heal|p1b: Rillaboom|156/175|[from] Grassy Terrain"
-      ]
-    },
-    {
-      "config": "pair-redirect-priority",
-      "seed": "gen9championsvgc2026regmcbo3-2682705367 vs gen9championsvgc2026regmcbo3-2682673807",
-      "index": 103,
-      "agreed_lines": 103,
-      "turn": 8,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p2a|lastrespects",
-      "showdown": "|-fail|p1b: Inteleon",
-      "medicham": "|move|p2a: Basculegion|lastrespects|p1a: Swampert",
-      "showdown_before": [
-        "|-fieldend|move: Trick Room",
-        "|upkeep",
-        "|turn|8",
-        "|move|p2b: Gallade|Wide Guard|p2b: Gallade",
-        "|-singleturn|p2b: Gallade|Wide Guard",
-        "|move|p1b: Inteleon|Focus Energy||[still]"
-      ]
-    },
-    {
-      "config": "pair-redirect-priority",
-      "seed": "gen9championsvgc2026regmcbo3-2682751113 vs gen9championsvgc2026regmcbo3-2682860210",
-      "index": 5,
-      "agreed_lines": 5,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]innerfocus <> |-fail|p1a|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p1a: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p1a: Lucario",
-      "medicham": "|-fail|p1a: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p1a: Lucario",
-      "showdown_before": [
-        "|switch|p1a: Lucario|Lucario, L50|145/145",
-        "|switch|p1b: Pawmot|Pawmot, L50|145/145",
-        "|switch|p2a: Salamence|Salamence, L50|170/170",
-        "|switch|p2b: Glimmora|Glimmora, L50|158/158",
-        "|-ability|p2a: Salamence|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "pair-redirect-priority",
-      "seed": "gen9championsvgc2026regmcbo3-2684539964 vs gen9championsvgc2026regmcbo3-2684590245",
-      "index": 91,
-      "agreed_lines": 91,
-      "turn": 5,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |faint|p2a <> |-damage|p1a|H/H|[from]lifeorb",
-      "showdown": "|faint|p2a: Incineroar",
-      "medicham": "|-damage|p1a: Gholdengo|130/162|[from] item: Life Orb",
-      "showdown_before": [
-        "|move|p1b: Garchomp|Stomping Tantrum|p2a: Incineroar",
-        "|-supereffective|p2a: Incineroar|1",
-        "|-damage|p2a: Incineroar|11/170",
-        "|move|p1a: Gholdengo|Shadow Ball|p2a: Incineroar",
-        "|-resisted|p2a: Incineroar|1",
-        "|-damage|p2a: Incineroar|0 fnt"
-      ]
-    },
-    {
-      "config": "pair-redirect-priority",
-      "seed": "gen9championsvgc2026regmcbo3-2684705599 vs gen9championsvgc2026regmcbo3-2684791124",
-      "index": 12,
-      "agreed_lines": 12,
-      "turn": 1,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p2a|unboost|atk|[from]innerfocus <> |-fail|p2a|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p2a: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p2a: Lucario",
-      "medicham": "|-fail|p2a: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p2a: Lucario",
-      "showdown_before": [
-        "|-boost|p1a: Sneasler|def|1|[from] item: Grassy Seed",
-        "|-fieldstart|move: Psychic Terrain|[from] ability: Psychic Surge|[of] p2b: Indeedee",
-        "|turn|1",
-        "|switch|p2a: Lucario|Lucario, L50|145/145",
-        "|switch|p1b: Salamence|Salamence, L50|170/170",
-        "|-ability|p1b: Salamence|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "pair-speedctrl",
-      "seed": "gen9championsvgc2026regmcbo3-2678043802 vs gen9championsvgc2026regmcbo3-2678015756",
-      "index": 5,
-      "agreed_lines": 5,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p2a|unboost|atk|[from]hypercutter <> |-fail|p2a|unboost|attack|[from]hypercutter",
-      "showdown": "|-fail|p2a: Crabominable|unboost|atk|[from] ability: Hyper Cutter|[of] p2a: Crabominable",
-      "medicham": "|-fail|p2a: Crabominable|unboost|Attack|[from] ability: hypercutter|[of] p2a: Crabominable",
-      "showdown_before": [
-        "|switch|p1a: Salamence|Salamence, L50|170/170",
-        "|switch|p1b: Metagross|Metagross, L50|155/155",
-        "|switch|p2a: Crabominable|Crabominable, L50|172/172",
-        "|switch|p2b: Armarouge|Armarouge, L50|160/160",
-        "|-ability|p1a: Salamence|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "pair-speedctrl",
-      "seed": "gen9championsvgc2026regmcbo3-2678278791 vs gen9championsvgc2026regmcbo3-2678257158",
-      "index": 58,
-      "agreed_lines": 58,
-      "turn": 3,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p2a|unboost|atk|[from]scrappy <> |-fail|p2a|unboost|attack|[from]scrappy",
-      "showdown": "|-fail|p2a: Kangaskhan|unboost|atk|[from] ability: Scrappy|[of] p2a: Kangaskhan",
-      "medicham": "|-fail|p2a: Kangaskhan|unboost|Attack|[from] ability: scrappy|[of] p2a: Kangaskhan",
-      "showdown_before": [
-        "|faint|p1a: Sneasler",
-        "|-weather|SunnyDay|[upkeep]",
-        "|upkeep",
-        "|switch|p1a: Salamence|Salamence, L50|170/170",
-        "|switch|p2a: Kangaskhan|Kangaskhan, L50|180/180",
-        "|-ability|p1a: Salamence|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "pair-speedctrl",
-      "seed": "gen9championsvgc2026regmcbo3-2678661989 vs gen9championsvgc2026regmcbo3-2678782609",
-      "index": 9,
-      "agreed_lines": 9,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1b|unboost|atk|[from]oblivious <> |-fail|p1b|unboost|attack|[from]oblivious",
-      "showdown": "|-fail|p1b: Mamoswine|unboost|atk|[from] ability: Oblivious|[of] p1b: Mamoswine",
-      "medicham": "|-fail|p1b: Mamoswine|unboost|Attack|[from] ability: oblivious|[of] p1b: Mamoswine",
-      "showdown_before": [
-        "|switch|p2b: Rillaboom|Rillaboom, L50|175/175",
-        "|-ability|p1a: Salamence|Intimidate|boost",
-        "|-unboost|p2a: Salamence|atk|1",
-        "|-unboost|p2b: Rillaboom|atk|1",
-        "|-ability|p2a: Salamence|Intimidate|boost",
-        "|-unboost|p1a: Salamence|atk|1"
-      ]
-    },
-    {
-      "config": "pair-speedctrl",
-      "seed": "gen9championsvgc2026regmcbo3-2678804869 vs gen9championsvgc2026regmcbo3-2678927096",
-      "index": 13,
-      "agreed_lines": 13,
-      "turn": 1,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]innerfocus <> |-fail|p1a|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p1a: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p1a: Lucario",
-      "medicham": "|-fail|p1a: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p1a: Lucario",
-      "showdown_before": [
-        "|-unboost|p2b: Alakazam|atk|1",
-        "|turn|1",
-        "|detailschange|p2b: Alakazam|Alakazam-Mega, L50",
-        "|-mega|p2b: Alakazam|Alakazam|Alakazite",
-        "|-ability|p2b: Alakazam|Intimidate|Trace|[from] ability: Trace|[of] p1b: Incineroar",
-        "|-ability|p2b: Alakazam|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "pair-speedctrl",
-      "seed": "gen9championsvgc2026regmcbo3-2680688885 vs gen9championsvgc2026regmcbo3-2680737571",
-      "index": 5,
-      "agreed_lines": 5,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]innerfocus <> |-fail|p1a|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p1a: Lucario|unboost|atk|[from] ability: Inner Focus|[of] p1a: Lucario",
-      "medicham": "|-fail|p1a: Lucario|unboost|Attack|[from] ability: innerfocus|[of] p1a: Lucario",
-      "showdown_before": [
-        "|switch|p1a: Lucario|Lucario, L50|145/145",
-        "|switch|p1b: Glimmora|Glimmora, L50|158/158",
-        "|switch|p2a: Salamence|Salamence, L50|170/170",
-        "|switch|p2b: Gholdengo|Gholdengo, L50|162/162",
-        "|-ability|p2a: Salamence|Intimidate|boost"
-      ]
-    },
-    {
-      "config": "pair-speedctrl",
-      "seed": "gen9championsvgc2026regmcbo3-2682413078 vs gen9championsvgc2026regmcbo3-2682417187",
-      "index": 5,
-      "agreed_lines": 5,
-      "turn": 0,
-      "cls": "-fail field 4",
-      "cause": "-fail field 4 :: |-fail|p1a|unboost|atk|[from]innerfocus <> |-fail|p1a|unboost|attack|[from]innerfocus",
-      "showdown": "|-fail|p1a: Alakazam|unboost|atk|[from] ability: Inner Focus|[of] p1a: Alakazam",
-      "medicham": "|-fail|p1a: Alakazam|unboost|Attack|[from] ability: innerfocus|[of] p1a: Alakazam",
-      "showdown_before": [
-        "|switch|p1a: Alakazam|Alakazam, L50|130/130",
-        "|switch|p1b: Maushold|Maushold-Four, L50|149/149",
-        "|switch|p2a: Salamence|Salamence, L50|170/170",
-        "|switch|p2b: Charizard|Charizard, L50|153/153",
-        "|-ability|p2a: Salamence|Intimidate|boost"
-      ]
     }
   ],
   "errors": [],
@@ -9802,10 +6703,10 @@
     "policy": "observed-effect/v1",
     "rule": "a census row is exercised when a board leaf in a family THE TAG'S OWN PARAMS NAME changed across the turn, in either engine, inside the scope of an entity that was in play; or when a blocking tag's declared negative case was reached and correctly did not fire. A click alone counts for NOTHING but an attempt.",
     "why": "Primarina clicked Haze on turn 1 into a board with zero boosts on it. Haze is a no-op there, the census marked it exercised, and because the census STEERS the sample a falsely credited row then steered every later run AWAY from testing it.",
-    "rows_with_an_observed_effect": 391,
-    "rows_that_can_be_witnessed_on_a_board": 437,
-    "rows_that_name_no_board_leaf": 498,
-    "rows_credited_by_a_connected_click_only": 459,
+    "rows_with_an_observed_effect": 393,
+    "rows_that_can_be_witnessed_on_a_board": 439,
+    "rows_that_name_no_board_leaf": 500,
+    "rows_credited_by_a_connected_click_only": 461,
     "rows_clicked_or_present_that_did_nothing": 14,
     "rows_clicked_or_present_that_did_nothing_list": [
       "ability:clearsScreensOnEntry",
@@ -10509,6 +7410,50 @@
         "attempts": 6
       },
       {
+        "key": "ability:preventsStatDrop",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 14091,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 44462
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:boostsWhenLowered",
+        "kind": "effect",
+        "families": [
+          "boosts"
+        ],
+        "from": [
+          "param key `boosts`",
+          "the tag name matches boost|unboost|lowers|statcha"
+        ],
+        "credit": 2622,
+        "of_which": {
+          "effect": 5574,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:preventsStatDrop",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 14091,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 44462
+        },
+        "attempts": 0
+      },
+      {
         "key": "ability:onSwitchInDrop",
         "kind": "effect",
         "families": [
@@ -10644,11 +7589,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 11529,
+        "credit": 14091,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 36378
+          "click": 44462
         },
         "attempts": 0
       },
@@ -10657,11 +7602,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 11529,
+        "credit": 14091,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 36378
+          "click": 44462
         },
         "attempts": 0
       },
@@ -10670,11 +7615,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 11529,
+        "credit": 14091,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 36378
+          "click": 44462
         },
         "attempts": 0
       },
@@ -10683,11 +7628,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 11529,
+        "credit": 14091,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 36378
+          "click": 44462
         },
         "attempts": 0
       },
@@ -10696,11 +7641,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 11529,
+        "credit": 14091,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 36378
+          "click": 44462
         },
         "attempts": 0
       },
@@ -10714,9 +7659,9 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 1748,
+        "credit": 2622,
         "of_which": {
-          "effect": 3716,
+          "effect": 5574,
           "negative": 0,
           "click": 0
         },
@@ -15262,9 +12207,9 @@
           "param key `hazard`",
           "the tag name matches hazard"
         ],
-        "credit": 36,
+        "credit": 48,
         "of_which": {
-          "effect": 69,
+          "effect": 92,
           "negative": 0,
           "click": 0
         },
@@ -15280,9 +12225,27 @@
           "param key `hazard`",
           "the tag name matches hazard"
         ],
-        "credit": 36,
+        "credit": 48,
         "of_which": {
-          "effect": 69,
+          "effect": 92,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:hazardOnHit",
+        "kind": "effect",
+        "families": [
+          "hazards"
+        ],
+        "from": [
+          "param key `hazard`",
+          "the tag name matches hazard"
+        ],
+        "credit": 48,
+        "of_which": {
+          "effect": 92,
           "negative": 0,
           "click": 0
         },
@@ -18509,9 +15472,9 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 1748,
+        "credit": 2622,
         "of_which": {
-          "effect": 3716,
+          "effect": 5574,
           "negative": 0,
           "click": 0
         },
@@ -21001,11 +17964,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 11529,
+        "credit": 14091,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 36378
+          "click": 44462
         },
         "attempts": 0
       },
@@ -21746,11 +18709,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 11529,
+        "credit": 14091,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 36378
+          "click": 44462
         },
         "attempts": 0
       },
@@ -21789,11 +18752,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 11529,
+        "credit": 14091,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 36378
+          "click": 44462
         },
         "attempts": 0
       },
@@ -22773,11 +19736,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 11529,
+        "credit": 14091,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 36378
+          "click": 44462
         },
         "attempts": 0
       },
@@ -23153,9 +20116,9 @@
           "param key `hazard`",
           "the tag name matches hazard"
         ],
-        "credit": 36,
+        "credit": 48,
         "of_which": {
-          "effect": 69,
+          "effect": 92,
           "negative": 0,
           "click": 0
         },
@@ -24464,13 +21427,13 @@
     ]
   },
   "coverage": {
-    "measurable": 935,
-    "exercised": 869,
+    "measurable": 939,
+    "exercised": 873,
     "exercised_note": "THE OLD NUMBER — an entity of this row connected or stood on the field. It is kept so the drop to credit.rows_with_an_observed_effect is readable, and it is NOT the coverage claim any more.",
-    "exercised_by_a_connected_move": 507,
-    "move_targets": 546,
-    "present_on_the_field_only": 362,
-    "ability_or_item_targets": 389,
+    "exercised_by_a_connected_move": 508,
+    "move_targets": 547,
+    "present_on_the_field_only": 365,
+    "ability_or_item_targets": 392,
     "median_completed_turns_before_divergence": 9,
     "unmeasurable_by_this_instrument": [
       {
@@ -25155,7 +22118,7 @@
     "driver_inputs": [
       {
         "file": "data/move-priors-regmc.json",
-        "read_from": "release 485d0a6840ad",
+        "read_from": "release ec377f6f8159",
         "digest": "eab0c9b023df",
         "generated": "2026-09-21",
         "rows": 280,
@@ -25181,7 +22144,7 @@
         "rows": 48,
         "what": "the DECLARED SKIP LIST — every event medicham2 says it does not emit is removed from the Showdown side before alignment, so this decides what can count as a divergence",
         "derived_from_medicham2": "1e35c4df04aa",
-        "medicham2_played": "a6eb84612af1"
+        "medicham2_played": "b0e25d70943c"
       }
     ],
     "driver_code": {
@@ -25237,16 +22200,16 @@
       "does_not_cover": "a computed require path, a dynamic import, the Showdown checkout beyond `showdown_commit`, and data/protocol-events.json (read as data, not required)."
     },
     "input": "data/mechanics-census.json",
-    "input_read_from": "data/verification/census-pin-regmc-0d03e83f0e65.json",
-    "input_digest": "0d03e83f0e65",
-    "input_raw_digest": "0d03e83f0e65",
+    "input_read_from": "data/verification/census-pin-regmc-53bfaafa023d.json",
+    "input_digest": "53bfaafa023d",
+    "input_raw_digest": "53bfaafa023d",
     "input_digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content)",
-    "input_rows": 1006,
-    "input_generated": "2026-09-23T04:18:49.313Z",
-    "input_live_digest": "0d03e83f0e65",
+    "input_rows": 1010,
+    "input_generated": "2026-09-24T02:11:14.278Z",
+    "input_live_digest": "53bfaafa023d",
     "pinned": true,
     "matches_live": true,
-    "selects_from": 935,
+    "selects_from": 939,
     "unmeasurable": 71,
     "credit": "observed-effect/v1 — a row is exercised when a board leaf in a family the tag's own params name changed across the turn, or when a declared negative case was reached and did not fire. A click alone counts for nothing. ROADMAP #91.",
     "team_pool_digest": "3c60452ad2c5",
@@ -25255,12 +22218,12 @@
     "team_store_pinned_to": "data/team-pool-frozen-regmc"
   },
   "baseline_comparability": null,
-  "engine_release": "485d0a6840ad",
-  "engine_release_cut": "2026-09-23T04:14:02.257Z",
-  "engine_release_cuts": 1,
+  "engine_release": "ec377f6f8159",
+  "engine_release_cut": "2026-09-24T01:32:29.858Z",
+  "engine_release_cuts": 3,
   "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
   "source_digests": {
-    "engine/medicham2-browser.js": "a6eb84612af1",
+    "engine/medicham2-browser.js": "b0e25d70943c",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "a68f159b6d5c",
     "engine/position_features.js": "bb71676d3669",
@@ -25281,15 +22244,15 @@
     "data/regulations.json": "6c7c3e3dd06c",
     "data/quality-filter.json": "042524dd1df7",
     "data/engine-data.js": "bbc417dfae0e",
-    "data/abra-tags.js": "e5d86eb1d337",
-    "data/tags.json": "e82b7eb5cf8a",
+    "data/abra-tags.js": "756f4ac8350d",
+    "data/tags.json": "4535d8829442",
     "data/policy-weights.json": "626c1d240782",
     "data/policy-weights-joint.json": "e2aca467ff04",
     "data/move-priors.json": "e667fe8ab457",
     "engine/pp.js": "30b12a4ef623",
     "data/rollout-switch-census.json": "b8a5cee2f0a9",
     "data/engine-data-regmc.js": "a6ad04e92d4e",
-    "data/tags-regmc.json": "f0a9eee9ed32",
+    "data/tags-regmc.json": "2faa539f391f",
     "data/move-priors-regmc.json": "eab0c9b023df",
     "data/move-effects-regmc.js": "8c57407e7641"
   },

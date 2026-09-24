@@ -21,6 +21,11 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.87.0] — 2026-09-24
+
+### Changed
+- **Both MEDICHAM gates re-read on the pass-10 engine; both stay CLOSED.** Reg M-C (`ec377f6f8159`) fails 5 of 10 gating clauses: roster abilities (3 COULD-NOT-STAGE), roster moves (Belch COULD-NOT-STAGE, one red demonstration not caught), whole-game narration (no baseline stamped; 6/12/9 undeclared), mechanics staged (Pixilate and Refrigerate part boards), open-defect (#310, #442 cannot answer). Board-material is 0 on all three lattices and damage is 0/6000 (was 3/6000). Reg M-B (`7822a83cc49b`) fails 4 of 10: the same roster and mechanics clauses, and #442's instrument is red. No engine change. `docs/_reports/2026-09-24-gate-reread-pass10.md`.
+
 ## [0.86.1] — 2026-09-23
 
 ### Fixed

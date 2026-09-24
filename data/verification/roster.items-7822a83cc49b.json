@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-24T02:13:43.619Z",
+ "generated": "2026-09-24T04:21:31.393Z",
  "by": "tests/roster.js",
  "stage": "items",
  "swap_leaf_correction": {
@@ -7,10 +7,10 @@
   "real_ability_rewrite_kept": 0,
   "control_arm_bookkeeping_dropped": 0
  },
- "engine_release": "ec377f6f8159",
- "engine_release_cut": "2026-09-24T01:32:29.858Z",
+ "engine_release": "7822a83cc49b",
+ "engine_release_cut": "2026-09-24T01:32:27.912Z",
  "engine_release_cuts": 3,
- "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+ "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
   "engine/medicham2-browser.js": "b0e25d70943c",
   "engine/board.js": "c85a3b756c98",
@@ -39,15 +39,11 @@
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
   "engine/pp.js": "30b12a4ef623",
-  "data/rollout-switch-census.json": "b8a5cee2f0a9",
-  "data/engine-data-regmc.js": "a6ad04e92d4e",
-  "data/tags-regmc.json": "2faa539f391f",
-  "data/move-priors-regmc.json": "eab0c9b023df",
-  "data/move-effects-regmc.js": "8c57407e7641"
+  "data/rollout-switch-census.json": "b599f8d581b5"
  },
- "format": "gen9championsvgc2026regmc",
+ "format": "gen9championsvgc2026regmb",
  "fixture_legality": {
-  "checked": 545,
+  "checked": 487,
   "illegal": 0,
   "not_baselined": 0,
   "baseline": "data/fixture-legality-baseline.json",
@@ -59,23 +55,23 @@
   "DEFERRED-BY-OWNER": 0,
   "BELOW-USAGE-SHELF": 0,
   "ANNOUNCEMENT-ONLY": 0,
-  "FIRED-AND-BOARDS-MATCH": 166,
+  "FIRED-AND-BOARDS-MATCH": 148,
   "CONTROL-NOT-QUIET": 0,
   "COULD-NOT-STAGE": 0
  },
- "counts_in_scope": 166,
+ "counts_in_scope": 148,
  "counts_basis": "engine/legal_scope.js in-scope set; out-of-scope entities are excluded from every bucket rather than counted as COULD-NOT-STAGE",
  "arms_played": {
-  "top-tie-first": 370,
+  "top-tie-first": 322,
   "bottom-tie-first": 18
  },
  "scope": {
-  "total": 166,
+  "total": 148,
   "out_of_scope": 0,
   "out_of_scope_by": {},
-  "in_scope": 166,
-  "tested": 166,
-  "matched": 166,
+  "in_scope": 148,
+  "tested": 148,
+  "matched": 148,
   "differ": 0,
   "silent": 0,
   "deferred": 0,
@@ -85,19 +81,19 @@
   "could_not_stage_in_scope": 0,
   "attributed_by_second_control": [],
   "carrier_derivation": {
-   "legal_species": 382,
+   "legal_species": 347,
    "legal_species_predicate": "exists && !isNonstandard && tier !== \"Illegal\"",
-   "mega_formes_included": 75,
-   "battle_only_formes_included": 89,
+   "mega_formes_included": 72,
+   "battle_only_formes_included": 83,
    "ability": "a legal species with the ability in any slot",
    "move": "a legal species whose learnset (prevo chain + base forme, as learnsMove walks it) lists it; Struggle is carried by every legal species because the authority assigns it without a learnset",
    "item": "a mega stone by its base species; an itemUser item by one of its users; any other item by any legal species",
-   "format": "gen9championsvgc2026regmc"
+   "format": "gen9championsvgc2026regmb"
   }
  },
  "plant_anchors": {
-  "release": "ec377f6f8159",
-  "checked": 28,
+  "release": "7822a83cc49b",
+  "checked": 22,
   "dead": [],
   "reds_ran": true
  },
@@ -115,24 +111,6 @@
     "fields": [
      "party.species",
      "species"
-    ]
-   }
-  },
-  {
-   "rule": "item/pops-on-a-hit",
-   "ok": true,
-   "why": "the item is never popped, so the holder floats through turn 3",
-   "moved": {
-    "member": "airballoon",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.item",
-     "item",
-     "party.hp",
-     "hp"
     ]
    }
   },
@@ -176,22 +154,6 @@
    "why": "the item stops scaling the drain heal — the damage and the drain both still happen",
    "moved": {
     "member": "bigroot",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/partial-trap-chip",
-   "ok": true,
-   "why": "the partial trap ignores its trapper's item",
-   "moved": {
-    "member": "bindingband",
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
@@ -262,43 +224,6 @@
     "unplayable": null,
     "fields": [
      "field.weather_turns"
-    ]
-   }
-  },
-  {
-   "rule": "item/leaves-on-a-hit",
-   "ok": true,
-   "why": "the item never fires — the holder does not switch and the attacker is not dragged",
-   "moved": {
-    "member": "ejectbutton",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "pp.sleeptalk",
-     "party.item",
-     "item",
-     "last_item"
-    ]
-   }
-  },
-  {
-   "rule": "item/spent-when-its-terrain-starts",
-   "ok": true,
-   "why": "a seed is never spent",
-   "moved": {
-    "member": "electricseed",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.item",
-     "party.boosts.def",
-     "item",
-     "last_item",
-     "boosts.def"
     ]
    }
   },
@@ -395,22 +320,6 @@
    }
   },
   {
-   "rule": "item/crit-ratio",
-   "ok": true,
-   "why": "the ITEM's crit-stage contribution is dropped, so the holder never reaches the certain tier; the move, ability and volatile contributions are left standing",
-   "moved": {
-    "member": "leek",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
    "rule": "item/residual-heal",
    "ok": true,
    "why": "the passive heal is skipped — the item is still held and still on the board",
@@ -494,25 +403,6 @@
    }
   },
   {
-   "rule": "item/type-gem",
-   "ok": true,
-   "why": "the gem is never spent",
-   "moved": {
-    "member": "normalgem",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp",
-     "party.item",
-     "item",
-     "last_item"
-    ]
-   }
-  },
-  {
    "rule": "item/heals-at-threshold",
    "ok": true,
    "why": "the threshold heal is skipped",
@@ -550,20 +440,19 @@
      "fainted",
      "status",
      "species",
-     "maxhp",
      "item",
      "types",
      "ability",
-     "pp.poisonjab"
+     "pp.flamethrower"
     ]
    }
   },
   {
-   "rule": "item/tolls-a-contact-attacker",
+   "rule": "item/crit-ratio",
    "ok": true,
-   "why": "the contact toll is never paid",
+   "why": "the ITEM's crit-stage contribution is dropped, so the holder never reaches the certain tier; the move, ability and volatile contributions are left standing",
    "moved": {
-    "member": "rockyhelmet",
+    "member": "scopelens",
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
@@ -757,112 +646,6 @@
   },
   {
    "kind": "item",
-   "id": "absolitez",
-   "name": "Absolite Z",
-   "rule": "item/mega-stone",
-   "reads": "megaStone — the base species and the forme it becomes",
-   "note": "Absol -> Absol-Mega-Z",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "absol",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p2.party.absol.species",
-     "with": "absolmegaz",
-     "without": "absol"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.absol.types",
-     "with": "dark/ghost",
-     "without": "dark"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.absol.ability",
-     "with": "sharpness",
-     "without": "pressure"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].species",
-     "with": "absolmegaz",
-     "without": "absol"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].types",
-     "with": "dark/ghost",
-     "without": "dark"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].ability",
-     "with": "sharpness",
-     "without": "pressure"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.absol.species",
-     "with": "absolmegaz",
-     "without": "absol"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.absol.types",
-     "with": "dark/ghost",
-     "without": "dark"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.absol.ability",
-     "with": "sharpness",
-     "without": "pressure"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].species",
-     "with": "absolmegaz",
-     "without": "absol"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].types",
-     "with": "dark/ghost",
-     "without": "dark"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].ability",
-     "with": "sharpness",
-     "without": "pressure"
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
    "id": "aerodactylite",
    "name": "Aerodactylite",
    "rule": "item/mega-stone",
@@ -1045,76 +828,6 @@
      "path": "p2.active[0].ability",
      "with": "filter",
      "without": "sturdy"
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
-   "id": "airballoon",
-   "name": "Air Balloon",
-   "rule": "item/pops-on-a-hit",
-   "reads": "onDamagingHit that ENDS the item and damages nobody, beside an onStart",
-   "note": "Glimmora throws Earth Power (turn 1), Sludge Bomb (turn 2) and Earth Power again (turn 3) at Samurott: WITH the item turn 1 is refused and turn 2 pops it; WITHOUT it all three land",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "samurott",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p2.party.samurott.hp",
-     "with": 1360,
-     "without": 1280
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].hp",
-     "with": 1360,
-     "without": 1280
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.samurott.hp",
-     "with": 1240,
-     "without": 1160
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].hp",
-     "with": 1240,
-     "without": 1160
-    },
-    {
-     "turn": 3,
-     "path": "p2.party.samurott.hp",
-     "with": 1160,
-     "without": 1080
-    },
-    {
-     "turn": 3,
-     "path": "p2.active[0].hp",
-     "with": 1160,
-     "without": 1080
     }
    ],
    "diffs": []
@@ -1587,14 +1300,14 @@
     {
      "turn": 1,
      "path": "p2.party.rhyperior.hp",
-     "with": 1099,
-     "without": 1058
+     "with": 1087,
+     "without": 1034
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1099,
-     "without": 1058
+     "with": 1087,
+     "without": 1034
     },
     {
      "turn": 1,
@@ -1777,64 +1490,6 @@
   },
   {
    "kind": "item",
-   "id": "baxcalibrite",
-   "name": "Baxcalibrite",
-   "rule": "item/mega-stone",
-   "reads": "megaStone — the base species and the forme it becomes",
-   "note": "Baxcalibur -> Baxcalibur-Mega",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "baxcalibur",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p2.party.baxcalibur.species",
-     "with": "baxcaliburmega",
-     "without": "baxcalibur"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].species",
-     "with": "baxcaliburmega",
-     "without": "baxcalibur"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.baxcalibur.species",
-     "with": "baxcaliburmega",
-     "without": "baxcalibur"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].species",
-     "with": "baxcaliburmega",
-     "without": "baxcalibur"
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
    "id": "beedrillite",
    "name": "Beedrillite",
    "rule": "item/mega-stone",
@@ -1969,64 +1624,6 @@
      "path": "p2.active[0].hp",
      "with": 557,
      "without": 545
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
-   "id": "bindingband",
-   "name": "Binding Band",
-   "rule": "item/partial-trap-chip",
-   "reads": "desc \"Holder's partial-trapping moves deal 1/<n> max HP per turn\" — the item has NO handler; the trap's own condition asks for it",
-   "note": "Ariados traps Samurott with Infestation on turn 1; two residual chips are read, and WITH the item each is the larger fraction",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "ariados",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p1.party.samurott.hp",
-     "with": 1121,
-     "without": 1177
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].hp",
-     "with": 1121,
-     "without": 1177
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.samurott.hp",
-     "with": 895,
-     "without": 1007
-    },
-    {
-     "turn": 2,
-     "path": "p1.active[0].hp",
-     "with": 895,
-     "without": 1007
     }
    ],
    "diffs": []
@@ -3619,7 +3216,7 @@
    "name": "Coba Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "4x ARM — heracross (Bug/Fighting) DIES to the unhalved Flying hit (164 into 155 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Poison hit on golisopod, holding the same berry, on the same board",
+   "note": "4x ARM — heracross (Bug/Fighting) DIES to the unhalved Flying hit (164 into 155 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Poison hit on torterra, holding the same berry, on the same board",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -4351,146 +3948,6 @@
      "path": "p2.active[0].ability",
      "with": "eelevate",
      "without": "levitate"
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
-   "id": "ejectbutton",
-   "name": "Eject Button",
-   "rule": "item/leaves-on-a-hit",
-   "reads": "onAfterMoveSecondary that raises `switchFlag` or `forceSwitchFlag`",
-   "note": "Sceptile hits Goodra-Hisui with Dragon Pulse; one turn, and at the boundary a different body stands in one of the two slots WITH the item and in neither WITHOUT it",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "goodrahisui",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p2.active[0].species",
-     "with": "milotic",
-     "without": "goodrahisui"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].hp",
-     "with": 1020,
-     "without": 894
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].maxhp",
-     "with": 1020,
-     "without": 930
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].types",
-     "with": "water",
-     "without": "dragon/steel"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].ability",
-     "with": "marvelscale",
-     "without": "shellarmor"
-    },
-    {
-     "turn": 1,
-     "path": "p2.pp[0].sleeptalk",
-     "with": 0,
-     "without": 1
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
-   "id": "electricseed",
-   "name": "Electric Seed",
-   "rule": "item/spent-when-its-terrain-starts",
-   "reads": "onTerrainChange naming `isTerrain(\"<terrain>\")`",
-   "note": "Manectric clicks Electric Terrain on turn 1; Goodra-Hisui holds the item and must spend it for its stage",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "goodrahisui",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p2.party.goodrahisui.boosts.def",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].last_item",
-     "with": "electricseed",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].boosts.def",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.goodrahisui.boosts.def",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].last_item",
-     "with": "electricseed",
-     "without": ""
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].boosts.def",
-     "with": 1,
-     "without": 0
     }
    ],
    "diffs": []
@@ -5667,112 +5124,6 @@
   },
   {
    "kind": "item",
-   "id": "garchompitez",
-   "name": "Garchompite Z",
-   "rule": "item/mega-stone",
-   "reads": "megaStone — the base species and the forme it becomes",
-   "note": "Garchomp -> Garchomp-Mega-Z",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "garchomp",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p2.party.garchomp.species",
-     "with": "garchompmegaz",
-     "without": "garchomp"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.garchomp.types",
-     "with": "dragon",
-     "without": "dragon/ground"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.garchomp.ability",
-     "with": "levitate",
-     "without": "sandveil"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].species",
-     "with": "garchompmegaz",
-     "without": "garchomp"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].types",
-     "with": "dragon",
-     "without": "dragon/ground"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].ability",
-     "with": "levitate",
-     "without": "sandveil"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.garchomp.species",
-     "with": "garchompmegaz",
-     "without": "garchomp"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.garchomp.types",
-     "with": "dragon",
-     "without": "dragon/ground"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.garchomp.ability",
-     "with": "levitate",
-     "without": "sandveil"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].species",
-     "with": "garchompmegaz",
-     "without": "garchomp"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].types",
-     "with": "dragon",
-     "without": "dragon/ground"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].ability",
-     "with": "levitate",
-     "without": "sandveil"
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
    "id": "gardevoirite",
    "name": "Gardevoirite",
    "rule": "item/mega-stone",
@@ -6101,112 +5452,6 @@
   },
   {
    "kind": "item",
-   "id": "golisopite",
-   "name": "Golisopite",
-   "rule": "item/mega-stone",
-   "reads": "megaStone — the base species and the forme it becomes",
-   "note": "Golisopod -> Golisopod-Mega",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "golisopod",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p2.party.golisopod.species",
-     "with": "golisopodmega",
-     "without": "golisopod"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.golisopod.types",
-     "with": "bug/steel",
-     "without": "bug/water"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.golisopod.ability",
-     "with": "toughclaws",
-     "without": "emergencyexit"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].species",
-     "with": "golisopodmega",
-     "without": "golisopod"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].types",
-     "with": "bug/steel",
-     "without": "bug/water"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].ability",
-     "with": "toughclaws",
-     "without": "emergencyexit"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.golisopod.species",
-     "with": "golisopodmega",
-     "without": "golisopod"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.golisopod.types",
-     "with": "bug/steel",
-     "without": "bug/water"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.golisopod.ability",
-     "with": "toughclaws",
-     "without": "emergencyexit"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].species",
-     "with": "golisopodmega",
-     "without": "golisopod"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].types",
-     "with": "bug/steel",
-     "without": "bug/water"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].ability",
-     "with": "toughclaws",
-     "without": "emergencyexit"
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
    "id": "golurkite",
    "name": "Golurkite",
    "rule": "item/mega-stone",
@@ -6283,76 +5528,6 @@
      "path": "p2.active[0].ability",
      "with": "unseenfist",
      "without": "ironfist"
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
-   "id": "grassyseed",
-   "name": "Grassy Seed",
-   "rule": "item/spent-when-its-terrain-starts",
-   "reads": "onTerrainChange naming `isTerrain(\"<terrain>\")`",
-   "note": "Meowscarada clicks Grassy Terrain on turn 1; Goodra-Hisui holds the item and must spend it for its stage",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "goodrahisui",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p2.party.goodrahisui.boosts.def",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].last_item",
-     "with": "grassyseed",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].boosts.def",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.goodrahisui.boosts.def",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].last_item",
-     "with": "grassyseed",
-     "without": ""
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].boosts.def",
-     "with": 1,
-     "without": 0
     }
    ],
    "diffs": []
@@ -6971,12 +6146,12 @@
    "name": "Icy Rock",
    "rule": "item/extends-a-duration",
    "reads": "shortDesc \"Holder's use of <MOVE> lasts <n> turns instead of <m>\"",
-   "note": "Snowscape -> 8 turns instead of 5  [#318 restaged: p2[0] kangaskhan -> baxcalibur (learner-speed+stats/wide)]",
+   "note": "Snowscape -> 8 turns instead of 5  [#318 restaged: p2[0] kangaskhan -> dragonite (learner-speed+stats/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "baxcalibur",
+   "carrier": "dragonite",
    "legal_first": null,
    "dice": null,
    "coin": null,
@@ -7435,57 +6610,11 @@
   },
   {
    "kind": "item",
-   "id": "leek",
-   "name": "Leek",
-   "rule": "item/crit-ratio",
-   "reads": "onModifyCritRatio",
-   "note": "Farfetch’d clicks Focus Energy (+2 stages, in BOTH arms) and then Body Slam at Venusaur. WITH the item the ratio is 5 (4 or above) and the hit ALWAYS crits; WITHOUT it the ratio is 3 and the pin refuses the roll. No die is thrown on either side.  [#318 restaged: p1[0] venusaur -> baxcalibur (learner-speed+stats/wide); p1[2] milotic -> samurott (same-types/own); p1[3] clefable -> sylveon (same-types+stats/wide); p2[2] milotic -> quaquaval (same-matchups/own); p2[3] clefable -> grimmsnarl (learner-speed-kept/own)]",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "farfetchd",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 2,
-     "path": "p1.party.baxcalibur.hp",
-     "with": 1031,
-     "without": 1067
-    },
-    {
-     "turn": 2,
-     "path": "p1.active[0].hp",
-     "with": 1031,
-     "without": 1067
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
    "id": "leftovers",
    "name": "Leftovers",
    "rule": "item/residual-heal",
    "reads": "onResidual + shortDesc \"end of every turn\"",
-   "note": "both slots chipped once, then three quiet boundaries; only the left one holds it  [#318 restaged: p1[0] dragapult -> golisopod (learner-stats-kept/own); p1[1] weavile -> sneasler (learner-speed+stats/own)]",
+   "note": "both slots chipped once, then three quiet boundaries; only the left one holds it  [#318 restaged: p1[0] dragapult -> metagross (learner-stats-kept/own); p1[1] weavile -> sneasler (learner-speed+stats/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -7513,38 +6642,38 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 720,
-     "without": 687
+     "with": 719,
+     "without": 674
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 720,
-     "without": 687
+     "with": 719,
+     "without": 674
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
      "with": 720,
-     "without": 687
+     "without": 674
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
      "with": 720,
-     "without": 687
+     "without": 674
     },
     {
      "turn": 3,
      "path": "p2.party.kangaskhan.hp",
      "with": 720,
-     "without": 687
+     "without": 674
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
      "with": 720,
-     "without": 687
+     "without": 674
     }
    ],
    "diffs": []
@@ -7994,88 +7123,6 @@
      "turn": 2,
      "path": "p2.active[0].ability",
      "with": "adaptability",
-     "without": "steadfast"
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
-   "id": "lucarionitez",
-   "name": "Lucarionite Z",
-   "rule": "item/mega-stone",
-   "reads": "megaStone — the base species and the forme it becomes",
-   "note": "Lucario -> Lucario-Mega-Z",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "lucario",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p2.party.lucario.species",
-     "with": "lucariomegaz",
-     "without": "lucario"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.lucario.ability",
-     "with": "auraguard",
-     "without": "steadfast"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].species",
-     "with": "lucariomegaz",
-     "without": "lucario"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].ability",
-     "with": "auraguard",
-     "without": "steadfast"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.lucario.species",
-     "with": "lucariomegaz",
-     "without": "lucario"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.lucario.ability",
-     "with": "auraguard",
-     "without": "steadfast"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].species",
-     "with": "lucariomegaz",
-     "without": "lucario"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].ability",
-     "with": "auraguard",
      "without": "steadfast"
     }
    ],
@@ -8643,12 +7690,12 @@
    "name": "Mental Herb",
    "rule": "item/cures-a-volatile",
    "reads": "onUpdate + shortDesc naming Taunt / Encore / Disable / Attract / Torment / Heal Block",
-   "note": "Taunt, which is the cured volatile the board carries a counter for  [#318 restaged: p1[0] dragapult -> talonflame (learner-speed-kept/own); p2[0] kangaskhan -> golisopod (same-matchups+stats/own); p2[1] snorlax -> torkoal (learner-speed-kept/own)]",
+   "note": "Taunt, which is the cured volatile the board carries a counter for  [#318 restaged: p1[0] dragapult -> talonflame (learner-speed-kept/own); p2[0] kangaskhan -> goodra (same-matchups+stats/wide); p2[1] snorlax -> clawitzer (same-matchups/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "golisopod",
+   "carrier": "goodra",
    "legal_first": null,
    "dice": null,
    "coin": null,
@@ -9059,76 +8106,6 @@
   },
   {
    "kind": "item",
-   "id": "mistyseed",
-   "name": "Misty Seed",
-   "rule": "item/spent-when-its-terrain-starts",
-   "reads": "onTerrainChange naming `isTerrain(\"<terrain>\")`",
-   "note": "Whimsicott clicks Misty Terrain on turn 1; Goodra-Hisui holds the item and must spend it for its stage",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "goodrahisui",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p2.party.goodrahisui.boosts.spd",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].last_item",
-     "with": "mistyseed",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].boosts.spd",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.goodrahisui.boosts.spd",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].last_item",
-     "with": "mistyseed",
-     "without": ""
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].boosts.spd",
-     "with": 1,
-     "without": 0
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
    "id": "muscleband",
    "name": "Muscle Band",
    "rule": "item/category-scoped-power",
@@ -9191,12 +8168,12 @@
    "name": "Mystic Water",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Water x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> golisopod (learner-stats-kept/own)]",
+   "note": "Water x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> clawitzer (learner-stats-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "golisopod",
+   "carrier": "clawitzer",
    "legal_first": null,
    "dice": null,
    "coin": null,
@@ -9219,26 +8196,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 959,
-     "without": 978
+     "with": 1016,
+     "without": 1026
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 959,
-     "without": 978
+     "with": 1016,
+     "without": 1026
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 926,
-     "without": 945
+     "with": 948,
+     "without": 958
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 926,
-     "without": 945
+     "with": 948,
+     "without": 958
     }
    ],
    "diffs": []
@@ -9249,12 +8226,12 @@
    "name": "Never-Melt Ice",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Ice x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> golisopod (learner-stats-kept/own)]",
+   "note": "Ice x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> clawitzer (learner-stats-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "golisopod",
+   "carrier": "clawitzer",
    "legal_first": null,
    "dice": null,
    "coin": null,
@@ -9277,96 +8254,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1041,
-     "without": 1047
+     "with": 998,
+     "without": 1012
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1041,
-     "without": 1047
+     "with": 998,
+     "without": 1012
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1008,
-     "without": 1014
+     "with": 930,
+     "without": 944
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 1008,
-     "without": 1014
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
-   "id": "normalgem",
-   "name": "Normal Gem",
-   "rule": "item/type-gem",
-   "reads": "isGem + onSourceTryPrimaryHit naming `move.type === \"<type>\"`",
-   "note": "Sceptile throws Body Slam at Torterra twice; the first is gem-boosted WITH the item, the second is plain in both arms",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "sceptile",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p1.party.torterra.hp",
-     "with": 1317,
-     "without": 1327
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].hp",
-     "with": 1317,
-     "without": 1327
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].last_item",
-     "with": "normalgem",
-     "without": ""
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.torterra.hp",
-     "with": 1284,
-     "without": 1294
-    },
-    {
-     "turn": 2,
-     "path": "p1.active[0].hp",
-     "with": 1284,
-     "without": 1294
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].last_item",
-     "with": "normalgem",
-     "without": ""
+     "with": 930,
+     "without": 944
     }
    ],
    "diffs": []
@@ -10141,76 +9048,6 @@
   },
   {
    "kind": "item",
-   "id": "psychicseed",
-   "name": "Psychic Seed",
-   "rule": "item/spent-when-its-terrain-starts",
-   "reads": "onTerrainChange naming `isTerrain(\"<terrain>\")`",
-   "note": "Delphox clicks Psychic Terrain on turn 1; Goodra-Hisui holds the item and must spend it for its stage",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "goodrahisui",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p2.party.goodrahisui.boosts.spd",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].last_item",
-     "with": "psychicseed",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].boosts.spd",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.goodrahisui.boosts.spd",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].last_item",
-     "with": "psychicseed",
-     "without": ""
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].boosts.spd",
-     "with": 1,
-     "without": 0
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
    "id": "pyroarite",
    "name": "Pyroarite",
    "rule": "item/mega-stone",
@@ -10297,12 +9134,12 @@
    "name": "Quick Claw",
    "rule": "item/priority-by-chance",
    "reads": "onFractionalPriority",
-   "note": "Beedrill holds it and is the SLOWER (127 against 142); each kills the other, so the ORDER decides who is standing. Pinned to bottom-tie-first, where the 20% jump fires in both engines.",
+   "note": "Clefable holds it and is the SLOWER (112 against 117); each kills the other, so the ORDER decides who is standing. Pinned to bottom-tie-first, where the 20% jump fires in both engines.",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
    "control_why": null,
-   "carrier": "beedrill",
+   "carrier": "clefable",
    "legal_first": null,
    "dice": null,
    "coin": null,
@@ -10324,19 +9161,19 @@
    "sd_delta": [
     {
      "turn": 1,
-     "path": "p1.party.mrmime.hp",
+     "path": "p1.party.scizor.hp",
      "with": 0,
-     "without": 115
+     "without": 145
     },
     {
      "turn": 1,
-     "path": "p1.party.mrmime.fainted",
+     "path": "p1.party.scizor.fainted",
      "with": true,
      "without": false
     },
     {
      "turn": 1,
-     "path": "p1.party.mrmime.status",
+     "path": "p1.party.scizor.status",
      "with": "fnt",
      "without": ""
     },
@@ -10344,25 +9181,25 @@
      "turn": 1,
      "path": "p1.active[0].species",
      "with": "milotic",
-     "without": "mrmime"
+     "without": "scizor"
     },
     {
      "turn": 1,
      "path": "p1.active[0].hp",
      "with": 170,
-     "without": 115
+     "without": 145
     },
     {
      "turn": 1,
      "path": "p1.active[0].maxhp",
      "with": 170,
-     "without": 115
+     "without": 145
     },
     {
      "turn": 1,
      "path": "p1.active[0].types",
      "with": "water",
-     "without": "fairy/psychic"
+     "without": "bug/steel"
     },
     {
      "turn": 1,
@@ -10372,61 +9209,49 @@
     },
     {
      "turn": 1,
-     "path": "p1.pp[0].psychic",
+     "path": "p1.pp[0].ironhead",
      "with": null,
      "without": 1
     },
     {
      "turn": 1,
-     "path": "p2.party.beedrill.hp",
-     "with": 140,
+     "path": "p2.party.clefable.hp",
+     "with": 170,
      "without": 0
     },
     {
      "turn": 1,
-     "path": "p2.party.beedrill.fainted",
+     "path": "p2.party.clefable.fainted",
      "with": false,
      "without": true
     },
     {
      "turn": 1,
-     "path": "p2.party.beedrill.status",
+     "path": "p2.party.clefable.status",
      "with": "",
      "without": "fnt"
     },
     {
      "turn": 1,
      "path": "p2.active[0].species",
-     "with": "beedrill",
+     "with": "clefable",
      "without": "milotic"
     },
     {
      "turn": 1,
-     "path": "p2.active[0].hp",
-     "with": 140,
-     "without": 170
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].maxhp",
-     "with": 140,
-     "without": 170
-    },
-    {
-     "turn": 1,
      "path": "p2.active[0].types",
-     "with": "bug/poison",
+     "with": "fairy",
      "without": "water"
     },
     {
      "turn": 1,
      "path": "p2.active[0].ability",
-     "with": "swarm",
+     "with": "unaware",
      "without": "marvelscale"
     },
     {
      "turn": 1,
-     "path": "p2.pp[0].poisonjab",
+     "path": "p2.pp[0].flamethrower",
      "with": 1,
      "without": null
     }
@@ -10765,82 +9590,6 @@
   },
   {
    "kind": "item",
-   "id": "redcard",
-   "name": "Red Card",
-   "rule": "item/leaves-on-a-hit",
-   "reads": "onAfterMoveSecondary that raises `switchFlag` or `forceSwitchFlag`",
-   "note": "Sceptile hits Goodra-Hisui with Dragon Pulse; one turn, and at the boundary a different body stands in one of the two slots WITH the item and in neither WITHOUT it",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "goodrahisui",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p1.active[0].species",
-     "with": "clefable",
-     "without": "sceptile"
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].hp",
-     "with": 1020,
-     "without": 870
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].maxhp",
-     "with": 1020,
-     "without": 870
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].types",
-     "with": "fairy",
-     "without": "grass"
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].ability",
-     "with": "unaware",
-     "without": "overgrow"
-    },
-    {
-     "turn": 1,
-     "path": "p1.pp[0].dragonpulse",
-     "with": null,
-     "without": 1
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].last_item",
-     "with": "redcard",
-     "without": ""
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
    "id": "rindoberry",
    "name": "Rindo Berry",
    "rule": "item/resist-berry",
@@ -10935,64 +9684,6 @@
      "path": "p2.pp[0].sleeptalk",
      "with": 1,
      "without": 0
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
-   "id": "rockyhelmet",
-   "name": "Rocky Helmet",
-   "rule": "item/tolls-a-contact-attacker",
-   "reads": "onDamagingHit that damages the SOURCE behind a contact test",
-   "note": "Sceptile hits Goodra-Hisui with Dragon Claw (contact, turn 1) and Dragon Pulse (no contact, turn 2): the attacker pays the toll on turn 1 only, and only WITH the item",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "goodrahisui",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p1.party.sceptile.hp",
-     "with": 725,
-     "without": 870
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].hp",
-     "with": 725,
-     "without": 870
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.sceptile.hp",
-     "with": 725,
-     "without": 870
-    },
-    {
-     "turn": 2,
-     "path": "p1.active[0].hp",
-     "with": 725,
-     "without": 870
     }
    ],
    "diffs": []
@@ -11133,88 +9824,6 @@
      "path": "p2.active[0].ability",
      "with": "magicbounce",
      "without": "keeneye"
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
-   "id": "salamencite",
-   "name": "Salamencite",
-   "rule": "item/mega-stone",
-   "reads": "megaStone — the base species and the forme it becomes",
-   "note": "Salamence -> Salamence-Mega",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "salamence",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p2.party.salamence.species",
-     "with": "salamencemega",
-     "without": "salamence"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.salamence.ability",
-     "with": "aerilate",
-     "without": "intimidate"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].species",
-     "with": "salamencemega",
-     "without": "salamence"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].ability",
-     "with": "aerilate",
-     "without": "intimidate"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.salamence.species",
-     "with": "salamencemega",
-     "without": "salamence"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.salamence.ability",
-     "with": "aerilate",
-     "without": "intimidate"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].species",
-     "with": "salamencemega",
-     "without": "salamence"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].ability",
-     "with": "aerilate",
-     "without": "intimidate"
     }
    ],
    "diffs": []
@@ -11495,12 +10104,12 @@
    "name": "Scope Lens",
    "rule": "item/crit-ratio",
    "reads": "onModifyCritRatio",
-   "note": "Dragapult clicks Focus Energy (+2 stages, in BOTH arms) and then Dragon Claw at Venusaur. WITH the item the ratio is 4 (4 or above) and the hit ALWAYS crits; WITHOUT it the ratio is 3 and the pin refuses the roll. No die is thrown on either side.  [#318 restaged: p1[0] venusaur -> baxcalibur (learner-speed+stats/wide); p1[2] milotic -> samurott (same-types/own); p1[3] clefable -> sylveon (same-types+stats/wide); p2[0] dragapult -> salamence (learner-speed+stats/wide); p2[2] milotic -> quaquaval (same-matchups/own); p2[3] clefable -> conkeldurr (learner-speed+stats/own)]",
+   "note": "Dragapult clicks Focus Energy (+2 stages, in BOTH arms) and then Dragon Claw at Venusaur. WITH the item the ratio is 4 (4 or above) and the hit ALWAYS crits; WITHOUT it the ratio is 3 and the pin refuses the roll. No die is thrown on either side.  [#318 restaged: p1[0] venusaur -> archaludon (learner-speed+stats/wide); p1[2] milotic -> samurott (same-types/own); p1[3] clefable -> sylveon (same-types+stats/wide); p2[0] dragapult -> pangoro (learner-stats-kept/own); p2[2] milotic -> falinks (same-matchups/own); p2[3] clefable -> vaporeon (learner-speed+stats/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "salamence",
+   "carrier": "pangoro",
    "legal_first": null,
    "dice": null,
    "coin": null,
@@ -11522,15 +10131,15 @@
    "sd_delta": [
     {
      "turn": 2,
-     "path": "p1.party.baxcalibur.hp",
-     "with": 870,
-     "without": 960
+     "path": "p1.party.archaludon.hp",
+     "with": 926,
+     "without": 947
     },
     {
      "turn": 2,
      "path": "p1.active[0].hp",
-     "with": 870,
-     "without": 960
+     "with": 926,
+     "without": 947
     }
    ],
    "diffs": []
@@ -12142,12 +10751,12 @@
    "name": "Silver Powder",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Bug x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> golisopod (learner-stats-kept/own)]",
+   "note": "Bug x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> ariados (learner/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "golisopod",
+   "carrier": "ariados",
    "legal_first": null,
    "dice": null,
    "coin": null,
@@ -12182,14 +10791,14 @@
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 989,
-     "without": 998
+     "with": 973,
+     "without": 982
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 989,
-     "without": 998
+     "with": 973,
+     "without": 982
     }
    ],
    "diffs": []
@@ -13002,64 +11611,6 @@
   },
   {
    "kind": "item",
-   "id": "terrainextender",
-   "name": "Terrain Extender",
-   "rule": "item/extends-a-duration",
-   "reads": "shortDesc \"Holder's use of <MOVE> lasts <n> turns instead of <m>\"",
-   "note": "Electric Terrain -> 8 turns instead of 5  [#318 restaged: p2[0] kangaskhan -> luxray (learner-speed-kept/own)]",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "luxray",
-   "legal_first": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "underlying_verdict": null,
-   "announcement": null,
-   "usage_shelf": false,
-   "clicks_in_store": null,
-   "usage_shelf_threshold": null,
-   "shelf": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "field.terrain_turns",
-     "with": 7,
-     "without": 4
-    },
-    {
-     "turn": 2,
-     "path": "field.terrain_turns",
-     "with": 6,
-     "without": 3
-    },
-    {
-     "turn": 3,
-     "path": "field.terrain_turns",
-     "with": 5,
-     "without": 2
-    },
-    {
-     "turn": 4,
-     "path": "field.terrain_turns",
-     "with": 4,
-     "without": 1
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "item",
    "id": "twistedspoon",
    "name": "Twisted Spoon",
    "rule": "item/type-scoped-power",
@@ -13344,12 +11895,12 @@
    "name": "Wacan Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "2x arm — halves Electric on golisopod; NO legal 4x carrier for Electric exists in this format. The inverted half is a Poison hit on blastoise, holding the same berry, on the same board",
+   "note": "2x arm — halves Electric on blastoise; NO legal 4x carrier for Electric exists in this format. The inverted half is a Dark hit on empoleon, holding the same berry, on the same board",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "golisopod",
+   "carrier": "blastoise",
    "legal_first": null,
    "dice": null,
    "coin": null,
@@ -13371,15 +11922,15 @@
    "sd_delta": [
     {
      "turn": 1,
-     "path": "p2.party.golisopod.hp",
-     "with": 856,
-     "without": 812
+     "path": "p2.party.blastoise.hp",
+     "with": 885,
+     "without": 846
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 856,
-     "without": 812
+     "with": 885,
+     "without": 846
     },
     {
      "turn": 1,
