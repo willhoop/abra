@@ -21,6 +21,19 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.4.0] — 2026-09-25
+
+### Added
+- **The first post-gate solver measurements, and the ladder bot.** Eight 200-game paired matches on release
+  `eaa5becc54eb` over the same 100 real Reg M-C team pairs (pool digest `9d07c522200de072`):
+  MILTANK (heuristic, depth 2) vs DODUO-greedy 0.470 [0.402, 0.539] at 1 s and 0.510 [0.441, 0.578] at 5 s;
+  depth 0 vs 2 at 1 s 0.540 [0.471, 0.608]; the PORYGON2 leaf vs the heuristic 0.560 [0.491, 0.627] at 1 s and
+  0.505 [0.436, 0.574] at 5 s; greedy DODUO vs MAG 0.555 [0.486, 0.622], DODUO vs prior 0.580 [0.511, 0.646],
+  MAG vs prior 0.595 [0.526, 0.661]. Nothing tested beats DODUO-greedy, so **DODUO-greedy is the ladder bot**,
+  provisionally. MILTANK at 5 s also showed 28-39 s single decisions under load. Artifacts
+  `solver/results/2026-09-25-first/`, choice in `solver/LOG.md`, account
+  `docs/_reports/2026-09-25-first-solver-measurements.md`.
+
 ## [1.3.0] — 2026-09-25
 
 ### Changed

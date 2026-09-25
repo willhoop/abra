@@ -8,6 +8,21 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-25
 
+### First post-gate measurements, and the ladder bot: DODUO-greedy
+- All on frozen release `eaa5becc54eb`, the same 100 real Reg M-C team pairs (pool `9d07c522200de072`, ids
+  `ba106d1ad5487ac2`), paired seats, 200 games, `--workers 4`, through `tools\lownode.cmd`, Wilson 95%.
+- MILTANK (heuristic, d2) vs DODUO-greedy: **0.470 [0.402, 0.539] at 1 s; 0.510 [0.441, 0.578] at 5 s.**
+- Heuristic d0 vs d2, 1 s: 0.540 [0.471, 0.608]. PORYGON2 vs heuristic leaf, d2: 0.560 [0.491, 0.627] at 1 s,
+  0.505 [0.436, 0.574] at 5 s. Greedy: DODUO vs MAG 0.555 [0.486, 0.622], DODUO vs prior 0.580 [0.511, 0.646],
+  MAG vs prior 0.595 [0.526, 0.661].
+- **LADDER BOT: DODUO-greedy (ROTOM `prior` policy).** The rule was the configuration that best beats
+  DODUO-greedy within ≤20 s a decision. Nothing tested beats it: MILTANK's best is a tie at 5 s, costs
+  100-1000× the decision time, and showed 28-39 s single decisions under load. The pick is provisional, by
+  default of evidence, not a shown superiority. The next bar is MILTANK at depth 0 (heuristic and PORYGON2)
+  against DODUO-greedy, with more games and a compute-fixed budget (5 s wall bought only ~1.2-2× the
+  playouts of 1 s on a loaded machine).
+- Detail: `docs/_reports/2026-09-25-first-solver-measurements.md`; artifacts `solver/results/2026-09-25-first/`.
+
 ### ROTOM replays + ladder mode merged (abra/regmc 1.1.0 replays, 1.2.0 ladder, 1.3.0 merge)
 - Ladder mode uses the replay-save and games.jsonl hooks; one rating parser; one local start-up path
   (`solver/rotom/local_server.js`) for run_local and the ladder dry run.

@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.4.0] — 2026-09-25 — **First post-gate solver measurements; DODUO-greedy chosen as the ladder bot**
+- **What changed.** Measurement only, plus the ladder choice in `solver/LOG.md`. Release `eaa5becc54eb`; sheets `solver/out/human/games.jsonl` (pool `9d07c522200de072`, team-pair ids `ba106d1ad5487ac2`); `--seed 1 --games 200 --k1 8 --k2 8 --cap 60 --workers 4`, MILTANK default depth 2, through `tools\lownode.cmd`. `docs/_reports/2026-09-25-first-solver-measurements.md`.
+- **Measured.** MILTANK heuristic d2 vs DODUO-greedy 0.470 [0.402, 0.539] at 1 s (`solver/results/2026-09-25-first/a1-miltank-vs-doduo-1s.json`), 0.510 [0.441, 0.578] at 5 s (`a5-…`); heuristic d0 vs d2 at 1 s 0.540 [0.471, 0.608] (`b-…`); PORYGON2 vs heuristic leaf at d2 0.560 [0.491, 0.627] at 1 s (`c1-…`), 0.505 [0.436, 0.574] at 5 s (`c5-…`); DODUO vs MAG 0.555 [0.486, 0.622], DODUO vs prior 0.580 [0.511, 0.646], MAG vs prior 0.595 [0.526, 0.661] (`d-…`). Wilson 95%, 0 draws, 0 capped, 0 errors, 0 warnings.
+- **Basis.** unchanged. **Supersedes.** Nothing — the PRE-GATE arena matches were never published as results. **Owed to the next major.** The solver results and the ladder choice belong in `docs/MODELS.md` and the white paper's solver section.
+
 ## [abra/regmc 1.3.0] — 2026-09-25 — **ROTOM replays + ladder mode merged; the local server makes zero public requests**
 - **What changed.** Ladder mode calls the replay-save and `games.jsonl` hooks (one rating parser, one room-hold); `solver/rotom/local_server.js` is the one local start-up path (`run_local.js`, `run_ladder.js --dry-run`); `local_server_preload.js` sets `loginserver`, `routes.root`, `routes.replays` to the stand-in and refuses the switchless Tor fetch (`server/ip-tools.ts:651`) by name; new `solver/tests/test-rotom-localnet.js`.
 - **Measured.** NO FIGURE (harness). Before: 9 public attempts at start-up (`check.torproject.org` ×2, `play.pokemonshowdown.com` ×1, `pokemonshowdown.com` ×6) — `test-rotom-localnet --break`, RED. After: 0 across 10 guarded server processes — `test-rotom-localnet` GREEN 4/4. Account `docs/_reports/2026-09-25-rotom-merge.md`.

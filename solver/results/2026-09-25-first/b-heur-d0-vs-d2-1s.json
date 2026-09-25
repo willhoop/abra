@@ -1,0 +1,2292 @@
+{
+ "status": "frozen engine release eaa5becc54eb (gate state: engine/quarantine.js)",
+ "engine_release": "eaa5becc54eb",
+ "engine_release_cut": "2026-09-24T20:12:54.367Z",
+ "engine_release_cuts": 50,
+ "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+ "source_digests": {
+  "engine/medicham2-browser.js": "2caee2eeabb0",
+  "engine/board.js": "c85a3b756c98",
+  "engine/rollout_leaf.js": "eacf05ff8d30",
+  "engine/position_features.js": "bb71676d3669",
+  "engine/tags.js": "13cdeb051720",
+  "engine/champions_sim.js": "8094725f52a8",
+  "data/residual-order.json": "eff160ad1c5a",
+  "data/switchin-order.json": "24a007a66b7d",
+  "engine/mc_key.js": "aaa095762671",
+  "engine/lookup.js": "17f49e5aed43",
+  "engine/set_priors.js": "f8a81445ee3a",
+  "engine/smogon_priors.js": "ebd062f756c8",
+  "engine/quality.js": "ebc37c7c9d05",
+  "engine/showdown_path.js": "46646401ede2",
+  "engine/regulation.js": "827f5138ecf5",
+  "data/move-effects.js": "f35ecd91ba86",
+  "data/ability-blocks.json": "86741fd35452",
+  "data/smogon-priors.json": "f2dc78cea6c5",
+  "data/regulations.json": "6c7c3e3dd06c",
+  "data/quality-filter.json": "042524dd1df7",
+  "data/engine-data.js": "bbc417dfae0e",
+  "data/abra-tags.js": "fc30f9a9392e",
+  "data/tags.json": "26ee107ce6a8",
+  "data/policy-weights.json": "626c1d240782",
+  "data/policy-weights-joint.json": "e2aca467ff04",
+  "data/move-priors.json": "e667fe8ab457",
+  "engine/pp.js": "30b12a4ef623",
+  "data/rollout-switch-census.json": "b8a5cee2f0a9",
+  "engine/medicham_api.js": "f0264a11558b",
+  "data/engine-data-regmc.js": "a6ad04e92d4e",
+  "data/tags-regmc.json": "ac1a00fa40ee",
+  "data/move-priors-regmc.json": "eab0c9b023df",
+  "data/move-effects-regmc.js": "8c57407e7641"
+ },
+ "x": "miltank",
+ "y": "miltank",
+ "games": 200,
+ "played": 200,
+ "result": {
+  "W": 108,
+  "D": 0,
+  "L": 92,
+  "capped": 0,
+  "errors": 0,
+  "score_x": 0.54,
+  "ci95_x": [
+   0.4708216309361468,
+   0.6076706885903875
+  ]
+ },
+ "paired": {
+  "team_pairs": 100,
+  "both": 24,
+  "split": 60,
+  "lost": 16
+ },
+ "decision_ms": {
+  "miltank (x)": {
+   "n": 1615,
+   "mean": 1019.66,
+   "p50": 1018,
+   "p95": 1045,
+   "max": 1618
+  },
+  "miltank (y)": {
+   "n": 1615,
+   "mean": 1036.64,
+   "p50": 1037,
+   "p95": 1076,
+   "max": 1405
+  }
+ },
+ "search": {
+  "x": {
+   "decisions": 1614,
+   "cells": {
+    "n": 1614,
+    "mean": 62.36,
+    "p50": 64,
+    "p95": 64,
+    "max": 64
+   },
+   "playouts": {
+    "n": 1614,
+    "mean": 660.54,
+    "p50": 275,
+    "p95": 2162,
+    "max": 4225
+   },
+   "passes": {
+    "n": 1614,
+    "mean": 13.5,
+    "p50": 8,
+    "p95": 37,
+    "max": 253
+   },
+   "unfilled_share": 0.0006,
+   "slowking_gap": {
+    "mean": 0.0000591,
+    "max": 0.0001
+   },
+   "mix_support": {
+    "n": 1614,
+    "mean": 2.47,
+    "p50": 2,
+    "p95": 6,
+    "max": 8
+   }
+  },
+  "y": {
+   "decisions": 1614,
+   "cells": {
+    "n": 1614,
+    "mean": 62.36,
+    "p50": 64,
+    "p95": 64,
+    "max": 64
+   },
+   "playouts": {
+    "n": 1614,
+    "mean": 332.24,
+    "p50": 118,
+    "p95": 1202,
+    "max": 4066
+   },
+   "passes": {
+    "n": 1614,
+    "mean": 8.73,
+    "p50": 4,
+    "p95": 26,
+    "max": 759
+   },
+   "unfilled_share": 0.0405,
+   "slowking_gap": {
+    "mean": 0.0000655,
+    "max": 0.0000999
+   },
+   "mix_support": {
+    "n": 1614,
+    "mean": 2.66,
+    "p50": 3,
+    "p95": 5,
+    "max": 8
+   }
+  }
+ },
+ "flags": {
+  "release": "eaa5becc54eb",
+  "x": "miltank",
+  "y": "miltank",
+  "games": 200,
+  "seed": 1,
+  "budget_ms": 1000,
+  "depth": 2,
+  "k1": 8,
+  "k2": 8,
+  "cap": 60,
+  "reserve_switch": 2,
+  "workers": 4,
+  "leaf_x": "heuristic",
+  "leaf_y": "heuristic",
+  "depth_x": 0,
+  "depth_y": 2
+ },
+ "sample": {
+  "human_file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\solver\\out\\human\\games.jsonl",
+  "pool_sha256": "9d07c522200de072",
+  "manifest_generated": "2026-09-23T08:03:12.313Z",
+  "scanned": 26888,
+  "eligible": 18810,
+  "skipped": {
+   "bring_incomplete": 8078,
+   "custom_rules": 0,
+   "sheet_not_six": 0,
+   "unbuildable": 0
+  },
+  "stride": 125,
+  "ids_sha256": "ba106d1ad5487ac2"
+ },
+ "provenance": {
+  "head": "a085dd9fff458a495d03daf6998e8531f5ab24c5",
+  "regulation": "regmc",
+  "checkout": "C:\\Users\\willj\\Projects\\Pokemon\\pokemon-showdown-mc",
+  "engine_dir": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\eaa5becc54eb",
+  "engine": "2caee2eeabb08b50",
+  "api": "f0264a11558bee3b",
+  "engine_data": "a6ad04e92d4ee371",
+  "prior_model": "2e87c31a5e09172d",
+  "node": "v24.15.0",
+  "porygon2_model": "b772aa398e728938",
+  "mag_model": "c720dd9e0696bc3e",
+  "doduo_model": "da319ee23b44770a",
+  "argv": [
+   "--release",
+   "eaa5becc54eb",
+   "--seed",
+   "1",
+   "--games",
+   "200",
+   "--x",
+   "miltank",
+   "--y",
+   "miltank",
+   "--depth-x",
+   "0",
+   "--depth-y",
+   "2",
+   "--budget",
+   "1000",
+   "--workers",
+   "4",
+   "--out",
+   "solver/results/2026-09-25-first/b-heur-d0-vs-d2-1s.json"
+  ],
+  "env": {
+   "MILTANK_LEAF": null,
+   "SOLVER_RELEASE": "eaa5becc54eb"
+  }
+ },
+ "counters": {
+  "api": {
+   "battles": 200,
+   "adopted": 0,
+   "clones": 0,
+   "steps": 0,
+   "stepsInPlace": 1615,
+   "legalCalls": 6460,
+   "forcedSlots": 12,
+   "sharedScratch": 0,
+   "leanBattles": 0,
+   "leanSteps": 0
+  },
+  "prior": {
+   "calls": 6456,
+   "unmapped": {},
+   "nullDecision": 0,
+   "optionsUnmatched": 11456,
+   "optionsMatched": 108300
+  },
+  "greedy_x": null,
+  "greedy_y": null,
+  "rollout": {
+   "playouts": 0,
+   "playoutTurns": 0,
+   "worlds": 0,
+   "bodiesSwapped": 0,
+   "wipes": 0,
+   "leafHeuristic": 0,
+   "leafPory2": 0,
+   "prepared": 0,
+   "fastClones": 0,
+   "leanPlayouts": 0
+  },
+  "rollout_workers": {
+   "playouts": 1602355,
+   "playoutTurns": 599528,
+   "worlds": 35884,
+   "bodiesSwapped": 18298,
+   "wipes": 580550,
+   "leafHeuristic": 1021805,
+   "leafPory2": 0,
+   "prepared": 35884,
+   "fastClones": 1602355,
+   "leanPlayouts": 1602355,
+   "cpu_ms": 11360731
+  },
+  "miltank": {
+   "decisions": 3230,
+   "forced": 2,
+   "cells": 201310,
+   "playouts": 1602355,
+   "unfilled": 4132,
+   "reservedSwitch": 8586,
+   "reservedMega": 761,
+   "rmIters": 833600,
+   "overBudget": 1,
+   "pory2Decisions": 0,
+   "pooled": 3228
+  }
+ },
+ "warnings": [],
+ "wall_s": 3350,
+ "per_game": [
+  {
+   "gi": 0,
+   "id": "gen9championsvgc2026regmcbo3-2678207985",
+   "xSide": "A",
+   "seed": 100000,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 1,
+   "id": "gen9championsvgc2026regmcbo3-2678207985",
+   "xSide": "B",
+   "seed": 100000,
+   "turns": 4,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 2,
+   "id": "gen9championsvgc2026regmcbo3-2678097311",
+   "xSide": "A",
+   "seed": 100001,
+   "turns": 6,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 3,
+   "id": "gen9championsvgc2026regmcbo3-2678097311",
+   "xSide": "B",
+   "seed": 100001,
+   "turns": 5,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 4,
+   "id": "gen9championsvgc2026regmcbo3-2677990730",
+   "xSide": "A",
+   "seed": 100002,
+   "turns": 9,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 5,
+   "id": "gen9championsvgc2026regmcbo3-2677990730",
+   "xSide": "B",
+   "seed": 100002,
+   "turns": 3,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 6,
+   "id": "gen9championsvgc2026regmcbo3-2678267383",
+   "xSide": "A",
+   "seed": 100003,
+   "turns": 8,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 7,
+   "id": "gen9championsvgc2026regmcbo3-2678267383",
+   "xSide": "B",
+   "seed": 100003,
+   "turns": 8,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 8,
+   "id": "gen9championsvgc2026regmcbo3-2678326916",
+   "xSide": "A",
+   "seed": 100004,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 9,
+   "id": "gen9championsvgc2026regmcbo3-2678326916",
+   "xSide": "B",
+   "seed": 100004,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 10,
+   "id": "gen9championsvgc2026regmcbo3-2678366075",
+   "xSide": "A",
+   "seed": 100005,
+   "turns": 9,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 11,
+   "id": "gen9championsvgc2026regmcbo3-2678366075",
+   "xSide": "B",
+   "seed": 100005,
+   "turns": 9,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 12,
+   "id": "gen9championsvgc2026regmcbo3-2678460870",
+   "xSide": "A",
+   "seed": 100006,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 13,
+   "id": "gen9championsvgc2026regmcbo3-2678460870",
+   "xSide": "B",
+   "seed": 100006,
+   "turns": 8,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 14,
+   "id": "gen9championsvgc2026regmcbo3-2678512185",
+   "xSide": "A",
+   "seed": 100007,
+   "turns": 10,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 15,
+   "id": "gen9championsvgc2026regmcbo3-2678512185",
+   "xSide": "B",
+   "seed": 100007,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 16,
+   "id": "gen9championsvgc2026regmcbo3-2678650582",
+   "xSide": "A",
+   "seed": 100008,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 17,
+   "id": "gen9championsvgc2026regmcbo3-2678650582",
+   "xSide": "B",
+   "seed": 100008,
+   "turns": 4,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 18,
+   "id": "gen9championsvgc2026regmcbo3-2678732256",
+   "xSide": "A",
+   "seed": 100009,
+   "turns": 9,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 19,
+   "id": "gen9championsvgc2026regmcbo3-2678732256",
+   "xSide": "B",
+   "seed": 100009,
+   "turns": 5,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 20,
+   "id": "gen9championsvgc2026regmcbo3-2678793913",
+   "xSide": "A",
+   "seed": 100010,
+   "turns": 6,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 21,
+   "id": "gen9championsvgc2026regmcbo3-2678793913",
+   "xSide": "B",
+   "seed": 100010,
+   "turns": 4,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 22,
+   "id": "gen9championsvgc2026regmcbo3-2678795305",
+   "xSide": "A",
+   "seed": 100011,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 23,
+   "id": "gen9championsvgc2026regmcbo3-2678795305",
+   "xSide": "B",
+   "seed": 100011,
+   "turns": 9,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 24,
+   "id": "gen9championsvgc2026regmcbo3-2678966585",
+   "xSide": "A",
+   "seed": 100012,
+   "turns": 5,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 25,
+   "id": "gen9championsvgc2026regmcbo3-2678966585",
+   "xSide": "B",
+   "seed": 100012,
+   "turns": 4,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 26,
+   "id": "gen9championsvgc2026regmcbo3-2678983509",
+   "xSide": "A",
+   "seed": 100013,
+   "turns": 10,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 27,
+   "id": "gen9championsvgc2026regmcbo3-2678983509",
+   "xSide": "B",
+   "seed": 100013,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 28,
+   "id": "gen9championsvgc2026regmcbo3-2679004380",
+   "xSide": "A",
+   "seed": 100014,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 29,
+   "id": "gen9championsvgc2026regmcbo3-2679004380",
+   "xSide": "B",
+   "seed": 100014,
+   "turns": 9,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 30,
+   "id": "gen9championsvgc2026regmcbo3-2679122734",
+   "xSide": "A",
+   "seed": 100015,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 31,
+   "id": "gen9championsvgc2026regmcbo3-2679122734",
+   "xSide": "B",
+   "seed": 100015,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 32,
+   "id": "gen9championsvgc2026regmcbo3-2679066621",
+   "xSide": "A",
+   "seed": 100016,
+   "turns": 5,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 33,
+   "id": "gen9championsvgc2026regmcbo3-2679066621",
+   "xSide": "B",
+   "seed": 100016,
+   "turns": 4,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 34,
+   "id": "gen9championsvgc2026regmcbo3-2679228099",
+   "xSide": "A",
+   "seed": 100017,
+   "turns": 4,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 35,
+   "id": "gen9championsvgc2026regmcbo3-2679228099",
+   "xSide": "B",
+   "seed": 100017,
+   "turns": 13,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 36,
+   "id": "gen9championsvgc2026regmcbo3-2679274143",
+   "xSide": "A",
+   "seed": 100018,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 37,
+   "id": "gen9championsvgc2026regmcbo3-2679274143",
+   "xSide": "B",
+   "seed": 100018,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 38,
+   "id": "gen9championsvgc2026regmcbo3-2679361227",
+   "xSide": "A",
+   "seed": 100019,
+   "turns": 11,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 39,
+   "id": "gen9championsvgc2026regmcbo3-2679361227",
+   "xSide": "B",
+   "seed": 100019,
+   "turns": 4,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 40,
+   "id": "gen9championsvgc2026regmcbo3-2679287596",
+   "xSide": "A",
+   "seed": 100020,
+   "turns": 10,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 41,
+   "id": "gen9championsvgc2026regmcbo3-2679287596",
+   "xSide": "B",
+   "seed": 100020,
+   "turns": 4,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 42,
+   "id": "gen9championsvgc2026regmcbo3-2679479778",
+   "xSide": "A",
+   "seed": 100021,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 43,
+   "id": "gen9championsvgc2026regmcbo3-2679479778",
+   "xSide": "B",
+   "seed": 100021,
+   "turns": 8,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 44,
+   "id": "gen9championsvgc2026regmcbo3-2679573104",
+   "xSide": "A",
+   "seed": 100022,
+   "turns": 7,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 45,
+   "id": "gen9championsvgc2026regmcbo3-2679573104",
+   "xSide": "B",
+   "seed": 100022,
+   "turns": 8,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 46,
+   "id": "gen9championsvgc2026regmcbo3-2679598529",
+   "xSide": "A",
+   "seed": 100023,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 47,
+   "id": "gen9championsvgc2026regmcbo3-2679598529",
+   "xSide": "B",
+   "seed": 100023,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 48,
+   "id": "gen9championsvgc2026regmcbo3-2679661406",
+   "xSide": "A",
+   "seed": 100024,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 49,
+   "id": "gen9championsvgc2026regmcbo3-2679661406",
+   "xSide": "B",
+   "seed": 100024,
+   "turns": 9,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 50,
+   "id": "gen9championsvgc2026regmcbo3-2679685641",
+   "xSide": "A",
+   "seed": 100025,
+   "turns": 12,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 51,
+   "id": "gen9championsvgc2026regmcbo3-2679685641",
+   "xSide": "B",
+   "seed": 100025,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 52,
+   "id": "gen9championsvgc2026regmcbo3-2679720242",
+   "xSide": "A",
+   "seed": 100026,
+   "turns": 10,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 53,
+   "id": "gen9championsvgc2026regmcbo3-2679720242",
+   "xSide": "B",
+   "seed": 100026,
+   "turns": 9,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 54,
+   "id": "gen9championsvgc2026regmcbo3-2679801247",
+   "xSide": "A",
+   "seed": 100027,
+   "turns": 5,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 55,
+   "id": "gen9championsvgc2026regmcbo3-2679801247",
+   "xSide": "B",
+   "seed": 100027,
+   "turns": 8,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 56,
+   "id": "gen9championsvgc2026regmcbo3-2679801732",
+   "xSide": "A",
+   "seed": 100028,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 57,
+   "id": "gen9championsvgc2026regmcbo3-2679801732",
+   "xSide": "B",
+   "seed": 100028,
+   "turns": 7,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 58,
+   "id": "gen9championsvgc2026regmcbo3-2679886519",
+   "xSide": "A",
+   "seed": 100029,
+   "turns": 7,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 59,
+   "id": "gen9championsvgc2026regmcbo3-2679886519",
+   "xSide": "B",
+   "seed": 100029,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 60,
+   "id": "gen9championsvgc2026regmcbo3-2679995677",
+   "xSide": "A",
+   "seed": 100030,
+   "turns": 4,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 61,
+   "id": "gen9championsvgc2026regmcbo3-2679995677",
+   "xSide": "B",
+   "seed": 100030,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 62,
+   "id": "gen9championsvgc2026regmcbo3-2680070297",
+   "xSide": "A",
+   "seed": 100031,
+   "turns": 10,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 63,
+   "id": "gen9championsvgc2026regmcbo3-2680070297",
+   "xSide": "B",
+   "seed": 100031,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 64,
+   "id": "gen9championsvgc2026regmcbo3-2680108242",
+   "xSide": "A",
+   "seed": 100032,
+   "turns": 11,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 65,
+   "id": "gen9championsvgc2026regmcbo3-2680108242",
+   "xSide": "B",
+   "seed": 100032,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 66,
+   "id": "gen9championsvgc2026regmcbo3-2680121599",
+   "xSide": "A",
+   "seed": 100033,
+   "turns": 5,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 67,
+   "id": "gen9championsvgc2026regmcbo3-2680121599",
+   "xSide": "B",
+   "seed": 100033,
+   "turns": 7,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 68,
+   "id": "gen9championsvgc2026regmcbo3-2680218440",
+   "xSide": "A",
+   "seed": 100034,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 69,
+   "id": "gen9championsvgc2026regmcbo3-2680218440",
+   "xSide": "B",
+   "seed": 100034,
+   "turns": 9,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 70,
+   "id": "gen9championsvgc2026regmcbo3-2680261281",
+   "xSide": "A",
+   "seed": 100035,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 71,
+   "id": "gen9championsvgc2026regmcbo3-2680261281",
+   "xSide": "B",
+   "seed": 100035,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 72,
+   "id": "gen9championsvgc2026regmcbo3-2680333745",
+   "xSide": "A",
+   "seed": 100036,
+   "turns": 6,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 73,
+   "id": "gen9championsvgc2026regmcbo3-2680333745",
+   "xSide": "B",
+   "seed": 100036,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 74,
+   "id": "gen9championsvgc2026regmcbo3-2680355993",
+   "xSide": "A",
+   "seed": 100037,
+   "turns": 13,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 75,
+   "id": "gen9championsvgc2026regmcbo3-2680355993",
+   "xSide": "B",
+   "seed": 100037,
+   "turns": 9,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 76,
+   "id": "gen9championsvgc2026regmcbo3-2680470499",
+   "xSide": "A",
+   "seed": 100038,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 77,
+   "id": "gen9championsvgc2026regmcbo3-2680470499",
+   "xSide": "B",
+   "seed": 100038,
+   "turns": 10,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 78,
+   "id": "gen9championsvgc2026regmcbo3-2680512582",
+   "xSide": "A",
+   "seed": 100039,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 79,
+   "id": "gen9championsvgc2026regmcbo3-2680512582",
+   "xSide": "B",
+   "seed": 100039,
+   "turns": 7,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 80,
+   "id": "gen9championsvgc2026regmcbo3-2680569262",
+   "xSide": "A",
+   "seed": 100040,
+   "turns": 7,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 81,
+   "id": "gen9championsvgc2026regmcbo3-2680569262",
+   "xSide": "B",
+   "seed": 100040,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 82,
+   "id": "gen9championsvgc2026regmcbo3-2680662259",
+   "xSide": "A",
+   "seed": 100041,
+   "turns": 7,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 83,
+   "id": "gen9championsvgc2026regmcbo3-2680662259",
+   "xSide": "B",
+   "seed": 100041,
+   "turns": 14,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 84,
+   "id": "gen9championsvgc2026regmcbo3-2680688885",
+   "xSide": "A",
+   "seed": 100042,
+   "turns": 12,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 85,
+   "id": "gen9championsvgc2026regmcbo3-2680688885",
+   "xSide": "B",
+   "seed": 100042,
+   "turns": 11,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 86,
+   "id": "gen9championsvgc2026regmcbo3-2680749176",
+   "xSide": "A",
+   "seed": 100043,
+   "turns": 11,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 87,
+   "id": "gen9championsvgc2026regmcbo3-2680749176",
+   "xSide": "B",
+   "seed": 100043,
+   "turns": 9,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 88,
+   "id": "gen9championsvgc2026regmcbo3-2680851225",
+   "xSide": "A",
+   "seed": 100044,
+   "turns": 14,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 89,
+   "id": "gen9championsvgc2026regmcbo3-2680851225",
+   "xSide": "B",
+   "seed": 100044,
+   "turns": 8,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 90,
+   "id": "gen9championsvgc2026regmcbo3-2680807689",
+   "xSide": "A",
+   "seed": 100045,
+   "turns": 7,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 91,
+   "id": "gen9championsvgc2026regmcbo3-2680807689",
+   "xSide": "B",
+   "seed": 100045,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 92,
+   "id": "gen9championsvgc2026regmcbo3-2680995070",
+   "xSide": "A",
+   "seed": 100046,
+   "turns": 9,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 93,
+   "id": "gen9championsvgc2026regmcbo3-2680995070",
+   "xSide": "B",
+   "seed": 100046,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 94,
+   "id": "gen9championsvgc2026regmcbo3-2680920029",
+   "xSide": "A",
+   "seed": 100047,
+   "turns": 14,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 95,
+   "id": "gen9championsvgc2026regmcbo3-2680920029",
+   "xSide": "B",
+   "seed": 100047,
+   "turns": 13,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 96,
+   "id": "gen9championsvgc2026regmcbo3-2681202010",
+   "xSide": "A",
+   "seed": 100048,
+   "turns": 8,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 97,
+   "id": "gen9championsvgc2026regmcbo3-2681202010",
+   "xSide": "B",
+   "seed": 100048,
+   "turns": 6,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 98,
+   "id": "gen9championsvgc2026regmcbo3-2681179675",
+   "xSide": "A",
+   "seed": 100049,
+   "turns": 17,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 99,
+   "id": "gen9championsvgc2026regmcbo3-2681179675",
+   "xSide": "B",
+   "seed": 100049,
+   "turns": 8,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 100,
+   "id": "gen9championsvgc2026regmcbo3-2681130627",
+   "xSide": "A",
+   "seed": 100050,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 101,
+   "id": "gen9championsvgc2026regmcbo3-2681130627",
+   "xSide": "B",
+   "seed": 100050,
+   "turns": 6,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 102,
+   "id": "gen9championsvgc2026regmcbo3-2681074977",
+   "xSide": "A",
+   "seed": 100051,
+   "turns": 6,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 103,
+   "id": "gen9championsvgc2026regmcbo3-2681074977",
+   "xSide": "B",
+   "seed": 100051,
+   "turns": 10,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 104,
+   "id": "gen9championsvgc2026regmcbo3-2681314944",
+   "xSide": "A",
+   "seed": 100052,
+   "turns": 9,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 105,
+   "id": "gen9championsvgc2026regmcbo3-2681314944",
+   "xSide": "B",
+   "seed": 100052,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 106,
+   "id": "gen9championsvgc2026regmcbo3-2681277465",
+   "xSide": "A",
+   "seed": 100053,
+   "turns": 6,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 107,
+   "id": "gen9championsvgc2026regmcbo3-2681277465",
+   "xSide": "B",
+   "seed": 100053,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 108,
+   "id": "gen9championsvgc2026regmcbo3-2681323592",
+   "xSide": "A",
+   "seed": 100054,
+   "turns": 10,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 109,
+   "id": "gen9championsvgc2026regmcbo3-2681323592",
+   "xSide": "B",
+   "seed": 100054,
+   "turns": 10,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 110,
+   "id": "gen9championsvgc2026regmcbo3-2681388409",
+   "xSide": "A",
+   "seed": 100055,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 111,
+   "id": "gen9championsvgc2026regmcbo3-2681388409",
+   "xSide": "B",
+   "seed": 100055,
+   "turns": 12,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 112,
+   "id": "gen9championsvgc2026regmcbo3-2681359847",
+   "xSide": "A",
+   "seed": 100056,
+   "turns": 6,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 113,
+   "id": "gen9championsvgc2026regmcbo3-2681359847",
+   "xSide": "B",
+   "seed": 100056,
+   "turns": 5,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 114,
+   "id": "gen9championsvgc2026regmcbo3-2681488715",
+   "xSide": "A",
+   "seed": 100057,
+   "turns": 8,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 115,
+   "id": "gen9championsvgc2026regmcbo3-2681488715",
+   "xSide": "B",
+   "seed": 100057,
+   "turns": 11,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 116,
+   "id": "gen9championsvgc2026regmcbo3-2681451068",
+   "xSide": "A",
+   "seed": 100058,
+   "turns": 5,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 117,
+   "id": "gen9championsvgc2026regmcbo3-2681451068",
+   "xSide": "B",
+   "seed": 100058,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 118,
+   "id": "gen9championsvgc2026regmcbo3-2681534656",
+   "xSide": "A",
+   "seed": 100059,
+   "turns": 9,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 119,
+   "id": "gen9championsvgc2026regmcbo3-2681534656",
+   "xSide": "B",
+   "seed": 100059,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 120,
+   "id": "gen9championsvgc2026regmcbo3-2681543245",
+   "xSide": "A",
+   "seed": 100060,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 121,
+   "id": "gen9championsvgc2026regmcbo3-2681543245",
+   "xSide": "B",
+   "seed": 100060,
+   "turns": 8,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 122,
+   "id": "gen9championsvgc2026regmcbo3-2681569160",
+   "xSide": "A",
+   "seed": 100061,
+   "turns": 5,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 123,
+   "id": "gen9championsvgc2026regmcbo3-2681569160",
+   "xSide": "B",
+   "seed": 100061,
+   "turns": 5,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 124,
+   "id": "gen9championsvgc2026regmcbo3-2681632576",
+   "xSide": "A",
+   "seed": 100062,
+   "turns": 9,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 125,
+   "id": "gen9championsvgc2026regmcbo3-2681632576",
+   "xSide": "B",
+   "seed": 100062,
+   "turns": 9,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 126,
+   "id": "gen9championsvgc2026regmcbo3-2681756203",
+   "xSide": "A",
+   "seed": 100063,
+   "turns": 10,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 127,
+   "id": "gen9championsvgc2026regmcbo3-2681756203",
+   "xSide": "B",
+   "seed": 100063,
+   "turns": 19,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 128,
+   "id": "gen9championsvgc2026regmcbo3-2681706184",
+   "xSide": "A",
+   "seed": 100064,
+   "turns": 9,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 129,
+   "id": "gen9championsvgc2026regmcbo3-2681706184",
+   "xSide": "B",
+   "seed": 100064,
+   "turns": 5,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 130,
+   "id": "gen9championsvgc2026regmcbo3-2681818367",
+   "xSide": "A",
+   "seed": 100065,
+   "turns": 13,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 131,
+   "id": "gen9championsvgc2026regmcbo3-2681818367",
+   "xSide": "B",
+   "seed": 100065,
+   "turns": 17,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 132,
+   "id": "gen9championsvgc2026regmcbo3-2681831381",
+   "xSide": "A",
+   "seed": 100066,
+   "turns": 11,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 133,
+   "id": "gen9championsvgc2026regmcbo3-2681831381",
+   "xSide": "B",
+   "seed": 100066,
+   "turns": 10,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 134,
+   "id": "gen9championsvgc2026regmcbo3-2681909917",
+   "xSide": "A",
+   "seed": 100067,
+   "turns": 7,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 135,
+   "id": "gen9championsvgc2026regmcbo3-2681909917",
+   "xSide": "B",
+   "seed": 100067,
+   "turns": 9,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 136,
+   "id": "gen9championsvgc2026regmcbo3-2681856700",
+   "xSide": "A",
+   "seed": 100068,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 137,
+   "id": "gen9championsvgc2026regmcbo3-2681856700",
+   "xSide": "B",
+   "seed": 100068,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 138,
+   "id": "gen9championsvgc2026regmcbo3-2682000782",
+   "xSide": "A",
+   "seed": 100069,
+   "turns": 7,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 139,
+   "id": "gen9championsvgc2026regmcbo3-2682000782",
+   "xSide": "B",
+   "seed": 100069,
+   "turns": 11,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 140,
+   "id": "gen9championsvgc2026regmcbo3-2681968402",
+   "xSide": "A",
+   "seed": 100070,
+   "turns": 8,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 141,
+   "id": "gen9championsvgc2026regmcbo3-2681968402",
+   "xSide": "B",
+   "seed": 100070,
+   "turns": 7,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 142,
+   "id": "gen9championsvgc2026regmcbo3-2682013163",
+   "xSide": "A",
+   "seed": 100071,
+   "turns": 6,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 143,
+   "id": "gen9championsvgc2026regmcbo3-2682013163",
+   "xSide": "B",
+   "seed": 100071,
+   "turns": 7,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 144,
+   "id": "gen9championsvgc2026regmcbo3-2682096525",
+   "xSide": "A",
+   "seed": 100072,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 145,
+   "id": "gen9championsvgc2026regmcbo3-2682096525",
+   "xSide": "B",
+   "seed": 100072,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 146,
+   "id": "gen9championsvgc2026regmcbo3-2682068764",
+   "xSide": "A",
+   "seed": 100073,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 147,
+   "id": "gen9championsvgc2026regmcbo3-2682068764",
+   "xSide": "B",
+   "seed": 100073,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 148,
+   "id": "gen9championsvgc2026regmcbo3-2682042210",
+   "xSide": "A",
+   "seed": 100074,
+   "turns": 4,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 149,
+   "id": "gen9championsvgc2026regmcbo3-2682042210",
+   "xSide": "B",
+   "seed": 100074,
+   "turns": 9,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 150,
+   "id": "gen9championsvgc2026regmcbo3-2682155248",
+   "xSide": "A",
+   "seed": 100075,
+   "turns": 5,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 151,
+   "id": "gen9championsvgc2026regmcbo3-2682155248",
+   "xSide": "B",
+   "seed": 100075,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 152,
+   "id": "gen9championsvgc2026regmcbo3-2682199591",
+   "xSide": "A",
+   "seed": 100076,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 153,
+   "id": "gen9championsvgc2026regmcbo3-2682199591",
+   "xSide": "B",
+   "seed": 100076,
+   "turns": 4,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 154,
+   "id": "gen9championsvgc2026regmcbo3-2682281025",
+   "xSide": "A",
+   "seed": 100077,
+   "turns": 5,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 155,
+   "id": "gen9championsvgc2026regmcbo3-2682281025",
+   "xSide": "B",
+   "seed": 100077,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 156,
+   "id": "gen9championsvgc2026regmcbo3-2682384731",
+   "xSide": "A",
+   "seed": 100078,
+   "turns": 7,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 157,
+   "id": "gen9championsvgc2026regmcbo3-2682384731",
+   "xSide": "B",
+   "seed": 100078,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 158,
+   "id": "gen9championsvgc2026regmcbo3-2682340057",
+   "xSide": "A",
+   "seed": 100079,
+   "turns": 7,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 159,
+   "id": "gen9championsvgc2026regmcbo3-2682340057",
+   "xSide": "B",
+   "seed": 100079,
+   "turns": 12,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 160,
+   "id": "gen9championsvgc2026regmcbo3-2682283720",
+   "xSide": "A",
+   "seed": 100080,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 161,
+   "id": "gen9championsvgc2026regmcbo3-2682283720",
+   "xSide": "B",
+   "seed": 100080,
+   "turns": 4,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 162,
+   "id": "gen9championsvgc2026regmcbo3-2682518004",
+   "xSide": "A",
+   "seed": 100081,
+   "turns": 13,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 163,
+   "id": "gen9championsvgc2026regmcbo3-2682518004",
+   "xSide": "B",
+   "seed": 100081,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 164,
+   "id": "gen9championsvgc2026regmcbo3-2682479887",
+   "xSide": "A",
+   "seed": 100082,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 165,
+   "id": "gen9championsvgc2026regmcbo3-2682479887",
+   "xSide": "B",
+   "seed": 100082,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 166,
+   "id": "gen9championsvgc2026regmcbo3-2682558160",
+   "xSide": "A",
+   "seed": 100083,
+   "turns": 12,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 167,
+   "id": "gen9championsvgc2026regmcbo3-2682558160",
+   "xSide": "B",
+   "seed": 100083,
+   "turns": 9,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 168,
+   "id": "gen9championsvgc2026regmcbo3-2682528426",
+   "xSide": "A",
+   "seed": 100084,
+   "turns": 14,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 169,
+   "id": "gen9championsvgc2026regmcbo3-2682528426",
+   "xSide": "B",
+   "seed": 100084,
+   "turns": 8,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 170,
+   "id": "gen9championsvgc2026regmcbo3-2682582780",
+   "xSide": "A",
+   "seed": 100085,
+   "turns": 15,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 171,
+   "id": "gen9championsvgc2026regmcbo3-2682582780",
+   "xSide": "B",
+   "seed": 100085,
+   "turns": 12,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 172,
+   "id": "gen9championsvgc2026regmcbo3-2682626206",
+   "xSide": "A",
+   "seed": 100086,
+   "turns": 10,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 173,
+   "id": "gen9championsvgc2026regmcbo3-2682626206",
+   "xSide": "B",
+   "seed": 100086,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 174,
+   "id": "gen9championsvgc2026regmcbo3-2682738181",
+   "xSide": "A",
+   "seed": 100087,
+   "turns": 5,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 175,
+   "id": "gen9championsvgc2026regmcbo3-2682738181",
+   "xSide": "B",
+   "seed": 100087,
+   "turns": 16,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 176,
+   "id": "gen9championsvgc2026regmcbo3-2682712717",
+   "xSide": "A",
+   "seed": 100088,
+   "turns": 10,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 177,
+   "id": "gen9championsvgc2026regmcbo3-2682712717",
+   "xSide": "B",
+   "seed": 100088,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 178,
+   "id": "gen9championsvgc2026regmcbo3-2682675825",
+   "xSide": "A",
+   "seed": 100089,
+   "turns": 14,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 179,
+   "id": "gen9championsvgc2026regmcbo3-2682675825",
+   "xSide": "B",
+   "seed": 100089,
+   "turns": 5,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 180,
+   "id": "gen9championsvgc2026regmcbo3-2682787562",
+   "xSide": "A",
+   "seed": 100090,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 181,
+   "id": "gen9championsvgc2026regmcbo3-2682787562",
+   "xSide": "B",
+   "seed": 100090,
+   "turns": 13,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 182,
+   "id": "gen9championsvgc2026regmcbo3-2682822219",
+   "xSide": "A",
+   "seed": 100091,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 183,
+   "id": "gen9championsvgc2026regmcbo3-2682822219",
+   "xSide": "B",
+   "seed": 100091,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 184,
+   "id": "gen9championsvgc2026regmcbo3-2682899651",
+   "xSide": "A",
+   "seed": 100092,
+   "turns": 9,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 185,
+   "id": "gen9championsvgc2026regmcbo3-2682899651",
+   "xSide": "B",
+   "seed": 100092,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 186,
+   "id": "gen9championsvgc2026regmcbo3-2683013752",
+   "xSide": "A",
+   "seed": 100093,
+   "turns": 14,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 187,
+   "id": "gen9championsvgc2026regmcbo3-2683013752",
+   "xSide": "B",
+   "seed": 100093,
+   "turns": 13,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 188,
+   "id": "gen9championsvgc2026regmcbo3-2682960396",
+   "xSide": "A",
+   "seed": 100094,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 189,
+   "id": "gen9championsvgc2026regmcbo3-2682960396",
+   "xSide": "B",
+   "seed": 100094,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 190,
+   "id": "gen9championsvgc2026regmcbo3-2683052076",
+   "xSide": "A",
+   "seed": 100095,
+   "turns": 11,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 191,
+   "id": "gen9championsvgc2026regmcbo3-2683052076",
+   "xSide": "B",
+   "seed": 100095,
+   "turns": 10,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 192,
+   "id": "gen9championsvgc2026regmcbo3-2683162848",
+   "xSide": "A",
+   "seed": 100096,
+   "turns": 8,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 193,
+   "id": "gen9championsvgc2026regmcbo3-2683162848",
+   "xSide": "B",
+   "seed": 100096,
+   "turns": 4,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 194,
+   "id": "gen9championsvgc2026regmcbo3-2683126559",
+   "xSide": "A",
+   "seed": 100097,
+   "turns": 14,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 195,
+   "id": "gen9championsvgc2026regmcbo3-2683126559",
+   "xSide": "B",
+   "seed": 100097,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 196,
+   "id": "gen9championsvgc2026regmcbo3-2683186951",
+   "xSide": "A",
+   "seed": 100098,
+   "turns": 8,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 197,
+   "id": "gen9championsvgc2026regmcbo3-2683186951",
+   "xSide": "B",
+   "seed": 100098,
+   "turns": 8,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 198,
+   "id": "gen9championsvgc2026regmcbo3-2683194994",
+   "xSide": "A",
+   "seed": 100099,
+   "turns": 5,
+   "vX": 0,
+   "capped": false,
+   "err": null
+  },
+  {
+   "gi": 199,
+   "id": "gen9championsvgc2026regmcbo3-2683194994",
+   "xSide": "B",
+   "seed": 100099,
+   "turns": 6,
+   "vX": 1,
+   "capped": false,
+   "err": null
+  }
+ ]
+}
