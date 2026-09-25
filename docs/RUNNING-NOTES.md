@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.1.0] — 2026-09-25 — **ROTOM ladder mode prepared, dry-run locally, not launched**
+- **What changed.** `solver/rotom/{ladder,run_ladder,netguard,login_stub,build_ladder_teams}.js`, `solver/rotom/arms/`, `solver/rotom/teams/ladder-rotation.json`, `solver/rotom/LADDER.md` (runbook), `solver/tests/test-rotom-ladder.js`; `rotom.js --ladder` and `--release`, `lock.js` `readPasswordFile`, `build_assets.js` exports.
+- **Measured.** NO FIGURE. The local dry run proves the loop and not strength (`solver/out/rotom/dry10-*/ladder-report.json`; account in `docs/_reports/2026-09-25-rotom-ladder-mode.md`). `test-rotom-ladder` GREEN, RED on the deliberate break; `test-rotom` 86/86.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** ROTOM's ladder protocol and the two-account guard's known gap belong in the technical docs and `docs/MODELS.md`.
+
 ## [abra/regmc 1.0.0] — 2026-09-24 — **DRAFT: fold-ins A and B merged; the white paper, deck and technical docs stop claiming MILTANK v1 halves or uses XATU; living-document PDFs rebuilt**
 - **What changed.** `docs-1.0.0-a` and `docs-1.0.0-b` merged into `draft/regmc-1.0.0`. `docs/ABRA-whitepaper.md` (§2.2, §2.4, §3.1 registry, §3.5), `docs/ABRA-technical-docs.md` (model table) and `docs/ABRA-deck-plain-english.md` (slides 7 and 9) now say what `docs/MODELS.md` says: MILTANK v1 draws the world uniformly and has no successive halving; both are planned. The 13 stale or missing PDFs `build/build_pdfs.js` derives were rebuilt; ledgers excluded. Account: `docs/_reports/2026-09-24-docs-1.0.0-merge.md`.
 - **Measured.** NO FIGURE.

@@ -79,4 +79,17 @@ function readPassword(root) {
   return { pass: '', source: 'none' };
 }
 
-module.exports = { acquire, lockPath, readPassword, isLocal, alive };
+/* LADDER MODE reads the password from data/.showdown-pass ONLY (the brief, 2026-09-25): an env var set in some other
+ * shell is not a credential the operator chose for this launch. Same file search as readPassword, same rules:
+ * the value is returned, only `source` is ever logged. */
+function readPasswordFile(root) {
+  const ROOT = root || path.join(__dirname, '..', '..');
+  const MAIN = ROOT.includes(path.sep + '.claude' + path.sep) ? ROOT.split(path.sep + '.claude' + path.sep)[0] : ROOT;
+  for (const f of [path.join(ROOT, 'data', '.showdown-pass'), path.join(MAIN, 'data', '.showdown-pass')]) {
+    try { const v = fs.readFileSync(f, 'utf8').replace(/^﻿/, '').trim(); if (v) return { pass: v, source: 'file data/.showdown-pass' }; }
+    catch (e) { if (e.code !== 'ENOENT') return { pass: '', source: 'unreadable file (' + e.code + ')' }; }
+  }
+  return { pass: '', source: 'none (data/.showdown-pass missing or empty)' };
+}
+
+module.exports = { acquire, lockPath, readPassword, readPasswordFile, isLocal, alive };

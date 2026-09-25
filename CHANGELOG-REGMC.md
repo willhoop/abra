@@ -21,6 +21,39 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.1.0] — 2026-09-25
+
+### Added
+- **ROTOM ladder mode, prepared and not launched.** `solver/rotom/ladder.js` searches the
+  `gen9championsvgc2026regmcbo3` ladder, plays the series and repeats until a STOP file, a set count, a time cap
+  or a consecutive-error halt. Each series draws its A/B arm and its rotation team from a seed that is committed
+  to the run state before the first search. It logs one row per series with the arm config, the release stamp,
+  both ratings before and after, `S`, `E` and `S − E`, and the fallback, invalid and timeout counts during that
+  series. The two-account guard is the machine-wide lock plus `/crq userdetails willhoop` before every search
+  (it pauses while willhoop is connected; a search in progress is invisible, and that gap is stated). The client
+  never forfeits. The loop needs `--release` at or after `eaa5becc54eb`.
+- `solver/rotom/run_ladder.js`: the supervisor and watchdog, `--stop` (graceful) and `--kill` (by recorded pid),
+  and a local `--dry-run` that uses the same client code path. `solver/rotom/netguard.js` refuses every
+  non-loopback connection in every process of a dry run. `solver/rotom/login_stub.js` is a local assertion
+  server whose key the local server verifies.
+- `solver/rotom/build_ladder_teams.js` → `solver/rotom/teams/ladder-rotation.json`: five real top teams, one
+  per stable archetype in GURU's library, each passed through Showdown's TeamValidator. The client
+  re-validates them at start-up.
+- `solver/rotom/arms/`: `aa-miltank.json` (A/A placebo), `miltank-vs-prior.json` (SPRT pre-registered on the
+  per-series residual), `dryrun-fast.json` (refused on the public ladder).
+- Runbook `solver/rotom/LADDER.md`; test `solver/tests/test-rotom-ladder.js`.
+
+### Changed
+- `solver/rotom/rotom.js` loads the engine from a frozen release when `--release` is given
+  (`solver/arena/engine.js`). The crash drill exits 70, not 3, because 3 means "lock held".
+- `solver/rotom/lock.js` gains `readPasswordFile` (the file only, for ladder mode).
+- `solver/rotom/build_assets.js` exports its spread rule, packer and validator.
+
+### Notes
+- Account: `docs/_reports/2026-09-25-rotom-ladder-mode.md`. No ladder game was played. No public host was
+  contacted by the dry run.
+- **Basis.** unchanged. **Supersedes.** Nothing.
+
 ## [1.0.0] — 2026-09-24
 
 ### Changed
