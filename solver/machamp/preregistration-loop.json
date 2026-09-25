@@ -1,0 +1,19 @@
+{
+ "what": "MACHAMP unattended loop, generations 6 onward (solver/machamp/loop_sprt.js). Written 2026-09-25 BEFORE generation 6's first self-play game. Every generation runs the round-3 recipe (solver/machamp/preregistration-r3.json) unchanged except where stated here.",
+ "engine_release": "eaa5becc54eb",
+ "start": { "champion": "solver/machamp/league/gen5.json", "previous": "solver/machamp/league/gen0-r2.json", "clone": "solver/machamp/league/human-clone.json", "first_generation": 6 },
+ "per_generation_n": {
+  "selfplay": "the champion plays 1,000 games (seed 200 + n) in the league { current: champion 0.6, previous: previous champion 0.2, human clone 0.2 } on TRAIN pairs of data/team-pool-frozen-regmc; MILTANK k 4x4, 1 reserved switch row, 1000 ms, depth 0; 3 workers -> solver/out/selfplay/eaa5becc54eb/loop-sp<n>",
+  "deep_values": "deep_value.js on every pooled directory that has none yet (4 rollouts x 3 turns of DODUO-v1 play, frozen PORYGON2 v0 leaf, seed n); a replay mismatch stops the loop",
+  "pool": "every self-play directory on this release: gen0, gen1, r2-sp0, r2-sp1, r3-sp0 and each loop-sp<k>, unweighted",
+  "training": "exactly gen5's: MAG/DODUO from MAG v1 + DODUO v1 with beta 0.7 and human weight 3.0; PORYGON2 from v0 on 0.5 z + 0.5 v_deep (human positions 1:1); torch seed n; 4 threads",
+  "gates": {
+   "G_pory2_human": "95% upper bound of (new - PORYGON2 v0) held-out human log-loss <= +0.004",
+   "G_beats_previous": "SPRT vs the CURRENT champion: elo0 0, elo1 +20, alpha = beta = 0.05, pair scores, index order, <= 2,000 games, battle seed 9001 + 10 (n - 5), 3 workers; PASS iff H1",
+   "G_not_lose_clone": "200 games vs the human clone (battle seed 9002 + 10 (n - 5)); Wilson 95% upper bound >= 0.5",
+   "accept": "all three pass; the candidate becomes the champion and the old champion becomes 'previous'"
+  },
+  "publish": "accepted: models + spec + CHANGELOG-REGMC + RUNNING-NOTES rows (a MINOR above main's top) + one solver/LOG.md line + a section in docs/_reports/2026-09-25-machamp-loop.md, pushed to origin main after merging it (never forced). Rejected: the solver/LOG.md line and the report section only; the rejected models stay untracked."
+ },
+ "stop": "two consecutive generations that fail the SPRT; or the file solver/out/machamp/STOP; or any error"
+}

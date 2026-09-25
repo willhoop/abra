@@ -21,6 +21,18 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.8.1] — 2026-09-25
+
+### Added
+- `solver/machamp/loop_sprt.js`: the unattended MACHAMP loop. Each generation runs gen5's recipe on pooled
+  self-play and meets the pre-registered SPRT against the current champion, then publishes to main.
+  Pre-registration: `solver/machamp/preregistration-loop.json`.
+- `build_pory2.js --deep` takes a list of deep-value directories.
+
+### Notes
+- Tooling only; no figure is published.
+- **Basis.** unchanged.
+
 ## [1.8.0] — 2026-09-25
 
 ### Added

@@ -39,8 +39,9 @@ const LAMBDA = +arg('--lambda', 0.5), MAXUNF = +arg('--max-unfilled', 0.5), VALP
  * depth 0 is the trained net's own opinion one turn ahead. The search value is still written to v.f32 for reference. */
 const DEEP = arg('--deep', null);
 const deepMap = new Map();
-if (DEEP) for (const f of fs.readdirSync(path.resolve(ROOT, DEEP)).filter(f => /^deep-\d+\.jsonl$/.test(f)))
-  for (const l of fs.readFileSync(path.join(path.resolve(ROOT, DEEP), f), 'utf8').split('\n')) if (l) { const o = JSON.parse(l); deepMap.set(o.dir + '|' + o.g + '|' + o.run_seed + '|' + o.t, o.v); }
+/* --deep takes a comma-separated list of deep_value.js output directories (keys carry the self-play dir, so they pool) */
+if (DEEP) for (const dd of DEEP.split(',').filter(Boolean)) for (const f of fs.readdirSync(path.resolve(ROOT, dd)).filter(f => /^deep-\d+\.jsonl$/.test(f)))
+  for (const l of fs.readFileSync(path.join(path.resolve(ROOT, dd), f), 'utf8').split('\n')) if (l) { const o = JSON.parse(l); deepMap.set(o.dir + '|' + o.g + '|' + o.run_seed + '|' + o.t, o.v); }
 /* DELIBERATE BREAK (env MACHAMP_BREAK=vside): side B's root value is used as p1's without the flip.
  * solver/tests/test-machamp.js TARGETS must go red. */
 const BREAK = process.env.MACHAMP_BREAK || '';

@@ -53,6 +53,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.8.1] — 2026-09-25 — **The unattended MACHAMP loop and its pre-registration**
+- **What changed.** New: `solver/machamp/loop_sprt.js` and `solver/machamp/preregistration-loop.json`.
+  `build_pory2.js --deep` takes a list of directories.
+- **Measured.** NO FIGURE.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 1.8.0] — 2026-09-25 — **gen5 accepted: SPRT H1 at +20 Elo after 1,268 games (0.528 [0.501, 0.556])**
 - **What changed.**
   - New: `solver/machamp/{deep_value,sprt}.js`, `preregistration-r3.json`, `league/gen5.json`, `models/gen5/`.
