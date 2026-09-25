@@ -6,6 +6,23 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ---
 
+## 2026-09-25
+
+### ROTOM replays + ladder mode merged (abra/regmc 1.1.0 replays, 1.2.0 ladder, 1.3.0 merge)
+- Ladder mode uses the replay-save and games.jsonl hooks; one rating parser; one local start-up path
+  (`solver/rotom/local_server.js`) for run_local and the ladder dry run.
+- The local server made 9 public attempts at start-up (Tor exit list, invalidatecss, seasons ladder fetch). Now 0:
+  loginserver / routes.root / routes.replays switched to the local stand-in, the switchless Tor fetch refused by name.
+  `solver/tests/test-rotom-localnet.js` GREEN, RED on `--break`. Detail: `docs/_reports/2026-09-25-rotom-merge.md`.
+
+### ROTOM ladder mode — prepared, not launched (branch worktree-agent-a389a1eed5928626f; merged in 1.3.0)
+- `--ladder` searches `gen9championsvgc2026regmcbo3`, plays the series, repeats to STOP / set count / time cap /
+  3 consecutive errors. Per-series A/B arm and rotation team from a seed committed before the first search.
+- Guard: machine lock + `/crq userdetails willhoop` before every search; pauses while willhoop is connected.
+  A search in progress is invisible to the server's API: that gap is stated, and the rule is "log willhoop out".
+- Dry run on a local server, the same client code path, with every non-loopback connection refused in every process.
+- Runbook `solver/rotom/LADDER.md`. Detail: `docs/_reports/2026-09-25-rotom-ladder-mode.md`.
+
 ## 2026-09-24
 
 ### PORYGON2 v0 — the value net (branch worktree-agent-ade91fd3b83d5aa3c, unmerged)

@@ -1,0 +1,19 @@
+{
+ "name": "miltank-vs-prior",
+ "registered": "2026-09-25",
+ "question": "Does MILTANK v1 (lean playouts, full clock) earn a higher per-series ladder residual than DODUO-greedy (prior) on the same account, rotation and opponent pool?",
+ "arms": {
+  "A": { "policy": "miltank", "max_ms": 0, "preview_max_ms": 20000, "note": "MILTANK v1 on the full clock budget (clock.js); CHOMP-lite preview" },
+  "B": { "policy": "prior", "max_ms": 0, "preview_max_ms": 20000, "note": "MAG v1 + DODUO v1 greedy; the rotation team's own human bring at preview" }
+ },
+ "assignment": "per series, sha256(seed|k|arm) mod 2 over the sorted arm ids (solver/rotom/ladder.js assign); committed before the first game",
+ "metric": "per-series residual r = S - E, E = 1/(1+10^((R_opp - R_me)/400)) from the server's pre-series ratings; ties S = 0.5",
+ "burn_in": "series played while the account's pre-series rating is below 1300 are burn-in and are not read (docs/_reports/2026-09-23-solver-research-humans-and-ladder.md §3.1, §3.4 step 2)",
+ "sprt": {
+  "statistic": "mean(r | A) - mean(r | B), normal approximation, sigma_r = 0.5 per series",
+  "h0": 0.0, "h1": 0.07, "alpha": 0.05, "beta": 0.05,
+  "read": "once, at a bound; never an interim read",
+  "expected_scale": "about 770 series per arm for +50 Elo (…humans-and-ladder.md §3.3)"
+ },
+ "headline": "mean rating over the last N >= 100 series +- SD, per arm and overall. Never the peak."
+}

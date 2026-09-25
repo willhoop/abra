@@ -33,6 +33,13 @@
  * only with `--local-replays` (run_local.js passes it after pointing the server's login server at a local
  * stand-in); without it a local save would reach play.pokemonshowdown.com, so it is skipped and recorded so.
  *
+ * LADDER MODE (`--ladder`, solver/rotom/ladder.js; runbook solver/rotom/LADDER.md): search the bo3 ladder, play the series,
+ * repeat until the STOP file or the set count; a pre-committed per-series A/B arm and rotation team; the two-account
+ * guard; a consecutive-error halt. It needs `--release <id>` (the Reg M-C gate release or later) and either `--public`
+ * (the real server, the real login server, account on LADDER_ACCOUNTS) or `--dry-run` (a LOCAL server, a local assertion
+ * stand-in, and solver/rotom/netguard.js refusing every non-loopback connection in this process). A ladder launch on
+ * the public server is Will's call, every time.
+ *
  * SAFETY: a lock file (lock.js) refuses a second client; reconnect with backoff, rejoin every open game from
  * |updatesearch|, re-read the request the server re-sends and answer it (the same choice if that rqid was already
  * answered); the drill flags `--drill drop@S.G.T` / `--drill crash@S.G.T` kill the socket / the process at set S,
@@ -66,7 +73,7 @@ const MIN_SEARCH_MS = +flag('min-search-ms', 400);
 const TIMER = flag('timer', 'on');
 const DRILL = flag('drill', '');                     // drop@S.G.T | crash@S.G.T  (set, game, turn; 1-based)
 const DUMP_REQ = +flag('dump-requests', 0);          // write the first N requests (+ the public log so far) as test fixtures
-const TEAM_POOL = flag('team-pool', path.join(__dirname, 'teams', 'regmc-pool.json'));
+const TEAM_POOL = has('ladder') ? flag('rotation', path.join(__dirname, 'teams', 'ladder-rotation.json')) : flag('team-pool', path.join(__dirname, 'teams', 'regmc-pool.json'));
 const FORMAT_ID = 'gen9championsvgc2026regmcbo3';
 const GAMES_FILE = path.resolve(flag('games-file', path.join(ROOT, 'solver', 'out', 'rotom', 'games.jsonl')));
 const SAVE_REPLAYS = flag('save-replays', 'on');     // on | off
@@ -81,6 +88,14 @@ fs.mkdirSync(GAMEDIR, { recursive: true });
 const relRoot = f => path.relative(ROOT, f).split(path.sep).join('/');
 const gameDecF = room => path.join(GAMEDIR, room + '.decisions.jsonl');
 const gameLogF = room => path.join(GAMEDIR, room + '.log');
+const LADDER_MODE = has('ladder');
+const DRY_RUN = has('dry-run');
+const RELEASE_ID = flag('release', null);
+const LADDER_ACCOUNTS = ['medicham32'];              // the only account ROTOM may ladder as on the public server (Will, 2026-09-23)
+const PUBLIC_LOGIN_URL = 'https://play.pokemonshowdown.com/api/login';
+
+/* a DRY RUN never talks to anything but this machine: every non-loopback connection in this process is refused and counted */
+const NETGUARD = DRY_RUN ? require('./netguard.js').install({ log: path.join(OUT, 'netguard-' + toID(NAME) + '.jsonl') }) : null;
 const LOGF = path.join(OUT, 'decisions-' + toID(NAME) + '.jsonl');
 const EVENTF = path.join(OUT, 'events-' + toID(NAME) + '.jsonl');
 const STATEF = path.join(OUT, 'state-' + toID(NAME) + '.json');
@@ -94,6 +109,17 @@ if (!LOCK.isLocal(SERVER) && !has('public')) {
   process.exit(2);
 }
 if (!['prior', 'miltank', 'random'].includes(POLICY)) { console.error('unknown --policy ' + POLICY); process.exit(2); }
+if (DRY_RUN && !LOCK.isLocal(SERVER)) { console.error('--dry-run is LOCAL only: ' + SERVER + ' is not localhost. Refusing.'); process.exit(2); }
+if (DRY_RUN && has('public')) { console.error('--dry-run and --public together make no sense. Refusing.'); process.exit(2); }
+if (LADDER_MODE) {
+  if (!DRY_RUN && !has('public')) { console.error('--ladder needs --public (the real ladder, Will’s OK) or --dry-run (a local server). Refusing.'); process.exit(2); }
+  if (has('public') && !LADDER_ACCOUNTS.includes(toID(NAME))) { console.error('--ladder --public: ' + NAME + ' is not a ladder account (' + LADDER_ACCOUNTS.join(', ') + '). Refusing.'); process.exit(2); }
+  if (!RELEASE_ID) { console.error('--ladder needs --release <id>: a series is never played on the live tree. Refusing.'); process.exit(2); }
+  if (!flag('arms', '')) { console.error('--ladder needs --arms <file> (the pre-registered A/B arms). Refusing.'); process.exit(2); }
+  if (has('challenge') || has('accept')) { console.error('--ladder does not take --challenge/--accept: it searches the ladder and refuses challenges.'); process.exit(2); }
+  const ra = require('./ladder.js').releaseAllowed(path.join(ROOT, 'data', 'releases'), RELEASE_ID);
+  if (!ra.ok) { console.error('--release refused: ' + ra.why); process.exit(2); }
+}
 /* OUR GAMES STAY OUT OF THE HUMAN DATA. The hourly ingest stores every public replay of the format, ours
  * included (engine/durable-ingest.js has no name filter); the human dataset and the meta drop them by account
  * name. So on a public server the account MUST be on both own-account lists, read from the files themselves. */
@@ -106,7 +132,13 @@ if (!LOCK.isLocal(SERVER)) {
 let LOCKH;
 try { LOCKH = LOCK.acquire(SERVER, NAME, say); }
 catch (e) { console.error(e.message); process.exit(3); }
-const CRED = LOCK.isLocal(SERVER) ? { pass: '', source: 'not needed (local server)' } : LOCK.readPassword(ROOT);
+/* credentials: a local challenge run needs none; a DRY RUN sends a placeholder to the local stand-in and never reads the
+ * real password; the PUBLIC ladder reads data/.showdown-pass only (lock.js readPasswordFile) — never argv, never logged */
+const CRED = DRY_RUN ? { pass: 'dry-run-placeholder', source: 'dry run placeholder (the real password is not read)' }
+  : (LADDER_MODE ? LOCK.readPasswordFile(ROOT) : (LOCK.isLocal(SERVER) ? { pass: '', source: 'not needed (local server)' } : LOCK.readPassword(ROOT)));
+if (LADDER_MODE && !DRY_RUN && !CRED.pass) { console.error('--ladder --public: no password in data/.showdown-pass (' + CRED.source + '). Refusing.'); process.exit(2); }
+const LOGIN_URL = DRY_RUN ? flag('login-url', '') : PUBLIC_LOGIN_URL;
+if (DRY_RUN && LADDER_MODE && !/^http:\/\/127\.0\.0\.1:\d+\/api\/login$/.test(LOGIN_URL)) { console.error('--dry-run --ladder needs --login-url http://127.0.0.1:<port>/api/login (solver/rotom/login_stub.js). Refusing.'); process.exit(2); }
 say('lock ' + LOCKH.path + (LOCKH.tookOverStale ? ' (stale lock taken over)' : '') + ' ; credentials: ' + CRED.source);
 
 /* ---------------- run state (persisted, so a restarted process keeps counting) ---------------- */
@@ -118,7 +150,10 @@ saveState();
 /* ---------------- the engine and the models, warmed BEFORE connecting ---------------- */
 const t0load = Date.now();
 require('../arena/env.js');
-const API = require(path.join(ROOT, 'engine', 'medicham_api.js'));
+/* the engine: a FROZEN release when --release is given (every engine byte from data/releases/<id>/, solver/arena/engine.js),
+ * else the live tree (a local shakedown only — ladder mode refuses to start without a release) */
+const ENGINE = require('../arena/engine.js').load(RELEASE_ID);
+const API = ENGINE.API;
 const T = require('../arena/teams.js');
 const MAGD = require('../mag/infer.js').load();
 const PA = require('../miltank/prior_adapter.js').create(API, MAGD);
@@ -138,7 +173,9 @@ const sha = f => { try { return crypto.createHash('sha256').update(fs.readFileSy
 const PROV = { engine: sha(path.join(ROOT, 'engine', 'medicham2-browser.js')), api: sha(path.join(ROOT, 'engine', 'medicham_api.js')),
   engine_data: sha(path.join(ROOT, 'data', 'engine-data-regmc.js')), mag: sha(path.join(ROOT, 'solver', 'mag', 'model', 'mag-v1.json')),
   doduo: sha(path.join(ROOT, 'solver', 'mag', 'model', 'doduo-v1.json')), xatu_bring: sha(path.join(ROOT, 'solver', 'xatu', 'model', 'bring-v1.json')),
-  tables: sha(path.join(__dirname, 'tables.json')), team_pool: sha(TEAM_POOL), release: 'live tree (PRE-GATE: the Reg M-C MEDICHAM gate is not open)' };
+  tables: sha(path.join(__dirname, 'tables.json')), team_pool: sha(TEAM_POOL),
+  release: ENGINE.id ? ENGINE.stamp : 'live tree (not a frozen release: a shakedown, not a result)' };
+if (ENGINE.id) { const ed = path.join(ENGINE.REL.dir, 'data', 'engine-data-regmc.js'); PROV.engine = sha(path.join(ENGINE.REL.dir, 'engine', 'medicham2-browser.js')); PROV.api = sha(path.join(ENGINE.REL.dir, 'engine', 'medicham_api.js')); PROV.engine_data = sha(ed); }
 /* warm-up: a few prior calls and one short search on a built position, so V8 tier-up is paid before the clock runs */
 (function warm() {
   try {
@@ -150,7 +187,7 @@ const PROV = { engine: sha(path.join(ROOT, 'engine', 'medicham2-browser.js')), a
     MT.decide(S, 'A', PA.newGame(G), { budgetMs: 1500, coin: API.M.rngStreams({ seed: 3 }).any });
   } catch (e) { say('warm-up failed (continuing): ' + e.message); }
 })();
-say('loaded engine + MAG/DODUO + XATU in ' + (Date.now() - t0load) + ' ms; policy ' + POLICY + '; out ' + OUT);
+say('loaded engine ' + (ENGINE.id ? 'release ' + ENGINE.id : '(LIVE TREE)') + ' + MAG/DODUO + XATU in ' + (Date.now() - t0load) + ' ms; policy ' + (LADDER_MODE ? 'per series arm' : POLICY) + '; out ' + OUT);
 
 const { ReplaySaver, parseRatingLine } = require('./replay.js');
 const SAVER = new ReplaySaver({ send: (room, text) => send(text), attempts: REPLAY_ATTEMPTS, timeoutMs: REPLAY_TIMEOUT_MS,
@@ -164,6 +201,54 @@ const ST = { decisions: 0, byKind: {}, ms: { preview: [], move: [], switch: [] }
              timerOnSeen: 0, games: 0, previewSheetWaitMs: [], worldErrors: 0, noTimerLine: 0 };
 const fb = (k) => { ST.fallbacks[k] = (ST.fallbacks[k] || 0) + 1; };
 process.on('uncaughtException', e => { ST.crashesCaught.push(String(e && e.stack || e).slice(0, 400)); event('uncaught', { err: String(e && e.message || e) }); say('UNCAUGHT ' + (e && e.stack || e)); });
+
+/* ---------------- ladder mode (solver/rotom/ladder.js) ---------------- */
+let LADDER = null;
+function exitClean(code, why) {
+  stopping = true;
+  STATE.cleanExit = true; saveState();
+  writeSummary();
+  say('exit ' + code + ' — ' + why);
+  setTimeout(() => { try { ws.close(); } catch (e) { /* closing */ } LOCKH.release(); process.exit(code); }, 1500);
+}
+if (LADDER_MODE) {
+  /* every rotation team passes Showdown's own validator for the format BEFORE the first search, or nothing starts */
+  const X = require('../human/dex.js');
+  const { Teams, TeamValidator } = require(path.join(X.SHOWDOWN_PATH, 'dist', 'sim'));
+  const V = TeamValidator.get(FORMAT_ID);
+  const bad = POOL.teams.map(t => ({ id: t.id, problems: V.validateTeam(Teams.unpack(t.packed)) })).filter(x => x.problems);
+  if (bad.length) { console.error('ROTATION REFUSED by TeamValidator(' + FORMAT_ID + '): ' + JSON.stringify(bad).slice(0, 600)); process.exit(2); }
+  if (POOL.teams.length < 3 || POOL.teams.length > 5) { console.error('the rotation must hold 3-5 teams; ' + TEAM_POOL + ' has ' + POOL.teams.length); process.exit(2); }
+  if (!flag('ladder-seed', '')) { console.error('--ladder needs --ladder-seed <string>: the per-series A/B and rotation are drawn from it, committed before the first game.'); process.exit(2); }
+  const armsFile = path.resolve(flag('arms', ''));
+  const arms = JSON.parse(fs.readFileSync(armsFile, 'utf8'));
+  if (arms.dry_run_only && !DRY_RUN) { console.error('--arms ' + armsFile + ' is marked dry_run_only (search caps for a harness test). Refusing it on the public ladder.'); process.exit(2); }
+  for (const [id, a] of Object.entries(arms.arms || {})) if (!['prior', 'miltank', 'random'].includes(a.policy)) { console.error('arm ' + id + ': unknown policy ' + a.policy); process.exit(2); }
+  if (Object.keys(arms.arms || {}).length < 1) { console.error('--arms ' + armsFile + ' defines no arms'); process.exit(2); }
+  const shaFull = f => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex');
+  const defStop = DRY_RUN ? path.join(OUT, 'STOP') : path.join(ROOT, 'solver', 'out', 'rotom', 'STOP');
+  const stopFiles = [path.resolve(flag('stop-file', defStop)), path.resolve(flag('kill-file', path.join(path.dirname(defStop), 'KILL')))];
+  const LSTATE = path.join(OUT, 'ladder-state-' + toID(NAME) + '.json');
+  for (const f of stopFiles) if (fs.existsSync(f) && !fs.existsSync(LSTATE)) { console.error('a STOP/KILL file is present at start (' + f + '): remove it to start a ladder run. Refusing.'); process.exit(2); }
+  try {
+    LADDER = require('./ladder.js').create({
+      name: NAME, format: FORMAT_ID, formatPrefix: 'gen9championsvgc2026regmc', server: SERVER, dryRun: DRY_RUN, outDir: OUT, statePath: LSTATE,
+      arms: Object.assign({ file: path.relative(ROOT, armsFile).split(path.sep).join('/'), sha256: shaFull(armsFile) }, arms),
+      rotation: { file: path.relative(ROOT, path.resolve(TEAM_POOL)).split(path.sep).join('/'), sha256: shaFull(TEAM_POOL), teams: POOL.teams },
+      seed: flag('ladder-seed', ''), sets: SETS, stopFiles, maxErrors: +flag('max-errors', 3), maxHours: +flag('max-hours', 0),
+      guardUsers: flag('guard', 'willhoop').split(',').filter(Boolean), guardMode: flag('guard-mode', 'online'),
+      release: ENGINE.stamp, restartedAfterCrash: STATE.restarts > 0 && !STATE.cleanExit,
+      send: (x) => send(x), say, event, loggedIn: () => loggedIn, setsDone: () => STATE.setsDone.length, openSeries: () => openSeries(),
+      counters: () => ({ fallbacks: Object.assign({}, ST.fallbacks), invalid: ST.invalid.length, timeouts: ST.timeouts.length, decisions: ST.decisions, crashes: ST.crashesCaught.length }),
+      bookGet: (room) => { const b = BOOK.get(room); return b && b.ladder ? b : null; },
+      bookSet: (room, o) => { const b = BOOK.get(room); Object.assign(b, o); BOOK.save(b); },
+      exit: (code, why) => exitClean(code, why),
+    });
+  } catch (e) { console.error(e.message); process.exit(e.code === 'PLAN_MISMATCH' ? 2 : 1); }
+  STATE.cleanExit = false; saveState();
+  say('LADDER ' + (DRY_RUN ? 'DRY RUN (local, netguard on)' : 'PUBLIC') + ' — release ' + ENGINE.id + ', arms ' + Object.keys(arms.arms).join('/') + ', rotation ' + POOL.teams.map(t => t.id).join(',')
+      + ', plan ' + LADDER.plan().digest.slice(0, 12) + ', stop file ' + stopFiles[0] + ', guard ' + flag('guard', 'willhoop') + ' (' + flag('guard-mode', 'online') + ')');
+}
 
 /* ---------------- socket ---------------- */
 let ws = null, backoff = 1000, loggedIn = false, stopping = false, HOLD_UNTIL = 0;
@@ -227,6 +312,7 @@ function handle(room, line) {
     }
     if (cmd === 'updatesearch') {
       let d = null; try { d = JSON.parse(p[2]); } catch (e) { return; }
+      if (LADDER) LADDER.onUpdateSearch(d);
       for (const rid of Object.keys((d && d.games) || {})) {
         if (!battles.has(rid) && !bestofs.has(rid)) { send('|/join ' + rid); ST.rejoins++; event('join_from_updatesearch', { room: rid }); }
         else if (battles.has(rid) && battles.get(rid).stale) { send('|/join ' + rid); ST.rejoins++; }
@@ -245,7 +331,10 @@ function handle(room, line) {
       for (const [who, fmt] of Object.entries((d && d.challengesFrom) || {})) if (ACCEPT) onChallenge(who, fmt);
       return;
     }
-    if (cmd === 'popup' && SAVER.onPopup(p.slice(2).join('|'))) return;
+    if (cmd === 'popup' && SAVER.onPopup(p.slice(2).join('|'))) return;   // a /savereplay answer is the saver's, not the ladder's
+    if (cmd === 'queryresponse') { if (LADDER) LADDER.onQuery(p[2], p.slice(3).join('|')); return; }
+    if (cmd === 'nametaken') { say('LOGIN REFUSED: ' + p.slice(2).join('|').slice(0, 200)); event('login_refused', { txt: p.slice(2).join('|').slice(0, 200) }); if (LADDER) LADDER.onLoginFailed(p.slice(3).join('|')); return; }
+    if (cmd === 'popup' && LADDER) LADDER.onPopup(line);
     if (cmd === 'popup') { event('popup', { text: line.slice(0, 300) }); if (/not online|is not accepting|already/i.test(line)) lastChallenge = 0; say('POPUP ' + line.slice(0, 200)); return; }
     return;
   }
@@ -254,21 +343,23 @@ function handle(room, line) {
 }
 
 function login(challstr) {
-  if (LOCK.isLocal(SERVER)) { send('|/trn ' + NAME + ',0,'); return; }
+  /* the ladder (public AND dry run) always takes the challstr -> assertion path; a dry run posts to the local stand-in */
+  if (LOCK.isLocal(SERVER) && !LADDER) { send('|/trn ' + NAME + ',0,'); return; }
   (async () => {
     try {
-      const res = await fetch('https://play.pokemonshowdown.com/api/login', { method: 'POST',
+      const res = await fetch(LADDER ? LOGIN_URL : PUBLIC_LOGIN_URL, { method: 'POST',
         body: new URLSearchParams({ name: NAME, pass: CRED.pass, challstr }), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
       const json = JSON.parse((await res.text()).replace(/^\]/, ''));
       if (!json.assertion) throw new Error(json.actionerror || 'no assertion');
       send('|/trn ' + NAME + ',0,' + json.assertion);
-    } catch (e) { say('LOGIN FAILED: ' + e.message); }   // the password is never in this message
+    } catch (e) { say('LOGIN FAILED: ' + e.message); if (LADDER) LADDER.onLoginFailed(e.message); }   // the password is never in this message
   })();
 }
 
 /* ---------------- series control ---------------- */
 function openSeries() { return [...bestofs.values()].filter(b => !b.done).length; }
 function maybeChallenge(why) {
+  if (LADDER) return LADDER.tick(why);
   if (!CHALLENGE || !loggedIn) return;
   if (STATE.setsDone.length + openSeries() >= SETS) return;
   if (openSeries() > 0) return;
@@ -282,6 +373,7 @@ function maybeChallenge(why) {
   event('challenge', { to: CHALLENGE, team: pendingTeam.id });
 }
 function onChallenge(from, fmt) {
+  if (LADDER) { send('|/reject ' + from); event('reject_in_ladder_mode', { from }); return; }   // the ladder account plays the ladder only
   if (fmt !== FORMAT_ID) { send('|/reject ' + from); return; }
   if (STATE.setsDone.length + openSeries() >= SETS) { send('|/reject ' + from); return; }
   pendingTeam = pickTeam();
@@ -295,16 +387,20 @@ setInterval(() => { if (loggedIn) maybeChallenge('retry'); }, 5000).unref();
 function handleBestof(room, line, p, cmd) {
   let bo = bestofs.get(room);
   if (!bo) {
+    const LR = LADDER ? LADDER.onSeriesStart(room) : null;   // ladder: this series' pre-committed arm and rotation team
     const known = BOOK.get(room);   // a restarted process: the series book says which pool team this set is using
-    const team = (known && known.team && POOL.teams.find(t => t.id === known.team)) || pendingTeam;
-    bo = { id: room, done: false, gnums: new Set(), confirmed: new Set(), started: Date.now(), team: team ? team.id : null, reloaded: !!(known && known.reloaded) };
+    const team = (known && known.team && POOL.teams.find(t => t.id === known.team)) || (LADDER ? LADDER.teamOf(room) : pendingTeam);
+    bo = { id: room, done: false, gnums: new Set(), confirmed: new Set(), started: Date.now(), team: team ? team.id : null, reloaded: !!(known && known.reloaded),
+           arm: LR ? LR.arm : null };
     bestofs.set(room, bo);
     if (team) seriesTeam.set(room, team);
     if (TIMER === 'on') send(room + '|/timer on');
     event('series_join', { room, team: bo.team });
     const S0 = BOOK.get(room); if (!S0.team && bo.team) { S0.team = bo.team; S0.policy = POLICY; BOOK.save(S0); }
+    if (LR) say('LADDER series ' + room + ' k=' + LR.k + ' arm ' + LR.arm + ' (' + JSON.stringify(LR.arm_config) + ') team ' + bo.team + (LR.resumed ? ' [resumed]' : ''));
   }
   if (/\/confirmready/.test(line)) confirmReady(room, line);
+  if (LADDER && cmd === 'raw') LADDER.onRaw(room, line);
   if (cmd === 'win' || cmd === 'tie') {
     if (bo.done) return;
     bo.done = true;
@@ -314,8 +410,9 @@ function handleBestof(room, line, p, cmd) {
     S.provenance = PROV;
     S.clock = S.games.map(g => ({ gnum: g.gnum, used_s: g.clockUsed, bankLeft: g.bankLeft }));
     BOOK.save(S);
-    STATE.setsDone.push({ id: room, winner, mine: S.result.mine, games: S.games.length, team: bo.team });
+    STATE.setsDone.push({ id: room, winner, mine: S.result.mine, games: S.games.length, team: bo.team, arm: bo.arm });
     saveState();
+    if (LADDER) LADDER.onSeriesEnd(room, S.result);
     say('SERIES OVER ' + room + ' — winner ' + winner + ' (' + STATE.setsDone.length + '/' + SETS + ')');
     event('series_end', { room, winner });
     setTimeout(() => { send('|/leave ' + room); maybeChallenge('next set'); checkDone(); }, 1500);
@@ -333,6 +430,7 @@ function confirmReady(bo, line) {
 
 let doneWaitStart = 0;
 function checkDone() {
+  if (LADDER) return;   // the ladder loop decides when to exit (ladder.js nextAction)
   if (STATE.setsDone.length >= SETS && openSeries() === 0) {
     /* never exit with a game whose record is unwritten: its replay save is still in flight (bounded) */
     const pending = Object.keys(STATE.pendingGames || {}).length;
@@ -361,6 +459,7 @@ function handleBattle(room, line, p, cmd) {
   if (CLOSED.has(room)) return;
   if (B && B.ended) {   // a finished room we stay in while its replay saves: only the rating line and errors matter
     const r = parseRatingLine(line); if (r) B.ratings.push(r);
+    if (LADDER && cmd === 'raw') LADDER.onRaw(B.bestof, line);   // the series' rating lines land after the last game ends
     if (cmd === 'error') SAVER.onRoomError(room, p.slice(2).join('|'));
     return;
   }
@@ -385,6 +484,7 @@ function handleBattle(room, line, p, cmd) {
     return;
   }
   if (/lost due to inactivity/.test(line) && toID(line).includes(toID(NAME))) ST.timeouts.push({ room, kind: 'forfeit', line: line.slice(0, 200) });
+  if (LADDER && cmd === 'raw') LADDER.onRaw(B.bestof, line);   // `NAME's rating: A &rarr; B` after a rated series
   if (cmd === 'error') {
     const txt = p.slice(2).join('|');
     if (/\[Invalid choice\]/.test(txt)) {
@@ -415,7 +515,7 @@ function handleBattle(room, line, p, cmd) {
     }
     return;
   }
-  if (cmd === 'player' && p[2] && p[3]) { B.names[p[2]] = p[3]; if (toID(p[3]) === toID(NAME)) B.me = p[2]; if (p[5] && /^\d+$/.test(p[5])) B.ratingsBefore[p[2]] = +p[5]; }
+  if (cmd === 'player' && p[2] && p[3]) { B.names[p[2]] = p[3]; if (toID(p[3]) === toID(NAME)) B.me = p[2]; if (p[5] && /^\d+$/.test(p[5])) B.ratingsBefore[p[2]] = +p[5]; if (LADDER && B.bestof) LADDER.onPlayer(B.bestof, p[2], p[3]); }
   if (cmd === 'showteam' && p[2]) { B.packed[p[2]] = p.slice(3).join('|'); try { B.sheets[p[2]] = parseShowteam(p.slice(3).join('|')); } catch (e) { event('showteam_parse_error', { room, err: e.message }); } }
   if (cmd === 'turn') { B.turn = +p[2]; maybeDrill(B); }
   if (NOT_PUBLIC.has(cmd)) { if (cmd === 'win' || cmd === 'tie') { /* never here: win/tie are public */ } return; }
@@ -437,7 +537,7 @@ function maybeDrill(B) {
     event('drill', { kind, room: B.id, set: setNo, game: +g, turn: +t, outage_s: +hold || 0 });
     say('DRILL ' + kind + ' at set ' + s + ' game ' + g + ' turn ' + t);
     if (kind === 'drop') { HOLD_UNTIL = Date.now() + 1000 * (+hold || 0); try { ws.close(); } catch (e) { /* the point */ } }
-    else { writeSummary(); process.exit(3); }
+    else { writeSummary(); process.exit(70); }   // 70, not 3: 3 is "lock held", which a ladder supervisor must not restart
   }
 }
 
@@ -456,6 +556,7 @@ function endBattle(B, winnerName) {
                                 turns: parsed.turns_played, clockUsed: +(B.clockUsed / 1000).toFixed(1), bankLeft: B.clock.last ? B.clock.last.bank : null });
   }
   event('game_end', { room: B.id, bestof: B.bestof, gnum: B.gnum, winner, me: B.me, timerOn: B.timerOn, clockUsed_s: +(B.clockUsed / 1000).toFixed(1) });
+  if (LADDER && B.bestof) for (const sd of ['p1', 'p2']) LADDER.onPlayer(B.bestof, sd, B.names[sd]);
   if (!B.timerOn) ST.noTimerLine++;
   /* our own copy of the room log: the game survives even if the public replay never does (a hidden room, a failed save) */
   try { fs.writeFileSync(gameLogF(B.id), B.raw.join('\n') + '\n'); } catch (e) { event('game_log_write_error', { room: B.id, err: e.message }); }
@@ -473,6 +574,7 @@ function endBattle(B, winnerName) {
     decisions: { n: B.decisions, log: relRoot(gameDecF(B.id)), run_log: relRoot(LOGF) },
     battle_log: relRoot(gameLogF(B.id)),
     replay: null, provenance: PROV,
+    ladder: LADDER && B.bestof ? { arm: LADDER.armOf(B.bestof), dry_run: DRY_RUN, release: RELEASE_ID } : null,
   };
   STATE.pendingGames = STATE.pendingGames || {}; STATE.pendingGames[B.id] = draft; saveState();
   const onSaved = r => { B.replay = r; finalizeWhenReady(B, draft); };
@@ -488,7 +590,9 @@ function finalizeWhenReady(B, draft) {
   const wantRating = B.rated && !B.ratings.length && B.bestof && seriesDecided(B.bestof) && waited < 15000;
   if (waited < 3000 || wantRating) { setTimeout(() => finalizeWhenReady(B, draft), 500); return; }
   finalizeGame(draft, B.replay, B.ratings);
-  setTimeout(() => { CLOSED.add(B.id); send('|/leave ' + B.id); battles.delete(B.id); }, 200);
+  /* ladder: stay in the finished room long enough for the series' rating lines (posted in the deciding game's room) */
+  const stay = LADDER ? Math.max(200, 22000 - waited) : 200;
+  setTimeout(() => { CLOSED.add(B.id); send('|/leave ' + B.id); battles.delete(B.id); }, stay);
 }
 function finalizeGame(draft, replay, ratings) {
   if (!STATE.pendingGames || !STATE.pendingGames[draft.room]) return;   // already written
@@ -564,8 +668,12 @@ function decide(B) {
   B.deciding = true;
   const t0 = Date.now();
   const bud = B.clock.budget({ kind, turn: B.turn || 1, receivedAt: B.reqAt, now: t0 });
+  /* ladder: this series' pre-committed arm decides the policy and may cap the search; the clock still binds below it */
+  const ARM = LADDER && B.bestof ? LADDER.armOf(B.bestof) : null;
+  const POL = ARM ? ARM.policy : POLICY;
+  if (ARM && ARM.max_ms > 0 && kind !== 'preview' && bud.ms > ARM.max_ms) { bud.ms = ARM.max_ms; bud.cappedBy = 'arm'; }
   if (bud.from === 'rule') ST.noTimerLine++;
-  const rec = { t: t0, room: B.id, bestof: B.bestof, gnum: B.gnum, turn: B.turn, kind, rqid: req.rqid, policy: POLICY, budget: bud, chain: [] };
+  const rec = { t: t0, room: B.id, bestof: B.bestof, gnum: B.gnum, turn: B.turn, kind, rqid: req.rqid, policy: POL, arm: ARM ? ARM.id : null, budget: bud, chain: [] };
   let choice = null, used = null, info = null;
   const opp = B.me === 'p1' ? 'p2' : 'p1';
   const coin = () => coinBase();
@@ -577,17 +685,17 @@ function decide(B) {
       else { rec.chain.push({ policy: name, fail: r && r.choice ? 'not legal: ' + r.choice : 'no choice' }); fb(name + ':illegal'); }
     } catch (e) { rec.chain.push({ policy: name, fail: String(e && e.message || e).slice(0, 200) }); fb(name + ':threw'); }
   };
-  let first = POLICY;
-  if (POLICY === 'miltank' && bud.lowBank) { first = 'prior'; fb('clock:miltank->prior'); rec.chain.push({ policy: 'miltank', fail: 'budget ' + bud.ms + ' ms under the search floor' }); }
+  let first = POL;
+  if (POL === 'miltank' && bud.lowBank) { first = 'prior'; fb('clock:miltank->prior'); rec.chain.push({ policy: 'miltank', fail: 'budget ' + bud.ms + ' ms under the search floor' }); }
   /* a rejoined room with no server clock line yet: the bank is UNKNOWN (a restart lost it), so do not search on a guess */
-  else if (POLICY === 'miltank' && bud.from === 'rule' && B.rejoined) { first = 'prior'; fb('clock:unknown-bank->prior'); rec.chain.push({ policy: 'miltank', fail: 'rejoined with no server clock line yet' }); }
+  else if (POL === 'miltank' && bud.from === 'rule' && B.rejoined) { first = 'prior'; fb('clock:unknown-bank->prior'); rec.chain.push({ policy: 'miltank', fail: 'rejoined with no server clock line yet' }); }
 
   if (kind === 'preview') {
     const S = B.bestof ? BOOK.get(B.bestof) : null;
     const team = (B.bestof && seriesTeam.get(B.bestof)) || null;
     const mySheet = B.sheets[B.me] || [];
     const posOfSheet = s => { const r = mySheet[s]; if (!r) return s + 1; const j = req.side.pokemon.findIndex(pk => String(pk.ident).replace(/^p[12]:\s*/, '') === r.nick); return j >= 0 ? j + 1 : s + 1; };
-    const d = { req, coin, sheets: B.sheets, me: B.me, budgetMs: Math.min(bud.ms, PREVIEW_MAX_MS), teamBring: team ? team.bring : null,
+    const d = { req, coin, sheets: B.sheets, me: B.me, budgetMs: Math.min(bud.ms, ARM && ARM.preview_max_ms > 0 ? ARM.preview_max_ms : PREVIEW_MAX_MS), teamBring: team ? team.bring : null,
                 series: { oppLast: B.bestof ? BOOK.oppLast(B.bestof, B.gnum || 1, B.me) : null } };
     tryPolicy(first, () => {
       let r = P.preview(first, d);
@@ -617,7 +725,7 @@ function decide(B) {
     tryPolicy('heuristic', () => ({ choice: RQ.heuristic(req) }));
   }
   if (!choice) { choice = 'default'; used = 'default'; fb('default'); }
-  if (used !== POLICY) fb('used:' + used);
+  if (used !== POL) fb('used:' + used);
   const ms = Date.now() - t0;
   const ok = send(B.id + '|/choose ' + choice + '|' + req.rqid);
   B.sent.set(req.rqid, choice);
@@ -659,11 +767,19 @@ function writeSummary() {
     timer_on_seen: ST.timerOnSeen, games: ST.games, game_records: ST.gameRecords || 0, games_file: GAMES_FILE, replays: SAVER.COUNTERS, world_errors: ST.worldErrors, decisions_without_time_line: ST.noTimerLine,
     preview_sheet_wait_ms: stats(ST.previewSheetWaitMs),
     counters: { policy: P.COUNTERS, world: WB.COUNTERS, prior: PA.COUNTERS, rollout: R.COUNTERS, api: API.COUNTERS },
-    provenance: PROV };
+    provenance: PROV,
+    ladder: LADDER ? { plan: LADDER.plan(), state: (({ k, consecErrors, errors, guard, incidents, halted, searches, done, starts }) => ({ k, consecErrors, errors: errors.slice(-10), guard, incidents, halted, searches, done, starts }))(LADDER.state()), series_file: LADDER.seriesFile } : null,
+    netguard: NETGUARD ? require('./netguard.js').stats() : null };
   try { fs.writeFileSync(path.join(OUT, 'summary-' + toID(NAME) + (STATE.restarts ? '-r' + STATE.restarts : '') + '.json'), JSON.stringify(out, null, 1)); } catch (e) { /* never fatal */ }
   return out;
 }
-process.on('SIGINT', () => { stopping = true; writeSummary(); LOCKH.release(); process.exit(0); });
+let sigints = 0;
+process.on('SIGINT', () => {
+  /* ladder: the FIRST Ctrl+C is a graceful stop (no new search; the open series is played out); a second one exits now,
+   * and an open game is then left to the server's DC timer — the only way ROTOM ever loses a game it did not play */
+  if (LADDER && ++sigints === 1 && openSeries() > 0) { say('SIGINT — stopping after this series (Ctrl+C again to exit NOW and leave the game to the timer)'); LADDER.requestStop('SIGINT'); return; }
+  stopping = true; STATE.cleanExit = !openSeries(); saveState(); writeSummary(); LOCKH.release(); process.exit(0);
+});
 setInterval(writeSummary, 30000).unref();
 
 connect();

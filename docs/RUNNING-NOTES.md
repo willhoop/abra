@@ -53,6 +53,21 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.3.0] — 2026-09-25 — **ROTOM replays + ladder mode merged; the local server makes zero public requests**
+- **What changed.** Ladder mode calls the replay-save and `games.jsonl` hooks (one rating parser, one room-hold); `solver/rotom/local_server.js` is the one local start-up path (`run_local.js`, `run_ladder.js --dry-run`); `local_server_preload.js` sets `loginserver`, `routes.root`, `routes.replays` to the stand-in and refuses the switchless Tor fetch (`server/ip-tools.ts:651`) by name; new `solver/tests/test-rotom-localnet.js`.
+- **Measured.** NO FIGURE (harness). Before: 9 public attempts at start-up (`check.torproject.org` ×2, `play.pokemonshowdown.com` ×1, `pokemonshowdown.com` ×6) — `test-rotom-localnet --break`, RED. After: 0 across 10 guarded server processes — `test-rotom-localnet` GREEN 4/4. Account `docs/_reports/2026-09-25-rotom-merge.md`.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** The technical docs' ROTOM section: the local server's zero-traffic config.
+
+## [abra/regmc 1.2.0] — 2026-09-25 — **ROTOM ladder mode prepared, dry-run locally, not launched**
+- **What changed.** `solver/rotom/{ladder,run_ladder,netguard,login_stub,build_ladder_teams}.js`, `solver/rotom/arms/`, `solver/rotom/teams/ladder-rotation.json`, `solver/rotom/LADDER.md` (runbook), `solver/tests/test-rotom-ladder.js`; `rotom.js --ladder` and `--release`, `lock.js` `readPasswordFile`, `build_assets.js` exports.
+- **Measured.** NO FIGURE. The local dry run proves the loop and not strength (`solver/out/rotom/dry10-*/ladder-report.json`; account in `docs/_reports/2026-09-25-rotom-ladder-mode.md`). `test-rotom-ladder` GREEN, RED on the deliberate break; `test-rotom` 86/86.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** ROTOM's ladder protocol and the two-account guard's known gap belong in the technical docs and `docs/MODELS.md`.
+
+## [abra/regmc 1.1.0] — 2026-09-25 — **ROTOM saves a replay of every game and joins it to its decision log**
+- **What changed.** `solver/rotom/replay.js` (save + retry + popup parser), per-game records in `solver/out/rotom/games.jsonl`, per-game decision logs, `local_login.js` + `local_server_preload.js` (a local login stand-in), `report.js --games`, the own-account refusal on a public server, `solver/tests/test-rotom-replays.js`.
+- **Measured.** NO FIGURE (harness). Local 3-set test: 8 of 8 games saved, 16 of 16 records (`docs/_reports/2026-09-25-rotom-replays.md`).
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** The technical docs' ROTOM section: the per-game record and replay save.
+
 ## [abra/regmc 1.0.0] — 2026-09-24 — **DRAFT: fold-ins A and B merged; the white paper, deck and technical docs stop claiming MILTANK v1 halves or uses XATU; living-document PDFs rebuilt**
 - **What changed.** `docs-1.0.0-a` and `docs-1.0.0-b` merged into `draft/regmc-1.0.0`. `docs/ABRA-whitepaper.md` (§2.2, §2.4, §3.1 registry, §3.5), `docs/ABRA-technical-docs.md` (model table) and `docs/ABRA-deck-plain-english.md` (slides 7 and 9) now say what `docs/MODELS.md` says: MILTANK v1 draws the world uniformly and has no successive halving; both are planned. The 13 stale or missing PDFs `build/build_pdfs.js` derives were rebuilt; ledgers excluded. Account: `docs/_reports/2026-09-24-docs-1.0.0-merge.md`.
 - **Measured.** NO FIGURE.

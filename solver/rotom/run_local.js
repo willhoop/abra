@@ -13,11 +13,13 @@
  * 4. Aggregates both clients' logs with solver/rotom/report.js into <out>/report.json, and the per-game records
  *    (<out>/games.jsonl) into <out>/games-report.json.
  *
- * REPLAYS, LOCALLY. The checkout's config sends /savereplay uploads (and a start-up `invalidatecss`) to
- * play.pokemonshowdown.com, its login server. So when THIS harness starts the server it first starts a local
- * stand-in login server (solver/rotom/local_login.js, port+1) and launches Showdown with NODE_OPTIONS
- * --require solver/rotom/local_server_preload.js, which re-points Config.loginserver and Config.routes.replays at
- * it; the clients then get `--local-replays` and save every game. A server that was already running (reused)
+ * REPLAYS, LOCALLY, AND ZERO PUBLIC TRAFFIC. The checkout's config sends /savereplay uploads (and a start-up
+ * `invalidatecss`) to play.pokemonshowdown.com, its seasons plugin fetches pokemonshowdown.com, and ip-tools fetches
+ * the Tor exit list. So when THIS harness starts the server it goes through solver/rotom/local_server.js: a local
+ * stand-in login server (solver/rotom/local_login.js, port+1), the local config preload
+ * (solver/rotom/local_server_preload.js: loginserver, routes.root, routes.replays -> the stand-in; the Tor fetch
+ * refused by name) and the socket guard (netguard.js, logged to <out>/netguard-server.jsonl, totals in report.json
+ * `net`); the clients then get `--local-replays` and save every game. A server that was already running (reused)
  * cannot be proved to be re-pointed, so the clients are NOT given `--local-replays` and record each save as
  * skipped. Local games go to <out>/games.jsonl, never to the live ledger solver/out/rotom/games.jsonl.
  */
@@ -43,18 +45,15 @@ const log = (...a) => console.log('[harness ' + new Date().toISOString().slice(1
 const portUp = () => new Promise(res => { const s = net.connect(PORT, '127.0.0.1'); s.on('connect', () => { s.destroy(); res(true); }); s.on('error', () => res(false)); });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-let MOCK = null;
+let MOCK = null, LS = null;
 async function startServer() {
-  if (await portUp()) { log('a server is already listening on ' + PORT + ' — using it (replay saves will be SKIPPED: its login server is unknown)'); return null; }
+  if (await portUp()) { log('a server is already listening on ' + PORT + ' — using it (replay saves will be SKIPPED: its login server is unknown; zero public traffic is NOT proved for it)'); return null; }
   if (has('no-server')) throw new Error('--no-server and nothing on port ' + PORT);
-  MOCK = await require('./local_login.js').start(PORT + 1, path.join(OUT, 'replays'), m => log('[login stand-in] ' + m));
+  /* one start-up path (solver/rotom/local_server.js): login stand-in on PORT+1, the local config, the socket guard */
+  LS = await require('./local_server.js').start({ port: PORT, out: OUT, log });
+  MOCK = LS.mock;
   log('local login-server stand-in on ' + MOCK.url + ' (replays -> ' + path.join(OUT, 'replays') + ')');
-  log('starting pokemon-showdown-mc on localhost:' + PORT + ' (--no-security) from ' + SD);
-  const env = Object.assign({}, process.env, { ROTOM_LOGIN_MOCK: MOCK.url,
-    NODE_OPTIONS: ((process.env.NODE_OPTIONS || '') + ' --require ' + JSON.stringify(path.join(__dirname, 'local_server_preload.js'))).trim() });
-  const srv = cp.spawn(process.execPath, ['pokemon-showdown', 'start', '--skip-build', String(PORT), '--no-security'], { cwd: SD, env, stdio: ['ignore', fs.openSync(path.join(OUT, 'server.log'), 'a'), fs.openSync(path.join(OUT, 'server.log'), 'a')] });
-  for (let i = 0; i < 120; i++) { if (await portUp()) return srv; await sleep(500); }
-  throw new Error('server did not come up on ' + PORT);
+  return LS.srv;
 }
 
 function client(name, args) {
@@ -102,8 +101,13 @@ async function main() {
   fs.writeFileSync(path.join(OUT, 'games-report.json'), JSON.stringify(GR, null, 1));
   log('games report -> ' + path.join(OUT, 'games-report.json'));
   log(JSON.stringify(GR.replays));
-  if (MOCK) MOCK.close();
-  if (srv && !has('keep-server')) srv.kill();
+  if (LS) {
+    R.net = GR.net = require('./local_server.js').netTotals(OUT);
+    fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify(R, null, 1));
+    fs.writeFileSync(path.join(OUT, 'games-report.json'), JSON.stringify(GR, null, 1));
+    log('public traffic: ' + R.net.public_connects_blocked + ' non-loopback connects attempted (all refused) ' + JSON.stringify(R.net.blocked_hosts) + '; refused by name at lib/net ' + JSON.stringify(R.net.refused_hosts));
+    if (!has('keep-server')) LS.stop();
+  }
   process.exit(A.failed || B.failed ? 1 : 0);
 }
 main().catch(e => { console.error(e); process.exit(1); });

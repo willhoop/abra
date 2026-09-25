@@ -136,10 +136,8 @@ class ReplaySaver {
 }
 
 /** the rating line the ladder writes into the deciding game's room (ladders-local.ts:263, ladders-remote.ts:93):
- *  |raw|NAME's rating: 1500 &rarr; <strong>1520</strong><br />(...)  -> { name, before, after } */
-function parseRatingLine(line) {
-  const m = /^\|raw\|(.+?)'s rating: (\d+)\s*&rarr;\s*<strong>(\d+)<\/strong>/.exec(String(line || ''));
-  return m ? { name: m[1], before: +m[2], after: +m[3] } : null;
-}
+ *  |raw|NAME's rating: 1500 &rarr; <strong>1520</strong><br />(...)  -> { name, id, before, after }.
+ *  ONE parser: ladder mode's (solver/rotom/ladder.js, which decodes HTML entities in the name and takes decimals). */
+const { parseRatingLine } = require('./ladder.js');
 
 module.exports = { ReplaySaver, parsePopup, replayIdOf, parseRatingLine };

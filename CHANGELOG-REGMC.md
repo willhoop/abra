@@ -21,6 +21,93 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.3.0] — 2026-09-25
+
+### Changed
+- **ROTOM replay saving and ladder mode merged into one client.** Ladder mode now calls the replay-save and
+  `games.jsonl` hooks rather than keeping its own: every ladder game is saved as a replay and gets one record in the
+  games file. That record also carries the series' arm, the release and the dry-run flag. The finished room is
+  held until the save resolves and, in ladder mode, for up to 22 s so the series' rating lines arrive. Those lines
+  now reach the ladder's series row even after the game has ended. There is one rating-line parser (`ladder.js`,
+  which decodes HTML entities in the name); `replay.js` re-exports it. The own-account refusal now runs after the
+  ladder guards, so a non-ladder account on `--public` hears the more specific refusal first.
+- `solver/rotom/local_server.js` is now the one way to start a local server. `run_local.js`, `run_ladder.js --dry-run`
+  and the new test all use it. It starts the login stand-in, the socket guard in every server process, and the
+  local config. The ladder dry run now saves replays locally (`--local-replays`) to its own `<out>/games.jsonl`.
+
+### Fixed
+- **The local test server no longer tries to reach any public host.** It made 9 start-up attempts
+  (`check.torproject.org` ×2, `play.pokemonshowdown.com` ×1, `pokemonshowdown.com` ×6), found with a
+  stack-logging socket guard. `solver/rotom/local_server_preload.js` now sets `loginserver`, `routes.root` (the
+  seasons plugin's ladder fetch) and `routes.replays` to the local stand-in. The Tor exit-list fetch has no
+  config switch: it is hard-coded and runs when `server/ip-tools.ts:651` loads. It is therefore refused by name at
+  `lib/net` before any socket opens. Any other public request still reaches the guard and turns the test red.
+
+### Added
+- `solver/tests/test-rotom-localnet.js`: a real local server, the guard in all 10 processes, **0 non-loopback
+  attempts**, with proof that the check ran (guard in ≥5 processes, config applied, Tor fetch seen and refused).
+  **Shown RED on a deliberate break** (`--break` leaves the local config out: 9 attempts, exit 1). `--run <dir>`
+  runs the same check on a finished dry run.
+
+### Notes
+- Account: `docs/_reports/2026-09-25-rotom-merge.md`. No ladder game was played.
+- **Basis.** unchanged. **Supersedes.** Nothing.
+
+## [1.2.0] — 2026-09-25
+
+### Added
+- **ROTOM ladder mode, prepared and not launched.** `solver/rotom/ladder.js` searches the
+  `gen9championsvgc2026regmcbo3` ladder, plays the series and repeats until a STOP file, a set count, a time cap
+  or a consecutive-error halt. Each series draws its A/B arm and its rotation team from a seed that is committed
+  to the run state before the first search. It logs one row per series with the arm config, the release stamp,
+  both ratings before and after, `S`, `E` and `S − E`, and the fallback, invalid and timeout counts during that
+  series. The two-account guard is the machine-wide lock plus `/crq userdetails willhoop` before every search
+  (it pauses while willhoop is connected; a search in progress is invisible, and that gap is stated). The client
+  never forfeits. The loop needs `--release` at or after `eaa5becc54eb`.
+- `solver/rotom/run_ladder.js`: the supervisor and watchdog, `--stop` (graceful) and `--kill` (by recorded pid),
+  and a local `--dry-run` that uses the same client code path. `solver/rotom/netguard.js` refuses every
+  non-loopback connection in every process of a dry run. `solver/rotom/login_stub.js` is a local assertion
+  server whose key the local server verifies.
+- `solver/rotom/build_ladder_teams.js` → `solver/rotom/teams/ladder-rotation.json`: five real top teams, one
+  per stable archetype in GURU's library, each passed through Showdown's TeamValidator. The client
+  re-validates them at start-up.
+- `solver/rotom/arms/`: `aa-miltank.json` (A/A placebo), `miltank-vs-prior.json` (SPRT pre-registered on the
+  per-series residual), `dryrun-fast.json` (refused on the public ladder).
+- Runbook `solver/rotom/LADDER.md`; test `solver/tests/test-rotom-ladder.js`.
+
+### Changed
+- `solver/rotom/rotom.js` loads the engine from a frozen release when `--release` is given
+  (`solver/arena/engine.js`). The crash drill exits 70, not 3, because 3 means "lock held".
+- `solver/rotom/lock.js` gains `readPasswordFile` (the file only, for ladder mode).
+- `solver/rotom/build_assets.js` exports its spread rule, packer and validator.
+
+### Notes
+- Account: `docs/_reports/2026-09-25-rotom-ladder-mode.md`. No ladder game was played. No public host was
+  contacted by the dry run.
+- **Basis.** unchanged. **Supersedes.** Nothing.
+
+## [1.1.0] — 2026-09-25
+
+### Added
+- **ROTOM saves a replay of every game and joins it to its reasoning.** At each game's `|win|`/`|tie|` the client
+  sends `/savereplay`. It retries up to 4 times, 20 s each, and records the outcome in every case. It then appends
+  one record to `solver/out/rotom/games.jsonl` (`--games-file`). The record holds both sheets, brings and leads,
+  the result, the ratings when the server sends them, the replay URL, our copy of the battle log, and the path of
+  that game's own decision log (`<out>/games/<client>/<room>.decisions.jsonl`). A restarted process saves any
+  pending records again. `solver/rotom/replay.js` (the saver, and the popup parser), `report.js --games`.
+- `solver/rotom/local_login.js` + `local_server_preload.js`: a local stand-in for the server's login server, so a
+  local `/savereplay` stays local. Without `--local-replays` a local save is skipped and the skip is recorded.
+- Test `solver/tests/test-rotom-replays.js`.
+
+### Changed
+- On a public server `rotom.js` refuses to run under any name that is not on both own-account lists
+  (`solver/human/build_dataset.js`, `solver/meta/extract.js`), so our games stay out of the human data.
+
+### Notes
+- Local test, 3 bo3 sets: 8 of 8 games saved, 16 of 16 records. Account: `docs/_reports/2026-09-25-rotom-replays.md`.
+  No ladder game was played.
+- **Basis.** unchanged. **Supersedes.** Nothing.
+
 ## [1.0.0] — 2026-09-24
 
 ### Changed

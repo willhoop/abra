@@ -1,0 +1,193 @@
+{
+ "generated": "2026-09-25T06:08:56.161Z",
+ "format": "gen9championsvgc2026regmcbo3",
+ "checkout_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+ "source": {
+  "archetypes": {
+   "path": "solver/out/meta/archetypes.json",
+   "sha256": "19dab2d06b75dce02d354fe4a0e3f1eebd90367002b34a75d43fe35d8b21a764",
+   "k": 8
+  },
+  "games": {
+   "path": "solver/out/meta/games.clean.jsonl.gz",
+   "sha256": "96353a78793796c3160845dd126f3ea41226bd6feed14a3851834505dde0bfe1",
+   "sides_considered": 38519
+  }
+ },
+ "rule": "one team per stable archetype in share order; the highest-rated open-sheet bo3 side assigned to it (max cosine to the archetype core) that carries every defining species (in_cluster >= 0.5); one per player; own accounts and bots excluded",
+ "spread_rule": "32 HP, 32 in the attack stat its moves use more (dex move category), 2 Spe; nature from the sheet (build_assets.js spreadFor)",
+ "validator": "Showdown TeamValidator.get(gen9championsvgc2026regmcbo3) on the Reg M-C checkout — every team below passed",
+ "refused": 0,
+ "refused_samples": [],
+ "teams": [
+  {
+   "id": "L1",
+   "archetype": {
+    "id": 0,
+    "label": "Incineroar / Rillaboom / Sneasler",
+    "share": 0.2259,
+    "stable": "stable",
+    "cosine": 0.69,
+    "defining": [
+     "incineroar",
+     "rillaboom",
+     "sneasler"
+    ]
+   },
+   "from_game": "gen9championsvgc2026regmcbo3-2682916919",
+   "date": "2026-09-17 13:12",
+   "rating": 1435,
+   "species": [
+    "Gengar",
+    "Incineroar",
+    "Rillaboom",
+    "Kingambit",
+    "Hippowdon",
+    "Sneasler"
+   ],
+   "bring": [
+    4,
+    0,
+    1,
+    3
+   ],
+   "packed": "Gengar||Gengarite|CursedBody|ShadowBall,SludgeBomb,Substitute,Protect|Timid|32,,,32,,2|M||||]Incineroar||SitrusBerry|Intimidate|FakeOut,FlareBlitz,Snarl,PartingShot|Impish|32,32,,,,2|M||||]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,GrassyGlide,LowKick,FakeOut|Adamant|32,32,,,,2|M||||]Kingambit||LifeOrb|Defiant|SuckerPunch,KowtowCleave,SwordsDance,Protect|Adamant|32,32,,,,2|F||||]Hippowdon||Leftovers|SandStream|HighHorsepower,StoneEdge,Yawn,Protect|Careful|32,32,,,,2|F||||]Sneasler||WhiteHerb|Unburden|CloseCombat,DireClaw,FakeOut,Protect|Adamant|32,32,,,,2|F||||"
+  },
+  {
+   "id": "L2",
+   "archetype": {
+    "id": 1,
+    "label": "Indeedee-F / Sneasler / Gardevoir",
+    "share": 0.152,
+    "stable": "stable",
+    "cosine": 0.729,
+    "defining": [
+     "indeedeef",
+     "sneasler",
+     "gardevoir"
+    ]
+   },
+   "from_game": "gen9championsvgc2026regmcbo3-2685967003",
+   "date": "2026-09-22 18:57",
+   "rating": 1549,
+   "species": [
+    "Indeedee-F",
+    "Gardevoir",
+    "Sneasler",
+    "Basculegion",
+    "Pelipper",
+    "Archaludon"
+   ],
+   "bring": [
+    1,
+    0,
+    3,
+    2
+   ],
+   "packed": "Indeedee-F||SitrusBerry|PsychicSurge|TrickRoom,FollowMe,HelpingHand,Psychic|Bold|32,,,32,,2|F||||]Gardevoir||Gardevoirite|Synchronize|HyperVoice,ExpandingForce,Protect,ShadowBall|Modest|32,,,32,,2|F||||]Sneasler||PsychicSeed|Unburden|CloseCombat,DireClaw,RockTomb,Protect|Adamant|32,32,,,,2|F||||]Basculegion||ChoiceScarf|Adaptability|WaveCrash,AquaJet,FlipTurn,LastRespects|Jolly|32,32,,,,2|M||||]Pelipper||FocusSash|Drizzle|WeatherBall,Tailwind,Hurricane,Protect|Modest|32,,,32,,2|M||||]Archaludon||Leftovers|Stamina|DragonPulse,FlashCannon,ElectroShot,Protect|Modest|32,,,32,,2|F||||"
+  },
+  {
+   "id": "L3",
+   "archetype": {
+    "id": 2,
+    "label": "Kingambit / Rillaboom / Sneasler",
+    "share": 0.1413,
+    "stable": "stable",
+    "cosine": 0.802,
+    "defining": [
+     "kingambit",
+     "rillaboom",
+     "sneasler",
+     "salamence"
+    ]
+   },
+   "from_game": "gen9championsvgc2026regmcbo3-2686132786",
+   "date": "2026-09-23 00:51",
+   "rating": 1467,
+   "species": [
+    "Salamence",
+    "Raichu",
+    "Sneasler",
+    "Rillaboom",
+    "Kingambit",
+    "Volcarona"
+   ],
+   "bring": [
+    1,
+    5,
+    3,
+    2
+   ],
+   "packed": "Salamence||Salamencite|Intimidate|DracoMeteor,HyperVoice,Tailwind,Protect|Timid|32,,,32,,2|M||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|32,,,32,,2|F||||]Sneasler||GrassySeed|Unburden|DireClaw,CloseCombat,FakeOut,Protect|Adamant|32,32,,,,2|F||||]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,HighHorsepower,GrassyGlide,FakeOut|Adamant|32,32,,,,2|M||||]Kingambit||ChopleBerry|Defiant|KowtowCleave,IronHead,SuckerPunch,LowKick|Adamant|32,32,,,,2|F||||]Volcarona||Leftovers|FlameBody|Flamethrower,GigaDrain,QuiverDance,Protect|Modest|32,,,32,,2|F||||"
+  },
+  {
+   "id": "L4",
+   "archetype": {
+    "id": 3,
+    "label": "Rillaboom / Gholdengo / Arcanine-Hisui",
+    "share": 0.1257,
+    "stable": "stable",
+    "cosine": 0.746,
+    "defining": [
+     "rillaboom",
+     "gholdengo",
+     "arcaninehisui",
+     "raichu"
+    ]
+   },
+   "from_game": "gen9championsvgc2026regmcbo3-2685775137",
+   "date": "2026-09-22 13:35",
+   "rating": 1462,
+   "species": [
+    "Rillaboom",
+    "Arcanine-Hisui",
+    "Dragonite",
+    "Raichu",
+    "Gholdengo",
+    "Garchomp"
+   ],
+   "bring": [
+    4,
+    3,
+    0,
+    1
+   ],
+   "packed": "Rillaboom||MiracleSeed|GrassySurge|WoodHammer,GrassyGlide,HighHorsepower,FakeOut|Adamant|32,32,,,,2|M||||]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly|32,32,,,,2|F||||]Dragonite||Dragoninite|InnerFocus|DragonPulse,HeatWave,Tailwind,Protect|Modest|32,,,32,,2|M||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|32,,,32,,2|M||||]Gholdengo||LifeOrb|GoodasGold|MakeItRain,ShadowBall,NastyPlot,Protect|Modest|32,,,32,,2|||||]Garchomp||SitrusBerry|RoughSkin|StompingTantrum,DragonClaw,SwordsDance,Protect|Adamant|32,32,,,,2|M||||"
+  },
+  {
+   "id": "L5",
+   "archetype": {
+    "id": 6,
+    "label": "Tyranitar / Salamence / Excadrill",
+    "share": 0.0933,
+    "stable": "stable",
+    "cosine": 0.855,
+    "defining": [
+     "tyranitar",
+     "salamence",
+     "excadrill",
+     "sneasler",
+     "indeedee"
+    ]
+   },
+   "from_game": "gen9championsvgc2026regmcbo3-2684262422",
+   "date": "2026-09-19 19:30",
+   "rating": 1379,
+   "species": [
+    "Corviknight",
+    "Tyranitar",
+    "Sneasler",
+    "Indeedee",
+    "Salamence",
+    "Excadrill"
+   ],
+   "bring": [
+    3,
+    2,
+    1,
+    5
+   ],
+   "packed": "Corviknight||PsychicSeed|MirrorArmor|BraveBird,PowerTrip,Roost,BulkUp|Impish|32,32,,,,2|F||||]Tyranitar||Tyranitarite|SandStream|RockSlide,KnockOff,LowKick,Protect|Jolly|32,32,,,,2|F||||]Sneasler||WhiteHerb|Unburden|CloseCombat,DireClaw,Coaching,Protect|Adamant|32,32,,,,2|M||||]Indeedee||ChoiceScarf|PsychicSurge|ExpandingForce,MysticalFire,Trick,Protect|Modest|32,,,32,,2|M||||]Salamence||Salamencite|Intimidate|HyperVoice,DracoMeteor,Flamethrower,Protect|Timid|32,,,32,,2|M||||]Excadrill||FocusSash|SandRush|IronHead,HighHorsepower,RockSlide,Protect|Adamant|32,32,,,,2|F||||"
+  }
+ ]
+}

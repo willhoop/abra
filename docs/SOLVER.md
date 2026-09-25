@@ -69,6 +69,16 @@ This section says only what a division agent needs before it starts.
   that release.** The re-run is the first thing owed.
 - **Not built:** CHOMP, PORYGON2, GARY, HYPNO, DUSK, MEW, MACHAMP, WOBBUFFET, DITTO, ROTOM, ALAKAZAM,
   KADABRA (and JOLTEON, only if CHOMP needs a pre-screen). Order: `solver/PLAN.md` §3, milestones M1–M8.
+- **ROTOM ladder mode — prepared, not launched (2026-09-25).** `solver/rotom/ladder.js` (the loop, the
+  pre-committed per-series A/B and rotation, the two-account guard, the consecutive-error halt),
+  `run_ladder.js` (supervisor, watchdog, STOP, KILL by pid, the local dry run), `netguard.js` (a dry run
+  refuses every non-loopback connection in every process), `login_stub.js`, `build_ladder_teams.js` →
+  `teams/ladder-rotation.json`, and `arms/`. Runbook with the exact commands: `solver/rotom/LADDER.md`.
+  Account: `docs/_reports/2026-09-25-rotom-ladder-mode.md`. **A public launch is Will's call.**
+- **ROTOM saves every game (2026-09-25, merged with ladder mode in abra/regmc 1.3.0).** A replay per game and one
+  record in `games.jsonl`, joined to that game's decision log (`solver/rotom/replay.js`). Every local server starts
+  through `solver/rotom/local_server.js` and makes **zero public requests**
+  (`solver/tests/test-rotom-localnet.js`). Account: `docs/_reports/2026-09-25-rotom-merge.md`.
 - **Old implementations** (`engine/miltank.js`, `engine/magnemite.js`, `engine/mag_bot.js`, …) are archived
   to a top-level `archive/` in the commit where each replacement passes its exit test
   (`solver/PLAN.md` §8). Run `node engine/engine_release.js compat` first: several are in the release

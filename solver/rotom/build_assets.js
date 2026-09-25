@@ -161,4 +161,6 @@ async function main() {
   if (refused.length) console.log('  first refusal: ' + JSON.stringify(refused[0]));
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+/* the spread rule, the packer and the validator are shared with build_ladder_teams.js (one rule, one place) */
+module.exports = { spreadFor, packTeam, validate };
+if (require.main === module) main().catch(e => { console.error(e); process.exit(1); });

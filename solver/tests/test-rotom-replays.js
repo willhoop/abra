@@ -144,7 +144,7 @@ function mk(o) {
   const probe = `const c=require(${JSON.stringify(path.join(cfgDir, 'config.js'))});process.stdout.write(JSON.stringify({l:c.loginserver,r:c.routes}))`;
   const good = cp.spawnSync(process.execPath, ['--require', pre, '-e', probe], { env: Object.assign({}, process.env, { ROTOM_LOGIN_MOCK: 'http://127.0.0.1:' + port + '/' }), encoding: 'utf8' });
   let pj = null; try { pj = JSON.parse(good.stdout); } catch (e) { /* red below */ }
-  ok(pj && pj.l === 'http://127.0.0.1:' + port + '/' && pj.r.replays === '127.0.0.1:' + port + '/replay' && pj.r.root === 'pokemonshowdown.com', 'preload re-points loginserver + replays only: ' + good.stdout + good.stderr);
+  ok(pj && pj.l === 'http://127.0.0.1:' + port + '/' && pj.r.replays === '127.0.0.1:' + port + '/replay' && pj.r.root === '127.0.0.1:' + port, 'preload re-points loginserver, routes.replays and routes.root (seasons) at the stand-in: ' + good.stdout + good.stderr);
   const bad = cp.spawnSync(process.execPath, ['--require', pre, '-e', probe], { env: Object.assign({}, process.env, { ROTOM_LOGIN_MOCK: 'http://play.pokemonshowdown.com/' }), encoding: 'utf8' });
   ok(bad.status !== 0, 'preload refuses a non-loopback login server');
   const inert = cp.spawnSync(process.execPath, ['--require', pre, '-e', probe], { env: Object.assign({}, process.env, { ROTOM_LOGIN_MOCK: '' }), encoding: 'utf8' });
