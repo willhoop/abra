@@ -17,6 +17,9 @@
  *            different values on the same position, and the leaf counter moves.
  *   GATE     a 1-pair match through gate.js: 2 games, the pair played once from each seat on one battle seed,
  *            stamped with the release, the rule applied; plus the Wilson/rule arithmetic on known values.
+ *   DEEP     deep_value.js replays both games exactly (0 mismatches) and writes one deep value per recorded position.
+ *   SPRT     s(+20 Elo), a strong and a weak synthetic player each reach their bound, an unfinished pair blocks the
+ *            test at its index, an errored pair is excluded.
  *   PARITY   for every trained generation on disk (solver/machamp/models/gen*): the Node forward passes reproduce
  *            the Python float64 logits of the EXPORTED files on the trainer's fixture — PORYGON2 to 1e-9 and
  *            MAG+DODUO to 1e-9 — and each fixture names the file's own digest. With no generation trained this
@@ -26,6 +29,8 @@
  *   MACHAMP_BREAK=row      build_doduo rebuilds the row one turn late            -> REBUILD
  *   MACHAMP_BREAK=vside    build_pory2 forgets to flip side B's value            -> TARGETS
  *   MACHAMP_BREAK=seat     a match seats X on side A twice                       -> GATE
+ *   MACHAMP_BREAK=replay   the deep-value replay uses the wrong battle seed      -> DEEP
+ *   MACHAMP_BREAK=sprtsign the SPRT's log-likelihood ratio has its sign flipped  -> SPRT
  *   MILTANK_BREAK=leaf     the heuristic is served when PORYGON2 is asked for    -> LEAF
  *   PORY2_INFER_BREAK=pool the PORYGON2 forward pass drops its max pool          -> PARITY (only when a generation exists)
  */
@@ -235,14 +240,59 @@ function checkParity(P) {
   console.log('  PARITY: ' + P.map(p => `${p.g} ${p.kind} n=${p.n} worst=${p.worst.toExponential(2)}`).join('; '));
 }
 
+/* ---------------- DEEP (solver/machamp/deep_value.js) ---------------- */
+function deep(dir, env) {
+  const out = path.join(TMP, 'deep-' + (env ? 'red' : 'ok'));
+  const r = nodeRun(path.join(ROOT, 'solver', 'machamp', 'deep_value.js'), ['--release', REL, '--selfplay', dir, '--out', out, '--workers', '1', '--rollouts', '1', '--depth', '1'], env);
+  if (r.status !== 0) { console.log(r.stdout, r.stderr); return null; }
+  return JSON.parse(fs.readFileSync(path.join(out, 'deep.summary.json'), 'utf8'));
+}
+function checkDeep(D, recs) {
+  ok('DEEP', !!D, 'deep_value ran');
+  if (!D || !recs) return;
+  const n = recs.reduce((a, g) => a + g.hist.length, 0);
+  ok('DEEP', D.counts.replay_mismatch === 0 && D.counts.no_joint === 0, `every game replays exactly (mismatch ${D.counts.replay_mismatch}, no joint ${D.counts.no_joint})`);
+  ok('DEEP', D.counts.positions === n && D.counts.rollouts === n, `one deep value per recorded position (${D.counts.positions} of ${n})`);
+  ok('DEEP', D.engine_release === REL, 'stamped with the release');
+}
+
+/* ---------------- SPRT (solver/machamp/sprt.js), in a child so the break env reaches it ---------------- */
+function sprtProbe(env) {
+  const script = path.join(TMP, 'sprt.js');
+  fs.writeFileSync(script, `'use strict';
+const S = require(${JSON.stringify(path.join(ROOT, 'solver', 'machamp', 'sprt.js'))});
+const o = { elo0: 0, elo1: 20, alpha: 0.05, beta: 0.05 };
+let r = 7; const rnd = () => { r = (r * 16807) % 2147483647; return r / 2147483647; };
+const seq = p => Array.from({ length: 1000 }, () => ((rnd() < p ? 1 : 0) + (rnd() < p ? 1 : 0)) / 2);
+const strong = S.decide(seq(0.62), o), weak = S.decide(seq(0.42), o);
+const gap = seq(0.62); gap[3] = undefined; const waits = S.decide(gap, o);
+const err = seq(0.62); err[0] = null; const skip = S.decide(err, o);
+console.log(JSON.stringify({ s20: S.sOf(20), strong, weak, waits, skip }));
+`);
+  const r = nodeRun(script, [], env);
+  if (r.status !== 0) { console.log(r.stderr); return null; }
+  return JSON.parse(r.stdout.trim().split('\n').pop());
+}
+function checkSprt(X) {
+  ok('SPRT', !!X, 'the SPRT probe ran');
+  if (!X) return;
+  ok('SPRT', Math.abs(X.s20 - 0.528751) < 1e-5, `s(+20 Elo) = ${X.s20}`);
+  ok('SPRT', X.strong.verdict === 'H1' && X.strong.llr >= 2.944, `a 0.62 player is accepted as stronger (H1 after ${X.strong.pairs} pairs)`);
+  ok('SPRT', X.weak.verdict === 'H0' && X.weak.llr <= -2.944, `a 0.42 player is rejected (H0 after ${X.weak.pairs} pairs)`);
+  ok('SPRT', X.waits.stop === null && X.waits.prefix === 3, 'an unfinished pair blocks the test at its index (index order, never completion order)');
+  ok('SPRT', X.skip.verdict === 'H1', 'an errored pair is excluded, not counted');
+}
+
 /* ---------------- run ---------------- */
 const t0 = Date.now();
 const spDir = path.join(TMP, 'sp');
 let recs = null;
-if (want('RECORD') || want('REBUILD') || want('TARGETS')) { recs = selfplay(spDir); checkRecord(recs); }
+if (want('RECORD') || want('REBUILD') || want('TARGETS') || want('DEEP')) { recs = selfplay(spDir); checkRecord(recs); }
 const nDec = recs ? recs.reduce((a, g) => a + g.decisions.length, 0) : 0;
 if (want('REBUILD')) checkRebuild(rebuild(spDir), nDec);
 if (want('TARGETS')) checkTargets(targets(spDir), recs);
+if (want('DEEP')) checkDeep(deep(spDir), recs);
+if (want('SPRT')) checkSprt(sprtProbe());
 if (want('LEAF')) checkLeaf(leafProbe());
 if (want('GATE')) checkGate(gate());
 if (want('PARITY')) checkParity(parity());
@@ -263,6 +313,8 @@ if (!NO_RED && green) {
   if (recs && want('REBUILD')) redOf('MACHAMP_BREAK=row', 'REBUILD', () => checkRebuild(rebuild(spDir, { MACHAMP_BREAK: 'row' }), nDec));
   if (recs && want('TARGETS')) redOf('MACHAMP_BREAK=vside', 'TARGETS', () => checkTargets(targets(spDir, { MACHAMP_BREAK: 'vside' }), recs));
   if (want('GATE')) redOf('MACHAMP_BREAK=seat', 'GATE', () => checkGate(gate({ MACHAMP_BREAK: 'seat' })));
+  if (recs && want('DEEP')) redOf('MACHAMP_BREAK=replay', 'DEEP', () => checkDeep(deep(spDir, { MACHAMP_BREAK: 'replay' }), recs));
+  if (want('SPRT')) redOf('MACHAMP_BREAK=sprtsign', 'SPRT', () => checkSprt(sprtProbe({ MACHAMP_BREAK: 'sprtsign' })));
   if (want('LEAF')) redOf('MILTANK_BREAK=leaf', 'LEAF', () => checkLeaf(leafProbe({ MILTANK_BREAK: 'leaf' })));
   if (want('PARITY') && !blind) {
     redOf('PORY2_INFER_BREAK=pool', 'PARITY', () => checkParity(parity({ PORY2_INFER_BREAK: 'pool' })));

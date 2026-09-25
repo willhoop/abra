@@ -33,6 +33,9 @@ const flag = (k, d) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] 
 const ROOT = path.join(__dirname, '..', '..');
 const { wilson } = require('./gate.js');
 
+/* DELIBERATE BREAK (env MACHAMP_BREAK=sprtsign): the LLR's sign is flipped, so a stronger X is accepted as H0.
+ * solver/tests/test-machamp.js SPRT must go red. */
+const BREAK = process.env.MACHAMP_BREAK || '';
 const sOf = elo => 1 / (1 + Math.pow(10, -elo / 400));
 function llr(scores, elo0, elo1) {
   const N = scores.length;
@@ -41,7 +44,8 @@ function llr(scores, elo0, elo1) {
   const v = scores.reduce((a, b) => a + (b - m) * (b - m), 0) / N;
   if (v <= 0) return 0;
   const s0 = sOf(elo0), s1 = sOf(elo1);
-  return N * (s1 - s0) * (2 * m - s0 - s1) / (2 * v);
+  const L = N * (s1 - s0) * (2 * m - s0 - s1) / (2 * v);
+  return BREAK === 'sprtsign' ? -L : L;
 }
 /* walk the pairs in index order and return the first stop, or null */
 function decide(pairScores, o) {

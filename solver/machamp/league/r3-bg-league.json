@@ -1,0 +1,6 @@
+{ "current": { "name": "gen0-r2", "kind": "miltank",
+  "mag": "solver/mag/model/mag-v1.json", "doduo": "solver/mag/model/doduo-v1.json", "pory2": "solver/porygon2/model/porygon2-v0.json",
+  "budgetMs": 1000, "k1": 4, "k2": 4, "depth": 0, "reserveSwitch": 1 },
+  "previous": null,
+  "clone": { "name": "human-clone", "kind": "greedy", "mag": "solver/mag/model/mag-v1.json", "doduo": "solver/mag/model/doduo-v1.json" },
+  "weights": { "current": 0.6, "previous": 0.2, "clone": 0.2 } }
