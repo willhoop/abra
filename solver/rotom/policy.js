@@ -167,9 +167,12 @@ function create(deps) {
     if (J.length === 1) return { choice: RQ.joinChoice(J[0]), info: { only: true } };
     if (name === 'random') return { choice: RQ.joinChoice(J[Math.floor(d.coin() * J.length)]), info: {} };
     const mons = req.side.pokemon;
-    if (name === 'miltank' && d.world && d.budgetMs > 300) {
+    /* each candidate gets an EQUAL SHARE of the budget, never a floor above it: the first version gave each at least
+     * 150 ms, so J candidates could spend J x 150 ms against a smaller budget (docs/_reports/2026-09-25-miltank-deadline.md).
+     * Under 150 ms a share is too thin to search, and the prior floor below answers instead. */
+    const per = Math.floor(d.budgetMs / J.length);
+    if (name === 'miltank' && d.world && d.budgetMs > 300 && per >= 150) {
       /* each candidate replacement: put it in the slot, ask MILTANK for the value of the next turn */
-      const per = Math.max(150, Math.floor(d.budgetMs / J.length));
       const scored = [];
       for (const j of J) {
         const W = API.clone(d.world.S);

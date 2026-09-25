@@ -69,6 +69,12 @@ This section says only what a division agent needs before it starts.
   that release.** The re-run is the first thing owed.
 - **Not built:** CHOMP, PORYGON2, GARY, HYPNO, DUSK, MEW, MACHAMP, WOBBUFFET, DITTO, ROTOM, ALAKAZAM,
   KADABRA (and JOLTEON, only if CHOMP needs a pre-screen). Order: `solver/PLAN.md` §3, milestones M1–M8.
+- **MILTANK's decision deadline is hard (2026-09-25, abra/regmc 1.5.0).** A decision returns within budget + 500 ms
+  under load, on both the pool path and the serial path. When the table is too empty, it falls back, counted, to
+  the ranking prior's top joint. `solver/tests/test-miltank-deadline.js` checks it and goes RED under
+  `MILTANK_DEADLINE_BREAK=1`. Before any search-based ladder play: ROTOM must call `collectIdle()` between requests
+  and charge the time since the request arrived, and it must run its decider above BELOW_NORMAL. Account:
+  `docs/_reports/2026-09-25-miltank-deadline.md`.
 - **ROTOM ladder mode — prepared, not launched (2026-09-25).** `solver/rotom/ladder.js` (the loop, the
   pre-committed per-series A/B and rotation, the two-account guard, the consecutive-error halt),
   `run_ladder.js` (supervisor, watchdog, STOP, KILL by pid, the local dry run), `netguard.js` (a dry run

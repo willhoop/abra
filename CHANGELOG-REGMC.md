@@ -21,6 +21,34 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.5.0] — 2026-09-25
+
+### Fixed
+- **A MILTANK decision now returns within its budget + 500 ms under load.** At a 5 s budget the arena had shown
+  single decisions of 28 s and 39 s, and ROTOM's clock gives 55 s a turn from a 420 s bank. The cause was that the
+  pool waited for every worker (`Promise.all`), while a worker read its clock only after a playout. One worker
+  starved of CPU at BELOW_NORMAL therefore held the whole decision. Now: an absolute deadline with a reserve for
+  the solve; no pass starts after it, in any process; the parent resolves on a timer with the passes that have
+  arrived, which workers stream in 40 ms slices; late workers get a cancel and are counted; an in-flight playout is
+  abandoned between turns; the solve is capped by the time left. When the table is too empty (a row with no
+  playout, or under 25% of cells filled), the move is the ranking prior's top joint (DODUO in ROTOM), counted as
+  `fallbackEmpty` or `fallbackSparse`. A pass now walks its cells diagonally, so a cut pass reaches every row. The
+  serial path (ROTOM's) had a second cause: major GCs of 1.1-1.6 s inside a decision. `collectIdle()` runs a full
+  GC between decisions. On 2,000 real Reg M-C positions per arm under an artificial load, confined to one core:
+  pool max 1,004 ms at 1 s and 4,906 ms at 5 s; serial + collectIdle max 1,268 ms at 1 s and 5,426 ms at
+  5 s; 0 over the bound in all four. The deliberate break (`MILTANK_DEADLINE_BREAK=1`) was run first: 73 of 300 over
+  at 1 s (max 7,035 ms) and 31 of 100 over at 5 s (max 11,569 ms). Under this load the fallback fired on 65% of
+  pool decisions and 30% of serial decisions at 1 s. Its strength is not measured. Account:
+  `docs/_reports/2026-09-25-miltank-deadline.md`.
+- ROTOM's forced-switch search no longer gives each candidate a 150 ms floor that could add up past its budget.
+
+### Added
+- `solver/bench/deadline_bench.js` and `solver/bench/cpu_burner.js`: MILTANK decision latency under a one-core
+  artificial load, with every flag, code digest and burner episode in the artifact.
+- `solver/tests/test-miltank-deadline.js`: BOUND, COUNTED and SEARCH clauses; it re-runs itself under the break and
+  requires RED.
+- Pool workers warm the Reg M-C dex at start-up (1.9 s of CPU that used to land in the first decision).
+
 ## [1.4.0] — 2026-09-25
 
 ### Added
