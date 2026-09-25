@@ -6,6 +6,26 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ---
 
+## 2026-09-25
+
+### CHOMP v0 — the team-preview solver (branch worktree-agent-a9256d31a5fab9468, unmerged)
+- `solver/chomp/`: PORYGON2 v0 scores all 90 × 90 cells on the turn-1 position after the leads, with each side's back
+  two written in as seen bench members. SLOWKING's LP solves the table. An optional MILTANK refinement plays CRN
+  playouts on the support. `chomp.js` is the standalone interface (sheets in, mix and win chances out). ROTOM uses it
+  under `--preview chomp`, with the fallback counted.
+- Release `eaa5becc54eb`. Pre-registered plan (`solver/out/chomp/v0/plan.json`). Pairs are from non-TRAIN players only.
+  Doduo greedy on both sides. Paired seeds, 200 games per arm, SPRT H0 0.50 / H1 0.55, read once.
+- **It fails its bar.** Against the human's own bring **0.430 (0.363–0.499), SPRT H0 accepted**. Against the
+  human-modal prior 0.485 and against random preview 0.510, both inconclusive. Post-hoc controls: human vs random 0.560,
+  prior vs random 0.565. So the arena sees brings, and CHOMP's are no better than random.
+- (a) CHOMP matches the human lead pair 4.0% of the time. Uniform gets 6.7% and the prior 10.0%. In CHOMP's own table, a human
+  option's regret equals a random option's.
+- (c) The mix is exact in its own table (< 1e-5). Greedy is exploitable by 0.030, maximin by 0.016 and the human option by 0.115.
+  Refinement moves the cells by 0.044 and the mix by TV 0.63, so the equilibrium is noise. The owed fix is a self-play-trained cell scorer.
+- `solver/tests/test-chomp.js` GREEN 36/36, RED on 4 breaks. Detail: `docs/_reports/2026-09-25-chomp-v0.md`.
+
+---
+
 ## 2026-09-24
 
 ### PORYGON2 v0 — the value net (branch worktree-agent-ade91fd3b83d5aa3c, unmerged)

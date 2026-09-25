@@ -50,6 +50,7 @@ const OUT = path.resolve(flag('out', path.join(ROOT, 'solver', 'out', 'rotom', '
 const SEED = +flag('seed', 1);
 const MAX_MS = +flag('max-ms', Infinity);           // an operator cap on a search (tests); the clock is the binding rule
 const PREVIEW_MAX_MS = +flag('preview-max-ms', 20000);
+const PREVIEW = flag('preview', 'policy');            // 'policy' = the move policy's preview (as before) | 'chomp' = CHOMP v0 first
 const MARGIN_S = +flag('margin', 8);
 const RESERVE_S = +flag('reserve', 30);
 const MIN_SEARCH_MS = +flag('min-search-ms', 400);
@@ -73,6 +74,7 @@ if (!LOCK.isLocal(SERVER) && !has('public')) {
   process.exit(2);
 }
 if (!['prior', 'miltank', 'random'].includes(POLICY)) { console.error('unknown --policy ' + POLICY); process.exit(2); }
+if (!['policy', 'chomp'].includes(PREVIEW)) { console.error('unknown --preview ' + PREVIEW); process.exit(2); }
 let LOCKH;
 try { LOCKH = LOCK.acquire(SERVER, NAME, say); }
 catch (e) { console.error(e.message); process.exit(3); }
@@ -118,6 +120,8 @@ const PROV = { engine: sha(path.join(ROOT, 'engine', 'medicham2-browser.js')), a
     const S = API.newBattle(a.team, b.team, { rng: API.makeRng(1) });
     const MT = require('../miltank/search.js').create(API, { prior: PA, rollout: R });
     MT.decide(S, 'A', PA.newGame(G), { budgetMs: 1500, coin: API.M.rngStreams({ seed: 3 }).any });
+    /* CHOMP's first table pays the JIT; pay it here, not on the preview clock */
+    if (PREVIEW === 'chomp') { const t = Date.now(); P.previewChomp({ sheets: G.sheets, me: 'p1', budgetMs: 600000, coin: API.M.rngStreams({ seed: 5 }).any }); say('CHOMP warm-up table in ' + (Date.now() - t) + ' ms'); }
   } catch (e) { say('warm-up failed (continuing): ' + e.message); }
 })();
 say('loaded engine + MAG/DODUO + XATU in ' + (Date.now() - t0load) + ' ms; policy ' + POLICY + '; out ' + OUT);
@@ -475,9 +479,11 @@ function decide(B) {
     const S = B.bestof ? BOOK.get(B.bestof) : null;
     const team = (B.bestof && seriesTeam.get(B.bestof)) || null;
     const mySheet = B.sheets[B.me] || [];
-    const posOfSheet = s => { const r = mySheet[s]; if (!r) return s + 1; const j = req.side.pokemon.findIndex(pk => String(pk.ident).replace(/^p[12]:\s*/, '') === r.nick); return j >= 0 ? j + 1 : s + 1; };
+    const posOfSheet = s => RQ.posOfSheet(req, mySheet, s);
     const d = { req, coin, sheets: B.sheets, me: B.me, budgetMs: Math.min(bud.ms, PREVIEW_MAX_MS), teamBring: team ? team.bring : null,
                 series: { oppLast: B.bestof ? BOOK.oppLast(B.bestof, B.gnum || 1, B.me) : null } };
+    /* --preview chomp: CHOMP v0 first; a throw or an over-budget table falls down the usual chain, COUNTED (chomp:threw) */
+    if (PREVIEW === 'chomp') tryPolicy('chomp', () => { const r = P.previewChomp(d); return { choice: RQ.previewChoice(r.order.map(x => posOfSheet(x - 1))), info: r.info }; });
     tryPolicy(first, () => {
       let r = P.preview(first, d);
       if (r.search) { if (!(B.sheets.p1 && B.sheets.p2)) throw new Error('no sheets for the preview search'); r = P.previewSearch(d, r.human); r.order = r.order.map(x => posOfSheet(x - 1)); }
@@ -534,7 +540,7 @@ function stats(a) {
   return { n: a.length, mean: Math.round(a.reduce((x, y) => x + y, 0) / a.length), p50: q(0.5), p95: q(0.95), p99: q(0.99), max: s[s.length - 1] };
 }
 function writeSummary() {
-  const out = { name: NAME, policy: POLICY, server: SERVER, pid: process.pid, restarts: STATE.restarts, flags: { max_ms: MAX_MS, preview_max_ms: PREVIEW_MAX_MS, margin_s: MARGIN_S, reserve_s: RESERVE_S, min_search_ms: MIN_SEARCH_MS, timer: TIMER, seed: SEED, drill: DRILL || null },
+  const out = { name: NAME, policy: POLICY, server: SERVER, pid: process.pid, restarts: STATE.restarts, flags: { max_ms: MAX_MS, preview: PREVIEW, preview_max_ms: PREVIEW_MAX_MS, margin_s: MARGIN_S, reserve_s: RESERVE_S, min_search_ms: MIN_SEARCH_MS, timer: TIMER, seed: SEED, drill: DRILL || null },
     clock_rule: new Clock(Object.assign({ format: FORMAT_ID }, clockOpts)).rule,
     sets: STATE.setsDone, decisions: ST.decisions, by_kind: ST.byKind,
     decision_ms: { preview: stats(ST.ms.preview), move: stats(ST.ms.move), switch: stats(ST.ms.switch) }, budget_ms: stats(ST.budget),

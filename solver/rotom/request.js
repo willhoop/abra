@@ -144,4 +144,16 @@ function heuristic(req) {
 
 const previewChoice = order => 'team ' + order.map(p => String(p)).join('');
 
-module.exports = { options, joints, joinChoice, isLegal, fromEngine, heuristic, previewChoice, validTargetLoc, fainted, toID };
+/* the 1-based REQUEST position of open-sheet member `s` (0-based): the request lists the team in its own order,
+ * so the member is found by its nickname (open sheets carry the species as the nick). Unmatched -> s + 1.
+ * DELIBERATE BREAK (env ROTOM_BREAK=posmap): the sheet index is returned as the position unmapped —
+ * solver/tests/test-chomp.js must go red on a request whose order differs from the sheet's. */
+function posOfSheet(req, sheet, s) {
+  const r = sheet && sheet[s];
+  if (!r) return s + 1;
+  if (process.env.ROTOM_BREAK === 'posmap') return s + 1;
+  const j = ((req.side && req.side.pokemon) || []).findIndex(pk => String(pk.ident).replace(/^p[12]:\s*/, '') === r.nick);
+  return j >= 0 ? j + 1 : s + 1;
+}
+
+module.exports = { options, joints, joinChoice, isLegal, fromEngine, heuristic, previewChoice, posOfSheet, validTargetLoc, fainted, toID };

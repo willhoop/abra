@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.1.0] — 2026-09-25 — **CHOMP v0, the team-preview solver: built, wired to ROTOM, and it fails its bar**
+- **What changed.** New `solver/chomp/` (PORYGON2-scored 90 × 90 preview table, SLOWKING LP, optional MILTANK refinement, human-modal baseline, pre-registered eval); ROTOM `--preview chomp`; arena `--preview-x/-y`, `--plan`, `--blind`; `solver/tests/test-chomp.js`. No engine byte moved.
+- **Measured.** Release `eaa5becc54eb`, 200 paired games per arm, doduo greedy both sides: CHOMP vs the human bring **0.430 (0.363–0.499), SPRT H0 accepted**; vs human-modal 0.485 (0.417–0.554), vs random 0.510 (0.441–0.578), inconclusive (`solver/out/chomp/v0/arena-chomp-vs-*.json`, untracked; `docs/_reports/2026-09-25-chomp-v0.md`). Lead-pair agreement with held-out humans 4.0% vs uniform 6.7%. `test-chomp` 36/36, red on 4 breaks; `test-rotom` 86/86, `test-arena` 15/15.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** CHOMP belongs in `docs/MODELS.md` and the solver section of the technical docs, as a failed v0.
+
 ## [abra/regmc 1.0.0] — 2026-09-24 — **DRAFT: fold-ins A and B merged; the white paper, deck and technical docs stop claiming MILTANK v1 halves or uses XATU; living-document PDFs rebuilt**
 - **What changed.** `docs-1.0.0-a` and `docs-1.0.0-b` merged into `draft/regmc-1.0.0`. `docs/ABRA-whitepaper.md` (§2.2, §2.4, §3.1 registry, §3.5), `docs/ABRA-technical-docs.md` (model table) and `docs/ABRA-deck-plain-english.md` (slides 7 and 9) now say what `docs/MODELS.md` says: MILTANK v1 draws the world uniformly and has no successive halving; both are planned. The 13 stale or missing PDFs `build/build_pdfs.js` derives were rebuilt; ledgers excluded. Account: `docs/_reports/2026-09-24-docs-1.0.0-merge.md`.
 - **Measured.** NO FIGURE.

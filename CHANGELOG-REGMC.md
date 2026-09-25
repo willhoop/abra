@@ -21,6 +21,27 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.1.0] — 2026-09-25
+
+### Added
+- **CHOMP v0, the team-preview solver** (`solver/chomp/`). Both open sheets in; a mix over the 90 bring/lead options
+  plus win chances out (`chomp.js`, standalone). PORYGON2 v0 scores all 8,100 cells on the turn-1 position after the
+  leads, with the back two as a point belief, and SLOWKING's LP solves the table. An optional MILTANK playout
+  refinement is included. A store-only human-modal baseline (`human_prior.js`, TRAIN players only) and a
+  pre-registered evaluation (`plan.js`, `tables.js`, `report.js`) come with it.
+- ROTOM `--preview chomp` (`solver/rotom/{rotom,policy,request}.js`). The fallback is counted. Sheet → request position
+  mapping is now one function, `request.js posOfSheet`.
+- Arena `--preview-x/--preview-y`, `--plan`, `--blind` (`solver/arena/arena.js`, `solver/arena/teams.js` `ids`).
+- `solver/tests/test-chomp.js`.
+
+### Notes
+- **CHOMP v0 fails its bar** (release `eaa5becc54eb`, doduo greedy on both sides, 200 paired games per arm): against
+  the human bring it scored 0.430 (0.363–0.499), and the SPRT accepted H0. Against the human-modal prior it scored
+  0.485, and against a random preview 0.510; both are inconclusive. Account: `docs/_reports/2026-09-25-chomp-v0.md`.
+- **Basis.** unchanged.
+
+---
+
 ## [1.0.0] — 2026-09-24
 
 ### Changed
