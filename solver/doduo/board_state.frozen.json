@@ -1,0 +1,10 @@
+{
+  "what": "A byte copy of engine/board_state.js, the MEDICHAM bar's definition of THE BOARD (HP, status and its counters, item, types, ability, boosts, volatiles with their clocks, party, field, side conditions). DODUO v2's pair gate reads `readMedi` from this copy so that a release-bound run opens no live engine byte (the photograph rule): the engine state it reads is frozen in the release, and so is its reader.",
+  "source": "engine/board_state.js",
+  "source_commit": "a0e42ba556f307dc871fddb7e605ee11211d9737",
+  "source_git_blob": "bef940bb099eee46c4051679adb6858995fe3602",
+  "copied_at_head": "7d1f311c",
+  "copied": "2026-09-25",
+  "sha256_on_disk": "e1a59f82e80a97ac49cc82ba708c9c81342c7021a4264999c85b3db3dfd68169",
+  "rule": "Never edited. To move to a newer reader, copy it again and update this file; solver/tests/test-gates.js checks the digest."
+}

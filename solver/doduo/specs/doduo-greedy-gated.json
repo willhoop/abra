@@ -1,0 +1,3 @@
+{ "name": "doduo-greedy-gated", "kind": "greedy",
+  "mag": "solver/mag/model/mag-v1.json", "doduo": "solver/mag/model/doduo-v1.json",
+  "gates": { "soft": 0.001 } }
