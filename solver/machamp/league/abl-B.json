@@ -1,0 +1,3 @@
+{ "name": "abl-B", "kind": "miltank",
+  "mag": "solver/machamp/models/ablB/mag-ablB.json", "doduo": "solver/machamp/models/ablB/doduo-ablB.json", "pory2": "solver/porygon2/model/porygon2-v0.json",
+  "budgetMs": 1000, "k1": 4, "k2": 4, "depth": 0, "reserveSwitch": 1 }
