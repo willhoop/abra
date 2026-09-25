@@ -1,8 +1,8 @@
 {
- "generated": "2026-09-25T08:09:56.885Z",
+ "generated": "2026-09-25T13:38:25.245Z",
  "mode": "scheduled",
  "detection": {
-  "generated": "2026-09-25T08:09:56.884Z",
+  "generated": "2026-09-25T13:38:25.243Z",
   "authorities": {
    "live": {
     "url": "https://play.pokemonshowdown.com/data/formats.js",
@@ -74,7 +74,7 @@
     "known": true,
     "later_than_active": false,
     "classification": "known",
-    "recent_replays": 0,
+    "recent_replays": 1,
     "simulatable": false,
     "collectable": true
    },
@@ -123,7 +123,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 18,
+    "recent_replays": 12,
     "simulatable": false,
     "collectable": true
    },
@@ -148,7 +148,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 7,
+    "recent_replays": 5,
     "simulatable": false,
     "collectable": true
    }
@@ -174,7 +174,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 18,
+    "recent_replays": 12,
     "simulatable": false,
     "collectable": true
    },
@@ -199,7 +199,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 7,
+    "recent_replays": 5,
     "simulatable": false,
     "collectable": true
    }
@@ -218,42 +218,42 @@
   "replay_only": 0,
   "problems": 1,
   "formats_collected": 2,
-  "games_appended": 81,
+  "games_appended": 800,
   "stores_written": 2
  },
  "collected": [
   {
    "format": "gen9championsvgc2026regmc",
    "store": "games.gen9championsvgc2026regmc.jsonl",
-   "before": 45133,
-   "after": 45196,
-   "appended": 63,
-   "ingest_said": "coverage: gen9championsvgc2026regmc pages=25 offered=1275 unique=1251 new=63 held=1188 oldest_offered=2026-09-24T22:40:16Z newest_offered=2026-09-25T08:09:50Z newest_stored=2026-09-25T07:40:00Z"
+   "before": 45199,
+   "after": 45819,
+   "appended": 620,
+   "ingest_said": "coverage: gen9championsvgc2026regmc pages=25 offered=1275 unique=1251 new=620 held=631 oldest_offered=2026-09-25T03:19:56Z newest_offered=2026-09-25T13:38:36Z newest_stored=2026-09-25T08:11:00Z"
   },
   {
    "format": "gen9championsvgc2026regmcbo3",
    "store": "games.gen9championsvgc2026regmcbo3.jsonl",
-   "before": 31996,
-   "after": 32014,
-   "appended": 18,
-   "ingest_said": "coverage: gen9championsvgc2026regmcbo3 pages=25 offered=1275 unique=1251 new=18 held=1233 oldest_offered=2026-09-24T15:55:06Z newest_offered=2026-09-25T08:10:27Z newest_stored=2026-09-25T07:35:00Z"
+   "before": 32014,
+   "after": 32194,
+   "appended": 180,
+   "ingest_said": "coverage: gen9championsvgc2026regmcbo3 pages=25 offered=1275 unique=1251 new=180 held=1071 oldest_offered=2026-09-24T17:19:25Z newest_offered=2026-09-25T13:38:35Z newest_stored=2026-09-25T08:10:00Z"
   }
  ],
  "reconciled": [
   {
    "store": "games.gen9championsvgc2026regmc.jsonl",
-   "rows": 45196,
-   "before": 45196,
-   "from_gz": 45133,
-   "from_plain": 63,
+   "rows": 45819,
+   "before": 45819,
+   "from_gz": 45199,
+   "from_plain": 620,
    "wrote": true
   },
   {
    "store": "games.gen9championsvgc2026regmcbo3.jsonl",
-   "rows": 32014,
-   "before": 32014,
-   "from_gz": 31996,
-   "from_plain": 18,
+   "rows": 32194,
+   "before": 32194,
+   "from_gz": 32014,
+   "from_plain": 180,
    "wrote": true
   }
  ],
