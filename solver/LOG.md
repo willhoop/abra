@@ -8,6 +8,16 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-25
 
+### Mega as a RATE, per bot (abra/regmc 1.11.0)
+- Humans mega on 0.949 of the sides that could (45,952 of 48,430; 0.974 in games that end normally), half of
+  the time on turn 1. On release `eaa5becc54eb`: DODUO-greedy 0.907 pooled (185/204), MILTANK 0.946 (53/56) and
+  the gen5 champion 0.948 (55/58). No bot is near the floor.
+- `solver/arena/mega_rate.js` gives one definition for the arena, MEW/MACHAMP shard summaries, ROTOM's per-game
+  record and the human rate. `solver/tests/test-mega-rate.js` sets floor = human − 0.15 on the Wilson upper bound.
+  It is GREEN 20/20 and RED under `ARENA_BREAK=nevermega`.
+- Fixed on the way: `test-machamp.js --release <id>` ran 0 clauses and printed GREEN.
+- Detail: `docs/_reports/2026-09-25-mega-rate.md`.
+
 ### MACHAMP loop — one line per generation (solver/machamp/loop_sprt.js)
 - gen6: rejected — SPRT H0 after 166 games, 0.434 [0.361, 0.510] vs gen5; clone 0.705; PORYGON2 human Δ -0.0051 PASS. `solver/machamp/models/gen6/gates.json`
 

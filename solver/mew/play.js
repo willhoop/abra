@@ -58,6 +58,10 @@ const readJ = f => JSON.parse(fs.readFileSync(f, 'utf8'));
 
 const hash32 = (a, b) => { let h = (a * 2654435761 ^ b * 2246822519) >>> 0; h ^= h >>> 15; h = Math.imul(h, 2246822507) >>> 0; h ^= h >>> 13; return h >>> 0; };
 const decStats = [];
+/* THE MEGA COUNTER per agent name, on the sides that could mega (solver/arena/mega_rate.js); in the shard summary */
+const MR = require('../arena/mega_rate.js');
+const MEGA = {};
+const megaT = name => (MEGA[name] || (MEGA[name] = MR.tally()));
 const t0 = Date.now();
 
 async function playGame(G, botA, botB, seed, recordFor) {
@@ -66,6 +70,7 @@ async function playGame(G, botA, botB, seed, recordFor) {
   const rng = API.makeRng(seed);
   const S = API.newBattle(a.team, b.team, { rng });
   const ctx = PA0.newGame(G);
+  const mg = MR.game(API, { A: megaT(botA.name), B: megaT(botB.name) });
   const decisions = [];
   let err = null;
   const ms = { A: [], B: [] };
@@ -89,9 +94,12 @@ async function playGame(G, botA, botB, seed, recordFor) {
         }
       }
       PA0.record(ctx, S, ch.A.joint, ch.B.joint);
+      mg.decide(S, 'A', ch.A.joint); mg.decide(S, 'B', ch.B.joint);
       API.stepInPlace(S, ch.A.joint, ch.B.joint, rng);
+      mg.stepped(S);
     }
   } catch (e) { err = String(e && e.stack || e).slice(0, 400); }
+  mg.end();
   let vA = null, capped = false;
   if (!err) { if (API.isTerminal(S)) vA = API.winner(S); else { vA = API.horizonScore(S); capped = true; } }
   return { vA, capped, err, turns: S.turn, hist: ctx.hist, decisions, ms };
@@ -171,6 +179,7 @@ async function match() {
   const r = MODE === 'match' ? await match() : await selfplay();
   const summary = { mode: MODE, break: BREAK || null, shard: SHARD, shards: SHARDS, seed: SEED, cap: CAP, engine_release: ENGINE.id, release_stamp: ENGINE.stamp, argv, wall_s: (Date.now() - t0) / 1000,
     agent_counters: AG.COUNTERS, rollout: AG.R.COUNTERS, api: API.COUNTERS,
+    mega: { by_agent: Object.fromEntries(Object.entries(MEGA).map(([k, t]) => [k, MR.summary(t)])), human_rate: MR.HUMAN_RATE, floor: MR.floor() },
     search: decStats.length ? { decisions: decStats.length, playouts_mean: decStats.reduce((s, d) => s + d.playouts, 0) / decStats.length,
       playouts_p50: decStats.map(d => d.playouts).sort((a, b) => a - b)[decStats.length >> 1],
       unfilled_share: decStats.reduce((s, d) => s + d.unfilled, 0) / Math.max(1, decStats.reduce((s, d) => s + d.cells, 0)),

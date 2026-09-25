@@ -27,7 +27,8 @@
  * EVERY GAME IS SAVED AS A REPLAY AND JOINED TO OUR REASONING (solver/rotom/replay.js). At each game's |win|/|tie|
  * the client sends `/savereplay` in the battle room, retries on failure or silence, and — whatever happens —
  * appends ONE record to the games file (default solver/out/rotom/games.jsonl, `--games-file`): format, series,
- * game number, both sheets, both brings/leads, result, ratings when the server sends them, the replay URL, our
+ * game number, both sheets, both brings/leads, result, the mega counter (`mega`: per side, could it mega, did it, on
+ * which turn — solver/arena/mega_rate.js), ratings when the server sends them, the replay URL, our
  * copy of the battle log, and the path of this game's decision log. A save in flight never holds the next game:
  * it lives in the finished room, which is left only when the save resolves. On a LOCAL server the save is sent
  * only with `--local-replays` (run_local.js passes it after pointing the server's login server at a local
@@ -173,6 +174,7 @@ const P = require('./policy.js').create({ API, PA, R, tables: TABLES });
 const RQ = require('./request.js');
 const { Clock } = require('./clock.js');
 const { parseGame, parseShowteam } = require('../human/parse_game.js');
+const MR = require('../arena/mega_rate.js');   // the mega capability counter, same definition as the arena and the human rate
 const XATU = require('../xatu/index.js');
 const { BringMemory } = require('../xatu/bring.js');
 const { SeriesBook } = require('./series.js');
@@ -207,7 +209,10 @@ const clockOpts = { maxMs: MAX_MS, marginS: MARGIN_S, reserveS: RESERVE_S, minSe
 /* ---------------- stats ---------------- */
 const ST = { decisions: 0, byKind: {}, ms: { preview: [], move: [], switch: [] }, budget: [], fallbacks: {}, invalid: [], unavailable: [],
              timeouts: [], sentLate: 0, superseded: 0, reconnects: 0, disconnects: 0, rejoins: 0, resent: 0, crashesCaught: [], drills: [],
-             timerOnSeen: 0, games: 0, previewSheetWaitMs: [], worldErrors: 0, noTimerLine: 0 };
+             timerOnSeen: 0, games: 0, previewSheetWaitMs: [], worldErrors: 0, noTimerLine: 0,
+             /* MEGA, as a RATE on the games where OUR side could mega (solver/arena/mega_rate.js): a capability that cannot
+              * prove it ran is assumed broken, and "at least one mega happened" once hid a 56%-vs-85% rate */
+             mega: { games: 0, parsed: 0, capable: 0, megas: 0, turn: {}, delay: {}, opp_capable: 0, opp_megas: 0 } };
 const fb = (k) => { ST.fallbacks[k] = (ST.fallbacks[k] || 0) + 1; };
 process.on('uncaughtException', e => { ST.crashesCaught.push(String(e && e.stack || e).slice(0, 400)); event('uncaught', { err: String(e && e.message || e) }); say('UNCAUGHT ' + (e && e.stack || e)); });
 
@@ -559,7 +564,15 @@ function endBattle(B, winnerName) {
   B.endedAt = Date.now();
   ST.games++;
   clearTimeout(B.timer);
-  let parsed = null; try { parsed = parseGame({ id: B.id, log: B.lines.join('\n') }).game; } catch (e) { event('parse_end_error', { room: B.id, err: e.message }); }
+  let parsed = null, parsedAll = null; try { parsedAll = parseGame({ id: B.id, log: B.lines.join('\n') }); parsed = parsedAll.game; } catch (e) { event('parse_end_error', { room: B.id, err: e.message }); }
+  let mega = null; try { mega = MR.parsedGame(parsedAll, B.me); } catch (e) { event('mega_count_error', { room: B.id, err: e.message }); }
+  ST.mega.games++;
+  if (mega && mega.mine) {
+    const opp = mega[B.me === 'p1' ? 'p2' : 'p1'];
+    ST.mega.parsed++;
+    if (mega.mine.capable) { ST.mega.capable++; if (mega.mine.mega) { ST.mega.megas++; ST.mega.turn[mega.mine.mega_turn] = (ST.mega.turn[mega.mine.mega_turn] || 0) + 1; ST.mega.delay[mega.mine.delay] = (ST.mega.delay[mega.mine.delay] || 0) + 1; } }
+    if (opp && opp.capable) { ST.mega.opp_capable++; if (opp.mega) ST.mega.opp_megas++; }
+  }
   const winner = winnerName == null ? null : (toID(B.names.p1) === toID(winnerName) ? 'p1' : 'p2');
   const brought = {};
   if (parsed) for (const s of ['p1', 'p2']) { const L = parsed.leads[s] || []; brought[s] = L.concat((parsed.brought_seen[s] || []).filter(i => !L.includes(i))); }
@@ -581,6 +594,7 @@ function endBattle(B, winnerName) {
     sheets: { p1: B.packed.p1 || null, p2: B.packed.p2 || null },
     preview_choice: B.preview, leads: parsed ? parsed.leads : null, brought: parsed ? brought : null,
     result: { winner, winner_name: winnerName, mine: winner != null && winner === B.me, tie: winnerName == null, turns: parsed ? parsed.turns_played : B.turn },
+    mega,
     rated: B.rated, rating_before: Object.keys(B.ratingsBefore).length ? B.ratingsBefore : null, rating_after: null,
     clock: { used_s: +(B.clockUsed / 1000).toFixed(1), bank_left_s: B.clock.last ? +(+B.clock.last.bank).toFixed(1) : null },
     decisions: { n: B.decisions, log: relRoot(gameDecF(B.id)), run_log: relRoot(LOGF) },
@@ -789,6 +803,8 @@ function writeSummary() {
     decision_ms: { preview: stats(ST.ms.preview), move: stats(ST.ms.move), switch: stats(ST.ms.switch) }, budget_ms: stats(ST.budget),
     timeouts: ST.timeouts, invalid: ST.invalid, unavailable: ST.unavailable, fallbacks: ST.fallbacks, crashes_caught: ST.crashesCaught,
     disconnects: ST.disconnects, reconnects: ST.reconnects, rejoins: ST.rejoins, resent: ST.resent, drills: ST.drills,
+    mega: Object.assign({}, ST.mega, { rate: ST.mega.capable ? +(ST.mega.megas / ST.mega.capable).toFixed(4) : null, ci95: MR.wilson(ST.mega.megas, ST.mega.capable),
+      human_rate: MR.HUMAN_RATE, floor: MR.floor(), below_floor: ST.mega.capable >= MR.MIN_CAPABLE && MR.wilson(ST.mega.megas, ST.mega.capable)[1] < MR.floor() }),
     timer_on_seen: ST.timerOnSeen, games: ST.games, game_records: ST.gameRecords || 0, games_file: GAMES_FILE, replays: SAVER.COUNTERS, world_errors: ST.worldErrors, decisions_without_time_line: ST.noTimerLine,
     preview_sheet_wait_ms: stats(ST.previewSheetWaitMs),
     counters: { policy: P.COUNTERS, world: WB.COUNTERS, prior: PA.COUNTERS, rollout: R.COUNTERS, api: API.COUNTERS },

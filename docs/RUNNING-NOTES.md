@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.11.0] — 2026-09-25 — **Mega evolution is counted as a RATE per bot and held to a floor from the human rate**
+- **What changed.** New `solver/arena/mega_rate.js` (capable / offered / chose / megaed per side, turn and delay; human rate; ROTOM parse path; `neverMega` break) and `solver/tests/test-mega-rate.js`. `solver/arena/arena.js` adds a per-bot `mega` block, a league-spec bot kind (`solver/machamp/league/gen5.json`) and `ARENA_BREAK=nevermega`. `solver/mew/play.js` adds `mega.by_agent` to shard summaries. `solver/rotom/rotom.js` adds `mega` to every per-game record and to the client summary. `solver/tests/test-machamp.js`: `--release` without `--only` ran 0 clauses (fixed).
+- **Measured.** Human 45,952/48,430 = 0.9488 [0.9468, 0.9508] (`solver/out/mega/human-rate.json`, 26,888 games). Release `eaa5becc54eb`: DODUO-greedy 185/204 pooled over three runs (0.907); MILTANK 1 s 53/56 = 0.946 [0.854, 0.982]; gen5 champion 55/58 = 0.948 [0.859, 0.982] (`solver/out/mega/*-g{60,100}-s1.json`). Floor 0.7988 on the Wilson upper bound. Test GREEN 20/20, RED under `nevermega` (doduo 0/25, mag 0/27). `docs/_reports/2026-09-25-mega-rate.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** The technical docs: the mega counter in the arena, MEW and ROTOM records.
+
 ## [abra/regmc 1.10.1] — 2026-09-25 — **Ledgers restamped by `status.js --write` after the deadline and ROTOM merges**
 - **What changed.** `docs/{ENGINE,MEASURE,OPS,SOLVER,WEB}.md` generated blocks and `data/provenance-stamp.json`, restamped from the main checkout. No hand edits.
 - **Measured.** NO FIGURE.

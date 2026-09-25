@@ -6,7 +6,7 @@
  *        (default: env MILTANK_LEAF, else the heuristic; and --depth).
  *        [--release <id>]   play on a FROZEN engine release (engine/engine_release.js); stamped into the artifact
  *
- * BOTS. random | prior (human prior v0, greedy) | doduo (MAG v1 + DODUO v1 joint, greedy) | mag (MAG v1
+ * BOTS. <league spec .json> (a MACHAMP generation via solver/mew/agent.js, e.g. solver/machamp/league/gen5.json) | random | prior (human prior v0, greedy) | doduo (MAG v1 + DODUO v1 joint, greedy) | mag (MAG v1
  * alone, the two slots factorised, greedy) | miltank (MILTANK v1 at --budget ms per decision).
  *
  * A RESULT NEEDS --release. Without it the arena reads the LIVE engine, which another division may be
@@ -44,7 +44,9 @@ const argv = process.argv.slice(2);
 const flag = (k, d) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : d; };
 const ENV = require('./env.js');
 /* DELIBERATE BREAK (env ARENA_BREAK=seat): bot x always sits on side A — the paired seating is gone.
- * solver/tests/test-arena.js must go red under it. */
+ * solver/tests/test-arena.js must go red under it.
+ * DELIBERATE BREAK (env ARENA_BREAK=nevermega): both bots have every mega request stripped
+ * (solver/arena/mega_rate.js neverMega). solver/tests/test-mega-rate.js must go red under it. */
 const BREAK = process.env.ARENA_BREAK || '';
 
 const ROOT = path.join(__dirname, '..', '..');
@@ -53,6 +55,7 @@ const API = ENGINE.API;
 const M = API.M;
 const T = require('./teams.js');
 const { makeBots } = require('./bots.js');
+const MR = require('./mega_rate.js');
 const PA = require('../miltank/prior_adapter.js').create(API, require('../prior/infer.js').load());
 const R = require('../miltank/rollout.js').create(API, { buildBody: T.buildBody });
 const MT = require('../miltank/search.js').create(API, { prior: PA, rollout: R });
@@ -93,11 +96,22 @@ async function run(o) {
   const B = makeBots(API, { prior: PA, miltank: MT });
   const mk = (name, seed, extra) => name === 'random' ? B.random(seed) : name === 'prior' ? B.prior()
     : name === 'doduo' ? B.greedy('doduo', PA_DODUO()) : name === 'mag' ? B.greedy('mag', PA_MAG())
-    : name === 'miltank' ? B.miltank(seed, Object.assign({ budgetMs: o.budget, depth: o.depth, k1: o.k1, k2: o.k2, pool }, extra)) : null;
+    : name === 'miltank' ? B.miltank(seed, Object.assign({ budgetMs: o.budget, depth: o.depth, k1: o.k1, k2: o.k2, pool }, extra))
+    : /\.json$/.test(name) ? leagueBot(name, seed) : null;
+  /* A LEAGUE AGENT (a MACHAMP generation, e.g. solver/machamp/league/gen5.json) through solver/mew/agent.js — the
+   * self-play champion as an arena bot. Its search fallbacks are counted in AG.COUNTERS and reported below. */
+  let AG = null;
+  function leagueBot(file, seed) {
+    AG = AG || require('../mew/agent.js').create(API, { buildBody: T.buildBody, rollout: R });
+    const spec = JSON.parse(fs.readFileSync(path.isAbsolute(file) ? file : path.join(ROOT, file), 'utf8'));
+    return AG.load(spec).bot(seed);
+  }
   const opt = (v, d) => (v == null || v === '' || Number.isNaN(v) ? d : v);
   const armX = { leaf: o.leafX || undefined, depth: opt(o.depthX, o.depth) }, armY = { leaf: o.leafY || undefined, depth: opt(o.depthY, o.depth) };
-  const X = mk(o.x, o.seed * 1000 + 1, armX), Y = mk(o.y, o.seed * 1000 + 2, armY);
+  let X = mk(o.x, o.seed * 1000 + 1, armX), Y = mk(o.y, o.seed * 1000 + 2, armY);
   if (!X || !Y) throw new Error('unknown bot');
+  if (BREAK === 'nevermega') { X = MR.neverMega(X); Y = MR.neverMega(Y); }
+  const megaT = { X: MR.tally(), Y: MR.tally() };   // THE MEGA COUNTER, per bot, on the sides that could mega
   const times = { X: [], Y: [] }, rec = [];
   const infos = { X: [], Y: [] };   // MILTANK's per-decision info (cells, playouts, gap), searched decisions only
   const res = { W: 0, D: 0, L: 0, capped: 0, errors: 0 };
@@ -112,6 +126,7 @@ async function run(o) {
     const rng = API.makeRng(seed);
     let S = API.newBattle(a.team, b.team, { rng });
     const ctx = PA.newGame(G);
+    const mg = MR.game(API, xIsA ? { A: megaT.X, B: megaT.Y } : { A: megaT.Y, B: megaT.X });
     let err = null;
     try {
       while (!API.isTerminal(S) && S.turn < o.cap) {
@@ -121,9 +136,12 @@ async function run(o) {
         if (cA.info && cA.info.playouts != null) (xIsA ? infos.X : infos.Y).push(cA.info);
         if (cB.info && cB.info.playouts != null) (xIsA ? infos.Y : infos.X).push(cB.info);
         PA.record(ctx, S, cA.joint, cB.joint);
+        mg.decide(S, 'A', cA.joint); mg.decide(S, 'B', cB.joint);
         API.stepInPlace(S, cA.joint, cB.joint, rng);
+        mg.stepped(S);
       }
     } catch (e) { err = String(e && e.message || e).slice(0, 300); }
+    mg.end();
     let vA, capped = false;
     if (err) { res.errors++; }
     else if (API.isTerminal(S)) vA = API.winner(S);
@@ -158,6 +176,14 @@ async function run(o) {
   }
   if (o.x === 'prior' || o.y === 'prior' || o.x === 'miltank' || o.y === 'miltank') if (!PA.COUNTERS.optionsMatched) warn.push('prior matched no option');
   for (const [k, b] of [['x', X], ['y', Y]]) if (b.PA && !b.PA.COUNTERS.optionsMatched) warn.push(b.name + ' (' + k + ') matched no option');
+  const mega = { x: MR.summary(megaT.X), y: MR.summary(megaT.Y), human_rate: MR.HUMAN_RATE, floor: MR.floor(), margin: MR.MARGIN,
+                 rule: 'a bot is far below the human rate when the upper end of its Wilson 95% interval on capable sides is under floor (solver/arena/mega_rate.js)' };
+  for (const k of ['x', 'y']) {
+    const m = mega[k];
+    if (m.capable && !m.megas) warn.push('MEGA: ' + o[k] + ' (' + k + ') megaed on 0 of ' + m.capable + ' capable sides');
+    else if (m.capable && m.ci95[1] < mega.floor) warn.push('MEGA: ' + o[k] + ' (' + k + ') megaed on ' + m.megas + '/' + m.capable + ' capable sides, CI upper ' + m.ci95[1] + ' < floor ' + mega.floor);
+  }
+  if (AG && AG.COUNTERS.fallbacks) warn.push('league agent search FELL BACK to its prior ' + AG.COUNTERS.fallbacks + ' times');
   return {
     status: ENGINE.id ? 'frozen engine release ' + ENGINE.id + ' (gate state: engine/quarantine.js)' : 'LIVE TREE — not a frozen release; a harness shakedown, not a result',
     ...ENGINE.stamp,
@@ -180,7 +206,8 @@ async function run(o) {
                   porygon2_model: sha(path.join(ROOT, 'solver', 'porygon2', 'model', 'porygon2-v0.json')),
                   mag_model: sha(path.join(ROOT, 'solver', 'mag', 'model', 'mag-v1.json')), doduo_model: sha(path.join(ROOT, 'solver', 'mag', 'model', 'doduo-v1.json')),
                   argv: process.argv.slice(2), env: { MILTANK_LEAF: process.env.MILTANK_LEAF || null, SOLVER_RELEASE: process.env.SOLVER_RELEASE || null } },
-    counters: { api: API.COUNTERS, prior: PA.COUNTERS, greedy_x: X.PA ? X.PA.COUNTERS : null, greedy_y: Y.PA ? Y.PA.COUNTERS : null, rollout: R.COUNTERS, rollout_workers: pool ? pool.counters : null, miltank: MT.COUNTERS },
+    mega,
+    counters: { league_agent: AG ? AG.COUNTERS : null, api: API.COUNTERS, prior: PA.COUNTERS, greedy_x: X.PA ? X.PA.COUNTERS : null, greedy_y: Y.PA ? Y.PA.COUNTERS : null, rollout: R.COUNTERS, rollout_workers: pool ? pool.counters : null, miltank: MT.COUNTERS },
     warnings: warn,
     wall_s: Math.round((Date.now() - t0) / 1000),
     per_game: rec,
