@@ -8,6 +8,9 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-25
 
+### MACHAMP loop — one line per generation (solver/machamp/loop_sprt.js)
+- gen6: rejected — SPRT H0 after 166 games, 0.434 [0.361, 0.510] vs gen5; clone 0.705; PORYGON2 human Δ -0.0051 PASS. `solver/machamp/models/gen6/gates.json`
+
 ### Deadline follow-ups (abra/regmc 1.10.0)
 - ROTOM runs `collectIdle()` after each MILTANK choice (in a local set: 24 of 24, max 412 ms, no decision over its
   budget). `--priority normal` raises a ladder client's decider, and the runbook uses it. The reserve is now 300 ms
