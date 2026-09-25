@@ -21,7 +21,17 @@
  *   4. asks the policy ('prior' = DODUO greedy, 'miltank' = MILTANK lean search, 'random'); a budget under the
  *      search floor drops to 'prior'; any throw drops down the chain prior -> request heuristic -> `default`;
  *   5. checks the choice against the request (solver/rotom/request.js) and sends `/choose <choice>|<rqid>`;
- *   6. logs the decision to <out>/decisions-<name>.jsonl, and one artifact per series to <out>/series/.
+ *   6. logs the decision to <out>/decisions-<name>.jsonl AND to the game's own file
+ *      <out>/games/<name>/<room>.decisions.jsonl, and one artifact per series to <out>/series/.
+ *
+ * EVERY GAME IS SAVED AS A REPLAY AND JOINED TO OUR REASONING (solver/rotom/replay.js). At each game's |win|/|tie|
+ * the client sends `/savereplay` in the battle room, retries on failure or silence, and — whatever happens —
+ * appends ONE record to the games file (default solver/out/rotom/games.jsonl, `--games-file`): format, series,
+ * game number, both sheets, both brings/leads, result, ratings when the server sends them, the replay URL, our
+ * copy of the battle log, and the path of this game's decision log. A save in flight never holds the next game:
+ * it lives in the finished room, which is left only when the save resolves. On a LOCAL server the save is sent
+ * only with `--local-replays` (run_local.js passes it after pointing the server's login server at a local
+ * stand-in); without it a local save would reach play.pokemonshowdown.com, so it is skipped and recorded so.
  *
  * SAFETY: a lock file (lock.js) refuses a second client; reconnect with backoff, rejoin every open game from
  * |updatesearch|, re-read the request the server re-sends and answer it (the same choice if that rqid was already
@@ -58,8 +68,19 @@ const DRILL = flag('drill', '');                     // drop@S.G.T | crash@S.G.T
 const DUMP_REQ = +flag('dump-requests', 0);          // write the first N requests (+ the public log so far) as test fixtures
 const TEAM_POOL = flag('team-pool', path.join(__dirname, 'teams', 'regmc-pool.json'));
 const FORMAT_ID = 'gen9championsvgc2026regmcbo3';
+const GAMES_FILE = path.resolve(flag('games-file', path.join(ROOT, 'solver', 'out', 'rotom', 'games.jsonl')));
+const SAVE_REPLAYS = flag('save-replays', 'on');     // on | off
+const LOCAL_REPLAYS = has('local-replays');          // the local server's login server is a local stand-in (run_local.js)
+const REPLAY_TIMEOUT_MS = +flag('replay-timeout-ms', 20000);
+const REPLAY_ATTEMPTS = +flag('replay-attempts', 4);
 
 fs.mkdirSync(OUT, { recursive: true });
+fs.mkdirSync(path.dirname(GAMES_FILE), { recursive: true });
+const GAMEDIR = path.join(OUT, 'games', toID(NAME));
+fs.mkdirSync(GAMEDIR, { recursive: true });
+const relRoot = f => path.relative(ROOT, f).split(path.sep).join('/');
+const gameDecF = room => path.join(GAMEDIR, room + '.decisions.jsonl');
+const gameLogF = room => path.join(GAMEDIR, room + '.log');
 const LOGF = path.join(OUT, 'decisions-' + toID(NAME) + '.jsonl');
 const EVENTF = path.join(OUT, 'events-' + toID(NAME) + '.jsonl');
 const STATEF = path.join(OUT, 'state-' + toID(NAME) + '.json');
@@ -73,6 +94,15 @@ if (!LOCK.isLocal(SERVER) && !has('public')) {
   process.exit(2);
 }
 if (!['prior', 'miltank', 'random'].includes(POLICY)) { console.error('unknown --policy ' + POLICY); process.exit(2); }
+/* OUR GAMES STAY OUT OF THE HUMAN DATA. The hourly ingest stores every public replay of the format, ours
+ * included (engine/durable-ingest.js has no name filter); the human dataset and the meta drop them by account
+ * name. So on a public server the account MUST be on both own-account lists, read from the files themselves. */
+if (!LOCK.isLocal(SERVER)) {
+  const own = f => { const m = /const OWN = new Set\(\[([^\]]*)\]\)/.exec(fs.readFileSync(path.join(ROOT, f), 'utf8')); return m ? m[1].split(',').map(x => toID(x)) : []; };
+  for (const f of ['solver/human/build_dataset.js', 'solver/meta/extract.js']) {
+    if (!own(f).includes(toID(NAME))) { console.error('refusing: ' + NAME + ' is not on the own-account list in ' + f + ' — its games would enter the human data'); process.exit(2); }
+  }
+}
 let LOCKH;
 try { LOCKH = LOCK.acquire(SERVER, NAME, say); }
 catch (e) { console.error(e.message); process.exit(3); }
@@ -122,6 +152,9 @@ const PROV = { engine: sha(path.join(ROOT, 'engine', 'medicham2-browser.js')), a
 })();
 say('loaded engine + MAG/DODUO + XATU in ' + (Date.now() - t0load) + ' ms; policy ' + POLICY + '; out ' + OUT);
 
+const { ReplaySaver, parseRatingLine } = require('./replay.js');
+const SAVER = new ReplaySaver({ send: (room, text) => send(text), attempts: REPLAY_ATTEMPTS, timeoutMs: REPLAY_TIMEOUT_MS,
+  log: (type, o) => event(type, o) });
 const coinBase = API.M.rngStreams({ seed: SEED * 7777 + parseInt(crypto.createHash('sha256').update(toID(NAME)).digest('hex').slice(0, 7), 16) }).any;
 const clockOpts = { maxMs: MAX_MS, marginS: MARGIN_S, reserveS: RESERVE_S, minSearchMs: MIN_SEARCH_MS };
 
@@ -182,6 +215,8 @@ function handle(room, line) {
       if (toID(p[2]) === toID(NAME) && p[3] === '1' || toID(p[2]) === toID(NAME)) {
         if (!loggedIn) {
           loggedIn = true; backoff = 1000; say('logged in as ' + NAME); event('login', {});
+          if (ST.disconnects > 0) SAVER.onReconnect();
+          resumePendingGames();
           /* REJOIN every game we were in: the server re-sends the room (|init| + the log) and the open request */
           for (const B of battles.values()) if (!B.ended && B.stale) { send('|/join ' + B.id); ST.rejoins++; event('rejoin', { room: B.id }); }
           for (const bo of bestofs.values()) if (!bo.done) send('|/join ' + bo.id);
@@ -210,6 +245,7 @@ function handle(room, line) {
       for (const [who, fmt] of Object.entries((d && d.challengesFrom) || {})) if (ACCEPT) onChallenge(who, fmt);
       return;
     }
+    if (cmd === 'popup' && SAVER.onPopup(p.slice(2).join('|'))) return;
     if (cmd === 'popup') { event('popup', { text: line.slice(0, 300) }); if (/not online|is not accepting|already/i.test(line)) lastChallenge = 0; say('POPUP ' + line.slice(0, 200)); return; }
     return;
   }
@@ -295,8 +331,16 @@ function confirmReady(bo, line) {
   setTimeout(() => { send(id + '|/confirmready'); event('confirmready', { room: id }); }, 300);
 }
 
+let doneWaitStart = 0;
 function checkDone() {
   if (STATE.setsDone.length >= SETS && openSeries() === 0) {
+    /* never exit with a game whose record is unwritten: its replay save is still in flight (bounded) */
+    const pending = Object.keys(STATE.pendingGames || {}).length;
+    if (pending) {
+      doneWaitStart = doneWaitStart || Date.now();
+      if (Date.now() - doneWaitStart < (REPLAY_ATTEMPTS + 1) * REPLAY_TIMEOUT_MS + 30000) { setTimeout(checkDone, 500); return; }
+      event('exit_with_pending_games', { rooms: Object.keys(STATE.pendingGames) });
+    }
     writeSummary();
     say('done: ' + STATE.setsDone.length + ' sets');
     stopping = true;
@@ -309,14 +353,20 @@ const NOT_PUBLIC = new Set(['request', 'inactive', 'inactiveoff', 'error', 'c', 
 function newBattle(room) {
   return { id: room, lines: [], me: null, sheets: { p1: null, p2: null }, names: {}, req: null, reqAt: 0, sent: new Map(), turn: 0,
            clock: new Clock(Object.assign({ format: FORMAT_ID }, clockOpts)), bestof: null, gnum: null, ended: false, timerOn: false,
-           deciding: false, timer: null, xatu: null, xatuFed: 0, stale: false, previewWaitStart: 0, clockUsed: 0, lastTimeLeft: null };
+           deciding: false, timer: null, xatu: null, xatuFed: 0, stale: false, previewWaitStart: 0, clockUsed: 0, lastTimeLeft: null,
+           raw: [], ratingsBefore: {}, ratings: [], rated: false, decisions: 0, preview: null, packed: {} };
 }
 function handleBattle(room, line, p, cmd) {
   let B = battles.get(room);
   if (CLOSED.has(room)) return;
+  if (B && B.ended) {   // a finished room we stay in while its replay saves: only the rating line and errors matter
+    const r = parseRatingLine(line); if (r) B.ratings.push(r);
+    if (cmd === 'error') SAVER.onRoomError(room, p.slice(2).join('|'));
+    return;
+  }
   if (!B) { B = newBattle(room); B.rejoined = STATE.restarts > 0; battles.set(room, B); event('battle_join', { room }); if (TIMER === 'on') send(room + '|/timer on'); }
   if (cmd === 'init') {   // a (re)join replays the whole log: start the room's public record over, keep what we sent
-    const keep = B; B = newBattle(room); B.sent = keep.sent; B.clockUsed = keep.clockUsed; B.bestof = keep.bestof; B.gnum = keep.gnum; B.timerOn = keep.timerOn;
+    const keep = B; B = newBattle(room); B.sent = keep.sent; B.clockUsed = keep.clockUsed; B.bestof = keep.bestof; B.gnum = keep.gnum; B.timerOn = keep.timerOn; B.preview = keep.preview;
     B.rejoined = keep.rejoined || keep.stale || keep.lines.length > 0;
     if (keep.lines.length) { ST.reinit = (ST.reinit || 0) + 1; event('reinit', { room, had: keep.lines.length }); }
     battles.set(room, B); return;
@@ -345,6 +395,9 @@ function handleBattle(room, line, p, cmd) {
     event('server_error', { room, txt: txt.slice(0, 300) });
     return;
   }
+  if (cmd !== 'request') B.raw.push(line);   // our own copy of the room log (requests live in the decision log)
+  if (cmd === 'rated') B.rated = true;
+  { const r = parseRatingLine(line); if (r) B.ratings.push(r); }
   if (cmd === 'request') {
     const js = p.slice(2).join('|');
     if (!js) return;
@@ -362,8 +415,8 @@ function handleBattle(room, line, p, cmd) {
     }
     return;
   }
-  if (cmd === 'player' && p[2] && p[3]) { B.names[p[2]] = p[3]; if (toID(p[3]) === toID(NAME)) B.me = p[2]; }
-  if (cmd === 'showteam' && p[2]) { try { B.sheets[p[2]] = parseShowteam(p.slice(3).join('|')); } catch (e) { event('showteam_parse_error', { room, err: e.message }); } }
+  if (cmd === 'player' && p[2] && p[3]) { B.names[p[2]] = p[3]; if (toID(p[3]) === toID(NAME)) B.me = p[2]; if (p[5] && /^\d+$/.test(p[5])) B.ratingsBefore[p[2]] = +p[5]; }
+  if (cmd === 'showteam' && p[2]) { B.packed[p[2]] = p.slice(3).join('|'); try { B.sheets[p[2]] = parseShowteam(p.slice(3).join('|')); } catch (e) { event('showteam_parse_error', { room, err: e.message }); } }
   if (cmd === 'turn') { B.turn = +p[2]; maybeDrill(B); }
   if (NOT_PUBLIC.has(cmd)) { if (cmd === 'win' || cmd === 'tie') { /* never here: win/tie are public */ } return; }
   B.lines.push(line);
@@ -391,18 +444,76 @@ function maybeDrill(B) {
 function endBattle(B, winnerName) {
   if (B.ended) return;
   B.ended = true;
+  B.endedAt = Date.now();
   ST.games++;
   clearTimeout(B.timer);
   let parsed = null; try { parsed = parseGame({ id: B.id, log: B.lines.join('\n') }).game; } catch (e) { event('parse_end_error', { room: B.id, err: e.message }); }
   const winner = winnerName == null ? null : (toID(B.names.p1) === toID(winnerName) ? 'p1' : 'p2');
+  const brought = {};
+  if (parsed) for (const s of ['p1', 'p2']) { const L = parsed.leads[s] || []; brought[s] = L.concat((parsed.brought_seen[s] || []).filter(i => !L.includes(i))); }
   if (B.bestof && parsed) {
-    const brought = {}; for (const s of ['p1', 'p2']) { const L = parsed.leads[s] || []; brought[s] = L.concat((parsed.brought_seen[s] || []).filter(i => !L.includes(i))); }
     BOOK.recordGame(B.bestof, { room: B.id, gnum: B.gnum, me: B.me, leads: parsed.leads, brought, winner, players: B.names,
                                 turns: parsed.turns_played, clockUsed: +(B.clockUsed / 1000).toFixed(1), bankLeft: B.clock.last ? B.clock.last.bank : null });
   }
   event('game_end', { room: B.id, bestof: B.bestof, gnum: B.gnum, winner, me: B.me, timerOn: B.timerOn, clockUsed_s: +(B.clockUsed / 1000).toFixed(1) });
   if (!B.timerOn) ST.noTimerLine++;
-  setTimeout(() => { CLOSED.add(B.id); send('|/leave ' + B.id); battles.delete(B.id); }, 2500);
+  /* our own copy of the room log: the game survives even if the public replay never does (a hidden room, a failed save) */
+  try { fs.writeFileSync(gameLogF(B.id), B.raw.join('\n') + '\n'); } catch (e) { event('game_log_write_error', { room: B.id, err: e.message }); }
+  const opp = B.me === 'p1' ? 'p2' : 'p1';
+  const team = B.bestof && seriesTeam.get(B.bestof);
+  const draft = {
+    v: 1, client: NAME, policy: POLICY, server: SERVER, local: LOCK.isLocal(SERVER), format: FORMAT_ID,
+    series: B.bestof, game: B.gnum, room: B.id, ended: new Date(B.endedAt).toISOString(),
+    me: B.me, players: B.names, opponent: B.names[opp] || null, our_team: team ? team.id : null,
+    sheets: { p1: B.packed.p1 || null, p2: B.packed.p2 || null },
+    preview_choice: B.preview, leads: parsed ? parsed.leads : null, brought: parsed ? brought : null,
+    result: { winner, winner_name: winnerName, mine: winner != null && winner === B.me, tie: winnerName == null, turns: parsed ? parsed.turns_played : B.turn },
+    rated: B.rated, rating_before: Object.keys(B.ratingsBefore).length ? B.ratingsBefore : null, rating_after: null,
+    clock: { used_s: +(B.clockUsed / 1000).toFixed(1), bank_left_s: B.clock.last ? +(+B.clock.last.bank).toFixed(1) : null },
+    decisions: { n: B.decisions, log: relRoot(gameDecF(B.id)), run_log: relRoot(LOGF) },
+    battle_log: relRoot(gameLogF(B.id)),
+    replay: null, provenance: PROV,
+  };
+  STATE.pendingGames = STATE.pendingGames || {}; STATE.pendingGames[B.id] = draft; saveState();
+  const onSaved = r => { B.replay = r; finalizeWhenReady(B, draft); };
+  if (SAVE_REPLAYS === 'off') SAVER.skip(B.id, 'save-replays off', onSaved);
+  else if (LOCK.isLocal(SERVER) && !LOCAL_REPLAYS) SAVER.skip(B.id, 'local server without --local-replays: its login server is play.pokemonshowdown.com, so a save would leave the machine', onSaved);
+  else setTimeout(() => SAVER.save(B.id, onSaved), 400);   // let the server finish closing the battle first
+}
+/* A game's record is written once its replay save has resolved AND the rating line had its chance: the ladder
+ * posts it once per SERIES, into the deciding game's room, after the series ends. */
+function seriesDecided(bestof) { try { const S = BOOK.get(bestof); const w = {}; for (const g of S.games || []) if (g.winner) w[g.winner] = (w[g.winner] || 0) + 1; return Object.values(w).some(n => n >= 2); } catch (e) { return true; } }
+function finalizeWhenReady(B, draft) {
+  const waited = Date.now() - B.endedAt;
+  const wantRating = B.rated && !B.ratings.length && B.bestof && seriesDecided(B.bestof) && waited < 15000;
+  if (waited < 3000 || wantRating) { setTimeout(() => finalizeWhenReady(B, draft), 500); return; }
+  finalizeGame(draft, B.replay, B.ratings);
+  setTimeout(() => { CLOSED.add(B.id); send('|/leave ' + B.id); battles.delete(B.id); }, 200);
+}
+function finalizeGame(draft, replay, ratings) {
+  if (!STATE.pendingGames || !STATE.pendingGames[draft.room]) return;   // already written
+  const rec = Object.assign({}, draft, { t: Date.now(), replay });
+  if (ratings && ratings.length) {
+    rec.rating_after = {};
+    for (const r of ratings) { const side = toID(r.name) === toID(draft.players.p1) ? 'p1' : toID(r.name) === toID(draft.players.p2) ? 'p2' : r.name; rec.rating_after[side] = { before: r.before, after: r.after }; }
+  }
+  try { fs.appendFileSync(GAMES_FILE, JSON.stringify(rec) + '\n'); ST.gameRecords = (ST.gameRecords || 0) + 1; }
+  catch (e) { event('games_file_write_error', { room: draft.room, err: e.message }); return; }
+  delete STATE.pendingGames[draft.room]; saveState();
+  event('game_record', { room: draft.room, replay: replay && replay.status, url: replay && replay.url });
+  say('game record ' + draft.room + ' — replay ' + (replay ? replay.status + (replay.url ? ' ' + replay.url : '') : 'none'));
+}
+/* a restarted process: games that ended before the crash but whose record was not written are saved again now */
+let resumed = false;
+function resumePendingGames() {
+  if (resumed) return; resumed = true;
+  for (const draft of Object.values(STATE.pendingGames || {})) {
+    if (battles.has(draft.room)) continue;
+    event('resume_pending_game', { room: draft.room });
+    const done = r => finalizeGame(draft, Object.assign({ resumed: true }, r), null);
+    if (SAVE_REPLAYS === 'off' || (LOCK.isLocal(SERVER) && !LOCAL_REPLAYS)) SAVER.skip(draft.room, 'resumed after a restart; saving off here', done);
+    else SAVER.save(draft.room, done, { needJoin: true });
+  }
 }
 
 /* ---------------- deciding ---------------- */
@@ -510,6 +621,7 @@ function decide(B) {
   const ms = Date.now() - t0;
   const ok = send(B.id + '|/choose ' + choice + '|' + req.rqid);
   B.sent.set(req.rqid, choice);
+  if (kind === 'preview') B.preview = choice;
   B.deciding = false;
   const since = Date.now() - B.reqAt;
   B.clockUsed += since; B.clock.spent(since);
@@ -517,8 +629,12 @@ function decide(B) {
   ST.decisions++; ST.byKind[kind + ':' + used] = (ST.byKind[kind + ':' + used] || 0) + 1;
   ST.ms[kind].push(ms); ST.budget.push(bud.ms);
   rec.used = used; rec.choice = choice; rec.ms = ms; rec.sinceRequest_ms = since; rec.sent = ok;
+  rec.bank_before_s = bud.bank; rec.bank_after_s = +(bud.bank - since / 1000).toFixed(1);
   if (info) rec.info = compact(info);
-  try { fs.appendFileSync(LOGF, JSON.stringify(rec) + '\n'); } catch (e) { /* never fatal */ }
+  B.decisions++;
+  const line = JSON.stringify(rec) + '\n';
+  try { fs.appendFileSync(LOGF, line); } catch (e) { /* never fatal */ }
+  try { fs.appendFileSync(gameDecF(B.id), line); } catch (e) { /* never fatal */ }
   if (!ok) event('send_failed', { room: B.id, rqid: req.rqid });
 }
 function compact(info) {
@@ -540,7 +656,7 @@ function writeSummary() {
     decision_ms: { preview: stats(ST.ms.preview), move: stats(ST.ms.move), switch: stats(ST.ms.switch) }, budget_ms: stats(ST.budget),
     timeouts: ST.timeouts, invalid: ST.invalid, unavailable: ST.unavailable, fallbacks: ST.fallbacks, crashes_caught: ST.crashesCaught,
     disconnects: ST.disconnects, reconnects: ST.reconnects, rejoins: ST.rejoins, resent: ST.resent, drills: ST.drills,
-    timer_on_seen: ST.timerOnSeen, games: ST.games, world_errors: ST.worldErrors, decisions_without_time_line: ST.noTimerLine,
+    timer_on_seen: ST.timerOnSeen, games: ST.games, game_records: ST.gameRecords || 0, games_file: GAMES_FILE, replays: SAVER.COUNTERS, world_errors: ST.worldErrors, decisions_without_time_line: ST.noTimerLine,
     preview_sheet_wait_ms: stats(ST.previewSheetWaitMs),
     counters: { policy: P.COUNTERS, world: WB.COUNTERS, prior: PA.COUNTERS, rollout: R.COUNTERS, api: API.COUNTERS },
     provenance: PROV };

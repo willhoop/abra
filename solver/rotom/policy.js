@@ -29,6 +29,23 @@ function create(deps) {
   const COUNTERS = { move: {}, forceSwitch: {}, preview: {}, unmappedJoints: 0, unmappedBy: {}, unmappedSamples: [], rootFiltered: 0, xatuWorlds: 0, xatuFallback: 0, previewPlayouts: 0 };
   const bump = (k, n) => { COUNTERS[k][n] = (COUNTERS[k][n] || 0) + 1; };
 
+  /* the read-only tap on MILTANK's internals (see payoffTable) — installed once per process */
+  const TAP = { on: false, job: null, A: null, sol: null };
+  (function installTap() {
+    const C = require('../miltank/cells.js'), SK = require('../slowking/matrix.js');
+    if (C.__rotomTap) return;
+    const f0 = C.fillSerial;
+    C.fillSerial = function (api, R, job) { if (TAP.on) TAP.job = job; return f0.apply(this, arguments); };
+    for (const k of ['solveRM', 'solveLP']) {
+      const s0 = SK[k];
+      if (typeof s0 !== 'function') continue;
+      SK[k] = function (A) { const sol = s0.apply(this, arguments); if (TAP.on) { TAP.A = A; TAP.sol = sol; } return sol; };
+    }
+    Object.defineProperty(C, '__rotomTap', { value: true });
+  })();
+  const engLabel = j => (j || []).map(o => !o ? '-' : o.kind === 'switch' ? 'switch ' + o.to : o.kind === 'pass' ? 'pass'
+    : String(o.move || o.kind) + (o.target != null ? ' ' + o.target : '') + (o.mega ? ' mega' : '')).join(', ');
+
   /* ---- MEDICHAM joints the request allows ---- */
   function filteredLegal(w, req) {
     const la = API.legalActions(w.S, w.side);
@@ -86,10 +103,30 @@ function create(deps) {
     } });
     const Rx = xatuRollout(d);
     const MT = SK_MT.create(APIp, { prior: PA, rollout: Rx });
-    const r = MT.decide(w.S, w.side, w.ctx, { budgetMs, k1: d.k1 || 8, k2: d.k2 || 8, depth: d.depth == null ? 2 : d.depth, coin: d.coin });
+    TAP.on = true; TAP.job = null; TAP.A = null; TAP.sol = null;
+    let r;
+    try { r = MT.decide(w.S, w.side, w.ctx, { budgetMs, k1: d.k1 || 8, k2: d.k2 || 8, depth: d.depth == null ? 2 : d.depth, coin: d.coin }); }
+    finally { TAP.on = false; }
     const mapped = RQ.fromEngine(d.req, r.joint, w.posOfTeam);
     if (mapped.some(x => !x)) throw new Error('miltank: chosen joint does not map');
-    return { choice: RQ.joinChoice(mapped), info: Object.assign({ counters: MT.COUNTERS }, r.info) };
+    return { choice: RQ.joinChoice(mapped), info: Object.assign({ counters: MT.COUNTERS }, r.info, { table: payoffTable(d, w, r) }) };
+  }
+
+  /* THE PAYOFF TABLE, FOR THE GAME RECORD. search.js returns only the chosen joint, so the candidate rows and
+   * columns and the solved mix are read by tapping the two module functions it calls through their exports
+   * (cells.fillSerial gets the job; slowking/matrix solveRM|solveLP gets the matrix and returns the mix).
+   * The tap only records; it never changes an argument or a result. */
+  function payoffTable(d, w, r) {
+    if (!TAP.job || !TAP.A || !TAP.sol) return r.info && r.info.forced ? { forced: true } : null;
+    const r3 = v => Math.round(v * 1000) / 1000;
+    const rowLabel = j => { const m = RQ.fromEngine(d.req, j, w.posOfTeam); return m.some(x => !x) ? engLabel(j) : RQ.joinChoice(m); };
+    const x = Array.from(TAP.sol.x || []);
+    return {
+      rows: TAP.job.rows.map(rowLabel), cols: TAP.job.cols.map(engLabel),
+      A: TAP.A.map(row => Array.from(row, r3)), mix: x.map(r3),
+      row_mean: TAP.A.map(row => r3(Array.from(row).reduce((s, v) => s + v, 0) / Math.max(1, row.length))),
+      value: TAP.sol.value == null ? null : r3(TAP.sol.value), gap: TAP.sol.gap == null ? null : r3(TAP.sol.gap), pick: r.info ? r.info.pick : null,
+    };
   }
 
   /* the rollout with XATU's back-pair posterior deciding who fills the opponent's unrevealed slots */
