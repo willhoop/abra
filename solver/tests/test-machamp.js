@@ -46,7 +46,9 @@ process.env.ABRA_REGULATION = process.env.ABRA_REGULATION || 'regmc';
 require('../arena/env.js');
 const argv = process.argv.slice(2);
 const NO_RED = argv.includes('--no-red');
-const ONLY = (argv[argv.indexOf('--only') + 1] || '').split(',').filter(Boolean);
+/* `--only` absent must mean ALL clauses: indexOf -1 + 1 = 0 read argv[0] as the clause list, so `--release <id>` ran
+ * NOTHING and printed "0/0 GREEN" (found 2026-09-25, docs/_reports/2026-09-25-mega-rate.md). */
+const ONLY = argv.includes('--only') ? (argv[argv.indexOf('--only') + 1] || '').split(',').filter(Boolean) : [];
 const REL = process.env.ARENA_TEST_RELEASE || (argv.includes('--release') ? argv[argv.indexOf('--release') + 1] : 'eaa5becc54eb');
 const sha = f => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex');
 

@@ -21,6 +21,24 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.11.0] — 2026-09-25
+
+### Added
+- **Mega evolution is counted as a RATE, per bot, and held to a floor taken from the human rate**
+  (`solver/arena/mega_rate.js`, `solver/tests/test-mega-rate.js`). "At least one mega happened" once hid a
+  56% rate against the correct 85%, so the bar is now a rate. Humans mega on 0.9488 of the sides that
+  could (45,952 of 48,430, `solver/out/mega/human-rate.json`). A bot fails when the upper end of its Wilson
+  95% interval is under 0.9488 − 0.15. On release `eaa5becc54eb`: DODUO-greedy 0.907 pooled (185/204),
+  MILTANK 0.946 (53/56), the gen5 champion 0.948 (55/58). The test is GREEN 20/20 and RED under
+  `ARENA_BREAK=nevermega`.
+- The same counter in every arena artifact (`mega`), in MEW/MACHAMP shard summaries (`mega.by_agent`) and in
+  ROTOM's per-game record and client summary. The arena can seat a league spec, so the self-play champion
+  plays as a bot.
+
+### Fixed
+- `solver/tests/test-machamp.js --release <id>` ran no clause and printed `0/0 GREEN`: with no `--only`,
+  `argv[indexOf('--only') + 1]` read `argv[0]` as the clause list.
+
 ## [1.10.0] — 2026-09-25
 
 ### Changed
