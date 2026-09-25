@@ -30,15 +30,20 @@ the rating capture and the per-arm bookkeeping on the real server before a real 
 
 ```cmd
 cd C:\Users\willj\Projects\Pokemon\ABRA
-node solver\rotom\run_ladder.js --public --name medicham32 --release eaa5becc54eb --arms solver\rotom\arms\aa-miltank.json --ladder-seed medicham32-aa-2026-09-25 --sets 10 --tag aa1
+node solver\rotom\run_ladder.js --public --name medicham32 --release eaa5becc54eb --arms solver\rotom\arms\aa-miltank.json --ladder-seed medicham32-aa-2026-09-25 --sets 10 --tag aa1 --priority normal
 ```
 
 The A/B run, once the A/A reads clean (pre-registered in the arms file: SPRT on the mean per-series residual
 `S − E`, H0 0 vs H1 +0.07, alpha = beta = 0.05, read once at a bound, burn-in below a 1300 rating):
 
 ```cmd
-node solver\rotom\run_ladder.js --public --name medicham32 --release eaa5becc54eb --arms solver\rotom\arms\miltank-vs-prior.json --ladder-seed medicham32-ab1-2026-09-25 --sets 50 --tag ab1
+node solver\rotom\run_ladder.js --public --name medicham32 --release eaa5becc54eb --arms solver\rotom\arms\miltank-vs-prior.json --ladder-seed medicham32-ab1-2026-09-25 --sets 50 --tag ab1 --priority normal
 ```
+
+**`--priority normal` (added 2026-09-25).** The clients start through `tools\lownode.cmd` at BELOW_NORMAL. A client that
+searches must not be starved by other normal-priority work, so it raises its own decider to NORMAL. MILTANK's pool
+workers stay BELOW_NORMAL. MILTANK bounds its own decision (budget + 0.5 s), but it cannot bound a process that the
+OS does not run (`docs/_reports/2026-09-25-miltank-deadline.md`). The summary records `priority` and `priority_set`.
 
 Optional flags: `--max-hours H` (no new search after H hours), `--max-errors N` (default 3),
 `--guard willhoop[,other]`, `--guard-mode online|battle` (default `online`), `--out <dir>` (resume a run).

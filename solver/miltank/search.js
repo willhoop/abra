@@ -24,15 +24,33 @@
  * `info` carries the counters for the decision: cells, passes, playouts, unfilled cells, the solved
  * value and SLOWKING's gap, the time spent. A cell with no playout when the clock ran out is filled
  * with the mean of the filled cells and COUNTED (`unfilled`) — never silently.
+ *
+ * THE DEADLINE IS HARD (2026-09-25, docs/_reports/2026-09-25-miltank-deadline.md). A decision returns within
+ * `budgetMs` plus a bounded margin whatever the machine is doing to the cell fill:
+ *   - the fill stops at t0 + budgetMs - reserveMs (o.reserveMs, else 6% of the budget clamped to 20-300 ms:
+ *     room for the solve and the pick); no pass STARTS after it, in this process or in a worker;
+ *   - through the pool the parent does not wait for its workers: a timer resolves the fill at that instant with
+ *     every pass that has ARRIVED, and the workers still out are sent a cancel (solver/miltank/pool.js);
+ *   - if a candidate ROW has no playout at all, or fewer than `minFill` (o.minFill, default 0.25 — a policy choice,
+ *     NOT measured for strength) of the cells hold one, the table is too empty to solve and the move is the ranking
+ *     prior's top legal joint. MILTANK scored every legal joint with
+ *     that prior in step 1, so the fallback costs nothing; in ROTOM that prior is DODUO. It is COUNTED
+ *     (`fallbackEmpty`: no cell at all, `fallbackSparse`: some) and `info.fallback` names it.
+ * Before this the pool waited for EVERY worker (Promise.all) and a worker checked its clock only after each
+ * playout, so one worker starved of CPU held a 5 s decision for 28-39 s in the arena. Deliberate break
+ * MILTANK_DEADLINE_BREAK=1 restores that (no pool timer, no pass-start check, no reserve);
+ * solver/tests/test-miltank-deadline.js must go red under it.
  */
 'use strict';
 const LEAF_ENV = (typeof process !== 'undefined' && process.env && process.env.MILTANK_LEAF) || '';
 const SK = require('../slowking/matrix.js');
 const C = require('./cells.js');
+const DEADLINE_BREAK = (typeof process !== 'undefined' && process.env && process.env.MILTANK_DEADLINE_BREAK) || '';
 
 function create(API, deps) {
   const PA = deps.prior, R = deps.rollout;
-  const COUNTERS = { decisions: 0, forced: 0, cells: 0, playouts: 0, unfilled: 0, reservedSwitch: 0, reservedMega: 0, rmIters: 0, overBudget: 0, pory2Decisions: 0 };
+  const COUNTERS = { decisions: 0, forced: 0, cells: 0, playouts: 0, unfilled: 0, reservedSwitch: 0, reservedMega: 0, rmIters: 0, overBudget: 0, pory2Decisions: 0,
+                     fallbackEmpty: 0, fallbackSparse: 0, deadlineCut: 0 };
 
   function rank(scores, joints, k, reserveSwitch, wantMega) {
     const idx = scores.map((p, i) => i).sort((a, b) => scores[b] - scores[a] || a - b);
@@ -66,34 +84,61 @@ function create(API, deps) {
     const rowsI = rank(Array.from(sMe), laMe.joint, k1, rs, megaMe);
     const colsI = rank(Array.from(sOp), laOp.joint, k2, rs, megaOp);
     const rows = rowsI.map(i => laMe.joint[i]), cols = colsI.map(i => laOp.joint[i]);
+    /* the prior's own top legal joint: the move when the clock leaves the table too empty to solve */
+    let top = 0; for (let i = 1; i < sMe.length; i++) if (sMe[i] > sMe[top]) top = i;
+    const priorTop = laMe.joint[top];
     const belief = { sheet: ctx.G.sheets[opp === 'A' ? 'p1' : 'p2'], revealed: PA.revealed(S, opp) };
     const job = { S, side, opp, rows, cols, belief, depth: o.depth == null ? 2 : o.depth };
     /* THE LEAF: o.leaf, else env MILTANK_LEAF, else the heuristic. PORYGON2 needs both open sheets (p1 = side A). */
     const leafMode = o.leaf || LEAF_ENV || 'heuristic';
     if (leafMode === 'pory2') { job.leafCtx = { mode: 'pory2', sheets: ctx.G.sheets }; if (o.leafModel) job.leafCtx.model = o.leafModel; COUNTERS.pory2Decisions++; }
     else if (leafMode !== 'heuristic') throw new Error('MILTANK: unknown leaf ' + leafMode);
-    return { job };
+    return { job, priorTop };
   }
   /* 3. SOLVE the mean matrix and sample the row mix. */
-  function finishDecision(job, acc, o, t0, budget, coin, extra) {
+  function finishDecision(job, acc, o, t0, budget, coin, extra, priorTop) {
     const { rows } = job, m = rows.length, n = job.cols.length;
     const { sum, cnt, passes, playouts } = acc;
     let tot = 0, nf = 0;
     for (let i = 0; i < m; i++) for (let j = 0; j < n; j++) if (cnt[i][j]) { tot += sum[i][j] / cnt[i][j]; nf++; }
     const mean = nf ? tot / nf : 0.5;
+    const filled = nf / (m * n);
+    COUNTERS.cells += m * n; COUNTERS.playouts += playouts;
+    if (acc.cut) COUNTERS.deadlineCut++;
+    const minFill = o.minFill == null ? 0.25 : o.minFill;
+    let emptyRows = 0;
+    for (let i = 0; i < m; i++) { let any = false; for (let j = 0; j < n; j++) if (cnt[i][j]) { any = true; break; } if (!any) emptyRows++; }
+    if (priorTop && !DEADLINE_BREAK && (nf === 0 || emptyRows > 0 || filled < minFill)) {
+      /* TOO EMPTY TO SOLVE: the ranking prior's top joint. The coin is still drawn once, as the solve path draws
+       * it, so a fallback does not shift the stream of every later decision. */
+      coin();
+      const kind = nf === 0 ? 'empty' : 'sparse';
+      COUNTERS[nf === 0 ? 'fallbackEmpty' : 'fallbackSparse']++;
+      COUNTERS.unfilled += m * n - nf;
+      const ms = Date.now() - t0;
+      if (ms > budget * 1.5 + 50) COUNTERS.overBudget++;
+      return { joint: priorTop, info: Object.assign({ m, n, passes, playouts, unfilled: m * n - nf, filled: +filled.toFixed(3), empty_rows: emptyRows, fallback: kind, ms }, extra || {}) };
+    }
     let unfilled = 0;
     const A = sum.map((r, i) => Array.from(r, (v, j) => (cnt[i][j] ? v / cnt[i][j] : (unfilled++, mean))));
-    const sol = o.solver === 'lp' ? SK.solveLP(A) : SK.solveRM(A, { iters: o.rmIters || 4000, tol: 1e-4 });
+    /* the solve is capped by what is left of the budget too (SLOWKING reads its own clock every 64 iterations) */
+    const left = DEADLINE_BREAK ? 0 : Math.max(5, t0 + budget - Date.now());
+    const sol = o.solver === 'lp' ? SK.solveLP(A) : SK.solveRM(A, { iters: o.rmIters || 4000, tol: 1e-4, timeMs: left });
     const pick = SK.sample(sol.x, coin());
     const ms = Date.now() - t0;
-    COUNTERS.cells += m * n; COUNTERS.playouts += playouts; COUNTERS.unfilled += unfilled; COUNTERS.rmIters += sol.iters || 0;
+    COUNTERS.unfilled += unfilled; COUNTERS.rmIters += sol.iters || 0;
     if (ms > budget * 1.5 + 50) COUNTERS.overBudget++;
-    const info = Object.assign({ m, n, passes, playouts, unfilled, value: sol.value, gap: sol.gap, rm_iters: sol.iters,
+    const info = Object.assign({ m, n, passes, playouts, unfilled, filled: +filled.toFixed(3), value: sol.value, gap: sol.gap, rm_iters: sol.iters,
              support: sol.x.filter(v => v > 1e-3).length, pick, ms }, extra || {});
     /* o.record (self-play, solver/mew): the whole root — the candidate joints, both mixes and the mean matrix —
      * so a training target can be read off the search rather than off the one sampled move */
     if (o.record) info.rec = { rows, cols: job.cols, x: Array.from(sol.x), y: sol.y ? Array.from(sol.y) : null, A, cnt: cnt.map(r => Array.from(r)) };
     return { joint: rows[pick], info };
+  }
+  /* when the cell fill must stop: the budget less a reserve for the solve and the pick */
+  function fillByOf(o, t0, budget) {
+    if (DEADLINE_BREAK) return t0 + budget;
+    return t0 + budget - (o.reserveMs != null ? o.reserveMs : reserveMsOf(budget));
   }
   function begin(S, side, ctx, o) {
     const t0 = Date.now();
@@ -104,7 +149,10 @@ function create(API, deps) {
     if (d.forced) { COUNTERS.forced++; return { done: { joint: d.forced, info: { forced: true, ms: Date.now() - t0 } } }; }
     /* the coin is drawn in the same order in both paths: baseSeed now, the mix sample after the solve */
     d.job.baseSeed = Math.floor(coin() * 1e9);
-    return { t0, budget, coin, job: d.job };
+    const fillBy = fillByOf(o, t0, budget);
+    /* an in-flight playout is abandoned half-way through the reserve, so the other half is left for the solve */
+    if (!DEADLINE_BREAK) d.job.abortAt = fillBy + Math.floor((t0 + budget - fillBy) / 2);
+    return { t0, budget, coin, job: d.job, priorTop: d.priorTop, fillBy };
   }
 
   /* 2. CELLS, in this process: solver/miltank/cells.js, passes 0, 1, 2, … */
@@ -112,8 +160,8 @@ function create(API, deps) {
     o = o || {};
     const b = begin(S, side, ctx, o);
     if (b.done) return b.done;
-    const acc = C.fillSerial(API, R, b.job, b.t0 + b.budget, o.maxPasses);
-    return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin);
+    const acc = C.fillSerial(API, R, b.job, b.fillBy, o.maxPasses);
+    return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin, { overrun_ms: acc.overrunMs, max_world_ms: acc.maxWorldMs, max_playout_ms: acc.maxPlayoutMs }, b.priorTop);
   }
   /* 2'. CELLS across worker processes (o.pool = solver/miltank/pool.js). The SAME passes: with a pass cap
    * the matrix, the value and the pick are identical to decide()'s (solver/tests/test-playout-speed.js). */
@@ -122,12 +170,31 @@ function create(API, deps) {
     if (!o.pool) return decide(S, side, ctx, o);
     const b = begin(S, side, ctx, o);
     if (b.done) return b.done;
-    const acc = await o.pool.fill(Object.assign({}, b.job, { budgetMs: b.t0 + b.budget - Date.now(), maxPasses: o.maxPasses || 0 }));
+    const acc = await o.pool.fill(Object.assign({}, b.job, { deadline: b.fillBy, maxPasses: o.maxPasses || 0 }));
     COUNTERS.pooled = (COUNTERS.pooled || 0) + 1;
-    return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin, { workers: acc.workers });
+    return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin, { workers: acc.workers, late_workers: acc.late || 0 }, b.priorTop);
   }
 
-  return { COUNTERS, decide, decideAsync, rank };
+  return { COUNTERS, decide, decideAsync, rank, collectIdle, BROKEN: DEADLINE_BREAK || null };
 }
 
-module.exports = { create };
+/* THE RESERVE: 6% of the budget, clamped to 20-300 ms (60 ms at 1 s, 300 ms at 5 s). It was 3% clamped to 150 ms,
+ * and the serial path's 5 s arm then passed by 74 ms: one 663 ms playout straddled the abort line, which falls halfway
+ * through the reserve, and one engine step cannot be cut short (docs/_reports/2026-09-25-miltank-deadline.md). */
+function reserveMsOf(budget) { return Math.max(20, Math.min(300, Math.round(budget * 0.06))); }
+
+/* A FULL GC OFF THE CLOCK. A decision allocates a world copy per playout, and a major collection that lands INSIDE a
+ * decision stops the decider for its whole length: 1.1-1.6 s measured on a loaded core, over the 500 ms margin, and
+ * no clock check can interrupt it (docs/_reports/2026-09-25-miltank-deadline.md). A caller with idle time — ROTOM
+ * between sending a choice and the next request — calls this so the next decision starts on a collected heap.
+ * `gc` is exposed at run time (the V8 flag, then a fresh context hands the function out), so no launch flag is needed.
+ * Returns the ms it took, or null if the runtime refused. */
+let GC = null;
+function collectIdle() {
+  try {
+    if (!GC) { require('v8').setFlagsFromString('--expose-gc'); GC = require('vm').runInNewContext('gc'); }
+    const t = Date.now(); GC(); return Date.now() - t;
+  } catch (e) { return null; }
+}
+
+module.exports = { create, collectIdle, reserveMsOf };

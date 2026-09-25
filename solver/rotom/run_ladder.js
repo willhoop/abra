@@ -78,7 +78,7 @@ const OUT = path.resolve(flag('out', path.join(LIVE_DIR, TAG + '-' + new Date().
 fs.mkdirSync(OUT, { recursive: true });
 const NG = DRY ? require('./netguard.js').install({ log: path.join(OUT, 'netguard-supervisor.jsonl') }) : null;
 for (const k of ['release', 'arms', 'ladder-seed', 'sets']) if (!flag(k, '')) { console.error('--' + k + ' is required'); process.exit(2); }
-const PASS = ['release', 'arms', 'sets', 'max-errors', 'max-hours', 'guard', 'guard-mode', 'seed', 'margin', 'reserve', 'min-search-ms', 'rotation']
+const PASS = ['release', 'arms', 'sets', 'max-errors', 'max-hours', 'guard', 'guard-mode', 'seed', 'margin', 'reserve', 'min-search-ms', 'rotation', 'priority']
   .filter(k => flag(k, null) != null).flatMap(k => ['--' + k, flag(k)]);
 const KILLF = path.resolve(flag('kill-file', DRY ? path.join(OUT, 'KILL') : path.join(LIVE_DIR, 'KILL')));
 const MAX_RESTARTS = +flag('max-restarts', 5);

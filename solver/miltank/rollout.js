@@ -8,7 +8,8 @@
  *   R.sampleWorld(S, oppSide, belief, coin)  a clone of S with the opponent's UNREVEALED bench re-drawn
  *                                      (belief = { sheet: [6 rows], revealed: Set(current team idx) })
  *   R.prepare(W)                       a world serialised once, for many playouts (see prepare below)
- *   R.playout(W, jA, jB, seed, depth[, lctx])  copy W (or a prepared W), step (jA, jB) on seeded dice, `depth` random turns, leaf
+ *   R.playout(W, jA, jB, seed, depth[, lctx[, abortAt]])  copy W (or a prepared W), step (jA, jB) on seeded dice, `depth` random
+ *                                      turns, leaf; NaN if the clock passed abortAt between turns (see playFrom)
  *
  * THE PLAYOUT POLICY IS NOT A LEGALITY AUTHORITY. `legalActions` is, and it costs ~2 ms a call because
  * it snapshots and restores every process-wide counter so that it can be a pure read (the differential
@@ -62,7 +63,7 @@ const live = m => !!(m && !m.fainted && m.curHP > 0);
 function create(API, opts) {
   const M = API.M;
   const buildBody = opts.buildBody;
-  const COUNTERS = { playouts: 0, playoutTurns: 0, worlds: 0, bodiesSwapped: 0, wipes: 0, leafHeuristic: 0, leafPory2: 0, prepared: 0, fastClones: 0, leanPlayouts: 0 };
+  const COUNTERS = { playouts: 0, playoutTurns: 0, worlds: 0, bodiesSwapped: 0, wipes: 0, leafHeuristic: 0, leafPory2: 0, prepared: 0, fastClones: 0, leanPlayouts: 0, aborted: 0 };
   /* one PORYGON2 leaf per model file: lctx.model names a generation's net (solver/mew, solver/machamp);
    * absent = the default v0 file, exactly as before */
   const PORY2 = new Map();
@@ -209,23 +210,29 @@ function create(API, opts) {
     return M.rngStreams({ seed });
   }
 
-  function playFrom(S, jA, jB, seed, depth, lctx) {
+  /* abortAt (an absolute Date.now() instant, optional): the clock is read before each random turn and before the
+   * leaf, and past it the playout is ABANDONED and returns NaN — the cell stays unplayed, as if never started, and
+   * COUNTERS.aborted says so. One engine step cannot be interrupted; one playout can. Without abortAt nothing is read
+   * and the playout is exactly the one it always was (docs/_reports/2026-09-25-miltank-deadline.md). */
+  function playFrom(S, jA, jB, seed, depth, lctx, abortAt) {
     const rng = dice(BREAK === 'crn' ? Math.floor(Math.random() * 1e9) : seed);
     const coin = M.rngStreams({ seed: seed + 7919 }).any;
     API.stepInPlace(S, jA, jB, rng);
     COUNTERS.playouts++;
     for (let d = 0; d < depth && !API.isTerminal(S); d++) {
+      if (abortAt && Date.now() >= abortAt) { COUNTERS.aborted++; return NaN; }
       API.stepInPlace(S, randomJoint(S, 'A', coin), randomJoint(S, 'B', coin), rng);
       COUNTERS.playoutTurns++;
     }
+    if (abortAt && Date.now() >= abortAt) { COUNTERS.aborted++; return NaN; }
     return leaf(S, lctx);
   }
-  function playout(W, jA, jB, seed, depth, lctx) {
+  function playout(W, jA, jB, seed, depth, lctx, abortAt) {
     const S = copy(W);
-    if (!LEAN) return playFrom(S, jA, jB, seed, depth, lctx);
+    if (!LEAN) return playFrom(S, jA, jB, seed, depth, lctx, abortAt);
     API.makeLean(S);
     COUNTERS.leanPlayouts++;
-    return API.leanRun(() => playFrom(S, jA, jB, seed, depth, lctx));
+    return API.leanRun(() => playFrom(S, jA, jB, seed, depth, lctx, abortAt));
   }
 
   return { COUNTERS, LEAN, slotSupport, randomJoint, leaf, sampleWorld, swapBody, body, prepare, copy, dice, playout, BROKEN: BREAK || null };

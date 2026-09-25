@@ -24,22 +24,24 @@ resolves here.)*
 <!-- GENERATED: engine/status.js -->
 
 ```
-SEARCH — does MILTANK choose better than MAG
-  R1 leaf accuracy: WITHHELD — engine/provenance.js calls data/rollout-r1-explore1.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    pinned to engine release 3932186b59ef — engine/medicham2-browser.js matches the frozen copy; live is 2caee2eeabb0 now (a PRE-CHANGE measurement of that release, not corruption)
-    (+20 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/rollout_r1_artifact.js
-  R2 leaf cost: WITHHELD — engine/provenance.js calls data/rollout-cost.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    it becomes quotable again when this is re-run: node engine/rollout_r2.js
-  R3 divergence: WITHHELD — engine/provenance.js calls data/rollout-r3.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    it becomes quotable again when this is re-run: node engine/rollout_r3.js
-  R4 does it win: WITHHELD — engine/provenance.js calls data/rollout-r4.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    it becomes quotable again when this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-09-24 16:15):
+SOLVER (was SEARCH) — the retired Reg M-B rollout rows; the Reg M-C solver is solver/PLAN.md
+  R1 leaf accuracy: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-r1-explore1.json is downstream of MEDICHAM: engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played
+    MEDICHAM is not correct — 1 of 10 gate clauses fail (no open, known engine defect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r1_artifact.js
+  R2 leaf cost: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-cost.json is downstream of MEDICHAM: its generator engine/rollout_r2.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 1 of 10 gate clauses fail (no open, known engine defect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r2.js
+  R3 divergence: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-r3.json is downstream of MEDICHAM: its generator engine/rollout_r3.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 1 of 10 gate clauses fail (no open, known engine defect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r3.js
+  R4 does it win: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
+    MEDICHAM is not correct — 1 of 10 gate clauses fail (no open, known engine defect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-09-24 23:09):
     PRE-CHANGE games.r4c-shipped2.jsonl  2026-08-14 22:28
     PRE-CHANGE games.r4c-shipped.jsonl  2026-08-14 17:21
     PRE-CHANGE games.r4b-search.jsonl  2026-08-14 13:02
@@ -47,7 +49,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
 ```
 
-_stamped 2026-09-24 22:07_
+_stamped 2026-09-25 14:43_
 
 <!-- /GENERATED -->
 
@@ -76,6 +78,12 @@ This section says only what a division agent needs before it starts.
   accepted generation: gen5, SPRT H1 at +20 Elo after 1,268 games (report §12).
 - **Not built:** CHOMP, PORYGON2, GARY, HYPNO, DUSK, WOBBUFFET, DITTO, ROTOM, ALAKAZAM,
   KADABRA (and JOLTEON, only if CHOMP needs a pre-screen). Order: `solver/PLAN.md` §3, milestones M1–M8.
+- **MILTANK's decision deadline is hard (2026-09-25, abra/regmc 1.9.0).** A decision returns within budget + 500 ms
+  under load, on both the pool path and the serial path. When the table is too empty, it falls back, counted, to
+  the ranking prior's top joint. `solver/tests/test-miltank-deadline.js` checks it and goes RED under
+  `MILTANK_DEADLINE_BREAK=1`. Before any search-based ladder play: ROTOM must call `collectIdle()` between requests
+  and charge the time since the request arrived, and it must run its decider above BELOW_NORMAL. Account:
+  `docs/_reports/2026-09-25-miltank-deadline.md`.
 - **ROTOM ladder mode — prepared, not launched (2026-09-25).** `solver/rotom/ladder.js` (the loop, the
   pre-committed per-series A/B and rotation, the two-account guard, the consecutive-error halt),
   `run_ladder.js` (supervisor, watchdog, STOP, KILL by pid, the local dry run), `netguard.js` (a dry run

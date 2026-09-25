@@ -53,6 +53,22 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.10.1] — 2026-09-25 — **Ledgers restamped by `status.js --write` after the deadline and ROTOM merges**
+- **What changed.** `docs/{ENGINE,MEASURE,OPS,SOLVER,WEB}.md` generated blocks and `data/provenance-stamp.json`, restamped from the main checkout. No hand edits.
+- **Measured.** NO FIGURE.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none.
+
+## [abra/regmc 1.10.0] — 2026-09-25 — **ROTOM collects garbage between decisions and can run its ladder decider at NORMAL; MILTANK reserve 300 ms at 5 s**
+- **What changed.** `solver/miltank/search.js`: reserve 6% of budget clamped 20-300 ms (`reserveMsOf`), `collectIdle` exported. `solver/rotom/rotom.js`: idle GC after a MILTANK choice is sent, request clock charged from a GC that overlapped it, `--priority normal|below`; `run_ladder.js` passes `--priority`; `solver/rotom/LADDER.md` MILTANK commands carry `--priority normal`.
+- **Measured.** Serial 5 s, 400 positions, one-core load: max 5,126 ms, 0 over budget + 500 ms, 0 fallbacks (`solver/results/2026-09-25-deadline/serial-b5000-n400-reserve300.json`). Local bo3 set: 24 MILTANK decisions, 24 idle GCs, max ms minus budget -179 ms, 0 timeouts; the client recorded `priority_set` 0 (NORMAL). `docs/_reports/2026-09-25-miltank-deadline.md` §7.
+- **Basis.** unchanged. **Supersedes.** Nothing; the 1.9.0 serial 5 s margin of 74 ms describes the 150 ms reserve and stays as measured. **Owed to the next major.** The technical docs' ROTOM section: `--priority` and the idle GC.
+
+## [abra/regmc 1.9.0] — 2026-09-25 — **MILTANK's decision deadline is hard: budget + 500 ms under load, with counted fallbacks**
+- **What changed.** `solver/miltank/{search,cells,pool,pool_worker,rollout}.js`: an absolute deadline with a reserve, no pass started after it, the pool resolved on a timer with the passes streamed in 40 ms slices, late workers cancelled and counted, in-flight playouts abandoned between turns, the solve capped, a counted fallback to the ranking prior's top joint when a row is empty or under 25% of cells are filled, a diagonal cell walk, `collectIdle()` for a GC off the clock, and the dex warmed at pool start-up. `solver/rotom/policy.js`: the forced-switch search no longer overspends its budget. New `solver/bench/deadline_bench.js`, `solver/bench/cpu_burner.js`, `solver/tests/test-miltank-deadline.js`.
+- **Measured.** Release `eaa5becc54eb`, 2,000 real Reg M-C positions per arm (`pos_sha` `33d88ad3c8ecb507`), each lane on one core with a starve/fair/idle burner: pool max 1,004 ms at 1 s (`solver/results/2026-09-25-deadline/pool-b1000-n2000-final.json`) and 4,906 ms at 5 s (`pool-b5000-n2000-final.json`); serial + collectIdle max 1,268 ms at 1 s (`serial-b1000-n2000-final.json`) and 5,426 ms at 5 s (`serial-b5000-n2000-final.json`); 0 over budget + 500 ms in all four. Break arms first: 73/300 over at 1 s, max 7,035 ms (`pool-b1000-n300-final-BREAK.json`); 31/100 over at 5 s, max 11,569 ms (`pool-b5000-n100-final-BREAK.json`). Fallbacks at 1 s: 65% pool, 30% serial. Test `solver/tests/test-miltank-deadline.js` 16/16, RED under `MILTANK_DEADLINE_BREAK=1`. `docs/_reports/2026-09-25-miltank-deadline.md`.
+- **Basis.** unchanged. **Supersedes.** Nothing. The 1.4.0 arena figures were played on the old code and stand as figures about it; the 28-39 s decisions they report are the defect fixed here, and the fallback's strength is not measured. **Owed to the next major.** The technical docs' MILTANK section: the deadline, the fallback, `collectIdle`, and the decider-priority requirement for ladder search.
 ## [abra/regmc 1.8.1] — 2026-09-25 — **The unattended MACHAMP loop and its pre-registration**
 - **What changed.** New: `solver/machamp/loop_sprt.js` and `solver/machamp/preregistration-loop.json`.
   `build_pory2.js --deep` takes a list of directories.

@@ -54,6 +54,14 @@ const crypto = require('crypto');
 const argv = process.argv.slice(2);
 const flag = (k, d) => { const i = argv.indexOf('--' + k); return i >= 0 && argv[i + 1] != null ? argv[i + 1] : d; };
 const has = k => argv.includes('--' + k);
+/* --priority normal|below (default below: the lownode class this client was started in). A ladder client that SEARCHES
+ * must not be starved by other normal-priority work on the machine: MILTANK bounds its own decision, it cannot bound a
+ * process the OS does not run (docs/_reports/2026-09-25-miltank-deadline.md). MILTANK's pool workers set themselves
+ * BELOW_NORMAL whatever the client runs at, so only the decider is raised. Recorded in the summary as `priority`. */
+const PRIORITY = flag('priority', 'below');
+if (!['normal', 'below'].includes(PRIORITY)) { console.error('--priority must be normal or below'); process.exit(2); }
+const PRIORITY_SET = (() => { try { require('os').setPriority(0, require('os').constants.priority[PRIORITY === 'normal' ? 'PRIORITY_NORMAL' : 'PRIORITY_BELOW_NORMAL']); return require('os').getPriority(0); }
+  catch (e) { console.error('--priority ' + PRIORITY + ' could not be set: ' + e.message); return null; } })();
 const toID = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
 const ROOT = path.join(__dirname, '..', '..');
@@ -158,6 +166,7 @@ const T = require('../arena/teams.js');
 const MAGD = require('../mag/infer.js').load();
 const PA = require('../miltank/prior_adapter.js').create(API, MAGD);
 const R = require('../miltank/rollout.js').create(API, { buildBody: T.buildBody });
+const SEARCH_MOD = require('../miltank/search.js');
 const TABLES = JSON.parse(fs.readFileSync(path.join(__dirname, 'tables.json'), 'utf8'));
 const WB = require('./world.js').create(API);
 const P = require('./policy.js').create({ API, PA, R, tables: TABLES });
@@ -505,7 +514,10 @@ function handleBattle(room, line, p, cmd) {
     if (req.wait) { B.req = null; return; }
     if (B.req && B.req.rqid !== req.rqid && !B.sent.has(B.req.rqid)) { ST.superseded++; ST.timeouts.push({ room, kind: 'superseded', rqid: B.req.rqid }); }
     const again = B.req && B.req.rqid === req.rqid;
-    B.req = req; if (!again) B.reqAt = Date.now();
+    /* a request handled right after an idle GC may have ARRIVED during it (the GC blocks the event loop): charge the
+     * clock from the GC's start, so the budget never counts time the server already spent */
+    if (!again) { const now = Date.now(); B.reqAt = IDLE_GC.t1 && now - IDLE_GC.t1 < 100 ? Math.min(now, IDLE_GC.t0) : now; }
+    B.req = req;
     /* the SAME request again = the server re-sent it on a (re)join: if it was already answered, answer it again */
     if (B.sent.has(req.rqid)) B.req._needResend = true;
     if (req.side && req.side.id) B.me = req.side.id;
@@ -744,6 +756,19 @@ function decide(B) {
   try { fs.appendFileSync(LOGF, line); } catch (e) { /* never fatal */ }
   try { fs.appendFileSync(gameDecF(B.id), line); } catch (e) { /* never fatal */ }
   if (!ok) event('send_failed', { room: B.id, rqid: req.rqid });
+  /* THE BETWEEN-DECISION GC. A MILTANK decision allocates a world copy per playout; a major GC landing inside the NEXT
+   * decision stopped it for 1.1-1.6 s on a loaded core. So after a searched choice is SENT, collect off the clock, on the
+   * next event-loop turn (the choice is already on the wire). Counted: ST.idleGc { n, ms, max }. */
+  if (first === 'miltank' && ok) setImmediate(idleGc);
+}
+const IDLE_GC = { t0: 0, t1: 0 };
+function idleGc() {
+  IDLE_GC.t0 = Date.now();
+  const ms = SEARCH_MOD.collectIdle();
+  IDLE_GC.t1 = Date.now();
+  const g = ST.idleGc || (ST.idleGc = { n: 0, ms: 0, max: 0, refused: 0 });
+  if (ms == null) { g.refused++; return; }
+  g.n++; g.ms += ms; if (ms > g.max) g.max = ms;
 }
 function compact(info) {
   const o = {};
@@ -758,7 +783,7 @@ function stats(a) {
   return { n: a.length, mean: Math.round(a.reduce((x, y) => x + y, 0) / a.length), p50: q(0.5), p95: q(0.95), p99: q(0.99), max: s[s.length - 1] };
 }
 function writeSummary() {
-  const out = { name: NAME, policy: POLICY, server: SERVER, pid: process.pid, restarts: STATE.restarts, flags: { max_ms: MAX_MS, preview_max_ms: PREVIEW_MAX_MS, margin_s: MARGIN_S, reserve_s: RESERVE_S, min_search_ms: MIN_SEARCH_MS, timer: TIMER, seed: SEED, drill: DRILL || null },
+  const out = { name: NAME, policy: POLICY, server: SERVER, pid: process.pid, restarts: STATE.restarts, flags: { max_ms: MAX_MS, preview_max_ms: PREVIEW_MAX_MS, margin_s: MARGIN_S, reserve_s: RESERVE_S, min_search_ms: MIN_SEARCH_MS, timer: TIMER, seed: SEED, drill: DRILL || null, priority: PRIORITY, priority_set: PRIORITY_SET }, idle_gc: ST.idleGc || { n: 0, ms: 0, max: 0, refused: 0 },
     clock_rule: new Clock(Object.assign({ format: FORMAT_ID }, clockOpts)).rule,
     sets: STATE.setsDone, decisions: ST.decisions, by_kind: ST.byKind,
     decision_ms: { preview: stats(ST.ms.preview), move: stats(ST.ms.move), switch: stats(ST.ms.switch) }, budget_ms: stats(ST.budget),

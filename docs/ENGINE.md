@@ -2270,12 +2270,14 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  1024/1024 probed mechanics live, 0 missing   (census 2026-09-24 16:21)
-    the census probes what somebody thought to probe: 305 of 307 in-scope tags carry a probe, 2 carry none (20 of 327
-    tags have no in-scope carrier); 0 of 381 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 4.5 h old). node engine/coverage.js
+  1004/1004 probed mechanics live, 0 missing   (census 2026-09-23 00:17)
+    the census probes what somebody thought to probe: 304 of 307 in-scope tags carry a probe, 3 carry none (20 of 327
+    tags have no in-scope carrier); 0 of 348 in-scope mechanics have never fired in the staged harness
+    (all-mechanics-fire.json, 1.1 days old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/eaa5becc54eb/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "eaa5becc54eb".
+    pinned to engine release fb8073869b72 — engine/medicham2-browser.js matches the frozen copy; live is 2caee2eeabb0 now (a PRE-CHANGE measurement of that release, not corruption)
+    pinned to engine release fb8073869b72 — engine/tags.js matches the frozen copy; live is 13cdeb051720 now (a PRE-CHANGE measurement of that release, not corruption)
+    (+2 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -2287,12 +2289,12 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 8af4bdbb88f4 now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 305/307 in-scope probed, 2 unprobed;  307/307 have an engine consumer on every in-scope row, 0 do not;  20 of 327 tags have no in-scope carrier
+  tag coverage: 304/307 in-scope probed, 3 unprobed;  307/307 have an engine consumer on every in-scope row, 0 do not;  20 of 327 tags have no in-scope carrier
     consumedBy comes from engine/tag_dex.js grepping board.js and medicham2-browser.js for a hint
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-24 22:07_
+_stamped 2026-09-25 14:43_
 
 <!-- /GENERATED -->
 

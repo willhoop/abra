@@ -8,6 +8,27 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-25
 
+### Deadline follow-ups (abra/regmc 1.10.0)
+- ROTOM runs `collectIdle()` after each MILTANK choice (in a local set: 24 of 24, max 412 ms, no decision over its
+  budget). `--priority normal` raises a ladder client's decider, and the runbook uses it. The reserve is now 300 ms
+  at 5 s, and the serial 5 s max fell to 5,126 ms (margin 374 ms, was 74 ms).
+- Self-play note: MEW records a root only when `info.rec` exists, and a deadline fallback has none. Fallback turns
+  therefore drop out of the training data.
+
+### MILTANK's deadline is hard (abra/regmc 1.9.0)
+- The 28-39 s decisions at a 5 s budget had one cause on the pool path: the parent waited for every worker, and a
+  worker read the clock only after a playout, so one BELOW_NORMAL worker starved of CPU held the decision.
+  Reproduced on the old code: 17.2 s at a 1 s budget. The serial path (ROTOM's) had a second cause, major GCs of
+  1.1-1.6 s inside a decision.
+- Fix: absolute deadline + reserve; no pass starts late; the pool resolves on a timer with streamed slices; late
+  workers cancelled and counted; playouts abandoned between turns; solve capped; a counted fallback to the
+  ranking prior's top joint when the table is too empty; diagonal cell walk; `collectIdle()` between decisions.
+- 2,000 real Reg M-C positions per arm, one-core artificial load: 0 over budget + 500 ms at 1 s and 5 s, pool
+  and serial (maxes 1,004 / 4,906 / 1,268 / 5,426 ms). Break arms first: 73/300 and 31/100 over.
+- **Not free:** under that load 65% (pool) and 30% (serial) of 1 s decisions fell back to the prior. Strength is
+  not measured. ROTOM does not call `collectIdle` yet, and its clients run BELOW_NORMAL: both are owed before any
+  search-based ladder play.
+- Detail: `docs/_reports/2026-09-25-miltank-deadline.md`; artifacts `solver/results/2026-09-25-deadline/`.
 ### Round 3 — gen5 ACCEPTED (abra/regmc 1.8.0)
 - The changes: a strong DODUO anchor; PORYGON2 on 0.5·z + 0.5·deep value (exact replay, then 4 × 3-turn
   human-clone rollouts; 0 mismatches over 39,538 positions); every round's data pooled (5,200 games).
