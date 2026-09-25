@@ -242,7 +242,7 @@ if (!immune) cannot('no derived (move, immune species, plain species) triple pas
   const N2 = quietSpecies.find(s => ![N, U, P].includes(s)), B1 = quietSpecies.find(s => ![N, U, P, N2].includes(s)), B2 = quietSpecies.find(s => ![N, U, P, N2, B1].includes(s));
   const S = battle([body(U, [hh, stallMove]), body(P, [atk, stallMove]), body(B1, [stallMove]), body(B2, [stallMove])], [body(N, FOE), body(N2, FOE)]);
   const p = pos(S);
-  const oHH = mvOpt(p.la, 0, 'helpinghand', -2);
+  const oHH = mvOpt(p.la, 0, hh.id, -2);
   const jAtk = p.la.joint.find(j => PR.optKey(j[0]) === PR.optKey(oHH) && j[1].kind === 'move' && j[1].move === atk.id && j[1].target === 1);
   const jStall = p.la.joint.find(j => PR.optKey(j[0]) === PR.optKey(oHH) && j[1].kind === 'move' && j[1].move === stallMove.id);
   const jSw = p.la.joint.find(j => PR.optKey(j[0]) === PR.optKey(oHH) && j[1].kind === 'switch');
@@ -268,7 +268,7 @@ if (!immune) cannot('no derived (move, immune species, plain species) triple pas
   const Sg = battle([body(U, [hh, stallMove]), body(P, [atk, stallMove]), body(B1, [stallMove]), body(B2, [stallMove])], [body(Ng, FOE), body(N2g, FOE)]);
   Sg.field.terrain = healTerrain.terrain.replace(/terrain$/, ''); Sg.field.terrainT = 5;
   const pg = pos(Sg);
-  const jg = pg.la.joint.find(j => j[0].kind === 'move' && j[0].move === 'helpinghand' && j[1].kind === 'move' && j[1].move === atk.id && j[1].target === 1);
+  const jg = pg.la.joint.find(j => j[0].kind === 'move' && j[0].move === hh.id && j[1].kind === 'move' && j[1].move === atk.id && j[1].target === 1);
   const vg = DG.pairVerdict(pg, jg);
   ok('HEAL', !vg.cut, `(Helping Hand, ${atk.id}) under ${healTerrain.id} with full-HP foes: expected KEPT, got cut`);
   console.log(`  HEAL: under ${healTerrain.id}, (Helping Hand, ${atk.id}) at a full-HP ${Ng.id} -> ${vg.cut ? "CUT" : "kept"}  [${[U, P, B1, B2, Ng, N2g].map(x => x.id).join(" ")}]`);
@@ -292,7 +292,7 @@ if (!immune) cannot('no derived (move, immune species, plain species) triple pas
   const P = quietSpecies.find(s => s !== U), N = quietSpecies.find(s => ![U, P].includes(s)), N2 = quietSpecies.find(s => ![U, P, N].includes(s));
   const S = battle([body(U, [hh, stallMove], { item: stone }), body(P, [atk, stallMove])], [body(N, FOE), body(N2, FOE)]);
   const p = pos(S);
-  const jM = p.la.joint.find(j => j[0].kind === 'move' && j[0].move === 'helpinghand' && j[0].mega && j[1].kind === 'move' && j[1].move === stallMove.id);
+  const jM = p.la.joint.find(j => j[0].kind === 'move' && j[0].move === hh.id && j[0].mega && j[1].kind === 'move' && j[1].move === stallMove.id);
   if (!jM) cannot('the engine offered no mega Helping Hand for ' + U.id + ' holding ' + stone);
   const v = DG.pairVerdict(p, jM);
   ok('MEGA', v.cut, `(mega Helping Hand, ${stallMove.id}): expected CUT (the mega is not Helping Hand's effect), got kept`);
