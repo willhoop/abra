@@ -109,7 +109,7 @@ request + |inactive| clock line
  → MEDICHAM  legalActions per side, per world (the engine's own menu, never a hand-built one)
  → MAG/DODUO prune to k1 own and k2 opponent joint actions, with switch and mega slots reserved
  → MILTANK   fill cells: clone the state, step one turn with shared dice, score the leaf
-             (truncated rollout now, PORYGON2 later); spend playouts by successive halving
+             (truncated rollout now, PORYGON2 later); spend playouts by successive halving (planned)
  → SLOWKING  regret matching on the belief-averaged matrix → σ_me, σ_opp, value v*
  → HYPNO     move toward GARY's model of human habit, never further than the ε cap allows
  → sample from σ_play (never argmax) → log every counter
@@ -140,13 +140,13 @@ only if a measurement shows that the leaf, not the width, limits play.
 
 ### 2.4 MILTANK — filling the matrix under a clock
 
-MILTANK is the harness around SLOWKING. It asks DODUO for the candidate joints, asks XATU for the
-worlds, forks the engine's own state through the MEDICHAM API (never a lossy re-seed from a feature
+MILTANK is the harness around SLOWKING. It asks DODUO for the candidate joints, is to ask XATU for the
+worlds (v1 draws them uniformly, §3.5), forks the engine's own state through the MEDICHAM API (never a lossy re-seed from a feature
 board, which is what broke the Reg M-B harness), and fills cells:
 
 - **Common random numbers.** The i-th playout of every cell draws the same event-addressed dice, so a
   difference between two cells measures the actions, not the luck.
-- **Successive halving over MY rows** spends the playout budget where it can still change the answer.
+- **Successive halving over MY rows** (planned; not in v1) spends the playout budget where it can still change the answer.
   It never halves over the opponent's columns, because the equilibrium needs those columns filled.
 - **Reserved slots.** A share of each shortlist is kept for switch-containing and mega-spending joints,
   because a cheap screen always under-rates them.
@@ -305,7 +305,7 @@ SOLVER division, which owns `solver/` and every model below except MEDICHAM.
 | **DODUO** | Joint coordinator: scores the pair as one action | v1 built, offline |
 | **XATU** | Belief over the back two and the spreads | v1 built, offline |
 | **SLOWKING** | Per-turn simultaneous-move solver | v1 built; unit-tested |
-| **MILTANK** | Search harness: candidates, shared-dice playouts, halving, clock | v1 built; strength PRE-GATE, withheld |
+| **MILTANK** | Search harness: candidates, shared-dice playouts, clock (halving and XATU worlds planned) | v1 built; strength PRE-GATE, withheld |
 | **PORYGON2** | Value network | to build |
 | **MEW** | Self-play factory on a frozen release | to build |
 | **MACHAMP** | Training loop and league | to build |
@@ -352,7 +352,9 @@ That is the part of XATU that reads MEDICHAM's damage function, and it is the pa
 
 `solver/tests/test-slowking.js` passes 1,559 checks: rock-paper-scissors solves to uniform, known small
 games solve to their linear-programming answer, RM+ stays under its proven bound, and dominant actions
-are found in constructed fixtures. `test-miltank.js` passes 3,414 and `test-arena.js` 15, each shown red
+are found in constructed fixtures. MILTANK v1 draws the opponent's world uniformly and has no
+successive halving; wiring XATU's posterior in and halving over the cells are the next steps
+(`solver/PLAN.md` §2). `test-miltank.js` passes 3,414 and `test-arena.js` 15, each shown red
 on deliberate breaks first (CHANGELOG-REGMC 0.115.0).
 
 ### 3.6 Playouts: a worker pool (abra/regmc 0.116.0)

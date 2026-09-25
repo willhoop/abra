@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.0.0] — 2026-09-24 — **DRAFT: fold-ins A and B merged; the white paper, deck and technical docs stop claiming MILTANK v1 halves or uses XATU; living-document PDFs rebuilt**
+- **What changed.** `docs-1.0.0-a` and `docs-1.0.0-b` merged into `draft/regmc-1.0.0`. `docs/ABRA-whitepaper.md` (§2.2, §2.4, §3.1 registry, §3.5), `docs/ABRA-technical-docs.md` (model table) and `docs/ABRA-deck-plain-english.md` (slides 7 and 9) now say what `docs/MODELS.md` says: MILTANK v1 draws the world uniformly and has no successive halving; both are planned. The 13 stale or missing PDFs `build/build_pdfs.js` derives were rebuilt; ledgers excluded. Account: `docs/_reports/2026-09-24-docs-1.0.0-merge.md`.
+- **Measured.** NO FIGURE.
+- **Basis.** CHANGED — the same basis change as the 1.0.0 rows below; this row merges their fold-ins.
+- **Supersedes.** Nothing. It removes a design claim stated as if built, not a figure.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 1.0.0] — 2026-09-24 — **DRAFT fold-in, part A: the white paper, the deck and the technical docs rewritten for Reg M-C and the solver plan**
 - **What changed.** `docs/ABRA-whitepaper.md`, `docs/ABRA-deck-plain-english.md` and `docs/ABRA-technical-docs.md` move to line `abra/regmc` at 1.0.0 and are rewritten: the search plan (SLOWKING, MILTANK, MAG/DODUO, XATU, PORYGON2, MEW/MACHAMP, HYPNO/GARY, WOBBUFFET, CHOMP, ROTOM) leads; MEDICHAM's Reg M-C certification is the foundation; the ESS old-against-new table for Reg M-B 7.0.0 against Reg M-C 1.0.0 is white paper §5. Account: `docs/_reports/2026-09-24-docs-refresh-a.md`.
 - **Measured.** NO FIGURE. Solver figures are OFFLINE and cited to CHANGELOG-REGMC 0.113.0–0.116.1; the arena win rates are PRE-GATE and are not printed.

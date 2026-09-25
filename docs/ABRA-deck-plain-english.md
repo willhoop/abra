@@ -96,7 +96,8 @@ Two tricks make this affordable:
 
 - **The same luck for every box.** Each imagined future uses the same dice rolls across every box, so
   the difference between two boxes comes from the choices, not from luck.
-- **Spend time where it matters.** Options that are clearly bad stop getting attention early.
+- **Spend time where it matters.** Options that are clearly bad stop getting attention early. (Planned:
+  the first version does not do this yet.)
 
 It always has an answer ready. If the clock runs short, it solves the table it has, and it writes down
 that it had to.
@@ -126,6 +127,9 @@ time something new is seen: a Pokémon switching in, who moved first, how much d
 
 It trusts what it has seen over what the sheet says. If an item has been knocked away, it knows the
 item is gone.
+
+The first version of the player does not use XATU yet: it guesses the hidden two at random. Plugging
+XATU in is the next step.
 
 ---
 

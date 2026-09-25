@@ -313,7 +313,7 @@ fails. Fold the rows into the documents at any version.
 | DODUO | score the pair as one joint action | `solver/mag/` | v1, offline |
 | XATU | belief over the back two and the spreads | `solver/xatu/` | v1, offline |
 | SLOWKING | solve the matrix game each turn | `solver/slowking/` | v1 |
-| MILTANK | fill the matrix: candidates, shared dice, halving, clock | `solver/miltank/` | v1; strength withheld |
+| MILTANK | fill the matrix: candidates, shared dice, clock (halving and XATU worlds planned, not in v1) | `solver/miltank/` | v1; strength withheld |
 | GURU | descriptive meta | `solver/meta/` | v0 |
 | arena | offline bot against bot | `solver/arena/` | built; reads the live tree |
 | PORYGON2 | value network | — | not built |
