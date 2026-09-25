@@ -72,7 +72,8 @@ This section says only what a division agent needs before it starts.
   gen0 (`solver/machamp/models/gen{1,2}/gates.json`, `docs/_reports/2026-09-25-selfplay-v0.md`). The next lever
   is the self-play search budget: 30–41% of cells were unfilled. Round 2 (gen3–4, full search, frozen team store)
   fixed the budget (0.1% empty) and still accepted nothing: gen3 lost to the champion 0.430. The DODUO update is the
-  suspect (§10 of the report).
+  suspect (§10 of the report). Round 3 (pooled data, deep-value PORYGON2, anchored DODUO) produced the first
+  accepted generation: gen5, SPRT H1 at +20 Elo after 1,268 games (report §12).
 - **Not built:** CHOMP, PORYGON2, GARY, HYPNO, DUSK, WOBBUFFET, DITTO, ROTOM, ALAKAZAM,
   KADABRA (and JOLTEON, only if CHOMP needs a pre-screen). Order: `solver/PLAN.md` §3, milestones M1–M8.
 - **Old implementations** (`engine/miltank.js`, `engine/magnemite.js`, `engine/mag_bot.js`, …) are archived

@@ -21,6 +21,25 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.4.0] — 2026-09-25
+
+### Added
+- `solver/machamp/deep_value.js`: exact game replay, then human-clone rollouts, giving a value independent of the
+  net being trained.
+- `solver/machamp/sprt.js`: a pre-registered GSPRT on paired seeds, read only at the bound.
+- `play.js --cycle`; `build_pory2.js --deep`; `prior_adapter.datasetActions`.
+- `test-machamp` DEEP and SPRT clauses (108/108; RED on `MACHAMP_BREAK=replay` and `=sprtsign`).
+- `solver/machamp/models/gen5/`.
+
+### Notes
+- **gen5 ACCEPTED**, the first accepted generation (pre-registration `solver/machamp/preregistration-r3.json`).
+  Pooled data from every round, a strong DODUO anchor, and PORYGON2 trained on 0.5·z + 0.5·deep rollout value.
+- **SPRT (elo0 0, elo1 +20, α = β = 0.05): H1 after 1,268 games**; gen5 against gen0 **0.528 [0.501, 0.556]**
+  (670–598), Elo ≈ +19.7.
+- PORYGON2 human Δ −0.0030 [−0.0057, −0.0004] PASS; against the human clone 0.660 [0.592, 0.722] PASS.
+- Source: `solver/machamp/models/gen5/gates.json`. Account: `docs/_reports/2026-09-25-selfplay-v0.md` §12.
+- **Basis.** unchanged.
+
 ## [1.3.0] — 2026-09-25
 
 ### Added

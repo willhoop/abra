@@ -1,0 +1,64 @@
+{
+ "gen": 5,
+ "candidate": "solver/machamp/league/gen5.json",
+ "champion_before": "solver/machamp/league/gen0-r2.json",
+ "preregistration": "solver/machamp/preregistration-r3.json",
+ "G_pory2_human": {
+  "diff": -0.002962,
+  "ci95": [
+   -0.005666,
+   -0.000356
+  ],
+  "pass": true
+ },
+ "G_beats_previous_SPRT": {
+  "verdict": "H1 \u2014 X is stronger (elo1 = +20 accepted)",
+  "llr_at_stop": 3.0567507564551626,
+  "bounds": [
+   -2.9444389791664403,
+   2.9444389791664403
+  ],
+  "pairs_used": 634,
+  "games_used": 1268,
+  "games_played_after_stop_not_counted": 20,
+  "result": {
+   "W": 670,
+   "D": 0,
+   "L": 598,
+   "score_x": 0.5283911671924291,
+   "ci95_x": [
+    0.5008700670015976,
+    0.5557407562329939
+   ],
+   "ci_caption": "Wilson 95% at a data-dependent stopping time: conditional on the stop, slightly optimistic"
+  },
+  "elo_estimate": 19.74944748496628,
+  "preregistered": {
+   "elo0": 0,
+   "elo1": 20,
+   "alpha": 0.05,
+   "beta": 0.05,
+   "max_games": 2000,
+   "unit": "pair of games on one battle seed, seats swapped",
+   "statistic": "normal-approximation GSPRT on pair scores (Fishtest)"
+  }
+ },
+ "G_not_lose_clone": {
+  "score": 0.66,
+  "ci95": [
+   0.5918836703220929,
+   0.7220856077840445
+  ],
+  "W": 132,
+  "L": 68,
+  "paired": {
+   "team_pairs": 100,
+   "both": 41,
+   "split": 50,
+   "lost": 9,
+   "incomplete": 0
+  },
+  "pass": true
+ },
+ "accepted": true
+}

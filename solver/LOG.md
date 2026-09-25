@@ -8,6 +8,14 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-25
 
+### Round 3 — gen5 ACCEPTED (same branch)
+- The changes: a strong DODUO anchor; PORYGON2 on 0.5·z + 0.5·deep value (exact replay, then 4 × 3-turn
+  human-clone rollouts; 0 mismatches over 39,538 positions); every round's data pooled (5,200 games).
+- **SPRT (elo0 0, elo1 +20, α = β = 0.05): H1 after 1,268 games, 0.528 [0.501, 0.556] against gen0.**
+- Human clone 0.660; PORYGON2 human gate PASS.
+- gen5 is the champion. `r3-sp0` (1,000 games) was played in the background for round 4.
+- Detail: report §12.
+
 ### gen4 ablation (same branch)
 - A, new PORYGON2 only: 0.465 [0.397, 0.534] against the champion.
 - B, DODUO refit with a strong human pull (drift +0.012 nats instead of +0.051), PORYGON2 v0: 0.500 [0.431, 0.569].

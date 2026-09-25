@@ -53,6 +53,21 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.4.0] — 2026-09-25 — **gen5 accepted: SPRT H1 at +20 Elo after 1,268 games (0.528 [0.501, 0.556])**
+- **What changed.**
+  - New: `solver/machamp/{deep_value,sprt}.js`, `preregistration-r3.json`, `league/gen5.json`, `models/gen5/`.
+  - `--deep` in `build_pory2.js`, `--cycle` in `play.js`, and `datasetActions` exported from `prior_adapter.js`.
+  - `test-machamp` gains DEEP and SPRT clauses.
+- **Measured.** Release `eaa5becc54eb`, 1,000 ms, depth 0, 3 workers:
+  - SPRT (elo0 0, elo1 +20, α = β = 0.05): H1, 634 pairs = 1,268 games, 670–598 = 0.528 [0.501, 0.556].
+  - Clone gate 0.660 [0.592, 0.722]; PORYGON2 human Δ −0.0030 [−0.0057, −0.0004].
+  - Deep values: 39,538 positions replayed, 0 mismatches. Background self-play: 493 games/hour on 2 workers.
+  - Sources: `solver/machamp/models/gen5/gates.json`, `solver/out/machamp/eaa5becc54eb/gates/gen5-sprt.json`.
+  - `test-machamp` 108/108, RED on eight breaks.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MEW and MACHAMP in `docs/MODELS.md`.
+
 ## [abra/regmc 1.3.0] — 2026-09-25 — **gen4 ablation: neither net detectably helps or hurts; the anchored DODUO is neutral and stays close to humans**
 - **What changed.** New: `solver/machamp/preregistration-ablation.json`, `league/abl-{A,B}.json`, `models/ablB/`.
   No code change.
