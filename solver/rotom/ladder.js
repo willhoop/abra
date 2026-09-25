@@ -30,6 +30,20 @@
  *
  * NEVER FORFEITS. Nothing here sends /forfeit. A crash is recovered by rotom.js's reconnect/rejoin and the watchdog.
  *
+ * EVERY WAIT IS BOUNDED (2026-09-25, the aa1 hang: docs/_reports/2026-09-25-rotom-series-hang.md). The loop waits on four
+ * things and each has a timeout with a logged recovery, so no single missing server message can stall it:
+ *   an open series      silent for SERIES_IDLE_MS -> probe the room (`/crq roominfo`, which the server always answers);
+ *                       gone, or still silent after SERIES_MAX_PROBES probes -> ORPHANED: logged, counted as a ladder
+ *                       error (so a run of them halts), no series row (its result is unknown), and the loop searches on
+ *   the rating lines    RATING_WAIT_MS, then the row is written without them (unchanged)
+ *   the guard answer    GUARD_TIMEOUT_MS, then fail closed (unchanged)
+ *   a search            SEARCH_MAX_MS in the queue -> cancel and search again; not logged in for LOGIN_WAIT_MS on an
+ *                       open socket -> drop the socket (the reconnect path logs in again), counted as an error
+ * A PRIVATE ROOM IS ONE SERIES UNDER TWO IDS. A player who hides the room makes the server rename it `<id>-<31>pw`
+ * (pokemon-showdown-mc server/rooms.ts setPrivacy -> rename(..., noAlias)); `|updatesearch|` can list both ids. The
+ * series record is keyed on the id, so canonRoom() (the id without the password suffix) is what says two ids are one
+ * series: a second id for an open series is an ALIAS, never a new k.
+ *
  * THE SERIES RECORD (one JSON line per series, <out>/ladder-series-<name>.jsonl): k, series id, arm and its full
  * config, team (id, archetype, source game), the engine release stamp, the plan digest, opponent, both players'
  * ratings before and after (the server's `NAME's rating: A &rarr; <strong>B</strong>` lines), S, E, S − E, games,
@@ -46,6 +60,12 @@ const PLAN_HORIZON = 5000;
 const GUARD_TTL_MS = 60000;
 const GUARD_TIMEOUT_MS = 15000;
 const RATING_WAIT_MS = 20000;
+const SERIES_IDLE_MS = 150000;     // no line in the series room or any of its battles for this long -> probe it
+const SERIES_PROBE_MS = 20000;     // one probe's wait, and the spacing between probes
+const SERIES_MAX_PROBES = 3;       // still silent after this many probes -> orphaned
+const LOGIN_WAIT_MS = 90000;       // an open socket not logged in for this long -> drop it and log in again
+const SEARCH_MAX_MS = 20 * 60000;  // in the queue this long -> cancel and search again
+const MATCH_JOIN_MS = 20000;       // a match listed by |updatesearch| whose room has not spoken yet holds the next search this long
 
 /* ---------------- pure helpers (unit-tested in solver/tests/test-rotom-ladder.js) ---------------- */
 const h32 = s => parseInt(crypto.createHash('sha256').update(s).digest('hex').slice(0, 8), 16);
@@ -68,6 +88,19 @@ function parseRatingLine(line) {
   const name = decodeHtml(m[1]);
   return { name, id: toID(name), before: +m[2], after: +m[3] };
 }
+/* a battle / bo3 room id without the `-<password>pw` suffix a hidden room gets (rooms.ts setPrivacy): the SAME series */
+function canonRoom(id) { const m = /^((?:battle|game-bestof\d+)-[a-z0-9]+-\d+)-[a-z0-9]+pw$/.exec(String(id || '')); return m ? m[1] : String(id || ''); }
+const isPrivateId = id => canonRoom(id) !== String(id || '');
+/* one open series' watch -> what to do now. w = { lastSeen, probes, probeSentAt, gone }. Pure; unit-tested. */
+function stallAction(w, now, cfg) {
+  const c = Object.assign({ idleMs: SERIES_IDLE_MS, probeMs: SERIES_PROBE_MS, maxProbes: SERIES_MAX_PROBES }, cfg || {});
+  if (w.gone) return { do: 'orphan', why: 'room gone (' + w.gone + ')' };
+  const idle = now - (w.lastSeen || 0);
+  if (idle < c.idleMs) return { do: 'none' };
+  if (w.probeSentAt && now - w.probeSentAt < c.probeMs) return { do: 'none', why: 'probe in flight' };
+  if ((w.probes || 0) >= c.maxProbes) return { do: 'orphan', why: 'silent ' + Math.round(idle / 1000) + ' s through ' + (w.probes || 0) + ' probes' };
+  return { do: 'probe', why: 'silent ' + Math.round(idle / 1000) + ' s' };
+}
 const expected = (rMe, rOpp) => 1 / (1 + Math.pow(10, (rOpp - rMe) / 400));
 /* a userdetails answer -> what the guard needs to know */
 function guardVerdict(d, formatPrefix) {
@@ -84,14 +117,17 @@ function nextAction(s) {
   if (s.setsDone + s.openSeries >= s.sets) return { do: s.openSeries ? 'wait' : 'exit', code: 0, why: 'set count reached (' + s.setsDone + '/' + s.sets + ')' };
   if (s.maxErrors && s.consecErrors >= s.maxErrors) return { do: 'halt', why: s.consecErrors + ' consecutive errors' };
   if (s.deadline && s.now > s.deadline) return s.searching ? { do: 'cancel', why: 'session time cap' } : { do: s.openSeries ? 'wait' : 'exit', code: 0, why: 'session time cap' };
-  if (!s.loggedIn) return { do: 'wait', why: 'not logged in' };
+  if (!s.loggedIn) return s.socketOpen && s.loggedOutSince && s.now - s.loggedOutSince >= (s.loginWaitMs || LOGIN_WAIT_MS)
+    ? { do: 'relogin', why: 'socket open but not logged in for ' + Math.round((s.now - s.loggedOutSince) / 1000) + ' s' } : { do: 'wait', why: 'not logged in' };
   if (s.openSeries) return { do: 'wait', why: 'series in progress' };
   const g = s.guard;
   const fresh = g && g.at && s.now - g.at < GUARD_TTL_MS;
   if (g && g.blocked) return s.searching ? { do: 'cancel', why: 'guard: ' + g.blocked } : (fresh ? { do: 'wait', why: 'guard: ' + g.blocked } : { do: 'query-guard', why: 'guard re-check' });
   if (!fresh) return g && g.pendingSince && s.now - g.pendingSince < GUARD_TIMEOUT_MS ? { do: 'wait', why: 'guard query in flight' } : { do: 'query-guard', why: 'guard stale' };
-  if (s.searching) return { do: 'wait', why: 'searching' };
+  if (s.searching) return s.searchingSince && s.now - s.searchingSince >= (s.searchMaxMs || SEARCH_MAX_MS)
+    ? { do: 'cancel', why: 'search timeout: in the queue ' + Math.round((s.now - s.searchingSince) / 60000) + ' min, searching again' } : { do: 'wait', why: 'searching' };
   if (s.searchSentAt && s.now - s.searchSentAt < 10000) return { do: 'wait', why: 'search sent' };
+  if (s.matchedAt && s.now - s.matchedAt < MATCH_JOIN_MS) return { do: 'wait', why: 'matched, joining the series room' };
   return { do: 'search', why: 'guard clear' };
 }
 
@@ -130,7 +166,8 @@ function create(o) {
   const guardUsers = (o.guardUsers || []).map(toID).filter(Boolean);
   if (guardUsers.includes(toID(o.name))) throw new Error('the ladder account ' + o.name + ' is on its own guard list');
   const G = { at: 0, blocked: null, pendingSince: 0, answers: {} };
-  let searching = false, searchSentAt = 0, stopRequested = null, exiting = false;
+  let searching = false, searchSentAt = 0, searchingSince = 0, matchedAt = 0, stopRequested = null, exiting = false, lastRelogin = 0;
+  S.orphans = S.orphans || [];
   const series = new Map();   // bestof id -> live record
   const deadline = o.maxHours ? now() + o.maxHours * 3600e3 : 0;
 
@@ -177,7 +214,8 @@ function create(o) {
   }
   function snapshotState() {
     return { halted: S.halted, stopFile: stopRequested || stopFile(), setsDone: o.setsDone(), openSeries: o.openSeries(), sets: o.sets, maxErrors: o.maxErrors,
-             consecErrors: S.consecErrors, deadline, now: now(), loggedIn: o.loggedIn(), searching, searchSentAt,
+             consecErrors: S.consecErrors, deadline, now: now(), loggedIn: o.loggedIn(), searching, searchSentAt, searchingSince, matchedAt, searchMaxMs: o.searchMaxMs,
+             socketOpen: o.socketOpen ? o.socketOpen() : false, loggedOutSince: o.loggedOutSince ? o.loggedOutSince() : 0, loginWaitMs: o.loginWaitMs,
              guard: { at: G.at, blocked: G.blocked, pendingSince: G.pendingSince } };
   }
   function tick(why) {
@@ -188,14 +226,17 @@ function create(o) {
     if (a.do === 'search') {
       const p = pending();
       const team = o.rotation.teams.find(t => t.id === p.team);
+      if (o.preSearch) o.preSearch();   // dry run only: `/hidenext`, so the series is PRIVATE (renamed `<id>-<pw>pw`)
       o.send('|/utm ' + team.packed);
       o.send('|/search ' + o.format);
       searchSentAt = now(); S.searches = (S.searches || 0) + 1; save();
       o.say('SEARCH ' + o.format + ' — series k=' + p.k + ' arm ' + p.arm + ' team ' + p.team);
       o.event('ladder_search', { k: p.k, arm: p.arm, team: p.team });
     } else if (a.do === 'cancel') {
-      o.send('|/cancelsearch'); searching = false; searchSentAt = 0;
+      o.send('|/cancelsearch'); searching = false; searchSentAt = 0; searchingSince = 0;
       o.say('CANCEL SEARCH — ' + a.why); o.event('ladder_cancel', { why: a.why });
+    } else if (a.do === 'relogin') {
+      if (now() - lastRelogin >= (o.loginWaitMs || LOGIN_WAIT_MS)) { lastRelogin = now(); error('login', a.why + ' — dropping the socket to log in again'); if (o.reconnect) o.reconnect(a.why); }
     } else if (a.do === 'query-guard') queryGuard();
     else if (a.do === 'halt') {
       S.halted = a.why; save(); o.say('HALTED: ' + a.why + ' — no new searches'); o.event('ladder_halt', { why: a.why });
@@ -206,8 +247,12 @@ function create(o) {
   function onUpdateSearch(d) {
     const was = searching;
     searching = !!(d && Array.isArray(d.searching) && d.searching.map(toID).includes(toID(o.format)));
-    if (searching) searchSentAt = 0;
+    if (searching) { searchSentAt = 0; if (!was) searchingSince = now(); } else searchingSince = 0;
     if (was !== searching) o.event('ladder_searching', { searching });
+    /* a match: the server lists the new series room a moment before the room itself speaks. Until it does (bounded by
+     * MATCH_JOIN_MS) no new search may go out — else a second search races the series it just found */
+    const fresh = Object.keys((d && d.games) || {}).filter(r => /^game-bestof/.test(r) && ![...series.keys()].some(id => canonRoom(id) === canonRoom(r)));
+    if (fresh.length) { if (!matchedAt) o.event('ladder_matched', { rooms: fresh }); matchedAt = now(); }
   }
   function onPopup(text) {
     if (/team was rejected|Couldn't search|can't search|cannot search|are already searching|must choose a team|not.*allowed|banned|locked/i.test(text) && !/already searching/i.test(text)) {
@@ -217,6 +262,11 @@ function create(o) {
   function onLoginFailed(detail) { error('login', detail); }
   function onSeriesStart(room) {
     if (series.has(room)) return series.get(room);
+    /* the same series under its other id (a hidden room is renamed `<id>-<pw>pw`): an ALIAS, never a new k */
+    for (const [id, r] of series) if (!r.finalized && !r.orphaned && canonRoom(id) === canonRoom(room)) {
+      series.set(room, r); o.event('ladder_series_alias', { room, of: id, k: r.k });
+      return r;
+    }
     const known = o.bookGet(room);
     let rec;
     /* a restarted process: the arm and team come from the series book; the counters restart with the process, so the
@@ -224,7 +274,7 @@ function create(o) {
     if (known && known.ladder) rec = Object.assign({}, known.ladder, { resumed: true, counters_before: o.counters(), counters_partial: true });
     else {
       const p = pending();
-      S.k = p.k; S.pending = null; searching = false; searchSentAt = 0; save();
+      S.k = p.k; S.pending = null; searching = false; searchSentAt = 0; matchedAt = 0; save();
       const team = o.rotation.teams.find(t => t.id === p.team);
       rec = { k: p.k, arm: p.arm, arm_config: o.arms.arms[p.arm], team: p.team, team_meta: { archetype: team.archetype && team.archetype.label, from_game: team.from_game, rating: team.rating },
               started: new Date(now()).toISOString(), counters_before: o.counters() };
@@ -255,6 +305,7 @@ function create(o) {
   }
   function onSeriesEnd(bestof, res) {
     const r = series.get(bestof) || onSeriesStart(bestof);
+    if (r.orphaned) { o.event('ladder_win_after_orphan', { room: bestof, k: r.k, result: res }); return; }   // already counted; never a second verdict
     r.ended = new Date(now()).toISOString(); r.result = res;
     r.counters_after = o.counters();
     o.say('LADDER series k=' + r.k + ' over — waiting up to ' + RATING_WAIT_MS / 1000 + ' s for the rating lines');
@@ -284,11 +335,32 @@ function create(o) {
     o.event('ladder_series_row', { k: r.k, arm: r.arm, S: Sc, E: row.E, residual: row.residual, rated: row.rated });
     o.say('LADDER ROW k=' + r.k + ' arm ' + r.arm + ' S=' + Sc + (E == null ? ' (no rating lines)' : ' E=' + E.toFixed(3)));
   }
+  /* the room was renamed (a hidden series): the record follows it */
+  function renameSeries(from, to) {
+    const r = series.get(from); if (!r) return null;
+    series.delete(from); if (!series.has(to)) series.set(to, r);
+    o.event('ladder_series_rename', { from, to, k: r.k });
+    return r;
+  }
+  /* a series the client can no longer see (room gone, or silent through every probe): no row — its result is unknown —
+   * but it is logged, kept in the state, and counted as an error, so a run of them halts the ladder rather than hiding */
+  function onSeriesOrphan(room, why) {
+    const r = series.get(room);
+    if (r && (r.finalized || r.orphaned)) return;
+    if (r) r.orphaned = why;
+    const rec = { at: new Date(now()).toISOString(), room, k: r ? r.k : null, arm: r ? r.arm : null, team: r ? r.team : null, why: String(why || '').slice(0, 200) };
+    S.orphans.push(rec); if (S.orphans.length > 200) S.orphans.shift();
+    o.event('ladder_series_orphan', rec);
+    o.say('SERIES ORPHANED k=' + rec.k + ' ' + room + ' — ' + rec.why + ' (no row; counted as an error; searching on)');
+    error('series_orphan', 'k=' + rec.k + ' ' + rec.why);
+    tick('series orphaned');
+  }
   function requestStop(why) { stopRequested = why; o.event('ladder_stop_requested', { why }); tick('stop requested'); }
   /* a process that restarts after a crash counts one error (the watchdog restarted it) */
   if (o.restartedAfterCrash) error('restart', 'process restarted by the watchdog');
-  return { tick, onQuery, onUpdateSearch, onPopup, onLoginFailed, onSeriesStart, onSeriesEnd, onPlayer, onRaw, armOf, teamOf, requestStop,
+  return { tick, onQuery, onUpdateSearch, onPopup, onLoginFailed, onSeriesStart, onSeriesEnd, onPlayer, onRaw, armOf, teamOf, requestStop, renameSeries, onSeriesOrphan,
            state: () => S, plan: () => S.plan, pendingAssignment: pending, isSearching: () => searching, seriesFile: SERIESF };
 }
 
-module.exports = { create, assign, planDigest, parseRatingLine, expected, guardVerdict, nextAction, releaseAllowed, GATE_RELEASE, GUARD_TTL_MS, GUARD_TIMEOUT_MS };
+module.exports = { create, assign, planDigest, parseRatingLine, expected, guardVerdict, nextAction, releaseAllowed, canonRoom, isPrivateId, stallAction,
+                   GATE_RELEASE, GUARD_TTL_MS, GUARD_TIMEOUT_MS, SERIES_IDLE_MS, SERIES_PROBE_MS, SERIES_MAX_PROBES, LOGIN_WAIT_MS, SEARCH_MAX_MS, MATCH_JOIN_MS };

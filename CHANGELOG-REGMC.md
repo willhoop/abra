@@ -21,6 +21,31 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.12.0] — 2026-09-25
+
+### Fixed
+- **ROTOM's ladder loop hung after every PRIVATE series** (both aa1 hangs, after k=3 and k=6). When an opponent
+  hides the room, the server renames it `<id>-<31 chars>pw`, and `|updatesearch|` lists both ids. The client joined
+  both. The old id answered `|noinit|nonexistent|`, and `rotom.js` created a series record from that line. The
+  controller counted it as series k+1, it could never end, and the loop waited "series in progress" forever with no
+  error. Now a `noinit`/`deinit` line never creates a record, a rename moves it, `ladder.canonRoom()` makes the old
+  id an alias of the open series, and the pre-rename id is not joined. A race that could send a second `/search`
+  before a matched room spoke is closed (`MATCH_JOIN_MS`).
+
+### Added
+- **Every wait in the ladder loop is bounded, with a logged recovery.** A series silent for 150 s is probed with
+  `/crq roominfo`. If it is gone, or silent through 3 probes, it is orphaned: logged, counted as a ladder error, no
+  row. A search older than 20 min is re-sent. A socket not logged in after 90 s is dropped and logged in again. The
+  login POST times out at 30 s.
+- **A supervisor hang watchdog** (`solver/rotom/watchdog.js`, `run_ladder.js --hang-min`, default 10). A client with
+  no search, decision, game message or guard answer for that long, and no game open, is killed by its pid and
+  resumed through the crash path. Each restart writes an incident to `supervisor-incidents.jsonl`. It never fires
+  with a game open.
+- `solver/tests/test-rotom-private-series.js` replays both aa1 sequences through the real client against a
+  scripted local server. It is GREEN 23/23, and RED on the old code: phantom k=2, no search. A 3-series local dry
+  run (`--hide-b --drill-a hang@1`) played every series in a private room, and the watchdog restarted the hung
+  client once. The run gave 6 rows and 0 orphans. `docs/_reports/2026-09-25-rotom-series-hang.md`.
+
 ## [1.11.0] — 2026-09-25
 
 ### Added

@@ -16,6 +16,12 @@
  * on; it never forfeits. The supervisor also polls the KILL file (solver/out/rotom/KILL by default, or <out>/KILL in a
  * dry run) and, if it appears, kills ITS OWN children by pid (taskkill /PID <pid> /T) — never by image name.
  *
+ * THE HANG WATCHDOG (solver/rotom/watchdog.js; the aa1 hangs, docs/_reports/2026-09-25-rotom-series-hang.md). No human
+ * restarts this bot, so the supervisor also restarts a client that is ALIVE BUT NOT MOVING: no search, decision or
+ * game message (and no guard answer) for --hang-min minutes (default 10) while no game is open. It kills that client by
+ * its own pid, logs an incident to <out>/supervisor-incidents.jsonl, and relaunches it through the same resume path as
+ * after a crash. It never fires while a game is open. --hang-min 0 turns it off; --max-hang-restarts (default 20) caps it.
+ *
  * THE DRY RUN, in addition:
  *   - installs solver/rotom/netguard.js in THIS process, and in the local pokemon-showdown-mc server and every process
  *     it forks (NODE_OPTIONS=--require netguard.js, ROTOM_NETGUARD=<out>/netguard-server.jsonl), and the clients install
@@ -78,16 +84,23 @@ const OUT = path.resolve(flag('out', path.join(LIVE_DIR, TAG + '-' + new Date().
 fs.mkdirSync(OUT, { recursive: true });
 const NG = DRY ? require('./netguard.js').install({ log: path.join(OUT, 'netguard-supervisor.jsonl') }) : null;
 for (const k of ['release', 'arms', 'ladder-seed', 'sets']) if (!flag(k, '')) { console.error('--' + k + ' is required'); process.exit(2); }
-const PASS = ['release', 'arms', 'sets', 'max-errors', 'max-hours', 'guard', 'guard-mode', 'seed', 'margin', 'reserve', 'min-search-ms', 'rotation', 'priority']
+const PASS = ['release', 'arms', 'sets', 'max-errors', 'max-hours', 'guard', 'guard-mode', 'seed', 'margin', 'reserve', 'min-search-ms', 'rotation', 'priority', 'series-idle-ms', 'series-probe-ms', 'series-max-probes']
   .filter(k => flag(k, null) != null).flatMap(k => ['--' + k, flag(k)]);
 const KILLF = path.resolve(flag('kill-file', DRY ? path.join(OUT, 'KILL') : path.join(LIVE_DIR, 'KILL')));
 const MAX_RESTARTS = +flag('max-restarts', 5);
+const WD = require('./watchdog.js');
+const HANG_MS = +flag('hang-min', WD.HANG_MS / 60000) * 60000;
+const GAME_OPEN_MS = +flag('hang-game-open-min', WD.GAME_OPEN_MS / 60000) * 60000;
+const MAX_HANG_RESTARTS = +flag('max-hang-restarts', 20);
+const INCIDENTS = path.join(OUT, 'supervisor-incidents.jsonl');
+const incident = (o) => { try { fs.appendFileSync(INCIDENTS, JSON.stringify(Object.assign({ at: new Date().toISOString() }, o)) + '\n'); } catch (e) { /* never fatal */ } };
 const PIDS = { supervisor: process.pid, clients: [], server: null, started: new Date().toISOString() };
 const savePids = () => fs.writeFileSync(path.join(OUT, 'pids.json'), JSON.stringify(PIDS, null, 1));
 
 function client(name, extra) {
-  const st = { name, restarts: 0, exits: [], done: false, proc: null };
+  const st = { name, restarts: 0, hangRestarts: 0, exits: [], done: false, proc: null, watch: WD.create(OUT, name, { hangMs: HANG_MS, gameOpenMs: GAME_OPEN_MS }) };
   const launch = () => {
+    st.watch.restarted(Date.now());
     const args = ['/c', path.join('tools', 'lownode.cmd'), 'solver/rotom/rotom.js', '--ladder', '--name', name, '--out', OUT].concat(PASS, extra);
     if (!extra.includes('--ladder-seed')) args.push('--ladder-seed', flag('ladder-seed'));
     const outFd = fs.openSync(path.join(OUT, 'stdout-' + name + '.log'), 'a');
@@ -98,6 +111,11 @@ function client(name, extra) {
       st.exits.push({ code, at: new Date().toISOString() });
       if (FINAL.has(code)) { st.done = true; st.final = code; log(name + ' exited ' + code + ' (final)'); return; }
       if (st.killed) { st.done = true; return; }
+      if (st.hangKill) {   // the watchdog stopped a client that was alive but not moving: resume it
+        st.hangKill = false;
+        if (st.hangRestarts > MAX_HANG_RESTARTS) { st.done = true; st.failed = true; log(name + ' hang restart limit (' + MAX_HANG_RESTARTS + ') reached, not restarting'); incident({ client: name, kind: 'hang_limit' }); return; }
+        log(name + ' — WATCHDOG hang restart #' + st.hangRestarts); setTimeout(launch, 3000); return;
+      }
       if (st.restarts >= MAX_RESTARTS) { st.done = true; st.failed = true; log(name + ' exited ' + code + ' — restart limit reached, not restarting'); return; }
       st.restarts++; log(name + ' exited ' + code + ' — WATCHDOG restart #' + st.restarts);
       setTimeout(launch, 3000);
@@ -105,6 +123,17 @@ function client(name, extra) {
   };
   launch();
   return st;
+}
+/* the hang watchdog: one poll per client per supervisor pass */
+function watchHang(st) {
+  if (!HANG_MS || st.done || !st.proc || st.hangKill || st.proc.exitCode !== null) return;
+  const v = st.watch.poll(Date.now());
+  if (!v.restart) { if (v.openGames && v.openGames.length && v.idleMs >= HANG_MS && !st.warnedOpen) { st.warnedOpen = true; log(st.name + ' ' + v.why); } return; }
+  st.warnedOpen = false; st.hangRestarts++; st.hangKill = true;
+  const rec = { client: st.name, kind: 'hang', pid: st.proc.pid, idle_s: Math.round(v.idleMs / 1000), last_progress: v.lastProgress ? new Date(v.lastProgress).toISOString() : null, why: v.why, restart: st.hangRestarts };
+  incident(rec);
+  log('WATCHDOG: ' + st.name + ' (pid ' + st.proc.pid + ') ' + v.why + ' — killing it by pid and resuming');
+  cp.spawnSync('taskkill', ['/PID', String(st.proc.pid), '/T', '/F']);
 }
 
 
@@ -146,7 +175,7 @@ async function main() {
     const gw = flag('guard-window', '');
     if (gw) { const [a, b] = gw.split(':').map(Number); guardEv = guardWindow(port, (flag('guard', 'willhoop').split(',')[0]), a, b); }
     /* B draws its own arm/team sequence from <seed>-b, so the two sides of a dry-run series differ */
-    const drill = k => flag('drill-' + k, '') ? ['--drill', flag('drill-' + k)] : [];
+    const drill = k => (flag('drill-' + k, '') ? ['--drill', flag('drill-' + k)] : []).concat(has('hide-' + k) ? ['--hide-next'] : []);   // --hide-a/--hide-b: that side hides its series
     clients.push(client('rotom' + t + 'a', common.concat(drill('a'))));
     await sleep(2000);
     clients.push(client('rotom' + t + 'b', common.concat(['--seed', '2', '--ladder-seed', flag('ladder-seed') + '-b'], drill('b'))));
@@ -158,6 +187,7 @@ async function main() {
   const cap = +flag('timeout-min', DRY ? 180 : 0) * 60000;
   while (!clients.every(c => c.done)) {
     await sleep(2000);
+    for (const c of clients) watchHang(c);
     if (fs.existsSync(KILLF)) {
       log('KILL file ' + KILLF + ' — killing my clients by pid');
       for (const c of clients) if (!c.done && c.proc) { c.killed = true; cp.spawnSync('taskkill', ['/PID', String(c.proc.pid), '/T', '/F']); }
@@ -167,7 +197,9 @@ async function main() {
   }
   await sleep(1500);
   /* the report */
-  const R = { run, wall_s: Math.round((Date.now() - t0) / 1000), clients: clients.map(c => ({ name: c.name, restarts: c.restarts, exits: c.exits, final: c.final, failed: !!c.failed, killed: !!c.killed })) };
+  const R = { run, wall_s: Math.round((Date.now() - t0) / 1000), clients: clients.map(c => ({ name: c.name, restarts: c.restarts, hang_restarts: c.hangRestarts, exits: c.exits, final: c.final, failed: !!c.failed, killed: !!c.killed })),
+    watchdog: { hang_min: HANG_MS / 60000, game_open_min: GAME_OPEN_MS / 60000, max_hang_restarts: MAX_HANG_RESTARTS,
+                incidents: (() => { try { return fs.readFileSync(INCIDENTS, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)); } catch (e) { return []; } })() } };
   try { R.protocol = require('./report.js').aggregate(OUT); } catch (e) { R.protocol = { error: e.message }; }
   const rows = [];
   for (const f of fs.readdirSync(OUT).filter(f => /^ladder-series-.*\.jsonl$/.test(f))) for (const l of fs.readFileSync(path.join(OUT, f), 'utf8').split('\n').filter(Boolean)) rows.push(JSON.parse(l));
@@ -177,7 +209,7 @@ async function main() {
   R.rated_rows = rows.filter(r => r.rated).length;
   R.residuals = rows.map(r => ({ client: r.client, k: r.k, arm: r.arm, team: r.team, S: r.S, E: r.E, residual: r.residual, opp: r.opponent, fallbacks: r.during_series.fallbacks, invalid: r.during_series.invalid, timeouts: r.during_series.timeouts }));
   const states = fs.readdirSync(OUT).filter(f => /^ladder-state-.*\.json$/.test(f)).map(f => JSON.parse(fs.readFileSync(path.join(OUT, f), 'utf8')));
-  R.guard = states.map(s => ({ checks: s.guard.checks, pauses: s.guard.pauses, unknown: s.guard.unknown, incidents: s.incidents, halted: s.halted, consec_errors: s.consecErrors, searches: s.searches, plan: s.plan.digest.slice(0, 16) }));
+  R.guard = states.map(s => ({ checks: s.guard.checks, pauses: s.guard.pauses, unknown: s.guard.unknown, incidents: s.incidents, halted: s.halted, consec_errors: s.consecErrors, searches: s.searches, orphans: (s.orphans || []).length, errors: (s.errors || []).map(e => e.kind), plan: s.plan.digest.slice(0, 16) }));
   R.guard_window = guardEv;
   if (DRY) {
     const ng = {};

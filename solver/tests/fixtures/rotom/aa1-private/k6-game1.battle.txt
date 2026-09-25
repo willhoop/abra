@@ -1,0 +1,277 @@
+|title|medicham32 vs. a8592
+|j|☆medicham32
+|j|☆a8592
+|html|<table width="100%"><tr><td align="left">medicham32</td><td align="right">a8592</tr><tr><td align="left"><i class="fa fa-circle-o"></i> <i class="fa fa-circle-o"></i> </td><td align="right"><i class="fa fa-circle-o"></i> <i class="fa fa-circle-o"></i> </tr></table>
+|uhtml|bestof|<h2><strong>Game 1</strong> of <a href="/game-bestof3-gen9championsvgc2026regmcbo3-2687898010-na7wktj7aue0kgvmvhpwk2x2fcv2rcmpw">a best-of-3</a></h2>
+|t:|1790373155
+|gametype|doubles
+|player|p1|medicham32|266|1062
+|player|p2|a8592|265|1155
+|gen|9
+|tier|[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)
+|rated|
+|rule|Species Clause: Limit one of each Pokémon
+|rule|Item Clause: Limit 1 of each item
+|clearpoke
+|poke|p1|Gengar, L50, M|
+|poke|p1|Incineroar, L50, M|
+|poke|p1|Rillaboom, L50, M|
+|poke|p1|Kingambit, L50, F|
+|poke|p1|Hippowdon, L50, F|
+|poke|p1|Sneasler, L50, F|
+|poke|p2|Pelipper, L50, F|
+|poke|p2|Basculegion, L50, M|
+|poke|p2|Archaludon, L50, M|
+|poke|p2|Salamence, L50, M|
+|poke|p2|Rillaboom, L50, F|
+|poke|p2|Scizor, L50, F|
+|teampreview|4
+|showteam|p1|Gengar||Gengarite|CursedBody|ShadowBall,SludgeBomb,Substitute,Protect|Timid||M|||50|]Incineroar||SitrusBerry|Intimidate|FakeOut,FlareBlitz,Snarl,PartingShot|Impish||M|||50|]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,GrassyGlide,LowKick,FakeOut|Adamant||M|||50|]Kingambit||LifeOrb|Defiant|SuckerPunch,KowtowCleave,SwordsDance,Protect|Adamant||F|||50|]Hippowdon||Leftovers|SandStream|HighHorsepower,StoneEdge,Yawn,Protect|Careful||F|||50|]Sneasler||WhiteHerb|Unburden|CloseCombat,DireClaw,FakeOut,Protect|Adamant||F|||50|
+|showteam|p2|Pelipper||FocusSash|Drizzle|Hurricane,WeatherBall,Tailwind,Protect|Modest||F|||50|]Basculegion||ChoiceScarf|Adaptability|WaveCrash,LastRespects,AquaJet,FlipTurn|Jolly||M|||50|]Archaludon||Leftovers|Stamina|DragonPulse,ElectroShot,FlashCannon,Protect|Modest||M|||50|]Salamence||Salamencite|Intimidate|HyperVoice,DracoMeteor,Flamethrower,Protect|Timid||M|||50|]Rillaboom||MiracleSeed|GrassySurge|GrassyGlide,WoodHammer,Uturn,FakeOut|Adamant||F|||50|]Scizor||Scizorite|Technician|SwordsDance,BugBite,BulletPunch,Protect|Adamant||F|||50|
+|raw|<strong class="message-throttle-notice">Your message was not sent because you've been typing too quickly.</strong>
+|raw|<strong class="message-throttle-notice">Your message was not sent because you've been typing too quickly.</strong>
+|
+|t:|1790373317
+|teamsize|p1|4
+|teamsize|p2|4
+|start
+|switch|p1a: Gengar|Gengar, L50, M|167/167
+|switch|p1b: Incineroar|Incineroar, L50, M|202/202
+|switch|p2a: Rillaboom|Rillaboom, L50, F|100/100
+|switch|p2b: Scizor|Scizor, L50, F|100/100
+|-fieldstart|move: Grassy Terrain|[from] ability: Grassy Surge|[of] p2a: Rillaboom
+|-ability|p1b: Incineroar|Intimidate|boost
+|-unboost|p2a: Rillaboom|atk|1
+|-unboost|p2b: Scizor|atk|1
+|turn|1
+|
+|t:|1790373337
+|switch|p2a: Pelipper|Pelipper, L50, F|100/100
+|-weather|RainDance|[from] ability: Drizzle|[of] p2a: Pelipper
+|detailschange|p1a: Gengar|Gengar-Mega, L50, M
+|-mega|p1a: Gengar|Gengar|Gengarite
+|move|p1b: Incineroar|Fake Out|p2b: Scizor
+|-resisted|p2b: Scizor|1
+|-damage|p2b: Scizor|93/100
+|move|p1a: Gengar|Substitute|p1a: Gengar
+|-start|p1a: Gengar|Substitute
+|-damage|p1a: Gengar|126/167
+|cant|p2b: Scizor|flinch
+|
+|-weather|RainDance|[upkeep]
+|-heal|p1a: Gengar|136/167|[from] Grassy Terrain
+|-heal|p2b: Scizor|99/100|[from] Grassy Terrain
+|upkeep
+|turn|2
+|
+|t:|1790373355
+|move|p1a: Gengar|Protect|p1a: Gengar
+|-singleturn|p1a: Gengar|Protect
+|move|p2a: Pelipper|Tailwind|p2a: Pelipper
+|-sidestart|p2: a8592|move: Tailwind
+|move|p2b: Scizor|Swords Dance|p2b: Scizor
+|-boost|p2b: Scizor|atk|2
+|move|p1b: Incineroar|Parting Shot|p2a: Pelipper
+|-unboost|p2a: Pelipper|atk|1
+|-unboost|p2a: Pelipper|spa|1
+|
+|t:|1790373355
+|switch|p1b: Rillaboom|Rillaboom, L50, M|207/207|[from] Parting Shot
+|
+|-weather|RainDance|[upkeep]
+|-heal|p2b: Scizor|100/100|[from] Grassy Terrain
+|-heal|p1a: Gengar|146/167|[from] Grassy Terrain
+|upkeep
+|turn|3
+|
+|t:|1790373370
+|move|p1b: Rillaboom|Fake Out|p2b: Scizor
+|-resisted|p2b: Scizor|1
+|-damage|p2b: Scizor|91/100
+|move|p2a: Pelipper|Hurricane|p1b: Rillaboom
+|-supereffective|p1b: Rillaboom|1
+|-damage|p1b: Rillaboom|49/207
+|cant|p2b: Scizor|flinch
+|move|p1a: Gengar|Substitute|p1a: Gengar
+|-fail|p1a: Gengar|move: Substitute
+|
+|-weather|RainDance|[upkeep]
+|-heal|p2b: Scizor|97/100|[from] Grassy Terrain
+|-heal|p1a: Gengar|156/167|[from] Grassy Terrain
+|-heal|p1b: Rillaboom|61/207|[from] Grassy Terrain
+|upkeep
+|turn|4
+|
+|t:|1790373383
+|switch|p1b: Incineroar|Incineroar, L50, M|202/202
+|-ability|p1b: Incineroar|Intimidate|boost
+|-unboost|p2a: Pelipper|atk|1
+|-unboost|p2b: Scizor|atk|1
+|move|p1a: Gengar|Protect|p1a: Gengar
+|-singleturn|p1a: Gengar|Protect
+|move|p2a: Pelipper|Weather Ball|p1a: Gengar
+|-activate|p1a: Gengar|move: Protect
+|move|p2b: Scizor|Bug Bite|p1b: Incineroar
+|-damage|p1b: Incineroar|106/202
+|-enditem|p1b: Incineroar|Sitrus Berry|[from] stealeat|[move] Bug Bite|[of] p2b: Scizor
+|-heal|p2b: Scizor|100/100|[from] item: Sitrus Berry
+|
+|-weather|RainDance|[upkeep]
+|-heal|p1a: Gengar|166/167|[from] Grassy Terrain
+|-heal|p1b: Incineroar|118/202|[from] Grassy Terrain
+|upkeep
+|turn|5
+|
+|t:|1790373403
+|move|p1b: Incineroar|Fake Out|p2b: Scizor
+|-resisted|p2b: Scizor|1
+|-damage|p2b: Scizor|92/100
+|cant|p2b: Scizor|flinch
+|move|p2a: Pelipper|Weather Ball|p1a: Gengar
+|-crit|p1a: Gengar
+|-end|p1a: Gengar|Substitute
+|move|p1a: Gengar|Substitute|p1a: Gengar
+|-start|p1a: Gengar|Substitute
+|-damage|p1a: Gengar|125/167
+|
+|-weather|none
+|-heal|p2b: Scizor|98/100|[from] Grassy Terrain
+|-heal|p1a: Gengar|135/167|[from] Grassy Terrain
+|-heal|p1b: Incineroar|130/202|[from] Grassy Terrain
+|-sideend|p2: a8592|move: Tailwind
+|-fieldend|move: Grassy Terrain
+|upkeep
+|turn|6
+|
+|t:|1790373416
+|move|p1a: Gengar|Protect|p1a: Gengar
+|-singleturn|p1a: Gengar|Protect
+|move|p2b: Scizor|Protect|p2b: Scizor
+|-singleturn|p2b: Scizor|Protect
+|move|p2a: Pelipper|Tailwind|p2a: Pelipper
+|-sidestart|p2: a8592|move: Tailwind
+|move|p1b: Incineroar|Flare Blitz|p2b: Scizor
+|-activate|p2b: Scizor|move: Protect
+|
+|upkeep
+|turn|7
+|
+|t:|1790373431
+|switch|p1a: Kingambit|Kingambit, L50, F|207/207
+|move|p2a: Pelipper|Hurricane|p1b: Incineroar
+|-damage|p1b: Incineroar|63/202
+|move|p2b: Scizor|Bug Bite|p1b: Incineroar
+|-damage|p1b: Incineroar|0 fnt
+|faint|p1b: Incineroar
+|
+|upkeep
+|
+|t:|1790373432
+|switch|p1b: Gengar|Gengar-Mega, L50, M|135/167
+|turn|8
+|
+|t:|1790373450
+|move|p1b: Gengar|Protect|p1b: Gengar
+|-singleturn|p1b: Gengar|Protect
+|move|p2a: Pelipper|Hurricane|p1b: Gengar
+|-activate|p1b: Gengar|move: Protect
+|move|p2b: Scizor|Bug Bite|p1a: Kingambit
+|-damage|p1a: Kingambit|125/207
+|move|p1a: Kingambit|Swords Dance|p1a: Kingambit
+|-boost|p1a: Kingambit|atk|2
+|
+|upkeep
+|turn|9
+|
+|t:|1790373470
+|move|p1a: Kingambit|Protect|p1a: Kingambit
+|-singleturn|p1a: Kingambit|Protect
+|move|p2b: Scizor|Bullet Punch|p1b: Gengar
+|-damage|p1b: Gengar|59/167
+|move|p2a: Pelipper|Hurricane|p1b: Gengar
+|-damage|p1b: Gengar|0 fnt
+|faint|p1b: Gengar
+|
+|-sideend|p2: a8592|move: Tailwind
+|upkeep
+|
+|t:|1790373470
+|switch|p1b: Rillaboom|Rillaboom, L50, M|61/207
+|-fieldstart|move: Grassy Terrain|[from] ability: Grassy Surge|[of] p1b: Rillaboom
+|turn|10
+|
+|t:|1790373483
+|switch|p2a: Rillaboom|Rillaboom, L50, F|100/100
+|move|p1b: Rillaboom|Fake Out|p2b: Scizor
+|-resisted|p2b: Scizor|1
+|-damage|p2b: Scizor|90/100
+|cant|p2b: Scizor|flinch
+|move|p1a: Kingambit|Swords Dance|p1a: Kingambit
+|-boost|p1a: Kingambit|atk|2
+|
+|-heal|p1b: Rillaboom|73/207|[from] Grassy Terrain
+|-heal|p2b: Scizor|96/100|[from] Grassy Terrain
+|-heal|p1a: Kingambit|137/207|[from] Grassy Terrain
+|upkeep
+|turn|11
+|
+|t:|1790373494
+|move|p1a: Kingambit|Protect|p1a: Kingambit
+|-singleturn|p1a: Kingambit|Protect
+|move|p2a: Rillaboom|Fake Out|p1a: Kingambit
+|-activate|p1a: Kingambit|move: Protect
+|move|p1b: Rillaboom|Low Kick|p2b: Scizor
+|-crit|p2b: Scizor
+|-damage|p2b: Scizor|40/100
+|move|p2b: Scizor|Bug Bite|p1b: Rillaboom
+|-supereffective|p1b: Rillaboom|1
+|-damage|p1b: Rillaboom|0 fnt
+|faint|p1b: Rillaboom
+|
+|-heal|p2b: Scizor|46/100|[from] Grassy Terrain
+|-heal|p1a: Kingambit|149/207|[from] Grassy Terrain
+|upkeep
+|turn|12
+|
+|t:|1790373512
+|move|p2b: Scizor|Bullet Punch|p1a: Kingambit
+|-resisted|p1a: Kingambit|1
+|-damage|p1a: Kingambit|123/207
+|move|p1a: Kingambit|Sucker Punch||[still]
+|-fail|p1a: Kingambit
+|move|p2a: Rillaboom|Wood Hammer|p1a: Kingambit
+|-resisted|p1a: Kingambit|1
+|-crit|p1a: Kingambit
+|-damage|p1a: Kingambit|20/207
+|-damage|p2a: Rillaboom|82/100|[from] Recoil
+|
+|-heal|p2a: Rillaboom|88/100|[from] Grassy Terrain
+|-heal|p2b: Scizor|52/100|[from] Grassy Terrain
+|-heal|p1a: Kingambit|32/207|[from] Grassy Terrain
+|upkeep
+|turn|13
+|
+|t:|1790373521
+|move|p1a: Kingambit|Protect|p1a: Kingambit
+|-singleturn|p1a: Kingambit|Protect
+|move|p2a: Rillaboom|Grassy Glide|p1a: Kingambit
+|-activate|p1a: Kingambit|move: Protect
+|move|p2b: Scizor|Bullet Punch|p1a: Kingambit
+|-activate|p1a: Kingambit|move: Protect
+|
+|-heal|p2a: Rillaboom|94/100|[from] Grassy Terrain
+|-heal|p2b: Scizor|58/100|[from] Grassy Terrain
+|-heal|p1a: Kingambit|44/207|[from] Grassy Terrain
+|upkeep
+|turn|14
+|
+|t:|1790373525
+|move|p2a: Rillaboom|Grassy Glide|p1a: Kingambit
+|-resisted|p1a: Kingambit|1
+|-damage|p1a: Kingambit|10/207
+|move|p2b: Scizor|Bullet Punch|p1a: Kingambit
+|-resisted|p1a: Kingambit|1
+|-damage|p1a: Kingambit|0 fnt
+|faint|p1a: Kingambit
+|
+|win|a8592

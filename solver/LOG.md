@@ -8,6 +8,15 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-25
 
+### ROTOM private-series hang fixed; bounded waits; supervisor watchdog (abra/regmc 1.12.0)
+- Both aa1 hangs (after k=3 and k=6) had one cause. A hidden series is renamed `…-<pw>pw`, the client also joined
+  the old id, and that id's `noinit|nonexistent` reply created a phantom series (k=4, k=7) that never ended. Fixed
+  at the root. Every ladder wait is now bounded: a silent series is probed, then orphaned as a counted error. The
+  supervisor restarts a client that makes no progress and has no game open.
+- `test-rotom-private-series.js` replays both sequences through the real client: GREEN 23/23, and RED on the old
+  code. A 3-series local dry run with private rooms and a drilled hang gave 6 rows and 1 watchdog restart.
+- Detail: `docs/_reports/2026-09-25-rotom-series-hang.md`.
+
 ### Mega as a RATE, per bot (abra/regmc 1.11.0)
 - Humans mega on 0.949 of the sides that could (45,952 of 48,430; 0.974 in games that end normally), half of
   the time on turn 1. On release `eaa5becc54eb`: DODUO-greedy 0.907 pooled (185/204), MILTANK 0.946 (53/56) and

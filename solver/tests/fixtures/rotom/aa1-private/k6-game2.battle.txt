@@ -1,0 +1,196 @@
+|title|medicham32 vs. a8592
+|j|☆medicham32
+|j|☆a8592
+|html|<table width="100%"><tr><td align="left">medicham32</td><td align="right">a8592</tr><tr><td align="left"><i class="fa fa-circle-o"></i> <i class="fa fa-circle-o"></i> </td><td align="right"><i class="fa fa-circle-o"></i> <i class="fa fa-circle"></i> </tr></table>
+|uhtml|bestof|<h2><strong>Game 2</strong> of <a href="/game-bestof3-gen9championsvgc2026regmcbo3-2687898010-na7wktj7aue0kgvmvhpwk2x2fcv2rcmpw">a best-of-3</a></h2>
+|t:|1790373531
+|gametype|doubles
+|player|p1|medicham32|266|1062
+|player|p2|a8592|265|1155
+|gen|9
+|tier|[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)
+|rated|
+|rule|Species Clause: Limit one of each Pokémon
+|rule|Item Clause: Limit 1 of each item
+|clearpoke
+|poke|p1|Gengar, L50, M|
+|poke|p1|Incineroar, L50, M|
+|poke|p1|Rillaboom, L50, M|
+|poke|p1|Kingambit, L50, F|
+|poke|p1|Hippowdon, L50, F|
+|poke|p1|Sneasler, L50, F|
+|poke|p2|Pelipper, L50, M|
+|poke|p2|Basculegion, L50, M|
+|poke|p2|Archaludon, L50, F|
+|poke|p2|Salamence, L50, F|
+|poke|p2|Rillaboom, L50, F|
+|poke|p2|Scizor, L50, F|
+|teampreview|4
+|showteam|p1|Gengar||Gengarite|CursedBody|ShadowBall,SludgeBomb,Substitute,Protect|Timid||M|||50|]Incineroar||SitrusBerry|Intimidate|FakeOut,FlareBlitz,Snarl,PartingShot|Impish||M|||50|]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,GrassyGlide,LowKick,FakeOut|Adamant||M|||50|]Kingambit||LifeOrb|Defiant|SuckerPunch,KowtowCleave,SwordsDance,Protect|Adamant||F|||50|]Hippowdon||Leftovers|SandStream|HighHorsepower,StoneEdge,Yawn,Protect|Careful||F|||50|]Sneasler||WhiteHerb|Unburden|CloseCombat,DireClaw,FakeOut,Protect|Adamant||F|||50|
+|showteam|p2|Pelipper||FocusSash|Drizzle|Hurricane,WeatherBall,Tailwind,Protect|Modest||M|||50|]Basculegion||ChoiceScarf|Adaptability|WaveCrash,LastRespects,AquaJet,FlipTurn|Jolly||M|||50|]Archaludon||Leftovers|Stamina|DragonPulse,ElectroShot,FlashCannon,Protect|Modest||F|||50|]Salamence||Salamencite|Intimidate|HyperVoice,DracoMeteor,Flamethrower,Protect|Timid||F|||50|]Rillaboom||MiracleSeed|GrassySurge|GrassyGlide,WoodHammer,Uturn,FakeOut|Adamant||F|||50|]Scizor||Scizorite|Technician|SwordsDance,BugBite,BulletPunch,Protect|Adamant||F|||50|
+|
+|t:|1790373553
+|teamsize|p1|4
+|teamsize|p2|4
+|start
+|switch|p1a: Hippowdon|Hippowdon, L50, F|215/215
+|switch|p1b: Gengar|Gengar, L50, M|167/167
+|switch|p2a: Pelipper|Pelipper, L50, M|100/100
+|switch|p2b: Archaludon|Archaludon, L50, F|100/100
+|-weather|RainDance|[from] ability: Drizzle|[of] p2a: Pelipper
+|-weather|Sandstorm|[from] ability: Sand Stream|[of] p1a: Hippowdon
+|turn|1
+|
+|t:|1790373573
+|switch|p2a: Scizor|Scizor, L50, F|100/100
+|detailschange|p1b: Gengar|Gengar-Mega, L50, M
+|-mega|p1b: Gengar|Gengar|Gengarite
+|move|p2b: Archaludon|Protect|p2b: Archaludon
+|-singleturn|p2b: Archaludon|Protect
+|move|p1b: Gengar|Substitute|p1b: Gengar
+|-start|p1b: Gengar|Substitute
+|-damage|p1b: Gengar|126/167
+|move|p1a: Hippowdon|Yawn|p2b: Archaludon
+|-activate|p2b: Archaludon|move: Protect
+|
+|-weather|Sandstorm|[upkeep]
+|-damage|p1b: Gengar|116/167|[from] Sandstorm
+|upkeep
+|turn|2
+|
+|t:|1790373589
+|move|p1b: Gengar|Protect|p1b: Gengar
+|-singleturn|p1b: Gengar|Protect
+|move|p2b: Archaludon|Dragon Pulse|p1a: Hippowdon
+|-damage|p1a: Hippowdon|124/215
+|move|p2a: Scizor|Swords Dance|p2a: Scizor
+|-boost|p2a: Scizor|atk|2
+|move|p1a: Hippowdon|Yawn|p2b: Archaludon
+|-start|p2b: Archaludon|move: Yawn|[of] p1a: Hippowdon
+|
+|-weather|Sandstorm|[upkeep]
+|-damage|p1b: Gengar|106/167|[from] Sandstorm
+|-heal|p1a: Hippowdon|137/215|[from] item: Leftovers
+|upkeep
+|turn|3
+|
+|t:|1790373604
+|move|p1b: Gengar|Substitute|p1b: Gengar
+|-fail|p1b: Gengar|move: Substitute
+|move|p2b: Archaludon|Dragon Pulse|p1b: Gengar
+|-end|p1b: Gengar|Substitute
+|move|p2a: Scizor|Bug Bite|p1a: Hippowdon
+|-damage|p1a: Hippowdon|0 fnt
+|faint|p1a: Hippowdon
+|
+|-weather|Sandstorm|[upkeep]
+|-damage|p1b: Gengar|96/167|[from] Sandstorm
+|-end|p2b: Archaludon|move: Yawn|[silent]
+|-status|p2b: Archaludon|slp
+|upkeep
+|
+|t:|1790373605
+|switch|p1a: Incineroar|Incineroar, L50, M|202/202
+|-ability|p1a: Incineroar|Intimidate|boost
+|-unboost|p2a: Scizor|atk|1
+|-unboost|p2b: Archaludon|atk|1
+|turn|4
+|
+|t:|1790373619
+|move|p1b: Gengar|Protect|p1b: Gengar
+|-singleturn|p1b: Gengar|Protect
+|move|p2a: Scizor|Protect|p2a: Scizor
+|-singleturn|p2a: Scizor|Protect
+|cant|p2b: Archaludon|slp
+|move|p1a: Incineroar|Flare Blitz|p2a: Scizor
+|-activate|p2a: Scizor|move: Protect
+|
+|-weather|Sandstorm|[upkeep]
+|-damage|p1b: Gengar|86/167|[from] Sandstorm
+|-damage|p1a: Incineroar|190/202|[from] Sandstorm
+|upkeep
+|turn|5
+|
+|t:|1790373630
+|switch|p1b: Kingambit|Kingambit, L50, F|207/207
+|move|p2a: Scizor|Bullet Punch|p1b: Kingambit
+|-resisted|p1b: Kingambit|1
+|-damage|p1b: Kingambit|168/207
+|-curestatus|p2b: Archaludon|slp|[msg]
+|move|p2b: Archaludon|Dragon Pulse|p1a: Incineroar
+|-damage|p1a: Incineroar|112/202
+|move|p1a: Incineroar|Flare Blitz|p2a: Scizor
+|-supereffective|p2a: Scizor|2
+|-damage|p2a: Scizor|0 fnt
+|faint|p2a: Scizor
+|-damage|p1a: Incineroar|61/202|[from] Recoil
+|-enditem|p1a: Incineroar|Sitrus Berry|[eat]
+|-heal|p1a: Incineroar|111/202|[from] item: Sitrus Berry
+|
+|-weather|none
+|upkeep
+|
+|t:|1790373645
+|switch|p2a: Pelipper|Pelipper, L50, M|100/100
+|-weather|RainDance|[from] ability: Drizzle|[of] p2a: Pelipper
+|turn|6
+|
+|t:|1790373651
+|move|p2a: Pelipper|Weather Ball|p1a: Incineroar
+|-supereffective|p1a: Incineroar|1
+|-damage|p1a: Incineroar|0 fnt
+|faint|p1a: Incineroar
+|move|p2b: Archaludon|Electro Shot||[still]
+|-prepare|p2b: Archaludon|Electro Shot
+|-boost|p2b: Archaludon|spa|1
+|-anim|p2b: Archaludon|Electro Shot|p1b: Kingambit
+|-damage|p1b: Kingambit|40/207
+|move|p1b: Kingambit|Swords Dance|p1b: Kingambit
+|-boost|p1b: Kingambit|atk|2
+|
+|-weather|RainDance|[upkeep]
+|upkeep
+|
+|t:|1790373651
+|switch|p1a: Gengar|Gengar-Mega, L50, M|86/167
+|turn|7
+|
+|t:|1790373672
+|move|p1a: Gengar|Protect|p1a: Gengar
+|-singleturn|p1a: Gengar|Protect
+|move|p1b: Kingambit|Protect|p1b: Kingambit
+|-singleturn|p1b: Kingambit|Protect
+|move|p2a: Pelipper|Weather Ball|p1a: Gengar
+|-activate|p1a: Gengar|move: Protect
+|move|p2b: Archaludon|Dragon Pulse|p1a: Gengar
+|-activate|p1a: Gengar|move: Protect
+|
+|-weather|RainDance|[upkeep]
+|upkeep
+|turn|8
+|
+|t:|1790373678
+|move|p1b: Kingambit|Sucker Punch|p2a: Pelipper
+|-enditem|p2a: Pelipper|Focus Sash
+|-damage|p2a: Pelipper|1/100
+|-damage|p1b: Kingambit|20/207|[from] item: Life Orb
+|move|p1a: Gengar|Sludge Bomb|p2a: Pelipper
+|-damage|p2a: Pelipper|0 fnt
+|faint|p2a: Pelipper
+|move|p2b: Archaludon|Dragon Pulse|p1a: Gengar
+|-damage|p1a: Gengar|0 fnt
+|faint|p1a: Gengar
+|
+|-weather|RainDance|[upkeep]
+|upkeep
+|
+|t:|1790373686
+|switch|p2a: Basculegion|Basculegion, L50, M|100/100
+|turn|9
+|
+|t:|1790373690
+|move|p2a: Basculegion|Aqua Jet|p1b: Kingambit
+|-damage|p1b: Kingambit|0 fnt
+|faint|p1b: Kingambit
+|
+|win|a8592

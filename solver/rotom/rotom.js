@@ -89,6 +89,12 @@ const SAVE_REPLAYS = flag('save-replays', 'on');     // on | off
 const LOCAL_REPLAYS = has('local-replays');          // the local server's login server is a local stand-in (run_local.js)
 const REPLAY_TIMEOUT_MS = +flag('replay-timeout-ms', 20000);
 const REPLAY_ATTEMPTS = +flag('replay-attempts', 4);
+/* THE SERIES WATCH (solver/rotom/ladder.js stallAction; the aa1 hang, docs/_reports/2026-09-25-rotom-series-hang.md): an
+ * open series with no line in its room or any of its battles for --series-idle-ms is probed with `/crq roominfo`; gone,
+ * or silent through --series-max-probes probes, it is ORPHANED (logged, a ladder error) so the loop cannot wait forever */
+const LADDER_LIB = require('./ladder.js');
+const SERIES_WATCH = { idleMs: +flag('series-idle-ms', require('./ladder.js').SERIES_IDLE_MS), probeMs: +flag('series-probe-ms', require('./ladder.js').SERIES_PROBE_MS),
+                       maxProbes: +flag('series-max-probes', require('./ladder.js').SERIES_MAX_PROBES) };
 
 fs.mkdirSync(OUT, { recursive: true });
 fs.mkdirSync(path.dirname(GAMES_FILE), { recursive: true });
@@ -257,6 +263,9 @@ if (LADDER_MODE) {
       bookGet: (room) => { const b = BOOK.get(room); return b && b.ladder ? b : null; },
       bookSet: (room, o) => { const b = BOOK.get(room); Object.assign(b, o); BOOK.save(b); },
       exit: (code, why) => exitClean(code, why),
+      socketOpen: () => !!(ws && ws.readyState === 1), loggedOutSince: () => loggedOutSince,
+      preSearch: DRY_RUN && has('hide-next') ? () => send('|/hidenext') : null,   // dry run: this side hides its series (a PRIVATE room)
+      reconnect: (why) => { event('relogin', { why }); try { if (ws && ws.readyState === 1) ws.close(); } catch (e) { /* the onclose path reconnects */ } },
     });
   } catch (e) { console.error(e.message); process.exit(e.code === 'PLAN_MISMATCH' ? 2 : 1); }
   STATE.cleanExit = false; saveState();
@@ -265,7 +274,7 @@ if (LADDER_MODE) {
 }
 
 /* ---------------- socket ---------------- */
-let ws = null, backoff = 1000, loggedIn = false, stopping = false, HOLD_UNTIL = 0;
+let ws = null, backoff = 1000, loggedIn = false, stopping = false, HOLD_UNTIL = 0, loggedOutSince = Date.now();
 const send = (s) => { if (ws && ws.readyState === 1) { ws.send(s); return true; } return false; };
 const battles = new Map();   // battle room id -> B
 const CLOSED = new Set();    // battle rooms finished and left: later lines for them (deinit) are ignored
@@ -292,7 +301,7 @@ function connect() {
     if (room && battles.has(room)) scheduleDecide(battles.get(room));
   };
   ws.onclose = () => {
-    loggedIn = false;
+    loggedIn = false; loggedOutSince = Date.now();
     for (const B of battles.values()) if (!B.ended) B.stale = true;
     ST.disconnects++;
     event('disconnect', {});
@@ -313,7 +322,7 @@ function handle(room, line) {
     if (cmd === 'updateuser') {
       if (toID(p[2]) === toID(NAME) && p[3] === '1' || toID(p[2]) === toID(NAME)) {
         if (!loggedIn) {
-          loggedIn = true; backoff = 1000; say('logged in as ' + NAME); event('login', {});
+          loggedIn = true; loggedOutSince = 0; backoff = 1000; say('logged in as ' + NAME); event('login', {});
           if (ST.disconnects > 0) SAVER.onReconnect();
           resumePendingGames();
           /* REJOIN every game we were in: the server re-sends the room (|init| + the log) and the open request */
@@ -328,6 +337,8 @@ function handle(room, line) {
       let d = null; try { d = JSON.parse(p[2]); } catch (e) { return; }
       if (LADDER) LADDER.onUpdateSearch(d);
       for (const rid of Object.keys((d && d.games) || {})) {
+        const twin = renamedTwin(rid);   // the pre-rename id of a room we already hold under its private id: never join it
+        if (twin) { ROOMS.skippedOldIds++; event('skip_renamed_id', { room: rid, held_as: twin }); continue; }
         if (!battles.has(rid) && !bestofs.has(rid)) { send('|/join ' + rid); ST.rejoins++; event('join_from_updatesearch', { room: rid }); }
         else if (battles.has(rid) && battles.get(rid).stale) { send('|/join ' + rid); ST.rejoins++; }
       }
@@ -346,14 +357,107 @@ function handle(room, line) {
       return;
     }
     if (cmd === 'popup' && SAVER.onPopup(p.slice(2).join('|'))) return;   // a /savereplay answer is the saver's, not the ladder's
-    if (cmd === 'queryresponse') { if (LADDER) LADDER.onQuery(p[2], p.slice(3).join('|')); return; }
+    if (cmd === 'queryresponse') { if (p[2] === 'roominfo') return onRoomInfo(p.slice(3).join('|')); if (LADDER) LADDER.onQuery(p[2], p.slice(3).join('|')); return; }
     if (cmd === 'nametaken') { say('LOGIN REFUSED: ' + p.slice(2).join('|').slice(0, 200)); event('login_refused', { txt: p.slice(2).join('|').slice(0, 200) }); if (LADDER) LADDER.onLoginFailed(p.slice(3).join('|')); return; }
     if (cmd === 'popup' && LADDER) LADDER.onPopup(line);
     if (cmd === 'popup') { event('popup', { text: line.slice(0, 300) }); if (/not online|is not accepting|already/i.test(line)) lastChallenge = 0; say('POPUP ' + line.slice(0, 200)); return; }
     return;
   }
+  if ((room.startsWith('game-bestof') || room.startsWith('battle-')) && (cmd === 'noinit' || cmd === 'deinit')) return onRoomNoinit(room, p, cmd);
   if (room.startsWith('game-bestof')) return handleBestof(room, line, p, cmd);
   if (room.startsWith('battle-')) return handleBattle(room, line, p, cmd);
+}
+
+/* ---------------- rooms that are renamed, vanish, or go silent (the aa1 hang, 2026-09-25) ----------------
+ * A hidden bo3 is RENAMED by the server to `<id>-<31 chars>pw` (pokemon-showdown-mc server/rooms.ts setPrivacy ->
+ * rename(..., noAlias)): anyone in the room gets `>OLD\n|noinit|rename|NEW|title`, and a later /join of OLD gets
+ * `|noinit|nonexistent|`. Before this, ANY line in a game-bestof room created a series — so that noinit made a phantom
+ * series k+1 that could never end, and the ladder waited "series in progress" for 20 minutes. Now a noinit/deinit line
+ * never creates anything; a rename moves the record; a room that is gone orphans an open series; and an open series
+ * that goes silent is probed and, failing that, orphaned (watchSeries). */
+const ROOMS = { renames: 0, ignoredNoinit: 0, skippedOldIds: 0, probes: 0, orphans: [] };
+function renamedTwin(rid) {
+  if (LADDER_LIB.isPrivateId(rid)) return null;
+  for (const k of bestofs.keys()) if (k !== rid && LADDER_LIB.canonRoom(k) === rid) return k;
+  for (const k of battles.keys()) if (k !== rid && LADDER_LIB.canonRoom(k) === rid) return k;
+  return null;
+}
+function rekeyBestof(from, to) {
+  const bo = bestofs.get(from); if (!bo) return;
+  bestofs.delete(from);
+  if (bestofs.has(to)) { event('series_rename_dup', { from, to }); return; }
+  bo.id = to; bo.lastSeen = Date.now(); bestofs.set(to, bo);
+  if (seriesTeam.has(from)) { seriesTeam.set(to, seriesTeam.get(from)); seriesTeam.delete(from); }
+  if (activeSeries === from) activeSeries = to;
+  const S0 = BOOK.get(from), S1 = BOOK.get(to);
+  for (const k of Object.keys(S0)) if (k !== 'id' && (S1[k] == null || (Array.isArray(S1[k]) && !S1[k].length))) S1[k] = S0[k];
+  S1.renamed_from = from; BOOK.save(S1);
+  if (LADDER) LADDER.renameSeries(from, to);
+  for (const B of battles.values()) if (B.bestof === from) B.bestof = to;
+  ROOMS.renames++; event('series_rename', { from, to });
+  say('series room renamed (a hidden series) ' + from + ' -> ' + to);
+}
+function rekeyBattle(from, to) {
+  const B = battles.get(from); if (!B) return;
+  battles.delete(from);
+  if (battles.has(to)) { event('battle_rename_dup', { from, to }); return; }
+  B.id = to; battles.set(to, B);
+  if (STATE.pendingGames && STATE.pendingGames[from]) { STATE.pendingGames[to] = Object.assign(STATE.pendingGames[from], { room: to }); delete STATE.pendingGames[from]; saveState(); }
+  ROOMS.renames++; event('battle_rename', { from, to });
+}
+function onRoomNoinit(room, p, cmd) {
+  const kind = cmd === 'deinit' ? 'deinit' : (p[2] || 'noinit');
+  const isBo = room.startsWith('game-bestof');
+  if (kind === 'rename' && p[3]) return isBo ? rekeyBestof(room, p[3]) : rekeyBattle(room, p[3]);
+  if (isBo) {
+    const bo = bestofs.get(room);
+    if (!bo) { ROOMS.ignoredNoinit++; event('noinit_ignored', { room, kind, txt: p.slice(3).join('|').slice(0, 160) }); return; }   // never a new series
+    if (kind === 'deinit' || bo.done) return;
+    bo.gone = kind;   // nonexistent / joinfailed for a series we hold: the watch orphans it now
+    event('series_room_gone', { room, kind });
+    return watchSeries();
+  }
+  if (CLOSED.has(room)) return;
+  const B = battles.get(room);
+  if (!B) { ROOMS.ignoredNoinit++; event('noinit_ignored', { room, kind, txt: p.slice(3).join('|').slice(0, 160) }); return; }   // never a new battle
+  if (kind !== 'deinit' && !B.lines.length && !B.ended) { battles.delete(room); CLOSED.add(room); ROOMS.ignoredNoinit++; event('battle_room_gone', { room, kind }); return; }
+  B.stale = true;
+}
+function seriesOfBattle(B) { return B && B.bestof ? bestofs.get(B.bestof) : null; }
+function onRoomInfo(json) {
+  let d = null; try { d = JSON.parse(json); } catch (e) { return; }
+  if (!d || !d.id) return;
+  const bo = bestofs.get(d.id); if (!bo || bo.done) return;
+  bo.probeAnswers = (bo.probeAnswers || 0) + 1;
+  if (d.error) { bo.gone = 'roominfo: ' + d.error; event('series_probe', { room: d.id, answer: 'gone' }); return watchSeries(); }
+  event('series_probe', { room: d.id, answer: 'alive', users: (d.users || []).length });
+  if (!(d.users || []).some(u => toID(u) === toID(NAME))) send('|/join ' + d.id);   // alive and we are not in it: rejoin, the log replays
+}
+function watchSeries() {
+  if (!loggedIn || HUNG) return;
+  const now = Date.now();
+  for (const bo of [...bestofs.values()]) {
+    if (bo.done) continue;
+    const a = LADDER_LIB.stallAction({ lastSeen: bo.lastSeen || bo.started, probes: bo.probes || 0, probeSentAt: bo.probeSentAt || 0, gone: bo.gone }, now, SERIES_WATCH);
+    if (a.do === 'probe') {
+      bo.probes = (bo.probes || 0) + 1; bo.probeSentAt = now; ROOMS.probes++;
+      send('|/crq roominfo ' + bo.id);
+      event('series_probe_sent', { room: bo.id, n: bo.probes, why: a.why });
+      say('series ' + bo.id + ' ' + a.why + ' — probing the room (' + bo.probes + '/' + SERIES_WATCH.maxProbes + ')');
+    } else if (a.do === 'orphan') orphanSeries(bo, a.why);
+  }
+}
+function orphanSeries(bo, why) {
+  if (bo.done) return;
+  bo.done = true; bo.orphaned = why;
+  const rec = { id: bo.id, why, at: new Date().toISOString(), team: bo.team, arm: bo.arm, games_seen: bo.gnums.size };
+  ROOMS.orphans.push(rec); STATE.orphans = (STATE.orphans || []).concat([rec]); saveState();
+  try { const S = BOOK.get(bo.id); S.orphaned = rec; BOOK.save(S); } catch (e) { /* never fatal */ }
+  event('series_orphan', rec);
+  say('SERIES ORPHANED ' + bo.id + ' — ' + why);
+  if (LADDER) LADDER.onSeriesOrphan(bo.id, why);
+  send('|/leave ' + bo.id);
+  setTimeout(() => { maybeChallenge('series orphaned'); checkDone(); }, 500);
 }
 
 function login(challstr) {
@@ -361,7 +465,7 @@ function login(challstr) {
   if (LOCK.isLocal(SERVER) && !LADDER) { send('|/trn ' + NAME + ',0,'); return; }
   (async () => {
     try {
-      const res = await fetch(LADDER ? LOGIN_URL : PUBLIC_LOGIN_URL, { method: 'POST',
+      const res = await fetch(LADDER ? LOGIN_URL : PUBLIC_LOGIN_URL, { method: 'POST', signal: AbortSignal.timeout(30000),   // a hung login is bounded too
         body: new URLSearchParams({ name: NAME, pass: CRED.pass, challstr }), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
       const json = JSON.parse((await res.text()).replace(/^\]/, ''));
       if (!json.assertion) throw new Error(json.actionerror || 'no assertion');
@@ -372,7 +476,21 @@ function login(challstr) {
 
 /* ---------------- series control ---------------- */
 function openSeries() { return [...bestofs.values()].filter(b => !b.done).length; }
+/* DRILL hang@S (local/dry run only): once S sets are done, this process stops moving — no tick, no series watch — the
+ * shape of the aa1 hang, for the SUPERVISOR's watchdog to find (run_ladder.js). Fires once per run: a restarted process
+ * reads drillsFired and plays on. */
+let HUNG = false;
+function hangDrill() {
+  if (HUNG) return true;
+  const m = /^hang@(\d+)$/.exec(DRILL); if (!m || !LOCK.isLocal(SERVER)) return false;
+  if (STATE.setsDone.length < +m[1] || (STATE.drillsFired || []).includes(DRILL)) return false;
+  STATE.drillsFired = (STATE.drillsFired || []).concat([DRILL]); saveState();
+  HUNG = true; ST.drills.push({ kind: 'hang', set: +m[1], at: Date.now() }); event('drill', { kind: 'hang', set: +m[1] });
+  say('DRILL hang after set ' + m[1] + ' — this process stops moving; the supervisor watchdog must restart it');
+  return true;
+}
 function maybeChallenge(why) {
+  if (hangDrill()) return;
   if (LADDER) return LADDER.tick(why);
   if (!CHALLENGE || !loggedIn) return;
   if (STATE.setsDone.length + openSeries() >= SETS) return;
@@ -396,10 +514,16 @@ function onChallenge(from, fmt) {
   say('accepted ' + from + ' with team ' + pendingTeam.id);
   event('accept', { from, team: pendingTeam.id });
 }
-setInterval(() => { if (loggedIn) maybeChallenge('retry'); }, 5000).unref();
+/* the ladder ticks even when logged out (its relogin bound needs the clock), and the series watch runs on every pass */
+setInterval(() => { if (loggedIn || LADDER) maybeChallenge('retry'); watchSeries(); }, Math.min(5000, Math.max(500, Math.floor(SERIES_WATCH.probeMs / 2)))).unref();
 
 function handleBestof(room, line, p, cmd) {
   let bo = bestofs.get(room);
+  if (!bo) {
+    /* the same series under its other id (content reached us under the old id before the rename): move it, never a new k */
+    const twin = [...bestofs.keys()].find(k => k !== room && !bestofs.get(k).done && LADDER_LIB.canonRoom(k) === LADDER_LIB.canonRoom(room));
+    if (twin) { rekeyBestof(twin, room); bo = bestofs.get(room); }
+  }
   if (!bo) {
     const LR = LADDER ? LADDER.onSeriesStart(room) : null;   // ladder: this series' pre-committed arm and rotation team
     const known = BOOK.get(room);   // a restarted process: the series book says which pool team this set is using
@@ -413,6 +537,7 @@ function handleBestof(room, line, p, cmd) {
     const S0 = BOOK.get(room); if (!S0.team && bo.team) { S0.team = bo.team; S0.policy = POLICY; BOOK.save(S0); }
     if (LR) say('LADDER series ' + room + ' k=' + LR.k + ' arm ' + LR.arm + ' (' + JSON.stringify(LR.arm_config) + ') team ' + bo.team + (LR.resumed ? ' [resumed]' : ''));
   }
+  bo.lastSeen = Date.now(); bo.probes = 0; bo.probeSentAt = 0;
   if (/\/confirmready/.test(line)) confirmReady(room, line);
   if (LADDER && cmd === 'raw') LADDER.onRaw(room, line);
   if (cmd === 'win' || cmd === 'tie') {
@@ -478,6 +603,7 @@ function handleBattle(room, line, p, cmd) {
     return;
   }
   if (!B) { B = newBattle(room); B.rejoined = STATE.restarts > 0; battles.set(room, B); event('battle_join', { room }); if (TIMER === 'on') send(room + '|/timer on'); }
+  { const bo = seriesOfBattle(B); if (bo) { bo.lastSeen = Date.now(); bo.probes = 0; bo.probeSentAt = 0; } }   // battle traffic keeps its series alive
   if (cmd === 'init') {   // a (re)join replays the whole log: start the room's public record over, keep what we sent
     const keep = B; B = newBattle(room); B.sent = keep.sent; B.clockUsed = keep.clockUsed; B.bestof = keep.bestof; B.gnum = keep.gnum; B.timerOn = keep.timerOn; B.preview = keep.preview;
     B.rejoined = keep.rejoined || keep.stale || keep.lines.length > 0;
@@ -805,11 +931,12 @@ function writeSummary() {
     disconnects: ST.disconnects, reconnects: ST.reconnects, rejoins: ST.rejoins, resent: ST.resent, drills: ST.drills,
     mega: Object.assign({}, ST.mega, { rate: ST.mega.capable ? +(ST.mega.megas / ST.mega.capable).toFixed(4) : null, ci95: MR.wilson(ST.mega.megas, ST.mega.capable),
       human_rate: MR.HUMAN_RATE, floor: MR.floor(), below_floor: ST.mega.capable >= MR.MIN_CAPABLE && MR.wilson(ST.mega.megas, ST.mega.capable)[1] < MR.floor() }),
+    rooms: { renames: ROOMS.renames, ignored_noinit: ROOMS.ignoredNoinit, skipped_old_ids: ROOMS.skippedOldIds, probes: ROOMS.probes, orphans: ROOMS.orphans, watch: SERIES_WATCH },
     timer_on_seen: ST.timerOnSeen, games: ST.games, game_records: ST.gameRecords || 0, games_file: GAMES_FILE, replays: SAVER.COUNTERS, world_errors: ST.worldErrors, decisions_without_time_line: ST.noTimerLine,
     preview_sheet_wait_ms: stats(ST.previewSheetWaitMs),
     counters: { policy: P.COUNTERS, world: WB.COUNTERS, prior: PA.COUNTERS, rollout: R.COUNTERS, api: API.COUNTERS },
     provenance: PROV,
-    ladder: LADDER ? { plan: LADDER.plan(), state: (({ k, consecErrors, errors, guard, incidents, halted, searches, done, starts }) => ({ k, consecErrors, errors: errors.slice(-10), guard, incidents, halted, searches, done, starts }))(LADDER.state()), series_file: LADDER.seriesFile } : null,
+    ladder: LADDER ? { plan: LADDER.plan(), state: (({ k, consecErrors, errors, guard, incidents, halted, searches, done, starts, orphans }) => ({ k, consecErrors, errors: errors.slice(-10), guard, incidents, halted, searches, done, starts, orphans }))(LADDER.state()), series_file: LADDER.seriesFile } : null,
     netguard: NETGUARD ? require('./netguard.js').stats() : null };
   try { fs.writeFileSync(path.join(OUT, 'summary-' + toID(NAME) + (STATE.restarts ? '-r' + STATE.restarts : '') + '.json'), JSON.stringify(out, null, 1)); } catch (e) { /* never fatal */ }
   return out;

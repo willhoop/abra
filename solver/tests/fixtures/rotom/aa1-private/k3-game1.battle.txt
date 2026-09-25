@@ -1,0 +1,210 @@
+|title|estrellitapor vs. medicham32
+|j|☆estrellitapor
+|j|☆medicham32
+|html|<table width="100%"><tr><td align="left">estrellitapor</td><td align="right">medicham32</tr><tr><td align="left"><i class="fa fa-circle-o"></i> <i class="fa fa-circle-o"></i> </td><td align="right"><i class="fa fa-circle-o"></i> <i class="fa fa-circle-o"></i> </tr></table>
+|uhtml|bestof|<h2><strong>Game 1</strong> of <a href="/game-bestof3-gen9championsvgc2026regmcbo3-2687880999-3u647uiao8y2l2rmu65vb7v2rhhboxgpw">a best-of-3</a></h2>
+|t:|1790370823
+|gametype|doubles
+|player|p1|estrellitapor|galacticgrunt|1085
+|player|p2|medicham32|266|1040
+|gen|9
+|tier|[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)
+|rated|
+|rule|Species Clause: Limit one of each Pokémon
+|rule|Item Clause: Limit 1 of each item
+|clearpoke
+|poke|p1|Salamence, L50, F, shiny|
+|poke|p1|Gholdengo, L50|
+|poke|p1|Sneasler, L50, M|
+|poke|p1|Rillaboom, L50, M, shiny|
+|poke|p1|Arcanine-Hisui, L50, M|
+|poke|p1|Raichu, L50, M|
+|poke|p2|Rillaboom, L50, M|
+|poke|p2|Arcanine-Hisui, L50, F|
+|poke|p2|Dragonite, L50, M|
+|poke|p2|Raichu, L50, M|
+|poke|p2|Gholdengo, L50|
+|poke|p2|Garchomp, L50, M|
+|teampreview|4
+|showteam|p1|Salamence||Salamencite|Intimidate|HyperVoice,DracoMeteor,Tailwind,Protect|Timid||F|||50|]Gholdengo||GrassySeed|GoodasGold|MakeItRain,ShadowBall,NastyPlot,Protect|Modest|||||50|]Sneasler||WhiteHerb|Unburden|CloseCombat,DireClaw,RockTomb,FakeOut|Adamant||M|||50|]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,GrassyGlide,HighHorsepower,FakeOut|Adamant||M|||50|]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly||M|||50|]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid||M|||50|
+|showteam|p2|Rillaboom||MiracleSeed|GrassySurge|WoodHammer,GrassyGlide,HighHorsepower,FakeOut|Adamant||M|||50|]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly||F|||50|]Dragonite||Dragoninite|InnerFocus|DragonPulse,HeatWave,Tailwind,Protect|Modest||M|||50|]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid||M|||50|]Gholdengo||LifeOrb|GoodasGold|MakeItRain,ShadowBall,NastyPlot,Protect|Modest|||||50|]Garchomp||SitrusBerry|RoughSkin|StompingTantrum,DragonClaw,SwordsDance,Protect|Adamant||M|||50|
+|
+|t:|1790370853
+|teamsize|p1|4
+|teamsize|p2|4
+|start
+|switch|p1a: Salamence|Salamence, L50, F, shiny|100/100
+|switch|p1b: Gholdengo|Gholdengo, L50|100/100
+|switch|p2a: Gholdengo|Gholdengo, L50|194/194
+|switch|p2b: Raichu|Raichu, L50, M|167/167
+|-ability|p1a: Salamence|Intimidate|boost
+|-unboost|p2a: Gholdengo|atk|1
+|-unboost|p2b: Raichu|atk|1
+|turn|1
+|
+|t:|1790370886
+|detailschange|p1a: Salamence|Salamence-Mega, L50, F, shiny
+|-mega|p1a: Salamence|Salamence|Salamencite
+|detailschange|p2b: Raichu|Raichu-Mega-Y, L50, M
+|-mega|p2b: Raichu|Raichu|Raichunite Y
+|move|p2b: Raichu|Fake Out|p1a: Salamence
+|-damage|p1a: Salamence|95/100
+|cant|p1a: Salamence|flinch
+|move|p1b: Gholdengo|Shadow Ball|p2a: Gholdengo
+|-supereffective|p2a: Gholdengo|1
+|-crit|p2a: Gholdengo
+|-damage|p2a: Gholdengo|0 fnt
+|faint|p2a: Gholdengo
+|
+|upkeep
+|
+|t:|1790370888
+|switch|p2a: Rillaboom|Rillaboom, L50, M|207/207
+|-fieldstart|move: Grassy Terrain|[from] ability: Grassy Surge|[of] p2a: Rillaboom
+|-enditem|p1b: Gholdengo|Grassy Seed
+|-boost|p1b: Gholdengo|def|1|[from] item: Grassy Seed
+|turn|2
+|
+|t:|1790370913
+|move|p1a: Salamence|Protect|p1a: Salamence
+|-singleturn|p1a: Salamence|Protect
+|move|p1b: Gholdengo|Protect|p1b: Gholdengo
+|-singleturn|p1b: Gholdengo|Protect
+|move|p2b: Raichu|Zap Cannon|p1a: Salamence
+|-activate|p1a: Salamence|move: Protect
+|move|p2a: Rillaboom|High Horsepower|p1b: Gholdengo
+|-activate|p1b: Gholdengo|move: Protect
+|
+|upkeep
+|turn|3
+|
+|t:|1790370941
+|switch|p1b: Rillaboom|Rillaboom, L50, M, shiny|100/100
+|move|p1a: Salamence|Hyper Voice|p2b: Raichu|[spread] p2a,p2b
+|-supereffective|p2a: Rillaboom|1
+|-resisted|p2b: Raichu|1
+|-damage|p2a: Rillaboom|49/207
+|-damage|p2b: Raichu|128/167
+|move|p2b: Raichu|Zap Cannon|p1a: Salamence
+|-damage|p1a: Salamence|22/100
+|-status|p1a: Salamence|par
+|move|p2a: Rillaboom|High Horsepower|p1b: Rillaboom
+|-resisted|p1b: Rillaboom|1
+|-damage|p1b: Rillaboom|84/100
+|
+|-heal|p2b: Raichu|138/167|[from] Grassy Terrain
+|-heal|p2a: Rillaboom|61/207|[from] Grassy Terrain
+|-heal|p1b: Rillaboom|90/100|[from] Grassy Terrain
+|upkeep
+|turn|4
+|
+|t:|1790370959
+|switch|p2a: Arcanine|Arcanine-Hisui, L50, F|202/202
+|move|p1b: Rillaboom|Fake Out|p2b: Raichu
+|-damage|p2b: Raichu|92/167
+|cant|p2b: Raichu|flinch
+|move|p1a: Salamence|Tailwind|p1a: Salamence
+|-sidestart|p1: estrellitapor|move: Tailwind
+|
+|-heal|p1b: Rillaboom|96/100|[from] Grassy Terrain
+|-heal|p2b: Raichu|102/167|[from] Grassy Terrain
+|upkeep
+|turn|5
+|
+|t:|1790370983
+|move|p1a: Salamence|Protect|p1a: Salamence
+|-singleturn|p1a: Salamence|Protect
+|move|p1b: Rillaboom|High Horsepower|p2a: Arcanine
+|-supereffective|p2a: Arcanine|2
+|-enditem|p2a: Arcanine|Focus Sash
+|-damage|p2a: Arcanine|1/202
+|move|p2b: Raichu|Zap Cannon|p1a: Salamence
+|-activate|p1a: Salamence|move: Protect
+|move|p2a: Arcanine|Flare Blitz|p1b: Rillaboom
+|-supereffective|p1b: Rillaboom|1
+|-damage|p1b: Rillaboom|0 fnt
+|faint|p1b: Rillaboom
+|
+|-heal|p2b: Raichu|112/167|[from] Grassy Terrain
+|-heal|p2a: Arcanine|13/202|[from] Grassy Terrain
+|upkeep
+|
+|t:|1790370997
+|switch|p1b: Arcanine|Arcanine-Hisui, L50, M|100/100
+|turn|6
+|
+|t:|1790371012
+|move|p2b: Raichu|Protect|p2b: Raichu
+|-singleturn|p2b: Raichu|Protect
+|move|p2a: Arcanine|Protect|p2a: Arcanine
+|-singleturn|p2a: Arcanine|Protect
+|move|p1b: Arcanine|Extreme Speed|p2a: Arcanine
+|-activate|p2a: Arcanine|move: Protect
+|move|p1a: Salamence|Draco Meteor|p2b: Raichu
+|-activate|p2b: Raichu|move: Protect
+|
+|-heal|p2b: Raichu|122/167|[from] Grassy Terrain
+|-heal|p2a: Arcanine|25/202|[from] Grassy Terrain
+|-fieldend|move: Grassy Terrain
+|upkeep
+|turn|7
+|
+|t:|1790371027
+|switch|p2b: Rillaboom|Rillaboom, L50, M|61/207
+|-fieldstart|move: Grassy Terrain|[from] ability: Grassy Surge|[of] p2b: Rillaboom
+|move|p1a: Salamence|Protect|p1a: Salamence
+|-singleturn|p1a: Salamence|Protect
+|move|p1b: Arcanine|Extreme Speed|p2a: Arcanine
+|-resisted|p2a: Arcanine|1
+|-damage|p2a: Arcanine|0 fnt
+|faint|p2a: Arcanine
+|
+|-heal|p2b: Rillaboom|73/207|[from] Grassy Terrain
+|-sideend|p1: estrellitapor|move: Tailwind
+|upkeep
+|
+|t:|1790371028
+|switch|p2a: Raichu|Raichu-Mega-Y, L50, M|122/167
+|turn|8
+|
+|t:|1790371067
+|move|p1b: Arcanine|Protect|p1b: Arcanine
+|-singleturn|p1b: Arcanine|Protect
+|move|p2b: Rillaboom|Fake Out|p1b: Arcanine
+|-activate|p1b: Arcanine|move: Protect
+|move|p2a: Raichu|Zap Cannon|p1a: Salamence
+|-damage|p1a: Salamence|0 fnt
+|faint|p1a: Salamence
+|
+|-heal|p2a: Raichu|132/167|[from] Grassy Terrain
+|-heal|p2b: Rillaboom|85/207|[from] Grassy Terrain
+|upkeep
+|
+|t:|1790371077
+|switch|p1a: Gholdengo|Gholdengo, L50|100/100
+|turn|9
+|
+|t:|1790371084
+|move|p2b: Rillaboom|Grassy Glide|p1b: Arcanine
+|-damage|p1b: Arcanine|38/100
+|move|p2a: Raichu|Zap Cannon|p1b: Arcanine
+|-damage|p1b: Arcanine|0 fnt
+|faint|p1b: Arcanine
+|move|p1a: Gholdengo|Shadow Ball|p2a: Raichu
+|-damage|p2a: Raichu|38/167
+|
+|-heal|p2a: Raichu|48/167|[from] Grassy Terrain
+|-heal|p2b: Rillaboom|97/207|[from] Grassy Terrain
+|upkeep
+|turn|10
+|
+|t:|1790371097
+|move|p2a: Raichu|Zap Cannon|p1a: Gholdengo
+|-damage|p1a: Gholdengo|34/100
+|-status|p1a: Gholdengo|par
+|move|p2b: Rillaboom|High Horsepower|p1a: Gholdengo
+|-supereffective|p1a: Gholdengo|1
+|-damage|p1a: Gholdengo|0 fnt
+|faint|p1a: Gholdengo
+|
+|win|medicham32

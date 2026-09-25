@@ -174,6 +174,76 @@ function mkController(dir, extra) {
   ok('CONTROLLER', !H.sent.some(s => /\/search/.test(s)) && H.C.state().guard.unknown === 1, 'no userdetails answer -> fail closed, no search');
 }
 
+/* ---------------- PRIVATE + BOUNDED WAITS (the aa1 hangs, docs/_reports/2026-09-25-rotom-series-hang.md) ----------------
+ * the full replay through the real client is solver/tests/test-rotom-private-series.js; these are the pure pieces */
+{
+  const bo = 'game-bestof3-gen9championsvgc2026regmcbo3-2687880999', pw = bo + '-3u647uiao8y2l2rmu65vb7v2rhhboxgpw';
+  ok('PRIVATE', L.canonRoom(pw) === bo && L.canonRoom(bo) === bo && L.isPrivateId(pw) && !L.isPrivateId(bo), 'a hidden series id canonicalises to its public id');
+  ok('PRIVATE', L.canonRoom('battle-gen9championsvgc2026regmcbo3-2687881000-4bl5339n46axp77eemy46cwqgaimvmbpw') === 'battle-gen9championsvgc2026regmcbo3-2687881000', 'a hidden battle id too');
+  const cfg = { idleMs: 1000, probeMs: 100, maxProbes: 2 };
+  ok('STALL', L.stallAction({ lastSeen: 1e6 }, 1e6 + 500, cfg).do === 'none', 'recent traffic -> nothing');
+  ok('STALL', L.stallAction({ lastSeen: 1e6 }, 1e6 + 1000, cfg).do === 'probe', 'silent past idle -> probe');
+  ok('STALL', L.stallAction({ lastSeen: 1e6, probes: 1, probeSentAt: 1e6 + 1000 }, 1e6 + 1050, cfg).do === 'none', 'probe in flight -> wait for it');
+  ok('STALL', L.stallAction({ lastSeen: 1e6, probes: 1, probeSentAt: 1e6 + 1000 }, 1e6 + 1100, cfg).do === 'probe', 'unanswered -> probe again');
+  ok('STALL', L.stallAction({ lastSeen: 1e6, probes: 2, probeSentAt: 1e6 + 1100 }, 1e6 + 1200, cfg).do === 'orphan', 'silent through every probe -> orphan');
+  ok('STALL', L.stallAction({ lastSeen: 1e6 + 10, gone: 'nonexistent' }, 1e6 + 20, cfg).do === 'orphan', 'the room is gone -> orphan at once');
+  const base = { halted: null, stopFile: null, setsDone: 0, openSeries: 0, sets: 10, maxErrors: 3, consecErrors: 0, deadline: 0, now: 1e7, loggedIn: true,
+                 searching: false, searchSentAt: 0, guard: { at: 1e7 - 1000, blocked: null, pendingSince: 0 } };
+  const na = o => L.nextAction(Object.assign({}, base, o));
+  ok('BOUNDS', na({ searching: true, searchingSince: 1e7 - L.SEARCH_MAX_MS }).do === 'cancel', 'in the queue past SEARCH_MAX_MS -> cancel (then search again)');
+  ok('BOUNDS', na({ searching: true, searchingSince: 1e7 - 1000 }).do === 'wait', 'a fresh search -> wait');
+  ok('BOUNDS', na({ loggedIn: false, socketOpen: true, loggedOutSince: 1e7 - L.LOGIN_WAIT_MS }).do === 'relogin', 'open socket, not logged in past LOGIN_WAIT_MS -> relogin');
+  ok('BOUNDS', na({ loggedIn: false, socketOpen: false, loggedOutSince: 1e7 - L.LOGIN_WAIT_MS }).do === 'wait', 'socket closed -> the reconnect path owns it');
+  ok('BOUNDS', na({ matchedAt: 1e7 - 1000 }).do === 'wait' && na({ matchedAt: 1e7 - L.MATCH_JOIN_MS }).do === 'search', 'a match listed but not yet joined holds the next search, for MATCH_JOIN_MS at most');
+  /* the controller: the old id of an open series is an alias, never a new k; an orphan is an error and writes no row */
+  const dir = fs.mkdtempSync(path.join(TMP, 'c4-'));
+  const H = mkController(dir);
+  H.set({ logged: true }); H.C.tick('login'); H.C.onQuery('userdetails', JSON.stringify({ userid: 'willhoop', rooms: false }));
+  H.C.onUpdateSearch({ searching: [], games: { [bo]: 'x', [pw]: 'x' } });
+  H.set({ t: H.t + 11000 }); H.C.tick('race');
+  ok('CONTROLLER', H.sent.filter(s => /\/search/.test(s)).length === 1, 'a match listed by updatesearch holds the next search until its room speaks: ' + H.sent.filter(s => /\/search/.test(s)).length + ' searches');
+  H.set({ open: 1 });
+  const r1 = H.C.onSeriesStart(pw), r2 = H.C.onSeriesStart(bo);
+  ok('CONTROLLER', r1 === r2 && r1.k === 1 && H.C.state().k === 1 && H.events.some(e => e.ty === 'ladder_series_alias'), 'the pre-rename id is an ALIAS of k=1, not series k=2: ' + JSON.stringify({ k1: r1.k, k2: r2.k, stateK: H.C.state().k }));
+  const r3 = H.C.renameSeries(bo, bo + '-zzpw');
+  ok('CONTROLLER', r3 === r1 && H.C.armOf(bo + '-zzpw') && H.C.armOf(bo + '-zzpw').id === r1.arm, 'a rename carries the record (arm, team) to the new id');
+  H.set({ open: 0 });
+  H.C.onSeriesOrphan(pw, 'room gone (test)');
+  const S = H.C.state();
+  ok('CONTROLLER', S.orphans.length === 1 && S.orphans[0].k === 1 && S.consecErrors === 1 && S.errors.some(e => e.kind === 'series_orphan'), 'an orphan is kept in the state and counted as an error: ' + JSON.stringify({ orphans: S.orphans.length, consec: S.consecErrors }));
+  ok('CONTROLLER', !fs.existsSync(H.C.seriesFile), 'an orphan writes no series row (its result is unknown)');
+  H.C.onSeriesEnd(pw, { winner: 'x', mine: false });   // a late |win| after the orphan: still no row
+  ok('CONTROLLER', !fs.existsSync(H.C.seriesFile) && H.events.some(e => e.ty === 'ladder_win_after_orphan'), 'a late |win| for an orphan writes no row and is logged');
+}
+
+/* ---------------- WATCHDOG (the supervisor's hang watchdog, solver/rotom/watchdog.js) ---------------- */
+{
+  const W = require('../rotom/watchdog.js');
+  const cfg = { hangMs: 60000 };
+  ok('WATCHDOG', W.hangVerdict({ now: 1e7, since: 0, lastProgress: 1e7 - 59000, openGames: [] }, cfg).restart === false, 'progress within the window -> no restart');
+  ok('WATCHDOG', W.hangVerdict({ now: 1e7, since: 0, lastProgress: 1e7 - 60000, openGames: [] }, cfg).restart === true, 'no progress for the window and no game open -> restart');
+  ok('WATCHDOG', W.hangVerdict({ now: 1e7, since: 0, lastProgress: 1e7 - 600000, openGames: ['battle-x'] }, cfg).restart === false, 'a game open -> NEVER restart');
+  ok('WATCHDOG', W.hangVerdict({ now: 1e7, since: 1e7 - 1000, lastProgress: 0, openGames: [] }, cfg).restart === false, 'a client just (re)started gets the full window');
+  ok('WATCHDOG', W.hangVerdict({ now: 1e7, since: 0, lastProgress: 0, openGames: [] }, { hangMs: 0 }).restart === false, '--hang-min 0 turns it off');
+  /* the file tail: events, decisions and the guard answer each count as progress */
+  const dir = fs.mkdtempSync(path.join(TMP, 'wd-'));
+  const now = Date.now(), ev = path.join(dir, 'events-rotomx.jsonl'), dec = path.join(dir, 'decisions-rotomx.jsonl'), ls = path.join(dir, 'ladder-state-rotomx.json');
+  const w = W.create(dir, 'rotomx', { hangMs: 60000, gameOpenMs: 300000 }); w.restarted(now - 10 * 60000);
+  fs.writeFileSync(ev, JSON.stringify({ t: now - 9 * 60000, type: 'ladder_search' }) + '\n');
+  let v = w.poll(now);
+  ok('WATCHDOG', v.restart && v.openGames.length === 0, 'the aa1 shape (last event 9 min ago, no game open) -> restart: ' + v.why);
+  fs.appendFileSync(ev, JSON.stringify({ t: now - 2 * 60000, type: 'battle_join', room: 'battle-y' }) + '\n');
+  v = w.poll(now);
+  ok('WATCHDOG', !v.restart && v.openGames[0] === 'battle-y', 'a battle joined and not ended -> open -> no restart: ' + v.why);
+  fs.appendFileSync(ev, JSON.stringify({ t: now - 90000, type: 'game_end', room: 'battle-y' }) + '\n');
+  v = w.poll(now);
+  ok('WATCHDOG', v.restart, 'the game ended 90 s ago and nothing since -> restart');
+  fs.writeFileSync(dec, JSON.stringify({ t: now - 5000, room: 'battle-z' }) + '\n');
+  ok('WATCHDOG', !w.poll(now).restart, 'a decision 5 s ago -> progress');
+  fs.writeFileSync(ls, JSON.stringify({ guard: { last: { at: new Date(now + 70000).toISOString() } } }));
+  ok('WATCHDOG', !w.poll(now + 120000).restart, 'a guard answer (a paused or searching loop re-asks every minute) -> progress');
+}
+
 /* ---------------- RELEASE ---------------- */
 {
   const RD = path.join(ROOT, 'data', 'releases');

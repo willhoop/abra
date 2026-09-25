@@ -67,6 +67,21 @@ The supervisor restarts a crashed client (up to 5 times). The client logs in aga
 and plays on. It never forfeits. If the supervisor itself died, rerun the **same** command with
 `--out solver\out\rotom\<run dir>` added. The same seed, arms and rotation are required.
 
+**A hung client heals itself too (2026-09-25, after the aa1 hangs).** Nobody restarts the bot, so two layers:
+
+- **In the client, every wait is bounded.** An open series that sends nothing for 150 s is probed with
+  `/crq roominfo`. If the room is gone, or it stays silent through 3 probes, the series is **orphaned**: it is logged,
+  counted as a ladder error (3 in a row halt the run) and gets no row, and the loop searches on. A search older than
+  20 min is cancelled and re-sent. An open socket that is not logged in after 90 s is dropped and logged in again.
+- **In the supervisor, a watchdog** (`solver/rotom/watchdog.js`). If a client makes no progress (no search, decision,
+  game message or guard answer) for `--hang-min` minutes (default 10) **and no game is open**, the supervisor kills
+  that client by its pid, writes an incident to `<run dir>\supervisor-incidents.jsonl`, and relaunches it through the
+  crash-resume path. It never fires with a game open. `--hang-min 0` turns it off. `--max-hang-restarts` (default 20)
+  caps it.
+- **Private series.** A series whose opponent hides the room is renamed `<id>-<31 chars>pw`, and the server lists both
+  ids. The client now treats the old id as the same series, never a new one. That phantom series was the cause of both
+  aa1 hangs (`docs/_reports/2026-09-25-rotom-series-hang.md`).
+
 ## 5. What the two-account guard can and cannot see
 
 - **A machine-wide lock**: two ABRA clients can never be on the public server at once from this machine.
@@ -101,4 +116,6 @@ node solver\rotom\run_ladder.js --dry-run --release eaa5becc54eb --arms solver\r
 ```
 
 `--guard-window a:b` puts a local `willhoop` online from second a to second b, so both clients must pause
-and then resume. `dryrun-fast.json` caps the search for speed and is refused on `--public`.
+and then resume. `--hide-a` / `--hide-b` make that side send `/hidenext` before each search, so every series is a
+PRIVATE room (the aa1 hang shape). `--drill-a hang@S` makes client A stop moving after S sets, so the supervisor
+watchdog must restart it (use a short `--hang-min`, e.g. 1.5). `dryrun-fast.json` caps the search for speed and is refused on `--public`.

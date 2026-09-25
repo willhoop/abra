@@ -1,0 +1,79 @@
+|title|estrellitapor vs. medicham32
+|j|☆estrellitapor
+|j|☆medicham32
+|html|<table width="100%"><tr><td align="left">estrellitapor</td><td align="right">medicham32</tr><tr><td align="left"><i class="fa fa-circle-o"></i> <i class="fa fa-circle-o"></i> </td><td align="right"><i class="fa fa-circle-o"></i> <i class="fa fa-circle"></i> </tr></table>
+|uhtml|bestof|<h2><strong>Game 2</strong> of <a href="/game-bestof3-gen9championsvgc2026regmcbo3-2687880999-3u647uiao8y2l2rmu65vb7v2rhhboxgpw">a best-of-3</a></h2>
+|t:|1790371099
+|gametype|doubles
+|player|p1|estrellitapor|galacticgrunt|1085
+|player|p2|medicham32|266|1040
+|gen|9
+|tier|[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)
+|rated|
+|rule|Species Clause: Limit one of each Pokémon
+|rule|Item Clause: Limit 1 of each item
+|clearpoke
+|poke|p1|Salamence, L50, F, shiny|
+|poke|p1|Gholdengo, L50|
+|poke|p1|Sneasler, L50, F|
+|poke|p1|Rillaboom, L50, M, shiny|
+|poke|p1|Arcanine-Hisui, L50, M|
+|poke|p1|Raichu, L50, M|
+|poke|p2|Rillaboom, L50, M|
+|poke|p2|Arcanine-Hisui, L50, F|
+|poke|p2|Dragonite, L50, M|
+|poke|p2|Raichu, L50, M|
+|poke|p2|Gholdengo, L50|
+|poke|p2|Garchomp, L50, M|
+|teampreview|4
+|showteam|p1|Salamence||Salamencite|Intimidate|HyperVoice,DracoMeteor,Tailwind,Protect|Timid||F|||50|]Gholdengo||GrassySeed|GoodasGold|MakeItRain,ShadowBall,NastyPlot,Protect|Modest|||||50|]Sneasler||WhiteHerb|Unburden|CloseCombat,DireClaw,RockTomb,FakeOut|Adamant||F|||50|]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,GrassyGlide,HighHorsepower,FakeOut|Adamant||M|||50|]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly||M|||50|]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid||M|||50|
+|showteam|p2|Rillaboom||MiracleSeed|GrassySurge|WoodHammer,GrassyGlide,HighHorsepower,FakeOut|Adamant||M|||50|]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly||F|||50|]Dragonite||Dragoninite|InnerFocus|DragonPulse,HeatWave,Tailwind,Protect|Modest||M|||50|]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid||M|||50|]Gholdengo||LifeOrb|GoodasGold|MakeItRain,ShadowBall,NastyPlot,Protect|Modest|||||50|]Garchomp||SitrusBerry|RoughSkin|StompingTantrum,DragonClaw,SwordsDance,Protect|Adamant||M|||50|
+|
+|t:|1790371111
+|teamsize|p1|4
+|teamsize|p2|4
+|start
+|switch|p1a: Gholdengo|Gholdengo, L50|100/100
+|switch|p1b: Salamence|Salamence, L50, F, shiny|100/100
+|switch|p2a: Gholdengo|Gholdengo, L50|194/194
+|switch|p2b: Raichu|Raichu, L50, M|167/167
+|-ability|p1b: Salamence|Intimidate|boost
+|-unboost|p2a: Gholdengo|atk|1
+|-unboost|p2b: Raichu|atk|1
+|turn|1
+|
+|t:|1790371126
+|detailschange|p1b: Salamence|Salamence-Mega, L50, F, shiny
+|-mega|p1b: Salamence|Salamence|Salamencite
+|detailschange|p2b: Raichu|Raichu-Mega-Y, L50, M
+|-mega|p2b: Raichu|Raichu|Raichunite Y
+|move|p1a: Gholdengo|Protect|p1a: Gholdengo
+|-singleturn|p1a: Gholdengo|Protect
+|move|p2b: Raichu|Fake Out|p1b: Salamence
+|-damage|p1b: Salamence|95/100
+|cant|p1b: Salamence|flinch
+|move|p2a: Gholdengo|Shadow Ball|p1a: Gholdengo
+|-activate|p1a: Gholdengo|move: Protect
+|
+|upkeep
+|turn|2
+|
+|t:|1790371152
+|move|p1b: Salamence|Tailwind|p1b: Salamence
+|-sidestart|p1: estrellitapor|move: Tailwind
+|move|p1a: Gholdengo|Shadow Ball|p2a: Gholdengo
+|-supereffective|p2a: Gholdengo|1
+|-damage|p2a: Gholdengo|38/194
+|move|p2b: Raichu|Zap Cannon|p1b: Salamence
+|-damage|p1b: Salamence|26/100
+|-status|p1b: Salamence|par
+|move|p2a: Gholdengo|Shadow Ball|p1a: Gholdengo
+|-supereffective|p1a: Gholdengo|1
+|-damage|p1a: Gholdengo|0 fnt
+|faint|p1a: Gholdengo
+|-damage|p2a: Gholdengo|19/194|[from] item: Life Orb
+|
+|upkeep
+|-message|estrellitapor forfeited.
+|
+|win|medicham32
