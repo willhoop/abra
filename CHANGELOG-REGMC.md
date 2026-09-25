@@ -21,6 +21,32 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.1.0] — 2026-09-25
+
+### Added
+- **MEW, the self-play factory, and MACHAMP, the training loop (v0).** `solver/mew/` (team pairs split by player,
+  league agents, the worker and its coordinator) and `solver/machamp/` (DODUO and PORYGON2 builders and trainers,
+  the arena gate, the loop, `preregistration.json`, the league specs and `models/gen{1,2}/`). Every game plays on
+  a frozen release and is stamped with its id. Additive MILTANK options: `leafModel` (a PORYGON2 file per agent),
+  `record` (the whole root), `jointCells` (each joint's DODUO cell). `solver/porygon2/build_dataset.js` takes
+  `--release`.
+- `solver/tests/test-machamp.js`: 95/95 GREEN; six deliberate breaks each turn it RED.
+
+### Notes
+- **Measured on release `eaa5becc54eb`**, 4 workers, MILTANK at 500 ms per decision, k 5×5, depth 0 with the
+  PORYGON2 leaf:
+  - Self-play ran at 1,721 and 1,943 games/hour (1,600 games per generation, 0 errors, 0 fallbacks).
+  - Two candidates were trained and gated. **Both were REJECTED.**
+    - PORYGON2 against v0 on held-out human log-loss: −0.0025 [−0.0053, +0.0005] and −0.0038 [−0.0062, −0.0014],
+      both PASS.
+    - Beats gen0 (200 games): 0.525 [0.456, 0.593] and 0.520 [0.451, 0.588], both FAIL.
+    - Does not lose to the human clone: 0.560 [0.491, 0.627] and 0.490 [0.422, 0.559], both PASS.
+  - The champion stays gen0.
+  - The search was starved: 30–41% of matrix cells were unfilled at the clock.
+- Sources: `solver/machamp/models/gen{1,2}/gates.json`, `solver/out/selfplay/eaa5becc54eb/gen{0,1}/manifest.json`.
+  Account: `docs/_reports/2026-09-25-selfplay-v0.md`.
+- **Basis.** unchanged. The new figures are first measurements. No published figure moves.
+
 ## [1.0.0] — 2026-09-24
 
 ### Changed

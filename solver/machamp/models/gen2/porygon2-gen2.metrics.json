@@ -1,0 +1,322 @@
+{
+ "model": "PORYGON2 gen2",
+ "out": {
+  "path": "solver/machamp/models/gen2/porygon2-gen2.json",
+  "sha256": "6a6390a0d741cb02f449f8f1a0a6c881ea4eb9a1126223c2995c93ffc15c238b"
+ },
+ "init": {
+  "path": "solver/porygon2/model/porygon2-v0.json",
+  "sha256": "b772aa398e72893818775c510a90bda42ea7ee44ebf8454a61530ba07f0182f4"
+ },
+ "ref": {
+  "path": "solver/porygon2/model/porygon2-v0.json",
+  "sha256": "b772aa398e72893818775c510a90bda42ea7ee44ebf8454a61530ba07f0182f4"
+ },
+ "engine_release": "eaa5becc54eb",
+ "human_tensors": {
+  "dir": "solver/out/porygon2/human-eaa5becc54eb",
+  "dataset": {
+   "read_from": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\solver\\out\\human\\games.jsonl",
+   "games_sha256": "9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8",
+   "manifest_generated": "2026-09-23T08:03:12.313Z",
+   "games_read": 26888
+  },
+  "engine_release": "eaa5becc54eb"
+ },
+ "selfplay_tensors": {
+  "dir": "solver/out/machamp/eaa5becc54eb/cand2/pory2",
+  "counts": {
+   "games": 1600,
+   "games_no_result": 0,
+   "positions": 11906,
+   "with_v": 8098,
+   "val_positions": 1036,
+   "wrong_release": 0,
+   "roots_too_unfilled": 7780
+  },
+  "lambda": 0.5,
+  "sources": [
+   {
+    "file": "solver/out/selfplay/eaa5becc54eb/gen1/shard-0.jsonl.gz",
+    "sha256": "c0279e2912305d8ae68981142d1f6447a488699f5f8ce4e44f6b1db01121cf0f"
+   },
+   {
+    "file": "solver/out/selfplay/eaa5becc54eb/gen1/shard-1.jsonl.gz",
+    "sha256": "ff5c6f3eb9f6a9ffc42064cd6c9456cea5fb9af17865d254b832768d4d830000"
+   },
+   {
+    "file": "solver/out/selfplay/eaa5becc54eb/gen1/shard-2.jsonl.gz",
+    "sha256": "43011aedcbd8d5ce8be3b8103c078685bbf8d04339c92edd0c66ef4230a90e6e"
+   },
+   {
+    "file": "solver/out/selfplay/eaa5becc54eb/gen1/shard-3.jsonl.gz",
+    "sha256": "a8bfbb62281ddfc61177b140bc58bc68ef10e77fd8543956a82ba627b515a33c"
+   }
+  ]
+ },
+ "positions": {
+  "human_train": 119334,
+  "human_val": 33567,
+  "human_test": 36083,
+  "human_test_views": 37829.0,
+  "selfplay_train": 10870,
+  "selfplay_val": 1036
+ },
+ "flags": {
+  "init": "solver/porygon2/model/porygon2-v0.json",
+  "ref": "solver/porygon2/model/porygon2-v0.json",
+  "human": "solver/out/porygon2/human-eaa5becc54eb",
+  "selfplay": "solver/out/machamp/eaa5becc54eb/cand2/pory2",
+  "out": "solver/machamp/models/gen2/porygon2-gen2.json",
+  "metrics": "solver/machamp/models/gen2/porygon2-gen2.metrics.json",
+  "fixture": "solver/machamp/models/gen2/porygon2-gen2.fixture.json",
+  "name": "PORYGON2 gen2",
+  "threads": 4,
+  "epochs": 6,
+  "lr": 0.0005,
+  "wd": 0.0001,
+  "human_ratio": 1.0,
+  "tol": 0.002,
+  "seed": 1,
+  "boot": 2000
+ },
+ "history": [
+  {
+   "epoch": -1,
+   "human_val_logloss": 0.5185597217850132,
+   "selfplay_val_loss": 0.49134780516928867
+  },
+  {
+   "epoch": 0,
+   "train_loss": 0.489254201000387,
+   "human_val_logloss": 0.5171883404550897,
+   "selfplay_val_loss": 0.49368799952789433,
+   "seconds": 3.747694969177246
+  },
+  {
+   "epoch": 1,
+   "train_loss": 0.48837431452491065,
+   "human_val_logloss": 0.5168659665096342,
+   "selfplay_val_loss": 0.4918834686562079,
+   "seconds": 2.3064513206481934
+  },
+  {
+   "epoch": 2,
+   "train_loss": 0.4873126365921714,
+   "human_val_logloss": 0.5171962005891247,
+   "selfplay_val_loss": 0.4926294886079168,
+   "seconds": 2.1215410232543945
+  },
+  {
+   "epoch": 3,
+   "train_loss": 0.48517240990291943,
+   "human_val_logloss": 0.517202498939448,
+   "selfplay_val_loss": 0.49107598516914247,
+   "seconds": 2.0769028663635254
+  },
+  {
+   "epoch": 4,
+   "train_loss": 0.4851623665202748,
+   "human_val_logloss": 0.5178310457681817,
+   "selfplay_val_loss": 0.4938635711188051,
+   "seconds": 2.317188262939453
+  },
+  {
+   "epoch": 5,
+   "train_loss": 0.481313250281594,
+   "human_val_logloss": 0.5175901377965753,
+   "selfplay_val_loss": 0.4895697309264813,
+   "seconds": 2.4230105876922607
+  }
+ ],
+ "selected_epoch": 5,
+ "test": {
+  "new": {
+   "logloss": {
+    "mean": 0.513678,
+    "ci95": [
+     0.504888,
+     0.522605
+    ],
+    "n_views": 37829.0,
+    "n_games": 5220
+   },
+   "brier": {
+    "mean": 0.174496,
+    "ci95": [
+     0.171087,
+     0.178011
+    ],
+    "n_views": 37829.0,
+    "n_games": 5220
+   }
+  },
+  "ref_v0": {
+   "logloss": {
+    "mean": 0.51746,
+    "ci95": [
+     0.509179,
+     0.526065
+    ],
+    "n_views": 37829.0,
+    "n_games": 5220
+   },
+   "brier": {
+    "mean": 0.175843,
+    "ci95": [
+     0.172511,
+     0.179313
+    ],
+    "n_views": 37829.0,
+    "n_games": 5220
+   }
+  },
+  "init": {
+   "logloss": {
+    "mean": 0.51746,
+    "ci95": [
+     0.509179,
+     0.526065
+    ],
+    "n_views": 37829.0,
+    "n_games": 5220
+   },
+   "brier": {
+    "mean": 0.175843,
+    "ci95": [
+     0.172511,
+     0.179313
+    ],
+    "n_views": 37829.0,
+    "n_games": 5220
+   }
+  },
+  "paired": {
+   "new_minus_ref_v0": {
+    "logloss": {
+     "mean": -0.003782,
+     "ci95": [
+      -0.006247,
+      -0.001353
+     ],
+     "n_views": 37829.0,
+     "n_games": 5220
+    },
+    "brier": {
+     "mean": -0.001347,
+     "ci95": [
+      -0.002337,
+      -0.000368
+     ],
+     "n_views": 37829.0,
+     "n_games": 5220
+    }
+   },
+   "new_minus_init": {
+    "logloss": {
+     "mean": -0.003782,
+     "ci95": [
+      -0.006247,
+      -0.001353
+     ],
+     "n_views": 37829.0,
+     "n_games": 5220
+    },
+    "brier": {
+     "mean": -0.001347,
+     "ci95": [
+      -0.002337,
+      -0.000368
+     ],
+     "n_views": 37829.0,
+     "n_games": 5220
+    }
+   }
+  }
+ },
+ "by_turn": {
+  "1": {
+   "new_minus_ref_v0_logloss": {
+    "mean": 0.00058,
+    "ci95": [
+     -0.00209,
+     0.003194
+    ],
+    "n_views": 5480.0,
+    "n_games": 5220
+   }
+  },
+  "2": {
+   "new_minus_ref_v0_logloss": {
+    "mean": -0.001719,
+    "ci95": [
+     -0.00474,
+     0.001197
+    ],
+    "n_views": 5412.0,
+    "n_games": 5155
+   }
+  },
+  "3": {
+   "new_minus_ref_v0_logloss": {
+    "mean": -0.003718,
+    "ci95": [
+     -0.006797,
+     -0.000619
+    ],
+    "n_views": 5255.0,
+    "n_games": 5006
+   }
+  },
+  "4-5": {
+   "new_minus_ref_v0_logloss": {
+    "mean": -0.005843,
+    "ci95": [
+     -0.008633,
+     -0.003044
+    ],
+    "n_views": 9506.0,
+    "n_games": 4762
+   }
+  },
+  "6-8": {
+   "new_minus_ref_v0_logloss": {
+    "mean": -0.005896,
+    "ci95": [
+     -0.009643,
+     -0.002101
+    ],
+    "n_views": 8690.0,
+    "n_games": 3603
+   }
+  },
+  "9+": {
+   "new_minus_ref_v0_logloss": {
+    "mean": -0.003047,
+    "ci95": [
+     -0.010287,
+     0.004501
+    ],
+    "n_views": 3486.0,
+    "n_games": 1278
+   }
+  }
+ },
+ "v1_selfplay_val_mse_vs_search_value": {
+  "new": 0.016941,
+  "init": 0.018185,
+  "ref_v0": 0.018185,
+  "count_hp": 0.042659,
+  "n_positions": 712
+ },
+ "gate_nonworse_vs_v0": {
+  "rule": "PASS iff the 95% upper bound of (new - v0) held-out human log-loss <= +0.004 (the v0 split-half floor)",
+  "diff": -0.003782,
+  "ci95": [
+   -0.006247,
+   -0.001353
+  ],
+  "pass": true
+ },
+ "seconds": 40
+}

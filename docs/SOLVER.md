@@ -67,7 +67,11 @@ This section says only what a division agent needs before it starts.
   lean playouts (`solver/miltank/`), the offline arena (`solver/arena/`). **Every arena figure so far is
   PRE-GATE** — it was played before release `eaa5becc54eb` — **and is withheld until it is re-run on
   that release.** The re-run is the first thing owed.
-- **Not built:** CHOMP, PORYGON2, GARY, HYPNO, DUSK, MEW, MACHAMP, WOBBUFFET, DITTO, ROTOM, ALAKAZAM,
+- **MEW + MACHAMP v0 (2026-09-25):** the self-play factory and the training loop run on release `eaa5becc54eb`.
+  Two generations were gated against the pre-registered rules and neither was accepted, so the champion is still
+  gen0 (`solver/machamp/models/gen{1,2}/gates.json`, `docs/_reports/2026-09-25-selfplay-v0.md`). The next lever
+  is the self-play search budget: 30–41% of cells were unfilled.
+- **Not built:** CHOMP, PORYGON2, GARY, HYPNO, DUSK, WOBBUFFET, DITTO, ROTOM, ALAKAZAM,
   KADABRA (and JOLTEON, only if CHOMP needs a pre-screen). Order: `solver/PLAN.md` §3, milestones M1–M8.
 - **Old implementations** (`engine/miltank.js`, `engine/magnemite.js`, `engine/mag_bot.js`, …) are archived
   to a top-level `archive/` in the commit where each replacement passes its exit test

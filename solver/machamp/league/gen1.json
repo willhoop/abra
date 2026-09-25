@@ -1,0 +1,12 @@
+{
+ "name": "gen1",
+ "kind": "miltank",
+ "mag": "solver/machamp/models/gen1/mag-gen1.json",
+ "doduo": "solver/machamp/models/gen1/doduo-gen1.json",
+ "pory2": "solver/machamp/models/gen1/porygon2-gen1.json",
+ "budgetMs": 500,
+ "k1": 5,
+ "k2": 5,
+ "depth": 0,
+ "reserveSwitch": 2
+}

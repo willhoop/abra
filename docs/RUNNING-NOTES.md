@@ -53,6 +53,26 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.1.0] — 2026-09-25 — **Self-play loop v0 (MEW + MACHAMP): two generations trained and gated on `eaa5becc54eb`; neither accepted**
+- **What changed.**
+  - New: `solver/mew/{pairs,agent,play,run}.js`, `solver/machamp/{build_doduo,build_pory2,gate,loop}.js`,
+    `train_{pory2,doduo}.py`, `preregistration.json`, `league/`, `models/gen{1,2}/`, `solver/tests/test-machamp.js`.
+  - Additive options in `solver/miltank/{search,rollout,prior_adapter}.js`; `--release` in
+    `solver/porygon2/build_dataset.js`.
+  - Account: `docs/_reports/2026-09-25-selfplay-v0.md`.
+- **Measured.** Release `eaa5becc54eb`, 4 workers, 500 ms per decision:
+  - Self-play: 1,721 and 1,943 games/hour (`solver/out/selfplay/eaa5becc54eb/gen{0,1}/manifest.json`).
+  - PORYGON2 against v0 on held-out human test log-loss: gen1 −0.0025 [−0.0053, +0.0005], gen2 −0.0038
+    [−0.0062, −0.0014]; both PASS.
+  - Against gen0 (200 games): 0.525 [0.456, 0.593] and 0.520 [0.451, 0.588]; both FAIL.
+  - Against the human clone: 0.560 [0.491, 0.627] and 0.490 [0.422, 0.559]; both PASS.
+  - Sources: `solver/machamp/models/gen{1,2}/gates.json`.
+  - `test-machamp` 95/95 and RED on six breaks; `test-miltank`, `test-porygon2` 423/423, `test-playout-speed` 1,184/1,184,
+    `test-arena-release` 17/17 GREEN.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MEW and MACHAMP in `docs/MODELS.md` and the solver section of the technical docs.
+
 ## [abra/regmc 1.0.0] — 2026-09-24 — **DRAFT: fold-ins A and B merged; the white paper, deck and technical docs stop claiming MILTANK v1 halves or uses XATU; living-document PDFs rebuilt**
 - **What changed.** `docs-1.0.0-a` and `docs-1.0.0-b` merged into `draft/regmc-1.0.0`. `docs/ABRA-whitepaper.md` (§2.2, §2.4, §3.1 registry, §3.5), `docs/ABRA-technical-docs.md` (model table) and `docs/ABRA-deck-plain-english.md` (slides 7 and 9) now say what `docs/MODELS.md` says: MILTANK v1 draws the world uniformly and has no successive halving; both are planned. The 13 stale or missing PDFs `build/build_pdfs.js` derives were rebuilt; ledgers excluded. Account: `docs/_reports/2026-09-24-docs-1.0.0-merge.md`.
 - **Measured.** NO FIGURE.

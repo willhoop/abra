@@ -6,6 +6,29 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ---
 
+## 2026-09-25
+
+### Self-play loop v0 — MEW + MACHAMP (branch worktree-agent-aab7de2f53411dba8, unmerged)
+- MEW plays real human open-sheet team pairs (train-split players) on the frozen release `eaa5becc54eb`. Both
+  sides are MILTANK with the generation's DODUO prior and PORYGON2 leaf, at 500 ms per decision, k 5×5, depth 0.
+  League weights: current 0.6, previous 0.2, human clone 0.2. Each decision records the position, v, both
+  mixes, the matrix and the result.
+- MACHAMP builds the targets:
+  - PORYGON2: 0.5·v + 0.5·z, with human positions 1:1.
+  - DODUO: 0.7·search mix + 0.3·DODUO v1, plus the human-click NLL.
+- MACHAMP gates each candidate with the pre-registered gates (`solver/machamp/preregistration.json`, committed
+  before the first game).
+- **Throughput: 1,721 and 1,943 self-play games/hour** on 4 workers. One generation step takes about 80 min.
+- **2 generations trained, 0 accepted:**
+  - gen1: PORYGON2 human Δ −0.0025 [−0.0053, +0.0005] PASS; beats gen0 0.525 [0.456, 0.593] FAIL; vs clone
+    0.560 PASS.
+  - gen2: Δ −0.0038 [−0.0062, −0.0014] PASS; beats gen0 0.520 [0.451, 0.588] FAIL; vs clone 0.490 PASS.
+  - The champion stays gen0.
+- The search is starved at this budget: 30–41% of cells were unfilled, so 36–54% of decisions are too empty to
+  train DODUO on. Next: a longer or pass-capped self-play budget, a human-only PORYGON2 control, and a gate
+  sized for about 3 points.
+- `solver/tests/test-machamp.js` 95/95, RED on 6 breaks. Detail: `docs/_reports/2026-09-25-selfplay-v0.md`.
+
 ## 2026-09-24
 
 ### PORYGON2 v0 — the value net (branch worktree-agent-ade91fd3b83d5aa3c, unmerged)
