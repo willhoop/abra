@@ -1,215 +1,173 @@
 # ABRA — Project Summary
 
-**Version 7.0.0 · 2026-09-20 · Will Hooper**
+**Version 1.0.0 · 2026-09-24 · Will Hooper**
+**Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
-**7.0.0 — THE MEDICHAM QUARANTINE GATE IS OPEN. THE SIMULATOR AGREES WITH SHOWDOWN ON EVERY
-INSTRUMENT THAT MEASURES IT, INCLUDING A HELD-OUT SAMPLE THE GATE DOES NOT READ. EVERY MODEL
-DOWNSTREAM OF IT BECOMES RE-RUNNABLE, NONE HAS BEEN RE-RUN, AND SO NOT ONE OF THEIR FIGURES APPEARS
-IN THIS DOCUMENT.**
+**1.0.0 — MEDICHAM IS CERTIFIED ON REG M-C. THE ENGINE IS THE FOUNDATION; THE SEARCH IS THE POINT.
+THE SOLVER NOW SEARCHES ON IT, AND THE FINISH LINE IS HIGH ON THE LADDER.**
 
-ABRA is the Automated Battle Replay Analyzer. It ingests public Champions Reg M-B replays from
-Pokémon Showdown, models the ladder metagame, and feeds the model CHOMP reads. Underneath that sit a
-simulator (MEDICHAM), a board evaluation, a fitted action model (MAG) and a search player (MILTANK).
-The dependency runs one way, which is why a wrong simulator was never an engine-only problem:
+ABRA builds a player for Pokémon Champions VGC, Reg M-C, open team sheets, and takes it up the Showdown
+ladder (`gen9championsvgc2026regmcbo3`, account `medicham32`, cleared with Showdown staff). The plan
+runs in three steps:
+
+1. **MEDICHAM is correct.** ABRA's simulator agrees with Showdown on every instrument that measures it
+   on Reg M-C, and the gate is OPEN (§2).
+2. **So the solver searches on it, live, every turn.** At team preview **CHOMP** solves the bring and
+   the lead. Each turn **XATU** holds the belief over hidden information, **MAG and DODUO** narrow the
+   candidate joint actions, **MILTANK** fills a payoff matrix by playouts on MEDICHAM and **SLOWKING**
+   solves it; **HYPNO** is a capped exploit dial against human habits. **PORYGON2** is the value net,
+   **MEW and MACHAMP** train it by self-play, and **ROTOM** is the live client.
+3. **It climbs the ladder**, judged by a settled rating ± SD over many series and the per-series
+   residual, never the peak.
 
 ```
-MEDICHAM  ->  board.js  ->  MAG weights  ->  MILTANK baselines  ->  live
-(engine)      (features)    (the refit)      (every head-to-head)
+both open sheets ─► CHOMP ─► bring 4, lead 2
+each turn:  XATU (worlds) ─► MEDICHAM legalActions ─► DODUO (prune) ─► MILTANK (playouts)
+            ─► SLOWKING (equilibrium) ─► HYPNO (exploit dial) ─► sample ─► ROTOM ─► ladder
 ```
 
-Everything right of the first arrow has been withheld since 2026-08-08, because the box on the left
-was known incorrect. That is what changed today, and it changed for the left-hand box only.
+The plan, with the model registry and milestones, is `solver/PLAN.md`; what landed is `solver/LOG.md`.
+**Reg M-B is retired** (Will, 2026-09-24). Its record is `CHANGELOG.md`, closed at 7.0.0, and the
+Reg M-B edition of this document is `git show 1be7343c:docs/SUMMARY.md`. Nothing here is comparable
+with a figure in it.
 
 ---
 
 ## 1. Every component, and the state it is in
 
-| component | what it is | state today |
+| component | what it is | state on 2026-09-24 |
 |---|---|---|
-| **MEDICHAM** — the simulator | plays Champions Reg M-B locally so a position can be rolled out | **GATE OPEN.** All ten clauses of `node engine/quarantine.js` pass on release `0d7b1d9db6d1` |
-| **The Showdown differential** | plays the same game on both engines and compares the board at every turn boundary | LIVE and clean — see §2. It measures MEDICHAM, so it was never quarantined |
-| **The damage differential** | stages damage stage by stage against the authority | LIVE and clean at every interior index — see §2 |
-| **The deliberate roster** | one staged scenario per legal item, ability and move | LIVE and clean on all three stages — see §2 |
-| **The mechanics census and the staged harness** | probes a mechanic inside a real game and reads the verdict off Showdown | LIVE and clean — see §2 |
-| **`board.js`** — the features | turns a position into the numbers every model scores | moves with the simulator; nothing in it is published as a figure |
-| **MAG** — the fitted action model | scores one candidate action | **WITHHELD.** A re-run is owed, and a REFIT before it — see §3 and §4 |
-| **The joint layer** | scores both of my slots together on one turn | **WITHHELD.** Same fit, same refit |
-| **MILTANK** — the search player | chooses leads, brings, mega timing and post-KO | **WITHHELD.** Every baseline it holds was taken through a rollout |
-| **GARY** — the opponent inside the search | models what the other side does while MILTANK searches | **WITHHELD.** Reads a rollout |
-| **PORYGON2 / DODUO / SLOWKING** | position value, one-turn joint policy, the bring | **WITHHELD.** Each reads a rollout |
-| **Leaf calibration** — MEASURE's one number | does the leaf's stated win probability match the frequency actually observed | **NOT MEASURED on this engine.** No replication verdict, no bucket share, no calibration gap, no sample size — and no direction may be read into the absence |
-| **The store and the ingest** | every replay kept raw, forever, with rating and bot tags | LIVE, six-hourly — see §2 |
-| **META-USAGE** — the model CHOMP reads | usage, threats and bring priors off the store | LIVE — see §2 |
-| **The next-regulation collector** | pulls Reg M-C games hourly so the corpus exists before the work does | COLLECTING ONLY. Nothing about M-C is simulated, and nothing here is a claim about it |
-| **ABRA WORLD** — the site | renders what the artifacts say, and never authors a number | PAUSED. Its bundles were built 2026-08-25 and do not describe today's gate; `node engine/status.js` calls the drift by name |
-| **The honesty machinery** | `status.js`, `provenance.js`, `quarantine.js`, the docs gate | LIVE, and two of its own ratchets are red — see §4 |
+| **MEDICHAM** | ABRA's doubles simulator, and its solver API `engine/medicham_api.js` (`clone`, `legalActions`, `step`, terminal check, lean playouts) | **Reg M-C GATE OPEN**, all ten clauses (§2) |
+| **CHOMP** | team-preview solver: both open sheets → a mixed strategy over the bring/lead options | to build (milestone M4). Rebuilt inside ABRA; the old `../CHOMP` repository is reference only |
+| **XATU** | belief over the opponent's back two and stat spreads | **v1 built**, store-only (§3) |
+| **MAG** | per-slot action scorer — the human policy prior | **v1 built**, store-only (§3) |
+| **DODUO** | joint coordinator — scores both slots as one joint action | **v1 built**, store-only (§3) |
+| **MILTANK** | search harness: candidates, playouts on MEDICHAM, the payoff matrix, the clock | **v1 built** with a worker pool and lean playouts. Strength figures PRE-GATE, **withheld** (§3) |
+| **SLOWKING** | per-turn simultaneous-move solver (regret matching and an exact LP) | **v1 built**, unit-tested (§3) |
+| **PORYGON2** | value net: state → P(win) | to build (M5) |
+| **GARY / HYPNO** | human habits by situation / the capped exploit dial | to build (M7) |
+| **MEW / MACHAMP** | self-play factory / training loop | to build (M5) |
+| **WOBBUFFET / DUSK** | exploitability best-responder / endgame tables | to build (M6) |
+| **GURU** | meta analysis over the store | **v0 built**, descriptive, store-only |
+| **DITTO** | team builder | to build (M8) |
+| **ROTOM** | the live ladder client; replaces `engine/mag_bot.js` | to build (M3) |
+| **ALAKAZAM / KADABRA** | the assembled agent / the coach | to build |
+| **The store and the ingest** | every Reg M-C game kept raw, collected hourly | LIVE (OPS) |
+| **The honesty machinery** | `status.js`, `provenance.js`, `quarantine.js`, the documentation gate | LIVE |
+| **ABRA WORLD** — the site | renders what the artifacts say | PAUSED |
 
-**Nothing in the WITHHELD rows is a judgement about quality.** It is the rule this project has run
-since 2026-08-08: a figure taken through a simulator that has been repaired since is not a bad
-figure, it is an unrepeated one. The gate opening makes those artifacts **re-runnable, not true.**
+**Store-only** means the model never runs the simulator, so it never waited on the gate. Everything
+that plays games on MEDICHAM did wait, and anything it measured before the gate opened is withheld.
 
 ---
 
-## 2. What is measured, and what it reads
+## 2. MEDICHAM on Reg M-C — what the gate read
 
-All of it on engine release `0d7b1d9db6d1`, with the census pinned and the team pool pinned to
-`data/team-pool-frozen`. The flags are part of the sample definition, so they are named in the row.
+All on engine release `eaa5becc54eb`, census pin `123aa264f88d`, pool `data/team-pool-frozen-regmc`,
+authority the `pokemon-showdown-mc` checkout (CHANGELOG-REGMC 1.0.0;
+`docs/_reports/2026-09-24-regmc-gate-final.md`). `--games` is part of the sample definition, so each
+lattice is named by it.
 
-| instrument | reading | read from |
+| instrument | reading (1.0.0) | read from |
 |---|---|---|
-| held-out wide sample, `--games 12000` | **7,182 games, 0 board-material** | recorded in CHANGELOG `6.83.0`; readout below |
-| gate lattice A, `--games 1200` | **961 games, 0 board-material, 0 undeclared narration**; all 10,716 compared turn boundaries identical, `turns_cap` 50, pool digest `0d103fb9fa87` off 8,778 teams with 1,968 picked | `data/game-differential.json` |
-| gate lattice B, `--games 1350` | **1,069 games, 0 board-material, 0 undeclared narration** | `data/game-differential.g1350.json` |
-| gate lattice C, `--games 1950` | **1,497 games, 0 board-material, 0 undeclared narration** | `data/game-differential.g1950.json` |
-| the damage differential | **6,000 compared, 0 disagreed** at the midpoint and at every interior index, seed 20260804 | `data/engine-diff.json` |
-| deliberate roster, items | **148 of 148 in scope tested**, 0 differ, 0 did-not-fire | `data/roster.items.json` |
-| deliberate roster, abilities | **196 of 200 in scope tested**, 0 differ, 0 did-not-fire | `data/roster.abilities.json` |
-| deliberate roster, moves | **496 of 497 in scope tested**, 0 differ, 0 did-not-fire | `data/roster.moves.json` |
-| the mechanics census | **1,004 probed / 1,004 live / 0 missing** | `data/mechanics-census.json` |
-| the staged harness | **4,632 games played, 0 threw**; 497 moves, 200 abilities and 148 items in scope, 0 diverging | `data/all-mechanics-fire.json` |
-| the store | **94,360 games recorded, 28,454 usable** — the ratio is arithmetic over those two, not a stored figure | `data/quality-filter.json:provenance.funnel.collected` / `:provenance.funnel.after_custom_ruleset` |
-| META-USAGE | **94,360 collected**, a funnel ending at **28,454** clean games | `data/quality-filter.json` |
-| the Reg M-C corpus | collected, not simulated — the counts are a live derivation over untracked store files and are quoted in `docs/REGMC.md`, not claimed here | — |
+| whole game, board-material, `--games` 1200 / 1600 / 1900 | **0/955, 0/1266, 0/1497** games part a board | `data/game-differential-regmc.json`, `data/game-differential.g1600-regmc.json`, `data/game-differential.g1900-regmc.json` |
+| whole game, undeclared narration | **0/955, 0/1266, 0/1497**; the narration bar is stamped at zero | the same three, and `data/whole-game-baseline-regmc.json` |
+| the damage differential | **0/6000** at the midpoint, top, bottom and all 14 interior roll indices | `data/engine-diff-regmc.json` |
+| deliberate roster | items **166/166**, abilities **210/214**, moves **510/511** | `data/roster.items-regmc.json`, `data/roster.abilities-regmc.json`, `data/roster.moves-regmc.json` |
+| every in-scope mechanic staged | 0 diverge in **4,867** games, 0 threw | `data/all-mechanics-fire-regmc.json` |
+| coverage | all **269** moves above **25** clicks measured (CHANGELOG-REGMC 1.0.0) | `node engine/quarantine.js --regulation regmc` |
+| the gate | **OPEN**, 10 of 10 clauses (CHANGELOG-REGMC 1.0.0) | `node engine/quarantine.js --regulation regmc` |
 
-The held-out sample is drawn by a stride the gate does not use, so it is a different lattice rather
-than a larger one. Its artifact is not a top-level `data/*.json` file, so its readout is quoted here
-rather than cited:
-
-```
-$ node -e "const j=require('./data/verification/game-differential.g12000.json');const s=j.state;console.log(j.engine_release,s.games,s.games_board_never_diverged,s.protocol_diverged_games,s.protocol_diverged_board_never_did)"
-0d7b1d9db6d1   games 7182   board_never_diverged 7182   protocol_diverged 75   protocol_diverged_board_never_did 75
-```
-
-**Read the second half of that line as carefully as the first.** Board-material is zero on the wide
-sample. Protocol divergence is not: each of those games parts a line of commentary somewhere and no
-board anywhere. The narration gate is measured on the three lattices, where it reads zero undeclared;
-on the wide sample narration is reported, and it is not zero.
+The four ability rows not counted as tested at 1.0.0 are declared, not hidden: three pass as
+announcement-only on recorded receipts, and one (Illusion) is deferred by the owner.
 
 ---
 
-## 3. What is withheld, and what would end it
+## 3. The solver — what is built and what it measured
 
-The list is derived, never typed — `node engine/quarantine.js` walks the require graph and names
-every artifact downstream of the simulator, and `node engine/status.js` prints what re-runs each one.
+**Store-only models, measured on held-out players.** These train on the Reg M-C human dataset (bo3,
+open sheets) with no simulator in their path, so their figures stand.
 
-| withheld | what re-runs it |
-|---|---|
-| leaf calibration | `node engine/backtest_winrate.js` |
-| R1 leaf accuracy | `node engine/rollout_r1_artifact.js` |
-| R2 leaf cost | `node engine/rollout_r2.js` |
-| R3 divergence | `node engine/rollout_r3.js` |
-| R4 head-to-head | `node engine/rollout_r4.js` |
-| engine correctness → leaf | `node engine/leaf_engine_contrast.js` |
-| click censoring | `node engine/click_census.js` |
-| the MAG and joint weights | a REFIT and not a restamp: `node engine/fit_policy.js`, then `node engine/fit_joint.js` |
-| every model report that reads a rollout — MAG, MILTANK, GARY, PORYGON2, DODUO, SLOWKING | each has its own generator; `node engine/status.js` names it beside the withheld figure |
+- **MAG v1 and DODUO v1** (CHANGELOG-REGMC 0.113.0). On the held-out test players' 25,477 exact joint
+  actions, DODUO's joint log-loss is 2.730 (95% CI 2.699–2.761) against the v0 prior's 2.921. The node
+  forward pass matches Python to 2.1e-14; `solver/tests/test-mag-doduo.js` passes 3,826 of 3,826.
+- **XATU v1** (CHANGELOG-REGMC 0.114.0). On 10,942 held-out sides, turn-1 log-loss on the true back pair
+  is 1.348 against 1.792 for a uniform guess, and the true bring is never ruled out.
 
-**The re-run is owed and none of it is done.** Will's instruction of 2026-09-09 stands: leave them
-until MAG and MILTANK are reworked. So this document quotes no model figure at all — not a
-head-to-head, not an exploitability share, not a leaf accuracy, not a calibration gap.
+The recall figures behind those two lines are read from the tracked metrics file; the readout, with the
+command, is in `docs/MODELS.md` under *MAG v1 and DODUO v1*.
 
----
-
-## 4. The honest column
-
-**The zero is a statement about what was measured.** Four lattices and a staged lab, on one release,
-over a frozen pool of real ladder games. It is not a proof of equivalence, and a lattice that
-contains no divergence is not the same claim as an engine that cannot produce one — that lesson was
-bought on 2026-09-12, when one sample read zero and two wider ones did not.
-
-**Illusion is the one declared exclusion.** The differential drops teams carrying a legal Illusion
-body rather than modelling the disguise, and the gate excuses those rows by name. Derived from the
-format and from the frozen pool rather than recalled:
-
-```
-legal carriers, from Dex.forFormat('gen9championsvgc2026regmb'): zoroark, zoroarkhisui
-data/team-pool-frozen/games.bo3.jsonl    13,214 games    26,428 sides (one side = one player's team in one game)
-sheets carrying a legal Illusion body    452 of 26,428 = 1.71%    of those 452, brought one: 229
-```
-
-An earlier statement of this exclusion divided a SHEET count by a GAME count, which inflated the rate
-about twofold. The readout above is the re-derivation, and the inflated pair appears nowhere in this
-document — deleted rather than footnoted.
-
-**A clean roster stage is not a fully tested one, and the gaps are declared.** Three ability rows
-pass as ANNOUNCEMENT-ONLY on a recorded receipt — a restore knob and a probe each — and one is
-deferred by the owner (`data/roster.abilities.json`); the moves stage carries one deferred row as
-well (`data/roster.moves.json`). The staged harness shelves its diverging rows by the owner's
-decision, and every one of them is staged on a legal Illusion carrier —
-`data/all-mechanics-fire.json` `summary.moves.shelved_by_owner_diverging` 2 and
-`summary.abilities.shelved_by_owner_diverging` 1. A shelved row is still staged and still played; it
-does not vote.
-
-**Closed team sheets and bo1 are out of scope this release.** Every figure in §2 describes open-sheet
-play. Nothing here says how the engine, or anything fitted on it, behaves when the sheet is hidden.
-
-**Seven live `lastMove` readings are an unregistered class.** The authority keeps the CALLING move
-where this engine keeps the called one. Reported, not fixed, and carrying no roadmap row.
-
-**Two of the ten gate clauses cannot be computed without a local Showdown checkout.** On a machine
-with no `SHOWDOWN_PATH` the board-leaf clause and the mechanics clause read CANNOT-ANSWER — which
-fails, and never reads as a pass. The OPEN verdict above is a reading taken where the authority was
-present.
-
-**The release these figures name is not in the repository.** `data/releases/` is ignored by git and
-`0d7b1d9db6d1` was not force-added, so `node engine/provenance.js` marks every artifact citing it
-`PUBLISHED FIGURE ON AN UNTRACKED RELEASE`. The manifest digests still say what was frozen; from a
-fresh clone the evidence chain ends at that string rather than at bytes somebody can re-open.
-
-**MAG's fitted vector is red on its own check, and it is the first thing owed.**
-`engine/feature_fixture.js` fires two gates against the shipped weights: the fixture itself changed,
-and **the damage table those weights were fitted against has been regenerated**, so the table digest
-stamped beside the fit is not the digest of the table on disk. A restamp answers the fixture gate and
-silences the table gate in the same stroke, which is why the order matters — settle the table
-verdict, then refit. `node engine/status.js` prints it as REFIT OWED on every run.
-
-**Two of this project's own ratchets are red.** `node engine/provenance.js` exits non-zero: six
-`_diag*` artifacts ship without recording what content they read. And the bundles under `web/`
-publish a gate state the live gate no longer has.
-
-**The interaction matrix has not been re-run on this engine.** Its last run predates the release
-above by weeks, so no agreement figure from it appears here.
+**Models that play on MEDICHAM.** SLOWKING v1, MILTANK v1 and the offline arena are built and
+unit-tested (CHANGELOG-REGMC 0.115.0): `test-slowking` 1,559/1,559, `test-miltank` 3,414/3,414,
+`test-arena` 15/15. **Every arena strength figure so far is PRE-GATE — it was played before release
+`eaa5becc54eb` — and is withheld, not captioned.** The re-run on that release is the first thing owed.
+No direction may be read into the absence.
 
 ---
 
-## 5. Why this is a MAJOR, and how the old numbers link to the new
+## 4. The road to the ladder
 
-A MAJOR here means the BASIS moved — the question the numbers answer, rather than their values.
-Three things a reader can no longer be told.
+The milestones are `solver/PLAN.md` §3, in dependency order. Where they stand:
 
-1. **That MEDICHAM is not correct.** That sentence has stood under every model figure in this project
-   since 3.79.0, and it is why they were withheld. It is now false, and the withholding that rested
-   on it ends at once.
-2. **That a whole-game figure from this project describes an engine whose defects are unknown.** The
-   instruments in §2 bound the engine's disagreement with the authority at zero on every board they
-   compare; what is left is narration, and it is reported as narration.
-3. **That the withheld models are merely out of date.** They are not comparable to anything measured
-   today: they were taken through a simulator repaired many times since, so old and new cannot be
-   linked by arithmetic. They have to be re-run, which is why no number from them is restated here.
+| milestone | what lands | state |
+|---|---|---|
+| **M0** | Reg M-C gate open; solver API merged | gate OPEN (1.0.0); API merged; the mid-turn-choice callback still owed |
+| **M1** | DODUO split out of MAG, XATU's bring posterior, GARY v0, MAG intersected with `legalActions` | MAG, DODUO and XATU v1 built; GARY and the `legalActions` intersection owed |
+| **M2** | SLOWKING + MILTANK, one-ply matrix, rollout leaf | built; the post-gate SPRT against greedy one-turn and against MAG with no search is owed |
+| **M3** | the clock and ROTOM on a local Showdown server | to build |
+| **M4** | CHOMP v0, ALAKAZAM v1, the first ladder burn-in | to build; **a ladder launch needs Will's OK** |
+| **M5–M8** | PORYGON2 and self-play, per-world opponent tables, HYPNO + GARY on the ladder, CHOMP v1, DITTO | to build |
 
-**The back-cast, so the two series can be linked.** The held-out board partings across 2026-09-20 ran
-**34 → 15 → 9 → 1 → 0**, recorded in CHANGELOG `6.83.0`, each step on its own engine release with the
-pool and the census pinned. That sequence is the bridge between the last published series and this
-one.
-
-**Every whole-game count this document carried at 6.0.0 and earlier is DELETED, not captioned.** Those
-readings belong to other engine bytes, other turn caps and other sample definitions; a caption beside
-them is the failure this project has already paid for twice. What replaces them is §2 — one release,
-one pool, and the flags written beside every row.
+**How it will be judged** (`solver/PLAN.md` §5): offline SPRTs at equal wall-clock against each model's
+named baseline, then the per-series ladder residual `S − E`, read by SPRT, with the arm drawn per series
+by a seeded coin. The headline is the mean rating over the last N series ± SD. Never the peak.
 
 ---
 
-## 6. Where the current state is read
+## 5. The honest column
+
+- **No strength claim is made.** The only strength figures that exist are PRE-GATE and withheld.
+- **A zero on the gate is a statement about what was measured** — three lattices, a damage battery and
+  a staged lab, on one release and one frozen pool. It is not a proof of equivalence.
+- **Open team sheets only.** Closed sheets and bo1 are out of scope; nothing here says how the player
+  does when the sheet is hidden.
+- **Illusion is the one declared exclusion.**
+- **XATU's spread narrowing is weak.** Two unknown spreads cannot be pinned from a replay; live play,
+  where our own spread is known, should narrow more and has not been measured.
+- **The ladder can resolve only large differences** — rating noise alone moves an account by tens of
+  points, and a small improvement needs hundreds of series per arm to show (`solver/PLAN.md` §5,
+  derived in `docs/_reports/2026-09-23-solver-research-humans-and-ladder.md`).
+- **The 1.0.0 release is drafted and held for Will to read.** It is on `draft/regmc-1.0.0`, not main.
+
+---
+
+## 6. Why this is a MAJOR
+
+A MAJOR here means the BASIS moved — the question the numbers answer. Two things a reader can no
+longer be told:
+
+1. **That MEDICHAM is not correct on Reg M-C.** It is, on every instrument, so the withholding that
+   rested on that sentence ends for the Reg M-C line at once: every Reg M-C artifact downstream of
+   MEDICHAM becomes RE-RUNNABLE, not current, and nothing measured before `eaa5becc54eb` may be quoted
+   until it is re-run.
+2. **That ABRA is a meta-analysis platform whose preview tool lives in another repository.** The
+   project is now a player: every model except MEDICHAM is rebuilt from scratch under `solver/` for
+   open-sheet Reg M-C, and CHOMP is its preview solver. The Reg M-B models are retired, not repaired,
+   and no figure of theirs links to one here.
+
+---
+
+## 7. Where the current state is read
 
 State is printed, never typed. Nothing in this document outranks what these print today.
 
 ```bash
-node engine/status.js             # every figure, with the artifact it came from; NOT DERIVED where none says it
-node engine/quarantine.js         # the gate, clause by clause, and every artifact downstream of the simulator
-node engine/open_work.js          # every unclosed register row, and every defect a live instrument measures
-node engine/docs_scan.js --owed   # what the documents still owe the next major
+node engine/status.js                               # every figure, with the artifact it came from
+node engine/quarantine.js --regulation regmc        # the Reg M-C gate, clause by clause
+node engine/open_work.js                            # every unclosed register row and measured defect
+node engine/docs_scan.js --owed                     # what the documents still owe the next major
 ```
 
-`docs/RUNNING-NOTES.md` is the log between majors, and this document is the fold-in of those rows at
-7.0.0. The division ledgers — `docs/{ENGINE,MEASURE,SEARCH,OPS,WEB}.md` — carry the working detail,
-and `docs/_reports/` carries the dated accounts. None of the three is state.
+`docs/RUNNING-NOTES.md` is the log between majors. The division ledgers —
+`docs/{ENGINE,MEASURE,SOLVER,OPS,WEB}.md` — carry the working detail, `solver/LOG.md` the solver's
+narrative, and `docs/_reports/` the dated accounts. None of them is state.

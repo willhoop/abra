@@ -133,7 +133,7 @@ const BASELINE = new Set([
   "docs/ROADMAP.md|51,399|data/feature-shift.json",
   "docs/ROADMAP.md|6779|data/leaf-position-contrast.json",
   "docs/ROADMAP.md|81,515|data/redirect-audit.json",
-  "docs/SEARCH.md|1,600|data/exploitability.json",
+  "docs/SOLVER.md|1,600|data/exploitability.json",   // docs/SEARCH.md until the 2026-09-24 rename
 ]);
 
 console.log('\n  QUARANTINED FIGURES IN LIVING DOCUMENTS — the citation was faithful and that is the bug\n');
