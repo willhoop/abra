@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.0.0] — 2026-09-24 — **DRAFT, held for Will: MEDICHAM certified on Reg M-C, the gate is OPEN**
+- **What changed.** Nothing new is measured; this release declares what 0.125.0 measured. `engine/quarantine.js` under Reg M-C reads OPEN, 10 of 10, on release `eaa5becc54eb`.
+- **Measured.** Boards 0/955, 0/1266, 0/1497; narration 0/955, 0/1266, 0/1497 (`data/game-differential{,.g1600,.g1900}-regmc.json`); damage 0/6000 (`data/engine-diff-regmc.json`); roster 166/166, 210/214, 510/511; 4,867 staged games, 0 threw.
+- **Basis.** CHANGED — no Reg M-C figure downstream of MEDICHAM measured before `eaa5becc54eb` can be linked to anything measured after; the quarantine lifts and 69 artifacts become re-runnable.
+- **Supersedes.** Nothing published on this line is superseded; the withheld downstream figures stay withheld until re-run.
+- **Owed to the next major.** This is the major: the full abra/regmc document fold-in.
+
 ## [abra/regmc 0.125.0] — 2026-09-24 — **Reg M-C gate re-read on the merged engine: OPEN, 10 of 10; narration baseline stamped at zero**
 - **What changed.** Measurement only, plus the narration baseline stamp. Release `eaa5becc54eb`, pin `census-pin-regmc-123aa264f88d`, pool `data/team-pool-frozen-regmc`, `--steering empirical --arm middle --end-state`, `--games` 1200/1600/1900. `docs/_reports/2026-09-24-regmc-gate-final.md`.
 - **Measured.** `engine/quarantine.js` (Reg M-C): GATE OPEN, 10 of 10. Board-material and undeclared narration-only 0/955, 0/1266, 0/1497 (`data/game-differential-regmc.json`, `.g1600-regmc`, `.g1900-regmc`); damage 0/6000 (`data/engine-diff-regmc.json`); roster 166/166, 210/214, 510/511 (`data/roster.*-regmc.json`); 4,867 staged games, 0 threw (`data/all-mechanics-fire-regmc.json`). Baseline `data/whole-game-baseline-regmc.json` rate 0, 0 of 955.
