@@ -188,7 +188,35 @@ function create(API, prior) {
     return out;
   }
 
-  return { COUNTERS, newGame, record, row, publicState, scoreJoints, revealed, sheetIdx, BROKEN: BREAK || null };
+  /* THE PRIOR'S CELL FOR EACH JOINT (self-play targets, solver/mew). For each of `joints` (API joints for
+   * `side`, as seen by `viewer`), the (a, b) candidate indices of the prior's decision — the same match
+   * scoreJoints uses — or null when a slot is forced / passing while the prior enumerated choices there, or
+   * an option matches no candidate. An absent prior slot is index 0 (the trainer's one null candidate).
+   * The candidate KEYS ride along so a later re-featurisation can prove it rebuilt the same candidates.
+   * Reads only; counts nothing into COUNTERS (the search's counters stay the search's). */
+  function jointCells(ctx, S, side, viewer, joints) {
+    const r = prior.predict(row(ctx, S, viewer), ctx.hist.length, SIDE[side]);
+    if (!r) return null;
+    const d = r.decision;
+    const sheetToTeam = {}; sf(S, side).team.forEach((m, k) => { sheetToTeam[sheetIdx(m)] = k; });
+    const cells = joints.map(j => {
+      const idx = [0, 0];
+      for (let k = 0; k < 2; k++) {
+        const o = j[k], slotD = d.slots[k];
+        if (!slotD) continue;
+        if (!o || o.kind === 'pass' || o.forced) return null;
+        const m = matchOption(slotD, o, k, sheetToTeam);
+        if (m < 0) return null;
+        idx[k] = m;
+      }
+      return idx;
+    });
+    const key = (k, i) => (d.slots[k] ? d.slots[k].cands[i].key : null);
+    return { cells, keys: cells.map(c => (c ? [key(0, c[0]), key(1, c[1])] : null)),
+             n: [d.slots[0] ? d.slots[0].cands.length : 1, d.slots[1] ? d.slots[1].cands.length : 1] };
+  }
+
+  return { COUNTERS, newGame, record, row, publicState, scoreJoints, jointCells, revealed, sheetIdx, BROKEN: BREAK || null };
 }
 
 module.exports = { create };

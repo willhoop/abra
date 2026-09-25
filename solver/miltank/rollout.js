@@ -63,8 +63,10 @@ function create(API, opts) {
   const M = API.M;
   const buildBody = opts.buildBody;
   const COUNTERS = { playouts: 0, playoutTurns: 0, worlds: 0, bodiesSwapped: 0, wipes: 0, leafHeuristic: 0, leafPory2: 0, prepared: 0, fastClones: 0, leanPlayouts: 0 };
-  let PORY2 = null;
-  const pory2 = () => (PORY2 || (PORY2 = require('../porygon2/leaf.js').create(API)));
+  /* one PORYGON2 leaf per model file: lctx.model names a generation's net (solver/mew, solver/machamp);
+   * absent = the default v0 file, exactly as before */
+  const PORY2 = new Map();
+  const pory2 = model => { const k = model || ''; if (!PORY2.has(k)) PORY2.set(k, require('../porygon2/leaf.js').create(API, model ? { model } : {})); return PORY2.get(k); };
   const LEAN = !LEAN_OFF && opts.lean !== false && typeof API.makeLean === 'function';
 
   function targetType(m, id) {
@@ -128,7 +130,7 @@ function create(API, opts) {
 
   function leaf(S, lctx) {
     if (API.isTerminal(S)) { COUNTERS.wipes++; return API.winner(S); }
-    if (lctx && lctx.mode === 'pory2' && BREAK !== 'leaf') { COUNTERS.leafPory2++; return pory2().value(S, lctx.sheets); }
+    if (lctx && lctx.mode === 'pory2' && BREAK !== 'leaf') { COUNTERS.leafPory2++; return pory2(lctx.model).value(S, lctx.sheets); }
     COUNTERS.leafHeuristic++;
     const s = team => team.reduce((a, m) => a + (live(m) ? 0.5 + 0.5 * Math.max(0, m.curHP) / m.st.hp : 0), 0) / Math.max(1, team.length);
     return 0.5 + (s(S.sfA.team) - s(S.sfB.team)) / 2;

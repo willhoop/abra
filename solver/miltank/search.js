@@ -16,7 +16,9 @@
  *      mix — never the argmax; mixing is the point of a simultaneous-move root.
  *
  *   const MT = require('./solver/miltank/search.js').create(API, { prior: PA, rollout: R });
- *   MT.decide(S, side, ctx, { budgetMs, k1, k2, reserveSwitch, depth, coin, solver:'rm'|'lp', leaf:'heuristic'|'pory2' }) -> { joint, info }
+ *   MT.decide(S, side, ctx, { budgetMs, k1, k2, reserveSwitch, depth, coin, solver:'rm'|'lp', leaf:'heuristic'|'pory2', leafModel, record }) -> { joint, info }
+ *   leafModel = a PORYGON2 model file for the pory2 leaf (a self-play generation's net; default v0). record = true puts
+ *   the root (rows, cols, both mixes, the mean matrix, the per-cell playout counts) in info.rec.
  *   The leaf defaults to env MILTANK_LEAF, else the heuristic. `pory2` = PORYGON2 v0 (PRE-GATE), solver/porygon2/leaf.js.
  *
  * `info` carries the counters for the decision: cells, passes, playouts, unfilled cells, the solved
@@ -68,7 +70,7 @@ function create(API, deps) {
     const job = { S, side, opp, rows, cols, belief, depth: o.depth == null ? 2 : o.depth };
     /* THE LEAF: o.leaf, else env MILTANK_LEAF, else the heuristic. PORYGON2 needs both open sheets (p1 = side A). */
     const leafMode = o.leaf || LEAF_ENV || 'heuristic';
-    if (leafMode === 'pory2') { job.leafCtx = { mode: 'pory2', sheets: ctx.G.sheets }; COUNTERS.pory2Decisions++; }
+    if (leafMode === 'pory2') { job.leafCtx = { mode: 'pory2', sheets: ctx.G.sheets }; if (o.leafModel) job.leafCtx.model = o.leafModel; COUNTERS.pory2Decisions++; }
     else if (leafMode !== 'heuristic') throw new Error('MILTANK: unknown leaf ' + leafMode);
     return { job };
   }
@@ -86,8 +88,12 @@ function create(API, deps) {
     const ms = Date.now() - t0;
     COUNTERS.cells += m * n; COUNTERS.playouts += playouts; COUNTERS.unfilled += unfilled; COUNTERS.rmIters += sol.iters || 0;
     if (ms > budget * 1.5 + 50) COUNTERS.overBudget++;
-    return { joint: rows[pick], info: Object.assign({ m, n, passes, playouts, unfilled, value: sol.value, gap: sol.gap, rm_iters: sol.iters,
-             support: sol.x.filter(v => v > 1e-3).length, pick, ms }, extra || {}) };
+    const info = Object.assign({ m, n, passes, playouts, unfilled, value: sol.value, gap: sol.gap, rm_iters: sol.iters,
+             support: sol.x.filter(v => v > 1e-3).length, pick, ms }, extra || {});
+    /* o.record (self-play, solver/mew): the whole root — the candidate joints, both mixes and the mean matrix —
+     * so a training target can be read off the search rather than off the one sampled move */
+    if (o.record) info.rec = { rows, cols: job.cols, x: Array.from(sol.x), y: sol.y ? Array.from(sol.y) : null, A, cnt: cnt.map(r => Array.from(r)) };
+    return { joint: rows[pick], info };
   }
   function begin(S, side, ctx, o) {
     const t0 = Date.now();
