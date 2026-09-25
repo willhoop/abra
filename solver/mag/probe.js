@@ -36,7 +36,16 @@
  * by K (4,096 by default; o.tall / opts.tall, `false` for the literal board), so every HP fraction is what it was and
  * no hit this turn can knock anything out — a body at 1 HP of 155 becomes 4,096 of 634,880. (K = 64 was tried first
  * and a 1%-HP last foe still fell to a 200-power hit, so a Follow Me beside it was cut; the fraction must survive the
- * largest hit in the format, not a typical one.) A click that is "futile" only because somebody is KO'd first — a Protect
+ * largest hit in the format, not a typical one.)
+ *
+ * AND NO BODY STARTS THE TALL TURN ABOVE 60% OF ITS HP. A turn-end heal is a FRACTION of max HP (Leftovers, Grassy
+ * Terrain: a sixteenth), so in a world 4,096 times taller a heal is thousands of times any hit, and a body near full
+ * heals every hit away before the board is read — a Moonblast that clearly landed read as "no effect" on the first
+ * full run, and the pair gate cut it. Capped at 60% of its HP, a body never reaches full again this turn (the
+ * residual heals in this format sum to far less than 40%), so a hit's HP difference survives to the turn-end board.
+ * 60 and not 50 because a few clicks need MORE than half HP to work (the self-damaging boosts); a body the real game
+ * holds below 60% keeps its own fraction. The cap can make a click that fails at full HP (a recovery move) succeed in
+ * the tall world — a missed cut, never a wrong one. A click that is "futile" only because somebody is KO'd first — a Protect
  * beside a partner whose spread move OHKOs the only attacker, an attack beside a partner's finishing blow — depends
  * on damage, and damage depends on stat spreads nobody can see on an open sheet (they are not in the store) and on
  * rolls. The first held-out run cut eight human clicks of exactly that shape, the engine being right on the flat
@@ -52,7 +61,8 @@
  * DELIBERATE BREAKS (env GATE_BREAK): `exec` — every world counts as informative, so a body KO'd before it acts
  * reads as its click failing; `anytrue` — the provisional success the engine writes when a move is used counts, so
  * a move into an immunity reads as a success; `dice` — no stream is pinned, so a roll-dependent click (a Protect on a
- * long streak) can read as dead; `short` — the worlds are not tall, so futility that needs a KO gets cut.
+ * long streak) can read as dead; `short` — the worlds are not tall, so futility that needs a KO gets cut; `fullheal` —
+ * no 60% cap, so a turn-end heal erases a hit and the hit reads as having had no effect.
  * solver/tests/test-gates.js must go red under each.
  */
 'use strict';
@@ -85,17 +95,19 @@ function create(API, opts) {
   }
 
   const TALL = (opts.tall === false || BREAK === 'short') ? 1 : (opts.tall || 4096);
+  const CAP = BREAK === 'fullheal' ? 1 : 0.6;
   function prep(W, tall) {
     const C = API.clone(W);
     delete C._trace;
     for (const sf of [C.sfA, C.sfB]) for (const m of (sf && sf.team) || []) {
       if (!m) continue;
       if (m.status === 'slp') { m.slpTime = (m.slpTurns || 0) + 1; COUNTERS.sleepClocksOpened++; }
-      /* THE TALL WORLD: every body's HP stat and current HP multiplied by K (so every HP FRACTION is unchanged, and no
-       * hit this turn can KO). Substitute HP and the Emergency Exit thresholds scale with it. */
+      /* THE TALL WORLD: every body's HP stat multiplied by K, its HP fraction kept but capped at CAP (see the header),
+       * so no hit this turn can KO and no heal can reach full. Substitute HP and the Emergency Exit thresholds scale. */
       if (tall > 1 && m.st && m.st.hp > 0) {
+        const frac = Math.max(0, m.curHP) / m.st.hp;
         m.st = Object.assign({}, m.st, { hp: m.st.hp * tall });
-        if (m.curHP > 0) m.curHP = m.curHP * tall;
+        if (m.curHP > 0) m.curHP = Math.max(1, Math.round(Math.min(frac, CAP) * m.st.hp));
         if (m._sub > 0) m._sub = m._sub * tall;
         if (m._eeHP > 0) m._eeHP = m._eeHP * tall;
         if (m._eeResHP > 0) m._eeResHP = m._eeResHP * tall;

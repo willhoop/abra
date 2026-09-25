@@ -25,6 +25,8 @@
  *   REFUSED     both slots switching to one bench body is not a joint at all (MEDICHAM legalActions refuses it)
  *   REACH       when every slot-k click is futile beside the partner's click, one of those pairs is kept, so the
  *               partner's click stays reachable
+ *   HEAL        Helping Hand beside an attack stays KEPT under a terrain whose turn-end heal could otherwise wash the
+ *               boosted hit off the board before it is read
  *   TALL        a Protect beside a partner who KOs the only attacker first is KEPT: futility that needs a KO depends on
  *               damage, and damage on spreads nobody can see
  *   DISJOINT    the pair gate never cuts a pair because of a click MAG calls dead
@@ -34,7 +36,7 @@
  *
  * RED, unless --no-red: re-runs itself under each GATE_BREAK and REQUIRES the named clause to fail:
  *   anytrue -> IMMUNE, softhard -> IMMUNE, nopartner -> PARTNER, pairany -> DISJOINT, norep -> REACH, exec -> EXEC,
- *   dice -> DICE, short -> TALL, shieldcounts -> STATUSED.
+ *   dice -> DICE, short -> TALL, shieldcounts -> STATUSED, fullheal -> HEAL.
  */
 'use strict';
 require('../arena/env.js');
@@ -248,6 +250,25 @@ if (!immune) cannot('no derived (move, immune species, plain species) triple pas
   ok('HH', c.cut, `(Helping Hand, a switch): expected CUT, got kept`);
   console.log(`  HH: MAG ${vHH.v}; beside ${atk.id} -> ${a.cut ? 'CUT' : 'kept'}, beside ${stallMove.id} -> ${b.cut ? 'CUT' : 'kept'}, beside a switch -> ${c.cut ? 'CUT' : 'kept'}`);
 
+  /* HEAL: the same board under the terrain a turn-end heal comes from, foes at full HP. The boosted hit must still
+   * read as an effect: a heal must not wash the difference out before the board is read. The terrain is taken from
+   * the dex as the one whose condition heals at the residual, and the foes must be grounded for it to reach them. */
+  const healTerrain = MOVES.find(m => m.terrain && m.condition && m.condition.onResidual);
+  if (!healTerrain) cannot('no terrain with a residual in this regulation');
+  const grounded = s => !s.types.includes('Flying');
+  const Ng = quietSpecies.filter(s => grounded(s) && D.getImmunity(atk.type, s.types) && D.getEffectiveness(atk.type, s.types) <= 0).sort((x, y) => y.baseStats.hp - x.baseStats.hp)[0];
+  /* the other foe is NOT grounded, so the heal never reaches it: Helping Hand has an effect beside an attack at it
+   * whatever the heal does — the pair gate's "futile only together" needs one partner click where it is not futile */
+  const N2g = quietSpecies.find(s => !grounded(s) && D.getImmunity(atk.type, s.types) && ![Ng, U, P, B1, B2].includes(s));
+  if (!N2g) cannot('no ungrounded species for the HEAL fixture');
+  const Sg = battle([body(U, [hh, stallMove]), body(P, [atk, stallMove]), body(B1, [stallMove]), body(B2, [stallMove])], [body(Ng, FOE), body(N2g, FOE)]);
+  Sg.field.terrain = healTerrain.terrain.replace(/terrain$/, ''); Sg.field.terrainT = 5;
+  const pg = pos(Sg);
+  const jg = pg.la.joint.find(j => j[0].kind === 'move' && j[0].move === 'helpinghand' && j[1].kind === 'move' && j[1].move === atk.id && j[1].target === 1);
+  const vg = DG.pairVerdict(pg, jg);
+  ok('HEAL', !vg.cut, `(Helping Hand, ${atk.id}) under ${healTerrain.id} with full-HP foes: expected KEPT, got cut`);
+  console.log(`  HEAL: under ${healTerrain.id}, (Helping Hand, ${atk.id}) at a full-HP ${Ng.id} -> ${vg.cut ? "CUT" : "kept"}  [${[U, P, B1, B2, Ng, N2g].map(x => x.id).join(" ")}]`);
+
   const la = API.legalActions(S, 'A');
   const sw0 = la.slots[0].options.filter(o => o.kind === 'switch'), sw1 = la.slots[1].options.filter(o => o.kind === 'switch');
   const same = la.joint.filter(j => j[0].kind === 'switch' && j[1].kind === 'switch' && j[0].to === j[1].to).length;
@@ -346,7 +367,7 @@ const brk = probe.BROKEN || MG.BROKEN || DG.BROKEN;
 console.log('test-gates: ' + (checks - fails) + '/' + checks + ' checks' + (brk ? '  [BREAK ' + brk + ']' : '') + '  failed clauses: ' + ([...failed].join(',') || 'none'));
 
 if (!NO_RED && !brk) {
-  const need = [['anytrue', 'IMMUNE'], ['softhard', 'IMMUNE'], ['nopartner', 'PARTNER'], ['pairany', 'DISJOINT'], ['norep', 'REACH'], ['exec', 'EXEC'], ['dice', 'DICE'], ['short', 'TALL'], ['shieldcounts', 'STATUSED']];
+  const need = [['anytrue', 'IMMUNE'], ['softhard', 'IMMUNE'], ['nopartner', 'PARTNER'], ['pairany', 'DISJOINT'], ['norep', 'REACH'], ['exec', 'EXEC'], ['dice', 'DICE'], ['short', 'TALL'], ['shieldcounts', 'STATUSED'], ['fullheal', 'HEAL']];
   let blind = 0;
   for (const [v, clause] of need) {
     const res = cp.spawnSync(process.execPath, [__filename, '--no-red'], { env: Object.assign({}, process.env, { GATE_BREAK: v }), encoding: 'utf8' });

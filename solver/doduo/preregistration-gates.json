@@ -1,34 +1,41 @@
 {
-  "what": "MAG v2 (per-slot dead-click gate) + DODUO v2 (pair gate) — the tests and the bars, fixed BEFORE the first measured decision or game (2026-09-25). Development runs made while building the gates (a 60-decision pilot, a partial 686-decision run, three smoke games) are not results and are not read for these verdicts.",
-  "release": "eaa5becc54eb",
-  "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
-  "human_dataset": "C:/Users/willj/Projects/Pokemon/ABRA/solver/out/human/games.jsonl (sha256 9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8)",
-  "tests": {
-    "survival": {
-      "instrument": "solver/doduo/eval_gates.js --release eaa5becc54eb --n 2000 --seed 1 --workers 3",
-      "sample": "2,000 fully observed joint decisions by TEST-split players (the split every solver net uses), both brought fours complete, seeded stride over the dataset",
-      "bar": "the human's actual joint action survives BOTH gates (MAG not dead on either click, the pair gate does not cut the joint) in >= 99.9% of evaluated decisions (point estimate), AND every loss is explained by reading the replay: a loss is a gate error unless the replay shows the click was futile in the real game",
-      "also_reported": "the fraction of per-slot options MAG calls dead / soft; the fraction of legal joints each gate removes; the 2x2 of MAG-cut x pair-cut; the pair-cut clicks' MAG verdicts; decisions unmatched (a human action the world could not offer) and errors, each with its reason"
-    },
-    "doduo_greedy": {
-      "instrument": "solver/machamp/gate.js --release eaa5becc54eb --x solver/doduo/specs/doduo-greedy-gated.json --y solver/machamp/league/human-clone.json --pairs 200 --pair-seed 1 --seed 31 --workers 3 --team-store <team_store> --rule beats",
-      "arms": { "x": "DODUO v1 argmax over the gated candidates (soft weight 1e-3)", "y": "DODUO v1 argmax over every legal joint (the ladder bot's current policy)" },
-      "games": 400,
-      "bar": "read once at 400 games: X beats Y iff the Wilson 95% lower bound of X's score > 0.5; X is not worse iff the upper bound >= 0.5"
-    },
-    "miltank": {
-      "instrument": "solver/machamp/gate.js --release eaa5becc54eb --x solver/doduo/specs/gen5-gated.json --y solver/machamp/league/gen5.json --pairs 200 --pair-seed 1 --seed 32 --workers 3 --team-store <team_store> --rule beats",
-      "arms": { "x": "MILTANK with the champion nets (gen5 DODUO prior, gen5 PORYGON2 leaf), 1,000 ms, k 4x4, depth 0, reserve 1 switch; its candidates (both sides) ranked by the gated DODUO v2", "y": "the same agent with the ungated candidates" },
-      "equal_wall_clock": "the gate runs inside the 1,000 ms decision budget (search.js starts the clock before the candidates are scored), so every millisecond the gate costs is a millisecond of playouts the gated arm does not get",
-      "games": 400,
-      "bar": "as doduo_greedy"
-    }
+ "what": "MAG v2 (per-slot dead-click gate) + DODUO v2 (pair gate) — the tests and the bars, fixed BEFORE the measured runs (2026-09-25). Development: every decision drawn with --seed 1 (a 60-decision pilot, a 686-decision partial run, and a 309-decision run on commit 6a080b2c stopped when two of its cuts were traced to a gate defect — a turn-end heal washing a hit off the tall board) was used to find and fix gate and world defects, and is NOT the survival result. The survival result is a FRESH, disjoint draw (--seed 2: the stride is 10, so seed 2 selects different decisions from seed 1).",
+ "release": "eaa5becc54eb",
+ "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+ "human_dataset": "C:/Users/willj/Projects/Pokemon/ABRA/solver/out/human/games.jsonl (sha256 9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8)",
+ "tests": {
+  "survival": {
+   "instrument": "solver/doduo/eval_gates.js --release eaa5becc54eb --n 2000 --seed 2 --workers 3",
+   "sample": "2,000 fully observed joint decisions by TEST-split players (the split every solver net uses), both brought fours complete, seeded stride over the dataset",
+   "bar": "the human's actual joint action survives BOTH gates (MAG not dead on either click, the pair gate does not cut the joint) in >= 99.9% of evaluated decisions (point estimate), AND every loss is explained by reading the replay: a loss is a gate error unless the replay shows the click was futile in the real game",
+   "also_reported": "the fraction of per-slot options MAG calls dead / soft; the fraction of legal joints each gate removes; the 2x2 of MAG-cut x pair-cut; the pair-cut clicks' MAG verdicts; decisions unmatched (a human action the world could not offer) and errors, each with its reason"
   },
-  "policy_choices_not_measurements": {
-    "soft_weight": 0.001,
-    "tall_world_K": 4096,
-    "cover_rounds": 2,
-    "miltank_gate_step_budget": 600,
-    "miltank_gate_ms_budget_per_side": 150
+  "doduo_greedy": {
+   "instrument": "solver/machamp/gate.js --release eaa5becc54eb --x solver/doduo/specs/doduo-greedy-gated.json --y solver/machamp/league/human-clone.json --pairs 200 --pair-seed 1 --seed 31 --workers 3 --team-store <team_store> --rule beats",
+   "arms": {
+    "x": "DODUO v1 argmax over the gated candidates (soft weight 1e-3)",
+    "y": "DODUO v1 argmax over every legal joint (the ladder bot's current policy)"
+   },
+   "games": 400,
+   "bar": "read once at 400 games: X beats Y iff the Wilson 95% lower bound of X's score > 0.5; X is not worse iff the upper bound >= 0.5"
+  },
+  "miltank": {
+   "instrument": "solver/machamp/gate.js --release eaa5becc54eb --x solver/doduo/specs/gen5-gated.json --y solver/machamp/league/gen5.json --pairs 200 --pair-seed 1 --seed 32 --workers 3 --team-store <team_store> --rule beats",
+   "arms": {
+    "x": "MILTANK with the champion nets (gen5 DODUO prior, gen5 PORYGON2 leaf), 1,000 ms, k 4x4, depth 0, reserve 1 switch; its candidates (both sides) ranked by the gated DODUO v2",
+    "y": "the same agent with the ungated candidates"
+   },
+   "equal_wall_clock": "the gate runs inside the 1,000 ms decision budget (search.js starts the clock before the candidates are scored), so every millisecond the gate costs is a millisecond of playouts the gated arm does not get",
+   "games": 400,
+   "bar": "as doduo_greedy"
   }
+ },
+ "policy_choices_not_measurements": {
+  "soft_weight": 0.001,
+  "tall_world_K": 4096,
+  "cover_rounds": 2,
+  "miltank_gate_step_budget": 600,
+  "miltank_gate_ms_budget_per_side": 150,
+  "tall_world_hp_fraction_cap": 0.6
+ }
 }
