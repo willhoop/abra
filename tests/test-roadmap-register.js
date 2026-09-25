@@ -31,7 +31,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 const ROADMAP = path.join(ROOT, 'docs', 'ROADMAP.md');
-const LEDGERS = ['ENGINE', 'MEASURE', 'SEARCH', 'OPS', 'WEB'].map(n => path.join(ROOT, 'docs', n + '.md'));
+const LEDGERS = ['ENGINE', 'MEASURE', 'SOLVER', 'OPS', 'WEB'].map(n => path.join(ROOT, 'docs', n + '.md'));
 
 let pass = 0, fail = 0;
 const ok = (m) => { pass++; console.log('  ok   ' + m); };
@@ -45,7 +45,7 @@ const DECLARED = {
      + 'by volume". Neither is a task reference. Not rewritten, because the sentences are correct '
      + 'English and bending them to satisfy a regex would be the check dictating the prose.',
   '2': 'Same shape: docs/ENGINE.md\'s "same pass as #2" points at row 2 of the table it sits in.',
-  '18': 'docs/SEARCH.md:323 reads "`PRIORITIES.md` #18", with the scheme named on the line but the '
+  '18': 'docs/SOLVER.md (docs/SEARCH.md:323 before the 2026-09-24 rename) reads "`PRIORITIES.md` #18", with the scheme named on the line but the '
       + 'word separated from the number by a backtick, so the PRIORITIES strip above does not reach '
       + 'it. A docs/PRIORITIES.md index entry, not a task.',
   '40': 'Task #40 (the DUSK size gate) is DONE — verdict TOO BIG, 2026-08-06, artifact '

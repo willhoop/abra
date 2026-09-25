@@ -9,7 +9,7 @@ replaced it, and which of its figures are retracted — so a claim can be traced
 was believed to the measurement that ended it. **Nothing in here is current state.**
 `node engine/status.js` is the state.
 
-24 archived documents · 16 declare their provenance · 8 predate the convention · 6 carry a retracted figure · 17 have the PDF beside them.
+25 archived documents · 17 declare their provenance · 8 predate the convention · 7 carry a retracted figure · 17 have the PDF beside them.
 
 ---
 
@@ -22,6 +22,7 @@ Read the header before quoting anything out of these.
 - **[HANDOFF-2026-08-03.md](HANDOFF-2026-08-03.md)** — YES — the headline. The +4.91 lookahead gain is **retracted**: it was measured with a clock advantage baked in, and removing the clock takes it to **+2.29**. The successor handoff reproduced +4.93 on the same instrument before removing the clock, so this is the same measurement corrected, not a different one.
 - **[SESSION-2026-08-02.md](SESSION-2026-08-02.md)** — One flag, and it is a rounding collision rather than a defect in this file. Line 101 quotes *"Sucker Punch's 48% failure prices the missing opponent model"* in order to WITHDRAW it; the docs-currency scan matches that 48% against WOBBUFFET's mirror-control 47.5%, which is separately retracted. For the record: ABRA publishes no exploitability figure at all. The counter that beat MAG 63.2% [56.6, 69.3] with a 47.5% mirror control is retracted on its own merits (17 features against the 58 shipped, an engine 25 wire-fixes old, computed before the quality filter existed) and the re-run that was to replace it is void.
 - **[HANDOFF-2026-07-27.md](HANDOFF-2026-07-27.md)** — YES — several, all of them corrected in `docs/ARCHITECTURE-REVIEW-2026-07-27.md` if you are reading it as a claim rather than as a record. Held-out top-1 with popularity dropped: this file says 35.2% / 34.6%, measured clean it is 28.7% (worse, not better). Held-out top-1 full model: 34.6% here, 30.9% clean. No-pop greedy against random: 35.4% of decisive pairs here, 90.8% [89.6, 91.8] clean. Pair count 4,847 here, 4,823 clean (2,814 decisive). Same-type-attack gap +6.2 points here, +9.9 [8.8, 11.0] bo3 and +9.4 [8.6, 10.2] ots clean. Ground truth "2,245 clean games" here, 1,059 / 2,114 games clean. `deadNoLastMove` -2.943 here, -3.434 gated. Two figures were checked and stand: `deadNoLastMove` on 5.34% of teams, and the browser re-implementation gap.
+- **[MODELS-regmb-7.0.0.md](MODELS-regmb-7.0.0.md)** — every non-MEDICHAM model figure was already withdrawn at 7.0.0, as the preamble below says. Nothing further is retracted by the move.
 - **[HANDOFF-v2.md](HANDOFF-v2.md)** — YES — one, and it is the document's headline evidence. Its line *"PORY (mid-game value) = WORKS: log-loss 0.567 vs coin 0.693 ... Proves the pivot"* is **retracted**. The coin was never the bar. Against a two-feature material baseline (`alive_diff`, `hp_diff`) PORY ties to four decimals, and its fitted weights reduce algebraically to two parameters. Current `data/pory-eval.json`: log-loss **0.6236**, paired difference against that baseline **+0.000001**, 95% CI [-0.000026, +0.000029] over 1,177 held-out games. Its "5,200+ real replays" is likewise a 2026-07-23 snapshot.
 
 ---
@@ -125,6 +126,13 @@ Read the header before quoting anything out of these.
 - **Written:** 2026-07-24, CHANGELOG at 3.1.x.
 - **Replaced by:** `node engine/status.js` for state, and `CLAUDE.md` + `.gitattributes` for the merge rule it discovered. The repair it orders was carried out.
 - **Retracted inside:** None. No registered retracted figure appears in it. Every count in it (16,139 lines, 7,547 unique games) is a 2026-07-24 snapshot of a store that is now several times larger — read it as a dated observation, never as a current corpus size.
+
+### 2026-07-24 — [MODELS-regmb-7.0.0.md](MODELS-regmb-7.0.0.md) · **no pdf**
+
+- **Claimed:** the per-model ledger of the Reg M-B model family at 7.0.0 — MEDICHAM's gate state on Reg M-B in full, every other model's figure withdrawn because it read a rollout, and SLOWKING's team-preview Nash table kept as the one declared exception.
+- **Written:** 2026-07-24 onward; this edition 2026-09-20, CHANGELOG at 7.0.0 (Reg M-B line, closed).
+- **Replaced by:** `docs/MODELS.md`. Reg M-B was retired on 2026-09-24 (Will) and every model except MEDICHAM is rebuilt from scratch under `solver/` for Reg M-C; no figure here links to one there.
+- **Retracted inside:** every non-MEDICHAM model figure was already withdrawn at 7.0.0, as the preamble below says. Nothing further is retracted by the move.
 
 ### 2026-07-24 — [PROJECT-HANDOFF.md](PROJECT-HANDOFF.md) · [pdf](PROJECT-HANDOFF.pdf)
 

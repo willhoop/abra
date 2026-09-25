@@ -1,6 +1,6 @@
 # REG M-C — the ledger
 
-**Version: 0.128.0 — 2026-09-24.**
+**Version: 1.0.0 — 2026-09-24.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 A leading `0` means NOT USABLE YET (SemVer 2.0.0 clause 4). This line reaches **1.0.0 the day the M-C
@@ -11,6 +11,14 @@ measures. Nothing is typed to declare it — `engine/quarantine.js` computes it.
 The M-C gate is `node engine/quarantine.js --regulation regmc` (0.16.0). It reads only `data/<name>-regmc.<ext>`
 artifacts and the `data/team-pool-frozen-regmc` pool, over its own lattice. A missing artifact reads NO ARTIFACT
 or CANNOT-ANSWER, never Reg M-B's file.
+
+**STATUS AT 1.0.0 (2026-09-24): THE GATE IS OPEN, 10 OF 10.** Release `eaa5becc54eb`, census pin
+`123aa264f88d` (1024 live / 0 missing, `data/mechanics-census-regmc.json:live`), pool `data/team-pool-frozen-regmc`, lattices `--games` 1200/1600/1900.
+Boards part in 0/955, 0/1266, 0/1497 games; undeclared commentary-only differences are 0/955, 0/1266, 0/1497, and the
+narration bar is stamped at zero (`data/whole-game-baseline-regmc.json`). Damage 0/6000 at every roll index; roster
+166/166 items, 210/214 abilities, 510/511 moves; 4,867 staged games, 0 threw; no open register row names a RED
+instrument. Every Reg M-C artifact downstream of MEDICHAM is now RE-RUNNABLE, not current: none may be quoted until
+it is re-run on this release or later. Account: `docs/_reports/2026-09-24-regmc-gate-final.md`.
 
 Reg M-B's published record is **7.0.0** and is closed. Nothing here changes it.
 

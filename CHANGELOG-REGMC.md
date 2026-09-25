@@ -21,6 +21,35 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.0.0] — 2026-09-24
+
+### Changed
+- **MEDICHAM is certified on Reg M-C: the Reg M-C gate is OPEN, 10 of 10 clauses** (`engine/quarantine.js`, release
+  `eaa5becc54eb`, census pin `123aa264f88d`, pool `data/team-pool-frozen-regmc`). This is the day this line was
+  defined to reach 1.0.0 (`docs/REGMC.md`, *The version scheme*): computed by the gate, not declared.
+  - Damage differential: 0/6000 at the midpoint, top, bottom and all 14 interior roll indices.
+  - Deliberate roster: items 166/166, abilities 210/214 (3 announcement-only on receipts, Illusion deferred by owner),
+    moves 510/511; every red demonstration caught.
+  - Whole game, three team lattices (`--games` 1200/1600/1900): boards part in **0/955, 0/1266, 0/1497** games, and
+    undeclared commentary-only differences are **0/955, 0/1266, 0/1497**. The narration bar is stamped at zero.
+  - Every in-scope mechanic staged and compared: 0 diverge, 4,867 games, 0 threw. Coverage: all 269 moves above 25
+    clicks measured. No open register row names a RED instrument.
+
+### Notes
+- **Published 2026-09-25** on Will's word ("publish"): `origin/draft/regmc-1.0.0` (`9193edf1`) merged into `main` over 0.126.0–0.128.0, tagged `abra-regmc-v1.0.0`. Account: `docs/_reports/2026-09-25-publish-1.0.0.md`.
+- **Basis.** CHANGED — every artifact downstream of MEDICHAM on Reg M-C stops being withheld at once. 69 of 291
+  artifacts are now RE-RUNNABLE, not current: no downstream figure measured before this release may be quoted until
+  it is re-run on `eaa5becc54eb` or later.
+- Illusion remains the one declared exclusion. Closed team sheets remain out of scope.
+- Owed with this release: the living-document fold-in for the abra/regmc line (white paper, deck, technical docs,
+  summary, models), and `docs/REGMC.md`'s masthead to 1.0.0.
+- Account: `docs/_reports/2026-09-24-regmc-gate-final.md`.
+- Documentation fold-in, part b (branch `docs-1.0.0-b`): `docs/ORIENTATION.md`, `docs/SUMMARY.md`, `docs/MODELS.md`,
+  `docs/DIVISIONS.md`, `docs/GLOSSARY.md`, `docs/REGULATION-ROTATION.md`, `README.md` and `CLAUDE.md` describe the
+  Reg M-C solver; the Reg M-B `docs/MODELS.md` is archived whole as `docs/archive/MODELS-regmb-7.0.0.md`. The SEARCH
+  division is renamed SOLVER (`.claude/agents/solver.md`, `docs/SOLVER.md`). Account:
+  `docs/_reports/2026-09-24-docs-refresh-b.md`.
+
 ## [0.128.0] — 2026-09-24
 
 ### Added

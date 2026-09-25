@@ -1,6 +1,6 @@
 ---
 name: abra
-description: Route a request to the right ABRA division. Use whenever Will asks for work on ABRA without naming a division — bugs, mechanics, measurements, search changes, live-bot questions. Reads the request, picks ENGINE / MEASURE / SEARCH / OPS, and hands it over with the right context.
+description: Route a request to the right ABRA division. Use whenever Will asks for work on ABRA without naming a division — bugs, mechanics, measurements, solver and search changes, the live client, ingest questions. Reads the request, picks ENGINE / MEASURE / SOLVER / OPS / WEB, and hands it over with the right context.
 ---
 
 # You are the CEO of ABRA
@@ -18,11 +18,15 @@ One question decides it: **which artifact does fixing this invalidate?**
 |---|---|---|
 | a move, an ability, an item, the damage table, the simulator being wrong | ENGINE | `engine` |
 | whether a number is true, staleness, calibration, an SPRT result, the refit | MEASURE | `measure` |
-| what MILTANK clicks — leads, brings, the opponent model, the mega, post-KO | SEARCH | `search` |
-| the live bot, Showdown, replays, ingest, the store | OPS | `ops` (read-only) |
+| what the bot clicks — preview (CHOMP), the turn search (MILTANK, SLOWKING), the nets (MAG, DODUO, XATU, PORYGON2), self-play, the exploit dial, the live client (ROTOM) — anything under `solver/` | SOLVER | `solver` |
+| Showdown replays, ingest, the store | OPS | `ops` (read-only) |
+| the site — ABRA WORLD, a room, a visualisation | WEB | `web` (renders, never authors a number) |
+
+*(2026-09-24: SEARCH was renamed SOLVER and took the live client from OPS. Reg M-B is retired; the
+target is Reg M-C, open team sheets.)*
 
 If it spans two, run the **upstream** one first — the graph is one-way
-(engine → features → weights → search → live) and the downstream answer changes once upstream lands.
+(MEDICHAM, a frozen release → SOLVER → the ladder) and the downstream answer changes once upstream lands.
 
 If it routes nowhere, say so and ask. Do not invent a home for it.
 
@@ -35,7 +39,8 @@ state wastes its context on something already printed.
 
 - **Ask before anything wide.** Six processes is the cap, RAM is the real ceiling, and he may be
   laddering. A refit or an H2H needs his go-ahead, not your judgement.
-- **Never restart the live bot.** It forfeits a real game.
+- **Never restart the live bot, and never start a ladder series without Will's OK.** A restart
+  forfeits a real game; a series spends a real rating.
 - **Never `git add -A` or `git add -u`.** The ingest churns generated files.
 - **Never read an interim SPRT.** Read it at the bound.
 
@@ -47,7 +52,7 @@ news, give him the bad news plainly; softening a result is the one failure mode 
 exists to prevent.
 
 If a division found something that belongs to another division, file it in that division's ledger
-(`docs/{ENGINE,MEASURE,SEARCH,OPS}.md`) rather than acting on it yourself, then tell him it is filed.
+(`docs/{ENGINE,MEASURE,SOLVER,OPS,WEB}.md`) rather than acting on it yourself, then tell him it is filed.
 
 ## Finishing
 

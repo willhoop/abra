@@ -53,6 +53,34 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.0.0] — 2026-09-24 — **DRAFT: fold-ins A and B merged; the white paper, deck and technical docs stop claiming MILTANK v1 halves or uses XATU; living-document PDFs rebuilt**
+- **What changed.** `docs-1.0.0-a` and `docs-1.0.0-b` merged into `draft/regmc-1.0.0`. `docs/ABRA-whitepaper.md` (§2.2, §2.4, §3.1 registry, §3.5), `docs/ABRA-technical-docs.md` (model table) and `docs/ABRA-deck-plain-english.md` (slides 7 and 9) now say what `docs/MODELS.md` says: MILTANK v1 draws the world uniformly and has no successive halving; both are planned. The 13 stale or missing PDFs `build/build_pdfs.js` derives were rebuilt; ledgers excluded. Account: `docs/_reports/2026-09-24-docs-1.0.0-merge.md`.
+- **Measured.** NO FIGURE.
+- **Basis.** CHANGED — the same basis change as the 1.0.0 rows below; this row merges their fold-ins.
+- **Supersedes.** Nothing. It removes a design claim stated as if built, not a figure.
+- **Owed to the next major.** none.
+
+## [abra/regmc 1.0.0] — 2026-09-24 — **DRAFT fold-in, part A: the white paper, the deck and the technical docs rewritten for Reg M-C and the solver plan**
+- **What changed.** `docs/ABRA-whitepaper.md`, `docs/ABRA-deck-plain-english.md` and `docs/ABRA-technical-docs.md` move to line `abra/regmc` at 1.0.0 and are rewritten: the search plan (SLOWKING, MILTANK, MAG/DODUO, XATU, PORYGON2, MEW/MACHAMP, HYPNO/GARY, WOBBUFFET, CHOMP, ROTOM) leads; MEDICHAM's Reg M-C certification is the foundation; the ESS old-against-new table for Reg M-B 7.0.0 against Reg M-C 1.0.0 is white paper §5. Account: `docs/_reports/2026-09-24-docs-refresh-a.md`.
+- **Measured.** NO FIGURE. Solver figures are OFFLINE and cited to CHANGELOG-REGMC 0.113.0–0.116.1; the arena win rates are PRE-GATE and are not printed.
+- **Basis.** CHANGED — the three documents answer questions about Reg M-C; no Reg M-B figure in them can be linked except the damage differential, and that link is stated.
+- **Supersedes.** The Reg M-B edition of the three documents (7.0.0, `bfbf9cf9`). Its figures are deleted from them, not captioned; the record stays at that commit.
+- **Owed to the next major.** none from part A. `docs/SUMMARY.md` and `docs/MODELS.md` are part B.
+
+## [abra/regmc 1.0.0] — 2026-09-24 — **DRAFT, held for Will: documentation fold-in (b) — the project re-described as the Reg M-C solver; SEARCH renamed SOLVER**
+- **What changed.** `docs/ORIENTATION.md`, `docs/SUMMARY.md`, `README.md` rewritten around the plan (MEDICHAM correct → the solver searches on it → the ladder); `docs/MODELS.md` rewritten as the Reg M-C ledger, the Reg M-B edition moved whole to `docs/archive/MODELS-regmb-7.0.0.md`; `docs/DIVISIONS.md`, `docs/GLOSSARY.md`, `docs/REGULATION-ROTATION.md` (§14 note, new §15, one trap row), `CLAUDE.md` (*Reg M-B is retired*, *SOLVER*) and the agent and skill files. `.claude/agents/search.md` → `solver.md`, `docs/SEARCH.md` → `docs/SOLVER.md`, with `engine/status.js` `SECTIONS`, `tests/test-roadmap-register.js`, `tests/test-docs-quarantine.js` and `data/docs-currency-baseline.json` following the rename.
+- **Measured.** NO FIGURE. Every figure restated cites the entry that recorded it (1.0.0, 0.113.0, 0.114.0, 0.115.0, 0.116.0, 0.116.1) or a tracked metrics file with the command above the digits. The MILTANK arena figures are PRE-GATE and are not written.
+- **Basis.** CHANGED — the same basis change as the 1.0.0 row below; this row is its documentation fold-in for these files.
+- **Supersedes.** Nothing on the Reg M-C line. The Reg M-B editions are kept, not rewritten: `docs/archive/MODELS-regmb-7.0.0.md`, and `git show 1be7343c:docs/SUMMARY.md`.
+- **Owed to the next major.** none from these files. The white paper, deck and technical docs are a separate pass.
+
+## [abra/regmc 1.0.0] — 2026-09-24 — **DRAFT, held for Will: MEDICHAM certified on Reg M-C, the gate is OPEN**
+- **What changed.** Nothing new is measured; this release declares what 0.125.0 measured. `engine/quarantine.js` under Reg M-C reads OPEN, 10 of 10, on release `eaa5becc54eb`.
+- **Measured.** Boards 0/955, 0/1266, 0/1497; narration 0/955, 0/1266, 0/1497 (`data/game-differential{,.g1600,.g1900}-regmc.json`); damage 0/6000 (`data/engine-diff-regmc.json`); roster 166/166, 210/214, 510/511; 4,867 staged games, 0 threw.
+- **Basis.** CHANGED — no Reg M-C figure downstream of MEDICHAM measured before `eaa5becc54eb` can be linked to anything measured after; the quarantine lifts and 69 artifacts become re-runnable.
+- **Supersedes.** Nothing published on this line is superseded; the withheld downstream figures stay withheld until re-run.
+- **Owed to the next major.** This is the major: the full abra/regmc document fold-in.
+
 ## [abra/regmc 0.128.0] — 2026-09-24 — **The solver arena plays on a frozen release; doduo and mag greedy bots**
 - **What changed.** `solver/arena/engine.js` (new), `solver/arena/arena.js` (`--release`, stamp, pool digest, `doduo`/`mag` bots), `solver/arena/bots.js` (`greedy`), `solver/miltank/pool_worker.js` (engine from the release), `solver/tests/test-arena-release.js` (new), `solver/tests/test-arena.js` (a live-tree run says LIVE TREE, not PRE-GATE).
 - **Measured.** `test-arena-release` 17/17 on `eaa5becc54eb`, RED under `ARENA_BREAK=live`; `test-arena` 15/15, `test-miltank`, `test-porygon2` 423/423 and `test-rotom` 86/86 GREEN. No figure.

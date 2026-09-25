@@ -1,6 +1,7 @@
 # Glossary — the field's vocabulary, and which of it we may honestly claim
 
-**Version 3.71.0 · Last updated 2026-08-07**
+**Version 1.0.0 · Last updated 2026-09-24**
+**Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 Will, 2026-08-06: *"INCORPORATE THIS FANCY TERMINOLOGY IN OUR DOCUMENTS SO WE KNOW TO USE IT IN OUR
 PAPER."*
@@ -9,6 +10,12 @@ Every term here is standard in the literature. Each entry says what it means, wh
 it, and — where it matters — **what we may not claim.** A paper that misuses one of these is a paper a
 reviewer stops trusting, and several of them are easy to overstate in exactly the direction that
 flatters us.
+
+*(1.0.0, 2026-09-24. Reg M-B is retired; the target is Reg M-C with open team sheets, and every model
+except MEDICHAM is rebuilt from scratch under `solver/`. The terms below stand. Where an entry says
+"ours" about a Reg M-B model — the old MILTANK leaf, the old PORYGON2 — it describes the retired stack
+and is left as written; the Reg M-C models are in `docs/MODELS.md`. New terms the solver uses are
+added in §4b and §7.)*
 
 ---
 
@@ -55,7 +62,7 @@ and deviate to exploit only on strong evidence.**
 **Exploitability** — how much a **best response** trained against you can beat you by. It is
 **intrinsic**: measured against an exploiter trained on *you*, in *your* format. This is why we can
 compare numbers with VGC-Bench even though their checkpoints are Reg M-A and ours is Reg M-B and the
-two agents can never meet.
+two agents can never meet. *(Ours is Reg M-C from 2026-09-24; the argument is unchanged.)*
 
 **ε-exploitability / approximate equilibrium** — the honest framing for any real system. **We cannot
 compute the equilibrium of a game this size and must never say we have.** Heads-up *limit* poker was
@@ -113,6 +120,9 @@ ROADMAP #24, in production, at top-100.
 
 **Rollout / playout** — simulating to the end and scoring the result. **Ours does this and it is the
 thing #24 replaces**: MILTANK's leaf plays 200 games of uniform-random clicks and loses to a coin.
+*(That is the Reg M-B MILTANK. The Reg M-C MILTANK steps one joint action and then a few random legal
+turns on a frozen MEDICHAM release, ending in a named HP heuristic that PORYGON2 is to replace; its
+strength figures are PRE-GATE and withheld — `docs/MODELS.md`.)*
 
 **Evaluation function / value function** — score a position without playing it out. → **PORYGON2**.
 
@@ -125,6 +135,8 @@ solve over. ReBeL's central idea and the formal home for what GARY and XATU appr
 
 **Root parallelisation** — run independent searches from the root on many cores and combine. Scales
 **sublinearly**: 16× cores does not buy 16× depth. Relevant because we use one core of sixteen.
+*(Reg M-C: MILTANK now fills one decision's cells across a pool of long-lived worker processes, which
+is parallelism inside one search rather than independent searches from the root.)*
 
 **CFR (counterfactual regret minimization)** — the algorithm that solved poker. Minimises regret per
 information set and converges to equilibrium. `docs/POKER-TO-POKEMON.md` works through the
@@ -132,6 +144,31 @@ correspondence.
 
 **Abstraction** — shrink the game (bucket hands, discretize bets) so a solver fits, then map back. The
 reason poker was tractable at all, and an open question for us: **what is VGC's abstraction?**
+
+---
+
+## 4b. The solver's own vocabulary (added 1.0.0)
+
+**Joint action** — both of one side's slots' choices on a turn, taken together. The unit the search and
+DODUO score, because focus fire and redirect-then-attack only exist at the joint level.
+
+**Top-k joint recall** — the share of held-out human turns on which the human's exact joint action is
+in the model's top k. It is what a pruner must get right, since a search can only choose among the
+actions it kept. Per-slot recall badly overstates it.
+
+**Regret matching (RM+)** — an iterative equilibrium solver for a matrix game: each side shifts weight
+toward the actions it regrets not playing. SLOWKING uses it, with an exact LP beside it as a check.
+
+**Successive halving** — spend playouts on every cell, drop the worst half of the candidates, repeat.
+How MILTANK is planned to spend a fixed clock on the cells that can still change the answer; v1
+spreads its playouts over every cell instead.
+
+**ε-safe exploitation (the exploit dial)** — deviate from the equilibrium toward a model of the
+opponent's habits, but only so far that the worst case stays within ε of the equilibrium value. HYPNO's
+job. **WHAT WE MAY NOT CLAIM:** that the deviation is safe beyond the ε it was capped at.
+
+**Per-series residual (`S − E`)** — the actual series score minus the score the ratings expected. The
+ladder metric, because the rating itself drifts with noise and its peak overstates strength.
 
 ---
 
@@ -218,9 +255,13 @@ Defined here so the paper can introduce them once rather than leaking jargon.
 | **the census** | the per-mechanic table of probed / live / armed / directCall |
 | **armed** | a probe that has been shown RED on a deliberately broken engine |
 | **the differential** | the step-level protocol comparison against the official engine |
-| **frozen release** | a byte-copy of 23 engine files, so a measurement reads a photograph and not a moving tree |
+| **frozen release** | a byte-copy of every file in `engine/engine_release.js` `SOURCES`, so a measurement reads a photograph and not a moving tree |
 | **the photograph rule** | nothing in frame may move during a measurement, including files the measurer never opens |
 | **RAW-STORE-OK** | a declared, reasoned exception to a rule, rather than a silent one |
+| **PRE-GATE** | a figure played on MEDICHAM before the release its regulation's gate opened on; withheld, never captioned |
+| **store-only** | a model that learns from the human dataset and never runs the simulator, so it never waits on the gate |
+| **lean playout** | a MEDICHAM turn that writes the same board with no protocol or counters, for search speed |
+| **SOLVER** | the division that owns `solver/`: search, the nets and the live client (SEARCH until 2026-09-24) |
 
 ---
 

@@ -1,6 +1,6 @@
 # REGULATION ROTATION — what has to change when a new Champions regulation goes live
 
-**Version: 0.128.0 — 2026-09-24.**
+**Version: 1.0.0 — 2026-09-24.**
 **Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
 
@@ -280,6 +280,27 @@ Two directions, and both are checked every rotation:
   The M-B species table builder `build/build_engine_data.js` reads CHOMP's model. That is why the new
   regulation got its own builder (`build/build_engine_data_regmc.js`) that derives from the format instead.
 
+*(Changed 2026-09-24, in the Reg M-C 1.0.0 documentation pass; the text above is left as written for
+this rotation.)* **From Reg M-C on, CHOMP is not a downstream consumer.** Will moved it inside ABRA as
+the team-preview solver (`solver/chomp/`, `solver/PLAN.md` §2), and the `../CHOMP` repository is
+reference only. So on the NEXT rotation this step shrinks to the second bullet — find what ABRA still
+reads from `../CHOMP` and cut it — and CHOMP rotates with the rest of the solver in step 15.
+
+### 15. The models downstream of the engine — JUDGEMENT, and on Reg M-C the answer was *rebuild*
+
+Every model that plays on MEDICHAM or was fitted on its features answers a question about the OLD
+regulation. On the M-B → M-C rotation Will's call (2026-09-24) was to **retire the Reg M-B models rather
+than port them** and rebuild every one except MEDICHAM from scratch under `solver/`, for open sheets
+only. What that decision needs, whichever way it goes next time:
+
+- **Store-only models can start the day the store exists.** The human dataset, MAG, DODUO, XATU's bring
+  model and GURU never touch the simulator, so they do not wait for the gate.
+- **Anything that plays games waits for the new gate**, and whatever it measured before the gate opened
+  is PRE-GATE: withheld until re-run on the release the gate opened on, never captioned.
+- **The old model files are archived in the commit where each replacement passes its exit test**, not
+  when the rotation starts (`solver/PLAN.md` §8). Several sit in `engine/engine_release.js` `SOURCES`;
+  run `node engine/engine_release.js compat` before moving one.
+
 ## WHAT CANNOT BE DERIVED, AND MUST BE JUDGED EVERY TIME
 
 A runbook that pretends judgement is mechanical is worse than none. These do not have commands:
@@ -426,6 +447,8 @@ what went wrong while doing it, in the order it happened on Reg M-B → M-C.
 | **The new checkout's `sim/` can drop a guard the engine copied, with no Champions override and no data-file change.** Reg M-C's checkout carries upstream `efe4948`, which removed `getMoveTargets`'s `isCharging` guard; the engine had copied the guard from the Reg M-B checkout, so a charge turn drew no redirect in either regulation. | A Lightning Rod / Storm Drain `-activate` missing above a real `-prepare` under the new regulation only, and a Pressure PP leaf off by one on a charge turn. | On a rotation, list the new checkout's commits to `sim/` between the two pinned commits and re-read every sim line the engine cites; derive each behavioural difference into a tag param read off the compiled method. Fixed 0.92.0 (`chargeTurn.drawnWhileCharging`). |
 | **A mod can delete a declared `volatileStatus` and add the volatile inside `onHit`, which moves the volatile BELOW the move's own effects.** Reg M-B's Curse declares `volatileStatus: 'curse'` (added by `runMoveEffects` above `onHit`); the Reg M-C mod sets it `undefined` and calls `directDamage` and then `addVolatile` inside `onHit`, so the user's `-damage` now precedes the `-start`. No rule changed; only where the add happens. | A two-line swap on one move's `-start` and `-damage`, narration only, in the new regulation alone. | On a rotation, list every mod entry that sets `volatileStatus: undefined` (or drops `volatileStatus`/`sideCondition`) and re-read its `onHit` for the order of the add against the move's other lines; derive it into a tag param. Fixed 0.90.0 (`typeSplitMove.costBeforeVolatile`). |
 | **A Champions mod override can disappear between regulations, and every engine road built to mirror it keeps running.** Reg M-B's mod QUEUES White Herb's after-move restore (data/mods/champions/items.ts:1023-1037); Reg M-C's mod has no whiteherb entry, so mainline's immediate restore stands. The engine's queued road (`pivotHerbSweep`, built for Reg M-B) went on firing under Reg M-C, and the herb came out below a Parting Shot's `|switch|` instead of above it. | One whole-game narration row (Parting Shot into a White Herb holder); `tests/probe_narration_b_line_order.js`'s `herb` arm, written against the Reg M-B override, read FIXTURE FAILED under Reg M-C. | On a rotation, diff the two checkouts' `data/mods/champions/*.ts` by entry name and list every override that was added or removed. For each, find the engine road that mirrors it and make it read a DERIVED tag param (here `restoresStats.afterMoveImmediate`), never the regulation's name. A probe that stages an override must print NOT APPLICABLE where the tag says the override is absent. Fixed 0.89.0. |
+| **Renaming a division is not a file move.** SEARCH became SOLVER on 2026-09-24. `build/build_pdfs.js` derives the ledger set from `.claude/agents/*.md`, so it followed the agent file, but three places typed the ledger name: `engine/status.js` `SECTIONS` (its key IS the ledger's file name), `tests/test-roadmap-register.js` `LEDGERS`, and a key in `tests/test-docs-quarantine.js`; and `data/docs-currency-baseline.json` lists the unversioned ledger by path. | Nothing would have failed loudly: `status.js --write` prints `skip SEARCH.md (not present)` and leaves the renamed ledger unstamped, and the register test stops reading one ledger (docs-refresh-b, 2026-09-24). | When a division or ledger is renamed, grep `engine/`, `tests/`, `build/` and `data/*.json` for the old ledger path and the old upper-case name, and change them in the same commit. Leave dated references in code comments; the renamed ledger says where they resolve. |
+| **An engine fix that repeats a line can silently disarm a roster red demonstration.** 0.120.0's `restoreStatsOwed` copied `restoreStatsUpdate`'s `_rs` read; the `item/restores-lowered-stats` plant in `tests/roster.js` then matched twice, refused to apply, and the items stage exited 1 with 166/166 green, which the gate reads as a failing roster clause. | Found by the Reg M-C final gate re-read: the roster/items clause read FAIL with 0 DIFFER and 0 DID-NOT-FIRE, and `reds` in `data/roster.items-regmc.json` said the anchor matched 2 times. | After any engine change, read the roster's `N of N apply exactly once` line before trusting a stage exit. Re-aim a plant at a line only its own door carries, never at a line a new helper might copy (0.124.0).
 
 ## THE THING THAT WILL GO WRONG ANYWAY
 

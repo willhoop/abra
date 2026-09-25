@@ -3,6 +3,37 @@
 Project-specific context. Universal rules are inherited from the Pokémon umbrella and the global
 instructions; only what is specific to ABRA is here.
 
+## REG M-B IS RETIRED. THE ENGINE IS THE FOUNDATION; THE SEARCH IS THE POINT.
+
+*(Will, 2026-09-24. Added in the Reg M-C 1.0.0 documentation pass. Everything below this section that
+is dated before 2026-09-24 stands as written — it is evidence, and it was measured on Reg M-B.)*
+
+- **Reg M-B is retired. No more Reg M-B work.** `CHANGELOG.md` is CLOSED at 7.0.0 and is its record.
+  Its figures stay as history, labelled Reg M-B, and are never renumbered, restated as current or
+  compared with a Reg M-C figure. They answer a different question.
+- **The target is Reg M-C, open team sheets only.** Ladder format `gen9championsvgc2026regmcbo3`.
+  Closed sheets and bo1 are out of scope. The line is `abra/regmc` (`CHANGELOG-REGMC.md`,
+  `docs/REGMC.md`). Run a gate or an artifact with `ABRA_REGULATION=regmc` or `--regulation regmc`.
+- **The Reg M-C MEDICHAM gate is OPEN, 10 of 10** (`node engine/quarantine.js --regulation regmc`,
+  release `eaa5becc54eb`; `docs/_reports/2026-09-24-regmc-gate-final.md`). The 1.0.0 that records it is
+  published (2026-09-25, tag `abra-regmc-v1.0.0`).
+- **Every model except MEDICHAM is rebuilt from scratch under `solver/`**, keeping the old names in the
+  roles `solver/PLAN.md` §2 gives them. The old `engine/` implementations are archived, to a top-level
+  `archive/`, in the commit where each replacement passes its exit test (`solver/PLAN.md` §8) — not
+  before. Until then an old model file is history, and its figures stay withdrawn.
+- **The pipeline is the point.** MEDICHAM is correct, so the solver searches on it: CHOMP picks the
+  bring and the lead at preview; each turn XATU holds the belief over hidden information, MAG and DODUO
+  narrow the candidates, MILTANK fills a payoff matrix by playouts (then PORYGON2's value), SLOWKING
+  solves it, and HYPNO applies a capped exploit dial; MEW and MACHAMP train it by self-play; ROTOM
+  plays it on the ladder.
+- **CHOMP is the team-preview solver, rebuilt inside ABRA** under `solver/chomp/` (not built yet; milestone
+  M4). The `../CHOMP` repository runs on stale mainline data and is reference only. **ROTOM is the live client.** It replaces
+  `engine/mag_bot.js`.
+- **The finish line is high on the ladder**, account `medicham32`, cleared with Showdown staff. The
+  headline is a settled rating ± SD over the last N series and the per-series residual `S − E`. Never
+  the peak (`solver/PLAN.md` §5). **A ladder launch needs Will's OK**: it spends a real rating.
+- **SEARCH is renamed SOLVER** — see *SOLVER — search, the nets and the live client* below.
+
 ## START HERE — the handoff is generated, not written
 
 ```bash
@@ -36,11 +67,14 @@ a typed one, which is what this file's first paragraph is about.
 disagree. It also prints **UNREGISTERED** — a defect a live instrument is measuring with no roadmap row
 — because a register cannot audit itself, and it stamps the AGE of every artifact it reads.
 
-Work is divided five ways — ENGINE, MEASURE, SEARCH, OPS, WEB — cut on the invalidation graph so
+Work is divided five ways — ENGINE, MEASURE, SOLVER, OPS, WEB — cut on the invalidation graph so
 that a change in one does not silently invalidate the others. Read [docs/DIVISIONS.md](docs/DIVISIONS.md)
 for the map, the routing rule for a new bug, and the frozen-engine-release rule. Each division's
-ledger is `docs/{ENGINE,MEASURE,SEARCH,OPS,WEB}.md`; `status.js --write` stamps the numbers into them
+ledger is `docs/{ENGINE,MEASURE,SOLVER,OPS,WEB}.md`; `status.js --write` stamps the numbers into them
 and leaves the judgement alone.
+
+*(SOLVER was SEARCH until 2026-09-24, and its ledger was `docs/SEARCH.md`. A code comment or a dated
+paragraph that cites `docs/SEARCH.md` §Rn now resolves to the archived half of `docs/SOLVER.md`.)*
 
 *(WEB was added 2026-08-04 and this file said "four" in three places until 2026-08-05. The count was
 cosmetic; the ledger list was not — the living-docs rule below named four ledgers, so a WEB change
@@ -60,12 +94,38 @@ One question decides the route: **which artifact does fixing this invalidate?**
 |---|---|
 | a move, an ability, an item, the damage table, the simulator being wrong | `@engine` |
 | whether a number is true — staleness, calibration, an SPRT result, the refit | `@measure` |
-| what MILTANK clicks — leads, brings, opponent model, mega, post-KO | `@search` |
-| the live bot, Showdown, replays, ingest, the store | `@ops` (read-only) |
+| what the bot clicks — preview (CHOMP), the turn search (MILTANK, SLOWKING), the nets (MAG, DODUO, XATU, PORYGON2), self-play, the exploit dial, the live client (ROTOM) — anything under `solver/` | `@solver` |
+| Showdown replays, ingest, the store | `@ops` (read-only) |
 | the site — ABRA WORLD, a room, a visualisation, a model interface | `@web` (renders, never authors a number) |
+
+*(2026-09-24: the `@search` row became `@solver`, and the live bot moved from OPS to SOLVER with it.)*
 
 Spans two? Run the **upstream** one first; the graph is one-way. Routes nowhere? Say so and ask —
 do not invent a home for it.
+
+### SOLVER — search, the nets and the live client
+
+*(Will, 2026-09-24: search is the core of the plan and is not going away. The SEARCH division is
+renamed SOLVER and takes on the nets and the live client. OPS keeps ingest and the store.)*
+
+- **Owns `solver/`**, and every model in `solver/PLAN.md` §2 except MEDICHAM. Agent
+  `.claude/agents/solver.md`; ledger `docs/SOLVER.md`; narrative log `solver/LOG.md`; the plan
+  `solver/PLAN.md`. State is still printed, never typed: the plan's registry says what is built, and
+  `node engine/status.js` says what is true.
+- **The graph is `MEDICHAM (frozen release) ──► SOLVER ──► ladder`, and it is one-way.** SOLVER never
+  edits `engine/`. An engine bug it trips over is filed to ENGINE, never fixed mid-run.
+- **SOLVER reads a frozen release, never HEAD** (`engine/engine_release.js`), with the census pin, the
+  `--team-store data/team-pool-frozen-regmc` pin and every flag written into the artifact.
+- **A figure that played on MEDICHAM before release `eaa5becc54eb` is PRE-GATE and is withheld, not
+  captioned.** That covers every arena and head-to-head figure measured before the Reg M-C gate opened.
+  Store-only models (the human dataset, MAG, DODUO, XATU's bring model, GURU) never read the simulator
+  and do not wait for it.
+- **SOLVER prepares a wide run and hands Will the command.** A ladder launch is Will's call, always.
+- **Outputs go in `solver/out/`, which git ignores.** Before any commit that touches `solver/`, ask
+  `git ls-files`, not the disk; the 100 MB wall applies.
+- **Version line.** Will approved an `abra/solver` line (`solver/PLAN.md` §7, Q2). It does not exist
+  yet; until `CHANGELOG-SOLVER.md` does, solver changes are logged on `abra/regmc`, as 0.113.0 to
+  0.116.1 were.
 
 Report back **one answer**, not a transcript. Lead with the verdict. If the news is bad, give it
 plainly — softening a result is the failure this whole structure exists to prevent.
@@ -374,6 +434,11 @@ The Automated Battle Replay Analyzer. It ingests public Champions Reg M-B replay
 Showdown, models the ladder meta, and feeds `data/meta-usage.json` to CHOMP. **Separate but
 connected to CHOMP** — CHOMP is only the pick-4/lead-2 engine; ABRA is the meta brain.
 
+*(Superseded 2026-09-24; the paragraph above is left as it was written. ABRA now ingests Reg M-C
+open-sheet games, keeps MEDICHAM as its verified simulator, and builds a player on top of it in
+`solver/`. CHOMP is no longer a separate consumer: it is the team-preview solver, to be built inside
+ABRA under `solver/chomp/`, and ROTOM is the live client. See *Reg M-B is retired* at the top.)*
+
 ## The one principle that governs the data
 **Store raw, analyze on top.** Every game is stored durably with every fact we might ever want,
 plus rating and bot tags. All filtering/analysis runs on the store. Changing how we segment games
@@ -536,10 +601,19 @@ what failure looks like, and the checklist for adding a mechanic — is [docs/TA
 - `engine/analyze.js` — views + writes the model CHOMP reads.
 - `data/games.ladder.jsonl` — the append-only store. `data/meta-usage.json` — the CHOMP-facing model.
 - `tests/test-parse.js` — pins the extractor.
+- `engine/medicham_api.js` — the solver's door into MEDICHAM: `clone`, `legalActions`, `step`, the
+  terminal check, lean playouts.
+- `solver/` — the Reg M-C player: `PLAN.md` (the model registry and milestones), `LOG.md` (the
+  narrative), one directory per model, `tests/`, and `out/` (gitignored). `node engine/where.js
+  <thing>` answers which file owns a fact.
 
 ## The CHOMP loop
 ABRA produces `meta-usage.json`; CHOMP reads it to infer real leads/sets. When ABRA improves, CHOMP
 gets smarter without a plugin change.
+
+*(Retired 2026-09-24, left as written. CHOMP is rebuilt inside ABRA as the team-preview solver: both
+open sheets in, a mixed strategy over the bring/lead options out, scored by PORYGON2 and solved by
+SLOWKING (`solver/PLAN.md` §2). It no longer reads `meta-usage.json` across a repository boundary.)*
 
 ## "KNOWN FAILURE" IS A BANNED PHRASE
 
@@ -587,6 +661,12 @@ should stop referencing them until medicham is up to date and we can rerun them"
   MEDICHAM  ──►  board.js  ──►  MAG weights  ──►  MILTANK baselines  ──►  live
   (engine)       (features)     (the refit)       (every H2H result)
 ```
+
+*(2026-09-24, Reg M-C. The graph above is the retired Reg M-B stack and is left as it was drawn. On
+Reg M-C the right-hand side is `solver/`: `MEDICHAM (frozen release) ──► SOLVER ──► ladder`. The same
+rule governs it. The Reg M-C gate is OPEN, so every M-C artifact downstream of MEDICHAM is RE-RUNNABLE,
+not current: a figure that played on an engine before release `eaa5becc54eb` is withheld until it is
+re-run on that release or a later one.)*
 
 One-way means a wrong simulator does not stay in ENGINE. It reaches every number to its right. On
 2026-08-08 MEDICHAM is **known incorrect** — Weather Ball ignores three of the four weathers on 8,620
@@ -769,7 +849,7 @@ running notes page in between change the documentation rules"*.
   figure this supersedes, and which living document owes the fold-in. **Same rigour as the white
   paper.** Figures cite an artifact. A superseded number is struck out. A quarantined figure is not
   written at all.
-- The division ledger your change belongs to — `docs/{ENGINE,MEASURE,SEARCH,OPS,WEB}.md` — then
+- The division ledger your change belongs to — `docs/{ENGINE,MEASURE,SOLVER,OPS,WEB}.md` — then
   `node engine/status.js --write` to restamp the generated blocks. **Never hand-edit inside a
   `<!-- GENERATED -->` block, and never write a handoff document.** State is printed, not typed;
   `docs/HANDOFF-*.md` are historical narrative and are not maintained.

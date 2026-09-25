@@ -15,6 +15,23 @@ graph below and makes every change touch every division, which is the situation 
 
 ## The graph
 
+**Reg M-C, from 2026-09-24.** Reg M-B is retired. The target is Reg M-C with open team sheets, and
+every model except MEDICHAM is rebuilt from scratch under `solver/` (`solver/PLAN.md`).
+
+```
+  MEDICHAM (a frozen release)  ──►  SOLVER  ──►  the ladder
+  (engine, verified)                (CHOMP · XATU · MAG/DODUO · MILTANK · SLOWKING ·
+                                     PORYGON2 · GARY/HYPNO · MEW/MACHAMP · ROTOM)
+
+  the store (OPS) feeds SOLVER's store-only models directly: the human dataset, MAG, DODUO, XATU, GURU
+  MEASURE / SPRT / provenance / status  sit BESIDE all of it and invalidate nobody
+```
+
+The engine is the foundation; the search is the point. SOLVER plays a frozen MEDICHAM release, so
+ENGINE can keep fixing the simulator while SOLVER measures.
+
+**Reg M-B, until 2026-09-20 — retired, kept as it was drawn:**
+
 ```
   MEDICHAM  ──►  board.js  ──►  MAG weights  ──►  MILTANK baselines  ──►  live
   (engine)       (features)     (the refit)       (every H2H result)
@@ -23,21 +40,29 @@ graph below and makes every change touch every division, which is the situation 
 ```
 
 It is one-way. That is the only reason dividing is worth doing — if ENGINE ever came to depend on a
-SEARCH result, one big document would beat four small ones and this file should be deleted.
+SOLVER result, one big document would beat several small ones and this file should be deleted.
 
-## The four
+## The divisions
 
 | Division | Owns | Its one number | Ledger |
 |---|---|---|---|
 | **ENGINE** | `medicham2-browser.js`, `abra-tags`, `tests/test-mechanics.js`, `tests/walk_tags.js`, `tests/test-engine-diff.js` | mechanics live (must never go down) | [ENGINE.md](ENGINE.md) |
 | **MEASURE** | `mew.js`, `sprt.js`, `provenance.js`, `status.js`, `backtest_winrate.js`, the noise floor, the stamps | leaf calibration | [MEASURE.md](MEASURE.md) |
-| **SEARCH** | `miltank.js` — bring/lead, opponent model, mega choice, post-KO replacement | SPRT verdict vs the named champion | [SEARCH.md](SEARCH.md) |
-| **OPS** | `mag_bot.js`, Showdown, OTS/replays, ingest, the team pool | store usable %, battles recorded | [OPS.md](OPS.md) |
+| **SOLVER** | `solver/` — every model in `solver/PLAN.md` §2 except MEDICHAM: preview (CHOMP), belief (XATU), candidate narrowing (MAG, DODUO), the turn search (MILTANK, SLOWKING), value (PORYGON2), habits and the exploit dial (GARY, HYPNO), self-play (MEW, MACHAMP), the live client (ROTOM) | the settled ladder rating ± SD and the per-series residual; offline, SPRT at equal wall-clock | [SOLVER.md](SOLVER.md) |
+| **OPS** | Showdown replays, OTS, ingest, the stores and the frozen team pools | store usable %, battles recorded | [OPS.md](OPS.md) |
 | **WEB** | `web/` — ABRA WORLD and every room in it | every rendered figure traces to an artifact | [WEB.md](WEB.md) |
+
+*(2026-09-24. SEARCH was renamed SOLVER: Will — search is the core of the plan and is not going away,
+so the division takes on the nets and the live client. OPS keeps ingest and the store, and hands the
+live bot to SOLVER, where ROTOM replaces `mag_bot.js`.)*
 
 **MAG is not a division — it is the seam.** It consumes ENGINE and feeds SEARCH, and its refit is
 the expensive event on the one expensive edge. The refit therefore belongs to MEASURE, whose whole
 job is knowing when a number stopped being true.
+
+*(Retired with Reg M-B, left as written. MAG is rebuilt in `solver/mag/` as a store-only model with no
+simulator in its path, so it is no longer a seam: it is SOLVER's. MEASURE still judges whether its
+numbers are true.)*
 
 ## Routing a bug: one question
 
@@ -45,25 +70,29 @@ job is knowing when a number stopped being true.
 
 - The damage table → **ENGINE**
 - A measurement claim, a stamp, a corpus → **MEASURE**
-- What gets clicked, but not what is true → **SEARCH**
+- What gets clicked, but not what is true → **SOLVER**
 - Nothing → **OPS**
 
 A bug that cannot be routed does not get held. It gets a division or it gets closed.
 
 ## The two rules that make the division real
 
-### 1. SEARCH plays a frozen, named engine release — never HEAD
+### 1. SOLVER plays a frozen, named engine release — never HEAD
 
-ENGINE batches fixes and cuts a release. Cutting the release is what triggers the refit and the
-seven restamps. Between releases, SEARCH's baselines are frozen and valid, and ENGINE can land
-twenty mechanics fixes without invalidating a running H2H.
+ENGINE batches fixes and cuts a release. Between releases, SOLVER's baselines are frozen and valid,
+and ENGINE can land twenty mechanics fixes without invalidating a running H2H. On Reg M-C a figure
+that played on a release before `eaa5becc54eb` (the release the M-C gate opened on) is PRE-GATE and is
+withheld, not captioned.
+
+*(Until 2026-09-24 this rule was SEARCH's, and the paragraphs below describe the Reg M-B stack: the
+refit and the seven restamps are retired with it.)*
 
 This is not theoretical. `node engine/status.js` currently prints every R4 run as `PRE-CHANGE`:
 the engine source moved after the games were played, so the headline result of 2026-08-04 already
 describes a build that no longer exists.
 
 It also fixes the schedule. ENGINE's work — tag probes, differential tests — is single-process and
-cheap. SEARCH and MEASURE eat the 6-process budget. Under a release boundary those genuinely run
+cheap. SOLVER and MEASURE eat the process budget. Under a release boundary those genuinely run
 side by side; without one they collide.
 
 ### 2. If you trip over another division's bug, you file it — you do not fix it
@@ -85,7 +114,7 @@ can, and that is the generator's job.
 
 ## One agent per division
 
-`.claude/agents/{engine,measure,search,ops,web}.md`. Each loads CLAUDE.md plus its own ledger and
+`.claude/agents/{engine,measure,solver,ops,web}.md`. Each loads CLAUDE.md plus its own ledger and
 nothing else, so it cannot reason wrongly about a part of the project it was never shown.
 
 **WEB was added 2026-08-04, and the reason is worth recording** because it tests whether the cut
@@ -101,14 +130,14 @@ sentence somebody might ignore**:
 
 | Agent | Hands | The restriction that matters |
 |---|---|---|
-| `engine` | full | may not touch board.js / magnemite.js / engine-data.js, may not run a fit or self-play |
+| `engine` | full | may not touch `solver/`, board.js / magnemite.js / engine-data.js, may not run a fit or self-play |
 | `measure` | full | must ask before starting a refit — it is expensive and Will may be at the keyboard |
-| `search` | full | prepares H2H runs and hands over the command; does not launch wide runs itself |
+| `solver` | full, never `engine/` | prepares wide runs and ladder series and hands over the command; never launches a ladder series — that spends a real rating and is Will's call |
 | `ops` | **read-only** | no Bash, no Write, no Edit — a mistake here forfeits a real game |
 | `web` | full, inside `web/` only | **may not author a number** — every figure traces to an artifact or renders as NOT MEASURED |
 
 **This is not parallelism.** Six processes is the cap and RAM is the real ceiling. ENGINE's work is
-single-process and genuinely runs alongside a long SEARCH job; two search agents do not. The win is
+single-process and genuinely runs alongside a long SOLVER job; two solver agents do not. The win is
 clean scope and a small context, not throughput.
 
 ## The handoff
@@ -119,7 +148,8 @@ There is no longer a handoff document to write.
 node engine/status.js
 ```
 
-That output is the handoff. `--write` also stamps it into the four ledgers. The rules live in
+That output is the handoff. `--write` also stamps it into the division ledgers (from the main
+checkout — never from a worktree). The rules live in
 CLAUDE.md and do not change; the lessons live in `docs/LESSONS.md` and are written once.
 
 The `HANDOFF-*.md` files are history now, not state. Most of them moved to `docs/archive/` on
