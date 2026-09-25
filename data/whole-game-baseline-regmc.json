@@ -1,0 +1,10 @@
+{
+  "what": "THE BAR FOR engine/game_differential.js — the same game played through BOTH engines with real sheets and real natures, every die pinned identically on both sides. NOT ZERO, and the clause says so on every run: mode A makes any difference a rule bug, so the honest target is 0 and this is a ratchet toward it rather than a definition of correct.",
+  "rate": 0,
+  "games": 955,
+  "diverged": 0,
+  "engine_release": "eaa5becc54eb",
+  "mode": "A/middle/pins:de38d17e15a2/credit:observed-effect/v1/nature:real",
+  "stamped": "2026-09-24T21:19:48.567Z",
+  "by": "engine/quarantine.js --stamp-whole-game"
+}

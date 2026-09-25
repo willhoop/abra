@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.125.0] — 2026-09-24 — **Reg M-C gate re-read on the merged engine: OPEN, 10 of 10; narration baseline stamped at zero**
+- **What changed.** Measurement only, plus the narration baseline stamp. Release `eaa5becc54eb`, pin `census-pin-regmc-123aa264f88d`, pool `data/team-pool-frozen-regmc`, `--steering empirical --arm middle --end-state`, `--games` 1200/1600/1900. `docs/_reports/2026-09-24-regmc-gate-final.md`.
+- **Measured.** `engine/quarantine.js` (Reg M-C): GATE OPEN, 10 of 10. Board-material and undeclared narration-only 0/955, 0/1266, 0/1497 (`data/game-differential-regmc.json`, `.g1600-regmc`, `.g1900-regmc`); damage 0/6000 (`data/engine-diff-regmc.json`); roster 166/166, 210/214, 510/511 (`data/roster.*-regmc.json`); 4,867 staged games, 0 threw (`data/all-mechanics-fire-regmc.json`). Baseline `data/whole-game-baseline-regmc.json` rate 0, 0 of 955.
+- **Basis.** unchanged. The basis change the open gate brings is the 1.0.0, drafted on `draft/regmc-1.0.0` and not published.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** The 1.0.0 fold-in (drafted).
+
 ## [abra/regmc 0.124.0] — 2026-09-24 — **White Herb roster plant re-aimed; Reg M-C census republished**
 - **What changed.** `tests/roster.js` `item/restores-lowered-stats` plant re-aimed at `restoreStatsUpdate`'s negative-stage scan (the old `_rs` anchor matched twice after 0.120.0). `data/mechanics-census-regmc.json` republished from the merged tree.
 - **Measured.** Items stage on `eaa5becc54eb`: 166/166, 28/28 anchors apply once, the rule CAUGHT, exit 0 (`data/roster.items-regmc.json`). Census 1024 live / 0 missing / 1024 probed (`data/mechanics-census-regmc.json` = pin `census-pin-regmc-123aa264f88d`); the one row that differs from the committed census is the Supreme Overlord label.

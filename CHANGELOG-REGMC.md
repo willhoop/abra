@@ -21,6 +21,17 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.125.0] — 2026-09-24
+
+### Changed
+- **The full Reg M-C gate re-read on the merged engine reads OPEN, 10 of 10 clauses.** Release `eaa5becc54eb`, census
+  pin `123aa264f88d` (1024 live / 0 missing), pool `data/team-pool-frozen-regmc`, lattices `--games` 1200/1600/1900,
+  serial through `toolslownode.cmd`. Damage differential 0/6000 at every index; roster 166/166, 210/214, 510/511;
+  board-material and narration-only both 0/955, 0/1266, 0/1497; mechanics staged 0 diverge (4,867 games, 0 threw); no
+  open row names a RED instrument. The narration baseline is stamped at ZERO (`data/whole-game-baseline-regmc.json`,
+  0 of 955). The 1.0.0 this opens is drafted on `draft/regmc-1.0.0` and NOT published: Will reads majors first.
+  `docs/_reports/2026-09-24-regmc-gate-final.md`.
+
 ## [0.124.0] — 2026-09-24
 
 ### Fixed
