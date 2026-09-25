@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.0.0] — 2026-09-24 — **DRAFT fold-in, part A: the white paper, the deck and the technical docs rewritten for Reg M-C and the solver plan**
+- **What changed.** `docs/ABRA-whitepaper.md`, `docs/ABRA-deck-plain-english.md` and `docs/ABRA-technical-docs.md` move to line `abra/regmc` at 1.0.0 and are rewritten: the search plan (SLOWKING, MILTANK, MAG/DODUO, XATU, PORYGON2, MEW/MACHAMP, HYPNO/GARY, WOBBUFFET, CHOMP, ROTOM) leads; MEDICHAM's Reg M-C certification is the foundation; the ESS old-against-new table for Reg M-B 7.0.0 against Reg M-C 1.0.0 is white paper §5. Account: `docs/_reports/2026-09-24-docs-refresh-a.md`.
+- **Measured.** NO FIGURE. Solver figures are OFFLINE and cited to CHANGELOG-REGMC 0.113.0–0.116.1; the arena win rates are PRE-GATE and are not printed.
+- **Basis.** CHANGED — the three documents answer questions about Reg M-C; no Reg M-B figure in them can be linked except the damage differential, and that link is stated.
+- **Supersedes.** The Reg M-B edition of the three documents (7.0.0, `bfbf9cf9`). Its figures are deleted from them, not captioned; the record stays at that commit.
+- **Owed to the next major.** none from part A. `docs/SUMMARY.md` and `docs/MODELS.md` are part B.
+
 ## [abra/regmc 1.0.0] — 2026-09-24 — **DRAFT, held for Will: MEDICHAM certified on Reg M-C, the gate is OPEN**
 - **What changed.** Nothing new is measured; this release declares what 0.125.0 measured. `engine/quarantine.js` under Reg M-C reads OPEN, 10 of 10, on release `eaa5becc54eb`.
 - **Measured.** Boards 0/955, 0/1266, 0/1497; narration 0/955, 0/1266, 0/1497 (`data/game-differential{,.g1600,.g1900}-regmc.json`); damage 0/6000 (`data/engine-diff-regmc.json`); roster 166/166, 210/214, 510/511; 4,867 staged games, 0 threw.

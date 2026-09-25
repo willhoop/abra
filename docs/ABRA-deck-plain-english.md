@@ -1,188 +1,212 @@
 # ABRA — the plain-English deck
 
-**Version 7.0.0 · 2026-09-20 · Will Hooper**
+**Version 1.0.0 · 2026-09-24 · Will Hooper**
+**Line: abra/regmc** — `CHANGELOG-REGMC.md`.
 
-**This edition publishes one result, and it is the one this project has been withholding for six
-weeks: our copy of the game now plays the same game as the real one, on every test we own.**
+**This edition says one thing: our copy of the game is now right for Reg M-C, so we can start building
+the player that uses it. The copy was the foundation. The search is the point.**
 
 ---
 
 ## Slide 1 — What ABRA is, in four sentences
 
-ABRA watches public Pokémon matches, works out what people in this format actually bring and
-actually click, and tries to find good decisions.
+ABRA is a project to build a program that plays Pokémon Champions doubles well enough to climb the
+Showdown ladder.
 
-To do that it needs its own copy of the game — a simulator it can play thousands of imagined
-futures inside, far faster than the real server could ever run them.
+It plays the current format, Reg M-C, with open team sheets: both players can see each other's six
+Pokémon, moves, items and abilities before the battle.
 
-Every answer ABRA gives is a search through that copy.
+To choose a move, it imagines thousands of possible futures inside its own copy of the game and picks
+the choice that holds up best.
 
-So the copy has to be right, and that is the only thing this edition is about.
-
----
-
-## Slide 2 — Why the copy being right is the whole project
-
-A search is worth exactly what its model is worth.
-
-If our simulator plays a slightly different game from the real one, then every number built on top
-of it is a confident answer about a game nobody is playing. It will not look wrong. It will look
-like a result.
-
-That is why almost everything else here has been deliberately blank for weeks. Not hedged, not
-printed with a warning label beside it — blank. A warning label next to a number is still a number,
-and people quote it anyway.
+So it needs two things: a copy of the game that is exactly right, and a search that uses it well.
 
 ---
 
-## Slide 3 — How we test it
+## Slide 2 — The goal
 
-The official site people actually play on is Pokémon Showdown, and its code is the rulebook. We
-treat it as the authority and our own simulator as the thing on trial.
+Get high on the Reg M-C best-of-three ladder, playing on the account `medicham32`.
 
-The test:
+Showdown staff have approved the account for this.
 
-- take real teams from real recorded matches, frozen in place so the ground cannot move under the
-  measurement;
-- play the same game twice — once through the official engine, once through ours;
-- force both to draw from the same dice, so any disagreement has to be a rule and cannot be luck;
-- stop at the end of every turn and compare the two boards, piece by piece: who is out, how hurt,
-  what is poisoned, what is boosted, what the weather is, what is stuck where.
-
-If the two boards ever differ, our simulator is wrong. Not "arguably different" — wrong.
+We will judge it by where its rating settles over many series, never by its best moment. A rating
+bounces around a lot on its own, so a peak mostly measures luck.
 
 ---
 
-## Slide 4 — The headline
+## Slide 3 — Step one is done: the copy of the game is right
 
-**On 7,182 games, the two engines end every single turn with the same board.** The run drew a far
-wider sample than the routine check uses; 7,182 of the games it drew were playable, and not one was
-thrown away to flatter the score. The release it was measured on, and the steps that got there, are
-recorded in CHANGELOG 6.83.0.
+Our copy of the game is called MEDICHAM.
 
-The readout, straight out of the file it was written to:
+For Reg M-C it now passes every test we own against the official Showdown simulator. It computes the
+same damage. It plays the same whole games with the same dice and reaches the same board every turn.
+Every item, ability and move we can set up on its own behaves the same way.
 
-```
-data/verification/game-differential.g12000.json
-  games requested ............................... 12,000
-  games played through both engines .............. 7,182
-  games where the boards ever differed ................ 0
-  turn boundaries compared ...................... 79,715
-  turn boundaries where the boards matched ...... 79,715
-  games where only the running text differed ......... 75
-```
+When all of those tests read clean at once, a gate opens. For Reg M-C that gate opened on 2026-09-24,
+and that is what this release (abra/regmc 1.0.0) records.
 
-This is a fresh and much larger draw than the batches the repairs were aimed at — the games in it
-were not the games anybody was fixing. That matters, because a perfect score on the sample you
-worked from is not evidence of much.
-
-The honest caveat from the same run: in about one per cent of those games the two engines describe
-something differently in their running text while the board stays identical. Commentary is a
-separate bar here, and on the batches the project gates on, it reads zero as well.
+The one exception we chose on purpose: the Illusion ability, which we do not model yet.
 
 ---
 
-## Slide 5 — It took one day, and it went in steps
+## Slide 4 — Why the copy had to come first
 
-Over 2026-09-20 the count of games whose boards ever parted went **34 to 15 to 9 to 1 to 0** on that
-same wide draw, as each repair landed. The steps are recorded in CHANGELOG 6.83.0.
+If the copy plays a slightly different game, every answer the search gives is a confident answer about
+a game nobody is playing. It will not look wrong. It will look like a result.
 
-Each one was a real rule our simulator had slightly wrong, found by asking what the official engine
-does that we did not. None of them was a tuning knob.
-
----
-
-## Slide 6 — Damage agrees too, at every corner
-
-Damage in this game is a range, not a number. The same attack rolls a little high or a little low.
-It is not enough for the middle of our range to match: the top, the bottom and every step between
-have to match, or a Pokémon survives on our side and faints on theirs.
-
-We compare thousands of attacks head to head against the official calculation at every point of
-that roll. The count of disagreements is **0 of 6000** (`data/engine-diff.json`).
+So nothing built on top of the copy was allowed to publish a number until the copy passed its gate.
+That rule held for weeks. It is why this deck has so few numbers about the player: the player's real
+tests start now.
 
 ---
 
-## Slide 7 — And every mechanic anybody actually plays
+## Slide 5 — Why Reg M-B is gone from this deck
 
-The games above tell you whether the simulator is right about what people brought. They say nothing
-about a mechanic nobody happened to use that week.
+Until this release, this deck was about the previous format, Reg M-B.
 
-So there is a second, separate lab: one deliberately built situation per mechanic, staged on purpose
-and compared with the official engine one at a time. It reads **1004 probed, 1004 live, 0 missing**
-(`data/mechanics-census.json`). Nothing in scope is going untested because nobody thought to look
-at it.
+Reg M-B is retired. Its final results stay on record exactly as published, in the 7.0.0 edition.
 
----
-
-## Slide 8 — The gate now says OPEN
-
-ABRA has a gate: a program that decides for itself whether the simulator may be trusted. It is ten
-separate checks, and it is a gate rather than a report. All of them have to pass, and it names the
-one that is failing when one is.
-
-It has been shut since early August. It now reads **OPEN**.
-
-That is what makes this a major release rather than a better number. Everything downstream of the
-simulator stops being blocked at once.
+The new format added new Pokémon, moves and items, and changed a few old ones. So the new results
+answer a different question from the old ones. You cannot read "the old number became the new number".
+The white paper puts the old and new results side by side and says which ones can be compared. Only
+one can: the damage test, which reads perfect in both.
 
 ---
 
-## Slide 9 — What zero does NOT mean
+## Slide 6 — The idea behind the player
 
-**A zero is a statement about what was measured.** It is not a statement about what was not.
+Every turn, both players choose at the same time, without seeing the other's choice.
 
-- **One ability is deliberately not modelled.** There is an ability that disguises the Pokémon
-  carrying it as a different one, so the board you can see is a lie until the disguise breaks. We do
-  not simulate the lie. In the frozen sample of real matches, about three teams in every hundred had
-  a Pokémon that could do it, and roughly half of those actually brought it. It is a declared
-  exclusion, written down in advance, not an oversight.
-- **Closed team sheets are out of scope.** Our measurements are taken where both teams are published
-  up front. Guessing at a hidden team is a different problem and we have not claimed it.
-- **Best-of-one ladder play is out of scope** for the same reason.
-- **Seven readings of "what move did that Pokémon last use" still disagree.** The official engine
-  and ours answer that question differently in a small number of live cases. It is real, it is
-  written down, and it is not fixed.
+That is like rock-paper-scissors with a lot more options. In a game like that, always making the same
+"best" choice is a mistake, because a good opponent learns it and punishes it. The right answer is a
+well-chosen MIX of choices.
 
-**And zero is not the same as finished:** it means that nothing we currently know how to ask has
-found a difference, which is a statement about our questions as much as about the simulator.
+So each turn our player builds a table: its own sensible options down the side, the opponent's
+sensible options across the top, and in each box, how well that pairing turns out. Then it works out
+the mix that is safest against anything the opponent does. That part is called SLOWKING.
 
 ---
 
-## Slide 10 — What we still will not tell you
+## Slide 7 — Filling in the table
 
-The number this project is ultimately judged on is not on this page. It is whether the model is
-honest about its own confidence: when it says it is winning nine times out of ten, does it win nine
-times out of ten.
+To fill in a box, the player plays that turn out inside MEDICHAM, and then keeps playing a few turns
+further, many times, and sees how it goes. That part is called MILTANK.
 
-That measurement runs through the simulator, so it has been withheld for weeks. The gate opening
-does not make it true. It makes it **runnable**. We have not run it, so we are not printing it, and
-a placeholder with a caveat beside it is exactly what we refuse to do.
+Two tricks make this affordable:
 
-Every model result that reads a simulated game is in the same position: unblocked, not re-run, not
-quoted here.
+- **The same luck for every box.** Each imagined future uses the same dice rolls across every box, so
+  the difference between two boxes comes from the choices, not from luck.
+- **Spend time where it matters.** Options that are clearly bad stop getting attention early.
 
----
-
-## Slide 11 — Why the numbers from the last edition are gone
-
-The previous edition of this deck led with a much smaller sample and a gate that was shut. Those
-figures are not reprinted here with a note attached. They have been **deleted**.
-
-They were not wrong when they were written. They answered a question we no longer ask: a single
-batch of games rather than a wide held-out draw, and an engine that has changed underneath them
-since. Old and new cannot be honestly lined up, which is what makes this a major release rather
-than an update.
-
-The rule this project runs on: a superseded number is removed, never captioned. Captions get
-skimmed. We have paid for that twice.
+It always has an answer ready. If the clock runs short, it solves the table it has, and it writes down
+that it had to.
 
 ---
 
-## Slide 12 — Where the detail lives
+## Slide 8 — Keeping the table small
 
-- The technical account, with the method, the maths and the confidence intervals:
-  [the ABRA white paper](ABRA-whitepaper.md).
-- The running log of every individual change between major releases:
-  [the running notes](RUNNING-NOTES.md).
-- The current state of the project is never typed. It is printed: `node engine/status.js`.
+In doubles, each side picks two actions at once, so there are far too many pairings to try them all.
+
+Two models trained on real human games say which options are worth considering. MAG scores each
+Pokémon's options. DODUO scores the two together, so it understands teamwork: both attacking the same
+target, or one drawing attacks while the other hits.
+
+A few kinds of options always get a seat, such as switching out and mega evolving, because a quick
+screen tends to underrate them.
+
+---
+
+## Slide 9 — Guessing what we cannot see
+
+Open team sheets show almost everything. Two things stay hidden: which four of the six the opponent
+brought, and how each Pokémon's stats were trained.
+
+XATU keeps a running guess at both. It starts from what real players usually bring and updates every
+time something new is seen: a Pokémon switching in, who moved first, how much damage a hit did.
+
+It trusts what it has seen over what the sheet says. If an item has been knocked away, it knows the
+item is gone.
+
+---
+
+## Slide 10 — Getting better by playing itself
+
+Playing out imagined futures is slow. Later, a learned judge called PORYGON2 will look at a position
+and estimate who is winning, which lets the search consider more options in the same time.
+
+PORYGON2 learns from the player's games against itself. MEW runs those games on a frozen copy of
+MEDICHAM. MACHAMP trains each new version and keeps it tied to how humans actually play, so it does
+not drift into a game nobody plays.
+
+A new version only replaces the old one if it beats it in a fair, controlled test.
+
+---
+
+## Slide 11 — Taking points from habits, safely
+
+The safe mix does not lose much to anyone, but it also does not take advantage of predictable
+opponents.
+
+GARY learns what humans usually do in a given kind of situation. HYPNO then leans toward punishing
+those habits — but only a little, and never so far that a clever opponent could exploit the lean. The
+starting limit is half a percentage point of win chance per decision.
+
+WOBBUFFET is our own attacker: it studies each version of the player and tries to find a way to beat
+it. If it gets better at that from one version to the next, the new version has a hole.
+
+---
+
+## Slide 12 — Before the battle, and during it
+
+**Team preview.** Before each game both players pick four of their six and choose two to lead. CHOMP
+treats that as its own table of choices and picks a good mix. CHOMP is being rebuilt inside ABRA; the
+old version was built on out-of-date data.
+
+**The live client.** ROTOM connects to Showdown, reads each turn, runs the search and sends the move.
+It plays one series at a time, never while one of Will's own accounts could be on the same ladder, and
+it keeps careful records of every series.
+
+**The clock.** Each player has seven minutes for the whole game, and a little under one minute for any
+single turn. ROTOM budgets the search against both limits, keeps a reserve, and warms up
+before the first turn so it is fast from the start.
+
+---
+
+## Slide 13 — Where things stand today
+
+| Piece | Job | Status |
+|---|---|---|
+| MEDICHAM | the copy of the game | **Certified for Reg M-C** |
+| MAG, DODUO | which options are worth trying | first versions built; tested on real games only |
+| XATU | guessing what is hidden | first version built; tested on real games only |
+| SLOWKING | finding the safe mix | built and tested |
+| MILTANK | filling in the table | built; its strength has not been measured on the certified copy |
+| PORYGON2, MEW, MACHAMP | the learned judge and the self-play loop | not built |
+| GARY, HYPNO, WOBBUFFET | habits, the safe lean, our own attacker | not built |
+| CHOMP | team preview | not built |
+| ROTOM | the live client | not built |
+
+**Honest status of results.** The models trained on human games have been tested on human games they
+never saw, and they predict human choices better than the simpler models they replaced. The search has
+played practice matches, but those were played before the copy of the game was certified, so their
+results are not reported. They will be re-run on the certified copy first.
+
+---
+
+## Slide 14 — What happens next
+
+1. Re-run the practice matches on the certified copy, with a fair statistical test.
+2. Build the part that lets the search decide mid-turn choices, such as which Pokémon to send in after
+   a knock-out.
+3. Build ROTOM and play practice series on a private server with the real clock.
+4. Build CHOMP, then start the first real ladder series.
+5. Build the learned judge and the self-play loop, then the safe lean toward human habits.
+
+---
+
+## Slide 15 — Where to read more
+
+The full argument, the maths, every figure with its source, and the side-by-side comparison of Reg
+M-B and Reg M-C are in **[the white paper](ABRA-whitepaper.md)**.
+
+The commands to run and check everything are in [the technical documentation](ABRA-technical-docs.md).
