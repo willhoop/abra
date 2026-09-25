@@ -19,6 +19,7 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 - Detail: `docs/_reports/2026-09-25-mega-rate.md`.
 
 ### MACHAMP loop — one line per generation (solver/machamp/loop_sprt.js)
+- gen7: rejected — SPRT H0 after 652 games, 0.489 [0.451, 0.528] vs gen5; clone 0.670; PORYGON2 human Δ -0.0059 PASS. `solver/machamp/models/gen7/gates.json`
 - gen6: rejected — SPRT H0 after 166 games, 0.434 [0.361, 0.510] vs gen5; clone 0.705; PORYGON2 human Δ -0.0051 PASS. `solver/machamp/models/gen6/gates.json`
 
 ### Deadline follow-ups (abra/regmc 1.10.0)
