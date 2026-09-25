@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.10.1] — 2026-09-25 — **Ledgers restamped by `status.js --write` after the deadline and ROTOM merges**
+- **What changed.** `docs/{ENGINE,MEASURE,OPS,SOLVER,WEB}.md` generated blocks and `data/provenance-stamp.json`, restamped from the main checkout. No hand edits.
+- **Measured.** NO FIGURE.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 1.10.0] — 2026-09-25 — **ROTOM collects garbage between decisions and can run its ladder decider at NORMAL; MILTANK reserve 300 ms at 5 s**
 - **What changed.** `solver/miltank/search.js`: reserve 6% of budget clamped 20-300 ms (`reserveMsOf`), `collectIdle` exported. `solver/rotom/rotom.js`: idle GC after a MILTANK choice is sent, request clock charged from a GC that overlapped it, `--priority normal|below`; `run_ladder.js` passes `--priority`; `solver/rotom/LADDER.md` MILTANK commands carry `--priority normal`.
 - **Measured.** Serial 5 s, 400 positions, one-core load: max 5,126 ms, 0 over budget + 500 ms, 0 fallbacks (`solver/results/2026-09-25-deadline/serial-b5000-n400-reserve300.json`). Local bo3 set: 24 MILTANK decisions, 24 idle GCs, max ms minus budget -179 ms, 0 timeouts; the client recorded `priority_set` 0 (NORMAL). `docs/_reports/2026-09-25-miltank-deadline.md` §7.
