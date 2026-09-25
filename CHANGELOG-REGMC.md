@@ -21,6 +21,16 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.127.0] — 2026-09-24
+
+### Added
+- **PORYGON2 v0, a value net over the Reg M-C human outcomes, and its MILTANK leaf.** `solver/porygon2/`: features,
+  dataset builder, `train.py`, a hand-written Node forward pass, the leaf and a leaf-cost bench. MILTANK carries the leaf
+  mode in the job (`o.leaf` / `MILTANK_LEAF=pory2`, counter `leafPory2`); the arena takes `--leaf-x/--leaf-y/--depth-x/
+  --depth-y`. Merged from `worktree-agent-ade91fd3b83d5aa3c` (d5595948, c298ee69). On main: `test-porygon2` 423/423,
+  `test-miltank` and `test-arena` 15/15 GREEN. Its arena matches were PRE-GATE on the live tree and are not quoted.
+  `docs/_reports/2026-09-24-porygon2-v0.md`.
+
 ## [0.126.0] — 2026-09-24
 
 ### Added

@@ -8,6 +8,22 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-24
 
+### PORYGON2 v0 — the value net (branch worktree-agent-ade91fd3b83d5aa3c, unmerged)
+- Deep-Sets net over the six sheet tokens per side plus MEDICHAM damage-race facts: KO, speed order,
+  kill-first, turns-to-clear. The facts are PRE-GATE. Antisymmetric by construction. Trained on human
+  Reg M-C outcomes with the MAG/DODUO player split; only games with both players in train are trained on.
+- Held-out log-loss: **0.517**, against 0.577 for the count-HP logistic and 0.536 for the embeddings-only
+  net. Brier: 0.176, against 0.199 and 0.183. Every paired game-clustered CI is clear, and the margin is
+  above the split-half floor (0.004).
+- Engine facts earn their place from turn 2 onward. On turn 1 the full − emb CI touches 0.
+- Node matches Python to 9e-16. `solver/tests/test-porygon2.js` is GREEN at 423/423 and RED on 5 breaks.
+- Leaf cost: 0.85 ms median per position. Of that, 0.64 ms is the engine facts and 0.16 ms is the net.
+- MILTANK leaf: `MILTANK_LEAF=pory2` or `o.leaf`. PRE-GATE arena, 200 games, 1 s, depth 0 on both sides:
+  PORYGON2 leaf vs heuristic leaf **0.515 (0.446–0.583)**. That is a tie, so V2 is not shown.
+  Against the default (heuristic after depth-2 random rollouts): **0.605 (0.536–0.670)**. That is confounded
+  with depth, and the heuristic depth-0 vs depth-2 control is owed.
+- Detail: `docs/_reports/2026-09-24-porygon2-v0.md`.
+
 ### Landed in main (merge coordinator, 2026-09-24)
 - Merged to main in order, each tested there: engine name-cache PATCH (0.112.2), MAG v1 + DODUO v1 (0.113.0),
   XATU v1 (0.114.0), SLOWKING v1 + MILTANK v1 skeleton + arena (0.115.0), worker pool + playout fixes (0.116.0),

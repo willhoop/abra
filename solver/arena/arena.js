@@ -2,6 +2,8 @@
  *
  *   tools\lownode.cmd solver\arena\arena.js --x miltank --y prior --games 100 [--budget 1000] [--seed 1]
  *        [--depth 2] [--k1 8] [--k2 8] [--cap 60] [--workers N] [--human <games.jsonl>] [--out <summary.json>]
+ *        [--leaf-x heuristic|pory2] [--leaf-y ...] [--depth-x N] [--depth-y N]   per-bot MILTANK leaf and playout depth
+ *        (default: env MILTANK_LEAF, else the heuristic; and --depth). PORYGON2 is PRE-GATE.
  *
  * PRE-GATE. MEDICHAM's Reg M-C gate is NOT open. Every number this prints is a SHAKEDOWN of the
  * harness, not a result about any bot, and the artifact says so in its first field.
@@ -62,9 +64,11 @@ async function run(o) {
   if (L.games.length < N / 2) throw new Error('only ' + L.games.length + ' buildable team pairs');
   const pool = o.workers > 0 && (o.x === 'miltank' || o.y === 'miltank') ? await require('../miltank/pool.js').create({ workers: o.workers }) : null;
   const B = makeBots(API, { prior: PA, miltank: MT });
-  const mk = (name, seed) => name === 'random' ? B.random(seed) : name === 'prior' ? B.prior()
-    : name === 'miltank' ? B.miltank(seed, { budgetMs: o.budget, depth: o.depth, k1: o.k1, k2: o.k2, pool }) : null;
-  const X = mk(o.x, o.seed * 1000 + 1), Y = mk(o.y, o.seed * 1000 + 2);
+  const mk = (name, seed, extra) => name === 'random' ? B.random(seed) : name === 'prior' ? B.prior()
+    : name === 'miltank' ? B.miltank(seed, Object.assign({ budgetMs: o.budget, depth: o.depth, k1: o.k1, k2: o.k2, pool }, extra)) : null;
+  const opt = (v, d) => (v == null || v === '' || Number.isNaN(v) ? d : v);
+  const armX = { leaf: o.leafX || undefined, depth: opt(o.depthX, o.depth) }, armY = { leaf: o.leafY || undefined, depth: opt(o.depthY, o.depth) };
+  const X = mk(o.x, o.seed * 1000 + 1, armX), Y = mk(o.y, o.seed * 1000 + 2, armY);
   if (!X || !Y) throw new Error('unknown bot');
   const times = { X: [], Y: [] }, rec = [];
   const infos = { X: [], Y: [] };   // MILTANK's per-decision info (cells, playouts, gap), searched decisions only
@@ -120,6 +124,9 @@ async function run(o) {
     if (!R.COUNTERS.worlds && !(pool && pool.counters.worlds)) warn.push('rollout worlds = 0');
     if (pool && !pool.counters.playouts) warn.push('pool workers played 0 playouts');
     if (!MT.COUNTERS.reservedSwitch) warn.push('reserved switch slots = 0');
+    const wantPory = [armX.leaf, armY.leaf, process.env.MILTANK_LEAF].includes('pory2');
+    const poryLeaves = R.COUNTERS.leafPory2 + ((pool && pool.counters.leafPory2) || 0);
+    if (wantPory && !poryLeaves) warn.push('PORYGON2 leaf asked for and served 0 evaluations');
   }
   if (o.x === 'prior' || o.y === 'prior' || o.x === 'miltank' || o.y === 'miltank') if (!PA.COUNTERS.optionsMatched) warn.push('prior matched no option');
   return {
@@ -133,12 +140,14 @@ async function run(o) {
       unfilled_share: +(a.reduce((s, i) => s + i.unfilled, 0) / a.reduce((s, i) => s + i.m * i.n, 0)).toFixed(4),
       slowking_gap: { mean: +(a.reduce((s, i) => s + i.gap, 0) / a.length).toExponential(2), max: +Math.max(...a.map(i => i.gap)).toExponential(2) },
       mix_support: stats(a.map(i => i.support)) }])),
-    flags: { games: N, seed: o.seed, budget_ms: o.budget, depth: o.depth, k1: o.k1, k2: o.k2, cap: o.cap, reserve_switch: 2, workers: o.workers || 0 },
+    flags: { games: N, seed: o.seed, budget_ms: o.budget, depth: o.depth, k1: o.k1, k2: o.k2, cap: o.cap, reserve_switch: 2, workers: o.workers || 0,
+             leaf_x: armX.leaf || process.env.MILTANK_LEAF || 'heuristic', leaf_y: armY.leaf || process.env.MILTANK_LEAF || 'heuristic', depth_x: armX.depth, depth_y: armY.depth },
     sample: { human_file: L.file, manifest_generated: manifest, scanned: L.scanned, eligible: L.eligible, skipped: L.skipped, stride: L.stride,
               ids_sha256: crypto.createHash('sha256').update(L.games.map(g => g.id).join('\n')).digest('hex').slice(0, 16) },
     provenance: { head, regulation: ENV.regulation, checkout: ENV.checkout, engine: sha(path.join(ROOT, 'engine', 'medicham2-browser.js')),
                   api: sha(path.join(ROOT, 'engine', 'medicham_api.js')), engine_data: sha(path.join(ROOT, 'data', 'engine-data-regmc.js')),
                   prior_model: sha(path.join(ROOT, 'solver', 'prior', 'model', 'prior-v0.json')), node: process.version,
+                  porygon2_model: sha(path.join(ROOT, 'solver', 'porygon2', 'model', 'porygon2-v0.json')),
                   note: 'live tree, not a frozen engine release: PRE-GATE shakedown only' },
     counters: { api: API.COUNTERS, prior: PA.COUNTERS, rollout: R.COUNTERS, rollout_workers: pool ? pool.counters : null, miltank: MT.COUNTERS },
     warnings: warn,
@@ -150,7 +159,8 @@ async function run(o) {
 if (require.main === module) {
   const o = { x: flag('--x', 'miltank'), y: flag('--y', 'prior'), games: +flag('--games', 100), seed: +flag('--seed', 1),
               budget: +flag('--budget', 1000), depth: +flag('--depth', 2), k1: +flag('--k1', 8), k2: +flag('--k2', 8),
-              cap: +flag('--cap', 60), workers: +flag('--workers', 0), human: flag('--human', undefined) };
+              cap: +flag('--cap', 60), workers: +flag('--workers', 0), human: flag('--human', undefined),
+              leafX: flag('--leaf-x', ''), leafY: flag('--leaf-y', ''), depthX: flag('--depth-x', null) == null ? null : +flag('--depth-x'), depthY: flag('--depth-y', null) == null ? null : +flag('--depth-y') };
   const out = flag('--out', path.join(ROOT, 'solver', 'out', 'arena', `${o.x}-vs-${o.y}-g${o.games}-s${o.seed}.json`));
   console.log('ARENA (PRE-GATE shakedown) ' + o.x + ' vs ' + o.y + '  ' + JSON.stringify(o));
   run(o).then(r => {

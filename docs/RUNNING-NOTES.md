@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.127.0] — 2026-09-24 — **PORYGON2 v0 and the MILTANK PORYGON2 leaf merged**
+- **What changed.** `solver/porygon2/`, the leaf option in `solver/miltank/{search,rollout,cells}.js` and per-bot leaf/depth flags in `solver/arena/arena.js`, merged from `worktree-agent-ade91fd3b83d5aa3c`. No engine byte moved.
+- **Measured.** Held-out log-loss 0.5175 against count-HP 0.5769 and embeddings-only 0.5365 (`solver/porygon2/model/porygon2-v0.metrics.json`). The damage-race features read MEDICHAM before the gate opened; the arena matches in the report ran on the live tree PRE-GATE and are not quoted here.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** PORYGON2 belongs in `docs/MODELS.md` and the solver section of the technical docs.
+
 ## [abra/regmc 0.126.0] — 2026-09-24 — **ROTOM v0 merged: the Reg M-C bo3 client, local server only**
 - **What changed.** `solver/rotom/` and `solver/tests/test-rotom.js` merged from `worktree-agent-aea75574da660f13b`. No engine byte moved.
 - **Measured.** Reliability only: 41 sets / 90 games on a local server, 0 timeouts, 0 invalid choices, 0 crashed sets (`docs/_reports/2026-09-24-rotom-v0.md` §2). No win rate is quoted — those runs were PRE-GATE. `test-rotom.js` 86/86 on main.

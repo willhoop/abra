@@ -3,11 +3,12 @@
  *   const R = require('./solver/miltank/rollout.js').create(API, { buildBody });
  *   R.slotSupport(S, side, k)          every option the playout policy may pick for slot k (see below)
  *   R.randomJoint(S, side, coin)       one joint drawn from that support (slot by slot)
- *   R.leaf(S)                          value in [0,1] for side A (terminal: the winner; else the heuristic)
+ *   R.leaf(S[, lctx])                  value in [0,1] for side A (terminal: the winner; else the heuristic, or
+ *                                      PORYGON2 when lctx = { mode:'pory2', sheets:{p1,p2} } — see THE PORYGON2 LEAF)
  *   R.sampleWorld(S, oppSide, belief, coin)  a clone of S with the opponent's UNREVEALED bench re-drawn
  *                                      (belief = { sheet: [6 rows], revealed: Set(current team idx) })
  *   R.prepare(W)                       a world serialised once, for many playouts (see prepare below)
- *   R.playout(W, jA, jB, seed, depth)  copy W (or a prepared W), step (jA, jB) on seeded dice, `depth` random turns, leaf
+ *   R.playout(W, jA, jB, seed, depth[, lctx])  copy W (or a prepared W), step (jA, jB) on seeded dice, `depth` random turns, leaf
  *
  * THE PLAYOUT POLICY IS NOT A LEGALITY AUTHORITY. `legalActions` is, and it costs ~2 ms a call because
  * it snapshots and restores every process-wide counter so that it can be a pure read (the differential
@@ -36,7 +37,14 @@
  * DELIBERATE BREAKS (env MILTANK_BREAK): `support` (offer a move the menu refused), `swapstamp` (the
  * swap forgets `_sf`), `crn` (a cell's dice ignore the seed), `peek` (the world keeps the opponent's TRUE
  * unrevealed bodies — the search sees hidden information), `prepare` (a prepared copy loses the battle's
- * scratch scope), `rng` (the playout's five dice streams collapse into one). Loud: exported as BROKEN.
+ * scratch scope), `rng` (the playout's five dice streams collapse into one), `leaf` (the PORYGON2 leaf is
+ * asked for and the heuristic is served). Loud: exported as BROKEN.
+ *
+ * THE PORYGON2 LEAF (2026-09-24, docs/_reports/2026-09-24-porygon2-v0.md). With lctx.mode === 'pory2' the
+ * non-terminal leaf is PORYGON2 v0 (solver/porygon2/leaf.js): P(side A wins) from the public position, both
+ * open sheets (lctx.sheets, p1 = side A) and the engine-derived damage race. It is PRE-GATE. The mode rides
+ * in the JOB (search.js sets it from o.leaf or env MILTANK_LEAF), so a pool worker plays the leaf its parent
+ * asked for; with no lctx the leaf is the heuristic, exactly as before. `COUNTERS.leafPory2` counts it.
  *
  * LEAN PLAYOUTS (2026-09-24, docs/_reports/2026-09-24-lean-mode.md). A playout's own copy is made LEAN
  * (`API.makeLean`) and the whole playout -- its turns, the random joints' menu reads and the leaf -- runs under the
@@ -54,7 +62,9 @@ const live = m => !!(m && !m.fainted && m.curHP > 0);
 function create(API, opts) {
   const M = API.M;
   const buildBody = opts.buildBody;
-  const COUNTERS = { playouts: 0, playoutTurns: 0, worlds: 0, bodiesSwapped: 0, wipes: 0, leafHeuristic: 0, prepared: 0, fastClones: 0, leanPlayouts: 0 };
+  const COUNTERS = { playouts: 0, playoutTurns: 0, worlds: 0, bodiesSwapped: 0, wipes: 0, leafHeuristic: 0, leafPory2: 0, prepared: 0, fastClones: 0, leanPlayouts: 0 };
+  let PORY2 = null;
+  const pory2 = () => (PORY2 || (PORY2 = require('../porygon2/leaf.js').create(API)));
   const LEAN = !LEAN_OFF && opts.lean !== false && typeof API.makeLean === 'function';
 
   function targetType(m, id) {
@@ -116,8 +126,9 @@ function create(API, opts) {
     return j;
   }
 
-  function leaf(S) {
+  function leaf(S, lctx) {
     if (API.isTerminal(S)) { COUNTERS.wipes++; return API.winner(S); }
+    if (lctx && lctx.mode === 'pory2' && BREAK !== 'leaf') { COUNTERS.leafPory2++; return pory2().value(S, lctx.sheets); }
     COUNTERS.leafHeuristic++;
     const s = team => team.reduce((a, m) => a + (live(m) ? 0.5 + 0.5 * Math.max(0, m.curHP) / m.st.hp : 0), 0) / Math.max(1, team.length);
     return 0.5 + (s(S.sfA.team) - s(S.sfB.team)) / 2;
@@ -196,7 +207,7 @@ function create(API, opts) {
     return M.rngStreams({ seed });
   }
 
-  function playFrom(S, jA, jB, seed, depth) {
+  function playFrom(S, jA, jB, seed, depth, lctx) {
     const rng = dice(BREAK === 'crn' ? Math.floor(Math.random() * 1e9) : seed);
     const coin = M.rngStreams({ seed: seed + 7919 }).any;
     API.stepInPlace(S, jA, jB, rng);
@@ -205,14 +216,14 @@ function create(API, opts) {
       API.stepInPlace(S, randomJoint(S, 'A', coin), randomJoint(S, 'B', coin), rng);
       COUNTERS.playoutTurns++;
     }
-    return leaf(S);
+    return leaf(S, lctx);
   }
-  function playout(W, jA, jB, seed, depth) {
+  function playout(W, jA, jB, seed, depth, lctx) {
     const S = copy(W);
-    if (!LEAN) return playFrom(S, jA, jB, seed, depth);
+    if (!LEAN) return playFrom(S, jA, jB, seed, depth, lctx);
     API.makeLean(S);
     COUNTERS.leanPlayouts++;
-    return API.leanRun(() => playFrom(S, jA, jB, seed, depth));
+    return API.leanRun(() => playFrom(S, jA, jB, seed, depth, lctx));
   }
 
   return { COUNTERS, LEAN, slotSupport, randomJoint, leaf, sampleWorld, swapBody, body, prepare, copy, dice, playout, BROKEN: BREAK || null };
