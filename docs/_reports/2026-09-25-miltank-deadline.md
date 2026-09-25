@@ -14,7 +14,7 @@ Artifacts: `solver/results/2026-09-25-deadline/` (copied from `solver/out/deadli
   almost no CPU, and one such worker held the whole decision. That is the 28 s and 39 s of the arena.
 - **Second cause, serial path (ROTOM's path).** A major V8 garbage collection inside a decision stops the
   decider for 1.1 to 1.6 s on a loaded core. No clock check can interrupt it. The fix is a full GC between
-  decisions, off the clock (`collectIdle`). ROTOM does not call it yet (owed, §6).
+  decisions, off the clock (`collectIdle`). ROTOM now calls it (§7).
 - **The price is fallbacks.** On a contended core the search often has too little time to fill its table. Then
   the move is the ranking prior's top joint (DODUO in ROTOM). The fallback is counted in every decision. At 1 s
   under this load it happened on 65% of pool decisions and 30% of serial decisions. At 5 s it happened on 26% and
@@ -189,3 +189,21 @@ Other tests after the change: `test-playout-speed` 1184/1184 and all four of its
    (pool max 5,508 ms).
 6. **The serial margin at 5 s is 74 ms** (§3). A decision that has to hold on a loaded core would be safer with a
    reserve that scales with the measured cost of one playout, rather than a flat 3% of the budget.
+
+## 7. Follow-ups landed on the same branch (abra/regmc 1.10.0)
+
+- **ROTOM runs the between-decision GC.** After a MILTANK choice is sent, `rotom.js` runs `collectIdle()` on the next
+  event-loop turn. A request that is handled within 100 ms of a GC ending is charged from that GC's start, so any
+  clock time the GC used is counted. The GC is counted in the summary (`idle_gc`). A local run (one bo3 set, 2 games,
+  `run_local.js`, release `eaa5becc54eb`) gave 24 MILTANK decisions and 24 idle GCs (total 3,336 ms, max 412 ms).
+  No decision exceeded its budget (max `ms − budget` −179 ms), and there were 0 timeouts and 0 invalid choices.
+  Artifact: `solver/out/rotom/gcprio-2026-09-25T17-45-22-126Z/` (not committed).
+- **`--priority normal|below`** on `rotom.js`, which `run_ladder.js` passes through. It raises the decider to NORMAL,
+  and MILTANK's pool workers stay BELOW_NORMAL. A process started by lownode at BELOW_NORMAL can raise itself (measured:
+  priority 10 → 0). The same local run recorded `priority_set: 0` for the MILTANK client. The two MILTANK ladder
+  commands in `solver/rotom/LADDER.md` now carry `--priority normal`.
+- **Reserve widened** to 6% of the budget, clamped to 20-300 ms. That is 60 ms at 1 s and 300 ms at 5 s. Re-measured
+  on the serial path at 5 s: 400 positions (`pos_sha` `af4ba7e4f3d8801b`), the same one-core load and `collectIdle`.
+  Results: max **5,126 ms** (margin 374 ms, up from 74 ms), p50 4,714 ms, p99 4,989 ms, 0 over the bound,
+  0 fallbacks, median 241 playouts. Artifact: `solver/results/2026-09-25-deadline/serial-b5000-n400-reserve300.json`.
+  The 2,000-decision arms in §3 were run with the 150 ms reserve and are left as they were measured.

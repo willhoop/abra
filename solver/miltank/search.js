@@ -25,7 +25,7 @@
  *
  * THE DEADLINE IS HARD (2026-09-25, docs/_reports/2026-09-25-miltank-deadline.md). A decision returns within
  * `budgetMs` plus a bounded margin whatever the machine is doing to the cell fill:
- *   - the fill stops at t0 + budgetMs - reserveMs (o.reserveMs, else 3% of the budget clamped to 20-150 ms:
+ *   - the fill stops at t0 + budgetMs - reserveMs (o.reserveMs, else 6% of the budget clamped to 20-300 ms:
  *     room for the solve and the pick); no pass STARTS after it, in this process or in a worker;
  *   - through the pool the parent does not wait for its workers: a timer resolves the fill at that instant with
  *     every pass that has ARRIVED, and the workers still out are sent a cancel (solver/miltank/pool.js);
@@ -132,8 +132,7 @@ function create(API, deps) {
   /* when the cell fill must stop: the budget less a reserve for the solve and the pick */
   function fillByOf(o, t0, budget) {
     if (DEADLINE_BREAK) return t0 + budget;
-    const reserve = o.reserveMs != null ? o.reserveMs : Math.max(20, Math.min(150, Math.round(budget * 0.03)));
-    return t0 + budget - reserve;
+    return t0 + budget - (o.reserveMs != null ? o.reserveMs : reserveMsOf(budget));
   }
   function begin(S, side, ctx, o) {
     const t0 = Date.now();
@@ -173,6 +172,11 @@ function create(API, deps) {
   return { COUNTERS, decide, decideAsync, rank, collectIdle, BROKEN: DEADLINE_BREAK || null };
 }
 
+/* THE RESERVE: 6% of the budget, clamped to 20-300 ms (60 ms at 1 s, 300 ms at 5 s). It was 3% clamped to 150 ms,
+ * and the serial path's 5 s arm then passed by 74 ms: one 663 ms playout straddled the abort line, which falls halfway
+ * through the reserve, and one engine step cannot be cut short (docs/_reports/2026-09-25-miltank-deadline.md). */
+function reserveMsOf(budget) { return Math.max(20, Math.min(300, Math.round(budget * 0.06))); }
+
 /* A FULL GC OFF THE CLOCK. A decision allocates a world copy per playout, and a major collection that lands INSIDE a
  * decision stops the decider for its whole length: 1.1-1.6 s measured on a loaded core, over the 500 ms margin, and
  * no clock check can interrupt it (docs/_reports/2026-09-25-miltank-deadline.md). A caller with idle time — ROTOM
@@ -187,4 +191,4 @@ function collectIdle() {
   } catch (e) { return null; }
 }
 
-module.exports = { create };
+module.exports = { create, collectIdle, reserveMsOf };
