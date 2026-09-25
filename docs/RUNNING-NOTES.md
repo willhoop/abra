@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.128.0] — 2026-09-24 — **The solver arena plays on a frozen release; doduo and mag greedy bots**
+- **What changed.** `solver/arena/engine.js` (new), `solver/arena/arena.js` (`--release`, stamp, pool digest, `doduo`/`mag` bots), `solver/arena/bots.js` (`greedy`), `solver/miltank/pool_worker.js` (engine from the release), `solver/tests/test-arena-release.js` (new), `solver/tests/test-arena.js` (a live-tree run says LIVE TREE, not PRE-GATE).
+- **Measured.** `test-arena-release` 17/17 on `eaa5becc54eb`, RED under `ARENA_BREAK=live`; `test-arena` 15/15, `test-miltank`, `test-porygon2` 423/423 and `test-rotom` 86/86 GREEN. No figure.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** The measurement procedure for solver results (frozen release, pool digest) belongs in the technical docs.
+
 ## [abra/regmc 0.127.0] — 2026-09-24 — **PORYGON2 v0 and the MILTANK PORYGON2 leaf merged**
 - **What changed.** `solver/porygon2/`, the leaf option in `solver/miltank/{search,rollout,cells}.js` and per-bot leaf/depth flags in `solver/arena/arena.js`, merged from `worktree-agent-ade91fd3b83d5aa3c`. No engine byte moved.
 - **Measured.** Held-out log-loss 0.5175 against count-HP 0.5769 and embeddings-only 0.5365 (`solver/porygon2/model/porygon2-v0.metrics.json`). The damage-race features read MEDICHAM before the gate opened; the arena matches in the report ran on the live tree PRE-GATE and are not quoted here.

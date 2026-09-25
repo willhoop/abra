@@ -3,10 +3,21 @@
  *   tools\lownode.cmd solver\arena\arena.js --x miltank --y prior --games 100 [--budget 1000] [--seed 1]
  *        [--depth 2] [--k1 8] [--k2 8] [--cap 60] [--workers N] [--human <games.jsonl>] [--out <summary.json>]
  *        [--leaf-x heuristic|pory2] [--leaf-y ...] [--depth-x N] [--depth-y N]   per-bot MILTANK leaf and playout depth
- *        (default: env MILTANK_LEAF, else the heuristic; and --depth). PORYGON2 is PRE-GATE.
+ *        (default: env MILTANK_LEAF, else the heuristic; and --depth).
+ *        [--release <id>]   play on a FROZEN engine release (engine/engine_release.js); stamped into the artifact
  *
- * PRE-GATE. MEDICHAM's Reg M-C gate is NOT open. Every number this prints is a SHAKEDOWN of the
- * harness, not a result about any bot, and the artifact says so in its first field.
+ * BOTS. random | prior (human prior v0, greedy) | doduo (MAG v1 + DODUO v1 joint, greedy) | mag (MAG v1
+ * alone, the two slots factorised, greedy) | miltank (MILTANK v1 at --budget ms per decision).
+ *
+ * A RESULT NEEDS --release. Without it the arena reads the LIVE engine, which another division may be
+ * rewriting mid-run, and the artifact says "live tree — a shakedown, not a result" in its first field.
+ * With it every engine byte, in this process and in every pool worker, comes from data/releases/<id>/
+ * (solver/arena/engine.js), and REL.stamp() — the release id and every source digest — is in the artifact.
+ * solver/tests/test-arena-release.js fails if a release-bound run opens a live engine or data byte.
+ * Whether the gate is open on that release is engine/quarantine.js's to say, never this file's.
+ *
+ * THE SHEET POOL. The human dataset (solver/out/human/games.jsonl) is hashed whole into sample.pool_sha256,
+ * with the ids of the team pairs played in sample.ids_sha256, so two artifacts can be shown to share a pool.
  *
  * DESIGN.
  *  - Teams: REAL Reg M-C open sheets and the humans' own brought four and leads (solver/arena/teams.js).
@@ -37,13 +48,24 @@ const ENV = require('./env.js');
 const BREAK = process.env.ARENA_BREAK || '';
 
 const ROOT = path.join(__dirname, '..', '..');
-const API = require(path.join(ROOT, 'engine', 'medicham_api.js'));
+const ENGINE = require('./engine.js').load(flag('--release', null));
+const API = ENGINE.API;
 const M = API.M;
 const T = require('./teams.js');
 const { makeBots } = require('./bots.js');
 const PA = require('../miltank/prior_adapter.js').create(API, require('../prior/infer.js').load());
 const R = require('../miltank/rollout.js').create(API, { buildBody: T.buildBody });
 const MT = require('../miltank/search.js').create(API, { prior: PA, rollout: R });
+/* The MAG v1 + DODUO v1 bots each get their own prior adapter over solver/mag/infer.js (loaded only when
+ * asked for). DODUO is the joint coordinator's argmax; MAG is MAG alone, its two slots independent — the
+ * same model file read through its factorised cells (infer.js `top(k, 'mag')`). */
+let _MAGD = null;
+const MAGD = () => (_MAGD || (_MAGD = require('../mag/infer.js').load()));
+const PA_DODUO = () => require('../miltank/prior_adapter.js').create(API, MAGD());
+const PA_MAG = () => require('../miltank/prior_adapter.js').create(API, { predict(row, t, p) {
+  const r = MAGD().predict(row, t, p);
+  return r ? Object.assign({}, r, { cells: r.top(Infinity, 'mag') }) : r;
+} });
 
 function wilson(k, n, z = 1.96) {
   if (!n) return [0, 1];
@@ -55,6 +77,11 @@ function stats(a) {
   const s = a.slice().sort((x, y) => x - y), q = f => s[Math.min(s.length - 1, Math.floor(f * s.length))];
   return { n: a.length, mean: +(a.reduce((x, y) => x + y, 0) / a.length).toFixed(2), p50: q(0.5), p95: q(0.95), max: s[s.length - 1] };
 }
+/* an engine file from wherever this run's engine came from: the release snapshot, or the live tree */
+const ENG = rel => ENGINE.REL ? path.join(ENGINE.REL.dir, rel) : path.join(ROOT, rel);
+const POOLS = new Map();
+const POOL_SHA = f => { if (!POOLS.has(f)) { const h = crypto.createHash('sha256'); const fd = fs.openSync(f, 'r'), b = Buffer.alloc(1 << 22); let n;
+  while ((n = fs.readSync(fd, b, 0, b.length, null)) > 0) h.update(b.subarray(0, n)); fs.closeSync(fd); POOLS.set(f, h.digest('hex').slice(0, 16)); } return POOLS.get(f); };
 const sha = f => { try { return crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex').slice(0, 16); } catch (e) { return null; } };
 
 async function run(o) {
@@ -65,6 +92,7 @@ async function run(o) {
   const pool = o.workers > 0 && (o.x === 'miltank' || o.y === 'miltank') ? await require('../miltank/pool.js').create({ workers: o.workers }) : null;
   const B = makeBots(API, { prior: PA, miltank: MT });
   const mk = (name, seed, extra) => name === 'random' ? B.random(seed) : name === 'prior' ? B.prior()
+    : name === 'doduo' ? B.greedy('doduo', PA_DODUO()) : name === 'mag' ? B.greedy('mag', PA_MAG())
     : name === 'miltank' ? B.miltank(seed, Object.assign({ budgetMs: o.budget, depth: o.depth, k1: o.k1, k2: o.k2, pool }, extra)) : null;
   const opt = (v, d) => (v == null || v === '' || Number.isNaN(v) ? d : v);
   const armX = { leaf: o.leafX || undefined, depth: opt(o.depthX, o.depth) }, armY = { leaf: o.leafY || undefined, depth: opt(o.depthY, o.depth) };
@@ -129,8 +157,10 @@ async function run(o) {
     if (wantPory && !poryLeaves) warn.push('PORYGON2 leaf asked for and served 0 evaluations');
   }
   if (o.x === 'prior' || o.y === 'prior' || o.x === 'miltank' || o.y === 'miltank') if (!PA.COUNTERS.optionsMatched) warn.push('prior matched no option');
+  for (const [k, b] of [['x', X], ['y', Y]]) if (b.PA && !b.PA.COUNTERS.optionsMatched) warn.push(b.name + ' (' + k + ') matched no option');
   return {
-    status: 'PRE-GATE — MEDICHAM Reg M-C gate not open; a harness shakedown, not a result',
+    status: ENGINE.id ? 'frozen engine release ' + ENGINE.id + ' (gate state: engine/quarantine.js)' : 'LIVE TREE — not a frozen release; a harness shakedown, not a result',
+    ...ENGINE.stamp,
     x: o.x, y: o.y, games: N, played: n,
     result: { ...res, score_x: score, ci95_x: ci },
     paired: { team_pairs: N / 2, ...pairs },
@@ -140,16 +170,17 @@ async function run(o) {
       unfilled_share: +(a.reduce((s, i) => s + i.unfilled, 0) / a.reduce((s, i) => s + i.m * i.n, 0)).toFixed(4),
       slowking_gap: { mean: +(a.reduce((s, i) => s + i.gap, 0) / a.length).toExponential(2), max: +Math.max(...a.map(i => i.gap)).toExponential(2) },
       mix_support: stats(a.map(i => i.support)) }])),
-    flags: { games: N, seed: o.seed, budget_ms: o.budget, depth: o.depth, k1: o.k1, k2: o.k2, cap: o.cap, reserve_switch: 2, workers: o.workers || 0,
+    flags: { release: ENGINE.id, x: o.x, y: o.y, games: N, seed: o.seed, budget_ms: o.budget, depth: o.depth, k1: o.k1, k2: o.k2, cap: o.cap, reserve_switch: 2, workers: o.workers || 0,
              leaf_x: armX.leaf || process.env.MILTANK_LEAF || 'heuristic', leaf_y: armY.leaf || process.env.MILTANK_LEAF || 'heuristic', depth_x: armX.depth, depth_y: armY.depth },
-    sample: { human_file: L.file, manifest_generated: manifest, scanned: L.scanned, eligible: L.eligible, skipped: L.skipped, stride: L.stride,
+    sample: { human_file: L.file, pool_sha256: POOL_SHA(L.file), manifest_generated: manifest, scanned: L.scanned, eligible: L.eligible, skipped: L.skipped, stride: L.stride,
               ids_sha256: crypto.createHash('sha256').update(L.games.map(g => g.id).join('\n')).digest('hex').slice(0, 16) },
-    provenance: { head, regulation: ENV.regulation, checkout: ENV.checkout, engine: sha(path.join(ROOT, 'engine', 'medicham2-browser.js')),
-                  api: sha(path.join(ROOT, 'engine', 'medicham_api.js')), engine_data: sha(path.join(ROOT, 'data', 'engine-data-regmc.js')),
+    provenance: { head, regulation: ENV.regulation, checkout: ENV.checkout, engine_dir: ENGINE.REL ? ENGINE.REL.dir : 'live',
+                  engine: sha(ENG('engine/medicham2-browser.js')), api: sha(ENG('engine/medicham_api.js')), engine_data: sha(ENG('data/engine-data-regmc.js')),
                   prior_model: sha(path.join(ROOT, 'solver', 'prior', 'model', 'prior-v0.json')), node: process.version,
                   porygon2_model: sha(path.join(ROOT, 'solver', 'porygon2', 'model', 'porygon2-v0.json')),
-                  note: 'live tree, not a frozen engine release: PRE-GATE shakedown only' },
-    counters: { api: API.COUNTERS, prior: PA.COUNTERS, rollout: R.COUNTERS, rollout_workers: pool ? pool.counters : null, miltank: MT.COUNTERS },
+                  mag_model: sha(path.join(ROOT, 'solver', 'mag', 'model', 'mag-v1.json')), doduo_model: sha(path.join(ROOT, 'solver', 'mag', 'model', 'doduo-v1.json')),
+                  argv: process.argv.slice(2), env: { MILTANK_LEAF: process.env.MILTANK_LEAF || null, SOLVER_RELEASE: process.env.SOLVER_RELEASE || null } },
+    counters: { api: API.COUNTERS, prior: PA.COUNTERS, greedy_x: X.PA ? X.PA.COUNTERS : null, greedy_y: Y.PA ? Y.PA.COUNTERS : null, rollout: R.COUNTERS, rollout_workers: pool ? pool.counters : null, miltank: MT.COUNTERS },
     warnings: warn,
     wall_s: Math.round((Date.now() - t0) / 1000),
     per_game: rec,
@@ -159,10 +190,10 @@ async function run(o) {
 if (require.main === module) {
   const o = { x: flag('--x', 'miltank'), y: flag('--y', 'prior'), games: +flag('--games', 100), seed: +flag('--seed', 1),
               budget: +flag('--budget', 1000), depth: +flag('--depth', 2), k1: +flag('--k1', 8), k2: +flag('--k2', 8),
-              cap: +flag('--cap', 60), workers: +flag('--workers', 0), human: flag('--human', undefined),
+              cap: +flag('--cap', 60), workers: +flag('--workers', 0), human: flag('--human', undefined), release: ENGINE.id,
               leafX: flag('--leaf-x', ''), leafY: flag('--leaf-y', ''), depthX: flag('--depth-x', null) == null ? null : +flag('--depth-x'), depthY: flag('--depth-y', null) == null ? null : +flag('--depth-y') };
   const out = flag('--out', path.join(ROOT, 'solver', 'out', 'arena', `${o.x}-vs-${o.y}-g${o.games}-s${o.seed}.json`));
-  console.log('ARENA (PRE-GATE shakedown) ' + o.x + ' vs ' + o.y + '  ' + JSON.stringify(o));
+  console.log('ARENA ' + (ENGINE.id ? 'release ' + ENGINE.id : '(LIVE TREE shakedown)') + ' ' + o.x + ' vs ' + o.y + '  ' + JSON.stringify(o));
   run(o).then(r => {
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, JSON.stringify(r, null, 1));

@@ -21,6 +21,19 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.128.0] — 2026-09-24
+
+### Added
+- **The solver arena plays on a frozen engine release.** `--release <id>` loads the API, the simulator, the damage
+  table and every data file from `data/releases/<id>/` through `solver/arena/engine.js`, in the arena and in every
+  pool worker (they inherit `SOLVER_RELEASE`), and stamps `REL.stamp()` into the artifact. Without it the artifact's
+  first field reads `LIVE TREE — … a harness shakedown, not a result`. The artifact also digests the whole sheet pool
+  (`sample.pool_sha256`) and records argv. Two greedy bots join `random`, `prior` and `miltank`: `doduo` (MAG v1 +
+  DODUO v1 joint argmax) and `mag` (MAG v1 alone, factorised).
+- `solver/tests/test-arena-release.js` traces every file the arena and a pool worker open and fails on any live
+  engine or data byte under `--release`; a no-release control proves the tracer sees the live engine in both, and
+  `ARENA_BREAK=live` (release stamped, live API played) turns it red. 17/17 on `eaa5becc54eb`.
+
 ## [0.127.0] — 2026-09-24
 
 ### Added

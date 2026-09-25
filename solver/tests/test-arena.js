@@ -7,7 +7,7 @@
  *   SEAT     paired seating: consecutive games share a team pair and a battle seed, and bot x sits on
  *            side A in one and side B in the other.
  *   PLAY     a short random-vs-prior match plays to the end with no errors, both bots' decision times
- *            are recorded, the prior matched options (its capability fired), the result is PRE-GATE.
+ *            are recorded, the prior matched options (its capability fired), a live-tree result says so.
  *   DET      the same flags give the same per-game results twice (the arena is reproducible).
  *
  * RED, unless --no-red: ARENA_BREAK=seat must fail SEAT.
@@ -41,7 +41,7 @@ const r1 = await AR.run(o);
   const dm = Object.values(r1.decision_ms);
   ok('PLAY', dm.every(s => s && s.n > 0), 'decision times missing');
   ok('PLAY', r1.counters.prior.optionsMatched > 0, 'prior matched no option');
-  ok('PLAY', /^PRE-GATE/.test(r1.status), 'artifact not labelled PRE-GATE');
+  ok('PLAY', /^LIVE TREE/.test(r1.status) && r1.engine_release === null, 'a live-tree artifact not labelled LIVE TREE');
   ok('PLAY', r1.result.score_x >= 0 && r1.result.score_x <= 1 && r1.result.ci95_x[0] <= r1.result.score_x && r1.result.score_x <= r1.result.ci95_x[1], 'score/CI inconsistent');
 }
 {

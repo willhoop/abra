@@ -10,7 +10,8 @@
 const os = require('os');
 try { os.setPriority(0, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch (e) { /* not fatal: lownode already set it */ }
 require('../arena/env.js');
-const API = require('../../engine/medicham_api.js');
+/* the parent's engine: a frozen release when the arena was given --release (SOLVER_RELEASE), else the live tree */
+const API = require('../arena/engine.js').load(process.env.SOLVER_RELEASE || null).API;
 const T = require('../arena/teams.js');
 const R = require('./rollout.js').create(API, { buildBody: T.buildBody });
 const C = require('./cells.js');

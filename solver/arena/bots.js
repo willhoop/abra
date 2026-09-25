@@ -3,6 +3,9 @@
  *
  *   random    uniform over `legalActions(S, side).joint` — the "random legal" baseline of SOLVER-PLAN §5
  *   prior     the human prior v0's most likely LEGAL joint (argmax; greedy, no search)
+ *   greedy    the same argmax over any other prior adapter — the arena's `doduo` (MAG v1 + DODUO v1 joint)
+ *             and `mag` (MAG v1 alone, factorised) bots. The bot carries its adapter as `.PA` so the
+ *             arena can report that adapter's counters and warn when it matched no option.
  *   miltank   MILTANK v1 (solver/miltank/search.js) at a per-decision time budget
  *
  * Each bot's coin is its own seeded stream (the engine's `rngStreams`), so a game replays exactly.
@@ -26,12 +29,21 @@ function makeBots(API, deps) {
       return { joint: la.joint[b], info: { p: s[b] } };
     } };
   }
+  function greedy(name, PAx) {
+    return { name, PA: PAx, choose(S, side, ctx) {
+      const la = API.legalActions(S, side);
+      if (la.joint.length === 1) return { joint: la.joint[0] };
+      const s = PAx.scoreJoints(ctx, S, side, side, la);
+      let b = 0; for (let i = 1; i < s.length; i++) if (s[i] > s[b]) b = i;
+      return { joint: la.joint[b], info: { p: s[b] } };
+    } };
+  }
   function miltank(seed, o) {
     const coin = coinOf(seed);
     /* with o.pool the cells are filled by worker processes and choose() returns a promise (the arena awaits it) */
     return { name: 'miltank', choose(S, side, ctx) { const q = Object.assign({ coin }, o); return q.pool ? MT.decideAsync(S, side, ctx, q) : MT.decide(S, side, ctx, q); } };
   }
-  return { random, prior, miltank };
+  return { random, prior, greedy, miltank };
 }
 
 module.exports = { makeBots };
