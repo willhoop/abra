@@ -53,7 +53,7 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
-## [abra/regmc 1.4.0] — 2026-09-25 — **gen5 accepted: SPRT H1 at +20 Elo after 1,268 games (0.528 [0.501, 0.556])**
+## [abra/regmc 1.8.0] — 2026-09-25 — **gen5 accepted: SPRT H1 at +20 Elo after 1,268 games (0.528 [0.501, 0.556])**
 - **What changed.**
   - New: `solver/machamp/{deep_value,sprt}.js`, `preregistration-r3.json`, `league/gen5.json`, `models/gen5/`.
   - `--deep` in `build_pory2.js`, `--cycle` in `play.js`, and `datasetActions` exported from `prior_adapter.js`.
@@ -68,7 +68,7 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Supersedes.** Nothing.
 - **Owed to the next major.** MEW and MACHAMP in `docs/MODELS.md`.
 
-## [abra/regmc 1.3.0] — 2026-09-25 — **gen4 ablation: neither net detectably helps or hurts; the anchored DODUO is neutral and stays close to humans**
+## [abra/regmc 1.7.0] — 2026-09-25 — **gen4 ablation: neither net detectably helps or hurts; the anchored DODUO is neutral and stays close to humans**
 - **What changed.** New: `solver/machamp/preregistration-ablation.json`, `league/abl-{A,B}.json`, `models/ablB/`.
   No code change.
 - **Measured.** Against gen0-r2, 200 games each, release `eaa5becc54eb`, 1,000 ms, depth 0:
@@ -80,7 +80,7 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Supersedes.** Nothing.
 - **Owed to the next major.** MEW and MACHAMP in `docs/MODELS.md`.
 
-## [abra/regmc 1.2.0] — 2026-09-25 — **MACHAMP round 2: full search (0.1% empty cells), frozen team store; gen3 loses to the champion, gen4 ties; neither accepted**
+## [abra/regmc 1.6.0] — 2026-09-25 — **MACHAMP round 2: full search (0.1% empty cells), frozen team store; gen3 loses to the champion, gen4 ties; neither accepted**
 - **What changed.**
   - `solver/mew/pairs.js` gains the frozen team store (`data/team-pool-frozen-regmc`).
   - `--team-store` passes through `mew/run.js`, `machamp/gate.js` and `machamp/loop.js`; `loop.js` reads a round
@@ -98,7 +98,7 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Supersedes.** Nothing.
 - **Owed to the next major.** MEW and MACHAMP in `docs/MODELS.md`.
 
-## [abra/regmc 1.1.0] — 2026-09-25 — **Self-play loop v0 (MEW + MACHAMP): two generations trained and gated on `eaa5becc54eb`; neither accepted**
+## [abra/regmc 1.5.0] — 2026-09-25 — **Self-play loop v0 (MEW + MACHAMP): two generations trained and gated on `eaa5becc54eb`; neither accepted**
 - **What changed.**
   - New: `solver/mew/{pairs,agent,play,run}.js`, `solver/machamp/{build_doduo,build_pory2,gate,loop}.js`,
     `train_{pory2,doduo}.py`, `preregistration.json`, `league/`, `models/gen{1,2}/`, `solver/tests/test-machamp.js`.

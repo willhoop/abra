@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.4.0] — 2026-09-25
+## [1.8.0] — 2026-09-25
 
 ### Added
 - `solver/machamp/deep_value.js`: exact game replay, then human-clone rollouts, giving a value independent of the
@@ -40,7 +40,7 @@ rewritten; what changed and why is stated.
 - Source: `solver/machamp/models/gen5/gates.json`. Account: `docs/_reports/2026-09-25-selfplay-v0.md` §12.
 - **Basis.** unchanged.
 
-## [1.3.0] — 2026-09-25
+## [1.7.0] — 2026-09-25
 
 ### Added
 - **MACHAMP ablation of generation 4** (`solver/machamp/preregistration-ablation.json`, `league/abl-{A,B}.json`,
@@ -57,7 +57,7 @@ rewritten; what changed and why is stated.
 - Account: `docs/_reports/2026-09-25-selfplay-v0.md` §11.
 - **Basis.** unchanged.
 
-## [1.2.0] — 2026-09-25
+## [1.6.0] — 2026-09-25
 
 ### Added
 - **MACHAMP round 2 (generations 3 and 4).** `solver/mew/pairs.js` reads the frozen team store
@@ -81,7 +81,7 @@ rewritten; what changed and why is stated.
 - Sources: `solver/machamp/models/gen{3,4}/gates.json`. Account: `docs/_reports/2026-09-25-selfplay-v0.md` §10.
 - **Basis.** unchanged.
 
-## [1.1.0] — 2026-09-25
+## [1.5.0] — 2026-09-25
 
 ### Added
 - **MEW, the self-play factory, and MACHAMP, the training loop (v0).** `solver/mew/` (team pairs split by player,
