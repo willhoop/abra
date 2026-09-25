@@ -63,11 +63,11 @@ async function main() {
   if (W > 4) throw new Error('machamp/gate: at most 4 workers');
   const dir = out.replace(/\.json$/, '') + '.shards';
   fs.mkdirSync(dir, { recursive: true });
-  const human = flag('--human', null);
+  const human = flag('--human', null), store = flag('--team-store', null);
   const started = new Date().toISOString();
   const { res: exits, wall_s } = await forkShards(path.join(__dirname, '..', 'mew', 'play.js'), W, i => ['--mode', 'match', '--release', rel,
     '--x', path.resolve(ROOT, X), '--y', path.resolve(ROOT, Y), '--pairs', String(NP), '--pair-seed', String(PS), '--seed', String(seed),
-    '--shard', String(i), '--shards', String(W), '--cap', String(cap), '--out', path.join(dir, `shard-${i}.jsonl`), ...(human ? ['--human', human] : [])], 'gate');
+    '--shard', String(i), '--shards', String(W), '--cap', String(cap), '--out', path.join(dir, `shard-${i}.jsonl`), ...(human ? ['--human', human] : []), ...(store ? ['--team-store', store] : [])], 'gate');
   const sums = exits.map(e => { try { return JSON.parse(fs.readFileSync(path.join(dir, `shard-${e.shard}.jsonl.summary.json`), 'utf8')); } catch (err) { return null; } });
   const per = [].concat(...sums.filter(Boolean).map(s => s.per));
   const m = merge(per);
@@ -86,7 +86,7 @@ async function main() {
   const result = {
     what: 'MACHAMP gate (solver/machamp/gate.js)', started, finished: new Date().toISOString(),
     engine_release: first.engine_release || rel, release_stamp: first.release_stamp || null,
-    flags: { release: rel, x: X, y: Y, pairs: NP, games: 2 * NP, pair_seed: PS, seed, workers: W, cap, rule, human },
+    flags: { release: rel, x: X, y: Y, pairs: NP, games: 2 * NP, pair_seed: PS, seed, workers: W, cap, rule, human, team_store: store },
     x: first.x || null, y: first.y || null, pool: first.pool || null,
     result: { ...m.res, played: m.n, score_x: m.score, ci95_x: m.ci95 }, paired: { team_pairs: NP, ...m.pairs },
     rule: { name: rule, text: rule === 'beats' ? 'PASS iff Wilson 95% lower bound of X score > 0.5' : 'PASS iff Wilson 95% upper bound of X score >= 0.5' },

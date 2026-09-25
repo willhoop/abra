@@ -27,10 +27,16 @@ const argv = process.argv.slice(2);
 const flag = (k, d) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : d; };
 const ROOT = path.join(__dirname, '..', '..');
 const REL = flag('--release', 'eaa5becc54eb');
-const GENS = +flag('--gens', 2), GAMES = +flag('--games', 1600), WORKERS = +flag('--workers', 4);
+/* --prereg names the pre-registration this run obeys. Its optional `round` block names a later round: its tag, its
+ * starting champion, the first candidate number, the self-play seed base, the games per generation and the team store
+ * (see solver/machamp/preregistration-r2.json). Round 1 (preregistration.json) has no block and keeps its defaults. */
+const PRE_FILE = path.resolve(ROOT, flag('--prereg', path.join('solver', 'machamp', 'preregistration.json')));
+const PRE = JSON.parse(fs.readFileSync(PRE_FILE, 'utf8'));
+const RD = PRE.round || {};
+const TAG = RD.tag || '', FIRST = RD.first_candidate || 1, STORE = RD.team_store || null;
+const GENS = +flag('--gens', 2), GAMES = +flag('--games', RD.games_per_generation || 1600), WORKERS = +flag('--workers', 4);
 const OUTR = path.join(ROOT, 'solver', 'out', 'machamp', REL);
-const STATE = path.resolve(ROOT, flag('--state', path.join('solver', 'out', 'machamp', REL, 'loop-state.json')));
-const PRE = JSON.parse(fs.readFileSync(path.join(__dirname, 'preregistration.json'), 'utf8'));
+const STATE = path.resolve(ROOT, flag('--state', path.join('solver', 'out', 'machamp', REL, 'loop-state' + (TAG ? '-' + TAG : '') + '.json')));
 const rel = p => path.relative(ROOT, p).split(path.sep).join('/');
 const HUMAN_PORY = 'solver/out/porygon2/human-' + REL;
 const HUMAN_MAG = 'solver/out/mag';
@@ -57,15 +63,16 @@ function main() {
   if (armed.length) throw new Error('machamp/loop: refusing to run with a deliberate break armed: ' + armed.join(', '));
   let S = load();
   if (!S) {
-    S = { what: 'MACHAMP loop state (solver/machamp/loop.js)', release: REL, started: new Date().toISOString(), preregistration: 'solver/machamp/preregistration.json',
-          champion: 'solver/machamp/league/gen0.json', previous: null, clone: 'solver/machamp/league/human-clone.json', gen: 0, history: [], stages: {} };
+    S = { what: 'MACHAMP loop state (solver/machamp/loop.js)', release: REL, started: new Date().toISOString(), preregistration: rel(PRE_FILE), round: TAG || 'r1',
+          team_store: STORE, champion: RD.champion || 'solver/machamp/league/gen0.json', previous: null, clone: 'solver/machamp/league/human-clone.json', gen: 0, history: [], stages: {} };
     save(S);
   }
   while (S.history.length < GENS) {
-    const g = S.history.length;                 // self-play index
-    const cand = g + 1;
+    const g = S.history.length;                 // self-play index within this round
+    const cand = FIRST + g;
     const K = k => `gen${g}:${k}`;
-    const spDir = path.join(ROOT, 'solver', 'out', 'selfplay', REL, `gen${g}`);
+    const LG = (TAG ? TAG + '-' : '') + `gen${g}`;   // log prefix
+    const spDir = path.join(ROOT, 'solver', 'out', 'selfplay', REL, TAG ? `${TAG}-sp${g}` : `gen${g}`);
     const candDir = path.join(OUTR, `cand${cand}`);
     const modelDir = path.join(ROOT, 'solver', 'machamp', 'models', `gen${cand}`);
     fs.mkdirSync(candDir, { recursive: true }); fs.mkdirSync(modelDir, { recursive: true });
@@ -77,16 +84,16 @@ function main() {
                        clone: JSON.parse(fs.readFileSync(path.join(ROOT, S.clone), 'utf8')), weights: { current: 0.6, previous: 0.2, clone: 0.2 } };
       const lf = path.join(candDir, 'league.json'); fs.writeFileSync(lf, JSON.stringify(league, null, 1));
       const t0 = Date.now();
-      node(path.join(ROOT, 'solver', 'mew', 'run.js'), ['--release', REL, '--league', rel(lf), '--games', String(GAMES), '--seed', String(100 + g),
-        '--workers', String(WORKERS), '--out', rel(spDir)], `gen${g}-selfplay`);
+      node(path.join(ROOT, 'solver', 'mew', 'run.js'), ['--release', REL, '--league', rel(lf), '--games', String(GAMES), '--seed', String((RD.selfplay_seed_base || 100) + g),
+        '--workers', String(WORKERS), '--out', rel(spDir), ...(STORE ? ['--team-store', STORE] : [])], `${LG}-selfplay`);
       const man = JSON.parse(fs.readFileSync(path.join(spDir, 'manifest.json'), 'utf8'));
       stamp(S, K('selfplay'), t0, { dir: rel(spDir), games: man.counts.games, games_per_hour: man.games_per_hour, warnings: man.warnings });
     }
     // 2. build
     if (!(S.stages[K('build')] || {}).done) {
       const t0 = Date.now();
-      node(path.join(__dirname, 'build_doduo.js'), ['--selfplay', rel(spDir), '--out', rel(path.join(candDir, 'doduo'))], `gen${g}-build-doduo`, 3072);
-      node(path.join(__dirname, 'build_pory2.js'), ['--release', REL, '--selfplay', rel(spDir), '--out', rel(path.join(candDir, 'pory2'))], `gen${g}-build-pory2`, 3072);
+      node(path.join(__dirname, 'build_doduo.js'), ['--selfplay', rel(spDir), '--out', rel(path.join(candDir, 'doduo'))], `${LG}-build-doduo`, 3072);
+      node(path.join(__dirname, 'build_pory2.js'), ['--release', REL, '--selfplay', rel(spDir), '--out', rel(path.join(candDir, 'pory2'))], `${LG}-build-pory2`, 3072);
       stamp(S, K('build'), t0, { doduo: JSON.parse(fs.readFileSync(path.join(candDir, 'doduo', 'meta.json'), 'utf8')).counts,
                                  pory2: JSON.parse(fs.readFileSync(path.join(candDir, 'pory2', 'meta.json'), 'utf8')).counts });
     }
@@ -97,7 +104,7 @@ function main() {
       const t0 = Date.now();
       py(path.join('solver', 'machamp', 'train_pory2.py'), ['--init', champ.pory2, '--human', HUMAN_PORY, '--selfplay', rel(path.join(candDir, 'pory2')),
         '--out', rel(poryOut), '--metrics', rel(poryMet), '--name', `PORYGON2 gen${cand}`, '--threads', '4',
-        '--fixture', rel(path.join(modelDir, `porygon2-gen${cand}.fixture.json`))], `gen${g}-train-pory2`);
+        '--fixture', rel(path.join(modelDir, `porygon2-gen${cand}.fixture.json`))], `${LG}-train-pory2`);
       stamp(S, K('train-pory2'), t0, { gate: JSON.parse(fs.readFileSync(poryMet, 'utf8')).gate_nonworse_vs_v0 });
     }
     if (!(S.stages[K('train-doduo')] || {}).done) {
@@ -105,7 +112,7 @@ function main() {
       py(path.join('solver', 'machamp', 'train_doduo.py'), ['--init-mag', champ.mag, '--init-doduo', champ.doduo, '--human', HUMAN_MAG,
         '--selfplay', rel(path.join(candDir, 'doduo')), '--out-dir', rel(modelDir), '--tag', `gen${cand}`,
         '--metrics', rel(path.join(modelDir, `doduo-gen${cand}.metrics.json`)), '--threads', '4',
-        '--fixture', rel(path.join(modelDir, `doduo-gen${cand}.fixture.json`))], `gen${g}-train-doduo`);
+        '--fixture', rel(path.join(modelDir, `doduo-gen${cand}.fixture.json`))], `${LG}-train-doduo`);
       stamp(S, K('train-doduo'), t0, { human_test_vs_v1: JSON.parse(fs.readFileSync(path.join(modelDir, `doduo-gen${cand}.metrics.json`), 'utf8')).human_test_vs_v1.joint_ll });
     }
     const candSpec = Object.assign({}, champ, { name: `gen${cand}`, mag: rel(path.join(modelDir, `mag-gen${cand}.json`)),
@@ -119,7 +126,8 @@ function main() {
       if ((S.stages[K('gate-' + name)] || {}).done) continue;
       const t0 = Date.now();
       node(path.join(__dirname, 'gate.js'), ['--release', REL, '--x', rel(candFile), '--y', y, '--pairs', '100', '--pair-seed', String(PRE.seeds.gate_pair_seed),
-        '--seed', String(seed + 10 * g), '--workers', String(WORKERS), '--rule', rule, '--out', rel(gateOut(name))], `gen${g}-gate-${name}`);
+        '--seed', String(seed + 10 * (cand - 1)), '--workers', String(WORKERS), '--rule', rule, '--out', rel(gateOut(name)),
+        ...(STORE ? ['--team-store', STORE] : [])], `${LG}-gate-${name}`);
       const r = JSON.parse(fs.readFileSync(gateOut(name), 'utf8'));
       stamp(S, K('gate-' + name), t0, { score: r.result.score_x, ci95: r.result.ci95_x, pass: r.pass, warnings: r.warnings });
     }

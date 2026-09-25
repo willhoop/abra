@@ -3,7 +3,7 @@
  * the frozen engine once and plays its whole shard.
  *
  *   node solver/mew/play.js --mode selfplay --release <id> --league <league.json> --games N --seed S
- *                           --shard i --shards n --out <shard.jsonl.gz> [--cap 50] [--human <games.jsonl>]
+ *                           --shard i --shards n --out <shard.jsonl.gz> [--cap 50] [--human <games.jsonl> | --team-store <dir>]
  *   node solver/mew/play.js --mode match    --release <id> --x <spec.json> --y <spec.json> --pairs N --pair-seed S
  *                           --seed S --shard i --shards n --out <shard.jsonl> [--cap 50] [--human <games.jsonl>]
  *
@@ -100,7 +100,7 @@ async function playGame(G, botA, botB, seed, recordFor) {
 async function selfplay() {
   const L = readJ(flag('--league'));
   const N = +flag('--games', 100);
-  const P = PAIRS.load({ file: flag('--human', undefined) });
+  const P = PAIRS.load({ file: flag('--human', undefined), teamStore: flag('--team-store', undefined) });
   const pool = P.train;
   const agents = {};
   for (const k of ['current', 'previous', 'clone']) if (L[k]) agents[k] = AG.load(L[k]);
@@ -134,13 +134,13 @@ async function selfplay() {
     if (counts.games % 10 === 0) console.log(`  [shard ${SHARD}] ${counts.games} games  ${counts.decisions} decisions  errors ${counts.errors}  fallbacks ${AG.COUNTERS.fallbacks}  ${((Date.now() - t0) / 1000).toFixed(0)}s`);
   }
   return { counts, agents: Object.fromEntries(Object.entries(agents).map(([k, a]) => [k, { name: a.name, spec: a.spec, digests: a.digests }])), weights: w,
-           pool: { file: P.file, train_pairs: pool.length, counts: P.counts } };
+           pool: { pool_source: P.kind === 'team-store' ? { kind: 'team-store', file: P.file, file_sha256: P.file_sha256, pool_digest: P.pool_digest } : { kind: 'human-dataset', file: P.file }, file: P.file, train_pairs: pool.length, counts: P.counts } };
 }
 
 async function match() {
   const X = AG.load(readJ(flag('--x'))), Y = AG.load(readJ(flag('--y')));
   const NP = +flag('--pairs', 100), PS = +flag('--pair-seed', 1);
-  const P = PAIRS.load({ file: flag('--human', undefined) });
+  const P = PAIRS.load({ file: flag('--human', undefined), teamStore: flag('--team-store', undefined) });
   const list = PAIRS.pick(P.test, NP, PS);
   const per = [];
   const counts = { games: 0, errors: 0, capped: 0, unbuildable: 0 };
@@ -160,7 +160,7 @@ async function match() {
     console.log(`  [shard ${SHARD}] pair ${pi}  games ${counts.games}  errors ${counts.errors}  fallbacks ${AG.COUNTERS.fallbacks}  ${((Date.now() - t0) / 1000).toFixed(0)}s`);
   }
   return { counts, per, x: { name: X.name, spec: X.spec, digests: X.digests }, y: { name: Y.name, spec: Y.spec, digests: Y.digests },
-           pool: { file: P.file, test_pairs: P.test.length, picked: list.length, ids_sha256: P.ids_sha256(list), counts: P.counts } };
+           pool: { pool_source: P.kind === 'team-store' ? { kind: 'team-store', file: P.file, file_sha256: P.file_sha256, pool_digest: P.pool_digest } : { kind: 'human-dataset', file: P.file }, file: P.file, test_pairs: P.test.length, picked: list.length, ids_sha256: P.ids_sha256(list), counts: P.counts } };
 }
 
 (async () => {

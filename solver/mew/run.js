@@ -45,11 +45,11 @@ async function main() {
   if (!rel || !league || !flag('--out')) throw new Error('usage: --release <id> --league <json> --games N --seed S --workers W --out <dir>');
   if (W > 4) throw new Error('mew/run: at most 4 workers on this machine (other agents share it)');
   fs.mkdirSync(out, { recursive: true });
-  const human = flag('--human', null);
+  const human = flag('--human', null), store = flag('--team-store', null);
   const started = new Date().toISOString();
   const { res, wall_s } = await forkShards(path.join(__dirname, 'play.js'), W, i => ['--mode', 'selfplay', '--release', rel, '--league', path.resolve(ROOT, league),
     '--games', String(N), '--seed', String(seed), '--shard', String(i), '--shards', String(W), '--cap', String(cap),
-    '--out', path.join(out, `shard-${i}.jsonl.gz`), ...(human ? ['--human', human] : [])], 'mew');
+    '--out', path.join(out, `shard-${i}.jsonl.gz`), ...(human ? ['--human', human] : []), ...(store ? ['--team-store', store] : [])], 'mew');
   const shards = res.map(r => {
     const f = path.join(out, `shard-${r.shard}.jsonl.gz`);
     let s = null; try { s = JSON.parse(fs.readFileSync(f + '.summary.json', 'utf8')); } catch (e) {}
@@ -76,9 +76,9 @@ async function main() {
   const manifest = {
     what: 'MEW self-play shards (solver/mew/run.js)', started, finished: new Date().toISOString(),
     engine_release: first.engine_release || rel, release_stamp: first.release_stamp || null,
-    flags: { release: rel, league: path.relative(ROOT, path.resolve(ROOT, league)).split(path.sep).join('/'), games: N, seed, workers: W, cap, human },
+    flags: { release: rel, league: path.relative(ROOT, path.resolve(ROOT, league)).split(path.sep).join('/'), games: N, seed, workers: W, cap, human, team_store: store },
     league: first.agents || null, league_weights: first.weights || null, league_file_sha256: sha(path.resolve(ROOT, league)),
-    pool: first.pool ? { file: first.pool.file, train_pairs: first.pool.train_pairs, counts: first.pool.counts } : null,
+    pool: first.pool ? { source: first.pool.pool_source, file: first.pool.file, train_pairs: first.pool.train_pairs, counts: first.pool.counts } : null,
     counts, wall_s, games_per_hour: +(counts.games / (wall_s / 3600)).toFixed(1),
     search: { decisions: searchDec, playouts_mean: +wmean('playouts_mean').toFixed(2), unfilled_share: +wmean('unfilled_share').toFixed(4), ms_mean: +wmean('ms_mean').toFixed(1) },
     agent_counters: agent, rollout_counters: rollout, warnings,

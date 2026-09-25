@@ -1,0 +1,22 @@
+{
+ "what": "MACHAMP round 2 (generations 3 and 4) — written 2026-09-25 BEFORE its first self-play or gate game. The acceptance gates are round 1's, unchanged (solver/machamp/preregistration.json). What changed is the search budget, the team source, the worker count and the games per generation. Each gate is read once, at its bound.",
+ "engine_release": "eaa5becc54eb",
+ "round": {
+  "tag": "r2",
+  "champion": "solver/machamp/league/gen0-r2.json",
+  "first_candidate": 3,
+  "selfplay_seed_base": 102,
+  "games_per_generation": 1000,
+  "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc"
+ },
+ "changes_from_round_1": {
+  "search": "MILTANK depth 0 (unchanged), candidates k 4x4 with 1 reserved switch row (was 5x5 with 2), 1000 ms per decision (was 500). Calibration on this release, 3 workers, 24 games (solver/out/selfplay/calib/b1000-k4/manifest.json): 1.17% of cells unfilled, 147 playouts per decision, 423 games/hour. Round 1 at 500 ms and k 5x5: 30-41% unfilled.",
+  "champion": "the same nets as gen0 (MAG v1 + DODUO v1 + PORYGON2 v0) under the new search settings, named gen0-r2; candidates inherit the champion's search settings, so every MILTANK-vs-MILTANK gate is at equal wall-clock",
+  "teams": "data/team-pool-frozen-regmc (MAIN checkout, read only; games.bo3.jsonl sha256 a68263bb568d…, pool digest 792daded918f…), bo3 file only, bots excluded, sheet names read back from the Reg M-C dex. Split by player as before: 10,200 train pairs, 173 test pairs. Checked against the human dataset on the 10,298 games both hold: sheets, brought four, lead order and split identical in all of them.",
+  "workers": "3 (another arena job shares the machine)",
+  "games_per_generation": "1000 (was 1600): at about 420 games/hour on 3 workers, 1600 games would take nearly 4 hours per generation; a full matrix keeps roughly twice as many decisions as round 1 did"
+ },
+ "gates": "UNCHANGED — G_pory2_human (95% upper bound of new - PORYGON2 v0 held-out human log-loss <= +0.004), G_beats_previous (candidate vs the current champion, 100 TEST pairs x 2 seats = 200 games, Wilson 95% lower bound > 0.5), G_not_lose_clone (candidate vs the human clone, same design, Wilson 95% upper bound >= 0.5). ACCEPT only if all three pass. The test pairs now come from the team store's test split (100 of 173).",
+ "training": "UNCHANGED (round 1's rules, warm-started from the champion)",
+ "seeds": { "selfplay": [102, 103], "gate_pair_seed": 1, "gate_battle_seed": { "beats_previous": 7001, "not_lose_clone": 7002, "offset": "+10 x (candidate - 1): gen3 +20, gen4 +30" } }
+}
