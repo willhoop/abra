@@ -1,0 +1,12 @@
+{
+ "name": "dryrun-fast",
+ "registered": "2026-09-25",
+ "question": "LOCAL DRY RUN ONLY: exercise the ladder code path end to end in minutes. The caps make this a harness test, not a strength measurement. Never use this file on the public ladder.",
+ "arms": {
+  "A": { "policy": "miltank", "max_ms": 1500, "preview_max_ms": 3000 },
+  "B": { "policy": "prior", "max_ms": 0, "preview_max_ms": 3000 }
+ },
+ "assignment": "per series, sha256(seed|k|arm) mod 2 over the sorted arm ids (solver/rotom/ladder.js assign)",
+ "metric": "none read. A dry run proves the loop, the guard, the logging and zero public traffic",
+ "dry_run_only": true
+}

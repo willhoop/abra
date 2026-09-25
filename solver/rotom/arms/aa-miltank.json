@@ -1,0 +1,15 @@
+{
+ "name": "aa-miltank",
+ "registered": "2026-09-25",
+ "question": "A/A placebo: two identical MILTANK arms. The residual difference must read zero. It tests the assignment, the rating capture and the per-arm bookkeeping before a real A/B spends series.",
+ "arms": {
+  "A": { "policy": "miltank", "max_ms": 0, "preview_max_ms": 20000 },
+  "B": { "policy": "miltank", "max_ms": 0, "preview_max_ms": 20000 }
+ },
+ "assignment": "per series, sha256(seed|k|arm) mod 2 over the sorted arm ids (solver/rotom/ladder.js assign); committed before the first game",
+ "metric": "per-series residual r = S - E from the server's pre-series ratings; ties S = 0.5",
+ "burn_in": "series below a 1300 pre-series rating are burn-in",
+ "sprt": { "statistic": "mean(r | A) - mean(r | B), normal approximation, sigma_r = 0.5", "h0": 0.0, "h1": 0.07, "alpha": 0.05, "beta": 0.05,
+           "read": "once, at a bound", "expected": "accept H0" },
+ "headline": "mean rating over the last N >= 100 series +- SD. Never the peak."
+}

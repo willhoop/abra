@@ -8,7 +8,7 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-25
 
-### Round 3 — gen5 ACCEPTED (same branch)
+### Round 3 — gen5 ACCEPTED (abra/regmc 1.8.0)
 - The changes: a strong DODUO anchor; PORYGON2 on 0.5·z + 0.5·deep value (exact replay, then 4 × 3-turn
   human-clone rollouts; 0 mismatches over 39,538 positions); every round's data pooled (5,200 games).
 - **SPRT (elo0 0, elo1 +20, α = β = 0.05): H1 after 1,268 games, 0.528 [0.501, 0.556] against gen0.**
@@ -16,14 +16,14 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 - gen5 is the champion. `r3-sp0` (1,000 games) was played in the background for round 4.
 - Detail: report §12.
 
-### gen4 ablation (same branch)
+### gen4 ablation (abra/regmc 1.7.0)
 - A, new PORYGON2 only: 0.465 [0.397, 0.534] against the champion.
 - B, DODUO refit with a strong human pull (drift +0.012 nats instead of +0.051), PORYGON2 v0: 0.500 [0.431, 0.569].
 - **Neither net detectably helps or hurts at n = 200**; the DODUO-drift hypothesis is not confirmed.
 - Next: keep the strong anchor, stop training PORYGON2 on its own depth-0 value, accumulate data, gate by SPRT.
 - Detail: report §11.
 
-### MACHAMP round 2 — generations 3 and 4 (same branch)
+### MACHAMP round 2 — generations 3 and 4 (abra/regmc 1.6.0)
 - Settings: full search (k 4×4, 1,000 ms, depth 0), 3 workers, teams from `data/team-pool-frozen-regmc`.
 - 736 games/hour; 0.1% of cells empty.
 - gen3 against the champion 0.430 [0.363, 0.499]: **significantly worse**.
@@ -33,7 +33,7 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 - Suspected cause: DODUO distilled toward a 4-row mix drifts +0.05 nats from humans. A one-net-at-a-time ablation
   is owed. Detail: `docs/_reports/2026-09-25-selfplay-v0.md` §10.
 
-### Self-play loop v0 — MEW + MACHAMP (branch worktree-agent-aab7de2f53411dba8, unmerged)
+### Self-play loop v0 — MEW + MACHAMP (abra/regmc 1.5.0; branch worktree-agent-aab7de2f53411dba8, merged)
 - MEW plays real human open-sheet team pairs (train-split players) on the frozen release `eaa5becc54eb`. Both
   sides are MILTANK with the generation's DODUO prior and PORYGON2 leaf, at 500 ms per decision, k 5×5, depth 0.
   League weights: current 0.6, previous 0.2, human clone 0.2. Each decision records the position, v, both
@@ -53,6 +53,36 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
   train DODUO on. Next: a longer or pass-capped self-play budget, a human-only PORYGON2 control, and a gate
   sized for about 3 points.
 - `solver/tests/test-machamp.js` 95/95, RED on 6 breaks. Detail: `docs/_reports/2026-09-25-selfplay-v0.md`.
+
+### First post-gate measurements, and the ladder bot: DODUO-greedy
+- All on frozen release `eaa5becc54eb`, the same 100 real Reg M-C team pairs (pool `9d07c522200de072`, ids
+  `ba106d1ad5487ac2`), paired seats, 200 games, `--workers 4`, through `tools\lownode.cmd`, Wilson 95%.
+- MILTANK (heuristic, d2) vs DODUO-greedy: **0.470 [0.402, 0.539] at 1 s; 0.510 [0.441, 0.578] at 5 s.**
+- Heuristic d0 vs d2, 1 s: 0.540 [0.471, 0.608]. PORYGON2 vs heuristic leaf, d2: 0.560 [0.491, 0.627] at 1 s,
+  0.505 [0.436, 0.574] at 5 s. Greedy: DODUO vs MAG 0.555 [0.486, 0.622], DODUO vs prior 0.580 [0.511, 0.646],
+  MAG vs prior 0.595 [0.526, 0.661].
+- **LADDER BOT: DODUO-greedy (ROTOM `prior` policy).** The rule was the configuration that best beats
+  DODUO-greedy within ≤20 s a decision. Nothing tested beats it: MILTANK's best is a tie at 5 s, costs
+  100-1000× the decision time, and showed 28-39 s single decisions under load. The pick is provisional, by
+  default of evidence, not a shown superiority. The next bar is MILTANK at depth 0 (heuristic and PORYGON2)
+  against DODUO-greedy, with more games and a compute-fixed budget (5 s wall bought only ~1.2-2× the
+  playouts of 1 s on a loaded machine).
+- Detail: `docs/_reports/2026-09-25-first-solver-measurements.md`; artifacts `solver/results/2026-09-25-first/`.
+
+### ROTOM replays + ladder mode merged (abra/regmc 1.1.0 replays, 1.2.0 ladder, 1.3.0 merge)
+- Ladder mode uses the replay-save and games.jsonl hooks; one rating parser; one local start-up path
+  (`solver/rotom/local_server.js`) for run_local and the ladder dry run.
+- The local server made 9 public attempts at start-up (Tor exit list, invalidatecss, seasons ladder fetch). Now 0:
+  loginserver / routes.root / routes.replays switched to the local stand-in, the switchless Tor fetch refused by name.
+  `solver/tests/test-rotom-localnet.js` GREEN, RED on `--break`. Detail: `docs/_reports/2026-09-25-rotom-merge.md`.
+
+### ROTOM ladder mode — prepared, not launched (branch worktree-agent-a389a1eed5928626f; merged in 1.3.0)
+- `--ladder` searches `gen9championsvgc2026regmcbo3`, plays the series, repeats to STOP / set count / time cap /
+  3 consecutive errors. Per-series A/B arm and rotation team from a seed committed before the first search.
+- Guard: machine lock + `/crq userdetails willhoop` before every search; pauses while willhoop is connected.
+  A search in progress is invisible to the server's API: that gap is stated, and the rule is "log willhoop out".
+- Dry run on a local server, the same client code path, with every non-loopback connection refused in every process.
+- Runbook `solver/rotom/LADDER.md`. Detail: `docs/_reports/2026-09-25-rotom-ladder-mode.md`.
 
 ## 2026-09-24
 
