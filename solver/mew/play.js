@@ -141,7 +141,11 @@ async function match() {
   const X = AG.load(readJ(flag('--x'))), Y = AG.load(readJ(flag('--y')));
   const NP = +flag('--pairs', 100), PS = +flag('--pair-seed', 1);
   const P = PAIRS.load({ file: flag('--human', undefined), teamStore: flag('--team-store', undefined) });
-  const list = PAIRS.pick(P.test, NP, PS);
+  /* --cycle: more pairs than the test split holds — pair index pi plays test pair pi mod the split size, each time on
+   * its own battle seed (the SPRT's paired-seed budget; solver/machamp/sprt.js) */
+  const CYCLE = argv.includes('--cycle');
+  const base = PAIRS.pick(P.test, CYCLE ? P.test.length : NP, PS);
+  const list = CYCLE ? Array.from({ length: NP }, (_, i) => base[i % base.length]) : base;
   const per = [];
   const counts = { games: 0, errors: 0, capped: 0, unbuildable: 0 };
   for (let pi = SHARD; pi < list.length; pi += SHARDS) {

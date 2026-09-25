@@ -145,7 +145,10 @@ s1, s2 = H.M[:, hc['split_p1']], H.M[:, hc['split_p2']]
 h_train = np.where((s1 == 0) & (s2 == 0))[0]
 h_val = np.where((s1 == 1) | (s2 == 1))[0]; h_val_w = ((s1 == 1).astype(np.float64) + (s2 == 1))[h_val]
 h_test = np.where((s1 == 2) | (s2 == 2))[0]; h_test_w = ((s1 == 2).astype(np.float64) + (s2 == 2))[h_test]
-SP = Tensors(args.selfplay, extra=('z', 'v', 'target'))
+SP = Tensors(args.selfplay, extra=('z', 'v', 'target') + (('deep',) if os.path.exists(os.path.join(args.selfplay, 'deep.f32')) else ()))
+# V1's reference value: the independent deep rollout value when the tensors carry one, else the search root value
+VREF = SP.deep if hasattr(SP, 'deep') else SP.v
+VREF_NAME = 'deep rollout value (solver/machamp/deep_value.js)' if hasattr(SP, 'deep') else 'search root value'
 sc = SP.col
 sp_val_mask = SP.M[:, sc['split']] == 1
 sp_train = np.where(~sp_val_mask)[0]; sp_val = np.where(sp_val_mask)[0]
@@ -243,16 +246,16 @@ test['paired'] = {'new_minus_ref_v0': {'logloss': clustered(LL['new'] - LL['ref_
 by_turn = {b: {'new_minus_ref_v0_logloss': clustered(LL['new'] - LL['ref_v0'], ((tt >= lo) & (tt <= hi)).astype(np.float64))} for b, lo, hi in BUCKETS}
 
 # V1's question on self-play VAL positions that carry a search value: MSE of P(p1 wins) against v
-vmask = sp_val[~np.isnan(SP.v[sp_val])]
+vmask = sp_val[~np.isnan(VREF[sp_val])]
 v1 = {}
 if len(vmask):
-    vt = SP.v[vmask]
+    vt = VREF[vmask]
     for k, m in (('new', model), ('init', init), ('ref_v0', ref)):
         p = 1 / (1 + np.exp(-predict(m, SP, vmask)))
         v1[k] = round(float(((p - vt) ** 2).mean()), 6)
     # count-HP logistic, refitted on the self-play TRAIN positions with a v (the baseline the V1 rung names)
-    trv = sp_train[~np.isnan(SP.v[sp_train])]
-    Xb = torch.from_numpy(np.asarray(SP.base[trv], dtype=np.float64)); yb = torch.from_numpy(SP.v[trv])
+    trv = sp_train[~np.isnan(VREF[sp_train])]
+    Xb = torch.from_numpy(np.asarray(SP.base[trv], dtype=np.float64)); yb = torch.from_numpy(VREF[trv])
     wb = torch.zeros(2, dtype=torch.float64, requires_grad=True)
     o = torch.optim.LBFGS([wb], max_iter=200, line_search_fn='strong_wolfe')
     def clo():
@@ -260,7 +263,7 @@ if len(vmask):
     o.step(clo)
     pb = torch.sigmoid(torch.from_numpy(np.asarray(SP.base[vmask], dtype=np.float64)) @ wb).detach().numpy()
     v1['count_hp'] = round(float(((pb - vt) ** 2).mean()), 6)
-    v1['n_positions'] = int(len(vmask))
+    v1['n_positions'] = int(len(vmask)); v1['reference'] = VREF_NAME
 
 # ------------------------------------------------------------------ export (the v0 file format: solver/porygon2/infer.js reads it)
 def b64(t):

@@ -216,7 +216,7 @@ function create(API, prior) {
              n: [d.slots[0] ? d.slots[0].cands.length : 1, d.slots[1] ? d.slots[1].cands.length : 1] };
   }
 
-  return { COUNTERS, newGame, record, row, publicState, scoreJoints, jointCells, revealed, sheetIdx, BROKEN: BREAK || null };
+  return { COUNTERS, newGame, record, row, publicState, scoreJoints, jointCells, revealed, sheetIdx, datasetActions: toDatasetActions, BROKEN: BREAK || null };
 }
 
 module.exports = { create };

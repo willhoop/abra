@@ -34,6 +34,13 @@ const ROOT = path.join(__dirname, '..', '..');
 const DIRS = String(arg('--selfplay', '')).split(',').filter(Boolean).map(d => path.resolve(ROOT, d));
 const OUT = path.resolve(ROOT, arg('--out', 'solver/out/machamp/pory2'));
 const LAMBDA = +arg('--lambda', 0.5), MAXUNF = +arg('--max-unfilled', 0.5), VALPCT = +arg('--val-pct', 10);
+/* --deep <dir>: solver/machamp/deep_value.js output. With it the target's value half is the DEEP rollout value (an
+ * independent estimate: 3 turns of human-clone play, then frozen PORYGON2 v0), never the search's root value, which at
+ * depth 0 is the trained net's own opinion one turn ahead. The search value is still written to v.f32 for reference. */
+const DEEP = arg('--deep', null);
+const deepMap = new Map();
+if (DEEP) for (const f of fs.readdirSync(path.resolve(ROOT, DEEP)).filter(f => /^deep-\d+\.jsonl$/.test(f)))
+  for (const l of fs.readFileSync(path.join(path.resolve(ROOT, DEEP), f), 'utf8').split('\n')) if (l) { const o = JSON.parse(l); deepMap.set(o.dir + '|' + o.g + '|' + o.run_seed + '|' + o.t, o.v); }
 /* DELIBERATE BREAK (env MACHAMP_BREAK=vside): side B's root value is used as p1's without the flip.
  * solver/tests/test-machamp.js TARGETS must go red. */
 const BREAK = process.env.MACHAMP_BREAK || '';
@@ -53,13 +60,13 @@ function build() {
   const F = FX.create(ENGINE.API.M);
   if (F.BROKEN) throw new Error('refusing to build training data with PORY2_BREAK=' + F.BROKEN);
   fs.mkdirSync(OUT, { recursive: true });
-  const files = ['tok_num.f32', 'tok_id.i32', 'side.f32', 'field.f32', 'facts.f32', 'base.f32', 'meta.i32', 'z.f32', 'v.f32', 'target.f32'];
+  const files = ['tok_num.f32', 'tok_id.i32', 'side.f32', 'field.f32', 'facts.f32', 'base.f32', 'meta.i32', 'z.f32', 'v.f32', 'target.f32', 'deep.f32'];
   const fd = Object.fromEntries(files.map(f => [f, fs.openSync(path.join(OUT, f), 'w')]));
   const w = (f, typed) => fs.writeSync(fd[f], Buffer.from(typed.buffer, typed.byteOffset, typed.byteLength));
   const vocab = { species: { '<unk>': 0 }, item: { '<unk>': 0 }, ability: { '<unk>': 0 }, move: { '<unk>': 0 } };
   const KIND = ['species', 'item', 'ability', 'move', 'move', 'move', 'move'];
   const idOf = (kind, s) => { const v = vocab[kind]; if (!(s in v)) v[s] = Object.keys(v).length; return v[s]; };
-  const c = { games: 0, games_no_result: 0, positions: 0, with_v: 0, val_positions: 0, wrong_release: 0, roots_too_unfilled: 0 };
+  const c = { games: 0, games_no_result: 0, positions: 0, with_v: 0, with_deep: 0, val_positions: 0, wrong_release: 0, roots_too_unfilled: 0 };
   const sources = [];
   let N = 0, gi = 0;
   for (const dir of DIRS) {
@@ -93,8 +100,13 @@ function build() {
         const v = vv ? vv.reduce((p, q) => p + q, 0) / vv.length : NaN;
         const z = rec.vA;
         w('z.f32', Float32Array.from([z])); w('v.f32', Float32Array.from([v]));
-        w('target.f32', Float32Array.from([Number.isNaN(v) ? z : LAMBDA * v + (1 - LAMBDA) * z]));
-        w('meta.i32', Int32Array.from([gi, T.n, z >= 0.5 ? 1 : 0, val, 0, rec.hist.length, Number.isNaN(v) ? 0 : 1, t === rec.hist.length - 1 ? 1 : 0]));
+        const dirKey = path.relative(ROOT, dir).split(path.sep).join('/');
+        const dv = deepMap.has(dirKey + '|' + rec.g + '|' + rec.run_seed + '|' + t) ? deepMap.get(dirKey + '|' + rec.g + '|' + rec.run_seed + '|' + t) : NaN;
+        if (!Number.isNaN(dv)) c.with_deep++;
+        w('deep.f32', Float32Array.from([dv]));
+        const vt = DEEP ? dv : v;
+        w('target.f32', Float32Array.from([Number.isNaN(vt) ? z : LAMBDA * vt + (1 - LAMBDA) * z]));
+        w('meta.i32', Int32Array.from([gi, T.n, z >= 0.5 ? 1 : 0, val, 0, rec.hist.length, Number.isNaN(DEEP ? dv : v) ? 0 : 1, t === rec.hist.length - 1 ? 1 : 0]));
         N++; if (!Number.isNaN(v)) c.with_v++; if (val) c.val_positions++;
       }
     }
@@ -102,7 +114,7 @@ function build() {
   for (const f of files) fs.closeSync(fd[f]);
   c.positions = N;
   const meta = { generated: new Date().toISOString(), generator: 'solver/machamp/build_pory2.js', feature_version: FX.FEATURE_VERSION,
-    engine_release: ENGINE.id, release_stamp: ENGINE.stamp, sources, N, break: BREAK || null, lambda: LAMBDA, max_unfilled: MAXUNF, val_pct: VALPCT,
+    engine_release: ENGINE.id, release_stamp: ENGINE.stamp, sources, N, break: BREAK || null, value_source: DEEP ? 'deep rollout values from ' + DEEP : 'search root value', lambda: LAMBDA, max_unfilled: MAXUNF, val_pct: VALPCT,
     names: { tok_num: FX.TOK_NUM_NAMES, tok_id: FX.TOK_ID_NAMES, side: FX.SIDE_NUM_NAMES, field: FX.FIELD_NUM_NAMES, facts: FX.FACT_NAMES, meta: META_COLS },
     vocab, counts: c, engine_counters: F.COUNTERS, seconds: (Date.now() - t0) / 1000 };
   fs.writeFileSync(path.join(OUT, 'meta.json'), JSON.stringify(meta, null, 1));
