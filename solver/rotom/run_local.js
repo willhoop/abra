@@ -97,7 +97,7 @@ async function main() {
   fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify(R, null, 1));
   log('report -> ' + path.join(OUT, 'report.json'));
   log(JSON.stringify(R.totals));
-  const GR = require('./report.js').gamesReport(path.join(OUT, 'games.jsonl'));
+  const GR = require('./report.js').gamesReport(path.join(OUT, 'games.jsonl'), { includeLocal: true, client: NA });
   GR.login_stand_in = MOCK ? { url: MOCK.url, requests: MOCK.counts } : null;
   fs.writeFileSync(path.join(OUT, 'games-report.json'), JSON.stringify(GR, null, 1));
   log('games report -> ' + path.join(OUT, 'games-report.json'));
