@@ -53,6 +53,18 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.3.0] — 2026-09-25 — **gen4 ablation: neither net detectably helps or hurts; the anchored DODUO is neutral and stays close to humans**
+- **What changed.** New: `solver/machamp/preregistration-ablation.json`, `league/abl-{A,B}.json`, `models/ablB/`.
+  No code change.
+- **Measured.** Against gen0-r2, 200 games each, release `eaa5becc54eb`, 1,000 ms, depth 0:
+  - A (gen4 PORYGON2 only): 0.465 [0.397, 0.534].
+  - B (DODUO with β 0.7 and human weight 3.0, PORYGON2 v0): 0.500 [0.431, 0.569].
+  - B's human drift: +0.0120 [0.0097, 0.0143] nats.
+  - Sources: `solver/out/machamp/eaa5becc54eb/gates/abl-{A,B}.json`, `solver/machamp/models/ablB/doduo-ablB.metrics.json`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MEW and MACHAMP in `docs/MODELS.md`.
+
 ## [abra/regmc 1.2.0] — 2026-09-25 — **MACHAMP round 2: full search (0.1% empty cells), frozen team store; gen3 loses to the champion, gen4 ties; neither accepted**
 - **What changed.**
   - `solver/mew/pairs.js` gains the frozen team store (`data/team-pool-frozen-regmc`).

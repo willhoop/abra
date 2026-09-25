@@ -21,6 +21,23 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.3.0] — 2026-09-25
+
+### Added
+- **MACHAMP ablation of generation 4** (`solver/machamp/preregistration-ablation.json`, `league/abl-{A,B}.json`,
+  `models/ablB/`). No new self-play.
+
+### Notes
+- **Candidate A** (DODUO frozen at gen0, gen4's PORYGON2): **0.465 [0.397, 0.534]** against the champion.
+- **Candidate B** (DODUO refit with a strong pull to the human clone, β 0.7 and human weight 3.0; PORYGON2 v0):
+  **0.500 [0.431, 0.569]**. Its drift from the human clone is +0.012 nats; gen4's was +0.051.
+- Both were 200 games on release `eaa5becc54eb`, 1,000 ms per decision, depth 0, 3 workers.
+- **Neither net detectably helps or hurts.** The hypothesis that DODUO lost the games is not confirmed.
+- Next generation: keep the strong DODUO anchor, stop training PORYGON2 on its own depth-0 value, and gate with an
+  SPRT or a larger n.
+- Account: `docs/_reports/2026-09-25-selfplay-v0.md` §11.
+- **Basis.** unchanged.
+
 ## [1.2.0] — 2026-09-25
 
 ### Added

@@ -1,0 +1,162 @@
+{
+ "tag": "ablB",
+ "models": {
+  "mag": {
+   "path": "solver/machamp/models/ablB/mag-ablB.json",
+   "sha256": "5cdfd34ed7f5041de3c850a40158ad5b9ae740fd1a1cf6bb9be4a3280289d28b"
+  },
+  "doduo": {
+   "path": "solver/machamp/models/ablB/doduo-ablB.json",
+   "sha256": "8934e91ed24fb32508e36b584183df66f50efe3505b5edcea8fbe57323fcc453"
+  }
+ },
+ "init": {
+  "mag": "c720dd9e0696bc3ecda280dff8fa47d74778d1f8d3c74bd7ae10bff4e30f2aa4",
+  "doduo": "da319ee23b44770af3c5d1c28909c4a6dc44b9d723071e171ec05d46dc3f17a6"
+ },
+ "anchor_human_clone": {
+  "mag": "c720dd9e0696bc3ecda280dff8fa47d74778d1f8d3c74bd7ae10bff4e30f2aa4",
+  "doduo": "da319ee23b44770af3c5d1c28909c4a6dc44b9d723071e171ec05d46dc3f17a6"
+ },
+ "selfplay_tensors": {
+  "dir": "solver/out/machamp/eaa5becc54eb/cand4/doduo",
+  "sizes": {
+   "train": {
+    "decisions": 12438,
+    "slots": 23376,
+    "cands": 236169,
+    "targets": 49445
+   },
+   "val": {
+    "decisions": 1409,
+    "slots": 2645,
+    "cands": 26893,
+    "targets": 5618
+   }
+  },
+  "counts": {
+   "games": 1000,
+   "decisions": 13978,
+   "kept": 13847,
+   "no_cells": 0,
+   "too_unfilled": 0,
+   "low_mass": 131,
+   "key_mismatch": 0,
+   "slot_mismatch": 0,
+   "by_split": {
+    "train": 12438,
+    "val": 1409
+   },
+   "hist_missing": 0,
+   "mass_kept_mean": 0.9983
+  }
+ },
+ "flags": {
+  "init_mag": "solver/mag/model/mag-v1.json",
+  "init_doduo": "solver/mag/model/doduo-v1.json",
+  "anchor_mag": "solver/mag/model/mag-v1.json",
+  "anchor_doduo": "solver/mag/model/doduo-v1.json",
+  "human": "solver/out/mag",
+  "selfplay": "solver/out/machamp/eaa5becc54eb/cand4/doduo",
+  "out_dir": "solver/machamp/models/ablB",
+  "tag": "ablB",
+  "metrics": "solver/machamp/models/ablB/doduo-ablB.metrics.json",
+  "beta": 0.7,
+  "human_weight": 3.0,
+  "epochs": 3,
+  "lr": 0.0003,
+  "batch": 256,
+  "tol": 0.05,
+  "threads": 2,
+  "seed": 1,
+  "boot": 1000,
+  "test_limit": 0,
+  "fixture": "solver/machamp/models/ablB/doduo-ablB.fixture.json"
+ },
+ "history": [
+  {
+   "epoch": -1,
+   "selfplay_val_ce": 2.0205190318793247,
+   "human_val_nll": 2.447957861328125
+  },
+  {
+   "epoch": 0,
+   "train_selfplay_ce": 2.2913244451795305,
+   "train_human_nll": 2.2327431367368114,
+   "selfplay_val_ce": 1.9926811960083615,
+   "human_val_nll": 2.4548004028320314,
+   "seconds": 47.79757881164551
+  },
+  {
+   "epoch": 1,
+   "train_selfplay_ce": 2.291130747113909,
+   "train_human_nll": 2.229810378989395,
+   "selfplay_val_ce": 1.9871204124434438,
+   "human_val_nll": 2.4563862426757814,
+   "seconds": 140.06309270858765
+  },
+  {
+   "epoch": 2,
+   "train_selfplay_ce": 2.2869966662659937,
+   "train_human_nll": 2.2366667718303446,
+   "selfplay_val_ce": 1.9666174948850026,
+   "human_val_nll": 2.4598855834960935,
+   "seconds": 54.28206396102905
+  }
+ ],
+ "selected_epoch": 2,
+ "human_test_vs_v1": {
+  "what": "held-out human TEST decisions, exact joints; diff = new - v1 (the human clone); 95% player-cluster bootstrap",
+  "joint_ll": {
+   "est": 2.7416541449131,
+   "lo": 2.7116681462281367,
+   "hi": 2.7740421360298892,
+   "n": 25477,
+   "ref": 2.729662982128357,
+   "diff": 0.011991162784743103,
+   "diff_lo": 0.009696054236791684,
+   "diff_hi": 0.014312256656703192
+  },
+  "joint_r1": {
+   "est": 0.2506967068336146,
+   "lo": 0.24401762925739529,
+   "hi": 0.25701230593315705,
+   "n": 25477,
+   "ref": 0.25411155159555676,
+   "diff": -0.0034148447619421485,
+   "diff_lo": -0.005910337561312583,
+   "diff_hi": -0.001133282755549595
+  },
+  "joint_r4": {
+   "est": 0.5540683753974173,
+   "lo": 0.5461380151011159,
+   "hi": 0.5620801701789546,
+   "n": 25477,
+   "ref": 0.5542646308435059,
+   "diff": -0.00019625544608858903,
+   "diff_lo": -0.0029487587197681714,
+   "diff_hi": 0.002657017826376306
+  },
+  "joint_r8": {
+   "est": 0.7259881461710562,
+   "lo": 0.7183230935689536,
+   "hi": 0.7334836997635403,
+   "n": 25477,
+   "ref": 0.7249283667621776,
+   "diff": 0.0010597794088785806,
+   "diff_lo": -0.001086559030066811,
+   "diff_hi": 0.0031997456835236443
+  },
+  "joint_r16": {
+   "est": 0.8704714055815049,
+   "lo": 0.8649837085878873,
+   "hi": 0.8756554020039371,
+   "n": 25477,
+   "ref": 0.871884444793343,
+   "diff": -0.0014130392118381074,
+   "diff_lo": -0.003284685652063621,
+   "diff_hi": 0.00033544703317845337
+  }
+ },
+ "seconds": 426
+}

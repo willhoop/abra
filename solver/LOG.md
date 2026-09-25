@@ -8,6 +8,13 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-25
 
+### gen4 ablation (same branch)
+- A, new PORYGON2 only: 0.465 [0.397, 0.534] against the champion.
+- B, DODUO refit with a strong human pull (drift +0.012 nats instead of +0.051), PORYGON2 v0: 0.500 [0.431, 0.569].
+- **Neither net detectably helps or hurts at n = 200**; the DODUO-drift hypothesis is not confirmed.
+- Next: keep the strong anchor, stop training PORYGON2 on its own depth-0 value, accumulate data, gate by SPRT.
+- Detail: report §11.
+
 ### MACHAMP round 2 — generations 3 and 4 (same branch)
 - Settings: full search (k 4×4, 1,000 ms, depth 0), 3 workers, teams from `data/team-pool-frozen-regmc`.
 - 736 games/hour; 0.1% of cells empty.
