@@ -45,6 +45,11 @@ rewritten; what changed and why is stated.
 - Owed with this release: the living-document fold-in for the abra/regmc line (white paper, deck, technical docs,
   summary, models), and `docs/REGMC.md`'s masthead to 1.0.0.
 - Account: `docs/_reports/2026-09-24-regmc-gate-final.md`.
+- Documentation fold-in, part b (branch `docs-1.0.0-b`): `docs/ORIENTATION.md`, `docs/SUMMARY.md`, `docs/MODELS.md`,
+  `docs/DIVISIONS.md`, `docs/GLOSSARY.md`, `docs/REGULATION-ROTATION.md`, `README.md` and `CLAUDE.md` describe the
+  Reg M-C solver; the Reg M-B `docs/MODELS.md` is archived whole as `docs/archive/MODELS-regmb-7.0.0.md`. The SEARCH
+  division is renamed SOLVER (`.claude/agents/solver.md`, `docs/SOLVER.md`). Account:
+  `docs/_reports/2026-09-24-docs-refresh-b.md`.
 
 ## [0.125.0] — 2026-09-24
 

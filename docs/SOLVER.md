@@ -1,12 +1,25 @@
-# SEARCH — does MILTANK choose better than MAG
+# SOLVER — search, the nets and the live client
 
-**Owns:** `engine/miltank.js`, `engine/rollout_leaf.js`, the bring/lead search, the opponent model,
-the mega choice, post-KO replacement. Design notes in [MILTANK.md](MILTANK.md).
+**Owns:** `solver/` and every model in [`solver/PLAN.md`](../solver/PLAN.md) §2 except MEDICHAM —
+CHOMP (preview), XATU (belief), MAG and DODUO (candidate narrowing), MILTANK (the search harness),
+SLOWKING (the matrix solver), PORYGON2 (value), GARY and HYPNO (habits and the exploit dial), DUSK
+(endgames), MEW and MACHAMP (self-play and training), WOBBUFFET (exploitability), GURU (meta), DITTO
+(teams), ROTOM (the live client), ALAKAZAM (the assembled agent) and KADABRA (the coach). Narrative log:
+[`solver/LOG.md`](../solver/LOG.md).
 
-**Its one number:** the SPRT verdict against the named champion.
+**Its one number:** where the agent settles on the `gen9championsvgc2026regmcbo3` ladder — the mean
+rating over the last N series ± SD and the per-series residual `S − E`, never the peak
+(`solver/PLAN.md` §5). Offline, before that: an SPRT at equal wall-clock against the baseline each
+model is registered to beat.
 
-**May not:** fix an engine bug it trips over — file it in [ENGINE.md](ENGINE.md). Patching mechanics
-mid-run silently invalidates the run, and the run still prints a result.
+**May not:** edit `engine/`, or fix an engine bug it trips over — file it in [ENGINE.md](ENGINE.md).
+May not read HEAD: every playout runs on a frozen release. May not launch a ladder series or a wide
+run without Will's OK.
+
+*(Renamed from SEARCH on 2026-09-24 — Will: search is the core of the plan; the division takes on the
+nets and the live client, and OPS keeps ingest and the store. This file was `docs/SEARCH.md`. Its
+Reg M-B history is kept below the line, unedited, so a code comment citing `docs/SEARCH.md` §Rn still
+resolves here.)*
 
 <!-- GENERATED: engine/status.js -->
 
@@ -37,6 +50,36 @@ SEARCH — does MILTANK choose better than MAG
 _stamped 2026-09-24 22:07_
 
 <!-- /GENERATED -->
+
+## THE REG M-C SOLVER — where it stands (2026-09-24)
+
+State is printed, never typed: `solver/PLAN.md` §2 is the registry of what is built, `solver/LOG.md`
+records each landing, and the measured figures live in `docs/MODELS.md` under *The Reg M-C models*.
+This section says only what a division agent needs before it starts.
+
+- **Engine.** The Reg M-C MEDICHAM gate is OPEN, 10 of 10, on release `eaa5becc54eb`
+  (`docs/_reports/2026-09-24-regmc-gate-final.md`). The solver API (`engine/medicham_api.js`) is merged:
+  `clone`, `legalActions`, `step`, the terminal check and lean playouts. The mid-turn-choice callback
+  (step 6 of `docs/_reports/2026-09-23-engine-interface-brief.md`) is not done.
+- **Built (v1), store-only, and so not waiting on the gate:** the human dataset (`solver/human/`), MAG
+  and DODUO (`solver/mag/`), XATU's back-two model (`solver/xatu/`), GURU v0 (`solver/meta/`).
+- **Built (v1), played on MEDICHAM:** SLOWKING (`solver/slowking/`), MILTANK with the worker pool and
+  lean playouts (`solver/miltank/`), the offline arena (`solver/arena/`). **Every arena figure so far is
+  PRE-GATE** — it was played before release `eaa5becc54eb` — **and is withheld until it is re-run on
+  that release.** The re-run is the first thing owed.
+- **Not built:** CHOMP, PORYGON2, GARY, HYPNO, DUSK, MEW, MACHAMP, WOBBUFFET, DITTO, ROTOM, ALAKAZAM,
+  KADABRA (and JOLTEON, only if CHOMP needs a pre-screen). Order: `solver/PLAN.md` §3, milestones M1–M8.
+- **Old implementations** (`engine/miltank.js`, `engine/magnemite.js`, `engine/mag_bot.js`, …) are archived
+  to a top-level `archive/` in the commit where each replacement passes its exit test
+  (`solver/PLAN.md` §8). Run `node engine/engine_release.js compat` first: several are in the release
+  `SOURCES`, and moving one strands every release that names it.
+
+## ARCHIVED — the Reg M-B SEARCH ledger (2026-08-04 to 2026-09-20)
+
+**Everything below this heading is the retired SEARCH division's ledger for Reg M-B, kept as it was
+written.** It describes `engine/miltank.js`, MAG's refit and the rollout gates R1–R20 on the Reg M-B
+engine. None of it is a statement about the Reg M-C solver, and no figure in it may be compared with
+one measured under `solver/`.
 
 ## R20 — THE SKY EXPIRES AND THE DEAD ARE COUNTED. #276 AND #283 CLOSED; THE GATE'S THIRD CLAUSE GOES 4 → 2. 2026-08-17.
 

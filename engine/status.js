@@ -5,7 +5,7 @@
 /* status.js — the handoff, generated.
  *
  *   node engine/status.js           print it
- *   node engine/status.js --write   also stamp the GENERATED blocks in docs/{ENGINE,MEASURE,SEARCH,OPS}.md
+ *   node engine/status.js --write   also stamp the GENERATED blocks in docs/{ENGINE,MEASURE,SOLVER,OPS,WEB}.md
  *
  * WHY THIS EXISTS
  * ---------------
@@ -901,7 +901,7 @@ function measure() {
 
 /* ---- SEARCH ---------------------------------------------------------------------------------- */
 function search() {
-  say('SEARCH — does MILTANK choose better than MAG');
+  say('SOLVER (was SEARCH) — the retired Reg M-B rollout rows; the Reg M-C solver is solver/PLAN.md');
 
   /* R1 PRINTS ITS VERDICT, THE SAME WAY R4 DOES, AND FOR THE SAME REASON IT HAD TO CHANGE.
    *
@@ -1319,7 +1319,9 @@ if (process.argv.includes('--selftest')) {
 /* WEB IS IN THE SET SINCE 2026-09-06. It is a division with a ledger and it was the only one whose
  * numbers were typed — see `web()`. A paused division still needs its figures to self-correct;
  * pausing the WORK is not the same as freezing the REPORT, and the two were confused here. */
-const SECTIONS = { ENGINE: engine, MEASURE: measure, SEARCH: search, OPS: ops, WEB: web };
+/* SOLVER WAS SEARCH UNTIL 2026-09-24 (Will renamed the division; its ledger moved from docs/SEARCH.md to
+ * docs/SOLVER.md). The key is the ledger's file name, so it moved with it or --write would skip the ledger. */
+const SECTIONS = { ENGINE: engine, MEASURE: measure, SOLVER: search, OPS: ops, WEB: web };
 const blocks = {};
 for (const [name, fn] of Object.entries(SECTIONS)) {
   const start = out.length;

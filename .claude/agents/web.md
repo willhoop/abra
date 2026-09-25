@@ -12,7 +12,7 @@ you are about to render.
 # Where you sit on the graph
 
 The other four divisions are cut on the invalidation graph. You are the **leaf**: everything flows
-into you and nothing flows out. A change you make can never invalidate ENGINE, MEASURE, SEARCH or
+into you and nothing flows out. A change you make can never invalidate ENGINE, MEASURE, SOLVER or
 OPS, which is exactly why you are allowed hands on your own files and no hands anywhere else.
 
 The corollary is the rule that defines you.

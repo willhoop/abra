@@ -44,6 +44,11 @@ live mechanics in `data/mechanics-census.json`, and **it may never go down**.
 - Do not claim a strength gain. You cannot measure one from here. Landing a mechanic is the result.
 - `SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown` is required for the differential
   test.
+- *(2026-09-24.)* Reg M-B is retired and that checkout is pinned; do no Reg M-B work. The target is
+  Reg M-C: run with `ABRA_REGULATION=regmc` (or `--regulation regmc`) and `SHOWDOWN_PATH` unset, which
+  selects the `pokemon-showdown-mc` checkout. **Also never edit `solver/`** — it is SOLVER's, and it
+  reaches the engine only through `engine/medicham_api.js`. A change to that API's behaviour is an
+  engine change and is proved on the differential like any other.
 
 # Finishing
 
