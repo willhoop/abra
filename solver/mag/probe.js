@@ -74,10 +74,16 @@ const toID = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const live = m => !!(m && !m.fainted && m.curHP > 0);
 
 /* an option's identity, independent of which copy of the position it came from */
-const optKey = o => !o ? '-' : o.kind === 'switch' ? 'sw' + o.to : o.kind === 'pass' ? 'pass'
+const optKey = o => !o ? '-' : o.kind === 'switch' ? 'sw' + o.to : o.kind === 'pass' ? (o.mega ? 'pass:M' : 'pass')
   : (o.forced ? 'F' : 'm') + ':' + o.move + ':' + (o.target == null ? '' : o.target) + (o.mega ? ':M' : '');
 const jointKey = j => j.map(optKey).join('|');
 const PASS = { kind: 'pass' };
+/* "MEGA EVOLVE AND DO NOTHING ELSE": the counterfactual of a mega click. Replacing a mega click with a plain pass would
+ * also take the mega evolution away, and the mega alone changes the board (species, stats, ability) — so every mega
+ * click would read as having an effect beside every partner, and a mega Encore blocked by the partner's own Protect
+ * was the pair gate's "effect" (found on the first full run). The engine queues a mega for any non-switch action with
+ * `mega: true` (medicham2-browser.js, the commit-time mega candidates), a pass included. */
+const PASS_MEGA = { kind: 'pass', mega: true };
 
 function create(API, opts) {
   opts = opts || {};
@@ -156,8 +162,11 @@ function create(API, opts) {
       let err = null;
       try {
         API.makeLean(S);
-        const jA = side === 'A' ? jS : jO, jB = side === 'A' ? jO : jS;
-        API.leanRun(() => API.stepInPlace(S, jA, jB, dice(d, pos.salt)));
+        API.leanRun(() => {
+          const mine = jS.some(o => o && o.kind === 'pass' && o.mega) ? sideMap(S, side, jS) : jS;
+          const jA = side === 'A' ? mine : jO, jB = side === 'A' ? jO : mine;
+          API.stepInPlace(S, jA, jB, dice(d, pos.salt));
+        });
       } catch (e) { err = String(e && e.message || e).slice(0, 200); COUNTERS.errors++; pos.errors++; }
       pos.steps++; COUNTERS.steps++;
       let board = null;
@@ -170,7 +179,30 @@ function create(API, opts) {
     return pos;
   }
 
-  return { COUNTERS, position, BROKEN: BREAK || null };
+  /* A SIDE'S ACTIONS AS THE ENGINE'S OWN MAP, for a joint holding PASS_MEGA. The API turns a joint array into this
+   * Map itself (engine/medicham_api.js `toActs`) but maps every pass to a plain pass, so the one case it cannot express
+   * is built here with the same four branches, in the same order; `solver/tests/test-gates.js` MAP holds the two to
+   * the same board on joints that both can express. */
+  function sideMap(S, sd, joint) {
+    const own = sd === 'A' ? S.actA : S.actB, foes = sd === 'A' ? S.actB : S.actA;
+    const team = (sd === 'A' ? S.sfA : S.sfB).team || [];
+    const map = new Map();
+    own.forEach((m, i) => {
+      if (!m) return;
+      const o = joint && joint[i];
+      if (o && o.kind === 'pass' && o.mega) { map.set(m, { kind: 'pass', mega: true }); return; }
+      if (!o || o.kind === 'pass' || o.forced) { map.set(m, { kind: 'pass' }); return; }
+      if (o.kind === 'switch') { map.set(m, { kind: 'switch', to: team[o.to] }); return; }
+      const tgt = o.target == null ? null : (o.target > 0 ? foes[o.target - 1] : own[-o.target - 1]) || null;
+      const pa = M.playerAction(m, o.move, tgt, S.field);
+      if (!pa) throw new Error('probe.sideMap: the engine could not build ' + o.move);
+      if (o.mega) pa.mega = true;
+      map.set(m, pa);
+    });
+    return map;
+  }
+
+  return { COUNTERS, position, sideMap, BROKEN: BREAK || null };
 }
 
 /* A SEEDED PERMUTATION (Fisher-Yates on a small LCG): the covering designs below must be a function of the
@@ -227,7 +259,9 @@ function oppCover(lo, seed, rounds) {
 /* THE GATES' BUDGET: o.maxSteps engine steps for the position, and/or an absolute o.deadline (Date.now()). Past either,
  * a gate stops asking and KEEPS what it has not proved dead. */
 const over = (pos, o) => !!o && ((o.maxSteps && pos.steps >= o.maxSteps) || (o.deadline && Date.now() >= o.deadline));
+/* THE ONE COVER BOTH GATES USE for a position (2 rounds, seeded by the position), built once and kept on it */
+const cover = pos => pos._cover || (pos._cover = oppCover(pos.lo, 13 + (pos.salt | 0), 2));
 const hasSwitch = j => j.some(x => x && x.kind === 'switch');
 const isMove = o => !!(o && o.kind === 'move' && !o.forced);
 
-module.exports = { create, optKey, jointKey, perm, hashStr, oppCover, hasSwitch, isMove, over, PASS, live };
+module.exports = { create, optKey, jointKey, perm, hashStr, oppCover, cover, hasSwitch, isMove, over, PASS, PASS_MEGA, live };

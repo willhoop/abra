@@ -51,12 +51,7 @@ const BREAK = (typeof process !== 'undefined' && process.env && process.env.GATE
 function create(API, deps) {
   deps = deps || {};
   const COUNTERS = { verdicts: 0, live: 0, soft: 0, dead: 0, untested: 0, na: 0, budgetStops: 0, altRescued: 0, uninformativeWorlds: 0, shieldWorlds: 0 };
-  const ROUNDS = deps.rounds || 2;
 
-  function cover(pos) {
-    if (!pos._cover) pos._cover = P.oppCover(pos.lo, 7 + pos.salt, ROUNDS);
-    return pos._cover;
-  }
   /* my partner's options that can stand beside `a` in one legal joint */
   function partners(pos, k, a) {
     const sl = pos.la.slots[1 - k];
@@ -65,13 +60,21 @@ function create(API, deps) {
     const list = sl.options.filter(b => ok.has(P.jointKey(k === 0 ? [a, b] : [b, a])));
     return BREAK === 'nopartner' ? list.slice(0, 1) : list;
   }
-  /* the worlds for (k, a): the opponent's cover, stretched so every partner option appears at least ROUNDS times */
+  /* THE WORLDS FOR (k, a): EVERY partner option against EVERY entry of the opponent's covering design — the full
+   * product, and the SAME worlds (same joints, same dice) the pair gate asks about, so the two gates read one set of
+   * engine answers. The first full run gave MAG only a stretched cover (each partner option twice, beside a random
+   * opponent joint) and the pair gate the whole cover per partner: in 6 of 2,000 decisions the pair gate then saw a
+   * click SUCCEED (an Encore at my partner after the partner had moved, found when no Fake Out stopped it) that MAG
+   * had already called dead. One design for both makes that impossible: a pair-gate effect is a success in a world
+   * MAG also played. Interleaved, so a live click still finds its success in the first few worlds. */
   function worlds(pos, k, a, B) {
-    const C = cover(pos);
-    const n = Math.max(C.length, ROUNDS * B.length);
+    const C = P.cover(pos);
     const pb = P.perm(B.length, P.hashStr(k + ':' + P.optKey(a)) + pos.salt);
     const out = [];
-    for (let i = 0; i < n; i++) out.push({ b: B[pb[i % B.length]], o: C[i % C.length].o, di: i });
+    for (let t = 0; t < C.length; t++) for (let i = 0; i < B.length; i++) {
+      const c = C[(t + i) % C.length];
+      out.push({ b: B[pb[i]], o: c.o, di: c.di });
+    }
     return out;
   }
 

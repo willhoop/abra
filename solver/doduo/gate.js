@@ -29,7 +29,8 @@
  *
  * DELIBERATE BREAKS (env GATE_BREAK): `pairany` — a pair is cut when `a` is futile beside `b` without asking whether
  * it has an effect beside anyone else (so the pair gate starts cutting over MAG's dead clicks); `norep` — the
- * partner's click is not kept reachable (see representative()). solver/tests/test-gates.js must go red under each.
+ * partner's click is not kept reachable (see representative()); `megapass` — a mega click's counterfactual is a plain
+ * pass, so the mega evolution itself reads as the click's effect. solver/tests/test-gates.js must go red under each.
  */
 'use strict';
 const P = require('../mag/probe.js');
@@ -38,9 +39,9 @@ const BREAK = (typeof process !== 'undefined' && process.env && process.env.GATE
 function create(API, deps) {
   deps = deps || {};
   const COUNTERS = { pairs: 0, cut: 0, kept: 0, futileChecks: 0, otherPartnerScans: 0, budgetStops: 0, uninformativeWorlds: 0, representativesKept: 0 };
-  const ROUNDS = deps.rounds || 2;
-  const cover = pos => pos._pcover || (pos._pcover = P.oppCover(pos.lo, 13 + pos.salt, ROUNDS));
-  const withPass = (j, k) => j.map((x, i) => (i === k ? P.PASS : x));
+  const cover = pos => P.cover(pos);
+  /* the counterfactual: slot k does nothing — but a mega click still mega-evolves (probe.js PASS_MEGA) */
+  const withPass = (j, k) => j.map((x, i) => (i === k ? (x && x.mega && BREAK !== 'megapass' ? P.PASS_MEGA : P.PASS) : x));
 
   /* 'eff' | 'none' | 'uninf' for slot k's click in joint j against opponent joint o on dice di */
   function effect(pos, j, k, o, di) {

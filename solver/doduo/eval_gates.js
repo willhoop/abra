@@ -139,11 +139,14 @@ function worker(shard, shards) {
     const brought = G.brought_seen[me];
     const act = side.active || [];
     const order = [];
-    for (const i of act) if (i != null && !order.includes(i)) order.push(i);
-    if (order.length < act.length) {           // an empty active slot keeps a fainted body so the slots stay aligned
-      const f = brought.find(i => !order.includes(i) && side.mons[i] && side.mons[i].fnt);
-      if (f == null) throw new Error('empty active slot with no fainted body to hold it');
-      if (act[0] == null) order.unshift(f); else order.push(f);
+    /* an empty active slot keeps a fainted body IN ITS POSITION (the one the log last saw there), so the slots stay aligned */
+    for (let k = 0; k < act.length; k++) {
+      if (act[k] != null) { order.push(act[k]); continue; }
+      const fnt = brought.filter(i => !act.includes(i) && !order.includes(i) && side.mons[i] && side.mons[i].fnt);
+      const f = fnt.find(i => side.mons[i].pos === (k === 0 ? 'a' : 'b'));
+      const h = f != null ? f : fnt[0];
+      if (h == null) throw new Error('empty active slot with no fainted body to hold it');
+      order.push(h);
     }
     for (const i of brought) if (!order.includes(i)) order.push(i);
     return { side: { pokemon: order.map(i => {

@@ -21,6 +21,9 @@
  *               takes it) — the "whatever the partner does" quantifier
  *   HH          Helping Hand: the pair (HH, attacking partner) is KEPT; (HH, non-attacking partner) and (HH, switching
  *               partner) are CUT; MAG leaves Helping Hand itself LIVE (it works beside an attacker)
+ *   MEGA        a MEGA Helping Hand beside a Protect is CUT: the counterfactual still mega-evolves, so the mega itself
+ *               is not mistaken for Helping Hand's effect
+ *   MAP         the probe's own side map (built only for that counterfactual) steps exactly as the API's joint array
  *   REDIRECT    both slots on the same redirect move: CUT; one redirect beside an attack: KEPT
  *   REFUSED     both slots switching to one bench body is not a joint at all (MEDICHAM legalActions refuses it)
  *   REACH       when every slot-k click is futile beside the partner's click, one of those pairs is kept, so the
@@ -36,7 +39,7 @@
  *
  * RED, unless --no-red: re-runs itself under each GATE_BREAK and REQUIRES the named clause to fail:
  *   anytrue -> IMMUNE, softhard -> IMMUNE, nopartner -> PARTNER, pairany -> DISJOINT, norep -> REACH, exec -> EXEC,
- *   dice -> DICE, short -> TALL, shieldcounts -> STATUSED, fullheal -> HEAL.
+ *   dice -> DICE, short -> TALL, shieldcounts -> STATUSED, fullheal -> HEAL, megapass -> MEGA.
  */
 'use strict';
 require('../arena/env.js');
@@ -96,6 +99,7 @@ function body(sp, moves, o) {
   if (o.status) b.status = o.status;
   if (o.spe != null) b.st.sp = o.spe;
   if (o.fainted) { b.curHP = 0; b.fainted = true; }
+  if (o.item) b.item = o.item;
   return b;
 }
 function battle(A, B) { const S = API.newBattle(A, B, { seeded: true }); S.maxTurns = Infinity; return S; }
@@ -277,6 +281,37 @@ if (!immune) cannot('no derived (move, immune species, plain species) triple pas
   console.log(`  REFUSED: ${sw0.length}x${sw1.length} switch pairs in the slot product, ${same} to one body in legalActions, ${diff} to two`);
 }
 
+/* ---------- MEGA: a mega click's counterfactual still mega-evolves ---------- */
+{
+  /* a species whose mega forme is in the regulation, with its stone (both read off the dex) */
+  const U = quietSpecies.find(s => (s.otherFormes || []).some(f => { const m = D.species.get(f); return X.legal(m) && m.isMega && m.requiredItem && X.legal(D.items.get(m.requiredItem)); }));
+  if (!U) cannot('no species with a legal mega forme');
+  const megaF = D.species.get(U.otherFormes.find(f => { const m = D.species.get(f); return X.legal(m) && m.isMega && m.requiredItem; }));
+  const stone = X.toID(megaF.requiredItem);
+  const atk = MOVES.filter(plainDamaging).find(m => m.basePower <= 60);
+  const P = quietSpecies.find(s => s !== U), N = quietSpecies.find(s => ![U, P].includes(s)), N2 = quietSpecies.find(s => ![U, P, N].includes(s));
+  const S = battle([body(U, [hh, stallMove], { item: stone }), body(P, [atk, stallMove])], [body(N, FOE), body(N2, FOE)]);
+  const p = pos(S);
+  const jM = p.la.joint.find(j => j[0].kind === 'move' && j[0].move === 'helpinghand' && j[0].mega && j[1].kind === 'move' && j[1].move === stallMove.id);
+  if (!jM) cannot('the engine offered no mega Helping Hand for ' + U.id + ' holding ' + stone);
+  const v = DG.pairVerdict(p, jM);
+  ok('MEGA', v.cut, `(mega Helping Hand, ${stallMove.id}): expected CUT (the mega is not Helping Hand's effect), got kept`);
+  console.log(`  MEGA: ${U.id} mega-evolving into Helping Hand beside ${stallMove.id} -> ${v.cut ? 'CUT' : 'kept'}`);
+
+  /* MAP: the probe's own side map (built only for a mega pass) plays exactly what the API's joint array plays */
+  let same = 0, n = 0;
+  const T0 = pos(S, { tall: false });
+  for (const j of T0.la.joint.slice(0, 12)) for (const o of T0.lo.joint.slice(0, 3)) {
+    n++;
+    const C1 = API.clone(S), C2 = API.clone(S);
+    API.stepInPlace(C1, j, o, M.midEventDice({ seed: 9, reset: false }));
+    API.stepInPlace(C2, probe.sideMap(C2, 'A', j), o, M.midEventDice({ seed: 9, reset: false }));
+    if (API.digest(C1) === API.digest(C2)) same++;
+  }
+  ok('MAP', n > 20 && same === n, `the probe's side map and the API's joint array parted on ${n - same} of ${n} steps`);
+  console.log(`  MAP: ${same}/${n} steps identical through the probe's side map and the API's joint array`);
+}
+
 /* ---------- REDIRECT ---------- */
 {
   const rds = MOVES.filter(m => m.condition && m.condition.onFoeRedirectTarget && !m.flags.powder);
@@ -367,7 +402,7 @@ const brk = probe.BROKEN || MG.BROKEN || DG.BROKEN;
 console.log('test-gates: ' + (checks - fails) + '/' + checks + ' checks' + (brk ? '  [BREAK ' + brk + ']' : '') + '  failed clauses: ' + ([...failed].join(',') || 'none'));
 
 if (!NO_RED && !brk) {
-  const need = [['anytrue', 'IMMUNE'], ['softhard', 'IMMUNE'], ['nopartner', 'PARTNER'], ['pairany', 'DISJOINT'], ['norep', 'REACH'], ['exec', 'EXEC'], ['dice', 'DICE'], ['short', 'TALL'], ['shieldcounts', 'STATUSED'], ['fullheal', 'HEAL']];
+  const need = [['anytrue', 'IMMUNE'], ['softhard', 'IMMUNE'], ['nopartner', 'PARTNER'], ['pairany', 'DISJOINT'], ['norep', 'REACH'], ['exec', 'EXEC'], ['dice', 'DICE'], ['short', 'TALL'], ['shieldcounts', 'STATUSED'], ['fullheal', 'HEAL'], ['megapass', 'MEGA']];
   let blind = 0;
   for (const [v, clause] of need) {
     const res = cp.spawnSync(process.execPath, [__filename, '--no-red'], { env: Object.assign({}, process.env, { GATE_BREAK: v }), encoding: 'utf8' });

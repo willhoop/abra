@@ -112,7 +112,19 @@ function create(API) {
     /* ---- their four: actives, the rest revealed, then the guess (never a revealed body twice) ---- */
     const os = st.sides[opp];
     const seen = os.mons.filter(m => m.seen).map(m => m.i);
-    const act = (os.active || []).filter(x => x != null);
+    /* THE SLOTS KEEP THEIR PLACES. An opposing slot left empty by a faint the opponent could not refill must stay
+     * empty in ITS position: compacting the survivors moved a slot-b body into slot a, so a move aimed at slot b
+     * (target 2) landed on the empty side of this world (found by solver/doduo/eval_gates.js, 2026-09-25). The
+     * empty slot is held by the fainted body the log last saw there (`pos`), else by any fainted revealed body. */
+    const act = [];
+    for (let k = 0; k < (os.active || []).length; k++) {
+      const i = os.active[k];
+      if (i != null) { act.push(i); continue; }
+      const posName = k === 0 ? 'a' : 'b';
+      const fnt = os.mons.filter(m => m.seen && m.fnt && !(os.active || []).includes(m.i) && !act.includes(m.i));
+      const hold = fnt.find(m => m.pos === posName) || fnt[0];
+      if (hold) act.push(hold.i);
+    }
     const order = [];
     for (const i of act) if (!order.includes(i)) order.push(i);
     for (const i of seen) if (!order.includes(i)) order.push(i);
