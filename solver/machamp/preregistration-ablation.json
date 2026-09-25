@@ -1,0 +1,18 @@
+{
+ "what": "MACHAMP ablation of generation 4 — which net lost the games. Written 2026-09-25 BEFORE the first ablation game or the Candidate B fit. No new self-play: both candidates come from the gen4 round's data (solver/out/selfplay/eaa5becc54eb/r2-sp1, built into solver/out/machamp/eaa5becc54eb/cand4/).",
+ "engine_release": "eaa5becc54eb",
+ "hypothesis": "gen4's DODUO, distilled toward a 4-row search mix, drifted +0.051 nats from the human clone and is what cost the games; its PORYGON2 is neutral or helps.",
+ "candidates": {
+  "A": { "spec": "solver/machamp/league/abl-A.json", "what": "DODUO frozen at gen0 (MAG v1 + DODUO v1) + gen4's PORYGON2 (solver/machamp/models/gen4/porygon2-gen4.json), no training" },
+  "B": { "spec": "solver/machamp/league/abl-B.json", "what": "a NEW DODUO refit from DODUO v1 on the same gen4 targets with a much stronger pull to the human clone + gen0's PORYGON2 (v0)",
+         "fit": "solver/machamp/train_doduo.py, beta 0.7 (target = 0.3 search mix + 0.7 DODUO v1; rounds 1-2 used beta 0.3: 0.7 search mix + 0.3 DODUO v1), human-weight 3.0 (was 1.0), 3 epochs, lr 3e-4, the same selection rule (lowest self-play val CE among epochs within +0.05 nats of v1 on human val)" }
+ },
+ "match": "each candidate vs the champion gen0-r2 (MAG v1 + DODUO v1 + PORYGON2 v0): 100 held-out TEST pairs from data/team-pool-frozen-regmc x 2 seats = 200 games, pair seed 1, battle seed 7041 (A) and 7051 (B), both sides MILTANK k 4x4, 1000 ms, depth 0, 3 workers",
+ "reading": {
+  "helps": "Wilson 95% lower bound of the candidate's score > 0.5",
+  "hurts": "Wilson 95% upper bound < 0.5",
+  "no_detectable_effect": "otherwise (the interval contains 0.5); at n = 200 an effect under about 7 points is not resolvable",
+  "context": "gen4 (both nets changed) scored 0.475 [0.407, 0.544] against the same champion on the same 100 pairs with battle seed 7031; gen3 scored 0.430 [0.363, 0.499]"
+ },
+ "also_reported": "Candidate B's held-out human joint log-loss against DODUO v1 (the drift the stronger pull is meant to cut), paired, player-clustered"
+}

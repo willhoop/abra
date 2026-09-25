@@ -1,0 +1,162 @@
+{
+ "tag": "gen3",
+ "models": {
+  "mag": {
+   "path": "solver/machamp/models/gen3/mag-gen3.json",
+   "sha256": "f58fe27f5d483e0256281cb65bb58c0f77cce9f1658f83a5aff6cf3fcc03347a"
+  },
+  "doduo": {
+   "path": "solver/machamp/models/gen3/doduo-gen3.json",
+   "sha256": "fef163b749486d1fa8960d37955a02f3e7f99fd644dcdfb9c62300c0be5eb733"
+  }
+ },
+ "init": {
+  "mag": "c720dd9e0696bc3ecda280dff8fa47d74778d1f8d3c74bd7ae10bff4e30f2aa4",
+  "doduo": "da319ee23b44770af3c5d1c28909c4a6dc44b9d723071e171ec05d46dc3f17a6"
+ },
+ "anchor_human_clone": {
+  "mag": "c720dd9e0696bc3ecda280dff8fa47d74778d1f8d3c74bd7ae10bff4e30f2aa4",
+  "doduo": "da319ee23b44770af3c5d1c28909c4a6dc44b9d723071e171ec05d46dc3f17a6"
+ },
+ "selfplay_tensors": {
+  "dir": "solver/out/machamp/eaa5becc54eb/cand3/doduo",
+  "sizes": {
+   "train": {
+    "decisions": 12555,
+    "slots": 23642,
+    "cands": 241384,
+    "targets": 49783
+   },
+   "val": {
+    "decisions": 1197,
+    "slots": 2266,
+    "cands": 22926,
+    "targets": 4758
+   }
+  },
+  "counts": {
+   "games": 1000,
+   "decisions": 13907,
+   "kept": 13752,
+   "no_cells": 0,
+   "too_unfilled": 14,
+   "low_mass": 141,
+   "key_mismatch": 0,
+   "slot_mismatch": 0,
+   "by_split": {
+    "train": 12555,
+    "val": 1197
+   },
+   "hist_missing": 0,
+   "mass_kept_mean": 0.9979
+  }
+ },
+ "flags": {
+  "init_mag": "solver/mag/model/mag-v1.json",
+  "init_doduo": "solver/mag/model/doduo-v1.json",
+  "anchor_mag": "solver/mag/model/mag-v1.json",
+  "anchor_doduo": "solver/mag/model/doduo-v1.json",
+  "human": "solver/out/mag",
+  "selfplay": "solver/out/machamp/eaa5becc54eb/cand3/doduo",
+  "out_dir": "solver/machamp/models/gen3",
+  "tag": "gen3",
+  "metrics": "solver/machamp/models/gen3/doduo-gen3.metrics.json",
+  "beta": 0.3,
+  "human_weight": 1.0,
+  "epochs": 3,
+  "lr": 0.0003,
+  "batch": 256,
+  "tol": 0.05,
+  "threads": 4,
+  "seed": 1,
+  "boot": 1000,
+  "test_limit": 0,
+  "fixture": "solver/machamp/models/gen3/doduo-gen3.fixture.json"
+ },
+ "history": [
+  {
+   "epoch": -1,
+   "selfplay_val_ce": 1.974900452017087,
+   "human_val_nll": 2.447957861328125
+  },
+  {
+   "epoch": 0,
+   "train_selfplay_ce": 2.075891797542572,
+   "train_human_nll": 2.279888596534729,
+   "selfplay_val_ce": 1.8509109739273313,
+   "human_val_nll": 2.484403759765625,
+   "seconds": 67.17695212364197
+  },
+  {
+   "epoch": 1,
+   "train_selfplay_ce": 2.03663854598999,
+   "train_human_nll": 2.246589479446411,
+   "selfplay_val_ce": 1.840499304291001,
+   "human_val_nll": 2.4879385986328124,
+   "seconds": 81.5039610862732
+  },
+  {
+   "epoch": 2,
+   "train_selfplay_ce": 2.0165281677246094,
+   "train_human_nll": 2.263864369392395,
+   "selfplay_val_ce": 1.8303907453366488,
+   "human_val_nll": 2.4894350158691405,
+   "seconds": 23.47027564048767
+  }
+ ],
+ "selected_epoch": 2,
+ "human_test_vs_v1": {
+  "what": "held-out human TEST decisions, exact joints; diff = new - v1 (the human clone); 95% player-cluster bootstrap",
+  "joint_ll": {
+   "est": 2.7754510424320324,
+   "lo": 2.7434193398346562,
+   "hi": 2.809807055138677,
+   "n": 25477,
+   "ref": 2.729662982128357,
+   "diff": 0.045788060303675326,
+   "diff_lo": 0.04108978160718204,
+   "diff_hi": 0.05006635089886796
+  },
+  "joint_r1": {
+   "est": 0.24924441653255877,
+   "lo": 0.24270343633960353,
+   "hi": 0.255789286392603,
+   "n": 25477,
+   "ref": 0.25411155159555676,
+   "diff": -0.00486713506299799,
+   "diff_lo": -0.007546574085204265,
+   "diff_hi": -0.0019442138635286988
+  },
+  "joint_r4": {
+   "est": 0.555245908073949,
+   "lo": 0.5463122789729716,
+   "hi": 0.5639976564584663,
+   "n": 25477,
+   "ref": 0.5542646308435059,
+   "diff": 0.0009812772304431672,
+   "diff_lo": -0.0014623610161324158,
+   "diff_hi": 0.0035872003685535805
+  },
+  "joint_r8": {
+   "est": 0.7248891156729599,
+   "lo": 0.7174038242357428,
+   "hi": 0.732550135972046,
+   "n": 25477,
+   "ref": 0.7249283667621776,
+   "diff": -3.9251089217762214e-05,
+   "diff_lo": -0.002205663451243059,
+   "diff_hi": 0.0021854057842437265
+  },
+  "joint_r16": {
+   "est": 0.8707461632060289,
+   "lo": 0.8650367335439153,
+   "hi": 0.8760863183057824,
+   "n": 25477,
+   "ref": 0.871884444793343,
+   "diff": -0.001138281587314105,
+   "diff_lo": -0.0030215568886791918,
+   "diff_hi": 0.0006510445568546102
+  }
+ },
+ "seconds": 297
+}

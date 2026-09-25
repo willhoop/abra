@@ -26,11 +26,14 @@ const crypto = require('crypto');
 const readline = require('readline');
 require('../arena/env.js');
 const ROOT = path.join(__dirname, '..', '..');
-const API = require(path.join(ROOT, 'engine', 'medicham_api.js'));
+const arg = (k, d) => { const i = process.argv.indexOf(k); return i >= 0 ? process.argv[i + 1] : d; };
+/* --release <id>: the engine facts come from a FROZEN release (solver/arena/engine.js), never the live tree,
+ * and the release stamp goes into meta.json. Without it the live tree is read and meta says so. */
+const ENGINE = require('../arena/engine.js').load(arg('--release', null));
+const API = ENGINE.API;
 const FX = require('./features.js');
 const { toID } = require('../human/dex.js');
 
-const arg = (k, d) => { const i = process.argv.indexOf(k); return i >= 0 ? process.argv[i + 1] : d; };
 const HUMAN = path.resolve(ROOT, arg('--human', path.join('C:', 'Users', 'willj', 'Projects', 'Pokemon', 'ABRA', 'solver', 'out', 'human')));
 const OUT = path.resolve(ROOT, arg('--out', 'solver/out/porygon2'));
 const LIMIT = +arg('--limit', 0) || Infinity;
@@ -107,7 +110,8 @@ function sha256File(p) {
     split: { rule: 'sha256("' + SALT + ':" + toID(player name)) mod 100: <80 train, <90 val, else test (MAG/DODUO split)', salt: SALT, codes: SPLITS },
     N, names: { tok_num: FX.TOK_NUM_NAMES, tok_id: FX.TOK_ID_NAMES, side: FX.SIDE_NUM_NAMES, field: FX.FIELD_NUM_NAMES, facts: FX.FACT_NAMES, meta: META_COLS, ends: ENDS },
     vocab, train_count: trainCount, counts, engine_counters: F.COUNTERS, seconds: (Date.now() - t0) / 1000,
-    engine_sha: crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'engine', 'medicham2-browser.js'))).digest('hex').slice(0, 16),
+    engine_sha: crypto.createHash('sha256').update(fs.readFileSync(ENGINE.REL ? path.join(ENGINE.REL.dir, 'engine', 'medicham2-browser.js') : path.join(ROOT, 'engine', 'medicham2-browser.js'))).digest('hex').slice(0, 16),
+    engine_release: ENGINE.id || null, release_stamp: ENGINE.stamp,
   };
   fs.writeFileSync(path.join(OUT, 'meta.json'), JSON.stringify(meta, null, 1));
   console.log(JSON.stringify({ N, counts, engine: F.COUNTERS, seconds: meta.seconds }));

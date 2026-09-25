@@ -1,0 +1,22 @@
+{
+ "what": "MACHAMP round 3 (generation 5), written 2026-09-25 BEFORE the deep-value run, the fits and the first SPRT game. It applies the four changes the gen4 ablation pointed to (docs/_reports/2026-09-25-selfplay-v0.md §11), all agreed by the coordinator.",
+ "engine_release": "eaa5becc54eb",
+ "champion": "solver/machamp/league/gen0-r2.json (MAG v1 + DODUO v1 + PORYGON2 v0; MILTANK k 4x4, 1 reserved switch row, 1000 ms, depth 0)",
+ "candidate": "solver/machamp/league/gen5.json — the champion's search settings, gen5's nets",
+ "data": {
+  "pooled": "every self-play round so far on this release, unweighted: solver/out/selfplay/eaa5becc54eb/{gen0, gen1, r2-sp0, r2-sp1} (1600 + 1600 + 1000 + 1000 games). Round 1's decisions with a matrix more than 50% empty stay excluded from DODUO (the build rule).",
+  "new_selfplay": "the champion keeps playing (r3-sp0, seed 104, the round-2 league and settings) in the background while the SPRT runs, for the next round; it is NOT used by gen5"
+ },
+ "porygon2": {
+  "target": "0.5 x game outcome z + 0.5 x v_deep, v_deep from solver/machamp/deep_value.js: the game replayed exactly, then 4 rollouts per position of 3 turns in which BOTH sides sample their joint from DODUO v1 (the frozen human clone), then the game's result if it ended, else frozen PORYGON2 v0. Never the search's depth-0 root value (the trained net's own opinion one turn ahead). Rollout seed 1.",
+  "training": "unchanged from rounds 1-2 otherwise (warm start from v0, human positions 1:1, 6 epochs, lr 5e-4; the same epoch selection)"
+ },
+ "doduo": "the strong pull that Candidate B used: beta 0.7 (target 0.3 search mix + 0.7 DODUO v1), human-click weight 3.0, 3 epochs, lr 3e-4, warm start from v1, same selection rule",
+ "gates": {
+  "G_pory2_human": "unchanged: 95% upper bound of (new - PORYGON2 v0) held-out human log-loss <= +0.004",
+  "G_beats_previous": "REPLACED by an SPRT: elo0 = 0, elo1 = +20, alpha = beta = 0.05, normal-approximation GSPRT on PAIR scores (one battle seed, seats swapped), bounds ln(beta/(1-alpha)) = -2.944 and ln((1-beta)/alpha) = +2.944, evaluated after every pair in pair-index order, stopped by the bound only; budget 2000 games (1000 pairs); no bound by then = INCONCLUSIVE. Pairs cycle over the 173 TEST team pairs of data/team-pool-frozen-regmc, pair i on battle seed 9001 x 100000 + i (solver/mew/play.js match mode). 3 workers, frozen release, 1000 ms per decision on both sides. PASS iff H1.",
+  "G_not_lose_clone": "unchanged: 200 games vs the human clone, Wilson 95% upper bound >= 0.5",
+  "accept": "all three pass"
+ },
+ "seeds": { "sprt_battle_seed": 9001, "clone_gate_battle_seed": 9002, "deep_value_seed": 1, "background_selfplay_seed": 104 }
+}

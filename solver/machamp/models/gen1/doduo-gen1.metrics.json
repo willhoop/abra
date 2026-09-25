@@ -1,0 +1,162 @@
+{
+ "tag": "gen1",
+ "models": {
+  "mag": {
+   "path": "solver/machamp/models/gen1/mag-gen1.json",
+   "sha256": "9982170ac006a3c2d9863f4707bee61c2b7946c3fa29224ee4ceb2714a32cfaa"
+  },
+  "doduo": {
+   "path": "solver/machamp/models/gen1/doduo-gen1.json",
+   "sha256": "1f1cfa2cb08ca0316eb589c9124b0053977e77b9d48c128d607c0680423c56db"
+  }
+ },
+ "init": {
+  "mag": "c720dd9e0696bc3ecda280dff8fa47d74778d1f8d3c74bd7ae10bff4e30f2aa4",
+  "doduo": "da319ee23b44770af3c5d1c28909c4a6dc44b9d723071e171ec05d46dc3f17a6"
+ },
+ "anchor_human_clone": {
+  "mag": "c720dd9e0696bc3ecda280dff8fa47d74778d1f8d3c74bd7ae10bff4e30f2aa4",
+  "doduo": "da319ee23b44770af3c5d1c28909c4a6dc44b9d723071e171ec05d46dc3f17a6"
+ },
+ "selfplay_tensors": {
+  "dir": "solver/out/machamp/eaa5becc54eb/cand1/doduo",
+  "sizes": {
+   "train": {
+    "decisions": 8938,
+    "slots": 15770,
+    "cands": 146688,
+    "targets": 43832
+   },
+   "val": {
+    "decisions": 964,
+    "slots": 1678,
+    "cands": 15021,
+    "targets": 4726
+   }
+  },
+  "counts": {
+   "games": 1600,
+   "decisions": 21930,
+   "kept": 9902,
+   "no_cells": 0,
+   "too_unfilled": 11858,
+   "low_mass": 170,
+   "key_mismatch": 0,
+   "slot_mismatch": 0,
+   "by_split": {
+    "train": 8938,
+    "val": 964
+   },
+   "hist_missing": 0,
+   "mass_kept_mean": 0.9918
+  }
+ },
+ "flags": {
+  "init_mag": "solver/mag/model/mag-v1.json",
+  "init_doduo": "solver/mag/model/doduo-v1.json",
+  "anchor_mag": "solver/mag/model/mag-v1.json",
+  "anchor_doduo": "solver/mag/model/doduo-v1.json",
+  "human": "solver/out/mag",
+  "selfplay": "solver/out/machamp/eaa5becc54eb/cand1/doduo",
+  "out_dir": "solver/machamp/models/gen1",
+  "tag": "gen1",
+  "metrics": "solver/machamp/models/gen1/doduo-gen1.metrics.json",
+  "beta": 0.3,
+  "human_weight": 1.0,
+  "epochs": 3,
+  "lr": 0.0003,
+  "batch": 256,
+  "tol": 0.05,
+  "threads": 4,
+  "seed": 1,
+  "boot": 1000,
+  "test_limit": 0,
+  "fixture": "solver/machamp/models/gen1/doduo-gen1.fixture.json"
+ },
+ "history": [
+  {
+   "epoch": -1,
+   "selfplay_val_ce": 2.138704861842745,
+   "human_val_nll": 2.447957861328125
+  },
+  {
+   "epoch": 0,
+   "train_selfplay_ce": 2.124523162841797,
+   "train_human_nll": 2.262898574556623,
+   "selfplay_val_ce": 2.016243709073522,
+   "human_val_nll": 2.462141107177734,
+   "seconds": 170.98476362228394
+  },
+  {
+   "epoch": 1,
+   "train_selfplay_ce": 2.076059511729649,
+   "train_human_nll": 2.248997674669538,
+   "selfplay_val_ce": 1.9996418300011345,
+   "human_val_nll": 2.4631333740234376,
+   "seconds": 40.15891933441162
+  },
+  {
+   "epoch": 2,
+   "train_selfplay_ce": 2.0530207770211355,
+   "train_human_nll": 2.2367511408669607,
+   "selfplay_val_ce": 1.985807173479642,
+   "human_val_nll": 2.46698828125,
+   "seconds": 159.77476811408997
+  }
+ ],
+ "selected_epoch": 2,
+ "human_test_vs_v1": {
+  "what": "held-out human TEST decisions, exact joints; diff = new - v1 (the human clone); 95% player-cluster bootstrap",
+  "joint_ll": {
+   "est": 2.751425607369462,
+   "lo": 2.721718739722601,
+   "hi": 2.783502200249779,
+   "n": 25477,
+   "ref": 2.729662982128357,
+   "diff": 0.02176262524110495,
+   "diff_lo": 0.018193547704683833,
+   "diff_hi": 0.025416940755749972
+  },
+  "joint_r1": {
+   "est": 0.24614358048435844,
+   "lo": 0.23976591939036207,
+   "hi": 0.2522596130211787,
+   "n": 25477,
+   "ref": 0.25411155159555676,
+   "diff": -0.007967971111198319,
+   "diff_lo": -0.010856266276032377,
+   "diff_hi": -0.005112361316858716
+  },
+  "joint_r4": {
+   "est": 0.5534796090591514,
+   "lo": 0.5447516829385817,
+   "hi": 0.5620150014541445,
+   "n": 25477,
+   "ref": 0.5542646308435059,
+   "diff": -0.0007850217843544671,
+   "diff_lo": -0.00353459903949144,
+   "diff_hi": 0.0020898991204009974
+  },
+  "joint_r8": {
+   "est": 0.7231228166581622,
+   "lo": 0.7156007849426675,
+   "hi": 0.7302274101617503,
+   "n": 25477,
+   "ref": 0.7249283667621776,
+   "diff": -0.0018055501040153965,
+   "diff_lo": -0.004333480977011908,
+   "diff_hi": 0.00041428163840291567
+  },
+  "joint_r16": {
+   "est": 0.8707854142952467,
+   "lo": 0.8655346944969912,
+   "hi": 0.875788466308605,
+   "n": 25477,
+   "ref": 0.871884444793343,
+   "diff": -0.0010990304980963428,
+   "diff_lo": -0.0030495445159553687,
+   "diff_hi": 0.0008301269162165999
+  }
+ },
+ "seconds": 563
+}

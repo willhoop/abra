@@ -1,0 +1,2 @@
+{ "name": "human-clone", "kind": "greedy",
+  "mag": "solver/mag/model/mag-v1.json", "doduo": "solver/mag/model/doduo-v1.json" }

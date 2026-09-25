@@ -53,10 +53,87 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
-## [abra/regmc 1.5.0] — 2026-09-25 — **MILTANK's decision deadline is hard: budget + 500 ms under load, with counted fallbacks**
+## [abra/regmc 1.10.0] — 2026-09-25 — **ROTOM collects garbage between decisions and can run its ladder decider at NORMAL; MILTANK reserve 300 ms at 5 s**
+- **What changed.** `solver/miltank/search.js`: reserve 6% of budget clamped 20-300 ms (`reserveMsOf`), `collectIdle` exported. `solver/rotom/rotom.js`: idle GC after a MILTANK choice is sent, request clock charged from a GC that overlapped it, `--priority normal|below`; `run_ladder.js` passes `--priority`; `solver/rotom/LADDER.md` MILTANK commands carry `--priority normal`.
+- **Measured.** Serial 5 s, 400 positions, one-core load: max 5,126 ms, 0 over budget + 500 ms, 0 fallbacks (`solver/results/2026-09-25-deadline/serial-b5000-n400-reserve300.json`). Local bo3 set: 24 MILTANK decisions, 24 idle GCs, max ms minus budget -179 ms, 0 timeouts; the client recorded `priority_set` 0 (NORMAL). `docs/_reports/2026-09-25-miltank-deadline.md` §7.
+- **Basis.** unchanged. **Supersedes.** Nothing; the 1.9.0 serial 5 s margin of 74 ms describes the 150 ms reserve and stays as measured. **Owed to the next major.** The technical docs' ROTOM section: `--priority` and the idle GC.
+
+## [abra/regmc 1.9.0] — 2026-09-25 — **MILTANK's decision deadline is hard: budget + 500 ms under load, with counted fallbacks**
 - **What changed.** `solver/miltank/{search,cells,pool,pool_worker,rollout}.js`: an absolute deadline with a reserve, no pass started after it, the pool resolved on a timer with the passes streamed in 40 ms slices, late workers cancelled and counted, in-flight playouts abandoned between turns, the solve capped, a counted fallback to the ranking prior's top joint when a row is empty or under 25% of cells are filled, a diagonal cell walk, `collectIdle()` for a GC off the clock, and the dex warmed at pool start-up. `solver/rotom/policy.js`: the forced-switch search no longer overspends its budget. New `solver/bench/deadline_bench.js`, `solver/bench/cpu_burner.js`, `solver/tests/test-miltank-deadline.js`.
 - **Measured.** Release `eaa5becc54eb`, 2,000 real Reg M-C positions per arm (`pos_sha` `33d88ad3c8ecb507`), each lane on one core with a starve/fair/idle burner: pool max 1,004 ms at 1 s (`solver/results/2026-09-25-deadline/pool-b1000-n2000-final.json`) and 4,906 ms at 5 s (`pool-b5000-n2000-final.json`); serial + collectIdle max 1,268 ms at 1 s (`serial-b1000-n2000-final.json`) and 5,426 ms at 5 s (`serial-b5000-n2000-final.json`); 0 over budget + 500 ms in all four. Break arms first: 73/300 over at 1 s, max 7,035 ms (`pool-b1000-n300-final-BREAK.json`); 31/100 over at 5 s, max 11,569 ms (`pool-b5000-n100-final-BREAK.json`). Fallbacks at 1 s: 65% pool, 30% serial. Test `solver/tests/test-miltank-deadline.js` 16/16, RED under `MILTANK_DEADLINE_BREAK=1`. `docs/_reports/2026-09-25-miltank-deadline.md`.
 - **Basis.** unchanged. **Supersedes.** Nothing. The 1.4.0 arena figures were played on the old code and stand as figures about it; the 28-39 s decisions they report are the defect fixed here, and the fallback's strength is not measured. **Owed to the next major.** The technical docs' MILTANK section: the deadline, the fallback, `collectIdle`, and the decider-priority requirement for ladder search.
+## [abra/regmc 1.8.1] — 2026-09-25 — **The unattended MACHAMP loop and its pre-registration**
+- **What changed.** New: `solver/machamp/loop_sprt.js` and `solver/machamp/preregistration-loop.json`.
+  `build_pory2.js --deep` takes a list of directories.
+- **Measured.** NO FIGURE.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none.
+
+## [abra/regmc 1.8.0] — 2026-09-25 — **gen5 accepted: SPRT H1 at +20 Elo after 1,268 games (0.528 [0.501, 0.556])**
+- **What changed.**
+  - New: `solver/machamp/{deep_value,sprt}.js`, `preregistration-r3.json`, `league/gen5.json`, `models/gen5/`.
+  - `--deep` in `build_pory2.js`, `--cycle` in `play.js`, and `datasetActions` exported from `prior_adapter.js`.
+  - `test-machamp` gains DEEP and SPRT clauses.
+- **Measured.** Release `eaa5becc54eb`, 1,000 ms, depth 0, 3 workers:
+  - SPRT (elo0 0, elo1 +20, α = β = 0.05): H1, 634 pairs = 1,268 games, 670–598 = 0.528 [0.501, 0.556].
+  - Clone gate 0.660 [0.592, 0.722]; PORYGON2 human Δ −0.0030 [−0.0057, −0.0004].
+  - Deep values: 39,538 positions replayed, 0 mismatches. Background self-play: 493 games/hour on 2 workers.
+  - Sources: `solver/machamp/models/gen5/gates.json`, `solver/out/machamp/eaa5becc54eb/gates/gen5-sprt.json`.
+  - `test-machamp` 108/108, RED on eight breaks.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MEW and MACHAMP in `docs/MODELS.md`.
+
+## [abra/regmc 1.7.0] — 2026-09-25 — **gen4 ablation: neither net detectably helps or hurts; the anchored DODUO is neutral and stays close to humans**
+- **What changed.** New: `solver/machamp/preregistration-ablation.json`, `league/abl-{A,B}.json`, `models/ablB/`.
+  No code change.
+- **Measured.** Against gen0-r2, 200 games each, release `eaa5becc54eb`, 1,000 ms, depth 0:
+  - A (gen4 PORYGON2 only): 0.465 [0.397, 0.534].
+  - B (DODUO with β 0.7 and human weight 3.0, PORYGON2 v0): 0.500 [0.431, 0.569].
+  - B's human drift: +0.0120 [0.0097, 0.0143] nats.
+  - Sources: `solver/out/machamp/eaa5becc54eb/gates/abl-{A,B}.json`, `solver/machamp/models/ablB/doduo-ablB.metrics.json`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MEW and MACHAMP in `docs/MODELS.md`.
+
+## [abra/regmc 1.6.0] — 2026-09-25 — **MACHAMP round 2: full search (0.1% empty cells), frozen team store; gen3 loses to the champion, gen4 ties; neither accepted**
+- **What changed.**
+  - `solver/mew/pairs.js` gains the frozen team store (`data/team-pool-frozen-regmc`).
+  - `--team-store` passes through `mew/run.js`, `machamp/gate.js` and `machamp/loop.js`; `loop.js` reads a round
+    block from its pre-registration.
+  - New: `solver/machamp/preregistration-r2.json`, `league/gen0-r2.json`, `models/gen{3,4}/`.
+- **Measured.** Release `eaa5becc54eb`, k 4×4, 1,000 ms, depth 0, 3 workers:
+  - Self-play: 737.5 and 735.4 games/hour; empty cells 0.10% and 0.00%.
+  - gen3 against the champion 0.430 [0.363, 0.499] FAIL; against the clone 0.675 [0.607, 0.736] PASS; PORYGON2
+    Δ −0.0025 [−0.0046, −0.0004] PASS.
+  - gen4 against the champion 0.475 [0.407, 0.544] FAIL; against the clone 0.690 [0.623, 0.750] PASS; Δ −0.0010
+    [−0.0034, +0.0016] PASS.
+  - Sources: `solver/machamp/models/gen{3,4}/gates.json`.
+  - `test-machamp` 91/91, RED on six breaks.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MEW and MACHAMP in `docs/MODELS.md`.
+
+## [abra/regmc 1.5.0] — 2026-09-25 — **Self-play loop v0 (MEW + MACHAMP): two generations trained and gated on `eaa5becc54eb`; neither accepted**
+- **What changed.**
+  - New: `solver/mew/{pairs,agent,play,run}.js`, `solver/machamp/{build_doduo,build_pory2,gate,loop}.js`,
+    `train_{pory2,doduo}.py`, `preregistration.json`, `league/`, `models/gen{1,2}/`, `solver/tests/test-machamp.js`.
+  - Additive options in `solver/miltank/{search,rollout,prior_adapter}.js`; `--release` in
+    `solver/porygon2/build_dataset.js`.
+  - Account: `docs/_reports/2026-09-25-selfplay-v0.md`.
+- **Measured.** Release `eaa5becc54eb`, 4 workers, 500 ms per decision:
+  - Self-play: 1,721 and 1,943 games/hour (`solver/out/selfplay/eaa5becc54eb/gen{0,1}/manifest.json`).
+  - PORYGON2 against v0 on held-out human test log-loss: gen1 −0.0025 [−0.0053, +0.0005], gen2 −0.0038
+    [−0.0062, −0.0014]; both PASS.
+  - Against gen0 (200 games): 0.525 [0.456, 0.593] and 0.520 [0.451, 0.588]; both FAIL.
+  - Against the human clone: 0.560 [0.491, 0.627] and 0.490 [0.422, 0.559]; both PASS.
+  - Sources: `solver/machamp/models/gen{1,2}/gates.json`.
+  - `test-machamp` 95/95 and RED on six breaks; `test-miltank`, `test-porygon2` 423/423, `test-playout-speed` 1,184/1,184,
+    `test-arena-release` 17/17 GREEN.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MEW and MACHAMP in `docs/MODELS.md` and the solver section of the technical docs.
 
 ## [abra/regmc 1.4.0] — 2026-09-25 — **First post-gate solver measurements; DODUO-greedy chosen as the ladder bot**
 - **What changed.** Measurement only, plus the ladder choice in `solver/LOG.md`. Release `eaa5becc54eb`; sheets `solver/out/human/games.jsonl` (pool `9d07c522200de072`, team-pair ids `ba106d1ad5487ac2`); `--seed 1 --games 200 --k1 8 --k2 8 --cap 60 --workers 4`, MILTANK default depth 2, through `tools\lownode.cmd`. `docs/_reports/2026-09-25-first-solver-measurements.md`.

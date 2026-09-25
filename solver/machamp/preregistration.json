@@ -1,0 +1,43 @@
+{
+ "what": "MACHAMP self-play loop v0 — the tests a generation must pass, fixed BEFORE the first self-play game and the first gate game (2026-09-25). Read once, at the end of each gate; no interim look.",
+ "engine_release": "eaa5becc54eb",
+ "regulation": "Reg M-C (gen9championsvgc2026regmcbo3), open team sheets",
+ "agents": {
+  "generation": "MILTANK v1 (solver/miltank/search.js) with the generation's MAG+DODUO as the candidate prior for both sides of the matrix and the generation's PORYGON2 as the leaf; budget 500 ms per decision, k 5x5, 2 reserved switch rows, depth 0 (the leaf right after the searched turn), in-process (no cell pool). Specs: solver/machamp/league/*.json",
+  "human_clone": "DODUO v1 greedy: the most likely legal joint under MAG v1 + DODUO v1 (the behaviour clone of the human dataset), no search. solver/machamp/league/human-clone.json",
+  "gen0": "MAG v1 + DODUO v1 + PORYGON2 v0 (the store-trained nets) inside MILTANK"
+ },
+ "selfplay": {
+  "teams": "real human open-sheet team pairs with the humans' own brought four and leads, both players in the MAG/DODUO/PORYGON2 TRAIN split (solver/mew/pairs.js)",
+  "league": "the current generation plays: itself 0.6, the previous accepted generation 0.2, the human clone 0.2 (with no previous generation its weight goes to itself)",
+  "games_per_generation": 1600,
+  "workers": 4,
+  "turn_cap": 50,
+  "recorded": "per searched decision: the public position (via the game's history), the root value v, the row mix x, the column mix y, the mean matrix, and the final result"
+ },
+ "training": {
+  "porygon2": "warm start from the champion; every self-play train position once per epoch (target 0.5*v + 0.5*z) plus as many human train positions (target z); BCE on the antisymmetric logit; lr 5e-4, wd 1e-4, 6 epochs; keep the epoch with the lowest self-play val loss whose human val log-loss is within +0.002 of the champion's, else the lowest human val log-loss (the champion itself is a candidate)",
+  "doduo": "warm start from the champion; target tau = 0.7*search mix + 0.3*DODUO v1 (the human clone) on the same cells, cross-entropy for DODUO and for MAG factorised, plus the human-click NLL on as many human train decisions (weight 1.0); lr 3e-4, 3 epochs; keep the lowest self-play val CE among epochs whose human val NLL is within +0.05 nats of the champion's, else the champion",
+  "data": "the current generation's self-play only (v0); games split 90/10 train/val by a hash of the game"
+ },
+ "gates": {
+  "G_pory2_human": {
+   "question": "Is the new PORYGON2 no worse than v0 on held-out human data?",
+   "metric": "held-out HUMAN TEST log-loss (test players' views, the MAG/DODUO player split), new minus PORYGON2 v0, both evaluated on the same positions re-encoded on release eaa5becc54eb, bootstrap over games (2000 resamples)",
+   "pass": "the 95% upper bound of (new - v0) <= +0.004 (v0's measured split-half floor, solver/porygon2/model/porygon2-v0.metrics.json)"
+  },
+  "G_beats_previous": {
+   "question": "Does generation n+1 beat generation n?",
+   "design": "100 held-out TEST team pairs (both players in the test split), each played twice with the seats swapped on one battle seed = 200 games; both agents at 500 ms per decision (equal wall-clock); frozen release eaa5becc54eb; turn cap 50 with the engine's HP rule deciding a capped game",
+   "pass": "the Wilson 95% LOWER bound of generation n+1's score > 0.5",
+   "note": "a fixed-n test read once at 200 games, as the task specifies; it is not an SPRT and it is not powered for small effects (at n = 200 the lower bound clears 0.5 only from a score of about 0.57)"
+  },
+  "G_not_lose_clone": {
+   "question": "Does generation n+1 not lose to the human clone?",
+   "design": "the same 100 test pairs x 2 seats = 200 games, generation n+1 vs the human clone",
+   "pass": "the Wilson 95% UPPER bound of generation n+1's score >= 0.5"
+  },
+  "accept": "a generation is ACCEPTED (becomes the champion that plays the next self-play) only if all three gates pass. A rejected candidate is kept on disk, reported, and never plays self-play."
+ },
+ "seeds": { "selfplay_gen0": 100, "selfplay_gen1": 101, "gate_pair_seed": 1, "gate_battle_seed": { "beats_previous": 7001, "not_lose_clone": 7002 } }
+}

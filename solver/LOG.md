@@ -8,7 +8,14 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-25
 
-### MILTANK's deadline is hard (abra/regmc 1.5.0)
+### Deadline follow-ups (abra/regmc 1.10.0)
+- ROTOM runs `collectIdle()` after each MILTANK choice (in a local set: 24 of 24, max 412 ms, no decision over its
+  budget). `--priority normal` raises a ladder client's decider, and the runbook uses it. The reserve is now 300 ms
+  at 5 s, and the serial 5 s max fell to 5,126 ms (margin 374 ms, was 74 ms).
+- Self-play note: MEW records a root only when `info.rec` exists, and a deadline fallback has none. Fallback turns
+  therefore drop out of the training data.
+
+### MILTANK's deadline is hard (abra/regmc 1.9.0)
 - The 28-39 s decisions at a 5 s budget had one cause on the pool path: the parent waited for every worker, and a
   worker read the clock only after a playout, so one BELOW_NORMAL worker starved of CPU held the decision.
   Reproduced on the old code: 17.2 s at a 1 s budget. The serial path (ROTOM's) had a second cause, major GCs of
@@ -22,6 +29,51 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
   not measured. ROTOM does not call `collectIdle` yet, and its clients run BELOW_NORMAL: both are owed before any
   search-based ladder play.
 - Detail: `docs/_reports/2026-09-25-miltank-deadline.md`; artifacts `solver/results/2026-09-25-deadline/`.
+### Round 3 — gen5 ACCEPTED (abra/regmc 1.8.0)
+- The changes: a strong DODUO anchor; PORYGON2 on 0.5·z + 0.5·deep value (exact replay, then 4 × 3-turn
+  human-clone rollouts; 0 mismatches over 39,538 positions); every round's data pooled (5,200 games).
+- **SPRT (elo0 0, elo1 +20, α = β = 0.05): H1 after 1,268 games, 0.528 [0.501, 0.556] against gen0.**
+- Human clone 0.660; PORYGON2 human gate PASS.
+- gen5 is the champion. `r3-sp0` (1,000 games) was played in the background for round 4.
+- Detail: report §12.
+
+### gen4 ablation (abra/regmc 1.7.0)
+- A, new PORYGON2 only: 0.465 [0.397, 0.534] against the champion.
+- B, DODUO refit with a strong human pull (drift +0.012 nats instead of +0.051), PORYGON2 v0: 0.500 [0.431, 0.569].
+- **Neither net detectably helps or hurts at n = 200**; the DODUO-drift hypothesis is not confirmed.
+- Next: keep the strong anchor, stop training PORYGON2 on its own depth-0 value, accumulate data, gate by SPRT.
+- Detail: report §11.
+
+### MACHAMP round 2 — generations 3 and 4 (abra/regmc 1.6.0)
+- Settings: full search (k 4×4, 1,000 ms, depth 0), 3 workers, teams from `data/team-pool-frozen-regmc`.
+- 736 games/hour; 0.1% of cells empty.
+- gen3 against the champion 0.430 [0.363, 0.499]: **significantly worse**.
+- gen4 against the champion 0.475 [0.407, 0.544].
+- Both beat the human clone: 0.675 and 0.690. Both pass the PORYGON2 human gate.
+- Neither accepted; the champion stays gen0 (as `gen0-r2`).
+- Suspected cause: DODUO distilled toward a 4-row mix drifts +0.05 nats from humans. A one-net-at-a-time ablation
+  is owed. Detail: `docs/_reports/2026-09-25-selfplay-v0.md` §10.
+
+### Self-play loop v0 — MEW + MACHAMP (abra/regmc 1.5.0; branch worktree-agent-aab7de2f53411dba8, merged)
+- MEW plays real human open-sheet team pairs (train-split players) on the frozen release `eaa5becc54eb`. Both
+  sides are MILTANK with the generation's DODUO prior and PORYGON2 leaf, at 500 ms per decision, k 5×5, depth 0.
+  League weights: current 0.6, previous 0.2, human clone 0.2. Each decision records the position, v, both
+  mixes, the matrix and the result.
+- MACHAMP builds the targets:
+  - PORYGON2: 0.5·v + 0.5·z, with human positions 1:1.
+  - DODUO: 0.7·search mix + 0.3·DODUO v1, plus the human-click NLL.
+- MACHAMP gates each candidate with the pre-registered gates (`solver/machamp/preregistration.json`, committed
+  before the first game).
+- **Throughput: 1,721 and 1,943 self-play games/hour** on 4 workers. One generation step takes about 80 min.
+- **2 generations trained, 0 accepted:**
+  - gen1: PORYGON2 human Δ −0.0025 [−0.0053, +0.0005] PASS; beats gen0 0.525 [0.456, 0.593] FAIL; vs clone
+    0.560 PASS.
+  - gen2: Δ −0.0038 [−0.0062, −0.0014] PASS; beats gen0 0.520 [0.451, 0.588] FAIL; vs clone 0.490 PASS.
+  - The champion stays gen0.
+- The search is starved at this budget: 30–41% of cells were unfilled, so 36–54% of decisions are too empty to
+  train DODUO on. Next: a longer or pass-capped self-play budget, a human-only PORYGON2 control, and a gate
+  sized for about 3 points.
+- `solver/tests/test-machamp.js` 95/95, RED on 6 breaks. Detail: `docs/_reports/2026-09-25-selfplay-v0.md`.
 
 ### First post-gate measurements, and the ladder bot: DODUO-greedy
 - All on frozen release `eaa5becc54eb`, the same 100 real Reg M-C team pairs (pool `9d07c522200de072`, ids

@@ -1,0 +1,62 @@
+{
+ "gen": 1,
+ "candidate": "solver/machamp/league/gen4.json",
+ "champion_before": "solver/machamp/league/gen0-r2.json",
+ "G_pory2_human": {
+  "diff": -0.00099,
+  "ci95": [
+   -0.003447,
+   0.001648
+  ],
+  "pass": true
+ },
+ "G_beats_previous": {
+  "score": 0.475,
+  "ci95": [
+   0.40691500740098613,
+   0.54402729289493
+  ],
+  "W": 95,
+  "D": 0,
+  "L": 105,
+  "paired": {
+   "team_pairs": 100,
+   "both": 15,
+   "split": 65,
+   "lost": 20,
+   "incomplete": 0
+  },
+  "pass": false,
+  "warnings": []
+ },
+ "G_not_lose_clone": {
+  "score": 0.69,
+  "ci95": [
+   0.622826945087378,
+   0.75001157266366
+  ],
+  "W": 138,
+  "D": 0,
+  "L": 62,
+  "paired": {
+   "team_pairs": 100,
+   "both": 44,
+   "split": 50,
+   "lost": 6,
+   "incomplete": 0
+  },
+  "pass": true,
+  "warnings": []
+ },
+ "selfplay": {
+  "done": true,
+  "seconds": 4896,
+  "at": "2026-09-25T13:00:21.160Z",
+  "dir": "solver/out/selfplay/eaa5becc54eb/r2-sp1",
+  "games": 1000,
+  "games_per_hour": 735.4,
+  "warnings": []
+ },
+ "at": "2026-09-25T13:32:35.571Z",
+ "accepted": false
+}

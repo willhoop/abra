@@ -21,7 +21,23 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.5.0] — 2026-09-25
+## [1.10.0] — 2026-09-25
+
+### Changed
+- **The MILTANK reserve is now 6% of the budget, clamped to 20-300 ms** (it was 3%, clamped to 150 ms). The serial
+  5 s arm of 1.9.0 passed by only 74 ms. Re-measured on 400 real Reg M-C positions under the same one-core load:
+  max 5,126 ms against a 5,500 ms bound, a margin of 374 ms, with 0 over and 0 fallbacks
+  (`solver/results/2026-09-25-deadline/serial-b5000-n400-reserve300.json`).
+
+### Added
+- **ROTOM runs a GC between decisions** (`collectIdle()` after a MILTANK choice is sent). A request handled right
+  after a GC is charged from that GC's start. It is counted as `idle_gc` in the summary. In one local bo3 set:
+  24 MILTANK decisions, 24 idle GCs (max 412 ms), no decision over its budget, and 0 timeouts.
+- **`--priority normal|below` on `rotom.js`**, which `run_ladder.js` passes through. It raises the deciding client
+  to NORMAL, while MILTANK's pool workers stay BELOW_NORMAL. The runbook's MILTANK ladder commands use
+  `--priority normal`. Account: `docs/_reports/2026-09-25-miltank-deadline.md` §7.
+
+## [1.9.0] — 2026-09-25
 
 ### Fixed
 - **A MILTANK decision now returns within its budget + 500 ms under load.** At a 5 s budget the arena had shown
@@ -48,6 +64,103 @@ rewritten; what changed and why is stated.
 - `solver/tests/test-miltank-deadline.js`: BOUND, COUNTED and SEARCH clauses; it re-runs itself under the break and
   requires RED.
 - Pool workers warm the Reg M-C dex at start-up (1.9 s of CPU that used to land in the first decision).
+## [1.8.1] — 2026-09-25
+
+### Added
+- `solver/machamp/loop_sprt.js`: the unattended MACHAMP loop. Each generation runs gen5's recipe on pooled
+  self-play and meets the pre-registered SPRT against the current champion, then publishes to main.
+  Pre-registration: `solver/machamp/preregistration-loop.json`.
+- `build_pory2.js --deep` takes a list of deep-value directories.
+
+### Notes
+- Tooling only; no figure is published.
+- **Basis.** unchanged.
+
+## [1.8.0] — 2026-09-25
+
+### Added
+- `solver/machamp/deep_value.js`: exact game replay, then human-clone rollouts, giving a value independent of the
+  net being trained.
+- `solver/machamp/sprt.js`: a pre-registered GSPRT on paired seeds, read only at the bound.
+- `play.js --cycle`; `build_pory2.js --deep`; `prior_adapter.datasetActions`.
+- `test-machamp` DEEP and SPRT clauses (108/108; RED on `MACHAMP_BREAK=replay` and `=sprtsign`).
+- `solver/machamp/models/gen5/`.
+
+### Notes
+- **gen5 ACCEPTED**, the first accepted generation (pre-registration `solver/machamp/preregistration-r3.json`).
+  Pooled data from every round, a strong DODUO anchor, and PORYGON2 trained on 0.5·z + 0.5·deep rollout value.
+- **SPRT (elo0 0, elo1 +20, α = β = 0.05): H1 after 1,268 games**; gen5 against gen0 **0.528 [0.501, 0.556]**
+  (670–598), Elo ≈ +19.7.
+- PORYGON2 human Δ −0.0030 [−0.0057, −0.0004] PASS; against the human clone 0.660 [0.592, 0.722] PASS.
+- Source: `solver/machamp/models/gen5/gates.json`. Account: `docs/_reports/2026-09-25-selfplay-v0.md` §12.
+- **Basis.** unchanged.
+
+## [1.7.0] — 2026-09-25
+
+### Added
+- **MACHAMP ablation of generation 4** (`solver/machamp/preregistration-ablation.json`, `league/abl-{A,B}.json`,
+  `models/ablB/`). No new self-play.
+
+### Notes
+- **Candidate A** (DODUO frozen at gen0, gen4's PORYGON2): **0.465 [0.397, 0.534]** against the champion.
+- **Candidate B** (DODUO refit with a strong pull to the human clone, β 0.7 and human weight 3.0; PORYGON2 v0):
+  **0.500 [0.431, 0.569]**. Its drift from the human clone is +0.012 nats; gen4's was +0.051.
+- Both were 200 games on release `eaa5becc54eb`, 1,000 ms per decision, depth 0, 3 workers.
+- **Neither net detectably helps or hurts.** The hypothesis that DODUO lost the games is not confirmed.
+- Next generation: keep the strong DODUO anchor, stop training PORYGON2 on its own depth-0 value, and gate with an
+  SPRT or a larger n.
+- Account: `docs/_reports/2026-09-25-selfplay-v0.md` §11.
+- **Basis.** unchanged.
+
+## [1.6.0] — 2026-09-25
+
+### Added
+- **MACHAMP round 2 (generations 3 and 4).** `solver/mew/pairs.js` reads the frozen team store
+  (`data/team-pool-frozen-regmc`, bo3 file, pool digest `792daded918f`). Its sheet names are read back from the
+  Reg M-C dex. On the 10,298 games it shares with the human dataset, it agrees with that dataset in every one.
+  `--team-store` passes through `mew/run.js`, `machamp/gate.js` and `machamp/loop.js`.
+- `loop.js` reads a later round's settings from its pre-registration: `solver/machamp/preregistration-r2.json`.
+  The champion at the round-2 search settings is `league/gen0-r2.json`.
+
+### Notes
+- **Settings:** k 4×4, 1,000 ms per decision, depth 0, 3 workers.
+- **Self-play:** 737.5 and 735.4 games/hour; 0.10% and 0.00% of cells empty (round 1: 30–41%).
+- **Both candidates REJECTED:**
+  - gen3: PORYGON2 human Δ −0.0025 [−0.0046, −0.0004] PASS; against the champion **0.430 [0.363, 0.499] FAIL**;
+    against the human clone 0.675 [0.607, 0.736] PASS.
+  - gen4: Δ −0.0010 [−0.0034, +0.0016] PASS; against the champion 0.475 [0.407, 0.544] FAIL; against the clone
+    0.690 [0.623, 0.750] PASS.
+  - The champion stays gen0 (as `gen0-r2`).
+- DODUO moved +0.046 and +0.051 nats away from the human clone on held-out human data. It is the suspected cause
+  of gen3's loss; the ablation is owed.
+- Sources: `solver/machamp/models/gen{3,4}/gates.json`. Account: `docs/_reports/2026-09-25-selfplay-v0.md` §10.
+- **Basis.** unchanged.
+
+## [1.5.0] — 2026-09-25
+
+### Added
+- **MEW, the self-play factory, and MACHAMP, the training loop (v0).** `solver/mew/` (team pairs split by player,
+  league agents, the worker and its coordinator) and `solver/machamp/` (DODUO and PORYGON2 builders and trainers,
+  the arena gate, the loop, `preregistration.json`, the league specs and `models/gen{1,2}/`). Every game plays on
+  a frozen release and is stamped with its id. Additive MILTANK options: `leafModel` (a PORYGON2 file per agent),
+  `record` (the whole root), `jointCells` (each joint's DODUO cell). `solver/porygon2/build_dataset.js` takes
+  `--release`.
+- `solver/tests/test-machamp.js`: 95/95 GREEN; six deliberate breaks each turn it RED.
+
+### Notes
+- **Measured on release `eaa5becc54eb`**, 4 workers, MILTANK at 500 ms per decision, k 5×5, depth 0 with the
+  PORYGON2 leaf:
+  - Self-play ran at 1,721 and 1,943 games/hour (1,600 games per generation, 0 errors, 0 fallbacks).
+  - Two candidates were trained and gated. **Both were REJECTED.**
+    - PORYGON2 against v0 on held-out human log-loss: −0.0025 [−0.0053, +0.0005] and −0.0038 [−0.0062, −0.0014],
+      both PASS.
+    - Beats gen0 (200 games): 0.525 [0.456, 0.593] and 0.520 [0.451, 0.588], both FAIL.
+    - Does not lose to the human clone: 0.560 [0.491, 0.627] and 0.490 [0.422, 0.559], both PASS.
+  - The champion stays gen0.
+  - The search was starved: 30–41% of matrix cells were unfilled at the clock.
+- Sources: `solver/machamp/models/gen{1,2}/gates.json`, `solver/out/selfplay/eaa5becc54eb/gen{0,1}/manifest.json`.
+  Account: `docs/_reports/2026-09-25-selfplay-v0.md`.
+- **Basis.** unchanged. The new figures are first measurements. No published figure moves.
 
 ## [1.4.0] — 2026-09-25
 
