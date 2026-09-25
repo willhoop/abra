@@ -53,6 +53,11 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 0.126.0] — 2026-09-24 — **ROTOM v0 merged: the Reg M-C bo3 client, local server only**
+- **What changed.** `solver/rotom/` and `solver/tests/test-rotom.js` merged from `worktree-agent-aea75574da660f13b`. No engine byte moved.
+- **Measured.** Reliability only: 41 sets / 90 games on a local server, 0 timeouts, 0 invalid choices, 0 crashed sets (`docs/_reports/2026-09-24-rotom-v0.md` §2). No win rate is quoted — those runs were PRE-GATE. `test-rotom.js` 86/86 on main.
+- **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** ROTOM belongs in the solver section of the technical docs and `docs/MODELS.md`.
+
 ## [abra/regmc 0.125.0] — 2026-09-24 — **Reg M-C gate re-read on the merged engine: OPEN, 10 of 10; narration baseline stamped at zero**
 - **What changed.** Measurement only, plus the narration baseline stamp. Release `eaa5becc54eb`, pin `census-pin-regmc-123aa264f88d`, pool `data/team-pool-frozen-regmc`, `--steering empirical --arm middle --end-state`, `--games` 1200/1600/1900. `docs/_reports/2026-09-24-regmc-gate-final.md`.
 - **Measured.** `engine/quarantine.js` (Reg M-C): GATE OPEN, 10 of 10. Board-material and undeclared narration-only 0/955, 0/1266, 0/1497 (`data/game-differential-regmc.json`, `.g1600-regmc`, `.g1900-regmc`); damage 0/6000 (`data/engine-diff-regmc.json`); roster 166/166, 210/214, 510/511 (`data/roster.*-regmc.json`); 4,867 staged games, 0 threw (`data/all-mechanics-fire-regmc.json`). Baseline `data/whole-game-baseline-regmc.json` rate 0, 0 of 955.

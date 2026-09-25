@@ -21,6 +21,16 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [0.126.0] — 2026-09-24
+
+### Added
+- **ROTOM v0, the live client for Reg M-C bo3 — local server only.** `solver/rotom/`: the request JSON as the legality
+  authority, the MEDICHAM position built from the observed log, `random` / `prior` / `miltank` policies, a clock that reads
+  the rule (420/90/55/90) from the checkout, per-series memory, a two-account lock, socket- and process-kill drills. A
+  non-local server is refused (exit 2) without `--public`; no `/search` is ever sent. Merged from
+  `worktree-agent-aea75574da660f13b` (4163001a, 42ba3149). `solver/tests/test-rotom.js` 86/86 GREEN on main.
+  Its runs were PRE-GATE and quote no win rate. `docs/_reports/2026-09-24-rotom-v0.md`.
+
 ## [0.125.0] — 2026-09-24
 
 ### Changed
