@@ -21,6 +21,30 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.2.0] — 2026-09-25
+
+### Added
+- **MACHAMP round 2 (generations 3 and 4).** `solver/mew/pairs.js` reads the frozen team store
+  (`data/team-pool-frozen-regmc`, bo3 file, pool digest `792daded918f`). Its sheet names are read back from the
+  Reg M-C dex. On the 10,298 games it shares with the human dataset, it agrees with that dataset in every one.
+  `--team-store` passes through `mew/run.js`, `machamp/gate.js` and `machamp/loop.js`.
+- `loop.js` reads a later round's settings from its pre-registration: `solver/machamp/preregistration-r2.json`.
+  The champion at the round-2 search settings is `league/gen0-r2.json`.
+
+### Notes
+- **Settings:** k 4×4, 1,000 ms per decision, depth 0, 3 workers.
+- **Self-play:** 737.5 and 735.4 games/hour; 0.10% and 0.00% of cells empty (round 1: 30–41%).
+- **Both candidates REJECTED:**
+  - gen3: PORYGON2 human Δ −0.0025 [−0.0046, −0.0004] PASS; against the champion **0.430 [0.363, 0.499] FAIL**;
+    against the human clone 0.675 [0.607, 0.736] PASS.
+  - gen4: Δ −0.0010 [−0.0034, +0.0016] PASS; against the champion 0.475 [0.407, 0.544] FAIL; against the clone
+    0.690 [0.623, 0.750] PASS.
+  - The champion stays gen0 (as `gen0-r2`).
+- DODUO moved +0.046 and +0.051 nats away from the human clone on held-out human data. It is the suspected cause
+  of gen3's loss; the ablation is owed.
+- Sources: `solver/machamp/models/gen{3,4}/gates.json`. Account: `docs/_reports/2026-09-25-selfplay-v0.md` §10.
+- **Basis.** unchanged.
+
 ## [1.1.0] — 2026-09-25
 
 ### Added

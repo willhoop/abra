@@ -8,6 +8,16 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-25
 
+### MACHAMP round 2 — generations 3 and 4 (same branch)
+- Settings: full search (k 4×4, 1,000 ms, depth 0), 3 workers, teams from `data/team-pool-frozen-regmc`.
+- 736 games/hour; 0.1% of cells empty.
+- gen3 against the champion 0.430 [0.363, 0.499]: **significantly worse**.
+- gen4 against the champion 0.475 [0.407, 0.544].
+- Both beat the human clone: 0.675 and 0.690. Both pass the PORYGON2 human gate.
+- Neither accepted; the champion stays gen0 (as `gen0-r2`).
+- Suspected cause: DODUO distilled toward a 4-row mix drifts +0.05 nats from humans. A one-net-at-a-time ablation
+  is owed. Detail: `docs/_reports/2026-09-25-selfplay-v0.md` §10.
+
 ### Self-play loop v0 — MEW + MACHAMP (branch worktree-agent-aab7de2f53411dba8, unmerged)
 - MEW plays real human open-sheet team pairs (train-split players) on the frozen release `eaa5becc54eb`. Both
   sides are MILTANK with the generation's DODUO prior and PORYGON2 leaf, at 500 ms per decision, k 5×5, depth 0.

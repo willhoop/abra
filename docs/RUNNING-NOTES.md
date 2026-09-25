@@ -53,6 +53,24 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.2.0] — 2026-09-25 — **MACHAMP round 2: full search (0.1% empty cells), frozen team store; gen3 loses to the champion, gen4 ties; neither accepted**
+- **What changed.**
+  - `solver/mew/pairs.js` gains the frozen team store (`data/team-pool-frozen-regmc`).
+  - `--team-store` passes through `mew/run.js`, `machamp/gate.js` and `machamp/loop.js`; `loop.js` reads a round
+    block from its pre-registration.
+  - New: `solver/machamp/preregistration-r2.json`, `league/gen0-r2.json`, `models/gen{3,4}/`.
+- **Measured.** Release `eaa5becc54eb`, k 4×4, 1,000 ms, depth 0, 3 workers:
+  - Self-play: 737.5 and 735.4 games/hour; empty cells 0.10% and 0.00%.
+  - gen3 against the champion 0.430 [0.363, 0.499] FAIL; against the clone 0.675 [0.607, 0.736] PASS; PORYGON2
+    Δ −0.0025 [−0.0046, −0.0004] PASS.
+  - gen4 against the champion 0.475 [0.407, 0.544] FAIL; against the clone 0.690 [0.623, 0.750] PASS; Δ −0.0010
+    [−0.0034, +0.0016] PASS.
+  - Sources: `solver/machamp/models/gen{3,4}/gates.json`.
+  - `test-machamp` 91/91, RED on six breaks.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MEW and MACHAMP in `docs/MODELS.md`.
+
 ## [abra/regmc 1.1.0] — 2026-09-25 — **Self-play loop v0 (MEW + MACHAMP): two generations trained and gated on `eaa5becc54eb`; neither accepted**
 - **What changed.**
   - New: `solver/mew/{pairs,agent,play,run}.js`, `solver/machamp/{build_doduo,build_pory2,gate,loop}.js`,
