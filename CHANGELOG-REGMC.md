@@ -21,6 +21,152 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.20.0] — 2026-09-26
+
+### Fixed
+- **ROTOM's world carries the exact consecutive-Protect counter.** The live search built its root with no `stall`
+  counter, so every playout priced a second Protect as certain. On the ladder it re-clicked Protect on 28 of the 90 turns
+  its body carried the counter, and 20 of those failed. The human opponents in the same games re-clicked on 4 of 146.
+  `solver/rotom/world.js stallStreaks` reads the counter off the public log. A use is the user's own `|move|` of a
+  protect-family move, and it held when `|-singleturn|` names the user. The counter is the unbroken run of held uses
+  ending on the last closed turn, and it is cleared by a switch, a drag or a faint. `rotom.js` passes the log. The
+  approximate streak of 1.18.0 counted every stalling click, held or not, and missed the side guards. It now stands only
+  for a build without the log. Counters `stallLaid` and `stallNoLines`.
+- `test-rotom` GEN5: the searcher is warmed (`policy.warmGen5`, as ROTOM does at preview) before the timed 700 ms
+  decision. Run cold under load, it once drew a world and no playout (104/105), which says nothing about the policy.
+
+### Added
+- `solver/tests/test-rotom-world-stall.js`: the log-read counter equals MEDICHAM's own on 1,583/1,583 body-turns of 30
+  seeded games, and a captured live request gets 1 for a held Protect and 0 for a failed one. RED under
+  `ROTOM_WORLD_BREAK=nostall`.
+- `solver/arena/protect_stats.js` on every match row (`protect.x`/`protect.y`: actions, family clicks, failed,
+  consecutive, consecutive failed) and `solver/arena/protect_read.js`. `solver/mew/agent.js` spec field
+  `view_drops_stall` (honest view only) plays the pre-fix agent in the arena.
+- Probes (measurements): `probe_protect_repeat.js` (MEDICHAM applies the roll: 195/600 = 0.325, full and lean alike),
+  `probe_protect_live.js` (the live read per counter-turn), `probe_protect_passes.js` (the search's repeat mass by pass
+  count and by leaf, column and row width), `probe_doduo_protect.js` (DODUO's Protect pull on held-out human positions).
+
+### Notes
+- **Arena, release `eaa5becc54eb`, honest, frozen Reg M-C store, 200 games per P run.** Before → after, gen5 vs
+  DODUO-greedy on the same 100 pairs and seeds. At 1 s: share 17.7% → 15.8%, fail 12.6% → 10.4%, score 0.625 → 0.660.
+  At 5 s: share 16.9% → 16.7%, fail 13.1% → 13.4%, score 0.630 → 0.695. Head to head at 1 s the pre-fix arm reproduces
+  the live defect: 19.6% share, 18.5% fail, 23.5% consecutive. The fixed arm reads 17.5%, 14.4% and 18.4%. Humans are at
+  12.4% and 3.6%. **Both pre-registered protect bars FAILED** (`solver/results/2026-09-26-protect-overuse/`).
+- **Strength:** the non-regression SPRT (1 s, elo0 −20, elo1 0, 400 games) was INCONCLUSIVE, 208–192, 0.520
+  [0.471, 0.569]. No loss detected.
+- **Not the leaf, not the opponent model:** offered a repeat by DODUO's top four, the search puts 61% of its mix on it at
+  48 passes. The share rises with passes, so it is not noise. It is 64% with the heuristic leaf and 78% with 8 columns.
+  The rest of the excess is the depth-0 equilibrium over DODUO's candidates. It is open, and owed to MILTANK and DODUO.
+- The gen5-vs-prior ladder rows before this fix measure the pre-fix agent. A restart is a new run id.
+
+## [1.19.0] — 2026-09-26
+
+### Added
+- **The tiered gates (Will, 2026-09-26).** A click is ALWAYS BANNED — removed — when no branch (the target staying, or
+  any switch-in the opponent has) achieves its PURPOSE; it is MOSTLY BANNED — kept, weighted by the human switch model's
+  probability of a rescuing switch, floored at 0.001 — when it is futile against the body in now and works only on a
+  switch. `solver/mag/purpose.js` reads the purpose off the move's data: a guaranteed-flinch move's purpose is the flinch
+  (so a Fake Out into a body that cannot flinch, or into a Ghost type, is always banned: a switch-in is never flinched);
+  a status move aimed at a body whose effect is a status, a stat change or a board-read volatile is judged on the
+  target's board; everything else on MEDICHAM's move result. MAG (per slot) and DODUO's pair gate stay separate jobs.
+- In play the alternative worlds put every unrevealed sheet member on the bench (at most 16 draws), and the weight comes
+  from MAG v1 + DODUO v1 scoring the opponent's joints from its own seat (`solver/doduo/v2.js`).
+- `solver/arena/click_rates.js`: every match row carries each arm's Protect repeats and immune hits, read on the true
+  battle at the click; `solver/arena/click_rates_read.js` reads them. `solver/doduo/loss_replays.js` prints what the
+  replay says after every click a gate cut. `eval_gates.js --human-only`: the survival and mostly-banned questions over
+  every held-out decision.
+- `solver/tests/test-gates.js`: FAKEOUT, ENCORE, WEIGHT, BENCH, SHIELDRES, ALLFUTILE and a purpose case in DISJOINT;
+  42 checks, 21 deliberate breaks, each red. Specs `solver/doduo/specs/{doduo-greedy,gen5}-tiered.json`; pre-registration
+  `solver/doduo/preregistration-tiered.json`.
+
+### Changed
+- `solver/doduo/gate.js`: the pair gate no longer judges a click MAG calls dead. With purpose, a dead click can still move
+  the board beside some partner, and the pair gate had cut 593 such pairs in the seed-5 eval; the removal is the same,
+  the two jobs are kept apart. No click in play changes (DODUO v2 cuts on MAG first).
+
+### Notes
+- Release `eaa5becc54eb`, held-out Reg M-C: the human's joint survives the always-banned tier **99.60% [99.21, 99.80]**
+  on a fresh 2,000 (8 losses, all real misclicks by their replays) and **99.69% [99.61, 99.76]** on all 20,482 eligible
+  decisions (63 losses: 61 real misclicks, 2 errors of the 2026-09-25 pair gate). The 99.9% bar is not met as a rate.
+- Humans click a mostly-banned move 24 times in 33,784 move clicks (0.071%); 13 of 23 achieved their purpose, all on a
+  turn the opponent switched.
+- DODUO-greedy tiered vs ungated: **H0** after 56 games, 0.482 [0.357, 0.610]. MILTANK gen5 1 s tiered vs ungated:
+  **H0** after 364 games, 0.467 [0.416, 0.518], equal wall-clock (965 vs 960 ms). Protect repeats and immune hits did not
+  move measurably in either arm. Artifacts `solver/results/2026-09-26-tiered/`; account
+  `docs/_reports/2026-09-26-tiered-gates.md`.
+- `docs/ENGINE.md`: a Prankster-boosted status move refused by a Dark target ends with the move result `true` here and
+  `false` in the authority (readers: Stomping Tantrum, Temper Flare, the Metronome item). Filed, not fixed.
+
+## [1.18.0] — 2026-09-26
+
+### Added
+- **MAG v2, the per-slot DEAD-CLICK gate** (`solver/mag/gate.js`). MAG no longer scores or ranks (Will, 2026-09-25).
+  It asks MEDICHAM whether a click ever SUCCEEDS — the engine's own move result — across every option of the partner
+  and a covering design of the opponent's joints, and cuts it only if it never does. A click rescued only by the
+  opponent switching is SOFT: weight 1e-3, never cut. No list of types, statuses or moves anywhere.
+- **DODUO v2's pair gate** (`solver/doduo/gate.js`) and **DODUO v2** as a policy (`solver/doduo/v2.js`). A joint is
+  cut only when one click changes nothing on the board beside THIS partner click and does beside another (Helping
+  Hand beside a non-attacker or a switch, two redirects, an attack on a partner who Protects). DODUO's learned score
+  ranks the rest. A drop-in prior adapter: DODUO-greedy and MILTANK take it with a spec field `gates`.
+- **One engine interface for both** (`solver/mag/probe.js`): the worlds are TALL (HP x4,096, capped at 60%) so no
+  verdict rests on a KO or a heal; a world where the target's shield held is skipped; the sleep clock is opened.
+- `solver/doduo/eval_gates.js`, `solver/doduo/gate_tables.js`, `solver/tests/test-gates.js` (30 checks, RED on 15
+  breaks), `solver/doduo/preregistration-gates.json`.
+
+### Changed
+- `solver/mew/play.js`: every match row carries the shard's running agent counters (fallbacks, gate cuts), because an
+  SPRT kills its workers at the bound and a killed worker writes no summary.
+- `solver/mew/agent.js`: a spec's `gates` field wraps the prior in DODUO v2 and digests the gate code.
+- **ROTOM's world** (`solver/rotom/world.js`): a body switched out and back in within the last turn is new (its Fake
+  Out is selectable again); last move, Protect streak, moves used since entry and PP are laid on from the log; an
+  empty opposing slot keeps its place. Found by the gates' held-out run; changes the live client's menu.
+
+### Fixed
+- **`solver/tests/test-machamp.js --no-red` ran ZERO clauses and printed `0/0 GREEN`.** `--only` was read as
+  `argv[indexOf('--only') + 1]`, which with no `--only` is `argv[0]`. Now `--only` is read only when given. Run in this
+  worktree it is RED on REBUILD and TARGETS because `solver/out/mag/meta.json` (an untracked build output of the main
+  checkout) is absent here — an environment gap, owed a re-run from the main checkout.
+
+### Notes
+- Built and measured 2026-09-25 on a branch numbered 1.12.0, which main had meanwhile used; merged and renumbered 1.18.0 on 2026-09-26 (1.17.0 went to ROTOM's end reasons meanwhile).
+- Release `eaa5becc54eb`, held-out Reg M-C decisions (seed 4, 1,999): the human's joint survives both gates **99.85%
+  [99.56, 99.95]** — below the pre-registered 99.9%; all 3 losses are clicks their replays show failed or did nothing.
+  MAG cuts 1.56% of per-slot options and weights 1.84% near zero; joints removed: MAG 2.29%, pair gate 4.10%, either
+  6.35%; **0 pair cuts on a click MAG calls dead**.
+- DODUO-greedy gated vs ungated: 0.500 [0.451, 0.549], 400 games, SPRT inconclusive. MILTANK (gen5 nets, 1 s, equal
+  wall-clock) gated vs ungated: 0.505 [0.456, 0.554], 400 games, inconclusive (H0 at 0.466 on the previous gate code).
+  No strength gain shown. Artifacts `solver/results/2026-09-25-gates/`; account `docs/_reports/2026-09-25-mag-doduo-gates.md`.
+- `docs/ENGINE.md`: the `#509` residual (a shielded status move reads success here, null in the authority) filed
+  again with its readers; not fixed, and the gate works around it.
+
+## [1.17.0] — 2026-09-26
+
+### Added
+- **ROTOM records how every game and series ended** (`solver/rotom/endings.js`, from the protocol lines, following
+  the spec in `docs/_reports/2026-09-26-click-outcomes.md` §6). Per game (game record, `game_end` event, series book):
+  `end_reason` normal / forfeit_opp / forfeit_me / timeout_opp / timeout_me / inactivity / tie / unknown, `end_by`,
+  `end_turn`, `at_preview`, `end_raw`. Per series (ladder row, series book `end`): the same plus walkaway_opp /
+  walkaway_me (someone left between games), `end_game`, `games_won`/`games_lost`, `any_forfeit_opp`, `games_end[]`.
+- **Our own forfeit, timeout or walkaway HALTS the ladder** (`ladder.js onSelfQuit`): one is a ladder error, a
+  `self_quit` event and a halt (no new search, exit 4 once idle). It must be zero.
+- **`node solver/rotom/report.js ladder <run dir>`**: the record RATED ONLY, with and without the series the
+  opponent handed us, per arm, mean S and S − E ± SD, unrated series listed and excluded. `run_ladder.js` writes the
+  same record per client into `ladder-report.json`.
+- **`solver/rotom/backfill_ends.js`** derived the fields for aa1, aa2 and gen5ab into NEW files beside the originals
+  (`ladder-series-medicham32.ends.jsonl`, `games-ends-medicham32.jsonl`); the originals are untouched. All three
+  runs: 0 self quits. Rated records with / without the opponent's quits: aa1 5-5 / 2-5, aa2 5-11 / 2-11, gen5ab
+  arm A 8-11 / 3-11, arm B 7-10 / 2-10.
+- Tests: `solver/tests/test-rotom-endings.js` (59/59, six deliberate breaks each RED) and
+  `solver/tests/test-rotom-endings-live.js` (the real client against a scripted server, 19/19; RED under
+  `--break selfquit`).
+
+### Fixed
+- **An unrated series no longer enters a record or a mean.** gen5ab k30 was `rated: false` with `S = 1`, and any
+  count that did not filter scored it as a win. `endings.js ladderRecord` throws without `{ rated: true }`;
+  `report.js gamesReport` counts rated series only (teams and game rates too) and lists the unrated ones.
+
+---
+
 ## [1.16.0] — 2026-09-26
 
 ### Added

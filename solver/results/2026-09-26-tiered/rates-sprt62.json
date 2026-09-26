@@ -1,0 +1,51 @@
+{
+ "sprt": "solver/out/gates/eaa5becc54eb/sprt-gen5-tiered-vs-gen5-s62.json",
+ "verdict": "H0 — X is not stronger (elo0 = 0 accepted)",
+ "stop_pair_index": 181,
+ "counted_games": 364,
+ "rows_without_clicks": 0,
+ "x": {
+  "name": "x",
+  "games": 364,
+  "decisions": 3373,
+  "clicks": 5413,
+  "protect": 1097,
+  "protect_repeat": 174,
+  "aimed": 2989,
+  "immune": 9,
+  "priced_errors": 0,
+  "protect_repeat_rate": 0.15861440291704648,
+  "protect_repeat_ci95": [
+   0.13819232636029558,
+   0.18141914181096536
+  ],
+  "immune_hit_rate": 0.003011040481766477,
+  "immune_hit_ci95": [
+   0.0015849287567153098,
+   0.0057130184517169705
+  ],
+  "protect_per_decision": 0.32522976578713314
+ },
+ "y": {
+  "name": "y",
+  "games": 364,
+  "decisions": 3373,
+  "clicks": 5441,
+  "protect": 1120,
+  "protect_repeat": 190,
+  "aimed": 2932,
+  "immune": 7,
+  "priced_errors": 0,
+  "protect_repeat_rate": 0.16964285714285715,
+  "protect_repeat_ci95": [
+   0.148799678720124,
+   0.19274453889915613
+  ],
+  "immune_hit_rate": 0.0023874488403819918,
+  "immune_hit_ci95": [
+   0.001156952218896007,
+   0.004920214887122247
+  ],
+  "protect_per_decision": 0.3320486214052772
+ }
+}

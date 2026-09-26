@@ -126,7 +126,14 @@ and plays on. It never forfeits. If the supervisor itself died, rerun the **same
 - `ladder-series-medicham32.jsonl`: one row per series with `k`, arm and arm config, team, opponent, both
   ratings before and after, `S`, `E`, `residual`, the fallback, invalid and timeout counts during that series,
   the release stamp and the plan digest.
-- `ladder-report.json`: the totals, rows by arm and team, the guard pauses and incidents.
+- `ladder-report.json`: the totals, rows by arm and team, the guard pauses and incidents, and `record`: the rated
+  record per client with and without the opponent's quits.
+- **How each series ended**: every row carries `end_reason` (normal, forfeit_opp, timeout_opp, walkaway_opp, …) and
+  `games_end[]` (`solver/rotom/endings.js`). `node solver\rotom\report.js ladder <run dir>` prints the record
+  **rated series only**, with and without the series the opponent handed us, per arm. A run recorded before
+  abra/regmc 1.17.0 is read from `ladder-series-medicham32.ends.jsonl` (`node solver\rotom\backfill_ends.js <run dir>`).
+- **Our own forfeit, timeout or walkaway (`forfeit_me`, `timeout_me`, `inactivity`, `walkaway_me`) must be 0.** One
+  halts the ladder (`self_quit` event, `ladder_halt`, exit 4) and is a client bug to find before any restart.
 - The headline is the **mean rating over the last N ≥ 100 series ± SD**, never the peak. The A/B is read by
   the pre-registered SPRT **once, at a bound**. Series below a 1300 pre-series rating are burn-in.
 

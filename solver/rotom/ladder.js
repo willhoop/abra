@@ -28,6 +28,10 @@
  *   3. If a guarded account is ever the OPPONENT, the incident is logged, the series is played out normally (a
  *      forfeit to yourself is exactly the "gaming the system" the rule forbids), and the ladder stops after it.
  *
+ * A SELF QUIT HALTS (solver/rotom/endings.js). A game or series of ours that ended forfeit_me, timeout_me, inactivity or
+ * walkaway_me is an error the moment it is seen (onSelfQuit), and the ladder HALTS: no new search, exit 4 once idle. The
+ * figure must be zero; one is a bug in the client, never a result.
+ *
  * NEVER FORFEITS. Nothing here sends /forfeit. A crash is recovered by rotom.js's reconnect/rejoin and the watchdog.
  *
  * EVERY WAIT IS BOUNDED (2026-09-25, the aa1 hang: docs/_reports/2026-09-25-rotom-series-hang.md). The loop waits on four
@@ -52,12 +56,16 @@
  * config, team (id, archetype, source game), the engine release stamp, the plan digest, opponent, both players'
  * ratings before and after (the server's `NAME's rating: A &rarr; <strong>B</strong>` lines), S, E, S − E, games,
  * clock, and the fallback / invalid / timeout counters DURING that series (a series whose fallbacks are not counted
- * cannot prove which policy played it).
+ * cannot prove which policy played it). Since abra/regmc 1.15.0 the row also carries HOW the series ended (endings.js
+ * seriesEnd): end_reason, end_game, end_turn, at_preview, games_won / games_lost, any_forfeit_opp, walkaway, end_by,
+ * end_raw and games_end[] (each game's end_reason). S stays what the server scored; a record or a mean is taken over
+ * rated === true rows only (endings.js ladderRecord), and is reported with and without the opponent's quits.
  */
 'use strict';
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const ENDINGS = require('./endings.js');
 
 const toID = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const PLAN_HORIZON = 5000;
@@ -355,9 +363,14 @@ function create(o) {
     const E = rm && ro ? expected(rm.before, ro.before) : null;
     const delta = (a, b) => { const out = {}; for (const k of Object.keys(b || {})) { const v = (b[k] || 0) - ((a || {})[k] || 0); if (v) out[k] = v; } return out; };
     const cb = r.counters_before || {}, ca = r.counters_after || {};
+    /* HOW the series ended (rotom.js settleSeriesEnd -> endings.js seriesEnd); a test harness may pass it on the result */
+    let end = null; try { end = o.seriesEnd ? o.seriesEnd(bestof) : (res.end || null); } catch (e) { end = null; }
+    const endF = end ? { end_reason: end.end_reason, end_game: end.end_game, end_turn: end.end_turn, at_preview: end.at_preview, games_won: end.games_won, games_lost: end.games_lost,
+                         any_forfeit_opp: end.any_forfeit_opp, walkaway: end.walkaway, end_by: end.end_by, end_raw: end.end_raw, games_end: end.games_end || null }
+                     : { end_reason: null };
     const row = { client: o.name, k: r.k, series: bestof, arm: r.arm, arm_config: r.arm_config, team: r.team, team_meta: r.team_meta, opponent: oppName,
       rated: !!(rm && ro), rating_me: rm || null, rating_opp: ro || null, S: Sc, E: E == null ? null : +E.toFixed(4), residual: E == null ? null : +(Sc - E).toFixed(4),
-      result: res, started: r.started, ended: r.ended, resumed: !!r.resumed, counters_partial: !!r.counters_partial,
+      result: (({ end: _e, ...x }) => x)(res), ...endF, started: r.started, ended: r.ended, resumed: !!r.resumed, counters_partial: !!r.counters_partial,
       during_series: { fallbacks: delta(cb.fallbacks, ca.fallbacks), invalid: (ca.invalid || 0) - (cb.invalid || 0), timeouts: (ca.timeouts || 0) - (cb.timeouts || 0),
                        decisions: (ca.decisions || 0) - (cb.decisions || 0), crashes_caught: (ca.crashes || 0) - (cb.crashes || 0),
                        /* chosen vs applied: checks made, mismatches (preview among them), throttle notices */
@@ -371,7 +384,8 @@ function create(o) {
     if (other) error('series', 'invalid ' + ds.invalid + ', timeouts ' + ds.timeouts + ', crashes ' + ds.crashes_caught);
     else if (!ds.applied_mismatch) S.consecErrors = 0;
     S.done = (S.done || 0) + 1; save();
-    o.event('ladder_series_row', { k: r.k, arm: r.arm, S: Sc, E: row.E, residual: row.residual, rated: row.rated });
+    o.event('ladder_series_row', { k: r.k, arm: r.arm, S: Sc, E: row.E, residual: row.residual, rated: row.rated, end_reason: row.end_reason });
+    if (ENDINGS.SELF_QUIT.has(row.end_reason)) onSelfQuit(bestof, { level: 'series', room: bestof, end_reason: row.end_reason, end_game: row.end_game, end_raw: row.end_raw });
     o.say('LADDER ROW k=' + r.k + ' arm ' + r.arm + ' S=' + Sc + (E == null ? ' (no rating lines)' : ' E=' + E.toFixed(3)));
   }
   /* the room was renamed (a hidden series): the record follows it */
@@ -394,11 +408,31 @@ function create(o) {
     error('series_orphan', 'k=' + rec.k + ' ' + rec.why);
     tick('series orphaned');
   }
+  /* OUR OWN forfeit / timeout / walkaway (rotom.js endBattle and settleSeriesEnd, and the row above): an error and a HALT.
+   * Once per game room, and once per series unless one of its games already counted the same quit. */
+  function onSelfQuit(bestof, x) {
+    x = x || {};
+    S.selfQuitKeys = S.selfQuitKeys || [];
+    const key = (x.level === 'game' ? 'game:' + (x.room || '') : 'series:' + (bestof || x.room || ''));
+    if (S.selfQuitKeys.includes(key)) return;
+    if (x.level !== 'game' && S.selfQuitKeys.some(k => k.startsWith('game:') && (S.selfQuitBestof || {})[k] === bestof)) return;
+    S.selfQuitKeys.push(key); if (S.selfQuitKeys.length > 200) S.selfQuitKeys.shift();
+    S.selfQuitBestof = S.selfQuitBestof || {}; S.selfQuitBestof[key] = bestof || null;
+    S.self_quits = (S.self_quits || 0) + 1;
+    const r = bestof && series.get(bestof);
+    error('self_quit', (x.end_reason || '?') + ' in ' + (x.room || bestof) + (r ? ' (k=' + r.k + ')' : '') + (x.end_raw ? ' — ' + x.end_raw : ''));
+    if (!S.halted) {
+      S.halted = 'SELF QUIT: ' + (x.end_reason || '?') + ' in ' + (x.room || bestof) + ' — our own forfeit/timeout/walkaway must be zero'; save();
+      o.say('HALTED: ' + S.halted + ' — no new searches'); o.event('ladder_halt', { why: S.halted });
+      if (searching) { o.send('|/cancelsearch'); searching = false; }
+    } else save();
+    tick('self quit');
+  }
   function requestStop(why) { stopRequested = why; o.event('ladder_stop_requested', { why }); tick('stop requested'); }
   /* a process that restarts after a crash counts one error (the watchdog restarted it) */
   if (o.restartedAfterCrash) error('restart', 'process restarted by the watchdog');
   return { tick, onQuery, onUpdateSearch, onPopup, onLoginFailed, onSeriesStart, onSeriesEnd, onPlayer, onRaw, armOf, teamOf, requestStop, renameSeries, onSeriesOrphan,
-           onMismatch, onSeriesResume, redoSearch,
+           onMismatch, onSeriesResume, redoSearch, onSelfQuit,
            state: () => S, plan: () => S.plan, pendingAssignment: pending, isSearching: () => searching, seriesFile: SERIESF };
 }
 

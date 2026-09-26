@@ -8,6 +8,38 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-26
 
+### Protect overuse: the live world lost the counter (fixed); most of the excess is the search's own mix (abra/regmc 1.20.0)
+- The live search re-clicked Protect on 31% of the turns its body carried the counter (20 of 28 failed). The human
+  opponents in the same games did so on 3%. Cause (b): ROTOM's world laid no `stall` counter. 1.18.0 (on main after gen5ab
+  began) added an approximate streak; the counter is now exact, read off the log (`world.js stallStreaks`, 1,583/1,583 against the
+  engine, RED under the break). The engine was already right (0.325).
+- Arena, before → after: 1 s share 17.7 → 15.8% and fail 12.6 → 10.4%; 5 s share 16.9 → 16.7% and fail 13.1 → 13.4%.
+  The pre-registered protect bars FAILED. The strength SPRT was INCONCLUSIVE, 0.520 [0.471, 0.569], with no loss detected.
+- What remains: offered a repeat by DODUO, the depth-0 search mixes it in about 60% of the time, under either leaf and
+  with 8 columns (not (c), not (e)). DODUO over-ranks the repeat on the bot's own positions (16.5%). Open.
+- Detail: `docs/_reports/2026-09-26-protect-overuse.md`.
+
+### The tiered gates — always banned (removed) / mostly banned (weighted) (abra/regmc 1.19.0)
+- Will's design: a click no branch can make achieve its PURPOSE (the target staying or any switch-in) is removed; a
+  click futile against the body in now but rescued by a switch is weighted by the human switch model. Purpose from the
+  move's data (`solver/mag/purpose.js`): the flinch for Fake Out-type moves, the target's board for status moves, else
+  the move result. Every unrevealed sheet member is put on the bench in some alternative world.
+- Held-out survival 99.60% (2,000, all 8 losses real misclicks) and 99.69% (all 20,482; 61 of 63 real, 2 errors of the
+  2026-09-25 pair gate: a board-invisible Yawn, a Feint at a 1%-HP target). Humans click mostly-banned moves 0.071% of
+  the time; 13 of 23 paid off, all on a switch.
+- DODUO-greedy H0 at 56 games (0.482), MILTANK gen5 H0 at 364 games (0.467): no strength gain. Protect repeats and immune
+  hits unchanged within noise. The pair gate now yields to MAG on a MAG-dead click (593 redundant cuts before).
+- Filed to ENGINE: Prankster status move into a Dark target — move result `true` here, `false` in the authority.
+  Detail: `docs/_reports/2026-09-26-tiered-gates.md`.
+
+### ROTOM end reasons, the self-quit halt, rated-only records (abra/regmc 1.17.0)
+- Every game and series now says how it ended (`solver/rotom/endings.js`): normal, forfeit, battle-timer timeout,
+  all-inactive, or a walkaway between games. Our own forfeit/timeout/walkaway halts the ladder; it must be zero.
+- `report.js ladder <run dir>`: rated only, with and without the opponent's quits. gen5ab k30 (unrated) no longer counts.
+- Backfill (new files beside the originals): aa1, aa2, gen5ab have 0 self quits; gen5ab rated 15-21, 5-21 without
+  the opponent's quits.
+- Detail: `docs/_reports/2026-09-26-rotom-end-reasons.md`.
+
 ### gen5 under honest information; ROTOM `miltank-gen5`; gen5-vs-prior arms (abra/regmc 1.16.0)
 - The arena now hides what a ladder player cannot see (`--info honest`, the default for a match): hidden spreads in
   the true battle; each decision on the decider's public view; worlds from XATU's back-pair posterior and spread
@@ -73,6 +105,17 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 ### MACHAMP loop — one line per generation (solver/machamp/loop_sprt.js)
 - gen7: rejected — SPRT H0 after 652 games, 0.489 [0.451, 0.528] vs gen5; clone 0.670; PORYGON2 human Δ -0.0059 PASS. `solver/machamp/models/gen7/gates.json`
 - gen6: rejected — SPRT H0 after 166 games, 0.434 [0.361, 0.510] vs gen5; clone 0.705; PORYGON2 human Δ -0.0051 PASS. `solver/machamp/models/gen6/gates.json`
+### MAG v2 (dead-click gate) and DODUO v2 (pair gate) — different jobs (abra/regmc 1.18.0; built 2026-09-25 on a branch, merged 2026-09-26)
+- MAG no longer scores: it cuts a click only if MEDICHAM never reports it succeeding, over every partner option and a
+  covering design of the opponent's joints; a click rescued only by a switch is SOFT (weight 1e-3). DODUO keeps its
+  learned score and cuts a joint only when one click changes nothing beside THIS partner click and does beside another.
+  Same worlds for both (`solver/mag/probe.js`: tall, capped, pinned/free dice, shields that held skipped).
+- Held-out Reg M-C, seed 4 (1,999 decisions): the human's click survives 99.85% [99.56, 99.95] — the 99.9% bar is not
+  met as a rate; all 3 losses failed or did nothing in their replays. MAG removes 2.29% of legal joints, the pair gate
+  4.10%; 0 pair cuts on a MAG-dead click. Three earlier confirmation draws each found a defect (13 fixed in all).
+- DODUO-greedy gated vs ungated 0.500 [0.451, 0.549]; MILTANK gen5 1 s gated vs ungated 0.505 [0.456, 0.554]; both
+  400 games, SPRT inconclusive. Inside 150 ms a side the gate cut 26 joints in 6,294 lists: no strength gain shown.
+- `solver/tests/test-gates.js` 30/30, RED on 15 breaks. Detail: `docs/_reports/2026-09-25-mag-doduo-gates.md`.
 
 ### Deadline follow-ups (abra/regmc 1.10.0)
 - ROTOM runs `collectIdle()` after each MILTANK choice (in a local set: 24 of 24, max 412 ms, no decision over its

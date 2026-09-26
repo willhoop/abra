@@ -1,0 +1,265 @@
+{
+ "summary": "solver/out/gates/eaa5becc54eb/tiered-eval-n2000-s5-e3ebe197/summary.json",
+ "losses": 8,
+ "replays_found": 8,
+ "tally": {
+  "MAG failed": 5,
+  "PAIR no visible effect": 1,
+  "MAG no visible effect": 1,
+  "MAG no flinch": 1
+ },
+ "losses_read": [
+  {
+   "id": "gen9championsvgc2026regmcbo3-2680094940",
+   "turn": 19,
+   "p": "p2",
+   "mag": true,
+   "pair": false,
+   "actives": [
+    "golisopod-mega",
+    "toxapex"
+   ],
+   "foes": [
+    "golisopod-mega",
+    "toxapex"
+   ],
+   "cut": [
+    {
+     "slot": 1,
+     "click": "m:toxic:2",
+     "verdict": "dead",
+     "purpose": "effect",
+     "why": "failed in every informative world",
+     "by": "MAG",
+     "lines": [
+      "|move|p2b: Toxapex|Toxic|p1b: Toxapex",
+      "|-activate|p1b: Toxapex|move: Protect",
+      "|",
+      "|-heal|p1b: Toxapex|64/100|[from] item: Leftovers",
+      "|-heal|p2b: Toxapex|99/100|[from] item: Leftovers",
+      "|-damage|p1b: Toxapex|52/100|[from] move: Infestation|[partiallytrapped]",
+      "|upkeep"
+     ],
+     "reading": "failed"
+    }
+   ],
+   "block_lines": 12
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2682850408",
+   "turn": 1,
+   "p": "p2",
+   "mag": false,
+   "pair": true,
+   "actives": [
+    "indeedee-f",
+    "metagross"
+   ],
+   "foes": [
+    "farigiraf",
+    "aegislash"
+   ],
+   "cut": [
+    {
+     "slot": 0,
+     "click": "m:helpinghand:-2",
+     "verdict": "live",
+     "purpose": "result",
+     "by": "PAIR",
+     "lines": [
+      "|move|p2a: Indeedee|Helping Hand|p2b: Metagross",
+      "|-singleturn|p2b: Metagross|Helping Hand|[of] p2a: Indeedee"
+     ],
+     "reading": "no visible effect"
+    }
+   ],
+   "block_lines": 16
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2684485386",
+   "turn": 6,
+   "p": "p1",
+   "mag": true,
+   "pair": false,
+   "actives": [
+    "scrafty",
+    "dragapult"
+   ],
+   "foes": [
+    "incineroar",
+    "farigiraf"
+   ],
+   "cut": [
+    {
+     "slot": 1,
+     "click": "m:shadowball:2",
+     "verdict": "dead",
+     "purpose": "result",
+     "why": "failed in every informative world",
+     "by": "MAG",
+     "lines": [
+      "|move|p1b: Dragapult|Shadow Ball|p2b: Farigiraf",
+      "|-immune|p2b: Farigiraf"
+     ],
+     "reading": "failed"
+    }
+   ],
+   "block_lines": 11
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681264226",
+   "turn": 4,
+   "p": "p2",
+   "mag": true,
+   "pair": false,
+   "actives": [
+    "raichu-mega-y",
+    "gholdengo"
+   ],
+   "foes": [
+    "pawmot",
+    "froslass"
+   ],
+   "cut": [
+    {
+     "slot": 0,
+     "click": "m:focusblast:2",
+     "verdict": "dead",
+     "purpose": "result",
+     "why": "failed in every informative world",
+     "by": "MAG",
+     "lines": [
+      "|move|p2a: Raichu|Focus Blast|p1b: Froslass",
+      "|-activate|p1b: Froslass|move: Protect"
+     ],
+     "reading": "failed"
+    }
+   ],
+   "block_lines": 25
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2683340677",
+   "turn": 10,
+   "p": "p2",
+   "mag": true,
+   "pair": false,
+   "actives": [
+    "golisopod",
+    "sableye"
+   ],
+   "foes": [
+    "indeedee",
+    "sneasler"
+   ],
+   "cut": [
+    {
+     "slot": 1,
+     "click": "m:encore:1",
+     "verdict": "dead",
+     "purpose": "effect",
+     "why": "failed in every informative world",
+     "by": "MAG",
+     "lines": [
+      "|move|p2b: Sableye|Encore|p1a: Indeedee",
+      "|-activate|p1a: Indeedee|move: Psychic Terrain"
+     ],
+     "reading": "no visible effect"
+    }
+   ],
+   "block_lines": 18
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679249742",
+   "turn": 4,
+   "p": "p2",
+   "mag": true,
+   "pair": false,
+   "actives": [
+    "politoed",
+    "incineroar"
+   ],
+   "foes": [
+    "salamence-mega",
+    "tyranitar"
+   ],
+   "cut": [
+    {
+     "slot": 1,
+     "click": "m:fakeout:2",
+     "verdict": "dead",
+     "purpose": "flinch",
+     "why": "no world flinches a body that had not yet acted",
+     "by": "MAG",
+     "lines": [
+      "|move|p2b: Incineroar|Fake Out|p1b: Tyranitar",
+      "|-activate|p1b: Tyranitar|move: Psychic Terrain"
+     ],
+     "reading": "no flinch (the target was not stopped)"
+    }
+   ],
+   "block_lines": 38
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2680634819",
+   "turn": 2,
+   "p": "p1",
+   "mag": true,
+   "pair": false,
+   "actives": [
+    "feraligatr-mega",
+    "whimsicott"
+   ],
+   "foes": [
+    "froslass-mega",
+    "sneasler"
+   ],
+   "cut": [
+    {
+     "slot": 1,
+     "click": "m:tailwind:",
+     "verdict": "dead",
+     "purpose": "result",
+     "why": "failed in every informative world",
+     "by": "MAG",
+     "lines": [
+      "|move|p1b: Whimsicott|Tailwind||[still]",
+      "|-fail|p1b: Whimsicott"
+     ],
+     "reading": "failed"
+    }
+   ],
+   "block_lines": 37
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681183103",
+   "turn": 1,
+   "p": "p1",
+   "mag": true,
+   "pair": false,
+   "actives": [
+    "gholdengo",
+    "rillaboom"
+   ],
+   "foes": [
+    "rillaboom",
+    "gholdengo"
+   ],
+   "cut": [
+    {
+     "slot": 1,
+     "click": "m:fakeout:2",
+     "verdict": "dead",
+     "purpose": "flinch",
+     "why": "no world flinches a body that had not yet acted",
+     "by": "MAG",
+     "lines": [
+      "|move|p1b: Rillaboom|Fake Out|p2b: Gholdengo",
+      "|-immune|p2b: Gholdengo"
+     ],
+     "reading": "failed"
+    }
+   ],
+   "block_lines": 42
+  }
+ ]
+}

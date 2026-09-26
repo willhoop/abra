@@ -42,6 +42,12 @@
  * stand-in, and solver/rotom/netguard.js refusing every non-loopback connection in this process). A ladder launch on
  * the public server is Will's call, every time.
  *
+ * HOW EVERY GAME AND SERIES ENDED (solver/rotom/endings.js): each game record, game_end event and series-book game carries
+ * end_reason (normal / forfeit_opp / forfeit_me / timeout_opp / timeout_me / inactivity / tie / unknown), end_by, end_turn,
+ * at_preview and end_raw, read from the game's own protocol lines; each series (book `end`, ladder row) carries the same
+ * plus walkaway_opp / walkaway_me (somebody left between games). OUR OWN forfeit_me / timeout_me / inactivity /
+ * walkaway_me must be ZERO: each one is an error (ST.selfQuits, event `self_quit`) and HALTS the ladder (ladder.js onSelfQuit).
+ *
  * SAFETY: a lock file (lock.js) refuses a second client; reconnect with backoff, rejoin every open game from
  * |updatesearch|, re-read the request the server re-sends and answer it (the same choice if that rqid was already
  * answered); the drill flags `--drill drop@S.G.T` / `--drill crash@S.G.T` kill the socket / the process at set S,
@@ -190,6 +196,7 @@ APPLIED.redirectors();                          // warm the format-derived redir
 const XATU = require('../xatu/index.js');
 const { BringMemory } = require('../xatu/bring.js');
 const { SeriesBook } = require('./series.js');
+const ENDINGS = require('./endings.js');   // how a game / a series ended (forfeit, timeout, walkaway), from the protocol lines
 const BOOK = new SeriesBook(path.join(OUT, 'series', toID(NAME)));   // per client: two clients in one run never share a file
 const POOL = JSON.parse(fs.readFileSync(TEAM_POOL, 'utf8'));
 const sha = f => { try { return crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex').slice(0, 16); } catch (e) { return null; } };
@@ -233,6 +240,8 @@ const clockOpts = { maxMs: MAX_MS, marginS: MARGIN_S, reserveS: RESERVE_S, minSe
 const ST = { decisions: 0, byKind: {}, ms: { preview: [], move: [], switch: [] }, budget: [], fallbacks: {}, invalid: [], unavailable: [],
              timeouts: [], sentLate: 0, superseded: 0, reconnects: 0, disconnects: 0, rejoins: 0, resent: 0, crashesCaught: [], drills: [],
              timerOnSeen: 0, games: 0, previewSheetWaitMs: [], worldErrors: 0, noTimerLine: 0,
+             /* how our games ended, and every game or series WE lost by forfeit / timeout / walkaway (must stay empty) */
+             endReasons: {}, selfQuits: [],
              /* MEGA, as a RATE on the games where OUR side could mega (solver/arena/mega_rate.js): a capability that cannot
               * prove it ran is assumed broken, and "at least one mega happened" once hid a 56%-vs-85% rate */
              mega: { games: 0, parsed: 0, capable: 0, megas: 0, turn: {}, delay: {}, opp_capable: 0, opp_megas: 0 },
@@ -293,6 +302,7 @@ if (LADDER_MODE) {
       bookGet: (room) => { const b = BOOK.get(room); return b && b.ladder ? b : null; },
       bookSet: (room, o) => { const b = BOOK.get(room); Object.assign(b, o); BOOK.save(b); },
       exit: (code, why) => exitClean(code, why),
+      seriesEnd: (room) => settleSeriesEnd(room),   // endings.js seriesEnd over the series book: the row's end_reason and games_end
       socketOpen: () => !!(ws && ws.readyState === 1), loggedOutSince: () => loggedOutSince,
       preSearch: DRY_RUN && has('hide-next') ? () => send('|/hidenext') : null,   // dry run: this side hides its series (a PRIVATE room)
       reconnect: (why) => { event('relogin', { why }); try { if (ws && ws.readyState === 1) ws.close(); } catch (e) { /* the onclose path reconnects */ } },
@@ -668,6 +678,7 @@ function handleBestof(room, line, p, cmd) {
   bo.lastSeen = Date.now(); bo.probes = 0; bo.probeSentAt = 0;
   if (/\/confirmready/.test(line)) confirmReady(room, line);
   if (LADDER && cmd === 'raw') LADDER.onRaw(room, line);
+  { const q = ENDINGS.quitLine(line); if (q) { bo.quitLines = (bo.quitLines || []).concat([line]); event('series_quit_line', { room, kind: q.kind, by: q.by, line: line.slice(0, 200) }); } }
   if (cmd === 'win' || cmd === 'tie') {
     if (bo.done) return;
     bo.done = true;
@@ -682,6 +693,9 @@ function handleBestof(room, line, p, cmd) {
     if (LADDER) LADDER.onSeriesEnd(room, S.result);
     say('SERIES OVER ' + room + ' — winner ' + winner + ' (' + STATE.setsDone.length + '/' + SETS + ')');
     event('series_end', { room, winner });
+    /* the end_reason waits for the last game's own |win| (another room, another update): settled 3 s on, and again by the
+     * ladder when it writes the row */
+    setTimeout(() => settleSeriesEnd(room), 3000);
     setTimeout(() => { send('|/leave ' + room); maybeChallenge('next set'); checkDone(); }, 1500);
   }
 }
@@ -693,6 +707,29 @@ function confirmReady(bo, line) {
   if (B && B.confirmed.has(key)) return;
   if (B) B.confirmed.add(key);
   setTimeout(() => { send(id + '|/confirmready'); event('confirmready', { room: id }); }, 300);
+}
+
+/* HOW THE SERIES ENDED (endings.js seriesEnd) over the series book's games; saved as the book's `end` and returned to the
+ * ladder for its row. A walkaway_me (we left between games) is a self quit: counted and, on the ladder, a HALT. */
+function settleSeriesEnd(room) {
+  const S = BOOK.get(room); if (!S || !S.result) return null;
+  const bo = bestofs.get(room);
+  const live = [...battles.values()].filter(B => B.bestof === room && !B.ended && B.gnum != null).sort((a, b) => b.gnum - a.gnum)[0] || null;
+  const end = ENDINGS.seriesEnd(S.games, S.result, NAME, { quitLines: bo && bo.quitLines, liveGnum: live ? live.gnum : null, liveTurn: live ? live.turn : 0 });
+  end.games_end = S.games.map(g => ({ gnum: g.gnum, room: g.room, mine: g.mine != null ? g.mine : (g.winner == null ? null : g.winner === g.me), end_reason: g.end_reason || null, end_turn: g.end_turn != null ? g.end_turn : null, at_preview: g.at_preview != null ? g.at_preview : null }));
+  S.end = end; BOOK.save(S);
+  if (end.end_reason === 'walkaway_me' && !S.selfQuitCounted) {
+    S.selfQuitCounted = true; BOOK.save(S);
+    selfQuit({ level: 'series', room, bestof: room, end_reason: end.end_reason, end_game: end.end_game, end_raw: end.end_raw });
+  }
+  return end;
+}
+/* ONE of OUR games or series ended by our own forfeit, timeout or walkaway: never allowed. Counted, logged, and the ladder halts. */
+function selfQuit(x) {
+  ST.selfQuits.push(Object.assign({ at: new Date().toISOString() }, x));
+  event('self_quit', x);
+  say('SELF QUIT (' + x.end_reason + ') in ' + x.room + ' — this must never happen' + (LADDER ? '; the ladder HALTS' : ''));
+  if (LADDER && LADDER.onSelfQuit) LADDER.onSelfQuit(x.bestof || x.room, x);
 }
 
 let doneWaitStart = 0;
@@ -891,13 +928,20 @@ function endBattle(B, winnerName) {
     if (opp && opp.capable) { ST.mega.opp_capable++; if (opp.mega) ST.mega.opp_megas++; }
   }
   const winner = winnerName == null ? null : (toID(B.names.p1) === toID(winnerName) ? 'p1' : 'p2');
+  /* HOW this game ended, from its own lines (endings.js): a forfeit, the battle timer, or normal */
+  const END = ENDINGS.gameEnd(B.lines, NAME);
+  const endF = { end_reason: END.end_reason, end_by: END.end_by, end_turn: END.end_turn, at_preview: END.at_preview, end_raw: END.end_raw };
+  ST.endReasons[END.end_reason] = (ST.endReasons[END.end_reason] || 0) + 1;
+  if (ENDINGS.SELF_QUIT.has(END.end_reason)) selfQuit({ level: 'game', room: B.id, bestof: B.bestof, gnum: B.gnum, end_reason: END.end_reason, end_turn: END.end_turn, end_raw: END.end_raw });
   const brought = {};
   if (parsed) for (const s of ['p1', 'p2']) { const L = parsed.leads[s] || []; brought[s] = L.concat((parsed.brought_seen[s] || []).filter(i => !L.includes(i))); }
   if (B.bestof && parsed) {
     BOOK.recordGame(B.bestof, { room: B.id, gnum: B.gnum, me: B.me, leads: parsed.leads, brought, winner, players: B.names,
-                                turns: parsed.turns_played, clockUsed: +(B.clockUsed / 1000).toFixed(1), bankLeft: B.clock.last ? B.clock.last.bank : null });
+                                turns: parsed.turns_played, clockUsed: +(B.clockUsed / 1000).toFixed(1), bankLeft: B.clock.last ? B.clock.last.bank : null,
+                                mine: winner == null ? null : winner === B.me, ...endF });
+    if (bestofs.get(B.bestof) && bestofs.get(B.bestof).done) settleSeriesEnd(B.bestof);   // the series ended before this game's |win| arrived
   }
-  event('game_end', { room: B.id, bestof: B.bestof, gnum: B.gnum, winner, me: B.me, timerOn: B.timerOn, clockUsed_s: +(B.clockUsed / 1000).toFixed(1) });
+  event('game_end', { room: B.id, bestof: B.bestof, gnum: B.gnum, winner, me: B.me, timerOn: B.timerOn, clockUsed_s: +(B.clockUsed / 1000).toFixed(1), ...endF });
   if (LADDER && B.bestof) for (const sd of ['p1', 'p2']) LADDER.onPlayer(B.bestof, sd, B.names[sd]);
   if (!B.timerOn) ST.noTimerLine++;
   /* our own copy of the room log: the game survives even if the public replay never does (a hidden room, a failed save) */
@@ -911,6 +955,7 @@ function endBattle(B, winnerName) {
     sheets: { p1: B.packed.p1 || null, p2: B.packed.p2 || null },
     preview_choice: B.preview, leads: parsed ? parsed.leads : null, brought: parsed ? brought : null,
     result: { winner, winner_name: winnerName, mine: winner != null && winner === B.me, tie: winnerName == null, turns: parsed ? parsed.turns_played : B.turn },
+    ...endF,
     mega,
     /* chosen vs applied for this game: every check of every decision, and each mismatch (solver/rotom/applied.js) */
     applied: B.tally.toJSON(),
@@ -1142,6 +1187,7 @@ function writeSummary() {
     throttle: THR, send_queue: SENDQ.summary(),
     applied_cost: Object.assign({}, ST.verifyCost, { ms: +ST.verifyCost.ms.toFixed(2), mean_ms_per_run: ST.verifyCost.runs ? +(ST.verifyCost.ms / ST.verifyCost.runs).toFixed(3) : null,
       where: 'after the choice is sent (setImmediate), on a wait request, or at game end — never inside a decision budget' }),
+    end_reasons: ST.endReasons, self_quits: ST.selfQuits,
     timer_on_seen: ST.timerOnSeen, games: ST.games, game_records: ST.gameRecords || 0, games_file: GAMES_FILE, replays: SAVER.COUNTERS, world_errors: ST.worldErrors, decisions_without_time_line: ST.noTimerLine,
     preview_sheet_wait_ms: stats(ST.previewSheetWaitMs),
     counters: { policy: P.COUNTERS, world: WB.COUNTERS, prior: PA.COUNTERS, rollout: R.COUNTERS, api: API.COUNTERS },

@@ -1,0 +1,1183 @@
+{
+ "what": "MAG v2 + DODUO v2 dead-click gates on held-out human Reg M-C decisions (solver/doduo/eval_gates.js)",
+ "engine_release": "eaa5becc54eb",
+ "flags": {
+  "n": 2000,
+  "seed": 4,
+  "workers": 3,
+  "human": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\solver\\out\\human\\games.jsonl"
+ },
+ "dataset_sha256": "9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8",
+ "selection": {
+  "sha": "9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8",
+  "counts": {
+   "games": 26888,
+   "test_games": 5220,
+   "eligible_games": 3627,
+   "decisions_seen": 29951,
+   "eligible": 20501
+  },
+  "stride": 10,
+  "picks": 2000,
+  "games": 1922
+ },
+ "counts": {
+  "decisions": 2000,
+  "errors": 0,
+  "unmatched": 1,
+  "evaluated": 1999
+ },
+ "survival": {
+  "survived": 1996,
+  "n": 1999,
+  "rate": 0.9984992496248124,
+  "ci95": [
+   0.9955966912209097,
+   0.9994894903323395
+  ],
+  "lost_to_mag": 2,
+  "lost_to_pair": 1,
+  "target": 0.999
+ },
+ "options": {
+  "judged": 35027,
+  "live": 33835,
+  "soft": 646,
+  "dead": 546,
+  "untested": 0,
+  "na": 5068,
+  "dead_share_of_judged": 0.015587974990721443,
+  "soft_share_of_judged": 0.01844291546521255
+ },
+ "joints": {
+  "product": 206376,
+  "legal": 203043,
+  "engine_refused": 3333,
+  "mag_cut": 4653,
+  "pair_cut": 8324,
+  "both_cut": 82,
+  "survive": 190148,
+  "share": {
+   "engine_refused_of_product": 0.016150133736480988,
+   "mag_of_legal": 0.022916328068438706,
+   "pair_of_legal": 0.04099624217530277,
+   "pair_of_mag_survivors": 0.041544432683098945,
+   "either_of_legal": 0.06350871490275459
+  }
+ },
+ "ablation_2x2_joints": {
+  "mag_only": 4571,
+  "pair_only": 8242,
+  "both": 82,
+  "neither": 190148,
+  "both_where_the_pair_gate_cut_on_a_mag_dead_click": 0,
+  "caption": "both = the joint has one click MAG cut AND the pair gate cut it for the OTHER click (two independent faults in one joint). A pair cut ON a MAG-dead click would be the two gates claiming the same removal; it is counted separately and should be 0."
+ },
+ "pair_cut_click_mag_verdict": {
+  "live": 8256,
+  "soft": 68,
+  "dead": 0,
+  "untested": 0,
+  "na": 0,
+  "none": 0
+ },
+ "decisions_with": {
+  "any_mag_dead": 386,
+  "any_soft": 466,
+  "any_pair_cut": 1105
+ },
+ "human_soft": 0,
+ "cost": {
+  "ms_mean": 4386.491745872937,
+  "ms_p50": 1539,
+  "ms_max": 76221,
+  "steps_mean": 672.328164082041,
+  "step_errors": 0
+ },
+ "losses": [
+  {
+   "id": "gen9championsvgc2026regmcbo3-2678066931",
+   "turn": 3,
+   "p": "p2",
+   "human": [
+    "m:quickguard:",
+    "m:darkestlariat:1"
+   ],
+   "human_verdicts": [
+    "live",
+    "live"
+   ],
+   "mag": false,
+   "pair": true,
+   "actives": [
+    "sneasler",
+    "incineroar"
+   ],
+   "foes": [
+    "farigiraf",
+    "sneasler"
+   ],
+   "loss": {
+    "human": [
+     "m:quickguard:",
+     "m:darkestlariat:1"
+    ],
+    "verdicts": [
+     {
+      "v": "live",
+      "worlds": 1,
+      "inf": 1
+     },
+     {
+      "v": "live",
+      "worlds": 1,
+      "inf": 1
+     }
+    ],
+    "pair": {
+     "cut": true,
+     "slot": 0,
+     "why": "slot 0 click has no effect beside this partner click, and has one beside another"
+    },
+    "actions": {
+     "a": {
+      "kind": "move",
+      "move": "Quick Guard",
+      "target": null,
+      "target_loc": null,
+      "target_certain": true,
+      "executed": true,
+      "mon": 2
+     },
+     "b": {
+      "kind": "move",
+      "move": "Darkest Lariat",
+      "target": "p1a",
+      "target_loc": 1,
+      "target_certain": true,
+      "executed": true,
+      "mon": 3
+     }
+    },
+    "state": {
+     "weather": null,
+     "terrain": null,
+     "pseudo": {},
+     "sides": {
+      "p1": {
+       "mega_used": true,
+       "conditions": {},
+       "active": [
+        5,
+        2
+       ],
+       "mons": [
+        {
+         "i": 0,
+         "seen": true,
+         "species": "Salamence-Mega",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": "Salamencite",
+         "ability": "Aerilate",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Protect",
+          "Double-Edge"
+         ],
+         "mega": true,
+         "pos": null
+        },
+        {
+         "i": 1,
+         "seen": false
+        },
+        {
+         "i": 2,
+         "seen": true,
+         "species": "Sneasler",
+         "hp": 100,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Grassy Seed",
+         "ability": "Unburden",
+         "boosts": {
+          "atk": -3,
+          "spa": -1
+         },
+         "vol": {},
+         "used": [
+          "Coaching",
+          "Dire Claw"
+         ],
+         "mega": false,
+         "pos": "b"
+        },
+        {
+         "i": 3,
+         "seen": false
+        },
+        {
+         "i": 4,
+         "seen": false
+        },
+        {
+         "i": 5,
+         "seen": true,
+         "species": "Farigiraf",
+         "hp": 100,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Sitrus Berry",
+         "ability": "Armor Tail",
+         "boosts": {
+          "atk": -1
+         },
+         "vol": {},
+         "used": [],
+         "mega": false,
+         "pos": "a"
+        }
+       ]
+      },
+      "p2": {
+       "mega_used": true,
+       "conditions": {},
+       "active": [
+        2,
+        3
+       ],
+       "mons": [
+        {
+         "i": 0,
+         "seen": false
+        },
+        {
+         "i": 1,
+         "seen": true,
+         "species": "Floette-Mega",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": "Floettite",
+         "ability": "Fairy Aura",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Protect",
+          "Moonblast"
+         ],
+         "mega": true,
+         "pos": null
+        },
+        {
+         "i": 2,
+         "seen": true,
+         "species": "Sneasler",
+         "hp": 100,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Focus Sash",
+         "ability": "Poison Touch",
+         "boosts": {},
+         "vol": {},
+         "used": [],
+         "mega": false,
+         "pos": "a"
+        },
+        {
+         "i": 3,
+         "seen": true,
+         "species": "Incineroar",
+         "hp": 100,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Sitrus Berry",
+         "ability": "Intimidate",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Parting Shot"
+         ],
+         "mega": false,
+         "pos": "b"
+        },
+        {
+         "i": 4,
+         "seen": false
+        },
+        {
+         "i": 5,
+         "seen": false
+        }
+       ]
+      }
+     }
+    },
+    "bench_opp": [
+     "salamence-mega",
+     "rillaboom"
+    ]
+   }
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2680094940",
+   "turn": 18,
+   "p": "p2",
+   "human": [
+    null,
+    "m:toxic:2"
+   ],
+   "human_verdicts": [
+    null,
+    "dead"
+   ],
+   "mag": true,
+   "pair": false,
+   "actives": [
+    "golisopod-mega",
+    "toxapex"
+   ],
+   "foes": [
+    "golisopod-mega",
+    "toxapex"
+   ],
+   "loss": {
+    "human": [
+     null,
+     "m:toxic:2"
+    ],
+    "verdicts": [
+     null,
+     {
+      "v": "dead",
+      "worlds": 16,
+      "inf": 14,
+      "why": "failed in every informative world"
+     }
+    ],
+    "pair": {
+     "cut": false
+    },
+    "actions": {
+     "a": null,
+     "b": {
+      "kind": "move",
+      "move": "Toxic",
+      "target": "p1b",
+      "target_loc": 2,
+      "target_certain": true,
+      "executed": true,
+      "mon": 0
+     }
+    },
+    "state": {
+     "weather": null,
+     "terrain": null,
+     "pseudo": {},
+     "sides": {
+      "p1": {
+       "mega_used": true,
+       "conditions": {},
+       "active": [
+        null,
+        2
+       ],
+       "mons": [
+        {
+         "i": 0,
+         "seen": false
+        },
+        {
+         "i": 1,
+         "seen": true,
+         "species": "Golisopod-Mega",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": "Golisopite",
+         "ability": "Tough Claws",
+         "boosts": {
+          "atk": 2,
+          "def": 2
+         },
+         "vol": {},
+         "used": [
+          "Leech Life",
+          "Bulk Up",
+          "Sucker Punch",
+          "Liquidation"
+         ],
+         "mega": true,
+         "pos": "a"
+        },
+        {
+         "i": 2,
+         "seen": true,
+         "species": "Toxapex",
+         "hp": 65,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Leftovers",
+         "ability": "Regenerator",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Baneful Bunker",
+          "Liquidation"
+         ],
+         "mega": false,
+         "pos": "b"
+        },
+        {
+         "i": 3,
+         "seen": false
+        },
+        {
+         "i": 4,
+         "seen": true,
+         "species": "Indeedee-F",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": "Colbur Berry",
+         "ability": "Psychic Surge",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Draining Kiss",
+          "Trick Room"
+         ],
+         "mega": false,
+         "pos": null
+        },
+        {
+         "i": 5,
+         "seen": true,
+         "species": "Basculegion",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": "Life Orb",
+         "ability": "Adaptability",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Wave Crash"
+         ],
+         "mega": false,
+         "pos": null
+        }
+       ]
+      },
+      "p2": {
+       "mega_used": true,
+       "conditions": {},
+       "active": [
+        null,
+        0
+       ],
+       "mons": [
+        {
+         "i": 0,
+         "seen": true,
+         "species": "Toxapex",
+         "hp": 100,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Leftovers",
+         "ability": "Regenerator",
+         "boosts": {
+          "def": -1
+         },
+         "vol": {},
+         "used": [
+          "Toxic",
+          "Infestation",
+          "Baneful Bunker"
+         ],
+         "mega": false,
+         "pos": "b"
+        },
+        {
+         "i": 1,
+         "seen": false
+        },
+        {
+         "i": 2,
+         "seen": true,
+         "species": "Pawmot",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": "Focus Sash",
+         "ability": "Iron Fist",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Protect",
+          "Revival Blessing",
+          "Double Shock"
+         ],
+         "mega": false,
+         "pos": null
+        },
+        {
+         "i": 3,
+         "seen": true,
+         "species": "Farigiraf",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": "Sitrus Berry",
+         "ability": "Armor Tail",
+         "boosts": {},
+         "vol": {},
+         "used": [],
+         "mega": false,
+         "pos": null
+        },
+        {
+         "i": 4,
+         "seen": false
+        },
+        {
+         "i": 5,
+         "seen": true,
+         "species": "Golisopod-Mega",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": "Golisopite",
+         "ability": "Tough Claws",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Protect",
+          "Leech Life"
+         ],
+         "mega": true,
+         "pos": "a"
+        }
+       ]
+      }
+     }
+    },
+    "bench_opp": [
+     "indeedee-f",
+     "basculegion"
+    ]
+   }
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681426122",
+   "turn": 4,
+   "p": "p2",
+   "human": [
+    "m:zapcannon:1",
+    "m:tailwind:"
+   ],
+   "human_verdicts": [
+    "live",
+    "dead"
+   ],
+   "mag": true,
+   "pair": false,
+   "actives": [
+    "raichu",
+    "salamence-mega"
+   ],
+   "foes": [
+    "arcanine-hisui",
+    "incineroar"
+   ],
+   "loss": {
+    "human": [
+     "m:zapcannon:1",
+     "m:tailwind:"
+    ],
+    "verdicts": [
+     {
+      "v": "live",
+      "worlds": 1,
+      "inf": 1
+     },
+     {
+      "v": "dead",
+      "worlds": 198,
+      "inf": 198,
+      "why": "failed in every informative world"
+     }
+    ],
+    "pair": {
+     "cut": false
+    },
+    "actions": {
+     "a": {
+      "kind": "move",
+      "move": "Zap Cannon",
+      "target": "p1a",
+      "target_loc": 1,
+      "target_certain": true,
+      "executed": true,
+      "mon": 1
+     },
+     "b": {
+      "kind": "move",
+      "move": "Tailwind",
+      "target": null,
+      "target_loc": null,
+      "target_certain": true,
+      "executed": true,
+      "still": true,
+      "mon": 0
+     }
+    },
+    "state": {
+     "weather": null,
+     "terrain": null,
+     "pseudo": {},
+     "sides": {
+      "p1": {
+       "mega_used": true,
+       "conditions": {},
+       "active": [
+        4,
+        2
+       ],
+       "mons": [
+        {
+         "i": 0,
+         "seen": false
+        },
+        {
+         "i": 1,
+         "seen": true,
+         "species": "Lucario-Mega-Z",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": "Lucarionite Z",
+         "ability": "Aura Guard",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Flash Cannon",
+          "Detect"
+         ],
+         "mega": true,
+         "pos": null
+        },
+        {
+         "i": 2,
+         "seen": true,
+         "species": "Incineroar",
+         "hp": 58,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Rocky Helmet",
+         "ability": "Intimidate",
+         "boosts": {
+          "atk": -1
+         },
+         "vol": {},
+         "used": [
+          "Throat Chop",
+          "Flare Blitz"
+         ],
+         "mega": false,
+         "pos": "b"
+        },
+        {
+         "i": 3,
+         "seen": false
+        },
+        {
+         "i": 4,
+         "seen": true,
+         "species": "Arcanine-Hisui",
+         "hp": 100,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Focus Sash",
+         "ability": "Rock Head",
+         "boosts": {},
+         "vol": {},
+         "used": [],
+         "mega": false,
+         "pos": "a"
+        },
+        {
+         "i": 5,
+         "seen": false
+        }
+       ]
+      },
+      "p2": {
+       "mega_used": true,
+       "conditions": {
+        "Tailwind": {
+         "since": 1,
+         "layers": 1
+        }
+       },
+       "active": [
+        1,
+        0
+       ],
+       "mons": [
+        {
+         "i": 0,
+         "seen": true,
+         "species": "Salamence-Mega",
+         "hp": 4,
+         "max": 100,
+         "status": "brn",
+         "fnt": false,
+         "item": "Salamencite",
+         "ability": "Aerilate",
+         "boosts": {
+          "atk": -1,
+          "spa": -2
+         },
+         "vol": {},
+         "used": [
+          "Tailwind",
+          "Hyper Voice",
+          "Draco Meteor"
+         ],
+         "mega": true,
+         "pos": "b"
+        },
+        {
+         "i": 1,
+         "seen": true,
+         "species": "Raichu",
+         "hp": 83,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Raichunite Y",
+         "ability": "Lightning Rod",
+         "boosts": {
+          "atk": -1
+         },
+         "vol": {},
+         "used": [
+          "Fake Out",
+          "Focus Blast"
+         ],
+         "mega": false,
+         "pos": "a"
+        },
+        {
+         "i": 2,
+         "seen": false
+        },
+        {
+         "i": 3,
+         "seen": false
+        },
+        {
+         "i": 4,
+         "seen": false
+        },
+        {
+         "i": 5,
+         "seen": false
+        }
+       ]
+      }
+     }
+    },
+    "bench_opp": [
+     "lucario-mega-z",
+     "basculegion"
+    ]
+   }
+  }
+ ],
+ "unmatched_examples": [
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679719343",
+   "ti": 4,
+   "p": "p1",
+   "unmatched": [
+    {
+     "kind": "move",
+     "move": "Curse",
+     "target": "p1a",
+     "target_loc": -1,
+     "target_certain": true,
+     "executed": true,
+     "mega": true,
+     "mon": 1
+    }
+   ],
+   "menu": [
+    [
+     "m:protect:",
+     "m:protect::M",
+     "m:curse:",
+     "m:curse::M",
+     "m:highhorsepower:1",
+     "m:highhorsepower:1:M",
+     "m:highhorsepower:2",
+     "m:highhorsepower:2:M",
+     "m:highhorsepower:-2",
+     "m:highhorsepower:-2:M",
+     "m:icepunch:1",
+     "m:icepunch:1:M",
+     "m:icepunch:2",
+     "m:icepunch:2:M",
+     "m:icepunch:-2",
+     "m:icepunch:-2:M",
+     "sw2"
+    ],
+    [
+     "m:dragondance:",
+     "m:waterfall:1",
+     "m:waterfall:2",
+     "m:waterfall:-1",
+     "m:icefang:1",
+     "m:icefang:2",
+     "m:icefang:-1",
+     "m:powerwhip:1",
+     "m:powerwhip:2",
+     "m:powerwhip:-1",
+     "sw2"
+    ]
+   ]
+  }
+ ],
+ "error_examples": [],
+ "shard_counters": [
+  {
+   "shard": 0,
+   "done": 667,
+   "wall_s": 2929.3,
+   "probe": {
+    "positions": 667,
+    "steps": 443321,
+    "errors": 0,
+    "cacheHits": 174846,
+    "boards": 338522,
+    "sleepClocksOpened": 20,
+    "tallWorlds": 667
+   },
+   "mag": {
+    "verdicts": 13398,
+    "live": 11334,
+    "soft": 206,
+    "dead": 184,
+    "untested": 0,
+    "na": 1674,
+    "budgetStops": 0,
+    "altRescued": 0,
+    "uninformativeWorlds": 17,
+    "shieldWorlds": 8075
+   },
+   "pair": {
+    "pairs": 68463,
+    "cut": 2638,
+    "kept": 65825,
+    "futileChecks": 117632,
+    "otherPartnerScans": 5658,
+    "budgetStops": 0,
+    "uninformativeWorlds": 409,
+    "representativesKept": 3,
+    "shieldWorlds": 66575
+   },
+   "world": {
+    "built": 667,
+    "failed": 0,
+    "megaApplied": 781,
+    "megaFailed": 0,
+    "mineUnmatched": 0,
+    "oppGuessUsed": 512,
+    "oppFilledBlind": 0
+   },
+   "release": {
+    "engine_release": "eaa5becc54eb",
+    "engine_release_cut": "2026-09-24T20:12:54.367Z",
+    "engine_release_cuts": 50,
+    "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+    "source_digests": {
+     "engine/medicham2-browser.js": "2caee2eeabb0",
+     "engine/board.js": "c85a3b756c98",
+     "engine/rollout_leaf.js": "eacf05ff8d30",
+     "engine/position_features.js": "bb71676d3669",
+     "engine/tags.js": "13cdeb051720",
+     "engine/champions_sim.js": "8094725f52a8",
+     "data/residual-order.json": "eff160ad1c5a",
+     "data/switchin-order.json": "24a007a66b7d",
+     "engine/mc_key.js": "aaa095762671",
+     "engine/lookup.js": "17f49e5aed43",
+     "engine/set_priors.js": "f8a81445ee3a",
+     "engine/smogon_priors.js": "ebd062f756c8",
+     "engine/quality.js": "ebc37c7c9d05",
+     "engine/showdown_path.js": "46646401ede2",
+     "engine/regulation.js": "827f5138ecf5",
+     "data/move-effects.js": "f35ecd91ba86",
+     "data/ability-blocks.json": "86741fd35452",
+     "data/smogon-priors.json": "f2dc78cea6c5",
+     "data/regulations.json": "6c7c3e3dd06c",
+     "data/quality-filter.json": "042524dd1df7",
+     "data/engine-data.js": "bbc417dfae0e",
+     "data/abra-tags.js": "fc30f9a9392e",
+     "data/tags.json": "26ee107ce6a8",
+     "data/policy-weights.json": "626c1d240782",
+     "data/policy-weights-joint.json": "e2aca467ff04",
+     "data/move-priors.json": "e667fe8ab457",
+     "engine/pp.js": "30b12a4ef623",
+     "data/rollout-switch-census.json": "b8a5cee2f0a9",
+     "engine/medicham_api.js": "f0264a11558b",
+     "data/engine-data-regmc.js": "a6ad04e92d4e",
+     "data/tags-regmc.json": "ac1a00fa40ee",
+     "data/move-priors-regmc.json": "eab0c9b023df",
+     "data/move-effects-regmc.js": "8c57407e7641"
+    }
+   }
+  },
+  {
+   "shard": 1,
+   "done": 667,
+   "wall_s": 2928.367,
+   "probe": {
+    "positions": 667,
+    "steps": 452357,
+    "errors": 0,
+    "cacheHits": 172459,
+    "boards": 338682,
+    "sleepClocksOpened": 13,
+    "tallWorlds": 667
+   },
+   "mag": {
+    "verdicts": 13459,
+    "live": 11333,
+    "soft": 228,
+    "dead": 167,
+    "untested": 0,
+    "na": 1731,
+    "budgetStops": 0,
+    "altRescued": 0,
+    "uninformativeWorlds": 36,
+    "shieldWorlds": 9351
+   },
+   "pair": {
+    "pairs": 69108,
+    "cut": 2845,
+    "kept": 66263,
+    "futileChecks": 118357,
+    "otherPartnerScans": 5514,
+    "budgetStops": 0,
+    "uninformativeWorlds": 948,
+    "representativesKept": 1,
+    "shieldWorlds": 66977
+   },
+   "world": {
+    "built": 667,
+    "failed": 0,
+    "megaApplied": 751,
+    "megaFailed": 0,
+    "mineUnmatched": 0,
+    "oppGuessUsed": 534,
+    "oppFilledBlind": 0
+   },
+   "release": {
+    "engine_release": "eaa5becc54eb",
+    "engine_release_cut": "2026-09-24T20:12:54.367Z",
+    "engine_release_cuts": 50,
+    "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+    "source_digests": {
+     "engine/medicham2-browser.js": "2caee2eeabb0",
+     "engine/board.js": "c85a3b756c98",
+     "engine/rollout_leaf.js": "eacf05ff8d30",
+     "engine/position_features.js": "bb71676d3669",
+     "engine/tags.js": "13cdeb051720",
+     "engine/champions_sim.js": "8094725f52a8",
+     "data/residual-order.json": "eff160ad1c5a",
+     "data/switchin-order.json": "24a007a66b7d",
+     "engine/mc_key.js": "aaa095762671",
+     "engine/lookup.js": "17f49e5aed43",
+     "engine/set_priors.js": "f8a81445ee3a",
+     "engine/smogon_priors.js": "ebd062f756c8",
+     "engine/quality.js": "ebc37c7c9d05",
+     "engine/showdown_path.js": "46646401ede2",
+     "engine/regulation.js": "827f5138ecf5",
+     "data/move-effects.js": "f35ecd91ba86",
+     "data/ability-blocks.json": "86741fd35452",
+     "data/smogon-priors.json": "f2dc78cea6c5",
+     "data/regulations.json": "6c7c3e3dd06c",
+     "data/quality-filter.json": "042524dd1df7",
+     "data/engine-data.js": "bbc417dfae0e",
+     "data/abra-tags.js": "fc30f9a9392e",
+     "data/tags.json": "26ee107ce6a8",
+     "data/policy-weights.json": "626c1d240782",
+     "data/policy-weights-joint.json": "e2aca467ff04",
+     "data/move-priors.json": "e667fe8ab457",
+     "engine/pp.js": "30b12a4ef623",
+     "data/rollout-switch-census.json": "b8a5cee2f0a9",
+     "engine/medicham_api.js": "f0264a11558b",
+     "data/engine-data-regmc.js": "a6ad04e92d4e",
+     "data/tags-regmc.json": "ac1a00fa40ee",
+     "data/move-priors-regmc.json": "eab0c9b023df",
+     "data/move-effects-regmc.js": "8c57407e7641"
+    }
+   }
+  },
+  {
+   "shard": 2,
+   "done": 666,
+   "wall_s": 2920.987,
+   "probe": {
+    "positions": 666,
+    "steps": 448306,
+    "errors": 0,
+    "cacheHits": 169260,
+    "boards": 336766,
+    "sleepClocksOpened": 21,
+    "tallWorlds": 666
+   },
+   "mag": {
+    "verdicts": 13238,
+    "live": 11168,
+    "soft": 212,
+    "dead": 195,
+    "untested": 0,
+    "na": 1663,
+    "budgetStops": 0,
+    "altRescued": 0,
+    "uninformativeWorlds": 4,
+    "shieldWorlds": 8027
+   },
+   "pair": {
+    "pairs": 67471,
+    "cut": 2842,
+    "kept": 64629,
+    "futileChecks": 115550,
+    "otherPartnerScans": 5698,
+    "budgetStops": 0,
+    "uninformativeWorlds": 219,
+    "representativesKept": 6,
+    "shieldWorlds": 69542
+   },
+   "world": {
+    "built": 666,
+    "failed": 0,
+    "megaApplied": 778,
+    "megaFailed": 0,
+    "mineUnmatched": 0,
+    "oppGuessUsed": 495,
+    "oppFilledBlind": 0
+   },
+   "release": {
+    "engine_release": "eaa5becc54eb",
+    "engine_release_cut": "2026-09-24T20:12:54.367Z",
+    "engine_release_cuts": 50,
+    "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+    "source_digests": {
+     "engine/medicham2-browser.js": "2caee2eeabb0",
+     "engine/board.js": "c85a3b756c98",
+     "engine/rollout_leaf.js": "eacf05ff8d30",
+     "engine/position_features.js": "bb71676d3669",
+     "engine/tags.js": "13cdeb051720",
+     "engine/champions_sim.js": "8094725f52a8",
+     "data/residual-order.json": "eff160ad1c5a",
+     "data/switchin-order.json": "24a007a66b7d",
+     "engine/mc_key.js": "aaa095762671",
+     "engine/lookup.js": "17f49e5aed43",
+     "engine/set_priors.js": "f8a81445ee3a",
+     "engine/smogon_priors.js": "ebd062f756c8",
+     "engine/quality.js": "ebc37c7c9d05",
+     "engine/showdown_path.js": "46646401ede2",
+     "engine/regulation.js": "827f5138ecf5",
+     "data/move-effects.js": "f35ecd91ba86",
+     "data/ability-blocks.json": "86741fd35452",
+     "data/smogon-priors.json": "f2dc78cea6c5",
+     "data/regulations.json": "6c7c3e3dd06c",
+     "data/quality-filter.json": "042524dd1df7",
+     "data/engine-data.js": "bbc417dfae0e",
+     "data/abra-tags.js": "fc30f9a9392e",
+     "data/tags.json": "26ee107ce6a8",
+     "data/policy-weights.json": "626c1d240782",
+     "data/policy-weights-joint.json": "e2aca467ff04",
+     "data/move-priors.json": "e667fe8ab457",
+     "engine/pp.js": "30b12a4ef623",
+     "data/rollout-switch-census.json": "b8a5cee2f0a9",
+     "engine/medicham_api.js": "f0264a11558b",
+     "data/engine-data-regmc.js": "a6ad04e92d4e",
+     "data/tags-regmc.json": "ac1a00fa40ee",
+     "data/move-priors-regmc.json": "eab0c9b023df",
+     "data/move-effects-regmc.js": "8c57407e7641"
+    }
+   }
+  }
+ ],
+ "worker_exits": [
+  0,
+  0,
+  0
+ ],
+ "release_stamp": {
+  "engine_release": "eaa5becc54eb",
+  "engine_release_cut": "2026-09-24T20:12:54.367Z",
+  "engine_release_cuts": 50,
+  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+  "source_digests": {
+   "engine/medicham2-browser.js": "2caee2eeabb0",
+   "engine/board.js": "c85a3b756c98",
+   "engine/rollout_leaf.js": "eacf05ff8d30",
+   "engine/position_features.js": "bb71676d3669",
+   "engine/tags.js": "13cdeb051720",
+   "engine/champions_sim.js": "8094725f52a8",
+   "data/residual-order.json": "eff160ad1c5a",
+   "data/switchin-order.json": "24a007a66b7d",
+   "engine/mc_key.js": "aaa095762671",
+   "engine/lookup.js": "17f49e5aed43",
+   "engine/set_priors.js": "f8a81445ee3a",
+   "engine/smogon_priors.js": "ebd062f756c8",
+   "engine/quality.js": "ebc37c7c9d05",
+   "engine/showdown_path.js": "46646401ede2",
+   "engine/regulation.js": "827f5138ecf5",
+   "data/move-effects.js": "f35ecd91ba86",
+   "data/ability-blocks.json": "86741fd35452",
+   "data/smogon-priors.json": "f2dc78cea6c5",
+   "data/regulations.json": "6c7c3e3dd06c",
+   "data/quality-filter.json": "042524dd1df7",
+   "data/engine-data.js": "bbc417dfae0e",
+   "data/abra-tags.js": "fc30f9a9392e",
+   "data/tags.json": "26ee107ce6a8",
+   "data/policy-weights.json": "626c1d240782",
+   "data/policy-weights-joint.json": "e2aca467ff04",
+   "data/move-priors.json": "e667fe8ab457",
+   "engine/pp.js": "30b12a4ef623",
+   "data/rollout-switch-census.json": "b8a5cee2f0a9",
+   "engine/medicham_api.js": "f0264a11558b",
+   "data/engine-data-regmc.js": "a6ad04e92d4e",
+   "data/tags-regmc.json": "ac1a00fa40ee",
+   "data/move-priors-regmc.json": "eab0c9b023df",
+   "data/move-effects-regmc.js": "8c57407e7641"
+  }
+ },
+ "wall_s": 2935.95
+}

@@ -90,6 +90,27 @@ This section says only what a division agent needs before it starts.
   refuses every non-loopback connection in every process), `login_stub.js`, `build_ladder_teams.js` →
   `teams/ladder-rotation.json`, and `arms/`. Runbook with the exact commands: `solver/rotom/LADDER.md`.
   Account: `docs/_reports/2026-09-25-rotom-ladder-mode.md`. **A public launch is Will's call.**
+- **Protect overuse (2026-09-26, abra/regmc 1.20.0).** ROTOM's world did not carry the consecutive-Protect counter
+  when the live run played, so the live search treated a second Protect as certain. The gates merge (1.18.0, on main after that run
+  began) added an approximate streak, which counts every stalling click whether or not it held. The world now reads the exact
+  counter off the public log
+  (`solver/rotom/world.js stallStreaks`, `solver/tests/test-rotom-world-stall.js`: 1,583/1,583 against the engine,
+  RED under `ROTOM_WORLD_BREAK=nostall`). The engine was already right (0.325, full and lean). In the arena the
+  counter is not the main cause: at 5 s the share goes 16.9% → 16.7% and the fail rate 13.1% → 13.4%, against the
+  humans' 12.4% and 3.6%. The pre-registered protect bars FAILED. The strength SPRT was inconclusive, 0.520
+  [0.471, 0.569], with no loss detected. The rest of the excess comes from the depth-0 equilibrium: it mixes in a repeat
+  Protect about 60% of the time when DODUO offers one, under either leaf and with 8 columns. Open for MILTANK and DODUO.
+  Arena Protect counters: `solver/arena/protect_stats.js`, `protect_read.js`. Account:
+  `docs/_reports/2026-09-26-protect-overuse.md`.
+- **The tiered gates (2026-09-26, abra/regmc 1.19.0).** MAG removes a click no branch can make achieve its purpose
+  (`solver/mag/purpose.js`) and marks one rescued only by a switch, which DODUO v2 weights by the human switch model;
+  the pair gate leaves MAG-dead clicks to MAG. Held-out survival 99.60% / 99.69% (2 pair-gate errors in 20,482); no
+  strength gain (DODUO-greedy and MILTANK both H0). Account: `docs/_reports/2026-09-26-tiered-gates.md`.
+- **ROTOM knows how each series ended, and never counts an unrated one (2026-09-26, abra/regmc 1.17.0).** Game and
+  series rows carry `end_reason` (`solver/rotom/endings.js`), including the walkaway between games that no game log
+  shows. Our own forfeit, timeout or walkaway is a ladder error and a HALT. Every record or mean is over rated series
+  only, reported with and without the opponent's quits (`node solver/rotom/report.js ladder <run dir>`). Account:
+  `docs/_reports/2026-09-26-rotom-end-reasons.md`.
 - **gen5 holds under honest information; ROTOM plays it (2026-09-26, abra/regmc 1.16.0).** The arena's default for a
   match is now honest (`solver/mew/play.js --info honest`, `solver/xatu/worlds.js`): hidden spreads, the decider's public
   view, XATU's belief in the worlds. gen5 vs DODUO-greedy: H1 at 1 s (0.710 [0.615, 0.790]) and 5 s (0.712 [0.618, 0.790]).
@@ -114,6 +135,15 @@ This section says only what a division agent needs before it starts.
   record in `games.jsonl`, joined to that game's decision log (`solver/rotom/replay.js`). Every local server starts
   through `solver/rotom/local_server.js` and makes **zero public requests**
   (`solver/tests/test-rotom-localnet.js`). Account: `docs/_reports/2026-09-25-rotom-merge.md`.
+- **MAG v2 and DODUO v2 do different jobs (2026-09-25).** MAG is the per-slot DEAD-CLICK gate (`solver/mag/gate.js`):
+  it asks MEDICHAM whether a click ever succeeds, whatever the partner and the opponent do, and cuts it only if never;
+  a click rescued only by the opponent switching is SOFT (weight 1e-3, not cut). DODUO keeps its learned scoring and
+  adds the PAIR gate (`solver/doduo/gate.js`): a joint is cut only when one click changes nothing beside this partner
+  click and does beside another. Both read one engine interface (`solver/mag/probe.js`): TALL worlds (HP x4,096,
+  capped at 60%) so a verdict never rests on a KO or a heal, the target's shield skipped (the `#509` residual, filed
+  in `docs/ENGINE.md`), the sleep clock opened. `solver/doduo/v2.js` wraps any prior adapter, so DODUO-greedy and
+  MILTANK take the gates with a spec flag (`gates`). Tests `solver/tests/test-gates.js`, 30 checks, red on 15 breaks. Account:
+  `docs/_reports/2026-09-25-mag-doduo-gates.md`.
 - **Old implementations** (`engine/miltank.js`, `engine/magnemite.js`, `engine/mag_bot.js`, …) are archived
   to a top-level `archive/` in the commit where each replacement passes its exit test
   (`solver/PLAN.md` §8). Run `node engine/engine_release.js compat` first: several are in the release

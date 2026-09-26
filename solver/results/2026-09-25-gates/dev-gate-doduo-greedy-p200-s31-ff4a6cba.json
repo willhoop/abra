@@ -1,0 +1,184 @@
+{
+ "what": "MACHAMP gate (solver/machamp/gate.js)",
+ "started": "2026-09-25T22:46:41.946Z",
+ "finished": "2026-09-25T22:48:45.516Z",
+ "engine_release": "eaa5becc54eb",
+ "release_stamp": {
+  "engine_release": "eaa5becc54eb",
+  "engine_release_cut": "2026-09-24T20:12:54.367Z",
+  "engine_release_cuts": 50,
+  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+  "source_digests": {
+   "engine/medicham2-browser.js": "2caee2eeabb0",
+   "engine/board.js": "c85a3b756c98",
+   "engine/rollout_leaf.js": "eacf05ff8d30",
+   "engine/position_features.js": "bb71676d3669",
+   "engine/tags.js": "13cdeb051720",
+   "engine/champions_sim.js": "8094725f52a8",
+   "data/residual-order.json": "eff160ad1c5a",
+   "data/switchin-order.json": "24a007a66b7d",
+   "engine/mc_key.js": "aaa095762671",
+   "engine/lookup.js": "17f49e5aed43",
+   "engine/set_priors.js": "f8a81445ee3a",
+   "engine/smogon_priors.js": "ebd062f756c8",
+   "engine/quality.js": "ebc37c7c9d05",
+   "engine/showdown_path.js": "46646401ede2",
+   "engine/regulation.js": "827f5138ecf5",
+   "data/move-effects.js": "f35ecd91ba86",
+   "data/ability-blocks.json": "86741fd35452",
+   "data/smogon-priors.json": "f2dc78cea6c5",
+   "data/regulations.json": "6c7c3e3dd06c",
+   "data/quality-filter.json": "042524dd1df7",
+   "data/engine-data.js": "bbc417dfae0e",
+   "data/abra-tags.js": "fc30f9a9392e",
+   "data/tags.json": "26ee107ce6a8",
+   "data/policy-weights.json": "626c1d240782",
+   "data/policy-weights-joint.json": "e2aca467ff04",
+   "data/move-priors.json": "e667fe8ab457",
+   "engine/pp.js": "30b12a4ef623",
+   "data/rollout-switch-census.json": "b8a5cee2f0a9",
+   "engine/medicham_api.js": "f0264a11558b",
+   "data/engine-data-regmc.js": "a6ad04e92d4e",
+   "data/tags-regmc.json": "ac1a00fa40ee",
+   "data/move-priors-regmc.json": "eab0c9b023df",
+   "data/move-effects-regmc.js": "8c57407e7641"
+  }
+ },
+ "flags": {
+  "release": "eaa5becc54eb",
+  "x": "solver/doduo/specs/doduo-greedy-gated.json",
+  "y": "solver/machamp/league/human-clone.json",
+  "pairs": 200,
+  "games": 400,
+  "pair_seed": 1,
+  "seed": 31,
+  "workers": 3,
+  "cap": 50,
+  "rule": "beats",
+  "human": null,
+  "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc"
+ },
+ "x": {
+  "name": "doduo-greedy-gated",
+  "spec": {
+   "name": "doduo-greedy-gated",
+   "kind": "greedy",
+   "mag": "solver/mag/model/mag-v1.json",
+   "doduo": "solver/mag/model/doduo-v1.json",
+   "gates": {
+    "soft": 0.001
+   }
+  },
+  "digests": {
+   "mag": "c720dd9e0696bc3e",
+   "doduo": "da319ee23b44770a",
+   "gates": "a7d214dd59cc05f2"
+  }
+ },
+ "y": {
+  "name": "human-clone",
+  "spec": {
+   "name": "human-clone",
+   "kind": "greedy",
+   "mag": "solver/mag/model/mag-v1.json",
+   "doduo": "solver/mag/model/doduo-v1.json"
+  },
+  "digests": {
+   "mag": "c720dd9e0696bc3e",
+   "doduo": "da319ee23b44770a"
+  }
+ },
+ "pool": {
+  "pool_source": {
+   "kind": "team-store",
+   "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+   "file_sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+   "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709"
+  },
+  "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+  "test_pairs": 173,
+  "picked": 173,
+  "ids_sha256": "113be25167d10d4a",
+  "counts": {
+   "scanned": 23473,
+   "bot": 158,
+   "bring_incomplete": 7179,
+   "sheet_not_six": 0,
+   "mixed_split": 5623,
+   "train": 10200,
+   "val": 140,
+   "test": 173
+  }
+ },
+ "result": {
+  "W": 174,
+  "D": 0,
+  "L": 172,
+  "errors": 0,
+  "capped": 0,
+  "unbuildable": 0,
+  "played": 346,
+  "score_x": 0.5028901734104047,
+  "ci95_x": [
+   0.45046424121131456,
+   0.5552526317963552
+  ]
+ },
+ "paired": {
+  "team_pairs": 200,
+  "both": 1,
+  "split": 172,
+  "lost": 0,
+  "incomplete": 0
+ },
+ "rule": {
+  "name": "beats",
+  "text": "PASS iff Wilson 95% lower bound of X score > 0.5"
+ },
+ "pass": false,
+ "decision_ms": {
+  "x": {
+   "n": 2548,
+   "mean": 70.1,
+   "p50": 30,
+   "p99": 389,
+   "max": 9528
+  },
+  "y": {
+   "n": 2548,
+   "mean": 12.2,
+   "p50": 7,
+   "p99": 62,
+   "max": 147
+  }
+ },
+ "search": [
+  null,
+  null,
+  null
+ ],
+ "rollout_leafPory2": 0,
+ "fallbacks": 0,
+ "warnings": [
+  "expected 400 games, merged 346 scored + 0 errored + 0 unbuildable"
+ ],
+ "wall_s": 123.55,
+ "shards": [
+  {
+   "shard": 0,
+   "pid": 18004,
+   "code": 0
+  },
+  {
+   "shard": 1,
+   "pid": 10952,
+   "code": 0
+  },
+  {
+   "shard": 2,
+   "pid": 19248,
+   "code": 0
+  }
+ ],
+ "per_game_sha256": "93b5cfc66e993e18"
+}

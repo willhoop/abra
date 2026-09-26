@@ -83,6 +83,9 @@ const MR = require('../arena/mega_rate.js');
 /* THE PROTECT COUNTER per game and side (solver/arena/protect_stats.js; docs/_reports/2026-09-26-protect-overuse.md) */
 const PS = require('../arena/protect_stats.js').create(API);
 const MEGA = {};
+/* THE CLICK RATES per side per game (solver/arena/click_rates.js, 2026-09-26): Protect repeats and damaging clicks into an
+ * immune body, read on the true battle before each step; on every match row as clicks.x / clicks.y */
+const CR = require('../arena/click_rates.js').create(API);
 const megaT = name => (MEGA[name] || (MEGA[name] = MR.tally()));
 const t0 = Date.now();
 /* running search counters, snapshotted onto every match line: a SPRT kills its workers at the bound and a killed
@@ -109,6 +112,7 @@ async function playGame(G, botA, botB, seed, recordFor) {
   const pg = PS.game();
   let err = null;
   const ms = { A: [], B: [] };
+  const clicks = { A: CR.tally(), B: CR.tally() };
   try {
     while (!API.isTerminal(S) && S.turn < CAP) {
       const ch = {};
@@ -143,6 +147,7 @@ async function playGame(G, botA, botB, seed, recordFor) {
             playouts: info.playouts == null ? null : info.playouts, unfilled: 0, ms: info.ms == null ? null : info.ms, agent: bot.name });
         }
       }
+      CR.add(clicks.A, S, 'A', ch.A.joint); CR.add(clicks.B, S, 'B', ch.B.joint);
       PA0.record(ctx, S, ch.A.joint, ch.B.joint);
       mg.decide(S, 'A', ch.A.joint); mg.decide(S, 'B', ch.B.joint);
       pg.before(S, ch.A.joint, ch.B.joint);
@@ -154,7 +159,7 @@ async function playGame(G, botA, botB, seed, recordFor) {
   mg.end();
   let vA = null, capped = false;
   if (!err) { if (API.isTerminal(S)) vA = API.winner(S); else { vA = API.horizonScore(S); capped = true; } }
-  return { vA, capped, err, turns: S.turn, hist: ctx.hist, decisions, fallbacks, ms, mega: mg.detail(), protect: pg.out() };
+  return { vA, capped, err, turns: S.turn, hist: ctx.hist, decisions, fallbacks, ms, mega: mg.detail(), clicks, protect: pg.out() };
 }
 
 async function selfplay() {
@@ -220,8 +225,9 @@ async function match() {
       per.push({ pi, id: G.id, xSide: xIsA ? 'A' : 'B', seed, info: INFO, vX, turns: r.turns, capped: r.capped, err: r.err,
                  ms_x: r.ms[xIsA ? 'A' : 'B'], ms_y: r.ms[xIsA ? 'B' : 'A'],
                  mega: r.mega ? { x: r.mega[xIsA ? 'A' : 'B'], y: r.mega[xIsA ? 'B' : 'A'] } : null,
+                 clicks: r.clicks ? { x: r.clicks[xIsA ? 'A' : 'B'], y: r.clicks[xIsA ? 'B' : 'A'] } : null,
                  protect: r.protect ? { x: r.protect[xIsA ? 'A' : 'B'], y: r.protect[xIsA ? 'B' : 'A'] } : null,
-                 ctr: Object.assign({ fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0, stall_dropped: AG.COUNTERS.stallDropped || 0 }, RUN,
+                 ctr: Object.assign({ fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0, stall_dropped: AG.COUNTERS.stallDropped || 0, gates: JSON.parse(JSON.stringify(AG.COUNTERS.gates || {})) }, RUN,
                    INFO === 'honest' ? { hon_views: HON.views, hon_back_xatu: HON.back_xatu, hon_back_error: HON.back_error, xw: Object.assign({}, XW.COUNTERS) } : {}) });
     }
     if (OUT) fs.writeFileSync(OUT, per.map(p => JSON.stringify(p)).join('\n') + '\n');
