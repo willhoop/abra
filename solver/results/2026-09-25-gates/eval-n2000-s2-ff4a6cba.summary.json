@@ -1,0 +1,1233 @@
+{
+ "what": "MAG v2 + DODUO v2 dead-click gates on held-out human Reg M-C decisions (solver/doduo/eval_gates.js)",
+ "engine_release": "eaa5becc54eb",
+ "flags": {
+  "n": 2000,
+  "seed": 2,
+  "workers": 3,
+  "human": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\solver\\out\\human\\games.jsonl"
+ },
+ "dataset_sha256": "9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8",
+ "selection": {
+  "sha": "9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8",
+  "counts": {
+   "games": 26888,
+   "test_games": 5220,
+   "eligible_games": 3627,
+   "decisions_seen": 29951,
+   "eligible": 20501
+  },
+  "stride": 10,
+  "picks": 2000,
+  "games": 1933
+ },
+ "counts": {
+  "decisions": 2000,
+  "errors": 0,
+  "unmatched": 2,
+  "evaluated": 1998
+ },
+ "survival": {
+  "survived": 1995,
+  "n": 1998,
+  "rate": 0.9984984984984985,
+  "ci95": [
+   0.9955944921465745,
+   0.999489234757692
+  ],
+  "lost_to_mag": 2,
+  "lost_to_pair": 1,
+  "target": 0.999
+ },
+ "options": {
+  "judged": 35039,
+  "live": 33831,
+  "soft": 678,
+  "dead": 530,
+  "untested": 0,
+  "na": 5234,
+  "dead_share_of_judged": 0.015126002454407945,
+  "soft_share_of_judged": 0.019349867290733184
+ },
+ "joints": {
+  "product": 207688,
+  "legal": 204432,
+  "engine_refused": 3256,
+  "mag_cut": 4381,
+  "pair_cut": 13606,
+  "both_cut": 139,
+  "survive": 186584,
+  "share": {
+   "engine_refused_of_product": 0.015677362197141866,
+   "mag_of_legal": 0.02143010878923065,
+   "pair_of_legal": 0.06655513813884323,
+   "pair_of_mag_survivors": 0.06731783395234216,
+   "either_of_legal": 0.08730531423651874
+  }
+ },
+ "ablation_2x2_joints": {
+  "mag_only": 4242,
+  "pair_only": 13467,
+  "both": 139,
+  "neither": 186584,
+  "both_where_the_pair_gate_cut_on_a_mag_dead_click": 57,
+  "caption": "both = the joint has one click MAG cut AND the pair gate cut it for the OTHER click (two independent faults in one joint). A pair cut ON a MAG-dead click would be the two gates claiming the same removal; it is counted separately and should be 0."
+ },
+ "pair_cut_click_mag_verdict": {
+  "live": 13397,
+  "soft": 152,
+  "dead": 57,
+  "untested": 0,
+  "na": 0,
+  "none": 0
+ },
+ "decisions_with": {
+  "any_mag_dead": 371,
+  "any_soft": 486,
+  "any_pair_cut": 1692
+ },
+ "human_soft": 3,
+ "cost": {
+  "ms_mean": 2287.017017017017,
+  "ms_p50": 868,
+  "ms_max": 56395,
+  "steps_mean": 515.1326326326326,
+  "step_errors": 0
+ },
+ "losses": [
+  {
+   "id": "gen9championsvgc2026regmcbo3-2683284127",
+   "turn": 1,
+   "p": "p2",
+   "human": [
+    "m:perishsong::M",
+    "m:perishsong:"
+   ],
+   "human_verdicts": [
+    "live",
+    "live"
+   ],
+   "mag": false,
+   "pair": true,
+   "actives": [
+    "gengar",
+    "politoed"
+   ],
+   "foes": [
+    "lucario",
+    "sylveon"
+   ],
+   "loss": {
+    "human": [
+     "m:perishsong::M",
+     "m:perishsong:"
+    ],
+    "verdicts": [
+     {
+      "v": "live",
+      "worlds": 1,
+      "inf": 1
+     },
+     {
+      "v": "live",
+      "worlds": 1,
+      "inf": 1
+     }
+    ],
+    "pair": {
+     "cut": true,
+     "slot": 1,
+     "why": "slot 1 click has no effect beside this partner click, and has one beside another"
+    },
+    "actions": {
+     "a": {
+      "kind": "move",
+      "move": "Perish Song",
+      "target": null,
+      "target_loc": null,
+      "target_certain": true,
+      "executed": true,
+      "mega": true,
+      "mon": 2
+     },
+     "b": {
+      "kind": "move",
+      "move": "Perish Song",
+      "target": null,
+      "target_loc": null,
+      "target_certain": true,
+      "executed": true,
+      "still": true,
+      "mon": 4
+     }
+    },
+    "state": {
+     "weather": {
+      "name": "RainDance",
+      "since": 0
+     },
+     "terrain": null,
+     "pseudo": {},
+     "sides": {
+      "p1": {
+       "mega_used": false,
+       "conditions": {},
+       "active": [
+        1,
+        5
+       ],
+       "mons": [
+        {
+         "i": 0,
+         "seen": false
+        },
+        {
+         "i": 1,
+         "seen": true,
+         "species": "Lucario",
+         "hp": 100,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Lucarionite Z",
+         "ability": "Inner Focus",
+         "boosts": {},
+         "vol": {},
+         "used": [],
+         "mega": false,
+         "pos": "a"
+        },
+        {
+         "i": 2,
+         "seen": false
+        },
+        {
+         "i": 3,
+         "seen": false
+        },
+        {
+         "i": 4,
+         "seen": false
+        },
+        {
+         "i": 5,
+         "seen": true,
+         "species": "Sylveon",
+         "hp": 100,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Fairy Feather",
+         "ability": "Pixilate",
+         "boosts": {},
+         "vol": {},
+         "used": [],
+         "mega": false,
+         "pos": "b"
+        }
+       ]
+      },
+      "p2": {
+       "mega_used": false,
+       "conditions": {},
+       "active": [
+        2,
+        4
+       ],
+       "mons": [
+        {
+         "i": 0,
+         "seen": false
+        },
+        {
+         "i": 1,
+         "seen": false
+        },
+        {
+         "i": 2,
+         "seen": true,
+         "species": "Gengar",
+         "hp": 100,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Gengarite",
+         "ability": "Cursed Body",
+         "boosts": {},
+         "vol": {},
+         "used": [],
+         "mega": false,
+         "pos": "a"
+        },
+        {
+         "i": 3,
+         "seen": false
+        },
+        {
+         "i": 4,
+         "seen": true,
+         "species": "Politoed",
+         "hp": 100,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Sitrus Berry",
+         "ability": "Drizzle",
+         "boosts": {},
+         "vol": {},
+         "used": [],
+         "mega": false,
+         "pos": "b"
+        },
+        {
+         "i": 5,
+         "seen": false
+        }
+       ]
+      }
+     }
+    },
+    "bench_opp": [
+     "indeedee-f",
+     "sneasler"
+    ]
+   }
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2682563578",
+   "turn": 8,
+   "p": "p2",
+   "human": [
+    "m:flareblitz:1",
+    "m:poisonjab:1"
+   ],
+   "human_verdicts": [
+    "live",
+    "dead"
+   ],
+   "mag": true,
+   "pair": false,
+   "actives": [
+    "incineroar",
+    "sneasler"
+   ],
+   "foes": [
+    "gholdengo",
+    "excadrill"
+   ],
+   "loss": {
+    "human": [
+     "m:flareblitz:1",
+     "m:poisonjab:1"
+    ],
+    "verdicts": [
+     {
+      "v": "live",
+      "worlds": 2,
+      "inf": 1
+     },
+     {
+      "v": "dead",
+      "worlds": 14,
+      "inf": 11,
+      "why": "failed in every informative world"
+     }
+    ],
+    "pair": {
+     "cut": false
+    },
+    "actions": {
+     "a": {
+      "kind": "move",
+      "move": "Flare Blitz",
+      "target": "p1a",
+      "target_loc": 1,
+      "target_certain": true,
+      "executed": true,
+      "mon": 2
+     },
+     "b": {
+      "kind": "move",
+      "move": "Poison Jab",
+      "target": "p1a",
+      "target_loc": 1,
+      "target_certain": true,
+      "executed": true,
+      "mon": 5
+     }
+    },
+    "state": {
+     "weather": null,
+     "terrain": null,
+     "pseudo": {},
+     "sides": {
+      "p1": {
+       "mega_used": true,
+       "conditions": {},
+       "active": [
+        5,
+        null
+       ],
+       "mons": [
+        {
+         "i": 0,
+         "seen": false
+        },
+        {
+         "i": 1,
+         "seen": true,
+         "species": "Excadrill",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": "Focus Sash",
+         "ability": "Sand Rush",
+         "boosts": {
+          "atk": -2,
+          "spa": -1
+         },
+         "vol": {},
+         "used": [
+          "High Horsepower",
+          "Rock Slide"
+         ],
+         "mega": false,
+         "pos": "b"
+        },
+        {
+         "i": 2,
+         "seen": false
+        },
+        {
+         "i": 3,
+         "seen": true,
+         "species": "Rillaboom",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": "Expert Belt",
+         "ability": "Grassy Surge",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Fake Out",
+          "Wood Hammer"
+         ],
+         "mega": false,
+         "pos": null
+        },
+        {
+         "i": 4,
+         "seen": true,
+         "species": "Salamence-Mega",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": "Salamencite",
+         "ability": "Aerilate",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Protect",
+          "Tailwind",
+          "Hyper Voice"
+         ],
+         "mega": true,
+         "pos": null
+        },
+        {
+         "i": 5,
+         "seen": true,
+         "species": "Gholdengo",
+         "hp": 100,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Life Orb",
+         "ability": "Good as Gold",
+         "boosts": {
+          "atk": -1,
+          "spa": 2
+         },
+         "vol": {},
+         "used": [
+          "Nasty Plot"
+         ],
+         "mega": false,
+         "pos": "a"
+        }
+       ]
+      },
+      "p2": {
+       "mega_used": true,
+       "conditions": {},
+       "active": [
+        2,
+        5
+       ],
+       "mons": [
+        {
+         "i": 0,
+         "seen": true,
+         "species": "Basculegion",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": "Choice Scarf",
+         "ability": "Adaptability",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Last Respects"
+         ],
+         "mega": false,
+         "pos": null
+        },
+        {
+         "i": 1,
+         "seen": false
+        },
+        {
+         "i": 2,
+         "seen": true,
+         "species": "Incineroar",
+         "hp": 64,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": null,
+         "ability": "Intimidate",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Fake Out",
+          "Flare Blitz",
+          "Parting Shot"
+         ],
+         "mega": false,
+         "pos": "a"
+        },
+        {
+         "i": 3,
+         "seen": false
+        },
+        {
+         "i": 4,
+         "seen": true,
+         "species": "Raichu-Mega-Y",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": "Raichunite Y",
+         "ability": "No Guard",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Zap Cannon",
+          "Protect"
+         ],
+         "mega": true,
+         "pos": null
+        },
+        {
+         "i": 5,
+         "seen": true,
+         "species": "Sneasler",
+         "hp": 87,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Focus Sash",
+         "ability": "Poison Touch",
+         "boosts": {
+          "def": -1,
+          "spd": -1
+         },
+         "vol": {},
+         "used": [
+          "Fake Out",
+          "Close Combat"
+         ],
+         "mega": false,
+         "pos": "b"
+        }
+       ]
+      }
+     }
+    },
+    "bench_opp": [
+     "rillaboom",
+     "salamence-mega"
+    ]
+   }
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679006150",
+   "turn": 9,
+   "p": "p2",
+   "human": [
+    "m:flareblitz:2",
+    "m:closecombat:2"
+   ],
+   "human_verdicts": [
+    "live",
+    "dead"
+   ],
+   "mag": true,
+   "pair": false,
+   "actives": [
+    "arcanine-hisui",
+    "sneasler"
+   ],
+   "foes": [
+    "gholdengo",
+    "salamence-mega"
+   ],
+   "loss": {
+    "human": [
+     "m:flareblitz:2",
+     "m:closecombat:2"
+    ],
+    "verdicts": [
+     {
+      "v": "live",
+      "worlds": 2,
+      "inf": 2
+     },
+     {
+      "v": "dead",
+      "worlds": 20,
+      "inf": 20,
+      "why": "failed in every informative world"
+     }
+    ],
+    "pair": {
+     "cut": false
+    },
+    "actions": {
+     "a": {
+      "kind": "move",
+      "move": "Flare Blitz",
+      "target": "p1b",
+      "target_loc": 2,
+      "target_certain": true,
+      "executed": true,
+      "mon": 3
+     },
+     "b": {
+      "kind": "move",
+      "move": "Close Combat",
+      "target": "p1b",
+      "target_loc": 2,
+      "target_certain": true,
+      "executed": true,
+      "mon": 2
+     }
+    },
+    "state": {
+     "weather": null,
+     "terrain": null,
+     "pseudo": {},
+     "sides": {
+      "p1": {
+       "mega_used": true,
+       "conditions": {},
+       "active": [
+        null,
+        5
+       ],
+       "mons": [
+        {
+         "i": 0,
+         "seen": true,
+         "species": "Salamence-Mega",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": "Salamencite",
+         "ability": "Aerilate",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Tailwind",
+          "Hyper Voice"
+         ],
+         "mega": true,
+         "pos": "a"
+        },
+        {
+         "i": 1,
+         "seen": false
+        },
+        {
+         "i": 2,
+         "seen": true,
+         "species": "Sneasler",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": "Grassy Seed",
+         "ability": "Unburden",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Fake Out"
+         ],
+         "mega": false,
+         "pos": null
+        },
+        {
+         "i": 3,
+         "seen": false
+        },
+        {
+         "i": 4,
+         "seen": true,
+         "species": "Kingambit",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": null,
+         "ability": "Defiant",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Sucker Punch",
+          "Low Kick"
+         ],
+         "mega": false,
+         "pos": null
+        },
+        {
+         "i": 5,
+         "seen": true,
+         "species": "Gholdengo",
+         "hp": 81,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Life Orb",
+         "ability": "Good as Gold",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Make It Rain",
+          "Protect",
+          "Shadow Ball"
+         ],
+         "mega": false,
+         "pos": "b"
+        }
+       ]
+      },
+      "p2": {
+       "mega_used": true,
+       "conditions": {},
+       "active": [
+        3,
+        2
+       ],
+       "mons": [
+        {
+         "i": 0,
+         "seen": true,
+         "species": "Salamence-Mega",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": "Salamencite",
+         "ability": "Aerilate",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Tailwind",
+          "Double-Edge",
+          "Protect"
+         ],
+         "mega": true,
+         "pos": null
+        },
+        {
+         "i": 1,
+         "seen": false
+        },
+        {
+         "i": 2,
+         "seen": true,
+         "species": "Sneasler",
+         "hp": 66,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Grassy Seed",
+         "ability": "Unburden",
+         "boosts": {
+          "def": -1,
+          "spd": -1
+         },
+         "vol": {},
+         "used": [
+          "Close Combat",
+          "Protect"
+         ],
+         "mega": false,
+         "pos": "b"
+        },
+        {
+         "i": 3,
+         "seen": true,
+         "species": "Arcanine-Hisui",
+         "hp": 23,
+         "max": 100,
+         "status": null,
+         "fnt": false,
+         "item": "Focus Sash",
+         "ability": "Rock Head",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Flare Blitz",
+          "Extreme Speed",
+          "Protect"
+         ],
+         "mega": false,
+         "pos": "a"
+        },
+        {
+         "i": 4,
+         "seen": true,
+         "species": "Kingambit",
+         "hp": 0,
+         "max": 100,
+         "status": null,
+         "fnt": true,
+         "item": null,
+         "ability": "Defiant",
+         "boosts": {},
+         "vol": {},
+         "used": [
+          "Low Kick",
+          "Iron Head",
+          "Sucker Punch"
+         ],
+         "mega": false,
+         "pos": null
+        },
+        {
+         "i": 5,
+         "seen": false
+        }
+       ]
+      }
+     }
+    },
+    "bench_opp": [
+     "sneasler",
+     "kingambit"
+    ]
+   }
+  }
+ ],
+ "unmatched_examples": [
+  {
+   "id": "gen9championsvgc2026regmcbo3-2685858419",
+   "ti": 5,
+   "p": "p1",
+   "unmatched": [
+    {
+     "kind": "move",
+     "move": "Zap Cannon",
+     "target": "p2a",
+     "target_loc": 1,
+     "target_certain": true,
+     "executed": true,
+     "mon": 3
+    }
+   ],
+   "menu": [
+    [
+     "m:followme:",
+     "m:helpinghand:-2",
+     "m:psychic:1",
+     "m:psychic:2",
+     "m:psychic:-2",
+     "m:trickroom:"
+    ],
+    [
+     "m:transform:1",
+     "m:transform:2",
+     "m:transform:-1"
+    ]
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681312915",
+   "ti": 2,
+   "p": "p1",
+   "unmatched": [
+    {
+     "kind": "move",
+     "move": "Curse",
+     "target": "p1b",
+     "target_loc": -2,
+     "target_certain": true,
+     "executed": true,
+     "mega": true,
+     "mon": 4
+    }
+   ],
+   "menu": [
+    [
+     "m:flareblitz:1",
+     "m:flareblitz:2",
+     "m:flareblitz:-2",
+     "m:darkestlariat:1",
+     "m:darkestlariat:2",
+     "m:darkestlariat:-2",
+     "m:partingshot:1",
+     "m:partingshot:2",
+     "m:partingshot:-2",
+     "sw2",
+     "sw3"
+    ],
+    [
+     "m:heavyslam:1",
+     "m:heavyslam:1:M",
+     "m:heavyslam:2",
+     "m:heavyslam:2:M",
+     "m:heavyslam:-1",
+     "m:heavyslam:-1:M",
+     "m:highhorsepower:1",
+     "m:highhorsepower:1:M",
+     "m:highhorsepower:2",
+     "m:highhorsepower:2:M",
+     "m:highhorsepower:-1",
+     "m:highhorsepower:-1:M",
+     "m:protect:",
+     "m:protect::M",
+     "m:curse:",
+     "m:curse::M",
+     "sw2",
+     "sw3"
+    ]
+   ]
+  }
+ ],
+ "error_examples": [],
+ "shard_counters": [
+  {
+   "shard": 0,
+   "done": 667,
+   "wall_s": 1535.958,
+   "probe": {
+    "positions": 667,
+    "steps": 351398,
+    "errors": 0,
+    "cacheHits": 170358,
+    "boards": 325132,
+    "sleepClocksOpened": 21,
+    "tallWorlds": 667
+   },
+   "mag": {
+    "verdicts": 13499,
+    "live": 11315,
+    "soft": 223,
+    "dead": 191,
+    "untested": 0,
+    "na": 1770,
+    "budgetStops": 0,
+    "altRescued": 0,
+    "uninformativeWorlds": 3,
+    "shieldWorlds": 2014
+   },
+   "pair": {
+    "pairs": 69679,
+    "cut": 4487,
+    "kept": 65192,
+    "futileChecks": 118243,
+    "otherPartnerScans": 7191,
+    "budgetStops": 0,
+    "uninformativeWorlds": 86,
+    "representativesKept": 1
+   },
+   "world": {
+    "built": 667,
+    "failed": 0,
+    "megaApplied": 776,
+    "megaFailed": 0,
+    "mineUnmatched": 0,
+    "oppGuessUsed": 546,
+    "oppFilledBlind": 0
+   },
+   "release": {
+    "engine_release": "eaa5becc54eb",
+    "engine_release_cut": "2026-09-24T20:12:54.367Z",
+    "engine_release_cuts": 50,
+    "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+    "source_digests": {
+     "engine/medicham2-browser.js": "2caee2eeabb0",
+     "engine/board.js": "c85a3b756c98",
+     "engine/rollout_leaf.js": "eacf05ff8d30",
+     "engine/position_features.js": "bb71676d3669",
+     "engine/tags.js": "13cdeb051720",
+     "engine/champions_sim.js": "8094725f52a8",
+     "data/residual-order.json": "eff160ad1c5a",
+     "data/switchin-order.json": "24a007a66b7d",
+     "engine/mc_key.js": "aaa095762671",
+     "engine/lookup.js": "17f49e5aed43",
+     "engine/set_priors.js": "f8a81445ee3a",
+     "engine/smogon_priors.js": "ebd062f756c8",
+     "engine/quality.js": "ebc37c7c9d05",
+     "engine/showdown_path.js": "46646401ede2",
+     "engine/regulation.js": "827f5138ecf5",
+     "data/move-effects.js": "f35ecd91ba86",
+     "data/ability-blocks.json": "86741fd35452",
+     "data/smogon-priors.json": "f2dc78cea6c5",
+     "data/regulations.json": "6c7c3e3dd06c",
+     "data/quality-filter.json": "042524dd1df7",
+     "data/engine-data.js": "bbc417dfae0e",
+     "data/abra-tags.js": "fc30f9a9392e",
+     "data/tags.json": "26ee107ce6a8",
+     "data/policy-weights.json": "626c1d240782",
+     "data/policy-weights-joint.json": "e2aca467ff04",
+     "data/move-priors.json": "e667fe8ab457",
+     "engine/pp.js": "30b12a4ef623",
+     "data/rollout-switch-census.json": "b8a5cee2f0a9",
+     "engine/medicham_api.js": "f0264a11558b",
+     "data/engine-data-regmc.js": "a6ad04e92d4e",
+     "data/tags-regmc.json": "ac1a00fa40ee",
+     "data/move-priors-regmc.json": "eab0c9b023df",
+     "data/move-effects-regmc.js": "8c57407e7641"
+    }
+   }
+  },
+  {
+   "shard": 1,
+   "done": 667,
+   "wall_s": 1531.424,
+   "probe": {
+    "positions": 667,
+    "steps": 349008,
+    "errors": 0,
+    "cacheHits": 167365,
+    "boards": 323112,
+    "sleepClocksOpened": 13,
+    "tallWorlds": 667
+   },
+   "mag": {
+    "verdicts": 13515,
+    "live": 11405,
+    "soft": 216,
+    "dead": 162,
+    "untested": 0,
+    "na": 1732,
+    "budgetStops": 0,
+    "altRescued": 0,
+    "uninformativeWorlds": 18,
+    "shieldWorlds": 1750
+   },
+   "pair": {
+    "pairs": 69522,
+    "cut": 4776,
+    "kept": 64746,
+    "futileChecks": 118053,
+    "otherPartnerScans": 7162,
+    "budgetStops": 0,
+    "uninformativeWorlds": 600,
+    "representativesKept": 5
+   },
+   "world": {
+    "built": 667,
+    "failed": 0,
+    "megaApplied": 774,
+    "megaFailed": 0,
+    "mineUnmatched": 0,
+    "oppGuessUsed": 551,
+    "oppFilledBlind": 0
+   },
+   "release": {
+    "engine_release": "eaa5becc54eb",
+    "engine_release_cut": "2026-09-24T20:12:54.367Z",
+    "engine_release_cuts": 50,
+    "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+    "source_digests": {
+     "engine/medicham2-browser.js": "2caee2eeabb0",
+     "engine/board.js": "c85a3b756c98",
+     "engine/rollout_leaf.js": "eacf05ff8d30",
+     "engine/position_features.js": "bb71676d3669",
+     "engine/tags.js": "13cdeb051720",
+     "engine/champions_sim.js": "8094725f52a8",
+     "data/residual-order.json": "eff160ad1c5a",
+     "data/switchin-order.json": "24a007a66b7d",
+     "engine/mc_key.js": "aaa095762671",
+     "engine/lookup.js": "17f49e5aed43",
+     "engine/set_priors.js": "f8a81445ee3a",
+     "engine/smogon_priors.js": "ebd062f756c8",
+     "engine/quality.js": "ebc37c7c9d05",
+     "engine/showdown_path.js": "46646401ede2",
+     "engine/regulation.js": "827f5138ecf5",
+     "data/move-effects.js": "f35ecd91ba86",
+     "data/ability-blocks.json": "86741fd35452",
+     "data/smogon-priors.json": "f2dc78cea6c5",
+     "data/regulations.json": "6c7c3e3dd06c",
+     "data/quality-filter.json": "042524dd1df7",
+     "data/engine-data.js": "bbc417dfae0e",
+     "data/abra-tags.js": "fc30f9a9392e",
+     "data/tags.json": "26ee107ce6a8",
+     "data/policy-weights.json": "626c1d240782",
+     "data/policy-weights-joint.json": "e2aca467ff04",
+     "data/move-priors.json": "e667fe8ab457",
+     "engine/pp.js": "30b12a4ef623",
+     "data/rollout-switch-census.json": "b8a5cee2f0a9",
+     "engine/medicham_api.js": "f0264a11558b",
+     "data/engine-data-regmc.js": "a6ad04e92d4e",
+     "data/tags-regmc.json": "ac1a00fa40ee",
+     "data/move-priors-regmc.json": "eab0c9b023df",
+     "data/move-effects-regmc.js": "8c57407e7641"
+    }
+   }
+  },
+  {
+   "shard": 2,
+   "done": 666,
+   "wall_s": 1508.916,
+   "probe": {
+    "positions": 666,
+    "steps": 328829,
+    "errors": 0,
+    "cacheHits": 163629,
+    "boards": 302761,
+    "sleepClocksOpened": 17,
+    "tallWorlds": 666
+   },
+   "mag": {
+    "verdicts": 13259,
+    "live": 11111,
+    "soft": 239,
+    "dead": 177,
+    "untested": 0,
+    "na": 1732,
+    "budgetStops": 0,
+    "altRescued": 0,
+    "uninformativeWorlds": 16,
+    "shieldWorlds": 1876
+   },
+   "pair": {
+    "pairs": 67229,
+    "cut": 4344,
+    "kept": 62885,
+    "futileChecks": 113930,
+    "otherPartnerScans": 6776,
+    "budgetStops": 0,
+    "uninformativeWorlds": 415,
+    "representativesKept": 1
+   },
+   "world": {
+    "built": 666,
+    "failed": 0,
+    "megaApplied": 747,
+    "megaFailed": 0,
+    "mineUnmatched": 0,
+    "oppGuessUsed": 559,
+    "oppFilledBlind": 0
+   },
+   "release": {
+    "engine_release": "eaa5becc54eb",
+    "engine_release_cut": "2026-09-24T20:12:54.367Z",
+    "engine_release_cuts": 50,
+    "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+    "source_digests": {
+     "engine/medicham2-browser.js": "2caee2eeabb0",
+     "engine/board.js": "c85a3b756c98",
+     "engine/rollout_leaf.js": "eacf05ff8d30",
+     "engine/position_features.js": "bb71676d3669",
+     "engine/tags.js": "13cdeb051720",
+     "engine/champions_sim.js": "8094725f52a8",
+     "data/residual-order.json": "eff160ad1c5a",
+     "data/switchin-order.json": "24a007a66b7d",
+     "engine/mc_key.js": "aaa095762671",
+     "engine/lookup.js": "17f49e5aed43",
+     "engine/set_priors.js": "f8a81445ee3a",
+     "engine/smogon_priors.js": "ebd062f756c8",
+     "engine/quality.js": "ebc37c7c9d05",
+     "engine/showdown_path.js": "46646401ede2",
+     "engine/regulation.js": "827f5138ecf5",
+     "data/move-effects.js": "f35ecd91ba86",
+     "data/ability-blocks.json": "86741fd35452",
+     "data/smogon-priors.json": "f2dc78cea6c5",
+     "data/regulations.json": "6c7c3e3dd06c",
+     "data/quality-filter.json": "042524dd1df7",
+     "data/engine-data.js": "bbc417dfae0e",
+     "data/abra-tags.js": "fc30f9a9392e",
+     "data/tags.json": "26ee107ce6a8",
+     "data/policy-weights.json": "626c1d240782",
+     "data/policy-weights-joint.json": "e2aca467ff04",
+     "data/move-priors.json": "e667fe8ab457",
+     "engine/pp.js": "30b12a4ef623",
+     "data/rollout-switch-census.json": "b8a5cee2f0a9",
+     "engine/medicham_api.js": "f0264a11558b",
+     "data/engine-data-regmc.js": "a6ad04e92d4e",
+     "data/tags-regmc.json": "ac1a00fa40ee",
+     "data/move-priors-regmc.json": "eab0c9b023df",
+     "data/move-effects-regmc.js": "8c57407e7641"
+    }
+   }
+  }
+ ],
+ "worker_exits": [
+  0,
+  0,
+  0
+ ],
+ "release_stamp": {
+  "engine_release": "eaa5becc54eb",
+  "engine_release_cut": "2026-09-24T20:12:54.367Z",
+  "engine_release_cuts": 50,
+  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+  "source_digests": {
+   "engine/medicham2-browser.js": "2caee2eeabb0",
+   "engine/board.js": "c85a3b756c98",
+   "engine/rollout_leaf.js": "eacf05ff8d30",
+   "engine/position_features.js": "bb71676d3669",
+   "engine/tags.js": "13cdeb051720",
+   "engine/champions_sim.js": "8094725f52a8",
+   "data/residual-order.json": "eff160ad1c5a",
+   "data/switchin-order.json": "24a007a66b7d",
+   "engine/mc_key.js": "aaa095762671",
+   "engine/lookup.js": "17f49e5aed43",
+   "engine/set_priors.js": "f8a81445ee3a",
+   "engine/smogon_priors.js": "ebd062f756c8",
+   "engine/quality.js": "ebc37c7c9d05",
+   "engine/showdown_path.js": "46646401ede2",
+   "engine/regulation.js": "827f5138ecf5",
+   "data/move-effects.js": "f35ecd91ba86",
+   "data/ability-blocks.json": "86741fd35452",
+   "data/smogon-priors.json": "f2dc78cea6c5",
+   "data/regulations.json": "6c7c3e3dd06c",
+   "data/quality-filter.json": "042524dd1df7",
+   "data/engine-data.js": "bbc417dfae0e",
+   "data/abra-tags.js": "fc30f9a9392e",
+   "data/tags.json": "26ee107ce6a8",
+   "data/policy-weights.json": "626c1d240782",
+   "data/policy-weights-joint.json": "e2aca467ff04",
+   "data/move-priors.json": "e667fe8ab457",
+   "engine/pp.js": "30b12a4ef623",
+   "data/rollout-switch-census.json": "b8a5cee2f0a9",
+   "engine/medicham_api.js": "f0264a11558b",
+   "data/engine-data-regmc.js": "a6ad04e92d4e",
+   "data/tags-regmc.json": "ac1a00fa40ee",
+   "data/move-priors-regmc.json": "eab0c9b023df",
+   "data/move-effects-regmc.js": "8c57407e7641"
+  }
+ },
+ "wall_s": 1559.252
+}

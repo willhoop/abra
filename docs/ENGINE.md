@@ -18435,6 +18435,20 @@ caller rather than a misplaced one — every site this batch touched already CAL
 so it is a different change with a different control. Same reasoning `yawn` was named and left by the
 substitute batch this morning.
 
+**FILED BY SOLVER, NOT FIXED (2026-09-25) — THE `#509` RESIDUAL IS STILL OPEN ON RELEASE `eaa5becc54eb`, AND IT
+HAS A SECOND READER.** A STATUS move blocked by a Protect-family shield ends with `_mvRes === true`; the authority
+ends it at `null` (read in the M-C checkout: `protect.condition.onTryHit` returns `NOT_FAIL`, `trySpreadMoveHit`
+then sets `moveThisTurnResult = null`, `useMove` keeps it). Seen by SOLVER's dead-click gate
+(`solver/mag/gate.js`), which reads this field as the engine's verdict on a click: a Glare into a Protecting body
+read as a success. Readers checked: the **Metronome item is legal in Reg M-C** (`Dex.forFormat`, 2026-09-25) and
+both engines advance its streak on a truthy last result (authority `data/items.ts:4014`, `pokemon.moveLastTurnResult`;
+here `m._metroLast===_mvId&&m._mvResLast`), so a holder repeating a shielded STATUS move keeps its streak here and
+loses it there — but the streak only boosts that same move's damage and a status move deals none, so no
+board-material effect was found. Stomping Tantrum reads `=== false` and sees no difference. Recorded because the
+field has readers, not because a board parts.
+SOLVER works around it by skipping every world in which the click's target shielded
+(`docs/_reports/2026-09-25-mag-doduo-gates.md`); the engine is not edited.
+
 ---
 
 ## THE RANDOM-TARGET DIE WAS ADDRESSED BEFORE THE AUTHORITY HAD A MOVE TO NAME IT WITH, AND SIX LOOKAHEAD DRAWS SAT IN FRONT OF IT. **BOARD-MATERIAL 2 -> 0 OF 961, PREDICTED BEFORE THE RUN. WHOLE-GAME UNMOVED AT 6 OF 961 — PREDICTED 5 AND IT DID NOT MOVE, ATTRIBUTED BELOW. CENSUS UNMOVED AT 765 LIVE / 765 PROBED / 0 MISSING. DAMAGE 0/6000 AT ALL SIXTEEN CORNERS BEFORE AND AFTER. PIN DIGEST `48e1007ac14a` -> `ccb365985023`, DICE_MODEL v4 -> v5, ON PURPOSE.** 2026-08-27.

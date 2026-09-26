@@ -21,6 +21,41 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.12.0] — 2026-09-25
+
+### Added
+- **MAG v2, the per-slot DEAD-CLICK gate** (`solver/mag/gate.js`). MAG no longer scores or ranks (Will, 2026-09-25).
+  It asks MEDICHAM whether a click ever SUCCEEDS — the engine's own move result — across every option of the partner
+  and a covering design of the opponent's joints, and cuts it only if it never does. A click rescued only by the
+  opponent switching is SOFT: weight 1e-3, never cut. No list of types, statuses or moves anywhere.
+- **DODUO v2's pair gate** (`solver/doduo/gate.js`) and **DODUO v2** as a policy (`solver/doduo/v2.js`). A joint is
+  cut only when one click changes nothing on the board beside THIS partner click and does beside another (Helping
+  Hand beside a non-attacker or a switch, two redirects, an attack on a partner who Protects). DODUO's learned score
+  ranks the rest. A drop-in prior adapter: DODUO-greedy and MILTANK take it with a spec field `gates`.
+- **One engine interface for both** (`solver/mag/probe.js`): the worlds are TALL (HP x4,096, capped at 60%) so no
+  verdict rests on a KO or a heal; a world where the target's shield held is skipped; the sleep clock is opened.
+- `solver/doduo/eval_gates.js`, `solver/doduo/gate_tables.js`, `solver/tests/test-gates.js` (30 checks, RED on 15
+  breaks), `solver/doduo/preregistration-gates.json`.
+
+### Changed
+- `solver/mew/play.js`: every match row carries the shard's running agent counters (fallbacks, gate cuts), because an
+  SPRT kills its workers at the bound and a killed worker writes no summary.
+- `solver/mew/agent.js`: a spec's `gates` field wraps the prior in DODUO v2 and digests the gate code.
+- **ROTOM's world** (`solver/rotom/world.js`): a body switched out and back in within the last turn is new (its Fake
+  Out is selectable again); last move, Protect streak, moves used since entry and PP are laid on from the log; an
+  empty opposing slot keeps its place. Found by the gates' held-out run; changes the live client's menu.
+
+### Notes
+- Release `eaa5becc54eb`, held-out Reg M-C decisions (seed 4, 1,999): the human's joint survives both gates **99.85%
+  [99.56, 99.95]** — below the pre-registered 99.9%; all 3 losses are clicks their replays show failed or did nothing.
+  MAG cuts 1.56% of per-slot options and weights 1.84% near zero; joints removed: MAG 2.29%, pair gate 4.10%, either
+  6.35%; **0 pair cuts on a click MAG calls dead**.
+- DODUO-greedy gated vs ungated: 0.500 [0.451, 0.549], 400 games, SPRT inconclusive. MILTANK (gen5 nets, 1 s, equal
+  wall-clock) gated vs ungated: 0.505 [0.456, 0.554], 400 games, inconclusive (H0 at 0.466 on the previous gate code).
+  No strength gain shown. Artifacts `solver/results/2026-09-25-gates/`; account `docs/_reports/2026-09-25-mag-doduo-gates.md`.
+- `docs/ENGINE.md`: the `#509` residual (a shielded status move reads success here, null in the authority) filed
+  again with its readers; not fixed, and the gate works around it.
+
 ## [1.10.0] — 2026-09-25
 
 ### Changed
