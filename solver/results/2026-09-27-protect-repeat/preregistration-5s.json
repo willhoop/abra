@@ -1,0 +1,9 @@
+{
+ "what": "ADDENDUM to preregistration.json, written 2026-09-27 AFTER G (1 s) was read and while S was running, BEFORE any 5 s game. Why: at 1 s the honest arena fills each of 16 cells ~1.4 times (G: playouts p50 22-24, 7-9% of cells unfilled), and the probe showed the repeat mass is a property of the table's EXPECTATION (it rises with passes: 0.123 at 2 passes, 0.199 at 48, all 40 positions). A fix to the expectation can only show where the table is filled; the live arm runs 5 s. The bars are unchanged.",
+ "run": {
+  "G5": "solver/machamp/gate.js --release eaa5becc54eb --x solver/results/2026-09-27-protect-repeat/gen5-quiesce-5s.json --y solver/machamp/league/human-clone.json --pairs 100 --pair-seed 1 --seed 26100 --workers 3 --cap 50 --info honest --rule notlose --team-store data/team-pool-frozen-regmc  (the SAME pairs and seeds as 2026-09-26 P5-after: gen5-5s vs DODUO-greedy 0.695 [0.628, 0.755], share 16.7%, fail 13.4%, consecutive share 15.3%)"
+ },
+ "arm": "solver/results/2026-09-27-protect-repeat/gen5-quiesce-5s.json — gen5-quiesce at budgetMs 5000 (every other field identical to gen5-quiesce.json)",
+ "bars": "as preregistration.json: fail <= 7.2%, consecutive share <= 7.0%, share <= 15.5%, notlose vs DODUO-greedy; the matched control is P5-after (solver/results/2026-09-26-protect-overuse/protect-p5-after.json, p5-after.json).",
+ "order": "G5 runs after S finishes (at most 3 workers on the machine)."
+}

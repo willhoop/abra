@@ -1,0 +1,5 @@
+{ "name": "gen5-5s-lost-stall", "kind": "miltank",
+  "mag": "solver/machamp/models/gen5/mag-gen5.json", "doduo": "solver/machamp/models/gen5/doduo-gen5.json", "pory2": "solver/machamp/models/gen5/porygon2-gen5.json",
+  "budgetMs": 5000, "k1": 4, "k2": 4, "depth": 0, "reserveSwitch": 1,
+  "view_drops_stall": true,
+  "note": "solver/results/2026-09-26-champ-vs-doduo/gen5-5s.json (the live arm's 5 s budget) with the consecutive-Protect counter zeroed in its view: the PRE-FIX live agent at the live budget. Honest information only." }

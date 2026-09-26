@@ -21,6 +21,212 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.23.0] — 2026-09-27
+
+### Added
+- **Three MILTANK options against the repeat-Protect mix, OFF by default and NOT deployed.** `quiesce` 'all'
+  (`solver/miltank/rollout.js` QUIESCENCE): every playout plays one extension turn before the leaf. Each side repeats
+  its non-protect moves, and a slot that protected takes the ranking prior's best non-protect move at the root.
+  `flatEps` (`solver/miltank/search.js`): when every played cell is within the bound, the ranking prior's top joint is
+  played. `reserveNoRepeat`: the reserved mega row is the best mega joint that repeats no stall-rolling move. A league
+  spec carries them (`solver/mew/agent.js searchExtras`), and so do ROTOM's `miltank-gen5` options. Counters: `quiesced`,
+  `quietHeld`, `quiesceDecisions`, `flatPrior`, `megaUnbundled`. A match row carries `ctr.quiesced`, and a gate carries
+  `rollout_quiesced`, with a warning when an arm asks for quiescence and gets none.
+- `solver/tests/test-miltank-quiesce.js` (OFF, EXTEND, JOINT, EFFECT, FLAT, MEGA, POOL, AGENT): 1195/1195. It is RED
+  under `MILTANK_BREAK=quiesce`, `flat` and `megabundle`.
+- Probes: `probe_protect_cells.js` (inside the cells: SE, the die, failed-only mass, the delayed KO),
+  `probe_doduo_arena_protect.js` (DODUO's feature against the engine counter on its own positions),
+  `probe_quiesce_cost.js` (playouts at a fixed clock). `probe_protect_passes.js` gains the fix variants and `--detail`.
+
+### Notes
+- **The cause is the depth-0 horizon.** On the 13 positions where DODUO offers a repeat, the die is sampled at the
+  engine's odds (0.34 against 1/3). The per-cell SE is small (median 0.0024 at 96 passes), and the halves of the passes
+  agree (0.626 and 0.607). Scored on its failed playouts only, the repeat keeps 0.054 of 0.609. In the high-mass
+  positions the shielded body is alive at the leaf and dead a turn later in 671 of 898 success branches. Two smaller
+  mechanisms: ties in positions already lost, and one reserved mega row that bundled the repeat (3 of 13).
+- **Probe:** the played repeat mass goes 0.611 → 0.200 (48 passes). Mode 'held', which extends only the playouts in
+  which a protect held, was built first and rejected before any game: it scores a protect row one turn deeper than its
+  neighbours, and on one position it raised the mass, 0.913 → 0.991.
+- **Arena, release `eaa5becc54eb`, honest, frozen Reg M-C store.** SPRT against gen5 at 1 s (elo0 0, elo1 +20,
+  α = β = 0.05): **H0 after 194 games, 0.418 [0.350, 0.488], a loss.** The package costs about 23% of the playouts. The
+  Protect rates in those games: fail 10.4% (gen5 11.7%) and consecutive share 15.3% (gen5 15.5%). Against DODUO-greedy,
+  on gen5's pairs and seeds: at 1 s 0.615 (gen5 0.660); at 5 s 0.685 (gen5-5s 0.695). At 5 s the fail rate is 7.1%
+  (gen5-5s 13.4%), but the DODUO-greedy gauge moved 10.9% → 8.4% between those runs. The pre-registered share and
+  consecutive bars FAILED at both budgets, and the fail bar passed only at 5 s.
+- **Not deployed:** `solver/machamp/league/gen5.json` is unchanged. A 5 s strength SPRT is prepared and not run
+  (`docs/_reports/2026-09-27-protect-repeat-fix.md`).
+- **DODUO was not retrained.** Its `stall_repeat` feature already matches the engine's counter: 440/443 (v1) and
+  498/503 (gen5). The counter's magnitude is not a feature: at counter 2 it re-clicks in 9 of 14 and 13 of 18 decisions.
+
+## [1.22.0] — 2026-09-26
+
+### Changed
+- **MAG's gate now reads a status click off the engine's move result. The board workaround is removed.** The tiered
+  gates (1.19.0) judged a status move aimed at a body off the target's board, because MEDICHAM ended a Prankster status
+  move refused by a Dark target `true`. 1.21.0 fixed that result. On 300 held-out decisions on release `4067de46a0ee`,
+  the board reading changed 1 verdict of 78, and it was wrong: a Hypnosis at a fainted slot retargeted onto the live foe
+  and slept it. `solver/mag/purpose.js` keeps `'flinch'` and `'result'`. `gate.js` drops `targetDiff` and its two extra
+  steps per world. `probe.js` drops `readVol`.
+
+### Fixed
+- **`solver/tests/test-gates.js` was BLIND (exit 3) and is now green, with every break red.** The ENCORE break was
+  `purposeresult`, and it saw only the old wrong result. It is now the engine's own knob `MEDI_PRANKSTER_RESULT_TRUE=1`.
+  Under that knob the gate calls the Dark Encore live and ENCORE fails. With the old board workaround restored, the same
+  knob left ENCORE green, so the break separates the two gates. `docs/_reports/2026-09-26-encore-break-reaim.md`.
+
+---
+
+## [1.21.0] — 2026-09-26
+
+### Fixed
+- **A Prankster status move a Dark foe refuses now FAILS the move.** MEDICHAM got the effect and the `-immune` line right
+  and left the move result `true`; the authority ends it `false` (`hitStepTryImmunity` writes `hitResults[i] = false`).
+  It is board-material: a Prankster Grimmsnarl's Taunt refused by Persian-Alola, then Stomping Tantrum into it, took
+  488 HP in the authority and 523 here. Fixed on every Prankster road (`pranksterRefuse`, the `tryHitRefusal` record,
+  the spread rows: `false` only when no target is left). Leech Seed's refusal was also silent and now writes `-immune`.
+  Filed by SOLVER on release `eaa5becc54eb`. Knob `MEDI_PRANKSTER_RESULT_TRUE`.
+- **A called move inherits its caller's Prankster boost.** `useMoveInner` copies `pranksterBoosted` onto the called
+  move and the step asks the flag, not the category, so a Prankster Sleep Talk's Foul Play into a Dark foe is refused
+  there; here it dealt 15. The damaging step now asks it. Knob `MEDI_PRANKSTER_CALLED_BLIND`.
+- **The same field on the other status refusals** (found by the probe's own controls, authority read first): in the
+  `affect` and major-status branches Good as Gold, the absorbers, the move-class door, powder, the type chart,
+  `onTryImmunity`, a miss, an empty-handed Trick/Switcheroo and a Magic Bounce now end the move `false`, and a shield
+  ends it `null` (the `#509` residual). Knob `MEDI_STATUS_REFUSAL_RESULT_TRUE`.
+
+### Added
+- `tests/probe_prankster_dark_result.js`: both engines, the move result and the boards, over every foe-aimed status move
+  a legal Prankster carrier learns (34), each with a non-Dark and a no-Prankster control, plus the all-Dark spread
+  arm, the Stomping Tantrum outcome, the called move, redirection, Magic Bounce and six siblings. 0 RED.
+- Three census rows that read Stomping Tantrum's damage (Prankster into Dark; the called move; Good as Gold vs
+  Protect). Census 1024 → 1027 live, 0 missing; each row goes MISSING under its own knob and no other row moves.
+
+### Notes
+- **Why the gate missed it:** `engine/board_state.js` does not compare the move result, and every earlier Prankster
+  check read the effect or the line. Comparing the result as a board leaf is MEASURE's call and is not done here.
+- **Gate re-run, release `4067de46a0ee`, census pin `f534f1592eda`:** lattices 0 board / 0 narration of 955, 1266 and
+  1497; roster 166/166, 210/214, 510/511. Damage 0 of 6000 at every corner (`data/engine-diff-regmc.json`); mechanics staged 0 diverge over 4,867 games (`data/all-mechanics-fire-regmc.json`). `node engine/quarantine.js` (Reg M-C): **OPEN, 10 of 10.**
+- **Owed to SOLVER:** `solver/tests/test-gates.js` now exits 3 (BLIND): its ENCORE clause proved the `purposeresult`
+  break on the engine's wrong result, and the right result reads "dead" too. Exit 0 again under
+  `MEDI_PRANKSTER_RESULT_TRUE=1`. ENGINE may not edit `solver/`.
+
+## [1.20.0] — 2026-09-26
+
+### Fixed
+- **ROTOM's world carries the exact consecutive-Protect counter.** The live search built its root with no `stall`
+  counter, so every playout priced a second Protect as certain. On the ladder it re-clicked Protect on 28 of the 90 turns
+  its body carried the counter, and 20 of those failed. The human opponents in the same games re-clicked on 4 of 146.
+  `solver/rotom/world.js stallStreaks` reads the counter off the public log. A use is the user's own `|move|` of a
+  protect-family move, and it held when `|-singleturn|` names the user. The counter is the unbroken run of held uses
+  ending on the last closed turn, and it is cleared by a switch, a drag or a faint. `rotom.js` passes the log. The
+  approximate streak of 1.18.0 counted every stalling click, held or not, and missed the side guards. It now stands only
+  for a build without the log. Counters `stallLaid` and `stallNoLines`.
+- `test-rotom` GEN5: the searcher is warmed (`policy.warmGen5`, as ROTOM does at preview) before the timed 700 ms
+  decision. Run cold under load, it once drew a world and no playout (104/105), which says nothing about the policy.
+
+### Added
+- `solver/tests/test-rotom-world-stall.js`: the log-read counter equals MEDICHAM's own on 1,583/1,583 body-turns of 30
+  seeded games, and a captured live request gets 1 for a held Protect and 0 for a failed one. RED under
+  `ROTOM_WORLD_BREAK=nostall`.
+- `solver/arena/protect_stats.js` on every match row (`protect.x`/`protect.y`: actions, family clicks, failed,
+  consecutive, consecutive failed) and `solver/arena/protect_read.js`. `solver/mew/agent.js` spec field
+  `view_drops_stall` (honest view only) plays the pre-fix agent in the arena.
+- Probes (measurements): `probe_protect_repeat.js` (MEDICHAM applies the roll: 195/600 = 0.325, full and lean alike),
+  `probe_protect_live.js` (the live read per counter-turn), `probe_protect_passes.js` (the search's repeat mass by pass
+  count and by leaf, column and row width), `probe_doduo_protect.js` (DODUO's Protect pull on held-out human positions).
+
+### Notes
+- **Arena, release `eaa5becc54eb`, honest, frozen Reg M-C store, 200 games per P run.** Before → after, gen5 vs
+  DODUO-greedy on the same 100 pairs and seeds. At 1 s: share 17.7% → 15.8%, fail 12.6% → 10.4%, score 0.625 → 0.660.
+  At 5 s: share 16.9% → 16.7%, fail 13.1% → 13.4%, score 0.630 → 0.695. Head to head at 1 s the pre-fix arm reproduces
+  the live defect: 19.6% share, 18.5% fail, 23.5% consecutive. The fixed arm reads 17.5%, 14.4% and 18.4%. Humans are at
+  12.4% and 3.6%. **Both pre-registered protect bars FAILED** (`solver/results/2026-09-26-protect-overuse/`).
+- **Strength:** the non-regression SPRT (1 s, elo0 −20, elo1 0, 400 games) was INCONCLUSIVE, 208–192, 0.520
+  [0.471, 0.569]. No loss detected.
+- **Not the leaf, not the opponent model:** offered a repeat by DODUO's top four, the search puts 61% of its mix on it at
+  48 passes. The share rises with passes, so it is not noise. It is 64% with the heuristic leaf and 78% with 8 columns.
+  The rest of the excess is the depth-0 equilibrium over DODUO's candidates. It is open, and owed to MILTANK and DODUO.
+- The gen5-vs-prior ladder rows before this fix measure the pre-fix agent. A restart is a new run id.
+
+## [1.19.0] — 2026-09-26
+
+### Added
+- **The tiered gates (Will, 2026-09-26).** A click is ALWAYS BANNED — removed — when no branch (the target staying, or
+  any switch-in the opponent has) achieves its PURPOSE; it is MOSTLY BANNED — kept, weighted by the human switch model's
+  probability of a rescuing switch, floored at 0.001 — when it is futile against the body in now and works only on a
+  switch. `solver/mag/purpose.js` reads the purpose off the move's data: a guaranteed-flinch move's purpose is the flinch
+  (so a Fake Out into a body that cannot flinch, or into a Ghost type, is always banned: a switch-in is never flinched);
+  a status move aimed at a body whose effect is a status, a stat change or a board-read volatile is judged on the
+  target's board; everything else on MEDICHAM's move result. MAG (per slot) and DODUO's pair gate stay separate jobs.
+- In play the alternative worlds put every unrevealed sheet member on the bench (at most 16 draws), and the weight comes
+  from MAG v1 + DODUO v1 scoring the opponent's joints from its own seat (`solver/doduo/v2.js`).
+- `solver/arena/click_rates.js`: every match row carries each arm's Protect repeats and immune hits, read on the true
+  battle at the click; `solver/arena/click_rates_read.js` reads them. `solver/doduo/loss_replays.js` prints what the
+  replay says after every click a gate cut. `eval_gates.js --human-only`: the survival and mostly-banned questions over
+  every held-out decision.
+- `solver/tests/test-gates.js`: FAKEOUT, ENCORE, WEIGHT, BENCH, SHIELDRES, ALLFUTILE and a purpose case in DISJOINT;
+  42 checks, 21 deliberate breaks, each red. Specs `solver/doduo/specs/{doduo-greedy,gen5}-tiered.json`; pre-registration
+  `solver/doduo/preregistration-tiered.json`.
+
+### Changed
+- `solver/doduo/gate.js`: the pair gate no longer judges a click MAG calls dead. With purpose, a dead click can still move
+  the board beside some partner, and the pair gate had cut 593 such pairs in the seed-5 eval; the removal is the same,
+  the two jobs are kept apart. No click in play changes (DODUO v2 cuts on MAG first).
+
+### Notes
+- Release `eaa5becc54eb`, held-out Reg M-C: the human's joint survives the always-banned tier **99.60% [99.21, 99.80]**
+  on a fresh 2,000 (8 losses, all real misclicks by their replays) and **99.69% [99.61, 99.76]** on all 20,482 eligible
+  decisions (63 losses: 61 real misclicks, 2 errors of the 2026-09-25 pair gate). The 99.9% bar is not met as a rate.
+- Humans click a mostly-banned move 24 times in 33,784 move clicks (0.071%); 13 of 23 achieved their purpose, all on a
+  turn the opponent switched.
+- DODUO-greedy tiered vs ungated: **H0** after 56 games, 0.482 [0.357, 0.610]. MILTANK gen5 1 s tiered vs ungated:
+  **H0** after 364 games, 0.467 [0.416, 0.518], equal wall-clock (965 vs 960 ms). Protect repeats and immune hits did not
+  move measurably in either arm. Artifacts `solver/results/2026-09-26-tiered/`; account
+  `docs/_reports/2026-09-26-tiered-gates.md`.
+- `docs/ENGINE.md`: a Prankster-boosted status move refused by a Dark target ends with the move result `true` here and
+  `false` in the authority (readers: Stomping Tantrum, Temper Flare, the Metronome item). Filed, not fixed.
+
+## [1.18.0] — 2026-09-26
+
+### Added
+- **MAG v2, the per-slot DEAD-CLICK gate** (`solver/mag/gate.js`). MAG no longer scores or ranks (Will, 2026-09-25).
+  It asks MEDICHAM whether a click ever SUCCEEDS — the engine's own move result — across every option of the partner
+  and a covering design of the opponent's joints, and cuts it only if it never does. A click rescued only by the
+  opponent switching is SOFT: weight 1e-3, never cut. No list of types, statuses or moves anywhere.
+- **DODUO v2's pair gate** (`solver/doduo/gate.js`) and **DODUO v2** as a policy (`solver/doduo/v2.js`). A joint is
+  cut only when one click changes nothing on the board beside THIS partner click and does beside another (Helping
+  Hand beside a non-attacker or a switch, two redirects, an attack on a partner who Protects). DODUO's learned score
+  ranks the rest. A drop-in prior adapter: DODUO-greedy and MILTANK take it with a spec field `gates`.
+- **One engine interface for both** (`solver/mag/probe.js`): the worlds are TALL (HP x4,096, capped at 60%) so no
+  verdict rests on a KO or a heal; a world where the target's shield held is skipped; the sleep clock is opened.
+- `solver/doduo/eval_gates.js`, `solver/doduo/gate_tables.js`, `solver/tests/test-gates.js` (30 checks, RED on 15
+  breaks), `solver/doduo/preregistration-gates.json`.
+
+### Changed
+- `solver/mew/play.js`: every match row carries the shard's running agent counters (fallbacks, gate cuts), because an
+  SPRT kills its workers at the bound and a killed worker writes no summary.
+- `solver/mew/agent.js`: a spec's `gates` field wraps the prior in DODUO v2 and digests the gate code.
+- **ROTOM's world** (`solver/rotom/world.js`): a body switched out and back in within the last turn is new (its Fake
+  Out is selectable again); last move, Protect streak, moves used since entry and PP are laid on from the log; an
+  empty opposing slot keeps its place. Found by the gates' held-out run; changes the live client's menu.
+
+### Fixed
+- **`solver/tests/test-machamp.js --no-red` ran ZERO clauses and printed `0/0 GREEN`.** `--only` was read as
+  `argv[indexOf('--only') + 1]`, which with no `--only` is `argv[0]`. Now `--only` is read only when given. Run in this
+  worktree it is RED on REBUILD and TARGETS because `solver/out/mag/meta.json` (an untracked build output of the main
+  checkout) is absent here — an environment gap, owed a re-run from the main checkout.
+
+### Notes
+- Built and measured 2026-09-25 on a branch numbered 1.12.0, which main had meanwhile used; merged and renumbered 1.18.0 on 2026-09-26 (1.17.0 went to ROTOM's end reasons meanwhile).
+- Release `eaa5becc54eb`, held-out Reg M-C decisions (seed 4, 1,999): the human's joint survives both gates **99.85%
+  [99.56, 99.95]** — below the pre-registered 99.9%; all 3 losses are clicks their replays show failed or did nothing.
+  MAG cuts 1.56% of per-slot options and weights 1.84% near zero; joints removed: MAG 2.29%, pair gate 4.10%, either
+  6.35%; **0 pair cuts on a click MAG calls dead**.
+- DODUO-greedy gated vs ungated: 0.500 [0.451, 0.549], 400 games, SPRT inconclusive. MILTANK (gen5 nets, 1 s, equal
+  wall-clock) gated vs ungated: 0.505 [0.456, 0.554], 400 games, inconclusive (H0 at 0.466 on the previous gate code).
+  No strength gain shown. Artifacts `solver/results/2026-09-25-gates/`; account `docs/_reports/2026-09-25-mag-doduo-gates.md`.
+- `docs/ENGINE.md`: the `#509` residual (a shielded status move reads success here, null in the authority) filed
+  again with its readers; not fixed, and the gate works around it.
+
 ## [1.17.0] — 2026-09-26
 
 ### Added

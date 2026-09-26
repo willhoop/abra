@@ -1,0 +1,491 @@
+{
+ "run": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\.claude\\worktrees\\agent-aeb8fbd78a6dce427\\solver\\out\\gates\\eaa5becc54eb\\eval-n2000-s3-685725dc",
+ "decisions": 1997,
+ "mag_dead_by_move": [
+  [
+   "tailwind",
+   100
+  ],
+  [
+   "direclaw",
+   38
+  ],
+  [
+   "closecombat",
+   36
+  ],
+  [
+   "highhorsepower",
+   30
+  ],
+  [
+   "encore",
+   30
+  ],
+  [
+   "auroraveil",
+   29
+  ],
+  [
+   "toxic",
+   20
+  ],
+  [
+   "fakeout",
+   18
+  ],
+  [
+   "earthpower",
+   16
+  ],
+  [
+   "lowkick",
+   16
+  ],
+  [
+   "lightscreen",
+   15
+  ],
+  [
+   "focusblast",
+   14
+  ],
+  [
+   "dracometeor",
+   12
+  ],
+  [
+   "extremespeed",
+   11
+  ],
+  [
+   "hypnosis",
+   9
+  ],
+  [
+   "steelroller",
+   9
+  ],
+  [
+   "psychic",
+   8
+  ],
+  [
+   "dragonpulse",
+   8
+  ],
+  [
+   "sludgebomb",
+   8
+  ],
+  [
+   "suckerpunch",
+   7
+  ],
+  [
+   "shadowball",
+   7
+  ],
+  [
+   "revivalblessing",
+   6
+  ],
+  [
+   "reflect",
+   6
+  ],
+  [
+   "lastrespects",
+   4
+  ],
+  [
+   "raindance",
+   4
+  ],
+  [
+   "stompingtantrum",
+   4
+  ],
+  [
+   "expandingforce",
+   4
+  ],
+  [
+   "aurasphere",
+   4
+  ],
+  [
+   "helpinghand",
+   4
+  ],
+  [
+   "disable",
+   4
+  ],
+  [
+   "sacredsword",
+   4
+  ],
+  [
+   "dragonclaw",
+   3
+  ],
+  [
+   "partingshot",
+   3
+  ],
+  [
+   "bellydrum",
+   3
+  ],
+  [
+   "glaiverush",
+   3
+  ],
+  [
+   "zapcannon",
+   3
+  ],
+  [
+   "psychicfangs",
+   2
+  ],
+  [
+   "bodyslam",
+   2
+  ],
+  [
+   "terrainpulse",
+   2
+  ],
+  [
+   "psyshock",
+   2
+  ]
+ ],
+ "mag_soft_by_move": [
+  [
+   "fakeout",
+   77
+  ],
+  [
+   "direclaw",
+   74
+  ],
+  [
+   "closecombat",
+   60
+  ],
+  [
+   "shadowball",
+   56
+  ],
+  [
+   "highhorsepower",
+   48
+  ],
+  [
+   "focusblast",
+   32
+  ],
+  [
+   "dracometeor",
+   29
+  ],
+  [
+   "psychic",
+   29
+  ],
+  [
+   "earthpower",
+   27
+  ],
+  [
+   "dragonpulse",
+   24
+  ],
+  [
+   "toxic",
+   21
+  ],
+  [
+   "lowkick",
+   21
+  ],
+  [
+   "aurasphere",
+   18
+  ],
+  [
+   "sludgebomb",
+   17
+  ],
+  [
+   "stompingtantrum",
+   15
+  ],
+  [
+   "extremespeed",
+   12
+  ],
+  [
+   "bodypress",
+   10
+  ],
+  [
+   "psychicfangs",
+   10
+  ],
+  [
+   "dragonclaw",
+   9
+  ],
+  [
+   "doubleedge",
+   8
+  ],
+  [
+   "expandingforce",
+   8
+  ],
+  [
+   "lastrespects",
+   7
+  ],
+  [
+   "terrainpulse",
+   6
+  ],
+  [
+   "encore",
+   5
+  ],
+  [
+   "flareblitz",
+   5
+  ],
+  [
+   "thunderbolt",
+   5
+  ],
+  [
+   "weatherball",
+   4
+  ],
+  [
+   "twinbeam",
+   4
+  ],
+  [
+   "psychocut",
+   4
+  ],
+  [
+   "zapcannon",
+   4
+  ],
+  [
+   "glaiverush",
+   3
+  ],
+  [
+   "poisonjab",
+   3
+  ],
+  [
+   "steelroller",
+   3
+  ],
+  [
+   "drainpunch",
+   2
+  ],
+  [
+   "gunkshot",
+   2
+  ],
+  [
+   "voltswitch",
+   2
+  ],
+  [
+   "electroshot",
+   1
+  ],
+  [
+   "armorcannon",
+   1
+  ],
+  [
+   "overheat",
+   1
+  ],
+  [
+   "superpower",
+   1
+  ]
+ ],
+ "pair_cut_shapes_from_examples": [
+  [
+   "helpinghand@ally  beside  switch",
+   237
+  ],
+  [
+   "fakeout@ally  beside  protect",
+   234
+  ],
+  [
+   "closecombat@ally  beside  protect",
+   224
+  ],
+  [
+   "flareblitz@ally  beside  protect",
+   202
+  ],
+  [
+   "grassyglide@ally  beside  protect",
+   194
+  ],
+  [
+   "woodhammer@ally  beside  protect",
+   175
+  ],
+  [
+   "shadowball@ally  beside  protect",
+   175
+  ],
+  [
+   "helpinghand@ally  beside  protect",
+   150
+  ],
+  [
+   "highhorsepower@ally  beside  protect",
+   148
+  ],
+  [
+   "direclaw@ally  beside  protect",
+   147
+  ],
+  [
+   "ironhead@ally  beside  protect",
+   147
+  ],
+  [
+   "partingshot@ally  beside  protect",
+   137
+  ],
+  [
+   "suckerpunch@ally  beside  switch",
+   132
+  ],
+  [
+   "fakeout@ally  beside  shadowball",
+   123
+  ],
+  [
+   "lowkick@ally  beside  protect",
+   101
+  ],
+  [
+   "weatherball@ally  beside  protect",
+   99
+  ],
+  [
+   "dracometeor@ally  beside  protect",
+   91
+  ],
+  [
+   "psychic@ally  beside  protect",
+   88
+  ],
+  [
+   "suckerpunch@ally  beside  protect",
+   87
+  ],
+  [
+   "knockoff@ally  beside  protect",
+   87
+  ],
+  [
+   "uturn@ally  beside  protect",
+   79
+  ],
+  [
+   "kowtowcleave@ally  beside  protect",
+   73
+  ],
+  [
+   "throatchop@ally  beside  protect",
+   72
+  ],
+  [
+   "headsmash@ally  beside  protect",
+   69
+  ],
+  [
+   "dragonpulse@ally  beside  protect",
+   67
+  ],
+  [
+   "zapcannon@ally  beside  protect",
+   64
+  ],
+  [
+   "closecombat@ally  beside  switch",
+   62
+  ],
+  [
+   "encore@ally  beside  switch",
+   62
+  ],
+  [
+   "closecombat@ally  beside  shadowball",
+   62
+  ],
+  [
+   "wavecrash@ally  beside  protect",
+   60
+  ],
+  [
+   "dracometeor  beside  fakeout@ally",
+   60
+  ],
+  [
+   "moonblast@ally  beside  protect",
+   57
+  ],
+  [
+   "extremespeed@ally  beside  protect",
+   56
+  ],
+  [
+   "hurricane@ally  beside  protect",
+   55
+  ],
+  [
+   "focusblast@ally  beside  protect",
+   54
+  ],
+  [
+   "fakeout@ally  beside  shadowball@ally",
+   53
+  ],
+  [
+   "earthpower@ally  beside  protect",
+   53
+  ],
+  [
+   "sludgebomb@ally  beside  protect",
+   52
+  ],
+  [
+   "flashcannon@ally  beside  protect",
+   49
+  ],
+  [
+   "flamethrower@ally  beside  protect",
+   48
+  ]
+ ],
+ "caption": "pair shapes are read from the first 12 cut joints each decision recorded (pair_cut_examples), so they show what exists and its rough weight, not the full population; the totals are summary.json's"
+}

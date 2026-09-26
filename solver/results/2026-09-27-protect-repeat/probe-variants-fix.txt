@@ -1,0 +1,29 @@
+    pos 3 fix         mass 0.250 value 0.0000 gap 0.0000 rows [["quickattack","pass"],["quickattack","pass"],["detect","pass"],["hypervoice","pass"]] x [0.25,0.25,0.25,0.25] FLAT, the prior played no repeat
+    pos 3 fixheur     mass 0.250 value 0.0000 gap 0.0000 rows [["quickattack","pass"],["quickattack","pass"],["detect","pass"],["hypervoice","pass"]] x [0.25,0.25,0.25,0.25] FLAT, the prior played no repeat
+    pos 7 fix         mass 0.992 value 0.4427 gap 0.0094 rows [["scald","protect"],["scald","flashcannon"],["icebeam","flashcannon"],["icebeam","protect"]] x [0.99,0.01,0,0]
+    pos 7 fixheur     mass 0.002 value 0.3804 gap -0.0256 rows [["scald","protect"],["scald","flashcannon"],["icebeam","flashcannon"],["icebeam","protect"]] x [0,1,0,0]
+    pos 15 fix         mass 0.000 value 0.1690 gap -0.0453 rows [["sw3","tailwind"],["psychic","tailwind"],["hypervoice","tailwind"],["protect","tailwind"]] x [0.62,0.38,0,0]
+    pos 15 fixheur     mass 0.000 value 0.3633 gap -0.0340 rows [["sw3","tailwind"],["psychic","tailwind"],["hypervoice","tailwind"],["protect","tailwind"]] x [0.22,0.78,0,0]
+    pos 17 fix         mass 0.000 value 0.0001 gap -0.0000 rows [["earthquake","tailwind"],["earthquake","protect"],["earthquake","encore"],["earthquake","moonblast"]] x [1,0,0,0]
+    pos 17 fixheur     mass 0.000 value 0.0000 gap -0.0000 rows [["earthquake","tailwind"],["earthquake","protect"],["earthquake","encore"],["earthquake","moonblast"]] x [1,0,0,0]
+    pos 23 fix         mass 0.000 value 0.5615 gap -0.2177 rows [["wideguard","sw3"],["sw3","closecombat"],["shadowball","sw3"],["shadowball","sw3"]] x [0,0.74,0.26,0]
+    pos 23 fixheur     mass 0.000 value 0.4425 gap -0.1093 rows [["wideguard","sw3"],["sw3","closecombat"],["shadowball","sw3"],["shadowball","sw3"]] x [0,0.66,0.34,0]
+    pos 26 fix         mass 1.000 value 0.0000 gap 0.0000 rows [["protect","pass"],["hypervoice","pass"],["tailwind","pass"],["dracometeor","pass"]] x [1,0,0,0] FLAT, the prior played a repeat
+    pos 26 fixheur     mass 1.000 value 0.0000 gap 0.0000 rows [["protect","pass"],["hypervoice","pass"],["tailwind","pass"],["dracometeor","pass"]] x [1,0,0,0]
+    pos 29 fix         mass 0.000 value 0.0000 gap -0.0000 rows [["protect","pass"],["ancientpower","pass"],["heatwave","pass"],["earthpower","pass"]] x [0,0,1,0]
+    pos 29 fixheur     mass 0.000 value 0.0000 gap -0.0000 rows [["protect","pass"],["ancientpower","pass"],["heatwave","pass"],["earthpower","pass"]] x [0,0,1,0]
+    pos 32 fix         mass 1.000 value 0.0000 gap 0.0000 rows [["direclaw","pass"],["swordsdance","pass"],["closecombat","pass"],["protect","pass"]] x [0,0,0,1] FLAT, the prior played no repeat
+    pos 32 fixheur     mass 1.000 value 0.0000 gap 0.0000 rows [["direclaw","pass"],["swordsdance","pass"],["closecombat","pass"],["protect","pass"]] x [0,0,0,1]
+    pos 33 fix         mass 0.250 value 1.0000 gap 0.0000 rows [["drainpunch","hypervoice"],["drainpunch","trickroom"],["knockoff","hypervoice"],["drainpunch","protect"]] x [0.25,0.25,0.25,0.25] FLAT, the prior played no repeat
+    pos 33 fixheur     mass 0.250 value 1.0000 gap 0.0000 rows [["drainpunch","hypervoice"],["drainpunch","trickroom"],["knockoff","hypervoice"],["drainpunch","protect"]] x [0.25,0.25,0.25,0.25] FLAT, the prior played no repeat
+    pos 39 fix         mass 0.012 value 0.0000 gap -0.0000 rows [["shadowball","pass"],["shadowball","pass"],["protect","pass"],["nastyplot","pass"]] x [0.99,0,0.01,0]
+    pos 39 fixheur     mass 0.923 value 0.0000 gap 0.0000 rows [["shadowball","pass"],["shadowball","pass"],["protect","pass"],["nastyplot","pass"]] x [0.08,0,0.92,0]
+  positions 40 (a side-A body with the counter >= 1 and its Protect legal); repeat row among the candidates in 13
+  DODUO (ranking prior) mean mass on repeat joints: 0.106
+  passes   1: mean mix mass on repeat rows 0.116, sampled a repeat 5/40 = 0.125
+  variant fix       flat tables (the prior played): 4
+  variant fixheur   flat tables (the prior played): 2
+  variant fix       @48 passes: repeat offered at 10/40; mix mass on repeat rows WHEN offered 0.200, sampled 2/10
+  variant fixheur   @48 passes: repeat offered at 10/40; mix mass on repeat rows WHEN offered 0.292, sampled 3/10
+  variant fix       value gap (best repeat row − best other row, vs the solved column mix): n 10, median 0, min -0.2177, max 0.0094, all [-0.2177,-0.0453,0,0,0,0,0,0,0,0.0094]
+  variant fixheur   value gap (best repeat row − best other row, vs the solved column mix): n 10, median 0, min -0.1093, max 0, all [-0.1093,-0.034,-0.0256,0,0,0,0,0,0,0]

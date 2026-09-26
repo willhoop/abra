@@ -1,0 +1,6 @@
+DODUO v1 test-split games 260
+  repeat  slot-decisions 712  predicted P(protect) 0.079  humans 0.053  argmax 0.060
+  fresh   slot-decisions 4122  predicted P(protect) 0.218  humans 0.169  argmax 0.230
+DODUO gen5 test-split games 260
+  repeat  slot-decisions 712  predicted P(protect) 0.081  humans 0.053  argmax 0.070
+  fresh   slot-decisions 4122  predicted P(protect) 0.224  humans 0.169  argmax 0.243

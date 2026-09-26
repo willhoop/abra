@@ -6,8 +6,15 @@
  *   AG.XW                            solver/xatu/worlds.js on this agent set's rollout (honest information)
  *   AG.COUNTERS                      fallbacks (the search threw and the prior's top legal joint was played), …
  *
- *   spec = { name, kind: 'miltank', mag, doduo, pory2, budgetMs, k1, k2, depth, reserveSwitch }
- *        | { name, kind: 'greedy',  mag, doduo }            the HUMAN CLONE: DODUO's argmax legal joint, no search
+ *   spec = { name, kind: 'miltank', mag, doduo, pory2, budgetMs, k1, k2, depth, reserveSwitch[, gates][, quiesce] }
+ *   quiesce (2026-09-27): true | 'all' = every search playout plays one extension turn; 'held' = only after a protect held
+ *   (solver/miltank/rollout.js QUIESCENCE); flatEps: a flat table plays the prior's top joint; reserveNoRepeat: the mega row
+ *   repeats no Protect when it can (solver/miltank/search.js; docs/_reports/2026-09-27-protect-repeat-fix.md)
+ *        | { name, kind: 'greedy',  mag, doduo[, gates] }   the HUMAN CLONE: DODUO's argmax legal joint, no search
+ *   gates (2026-09-25, docs/_reports/2026-09-25-mag-doduo-gates.md): true or { soft, maxSteps, maxMs } — the prior is wrapped
+ *   by DODUO v2 (solver/doduo/v2.js): MAG v2's per-slot dead-click gate and DODUO v2's pair gate cut, MAG's soft verdict
+ *   down-weights, and DODUO's own score ranks what is left. The gate code is digested into `digests.gates`, and its
+ *   counters are in COUNTERS.gates[<agent name>].
  *   Paths are relative to the repository root. Every model file is digested into `digests`, so an artifact
  *   says which weights played, not which file names.
  *
@@ -32,6 +39,14 @@ const ROOT = path.join(__dirname, '..', '..');
 const abs = p => (path.isAbsolute(p) ? p : path.join(ROOT, p));
 const sha = p => crypto.createHash('sha256').update(fs.readFileSync(abs(p))).digest('hex').slice(0, 16);
 
+/* the search options a league spec may carry beyond k, depth and the leaf (solver/miltank/search.js); absent = off */
+const SEARCH_EXTRAS = ['quiesce', 'flatEps', 'reserveNoRepeat'];
+function searchExtras(spec) {
+  const o = {};
+  for (const k of SEARCH_EXTRAS) if (spec && spec[k] != null && spec[k] !== false) o[k] = spec[k];
+  return o;
+}
+
 function create(API, opts) {
   opts = opts || {};
   const R = opts.rollout || require('../miltank/rollout.js').create(API, { buildBody: opts.buildBody });
@@ -39,7 +54,8 @@ function create(API, opts) {
   const MAGI = require('../mag/infer.js');
   const MTmod = require('../miltank/search.js');
   const coinOf = seed => API.M.rngStreams({ seed }).any;
-  const COUNTERS = { fallbacks: 0, fallback_errors: [], decisions: 0, searched: 0, forced: 0 };
+  const COUNTERS = { fallbacks: 0, fallback_errors: [], decisions: 0, searched: 0, forced: 0, gates: {} };
+  const GATE_FILES = ['solver/mag/probe.js', 'solver/mag/purpose.js', 'solver/mag/gate.js', 'solver/doduo/gate.js', 'solver/doduo/v2.js', 'solver/doduo/board_state.frozen.js'];
   const LOADED = new Map();
   const XW = require('../xatu/worlds.js').create(API, { R });
 
@@ -59,13 +75,33 @@ function create(API, opts) {
     return st;
   }
 
+  /* spec.view_drops_stall (2026-09-26, docs/_reports/2026-09-26-protect-overuse.md): the agent's view carries NO
+   * consecutive-Protect counter — every body's `tookProtectTurns` zeroed, as ROTOM's world.js built the live position
+   * before 2026-09-26 (it laid no volatile, and the `stall` counter is one). It exists to measure the PRE-FIX live
+   * agent in the arena, and it is only legal on an honest view: that view is the decider's own fresh clone
+   * (solver/xatu/worlds.js arenaView), so zeroing it never touches the true battle. On anything else it throws. */
+  function dropStall(S, hb) {
+    if (!hb) throw new Error('mew/agent: view_drops_stall needs the honest view (--info honest); it would edit the true battle');
+    for (const m of [...S.sfA.team, ...S.sfB.team]) if (m) { m.tookProtectTurns = 0; m._stallFresh = false; }
+    COUNTERS.stallDropped = (COUNTERS.stallDropped || 0) + 1;
+  }
   function load(spec) {
     if (!spec || !spec.name || !spec.kind) throw new Error('mew/agent: a spec needs name and kind');
     const key = JSON.stringify(spec);
     if (LOADED.has(key)) return LOADED.get(key);
     const prior = MAGI.load({ mag: abs(spec.mag), doduo: abs(spec.doduo) });
-    const PA = PAmod.create(API, prior);
+    let PA = PAmod.create(API, prior);
     const digests = { mag: sha(spec.mag), doduo: sha(spec.doduo) };
+    if (spec.gates) {
+      const g = spec.gates === true ? {} : spec.gates;
+      const need = spec.kind === 'miltank' ? { all: Math.max(spec.k1 || 8, spec.k2 || 8), switch: spec.reserveSwitch == null ? 2 : spec.reserveSwitch, mega: 1 } : { all: 1 };
+      const V2 = require('../doduo/v2.js').create(API, { rollout: R, soft: g.soft, floor: g.floor, switchModel: g.switchModel, maxSteps: g.maxSteps, maxMs: g.maxMs, need });
+      PA = V2.wrap(PA);
+      COUNTERS.gates[spec.name] = V2.COUNTERS;
+      const h = crypto.createHash('sha256');
+      for (const f of GATE_FILES) h.update(fs.readFileSync(abs(f)));
+      digests.gates = h.digest('hex').slice(0, 16);
+    }
     let MT = null;
     if (spec.kind === 'miltank') {
       if (!spec.pory2) throw new Error('mew/agent: a miltank agent needs a pory2 leaf model');
@@ -84,13 +120,14 @@ function create(API, opts) {
       const coin = coinOf(seed);
       if (spec.kind === 'greedy') return { name: spec.name, kind: 'greedy', PA, choose(S, side, ctx) { COUNTERS.decisions++; return argmax(S, side, ctx); } };
       const o = Object.assign({ budgetMs: spec.budgetMs, k1: spec.k1, k2: spec.k2, depth: spec.depth, reserveSwitch: spec.reserveSwitch,
-                                leaf: 'pory2', leafModel: abs(spec.pory2), coin }, extra || {});
+                                leaf: 'pory2', leafModel: abs(spec.pory2), coin }, searchExtras(spec), extra || {});
       /* spec.adaptive (2026-09-27): ROTOM's adaptive clock (solver/rotom/adaptive.js) plans each decision on a simulated
        * VGC bank — the rule read from the checkout (solver/rotom/clock.js readRule), charged with this bot's own wall ms per
        * decision — instead of spec.budgetMs. One allocator per bot, and a bot plays one game. */
       const AD = spec.adaptive ? adaptiveFor(spec.adaptive) : null;
       return { name: spec.name, kind: 'miltank', PA, MT, choose(S, side, ctx, hb) {
         COUNTERS.decisions++;
+        if (spec.view_drops_stall) dropStall(S, hb);
         const tIn = Date.now();
         let oo = o, rec = null;
         if (AD) {
@@ -125,4 +162,4 @@ function create(API, opts) {
   return { load, COUNTERS, R, XW };
 }
 
-module.exports = { create, sha, abs };
+module.exports = { create, sha, abs, searchExtras, SEARCH_EXTRAS };

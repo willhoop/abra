@@ -1,0 +1,51 @@
+{
+ "sprt": "solver/out/gates/eaa5becc54eb/sprt-doduo-greedy-tiered-vs-clone-s61.json",
+ "verdict": "H0 — X is not stronger (elo0 = 0 accepted)",
+ "stop_pair_index": 27,
+ "counted_games": 56,
+ "rows_without_clicks": 0,
+ "x": {
+  "name": "x",
+  "games": 56,
+  "decisions": 473,
+  "clicks": 811,
+  "protect": 110,
+  "protect_repeat": 3,
+  "aimed": 472,
+  "immune": 0,
+  "priced_errors": 0,
+  "protect_repeat_rate": 0.02727272727272727,
+  "protect_repeat_ci95": [
+   0.00931780104515347,
+   0.07713214343911239
+  ],
+  "immune_hit_rate": 0,
+  "immune_hit_ci95": [
+   0,
+   0.008073274804052441
+  ],
+  "protect_per_decision": 0.23255813953488372
+ },
+ "y": {
+  "name": "y",
+  "games": 56,
+  "decisions": 473,
+  "clicks": 812,
+  "protect": 108,
+  "protect_repeat": 3,
+  "aimed": 481,
+  "immune": 0,
+  "priced_errors": 0,
+  "protect_repeat_rate": 0.027777777777777776,
+  "protect_repeat_ci95": [
+   0.009491167942144541,
+   0.07850471194512458
+  ],
+  "immune_hit_rate": 0,
+  "immune_hit_ci95": [
+   0,
+   0.007923412512457676
+  ],
+  "protect_per_decision": 0.22832980972515857
+ }
+}

@@ -1,0 +1,4 @@
+{ "name": "gen5-tiered", "kind": "miltank",
+  "mag": "solver/machamp/models/gen5/mag-gen5.json", "doduo": "solver/machamp/models/gen5/doduo-gen5.json", "pory2": "solver/machamp/models/gen5/porygon2-gen5.json",
+  "budgetMs": 1000, "k1": 4, "k2": 4, "depth": 0, "reserveSwitch": 1,
+  "gates": { "floor": 0.001, "maxSteps": 600, "maxMs": 150 } }

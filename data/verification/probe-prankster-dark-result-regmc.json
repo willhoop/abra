@@ -1,0 +1,1397 @@
+{
+ "generated": "2026-09-26T12:34:45.237Z",
+ "format": "gen9championsvgc2026regmc",
+ "knob": null,
+ "fixtures": {
+  "DARK": "Persian-Alola",
+  "PLAIN": "Charizard",
+  "PARTNER": "Venusaur",
+  "OUT_USER": "Grimmsnarl"
+ },
+ "results": [
+  {
+   "id": "sweep:disable",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:disable",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:disable",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:encore",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:encore",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:encore",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:confuseray",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:confuseray",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:confuseray",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:flatter",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:flatter",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:flatter",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:meanlook",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:meanlook",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:meanlook",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:painsplit",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:painsplit",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:painsplit",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:psychup",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:psychup",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:psychup",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:quash",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:quash",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:quash",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:skillswap",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:skillswap",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:skillswap",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:spite",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:spite",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:spite",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:swagger",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:swagger",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:swagger",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:taunt",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:taunt",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:taunt",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:thunderwave",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:thunderwave",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:thunderwave",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:torment",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:torment",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:torment",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:trick",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:trick",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:trick",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:willowisp",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:willowisp",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:willowisp",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:attract",
+   "user": "Liepard",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:attract",
+   "user": "Liepard",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:attract",
+   "user": "Liepard",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "UNREADABLE",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:charm",
+   "user": "Liepard",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:charm",
+   "user": "Liepard",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:charm",
+   "user": "Liepard",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:faketears",
+   "user": "Liepard",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:faketears",
+   "user": "Liepard",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:faketears",
+   "user": "Liepard",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:screech",
+   "user": "Liepard",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:screech",
+   "user": "Liepard",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:screech",
+   "user": "Liepard",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:yawn",
+   "user": "Liepard",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:yawn",
+   "user": "Liepard",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:yawn",
+   "user": "Liepard",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:cottonspore",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:cottonspore",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep-alldark:cottonspore",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:leechseed",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:leechseed",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:leechseed",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:memento",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:memento",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree undefined",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:memento",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree undefined",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:poisonpowder",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:poisonpowder",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:poisonpowder",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:stunspore",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:stunspore",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:stunspore",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:switcheroo",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:switcheroo",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:switcheroo",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:tickle",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:tickle",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:tickle",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:worryseed",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:worryseed",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:worryseed",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:roleplay",
+   "user": "Meowstic",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:roleplay",
+   "user": "Meowstic",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:roleplay",
+   "user": "Meowstic",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:metalsound",
+   "user": "Klefki",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:metalsound",
+   "user": "Klefki",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:metalsound",
+   "user": "Klefki",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:partingshot",
+   "user": "Grimmsnarl",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:partingshot",
+   "user": "Grimmsnarl",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree undefined",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:partingshot",
+   "user": "Grimmsnarl",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree undefined",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:powerswap",
+   "user": "Grimmsnarl",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:powerswap",
+   "user": "Grimmsnarl",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:powerswap",
+   "user": "Grimmsnarl",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sweep:scaryface",
+   "user": "Grimmsnarl",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-nondark:scaryface",
+   "user": "Grimmsnarl",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "ctl-noprank:scaryface",
+   "user": "Grimmsnarl",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "outcome",
+   "user": "Grimmsnarl",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "outcome-ctl",
+   "user": "Grimmsnarl",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sib-goodasgold",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sib-protect-affect",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree null",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sib-powder",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sib-protect-status",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree null",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sib-tryimmunity",
+   "user": "Whimsicott",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "sib-typechart",
+   "user": "Meowstic",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "called-sleeptalk",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 1,
+    "me": 1
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "called-sleeptalk-ctl",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "redirect-away",
+   "user": "Meowstic",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree true",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "bounce-onto-dark-user",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  },
+  {
+   "id": "bounce-status-onto-dark-user",
+   "user": "Sableye",
+   "boardsAgree": true,
+   "immune": {
+    "sd": 0,
+    "me": 0
+   },
+   "result": "agree false",
+   "verdict": "GREEN",
+   "stateDiv": null
+  }
+ ],
+ "red": 0,
+ "unreadable": 1,
+ "missingRequired": [],
+ "run_ok": true
+}

@@ -422,7 +422,7 @@ Release `eaa5becc54eb`, census pin `123aa264f88d`, pool `data/team-pool-frozen-r
 | Whole game, lattice 1900 | 1497 games, no board parts (`data/game-differential.g1900-regmc.json`) |
 | Narration | zero undeclared on every lattice; the baseline is stamped at zero on the 955-game lattice (`data/whole-game-baseline-regmc.json`) |
 | Staged mechanics | 4867 games, none threw, none diverged (`data/all-mechanics-fire-regmc.json`) |
-| Census | 1024 rows live of 1024 probed (`data/mechanics-census-regmc.json`) |
+| Census | 1024 rows live of 1024 probed (`e1d04b89:data/mechanics-census-regmc.json:live`, pin `123aa264f88d`; recorded in abra/regmc 0.125.0) |
 | Open defects | no open register row names a RED instrument; 205 verdicts read (`data/register-reality-regmc.json`) |
 
 Of the four abilities in scope and not matched, three are announcement-only on receipts and one is

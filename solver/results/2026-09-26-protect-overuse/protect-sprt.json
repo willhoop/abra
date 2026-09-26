@@ -1,0 +1,31 @@
+{
+ "result": "solver\\out\\protect\\sprt-fix-vs-prefix.json",
+ "games": 400,
+ "games_without_counter": 0,
+ "x": "solver/machamp/league/gen5.json",
+ "y": "solver/results/2026-09-26-protect-overuse/gen5-lost-stall.json",
+ "arms": {
+  "x": {
+   "actions": 6976,
+   "protects": 1220,
+   "failed": 176,
+   "consec": 224,
+   "consecFailed": 151,
+   "share": 0.1749,
+   "fail_rate": 0.1443,
+   "consec_share": 0.1836,
+   "consec_fail_rate": 0.6741
+  },
+  "y": {
+   "actions": 6948,
+   "protects": 1360,
+   "failed": 251,
+   "consec": 319,
+   "consecFailed": 229,
+   "share": 0.1957,
+   "fail_rate": 0.1846,
+   "consec_share": 0.2346,
+   "consec_fail_rate": 0.7179
+  }
+ }
+}

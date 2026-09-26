@@ -1124,7 +1124,7 @@ function decide(B) {
         const row = parseRow(B, kind);
         const bt = xatuBack(B, opp);
         const guess = bt && bt.length ? bt.reduce((a, b) => (b.p > a.p ? b : a)).pair : null;
-        world = WB.build({ row, sheets: B.sheets, me: B.me, req, oppGuess: guess });
+        world = WB.build({ row, sheets: B.sheets, me: B.me, req, oppGuess: guess, lines: B.lines });
         world.xatuBack = bt;
         rec.world = { ok: true, turn: row.turns.length, notes: world.notes, xatu: bt ? bt.map(x => [x.pair.join('+'), +x.p.toFixed(3)]) : null };
       } catch (e) { ST.worldErrors++; rec.world = { ok: false, err: String(e && e.message || e).slice(0, 200) }; }

@@ -1,0 +1,51 @@
+{
+ "sprt": "solver/out/gates/eaa5becc54eb/rates-greedy-s63",
+ "verdict": "fixed match (no SPRT)",
+ "stop_pair_index": null,
+ "counted_games": 400,
+ "rows_without_clicks": 0,
+ "x": {
+  "name": "x",
+  "games": 400,
+  "decisions": 3402,
+  "clicks": 5849,
+  "protect": 936,
+  "protect_repeat": 79,
+  "aimed": 3310,
+  "immune": 3,
+  "priced_errors": 0,
+  "protect_repeat_rate": 0.08440170940170941,
+  "protect_repeat_ci95": [
+   0.06824662525218819,
+   0.10395430733049382
+  ],
+  "immune_hit_rate": 0.0009063444108761329,
+  "immune_hit_ci95": [
+   0.00030828011353266924,
+   0.0026615661217249237
+  ],
+  "protect_per_decision": 0.2751322751322751
+ },
+ "y": {
+  "name": "y",
+  "games": 400,
+  "decisions": 3402,
+  "clicks": 5871,
+  "protect": 938,
+  "protect_repeat": 85,
+  "aimed": 3316,
+  "immune": 6,
+  "priced_errors": 0,
+  "protect_repeat_rate": 0.0906183368869936,
+  "protect_repeat_ci95": [
+   0.07387862398263927,
+   0.11069763597444907
+  ],
+  "immune_hit_rate": 0.0018094089264173703,
+  "immune_hit_ci95": [
+   0.0008295126377902456,
+   0.003942281293582865
+  ],
+  "protect_per_decision": 0.2757201646090535
+ }
+}

@@ -1,0 +1,26 @@
+{
+ "what": "Protect overuse: is the live search's repeat-Protect failure caused by ROTOM's world dropping the consecutive-Protect counter, and does carrying it cost strength? Written 2026-09-26 BEFORE the first game of any run below.",
+ "defect": "docs/_reports/2026-09-26-click-outcomes.md §1 and §4: on the live ladder the search (miltank-gen5, arm A of gen5ab) clicks the protect family on 21.7% of actions and 18.0% of those fail, every failure a consecutive use; humans 12.4% and 3.6%.",
+ "evidence_before_the_run": "solver/tests/probe_protect_repeat.js: MEDICHAM on eaa5becc54eb applies the stall roll, 195/600 = 0.325 second-Protect success, full and lean alike; a position with the counter zeroed predicts 600/600. solver/rotom/world.js laid no volatile, the stall counter included. Live logs: the search re-clicked the family on 28 of 90 turns its body carried the counter (20 failed); the human opponents in the same games 4 of 146.",
+ "fix": "solver/rotom/world.js stallStreaks: the counter is laid from the room's public log (solver/tests/test-rotom-world-stall.js: 0 mismatches against the engine's own counter over 1,583 body-turns; RED under ROTOM_WORLD_BREAK=nostall).",
+ "arms": {
+  "gen5": "solver/machamp/league/gen5.json — the counter carried (what the honest arena always measured, and what ROTOM plays after the fix)",
+  "gen5-lost-stall": "solver/results/2026-09-26-protect-overuse/gen5-lost-stall.json — the same agent with the counter zeroed in its view (solver/mew/agent.js view_drops_stall): the PRE-FIX live agent"
+ },
+ "engine_release": "eaa5becc54eb",
+ "team_store": "data/team-pool-frozen-regmc, TEST pairs (solver/mew/pairs.js)",
+ "information": "honest (solver/mew/play.js --info honest)",
+ "runs": {
+  "P-before": "gate.js --x gen5-lost-stall --y solver/machamp/league/human-clone.json --pairs 100 --pair-seed 1 --seed 26100 --workers 3 --cap 50 --info honest --rule notlose --team-store data/team-pool-frozen-regmc",
+  "P-after":  "gate.js --x solver/machamp/league/gen5.json --y solver/machamp/league/human-clone.json, every other flag identical (same pairs, same seeds)",
+  "S": "sprt.js --x solver/machamp/league/gen5.json --y gen5-lost-stall --elo0 -20 --elo1 0 --alpha 0.05 --beta 0.05 --max-games 400 --seed 26101 --workers 3 --cap 50 --info honest --team-store data/team-pool-frozen-regmc"
+ },
+ "measures": "solver/arena/protect_stats.js per game and side, summed per arm by solver/arena/protect_read.js: protect share = protect-family clicks / (move + switch choices); fail rate = failed / protect clicks; consecutive share; consecutive failed.",
+ "bars": {
+  "cause": "P-before's fail rate reproduces the live defect (>= 10% of its protect clicks fail) AND P-after's is <= 7.2% (2x the human 3.6%). Both must hold for the counter to be named THE cause of the failures.",
+  "share": "P-after's protect share <= 15.5% (1.25x the human 12.4%). If it is above, the counter is not the whole story for the SHARE, and the remaining candidates (the leaf, the opponent columns, DODUO's ranking) stay open.",
+  "strength": "S is a NON-REGRESSION SPRT: H1 (elo 0 over -20) accepted = no strength loss from the fix; H0 accepted = the fix costs >= 20 Elo; no bound in 400 games = INCONCLUSIVE, reported with the score and its Wilson 95%. Read once, at the bound."
+ },
+ "budget_note": "1 s per decision, the league spec's budget (the live arm ran 5 s). The mechanism does not depend on the budget; the level of the share may.",
+ "caveat_declared_before": "Shared machine; other agents' runs may be live. An arena game writes no protocol, so 'failed' is read off the engine's counter and includes a click that never executed (flinch, sleep): a small over-count on every arm alike."
+}

@@ -1,0 +1,5 @@
+  positions 40 (a side-A body with the counter >= 1 and its Protect legal); repeat row among the candidates in 13
+  DODUO (ranking prior) mean mass on repeat joints: 0.106
+  passes   2: mean mix mass on repeat rows 0.123, sampled a repeat 5/40 = 0.125
+  variant base      @48 passes: repeat offered at 13/40; mix mass on repeat rows WHEN offered 0.611, sampled 8/13
+  variant base      value gap (best repeat row − best other row, vs the solved column mix): n 13, median 0.0001, min -0.3794, max 0.0768, all [-0.3794,-0.0988,-0.0394,0,0,0,0.0001,0.0003,0.0007,0.0028,0.0099,0.0122,0.0768]

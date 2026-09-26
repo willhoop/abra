@@ -22076,6 +22076,67 @@ probe('move', 'variablePower', 'a MISSED Stomping Tantrum doubles the next one, 
                  + 'base-power EVALUATIONS, not clicks, so it is asserted >= 1)' };
 });
 
+/* ---- 2026-09-27 — A PRANKSTER STATUS MOVE A DARK FOE REFUSES FAILS THE MOVE, SO STOMPING TANTRUM DOUBLES ----
+ *
+ * Filed by SOLVER on release `eaa5becc54eb` and missed by the Reg M-C gate, because the EFFECT and the LINE
+ * were already right and `engine/board_state.js` does not compare the move result: every Prankster row
+ * above reads the effect or the line, and the lattices and the roster read boards. The authority (Reg M-C
+ * checkout, no Champions override): `hitStepTryImmunity`'s Prankster arm writes `hitResults[i] = false`,
+ * `trySpreadMoveHit` returns `!!targets.length` with `atLeastOneFailure` set, `useMove` keeps the `false`,
+ * and Stomping Tantrum doubles on `moveLastTurnResult === false`. Measured in both engines by
+ * tests/probe_prankster_dark_result.js: Persian-Alola took 488 HP in the authority and 523 here.
+ *
+ * THE OUTCOME IS READ, NOT THE FIELD: Stomping Tantrum's damage the turn after. THREE ARMS, because two cannot
+ * tell the Dark from the Prankster: Prankster into Dark (refused -> doubles), the same click with no Prankster
+ * (the Taunt lands -> 75), Prankster into the same body with its Dark typing written away (lands -> 75).
+ * MEDI_PRANKSTER_RESULT_TRUE=1 puts the pre-fix `true` back and this row goes MISSING. */
+probe('ability', 'priorityMod',
+      'a Prankster status move a Dark foe refuses FAILS the move — the user\'s Stomping Tantrum doubles next turn', () => {
+  const run = (ab, types) => tantrumAfter((S, me, ally, f1, f2) => {
+    me.ability = ab; f1.types = types;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'taunt', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    me.ability = 'none';   // the setup's knob only; the measured turn is the same Mudsdale in every arm
+  });
+  const dark = run('prankster', ['Dark']);
+  const noPrank = run('honeygather', ['Dark']);
+  const notDark = run('prankster', ['Water']);
+  return { works: noPrank > 0 && notDark === noPrank && dark >= noPrank * 1.8 && dark <= noPrank * 2.2,
+           arms: { control: 'Taunt LANDED (no Prankster into Dark / Prankster into Water): Stomping Tantrum '
+                          + noPrank + ' / ' + notDark,
+                   test: 'Prankster Taunt refused by a Dark foe: Stomping Tantrum ' + dark },
+           detail: 'Stomping Tantrum into the same Milotic the turn after a Taunt — Prankster into Dark (refused) '
+                 + dark + ' (must be double); no Prankster into Dark ' + noPrank + '; Prankster into Water '
+                 + notDark + ' (both must be the plain 75)' };
+});
+
+/* ---- 2026-09-27 — THE SAME FIELD ON THE OTHER REFUSAL ROADS, FOUND BY THAT PROBE'S OWN CONTROL ARMS ----------
+ *
+ * Every per-target refusal in `trySpreadMoveHit` ends the move `false` in the authority (an ability's onTryHit
+ * `return null` becomes `false` in `hitStepTryHitEvent`; powder, the type chart, onTryImmunity and a miss
+ * write `false`), and the SHIELD's `NOT_FAIL` empties the list without a failure and ends `null`. Measured on
+ * the authority first: Encore into Good as Gold `false`, Encore into Protect `null`. This engine left its
+ * default `true` on every one of those roads in its two status branches. MEDI_STATUS_REFUSAL_RESULT_TRUE=1
+ * restores it and this row goes MISSING. Arms: the same Taunt into the same Milotic — carrying Good as Gold
+ * (refused -> doubles), clicking Protect (shielded -> null -> 75), and plain (lands -> 75). */
+probe('ability', 'refusesStatusMoves',
+      'a status move a Good as Gold body refuses FAILS the move, and one a Protect stops does NOT', () => {
+  const run = (arm) => tantrumAfter((S, me, ally, f1, f2) => {
+    if (arm === 'gag') f1.ability = 'goodasgold';
+    const f1Act = arm === 'protect' ? M.playerAction(f1, 'protect', null, S.field) : { kind: 'pass' };
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'taunt', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, f1Act], [f2, { kind: 'pass' }]]));
+    f1.ability = 'none'; f1.protect = false;
+  });
+  const gag = run('gag'), shielded = run('protect'), plain = run('plain');
+  return { works: plain > 0 && shielded === plain && gag >= plain * 1.8 && gag <= plain * 2.2,
+           arms: { control: 'Taunt landed ' + plain + ', Taunt into Protect ' + shielded,
+                   test: 'Taunt refused by Good as Gold ' + gag },
+           detail: 'Stomping Tantrum into the same Milotic the turn after a Taunt — refused by Good as Gold ' + gag
+                 + ' (must be double: the refusal is a FAILURE); stopped by Protect ' + shielded
+                 + ' and landed ' + plain + ' (both the plain 75: NOT_FAIL is not a failure)' };
+});
+
 /* ---- ROADMAP #81 WIRE 11 — FOUR DEFECTS WILL READ OFF REAL DIVERGENCES, 2026-08-07 ---------------
  *
  * Each of the four is read from the official source, not from a summary, and each probe asserts
@@ -28194,6 +28255,34 @@ probe('move', 'callsAnotherMove', 'Sleep Talk calls one of the user OWN moves, f
                  + 'CALLED Ice Beam slot untouched (' + asleep.pp.icebeam + '); CONTROL awake '
                  + awake.dealtAny + '/' + awake.status + ' with a -fail. The status must still read slp: '
                  + 'the called move used to re-enter the sleep gate and spend a second tick' };
+});
+
+/* 2026-09-27 -- A PRANKSTER SLEEP TALK HANDS ITS BOOST TO THE MOVE IT CALLS, AND A DARK FOE REFUSES EVEN A DAMAGING
+ * ONE. `useMoveInner` copies `pranksterBoosted` from the active move onto the called move, and `hitStepTryImmunity`
+ * asks the flag, never the category (sim/battle-actions.ts, Reg M-C checkout). Both engines, one fixture:
+ * tests/probe_prankster_dark_result.js `called-sleeptalk` (the authority refused a called Foul Play into Persian-Alola;
+ * this engine dealt 15). Here: the same sleeping body, a one-candidate pool (Ice Beam), both foes written Dark so the
+ * random target cannot matter. Arms: Prankster (refused, 0), no Prankster (lands), Prankster with the foes NOT Dark
+ * (lands). MEDI_PRANKSTER_CALLED_BLIND=1 turns it MISSING. */
+probe('ability', 'priorityMod', 'a Prankster Sleep Talk\'s CALLED damaging move is refused by a Dark foe', () => {
+  const run = (ab, types) => {
+    const B = board('abomasnow', 'venusaur', 'feraligatr', 'charizard');
+    B.me.moves = ['sleeptalk', 'icebeam']; B.me.ability = ab; B.me.status = 'slp'; B.me.slpTurns = 0;
+    B.f1.types = types; B.f2.types = types; B.f1.ability = 'none'; B.f2.ability = 'none';
+    unfaintable(B.f1); unfaintable(B.f2);
+    const hp = B.f1.curHP + B.f2.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'sleeptalk', B.me, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return hp - (B.f1.curHP + B.f2.curHP);
+  };
+  const pk = run('prankster', ['Dark']), noPk = run('honeygather', ['Dark']), notDark = run('prankster', ['Water']);
+  return { works: pk === 0 && noPk > 0 && notDark > 0,
+           arms: { control: 'no Prankster into Dark ' + noPk + ', Prankster into Water ' + notDark,
+                   test: 'Prankster Sleep Talk -> Ice Beam into Dark ' + pk },
+           detail: 'HP the foe pair lost to the Ice Beam a sleeping body\'s Sleep Talk called — Prankster, foes Dark '
+                 + pk + ' (must be 0: the called move inherits the boost); no Prankster ' + noPk
+                 + '; Prankster, foes Water ' + notDark + ' (both must land)' };
 });
 
 /* 2026-09-24 -- GRAVITY REFUSES A GRAVITY-FLAGGED MOVE, CALLED OR CHOSEN, through a real turn. The condition's
@@ -39210,7 +39299,11 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           'flinchGoneAtResidualRestored',
                           /* 2026-09-24 (ENGINE, narration-zero) -- the Emergency Exit residual door skipped.
                            * tests/probe_regmc_emergency_exit_residual.js */
-                          'emergencyExitNoResidualRestored']
+                          'emergencyExitNoResidualRestored',
+                          /* 2026-09-27 (abra/regmc 1.20.0) -- the move result after a Prankster refusal and after every
+                           * other status-move refusal. tests/probe_prankster_dark_result.js; the two Stomping Tantrum
+                           * rows beside the #84 probes read them. */
+                          'pranksterResultTrueRestored', 'statusRefusalResultTrueRestored', 'pranksterCalledBlindRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

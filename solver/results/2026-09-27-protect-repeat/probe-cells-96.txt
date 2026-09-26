@@ -1,0 +1,25 @@
+  pos 4 g2 t6 slot 0 counter 1: dup 1/4, succ 0.344 (engine 0.333), se med 0 max 0.007, mass 1 (halves 1/1), fail-only 0, sure-protect 1, gap 0.0157, up&alive 132 -> dead next 132, dv next -0.0562
+  pos 8 g5 t6 slot 1 counter 1: dup 2/4, succ 0.344 (engine 0.333), se med 0.0013 max 0.0193, mass 0.884 (halves 0.895/0.873), fail-only 0.116, sure-protect 0.77, gap 0.0003, up&alive 264 -> dead next 162, dv next 0.0172
+  pos 16 g10 t4 slot 0 counter 1: dup 1/4, succ 0.323 (engine 0.333), se med 0.0007 max 0.0097, mass 0.072 (halves 0.071/0.072), fail-only 0, sure-protect 0.067, gap 0, up&alive 124 -> dead next 26, dv next -0.0623
+  pos 18 g10 t8 slot 1 counter 1: dup 1/4, succ 0.375 (engine 0.333), se med 0.0003 max 0.0041, mass 0.999 (halves 0.999/1), fail-only 0, sure-protect 1, gap 0.0053, up&alive 144 -> dead next 91, dv next -0.0286
+  pos 24 g15 t6 slot 0 counter 1: dup 1/4, succ 0.755 (engine 0.333), se med 0.0062 max 0.0135, mass 0 (halves 0/0), fail-only 0, sure-protect 0, gap -0.114, up&alive 286 -> dead next 19, dv next 0.1788
+  pos 27 g17 t11 slot 0 counter 1: dup 1/4, succ 0.365 (engine 0.333), se med 0 max 0, mass 1 (halves 1/1), fail-only 0.25, sure-protect 1, gap 0.0002, up&alive 140 -> dead next 132, dv next -0.0005
+  pos 30 g22 t7 slot 0 counter 1: dup 1/4, succ 0.266 (engine 0.333), se med 0 max 0.0218, mass 0.997 (halves 0.996/0.997), fail-only 0, sure-protect 0.991, gap 0.0099, up&alive 102 -> dead next 68, dv next 0.0867
+  pos 33 g26 t5 slot 0 counter 1: dup 1/4, succ 0.302 (engine 0.333), se med 0 max 0.0001, mass 1 (halves 1/1), fail-only 0, sure-protect 1, gap 0.0006, up&alive 116 -> dead next 86, dv next -0.0019
+  pos 34 g27 t5 slot 1 counter 1: dup 1/4, succ 0.448 (engine 0.333), se med 0 max 0.0006, mass 0.333 (halves 0.333/0.333), fail-only 0.333, sure-protect 0.333, gap 0, up&alive 172 -> dead next 0, dv next null
+  pos 35 g29 t4 slot 1 counter 1: dup 1/4, succ 0.344 (engine 0.333), se med 0.0044 max 0.0227, mass 0 (halves 0.198/0), fail-only 0, sure-protect 0.259, gap -0.0158, up&alive 132 -> dead next 0, dv next 0.3289
+  pos 36 g29 t8 slot 1 counter 1: dup 1/4, succ 0.354 (engine 0.333), se med 0.0058 max 0.0187, mass 0 (halves 0/0), fail-only 0, sure-protect 0, gap -0.3604, up&alive 136 -> dead next 0, dv next 0.0743
+  pos 38 g30 t5 slot 0 counter 1: dup 1/4, succ 0.292 (engine 0.333), se med 0.0128 max 0.0262, mass 1 (halves 1/1), fail-only 0, sure-protect 1, gap 0.0686, up&alive 112 -> dead next 0, dv next 0.1465
+  pos 40 g31 t5 slot 0 counter 1: dup 1/4, succ 0.354 (engine 0.333), se med 0 max 0.004, mass 0.635 (halves 0.642/0.615), fail-only 0, sure-protect 0.382, gap 0.0001, up&alive 136 -> dead next 0, dv next -0.0006
+
+  positions 40; repeat offered in 13; passes 96
+  mean succ               0.3743
+  mean expect_up          0.3333
+  mean se_median          0.0024
+  mean se_max             0.0114
+  mean mass               0.6092
+  mean mass_half0         0.6257
+  mean mass_half1         0.6069
+  mean mass_failonly      0.0538
+  mean mass_sureprotect   0.6002
+  mean dup                1.0769

@@ -4024,6 +4024,16 @@ let MEDFAILS = { oozeNoName: 0, oozeUnderHealBlockUnmodelled: 0, reviveSwitchOut
      battle loop, where every body on the field has one; non-zero means an external caller is asking
      with loose bodies and is getting an answer this engine cannot actually justify. */
   pranksterSideUnknown: 0, pranksterSideUnknownFirst: '',
+  /* 2026-09-27 -- bumped when MEDI_PRANKSTER_RESULT_TRUE=1 puts back the pre-fix move result: a Prankster
+     status move a Dark foe refused left `_mvRes = true`, where the authority ends it `false`. See
+     `pranksterRefusedResult`. MUST read 0 on any shipping run. */
+  pranksterResultTrueRestored: 0,
+  /* 2026-09-27 -- the same for MEDI_STATUS_REFUSAL_RESULT_TRUE=1: every other status-move refusal left `true`
+     (authority `false`; `null` behind a shield). See `statusRefusalResult`. MUST read 0 on any shipping run.
+     `statusRefusalResultBadValue` counts a caller handing it anything but false/null -- never expected. */
+  statusRefusalResultTrueRestored: 0, statusRefusalResultBadValue: 0,
+  /* 2026-09-27 -- bumped per called damaging move the step let through while MEDI_PRANKSTER_CALLED_BLIND=1 is armed. */
+  pranksterCalledBlindRestored: 0,
   /* 2026-08-23 -- the `critStageVolatile` table could not be read off the artifact, so the family is
      EMPTY and the overlap refusal and both copy sites silently do nothing. Never expected: the tag is
      derived for every legal move that applies a crit-stage volatile. */
@@ -23337,6 +23347,62 @@ function pranksterBlocked(attacker,target,moveId){
     MEDFAILS.pranksterSideUnknownFirst=String(moveId)+' -> '+String((target&&target.name)||'?');
   return true;
 }
+/* ================= 2026-09-27 -- THE PRANKSTER REFUSAL IS A FAILURE, AND THE MOVE RESULT SAYS SO ========
+ *
+ * `pranksterBlocked` above has always decided the EFFECT and the LINE correctly. What it never reached is
+ * the move RESULT. The authority, read whole in the Reg M-C checkout (no Champions override):
+ *
+ *   sim/battle-actions.ts hitStepTryImmunity   the Prankster arm writes `-immune` and `hitResults[i] = false`
+ *   sim/battle-actions.ts trySpreadMoveHit     `atLeastOneFailure ||= hitResults.some(v => v === false)`;
+ *                                              `moveResult = !!targets.length`; ONLY `!moveResult &&
+ *                                              !atLeastOneFailure` writes `moveThisTurnResult = null`
+ *   sim/battle-actions.ts useMove              keeps the returned `false` as `moveThisTurnResult`
+ *
+ * so a single-target Prankster status move a Dark foe refuses ends `false`, NOT `true` and NOT `null`, and
+ * the refused-then-empty spread move ends `false` too; a spread move with any other target still standing
+ * ends `true`. This engine wrote the default `true` at the top of the move (`if(_mid)m._mvRes=true`) and no
+ * Prankster site overwrote it. `moveLastTurnResult === false` is what Stomping Tantrum and Temper Flare
+ * double on (data/moves.ts) and what the Metronome item's streak reads (data/items.ts), so a Prankster
+ * Grimmsnarl whose Taunt a Dark foe refused hit for half the authority's damage the next turn.
+ * `tests/probe_prankster_dark_result.js` stages every foe-aimed status move a legal carrier learns.
+ *
+ * NO LINE IS WRITTEN HERE. The authority prints `-immune` and nothing else -- no `-fail` -- which is why
+ * this is not `mvFail` (that also emits `|-fail|<mover>`). The line stays at each caller, as it was.
+ *
+ * MEDI_PRANKSTER_RESULT_TRUE=1 restores the pre-fix `true` so the probe and the census row can be shown red. */
+const PRANKSTER_RESULT_TRUE=(typeof process!=='undefined'&&process.env
+                             &&process.env.MEDI_PRANKSTER_RESULT_TRUE==='1');
+/* MEDI_PRANKSTER_CALLED_BLIND=1 -- the damaging step stops asking the Prankster arm of a CALLED move (a Prankster
+ * Sleep Talk / Copycat that calls a damaging move into a Dark foe). See the damaging branch's `_stepTryImm`. */
+const PRANKSTER_CALLED_BLIND=(typeof process!=='undefined'&&process.env
+                              &&process.env.MEDI_PRANKSTER_CALLED_BLIND==='1');
+function pranksterRefusedResult(m){
+  if(!m) return;
+  if(PRANKSTER_RESULT_TRUE){ MEDFAILS.pranksterResultTrueRestored++; return; }
+  m._mvRes=false;
+  MEDSEEN.pranksterRefusalFailedMove=(MEDSEEN.pranksterRefusalFailedMove|0)+1;
+}
+/* The single-target refusal: the caller's line, then the result. Every single-target Prankster site uses
+ * this, so the pair cannot be split again at one site of thirteen (the ROADMAP #9 shape). */
+function pranksterRefuse(m,t){ if(TR)TR.imm(t); pranksterRefusedResult(m); }
+/* 2026-09-27 -- THE SIBLINGS, FOUND BY THE PRANKSTER PROBE'S OWN CONTROL ARMS. Every per-target refusal in
+ * `trySpreadMoveHit`'s steps ends the move `false` in the authority -- an ability's onTryHit `return null`
+ * becomes `false` in `hitStepTryHitEvent` (`hitResults[i] || false` unless it is NOT_FAIL), the type chart,
+ * powder and onTryImmunity write `false`, and a miss writes `false` -- EXCEPT the shield, whose `NOT_FAIL`
+ * empties the list without a failure and ends `null`. This engine left its default `true` on every one of
+ * those roads in the status branches. `v` is `false` or `null`; nothing else is accepted.
+ * MEDI_STATUS_REFUSAL_RESULT_TRUE=1 restores the pre-fix `true`. */
+const SINGLE_AIM_TARGETS=new Set(['normal','any','adjacentFoe','adjacentAlly','adjacentAllyOrSelf','randomNormal']);
+const STATUS_REFUSAL_RESULT_TRUE=(typeof process!=='undefined'&&process.env
+                                 &&process.env.MEDI_STATUS_REFUSAL_RESULT_TRUE==='1');
+function statusRefusalResult(m,v){
+  if(!m) return;
+  if(v!==false&&v!==null){ MEDFAILS.statusRefusalResultBadValue=(MEDFAILS.statusRefusalResultBadValue|0)+1; return; }
+  if(STATUS_REFUSAL_RESULT_TRUE){ MEDFAILS.statusRefusalResultTrueRestored=(MEDFAILS.statusRefusalResultTrueRestored|0)+1; return; }
+  m._mvRes=v;
+  if(v===false)MEDSEEN.statusRefusalResultFalse=(MEDSEEN.statusRefusalResultFalse|0)+1;
+  else MEDSEEN.statusRefusalResultNull=(MEDSEEN.statusRefusalResultNull|0)+1;
+}
 /* ================= ROADMAP #241 -- ONE READER, AND IT ANNOUNCES ===================================
  *
  * Good as Gold's refusal was ALREADY RIGHT on nine routes and the LINE was wrong on all twelve, and
@@ -23435,7 +23501,7 @@ function tryHitRefusal(m,t,mv){
   /* ROADMAP #9 -- the authority's `!targets[i].isAlly(pokemon)` USED TO BE WRITTEN HERE, at this one
    * call site of thirteen. It now lives inside `pranksterBlocked` where the rest of the rule is, so
    * every site inherits it; this line is a plain ask. */
-  if(pranksterBlocked(m,t,mv)) return {why:'prankster',ab:null,attr:undefined};
+  if(pranksterBlocked(m,t,mv)) return {why:'prankster',ab:null,attr:undefined,__src:m};   // __src: the mover whose result fails (2026-09-27)
   /* 2026-08-25 -- and the ABSORBING abilities, which answer at this same `onTryHit` step and which
    * this function has never asked. ONE reader, so every branch that already calls the pair inherits
    * it instead of growing a twenty-second copy. */
@@ -23677,6 +23743,10 @@ function announceTryHitRefusal(r,t){
    * inverts for the Prankster clause. */
   if(r.__ally)MEDSEEN.tryHitRefusedAlly++;
   if(TR)TR.imm(t,r.attr);
+  /* 2026-09-27 -- the Prankster refusal is the one record here the authority counts as a FAILURE
+   * (hitStepTryImmunity writes literal false; the ability refusals above return null / NOT_FAIL). Every
+   * caller that announces a Prankster record is a single-target road; see pranksterRefusedResult. */
+  if(r.why==='prankster')pranksterRefusedResult(r.__src);
 }
 /* `ignoreTypeImmunity` -- ROADMAP #175, and it is a property of the ATTACKER rather than of the body
  * being statused, which is why it arrives as an argument instead of being read here. Every other
@@ -37491,7 +37561,7 @@ function battleTurnBody(S,rng,actsForA,actsForB){
           /* A body that has left or died since the list was built. Nothing in this branch can faint a
              TARGET today -- Memento kills its user -- so this is a guard rather than a live path, and
              it costs one comparison to be right if that ever stops being true. */
-          if(!_t||_t.fainted||_t.curHP<=0) R.out=true;return;
+          if(!_t||_t.fainted||_t.curHP<=0){R.out=true;R.gone=true;}return;
         };
         /* STEP 1 -- `hitStepTryHitEvent`: Protect, the doll, Good as Gold, the absorbers. */
         const _asTryHit=(R)=>{const _t=R.tg;
@@ -37510,7 +37580,7 @@ function battleTurnBody(S,rng,actsForA,actsForB){
            * TEARFULL LOOK reaches this same branch (statChange + ignoresProtect) and has been blocked
            * by a Protect it goes straight through since the branch was written. Named here rather than
            * left inside a diff, and it is visible as its own row in this wire's blast-radius sweep. */
-          if(shieldRefuses(_t,a.mv)){if(TR)TR.act(_t,'move: Protect');R.out=true;return;}
+          if(shieldRefuses(_t,a.mv)){if(TR)TR.act(_t,'move: Protect');R.out=true;R.nf=true;return;}   // NOT_FAIL
           /* 2026-08-27 -- THE DOLL LEFT THIS STEP. It is `tryPrimaryHitEvent` inside
            * `hitStepMoveHitLoop`, so it belongs at `_asSub` below the die; only the revert knob asks
            * it here, and only so a probe has something to part against. See subStatusRefuse. */
@@ -37520,29 +37590,29 @@ function battleTurnBody(S,rng,actsForA,actsForB){
            * ability's own onTryHit -- and tightened after the first version caught Telepathy, which
            * tests category !== 'Status' and blocks an ALLY'S DAMAGE, and Wonder Guard, which tests
            * for Status and then bare-returns to ALLOW it. */
-          if(statusRefuser(m,_t)&&_t!==m){if(TR)TR.imm(_t,'[from] ability: '+_t.ability);R.out=true;return;}
+          if(statusRefuser(m,_t)&&_t!==m){if(TR)TR.imm(_t,'[from] ability: '+_t.ability);R.out=true;R.f=true;return;}
           /* ROADMAP #593 -- Oblivious refuses Taunt here, at the same step and with the handler's own line. */
           {const _mi=_t!==m?moveIdRefusal(_t,a.mv):null;
-           if(_mi){if(TR)TR.imm(_t,_mi.announcesWith||undefined);R.out=true;return;}}
+           if(_mi){if(TR)TR.imm(_t,_mi.announcesWith||undefined);R.out=true;R.f=true;return;}}
           /* 2026-08-25 -- AND THE ABSORBING ABILITIES ANSWER AT THIS SAME STEP. `tryHitRefusal` now
            * carries them for the twenty-one branches that call it; this branch keeps its own inline
            * chain of onTryHit gates, so it asks the shared reader directly rather than growing a
            * second copy of the rule. See MEDI_STATUS_ABSORB_BLIND. */
-          {const _abs=absorbRefusal(m,_t,a.mv);if(_abs){announceTryHitRefusal(_abs,_t);R.out=true;return;}}
+          {const _abs=absorbRefusal(m,_t,a.mv);if(_abs){announceTryHitRefusal(_abs,_t);R.out=true;R.f=true;return;}}
         };
         /* STEP 2 -- `hitStepTypeImmunity`, and the move-class door beside it. */
         const _asTypeImm=(R)=>{const _t=R.tg;
-          if(moveClassBlocked(_t,a.mv,m)){if(TR)TR.imm(_t,moveClassImmuneAttr(_t,m));R.out=true;return;}   // WIRE 66 / #256
+          if(moveClassBlocked(_t,a.mv,m)){if(TR)TR.imm(_t,moveClassImmuneAttr(_t,m));R.out=true;R.f=true;return;}   // WIRE 66 / #256
         };
         /* STEP 3 -- `hitStepTryImmunity`: powder, the move's own onTryImmunity, Prankster. */
         const _asTryImm=(R)=>{const _t=R.tg;
-          if(powderBlocked(_t,a.mv)){if(TR)TR.imm(_t,powderImmuneAttr(_t,m));R.out=true;return;}           // #256
+          if(powderBlocked(_t,a.mv)){if(TR)TR.imm(_t,powderImmuneAttr(_t,m));R.out=true;R.f=true;return;}           // #256
           /* 2026-08-26 -- THE MOVE'S OWN onTryImmunity, and it sits BETWEEN powder and Prankster
            * because that is the order inside `hitStepTryImmunity` (battle-actions.ts:669-679). This is
            * Attract's door: the gender clause lived inside `applyAttract`, below the accuracy roll and
            * silent, so a same-gender click printed nothing where the authority prints `|-immune|`. */
-          if(immunityGateRefuses(m,_t,a.mv)){immunityGateAnnounce(_t,a.mv);R.out=true;return;}
-          if(pranksterBlocked(m,_t,a.mv)){if(TR)TR.imm(_t);R.out=true;return;}
+          if(immunityGateRefuses(m,_t,a.mv)){immunityGateAnnounce(_t,a.mv);R.out=true;R.f=true;return;}
+          if(pranksterBlocked(m,_t,a.mv)){if(TR)TR.imm(_t);R.out=true;R.pk=true;return;}   // result decided after the steps
         };
         /* STEP 4 -- `hitStepAccuracy`, thrown PER TARGET. */
         const _asAccuracy=(R)=>{const _t=R.tg;
@@ -37550,7 +37620,7 @@ function battleTurnBody(S,rng,actsForA,actsForB){
            * as it dodges an Ice Beam, and No Guard lands one exactly as it lands a Stone Edge. */
           const _acc=hitChance(m,_t,a.mv,field,{targetAlreadyMoved:!unresolved.has(_t)});
           /* ROADMAP #264 -- accMustRoll, not `_acc<100`. See the function for the authority's line. */
-          if(accMustRoll(_acc)&&_R.acc()*100>_acc){if(TR)TR.miss(m,_t);R.out=true;return;}   // ROADMAP #222
+          if(accMustRoll(_acc)&&_R.acc()*100>_acc){if(TR)TR.miss(m,_t);R.out=true;R.f=true;return;}   // ROADMAP #222
         };
         /* STEP 7 -- `hitStepMoveHitLoop`: everything the move actually does. */
         const _asEffects=(R)=>{const _t=R.tg;
@@ -37736,6 +37806,26 @@ function battleTurnBody(S,rng,actsForA,actsForB){
           MEDSEEN.spreadStatusStepOuter++;
           for(const _step of _ASTEPS)for(const R of _aRows){if(R.out)continue;_step(R);}
         }
+        /* 2026-09-27 -- THE PRANKSTER REFUSAL FAILS THE MOVE ONLY WHEN NO TARGET IS LEFT. `trySpreadMoveHit`
+         * returns `!!targets.length`, and the refusal's literal false is what keeps an emptied list from
+         * reading `null`. So: every row out and at least one out by Prankster -> false; any row still in
+         * (the non-Dark foe of a Cotton Spore) -> the result stands. See pranksterRefusedResult. */
+        if(_aRows.some(R=>R.pk)&&_aRows.every(R=>R.out))pranksterRefusedResult(m);
+        /* 2026-09-27 -- AND THE SAME RULE FOR EVERY OTHER HIT-STEP REFUSAL IN THIS BRANCH (`R.f`: an ability's
+         * onTryHit, the move-class door, powder, the move's own onTryImmunity, the accuracy die -- each is a
+         * literal false, or a null that `hitStepTryHitEvent` turns into false), and the shield's `NOT_FAIL`
+         * (`R.nf`), which empties the list WITHOUT a failure and so ends `null`. Measured on the authority first:
+         * Encore into Good as Gold `false`, Stun Spore into Grass `false`, Leech Seed into Grass `false`, Encore
+         * and Stun Spore into Protect `null`. Not on a bounce -- the rows are then the BOUNCED move's targets and
+         * its result belongs to the bouncer. See statusRefusalResult. */
+        else if(!_bInfo.bouncedBy&&_aRows.length&&_aRows.every(R=>R.out)&&!_aRows.some(R=>R.gone)){
+          if(_aRows.some(R=>R.f))statusRefusalResult(m,false);
+          else if(_aRows.every(R=>R.nf))statusRefusalResult(m,null);
+        }
+        /* AND ON A BOUNCE OF A SINGLE-TARGET MOVE THE CLICKER'S OWN MOVE FAILED: Magic Bounce's onTryHit `return null`s
+         * for the clicker's one target, which `hitStepTryHitEvent` turns into `false`. The rows are the bounced copy's
+         * and its result is the bouncer's. A SPREAD move with a second target standing is not claimed here. */
+        else if(_bInfo.bouncedBy&&SINGLE_AIM_TARGETS.has((moveFx(a.mv)||{}).target))statusRefusalResult(m,false);
         /* ROADMAP #72, THE OTHER HALF -- DEFOG. It arrives here as `affect` because playerAction
          * classifies it on its evasion drop, and the sweep is the rest of the same `onHit`. Gated on
          * `_landed` for the reason the Memento block below is: every refusal in the loop `continue`s,
@@ -37934,7 +38024,7 @@ function battleTurnBody(S,rng,actsForA,actsForB){
         if(!t||t.fainted||t===m){mvFail(m);continue;}
         if(shieldRefuses(t,a.mv)){if(TR)TR.act(t,'move: Protect');continue;}
         if(statusRefuser(m,t)){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}
-        if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;}
+        if(pranksterBlocked(m,t,a.mv)){pranksterRefuse(m,t);continue;}
         /* 2026-08-27 -- THE LINE MOVED AND THE POSITION DID NOT NEED TO. This branch has no
          * accuracy step, because every move that reaches it is printed 100% -- so it was
          * already asking the doll where the authority asks it, and only the ANSWER was wrong.
@@ -39245,6 +39335,10 @@ function battleTurnBody(S,rng,actsForA,actsForB){
             if(_refused){
               MEDSEEN.swapRefusedAnnounced++;
               if(TR){TR.attrStill();TR.fail(m);}
+              /* 2026-09-27 -- the handler's `return false` fails the MOVE, so the result is `false` too (authority,
+               * measured: an empty-handed Trick reads moveLastTurnResult false). The line above was right and the
+               * result was left `true`. Trick and Switcheroo are single-target. See statusRefusalResult. */
+              statusRefusalResult(m,false);
               return;
             }
           } else if(abilityRefusesItemLoss(t,m))return;
@@ -40963,7 +41057,7 @@ function battleTurnBody(S,rng,actsForA,actsForB){
         if(!t||t.fainted||t===m){mvFail(m);continue;}
         if(shieldRefuses(t,a.mv)){if(TR)TR.act(t,'move: Protect');continue;}
         if(statusRefuser(m,t)){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}
-        if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;}
+        if(pranksterBlocked(m,t,a.mv)){pranksterRefuse(m,t);continue;}
         /* ALREADY CURSED -> `return false` in onTryHit, and NO HP is paid. */
         if(t._ptDmg){mvFail(m);continue;}
         /* The volatile lands BEFORE the cost, which is `moveHit`'s own order (volatileStatus then
@@ -41789,9 +41883,19 @@ function battleTurnBody(S,rng,actsForA,actsForB){
          * (`applyStatus`'s source argument, WIRE 133) and nothing in this batch measured it; folding
          * it in here would have made the arm below unattributable. `newMove.pranksterBoosted=false`
          * is likewise not modelled -- a Prankster clicker's bounced move is still refused by a Dark
-         * type here. Both are owed. */
+         * type here. Both are owed.
+         * (2026-09-27: the Prankster half is NOT owed -- measured, both engines, tests/probe_prankster_dark_result.js
+         * `bounce-status-onto-dark-user`: a Dark Prankster Sableye's Thunder Wave bounced off Espeon paralyses it in
+         * both. The bounced copy comes back at its CLICKER, and `pranksterBlocked(m, m, ...)` answers false through the
+         * ROADMAP #9 self clause, which is the same answer `pranksterBoosted = false` gives. The Safeguard/Synchronize
+         * source half above is untouched.) */
         const _bSrc=(!BOUNCE_KEEPS_SOURCE&&_bInfo.bouncedBy)?_bInfo.bouncedBy:m;
         if(_bSrc!==m){MID_TGT=midEventSlot(t);MEDSEEN.bounceAddressReaimed++;}
+        /* 2026-09-27 -- THE CLICKER'S OWN MOVE FAILED. Magic Bounce's onTryHit re-uses the move from the bouncer and
+         * `return null`s, which `hitStepTryHitEvent` turns into `false` for the clicker's single target; whatever the
+         * bounced copy then does is the BOUNCER's result. Measured on the authority (tests/probe_prankster_dark_result.js
+         * `bounce-*`): the clicker reads `false`, this engine left `true`. */
+        if(_bInfo.bouncedBy)statusRefusalResult(m,false);
         /* WIRE 137 -- A MOVE TARGETS A SLOT, AND THIS BRANCH WAS STILL TARGETING A BODY.
          *
          * The attack branch has resolved its aim to "whoever is in that slot NOW" since voluntary
@@ -41814,12 +41918,12 @@ function battleTurnBody(S,rng,actsForA,actsForB){
          * `shieldRefuses` is where `shieldsUser.blocksStatus` is read, and this branch was the one
          * `t.protect` site left in the file. King's Shield does not block a status move. */
         if(STATUS_SHIELD_BLIND){if(t.protect){if(TR)TR.act(t,'move: Protect');continue;}}
-        else if(shieldRefuses(t,a.mv)){shieldRefusalAnnounce(t);continue;}
-        if(statusRefuser(m,t)&&t!==m){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}   // Good as Gold
+        else if(shieldRefuses(t,a.mv)){shieldRefusalAnnounce(t);if(_bSrc===m)statusRefusalResult(m,null);continue;}   // NOT_FAIL -> null (2026-09-27)
+        if(statusRefuser(m,t)&&t!==m){if(TR)TR.imm(t,'[from] ability: '+t.ability);if(_bSrc===m)statusRefusalResult(m,false);continue;}   // Good as Gold
         /* 2026-08-25 -- AND THE ABSORBING ABILITIES ANSWER AT THIS SAME STEP, which this branch has
          * never asked. Sap Sipper slept, Volt Absorb was paralysed and Flash Fire burned. See
          * MEDI_STATUS_ABSORB_BLIND; the reader is shared with `tryHitRefusal`. */
-        {const _abs=absorbRefusal(m,t,a.mv);if(_abs){announceTryHitRefusal(_abs,t);continue;}}
+        {const _abs=absorbRefusal(m,t,a.mv);if(_abs){announceTryHitRefusal(_abs,t);if(_bSrc===m)statusRefusalResult(m,false);continue;}}
         /* 2026-08-25 -- THE TYPE CHART, WHICH A STATUS MOVE USUALLY IGNORES AND ONE OF THEM DOES NOT.
          *
          * `hitStepTypeImmunity` is step 2 of the authority's move-step list and it runs for EVERY
@@ -41852,19 +41956,24 @@ function battleTurnBody(S,rng,actsForA,actsForB){
          if(_sc&&_sc.respectsTypeChart){
            const _smv=MC.moves[a.mv];
            if(_smv&&typeEffAgainst(m,t,_smv,effMoveType(_smv,a.mv,field,m))===0){
-             MEDSEEN.statusMoveTypeImmune++;
+             MEDSEEN.statusMoveTypeImmune++;if(_bSrc===m)statusRefusalResult(m,false);
              if(TR)TR.imm(t);
              continue;}}}
-        if(moveClassBlocked(t,a.mv,m)){if(TR)TR.imm(t,moveClassImmuneAttr(t,m));continue;}      // WIRE 66 / #256
+        if(moveClassBlocked(t,a.mv,m)){if(TR)TR.imm(t,moveClassImmuneAttr(t,m));if(_bSrc===m)statusRefusalResult(m,false);continue;}      // WIRE 66 / #256
         /* 2026-08-26 -- THE MOVE'S OWN onTryImmunity. This is Leech Seed's door. The `perTurnHP` block
          * below ALREADY refused a Grass target -- `!(_pt.immuneType && t.types.includes(...))` -- and
          * refused it SILENTLY, inside the seeding condition, three gates below where the authority
          * answers. The clause down there is left standing rather than deleted: it is the drain's own
          * guard against a body that became Grass between the click and the tick, and removing it would
          * make this line the only thing keeping a seed off a Grass type. */
-        if(immunityGateRefuses(m,t,a.mv)){immunityGateAnnounce(t,a.mv);continue;}
+        if(immunityGateRefuses(m,t,a.mv)){immunityGateAnnounce(t,a.mv);if(_bSrc===m)statusRefusalResult(m,false);continue;}
         const fx=moveFx(a.mv);
         const st=(fx&&fx.status)||null;
+        /* 2026-09-27 -- LEECH SEED'S PRANKSTER REFUSAL WAS A SILENT CONJUNCT of the drain block below: no
+         * `-immune` and the move result left `true`. It is `hitStepTryImmunity`'s last arm, directly below the
+         * onTryImmunity gate above, and above the accuracy die -- so it is asked here, before the roll. The
+         * major-status road keeps its own Prankster line further down, below powder. */
+        if(!st&&pranksterBlocked(m,t,a.mv)){pranksterRefuse(m,t);m._lastMove=a.mv;continue;}
         /* WIRE 8 -- perTurnHP, the drain half. Leech Seed carries no major status, so this branch
          * discarded the click as "no effect" -- 8th-most-clicked status move, a no-op. The tag says
          * everything the wire needs: effect drain, 1/8 of the TARGET's max HP, healed to the user,
@@ -41935,7 +42044,7 @@ function battleTurnBody(S,rng,actsForA,actsForB){
               if(_stBounced)MEDSEEN.bouncedSeedOwnedByBouncer++;
               t._seededBy={by:_sowner,per:_pt.per,side:_sside,slot:_sown.indexOf(_sowner)};
               if(TR)TR.vstart(t,'move: Leech Seed');}   // ROADMAP #222
-            else if(TR)TR.miss(m,t);
+            else{if(TR)TR.miss(m,t);if(_bSrc===m)statusRefusalResult(m,false);}
           }
           /* WIRE 20's sealsMoves consumer USED TO BE HERE AND WAS UNREACHABLE. Encore, Disable and
            * Taunt all carry a volatile and no major status, so playerAction classifies them as
@@ -41951,15 +42060,15 @@ function battleTurnBody(S,rng,actsForA,actsForB){
          * `tryPrimaryHitEvent` inside `hitStepMoveHitLoop`, so it is asked at the FOOT of this
          * chain, below powder, below Prankster and below the roll. See subStatusRefuse. */
         if(SUB_STATUS_AT_TRYHIT&&subBlocks(m,t,a.mv)){subStatusRefuseOld(m,t,'[block]');continue;}
-        if(powderBlocked(t,a.mv)){if(TR)TR.imm(t,powderImmuneAttr(t,m));continue;}     // Grass / Overcoat / Safety Goggles; #256
-        if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;} // Prankster does not touch Dark types
+        if(powderBlocked(t,a.mv)){if(TR)TR.imm(t,powderImmuneAttr(t,m));if(_bSrc===m)statusRefusalResult(m,false);continue;}     // Grass / Overcoat / Safety Goggles; #256
+        if(pranksterBlocked(m,t,a.mv)){pranksterRefuse(m,t);continue;} // Prankster does not touch Dark types
         /* `_bSrc` IS `m` ON EVERY ROAD WITH NO BOUNCE IN IT, so this is character-for-character the
            old call except on the one path batch W is about. See the block above. */
         const acc=hitChance(_bSrc,t,a.mv,field,{targetAlreadyMoved:!unresolved.has(t)});   // WIRE 124/129 -- one accuracy authority, not a second copy
         /* ROADMAP #264 -- this site used to roll UNCONDITIONALLY, which over-draws in the other
          * direction: a Poison-type's Toxic, a Lock-On'd status move and anything aimed past No Guard
          * all return Infinity here, and the authority takes no draw for those at all. */
-        if(accMustRoll(acc)&&_R.acc()*100>acc){if(TR)TR.miss(_bSrc,t);continue;}      // status moves miss (T-Wave 90, W-o-W 85); ROADMAP #222
+        if(accMustRoll(acc)&&_R.acc()*100>acc){if(TR)TR.miss(_bSrc,t);if(_bSrc===m)statusRefusalResult(m,false);continue;}      // status moves miss (T-Wave 90, W-o-W 85); ROADMAP #222
         /* AND HERE IS WHERE IT ACTUALLY GOES -- `moveSteps` index 7, below index 4. */
         if(!SUB_STATUS_AT_TRYHIT&&subBlocks(m,t,a.mv)){subStatusRefuse(m,t);continue;}
         /* WIRE 133 -- THE SOURCE TRAVELS WITH THE STATUS, and it has to: Safeguard refuses what the
@@ -44279,6 +44388,20 @@ function battleTurnBody(S,rng,actsForA,actsForB){
          * `hitResults[i] = false`, which makes `atLeastOneFailure` true, which leaves
          * `moveThisTurnResult` at FALSE rather than null -- so Stomping Tantrum reads a failure here. */
         if(immunityGateRefuses(m,tg,a.move.id)){_explicitFail=true;immunityGateAnnounce(tg,a.move.id);R.out=true;return;}
+        /* 2026-09-27 -- AND THE PRANKSTER ARM, WHICH THIS DAMAGING STEP NEVER ASKED BECAUSE A CHOSEN DAMAGING MOVE IS
+         * NEVER BOOSTED. A CALLED one can be: `useMoveInner` copies the caller's `pranksterBoosted` onto the called move
+         * (`if (!move.hasBounced) move.pranksterBoosted = this.battle.activeMove.pranksterBoosted`, sim/battle-actions.ts),
+         * and `hitStepTryImmunity` asks `move.pranksterBoosted`, not the category. So a Prankster Sleep Talk or Copycat
+         * that calls a damaging move into a Dark foe is refused -- `-immune`, a literal false. Measured before this line:
+         * the authority refused a called Foul Play into Persian-Alola, this engine dealt 15. The caller's own boost is
+         * `pranksterBlocked(m, tg, <caller>)` (callers are status moves; it carries the side and Dark clauses); the
+         * target class that never reaches this step is the CALLED move's. MEDI_PRANKSTER_CALLED_BLIND=1 restores it. */
+        if(it&&it._calledBy&&!PRANKSTER_CALLED_BLIND){
+          const _cfx=moveFx(a.move.id);
+          if(!(_cfx&&PRANKSTER_UNREACHED_TARGETS.has(_cfx.target))&&pranksterBlocked(m,tg,it._calledBy)){
+            _explicitFail=true;MEDSEEN.pranksterRefusedCalledMove=(MEDSEEN.pranksterRefusedCalledMove|0)+1;
+            if(TR)TR.imm(tg);R.out=true;return;}
+        } else if(it&&it._calledBy&&PRANKSTER_CALLED_BLIND)MEDFAILS.pranksterCalledBlindRestored++;
       };
       /* STEP 0 -- SEMI-INVULNERABILITY (`hitStepInvulnerabilityEvent`, battle-actions.ts:621). FIRST
        * in Showdown's list and fourth here, which is why the step list is data and the blocks below

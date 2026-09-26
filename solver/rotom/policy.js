@@ -191,7 +191,8 @@ function create(deps) {
   }
   function gen5Opts(budgetMs, coin, over) {
     const g = gen5(), s = g.spec;
-    return Object.assign({ budgetMs, k1: s.k1, k2: s.k2, depth: s.depth, reserveSwitch: s.reserveSwitch, leaf: 'pory2', leafModel: g.leafModel, coin }, over || {});
+    return Object.assign({ budgetMs, k1: s.k1, k2: s.k2, depth: s.depth, reserveSwitch: s.reserveSwitch, leaf: 'pory2', leafModel: g.leafModel, coin },
+      require('../mew/agent.js').searchExtras(s), over || {});   // the spec's quiesce / flatEps / reserveNoRepeat (2026-09-27)
   }
   function gen5Move(d) {
     const w = d.world;

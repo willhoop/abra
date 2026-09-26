@@ -166,6 +166,10 @@ for (const f of moveFx) {
     const revRows = w5.theirs.filter(x => x.pub && x.pub.seen).map(x => x.s);
     const rest = [0, 1, 2, 3, 4, 5].filter(i => !revRows.includes(i));
     const back = rest.length >= 2 ? [{ pair: [rest[0], rest[1]], p: 0.75 }, { pair: [rest[rest.length - 2], rest[rest.length - 1]], p: 0.25 }] : null;
+    /* warmed first, as ROTOM warms it during preview (policy.warmGen5): a COLD first decision spends its 700 ms loading
+     * the nets and tiering up, and under load it drew a world and no playout (2026-09-26, 104/105 once) — the clause
+     * asks whether the policy searches, not whether a cold process can in 700 ms */
+    P.warmGen5(API.clone(w5.S), w5.ctx, API.M.rngStreams({ seed: 3 }).any);
     const w0 = P.gen5().XW.COUNTERS.worlds;
     const r = P.move('miltank-gen5', { req: f.req, world: w5, coin, budgetMs: 700, xatuBack: back });
     ok('POLICY', r.choice && RQ.isLegal(f.req, r.choice), 'miltank-gen5 move choice ' + (r && r.choice));
