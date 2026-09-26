@@ -31,3 +31,13 @@ seven earlier self-play directories and their deep values are read, read-only, f
 - DODUO drift from the human clone: 0.0077 nats.
 - Champion after: `solver/machamp/league/gen5.json`.
 - Recipe: warm start from `solver/machamp/league/gen5.json`; lr DODUO 0.0001, PORYGON2 0.00015; champion self-play weight 3 on solver/out/selfplay/eaa5becc54eb/loop-sp6, solver/out/selfplay/eaa5becc54eb/loop-sp7, solver/out/selfplay/eaa5becc54eb/loop-sp8; fallback decisions in the DODUO targets: 38; selected epochs DODUO 0, PORYGON2 5.
+
+## gen9 — rejected (2026-09-26T07:36:14.724Z)
+
+- Self-play: `solver/out/selfplay/eaa5becc54eb/loop-sp9`, 1000 games, 773.9 games/hour, 0.25% cells empty.
+- Pool: 9 self-play directories, 120002 DODUO decisions, 78232 PORYGON2 positions (all with a deep value: 78232).
+- **SPRT vs gen5** (elo0 0, elo1 +20, α = β = 0.05): **H0 — X is not stronger (elo0 = 0 accepted)**, LLR -2.98, 932 pairs = 1864 games; 942–922 = 0.505 [0.483, 0.528] (Wilson at the stop, slightly optimistic).
+- Human clone: 0.655 [0.587, 0.717] (PASS). PORYGON2 human log-loss vs v0: -0.0040 [-0.007, -0.001] (PASS).
+- DODUO drift from the human clone: 0.0037 nats.
+- Champion after: `solver/machamp/league/gen5.json`.
+- Recipe: warm start from `solver/machamp/league/gen5.json`; lr DODUO 0.0001, PORYGON2 0.00015; champion self-play weight 3 on solver/out/selfplay/eaa5becc54eb/loop-sp6, solver/out/selfplay/eaa5becc54eb/loop-sp7, solver/out/selfplay/eaa5becc54eb/loop-sp8, solver/out/selfplay/eaa5becc54eb/loop-sp9; fallback decisions in the DODUO targets: 50; selected epochs DODUO 0, PORYGON2 2.
