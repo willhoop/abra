@@ -21,6 +21,24 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.22.0] — 2026-09-26
+
+### Changed
+- **MAG's gate now reads a status click off the engine's move result. The board workaround is removed.** The tiered
+  gates (1.19.0) judged a status move aimed at a body off the target's board, because MEDICHAM ended a Prankster status
+  move refused by a Dark target `true`. 1.21.0 fixed that result. On 300 held-out decisions on release `4067de46a0ee`,
+  the board reading changed 1 verdict of 78, and it was wrong: a Hypnosis at a fainted slot retargeted onto the live foe
+  and slept it. `solver/mag/purpose.js` keeps `'flinch'` and `'result'`. `gate.js` drops `targetDiff` and its two extra
+  steps per world. `probe.js` drops `readVol`.
+
+### Fixed
+- **`solver/tests/test-gates.js` was BLIND (exit 3) and is now green, with every break red.** The ENCORE break was
+  `purposeresult`, and it saw only the old wrong result. It is now the engine's own knob `MEDI_PRANKSTER_RESULT_TRUE=1`.
+  Under that knob the gate calls the Dark Encore live and ENCORE fails. With the old board workaround restored, the same
+  knob left ENCORE green, so the break separates the two gates. `docs/_reports/2026-09-26-encore-break-reaim.md`.
+
+---
+
 ## [1.21.0] — 2026-09-26
 
 ### Fixed

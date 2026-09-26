@@ -45,7 +45,6 @@
 'use strict';
 const P = require('./probe.js');
 const PU = require('./purpose.js');
-const DEX = () => require('../human/dex.js').D;
 const BREAK = (typeof process !== 'undefined' && process.env && process.env.GATE_BREAK) || '';
 
 function create(API, deps) {
@@ -94,35 +93,14 @@ function create(API, deps) {
    *                            probability that the opponent makes one of them under the human switch model.
    * `v_result` is the verdict the move RESULT alone gives (the 2026-09-25 gate), kept where it differs, so the change
    * the purpose makes is counted rather than asserted. */
-  /* did the click's TARGET(S) end the turn differently from the pass counterfactual? Only the bodies the move is aimed at
-   * are compared (the user's own leaves — its PP, its last move — differ whenever it moves at all). */
-  function targetDiff(pos, k, a, r1, r0) {
-    if (!r1 || !r0 || r1.board == null || r0.board == null) return false;
-    const b1 = JSON.parse(r1.board), b0 = JSON.parse(r0.board);
-    const mine = pos.side === 'A' ? 'p1' : 'p2', foe = pos.side === 'A' ? 'p2' : 'p1';
-    let at;
-    if (a.target > 0) at = [[foe, a.target - 1]];
-    else if (a.target != null && a.target < 0) at = [[mine, -a.target - 1]];
-    else {
-      const t = (DEX().moves.get(a.move) || {}).target;
-      at = [[foe, 0], [foe, 1]];
-      if (t === 'allAdjacent') at.push([mine, 1 - k]);
-    }
-    const pick = (b, sd, i) => JSON.stringify(((b.sides[sd] || {}).active || [])[i] || null);
-    return at.some(([sd, i]) => pick(b1, sd, i) !== pick(b0, sd, i));
-  }
-
-  const purposeAt = (pos, a) => PU.purposeOf(a.move, pos.readVol ? pos.readVol() : null);
+  const purposeAt = (pos, a) => PU.purposeOf(a.move);
   /* was click `a` (slot k)'s PURPOSE achieved in the world (j, oj, di[, alternative world wi])? r = that world's plain
-   * result. 'effect' (a status move aimed at a body): the move result AND the target's turn-end board differing from the
-   * same world with this slot passing (a mega click's counterfactual still mega-evolves: probe.js PASS_MEGA). */
-  function achievedWorld(pos, k, a, purpose, r, j, oj, di, wi) {
-    if (purpose !== 'effect') return PU.achieved(purpose, r, k);
-    if (!r.ok[k]) return false;
-    const passJ = j.map((x, i) => (i === k ? (x && x.mega ? P.PASS_MEGA : P.PASS) : x));
-    const r1 = pos.run(j, oj, di, { board: true, world: wi | 0 }), r0 = pos.run(passJ, oj, di, { board: true, world: wi | 0 });
-    return targetDiff(pos, k, a, r1, r0);
-  }
+   * result. A status move is read off the engine's own move result, like every non-flinch move: the board-diff reading
+   * ('effect', 2026-09-26) was a workaround for MEDICHAM ending a Prankster status move refused by a Dark target `true`.
+   * The engine ends it `false` since abra/regmc 1.21.0 (release 4067de46a0ee), and on 300 held-out decisions there the
+   * workaround changed one verdict of 78, wrongly: a Hypnosis at a fainted slot retargeted onto the live foe and slept it,
+   * and the board read the empty slot. Removed 2026-09-26 (docs/_reports/2026-09-26-encore-break-reaim.md). */
+  function achievedWorld(pos, k, a, purpose, r) { return PU.achieved(purpose, r, k); }
   /* the same question for ONE given pair of joints (the held-out eval: the human's click against the opponent's actual
    * joint) -> { exec, achieved, result } */
   function achievedAgainst(pos, k, jS, jO, di) {

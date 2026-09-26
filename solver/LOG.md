@@ -8,6 +8,12 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-26
 
+### ENCORE break re-aimed; the gate's board workaround removed (abra/regmc 1.22.0)
+- `test-gates` was BLIND after ENGINE fixed the Prankster-into-Dark move result. It is now green with every break red.
+  ENCORE's break is the engine knob `MEDI_PRANKSTER_RESULT_TRUE=1`. The gate reads a status click off the move result
+  again. On the fixed release the board reading changed 1 of 78 verdicts, and wrongly. Detail:
+  `docs/_reports/2026-09-26-encore-break-reaim.md`.
+
 ### Protect overuse: the live world lost the counter (fixed); most of the excess is the search's own mix (abra/regmc 1.20.0)
 - The live search re-clicked Protect on 31% of the turns its body carried the counter (20 of 28 failed). The human
   opponents in the same games did so on 3%. Cause (b): ROTOM's world laid no `stall` counter. 1.18.0 (on main after gen5ab
