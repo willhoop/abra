@@ -16,7 +16,13 @@
  *      mix — never the argmax; mixing is the point of a simultaneous-move root.
  *
  *   const MT = require('./solver/miltank/search.js').create(API, { prior: PA, rollout: R });
- *   MT.decide(S, side, ctx, { budgetMs, k1, k2, reserveSwitch, depth, coin, solver:'rm'|'lp', leaf:'heuristic'|'pory2', leafModel, record }) -> { joint, info }
+ *   MT.decide(S, side, ctx, { budgetMs, k1, k2, reserveSwitch, depth, coin, solver:'rm'|'lp', leaf:'heuristic'|'pory2', leafModel, record, quiesce }) -> { joint, info }
+ *   quiesce = true | 'all': every playout plays one extension turn (each side carries on with its plan) before the leaf;
+ *   'held': only a playout in which a protect-family use HELD (the horizon fix, docs/_reports/2026-09-27-protect-repeat-fix.md;
+ *   solver/miltank/rollout.js QUIESCENCE). Off by default.
+ *   flatEps = e: when every played cell is within e of every other, play the ranking prior's top joint (counted flatPrior).
+ *   reserveNoRepeat = true: the reserved mega row is the prior's best mega joint that repeats no Protect, when one exists
+ *   (counted megaUnbundled when that differs from the plain top). Both off by default; same report.
  *   leafModel = a PORYGON2 model file for the pory2 leaf (a self-play generation's net; default v0). record = true puts
  *   the root (rows, cols, both mixes, the mean matrix, the per-cell playout counts) in info.rec.
  *   The leaf defaults to env MILTANK_LEAF, else the heuristic. `pory2` = PORYGON2 v0 (PRE-GATE), solver/porygon2/leaf.js.
@@ -42,17 +48,26 @@
  * solver/tests/test-miltank-deadline.js must go red under it.
  */
 'use strict';
+/* the moves whose use rolls the consecutive-use die: `stallingMove`, read off the Reg M-C dex (never listed) */
+const STALL_ROLL = new Map();
+function rollsStall(id) {
+  if (!STALL_ROLL.has(id)) { const mv = require('../human/dex.js').D.moves.get(id); STALL_ROLL.set(id, !!(mv && mv.exists && mv.stallingMove)); }
+  return STALL_ROLL.get(id);
+}
 const LEAF_ENV = (typeof process !== 'undefined' && process.env && process.env.MILTANK_LEAF) || '';
 const SK = require('../slowking/matrix.js');
 const C = require('./cells.js');
 const DEADLINE_BREAK = (typeof process !== 'undefined' && process.env && process.env.MILTANK_DEADLINE_BREAK) || '';
+/* DELIBERATE BREAKS for solver/tests/test-miltank-quiesce.js (env MILTANK_BREAK, shared with rollout.js): `flat` = a flat
+ * table is never detected; `megabundle` = the mega reservation ignores reserveNoRepeat */
+const SEARCH_BREAK = (typeof process !== 'undefined' && process.env && process.env.MILTANK_BREAK) || '';
 
 function create(API, deps) {
   const PA = deps.prior, R = deps.rollout;
   const COUNTERS = { decisions: 0, forced: 0, cells: 0, playouts: 0, unfilled: 0, reservedSwitch: 0, reservedMega: 0, rmIters: 0, overBudget: 0, pory2Decisions: 0,
-                     fallbackEmpty: 0, fallbackSparse: 0, deadlineCut: 0 };
+                     fallbackEmpty: 0, fallbackSparse: 0, deadlineCut: 0, quiesceDecisions: 0, flatPrior: 0, megaUnbundled: 0 };
 
-  function rank(scores, joints, k, reserveSwitch, wantMega) {
+  function rank(scores, joints, k, reserveSwitch, wantMega, avoidMega) {
     const idx = scores.map((p, i) => i).sort((a, b) => scores[b] - scores[a] || a - b);
     const keep = [];
     const has = (i, f) => joints[i].some(f);
@@ -63,7 +78,12 @@ function create(API, deps) {
     for (const i of idx) { if (sw >= reserveSwitch) break; if (has(i, isSw)) { keep.push(i); sw++; } }
     COUNTERS.reservedSwitch += sw;
     if (wantMega && !keep.some(i => has(i, isMega))) {
-      const i = idx.find(i => has(i, isMega));
+      /* avoidMega (o.reserveNoRepeat): the reserved mega joint is the prior's best one that does NOT also repeat a
+       * Protect, when there is one — else the one reserved mega row carries a 1-in-3 Protect in with the mega, and the
+       * table can only buy the mega by buying the Protect (docs/_reports/2026-09-27-protect-repeat-fix.md) */
+      let i = avoidMega && SEARCH_BREAK !== 'megabundle' ? idx.find(i => has(i, isMega) && !avoidMega(joints[i])) : undefined;
+      if (i != null && i !== idx.find(i => has(i, isMega))) COUNTERS.megaUnbundled++;
+      if (i == null) i = idx.find(i => has(i, isMega));
       if (i != null) { keep.push(i); COUNTERS.reservedMega++; }
     }
     for (const i of idx) { if (keep.length >= k) break; if (!keep.includes(i)) keep.push(i); }
@@ -81,14 +101,28 @@ function create(API, deps) {
     const sOp = PA.scoreJoints(ctx, S, opp, side, laOp);
     const megaMe = laMe.joint.some(j => j.some(x => x && x.mega));
     const megaOp = laOp.joint.some(j => j.some(x => x && x.mega));
-    const rowsI = rank(Array.from(sMe), laMe.joint, k1, rs, megaMe);
-    const colsI = rank(Array.from(sOp), laOp.joint, k2, rs, megaOp);
+    const repeats = sd => { const act = sd === 'A' ? S.actA : S.actB; return j => j.some((x, k) => x && x.kind === 'move' && rollsStall(x.move) && act[k] && (act[k].tookProtectTurns | 0) >= 1); };
+    const rowsI = rank(Array.from(sMe), laMe.joint, k1, rs, megaMe, o.reserveNoRepeat ? repeats(side) : null);
+    const colsI = rank(Array.from(sOp), laOp.joint, k2, rs, megaOp, o.reserveNoRepeat ? repeats(opp) : null);
     const rows = rowsI.map(i => laMe.joint[i]), cols = colsI.map(i => laOp.joint[i]);
     /* the prior's own top legal joint: the move when the clock leaves the table too empty to solve */
     let top = 0; for (let i = 1; i < sMe.length; i++) if (sMe[i] > sMe[top]) top = i;
     const priorTop = laMe.joint[top];
     const belief = { sheet: ctx.G.sheets[opp === 'A' ? 'p1' : 'p2'], revealed: PA.revealed(S, opp) };
     const job = { S, side, opp, rows, cols, belief, depth: o.depth == null ? 2 : o.depth };
+    /* QUIESCENCE (o.quiesce): each slot's best non-protect move by the ranking prior, over EVERY legal joint, for the
+     * extension turn a playout plays after a protect held (solver/miltank/rollout.js). Read off the scores step 1
+     * already computed, so it costs no model call. */
+    if (o.quiesce) {
+      const fam = require('../arena/protect_stats.js').family();
+      const best = (la, s) => [0, 1].map(k => {
+        let b = -1;
+        la.joint.forEach((j, i) => { const x = j[k]; if (x && x.kind === 'move' && !x.forced && !x.mega && !fam.has(x.move) && (b < 0 || s[i] > s[b])) b = i; });
+        return b < 0 ? null : { move: la.joint[b][k].move, target: la.joint[b][k].target };
+      });
+      job.quiesce = { fb: { [side]: best(laMe, sMe), [opp]: best(laOp, sOp) }, mode: o.quiesce === 'held' ? 'held' : 'all' };
+      COUNTERS.quiesceDecisions++;
+    }
     /* THE LEAF: o.leaf, else env MILTANK_LEAF, else the heuristic. PORYGON2 needs both open sheets (p1 = side A). */
     const leafMode = o.leaf || LEAF_ENV || 'heuristic';
     if (leafMode === 'pory2') { job.leafCtx = { mode: 'pory2', sheets: ctx.G.sheets }; if (o.leafModel) job.leafCtx.model = o.leafModel; COUNTERS.pory2Decisions++; }
@@ -125,15 +159,25 @@ function create(API, deps) {
     const left = DEADLINE_BREAK ? 0 : Math.max(5, t0 + budget - Date.now());
     const sol = o.solver === 'lp' ? SK.solveLP(A) : SK.solveRM(A, { iters: o.rmIters || 4000, tol: 1e-4, timeMs: left });
     const pick = SK.sample(sol.x, coin());
+    /* A FLAT TABLE (o.flatEps): every played cell within flatEps of every other — a game already won or lost inside
+     * the horizon. Any mix is an equilibrium of it, so SLOWKING's pick is decided by noise below the leaf's resolution
+     * (measured: a lost position put its whole mix on a repeat Protect that delayed the loss by 1e-4). The ranking
+     * prior's top joint is played instead, and COUNTED (flatPrior). The solve still runs, so the root record is kept. */
+    let flat = false;
+    if (o.flatEps != null && priorTop && SEARCH_BREAK !== 'flat') {
+      let lo = Infinity, hi = -Infinity;
+      for (let i = 0; i < m; i++) for (let j = 0; j < n; j++) if (cnt[i][j]) { const v = sum[i][j] / cnt[i][j]; if (v < lo) lo = v; if (v > hi) hi = v; }
+      if (hi - lo <= o.flatEps) { flat = true; COUNTERS.flatPrior++; }
+    }
     const ms = Date.now() - t0;
     COUNTERS.unfilled += unfilled; COUNTERS.rmIters += sol.iters || 0;
     if (ms > budget * 1.5 + 50) COUNTERS.overBudget++;
     const info = Object.assign({ m, n, passes, playouts, unfilled, filled: +filled.toFixed(3), value: sol.value, gap: sol.gap, rm_iters: sol.iters,
-             support: sol.x.filter(v => v > 1e-3).length, pick, ms }, extra || {});
+             support: sol.x.filter(v => v > 1e-3).length, pick, ms }, flat ? { flat: true } : {}, extra || {});
     /* o.record (self-play, solver/mew): the whole root — the candidate joints, both mixes and the mean matrix —
      * so a training target can be read off the search rather than off the one sampled move */
     if (o.record) info.rec = { rows, cols: job.cols, x: Array.from(sol.x), y: sol.y ? Array.from(sol.y) : null, A, cnt: cnt.map(r => Array.from(r)) };
-    return { joint: rows[pick], info };
+    return { joint: flat ? priorTop : rows[pick], info };
   }
   /* when the cell fill must stop: the budget less a reserve for the solve and the pick */
   function fillByOf(o, t0, budget) {
@@ -175,7 +219,7 @@ function create(API, deps) {
     return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin, { workers: acc.workers, late_workers: acc.late || 0 }, b.priorTop);
   }
 
-  return { COUNTERS, decide, decideAsync, rank, collectIdle, BROKEN: DEADLINE_BREAK || null };
+  return { COUNTERS, decide, decideAsync, rank, collectIdle, BROKEN: DEADLINE_BREAK || (['flat', 'megabundle'].includes(SEARCH_BREAK) ? SEARCH_BREAK : null) };
 }
 
 /* THE RESERVE: 6% of the budget, clamped to 20-300 ms (60 ms at 1 s, 300 ms at 5 s). It was 3% clamped to 150 ms,

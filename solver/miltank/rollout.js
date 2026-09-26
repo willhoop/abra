@@ -8,8 +8,9 @@
  *   R.sampleWorld(S, oppSide, belief, coin)  a clone of S with the opponent's UNREVEALED bench re-drawn
  *                                      (belief = { sheet: [6 rows], revealed: Set(current team idx) })
  *   R.prepare(W)                       a world serialised once, for many playouts (see prepare below)
- *   R.playout(W, jA, jB, seed, depth[, lctx[, abortAt]])  copy W (or a prepared W), step (jA, jB) on seeded dice, `depth` random
- *                                      turns, leaf; NaN if the clock passed abortAt between turns (see playFrom)
+ *   R.playout(W, jA, jB, seed, depth[, lctx[, abortAt[, q]]])  copy W (or a prepared W), step (jA, jB) on seeded dice, `depth` random
+ *                                      turns, leaf; NaN if the clock passed abortAt between turns (see playFrom);
+ *                                      q = { fb, mode:'all'|'held' } turns QUIESCENCE on (below)
  *
  * THE PLAYOUT POLICY IS NOT A LEGALITY AUTHORITY. `legalActions` is, and it costs ~2 ms a call because
  * it snapshots and restores every process-wide counter so that it can be a pure read (the differential
@@ -39,7 +40,7 @@
  * swap forgets `_sf`), `crn` (a cell's dice ignore the seed), `peek` (the world keeps the opponent's TRUE
  * unrevealed bodies — the search sees hidden information), `prepare` (a prepared copy loses the battle's
  * scratch scope), `rng` (the playout's five dice streams collapse into one), `leaf` (the PORYGON2 leaf is
- * asked for and the heuristic is served). Loud: exported as BROKEN.
+ * asked for and the heuristic is served), `quiesce` (a held protect is counted but the extension turn is never played). Loud: exported as BROKEN.
  *
  * THE PORYGON2 LEAF (2026-09-24, docs/_reports/2026-09-24-porygon2-v0.md). With lctx.mode === 'pory2' the
  * non-terminal leaf is PORYGON2 v0 (solver/porygon2/leaf.js): P(side A wins) from the public position, both
@@ -63,7 +64,8 @@ const live = m => !!(m && !m.fainted && m.curHP > 0);
 function create(API, opts) {
   const M = API.M;
   const buildBody = opts.buildBody;
-  const COUNTERS = { playouts: 0, playoutTurns: 0, worlds: 0, bodiesSwapped: 0, wipes: 0, leafHeuristic: 0, leafPory2: 0, prepared: 0, fastClones: 0, leanPlayouts: 0, aborted: 0 };
+  const COUNTERS = { playouts: 0, playoutTurns: 0, worlds: 0, bodiesSwapped: 0, wipes: 0, leafHeuristic: 0, leafPory2: 0, prepared: 0, fastClones: 0, leanPlayouts: 0, aborted: 0,
+                     quietHeld: 0, quiesced: 0 };
   /* one PORYGON2 leaf per model file: lctx.model names a generation's net (solver/mew, solver/machamp);
    * absent = the default v0 file, exactly as before */
   const PORY2 = new Map();
@@ -214,11 +216,29 @@ function create(API, opts) {
    * leaf, and past it the playout is ABANDONED and returns NaN — the cell stays unplayed, as if never started, and
    * COUNTERS.aborted says so. One engine step cannot be interrupted; one playout can. Without abortAt nothing is read
    * and the playout is exactly the one it always was (docs/_reports/2026-09-25-miltank-deadline.md). */
-  function playFrom(S, jA, jB, seed, depth, lctx, abortAt) {
+  function playFrom(S, jA, jB, seed, depth, lctx, abortAt, q) {
     const rng = dice(BREAK === 'crn' ? Math.floor(Math.random() * 1e9) : seed);
     const coin = M.rngStreams({ seed: seed + 7919 }).any;
+    const pre = q ? { A: S.actA.slice(), B: S.actB.slice(), c: [...S.actA, ...S.actB].map(m => (m ? m.tookProtectTurns | 0 : 0)) } : null;
     API.stepInPlace(S, jA, jB, rng);
     COUNTERS.playouts++;
+    if (q) {
+      /* QUIESCENCE (2026-09-27, docs/_reports/2026-09-27-protect-repeat-fix.md). A position in which a protect-family
+       * use HELD this turn is not quiet: the blocked threat is still standing, and a depth-0 leaf scores the shielded
+       * body as if it had escaped it. One extension turn lets it land, then the leaf.
+       *   q.mode 'held'  extend only the playouts in which a protect held. This makes the horizon depend on the CELL, so
+       *                  a protect row is scored one turn deeper than the rows beside it — measured: it moved the repeat
+       *                  mass the wrong way wherever the extra turn of the partner's attacks favoured the protecting side.
+       *   q.mode 'all'   (the default) extend EVERY playout of the decision: one horizon for every cell, so a held
+       *                  protect is compared with the other rows at the same game time. */
+      const held = [...pre.A, ...pre.B].some((m, i) => m && live(m) && (m.tookProtectTurns | 0) > pre.c[i]);
+      if (held) COUNTERS.quietHeld++;
+      if ((held || q.mode !== 'held') && BREAK !== 'quiesce' && !API.isTerminal(S)) {
+        if (abortAt && Date.now() >= abortAt) { COUNTERS.aborted++; return NaN; }
+        API.stepInPlace(S, quietJoint(S, 'A', jA, pre.A, q.fb && q.fb.A, coin), quietJoint(S, 'B', jB, pre.B, q.fb && q.fb.B, coin), rng);
+        COUNTERS.quiesced++;
+      }
+    }
     for (let d = 0; d < depth && !API.isTerminal(S); d++) {
       if (abortAt && Date.now() >= abortAt) { COUNTERS.aborted++; return NaN; }
       API.stepInPlace(S, randomJoint(S, 'A', coin), randomJoint(S, 'B', coin), rng);
@@ -227,15 +247,48 @@ function create(API, opts) {
     if (abortAt && Date.now() >= abortAt) { COUNTERS.aborted++; return NaN; }
     return leaf(S, lctx);
   }
-  function playout(W, jA, jB, seed, depth, lctx, abortAt) {
+  function playout(W, jA, jB, seed, depth, lctx, abortAt, q) {
     const S = copy(W);
-    if (!LEAN) return playFrom(S, jA, jB, seed, depth, lctx, abortAt);
+    if (!LEAN) return playFrom(S, jA, jB, seed, depth, lctx, abortAt, q);
     API.makeLean(S);
     COUNTERS.leanPlayouts++;
-    return API.leanRun(() => playFrom(S, jA, jB, seed, depth, lctx, abortAt));
+    return API.leanRun(() => playFrom(S, jA, jB, seed, depth, lctx, abortAt, q));
   }
 
-  return { COUNTERS, LEAN, slotSupport, randomJoint, leaf, sampleWorld, swapBody, body, prepare, copy, dice, playout, BROKEN: BREAK || null };
+  /* THE EXTENSION TURN'S JOINT for one side: each side carries on with the plan it chose. A slot whose body is the one
+   * that chose, and whose choice was a move outside the protect family, clicks that move again (same target when it is
+   * still offered, else the first target the menu offers). A slot that protected clicks `fb[k]` — the ranking prior's
+   * best non-protect move for that slot at the root (search.js) — when its body has it. Anything else (a body that
+   * switched in, a move no longer offered) is a draw from the slot's non-protect moves on the playout's own coin. No
+   * protect-family move and no switch is chosen here unless the slot has nothing else: the extension asks what the
+   * blocked plan does next turn, not whether to stall again. Forced slots (recharge, lock, pass) keep what the engine
+   * forces. */
+  let FAMILY = null;
+  function quietJoint(S, side, jPrev, preAct, fb, coin) {
+    if (!FAMILY) FAMILY = require('../arena/protect_stats.js').family();
+    const own = side === 'A' ? S.actA : S.actB;
+    const j = [];
+    for (let k = 0; k < own.length; k++) {
+      let sup = slotSupport(S, side, k);
+      if (k === 1 && j[0]) {
+        const p = j[0];
+        sup = sup.filter(o => !(o.mega && p.mega) && !(o.kind === 'switch' && p.kind === 'switch' && p.to === o.to));
+        if (!sup.length) sup = [{ kind: 'pass' }];
+      }
+      if (sup.length === 1 && (sup[0].kind === 'pass' || sup[0].forced)) { j.push(sup[0]); continue; }
+      const moves = sup.filter(o => o.kind === 'move' && !o.mega && !FAMILY.has(o.move));
+      const find = (id, t) => moves.find(o => o.move === id && o.target === t) || moves.find(o => o.move === id);
+      const o = jPrev && jPrev[k];
+      let pick = null;
+      if (own[k] === preAct[k] && o && o.kind === 'move' && !o.forced && !FAMILY.has(o.move)) pick = find(o.move, o.target);
+      if (!pick && fb && fb[k]) pick = find(fb[k].move, fb[k].target);
+      if (!pick) pick = moves.length ? moves[Math.floor(coin() * moves.length)] : sup[Math.floor(coin() * sup.length)];
+      j.push(pick);
+    }
+    return j;
+  }
+
+  return { COUNTERS, LEAN, slotSupport, randomJoint, quietJoint, leaf, sampleWorld, swapBody, body, prepare, copy, dice, playout, BROKEN: BREAK || null };
 }
 
 module.exports = { create };

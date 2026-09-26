@@ -6,7 +6,10 @@
  *   AG.XW                            solver/xatu/worlds.js on this agent set's rollout (honest information)
  *   AG.COUNTERS                      fallbacks (the search threw and the prior's top legal joint was played), …
  *
- *   spec = { name, kind: 'miltank', mag, doduo, pory2, budgetMs, k1, k2, depth, reserveSwitch[, gates] }
+ *   spec = { name, kind: 'miltank', mag, doduo, pory2, budgetMs, k1, k2, depth, reserveSwitch[, gates][, quiesce] }
+ *   quiesce (2026-09-27): true | 'all' = every search playout plays one extension turn; 'held' = only after a protect held
+ *   (solver/miltank/rollout.js QUIESCENCE); flatEps: a flat table plays the prior's top joint; reserveNoRepeat: the mega row
+ *   repeats no Protect when it can (solver/miltank/search.js; docs/_reports/2026-09-27-protect-repeat-fix.md)
  *        | { name, kind: 'greedy',  mag, doduo[, gates] }   the HUMAN CLONE: DODUO's argmax legal joint, no search
  *   gates (2026-09-25, docs/_reports/2026-09-25-mag-doduo-gates.md): true or { soft, maxSteps, maxMs } — the prior is wrapped
  *   by DODUO v2 (solver/doduo/v2.js): MAG v2's per-slot dead-click gate and DODUO v2's pair gate cut, MAG's soft verdict
@@ -35,6 +38,14 @@ const crypto = require('crypto');
 const ROOT = path.join(__dirname, '..', '..');
 const abs = p => (path.isAbsolute(p) ? p : path.join(ROOT, p));
 const sha = p => crypto.createHash('sha256').update(fs.readFileSync(abs(p))).digest('hex').slice(0, 16);
+
+/* the search options a league spec may carry beyond k, depth and the leaf (solver/miltank/search.js); absent = off */
+const SEARCH_EXTRAS = ['quiesce', 'flatEps', 'reserveNoRepeat'];
+function searchExtras(spec) {
+  const o = {};
+  for (const k of SEARCH_EXTRAS) if (spec && spec[k] != null && spec[k] !== false) o[k] = spec[k];
+  return o;
+}
 
 function create(API, opts) {
   opts = opts || {};
@@ -93,7 +104,7 @@ function create(API, opts) {
       const coin = coinOf(seed);
       if (spec.kind === 'greedy') return { name: spec.name, kind: 'greedy', PA, choose(S, side, ctx) { COUNTERS.decisions++; return argmax(S, side, ctx); } };
       const o = Object.assign({ budgetMs: spec.budgetMs, k1: spec.k1, k2: spec.k2, depth: spec.depth, reserveSwitch: spec.reserveSwitch,
-                                leaf: 'pory2', leafModel: abs(spec.pory2), coin }, extra || {});
+                                leaf: 'pory2', leafModel: abs(spec.pory2), coin }, searchExtras(spec), extra || {});
       return { name: spec.name, kind: 'miltank', PA, MT, choose(S, side, ctx, hb) {
         COUNTERS.decisions++;
         if (spec.view_drops_stall) dropStall(S, hb);
@@ -116,4 +127,4 @@ function create(API, opts) {
   return { load, COUNTERS, R, XW };
 }
 
-module.exports = { create, sha, abs };
+module.exports = { create, sha, abs, searchExtras, SEARCH_EXTRAS };

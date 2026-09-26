@@ -24,6 +24,12 @@
  *   k2x8       eight opponent columns instead of four (is the opponent model too narrow/aggressive? candidate e);
  *   k1x8       eight candidate rows instead of four (is the repeat chosen for its partner's action, bundled in a
  *              short candidate list? candidate d, the ranking).
+ *   quiesce    the 2026-09-27 fix, mode 'held': a playout whose protect held plays one extension turn (solver/miltank/rollout.js
+ *              QUIESCENCE; docs/_reports/2026-09-27-protect-repeat-fix.md); quiesceheur = the same on the heuristic leaf;
+ *   qall       mode 'all': every playout plays the extension turn; qallheur = the same on the heuristic leaf.
+ *   fix        the shipped package: qall + flatEps 0.001 (a flat table plays the prior's top) + reserveNoRepeat (the mega row
+ *              repeats no Protect when it can); fixheur = the same on the heuristic leaf. With a flat table the mass is 1 or 0 on
+ *              the joint actually played.
  */
 'use strict';
 require('../arena/env.js');
@@ -35,7 +41,9 @@ const CAPS = String(flag('--caps', '2,8,48')).split(',').map(Number);
 const SEED = +flag('--seed', 7);
 const VARIANTS = String(flag('--variants', '')).split(',').filter(Boolean);
 const VP = +flag('--vpasses', 48);
-const VOPT = { base: {}, heuristic: { leaf: 'heuristic' }, k2x8: { k2: 8 }, k1x8: { k1: 8 } };
+const DETAIL = argv.includes('--detail');   // one line per offered position and variant
+const VOPT = { base: {}, heuristic: { leaf: 'heuristic' }, k2x8: { k2: 8 }, k1x8: { k1: 8 }, quiesce: { quiesce: 'held' }, quiesceheur: { quiesce: 'held', leaf: 'heuristic' }, qall: { quiesce: 'all' }, qallheur: { quiesce: 'all', leaf: 'heuristic' },
+  fix: { quiesce: 'all', flatEps: 0.001, reserveNoRepeat: true }, fixheur: { quiesce: 'all', flatEps: 0.001, reserveNoRepeat: true, leaf: 'heuristic' } };
 const path = require('path');
 const fs = require('fs');
 const ENGINE = require('../arena/engine.js').load(REL);
@@ -98,7 +106,10 @@ for (let g = 0; n < NPOS && g < P.test.length * 3; g++) {
           const rec = r.info.rec, Ay = rec.A.map(row => row.reduce((a, x, j) => a + x * (rec.y ? rec.y[j] : 1 / row.length), 0));
           let br = -1, bo = -1; rec.rows.forEach((j, i) => { if (isRep(j)) br = Math.max(br, Ay[i]); else bo = Math.max(bo, Ay[i]); });
           if (bo >= 0) (vout[v].gaps = vout[v].gaps || []).push(+(br - bo).toFixed(4));
-          vout[v].mass += r.info.rec.rows.reduce((acc, j, i) => acc + (isRep(j) ? r.info.rec.x[i] : 0), 0);
+          /* a FLAT table plays the prior's top joint (search.js flatEps): the mass played is then all on that joint */
+          vout[v].mass += r.info.flat ? (isRep(r.joint) ? 1 : 0) : r.info.rec.rows.reduce((acc, j, i) => acc + (isRep(j) ? r.info.rec.x[i] : 0), 0);
+          if (r.info.flat) vout[v].flat = (vout[v].flat || 0) + 1;
+          if (DETAIL) console.log(`    pos ${n} ${v.padEnd(11)} mass ${r.info.rec.rows.reduce((acc, j, i) => acc + (isRep(j) ? r.info.rec.x[i] : 0), 0).toFixed(3)} value ${(+r.info.value).toFixed(4)} gap ${bo >= 0 ? (br - bo).toFixed(4) : '-'} rows ${JSON.stringify(rec.rows.map(j => j.map(o => o && (o.kind === 'move' ? o.move + (o.mega ? '+M' : '') : o.kind === 'switch' ? 'sw' + o.to : o.kind))))} x ${JSON.stringify(rec.x.map(z => +z.toFixed(2)))}${r.info.flat ? ' FLAT, the prior played ' + (isRep(r.joint) ? 'a repeat' : 'no repeat') : ''}`);
           if (isRep(r.joint)) vout[v].picked++;
         }
         n++;
@@ -113,5 +124,6 @@ for (let g = 0; n < NPOS && g < P.test.length * 3; g++) {
 console.log(`  positions ${n} (a side-A body with the counter >= 1 and its Protect legal); repeat row among the candidates in ${candHas}`);
 console.log(`  DODUO (ranking prior) mean mass on repeat joints: ${(prior / n).toFixed(3)}`);
 for (const c of CAPS) console.log(`  passes ${String(c).padStart(3)}: mean mix mass on repeat rows ${(out[c].mass / n).toFixed(3)}, sampled a repeat ${out[c].picked}/${n} = ${(out[c].picked / n).toFixed(3)}`);
+for (const v of VARIANTS) if (vout[v].flat) console.log(`  variant ${v.padEnd(9)} flat tables (the prior played): ${vout[v].flat}`);
 for (const v of VARIANTS) console.log(`  variant ${v.padEnd(9)} @${VP} passes: repeat offered at ${vout[v].offered}/${n}; mix mass on repeat rows WHEN offered ${(vout[v].mass / Math.max(1, vout[v].offered)).toFixed(3)}, sampled ${vout[v].picked}/${vout[v].offered}`);
 for (const v of VARIANTS) if (vout[v].gaps) { const g = vout[v].gaps.slice().sort((a, b) => a - b); console.log(`  variant ${v.padEnd(9)} value gap (best repeat row − best other row, vs the solved column mix): n ${g.length}, median ${g[g.length >> 1]}, min ${g[0]}, max ${g[g.length - 1]}, all ${JSON.stringify(g)}`); }

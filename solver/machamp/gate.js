@@ -83,6 +83,9 @@ async function main() {
   const first = sums.find(Boolean) || {};
   const miltankIn = [first.x, first.y].some(a => a && a.spec.kind === 'miltank');
   if (miltankIn && !leaf) warnings.push('a MILTANK agent played and the PORYGON2 leaf served 0 evaluations');
+  /* QUIESCENCE (solver/miltank/rollout.js, 2026-09-27): an arm that asks for it must show extensions */
+  const quiesced = sums.filter(Boolean).reduce((a, s) => a + (s.rollout.quiesced || 0), 0);
+  if ([first.x, first.y].some(a => a && a.spec.quiesce) && !quiesced) warnings.push('an arm asked for quiescence and 0 playouts were extended');
   const expected = 2 * NP;
   if (m.n + m.res.errors + m.res.unbuildable !== expected) warnings.push(`expected ${expected} games, merged ${m.n} scored + ${m.res.errors} errored + ${m.res.unbuildable} unbuildable`);
   const ms = key => { const a = [].concat(...per.map(p => p[key] || [])).sort((p, q) => p - q); return a.length ? { n: a.length, mean: +(a.reduce((p, q) => p + q, 0) / a.length).toFixed(1), p50: a[a.length >> 1], p99: a[Math.floor(0.99 * (a.length - 1))], max: a[a.length - 1] } : null; };
@@ -95,7 +98,7 @@ async function main() {
     rule: { name: rule, text: rule === 'beats' ? 'PASS iff Wilson 95% lower bound of X score > 0.5' : 'PASS iff Wilson 95% upper bound of X score >= 0.5' },
     pass: m.n > 0 && !exits.some(e => e.code !== 0) && RULES[rule](m.ci95),
     decision_ms: { x: ms('ms_x'), y: ms('ms_y') },
-    search: sums.filter(Boolean).map(s => s.search), rollout_leafPory2: leaf, fallbacks: fb, warnings, wall_s,
+    search: sums.filter(Boolean).map(s => s.search), rollout_leafPory2: leaf, rollout_quiesced: quiesced, fallbacks: fb, warnings, wall_s,
     shards: exits.map(e => ({ shard: e.shard, pid: e.pid, code: e.code })),
     per_game_sha256: crypto.createHash('sha256').update(JSON.stringify(per.map(p => [p.pi, p.xSide, p.vX]))).digest('hex').slice(0, 16),
   };

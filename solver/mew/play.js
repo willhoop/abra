@@ -227,7 +227,7 @@ async function match() {
                  mega: r.mega ? { x: r.mega[xIsA ? 'A' : 'B'], y: r.mega[xIsA ? 'B' : 'A'] } : null,
                  clicks: r.clicks ? { x: r.clicks[xIsA ? 'A' : 'B'], y: r.clicks[xIsA ? 'B' : 'A'] } : null,
                  protect: r.protect ? { x: r.protect[xIsA ? 'A' : 'B'], y: r.protect[xIsA ? 'B' : 'A'] } : null,
-                 ctr: Object.assign({ fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0, stall_dropped: AG.COUNTERS.stallDropped || 0, gates: JSON.parse(JSON.stringify(AG.COUNTERS.gates || {})) }, RUN,
+                 ctr: Object.assign({ fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0, stall_dropped: AG.COUNTERS.stallDropped || 0, quiet_held: AG.R.COUNTERS.quietHeld || 0, quiesced: AG.R.COUNTERS.quiesced || 0, gates: JSON.parse(JSON.stringify(AG.COUNTERS.gates || {})) }, RUN,
                    INFO === 'honest' ? { hon_views: HON.views, hon_back_xatu: HON.back_xatu, hon_back_error: HON.back_error, xw: Object.assign({}, XW.COUNTERS) } : {}) });
     }
     if (OUT) fs.writeFileSync(OUT, per.map(p => JSON.stringify(p)).join('\n') + '\n');
