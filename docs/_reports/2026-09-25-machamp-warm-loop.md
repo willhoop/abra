@@ -21,3 +21,13 @@ restarted training from MAG v1 + DODUO v1 and PORYGON2 v0 (`docs/_reports/2026-0
 **Run.** Release `eaa5becc54eb`; team store `data/team-pool-frozen-regmc` (main checkout, read only); 3 workers. The
 seven earlier self-play directories and their deep values are read, read-only, from the worktree that played them
 (`.claude/worktrees/agent-aab7de2f53411dba8/solver/out/`), through directory junctions.
+
+## gen8 — rejected (2026-09-26T03:04:26.358Z)
+
+- Self-play: `solver/out/selfplay/eaa5becc54eb/loop-sp8`, 1000 games, 732.6 games/hour, 1.33% cells empty.
+- Pool: 8 self-play directories, 106122 DODUO decisions, 70464 PORYGON2 positions (all with a deep value: 70464).
+- **SPRT vs gen5** (elo0 0, elo1 +20, α = β = 0.05): **H0 — X is not stronger (elo0 = 0 accepted)**, LLR -3.08, 142 pairs = 284 games; 132–152 = 0.465 [0.408, 0.523] (Wilson at the stop, slightly optimistic).
+- Human clone: 0.735 [0.670, 0.791] (PASS). PORYGON2 human log-loss vs v0: -0.0048 [-0.008, -0.002] (PASS).
+- DODUO drift from the human clone: 0.0077 nats.
+- Champion after: `solver/machamp/league/gen5.json`.
+- Recipe: warm start from `solver/machamp/league/gen5.json`; lr DODUO 0.0001, PORYGON2 0.00015; champion self-play weight 3 on solver/out/selfplay/eaa5becc54eb/loop-sp6, solver/out/selfplay/eaa5becc54eb/loop-sp7, solver/out/selfplay/eaa5becc54eb/loop-sp8; fallback decisions in the DODUO targets: 38; selected epochs DODUO 0, PORYGON2 5.

@@ -6,6 +6,12 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ---
 
+## 2026-09-26
+
+### MACHAMP loop — one line per generation (solver/machamp/loop_sprt.js)
+- (warm) gen8: rejected — SPRT H0 after 284 games, 0.465 [0.408, 0.523] vs gen5; clone 0.735; PORYGON2 human Δ -0.0048 PASS. `solver/machamp/models/gen8/gates.json`
+
+
 ## 2026-09-25
 
 ### MACHAMP warm-start recipe (abra/regmc 1.13.0)
