@@ -8,6 +8,16 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-26
 
+### gen5 under honest information; ROTOM `miltank-gen5`; gen5-vs-prior arms (abra/regmc 1.15.0)
+- The arena now hides what a ladder player cannot see (`--info honest`, the default for a match): hidden spreads in
+  the true battle; each decision on the decider's public view; worlds from XATU's back-pair posterior and spread
+  belief (`solver/xatu/worlds.js`, shared with ROTOM). gen5 vs DODUO-greedy stays H1: 1 s 0.710 [0.615, 0.790],
+  5 s 0.712 [0.618, 0.790] (omniscient: 0.628 and 0.766).
+- ROTOM `miltank-gen5` plays gen5 with the same belief: local bo3 and a 16-series dry run, 0 timeouts, 0 invalid.
+- `solver/rotom/arms/gen5-vs-prior.json` prepared (arm A 5 s). Not launched.
+- test-machamp REBUILD reads a tracked vocabulary (`solver/mag/model/mag-v1.vocab.json`), not `solver/out/mag`.
+- Detail: `docs/_reports/2026-09-26-gen5-honest-and-ladder-prep.md`.
+
 ### gen5 vs DODUO-greedy, and mega timing (abra/regmc 1.14.0)
 - gen5 is proven stronger than DODUO-greedy: SPRT H1 at 1 s (180 games, 0.628 [0.555, 0.695]) and at 5 s (64 games,
   0.766 [0.649, 0.853]). Both clock-safe. ROTOM cannot play gen5 yet (its `miltank` policy is v1 nets); the arena

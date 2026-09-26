@@ -40,6 +40,15 @@ The A/B run, once the A/A reads clean (pre-registered in the arms file: SPRT on 
 node solver\rotom\run_ladder.js --public --name medicham32 --release eaa5becc54eb --arms solver\rotom\arms\miltank-vs-prior.json --ladder-seed medicham32-ab1-2026-09-25 --sets 50 --tag ab1 --priority normal
 ```
 
+The gen5 A/B (added 2026-09-26): arm A is the MACHAMP gen5 champion through ROTOM's `miltank-gen5` policy at 5 s, with
+XATU's belief exactly as the honest arena measured it (`docs/_reports/2026-09-26-gen5-honest-and-ladder-prep.md`); arm B
+is `prior`. Same pre-registered SPRT on the per-series residual. Launch only after the ROTOM `send()` throttle fix is on
+main (team preview choices were dropped by the server's throttle on the live ladder):
+
+```cmd
+node solver\rotom\run_ladder.js --public --name medicham32 --release eaa5becc54eb --arms solver\rotom\arms\gen5-vs-prior.json --ladder-seed medicham32-gen5ab-2026-09-26 --sets 50 --tag gen5ab --priority normal
+```
+
 **`--priority normal` (added 2026-09-25).** The clients start through `tools\lownode.cmd` at BELOW_NORMAL. A client that
 searches must not be starved by other normal-priority work, so it raises its own decider to NORMAL. MILTANK's pool
 workers stay BELOW_NORMAL. MILTANK bounds its own decision (budget + 0.5 s), but it cannot bound a process that the

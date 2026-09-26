@@ -18,7 +18,8 @@
  *      the checkout's ruleTable, E[remaining requests] from the store);
  *   3. builds the MEDICHAM position it observes (solver/rotom/world.js: engine/medicham_api.js + the arena's body
  *      builder), and XATU's back-pair posterior with this series' earlier games as memory;
- *   4. asks the policy ('prior' = DODUO greedy, 'miltank' = MILTANK lean search, 'random'); a budget under the
+ *   4. asks the policy ('prior' = DODUO greedy, 'miltank' = MILTANK lean search, 'miltank-gen5' = the gen5 champion with
+ *      the honest arena's XATU belief (solver/rotom/policy.js, solver/xatu/worlds.js), 'random'); a budget under the
  *      search floor drops to 'prior'; any throw drops down the chain prior -> request heuristic -> `default`;
  *   5. checks the choice against the request (solver/rotom/request.js) and sends `/choose <choice>|<rqid>`;
  *   6. logs the decision to <out>/decisions-<name>.jsonl AND to the game's own file
@@ -123,7 +124,9 @@ if (!LOCK.isLocal(SERVER) && !has('public')) {
   console.error('ROTOM v0 is local-only: ' + SERVER + ' is not localhost. Refusing (pass --public only once a ladder launch is approved).');
   process.exit(2);
 }
-if (!['prior', 'miltank', 'random'].includes(POLICY)) { console.error('unknown --policy ' + POLICY); process.exit(2); }
+const POLICIES = ['prior', 'miltank', 'miltank-gen5', 'random'];
+const SEARCHES = ['miltank', 'miltank-gen5'];          // the policies that search: the clock floor, the prior fallback and the idle GC apply
+if (!POLICIES.includes(POLICY)) { console.error('unknown --policy ' + POLICY); process.exit(2); }
 if (DRY_RUN && !LOCK.isLocal(SERVER)) { console.error('--dry-run is LOCAL only: ' + SERVER + ' is not localhost. Refusing.'); process.exit(2); }
 if (DRY_RUN && has('public')) { console.error('--dry-run and --public together make no sense. Refusing.'); process.exit(2); }
 if (LADDER_MODE) {
@@ -202,6 +205,17 @@ if (ENGINE.id) { const ed = path.join(ENGINE.REL.dir, 'data', 'engine-data-regmc
     const S = API.newBattle(a.team, b.team, { rng: API.makeRng(1) });
     const MT = require('../miltank/search.js').create(API, { prior: PA, rollout: R });
     MT.decide(S, 'A', PA.newGame(G), { budgetMs: 1500, coin: API.M.rngStreams({ seed: 3 }).any });
+    /* miltank-gen5: load the gen5 nets, its PORYGON2 leaf and XATU's spread belief (the checkout's sim) BEFORE a clock
+     * runs, and stamp their digests; the arms file is read here only for its policy names */
+    let armsPol = [];
+    try { if (flag('arms', '')) armsPol = Object.values(JSON.parse(fs.readFileSync(path.resolve(flag('arms', '')), 'utf8')).arms || {}).map(a => a.policy); } catch (e) { /* validated later */ }
+    if (POLICY === 'miltank-gen5' || armsPol.includes('miltank-gen5')) {
+      const tw = Date.now();
+      P.warmGen5(S, PA.newGame(G), API.M.rngStreams({ seed: 5 }).any);
+      const g = P.gen5();
+      PROV.gen5 = { spec: path.relative(ROOT, g.specFile).split(path.sep).join('/'), spec_sha256: sha(g.specFile), digests: g.digests };
+      say('warm-up: miltank-gen5 loaded in ' + (Date.now() - tw) + ' ms (' + JSON.stringify(g.digests) + ')');
+    }
   } catch (e) { say('warm-up failed (continuing): ' + e.message); }
 })();
 say('loaded engine ' + (ENGINE.id ? 'release ' + ENGINE.id : '(LIVE TREE)') + ' + MAG/DODUO + XATU in ' + (Date.now() - t0load) + ' ms; policy ' + (LADDER_MODE ? 'per series arm' : POLICY) + '; out ' + OUT);
@@ -243,7 +257,7 @@ if (LADDER_MODE) {
   const armsFile = path.resolve(flag('arms', ''));
   const arms = JSON.parse(fs.readFileSync(armsFile, 'utf8'));
   if (arms.dry_run_only && !DRY_RUN) { console.error('--arms ' + armsFile + ' is marked dry_run_only (search caps for a harness test). Refusing it on the public ladder.'); process.exit(2); }
-  for (const [id, a] of Object.entries(arms.arms || {})) if (!['prior', 'miltank', 'random'].includes(a.policy)) { console.error('arm ' + id + ': unknown policy ' + a.policy); process.exit(2); }
+  for (const [id, a] of Object.entries(arms.arms || {})) if (!POLICIES.includes(a.policy)) { console.error('arm ' + id + ': unknown policy ' + a.policy); process.exit(2); }
   if (Object.keys(arms.arms || {}).length < 1) { console.error('--arms ' + armsFile + ' defines no arms'); process.exit(2); }
   const shaFull = f => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex');
   const defStop = DRY_RUN ? path.join(OUT, 'STOP') : path.join(ROOT, 'solver', 'out', 'rotom', 'STOP');
@@ -838,9 +852,9 @@ function decide(B) {
     } catch (e) { rec.chain.push({ policy: name, fail: String(e && e.message || e).slice(0, 200) }); fb(name + ':threw'); }
   };
   let first = POL;
-  if (POL === 'miltank' && bud.lowBank) { first = 'prior'; fb('clock:miltank->prior'); rec.chain.push({ policy: 'miltank', fail: 'budget ' + bud.ms + ' ms under the search floor' }); }
+  if (SEARCHES.includes(POL) && bud.lowBank) { first = 'prior'; fb('clock:' + POL + '->prior'); rec.chain.push({ policy: POL, fail: 'budget ' + bud.ms + ' ms under the search floor' }); }
   /* a rejoined room with no server clock line yet: the bank is UNKNOWN (a restart lost it), so do not search on a guess */
-  else if (POL === 'miltank' && bud.from === 'rule' && B.rejoined) { first = 'prior'; fb('clock:unknown-bank->prior'); rec.chain.push({ policy: 'miltank', fail: 'rejoined with no server clock line yet' }); }
+  else if (SEARCHES.includes(POL) && bud.from === 'rule' && B.rejoined) { first = 'prior'; fb('clock:unknown-bank->prior'); rec.chain.push({ policy: POL, fail: 'rejoined with no server clock line yet' }); }
 
   if (kind === 'preview') {
     const S = B.bestof ? BOOK.get(B.bestof) : null;
@@ -873,7 +887,7 @@ function decide(B) {
     const d = () => ({ req, world, coin, budgetMs: Math.max(0, bud.ms - (Date.now() - t0)), xatuBack: world && world.xatuBack });
     const run = (name) => () => (kind === 'switch' ? P.forceSwitch(name, d()) : P.move(name, d()));
     tryPolicy(first, run(first));
-    if (first === 'miltank') tryPolicy('prior', run('prior'));
+    if (SEARCHES.includes(first)) tryPolicy('prior', run('prior'));
     tryPolicy('heuristic', () => ({ choice: RQ.heuristic(req) }));
   }
   if (!choice) { choice = 'default'; used = 'default'; fb('default'); }
@@ -899,7 +913,7 @@ function decide(B) {
   /* THE BETWEEN-DECISION GC. A MILTANK decision allocates a world copy per playout; a major GC landing inside the NEXT
    * decision stopped it for 1.1-1.6 s on a loaded core. So after a searched choice is SENT, collect off the clock, on the
    * next event-loop turn (the choice is already on the wire). Counted: ST.idleGc { n, ms, max }. */
-  if (first === 'miltank' && ok) setImmediate(idleGc);
+  if (SEARCHES.includes(first) && ok) setImmediate(idleGc);
 }
 const IDLE_GC = { t0: 0, t1: 0 };
 function idleGc() {

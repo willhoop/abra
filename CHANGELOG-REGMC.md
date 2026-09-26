@@ -21,6 +21,47 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.15.0] — 2026-09-26
+
+### Added
+- **Honest information in the arena** (`solver/mew/play.js --info honest`, the default for a match, so for `sprt.js`
+  and `gate.js`, which now take `--info` and record it). The true battle carries hidden Stat Point spreads on every
+  body (XATU's self-play generator, seeded per team pair, under the sheet nature), and each decision of both bots is
+  taken on the decider's public view: own side exact; the opponent at zero SP under its nature, HP at the Champions
+  displayed percentage (`floor(100·hp/max) || 1`, pokemon-showdown-mc `sim/pokemon.ts` getHealth at `f10d679`), the
+  unrevealed back line from XATU's MAP pair. MILTANK's worlds draw the back pair from XATU's posterior and every
+  opponent spread from XATU's spread belief. `omniscient` stays as a labelled option. One implementation,
+  `solver/xatu/worlds.js`, shared with ROTOM. Check `solver/tests/test-honest-info.js`: GREEN 1954/1954, RED under
+  `HONEST_BREAK=peek`.
+- **gen5 stays stronger than DODUO-greedy under honest information.** Pre-registered SPRTs (elo0 0, elo1 +20,
+  α = β = 0.05, ≤ 2,000 games, the omniscient run's seeds), release `eaa5becc54eb`, the frozen Reg M-C team store:
+  1 s H1 after 100 games, 0.710 [0.615, 0.790]; 5 s H1 after 104 games, 0.712 [0.618, 0.790]. The omniscient
+  figures (1.14.0) stand as what they measured: 0.628 [0.555, 0.695] and 0.766 [0.649, 0.853]. Clock-safe: slowest
+  gen5 decision 6.5 s, heaviest game 89.7 s of the 420 s bank.
+- **ROTOM `miltank-gen5` policy.** gen5 MAG/DODUO/PORYGON2, k 4×4, depth 0, 1 reserved switch row, the clock's
+  budget capped by the arm, lean playouts, the hard deadline and the idle GC; the belief through `worlds.js` exactly
+  as the honest arena; preview = the rotation team's own human bring. Local bo3 sets (3 series, 7 games) and a
+  16-series ladder dry run: 0 timeouts, 0 invalid choices, 0 fallbacks. `test-rotom.js` GREEN 105/105 with new
+  POLICY and GEN5 clauses.
+- **`solver/rotom/arms/gen5-vs-prior.json`**: arm A `miltank-gen5` at 5 s, arm B `prior`, pre-registered like
+  `miltank-vs-prior.json`. Not launched: a ladder series is Will's call.
+- `solver/mag/model/mag-v1.vocab.json`: the vocabulary of the human build MAG v1 + DODUO v1 were trained on.
+
+### Fixed
+- **`test-machamp` REBUILD no longer depends on an untracked build output.** `build_doduo.js` read
+  `solver/out/mag/meta.json` by default; it now reads the tracked vocabulary, refuses any vocabulary whose dataset
+  digest or embedding rows disagree with the MAG model, and records which file it read. `test-machamp` GREEN 100/100,
+  every deliberate break RED.
+
+### Changed
+- The MACHAMP loops (`loop.js`, `loop_sprt.js`) pass `--info omniscient` explicitly: their recipes were
+  pre-registered on that arena. Self-play's default stays omniscient.
+
+### Notes
+- **Basis.** unchanged. The honest figures are new figures for a new question; the omniscient ones are not withdrawn.
+- Correction to 1.14.0's report: the omniscient arena did not show the search the opponent's unrevealed back line
+  (the worlds redrew it uniformly); it showed exact HP, and no hidden spreads existed.
+
 ## [1.14.0] — 2026-09-26
 
 ### Added

@@ -1,7 +1,7 @@
 /* solver/rotom/policy.js — the pluggable decision policies ROTOM asks for every choice.
  *
  *   const P = require('./policy.js').create({ API, PA, R, MT, tables });
- *   P.move(name, d)        -> { choice, info }   a move request       name: 'random' | 'prior' | 'miltank'
+ *   P.move(name, d)        -> { choice, info }   a move request       name: 'random' | 'prior' | 'miltank' | 'miltank-gen5'
  *   P.forceSwitch(name, d) -> { choice, info }   a forced / mid-turn switch request
  *   P.preview(name, d)     -> { order, info }    team preview: four request positions, leads first
  *
@@ -14,6 +14,16 @@
  *            candidate set restricted to joints the request allows (a proxied `legalActions` at the root only).
  *            The opponent's unrevealed back line in each world is drawn from XATU's back-pair posterior (which
  *            carries the bo3 series features) instead of MILTANK's uniform draw, when XATU has one.
+ *   miltank-gen5  the MACHAMP gen5 champion exactly as the HONEST arena measured it (solver/mew/play.js --info honest,
+ *            solver/results/2026-09-26-gen5-honest/): MILTANK with gen5's MAG + DODUO as the candidate prior and gen5's
+ *            PORYGON2 as the leaf, k and depth from solver/machamp/league/gen5.json (the spec's budgetMs is NOT used —
+ *            the clock's budget, capped by the ladder arm, is), lean playouts, the hard deadline (search.js). The belief
+ *            is solver/xatu/worlds.js — the same module the honest arena calls: the ROOT position is the world.js
+ *            build with every opponent body laid at zero SP under its sheet nature and a revealed body's HP at the
+ *            middle of its displayed percentage (XW.publicOpp); each world draws the back pair from XATU's posterior
+ *            (d.xatuBack) and every opponent spread from XATU's spread belief (the prior, no observations — as in the
+ *            arena). Preview: the rotation team's own human bring, as the arena plays the humans' own bring.
+ *            A forced switch scores each candidate with the same searcher at an equal share of the budget.
  *
  * EVERY POLICY'S OUTPUT GOES THROUGH request.isLegal BEFORE IT IS SENT; the caller owns the fallback chain
  * (miltank -> prior -> request heuristic -> `default`) and counts every step of it.
@@ -26,7 +36,8 @@ function create(deps) {
   const { API, PA, R, tables } = deps;
   const M = API.M;
   const SK_MT = require('../miltank/search.js');
-  const COUNTERS = { move: {}, forceSwitch: {}, preview: {}, unmappedJoints: 0, unmappedBy: {}, unmappedSamples: [], rootFiltered: 0, xatuWorlds: 0, xatuFallback: 0, previewPlayouts: 0 };
+  const COUNTERS = { move: {}, forceSwitch: {}, preview: {}, unmappedJoints: 0, unmappedBy: {}, unmappedSamples: [], rootFiltered: 0, xatuWorlds: 0, xatuFallback: 0, previewPlayouts: 0,
+                     gen5: { decisions: 0, searched: 0, forced: 0, fallbackEmpty: 0, fallbackSparse: 0, noBack: 0, hpLaid: 0, switchScored: 0 } };
   const bump = (k, n) => { COUNTERS[k][n] = (COUNTERS[k][n] || 0) + 1; };
 
   /* the read-only tap on MILTANK's internals (see payoffTable) — installed once per process */
@@ -149,11 +160,76 @@ function create(deps) {
     } });
   }
 
+  /* ---- miltank-gen5: the honest-arena searcher (see the header) ---- */
+  let G5 = null;
+  function gen5() {
+    if (G5) return G5;
+    const path = require('path');
+    const specFile = deps.gen5Spec || path.join(__dirname, '..', 'machamp', 'league', 'gen5.json');
+    const spec = JSON.parse(require('fs').readFileSync(specFile, 'utf8'));
+    const AGmod = require('../mew/agent.js');
+    const AGm = AGmod.create(API, { rollout: R, buildBody: T.buildBody });
+    const A = AGm.load(spec);
+    G5 = { spec, specFile, A, PA: A.PA, XW: AGm.XW, leafModel: AGmod.abs(spec.pory2), digests: A.digests };
+    return G5;
+  }
+  /* the honest ROOT and belief on a world.js build: opponent bodies at zero SP under their nature, displayed HP */
+  function gen5Root(d, w) {
+    const g = gen5();
+    const oppSide = w.side === 'A' ? 'B' : 'A', oppP = w.side === 'A' ? 'p2' : 'p1';
+    const sheets = w.ctx.G.sheets;
+    const pub = new Map((w.theirs || []).map(x => [x.b, x.pub]));
+    const before = g.XW.COUNTERS.hpLaid;
+    g.XW.publicOpp(w.S, oppSide, sheets[oppP], m => {
+      const p = pub.get(m);
+      if (!p || !p.seen || p.fnt) return null;
+      return (p.max || 100) === 100 ? p.hp : g.XW.pctOf(p.hp, p.max);
+    });
+    COUNTERS.gen5.hpLaid += g.XW.COUNTERS.hpLaid - before;
+    if (!(d.xatuBack && d.xatuBack.length)) COUNTERS.gen5.noBack++;
+    return { hb: { back: d.xatuBack || null, spreads: g.XW.spreadPrior(sheets), oppP } };
+  }
+  function gen5Opts(budgetMs, coin, over) {
+    const g = gen5(), s = g.spec;
+    return Object.assign({ budgetMs, k1: s.k1, k2: s.k2, depth: s.depth, reserveSwitch: s.reserveSwitch, leaf: 'pory2', leafModel: g.leafModel, coin }, over || {});
+  }
+  function gen5Move(d) {
+    const w = d.world;
+    if (!w) throw new Error('miltank-gen5: no world');
+    const { keep } = filteredLegal(w, d.req);
+    if (!keep.length) throw new Error('miltank-gen5: no MEDICHAM joint maps onto the request');
+    const g = gen5();
+    const { hb } = gen5Root(d, w);
+    const rootS = w.S, rootSide = w.side;
+    const APIp = new Proxy(API, { get(t, k) {
+      if (k === 'legalActions') return (S, side) => {
+        const la = API.legalActions(S, side);
+        if (S !== rootS || side !== rootSide) return la;
+        const joint = la.joint.filter(j => { const m = RQ.fromEngine(d.req, j, w.posOfTeam); return !m.some(x => !x) && RQ.isLegal(d.req, RQ.joinChoice(m)); });
+        COUNTERS.rootFiltered += la.joint.length - joint.length;
+        return { side: la.side, kind: la.kind, slots: la.slots, joint };
+      };
+      return t[k];
+    } });
+    const MT = SK_MT.create(APIp, { prior: g.PA, rollout: g.XW.rollout(hb) });
+    COUNTERS.gen5.decisions++;
+    TAP.on = true; TAP.job = null; TAP.A = null; TAP.sol = null;
+    let r;
+    try { r = MT.decide(w.S, w.side, w.ctx, gen5Opts(d.budgetMs, d.coin)); }
+    finally { TAP.on = false; }
+    if (r.info && r.info.forced) COUNTERS.gen5.forced++; else COUNTERS.gen5.searched++;
+    COUNTERS.gen5.fallbackEmpty += MT.COUNTERS.fallbackEmpty; COUNTERS.gen5.fallbackSparse += MT.COUNTERS.fallbackSparse;
+    const mapped = RQ.fromEngine(d.req, r.joint, w.posOfTeam);
+    if (mapped.some(x => !x)) throw new Error('miltank-gen5: chosen joint does not map');
+    return { choice: RQ.joinChoice(mapped), info: Object.assign({ counters: MT.COUNTERS, gen5: g.digests, honest: { back: !!hb.back, worlds: g.XW.COUNTERS.worlds } }, r.info, { table: payoffTable(d, w, r) }) };
+  }
+
   function move(name, d) {
     bump('move', name);
     if (name === 'random') return { choice: randomChoice(d.req, d.coin), info: {} };
     if (name === 'prior') return priorMove(d);
     if (name === 'miltank') return miltankMove(d, d.budgetMs);
+    if (name === 'miltank-gen5') return gen5Move(d);
     throw new Error('unknown policy ' + name);
   }
 
@@ -171,7 +247,8 @@ function create(deps) {
      * 150 ms, so J candidates could spend J x 150 ms against a smaller budget (docs/_reports/2026-09-25-miltank-deadline.md).
      * Under 150 ms a share is too thin to search, and the prior floor below answers instead. */
     const per = Math.floor(d.budgetMs / J.length);
-    if (name === 'miltank' && d.world && d.budgetMs > 300 && per >= 150) {
+    const g5 = name === 'miltank-gen5' && d.world && d.budgetMs > 300 && per >= 150 ? gen5Root(d, d.world) : null;
+    if ((name === 'miltank' || g5) && d.world && d.budgetMs > 300 && per >= 150) {
       /* each candidate replacement: put it in the slot, ask MILTANK for the value of the next turn */
       const scored = [];
       for (const j of J) {
@@ -189,9 +266,10 @@ function create(deps) {
         });
         if (!ok) continue;
         try {
-          const MT = SK_MT.create(API, { prior: PA, rollout: xatuRollout(d) });
           const ctx = d.world.ctx;
-          const r = MT.decide(W, d.world.side, ctx, { budgetMs: per, k1: 6, k2: 6, depth: 2, coin: d.coin });
+          const MT = g5 ? SK_MT.create(API, { prior: gen5().PA, rollout: gen5().XW.rollout(g5.hb) }) : SK_MT.create(API, { prior: PA, rollout: xatuRollout(d) });
+          const r = MT.decide(W, d.world.side, ctx, g5 ? gen5Opts(per, d.coin) : { budgetMs: per, k1: 6, k2: 6, depth: 2, coin: d.coin });
+          if (g5) COUNTERS.gen5.switchScored++;
           scored.push({ j, v: r.info.value != null ? r.info.value : 0.5 });
         } catch (e) { scored.push({ j, v: -1, err: String(e.message || e).slice(0, 120) }); }
       }
@@ -218,7 +296,7 @@ function create(deps) {
     const n = d.req.side.pokemon.length;
     if (name === 'random') { const a = [...Array(n).keys()]; for (let i = a.length - 1; i > 0; i--) { const k = Math.floor(d.coin() * (i + 1)); [a[i], a[k]] = [a[k], a[i]]; } return { order: a.slice(0, 4).map(x => x + 1), info: {} }; }
     const human = d.teamBring && d.teamBring.length === 4 ? d.teamBring.slice() : [0, 1, 2, 3];
-    if (name === 'prior' || !(d.budgetMs > 1500)) return { order: human.map(x => x + 1), info: { rule: 'the pool team\'s own human bring and leads' } };
+    if (name === 'prior' || name === 'miltank-gen5' || !(d.budgetMs > 1500)) return { order: human.map(x => x + 1), info: { rule: 'the pool team\'s own human bring and leads' } };
     return { order: null, info: null, search: true, human };
   }
 
@@ -279,7 +357,16 @@ function create(deps) {
     return { order: best.map(x => x + 1), info: { rounds: round, top: cand.slice(0, 3).map(c => ({ o: c.o, m: +c.m.toFixed(3), n: c.n })), oppModel: prev ? 'series carry-over' : 'uniform', ms: Date.now() - t0 } };
   }
 
-  return { COUNTERS, move, forceSwitch, preview, previewSearch, randomChoice, filteredLegal, allOptions };
+  /* warm the gen5 searcher before a clock runs: the nets, the PORYGON2 leaf, XATU's spread belief (the checkout's sim) */
+  function warmGen5(S, ctx, coin) {
+    const g = gen5();
+    const hb = { back: null, spreads: g.XW.spreadPrior(ctx.G.sheets), oppP: 'p2' };
+    const MT = SK_MT.create(API, { prior: g.PA, rollout: g.XW.rollout(hb) });
+    return MT.decide(S, 'A', ctx, gen5Opts(1500, coin));
+  }
+
+  return { COUNTERS, move, forceSwitch, preview, previewSearch, randomChoice, filteredLegal, allOptions, gen5, warmGen5,
+           POLICIES: ['random', 'prior', 'miltank', 'miltank-gen5'], SEARCH: ['miltank', 'miltank-gen5'] };
 }
 
 module.exports = { create };
