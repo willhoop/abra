@@ -1,0 +1,73 @@
+{
+ "sprt": "solver/out/adaptive-sprt/sprt-adaptive-vs-5s.json",
+ "verdict": "H0 — X is not stronger (elo0 = 0 accepted)",
+ "stop_pair_index": 373,
+ "result": {
+  "W": 367,
+  "D": 0,
+  "L": 381,
+  "score_x": 0.49064171122994654,
+  "ci95_x": [
+   0.4549550696466738,
+   0.5264239867928742
+  ],
+  "ci_caption": "Wilson 95% at a data-dependent stopping time: conditional on the stop, slightly optimistic"
+ },
+ "counted_games": 748,
+ "rule": {
+  "starting": 420,
+  "grace": 90,
+  "maxPerTurn": 55,
+  "source": "ruleTable of gen9championsvgc2026regmcbo3 (timer rule)"
+ },
+ "x": {
+  "games": 748,
+  "decisions": 7110,
+  "searched": 7105,
+  "ms_per_searched": 3627.6,
+  "ms_per_decision": 3625,
+  "max_decision_ms": 10438,
+  "bank_used_s": {
+   "mean": 34.5,
+   "p95": 55.7,
+   "max": 134.3
+  },
+  "timeouts": {
+   "decisions_over_turn": 0,
+   "games_over_bank": 0
+  },
+  "adaptive_stops": {
+   "hard": 2516,
+   "soft": 822,
+   "clear": 3767,
+   "forced": 5
+  }
+ },
+ "y": {
+  "games": 748,
+  "decisions": 7110,
+  "searched": 7101,
+  "ms_per_searched": 4717,
+  "ms_per_decision": 4711.1,
+  "max_decision_ms": 5849,
+  "bank_used_s": {
+   "mean": 44.8,
+   "p95": 70.7,
+   "max": 169.7
+  },
+  "timeouts": {
+   "decisions_over_turn": 0,
+   "games_over_bank": 0
+  }
+ },
+ "time_condition": {
+  "rule": "X ms per searched decision <= Y",
+  "x": 3627.6,
+  "y": 4717,
+  "holds": true
+ },
+ "clock_safe": {
+  "x_timeouts": 0,
+  "holds": true
+ }
+}

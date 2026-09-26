@@ -1,0 +1,380 @@
+{
+ "what": "SPRT read at the bound (solver/machamp/sprt_read.js)",
+ "sprt_file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\.claude\\worktrees\\agent-a23d34a92f0037aaa\\solver\\out\\adaptive-sprt\\sprt-adaptive-vs-5s.json",
+ "verdict": "H0 — X is not stronger (elo0 = 0 accepted)",
+ "llr_at_stop": -3.107208373158039,
+ "bounds": [
+  -2.9444389791664403,
+  2.9444389791664403
+ ],
+ "preregistered": {
+  "elo0": 0,
+  "elo1": 20,
+  "alpha": 0.05,
+  "beta": 0.05,
+  "max_games": 2000,
+  "unit": "pair of games on one battle seed, seats swapped",
+  "statistic": "normal-approximation GSPRT on pair scores (Fishtest)",
+  "information": "honest: hidden spreads; each decision on the decider public view with the XATU belief (solver/xatu/worlds.js)"
+ },
+ "x": {
+  "file": "solver/results/2026-09-27-adaptive-clock/gen5-adaptive.json",
+  "spec": {
+   "name": "gen5-adaptive",
+   "kind": "miltank",
+   "mag": "solver/machamp/models/gen5/mag-gen5.json",
+   "doduo": "solver/machamp/models/gen5/doduo-gen5.json",
+   "pory2": "solver/machamp/models/gen5/porygon2-gen5.json",
+   "budgetMs": 5000,
+   "k1": 4,
+   "k2": 4,
+   "depth": 0,
+   "reserveSwitch": 1,
+   "adaptive": {
+    "targetMs": 4500,
+    "credit0Ms": 1500,
+    "stretch": 2,
+    "minMs": 750,
+    "minPasses": 4,
+    "clearZ": 2,
+    "closeZ": 1
+   }
+  },
+  "digests": {
+   "mag": "65e76caf2423b28b",
+   "doduo": "abb0b88dd573b728",
+   "pory2": "cf8ad3f7bd0d4a33"
+  }
+ },
+ "y": {
+  "file": "solver/results/2026-09-26-champ-vs-doduo/gen5-5s.json",
+  "spec": {
+   "name": "gen5-5s",
+   "kind": "miltank",
+   "mag": "solver/machamp/models/gen5/mag-gen5.json",
+   "doduo": "solver/machamp/models/gen5/doduo-gen5.json",
+   "pory2": "solver/machamp/models/gen5/porygon2-gen5.json",
+   "budgetMs": 5000,
+   "k1": 4,
+   "k2": 4,
+   "depth": 0,
+   "reserveSwitch": 1
+  },
+  "digests": {
+   "mag": "65e76caf2423b28b",
+   "doduo": "abb0b88dd573b728",
+   "pory2": "cf8ad3f7bd0d4a33"
+  }
+ },
+ "engine_release": "eaa5becc54eb",
+ "release_stamp": {
+  "engine_release": "eaa5becc54eb",
+  "engine_release_cut": "2026-09-24T20:12:54.367Z",
+  "engine_release_cuts": 50,
+  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+  "source_digests": {
+   "engine/medicham2-browser.js": "2caee2eeabb0",
+   "engine/board.js": "c85a3b756c98",
+   "engine/rollout_leaf.js": "eacf05ff8d30",
+   "engine/position_features.js": "bb71676d3669",
+   "engine/tags.js": "13cdeb051720",
+   "engine/champions_sim.js": "8094725f52a8",
+   "data/residual-order.json": "eff160ad1c5a",
+   "data/switchin-order.json": "24a007a66b7d",
+   "engine/mc_key.js": "aaa095762671",
+   "engine/lookup.js": "17f49e5aed43",
+   "engine/set_priors.js": "f8a81445ee3a",
+   "engine/smogon_priors.js": "ebd062f756c8",
+   "engine/quality.js": "ebc37c7c9d05",
+   "engine/showdown_path.js": "46646401ede2",
+   "engine/regulation.js": "827f5138ecf5",
+   "data/move-effects.js": "f35ecd91ba86",
+   "data/ability-blocks.json": "86741fd35452",
+   "data/smogon-priors.json": "f2dc78cea6c5",
+   "data/regulations.json": "6c7c3e3dd06c",
+   "data/quality-filter.json": "042524dd1df7",
+   "data/engine-data.js": "bbc417dfae0e",
+   "data/abra-tags.js": "fc30f9a9392e",
+   "data/tags.json": "26ee107ce6a8",
+   "data/policy-weights.json": "626c1d240782",
+   "data/policy-weights-joint.json": "e2aca467ff04",
+   "data/move-priors.json": "e667fe8ab457",
+   "engine/pp.js": "30b12a4ef623",
+   "data/rollout-switch-census.json": "b8a5cee2f0a9",
+   "engine/medicham_api.js": "f0264a11558b",
+   "data/engine-data-regmc.js": "a6ad04e92d4e",
+   "data/tags-regmc.json": "ac1a00fa40ee",
+   "data/move-priors-regmc.json": "eab0c9b023df",
+   "data/move-effects-regmc.js": "8c57407e7641"
+  }
+ },
+ "pool": {
+  "pool_source": {
+   "kind": "team-store",
+   "file": "data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+   "file_sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+   "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709"
+  },
+  "test_pairs": 173,
+  "cycled_ids_sha256": "113be25167d10d4a"
+ },
+ "flags": {
+  "release": "eaa5becc54eb",
+  "x": "solver/results/2026-09-27-adaptive-clock/gen5-adaptive.json",
+  "y": "solver/results/2026-09-26-champ-vs-doduo/gen5-5s.json",
+  "elo0": 0,
+  "elo1": 20,
+  "alpha": 0.05,
+  "beta": 0.05,
+  "maxGames": 2000,
+  "seed": 27002,
+  "workers": 3,
+  "store": "data/team-pool-frozen-regmc",
+  "out": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\.claude\\worktrees\\agent-a23d34a92f0037aaa\\solver\\out\\adaptive-sprt\\sprt-adaptive-vs-5s.json",
+  "cap": 50,
+  "info": "honest"
+ },
+ "started": "2026-09-26T09:51:21.909Z",
+ "finished": "2026-09-26T15:29:41.830Z",
+ "wall_s": 20299.985,
+ "counted": {
+  "games": 748,
+  "W": 367,
+  "D": 0,
+  "L": 381,
+  "score_x": 0.49064171122994654,
+  "ci95_x": [
+   0.4549550696466738,
+   0.5264239867928742
+  ],
+  "ci_caption": "Wilson 95% at a data-dependent stopping time: conditional on the stop, slightly optimistic",
+  "pairs": {
+   "both": 58,
+   "split": 251,
+   "lost": 65
+  },
+  "agrees_with_sprt": true
+ },
+ "clock": {
+  "rule": {
+   "maxPerTurn_s": 55,
+   "starting_s": 420,
+   "grace_s": 90,
+   "source": "ruleTable of gen9championsvgc2026regmcbo3 (timer rule)"
+  },
+  "x_ms": {
+   "decisions": 7110,
+   "mean": 3625,
+   "p50": 3331,
+   "p95": 8706,
+   "p99": 8727,
+   "max": 10438
+  },
+  "y_ms": {
+   "decisions": 7110,
+   "mean": 4711.1,
+   "p95": 4739,
+   "max": 5849
+  },
+  "x_game_sum_s": {
+   "mean": 34.5,
+   "p95": 55.677,
+   "max": 134.285
+  },
+  "breaches": {
+   "decisions_over_maxPerTurn": 0,
+   "games_over_starting_bank": 0
+  }
+ },
+ "search_counters_all_played": {
+  "fallbacks": 0,
+  "decisions": 14528,
+  "forced": 14,
+  "honest": 14528,
+  "searched": 14514,
+  "playouts": 6767580,
+  "cells": 231824,
+  "unfilled": 10,
+  "zero_playouts": 0,
+  "fallback_decisions": 0,
+  "hon_views": 14528,
+  "hon_back_xatu": 14528,
+  "hon_back_error": 0,
+  "xw": 0,
+  "caption": "cumulative over every game the workers played (incl. games past the stop); both bots in the worker share the agent counters, the greedy bot contributes no searched decision",
+  "prior_fallback_share": 0,
+  "playouts_per_searched": 466.3,
+  "unfilled_share": 0
+ },
+ "mega_timing": {
+  "x": {
+   "capable": 714,
+   "megas": 677,
+   "delay0": 493,
+   "delayed": 184,
+   "delay": {
+    "0": 493,
+    "1": 79,
+    "2": 29,
+    "3": 28,
+    "4": 16,
+    "5": 10,
+    "6": 7,
+    "7": 8,
+    "8": 4,
+    "9": 1,
+    "10": 2
+   },
+   "reasons": {
+    "switched_out_and_back": 70,
+    "none_readable": 65,
+    "other_holder_first": 18,
+    "trick_room_changed": 22,
+    "boost_banked": 22,
+    "mega_resets_field": 17,
+    "mega_overrides_other_field": 4,
+    "field_lost_while_held": 2,
+    "field_by_pre_mega_ability": 2,
+    "field_regained": 1
+   },
+   "first_held_action": {
+    "switch": 56,
+    "protect": 85,
+    "setup": 19,
+    "attack": 6,
+    "fake_out": 3
+   },
+   "held_actions": {
+    "switch": 86,
+    "protect": 109,
+    "setup": 29,
+    "attack": 30,
+    "fake_out": 4
+   },
+   "reason_combos": {
+    "switched_out_and_back": 52,
+    "none_readable": 65,
+    "other_holder_first+trick_room_changed": 2,
+    "boost_banked": 17,
+    "other_holder_first": 11,
+    "mega_resets_field+switched_out_and_back": 1,
+    "mega_overrides_other_field+mega_resets_field": 1,
+    "boost_banked+trick_room_changed": 3,
+    "switched_out_and_back+trick_room_changed": 11,
+    "mega_overrides_other_field+mega_resets_field+other_holder_first": 2,
+    "mega_resets_field+trick_room_changed": 2,
+    "boost_banked+switched_out_and_back": 2,
+    "trick_room_changed": 2,
+    "mega_resets_field": 5,
+    "mega_resets_field+other_holder_first": 3,
+    "field_lost_while_held+mega_resets_field+switched_out_and_back": 1,
+    "field_by_pre_mega_ability+field_regained+switched_out_and_back+trick_room_changed": 1,
+    "field_lost_while_held+mega_resets_field+switched_out_and_back+trick_room_changed": 1,
+    "field_by_pre_mega_ability": 1,
+    "mega_overrides_other_field+mega_resets_field+switched_out_and_back": 1
+   },
+   "delay0_share": 0.7282,
+   "delayed_share": 0.2718,
+   "delayed_ci95": [
+    0.2396,
+    0.3065
+   ],
+   "delay_mean": 0.73,
+   "reason_share": {
+    "switched_out_and_back": 0.3804,
+    "none_readable": 0.3533,
+    "other_holder_first": 0.0978,
+    "trick_room_changed": 0.1196,
+    "boost_banked": 0.1196,
+    "mega_resets_field": 0.0924,
+    "mega_overrides_other_field": 0.0217,
+    "field_lost_while_held": 0.0109,
+    "field_by_pre_mega_ability": 0.0109,
+    "field_regained": 0.0054
+   }
+  },
+  "y": {
+   "capable": 714,
+   "megas": 678,
+   "delay0": 485,
+   "delayed": 193,
+   "delay": {
+    "0": 485,
+    "1": 86,
+    "2": 23,
+    "3": 35,
+    "4": 15,
+    "5": 10,
+    "6": 11,
+    "7": 3,
+    "8": 5,
+    "9": 4,
+    "10": 1
+   },
+   "reasons": {
+    "none_readable": 67,
+    "switched_out_and_back": 74,
+    "boost_banked": 32,
+    "field_by_pre_mega_ability": 1,
+    "mega_resets_field": 19,
+    "mega_overrides_other_field": 6,
+    "trick_room_changed": 15,
+    "other_holder_first": 16,
+    "field_lost_while_held": 2
+   },
+   "first_held_action": {
+    "protect": 85,
+    "switch": 64,
+    "setup": 21,
+    "attack": 7,
+    "fake_out": 1
+   },
+   "held_actions": {
+    "protect": 118,
+    "switch": 96,
+    "setup": 31,
+    "attack": 26,
+    "fake_out": 1
+   },
+   "reason_combos": {
+    "none_readable": 67,
+    "switched_out_and_back": 52,
+    "boost_banked": 25,
+    "field_by_pre_mega_ability": 1,
+    "mega_overrides_other_field+mega_resets_field+switched_out_and_back": 3,
+    "mega_overrides_other_field+mega_resets_field": 2,
+    "boost_banked+trick_room_changed": 2,
+    "other_holder_first": 11,
+    "mega_resets_field+switched_out_and_back": 4,
+    "switched_out_and_back+trick_room_changed": 7,
+    "boost_banked+switched_out_and_back": 5,
+    "mega_resets_field": 2,
+    "mega_resets_field+switched_out_and_back+trick_room_changed": 1,
+    "mega_resets_field+other_holder_first": 3,
+    "field_lost_while_held+mega_resets_field+switched_out_and_back": 2,
+    "trick_room_changed": 3,
+    "other_holder_first+trick_room_changed": 1,
+    "mega_overrides_other_field+mega_resets_field+other_holder_first": 1,
+    "mega_resets_field+trick_room_changed": 1
+   },
+   "delay0_share": 0.7153,
+   "delayed_share": 0.2847,
+   "delayed_ci95": [
+    0.252,
+    0.3198
+   ],
+   "delay_mean": 0.767,
+   "reason_share": {
+    "none_readable": 0.3472,
+    "switched_out_and_back": 0.3834,
+    "boost_banked": 0.1658,
+    "field_by_pre_mega_ability": 0.0052,
+    "mega_resets_field": 0.0984,
+    "mega_overrides_other_field": 0.0311,
+    "trick_room_changed": 0.0777,
+    "other_holder_first": 0.0829,
+    "field_lost_while_held": 0.0104
+   }
+  }
+ }
+}

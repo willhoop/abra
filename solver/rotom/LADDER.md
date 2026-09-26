@@ -54,6 +54,15 @@ searches must not be starved by other normal-priority work, so it raises its own
 workers stay BELOW_NORMAL. MILTANK bounds its own decision (budget + 0.5 s), but it cannot bound a process that the
 OS does not run (`docs/_reports/2026-09-25-miltank-deadline.md`). The summary records `priority` and `priority_set`.
 
+**The adaptive clock (added 2026-09-27, `solver/rotom/adaptive.js`).** An arm may carry `"adaptive": { "targetMs": 4500 }`
+(or the client `--adaptive-target-ms 4500`). A searching move is then planned around that mean: it stops early when one
+candidate beats the others beyond noise, runs to the soft line when nothing is close, and runs up to twice the target when
+two candidates are within noise, paid for by the time the clear decisions saved in the same game. The bank the server
+reports still binds it: a decision may take at most two fair shares of the bank left after 30 s and 1 s per expected
+request, and never more than the turn less 8 s. Under that line the move is `prior`, counted. With neither set, the budget is
+the clock's fixed share as before. The arena measurement and the SPRT against a fixed 5 s are in
+`docs/_reports/2026-09-27-adaptive-clock.md`. No arms file uses it yet: switching arm A to it is a new pre-registration.
+
 Optional flags: `--max-hours H` (no new search after H hours), `--max-errors N` (default 3),
 `--max-mismatches N` (default 3; see below), `--send-gap-ms MS` (default 650),
 `--guard willhoop[,other]`, `--guard-mode online|battle` (default `online`), `--out <dir>` (resume a run).
