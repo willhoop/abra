@@ -5,13 +5,13 @@
  "human_dataset": "C:/Users/willj/Projects/Pokemon/ABRA/solver/out/human/games.jsonl (sha256 9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8)",
  "tests": {
   "survival": {
-   "instrument": "solver/doduo/eval_gates.js --release eaa5becc54eb --n 2000 --seed 3 --workers 3",
+   "instrument": "solver/doduo/eval_gates.js --release eaa5becc54eb --n 2000 --seed 4 --workers 3",
    "sample": "2,000 fully observed joint decisions by TEST-split players (the split every solver net uses), both brought fours complete, seeded stride over the dataset",
    "bar": "the human's actual joint action survives BOTH gates (MAG not dead on either click, the pair gate does not cut the joint) in >= 99.9% of evaluated decisions (point estimate), AND every loss is explained by reading the replay: a loss is a gate error unless the replay shows the click was futile in the real game",
    "also_reported": "the fraction of per-slot options MAG calls dead / soft; the fraction of legal joints each gate removes; the 2x2 of MAG-cut x pair-cut; the pair-cut clicks' MAG verdicts; decisions unmatched (a human action the world could not offer) and errors, each with its reason"
   },
   "doduo_greedy": {
-   "instrument": "solver/machamp/sprt.js --release eaa5becc54eb --x solver/doduo/specs/doduo-greedy-gated.json --y solver/machamp/league/human-clone.json --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 400 --seed 31 --workers 3 --team-store <team_store>",
+   "instrument": "solver/machamp/sprt.js --release eaa5becc54eb --x solver/doduo/specs/doduo-greedy-gated.json --y solver/machamp/league/human-clone.json --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 400 --seed 41 --workers 3 --team-store <team_store>",
    "arms": {
     "x": "DODUO v1 argmax over the gated candidates (soft weight 1e-3)",
     "y": "DODUO v1 argmax over every legal joint (the ladder bot's current policy)"
@@ -20,7 +20,7 @@
    "bar": "read once, at the SPRT bound or at 400 games: H1 = the gated arm is stronger by the +20 Elo alternative; H0 = it is not; neither = INCONCLUSIVE, reported with the score and its Wilson 95% interval"
   },
   "miltank": {
-   "instrument": "solver/machamp/sprt.js --release eaa5becc54eb --x solver/doduo/specs/gen5-gated.json --y solver/machamp/league/gen5.json --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 400 --seed 32 --workers 3 --team-store <team_store>",
+   "instrument": "solver/machamp/sprt.js --release eaa5becc54eb --x solver/doduo/specs/gen5-gated.json --y solver/machamp/league/gen5.json --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 400 --seed 42 --workers 3 --team-store <team_store>",
    "arms": {
     "x": "MILTANK with the champion nets (gen5 DODUO prior, gen5 PORYGON2 leaf), 1,000 ms, k 4x4, depth 0, reserve 1 switch; its candidates (both sides) ranked by the gated DODUO v2",
     "y": "the same agent with the ungated candidates"
@@ -37,5 +37,6 @@
   "miltank_gate_step_budget": 600,
   "miltank_gate_ms_budget_per_side": 150,
   "tall_world_hp_fraction_cap": 0.6
- }
+ },
+ "amendment_2": "2026-09-25, after the seed-3 run on 685725dc (1,993/1,997 = 99.80%, 4 losses, all 4 clicks futile per their replays, but one of the four — a Wide Guard — was cut on dice luck: a partner's 30% flinch landed in both of the only two worlds where the foe used its spread move; and 6 joints in 1 decision were still cut by the pair gate on a MAG-dead click). Fixed: the secondary stream pinned high on the pinned worlds; each cover round on one dice regime so every opposing option meets both; a shield world is skipped only when the shield HELD and only for a click the shield can block (its `protect` flag); the pair gate's 'never tested' is no longer read as 'has an effect'. The confirmation is re-run on a FRESH draw, seed 4, and both arenas are re-run on the same code. The seed-3 run and the arenas played on 685725dc are reported as the previous version, not discarded."
 }

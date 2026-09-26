@@ -7,7 +7,7 @@
  *
  *   const DG = require('./solver/doduo/gate.js').create(API, { mag })     mag = solver/mag/gate.js's create()
  *   DG.pairVerdict(pos, joint) -> { cut: bool, slot, why, ... }             pos = solver/mag/probe.js position
- *   DG.futileGiven(pos, k, a, b) -> true | false                           a in slot k has no effect beside b
+ *   DG.futileGiven(pos, k, a, b) -> 'futile' | 'effect' | 'unknown'        a in slot k beside b
  *
  * "NO EFFECT BESIDE b", read from the engine, never typed. In every informative world of the opponent's covering
  * design (probe.js oppCover: every option of each opposing slot at least twice, both dice sets):
@@ -29,7 +29,8 @@
  *
  * DELIBERATE BREAKS (env GATE_BREAK): `pairany` — a pair is cut when `a` is futile beside `b` without asking whether
  * it has an effect beside anyone else (so the pair gate starts cutting over MAG's dead clicks); `norep` — the
- * partner's click is not kept reachable (see representative()); `megapass` — a mega click's counterfactual is a plain
+ * partner's click is not kept reachable (see representative()); `twovalued` — a click never informatively tested beside
+ * a partner is read as having an effect there (the first version's fold); `megapass` — a mega click's counterfactual is a plain
  * pass, so the mega evolution itself reads as the click's effect. solver/tests/test-gates.js must go red under each.
  */
 'use strict';
@@ -38,7 +39,7 @@ const BREAK = (typeof process !== 'undefined' && process.env && process.env.GATE
 
 function create(API, deps) {
   deps = deps || {};
-  const COUNTERS = { pairs: 0, cut: 0, kept: 0, futileChecks: 0, otherPartnerScans: 0, budgetStops: 0, uninformativeWorlds: 0, representativesKept: 0 };
+  const COUNTERS = { pairs: 0, cut: 0, kept: 0, futileChecks: 0, otherPartnerScans: 0, budgetStops: 0, uninformativeWorlds: 0, representativesKept: 0, shieldWorlds: 0 };
   const cover = pos => P.cover(pos);
   /* the counterfactual: slot k does nothing — but a mega click still mega-evolves (probe.js PASS_MEGA) */
   const withPass = (j, k) => j.map((x, i) => (i === k ? (x && x.mega && BREAK !== 'megapass' ? P.PASS_MEGA : P.PASS) : x));
@@ -47,6 +48,10 @@ function create(API, deps) {
   function effect(pos, j, k, o, di) {
     const r1 = pos.run(j, o, di, { board: true });
     if (!r1.exec[k]) { COUNTERS.uninformativeWorlds++; return 'uninf'; }
+    /* the same skip as MAG's: a world where the click's target shielded and the shield held is no evidence, so both
+     * gates read one set of worlds the same way (without it a Disable blocked by a Protect still "enabled" the
+     * partner's Encore on the user and read as an effect, while MAG had rightly skipped that world — seed 3) */
+    if (P.shieldHeld(k, j[k], j[1 - k], o, r1)) { COUNTERS.shieldWorlds++; return 'uninf'; }
     if (!r1.ok[k]) return 'none';
     const r0 = pos.run(withPass(j, k), o, di, { board: true });
     return r1.board !== r0.board ? 'eff' : 'none';
@@ -58,15 +63,21 @@ function create(API, deps) {
     if (pos.fut.has(key)) return pos.fut.get(key);
     COUNTERS.futileChecks++;
     const j = k === 0 ? [a, b] : [b, a];
+    /* THREE ANSWERS, NOT TWO: 'futile' (no effect in any informative world), 'effect' (an effect was SEEN), 'unknown'
+     * (no informative world, or the budget ran out). The first version folded 'unknown' into "not futile", and
+     * effectBesideOther read "not futile" as "has an effect": a Disable at my own partner, beside that partner's
+     * Protect (every world uninformative: the shield always held), was taken as proof the Disable works with SOME
+     * partner, and the pair gate then cut it beside all the others while MAG had called it dead (seed 3). */
     let inf = 0, res = null;
     for (const w of cover(pos)) {
-      if (P.over(pos, lim)) { COUNTERS.budgetStops++; res = false; break; }
+      if (P.over(pos, lim)) { COUNTERS.budgetStops++; res = 'unknown'; break; }
       const e = effect(pos, j, k, w.o, w.di);
       if (e === 'uninf') continue;
       inf++;
-      if (e === 'eff') { res = false; break; }
+      if (e === 'eff') { res = 'effect'; break; }
     }
-    if (res === null) res = inf > 0;
+    if (res === null) res = inf > 0 ? 'futile' : 'unknown';
+    if (BREAK === 'twovalued' && res === 'unknown') res = 'effect';
     pos.fut.set(key, res);
     return res;
   }
@@ -84,7 +95,7 @@ function create(API, deps) {
     let res = false;
     for (const x of B) {
       if (P.over(pos, lim)) { COUNTERS.budgetStops++; res = false; break; }
-      if (!futileGiven(pos, k, a, x, lim)) { res = true; break; }
+      if (futileGiven(pos, k, a, x, lim) === 'effect') { res = true; break; }
     }
     pos.oth.set(key, res);
     return res;
@@ -109,7 +120,7 @@ function create(API, deps) {
       if (!P.isMove(x) || x.move === 'struggle') { res = { reachable: true }; break; }
       if (deps.mag && deps.mag.verdict(pos, k, x).v === 'dead') continue;
       if (first == null) first = x;
-      if (!futileGiven(pos, k, x, b, lim)) { res = { reachable: true }; break; }
+      if (futileGiven(pos, k, x, b, lim) !== 'futile') { res = { reachable: true }; break; }
     }
     if (!res) { res = { reachable: false, keep: first ? P.optKey(first) : null }; COUNTERS.representativesKept++; }
     pos.rep.set(key, res);
@@ -122,7 +133,7 @@ function create(API, deps) {
     for (let k = 0; k < j.length && k < 2; k++) {
       const a = j[k], b = j[1 - k];
       if (!P.isMove(a) || a.move === 'struggle' || !b) continue;
-      if (futileGiven(pos, k, a, b, o) && effectBesideOther(pos, k, a, b, o)) {
+      if (futileGiven(pos, k, a, b, o) === 'futile' && effectBesideOther(pos, k, a, b, o)) {
         const rep = BREAK === 'norep' ? { reachable: true } : representative(pos, k, b, o);
         if (!rep.reachable && rep.keep === P.optKey(a)) continue;   // the one kept so that `b` stays reachable
         COUNTERS.cut++;

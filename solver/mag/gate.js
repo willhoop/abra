@@ -33,19 +33,12 @@
  *
  * DELIBERATE BREAKS (env GATE_BREAK): `nopartner` — only the partner's first option is tried (the "whatever the
  * partner does" quantifier is gone); `softhard` — a click rescued only by a switch is CUT as dead; `shieldcounts` —
- * a world where the target shielded counts, so a status click at a Protect user reads live.
+ * a world where the target's shield held counts, so a status click at a Protect user reads live; `shieldskipall` —
+ * every world where the target clicked a shield is skipped, held or not.
  * solver/tests/test-gates.js must go red under each.
  */
 'use strict';
 const P = require('./probe.js');
-const X = require('../human/dex.js');
-/* a click at a body that raised a Protect-family shield this world: read off the dex (`stallingMove`), never a list */
-const SHIELD = new Map();
-const isShield = o => {
-  if (!o || o.kind !== 'move' || !o.move) return false;
-  if (!SHIELD.has(o.move)) { const m = X.D.moves.get(o.move); SHIELD.set(o.move, !!(m && m.exists && m.stallingMove && m.target === 'self')); }
-  return SHIELD.get(o.move);
-};
 const BREAK = (typeof process !== 'undefined' && process.env && process.env.GATE_BREAK) || '';
 
 function create(API, deps) {
@@ -98,8 +91,12 @@ function create(API, deps) {
        * authority's is null (the known residual of ROADMAP #509, docs/ENGINE.md), which would make every status click
        * at a Protect user look live. The world is skipped, as a world where the body never acted is. */
       const tgtAct = a.target == null ? null : a.target > 0 ? w.o[a.target - 1] : (-a.target - 1 === 1 - k ? w.b : null);
-      if (isShield(tgtAct) && BREAK !== 'shieldcounts') { COUNTERS.shieldWorlds++; continue; }
+      if (P.isShield(tgtAct) && BREAK === 'shieldskipall') { COUNTERS.shieldWorlds++; continue; }
       const r = pos.run(j, w.o, w.di);
+      /* A WORLD IN WHICH THE TARGET'S SHIELD HELD SAYS NOTHING ABOUT THE CLICK (probe.js shieldHeld; the #509 residual
+       * makes a blocked status click read as a success). Skipped only when the shield HELD, by its own move result: a
+       * shield that failed on a streak roll is no shield (the first version skipped every shield world). */
+      if (BREAK !== 'shieldcounts' && P.shieldHeld(k, a, w.b, w.o, r)) { COUNTERS.shieldWorlds++; continue; }
       if (!r.exec[k]) { COUNTERS.uninformativeWorlds++; continue; }
       inf++;
       const sw = P.hasSwitch(w.o);

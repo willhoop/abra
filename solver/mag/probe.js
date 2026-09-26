@@ -18,6 +18,7 @@
  *            A body KO'd, forced out or never reached before it acted writes nothing — that world is
  *            UNINFORMATIVE about the click, not a failure of it. (Flinch, full paralysis and sleep write false:
  *            the engine's own "cant", so those worlds count.)
+ *   okOpp[k] the same result for the OPPONENT's body in slot k (read by the MAG gate: did a target's shield hold?)
  *   board    engine/board_state.js `readMedi` of the position after the step (the MEDICHAM bar's definition of
  *            the board), from the frozen byte copy solver/doduo/board_state.frozen.js. Used by the pair gate to
  *            ask "did this click change anything the partner's click did not already change".
@@ -30,7 +31,8 @@
  * function of (seed, turn, category, move, target, repeat), so replacing one body's click by a pass leaves every
  * OTHER body's rolls where they were, and the pass counterfactual compares actions, not dice. On even d the two
  * streams whose low roll means "it works" are pinned at 0: `acc` (a roll above the accuracy misses) and `stall`
- * (a consecutive Protect-family click succeeds on a roll below 1/counter); odd d is unpinned.
+ * (a consecutive Protect-family click succeeds on a roll below 1/counter), and `sec` is pinned HIGH (no chance
+ * secondary lands); odd d is unpinned.
  *
  * THE GATES JUDGE STRUCTURE, NOT DAMAGE. Every world is played TALL: each body's HP stat and current HP are multiplied
  * by K (4,096 by default; o.tall / opts.tall, `false` for the literal board), so every HP fraction is what it was and
@@ -61,7 +63,9 @@
  * DELIBERATE BREAKS (env GATE_BREAK): `exec` — every world counts as informative, so a body KO'd before it acts
  * reads as its click failing; `anytrue` — the provisional success the engine writes when a move is used counts, so
  * a move into an immunity reads as a success; `dice` — no stream is pinned, so a roll-dependent click (a Protect on a
- * long streak) can read as dead; `short` — the worlds are not tall, so futility that needs a KO gets cut; `fullheal` —
+ * long streak) can read as dead; `parity` — the cover's dice alternate along the list, so an option can meet only
+ * one regime; `secfree` — the secondary stream is not pinned, so a chance flinch can decide a
+ * futility; `short` — the worlds are not tall, so futility that needs a KO gets cut; `fullheal` —
  * no 60% cap, so a turn-end heal erases a hit and the hit reads as having had no effect.
  * solver/tests/test-gates.js must go red under each.
  */
@@ -97,7 +101,13 @@ function create(API, opts) {
    * `stall` (a consecutive Protect succeeds on randomChance(1, counter)). Every other stream rolls. */
   function dice(d, salt) {
     const e = M.midEventDice({ seed: (SEEDS[d % 2] + Math.imul(d, 7919) + (salt | 0)) >>> 0, reset: false });
-    return (d % 2 === 0 && BREAK !== 'dice') ? Object.assign({}, e, { acc: () => 0, stall: () => 0 }) : e;
+    if (d % 2 !== 0 || BREAK === 'dice') return e;
+    const pin = { acc: () => 0, stall: () => 0 };
+    /* AND NO SECONDARY LANDS: a chance secondary (a flinch, a burn) is `_R.sec()*100 >= chance -> skip`, so a high
+     * roll skips it. Without this a pair was cut because the partner's 30% flinch happened to land in both of the only
+     * two worlds where the foe used the spread move a Wide Guard was for (seed 3, 2026-09-25) — futility by dice. */
+    if (BREAK !== 'secfree') pin.sec = () => 0.9999;
+    return Object.assign({}, e, pin);
   }
 
   const TALL = (opts.tall === false || BREAK === 'short') ? 1 : (opts.tall || 4096);
@@ -159,6 +169,8 @@ function create(API, opts) {
       const S = v8.deserialize(bufs[wi]);
       const own = side === 'A' ? S.actA : S.actB;
       const w = [watch(own[0]), watch(own[1])];
+      const foes = side === 'A' ? S.actB : S.actA;
+      const wo = [watch(foes[0]), watch(foes[1])];
       let err = null;
       try {
         API.makeLean(S);
@@ -172,7 +184,8 @@ function create(API, opts) {
       let board = null;
       if (ro.board && !err) { board = JSON.stringify(BS.readMedi(S, { id: toID, fails: {} })); COUNTERS.boards++; }
       const exec = BREAK === 'exec' ? [true, true] : [w[0].exec, w[1].exec];
-      const r = { exec: err ? [false, false] : exec, ok: err ? [false, false] : [w[0].ok, w[1].ok], board, err };
+      const r = { exec: err ? [false, false] : exec, ok: err ? [false, false] : [w[0].ok, w[1].ok],
+                  okOpp: err ? [false, false] : [wo[0].ok, wo[1].ok], board, err };
       cache.set(key, r);
       return r;
     };
@@ -218,7 +231,7 @@ function hashStr(s) { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i+
 
 /* THE OPPONENT'S JOINTS AS A COVERING DESIGN: `rounds` passes, each a sequence in which every option of each of
  * the opponent's two slots appears at least once (so 2 appearances over 2 rounds, each with a different companion),
- * every entry a joint `legalActions` offers. Returns [{ o: joint, di }] — di is the entry's own dice set. */
+ * every entry a joint `legalActions` offers. Returns [{ o: joint, di }] — di is the entry's own dice set, of parity r. */
 function oppCover(lo, seed, rounds) {
   const two = lo.slots.length > 1;
   const S0 = lo.slots[0] ? lo.slots[0].options : [PASS], S1 = two ? lo.slots[1].options : [PASS];
@@ -228,12 +241,17 @@ function oppCover(lo, seed, rounds) {
   for (let r = 0; r < (rounds || 2); r++) {
     const p0 = perm(S0.length, seed + 101 * r + 1), p1 = perm(S1.length, seed + 101 * r + 2);
     const got0 = new Set(), got1 = new Set();
+    let inRound = 0;
+    /* ROUND r PLAYS ON DICE OF PARITY r: round 0 on the pinned dice (even d), round 1 on the free dice (odd d), so every
+     * option of each opposing slot meets BOTH dice regimes. Before this, the dice alternated along the list and an
+     * option's two appearances could both fall on free dice — a partner's 30% flinch then landed in both of the only
+     * two worlds where a foe used the spread move a Wide Guard was for, and the Wide Guard was cut (seed 3). */
     const add = j => {
       const k = jointKey(j) + '#' + r;
       got0.add(optKey(j[0])); if (two) got1.add(optKey(j[1]));
       if (seen.has(k)) return;
       seen.add(k);
-      out.push({ o: j, di: out.length });
+      out.push({ o: j, di: BREAK === 'parity' ? out.length : 2 * (inRound++) + (r % 2) });
     };
     /* pass 1: slot 0's options in a shuffled order, each with the next slot-1 option that forms a legal joint */
     const n = Math.max(S0.length, S1.length);
@@ -259,9 +277,34 @@ function oppCover(lo, seed, rounds) {
 /* THE GATES' BUDGET: o.maxSteps engine steps for the position, and/or an absolute o.deadline (Date.now()). Past either,
  * a gate stops asking and KEEPS what it has not proved dead. */
 const over = (pos, o) => !!o && ((o.maxSteps && pos.steps >= o.maxSteps) || (o.deadline && Date.now() >= o.deadline));
+/* A CLICK AT A BODY WHOSE PROTECT-FAMILY SHIELD HELD THIS WORLD. Protect blocks everything, so such a world is no
+ * evidence either way — and MEDICHAM's move result for a STATUS move blocked by a shield reads success where the
+ * authority's is null (the known residual of ROADMAP #509, docs/ENGINE.md). Both gates skip it; a shield that FAILED
+ * (a streak roll) is no shield, and that world counts. `stallingMove` is read off the dex, never a list. */
+const SHIELD = new Map();
+const isShield = o => {
+  if (!o || o.kind !== 'move' || !o.move) return false;
+  if (!SHIELD.has(o.move)) { const m = require('../human/dex.js').D.moves.get(o.move); SHIELD.set(o.move, !!(m && m.exists && m.stallingMove && m.target === 'self')); }
+  return SHIELD.get(o.move);
+};
+/* k: my slot, a: its click, b: my partner's click, o: the opponent's joint, r: the world's result */
+const PROTECTABLE = new Map();
+const blockable = id => {
+  if (!PROTECTABLE.has(id)) { const m = require('../human/dex.js').D.moves.get(id); PROTECTABLE.set(id, !!(m && m.exists && m.flags && m.flags.protect)); }
+  return PROTECTABLE.get(id);
+};
+function shieldHeld(k, a, b, o, r) {
+  if (!a || a.target == null || !a.move) return false;
+  /* only a click the shield can block: the move's own `protect` flag (Showdown's protect.onTryHit returns early
+   * without it — Helping Hand, for one, goes straight through its target's Protect) */
+  if (!blockable(a.move)) return false;
+  const tgtAct = a.target > 0 ? o[a.target - 1] : (-a.target - 1 === 1 - k ? b : null);
+  if (!isShield(tgtAct)) return false;
+  return !!(a.target > 0 ? r.okOpp[a.target - 1] : r.ok[1 - k]);
+}
 /* THE ONE COVER BOTH GATES USE for a position (2 rounds, seeded by the position), built once and kept on it */
 const cover = pos => pos._cover || (pos._cover = oppCover(pos.lo, 13 + (pos.salt | 0), 2));
 const hasSwitch = j => j.some(x => x && x.kind === 'switch');
 const isMove = o => !!(o && o.kind === 'move' && !o.forced);
 
-module.exports = { create, optKey, jointKey, perm, hashStr, oppCover, cover, hasSwitch, isMove, over, PASS, PASS_MEGA, live };
+module.exports = { create, optKey, jointKey, perm, hashStr, oppCover, cover, hasSwitch, isMove, over, isShield, shieldHeld, PASS, PASS_MEGA, live };

@@ -13,6 +13,8 @@
  * CLAUSES
  *   IMMUNE      a damaging move into a type-immune foe: SOFT while the foe has a bench (a switch-in takes it), DEAD
  *               with no bench; the same move into a non-immune foe is LIVE
+ *   UNKNOWN     a click that no world could test beside a partner (its shield always held) is not taken as having an
+ *               effect there, so the pair gate still leaves a MAG-dead click alone
  *   STATUSED    a status move onto a foe that already has a status: SOFT with a bench, DEAD without; LIVE onto a
  *               clean foe
  *   SIDECOND    a side-condition move while that condition is already up: DEAD even though the foe can switch (the
@@ -35,11 +37,16 @@
  *   DISJOINT    the pair gate never cuts a pair because of a click MAG calls dead
  *   EXEC        a body KO'd before it acts is UNINFORMATIVE (its click neither succeeded nor failed)
  *   DICE        a Protect-family click on a long streak (a 1-in-729 roll) is LIVE: the gate never cuts on a roll
+ *   SEC         on the pinned worlds no chance secondary lands (a partner's lucky flinch cannot make a click futile)
+ *   SHIELDFAIL  a status move at a foe whose only click is a Protect that FAILS on a streak is LIVE: a failed shield is
+ *               evidence, a held one is skipped
+ *   PARITY      every option of each opposing slot appears in the cover on BOTH dice regimes
  *   FROZEN      solver/doduo/board_state.frozen.js is the copy its receipt names
  *
  * RED, unless --no-red: re-runs itself under each GATE_BREAK and REQUIRES the named clause to fail:
  *   anytrue -> IMMUNE, softhard -> IMMUNE, nopartner -> PARTNER, pairany -> DISJOINT, norep -> REACH, exec -> EXEC,
- *   dice -> DICE, short -> TALL, shieldcounts -> STATUSED, fullheal -> HEAL, megapass -> MEGA.
+ *   dice -> DICE, short -> TALL, shieldcounts -> STATUSED, fullheal -> HEAL, megapass -> MEGA, secfree -> SEC,
+ *   shieldskipall -> SHIELDFAIL, parity -> PARITY, twovalued -> UNKNOWN.
  */
 'use strict';
 require('../arena/env.js');
@@ -163,6 +170,24 @@ if (!immune) cannot('no derived (move, immune species, plain species) triple pas
   }
   ok('DISJOINT', pairsWithDead > 0 && cutOnDead === 0, `the pair gate cut ${cutOnDead} of ${pairsWithDead} pairs on a MAG-dead click`);
   console.log(`  DISJOINT: ${pairsWithDead} pairs hold the MAG-dead click; the pair gate cut ${cutOnDead} of them on it`);
+}
+
+/* ---------- UNKNOWN: a click never tested beside a partner is not "effective" there ---------- */
+{
+  /* slot 0 aims the immune-typed move at MY partner, who is immune to it and cannot switch (no bench): MAG calls it
+   * dead. Beside the partner's Protect every world is uninformative (the shield always holds). That silence must not
+   * count as an effect, or the pair gate cuts the dead click beside the partner's other moves. */
+  const { mv, F } = immune;
+  const U = quietSpecies.find(s => s !== F && D.getImmunity(mv.type, s.types));
+  const N = quietSpecies.find(s => ![U, F].includes(s)), N2 = quietSpecies.find(s => ![U, F, N].includes(s));
+  const S = battle([body(U, [mv, stallMove]), body(F, [weak, stallMove])], [body(N, FOE), body(N2, FOE)]);
+  const p = pos(S);
+  const o = mvOpt(p.la, 0, mv.id, -2);
+  const v = o ? MG.verdict(p, 0, o) : { v: 'no option' };
+  let cutOnDead = 0, n = 0;
+  for (const j of p.la.joint) if (PR.optKey(j[0]) === PR.optKey(o)) { n++; const pv = DG.pairVerdict(p, j); if (pv.cut && pv.slot === 0) cutOnDead++; }
+  ok('UNKNOWN', v.v === 'dead' && n > 1 && cutOnDead === 0, `${mv.id} at my immune partner: MAG ${v.v}; the pair gate cut ${cutOnDead} of its ${n} pairs on it (expected dead, 0)`);
+  console.log(`  UNKNOWN: ${mv.id} at my immune partner -> MAG ${v.v}; pair cuts on it ${cutOnDead}/${n}`);
 }
 
 /* ---------- STATUSED ---------- */
@@ -390,6 +415,67 @@ if (!immune) cannot('no derived (move, immune species, plain species) triple pas
   console.log(`  DICE: ${stallMove.id} after six in a row -> ${v.v}`);
 }
 
+/* ---------- SEC: on the pinned worlds no chance secondary lands ---------- */
+{
+  /* the legal damaging move whose secondary status has the highest chance below 100 (read off the dex) */
+  const secMove = MOVES.filter(m => (m.category === 'Physical' || m.category === 'Special') && m.target === 'normal' && m.secondary
+    && m.secondary.status && m.secondary.chance > 0 && m.secondary.chance < 100 && (m.accuracy === true || m.accuracy >= 90) && !m.priority)
+    .sort((a, b) => b.secondary.chance - a.secondary.chance || byId(a, b))[0];
+  if (!secMove) cannot('no damaging move with a chance secondary status');
+  const U = quietSpecies[20], P = quietSpecies[21];
+  const N = quietSpecies.find(s => ![U, P].includes(s) && D.getImmunity(secMove.type, s.types) && !s.types.some(t => !D.getImmunity(secMove.secondary.status, [t])));
+  const N2 = quietSpecies.find(s => ![U, P, N].includes(s));
+  const S = battle([body(U, [secMove, stallMove]), body(P, [stallMove])], [body(N, FOE), body(N2, FOE)]);
+  const p = pos(S);
+  const o = mvOpt(p.la, 0, secMove.id, 1);
+  const jo = p.lo.joint.find(j => j[0].kind === 'move' && j[0].move === weak.id && j[1].kind === 'move' && j[1].move === weak.id);
+  let landed = 0, n = 0;
+  for (let d = 0; d < 60; d += 2) {       // the pinned (even) worlds
+    const r = p.run([o, mvOpt(p.la, 1, stallMove.id, null)], jo, d, { board: true });
+    const b = JSON.parse(r.board);
+    n++; if (b.sides.p2.active[0] && b.sides.p2.active[0].status) landed++;
+  }
+  ok('SEC', n === 30 && landed === 0, `${secMove.id} (${secMove.secondary.chance}% ${secMove.secondary.status}) landed its secondary on ${landed} of ${n} pinned worlds (expected 0)`);
+  console.log(`  SEC: ${secMove.id}'s ${secMove.secondary.chance}% ${secMove.secondary.status} on the pinned worlds -> ${landed}/${n}`);
+}
+
+/* ---------- SHIELDFAIL: a shield that FAILS is evidence ---------- */
+{
+  /* a status move at a foe whose only click is a Protect on a long streak: on the pinned worlds the Protect holds (the
+   * world is skipped), on the others it fails 728 times in 729 and the status lands — so the click is LIVE, not
+   * untested */
+  const sm = MOVES.find(m => m.category === 'Status' && m.target === 'normal' && m.status && !m.volatileStatus && !m.onTry && !m.onTryHit && !m.flags.powder && (m.accuracy === true || m.accuracy >= 90));
+  const U = quietSpecies[22], P = quietSpecies[23];
+  const N = quietSpecies.find(s => ![U, P].includes(s) && s.baseStats.hp >= 70 && (() => {
+    const T0 = battle([body(U, [sm, stallMove]), body(P, [stallMove])], [body(s, FOE), body(quietSpecies[24], FOE)]);
+    const oo = mvOpt(API.legalActions(T0, 'A'), 0, sm.id, 1);
+    return oo && premise(T0, 0, oo) === true;
+  })());
+  if (!N) cannot('no body ' + sm.id + ' lands on');
+  const S = battle([body(U, [sm, stallMove]), body(P, [stallMove])], [body(N, [stallMove]), body(quietSpecies[24], [stallMove])]);
+  S.actB[0].tookProtectTurns = 6;
+  const p = pos(S);
+  const v = MG.verdict(p, 0, mvOpt(p.la, 0, sm.id, 1));
+  ok('SHIELDFAIL', v.v === 'live', `${sm.id} at a foe whose only click is a failing Protect: expected live, got ${v.v} (${v.why || ''})`);
+  console.log(`  SHIELDFAIL: ${sm.id} at a foe on a six-Protect streak -> ${v.v}`);
+}
+
+/* ---------- PARITY: every opposing option meets both dice regimes ---------- */
+{
+  const U = quietSpecies[25], P = quietSpecies[26], N = quietSpecies[27], N2 = quietSpecies[28], B = quietSpecies[29];
+  const S = battle([body(U, [weak, stallMove]), body(P, [weak, stallMove])], [body(N, FOE), body(N2, FOE), body(B, FOE)]);
+  const p = pos(S);
+  const C = PR.cover(p);
+  let missing = 0, opts = 0;
+  for (let k = 0; k < 2; k++) for (const o of p.lo.slots[k].options) {
+    opts++;
+    const ds = C.filter(c => PR.optKey(c.o[k]) === PR.optKey(o)).map(c => c.di % 2);
+    if (!ds.includes(0) || !ds.includes(1)) missing++;
+  }
+  ok('PARITY', opts > 4 && missing === 0, `${missing} of ${opts} opposing options never meet one of the two dice regimes in the cover`);
+  console.log(`  PARITY: ${opts - missing}/${opts} opposing options meet both the pinned and the free dice`);
+}
+
 /* ---------- FROZEN ---------- */
 {
   const rc = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'doduo', 'board_state.frozen.json'), 'utf8'));
@@ -402,7 +488,7 @@ const brk = probe.BROKEN || MG.BROKEN || DG.BROKEN;
 console.log('test-gates: ' + (checks - fails) + '/' + checks + ' checks' + (brk ? '  [BREAK ' + brk + ']' : '') + '  failed clauses: ' + ([...failed].join(',') || 'none'));
 
 if (!NO_RED && !brk) {
-  const need = [['anytrue', 'IMMUNE'], ['softhard', 'IMMUNE'], ['nopartner', 'PARTNER'], ['pairany', 'DISJOINT'], ['norep', 'REACH'], ['exec', 'EXEC'], ['dice', 'DICE'], ['short', 'TALL'], ['shieldcounts', 'STATUSED'], ['fullheal', 'HEAL'], ['megapass', 'MEGA']];
+  const need = [['anytrue', 'IMMUNE'], ['softhard', 'IMMUNE'], ['nopartner', 'PARTNER'], ['pairany', 'DISJOINT'], ['norep', 'REACH'], ['exec', 'EXEC'], ['dice', 'DICE'], ['short', 'TALL'], ['shieldcounts', 'STATUSED'], ['fullheal', 'HEAL'], ['megapass', 'MEGA'], ['secfree', 'SEC'], ['shieldskipall', 'SHIELDFAIL'], ['parity', 'PARITY'], ['twovalued', 'UNKNOWN']];
   let blind = 0;
   for (const [v, clause] of need) {
     const res = cp.spawnSync(process.execPath, [__filename, '--no-red'], { env: Object.assign({}, process.env, { GATE_BREAK: v }), encoding: 'utf8' });
