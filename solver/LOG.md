@@ -73,6 +73,17 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 ### MACHAMP loop — one line per generation (solver/machamp/loop_sprt.js)
 - gen7: rejected — SPRT H0 after 652 games, 0.489 [0.451, 0.528] vs gen5; clone 0.670; PORYGON2 human Δ -0.0059 PASS. `solver/machamp/models/gen7/gates.json`
 - gen6: rejected — SPRT H0 after 166 games, 0.434 [0.361, 0.510] vs gen5; clone 0.705; PORYGON2 human Δ -0.0051 PASS. `solver/machamp/models/gen6/gates.json`
+### MAG v2 (dead-click gate) and DODUO v2 (pair gate) — different jobs (abra/regmc 1.17.0; built 2026-09-25 on a branch, merged 2026-09-26)
+- MAG no longer scores: it cuts a click only if MEDICHAM never reports it succeeding, over every partner option and a
+  covering design of the opponent's joints; a click rescued only by a switch is SOFT (weight 1e-3). DODUO keeps its
+  learned score and cuts a joint only when one click changes nothing beside THIS partner click and does beside another.
+  Same worlds for both (`solver/mag/probe.js`: tall, capped, pinned/free dice, shields that held skipped).
+- Held-out Reg M-C, seed 4 (1,999 decisions): the human's click survives 99.85% [99.56, 99.95] — the 99.9% bar is not
+  met as a rate; all 3 losses failed or did nothing in their replays. MAG removes 2.29% of legal joints, the pair gate
+  4.10%; 0 pair cuts on a MAG-dead click. Three earlier confirmation draws each found a defect (13 fixed in all).
+- DODUO-greedy gated vs ungated 0.500 [0.451, 0.549]; MILTANK gen5 1 s gated vs ungated 0.505 [0.456, 0.554]; both
+  400 games, SPRT inconclusive. Inside 150 ms a side the gate cut 26 joints in 6,294 lists: no strength gain shown.
+- `solver/tests/test-gates.js` 30/30, RED on 15 breaks. Detail: `docs/_reports/2026-09-25-mag-doduo-gates.md`.
 
 ### Deadline follow-ups (abra/regmc 1.10.0)
 - ROTOM runs `collectIdle()` after each MILTANK choice (in a local set: 24 of 24, max 412 ms, no decision over its

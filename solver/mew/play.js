@@ -215,7 +215,7 @@ async function match() {
       per.push({ pi, id: G.id, xSide: xIsA ? 'A' : 'B', seed, info: INFO, vX, turns: r.turns, capped: r.capped, err: r.err,
                  ms_x: r.ms[xIsA ? 'A' : 'B'], ms_y: r.ms[xIsA ? 'B' : 'A'],
                  mega: r.mega ? { x: r.mega[xIsA ? 'A' : 'B'], y: r.mega[xIsA ? 'B' : 'A'] } : null,
-                 ctr: Object.assign({ fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0 }, RUN,
+                 ctr: Object.assign({ fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0, gates: JSON.parse(JSON.stringify(AG.COUNTERS.gates || {})) }, RUN,
                    INFO === 'honest' ? { hon_views: HON.views, hon_back_xatu: HON.back_xatu, hon_back_error: HON.back_error, xw: Object.assign({}, XW.COUNTERS) } : {}) });
     }
     if (OUT) fs.writeFileSync(OUT, per.map(p => JSON.stringify(p)).join('\n') + '\n');

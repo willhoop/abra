@@ -112,7 +112,19 @@ function create(API) {
     /* ---- their four: actives, the rest revealed, then the guess (never a revealed body twice) ---- */
     const os = st.sides[opp];
     const seen = os.mons.filter(m => m.seen).map(m => m.i);
-    const act = (os.active || []).filter(x => x != null);
+    /* THE SLOTS KEEP THEIR PLACES. An opposing slot left empty by a faint the opponent could not refill must stay
+     * empty in ITS position: compacting the survivors moved a slot-b body into slot a, so a move aimed at slot b
+     * (target 2) landed on the empty side of this world (found by solver/doduo/eval_gates.js, 2026-09-25). The
+     * empty slot is held by the fainted body the log last saw there (`pos`), else by any fainted revealed body. */
+    const act = [];
+    for (let k = 0; k < (os.active || []).length; k++) {
+      const i = os.active[k];
+      if (i != null) { act.push(i); continue; }
+      const posName = k === 0 ? 'a' : 'b';
+      const fnt = os.mons.filter(m => m.seen && m.fnt && !(os.active || []).includes(m.i) && !act.includes(m.i));
+      const hold = fnt.find(m => m.pos === posName) || fnt[0];
+      if (hold) act.push(hold.i);
+    }
     const order = [];
     for (const i of act) if (!order.includes(i)) order.push(i);
     for (const i of seen) if (!order.includes(i)) order.push(i);
@@ -168,14 +180,74 @@ function create(API) {
      * mirror of Showdown's activeMoveActions, zeroed on switch-in; engine/medicham2-browser.js firstTurnOnlyRefused),
      * and `_turnsOut` is kept with it. A body active at the start of the previous turn has had its move action; a body
      * that came in since (a switch, a pivot, a replacement) has not. */
-    const prev = turns.length >= 2 ? turns[turns.length - 2].state : null;
+    const prevTurn = turns.length >= 2 ? turns[turns.length - 2] : null;
+    const prev = prevTurn ? prevTurn.state : null;
+    /* A BODY THAT LEFT AND CAME BACK INSIDE THE LAST TURN IS NEW. Active at the start of both turns is not enough: a
+     * body switched out and brought back in the same turn (a Parting Shot or U-turn partner's pivot, a faint
+     * replacement) has a fresh move-action count, so its first-turn-only moves are selectable again. Found by
+     * solver/doduo/eval_gates.js (2026-09-25): two human Fake Out / First Impression clicks the world refused. */
+    const cameBack = (p, s) => !!prevTurn && ([].concat(prevTurn.midturn_switches || [], prevTurn.replacements || [])
+      .some(x => x && x.side === p && x.to === s));
     for (const [p, list] of [[me, mine.map(x => ({ b: x.b, s: x.s }))], [opp, theirs.map(x => ({ b: x.b, s: x.s }))]]) {
       const was = prev && prev.sides[p] ? prev.sides[p].active || [] : [];
       const now = (st.sides[p] && st.sides[p].active) || [];
       for (const x of list) {
-        const stayed = turnN > 1 && was.includes(x.s) && now.includes(x.s);
+        const stayed = turnN > 1 && was.includes(x.s) && now.includes(x.s) && !cameBack(p, x.s);
         x.b._turnsOut = stayed ? 1 : 0;
         x.b._mvActs = stayed ? 1 : 0;
+      }
+    }
+
+    /* ---- what the log shows about each body's own recent clicks (2026-09-25, docs/_reports/2026-09-25-mag-doduo-gates.md).
+     * Three engine fields a click's SUCCESS reads, which this world left at their battle-start values, so a gate asking
+     * the engine "does this click fail?" was told yes where the real game said no:
+     *   `_lastMove`         the body's last move since it came in (Encore and Disable fail on a target with none): the
+     *                       latest turn this body was active and its action was a move; a turn it could not act keeps the
+     *                       earlier one, as Showdown's lastMove does.
+     *   `tookProtectTurns`  the Protect-family streak: consecutive latest turns it clicked a stalling move (read off the
+     *                       move's own `stallingMove` in the dex, never a list). The log does not always show whether each
+     *                       one held; counting them all can only lengthen the streak, which makes the next one likelier to
+     *                       fail — the direction in which a gate keeps more, never cuts more.
+     *   `_usedEntry`        the moves it clicked since this entry (Showdown's per-entry moveSlot.used, which Last Resort
+     *                       reads), from the same walk back to the turn it came in.
+     *   `_pp`               one PP spent on every move the log has seen this body use (`used`, the whole battle); the
+     *                       count beyond one is unknown.
+     * Found by solver/doduo/eval_gates.js: human Encore, Last Resort and ally-targeting clicks the world made fail. */
+    const turnOf = k => turns[k];
+    for (const [p, list] of [[me, mine.map(x => ({ b: x.b, s: x.s }))], [opp, theirs.map(x => ({ b: x.b, s: x.s }))]]) {
+      const now = (st.sides[p] && st.sides[p].active) || [];
+      for (const x of list) {
+        if (!now.includes(x.s)) continue;
+        let last = null, streak = 0, streakOpen = true;
+        const stint = new Set();
+        for (let k = turns.length - 2; k >= 0; k--) {
+          const T0 = turnOf(k);
+          const act = (T0.state.sides[p] && T0.state.sides[p].active) || [];
+          if (!act.includes(x.s)) break;                                   // it came in after this turn started
+          if ([].concat(T0.midturn_switches || [], T0.replacements || []).some(y => y && y.side === p && y.to === x.s)) break;   // it left and came back inside this turn
+          const A = (T0.actions && T0.actions[p]) || {};
+          const a = [A.a, A.b].find(y => y && y.mon === x.s);
+          const mv = a && (a.kind === 'move' || a.kind === 'locked') && a.move ? X.D.moves.get(toID(a.move)) : null;
+          if (streakOpen) { if (mv && mv.exists && mv.stallingMove && a.executed !== false) streak++; else streakOpen = false; }
+          if (mv && mv.exists) { if (!last) last = mv.id; stint.add(mv.id); }
+          if (a && a.kind === 'switch') break;
+        }
+        if (last) x.b._lastMove = last;
+        if (streak) x.b.tookProtectTurns = streak;
+        /* `_usedEntry`: the moves clicked since this entry (Showdown's per-entry moveSlot.used; Last Resort reads it) */
+        if (stint.size) { x.b._usedEntry = x.b._usedEntry || {}; for (const id of stint) x.b._usedEntry[id] = true; }
+      }
+      const monsPub = (st.sides[p] && st.sides[p].mons) || [];
+      for (const x of list) {
+        const pub = monsPub[x.s];
+        for (const u of (pub && pub.used) || []) {
+          const id = toID(u);
+          if (!(x.b.moves || []).includes(id)) continue;
+          const pp = M.moveTagParam(id, 'pp');
+          if (!pp || !(+pp.max > 0)) continue;
+          x.b._pp = x.b._pp || {};
+          if (!(id in x.b._pp)) x.b._pp[id] = +pp.max - 1;
+        }
       }
     }
 
