@@ -41,7 +41,7 @@ SOLVER (was SEARCH) — the retired Reg M-B rollout rows; the Reg M-C solver is 
     data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
     MEDICHAM is not correct — 1 of 10 gate clauses fail (no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-09-24 23:09):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-09-26 10:30):
     PRE-CHANGE games.r4c-shipped2.jsonl  2026-08-14 22:28
     PRE-CHANGE games.r4c-shipped.jsonl  2026-08-14 17:21
     PRE-CHANGE games.r4b-search.jsonl  2026-08-14 13:02
@@ -49,7 +49,7 @@ SOLVER (was SEARCH) — the retired Reg M-B rollout rows; the Reg M-C solver is 
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
 ```
 
-_stamped 2026-09-25 14:43_
+_stamped 2026-09-26 19:05_
 
 <!-- /GENERATED -->
 

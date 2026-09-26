@@ -736,6 +736,21 @@ that is the difference between coverage and the appearance of it.
   while the census called them red: the roster grades BOARDS and stages one handler (Roar, a Dark hit),
   never the Intimidate reaction the census stages. Before reconciling, ask what each one stages.
 
+- **"Sent" is not "applied."** Showdown's message throttle silently dropped ROTOM's game-1 team-preview
+  `/choose` in 14 of 17 live series while our log said `sent: true`; the server played its default bring.
+  Only comparing what the server DID against what we chose caught it (`test-rotom-applied`). <!-- finish-2026-09-27 -->
+- **A private (hidden) room is renamed with a `-<code>pw` suffix**, and a "room does not exist" reply for
+  the old id once created a phantom series that hung the ladder loop forever. Receipt:
+  `docs/_reports/2026-09-25-rotom-series-hang.md`.
+- **Ladder wins are mostly forfeits.** 17 of 25 series wins in one run were opponents quitting; the bot was
+  3–11 in series played out. Always read the record WITHOUT forfeit/walkaway wins (`solver/rotom/report.js`).
+- **A stale untracked `data/engine-release-regmc.json` in the main checkout** made the gate read CLOSED /
+  CANNOT-ANSWER while the agent's worktree read OPEN 10/10. Re-cut the release in main before reading the gate.
+- **Beating DODUO in the arena is not beating humans.** gen5 search beat DODUO-greedy 71% (honest info)
+  and still went 3–11 on the ladder without forfeits. Arena results are relative; only the ladder is absolute.
+- **Depth-0 leaves reward a doomed Protect.** A lucky repeat Protect "survives" this turn and dies the next
+  (671/898); the fix (one extra playout turn) loses at 1 s and must be judged at 5–14 s.
+
 ---
 
 ## 8. SOURCES THAT EXIST AND ARE NOT OBVIOUS
@@ -1009,6 +1024,13 @@ returning zero is not evidence the mechanic is missing** — check `data/tags.js
   `git update-index --cacheinfo 100644,<sha>,<file>`. The working tree is never touched.
 - **Where does a docs-currency hit actually sit?** Its reported line is the PARAGRAPH START, not the
   figure's own line; locate it by content, not by number.
+
+- **Did the server actually apply our choice?** `solver/rotom` applied-vs-chosen counters in each game's
+  record, printed by `node solver/rotom/report.js`; `end_reason` fields say how every game ended.
+- **Which self-play corpus exists and where?** `solver/out/selfplay/eaa5becc54eb/<tag>/manifest.json`
+  (sha256 per shard). The generator is `solver/mew/run.js --league <file> --games N --workers W`.
+- **Why did a long test take so long?** Agents compete for CPU/RAM: the same self-play ran 1,770 games/h
+  with agents running and 7,832 games/h alone. Run long local jobs with NO agents alive.
 
 ---
 

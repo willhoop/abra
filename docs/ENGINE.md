@@ -2298,9 +2298,9 @@ ENGINE — does the simulator do what Pokémon does
   1004/1004 probed mechanics live, 0 missing   (census 2026-09-23 00:17)
     the census probes what somebody thought to probe: 304 of 307 in-scope tags carry a probe, 3 carry none (20 of 327
     tags have no in-scope carrier); 0 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 1.1 days old). node engine/coverage.js
+    (all-mechanics-fire.json, 2.3 days old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    pinned to engine release fb8073869b72 — engine/medicham2-browser.js matches the frozen copy; live is 2caee2eeabb0 now (a PRE-CHANGE measurement of that release, not corruption)
+    pinned to engine release fb8073869b72 — engine/medicham2-browser.js matches the frozen copy; live is 33219d25bdf1 now (a PRE-CHANGE measurement of that release, not corruption)
     pinned to engine release fb8073869b72 — engine/tags.js matches the frozen copy; live is 13cdeb051720 now (a PRE-CHANGE measurement of that release, not corruption)
     (+2 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
@@ -2319,7 +2319,7 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-25 14:43_
+_stamped 2026-09-26 19:05_
 
 <!-- /GENERATED -->
 
