@@ -45,4 +45,19 @@ function create(API, o) {
   return { positions, COUNTERS };
 }
 
-module.exports = { create };
+/* A MEW shard is one gzip member per game, appended as each game ends. A run stopped mid-write can leave a TORN last member:
+ * it is read with a sync flush (every complete member, plus whatever the torn one inflates to), and a last line that does
+ * not parse is dropped and COUNTED — never silently kept, never a crash that loses the whole shard. */
+function readShard(file, counters) {
+  const zlib = require('zlib');
+  const buf = require('fs').readFileSync(file);
+  const txt = zlib.gunzipSync(buf, { finishFlush: zlib.constants.Z_SYNC_FLUSH }).toString('utf8');
+  const out = [];
+  for (const line of txt.split(/\n/)) {
+    if (!line) continue;
+    try { out.push(JSON.parse(line)); } catch (e) { if (counters) counters.torn_lines = (counters.torn_lines || 0) + 1; }
+  }
+  return out;
+}
+
+module.exports = { create, readShard };

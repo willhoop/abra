@@ -24,6 +24,7 @@
  * <out>/labels.summary.json (flags, the release stamp, the counters). The keys are build.js's (dir|g|run_seed, t).
  */
 'use strict';
+const TORN = {};   // torn last lines of shards still being written / stopped mid-write (replay.js readShard)
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
@@ -38,14 +39,15 @@ const DIRS = String(flag('--selfplay', '')).split(',').filter(Boolean).map(d => 
 const OUT = path.resolve(ROOT, flag('--out', 'solver/out/p2v1/labels'));
 const PER = +flag('--per-game', 2), K = +flag('--k', 6), PASSES = +flag('--passes', 12), SEED = +flag('--seed', 1);
 const CHANCE = +flag('--chance', 3), EXACT_DEPTH = +flag('--exact-depth', 2), LIMIT = +flag('--limit', 0) || Infinity;
+/* --deadline <ISO time>: a worker takes no new game after it (a clean stop: every summary is written, no torn line) */
+const DEADLINE = flag('--deadline', null) ? Date.parse(flag('--deadline')) : Infinity;
 const LEAF = path.resolve(ROOT, flag('--leaf', 'solver/machamp/models/gen5/porygon2-gen5.json'));
 const MAG = flag('--mag', 'solver/machamp/models/gen5/mag-gen5.json'), DODUO = flag('--doduo', 'solver/machamp/models/gen5/doduo-gen5.json');
 const h32 = s => crypto.createHash('sha256').update(s).digest().readUInt32BE(0);
 
 function* records(dir) {
   for (const f of fs.readdirSync(dir).filter(f => /^shard-\d+\.jsonl\.gz$/.test(f)).sort()) {
-    const txt = zlib.gunzipSync(fs.readFileSync(path.join(dir, f))).toString('utf8');
-    for (const line of txt.split('\n')) if (line) yield JSON.parse(line);
+    for (const rec of require('./replay.js').readShard(path.join(dir, f), TORN)) yield rec;
   }
 }
 
@@ -96,6 +98,7 @@ function worker(shard, shards) {
       gi++;
       if (gi % shards !== shard) continue;
       if (c.games >= LIMIT) break;
+      if (Date.now() > DEADLINE) { c.stopped_at_deadline = 1; break; }
       const gkey = dkey + '|' + rec.g + '|' + rec.run_seed;
       const n = rec.hist.length;
       if (!n || rec.vA == null) continue;
@@ -146,7 +149,7 @@ function worker(shard, shards) {
       if (c.games % 25 === 0) console.log(`  [label ${shard}] ${c.games} games ${c.positions} labels (exact ${c.exact}, deep2 ${c.deep2}, deep ${c.deep}) ${((Date.now() - t0) / 1000).toFixed(0)}s`);
     }
   }
-  fs.writeFileSync(out + '.summary.json', JSON.stringify({ shard, counts: c, replay: RP.COUNTERS, search: MT.COUNTERS, rollout: R.COUNTERS, engine_release: ENGINE.id, release_stamp: ENGINE.stamp, seconds: (Date.now() - t0) / 1000 }));
+  fs.writeFileSync(out + '.summary.json', JSON.stringify({ shard, counts: c, torn: TORN, replay: RP.COUNTERS, search: MT.COUNTERS, rollout: R.COUNTERS, engine_release: ENGINE.id, release_stamp: ENGINE.stamp, seconds: (Date.now() - t0) / 1000 }));
   console.log(`  [label ${shard}] done ${JSON.stringify(c)}`);
 }
 
@@ -167,7 +170,7 @@ async function coordinator() {
   const first = sums.find(Boolean) || {};
   const summary = { what: 'PORYGON2 v1 search-improved labels (solver/porygon2/v1/label.js)', engine_release: first.engine_release, release_stamp: first.release_stamp,
     flags: { selfplay: DIRS.map(d => path.relative(ROOT, d).split(path.sep).join('/')), per_game: PER, k: K, passes: PASSES, chance: CHANCE, exact_depth: EXACT_DEPTH, seed: SEED,
-      leaf: path.relative(ROOT, LEAF).split(path.sep).join('/'), mag: MAG, doduo: DODUO, workers: W, limit: LIMIT === Infinity ? null : LIMIT },
+      leaf: path.relative(ROOT, LEAF).split(path.sep).join('/'), mag: MAG, doduo: DODUO, workers: W, limit: LIMIT === Infinity ? null : LIMIT, deadline: flag('--deadline', null) },
     counts, exits, wall_s: (Date.now() - t0) / 1000 };
   fs.writeFileSync(path.join(OUT, 'labels.summary.json'), JSON.stringify(summary, null, 1));
   console.log(JSON.stringify({ counts, wall_s: summary.wall_s }));

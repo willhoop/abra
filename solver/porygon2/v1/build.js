@@ -22,6 +22,7 @@
  *        last (1 on the game's last position), alive_p1, alive_p2 (live mons, unseen brought counted)
  */
 'use strict';
+const TORN = {};   // torn last lines of shards still being written / stopped mid-write (replay.js readShard)
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
@@ -51,8 +52,7 @@ const sha = f => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('
 
 function* spRecords(dir) {
   for (const f of fs.readdirSync(dir).filter(f => /^shard-\d+\.jsonl\.gz$/.test(f)).sort()) {
-    const txt = zlib.gunzipSync(fs.readFileSync(path.join(dir, f))).toString('utf8');
-    for (const line of txt.split('\n')) if (line) yield JSON.parse(line);
+    for (const rec of require('./replay.js').readShard(path.join(dir, f), TORN)) yield rec;
   }
 }
 
@@ -183,7 +183,7 @@ async function main() {
     engine_release: ENGINE.id, release_stamp: ENGINE.stamp, kind: DIRS.length ? 'selfplay' : 'human', shard: SHARD, shards: SHARDS, argv,
     champion: { path: path.relative(ROOT, GEN5).split(path.sep).join('/'), sha256: sha(GEN5) },
     N, names: { tok: FX.TOK_NUM_NAMES, ids: FX.TOK_ID_NAMES, side: FX.SIDE_NUM_NAMES, field: FX.FIELD_NUM_NAMES, facts: FX.FACT_NAMES, meta: META_COLS, ends: ENDS },
-    vocab, train_count: trainCount, games, sources, counts: c, replay: RP.COUNTERS, engine_counters: F.COUNTERS, gen5_counters: G5.COUNTERS, seconds: (Date.now() - t0) / 1000 };
+    vocab, train_count: trainCount, games, sources, counts: c, torn: TORN, replay: RP.COUNTERS, engine_counters: F.COUNTERS, gen5_counters: G5.COUNTERS, seconds: (Date.now() - t0) / 1000 };
   fs.writeFileSync(path.join(OUT, 'meta.json'), JSON.stringify(meta));
   console.log(JSON.stringify({ N, counts: c, replay: RP.COUNTERS, seconds: meta.seconds }));
 }
