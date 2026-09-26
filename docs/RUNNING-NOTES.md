@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [Unreleased] — 2026-09-26 — **CHOMP v0 merged onto main as the base for CHOMP v1 (branch only)**
+- **What changed.** `solver/chomp/` v0, ROTOM `--preview chomp`, arena `--preview-x/-y`, `--plan`, `--blind`, `solver/tests/test-chomp.js` merged from `1e1f3fa3`. Conflicts in `solver/rotom/*.js` and `solver/arena/arena.js` keep main's clock and gen5 code and add the preview hook. No engine byte moved.
+- **Measured.** NO FIGURE. test-chomp 36/36, test-rotom 105/105, test-arena 15/15 on the merged tree.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none (the v1 row carries CHOMP into MODELS).
+
 ## [abra/regmc 1.24.0] — 2026-09-27 — **ROTOM's adaptive clock: not worse than a fixed 5 s at 23% less time; the lookahead options pass a 2 s screen**
 - **What changed.** New `solver/rotom/adaptive.js` (plan, stop rule, safety line), `solver/tests/test-adaptive-clock.js`, `solver/bench/adaptive_tune.js`, `solver/bench/adaptive_read.js`. A two-line `o.onPass` hook in `solver/miltank/search.js`/`cells.js`; `spec.adaptive` in `solver/mew/agent.js`; `searched_x/y`, `adapt_x/y` on match lines; `--adaptive-target-ms` and arm `adaptive` in `solver/rotom/rotom.js`/`policy.js`; `eRemHi` and the 5 s tick in `solver/rotom/clock.js`.
 - **Measured.** SPRT adaptive (target 4.5 s) vs fixed 5 s, gen5, honest, `eaa5becc54eb`: H0 at 748 games, 0.491 [0.455, 0.526], 3,628 vs 4,717 ms per searched decision, 0 timeouts (`solver/results/2026-09-27-adaptive-clock/sprt-adaptive-vs-5s.json`, `adaptive-read.json`). Options on vs off at adaptive 2 s: 0.500 [0.431, 0.569], 200 games, PASS (`solver/results/2026-09-27-adaptive-options/screen-2s.json`). Tests: test-adaptive-clock 30/30 (RED nocap, nostop), test-rotom 105/105, test-rotom-ladder 114/114, test-honest-info 1954/1954, test-miltank-quiesce 1195/1195, test-playout-speed 1184/1184, test-machamp 97/97, test-miltank-deadline --no-red 14/16 with its load-sensitive SEARCH clause red beside a live run (pool 40% solved), SEARCH re-run alone 6/6 (pool 100%, median 289 playouts); this change does not touch the pool path.

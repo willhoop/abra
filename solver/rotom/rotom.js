@@ -83,6 +83,7 @@ const OUT = path.resolve(flag('out', path.join(ROOT, 'solver', 'out', 'rotom', '
 const SEED = +flag('seed', 1);
 const MAX_MS = +flag('max-ms', Infinity);           // an operator cap on a search (tests); the clock is the binding rule
 const PREVIEW_MAX_MS = +flag('preview-max-ms', 20000);
+const PREVIEW = flag('preview', 'policy');            // 'policy' = the move policy's preview (as before) | 'chomp' = CHOMP v0 first
 const MARGIN_S = +flag('margin', 8);
 const RESERVE_S = +flag('reserve', 30);
 const MIN_SEARCH_MS = +flag('min-search-ms', 400);
@@ -139,6 +140,7 @@ if (!LOCK.isLocal(SERVER) && !has('public')) {
 const POLICIES = ['prior', 'miltank', 'miltank-gen5', 'random'];
 const SEARCHES = ['miltank', 'miltank-gen5'];          // the policies that search: the clock floor, the prior fallback and the idle GC apply
 if (!POLICIES.includes(POLICY)) { console.error('unknown --policy ' + POLICY); process.exit(2); }
+if (!['policy', 'chomp'].includes(PREVIEW)) { console.error('unknown --preview ' + PREVIEW); process.exit(2); }
 if (DRY_RUN && !LOCK.isLocal(SERVER)) { console.error('--dry-run is LOCAL only: ' + SERVER + ' is not localhost. Refusing.'); process.exit(2); }
 if (DRY_RUN && has('public')) { console.error('--dry-run and --public together make no sense. Refusing.'); process.exit(2); }
 if (LADDER_MODE) {
@@ -231,6 +233,8 @@ if (ENGINE.id) { const ed = path.join(ENGINE.REL.dir, 'data', 'engine-data-regmc
       PROV.gen5 = { spec: path.relative(ROOT, g.specFile).split(path.sep).join('/'), spec_sha256: sha(g.specFile), digests: g.digests };
       say('warm-up: miltank-gen5 loaded in ' + (Date.now() - tw) + ' ms (' + JSON.stringify(g.digests) + ')');
     }
+    /* CHOMP's first table pays the JIT; pay it here, not on the preview clock */
+    if (PREVIEW === 'chomp') { const t = Date.now(); P.previewChomp({ sheets: G.sheets, me: 'p1', budgetMs: 600000, coin: API.M.rngStreams({ seed: 5 }).any }); say('CHOMP warm-up table in ' + (Date.now() - t) + ' ms'); }
   } catch (e) { say('warm-up failed (continuing): ' + e.message); }
 })();
 say('loaded engine ' + (ENGINE.id ? 'release ' + ENGINE.id : '(LIVE TREE)') + ' + MAG/DODUO + XATU in ' + (Date.now() - t0load) + ' ms; policy ' + (LADDER_MODE ? 'per series arm' : POLICY) + '; out ' + OUT);
@@ -1108,6 +1112,8 @@ function decide(B) {
     const posOfSheet = s => { const r = mySheet[s]; if (!r) return s + 1; const j = req.side.pokemon.findIndex(pk => String(pk.ident).replace(/^p[12]:\s*/, '') === r.nick); return j >= 0 ? j + 1 : s + 1; };
     const d = { req, coin, sheets: B.sheets, me: B.me, budgetMs: Math.min(bud.ms, ARM && ARM.preview_max_ms > 0 ? ARM.preview_max_ms : PREVIEW_MAX_MS), teamBring: team ? team.bring : null,
                 series: { oppLast: B.bestof ? BOOK.oppLast(B.bestof, B.gnum || 1, B.me) : null } };
+    /* --preview chomp: CHOMP v0 first; a throw or an over-budget table falls down the usual chain, COUNTED (chomp:threw) */
+    if (PREVIEW === 'chomp') tryPolicy('chomp', () => { const r = P.previewChomp(d); return { choice: RQ.previewChoice(r.order.map(x => posOfSheet(x - 1))), info: r.info }; });
     tryPolicy(first, () => {
       let r = P.preview(first, d);
       if (r.search) { if (!(B.sheets.p1 && B.sheets.p2)) throw new Error('no sheets for the preview search'); r = P.previewSearch(d, r.human); r.order = r.order.map(x => posOfSheet(x - 1)); }
@@ -1194,7 +1200,7 @@ function stats(a) {
   return { n: a.length, mean: Math.round(a.reduce((x, y) => x + y, 0) / a.length), p50: q(0.5), p95: q(0.95), p99: q(0.99), max: s[s.length - 1] };
 }
 function writeSummary() {
-  const out = { name: NAME, policy: POLICY, server: SERVER, pid: process.pid, restarts: STATE.restarts, flags: { send_gap_ms: SEND_GAP_MS, max_mismatches: +flag('max-mismatches', 3), max_ms: MAX_MS, preview_max_ms: PREVIEW_MAX_MS, margin_s: MARGIN_S, reserve_s: RESERVE_S, min_search_ms: MIN_SEARCH_MS, timer: TIMER, seed: SEED, drill: DRILL || null, priority: PRIORITY, priority_set: PRIORITY_SET }, idle_gc: ST.idleGc || { n: 0, ms: 0, max: 0, refused: 0 }, adaptive: ST.adapt || null, adaptive_target_ms: ADAPT_TARGET_MS || null,
+  const out = { name: NAME, policy: POLICY, server: SERVER, pid: process.pid, restarts: STATE.restarts, flags: { send_gap_ms: SEND_GAP_MS, max_mismatches: +flag('max-mismatches', 3), max_ms: MAX_MS, preview: PREVIEW, preview_max_ms: PREVIEW_MAX_MS, margin_s: MARGIN_S, reserve_s: RESERVE_S, min_search_ms: MIN_SEARCH_MS, timer: TIMER, seed: SEED, drill: DRILL || null, priority: PRIORITY, priority_set: PRIORITY_SET }, idle_gc: ST.idleGc || { n: 0, ms: 0, max: 0, refused: 0 }, adaptive: ST.adapt || null, adaptive_target_ms: ADAPT_TARGET_MS || null,
     clock_rule: new Clock(Object.assign({ format: FORMAT_ID }, clockOpts)).rule,
     sets: STATE.setsDone, decisions: ST.decisions, by_kind: ST.byKind,
     decision_ms: { preview: stats(ST.ms.preview), move: stats(ST.ms.move), switch: stats(ST.ms.switch) }, budget_ms: stats(ST.budget),

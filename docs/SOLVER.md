@@ -76,7 +76,10 @@ This section says only what a division agent needs before it starts.
   fixed the budget (0.1% empty) and still accepted nothing: gen3 lost to the champion 0.430. The DODUO update is the
   suspect (§10 of the report). Round 3 (pooled data, deep-value PORYGON2, anchored DODUO) produced the first
   accepted generation: gen5, SPRT H1 at +20 Elo after 1,268 games (report §12).
-- **Not built:** CHOMP, PORYGON2, GARY, HYPNO, DUSK, WOBBUFFET, DITTO, ROTOM, ALAKAZAM,
+- **CHOMP v0 is built** (`solver/chomp/`, 2026-09-25, release `eaa5becc54eb`) **and fails its bar**: its preview loses to
+  the human bring (SPRT H0 accepted) and ties random. The PORYGON2 cells carry no bring signal.
+  `docs/_reports/2026-09-25-chomp-v0.md`.
+- **Not built:** PORYGON2, GARY, HYPNO, DUSK, WOBBUFFET, DITTO, ROTOM, ALAKAZAM,
   KADABRA (and JOLTEON, only if CHOMP needs a pre-screen). Order: `solver/PLAN.md` §3, milestones M1–M8.
 - **MILTANK's decision deadline is hard (2026-09-25, abra/regmc 1.9.0).** A decision returns within budget + 500 ms
   under load, on both the pool path and the serial path. When the table is too empty, it falls back, counted, to

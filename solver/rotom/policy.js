@@ -4,6 +4,9 @@
  *   P.move(name, d)        -> { choice, info }   a move request       name: 'random' | 'prior' | 'miltank' | 'miltank-gen5'
  *   P.forceSwitch(name, d) -> { choice, info }   a forced / mid-turn switch request
  *   P.preview(name, d)     -> { order, info }    team preview: four request positions, leads first
+ *   P.previewChomp(d)      -> { order, info }    team preview by CHOMP v0 (solver/chomp/chomp.js): the option SAMPLED from its
+ *                                                mix with d.coin; order = 1-based SHEET indices (the caller maps them to
+ *                                                request positions, as for previewSearch). Throws past d.budgetMs.
  *
  * `d` is the decision: { req, world (world.js build, or null if the world failed), budgetMs, coin, series, sheets, me, xatu }.
  *
@@ -36,7 +39,7 @@ function create(deps) {
   const { API, PA, R, tables } = deps;
   const M = API.M;
   const SK_MT = require('../miltank/search.js');
-  const COUNTERS = { move: {}, forceSwitch: {}, preview: {}, unmappedJoints: 0, unmappedBy: {}, unmappedSamples: [], rootFiltered: 0, xatuWorlds: 0, xatuFallback: 0, previewPlayouts: 0,
+  const COUNTERS = { move: {}, forceSwitch: {}, preview: {}, unmappedJoints: 0, unmappedBy: {}, unmappedSamples: [], rootFiltered: 0, xatuWorlds: 0, xatuFallback: 0, previewPlayouts: 0, chompSolves: 0,
                      gen5: { decisions: 0, searched: 0, forced: 0, fallbackEmpty: 0, fallbackSparse: 0, noBack: 0, hpLaid: 0, switchScored: 0 } };
   const bump = (k, n) => { COUNTERS[k][n] = (COUNTERS[k][n] || 0) + 1; };
 
@@ -366,7 +369,20 @@ function create(deps) {
     return MT.decide(S, 'A', ctx, gen5Opts(1500, coin));
   }
 
-  return { COUNTERS, move, forceSwitch, preview, previewSearch, randomChoice, filteredLegal, allOptions, gen5, warmGen5,
+  /* ---- CHOMP v0 at team preview (rotom.js --preview chomp) ---- */
+  let CH = null;
+  function previewChomp(d) {
+    const me = d.me, mine = d.sheets && d.sheets[me], theirs = d.sheets && d.sheets[me === 'p1' ? 'p2' : 'p1'];
+    if (!mine || !theirs) throw new Error('chomp: both open sheets are needed');
+    CH = CH || require('../chomp/chomp.js').create({ API });
+    const r = CH.solve({ mine, theirs }, { deadline: Date.now() + (d.budgetMs || 0) });
+    const op = CH.sample(r, d.coin());
+    COUNTERS.chompSolves++;
+    return { order: op.order.map(x => x + 1), info: { chomp: true, option: op.i, label: op.label, p: +r.mix[op.i].toFixed(4), v: +r.value.toFixed(4),
+      vsMix: +r.win[op.i].vsMix.toFixed(4), support: r.support.length, cells: r.counters.cells, ms: r.ms } };
+  }
+
+  return { COUNTERS, move, forceSwitch, preview, previewSearch, previewChomp, randomChoice, filteredLegal, allOptions, gen5, warmGen5,
            POLICIES: ['random', 'prior', 'miltank', 'miltank-gen5'], SEARCH: ['miltank', 'miltank-gen5'] };
 }
 

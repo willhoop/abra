@@ -2,6 +2,7 @@
  *
  *   const T = require('./solver/arena/teams.js');
  *   const L = T.loadGames({ file, n, seed })    -> { games:[G], file, scanned, eligible, skipped:{...} }
+ *   const L = T.loadGames({ file, ids, M })      -> exactly those game ids, in that order (a pre-registered list)
  *   G = { id, sheets:{p1:[6 sheet rows], p2:[...]}, brought:{p1:[4 sheet idx, leads first], p2:[...]} }
  *   T.buildTeam(M, G, 'p1')                      -> { team:[4 bodies], sheetOf:[sheet idx per team idx] } | null
  *   T.buildBody(M, sheetRow)                     -> one body, or null
@@ -78,6 +79,13 @@ function loadGames(o) {
   SCANS.set(file, sc);
   const { eligible, scanned } = sc;
   const skipped = Object.assign({}, sc.skipped, { unbuildable: 0 });
+  /* `ids`: exactly these games, in this order (a pre-registered pair list, solver/chomp/plan.js) */
+  if (o.ids) {
+    const byId = new Map(eligible.map(G => [G.id, G]));
+    const games = [], missing = [];
+    for (const id of o.ids) { const G = byId.get(id); if (!G || (M && (!buildTeam(M, G, 'p1') || !buildTeam(M, G, 'p2')))) missing.push(id); else games.push(G); }
+    return { games, file, scanned, eligible: eligible.length, skipped: Object.assign(skipped, { not_in_eligible_or_unbuildable: missing.length }), stride: null, ids: true, missing };
+  }
   /* seeded stride over the eligible list, then drop any pair that does not build */
   const n = o.n || 100;
   const games = [];
