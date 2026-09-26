@@ -248,6 +248,11 @@ After the fix: `meganow` → doduo 0/66 [0, 0.055], mag 0/69 [0, 0.053], both FA
 ## 4. Owed
 
 - `node engine/status.js --write` from the main checkout after merge (a worktree write corrupts the ledgers).
+- **Regression runs after the change:** `test-arena` 15/15 + RED on `seat`; `test-mega-rate --fast` 5/5 + RED on
+  `nevermega`; `test-machamp --release eaa5becc54eb` **92/93, RED on REBUILD**: `build_doduo.js` reads
+  `solver/out/mag/meta.json`, which is now missing in the main checkout as well as here (the mega-rate report saw it
+  only in this worktree). Not caused by this change (no file build_doduo reads was touched); it needs the MAG build
+  output regenerated. Reported, not fixed.
 - CHANGELOG-REGMC entry 1.13.0 on this branch. If another branch lands 1.13.0 first, renumber at merge.
 - The 1 s and 5 s arms ran beside a live ladder run. A re-run on an idle machine, or with a playout budget, would say
   what gen5 is worth at a fixed compute; the verdict here is about this machine under this load.
