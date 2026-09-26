@@ -21,6 +21,44 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.19.0] — 2026-09-26
+
+### Added
+- **The tiered gates (Will, 2026-09-26).** A click is ALWAYS BANNED — removed — when no branch (the target staying, or
+  any switch-in the opponent has) achieves its PURPOSE; it is MOSTLY BANNED — kept, weighted by the human switch model's
+  probability of a rescuing switch, floored at 0.001 — when it is futile against the body in now and works only on a
+  switch. `solver/mag/purpose.js` reads the purpose off the move's data: a guaranteed-flinch move's purpose is the flinch
+  (so a Fake Out into a body that cannot flinch, or into a Ghost type, is always banned: a switch-in is never flinched);
+  a status move aimed at a body whose effect is a status, a stat change or a board-read volatile is judged on the
+  target's board; everything else on MEDICHAM's move result. MAG (per slot) and DODUO's pair gate stay separate jobs.
+- In play the alternative worlds put every unrevealed sheet member on the bench (at most 16 draws), and the weight comes
+  from MAG v1 + DODUO v1 scoring the opponent's joints from its own seat (`solver/doduo/v2.js`).
+- `solver/arena/click_rates.js`: every match row carries each arm's Protect repeats and immune hits, read on the true
+  battle at the click; `solver/arena/click_rates_read.js` reads them. `solver/doduo/loss_replays.js` prints what the
+  replay says after every click a gate cut. `eval_gates.js --human-only`: the survival and mostly-banned questions over
+  every held-out decision.
+- `solver/tests/test-gates.js`: FAKEOUT, ENCORE, WEIGHT, BENCH, SHIELDRES, ALLFUTILE and a purpose case in DISJOINT;
+  42 checks, 21 deliberate breaks, each red. Specs `solver/doduo/specs/{doduo-greedy,gen5}-tiered.json`; pre-registration
+  `solver/doduo/preregistration-tiered.json`.
+
+### Changed
+- `solver/doduo/gate.js`: the pair gate no longer judges a click MAG calls dead. With purpose, a dead click can still move
+  the board beside some partner, and the pair gate had cut 593 such pairs in the seed-5 eval; the removal is the same,
+  the two jobs are kept apart. No click in play changes (DODUO v2 cuts on MAG first).
+
+### Notes
+- Release `eaa5becc54eb`, held-out Reg M-C: the human's joint survives the always-banned tier **99.60% [99.21, 99.80]**
+  on a fresh 2,000 (8 losses, all real misclicks by their replays) and **99.69% [99.61, 99.76]** on all 20,482 eligible
+  decisions (63 losses: 61 real misclicks, 2 errors of the 2026-09-25 pair gate). The 99.9% bar is not met as a rate.
+- Humans click a mostly-banned move 24 times in 33,784 move clicks (0.071%); 13 of 23 achieved their purpose, all on a
+  turn the opponent switched.
+- DODUO-greedy tiered vs ungated: **H0** after 56 games, 0.482 [0.357, 0.610]. MILTANK gen5 1 s tiered vs ungated:
+  **H0** after 364 games, 0.467 [0.416, 0.518], equal wall-clock (965 vs 960 ms). Protect repeats and immune hits did not
+  move measurably in either arm. Artifacts `solver/results/2026-09-26-tiered/`; account
+  `docs/_reports/2026-09-26-tiered-gates.md`.
+- `docs/ENGINE.md`: a Prankster-boosted status move refused by a Dark target ends with the move result `true` here and
+  `false` in the authority (readers: Stomping Tantrum, Temper Flare, the Metronome item). Filed, not fixed.
+
 ## [1.18.0] — 2026-09-26
 
 ### Added

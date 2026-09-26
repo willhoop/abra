@@ -8,6 +8,19 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-26
 
+### The tiered gates — always banned (removed) / mostly banned (weighted) (abra/regmc 1.19.0)
+- Will's design: a click no branch can make achieve its PURPOSE (the target staying or any switch-in) is removed; a
+  click futile against the body in now but rescued by a switch is weighted by the human switch model. Purpose from the
+  move's data (`solver/mag/purpose.js`): the flinch for Fake Out-type moves, the target's board for status moves, else
+  the move result. Every unrevealed sheet member is put on the bench in some alternative world.
+- Held-out survival 99.60% (2,000, all 8 losses real misclicks) and 99.69% (all 20,482; 61 of 63 real, 2 errors of the
+  2026-09-25 pair gate: a board-invisible Yawn, a Feint at a 1%-HP target). Humans click mostly-banned moves 0.071% of
+  the time; 13 of 23 paid off, all on a switch.
+- DODUO-greedy H0 at 56 games (0.482), MILTANK gen5 H0 at 364 games (0.467): no strength gain. Protect repeats and immune
+  hits unchanged within noise. The pair gate now yields to MAG on a MAG-dead click (593 redundant cuts before).
+- Filed to ENGINE: Prankster status move into a Dark target — move result `true` here, `false` in the authority.
+  Detail: `docs/_reports/2026-09-26-tiered-gates.md`.
+
 ### ROTOM end reasons, the self-quit halt, rated-only records (abra/regmc 1.17.0)
 - Every game and series now says how it ended (`solver/rotom/endings.js`): normal, forfeit, battle-timer timeout,
   all-inactive, or a walkaway between games. Our own forfeit/timeout/walkaway halts the ladder; it must be zero.

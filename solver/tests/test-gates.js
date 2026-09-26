@@ -205,6 +205,13 @@ if (!immune) cannot('no derived (move, immune species, plain species) triple pas
   let cutOnDead = 0, n = 0;
   for (const j of p.la.joint) if (PR.optKey(j[0]) === PR.optKey(o)) { n++; const pv = DG.pairVerdict(p, j); if (pv.cut && pv.slot === 0) cutOnDead++; }
   ok('UNKNOWN', v.v === 'dead' && n > 1 && cutOnDead === 0, `${mv.id} at my immune partner: MAG ${v.v}; the pair gate cut ${cutOnDead} of its ${n} pairs on it (expected dead, 0)`);
+  /* and asked of the three-valued logic itself (since 2026-09-26 the pair gate yields to MAG on a dead click, so the pair
+   * verdict above no longer reaches it): beside the partner's attack, "does the click have an effect beside some OTHER
+   * partner click?" — the only other is the Protect, beside which nothing was informative — must be NO, not "unknown,
+   * so yes" */
+  const jAtk = o && p.la.joint.find(j => PR.optKey(j[0]) === PR.optKey(o) && j[1].kind === 'move' && j[1].move === weak.id);
+  const other = jAtk ? DG.effectBesideOther(p, 0, o, jAtk[1]) : null;
+  ok('UNKNOWN', jAtk && other === false, `an untested partner click read as an effect: effectBesideOther = ${other}`);
   console.log(`  UNKNOWN: ${mv.id} at my immune partner -> MAG ${v.v}; pair cuts on it ${cutOnDead}/${n}`);
 }
 

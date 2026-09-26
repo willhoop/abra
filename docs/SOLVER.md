@@ -90,6 +90,10 @@ This section says only what a division agent needs before it starts.
   refuses every non-loopback connection in every process), `login_stub.js`, `build_ladder_teams.js` →
   `teams/ladder-rotation.json`, and `arms/`. Runbook with the exact commands: `solver/rotom/LADDER.md`.
   Account: `docs/_reports/2026-09-25-rotom-ladder-mode.md`. **A public launch is Will's call.**
+- **The tiered gates (2026-09-26, abra/regmc 1.19.0).** MAG removes a click no branch can make achieve its purpose
+  (`solver/mag/purpose.js`) and marks one rescued only by a switch, which DODUO v2 weights by the human switch model;
+  the pair gate leaves MAG-dead clicks to MAG. Held-out survival 99.60% / 99.69% (2 pair-gate errors in 20,482); no
+  strength gain (DODUO-greedy and MILTANK both H0). Account: `docs/_reports/2026-09-26-tiered-gates.md`.
 - **ROTOM knows how each series ended, and never counts an unrated one (2026-09-26, abra/regmc 1.17.0).** Game and
   series rows carry `end_reason` (`solver/rotom/endings.js`), including the walkaway between games that no game log
   shows. Our own forfeit, timeout or walkaway is a ladder error and a HALT. Every record or mean is over rated series
