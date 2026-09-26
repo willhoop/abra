@@ -1,0 +1,21 @@
+{
+ "what": "The MILTANK deeper-lookahead options (quiesce 'all' + flatEps 0.001 + reserveNoRepeat; docs/_reports/2026-09-27-protect-repeat-fix.md) ON vs OFF, both arms on ROTOM's adaptive clock (solver/rotom/adaptive.js). Written 2026-09-27 BEFORE the first game of either stage.",
+ "why": "Will wants the ladder budget near 10 s on average. The options lost at a fixed 1 s (H0, 0.418 [0.350, 0.488]) where each cell got ~1.4 playouts; the hypothesis is that with more time per cell the extra turn pays for itself.",
+ "engine_release": "eaa5becc54eb",
+ "team_store": "data/team-pool-frozen-regmc, TEST pairs",
+ "information": "honest",
+ "stage_1_screen": {
+  "x": "solver/results/2026-09-27-adaptive-options/screen-2s-on.json (gen5 + options, adaptive targetMs 2000, credit0Ms 667)",
+  "y": "solver/results/2026-09-27-adaptive-options/screen-2s-off.json (gen5, adaptive targetMs 2000, credit0Ms 667)",
+  "command": "solver/machamp/gate.js --release eaa5becc54eb --x <on> --y <off> --pairs 100 --pair-seed 1 --seed 27101 --workers 4 --cap 50 --rule notlose --info honest --team-store data/team-pool-frozen-regmc",
+  "pass_rule": "PASS iff the Wilson 95% upper bound of X's score is >= 0.5 (gate.js notlose: no loss shown) AND X's point score is >= 0.47. Read once, at 200 games. FAIL = no long SPRT; the options stay off.",
+  "note": "2 s is the upper end of the 1-2 s screen the coordinator asked for, chosen because the hypothesis is that the options need time; a pass at 2 s is necessary, not sufficient."
+ },
+ "stage_2_sprt_only_if_stage_1_passes": {
+  "x": "solver/results/2026-09-27-adaptive-options/adaptive-10s-on.json (gen5 + options, adaptive targetMs 12000, credit0Ms 4000)",
+  "y": "solver/results/2026-09-27-adaptive-options/adaptive-10s-off.json (gen5, adaptive targetMs 12000, credit0Ms 4000)",
+  "target_note": "targetMs 12000 because adaptive at target 4500 spent 3,628 ms per searched decision (ratio 0.81; solver/results/2026-09-27-adaptive-clock/adaptive-read.json), so 12 s is expected near 10 s. The realised mean is reported, not assumed.",
+  "test": "solver/machamp/sprt.js: elo0 0, elo1 +20, alpha = beta = 0.05, max 2,000 games, seed 27102, 3 workers (sprt.js's own cap), read ONCE at the bound. H1 = options on is stronger at ~10 s. Deploy only on H1.",
+  "clock_rule": "0 timeouts for either arm (no decision over 55 s, no game over 420 s of decision time)."
+ }
+}
