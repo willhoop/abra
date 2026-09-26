@@ -1,0 +1,51 @@
+{
+ "what": "PORYGON2 leaf cost per evaluation, µs (solver/porygon2/v1/bench.js)",
+ "engine_release": "eaa5becc54eb",
+ "positions": 300,
+ "reps": 3,
+ "selfplay": "solver/out/selfplay/eaa5becc54eb/loop-sp9",
+ "arms": [
+  {
+   "model": "solver/machamp/models/gen5/porygon2-gen5.json",
+   "version": "v0",
+   "total_us": {
+    "median": 1533.3,
+    "mean": 1537.5,
+    "p95": 2427.1
+   },
+   "forward_us": {
+    "median": 180.6,
+    "mean": 191.2,
+    "p95": 258.8
+   }
+  },
+  {
+   "model": "solver/out/p2v1/final/sets.json",
+   "version": "v1",
+   "total_us": {
+    "median": 1643.4,
+    "mean": 1667.1,
+    "p95": 2610.1
+   },
+   "forward_us": {
+    "median": 503.3,
+    "mean": 548.1,
+    "p95": 851.8
+   }
+  },
+  {
+   "model": "solver/out/p2v1/final/attn.json",
+   "version": "v1",
+   "total_us": {
+    "median": 1883.1,
+    "mean": 1913.7,
+    "p95": 2903
+   },
+   "forward_us": {
+    "median": 750.7,
+    "mean": 810.2,
+    "p95": 1219.4
+   }
+  }
+ ]
+}
