@@ -1,0 +1,6 @@
+{ "current": { "name": "gen5-p2", "kind": "miltank",
+  "mag": "solver/machamp/models/gen5/mag-gen5.json", "doduo": "solver/machamp/models/gen5/doduo-gen5.json", "pory2": "solver/machamp/models/gen5/porygon2-gen5.json",
+  "budgetMs": 3000, "maxPasses": 2, "k1": 4, "k2": 4, "depth": 0, "reserveSwitch": 1 },
+  "previous": null,
+  "clone": { "name": "human-clone", "kind": "greedy", "mag": "solver/mag/model/mag-v1.json", "doduo": "solver/mag/model/doduo-v1.json" },
+  "weights": { "current": 0.6, "previous": 0, "clone": 0.4 } }
