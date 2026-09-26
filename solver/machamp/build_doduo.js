@@ -2,7 +2,7 @@
  * solver/machamp/build_doduo.js — DODUO's self-play training tensors: every searched self-play decision, its
  * candidates featurised by the SAME function DODUO reads live, and the SEARCH's mix as a soft target.
  *
- *   node solver/machamp/build_doduo.js --selfplay <dir>[,<dir>…] --out <dir> [--meta solver/out/mag/meta.json]
+ *   node solver/machamp/build_doduo.js --selfplay <dir>[,<dir>…] --out <dir> [--meta solver/mag/model/mag-v1.vocab.json]
  *        [--mag solver/mag/model/mag-v1.json] [--max-unfilled 0.5] [--min-mass 0.5] [--val-pct 10]
  *
  * Reads MEW's shards (solver/mew/play.js). For each recorded decision it rebuilds the row the prior adapter built
@@ -21,6 +21,13 @@
  *   tgt.i32 [T, 3] (decision, a, b)   tgt.f32 [T] (mass)
  * and <out>/meta.json (counts, the source shards' digests, the vocabularies it indexed with — the HUMAN build's
  * meta, so the ids mean what the trainer's embeddings mean).
+ *
+ * THE VOCABULARY IS TRACKED, NOT FOUND (2026-09-26). --meta defaulted to solver/out/mag/meta.json, an UNTRACKED build
+ * output that a fresh checkout does not have, so test-machamp REBUILD went red on a machine that had never run the
+ * human build. The default is now solver/mag/model/mag-v1.vocab.json, the vocabulary and feature names of the human
+ * build MAG v1 + DODUO v1 were trained on, pinned beside the model. Whatever --meta names is REFUSED unless its dataset
+ * digest equals the MAG model's and every embedding row of the model is in its vocabulary; meta.json records which
+ * file was read (`human_meta.file`, `human_meta.sha256`).
  */
 'use strict';
 const fs = require('fs');
@@ -35,7 +42,9 @@ const ROOT = path.join(__dirname, '..', '..');
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i >= 0 ? process.argv[i + 1] : d; };
 const DIRS = String(arg('--selfplay', '')).split(',').filter(Boolean).map(d => path.resolve(ROOT, d));
 const OUT = path.resolve(ROOT, arg('--out', 'solver/out/machamp/doduo'));
-const META = JSON.parse(fs.readFileSync(path.resolve(ROOT, arg('--meta', 'solver/out/mag/meta.json')), 'utf8'));
+const METAF = path.resolve(ROOT, arg('--meta', 'solver/mag/model/mag-v1.vocab.json'));
+if (!fs.existsSync(METAF)) throw new Error('build_doduo: no human vocabulary at ' + METAF + ' (the default is the tracked solver/mag/model/mag-v1.vocab.json)');
+const META = JSON.parse(fs.readFileSync(METAF, 'utf8'));
 const MAGF = path.resolve(ROOT, arg('--mag', 'solver/mag/model/mag-v1.json'));
 const MAXUNF = +arg('--max-unfilled', 0.5), MINMASS = +arg('--min-mass', 0.5), VALPCT = +arg('--val-pct', 10);
 /* --weights w1,w2,… : one sample weight per --selfplay directory, written per decision to w.f32 (the trainer weights
@@ -49,6 +58,14 @@ const FALLBACKS = !process.argv.includes('--no-fallbacks');
 const BREAK = process.env.MACHAMP_BREAK || '';
 
 const MJ = JSON.parse(fs.readFileSync(MAGF, 'utf8'));
+/* the vocabulary must be the one the MAG model was trained with: same dataset digest, every embedding row present */
+(function checkVocab() {
+  const want = MJ.dataset && MJ.dataset.games_sha256, got = META.dataset && META.dataset.games_sha256;
+  if (!want || want !== got) throw new Error('build_doduo: the vocabulary ' + METAF + ' was built from dataset ' + got + ', the MAG model from ' + want);
+  const miss = Object.keys(MJ.move_rows || {}).filter(k => !['<unk>', 'SWITCH', 'LOCKED'].includes(k) && META.move_vocab[k] == null)
+    .concat(Object.keys(MJ.species_rows || {}).filter(k => k && k !== '<rare>' && META.species_vocab[k] == null));
+  if (miss.length) throw new Error('build_doduo: ' + miss.length + ' embedding rows of the MAG model are not in the vocabulary (' + miss.slice(0, 5).join(', ') + ')');
+})();
 const freqPath = path.resolve(ROOT, MJ.freq.path.split('\\').join('/'));
 const freq = JSON.parse(fs.readFileSync(freqPath, 'utf8'));
 const sha = f => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex');
@@ -151,7 +168,7 @@ function build() {
   W.train.close(); W.val.close();
   c.mass_kept_mean = c.kept ? +(c.mass_kept / c.kept).toFixed(4) : null; delete c.mass_kept;
   const meta = { generated: new Date().toISOString(), generator: 'solver/machamp/build_doduo.js', what: 'DODUO self-play targets: the search mix on DODUO cells',
-    sources, human_meta: { dataset: META.dataset, split: META.split }, mag_model: { path: path.relative(ROOT, MAGF).split(path.sep).join('/'), sha256: sha(MAGF), freq: MJ.freq },
+    sources, human_meta: { dataset: META.dataset, split: META.split, file: path.relative(ROOT, METAF).split(path.sep).join('/'), sha256: sha(METAF) }, mag_model: { path: path.relative(ROOT, MAGF).split(path.sep).join('/'), sha256: sha(MAGF), freq: MJ.freq },
     flags: { max_unfilled: MAXUNF, min_mass: MINMASS, val_pct: VALPCT, weights: WEIGHTS.length ? WEIGHTS : null, fallbacks: FALLBACKS, break: BREAK || null },
     ctx_names: META.ctx_names, cand_names: META.cand_names, pair_names: META.pair_names, slot_x_names: META.slot_x_names, v0_feature_version: META.v0_feature_version,
     joint_status: META.joint_status, slot_status: META.slot_status, move_vocab: moveVocab, species_vocab: speciesVocab,

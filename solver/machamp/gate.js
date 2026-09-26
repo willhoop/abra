@@ -3,6 +3,7 @@
  *
  *   cmd.exe /c tools\lownode.cmd solver\machamp\gate.js --release <id> --x <spec.json> --y <spec.json>
  *        --pairs 100 --pair-seed S --seed S --workers 4 --out <result.json> [--cap 50] [--rule beats|notlose]
+ *        [--info honest|omniscient]   default HONEST (solver/mew/play.js); recorded in flags.info (2026-09-26)
  *
  * 100 pairs = 200 games: each TEST pair (solver/mew/pairs.js — both players held out of every net's training data)
  * is played twice on the same battle seed with the bots swapped. The shards (solver/mew/play.js --mode match) are
@@ -57,6 +58,8 @@ function merge(per) {
 async function main() {
   const rel = flag('--release'), X = flag('--x'), Y = flag('--y'), NP = +flag('--pairs', 100), PS = +flag('--pair-seed', 1);
   const seed = +flag('--seed', 1), W = +flag('--workers', 4), cap = +flag('--cap', 50), rule = flag('--rule', 'beats');
+  const info = flag('--info', 'honest');
+  if (!['honest', 'omniscient'].includes(info)) throw new Error('machamp/gate: --info must be honest or omniscient');
   const out = path.resolve(ROOT, flag('--out'));
   if (!rel || !X || !Y || !flag('--out')) throw new Error('usage: --release --x --y --pairs --out');
   if (!RULES[rule]) throw new Error('unknown rule ' + rule);
@@ -67,7 +70,7 @@ async function main() {
   const started = new Date().toISOString();
   const { res: exits, wall_s } = await forkShards(path.join(__dirname, '..', 'mew', 'play.js'), W, i => ['--mode', 'match', '--release', rel,
     '--x', path.resolve(ROOT, X), '--y', path.resolve(ROOT, Y), '--pairs', String(NP), '--pair-seed', String(PS), '--seed', String(seed),
-    '--shard', String(i), '--shards', String(W), '--cap', String(cap), '--out', path.join(dir, `shard-${i}.jsonl`), ...(human ? ['--human', human] : []), ...(store ? ['--team-store', store] : [])], 'gate');
+    '--shard', String(i), '--shards', String(W), '--cap', String(cap), '--out', path.join(dir, `shard-${i}.jsonl`), '--info', info, ...(human ? ['--human', human] : []), ...(store ? ['--team-store', store] : [])], 'gate');
   const sums = exits.map(e => { try { return JSON.parse(fs.readFileSync(path.join(dir, `shard-${e.shard}.jsonl.summary.json`), 'utf8')); } catch (err) { return null; } });
   const per = [].concat(...sums.filter(Boolean).map(s => s.per));
   const m = merge(per);
@@ -86,7 +89,7 @@ async function main() {
   const result = {
     what: 'MACHAMP gate (solver/machamp/gate.js)', started, finished: new Date().toISOString(),
     engine_release: first.engine_release || rel, release_stamp: first.release_stamp || null,
-    flags: { release: rel, x: X, y: Y, pairs: NP, games: 2 * NP, pair_seed: PS, seed, workers: W, cap, rule, human, team_store: store },
+    flags: { release: rel, x: X, y: Y, pairs: NP, games: 2 * NP, pair_seed: PS, seed, workers: W, cap, rule, human, team_store: store, info },
     x: first.x || null, y: first.y || null, pool: first.pool || null,
     result: { ...m.res, played: m.n, score_x: m.score, ci95_x: m.ci95 }, paired: { team_pairs: NP, ...m.pairs },
     rule: { name: rule, text: rule === 'beats' ? 'PASS iff Wilson 95% lower bound of X score > 0.5' : 'PASS iff Wilson 95% upper bound of X score >= 0.5' },

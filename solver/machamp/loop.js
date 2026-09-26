@@ -126,7 +126,7 @@ function main() {
       if ((S.stages[K('gate-' + name)] || {}).done) continue;
       const t0 = Date.now();
       node(path.join(__dirname, 'gate.js'), ['--release', REL, '--x', rel(candFile), '--y', y, '--pairs', '100', '--pair-seed', String(PRE.seeds.gate_pair_seed),
-        '--seed', String(seed + 10 * (cand - 1)), '--workers', String(WORKERS), '--rule', rule, '--out', rel(gateOut(name)),
+        '--seed', String(seed + 10 * (cand - 1)), '--workers', String(WORKERS), '--rule', rule, '--info', 'omniscient', '--out', rel(gateOut(name)),
         ...(STORE ? ['--team-store', STORE] : [])], `${LG}-gate-${name}`);
       const r = JSON.parse(fs.readFileSync(gateOut(name), 'utf8'));
       stamp(S, K('gate-' + name), t0, { score: r.result.score_x, ci95: r.result.ci95_x, pass: r.pass, warnings: r.warnings });

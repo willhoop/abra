@@ -2,7 +2,8 @@
  *
  *   const AG = require('./solver/mew/agent.js').create(API, { buildBody });
  *   const a = AG.load(spec)          spec (a JSON object, see below) -> { name, spec, digests, bot(seed), PA }
- *   const b = a.bot(seed)            -> { name, choose(S, side, ctx) -> { joint, info } }
+ *   const b = a.bot(seed)            -> { name, choose(S, side, ctx[, hb]) -> { joint, info } }
+ *   AG.XW                            solver/xatu/worlds.js on this agent set's rollout (honest information)
  *   AG.COUNTERS                      fallbacks (the search threw and the prior's top legal joint was played), …
  *
  *   spec = { name, kind: 'miltank', mag, doduo, pory2, budgetMs, k1, k2, depth, reserveSwitch }
@@ -14,6 +15,11 @@
  * for both sides of its matrix and THIS generation's PORYGON2 as the leaf (search.js o.leafModel). With
  * `record`, choose() returns the whole root in info.rec (rows, cols, both mixes, the mean matrix), which is what
  * self-play trains on.
+ *
+ * HONEST INFORMATION (2026-09-26). choose(S, side, ctx, hb): with `hb` (solver/xatu/worlds.js — XATU's back-pair
+ * posterior and spread belief, see solver/mew/play.js --info honest) the search's worlds are drawn from XATU instead
+ * of the uniform back-line draw, and every opponent body's spread is drawn per world. S is then the caller's PUBLIC
+ * view, never the true battle. Without `hb` the search is exactly what it was.
  *
  * THE FALLBACK IS COUNTED, NEVER SILENT. If the search throws, the agent plays its prior's top legal joint and
  * COUNTERS.fallbacks goes up; the run prints it. A self-play run whose fallbacks are not zero is reported so.
@@ -35,6 +41,7 @@ function create(API, opts) {
   const coinOf = seed => API.M.rngStreams({ seed }).any;
   const COUNTERS = { fallbacks: 0, fallback_errors: [], decisions: 0, searched: 0, forced: 0 };
   const LOADED = new Map();
+  const XW = require('../xatu/worlds.js').create(API, { R });
 
   function load(spec) {
     if (!spec || !spec.name || !spec.kind) throw new Error('mew/agent: a spec needs name and kind');
@@ -62,10 +69,11 @@ function create(API, opts) {
       if (spec.kind === 'greedy') return { name: spec.name, kind: 'greedy', PA, choose(S, side, ctx) { COUNTERS.decisions++; return argmax(S, side, ctx); } };
       const o = Object.assign({ budgetMs: spec.budgetMs, k1: spec.k1, k2: spec.k2, depth: spec.depth, reserveSwitch: spec.reserveSwitch,
                                 leaf: 'pory2', leafModel: abs(spec.pory2), coin }, extra || {});
-      return { name: spec.name, kind: 'miltank', PA, MT, choose(S, side, ctx) {
+      return { name: spec.name, kind: 'miltank', PA, MT, choose(S, side, ctx, hb) {
         COUNTERS.decisions++;
         try {
-          const r = MT.decide(S, side, ctx, o);
+          const r = (hb ? MTmod.create(API, { prior: PA, rollout: XW.rollout(hb) }) : MT).decide(S, side, ctx, o);
+          if (hb) COUNTERS.honest = (COUNTERS.honest || 0) + 1;
           if (r.info && r.info.forced) COUNTERS.forced++; else COUNTERS.searched++;
           return r;
         } catch (e) {
@@ -79,7 +87,7 @@ function create(API, opts) {
     LOADED.set(key, a);
     return a;
   }
-  return { load, COUNTERS, R };
+  return { load, COUNTERS, R, XW };
 }
 
 module.exports = { create, sha, abs };

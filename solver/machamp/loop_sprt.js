@@ -260,14 +260,16 @@ function generation(S) {
     const ed = J(path.join(modelDir, `doduo-gen${n}.metrics.json`)).selected_epoch, ep = J(poryMet).selected_epoch;
     if (ed === -1 && ep === -1) throw new Error(`gen${n}: both nets selected epoch -1 (the champion unchanged); the candidate cannot be tested against itself — stopping`);
   }
+  /* --info omniscient, explicitly: this loop's recipes were pre-registered on the pre-2026-09-26 arena, and sprt.js /
+   * gate.js now default to HONEST information. Moving the loop to honest is a new pre-registration, not an edit. */
   const sprtOut = path.join(OUTR, 'gates', `gen${n}-sprt.json`), cloneOut = path.join(OUTR, 'gates', `gen${n}-not-lose-clone.json`);
   if (!done('sprt')) {
-    node(path.join(__dirname, 'sprt.js'), ['--release', REL, '--x', rel(specF), '--y', S.champion, '--elo0', '0', '--elo1', '20', '--alpha', '0.05', '--beta', '0.05', '--max-games', '2000',
+    node(path.join(__dirname, 'sprt.js'), ['--release', REL, '--x', rel(specF), '--y', S.champion, '--elo0', '0', '--elo1', '20', '--alpha', '0.05', '--beta', '0.05', '--max-games', '2000', '--info', 'omniscient',
       '--seed', String(9001 + 10 * off), '--workers', String(W), '--team-store', STORE, '--out', rel(sprtOut)], `loop-gen${n}-sprt`);
     stamp('sprt');
   }
   if (!done('clone')) {
-    node(path.join(__dirname, 'gate.js'), ['--release', REL, '--x', rel(specF), '--y', S.clone, '--pairs', '100', '--pair-seed', '1', '--seed', String(9002 + 10 * off), '--workers', String(W), '--rule', 'notlose', '--team-store', STORE, '--out', rel(cloneOut)], `loop-gen${n}-clone`);
+    node(path.join(__dirname, 'gate.js'), ['--release', REL, '--x', rel(specF), '--y', S.clone, '--pairs', '100', '--pair-seed', '1', '--seed', String(9002 + 10 * off), '--workers', String(W), '--rule', 'notlose', '--info', 'omniscient', '--team-store', STORE, '--out', rel(cloneOut)], `loop-gen${n}-clone`);
     stamp('clone');
   }
   const sp = J(sprtOut), cl = J(cloneOut), pm = J(poryMet).gate_nonworse_vs_v0, dd = J(path.join(modelDir, `doduo-gen${n}.metrics.json`)).human_test_vs_v1.joint_ll.diff;
