@@ -34,7 +34,10 @@
  *               boosted hit off the board before it is read
  *   TALL        a Protect beside a partner who KOs the only attacker first is KEPT: futility that needs a KO depends on
  *               damage, and damage on spreads nobody can see
- *   DISJOINT    the pair gate never cuts a pair because of a click MAG calls dead
+ *   DISJOINT    the pair gate never cuts a pair because of a click MAG calls dead — including (2026-09-26) a flinch move
+ *               at my own immune-typed partner, dead by purpose yet landing on the ally who would switch in
+ *   ALLFUTILE   a click that works (MAG live) but changes nothing beside ANY partner (a side guard with nothing to
+ *               block) is not the pair gate's: every pair is kept
  *   EXEC        a body KO'd before it acts is UNINFORMATIVE (its click neither succeeded nor failed)
  *   DICE        a Protect-family click on a long streak (a 1-in-729 roll) is LIVE: the gate never cuts on a roll
  *   SEC         on the pinned worlds no chance secondary lands (a partner's lucky flinch cannot make a click futile)
@@ -58,7 +61,7 @@
  *   BENCH       in live play the alternative worlds put every unrevealed sheet member on the bench
  *
  * RED, unless --no-red: re-runs itself under each GATE_BREAK and REQUIRES the named clause to fail:
- *   anytrue -> IMMUNE, softhard -> IMMUNE, nopartner -> PARTNER, pairany -> DISJOINT, norep -> REACH, exec -> EXEC,
+ *   anytrue -> IMMUNE, softhard -> IMMUNE, nopartner -> PARTNER, pairany -> ALLFUTILE (was DISJOINT until 2026-09-26), pairondead -> DISJOINT, norep -> REACH, exec -> EXEC,
  *   dice -> DICE, short -> TALL, shieldcounts -> SHIELDRES (was STATUSED until 2026-09-26: a status click is now read on the board), fullheal -> HEAL, megapass -> MEGA, secfree -> SEC,
  *   shieldskipall -> SHIELDFAIL, parity -> PARITY, twovalued -> UNKNOWN, purposeresult -> FAKEOUT and ENCORE,
  *   flinchany -> FAKEOUT, softconst -> WEIGHT, benchone -> BENCH.
@@ -621,6 +624,50 @@ const resOf = m => (m ? (m._mvResLast !== undefined ? m._mvResLast : m._mvRes) :
   if (!done) cannot('no result-purpose status move passed its premise');
 }
 
+/* ---------- DISJOINT (purpose): the pair gate does not judge a click MAG has removed ---------- */
+{
+  /* A flinch move at MY OWN partner whose typing is immune to it, with a flinchable body on my bench: MAG calls it dead
+   * (the partner cannot be hit; the ally who switches in is hit but never flinched — a switch-in has already acted), yet
+   * the hit on the switch-in moves the board, so the pair gate would see "an effect beside the partner's switch and none
+   * beside its attack" and cut it there. The removal is MAG's; the pair gate must leave it alone (593 such cuts in the
+   * seed-5 eval before the fix). Derived: the flinch moves and the immune typing are read off the dex. */
+  const fo = MOVES.find(m => (m.category === 'Physical' || m.category === 'Special') && secsOf(m).some(s => s.chance === 100 && s.volatileStatus === 'flinch')
+    && ['adjacentFoe', 'normal', 'any'].includes(m.target));
+  const G = fo && quietSpecies.find(s => !D.getImmunity(fo.type, s.types));
+  const U = fo && quietSpecies.find(s => s !== G && D.getImmunity(fo.type, s.types));
+  const Bn = fo && quietSpecies.find(s => ![G, U].includes(s) && D.getImmunity(fo.type, s.types));
+  const N = quietSpecies.find(s => ![G, U, Bn].includes(s)), N2 = quietSpecies.find(s => ![G, U, Bn, N].includes(s));
+  if (!fo || !G || !U || !Bn) cannot('no derived flinch move / immune partner / bench for the purpose DISJOINT fixture');
+  const S = battle([body(U, [fo, stallMove]), body(G, [weak, stallMove]), body(Bn, [weak, stallMove])], [body(N, FOE), body(N2, FOE)]);
+  const p = pos(S);
+  const o = mvOpt(p.la, 0, fo.id, -2);
+  const v = o ? MG.verdict(p, 0, o) : { v: 'no option' };
+  let n = 0, cut = 0;
+  if (o) for (const j of p.la.joint) if (PR.optKey(j[0]) === PR.optKey(o)) { n++; const pv = DG.pairVerdict(p, j); if (pv.cut && pv.slot === 0) cut++; }
+  ok('DISJOINT', v.v === 'dead' && n > 1 && cut === 0, `${fo.id} at my ${G.id} partner with ${Bn.id} on the bench: MAG ${v.v}; the pair gate cut ${cut} of its ${n} pairs on it (expected dead, 0)`);
+  console.log(`  DISJOINT (purpose): ${fo.id} at my ${G.id} partner -> MAG ${v.v}; pair cuts on it ${cut}/${n}`);
+}
+
+/* ---------- ALLFUTILE: a click futile beside EVERY partner is not the pair gate's ---------- */
+{
+  /* A guard (a stalling move for the user's side: read off the dex) when no foe can use what it blocks: the move works
+   * (MAG live: the guard goes up), and beside every partner click it changes nothing on the board. The pair gate cuts a
+   * pair only when the futility is the PAIR's — here it is not, so every pair is KEPT. (Until 2026-09-26 this was the
+   * `pairany` break's clause through DISJOINT; the pair gate now yields to MAG on a dead click, which that fixture needed.) */
+  /* a side condition that lasts one turn and blocks hits (its condition has onTryHit) — the side guards */
+  const guard = MOVES.filter(m => m.target === 'allySide' && m.sideCondition && m.condition && m.condition.duration === 1 && m.condition.onTryHit).sort(byId)[0];
+  if (!guard) cannot('no side guard in this regulation');
+  const U = quietSpecies[34], P = quietSpecies[35], N = quietSpecies[36], N2 = quietSpecies[37];
+  const S = battle([body(U, [guard, weak]), body(P, [weak, stallMove])], [body(N, [weak]), body(N2, [weak])]);
+  const p = pos(S);
+  const o = mvOpt(p.la, 0, guard.id, null);
+  const v = o ? MG.verdict(p, 0, o) : { v: 'no option' };
+  let n = 0, cut = 0;
+  if (o) for (const j of p.la.joint) if (PR.optKey(j[0]) === PR.optKey(o)) { n++; if (DG.pairVerdict(p, j).cut) cut++; }
+  ok('ALLFUTILE', v.v === 'live' && n > 1 && cut === 0, `${guard.id} with nothing to block: MAG ${v.v}; the pair gate cut ${cut} of its ${n} pairs (expected live, 0)`);
+  console.log(`  ALLFUTILE: ${guard.id} with nothing to block -> MAG ${v.v}; pair cuts ${cut}/${n}`);
+}
+
 /* ---------- WEIGHT: a mostly-banned click is weighted by the switch model, not a constant ---------- */
 {
   const { mv, F, N, U, P } = immune;
@@ -674,7 +721,7 @@ const brk = probe.BROKEN || MG.BROKEN || DG.BROKEN;
 console.log('test-gates: ' + (checks - fails) + '/' + checks + ' checks' + (brk ? '  [BREAK ' + brk + ']' : '') + '  failed clauses: ' + ([...failed].join(',') || 'none'));
 
 if (!NO_RED && !brk) {
-  const need = [['anytrue', 'IMMUNE'], ['softhard', 'IMMUNE'], ['nopartner', 'PARTNER'], ['pairany', 'DISJOINT'], ['norep', 'REACH'], ['exec', 'EXEC'], ['dice', 'DICE'], ['short', 'TALL'], ['shieldcounts', 'SHIELDRES'], ['fullheal', 'HEAL'], ['megapass', 'MEGA'], ['secfree', 'SEC'], ['shieldskipall', 'SHIELDFAIL'], ['parity', 'PARITY'], ['twovalued', 'UNKNOWN'],
+  const need = [['anytrue', 'IMMUNE'], ['softhard', 'IMMUNE'], ['nopartner', 'PARTNER'], ['pairany', 'ALLFUTILE'], ['pairondead', 'DISJOINT'], ['norep', 'REACH'], ['exec', 'EXEC'], ['dice', 'DICE'], ['short', 'TALL'], ['shieldcounts', 'SHIELDRES'], ['fullheal', 'HEAL'], ['megapass', 'MEGA'], ['secfree', 'SEC'], ['shieldskipall', 'SHIELDFAIL'], ['parity', 'PARITY'], ['twovalued', 'UNKNOWN'],
     ['purposeresult', 'FAKEOUT'], ['purposeresult', 'ENCORE'], ['flinchany', 'FAKEOUT'], ['softconst', 'WEIGHT'], ['benchone', 'BENCH']];
   let blind = 0;
   for (const [v, clause] of need) {

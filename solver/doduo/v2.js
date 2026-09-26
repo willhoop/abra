@@ -25,6 +25,13 @@
  * DODUO scores: past it a verdict is 'untested' and the joint KEEPS its score — a gate that ran out of time cuts
  * nothing. Every budget stop is counted. Inside MILTANK the gate's time is the search's time (equal wall-clock).
  *
+ * THE TIERS (Will, 2026-09-26). A click MAG v2 calls DEAD is ALWAYS BANNED: no world — the target staying or any
+ * switch-in — achieves its purpose (solver/mag/purpose.js), and in live play the alternative worlds between them put
+ * EVERY unrevealed sheet member on the bench (world(), up to 16 draws). A click MAG calls SOFT is MOSTLY BANNED: weighted
+ * by the human switch model's probability that the opponent makes one of the switches that rescued it (softWeight),
+ * floored at `floor`. DELIBERATE BREAKS (env GATE_BREAK): `softconst` — the weight is the floor, whatever the model says;
+ * `benchone` — no alternative world is drawn. solver/tests/test-gates.js WEIGHT and BENCH must go red.
+ *
  * WHAT THE GATE MAY SEE. The gate reasons in a WORLD, not the true battle: the viewer's opponent's unrevealed back
  * line is redrawn from its open sheet (solver/miltank/rollout.js sampleWorld, the searcher's own rule), with a second
  * draw kept as the alternative world a would-be hard cut is re-checked in (solver/mag/gate.js). The sleep clock is

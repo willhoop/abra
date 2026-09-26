@@ -31,7 +31,8 @@
  * it has an effect beside anyone else (so the pair gate starts cutting over MAG's dead clicks); `norep` — the
  * partner's click is not kept reachable (see representative()); `twovalued` — a click never informatively tested beside
  * a partner is read as having an effect there (the first version's fold); `megapass` — a mega click's counterfactual is a plain
- * pass, so the mega evolution itself reads as the click's effect. solver/tests/test-gates.js must go red under each.
+ * pass, so the mega evolution itself reads as the click's effect; `pairondead` — the pair gate also judges a click MAG
+ * calls dead (the tiered gates' purpose made that overlap possible, 2026-09-26). solver/tests/test-gates.js must go red under each.
  */
 'use strict';
 const P = require('../mag/probe.js');
@@ -133,6 +134,12 @@ function create(API, deps) {
     for (let k = 0; k < j.length && k < 2; k++) {
       const a = j[k], b = j[1 - k];
       if (!P.isMove(a) || a.move === 'struggle' || !b) continue;
+      /* A CLICK MAG CALLS DEAD IS MAG'S (2026-09-26). Since MAG judges a click's PURPOSE, a click can be dead for its slot
+       * and still move the board beside some partner — a Fake Out at my own Ghost partner flinches nobody, but lands on
+       * the ally who switches in — and the pair gate then cut it beside the partner's attack: 593 pair cuts on a
+       * MAG-dead click in the seed-5 eval, where the 2026-09-25 gate had 0. The removal is the same either way; the
+       * two gates' jobs are kept distinct by the pair gate not judging a click MAG has already removed. */
+      if (BREAK !== 'pairondead' && deps.mag && deps.mag.verdict(pos, k, a, o).v === 'dead') continue;
       if (futileGiven(pos, k, a, b, o) === 'futile' && effectBesideOther(pos, k, a, b, o)) {
         const rep = BREAK === 'norep' ? { reachable: true } : representative(pos, k, b, o);
         if (!rep.reachable && rep.keep === P.optKey(a)) continue;   // the one kept so that `b` stays reachable

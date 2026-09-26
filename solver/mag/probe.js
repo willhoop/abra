@@ -68,7 +68,8 @@
  * long streak) can read as dead; `parity` — the cover's dice alternate along the list, so an option can meet only
  * one regime; `secfree` — the secondary stream is not pinned, so a chance flinch can decide a
  * futility; `short` — the worlds are not tall, so futility that needs a KO gets cut; `fullheal` —
- * no 60% cap, so a turn-end heal erases a hit and the hit reads as having had no effect.
+ * no 60% cap, so a turn-end heal erases a hit and the hit reads as having had no effect; `flinchany` — a flinch is
+ * credited to both of my slots whoever landed it (2026-09-26, the flinch purpose).
  * solver/tests/test-gates.js must go red under each.
  */
 'use strict';
