@@ -6,6 +6,19 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ---
 
+## 2026-09-26
+
+### ROTOM: paced sends, no orphaned live series, chosen-vs-applied on every decision (abra/regmc 1.14.0)
+- The server's message throttle (600 ms, 5 queued, the next dropped) lost the game-1 preview in 14 of 17 aa2 series.
+  Sends are now paced to mirror the server's queue, choices first; a notice re-sends the open choice.
+- An alive series we are in is never orphaned, and no search goes out while any battle we are in is live.
+- Every decision is checked against what the server did (preview, move, target, mega, switch, forced, timer, team);
+  a mismatch is a ladder error and 3 halt the ladder. The check costs no decision time.
+- aa1/aa2 offline: 0 of 1,401 non-preview checks mismatched; only the preview was hit. Dry run with the throttle ON:
+  5 series, 26 game records, 0 notices, 26/26 previews applied, 0 mismatches in 787 checks; the check costs
+  0.8–0.9 ms per turn, off the decision path.
+- Detail: `docs/_reports/2026-09-26-rotom-throttle-fix.md`.
+
 ## 2026-09-25
 
 ### MACHAMP warm-start recipe (abra/regmc 1.13.0)

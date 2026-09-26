@@ -70,7 +70,8 @@ async function start(opts) {
   const pre = [path.join(__dirname, 'netguard.js')].concat(opts.localConfig === false ? [] : [path.join(__dirname, 'local_server_preload.js')]);
   const env = Object.assign({}, process.env, {
     NODE_OPTIONS: ((process.env.NODE_OPTIONS || '') + ' ' + pre.map(p => '--require "' + fwd(p) + '"').join(' ')).trim(),
-    ROTOM_NETGUARD: netlog, ROTOM_LOGIN_MOCK: mock.url }, stub ? { ROTOM_DRY_PUBKEY: path.join(out, 'login-stub.pub.pem') } : {});
+    ROTOM_NETGUARD: netlog, ROTOM_LOGIN_MOCK: mock.url }, stub ? { ROTOM_DRY_PUBKEY: path.join(out, 'login-stub.pub.pem') } : {},
+    opts.throttle ? { ROTOM_SERVER_THROTTLE: '1' } : {});   // opts.throttle: the live 600 ms / 5-queued message throttle, ON (local_server_preload.js)
   const logFd = fs.openSync(path.join(out, 'server.log'), 'a');
   log('starting pokemon-showdown-mc on localhost:' + port + ' (--no-security, socket guard' + (opts.localConfig === false ? ', LOCAL CONFIG OFF' : ', local config') + ', login stand-in ' + mock.url + (stub ? ', assertion stub ' + stub.url : '') + ') from ' + SD);
   const srv = cp.spawn('cmd.exe', ['/c', path.join(ROOT, 'tools', 'lownode.cmd'), 'pokemon-showdown', 'start', '--skip-build', String(port), '--no-security'],

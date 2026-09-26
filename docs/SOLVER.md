@@ -90,6 +90,12 @@ This section says only what a division agent needs before it starts.
   refuses every non-loopback connection in every process), `login_stub.js`, `build_ladder_teams.js` →
   `teams/ladder-rotation.json`, and `arms/`. Runbook with the exact commands: `solver/rotom/LADDER.md`.
   Account: `docs/_reports/2026-09-25-rotom-ladder-mode.md`. **A public launch is Will's call.**
+- **ROTOM's choices provably reach Showdown (2026-09-26, abra/regmc 1.14.0).** Sends are paced to the server's message
+  throttle, which had dropped the game-1 preview in 14 of 17 aa2 series (`solver/rotom/sendq.js`). Every decision is
+  checked against what the server did — preview, move, target, mega, switch, forced, timer, team
+  (`solver/rotom/applied.js`); a mismatch is a ladder error, `--max-mismatches` halt. An alive series we are in is
+  never orphaned, and no search goes out while any battle we are in is live. `run_ladder.js --throttle` for dry runs.
+  Account: `docs/_reports/2026-09-26-rotom-throttle-fix.md`.
 - **ROTOM heals a hung ladder loop (2026-09-25, abra/regmc 1.12.0).** A private series no longer spawns a phantom
   series, which was the cause of both aa1 hangs. Every loop wait is bounded (a silent series is probed, then
   orphaned as an error). `run_ladder.js --hang-min` restarts a client that makes no progress and has no game open.

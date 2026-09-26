@@ -50,6 +50,16 @@ if (MOCK) {
       note({ local_config: true, loginserver: MOCK, routes: exp.routes });
       try { process.stderr.write('[rotom preload] pid ' + process.pid + ' loginserver -> ' + MOCK + ' ; routes.root -> ' + host + ' ; replays -> ' + host + '/replay\n'); } catch (e) { /* ignore */ }
     }
+    /* THE THROTTLE, ON (ROTOM_SERVER_THROTTLE=1; run_ladder.js --throttle). `--no-security` sets Config.nothrottle
+     * (server/config-loader.ts FLAG_PRESETS), which is why no local run ever saw the 600 ms / 5-queued message throttle
+     * that dropped 14 of 17 game-1 previews in aa2. config-loader sets global.Config when it loads; we turn only
+     * nothrottle back off (noguestsecurity and noipchecks stay on), so users.ts User#chat throttles exactly as live. */
+    if (process.env.ROTOM_SERVER_THROTTLE === '1' && typeof request === 'string' && /config-loader(\.js)?$/.test(request) && global.Config && global.Config.nothrottle && !global.Config.__rotomThrottle) {
+      global.Config.nothrottle = false;
+      Object.defineProperty(global.Config, '__rotomThrottle', { value: true });
+      note({ throttle_on: true });
+      try { process.stderr.write('[rotom preload] pid ' + process.pid + ' THROTTLE ON: Config.nothrottle = false (users.ts 600 ms / 5 queued)\n'); } catch (e) { /* ignore */ }
+    }
     if (typeof request === 'string' && /(^|[\\/])net(\.[jt]s)?$/.test(request) && request !== 'net' && exp && exp.NetStream && exp.NetStream.prototype && !exp.NetStream.prototype.__rotomLocal) {
       const P = exp.NetStream.prototype, make = P.makeRequest;
       P.makeRequest = function (opts) {

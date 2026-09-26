@@ -187,6 +187,12 @@ function mkController(dir, extra) {
   ok('STALL', L.stallAction({ lastSeen: 1e6, probes: 1, probeSentAt: 1e6 + 1000 }, 1e6 + 1100, cfg).do === 'probe', 'unanswered -> probe again');
   ok('STALL', L.stallAction({ lastSeen: 1e6, probes: 2, probeSentAt: 1e6 + 1100 }, 1e6 + 1200, cfg).do === 'orphan', 'silent through every probe -> orphan');
   ok('STALL', L.stallAction({ lastSeen: 1e6 + 10, gone: 'nonexistent' }, 1e6 + 20, cfg).do === 'orphan', 'the room is gone -> orphan at once');
+  /* aa2 k=16 (2026-09-26): three probes answered "alive, 2 users, we are in it" and the series was orphaned anyway */
+  const alive = L.stallAction({ lastSeen: 1e6, probes: 2, probeSentAt: 1e6 + 1100, lastAlive: 1e6 + 1150 }, 1e6 + 1200, cfg);
+  ok('STALL', alive.do !== 'orphan', 'a series whose probe answered "alive, we are in it" is NEVER orphaned: ' + JSON.stringify(alive));
+  ok('STALL', L.stallAction({ lastSeen: 1e6, probes: 5, probeSentAt: 1e6 + 1100, lastAlive: 1e6 + 1150 }, 1e6 + 1300, cfg).do === 'probe', 'alive -> keep probing (and the client repairs it) for as long as it stays alive');
+  ok('STALL', L.stallAction({ lastSeen: 1e6, probes: 2, probeSentAt: 1e6 + 1100, lastAlive: 1e6 - 5000 }, 1e6 + 1200, cfg).do === 'orphan', 'an alive answer long ago does not shield probes that now go unanswered');
+  ok('STALL', L.stallAction({ lastSeen: 1e6, gone: 'roominfo: not found', lastAlive: 1e6 + 1150 }, 1e6 + 1200, cfg).do === 'orphan', 'a room that is GONE is orphaned whatever it said before');
   const base = { halted: null, stopFile: null, setsDone: 0, openSeries: 0, sets: 10, maxErrors: 3, consecErrors: 0, deadline: 0, now: 1e7, loggedIn: true,
                  searching: false, searchSentAt: 0, guard: { at: 1e7 - 1000, blocked: null, pendingSince: 0 } };
   const na = o => L.nextAction(Object.assign({}, base, o));
@@ -214,6 +220,19 @@ function mkController(dir, extra) {
   ok('CONTROLLER', !fs.existsSync(H.C.seriesFile), 'an orphan writes no series row (its result is unknown)');
   H.C.onSeriesEnd(pw, { winner: 'x', mine: false });   // a late |win| after the orphan: still no row
   ok('CONTROLLER', !fs.existsSync(H.C.seriesFile) && H.events.some(e => e.ty === 'ladder_win_after_orphan'), 'a late |win| for an orphan writes no row and is logged');
+  /* an orphan that speaks again is taken back: its row is written after all */
+  const bo2 = 'game-bestof3-gen9championsvgc2026regmcbo3-2687990000';
+  H.set({ open: 1 }); const r4 = H.C.onSeriesStart(bo2); H.C.onSeriesOrphan(bo2, 'silent through 2 unanswered probes (test)'); H.C.onSeriesResume(bo2, 'its battle spoke (test)');
+  H.C.onSeriesEnd(bo2, { winner: 'medicham32', mine: true }); H.C.onRaw(bo2, "|raw|medicham32's rating: 1000 &rarr; <strong>1020</strong>"); H.C.onPlayer(bo2, 'p2', 'opp'); H.C.onRaw(bo2, "|raw|opp's rating: 1000 &rarr; <strong>980</strong>");
+  const rows4 = fs.existsSync(H.C.seriesFile) ? fs.readFileSync(H.C.seriesFile, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)) : [];
+  ok('CONTROLLER', rows4.some(x => x.series === bo2 && x.k === r4.k) && H.events.some(e => e.ty === 'ladder_series_resume'), 'an orphan taken back gets its row: ' + JSON.stringify(rows4.map(x => [x.k, x.S])));
+  /* CHOSEN VS APPLIED: every mismatch is a ladder error when seen; --max-mismatches of them halt the ladder */
+  const H2 = mkController(fs.mkdtempSync(path.join(TMP, 'c5-')), { maxMismatches: 2 });
+  H2.C.onMismatch('x', 'preview: chose a, server b');
+  ok('MISMATCH', H2.C.state().errors.some(e => e.kind === 'applied_mismatch' && /preview/.test(e.detail)) && !H2.C.state().halted, 'one mismatch -> a ladder error, not yet a halt');
+  H2.C.onMismatch('x', 'move: chose a, server b');
+  ok('MISMATCH', /applied mismatches/.test(H2.C.state().halted || ''), 'the 2nd mismatch (--max-mismatches 2) HALTS the ladder: ' + H2.C.state().halted);
+  ok('MISMATCH', L.nextAction(Object.assign({}, base, { halted: H2.C.state().halted, openSeries: 1 })).do === 'wait' && L.nextAction(Object.assign({}, base, { halted: H2.C.state().halted })).do === 'exit', 'halted: the open series is played out, then exit (never a forfeit)');
 }
 
 /* ---------------- WATCHDOG (the supervisor's hang watchdog, solver/rotom/watchdog.js) ---------------- */

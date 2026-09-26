@@ -21,6 +21,49 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.14.0] — 2026-09-26
+
+### Fixed
+- **ROTOM's choices are no longer lost to Showdown's message throttle.** The server processes one message per 600 ms
+  per account, queues five and DROPS the next with a notice (`pokemon-showdown-mc server/users.ts:1429-1467`). ROTOM
+  sent everything at once, and in aa2 the burst at the start of a series dropped the game-1 team preview in 14 of 17
+  series (the server played slots 1-4, leads 1+2) and the battle's `/timer on`, while the decision log said
+  `sent: true`. New `solver/rotom/sendq.js`: one frame per 650 ms, mirroring the server's backlog, choices and the timer
+  first, aging bounded. A throttle notice is counted and the open choice re-sent; a redundant resend is never counted
+  as an invalid choice. The decision log field `sent` is now `queued`.
+- **An alive series we are in is never orphaned.** aa2 k=16 answered "alive, 2 users, we are in it" three times and was
+  orphaned anyway. The watch now repairs it (timer and the open choice re-sent) and waits; only a room that is gone, or
+  probes that go unanswered, orphan a series (`ladder.js stallAction`, `rotom.js onRoomInfo`).
+- **An orphan can no longer run beside the next series.** A live battle of an orphaned series stays tracked and played,
+  and `openSeries()` counts every live battle, so no search goes out while any battle we are in is live. An orphan that
+  speaks again is taken back and gets its row. Nothing is ever forfeited.
+- `run_ladder.js --dry-run` records the local server's pid in `pids.json` (it was `null`).
+- The ladder's exit waits (bounded) for a game record whose replay save is still in flight; a dry run had left its
+  last game's record pending.
+
+### Added
+- **Chosen vs applied, for every decision ROTOM sends** (`solver/rotom/applied.js`): the team, preview bring and leads,
+  each move and target, mega, switches, forced switches and the timer, read back from the server's own lines and its
+  next request. A difference is EXPLAINED only when a line says why (cant, a faint, a target already down, a spread
+  move, a redirection derived from the format, an Encore, the game ending); anything else is a MISMATCH: an
+  `applied_mismatch` event, a ladder error at once, `applied_mismatch` / `preview_mismatch` in the series row, a per-game
+  `applied` block in `games.jsonl`, printed by `report.js games`, and `--max-mismatches` (default 3) HALTS the ladder.
+  The check runs after the choice is written, never inside a decision budget (measured in `summary.applied_cost`).
+- `solver/rotom/applied_audit.js`: the same check offline over a finished run (read only).
+- `run_ladder.js --throttle`: a local dry run with the server's throttle ON (a `--no-security` server has it off);
+  `ladder-report.json` `server_throttle` proves it.
+- Tests: `solver/tests/test-rotom-throttle.js` (the k=16 burst through a line-for-line model of the throttle; the real
+  client against a throttled scripted server playing the checkout's simulator; a planted mismatch that must be caught;
+  a zero-mismatch rate floor) — GREEN 33/33, RED 9/19 on the pre-fix client. `solver/tests/test-rotom-applied.js`
+  GREEN 31/31 with its BREAK clauses. `test-rotom-private-series` SILENT rewritten (alive is not orphaned) plus
+  UNANSWERED, GREEN 25/25. `test-rotom-ladder` 114/114.
+
+### Notes
+- **Basis.** unchanged. No published figure moves. aa1/aa2 re-read offline: 0 of 1,401 non-preview checks were
+  mismatches; the throttle hit the preview window only. Dry run with the throttle ON (`--sets 5`, release
+  `eaa5becc54eb`): 0 notices, 26/26 previews applied, 0 mismatches in 787 checks, the check 0.8–0.9 ms per turn off
+  the decision path. `docs/_reports/2026-09-26-rotom-throttle-fix.md`.
+
 ## [1.13.0] — 2026-09-25
 
 ### Changed
