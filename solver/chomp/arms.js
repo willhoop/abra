@@ -10,6 +10,8 @@
  *   chomp    CHOMP v0's mix for this sheet against that sheet, SAMPLED with a coin seeded per game and side — never
  *            the argmax. Read from the plan's solved tables (solver/chomp/tables.js) when present; otherwise solved
  *            here on the caller's engine, and COUNTED (`chompInline`), so a run can say which it did.
+ *   chomp1   CHOMP v1's mix (solver/chomp/v1/chomp1.js: the learned cell scorer + SLOWKING), SAMPLED with the same
+ *            per-game, per-side coin; solved inline, once per (pair, side) per process (`chomp1Solves`, `chomp1Cached`).
  *
  * Every arm's pick is counted, and so is every fallback: a CHOMP solve that throws falls back to the human bring and
  * bumps `chompFailed` — never silently.
@@ -19,7 +21,7 @@ const O = require('./options.js');
 
 function create(deps) {
   const API = deps.API, M = API.M;
-  const COUNTERS = { picks: {}, chompCached: 0, chompInline: 0, chompFailed: 0 };
+  const COUNTERS = { picks: {}, chompCached: 0, chompInline: 0, chompFailed: 0, chomp1Solves: 0, chomp1Cached: 0, chomp1Failed: 0, chomp1Ms: 0 };
   let CACHE = null, CH = null, HP = null;
   const cache = () => (CACHE || (CACHE = deps.cacheDir ? require('./tables.js').load(deps.cacheDir) : new Map()));
   const chomp = () => (CH || (CH = require('./chomp.js').create({ API })));
@@ -27,6 +29,9 @@ function create(deps) {
     if (!HP) { const D = require('./data.js'); HP = require('./human_prior.js').fit(D.headers(deps.human).games); }
     return HP;
   };
+  let CH1 = null;
+  const C1 = new Map();
+  const chomp1 = () => (CH1 || (CH1 = require('./v1/chomp1.js').create({ API, model: deps.chomp1Model })));
   const bump = a => { COUNTERS.picks[a] = (COUNTERS.picks[a] || 0) + 1; };
 
   function choose(arm, G, side, seed) {
@@ -59,9 +64,20 @@ function create(deps) {
       const vs = res.win_vsMix ? res.win_vsMix[i] : res.win ? res.win[i].vsMix : null;
       return { order: O.OPTIONS[i].order.slice(), info: { option: i, p: mix[i], v: res.value, vsMix: vs, support: mix.filter(p => p > 1e-9).length, src } };
     }
+    if (arm === 'chomp1') {
+      const key = G.id + '|' + side;
+      let r = C1.get(key);
+      if (r) COUNTERS.chomp1Cached++;
+      else {
+        try { r = chomp1().solve({ mine: G.sheets[side], theirs: G.sheets[other] }); COUNTERS.chomp1Solves++; COUNTERS.chomp1Ms += r.ms; C1.set(key, r); }
+        catch (e) { COUNTERS.chomp1Failed++; return { order: G.brought[side].slice(), info: { fallback: 'human', err: String(e.message).slice(0, 200) } }; }
+      }
+      const i = require('../slowking/matrix.js').sample(r.mix, coin());
+      return { order: O.OPTIONS[i].order.slice(), info: { option: i, p: +r.mix[i].toFixed(4), v: +r.value.toFixed(4), vsMix: +r.win[i].vsMix.toFixed(4), support: r.support.length } };
+    }
     throw new Error('chomp/arms: unknown preview arm ' + arm);
   }
-  return { choose, COUNTERS, ARMS: ['human', 'hprior', 'random', 'chomp'] };
+  return { choose, COUNTERS, ARMS: ['human', 'hprior', 'random', 'chomp', 'chomp1'] };
 }
 
 module.exports = { create };

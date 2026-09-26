@@ -369,16 +369,19 @@ function create(deps) {
     return MT.decide(S, 'A', ctx, gen5Opts(1500, coin));
   }
 
-  /* ---- CHOMP v0 at team preview (rotom.js --preview chomp) ---- */
+  /* ---- CHOMP at team preview (rotom.js --preview chomp) ----
+   * CHOMP v1 (solver/chomp/v1/chomp1.js: the learned cell scorer, SLOWKING, and the bo3 adjustment from the series'
+   * previous game) unless env CHOMP_VERSION=v0 asks for v0 (solver/chomp/chomp.js). The series is passed through, so a
+   * game-2/3 preview is adjusted to what the opponent brought before; `info.model` and `info.bo3` say what answered. */
   let CH = null;
   function previewChomp(d) {
     const me = d.me, mine = d.sheets && d.sheets[me], theirs = d.sheets && d.sheets[me === 'p1' ? 'p2' : 'p1'];
     if (!mine || !theirs) throw new Error('chomp: both open sheets are needed');
-    CH = CH || require('../chomp/chomp.js').create({ API });
-    const r = CH.solve({ mine, theirs }, { deadline: Date.now() + (d.budgetMs || 0) });
+    CH = CH || require(process.env.CHOMP_VERSION === 'v0' ? '../chomp/chomp.js' : '../chomp/v1/chomp1.js').create({ API });
+    const r = CH.solve({ mine, theirs }, { deadline: Date.now() + (d.budgetMs || 0), series: d.series });
     const op = CH.sample(r, d.coin());
     COUNTERS.chompSolves++;
-    return { order: op.order.map(x => x + 1), info: { chomp: true, option: op.i, label: op.label, p: +r.mix[op.i].toFixed(4), v: +r.value.toFixed(4),
+    return { order: op.order.map(x => x + 1), info: { chomp: true, model: r.model || null, bo3: !!r.bo3, option: op.i, label: op.label, p: +r.mix[op.i].toFixed(4), v: +r.value.toFixed(4),
       vsMix: +r.win[op.i].vsMix.toFixed(4), support: r.support.length, cells: r.counters.cells, ms: r.ms } };
   }
 
