@@ -8,6 +8,16 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-26
 
+### PORYGON2 v1 — better predictor, strength not shown (branch worktree-agent-a0e24792bde666457, NOT landed)
+- Honest-state encoder (sheets, benches, items, HP, status, boosts, volatiles, shield streak via the engine's stall counter,
+  PP, timers, speed order, per-token damage race), one attention block, trained on human games + 13,803 self-play games with
+  5,466 search-improved labels (MILTANK 6×6, 8 passes, both seats; 12 exact endgames). Release `eaa5becc54eb`.
+- Gate (a) PASS: held-out log-loss vs gen5 −0.0076 [−0.0115, −0.0036] human, −0.0138 [−0.0208, −0.0068] self-play.
+- Gate (c) FAIL: MILTANK+v1 vs MILTANK+gen5, honest, 1 s: INCONCLUSIVE at 2,000 games, 0.516 [0.494, 0.538]. (d) vs
+  DODUO-greedy H1 at 124 games, 0.677. Corpus `p2v1-c0` 1,770 g/h (2.4×, not 10×; RAM-starved machine).
+- Detail: `docs/_reports/2026-09-27-porygon2-v1.md`.
+
+
 ### gen5 under honest information; ROTOM `miltank-gen5`; gen5-vs-prior arms (abra/regmc 1.16.0)
 - The arena now hides what a ladder player cannot see (`--info honest`, the default for a match): hidden spreads in
   the true battle; each decision on the decider's public view; worlds from XATU's back-pair posterior and spread

@@ -1,0 +1,66 @@
+{
+ "what": "MEW self-play shards (solver/mew/run.js), STOPPED before the --games target; manifest rebuilt from the shards by solver/porygon2/v1/corpus_manifest.js",
+ "engine_release": "eaa5becc54eb",
+ "flags": {
+  "league": "solver/porygon2/v1/corpus-league-p2.json",
+  "seed": 1001,
+  "workers": 3,
+  "cap": 50,
+  "team_store": "data/team-pool-frozen-regmc",
+  "info": "omniscient"
+ },
+ "league_file_sha256": "424a70a22990845209e29c57fddd4b615061a16f8b99608755323885745fc50c",
+ "started": "2026-09-26T08:06:15Z",
+ "stopped": "2026-09-26T10:08:23Z",
+ "wall_s": 7328,
+ "counts": {
+  "games": 3603,
+  "errors": 0,
+  "capped": 0,
+  "decisions": 44099,
+  "fallbacks": 6,
+  "positions": 27337,
+  "opp": {
+   "current": 2169,
+   "clone": 1434
+  },
+  "playouts": 1408107,
+  "searched": 44099,
+  "unfilled": 126,
+  "cells": 704568,
+  "current_score": {
+   "current": [
+    1087,
+    2169
+   ],
+   "clone": [
+    980,
+    1434
+   ]
+  }
+ },
+ "torn": {},
+ "games_per_hour": 1770,
+ "search": {
+  "decisions": 44099,
+  "playouts_mean": 31.93,
+  "unfilled_share": 0.00018
+ },
+ "shards": [
+  {
+   "file": "solver/out/selfplay/eaa5becc54eb/p2v1-c0/shard-0.jsonl.gz",
+   "sha256": "e230d5ca101c787615cb9af6a3952c9686f2e1d1e114d19c914452d2a8699173",
+   "games": 1188
+  },
+  {
+   "file": "solver/out/selfplay/eaa5becc54eb/p2v1-c0/shard-1.jsonl.gz",
+   "sha256": "bf7e6da6059c853f0b6c52eef128ced92bc8b0abcde8fa782145f14052224353",
+   "games": 1195
+  },
+  {
+   "file": "solver/out/selfplay/eaa5becc54eb/p2v1-c0/shard-2.jsonl.gz",
+   "sha256": "f494f13d697138d72fa5f26b1dc09ba246b0dd7eecb744e969826fc3c589c020",
+   "games": 1220
+  }
+ ]
+}
