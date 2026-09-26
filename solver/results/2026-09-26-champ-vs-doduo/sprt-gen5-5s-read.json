@@ -1,0 +1,290 @@
+{
+ "what": "SPRT read at the bound (solver/machamp/sprt_read.js)",
+ "sprt_file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\.claude\\worktrees\\agent-a0e29027ba742f35a\\solver\\out\\cvd\\sprt-gen5-5s.json",
+ "verdict": "H1 — X is stronger (elo1 = +20 accepted)",
+ "llr_at_stop": 2.968049866852261,
+ "bounds": [
+  -2.9444389791664403,
+  2.9444389791664403
+ ],
+ "preregistered": {
+  "elo0": 0,
+  "elo1": 20,
+  "alpha": 0.05,
+  "beta": 0.05,
+  "max_games": 2000,
+  "unit": "pair of games on one battle seed, seats swapped",
+  "statistic": "normal-approximation GSPRT on pair scores (Fishtest)"
+ },
+ "x": {
+  "file": "solver/results/2026-09-26-champ-vs-doduo/gen5-5s.json",
+  "spec": {
+   "name": "gen5-5s",
+   "kind": "miltank",
+   "mag": "solver/machamp/models/gen5/mag-gen5.json",
+   "doduo": "solver/machamp/models/gen5/doduo-gen5.json",
+   "pory2": "solver/machamp/models/gen5/porygon2-gen5.json",
+   "budgetMs": 5000,
+   "k1": 4,
+   "k2": 4,
+   "depth": 0,
+   "reserveSwitch": 1
+  },
+  "digests": {
+   "mag": "65e76caf2423b28b",
+   "doduo": "abb0b88dd573b728",
+   "pory2": "cf8ad3f7bd0d4a33"
+  }
+ },
+ "y": {
+  "file": "solver/machamp/league/human-clone.json",
+  "spec": {
+   "name": "human-clone",
+   "kind": "greedy",
+   "mag": "solver/mag/model/mag-v1.json",
+   "doduo": "solver/mag/model/doduo-v1.json"
+  },
+  "digests": {
+   "mag": "c720dd9e0696bc3e",
+   "doduo": "da319ee23b44770a"
+  }
+ },
+ "engine_release": "eaa5becc54eb",
+ "release_stamp": {
+  "engine_release": "eaa5becc54eb",
+  "engine_release_cut": "2026-09-24T20:12:54.367Z",
+  "engine_release_cuts": 50,
+  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+  "source_digests": {
+   "engine/medicham2-browser.js": "2caee2eeabb0",
+   "engine/board.js": "c85a3b756c98",
+   "engine/rollout_leaf.js": "eacf05ff8d30",
+   "engine/position_features.js": "bb71676d3669",
+   "engine/tags.js": "13cdeb051720",
+   "engine/champions_sim.js": "8094725f52a8",
+   "data/residual-order.json": "eff160ad1c5a",
+   "data/switchin-order.json": "24a007a66b7d",
+   "engine/mc_key.js": "aaa095762671",
+   "engine/lookup.js": "17f49e5aed43",
+   "engine/set_priors.js": "f8a81445ee3a",
+   "engine/smogon_priors.js": "ebd062f756c8",
+   "engine/quality.js": "ebc37c7c9d05",
+   "engine/showdown_path.js": "46646401ede2",
+   "engine/regulation.js": "827f5138ecf5",
+   "data/move-effects.js": "f35ecd91ba86",
+   "data/ability-blocks.json": "86741fd35452",
+   "data/smogon-priors.json": "f2dc78cea6c5",
+   "data/regulations.json": "6c7c3e3dd06c",
+   "data/quality-filter.json": "042524dd1df7",
+   "data/engine-data.js": "bbc417dfae0e",
+   "data/abra-tags.js": "fc30f9a9392e",
+   "data/tags.json": "26ee107ce6a8",
+   "data/policy-weights.json": "626c1d240782",
+   "data/policy-weights-joint.json": "e2aca467ff04",
+   "data/move-priors.json": "e667fe8ab457",
+   "engine/pp.js": "30b12a4ef623",
+   "data/rollout-switch-census.json": "b8a5cee2f0a9",
+   "engine/medicham_api.js": "f0264a11558b",
+   "data/engine-data-regmc.js": "a6ad04e92d4e",
+   "data/tags-regmc.json": "ac1a00fa40ee",
+   "data/move-priors-regmc.json": "eab0c9b023df",
+   "data/move-effects-regmc.js": "8c57407e7641"
+  }
+ },
+ "pool": {
+  "pool_source": {
+   "kind": "team-store",
+   "file": "data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+   "file_sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+   "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709"
+  },
+  "test_pairs": 173,
+  "cycled_ids_sha256": "113be25167d10d4a"
+ },
+ "flags": {
+  "release": "eaa5becc54eb",
+  "x": "solver/results/2026-09-26-champ-vs-doduo/gen5-5s.json",
+  "y": "solver/machamp/league/human-clone.json",
+  "elo0": 0,
+  "elo1": 20,
+  "alpha": 0.05,
+  "beta": 0.05,
+  "maxGames": 2000,
+  "seed": 26005,
+  "workers": 3,
+  "store": "data/team-pool-frozen-regmc",
+  "out": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\.claude\\worktrees\\agent-a0e29027ba742f35a\\solver\\out\\cvd\\sprt-gen5-5s.json",
+  "cap": 50
+ },
+ "started": "2026-09-25T23:54:29.430Z",
+ "finished": "2026-09-26T00:07:19.796Z",
+ "wall_s": 770.378,
+ "counted": {
+  "games": 64,
+  "W": 49,
+  "D": 0,
+  "L": 15,
+  "score_x": 0.765625,
+  "ci95_x": [
+   0.6486650974929234,
+   0.8525023278036498
+  ],
+  "ci_caption": "Wilson 95% at a data-dependent stopping time: conditional on the stop, slightly optimistic",
+  "pairs": {
+   "both": 18,
+   "split": 13,
+   "lost": 1
+  },
+  "agrees_with_sprt": true
+ },
+ "clock": {
+  "rule": {
+   "maxPerTurn_s": 55,
+   "starting_s": 420,
+   "grace_s": 90,
+   "source": "ruleTable of gen9championsvgc2026regmcbo3 (timer rule)"
+  },
+  "x_ms": {
+   "decisions": 434,
+   "mean": 4721.6,
+   "p50": 4711,
+   "p95": 4750,
+   "p99": 4836,
+   "max": 5622
+  },
+  "y_ms": {
+   "decisions": 434,
+   "mean": 60.8,
+   "p95": 110,
+   "max": 1256
+  },
+  "x_game_sum_s": {
+   "mean": 32,
+   "p95": 51.87,
+   "max": 56.859
+  },
+  "breaches": {
+   "decisions_over_maxPerTurn": 0,
+   "games_over_starting_bank": 0
+  }
+ },
+ "search_counters_all_played": {
+  "fallbacks": 0,
+  "decisions": 868,
+  "forced": 0,
+  "searched": 434,
+  "playouts": 195106,
+  "cells": 6936,
+  "unfilled": 0,
+  "zero_playouts": 0,
+  "fallback_decisions": 0,
+  "caption": "cumulative over every game the workers played (incl. games past the stop); both bots in the worker share the agent counters, the greedy bot contributes no searched decision",
+  "prior_fallback_share": 0,
+  "playouts_per_searched": 449.6,
+  "unfilled_share": 0
+ },
+ "mega_timing": {
+  "x": {
+   "capable": 60,
+   "megas": 55,
+   "delay0": 39,
+   "delayed": 16,
+   "delay": {
+    "0": 39,
+    "1": 8,
+    "2": 4,
+    "3": 3,
+    "6": 1
+   },
+   "reasons": {
+    "none_readable": 6,
+    "switched_out_and_back": 6,
+    "boost_banked": 2,
+    "other_holder_first": 3,
+    "mega_resets_field": 1,
+    "trick_room_changed": 1
+   },
+   "first_held_action": {
+    "protect": 4,
+    "switch": 7,
+    "attack": 1,
+    "setup": 1
+   },
+   "held_actions": {
+    "protect": 6,
+    "switch": 9,
+    "attack": 1,
+    "setup": 1
+   },
+   "reason_combos": {
+    "none_readable": 6,
+    "switched_out_and_back": 4,
+    "boost_banked+switched_out_and_back": 1,
+    "boost_banked": 1,
+    "other_holder_first": 2,
+    "mega_resets_field+other_holder_first": 1,
+    "switched_out_and_back+trick_room_changed": 1
+   },
+   "delay0_share": 0.7091,
+   "delayed_share": 0.2909,
+   "delayed_ci95": [
+    0.1877,
+    0.4214
+   ],
+   "delay_mean": 0.564,
+   "reason_share": {
+    "none_readable": 0.375,
+    "switched_out_and_back": 0.375,
+    "boost_banked": 0.125,
+    "other_holder_first": 0.1875,
+    "mega_resets_field": 0.0625,
+    "trick_room_changed": 0.0625
+   }
+  },
+  "y": {
+   "capable": 63,
+   "megas": 52,
+   "delay0": 40,
+   "delayed": 12,
+   "delay": {
+    "0": 40,
+    "1": 6,
+    "2": 1,
+    "3": 2,
+    "4": 1,
+    "5": 1,
+    "6": 1
+   },
+   "reasons": {
+    "none_readable": 5,
+    "other_holder_first": 2,
+    "switched_out_and_back": 5
+   },
+   "first_held_action": {
+    "protect": 5,
+    "switch": 5
+   },
+   "held_actions": {
+    "protect": 5,
+    "switch": 6
+   },
+   "reason_combos": {
+    "none_readable": 5,
+    "other_holder_first": 2,
+    "switched_out_and_back": 5
+   },
+   "delay0_share": 0.7692,
+   "delayed_share": 0.2308,
+   "delayed_ci95": [
+    0.1372,
+    0.3613
+   ],
+   "delay_mean": 0.558,
+   "reason_share": {
+    "none_readable": 0.4167,
+    "other_holder_first": 0.1667,
+    "switched_out_and_back": 0.4167
+   }
+  }
+ }
+}

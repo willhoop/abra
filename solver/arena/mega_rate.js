@@ -21,7 +21,8 @@
  * API.
  *   const MR = require('./mega_rate.js');
  *   const T = MR.tally();                       one per bot label
- *   const g = MR.game(API, { A: TA, B: TB });   per game; g.decide(S, side, joint) before the step,
+ *   const g = MR.game(API, { A: TA, B: TB }[, { trace: true }]);   per game; g.decide(S, side, joint) before the step,
+ *                                               g.detail() -> per side { capable_turn, mega_turn, delay, trace } (the timing timeline),
  *                                               g.stepped(S) after it, g.end() once
  *   MR.summary(T)                               { sides, capable, offered, megas, chose, rate, ci95, turn, delay, ... }
  *   MR.humanRate(file)                          the same summary over the human dataset (one pass, ~500 MB)
@@ -60,10 +61,16 @@ function summary(T) {
 }
 
 /* one game's bookkeeping for two sides; each side folds into its own bot's tally */
-function game(API, tallies) {
+/* opts.trace: per side, a TIMELINE from the first capable decision to the mega (at most TRACE_MAX entries), in the
+ * shape solver/arena/mega_timing.js classifies for humans and bots alike:
+ *   { t, field: { weather, terrain, trickroom }, mons: [{ id, species, ability, stone, boosts }], act: [{ kind, move, mega }] }
+ * Read with g.detail() after g.end(). Counters only: nothing here changes a decision. */
+const TRACE_MAX = 12;
+function game(API, tallies, opts) {
   const M = API.M;
+  const TRACE = !!(opts && opts.trace);
   const st = {};
-  for (const sd of ['A', 'B']) st[sd] = { T: tallies[sd], capableTurn: null, offered: false, chose: false, megaTurn: null, notCapable: false, turnOfLastDecision: null };
+  for (const sd of ['A', 'B']) st[sd] = { T: tallies[sd], capableTurn: null, offered: false, chose: false, megaTurn: null, notCapable: false, turnOfLastDecision: null, trace: TRACE ? [] : null, megaSlot: null, megaId: null };
   const sfOf = (S, sd) => (sd === 'A' ? S.sfA : S.sfB);
   const actsOf = (S, sd) => (sd === 'A' ? S.actA : S.actB);
   const live = m => !!(m && !m.fainted && m.curHP > 0);
@@ -79,12 +86,28 @@ function game(API, tallies) {
         if (M.canMegaNow(S, m)) s.offered = true;
       }
       if (joint && joint.some(o => o && o.mega)) s.chose = true;
+      if (TRACE && s.capableTurn != null && s.trace.length < TRACE_MAX) {
+        const F = S.field || {};
+        const acts = actsOf(S, sd);
+        s.trace.push({ t: turn, field: { weather: F.weather || null, terrain: F.terrain || null, trickroom: !!F.tr },
+          mons: acts.map(m => (live(m) ? { id: m._ident != null ? String(m._ident) : m.name, species: m.name, ability: m.ability || null,
+            stone: M.megaTargetFor(m) || null, boosts: Object.assign({}, m.boosts || {}) } : null)),
+          act: (joint || []).map(o => (o ? { kind: o.kind, move: o.move || null, mega: !!o.mega } : null)) });
+        const mi = (joint || []).findIndex(o => o && o.mega);
+        if (mi >= 0 && s.megaSlot == null) { s.megaSlot = mi; const m = acts[mi]; s.megaId = m ? (m._ident != null ? String(m._ident) : m.name) : null; }
+      }
     },
     stepped(S) {
       for (const sd of ['A', 'B']) {
         const s = st[sd];
         if (s.megaTurn == null && sfOf(S, sd).megaUsed) { s.megaTurn = s.turnOfLastDecision != null ? s.turnOfLastDecision : S.turn; if (s.capableTurn == null) s.notCapable = true; }
       }
+    },
+    detail() {
+      const o = {};
+      for (const sd of ['A', 'B']) { const s = st[sd]; o[sd] = { capable_turn: s.capableTurn, mega_turn: s.megaTurn, delay: s.capableTurn != null && s.megaTurn != null ? s.megaTurn - s.capableTurn : null,
+        mega_slot: s.megaSlot, mega_id: s.megaId, trace: s.trace }; }
+      return o;
     },
     end() {
       for (const sd of ['A', 'B']) {
@@ -229,7 +252,7 @@ const MARGIN = 0.15;
 const MIN_CAPABLE = 20;
 const floor = (h) => +(((h == null ? HUMAN_RATE : h)) - MARGIN).toFixed(4);
 
-module.exports = { tally, game, summary, humanRate, parsedGame, parsedSide, neverMega, wilson, floor, HUMAN_RATE, MARGIN, MIN_CAPABLE };
+module.exports = { tally, game, summary, humanRate, parsedGame, parsedSide, neverMega, wilson, floor, HUMAN_RATE, MARGIN, MIN_CAPABLE, _megaOfRow: megaOfRow };
 
 if (require.main === module) {
   require('./env.js');

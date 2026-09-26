@@ -6,6 +6,17 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ---
 
+## 2026-09-26
+
+### gen5 vs DODUO-greedy, and mega timing (abra/regmc 1.13.0)
+- gen5 is proven stronger than DODUO-greedy: SPRT H1 at 1 s (180 games, 0.628 [0.555, 0.695]) and at 5 s (64 games,
+  0.766 [0.649, 0.853]). Both clock-safe. ROTOM cannot play gen5 yet (its `miltank` policy is v1 nets); the arena
+  search also sees the true battle, so the ladder margin is likely smaller.
+- Humans delay 22.25% of megas; gen5 23–29%, DODUO-greedy 16–23%, all inside human ± 0.15. The sand mega shows
+  Will's weather case: 129 of its 658 delayed megas came after the sand was gone (the mega re-sets it).
+- New check `solver/tests/test-mega-timing.js`; its RED runs caught a blind first version.
+- Detail: `docs/_reports/2026-09-26-champion-vs-doduo-and-mega-timing.md`.
+
 ## 2026-09-25
 
 ### ROTOM private-series hang fixed; bounded waits; supervisor watchdog (abra/regmc 1.12.0)
