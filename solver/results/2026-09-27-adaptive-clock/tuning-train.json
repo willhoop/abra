@@ -1,0 +1,163 @@
+{
+ "what": "adaptive clock tuning on TRAIN pairs (solver/bench/adaptive_tune.js)",
+ "decisions": 327,
+ "games": 36,
+ "rows": [
+  {
+   "name": "fixed 1000",
+   "mean_ms": 896,
+   "regret_br_x1000": 10.23,
+   "regret_vs_yref_x1000": 4.63
+  },
+  {
+   "name": "fixed 2000",
+   "mean_ms": 1771,
+   "regret_br_x1000": 6.09,
+   "regret_vs_yref_x1000": 2.15
+  },
+  {
+   "name": "fixed 3000",
+   "mean_ms": 2637,
+   "regret_br_x1000": 4.67,
+   "regret_vs_yref_x1000": 1.29
+  },
+  {
+   "name": "fixed 5000",
+   "mean_ms": 4286,
+   "regret_br_x1000": 3.95,
+   "regret_vs_yref_x1000": 1.27
+  },
+  {
+   "name": "fixed 8000",
+   "mean_ms": 6192,
+   "regret_br_x1000": 1.43,
+   "regret_vs_yref_x1000": 0.2
+  },
+  {
+   "name": "fixed 10000",
+   "mean_ms": 7042,
+   "regret_br_x1000": 1.07,
+   "regret_vs_yref_x1000": 0.15
+  },
+  {
+   "name": "adaptive {\"targetMs\":5000}",
+   "mean_ms": 3841,
+   "regret_br_x1000": 2.55,
+   "regret_vs_yref_x1000": 0.49,
+   "stops": {
+    "end-of-data": 71,
+    "clear": 168,
+    "hard": 58,
+    "soft": 30
+   }
+  },
+  {
+   "name": "adaptive {\"targetMs\":4500}",
+   "mean_ms": 3606,
+   "regret_br_x1000": 2.7,
+   "regret_vs_yref_x1000": 0.66,
+   "stops": {
+    "end-of-data": 69,
+    "clear": 162,
+    "hard": 57,
+    "soft": 39
+   }
+  },
+  {
+   "name": "adaptive {\"targetMs\":4000}",
+   "mean_ms": 3339,
+   "regret_br_x1000": 2.8,
+   "regret_vs_yref_x1000": 0.63,
+   "stops": {
+    "end-of-data": 54,
+    "clear": 159,
+    "hard": 70,
+    "soft": 44
+   }
+  },
+  {
+   "name": "adaptive {\"targetMs\":5000,\"clearZ\":2.5}",
+   "mean_ms": 3996,
+   "regret_br_x1000": 2.44,
+   "regret_vs_yref_x1000": 0.56,
+   "stops": {
+    "end-of-data": 73,
+    "clear": 151,
+    "hard": 60,
+    "soft": 43
+   }
+  },
+  {
+   "name": "adaptive {\"targetMs\":5000,\"clearZ\":1.5}",
+   "mean_ms": 3678,
+   "regret_br_x1000": 2.56,
+   "regret_vs_yref_x1000": 0.49,
+   "stops": {
+    "end-of-data": 68,
+    "clear": 182,
+    "hard": 55,
+    "soft": 22
+   }
+  },
+  {
+   "name": "adaptive {\"targetMs\":5000,\"closeZ\":0.5}",
+   "mean_ms": 3750,
+   "regret_br_x1000": 2.55,
+   "regret_vs_yref_x1000": 0.48,
+   "stops": {
+    "end-of-data": 65,
+    "clear": 168,
+    "hard": 48,
+    "soft": 46
+   }
+  },
+  {
+   "name": "adaptive {\"targetMs\":5000,\"closeZ\":1.5}",
+   "mean_ms": 3882,
+   "regret_br_x1000": 2.55,
+   "regret_vs_yref_x1000": 0.49,
+   "stops": {
+    "end-of-data": 71,
+    "clear": 168,
+    "hard": 66,
+    "soft": 22
+   }
+  },
+  {
+   "name": "adaptive {\"targetMs\":5000,\"minPasses\":8}",
+   "mean_ms": 3830,
+   "regret_br_x1000": 3.42,
+   "regret_vs_yref_x1000": 1.16,
+   "stops": {
+    "end-of-data": 75,
+    "clear": 147,
+    "hard": 26,
+    "soft": 79
+   }
+  },
+  {
+   "name": "adaptive {\"targetMs\":4500,\"stretch\":2.5}",
+   "mean_ms": 3659,
+   "regret_br_x1000": 2.52,
+   "regret_vs_yref_x1000": 0.55,
+   "stops": {
+    "end-of-data": 68,
+    "clear": 162,
+    "hard": 56,
+    "soft": 41
+   }
+  },
+  {
+   "name": "adaptive {\"targetMs\":5000,\"minMs\":1500}",
+   "mean_ms": 4079,
+   "regret_br_x1000": 2.3,
+   "regret_vs_yref_x1000": 0.47,
+   "stops": {
+    "end-of-data": 77,
+    "clear": 161,
+    "hard": 58,
+    "soft": 31
+   }
+  }
+ ]
+}

@@ -86,6 +86,11 @@ const PREVIEW_MAX_MS = +flag('preview-max-ms', 20000);
 const MARGIN_S = +flag('margin', 8);
 const RESERVE_S = +flag('reserve', 30);
 const MIN_SEARCH_MS = +flag('min-search-ms', 400);
+/* THE ADAPTIVE CLOCK (2026-09-27, solver/rotom/adaptive.js): --adaptive-target-ms T, or an arm's `adaptive: { targetMs }`,
+ * plans each searched decision around T — little when the table is clear, up to 2T when it is close — under a cap from
+ * the bank the server reports. Without it the budget is the clock's fixed share, as before. */
+const ADAPT_TARGET_MS = +flag('adaptive-target-ms', 0);
+const ADAPT = require('./adaptive.js');
 const TIMER = flag('timer', 'on');
 const DRILL = flag('drill', '');                     // drop@S.G.T | crash@S.G.T  (set, game, turn; 1-based)
 const DUMP_REQ = +flag('dump-requests', 0);          // write the first N requests (+ the public log so far) as test fixtures
@@ -774,7 +779,7 @@ function handleBattle(room, line, p, cmd) {
       if (bo.orphaned && !/room gone/.test(bo.orphaned) && cmd !== 'deinit' && cmd !== 'noinit') unorphanSeries(bo, 'its battle ' + room + ' spoke'); } }
   if (cmd === 'init') {   // a (re)join replays the whole log: start the room's public record over, keep what we sent
     runVerify(B, true);   // turns already closed are checked against the log they closed on, before it is replaced
-    const keep = B; B = newBattle(room); B.sent = keep.sent; B.clockUsed = keep.clockUsed; B.bestof = keep.bestof; B.gnum = keep.gnum; B.timerOn = keep.timerOn; B.preview = keep.preview;
+    const keep = B; B = newBattle(room); B.sent = keep.sent; B.clockUsed = keep.clockUsed; B.bestof = keep.bestof; B.gnum = keep.gnum; B.timerOn = keep.timerOn; B.preview = keep.preview; B.adapt = keep.adapt;
     B.tally = keep.tally; B.timerSent = keep.timerSent; B.timerSentAt = keep.timerSentAt; B.timerAck = keep.timerAck; B.timerLines = keep.timerLines; B.latestReq = keep.latestReq;
     /* the replayed log re-indexes every line: a decision still waiting for its turn cannot be checked against it */
     for (const pd of keep.pending) recordVerdict(B, { kind: pd.kind, slot: null, status: 'unverifiable', chosen: pd.choice, applied: null, why: 'the room was re-joined before its turn resolved' }, pd);
@@ -1063,6 +1068,15 @@ function decide(B) {
   const POL = ARM ? ARM.policy : POLICY;
   if (ARM && ARM.max_ms > 0 && kind !== 'preview' && bud.ms > ARM.max_ms) { bud.ms = ARM.max_ms; bud.cappedBy = 'arm'; }
   if (bud.from === 'rule') ST.noTimerLine++;
+  /* the adaptive clock replaces the fixed share for a searching move or forced switch; the turn cap and the bank still bind */
+  const ADC = kind !== 'preview' && SEARCHES.includes(POL) ? (ARM && ARM.adaptive ? ARM.adaptive : (ADAPT_TARGET_MS > 0 ? { targetMs: ADAPT_TARGET_MS } : null)) : null;
+  let adRec = null;
+  if (ADC) {
+    if (!B.adapt) { B.adapt = ADAPT.create(Object.assign({ minSearchMs: MIN_SEARCH_MS, marginS: MARGIN_S, reserveS: RESERVE_S }, ADC, { counters: ST.adapt || undefined })); B.adapt.newGame(); ST.adapt = B.adapt.COUNTERS; }
+    const pl = B.adapt.plan({ kind, bankS: bud.bank, turnLeftS: bud.turnLeft, eRem: bud.eRem, eRemHi: B.clock.table.eRemHi ? B.clock.table.eRemHi(B.turn || 1) : bud.eRem });
+    bud.fixedMs = bud.ms; bud.ms = pl.hardMs; bud.lowBank = pl.lowBank; bud.adaptive = pl;
+    adRec = { kind, plan: pl };
+  }
   const rec = { t: t0, room: B.id, bestof: B.bestof, gnum: B.gnum, turn: B.turn, kind, rqid: req.rqid, policy: POL, arm: ARM ? ARM.id : null, budget: bud, chain: [] };
   let choice = null, used = null, info = null;
   const opp = B.me === 'p1' ? 'p2' : 'p1';
@@ -1115,7 +1129,8 @@ function decide(B) {
         rec.world = { ok: true, turn: row.turns.length, notes: world.notes, xatu: bt ? bt.map(x => [x.pair.join('+'), +x.p.toFixed(3)]) : null };
       } catch (e) { ST.worldErrors++; rec.world = { ok: false, err: String(e && e.message || e).slice(0, 200) }; }
     }
-    const d = () => ({ req, world, coin, budgetMs: Math.max(0, bud.ms - (Date.now() - t0)), xatuBack: world && world.xatuBack });
+    const d = () => ({ req, world, coin, budgetMs: Math.max(0, bud.ms - (Date.now() - t0)), xatuBack: world && world.xatuBack,
+                       onPass: adRec && kind === 'move' ? B.adapt.stopper(adRec.plan, adRec) : undefined });
     const run = (name) => () => (kind === 'switch' ? P.forceSwitch(name, d()) : P.move(name, d()));
     tryPolicy(first, run(first));
     if (SEARCHES.includes(first)) tryPolicy('prior', run('prior'));
@@ -1133,6 +1148,13 @@ function decide(B) {
   B.deciding = false;
   const since = Date.now() - B.reqAt;
   B.clockUsed += since; B.clock.spent(since);
+  if (adRec) {
+    const searched = used === POL && !(info && info.forced);
+    if (searched && adRec.stop === 'none') adRec.stop = 'hard';
+    if (searched && !adRec.stop) adRec.stop = kind === 'switch' ? 'switch' : 'hard';
+    B.adapt.spent(since, searched, adRec);
+    rec.adapt = { stop: searched ? adRec.stop : 'not-searched', checks: adRec.checks || 0, state: adRec.state || null, credit_after_ms: Math.round(B.adapt.credit) };
+  }
   if (B.clock.last && since / 1000 > B.clock.last.turnLeft && B.clock.last.at >= B.reqAt - 2000) { ST.sentLate++; ST.timeouts.push({ room: B.id, kind: 'sent-late', rqid: req.rqid, ms: since }); }
   ST.decisions++; ST.byKind[kind + ':' + used] = (ST.byKind[kind + ':' + used] || 0) + 1;
   ST.ms[kind].push(ms); ST.budget.push(bud.ms);
@@ -1172,7 +1194,7 @@ function stats(a) {
   return { n: a.length, mean: Math.round(a.reduce((x, y) => x + y, 0) / a.length), p50: q(0.5), p95: q(0.95), p99: q(0.99), max: s[s.length - 1] };
 }
 function writeSummary() {
-  const out = { name: NAME, policy: POLICY, server: SERVER, pid: process.pid, restarts: STATE.restarts, flags: { send_gap_ms: SEND_GAP_MS, max_mismatches: +flag('max-mismatches', 3), max_ms: MAX_MS, preview_max_ms: PREVIEW_MAX_MS, margin_s: MARGIN_S, reserve_s: RESERVE_S, min_search_ms: MIN_SEARCH_MS, timer: TIMER, seed: SEED, drill: DRILL || null, priority: PRIORITY, priority_set: PRIORITY_SET }, idle_gc: ST.idleGc || { n: 0, ms: 0, max: 0, refused: 0 },
+  const out = { name: NAME, policy: POLICY, server: SERVER, pid: process.pid, restarts: STATE.restarts, flags: { send_gap_ms: SEND_GAP_MS, max_mismatches: +flag('max-mismatches', 3), max_ms: MAX_MS, preview_max_ms: PREVIEW_MAX_MS, margin_s: MARGIN_S, reserve_s: RESERVE_S, min_search_ms: MIN_SEARCH_MS, timer: TIMER, seed: SEED, drill: DRILL || null, priority: PRIORITY, priority_set: PRIORITY_SET }, idle_gc: ST.idleGc || { n: 0, ms: 0, max: 0, refused: 0 }, adaptive: ST.adapt || null, adaptive_target_ms: ADAPT_TARGET_MS || null,
     clock_rule: new Clock(Object.assign({ format: FORMAT_ID }, clockOpts)).rule,
     sets: STATE.setsDone, decisions: ST.decisions, by_kind: ST.byKind,
     decision_ms: { preview: stats(ST.ms.preview), move: stats(ST.ms.move), switch: stats(ST.ms.switch) }, budget_ms: stats(ST.budget),

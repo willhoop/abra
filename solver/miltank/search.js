@@ -160,8 +160,9 @@ function create(API, deps) {
     o = o || {};
     const b = begin(S, side, ctx, o);
     if (b.done) return b.done;
-    const acc = C.fillSerial(API, R, b.job, b.fillBy, o.maxPasses);
-    return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin, { overrun_ms: acc.overrunMs, max_world_ms: acc.maxWorldMs, max_playout_ms: acc.maxPlayoutMs }, b.priorTop);
+    /* o.onPass(vs, job, t0) -> true stops the fill after a complete pass (ROTOM's adaptive clock, solver/rotom/adaptive.js) */
+    const acc = C.fillSerial(API, R, b.job, b.fillBy, o.maxPasses, o.onPass ? vs => o.onPass(vs, b.job, b.t0) : undefined);
+    return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin, { overrun_ms: acc.overrunMs, max_world_ms: acc.maxWorldMs, max_playout_ms: acc.maxPlayoutMs, adapt_stop: acc.adapted || undefined }, b.priorTop);
   }
   /* 2'. CELLS across worker processes (o.pool = solver/miltank/pool.js). The SAME passes: with a pass cap
    * the matrix, the value and the pick are identical to decide()'s (solver/tests/test-playout-speed.js). */

@@ -111,13 +111,15 @@ function accumulate(m, n, vs) {
   return { sum, cnt, passes: vs.length, playouts };
 }
 
-/* the serial fill: passes 0, 1, 2, … until the clock or the pass cap. NO PASS STARTS AT OR AFTER THE DEADLINE —
+/* the serial fill: passes 0, 1, 2, … until the clock, the pass cap, or `onPass(vs)` (optional, called after every
+ * complete pass with the passes so far) returning true: the adaptive clock's early stop (2026-09-27,
+ * docs/_reports/2026-09-27-adaptive-clock.md). Absent, the fill is exactly what it was. NO PASS STARTS AT OR AFTER THE DEADLINE —
  * not even pass 0 (a pass costs a world draw before its first playout, and playPass always plays one cell), so
  * past the deadline this returns an empty fill and search.js falls back (docs/_reports/2026-09-25-miltank-deadline.md).
  * `cut` says the clock, not the pass cap, ended it. MILTANK_DEADLINE_BREAK=1 restores "pass 0 always starts". */
-function fillSerial(API, R, job, deadline, maxPasses) {
+function fillSerial(API, R, job, deadline, maxPasses, onPass) {
   const vs = [];
-  let cut = false, maxWorldMs = 0, maxPlayoutMs = 0;
+  let cut = false, maxWorldMs = 0, maxPlayoutMs = 0, adapted = false;
   for (let p = 0; ; p++) {
     if ((p > 0 || !DEADLINE_BREAK) && Date.now() >= deadline) { cut = true; break; }
     const r = playPass(API, R, job, p, deadline);
@@ -125,8 +127,9 @@ function fillSerial(API, R, job, deadline, maxPasses) {
     maxWorldMs = Math.max(maxWorldMs, r.timing.worldMs); maxPlayoutMs = Math.max(maxPlayoutMs, r.timing.maxPlayoutMs);
     if (r.stopped) { cut = true; break; }
     if (maxPasses && vs.length >= maxPasses) break;
+    if (onPass && onPass(vs)) { adapted = true; break; }   // an adaptive clock (solver/rotom/adaptive.js) ended the fill early
   }
-  return Object.assign(accumulate(job.rows.length, job.cols.length, vs), { cut, overrunMs: Math.max(0, Date.now() - deadline), maxWorldMs, maxPlayoutMs });
+  return Object.assign(accumulate(job.rows.length, job.cols.length, vs), { cut, adapted, overrunMs: Math.max(0, Date.now() - deadline), maxWorldMs, maxPlayoutMs });
 }
 
 module.exports = { playPass, passRunner, accumulate, fillSerial, startCell, walkStep, STRIDE };

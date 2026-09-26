@@ -215,7 +215,7 @@ function create(deps) {
     COUNTERS.gen5.decisions++;
     TAP.on = true; TAP.job = null; TAP.A = null; TAP.sol = null;
     let r;
-    try { r = MT.decide(w.S, w.side, w.ctx, gen5Opts(d.budgetMs, d.coin)); }
+    try { r = MT.decide(w.S, w.side, w.ctx, gen5Opts(d.budgetMs, d.coin, d.onPass ? { onPass: d.onPass } : undefined)); }   // d.onPass: the adaptive clock's early stop (solver/rotom/adaptive.js)
     finally { TAP.on = false; }
     if (r.info && r.info.forced) COUNTERS.gen5.forced++; else COUNTERS.gen5.searched++;
     COUNTERS.gen5.fallbackEmpty += MT.COUNTERS.fallbackEmpty; COUNTERS.gen5.fallbackSparse += MT.COUNTERS.fallbackSparse;

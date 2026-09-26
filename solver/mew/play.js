@@ -105,7 +105,7 @@ async function playGame(G, botA, botB, seed, recordFor) {
   const mg = MR.game(API, { A: megaT(botA.name), B: megaT(botB.name) }, { trace: MODE === 'match' });   // match: the mega TIMING timeline per game (mega_timing.js)
   const decisions = [], fallbacks = [];
   let err = null;
-  const ms = { A: [], B: [] };
+  const ms = { A: [], B: [] }, srch = { A: 0, B: 0 }, stops = { A: {}, B: {} };   // searched decisions and adaptive-clock stops per side
   try {
     while (!API.isTerminal(S) && S.turn < CAP) {
       const ch = {};
@@ -116,6 +116,8 @@ async function playGame(G, botA, botB, seed, recordFor) {
         ch[side] = await bot.choose(SV, side, ctx, hv ? hv.hb : undefined);
         ms[side].push(Date.now() - t);
         const info = ch[side].info || {};
+        if (info.playouts != null) srch[side]++;
+        if (info.adapt) stops[side][info.adapt.stop] = (stops[side][info.adapt.stop] || 0) + 1;
         if (info.playouts != null) { decStats.push({ playouts: info.playouts, cells: info.m * info.n, unfilled: info.unfilled, ms: info.ms });
           RUN.searched++; RUN.playouts += info.playouts; RUN.cells += info.m * info.n; RUN.unfilled += info.unfilled || 0; if (!info.playouts) RUN.zero_playouts++; }
         if (info.fallback) { RUN.fallback_decisions++; RUN['fallback_' + info.fallback] = (RUN['fallback_' + info.fallback] || 0) + 1; }   // MILTANK's too-empty-to-solve prior fallback (search.js), per kind
@@ -149,7 +151,7 @@ async function playGame(G, botA, botB, seed, recordFor) {
   mg.end();
   let vA = null, capped = false;
   if (!err) { if (API.isTerminal(S)) vA = API.winner(S); else { vA = API.horizonScore(S); capped = true; } }
-  return { vA, capped, err, turns: S.turn, hist: ctx.hist, decisions, fallbacks, ms, mega: mg.detail() };
+  return { vA, capped, err, turns: S.turn, hist: ctx.hist, decisions, fallbacks, ms, srch, stops, mega: mg.detail() };
 }
 
 async function selfplay() {
@@ -213,7 +215,8 @@ async function match() {
       counts.games++; if (r.err) counts.errors++; if (r.capped) counts.capped++;
       const vX = r.err ? null : (xIsA ? r.vA : 1 - r.vA);
       per.push({ pi, id: G.id, xSide: xIsA ? 'A' : 'B', seed, info: INFO, vX, turns: r.turns, capped: r.capped, err: r.err,
-                 ms_x: r.ms[xIsA ? 'A' : 'B'], ms_y: r.ms[xIsA ? 'B' : 'A'],
+                 ms_x: r.ms[xIsA ? 'A' : 'B'], ms_y: r.ms[xIsA ? 'B' : 'A'], searched_x: r.srch[xIsA ? 'A' : 'B'], searched_y: r.srch[xIsA ? 'B' : 'A'],
+                 adapt_x: Object.keys(r.stops[xIsA ? 'A' : 'B']).length ? r.stops[xIsA ? 'A' : 'B'] : undefined, adapt_y: Object.keys(r.stops[xIsA ? 'B' : 'A']).length ? r.stops[xIsA ? 'B' : 'A'] : undefined,
                  mega: r.mega ? { x: r.mega[xIsA ? 'A' : 'B'], y: r.mega[xIsA ? 'B' : 'A'] } : null,
                  ctr: Object.assign({ fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0 }, RUN,
                    INFO === 'honest' ? { hon_views: HON.views, hon_back_xatu: HON.back_xatu, hon_back_error: HON.back_error, xw: Object.assign({}, XW.COUNTERS) } : {}) });

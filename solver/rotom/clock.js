@@ -9,7 +9,8 @@
  *
  * WHAT THE SERVER SAYS. On every request with the timer on the player receives
  *     |inactive|Time left: <turn> sec this turn | <total> sec total[ | <grace> sec grace]
- * (server/room-battle.ts RoomBattleTimer.nextRequest). The server then ticks every 10 s. `turn` is what this
+ * (server/room-battle.ts RoomBattleTimer.nextRequest). The server then ticks every 5 s (TICK_TIME = 5 in the Reg M-C
+ * checkout; this said 10 s until 2026-09-27), the tick restarting at each request. `turn` is what this
  * request may spend; `total + grace` is the whole bank (secondsLeft), which every prompt — moves, preview,
  * replacements, mid-turn switches — draws down with no increment.
  *
@@ -44,7 +45,9 @@ function loadTable(file) {
   const J = JSON.parse(fs.readFileSync(p, 'utf8'));
   const by = J.clock.byTurn, last = J.clock.last_turn;
   return { sha: require('crypto').createHash('sha256').update(fs.readFileSync(p)).digest('hex').slice(0, 16),
-           eRem: (turn) => { const t = Math.max(1, Math.min(last, turn | 0)); return (by[t] || by[last]).mean; } };
+           eRem: (turn) => { const t = Math.max(1, Math.min(last, turn | 0)); return (by[t] || by[last]).mean; },
+           /* the 90th percentile of the same count: the adaptive clock's per-request reserve (solver/rotom/adaptive.js) */
+           eRemHi: (turn) => { const t = Math.max(1, Math.min(last, turn | 0)); const r = by[t] || by[last]; return r.p90 == null ? r.mean : r.p90; } };
 }
 
 /* |inactive|Time left: 55 sec this turn | 420 sec total | 90 sec grace */
@@ -59,7 +62,7 @@ class Clock {
     o = o || {};
     this.rule = o.rule || readRule(o.format);
     this.table = o.table || loadTable(o.tableFile);
-    this.margin = o.marginS == null ? 8 : o.marginS;        // the 10 s tick + the round trip + our own scheduling
+    this.margin = o.marginS == null ? 8 : o.marginS;        // the 5 s tick + the round trip + our own scheduling
     this.reserve = o.reserveS == null ? 30 : o.reserveS;    // never plan to spend the last 30 s of bank
     this.maxMs = o.maxMs == null ? Infinity : o.maxMs;       // an operator cap (tests); the rule is the binding one
     this.minSearchMs = o.minSearchMs == null ? 400 : o.minSearchMs;
@@ -78,7 +81,7 @@ class Clock {
     this.last = { turnLeft: x.turnLeft, bank: x.total + x.grace, at: now == null ? Date.now() : now };
     return true;
   }
-  /* the room-wide lines that also carry MY turn time: the 10 s tick ("<name> has N seconds left.") and a rejoin
+  /* the room-wide lines that also carry MY turn time: the tick ("<name> has N seconds left.") and a rejoin
    * ("<name> reconnected and has N seconds left.") — after a restart this is the only clock the client can see */
   onTick(line, now, myName) {
     const m = /^\|inactive\|(.+?) (?:reconnected and has|has) (\d+) seconds left(?: this turn)?\.?$/.exec(line);
