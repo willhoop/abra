@@ -48,6 +48,7 @@ ap.add_argument('--bs', type=int, default=512)
 ap.add_argument('--human-weight', type=float, default=1.0)
 ap.add_argument('--max-rows', type=int, default=0, help='debug: cap rows per directory')
 ap.add_argument('--name', default='PORYGON2 v1')
+ap.add_argument('--eval-exclude', default='', help='comma list of data dirs whose TEST rows are left out of the gate (gen5 trained on those games)')
 args = ap.parse_args()
 
 import torch
@@ -312,8 +313,11 @@ log('selected epoch', best[2])
 BUCKETS = [('1', 1, 1), ('2', 2, 2), ('3', 3, 3), ('4-5', 4, 5), ('6-8', 6, 8), ('9+', 9, 9999)]
 
 
+EXCL = set(os.path.normpath(x) for x in args.eval_exclude.split(',') if x)
+
+
 def evaluate(kind):
-    parts = [d for d in DSs if d.kind == kind and len(d.test)]
+    parts = [d for d in DSs if d.kind == kind and len(d.test) and os.path.normpath(d.dir) not in EXCL]
     if not parts: return None
     L, G5, Y, W, GAME, TURN, BASE = [], [], [], [], [], [], []
     off = 0
@@ -365,7 +369,7 @@ def count_hp():
     o.step(clo)
     res = {'weights': [round(float(x), 4) for x in wb.detach().numpy()]}
     for kind in ('human', 'selfplay'):
-        parts = [d for d in DSs if d.kind == kind and len(d.test)]
+        parts = [d for d in DSs if d.kind == kind and len(d.test) and os.path.normpath(d.dir) not in EXCL]
         if not parts: continue
         lg = np.concatenate([d.base[d.test] @ wb.detach().numpy() for d in parts]); y = np.concatenate([d.z[d.test] for d in parts]); w = np.concatenate([d.test_w for d in parts])
         res[kind + '_test_logloss'] = round(float((ll(lg, y) * w).sum() / w.sum()), 6)

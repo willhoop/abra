@@ -7,7 +7,7 @@
  *
  * For each self-play game (replayed EXACTLY, solver/porygon2/v1/replay.js), --per-game positions are drawn by a seeded
  * hash of the game key, and each gets one label:
- *   exact   a small endgame (1v1, 2v1 or 1v2 live mons; EVERY such position of every game is labelled, on top of the
+ *   exact   a small endgame (1v1, 2v1 or 1v2 live mons; the FIRST such position of every game is labelled, on top of the
  *           --per-game drawn ones): a recursive simultaneous-move solve to the end of the game on the TRUE battle,
  *           every joint of both sides (legalActions, no pruning), --chance dice per cell, SLOWKING's LP at every node,
  *           at most --exact-depth turns (2 by default; one turn when the root has more than 20 joint pairs). It is `exact` only if EVERY branch ended the game inside that depth (sampled
@@ -104,12 +104,14 @@ function worker(shard, shards) {
       for (let r = 0; want.size < Math.min(PER, n) && r < 50; r++) want.add(h32(SEED + ':' + gkey + ':' + r) % n);
       c.games++;
       const lines = [];
+      let endDone = false;
       try {
         for (const pos of RP.positions(rec, ENGINE.id)) {
           const S = pos.S;
           const la = liveCount(S, 'A'), lb = liveCount(S, 'B');
-          const endgame = la + lb <= 3 && la >= 1 && lb >= 1;
-          if (!want.has(pos.t) && !endgame) continue;      // every small endgame is labelled, plus PER drawn positions
+          const endgame = la + lb <= 3 && la >= 1 && lb >= 1 && !endDone;
+          if (endgame) endDone = true;
+          if (!want.has(pos.t) && !endgame) continue;      // the FIRST small endgame of the game is labelled, plus PER drawn positions
           const t1 = Date.now();
           let o;
           if (endgame) {

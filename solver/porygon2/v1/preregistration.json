@@ -30,5 +30,11 @@
   "d_vs_doduo": "MILTANK with v1 vs DODUO-greedy (the human clone), the same SPRT machinery and parameters, honest, battle seed 9102; reported",
   "land": "only if a and c pass (and parity + the RED-on-break tests are green). Otherwise commit on the branch and report."
  },
- "parity": "solver/tests/test-porygon2-v1.js: the Node forward pass against Python float64 logits on raw rows of the exported model, worst |diff| <= 1e-9; RED under PORY2V1_INFER_BREAK=mask and each PORY2V1_BREAK (honest, protect, tr)"
+ "parity": "solver/tests/test-porygon2-v1.js: the Node forward pass against Python float64 logits on raw rows of the exported model, worst |diff| <= 1e-9; RED under PORY2V1_INFER_BREAK=mask and each PORY2V1_BREAK (honest, protect, tr)",
+ "labels": {
+  "script": "solver/porygon2/v1/label.js",
+  "flags": "--per-game 1 --k 6 --passes 8 --chance 3 --exact-depth 2 --seed 1, gen5 leaf + gen5 MAG/DODUO",
+  "which": "per game: the FIRST small-endgame position (1v1, 2v1, 1v2) and one position drawn by a seeded hash of the game key",
+  "amended": "2026-09-26 before any label was read into a fit: per-game 2 -> 1 and passes 12 -> 8 (a 12-pass deep label measured 3-38 s on this loaded machine), and only the FIRST endgame per game"
+ }
 }
