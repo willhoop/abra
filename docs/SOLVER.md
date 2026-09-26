@@ -117,7 +117,7 @@ This section says only what a division agent needs before it starts.
 - **ROTOM has an adaptive clock (2026-09-27, abra/regmc 1.24.0).** `solver/rotom/adaptive.js`: little time on a clear
   table, up to twice the target on a close one, capped by the bank the server reports. Against a fixed 5 s it is not
   shown stronger or weaker (SPRT H0, 0.491 [0.455, 0.526], 748 games) at 3.63 s vs 4.72 s per decision, 0 timeouts. No
-  ladder arm uses it yet. The lookahead options pass a 2 s screen on it (0.500); the ~10 s SPRT is running. Account:
+  ladder arm uses it yet. The lookahead options pass a 2 s screen on it (0.500); their ~10 s SPRT was stopped unread (1.24.1), re-run owed. Account:
   `docs/_reports/2026-09-27-adaptive-clock.md`.
 - **ROTOM knows how each series ended, and never counts an unrated one (2026-09-26, abra/regmc 1.17.0).** Game and
   series rows carry `end_reason` (`solver/rotom/endings.js`), including the walkaway between games that no game log
