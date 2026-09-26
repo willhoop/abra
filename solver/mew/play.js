@@ -157,8 +157,12 @@ async function match() {
       if (r.unbuildable) { counts.unbuildable++; per.push({ pi, id: G.id, xSide: xIsA ? 'A' : 'B', unbuildable: true }); continue; }
       counts.games++; if (r.err) counts.errors++; if (r.capped) counts.capped++;
       const vX = r.err ? null : (xIsA ? r.vA : 1 - r.vA);
+      /* the shard's running agent counters ride on every row (the fallbacks and, for a gated agent, the gate's cuts):
+       * an SPRT kills its workers at the bound and a killed worker writes no summary, so the last row is the only
+       * place a capability counter survives (added 2026-09-25 for the dead-click gates) */
       per.push({ pi, id: G.id, xSide: xIsA ? 'A' : 'B', seed, vX, turns: r.turns, capped: r.capped, err: r.err,
-                 ms_x: r.ms[xIsA ? 'A' : 'B'], ms_y: r.ms[xIsA ? 'B' : 'A'] });
+                 ms_x: r.ms[xIsA ? 'A' : 'B'], ms_y: r.ms[xIsA ? 'B' : 'A'],
+                 counters: { fallbacks: AG.COUNTERS.fallbacks, gates: JSON.parse(JSON.stringify(AG.COUNTERS.gates || {})) } });
     }
     if (OUT) fs.writeFileSync(OUT, per.map(p => JSON.stringify(p)).join('\n') + '\n');
     console.log(`  [shard ${SHARD}] pair ${pi}  games ${counts.games}  errors ${counts.errors}  fallbacks ${AG.COUNTERS.fallbacks}  ${((Date.now() - t0) / 1000).toFixed(0)}s`);
