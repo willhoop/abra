@@ -3,7 +3,11 @@
  *
  *   cmd.exe /c tools\lownode.cmd solver\machamp\sprt.js --release <id> --x <spec.json> --y <spec.json>
  *        --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 2000 --seed S --workers 3
- *        --team-store <dir> --out <result.json>
+ *        --team-store <dir> --out <result.json> [--info honest|omniscient]
+ *
+ * INFORMATION (2026-09-26). --info defaults to HONEST (solver/mew/play.js: hidden spreads in the true battle, and each
+ * decision taken on the decider's public view with XATU's belief over what it cannot see). `omniscient` is the
+ * pre-2026-09-26 arena, kept as a labelled option; the mode is in the result's `preregistered.information`.
  *
  * THE UNIT IS A PAIR. Pair i plays test team pair (i mod the test split) twice on one battle seed with the seats
  * swapped (solver/mew/play.js --mode match --cycle), so a pair's score is 0, 1/2 or 1 and the seat/team luck of the
@@ -65,7 +69,9 @@ function decide(pairScores, o) {
 async function main() {
   const o = { release: flag('--release'), x: flag('--x'), y: flag('--y'), elo0: +flag('--elo0', 0), elo1: +flag('--elo1', 20),
     alpha: +flag('--alpha', 0.05), beta: +flag('--beta', 0.05), maxGames: +flag('--max-games', 2000), seed: +flag('--seed', 1),
-    workers: +flag('--workers', 3), store: flag('--team-store', null), out: path.resolve(ROOT, flag('--out')), cap: +flag('--cap', 50) };
+    workers: +flag('--workers', 3), store: flag('--team-store', null), out: path.resolve(ROOT, flag('--out')), cap: +flag('--cap', 50),
+    info: flag('--info', 'honest') };
+  if (!['honest', 'omniscient'].includes(o.info)) throw new Error('sprt: --info must be honest or omniscient');
   if (!o.release || !o.x || !o.y || !flag('--out')) throw new Error('usage: --release --x --y --out');
   if (o.workers > 3) throw new Error('sprt: at most 3 workers');
   const NP = Math.floor(o.maxGames / 2);
@@ -78,7 +84,7 @@ async function main() {
     if (fs.existsSync(f)) fs.unlinkSync(f);
     const ch = cp.fork(path.join(ROOT, 'solver', 'mew', 'play.js'), ['--mode', 'match', '--cycle', '--release', o.release, '--x', path.resolve(ROOT, o.x), '--y', path.resolve(ROOT, o.y),
       '--pairs', String(NP), '--pair-seed', '1', '--seed', String(o.seed), '--shard', String(i), '--shards', String(o.workers), '--cap', String(o.cap),
-      '--out', f, ...(o.store ? ['--team-store', o.store] : [])], { execArgv: ['--max-old-space-size=1536'], stdio: ['ignore', 'ignore', 'inherit', 'ipc'] });
+      '--out', f, '--info', o.info, ...(o.store ? ['--team-store', o.store] : [])], { execArgv: ['--max-old-space-size=1536'], stdio: ['ignore', 'ignore', 'inherit', 'ipc'] });
     kids.push({ ch, f, code: null });
     ch.on('exit', code => { kids[i].code = code; });
     console.log(`sprt: shard ${i} pid ${ch.pid}`);
@@ -124,7 +130,8 @@ async function main() {
   const spec = f => { const s = JSON.parse(fs.readFileSync(path.resolve(ROOT, f), 'utf8')); return { file: f, spec: s, digests: Object.fromEntries(['mag', 'doduo', 'pory2'].filter(k => s[k]).map(k => [k, sha(s[k])])) }; };
   const result = {
     what: 'MACHAMP SPRT (solver/machamp/sprt.js)', started, finished: new Date().toISOString(),
-    preregistered: { elo0: o.elo0, elo1: o.elo1, alpha: o.alpha, beta: o.beta, max_games: o.maxGames, unit: 'pair of games on one battle seed, seats swapped', statistic: 'normal-approximation GSPRT on pair scores (Fishtest)' },
+    preregistered: { elo0: o.elo0, elo1: o.elo1, alpha: o.alpha, beta: o.beta, max_games: o.maxGames, unit: 'pair of games on one battle seed, seats swapped', statistic: 'normal-approximation GSPRT on pair scores (Fishtest)',
+      information: o.info === 'honest' ? 'honest: hidden spreads; each decision on the decider public view with the XATU belief (solver/xatu/worlds.js)' : 'omniscient: no spreads; the searcher reads the true battle' },
     engine_release: o.release, flags: o, x: spec(o.x), y: spec(o.y),
     verdict: d.stop == null ? 'INCONCLUSIVE (no bound crossed by the game budget)' : d.verdict === 'H1' ? `H1 — X is stronger (elo1 = +${o.elo1} accepted)` : `H0 — X is not stronger (elo0 = ${o.elo0} accepted)`,
     llr_at_stop: d.llr, bounds: [d.A, d.B], stop_pair_index: d.stop, pairs_used: d.pairs, games_used: n,

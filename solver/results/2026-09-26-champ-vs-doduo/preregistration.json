@@ -1,0 +1,17 @@
+{
+ "what": "Ladder-bot decision: the self-play champion gen5 against DODUO-greedy, at two clock-sized budgets. Written 2026-09-25 BEFORE the first game of either arm.",
+ "engine_release": "eaa5becc54eb",
+ "team_store": "data/team-pool-frozen-regmc (pool digest 792daded918f; games.bo3.jsonl a68263bb568d), TEST pairs, cycled (solver/mew/pairs.js)",
+ "x_arms": {
+  "gen5-1s": "solver/machamp/league/gen5.json (MILTANK, gen5 MAG/DODUO/PORYGON2, k 4x4, depth 0, 1 reserved switch row, budgetMs 1000)",
+  "gen5-5s": "solver/results/2026-09-26-champ-vs-doduo/gen5-5s.json (identical to gen5.json except budgetMs 5000)"
+ },
+ "y": "solver/machamp/league/human-clone.json = DODUO-greedy: MAG v1 + DODUO v1, argmax legal joint, no search. This is ROTOM's `prior` policy (solver/rotom/policy.js: MAG v1 + DODUO v1 through the prior adapter).",
+ "test": "solver/machamp/sprt.js: normal-approximation GSPRT on pair scores; elo0 0, elo1 +20, alpha 0.05, beta 0.05, max 2,000 games (1,000 pairs), index order, read once at the bound. H1 = gen5 is proven stronger at that budget. H0 = not stronger. No bound = INCONCLUSIVE.",
+ "seeds": { "gen5-1s": 26001, "gen5-5s": 26005 },
+ "flags": "--workers 3 --cap 50 --team-store data/team-pool-frozen-regmc; one arm at a time (never more than 3 workers on the machine from this run)",
+ "run_order": "gen5-1s first, then gen5-5s",
+ "reported_with_the_verdict": "Wilson 95% on the counted games (conditional on the stop); per-decision wall-clock mean/p95/max of gen5; per-game sum of gen5 decision time; MILTANK prior-fallback share (search.js fallbackEmpty/fallbackSparse) and agent fallbacks; playouts per searched decision.",
+ "clock_safe_rule": "An arm is clock-safe if no gen5 decision exceeds 55 s (the Reg M-C bo3 VGC Timer's Max Per Turn) and no game's summed gen5 decision time exceeds 420 s (Timer Starting, grace excluded), read from solver/rotom/clock.js's rule. A breach is reported by count; ROTOM's clock would cap the budget but the arena run does not.",
+ "caveat_declared_before": "The budget is WALL-CLOCK. A live ladder run (ROTOM, main checkout) shares the machine, so a MILTANK decision's compute at a given budget depends on load. The prior-fallback share is the counter that shows how much of 'gen5' was actually its own DODUO prior."
+}

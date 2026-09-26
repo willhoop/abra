@@ -18,7 +18,8 @@
  *      the checkout's ruleTable, E[remaining requests] from the store);
  *   3. builds the MEDICHAM position it observes (solver/rotom/world.js: engine/medicham_api.js + the arena's body
  *      builder), and XATU's back-pair posterior with this series' earlier games as memory;
- *   4. asks the policy ('prior' = DODUO greedy, 'miltank' = MILTANK lean search, 'random'); a budget under the
+ *   4. asks the policy ('prior' = DODUO greedy, 'miltank' = MILTANK lean search, 'miltank-gen5' = the gen5 champion with
+ *      the honest arena's XATU belief (solver/rotom/policy.js, solver/xatu/worlds.js), 'random'); a budget under the
  *      search floor drops to 'prior'; any throw drops down the chain prior -> request heuristic -> `default`;
  *   5. checks the choice against the request (solver/rotom/request.js) and sends `/choose <choice>|<rqid>`;
  *   6. logs the decision to <out>/decisions-<name>.jsonl AND to the game's own file
@@ -90,8 +91,9 @@ const LOCAL_REPLAYS = has('local-replays');          // the local server's login
 const REPLAY_TIMEOUT_MS = +flag('replay-timeout-ms', 20000);
 const REPLAY_ATTEMPTS = +flag('replay-attempts', 4);
 /* THE SERIES WATCH (solver/rotom/ladder.js stallAction; the aa1 hang, docs/_reports/2026-09-25-rotom-series-hang.md): an
- * open series with no line in its room or any of its battles for --series-idle-ms is probed with `/crq roominfo`; gone,
- * or silent through --series-max-probes probes, it is ORPHANED (logged, a ladder error) so the loop cannot wait forever */
+ * open series with no line in its room or any of its battles for --series-idle-ms is probed with `/crq roominfo`; an answer
+ * "alive, and we are in it" is LIFE and the series is repaired, never orphaned (aa2 k=16, 2026-09-26); gone, or probes
+ * unanswered through --series-max-probes, it is ORPHANED (logged, a ladder error) so the loop cannot wait forever */
 const LADDER_LIB = require('./ladder.js');
 const SERIES_WATCH = { idleMs: +flag('series-idle-ms', require('./ladder.js').SERIES_IDLE_MS), probeMs: +flag('series-probe-ms', require('./ladder.js').SERIES_PROBE_MS),
                        maxProbes: +flag('series-max-probes', require('./ladder.js').SERIES_MAX_PROBES) };
@@ -123,7 +125,9 @@ if (!LOCK.isLocal(SERVER) && !has('public')) {
   console.error('ROTOM v0 is local-only: ' + SERVER + ' is not localhost. Refusing (pass --public only once a ladder launch is approved).');
   process.exit(2);
 }
-if (!['prior', 'miltank', 'random'].includes(POLICY)) { console.error('unknown --policy ' + POLICY); process.exit(2); }
+const POLICIES = ['prior', 'miltank', 'miltank-gen5', 'random'];
+const SEARCHES = ['miltank', 'miltank-gen5'];          // the policies that search: the clock floor, the prior fallback and the idle GC apply
+if (!POLICIES.includes(POLICY)) { console.error('unknown --policy ' + POLICY); process.exit(2); }
 if (DRY_RUN && !LOCK.isLocal(SERVER)) { console.error('--dry-run is LOCAL only: ' + SERVER + ' is not localhost. Refusing.'); process.exit(2); }
 if (DRY_RUN && has('public')) { console.error('--dry-run and --public together make no sense. Refusing.'); process.exit(2); }
 if (LADDER_MODE) {
@@ -181,6 +185,8 @@ const RQ = require('./request.js');
 const { Clock } = require('./clock.js');
 const { parseGame, parseShowteam } = require('../human/parse_game.js');
 const MR = require('../arena/mega_rate.js');   // the mega capability counter, same definition as the arena and the human rate
+const APPLIED = require('./applied.js');       // chosen vs applied: did the server DO what we chose (every decision, every game)
+APPLIED.redirectors();                          // warm the format-derived redirect sets now, never on the first turn that needs them
 const XATU = require('../xatu/index.js');
 const { BringMemory } = require('../xatu/bring.js');
 const { SeriesBook } = require('./series.js');
@@ -202,6 +208,17 @@ if (ENGINE.id) { const ed = path.join(ENGINE.REL.dir, 'data', 'engine-data-regmc
     const S = API.newBattle(a.team, b.team, { rng: API.makeRng(1) });
     const MT = require('../miltank/search.js').create(API, { prior: PA, rollout: R });
     MT.decide(S, 'A', PA.newGame(G), { budgetMs: 1500, coin: API.M.rngStreams({ seed: 3 }).any });
+    /* miltank-gen5: load the gen5 nets, its PORYGON2 leaf and XATU's spread belief (the checkout's sim) BEFORE a clock
+     * runs, and stamp their digests; the arms file is read here only for its policy names */
+    let armsPol = [];
+    try { if (flag('arms', '')) armsPol = Object.values(JSON.parse(fs.readFileSync(path.resolve(flag('arms', '')), 'utf8')).arms || {}).map(a => a.policy); } catch (e) { /* validated later */ }
+    if (POLICY === 'miltank-gen5' || armsPol.includes('miltank-gen5')) {
+      const tw = Date.now();
+      P.warmGen5(S, PA.newGame(G), API.M.rngStreams({ seed: 5 }).any);
+      const g = P.gen5();
+      PROV.gen5 = { spec: path.relative(ROOT, g.specFile).split(path.sep).join('/'), spec_sha256: sha(g.specFile), digests: g.digests };
+      say('warm-up: miltank-gen5 loaded in ' + (Date.now() - tw) + ' ms (' + JSON.stringify(g.digests) + ')');
+    }
   } catch (e) { say('warm-up failed (continuing): ' + e.message); }
 })();
 say('loaded engine ' + (ENGINE.id ? 'release ' + ENGINE.id : '(LIVE TREE)') + ' + MAG/DODUO + XATU in ' + (Date.now() - t0load) + ' ms; policy ' + (LADDER_MODE ? 'per series arm' : POLICY) + '; out ' + OUT);
@@ -218,13 +235,24 @@ const ST = { decisions: 0, byKind: {}, ms: { preview: [], move: [], switch: [] }
              timerOnSeen: 0, games: 0, previewSheetWaitMs: [], worldErrors: 0, noTimerLine: 0,
              /* MEGA, as a RATE on the games where OUR side could mega (solver/arena/mega_rate.js): a capability that cannot
               * prove it ran is assumed broken, and "at least one mega happened" once hid a 56%-vs-85% rate */
-             mega: { games: 0, parsed: 0, capable: 0, megas: 0, turn: {}, delay: {}, opp_capable: 0, opp_megas: 0 } };
+             mega: { games: 0, parsed: 0, capable: 0, megas: 0, turn: {}, delay: {}, opp_capable: 0, opp_megas: 0 },
+             /* CHOSEN VS APPLIED, over every check of every decision (preview, move, target, mega, switch, forced, timer) */
+             applied: new APPLIED.Tally(), verifyCost: { runs: 0, decisions: 0, ms: 0, max_ms: 0 } };
 const fb = (k) => { ST.fallbacks[k] = (ST.fallbacks[k] || 0) + 1; };
 process.on('uncaughtException', e => { ST.crashesCaught.push(String(e && e.stack || e).slice(0, 400)); event('uncaught', { err: String(e && e.message || e) }); say('UNCAUGHT ' + (e && e.stack || e)); });
 
 /* ---------------- ladder mode (solver/rotom/ladder.js) ---------------- */
 let LADDER = null;
+let exitWaitStart = 0;
 function exitClean(code, why) {
+  /* never exit with a game whose record is unwritten while its replay save is still in flight (bounded, as checkDone):
+   * the 2026-09-26 throttle dry run left its last game's record pending at the ladder's exit */
+  const pending = Object.keys(STATE.pendingGames || {}).length;
+  if (pending) {
+    exitWaitStart = exitWaitStart || Date.now();
+    if (Date.now() - exitWaitStart < (REPLAY_ATTEMPTS + 1) * REPLAY_TIMEOUT_MS + 30000) { setTimeout(() => exitClean(code, why), 500); return; }
+    event('exit_with_pending_games', { rooms: Object.keys(STATE.pendingGames) });
+  }
   stopping = true;
   STATE.cleanExit = true; saveState();
   writeSummary();
@@ -243,7 +271,7 @@ if (LADDER_MODE) {
   const armsFile = path.resolve(flag('arms', ''));
   const arms = JSON.parse(fs.readFileSync(armsFile, 'utf8'));
   if (arms.dry_run_only && !DRY_RUN) { console.error('--arms ' + armsFile + ' is marked dry_run_only (search caps for a harness test). Refusing it on the public ladder.'); process.exit(2); }
-  for (const [id, a] of Object.entries(arms.arms || {})) if (!['prior', 'miltank', 'random'].includes(a.policy)) { console.error('arm ' + id + ': unknown policy ' + a.policy); process.exit(2); }
+  for (const [id, a] of Object.entries(arms.arms || {})) if (!POLICIES.includes(a.policy)) { console.error('arm ' + id + ': unknown policy ' + a.policy); process.exit(2); }
   if (Object.keys(arms.arms || {}).length < 1) { console.error('--arms ' + armsFile + ' defines no arms'); process.exit(2); }
   const shaFull = f => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex');
   const defStop = DRY_RUN ? path.join(OUT, 'STOP') : path.join(ROOT, 'solver', 'out', 'rotom', 'STOP');
@@ -259,7 +287,9 @@ if (LADDER_MODE) {
       guardUsers: flag('guard', 'willhoop').split(',').filter(Boolean), guardMode: flag('guard-mode', 'online'),
       release: ENGINE.stamp, restartedAfterCrash: STATE.restarts > 0 && !STATE.cleanExit,
       send: (x) => send(x), say, event, loggedIn: () => loggedIn, setsDone: () => STATE.setsDone.length, openSeries: () => openSeries(),
-      counters: () => ({ fallbacks: Object.assign({}, ST.fallbacks), invalid: ST.invalid.length, timeouts: ST.timeouts.length, decisions: ST.decisions, crashes: ST.crashesCaught.length }),
+      counters: () => ({ fallbacks: Object.assign({}, ST.fallbacks), invalid: ST.invalid.length, timeouts: ST.timeouts.length, decisions: ST.decisions, crashes: ST.crashesCaught.length,
+                         applied_checks: ST.applied.chosen, applied_mismatch: ST.applied.mismatch, preview_mismatch: (ST.applied.by_kind.preview || {}).mismatch || 0, throttle_notices: THR.notices }),
+      maxMismatches: +flag('max-mismatches', 3),
       bookGet: (room) => { const b = BOOK.get(room); return b && b.ladder ? b : null; },
       bookSet: (room, o) => { const b = BOOK.get(room); Object.assign(b, o); BOOK.save(b); },
       exit: (code, why) => exitClean(code, why),
@@ -275,7 +305,16 @@ if (LADDER_MODE) {
 
 /* ---------------- socket ---------------- */
 let ws = null, backoff = 1000, loggedIn = false, stopping = false, HOLD_UNTIL = 0, loggedOutSince = Date.now();
-const send = (s) => { if (ws && ws.readyState === 1) { ws.send(s); return true; } return false; };
+/* EVERY OUTGOING MESSAGE IS PACED (solver/rotom/sendq.js; the aa2 throttle, docs/_reports/2026-09-26-rotom-throttle-fix.md).
+ * The server drops a user's 7th message inside its 600 ms-per-message queue, with a notice and nothing else; ROTOM's burst
+ * at the start of a series lost the preview `/choose` and the battle `/timer on` in 14 of 17 game 1s. One frame per
+ * --send-gap-ms (650), battle choices first. send() = QUEUED on an open socket; whether the server APPLIED a choice is
+ * read back from the server's own lines (solver/rotom/applied.js), never from this return value. */
+const SEND_GAP_MS = +flag('send-gap-ms', 650);
+const SENDQ = new (require('./sendq.js').SendQueue)({ gapMs: SEND_GAP_MS, write: f => ws.send(f), isOpen: () => !!(ws && ws.readyState === 1) });
+const send = (s) => SENDQ.send(s);
+/* the throttle, counted: every notice, what it followed, what was resent, and resends the server found redundant */
+const THR = { notices: 0, by_room: {}, resent_choices: 0, resent_other: 0, redundant_resends: 0, cleared_on_close: 0, last: [] };
 const battles = new Map();   // battle room id -> B
 const CLOSED = new Set();    // battle rooms finished and left: later lines for them (deinit) are ignored
 const bestofs = new Map();   // bestof room id -> { id, done, gnums:Set }
@@ -302,6 +341,7 @@ function connect() {
   };
   ws.onclose = () => {
     loggedIn = false; loggedOutSince = Date.now();
+    { const n = SENDQ.clear(); if (n) { THR.cleared_on_close += n; event('sendq_cleared', { frames: n, why: 'socket closed' }); } }   // the rejoin path re-answers the open request
     for (const B of battles.values()) if (!B.ended) B.stale = true;
     ST.disconnects++;
     event('disconnect', {});
@@ -317,6 +357,7 @@ function handle(room, line) {
   if (!line) return;
   const p = line.split('|');
   const cmd = p[1];
+  if (cmd === 'raw' && /message-throttle-notice/.test(line)) return onThrottle(room, line);
   if (!room || room === 'lobby') {
     if (cmd === 'challstr') return login(p.slice(2).join('|'));
     if (cmd === 'updateuser') {
@@ -336,11 +377,23 @@ function handle(room, line) {
     if (cmd === 'updatesearch') {
       let d = null; try { d = JSON.parse(p[2]); } catch (e) { return; }
       if (LADDER) LADDER.onUpdateSearch(d);
-      for (const rid of Object.keys((d && d.games) || {})) {
+      const listed = Object.keys((d && d.games) || {});
+      for (const rid of listed) {
         const twin = renamedTwin(rid);   // the pre-rename id of a room we already hold under its private id: never join it
         if (twin) { ROOMS.skippedOldIds++; event('skip_renamed_id', { room: rid, held_as: twin }); continue; }
-        if (!battles.has(rid) && !bestofs.has(rid)) { send('|/join ' + rid); ST.rejoins++; event('join_from_updatesearch', { room: rid }); }
-        else if (battles.has(rid) && battles.get(rid).stale) { send('|/join ' + rid); ST.rejoins++; }
+        /* one /join per room in flight: |updatesearch| lists a new battle twice before its room speaks (aa2 k=16), and
+         * every extra frame is one more in the burst the throttle drops */
+        if (JOINING.has(rid) && Date.now() - JOINING.get(rid) < 15000 && !(battles.has(rid) && battles.get(rid).stale)) { ROOMS.dupJoins++; continue; }
+        if (!battles.has(rid) && !bestofs.has(rid)) { JOINING.set(rid, Date.now()); send('|/join ' + rid); ST.rejoins++; event('join_from_updatesearch', { room: rid }); }
+        else if (battles.has(rid) && battles.get(rid).stale) { JOINING.set(rid, Date.now()); send('|/join ' + rid); ST.rejoins++; }
+      }
+      /* a battle we hold as STALE (the socket dropped) that the server no longer lists is over for us: it no longer
+       * blocks the next search (liveBattles) — logged, never silent */
+      if (d && 'games' in d && loggedIn) {
+        const L = new Set(listed.map(r => LADDER_LIB.canonRoom(r)));
+        for (const B of [...battles.values()]) if (B.stale && !B.ended && !L.has(LADDER_LIB.canonRoom(B.id))) {
+          battles.delete(B.id); CLOSED.add(B.id); ROOMS.unlisted++; event('battle_unlisted', { room: B.id, turn: B.turn });
+        }
       }
       return;
     }
@@ -375,7 +428,8 @@ function handle(room, line) {
  * series k+1 that could never end, and the ladder waited "series in progress" for 20 minutes. Now a noinit/deinit line
  * never creates anything; a rename moves the record; a room that is gone orphans an open series; and an open series
  * that goes silent is probed and, failing that, orphaned (watchSeries). */
-const ROOMS = { renames: 0, ignoredNoinit: 0, skippedOldIds: 0, probes: 0, orphans: [] };
+const ROOMS = { renames: 0, ignoredNoinit: 0, skippedOldIds: 0, probes: 0, orphans: [], dupJoins: 0, unlisted: 0, aliveAnswers: 0, repairs: 0, unorphaned: 0 };
+const JOINING = new Map();   // room -> when we sent /join (one in flight per room)
 function renamedTwin(rid) {
   if (LADDER_LIB.isPrivateId(rid)) return null;
   for (const k of bestofs.keys()) if (k !== rid && LADDER_LIB.canonRoom(k) === rid) return k;
@@ -430,15 +484,68 @@ function onRoomInfo(json) {
   const bo = bestofs.get(d.id); if (!bo || bo.done) return;
   bo.probeAnswers = (bo.probeAnswers || 0) + 1;
   if (d.error) { bo.gone = 'roominfo: ' + d.error; event('series_probe', { room: d.id, answer: 'gone' }); return watchSeries(); }
-  event('series_probe', { room: d.id, answer: 'alive', users: (d.users || []).length });
-  if (!(d.users || []).some(u => toID(u) === toID(NAME))) send('|/join ' + d.id);   // alive and we are not in it: rejoin, the log replays
+  const inIt = (d.users || []).some(u => toID(u) === toID(NAME));
+  event('series_probe', { room: d.id, answer: 'alive', users: (d.users || []).length, in_it: inIt });
+  if (!inIt) { send('|/join ' + d.id); return; }   // alive and we are not in it: rejoin, the log replays
+  /* ALIVE AND WE ARE IN IT (aa2 k=16: three such answers, and the watch orphaned it anyway, and the ladder searched while
+   * the series went on). A live room we are in is never orphaned: it is waiting — usually on us, or on a timer nobody
+   * turned on. So it counts as life, and the watch REPAIRS it: the timer on again, the open request answered again. The
+   * server's timer then bounds the wait; the ladder does not search while it lasts (openSeries). */
+  bo.lastAlive = Date.now(); bo.probes = 0; bo.probeSentAt = 0; ROOMS.aliveAnswers++;
+  repairSeries(bo, 'probe: alive, we are in it');
 }
+/* the battles of an open series that are still live: re-send the timer and the open choice (or decide it now) */
+function repairSeries(bo, why) {
+  const acts = [];
+  for (const B of battles.values()) {
+    if (B.ended || B.bestof !== bo.id) continue;
+    if (TIMER === 'on' && !B.timerAck) { send(B.id + '|/timer on'); B.timerSent = true; acts.push('timer ' + B.id.slice(-6)); }
+    if (B.req && B.sent.has(B.req.rqid)) {
+      const k = B.req.rqid; B.repairResends = B.repairResends || {};
+      if ((B.repairResends[k] = (B.repairResends[k] || 0) + 1) <= 3) { B.resendAt = Date.now(); send(B.id + '|/choose ' + B.sent.get(k) + '|' + k); ST.resent++; acts.push('choose rqid ' + k); }
+    }
+    else if (B.req && !B.deciding) { scheduleDecide(B); acts.push('decide rqid ' + B.req.rqid); }
+  }
+  ROOMS.repairs++;
+  event('series_repair', { room: bo.id, why, acts });
+  if (acts.length) say('series ' + bo.id + ' ' + why + ' — repaired: ' + acts.join(', '));
+}
+/* THE THROTTLE NOTICE. The server names only the ROOM of the message it dropped (users.ts:1446-1452), so: the open
+ * choice in that battle is re-sent (a redundant resend is harmless — the server takes the same choice again, or says
+ * "too late", which is then not counted as an invalid choice), and the other idempotent frames written to that room in
+ * the last 6 s are re-sent. A dropped /utm or /search re-runs the search step (cancel, team, search). Counted. */
+function onThrottle(room, line) {
+  THR.notices++; THR.by_room[room || 'lobby'] = (THR.by_room[room || 'lobby'] || 0) + 1;
+  const B = room ? battles.get(room) : null;
+  if (B) B.raw.push(line);
+  const recent = SENDQ.recentTo(room || '', 6000).filter(r => !r.throttleHandled);
+  const resent = [];
+  if (B && !B.ended && B.req && B.sent.has(B.req.rqid)) {
+    const k = B.req.rqid; B.throttleResends = B.throttleResends || {};
+    if ((B.throttleResends[k] = (B.throttleResends[k] || 0) + 1) <= 3) {
+      B.resendAt = Date.now(); SENDQ.sendFirst(room + '|/choose ' + B.sent.get(k) + '|' + k); THR.resent_choices++; ST.resent++; resent.push('/choose rqid ' + k);
+    }
+  }
+  let research = false;
+  for (const r of recent) {
+    r.throttleHandled = true;
+    if (/^\/(timer on|join |leave |confirmready)/.test(r.msg) && !r.resend) { SENDQ.sendFirst(r.frame); THR.resent_other++; resent.push(r.msg.slice(0, 40)); }
+    if (/^\/(utm|search) /.test(r.msg)) research = true;
+  }
+  if (research && LADDER) { THR.resent_other++; resent.push('search step'); LADDER.redoSearch('throttle notice after /utm or /search'); }
+  const rec = { room: room || 'lobby', recent: recent.map(r => r.msg.slice(0, 40)), resent };
+  THR.last.push(Object.assign({ at: new Date().toISOString() }, rec)); if (THR.last.length > 20) THR.last.shift();
+  event('throttle_notice', rec);
+  say('THROTTLE NOTICE in ' + (room || 'lobby') + ' — resent ' + (resent.join(', ') || 'nothing'));
+}
+/* a battle we are in that has not ended — it blocks the next search whatever its series record says */
+function liveBattles() { return [...battles.values()].filter(B => !B.ended && !CLOSED.has(B.id) && (B.lines.length > 0 || B.req)); }
 function watchSeries() {
   if (!loggedIn || HUNG) return;
   const now = Date.now();
   for (const bo of [...bestofs.values()]) {
     if (bo.done) continue;
-    const a = LADDER_LIB.stallAction({ lastSeen: bo.lastSeen || bo.started, probes: bo.probes || 0, probeSentAt: bo.probeSentAt || 0, gone: bo.gone }, now, SERIES_WATCH);
+    const a = LADDER_LIB.stallAction({ lastSeen: bo.lastSeen || bo.started, probes: bo.probes || 0, probeSentAt: bo.probeSentAt || 0, gone: bo.gone, lastAlive: bo.lastAlive || 0 }, now, SERIES_WATCH);
     if (a.do === 'probe') {
       bo.probes = (bo.probes || 0) + 1; bo.probeSentAt = now; ROOMS.probes++;
       send('|/crq roominfo ' + bo.id);
@@ -447,17 +554,32 @@ function watchSeries() {
     } else if (a.do === 'orphan') orphanSeries(bo, a.why);
   }
 }
+/* ORPHANING (only a series whose room is GONE, or whose probes go unanswered — never one that answers alive). It never
+ * lets a second series run beside it: the bestof room and every FINISHED battle of it are left; a battle of it that is
+ * still LIVE stays tracked and played, and blocks the next search (openSeries counts it) until it ends. Nothing is ever
+ * forfeited. If the orphaned series speaks again, it is taken back (unorphanSeries) and gets its row. */
 function orphanSeries(bo, why) {
   if (bo.done) return;
   bo.done = true; bo.orphaned = why;
-  const rec = { id: bo.id, why, at: new Date().toISOString(), team: bo.team, arm: bo.arm, games_seen: bo.gnums.size };
+  const live = liveBattles().filter(B => B.bestof === bo.id).map(B => B.id);
+  const rec = { id: bo.id, why, at: new Date().toISOString(), team: bo.team, arm: bo.arm, games_seen: bo.gnums.size, live_battles_kept: live, forfeited: 0 };
   ROOMS.orphans.push(rec); STATE.orphans = (STATE.orphans || []).concat([rec]); saveState();
   try { const S = BOOK.get(bo.id); S.orphaned = rec; BOOK.save(S); } catch (e) { /* never fatal */ }
   event('series_orphan', rec);
-  say('SERIES ORPHANED ' + bo.id + ' — ' + why);
+  say('SERIES ORPHANED ' + bo.id + ' — ' + why + (live.length ? ' (its live battle ' + live.join(', ') + ' is kept and played; no search until it ends)' : ''));
   if (LADDER) LADDER.onSeriesOrphan(bo.id, why);
   send('|/leave ' + bo.id);
+  for (const B of [...battles.values()]) if (B.bestof === bo.id && B.ended && !CLOSED.has(B.id) && !STATE.pendingGames?.[B.id]) { CLOSED.add(B.id); send('|/leave ' + B.id); battles.delete(B.id); }
   setTimeout(() => { maybeChallenge('series orphaned'); checkDone(); }, 500);
+}
+function unorphanSeries(bo, why) {
+  if (!bo || !bo.orphaned) return;
+  const was = bo.orphaned;
+  bo.done = false; bo.orphaned = null; bo.gone = null; bo.lastSeen = Date.now(); bo.probes = 0; bo.probeSentAt = 0; ROOMS.unorphaned++;
+  event('series_unorphan', { room: bo.id, why, was });
+  say('SERIES TAKEN BACK ' + bo.id + ' — ' + why + ' (orphaned for: ' + was + ')');
+  send('|/join ' + bo.id);
+  if (LADDER) LADDER.onSeriesResume(bo.id, why);
 }
 
 function login(challstr) {
@@ -475,7 +597,13 @@ function login(challstr) {
 }
 
 /* ---------------- series control ---------------- */
-function openSeries() { return [...bestofs.values()].filter(b => !b.done).length; }
+/* open series + live battles that belong to no open series (an orphaned series' game still being played, a battle whose
+ * series room we never saw): the ladder never searches while ANY battle we are in is live */
+function openSeries() {
+  const open = [...bestofs.values()].filter(b => !b.done);
+  const loose = liveBattles().filter(B => !open.some(b => b.id === B.bestof));
+  return open.length + loose.length;
+}
 /* DRILL hang@S (local/dry run only): once S sets are done, this process stops moving — no tick, no series watch — the
  * shape of the aa1 hang, for the SUPERVISOR's watchdog to find (run_ladder.js). Fires once per run: a restarted process
  * reads drillsFired and plays on. */
@@ -591,7 +719,9 @@ function newBattle(room) {
   return { id: room, lines: [], me: null, sheets: { p1: null, p2: null }, names: {}, req: null, reqAt: 0, sent: new Map(), turn: 0,
            clock: new Clock(Object.assign({ format: FORMAT_ID }, clockOpts)), bestof: null, gnum: null, ended: false, timerOn: false,
            deciding: false, timer: null, xatu: null, xatuFed: 0, stale: false, previewWaitStart: 0, clockUsed: 0, lastTimeLeft: null,
-           raw: [], ratingsBefore: {}, ratings: [], rated: false, decisions: 0, preview: null, packed: {} };
+           raw: [], ratingsBefore: {}, ratings: [], rated: false, decisions: 0, preview: null, packed: {},
+           /* chosen vs applied (solver/rotom/applied.js): decisions waiting for their turn to resolve, and the game's tally */
+           pending: [], toVerify: [], tally: new APPLIED.Tally(), latestReq: null, turnLineIdx: -1, timerSent: false, timerAck: false, timerLines: [], resendAt: 0 };
 }
 function handleBattle(room, line, p, cmd) {
   let B = battles.get(room);
@@ -602,10 +732,15 @@ function handleBattle(room, line, p, cmd) {
     if (cmd === 'error') SAVER.onRoomError(room, p.slice(2).join('|'));
     return;
   }
-  if (!B) { B = newBattle(room); B.rejoined = STATE.restarts > 0; battles.set(room, B); event('battle_join', { room }); if (TIMER === 'on') send(room + '|/timer on'); }
-  { const bo = seriesOfBattle(B); if (bo) { bo.lastSeen = Date.now(); bo.probes = 0; bo.probeSentAt = 0; } }   // battle traffic keeps its series alive
+  if (!B) { B = newBattle(room); B.rejoined = STATE.restarts > 0; battles.set(room, B); JOINING.delete(room); event('battle_join', { room }); if (TIMER === 'on') { send(room + '|/timer on'); B.timerSent = true; B.timerSentAt = Date.now(); } }
+  { const bo = seriesOfBattle(B); if (bo) { bo.lastSeen = Date.now(); bo.probes = 0; bo.probeSentAt = 0;   // battle traffic keeps its series alive
+      if (bo.orphaned && !/room gone/.test(bo.orphaned) && cmd !== 'deinit' && cmd !== 'noinit') unorphanSeries(bo, 'its battle ' + room + ' spoke'); } }
   if (cmd === 'init') {   // a (re)join replays the whole log: start the room's public record over, keep what we sent
+    runVerify(B, true);   // turns already closed are checked against the log they closed on, before it is replaced
     const keep = B; B = newBattle(room); B.sent = keep.sent; B.clockUsed = keep.clockUsed; B.bestof = keep.bestof; B.gnum = keep.gnum; B.timerOn = keep.timerOn; B.preview = keep.preview;
+    B.tally = keep.tally; B.timerSent = keep.timerSent; B.timerSentAt = keep.timerSentAt; B.timerAck = keep.timerAck; B.timerLines = keep.timerLines; B.latestReq = keep.latestReq;
+    /* the replayed log re-indexes every line: a decision still waiting for its turn cannot be checked against it */
+    for (const pd of keep.pending) recordVerdict(B, { kind: pd.kind, slot: null, status: 'unverifiable', chosen: pd.choice, applied: null, why: 'the room was re-joined before its turn resolved' }, pd);
     B.rejoined = keep.rejoined || keep.stale || keep.lines.length > 0;
     if (keep.lines.length) { ST.reinit = (ST.reinit || 0) + 1; event('reinit', { room, had: keep.lines.length }); }
     battles.set(room, B); return;
@@ -619,6 +754,7 @@ function handleBattle(room, line, p, cmd) {
   if (/\/confirmready/.test(line)) { const m = /\/msgroom (game-bestof[^,]+),/.exec(line); if (m) confirmReady(m[1], line); }
   if (cmd === 'inactive') {
     if (/Battle timer is ON/.test(line)) { if (!B.timerOn) ST.timerOnSeen++; B.timerOn = true; }
+    if (/Battle timer is ON|also wants the timer to be on/.test(line)) { B.timerLines.push(line); if (APPLIED.verifyTimer({ sent: true, name: NAME, lines: [line] }).status === 'applied') B.timerAck = true; }
     if (B.clock.onInactive(line, Date.now(), NAME)) B.lastTimeLeft = { at: Date.now(), line };
     if (/lost due to inactivity|lost the series due to inactivity/.test(line) && new RegExp(NAME, 'i').test(line)) { ST.timeouts.push({ room, kind: 'forfeit', line }); }
     return;
@@ -627,6 +763,11 @@ function handleBattle(room, line, p, cmd) {
   if (LADDER && cmd === 'raw') LADDER.onRaw(B.bestof, line);   // `NAME's rating: A &rarr; B` after a rated series
   if (cmd === 'error') {
     const txt = p.slice(2).join('|');
+    /* a resend we made (a throttle notice, a repair) that the server already had: "too late" / "nothing to choose" is the
+     * server confirming the FIRST copy arrived — counted, never an invalid choice or a timeout */
+    if (/\[Invalid choice\]/.test(txt) && /too late|nothing to choose|Can't undo/i.test(txt) && B.resendAt && Date.now() - B.resendAt < 15000) {
+      THR.redundant_resends++; event('resend_redundant', { room, txt: txt.slice(0, 160) }); return;
+    }
     if (/\[Invalid choice\]/.test(txt)) {
       ST.invalid.push({ room, rqid: B.req && B.req.rqid, txt: txt.slice(0, 200), sent: B.req && B.sent.get(B.req.rqid) });
       if (/nothing to choose|already/i.test(txt)) ST.timeouts.push({ room, kind: 'late-choice', txt: txt.slice(0, 160) });
@@ -642,13 +783,14 @@ function handleBattle(room, line, p, cmd) {
     const js = p.slice(2).join('|');
     if (!js) return;
     let req; try { req = JSON.parse(js); } catch (e) { return; }
-    if (req.wait) { B.req = null; return; }
+    if (req.wait) { B.req = null; setImmediate(() => runVerify(B)); return; }   // nothing to decide: check the closed turns now
     if (B.req && B.req.rqid !== req.rqid && !B.sent.has(B.req.rqid)) { ST.superseded++; ST.timeouts.push({ room, kind: 'superseded', rqid: B.req.rqid }); }
     const again = B.req && B.req.rqid === req.rqid;
     /* a request handled right after an idle GC may have ARRIVED during it (the GC blocks the event loop): charge the
      * clock from the GC's start, so the budget never counts time the server already spent */
     if (!again) { const now = Date.now(); B.reqAt = IDLE_GC.t1 && now - IDLE_GC.t1 < 100 ? Math.min(now, IDLE_GC.t0) : now; }
-    B.req = req;
+    B.req = req; B.latestReq = req;
+    for (const pd of B.toVerify) if (!pd.nextReq && req.rqid > pd.rqid) pd.nextReq = req;   // the second witness (O(1) per closed decision)
     /* the SAME request again = the server re-sent it on a (re)join: if it was already answered, answer it again */
     if (B.sent.has(req.rqid)) B.req._needResend = true;
     if (req.side && req.side.id) B.me = req.side.id;
@@ -663,7 +805,51 @@ function handleBattle(room, line, p, cmd) {
   if (cmd === 'turn') { B.turn = +p[2]; maybeDrill(B); }
   if (NOT_PUBLIC.has(cmd)) { if (cmd === 'win' || cmd === 'tie') { /* never here: win/tie are public */ } return; }
   B.lines.push(line);
+  if (cmd === 'turn' || cmd === 'win' || cmd === 'tie') closePending(B);
+  if (cmd === 'turn') B.turnLineIdx = B.lines.length - 1;
   if (cmd === 'win' || cmd === 'tie') endBattle(B, cmd === 'win' ? p[2] : null);
+}
+/* ---------------- chosen vs applied (solver/rotom/applied.js) ----------------
+ * A decision's turn CLOSES at the next |turn| (or the game's end): closePending only records where its lines start and end
+ * (O(1)). The server's next request — the second witness — arrives after those lines and is attached when it does. The
+ * CHECK itself (runVerify) never runs on the decision path: it runs right after our next choice is on the wire
+ * (setImmediate after decide's send), on a wait request (nothing to decide), or at the end of the game. Its cost is
+ * measured (ST.verifyCost) and reported, and the decision budget never pays it.
+ * A move decision made before the previous turn's lines had all arrived is re-anchored after that turn's |turn| line, so
+ * an earlier turn's |move| is never read as this one's. */
+function closePending(B) {
+  const end = B.lines.length;
+  for (const pd of B.pending.splice(0)) {
+    pd.start = pd.kind === 'move' ? Math.max(pd.idx, B.turnLineIdx + 1) : pd.idx;
+    pd.end = end; pd.closedAt = Date.now();
+    B.toVerify.push(pd);
+  }
+}
+function runVerify(B, force) {
+  if (!B.toVerify.length) return;
+  const t0 = process.hrtime.bigint();
+  const keep = [];
+  let n = 0;
+  for (const pd of B.toVerify) {
+    if (!force && !pd.nextReq && Date.now() - pd.closedAt < 5000) { keep.push(pd); continue; }   // wait for the second witness
+    n++;
+    let vs;
+    try { vs = APPLIED.verifyDecision({ me: B.me, req: pd.req, choice: pd.choice, lines: B.lines.slice(pd.start, pd.end), nextReq: pd.nextReq || null, before: B.lines, beforeEnd: pd.start }); }
+    catch (e) { vs = [{ kind: pd.kind, slot: null, status: 'mismatch', chosen: pd.choice, applied: null, why: 'the verifier threw: ' + String(e.message).slice(0, 120) }]; }
+    for (const v of vs) recordVerdict(B, v, pd);
+  }
+  B.toVerify = keep;
+  if (n) { const ms = Number(process.hrtime.bigint() - t0) / 1e6, c = ST.verifyCost; c.runs++; c.decisions += n; c.ms += ms; if (ms > c.max_ms) c.max_ms = +ms.toFixed(3); }
+}
+function recordVerdict(B, v, pd) {
+  const ctx = { room: B.id, bestof: B.bestof, gnum: B.gnum, rqid: pd ? pd.rqid : null, turn: pd ? pd.turn : B.turn, choice: pd ? pd.choice : null };
+  B.tally.add(v, ctx); ST.applied.add(v, ctx);
+  if (v.kind === 'preview') event('preview_verify', { room: B.id, ok: v.status === 'applied', status: v.status, expected: v.expected, actual: v.actual, why: v.why });
+  if (v.status === 'mismatch') {
+    event('applied_mismatch', Object.assign({}, ctx, v));
+    say('APPLIED MISMATCH ' + B.id.slice(-12) + ' ' + v.kind + (v.slot != null ? ' slot ' + v.slot : '') + ': chose ' + v.chosen + ', server did ' + v.applied + ' — ' + v.why);
+    if (LADDER && B.bestof) LADDER.onMismatch(B.bestof, v.kind + ': chose ' + v.chosen + ', server ' + v.applied + ' (' + v.why + ')');
+  }
 }
 
 function maybeDrill(B) {
@@ -689,6 +875,11 @@ function endBattle(B, winnerName) {
   B.ended = true;
   B.endedAt = Date.now();
   ST.games++;
+  closePending(B); runVerify(B, true);   // anything still waiting is judged against the log as it ended
+  { let tv = APPLIED.verifyTimer({ sent: B.timerSent, name: NAME, lines: B.timerLines });
+    /* a game that ended within 10 s of our /timer on (a replayed log, a forfeit at preview) gave the server no turn to answer: unverifiable, never applied */
+    if (tv && tv.status === 'mismatch' && B.timerSentAt && B.endedAt - B.timerSentAt < 10000) tv = Object.assign(tv, { status: 'unverifiable', why: 'the game ended ' + (B.endedAt - B.timerSentAt) + ' ms after /timer on was queued' });
+    if (tv) recordVerdict(B, tv, null); }
   clearTimeout(B.timer);
   let parsed = null, parsedAll = null; try { parsedAll = parseGame({ id: B.id, log: B.lines.join('\n') }); parsed = parsedAll.game; } catch (e) { event('parse_end_error', { room: B.id, err: e.message }); }
   let mega = null; try { mega = MR.parsedGame(parsedAll, B.me); } catch (e) { event('mega_count_error', { room: B.id, err: e.message }); }
@@ -721,6 +912,8 @@ function endBattle(B, winnerName) {
     preview_choice: B.preview, leads: parsed ? parsed.leads : null, brought: parsed ? brought : null,
     result: { winner, winner_name: winnerName, mine: winner != null && winner === B.me, tie: winnerName == null, turns: parsed ? parsed.turns_played : B.turn },
     mega,
+    /* chosen vs applied for this game: every check of every decision, and each mismatch (solver/rotom/applied.js) */
+    applied: B.tally.toJSON(),
     rated: B.rated, rating_before: Object.keys(B.ratingsBefore).length ? B.ratingsBefore : null, rating_after: null,
     clock: { used_s: +(B.clockUsed / 1000).toFixed(1), bank_left_s: B.clock.last ? +(+B.clock.last.bank).toFixed(1) : null },
     decisions: { n: B.decisions, log: relRoot(gameDecF(B.id)), run_log: relRoot(LOGF) },
@@ -838,14 +1031,21 @@ function decide(B) {
     } catch (e) { rec.chain.push({ policy: name, fail: String(e && e.message || e).slice(0, 200) }); fb(name + ':threw'); }
   };
   let first = POL;
-  if (POL === 'miltank' && bud.lowBank) { first = 'prior'; fb('clock:miltank->prior'); rec.chain.push({ policy: 'miltank', fail: 'budget ' + bud.ms + ' ms under the search floor' }); }
+  if (SEARCHES.includes(POL) && bud.lowBank) { first = 'prior'; fb('clock:' + POL + '->prior'); rec.chain.push({ policy: POL, fail: 'budget ' + bud.ms + ' ms under the search floor' }); }
   /* a rejoined room with no server clock line yet: the bank is UNKNOWN (a restart lost it), so do not search on a guess */
-  else if (POL === 'miltank' && bud.from === 'rule' && B.rejoined) { first = 'prior'; fb('clock:unknown-bank->prior'); rec.chain.push({ policy: 'miltank', fail: 'rejoined with no server clock line yet' }); }
+  else if (SEARCHES.includes(POL) && bud.from === 'rule' && B.rejoined) { first = 'prior'; fb('clock:unknown-bank->prior'); rec.chain.push({ policy: POL, fail: 'rejoined with no server clock line yet' }); }
 
   if (kind === 'preview') {
     const S = B.bestof ? BOOK.get(B.bestof) : null;
     const team = (B.bestof && seriesTeam.get(B.bestof)) || null;
     const mySheet = B.sheets[B.me] || [];
+    /* the TEAM is a choice too (the /utm before /search): the sheet the server shows for us must be the series' team */
+    if (team && B.packed[B.me] && !B.teamChecked) {
+      B.teamChecked = true;
+      const sp = packed => String(packed || '').split(']').map(m => { const x = m.split('|'); return toID(x[1] || x[0]); }).filter(Boolean).sort().join(',');
+      const want = sp(team.packed), got = sp(B.packed[B.me]);
+      recordVerdict(B, { kind: 'team', slot: null, status: want === got ? 'applied' : 'mismatch', chosen: team.id + ' ' + want, applied: got, why: want === got ? null : 'the server shows a different team than the series\' /utm' }, { rqid: req.rqid, turn: 0, choice: 'team ' + team.id });
+    }
     const posOfSheet = s => { const r = mySheet[s]; if (!r) return s + 1; const j = req.side.pokemon.findIndex(pk => String(pk.ident).replace(/^p[12]:\s*/, '') === r.nick); return j >= 0 ? j + 1 : s + 1; };
     const d = { req, coin, sheets: B.sheets, me: B.me, budgetMs: Math.min(bud.ms, ARM && ARM.preview_max_ms > 0 ? ARM.preview_max_ms : PREVIEW_MAX_MS), teamBring: team ? team.bring : null,
                 series: { oppLast: B.bestof ? BOOK.oppLast(B.bestof, B.gnum || 1, B.me) : null } };
@@ -873,13 +1073,16 @@ function decide(B) {
     const d = () => ({ req, world, coin, budgetMs: Math.max(0, bud.ms - (Date.now() - t0)), xatuBack: world && world.xatuBack });
     const run = (name) => () => (kind === 'switch' ? P.forceSwitch(name, d()) : P.move(name, d()));
     tryPolicy(first, run(first));
-    if (first === 'miltank') tryPolicy('prior', run('prior'));
+    if (SEARCHES.includes(first)) tryPolicy('prior', run('prior'));
     tryPolicy('heuristic', () => ({ choice: RQ.heuristic(req) }));
   }
   if (!choice) { choice = 'default'; used = 'default'; fb('default'); }
   if (used !== POL) fb('used:' + used);
   const ms = Date.now() - t0;
   const ok = send(B.id + '|/choose ' + choice + '|' + req.rqid);
+  /* checked after its turn closes (closePending / runVerify, off the decision path): what the server did, against this choice */
+  if (choice === 'default') recordVerdict(B, { kind: kind === 'preview' ? 'preview' : 'default', slot: null, status: 'unverifiable', chosen: 'default', applied: null, why: 'the last-resort default: the server picks' }, { rqid: req.rqid, turn: B.turn, choice });
+  else B.pending.push({ rqid: req.rqid, req, choice, kind, turn: B.turn, idx: B.lines.length, t: Date.now() });
   B.sent.set(req.rqid, choice);
   if (kind === 'preview') B.preview = choice;
   B.deciding = false;
@@ -888,7 +1091,7 @@ function decide(B) {
   if (B.clock.last && since / 1000 > B.clock.last.turnLeft && B.clock.last.at >= B.reqAt - 2000) { ST.sentLate++; ST.timeouts.push({ room: B.id, kind: 'sent-late', rqid: req.rqid, ms: since }); }
   ST.decisions++; ST.byKind[kind + ':' + used] = (ST.byKind[kind + ':' + used] || 0) + 1;
   ST.ms[kind].push(ms); ST.budget.push(bud.ms);
-  rec.used = used; rec.choice = choice; rec.ms = ms; rec.sinceRequest_ms = since; rec.sent = ok;
+  rec.used = used; rec.choice = choice; rec.ms = ms; rec.sinceRequest_ms = since; rec.queued = ok;   // QUEUED on an open socket; applied is checked from the server's lines
   rec.bank_before_s = bud.bank; rec.bank_after_s = +(bud.bank - since / 1000).toFixed(1);
   if (info) rec.info = compact(info);
   B.decisions++;
@@ -899,7 +1102,8 @@ function decide(B) {
   /* THE BETWEEN-DECISION GC. A MILTANK decision allocates a world copy per playout; a major GC landing inside the NEXT
    * decision stopped it for 1.1-1.6 s on a loaded core. So after a searched choice is SENT, collect off the clock, on the
    * next event-loop turn (the choice is already on the wire). Counted: ST.idleGc { n, ms, max }. */
-  if (first === 'miltank' && ok) setImmediate(idleGc);
+  if (SEARCHES.includes(first) && ok) setImmediate(idleGc);
+  setImmediate(() => runVerify(B));   // the choice is on its way: check the turns that closed, off the clock
 }
 const IDLE_GC = { t0: 0, t1: 0 };
 function idleGc() {
@@ -923,7 +1127,7 @@ function stats(a) {
   return { n: a.length, mean: Math.round(a.reduce((x, y) => x + y, 0) / a.length), p50: q(0.5), p95: q(0.95), p99: q(0.99), max: s[s.length - 1] };
 }
 function writeSummary() {
-  const out = { name: NAME, policy: POLICY, server: SERVER, pid: process.pid, restarts: STATE.restarts, flags: { max_ms: MAX_MS, preview_max_ms: PREVIEW_MAX_MS, margin_s: MARGIN_S, reserve_s: RESERVE_S, min_search_ms: MIN_SEARCH_MS, timer: TIMER, seed: SEED, drill: DRILL || null, priority: PRIORITY, priority_set: PRIORITY_SET }, idle_gc: ST.idleGc || { n: 0, ms: 0, max: 0, refused: 0 },
+  const out = { name: NAME, policy: POLICY, server: SERVER, pid: process.pid, restarts: STATE.restarts, flags: { send_gap_ms: SEND_GAP_MS, max_mismatches: +flag('max-mismatches', 3), max_ms: MAX_MS, preview_max_ms: PREVIEW_MAX_MS, margin_s: MARGIN_S, reserve_s: RESERVE_S, min_search_ms: MIN_SEARCH_MS, timer: TIMER, seed: SEED, drill: DRILL || null, priority: PRIORITY, priority_set: PRIORITY_SET }, idle_gc: ST.idleGc || { n: 0, ms: 0, max: 0, refused: 0 },
     clock_rule: new Clock(Object.assign({ format: FORMAT_ID }, clockOpts)).rule,
     sets: STATE.setsDone, decisions: ST.decisions, by_kind: ST.byKind,
     decision_ms: { preview: stats(ST.ms.preview), move: stats(ST.ms.move), switch: stats(ST.ms.switch) }, budget_ms: stats(ST.budget),
@@ -931,7 +1135,13 @@ function writeSummary() {
     disconnects: ST.disconnects, reconnects: ST.reconnects, rejoins: ST.rejoins, resent: ST.resent, drills: ST.drills,
     mega: Object.assign({}, ST.mega, { rate: ST.mega.capable ? +(ST.mega.megas / ST.mega.capable).toFixed(4) : null, ci95: MR.wilson(ST.mega.megas, ST.mega.capable),
       human_rate: MR.HUMAN_RATE, floor: MR.floor(), below_floor: ST.mega.capable >= MR.MIN_CAPABLE && MR.wilson(ST.mega.megas, ST.mega.capable)[1] < MR.floor() }),
-    rooms: { renames: ROOMS.renames, ignored_noinit: ROOMS.ignoredNoinit, skipped_old_ids: ROOMS.skippedOldIds, probes: ROOMS.probes, orphans: ROOMS.orphans, watch: SERIES_WATCH },
+    rooms: { renames: ROOMS.renames, ignored_noinit: ROOMS.ignoredNoinit, skipped_old_ids: ROOMS.skippedOldIds, probes: ROOMS.probes, orphans: ROOMS.orphans, watch: SERIES_WATCH,
+             dup_joins_skipped: ROOMS.dupJoins, unlisted_battles: ROOMS.unlisted, alive_answers: ROOMS.aliveAnswers, repairs: ROOMS.repairs, unorphaned: ROOMS.unorphaned },
+    /* chosen vs applied, the throttle and the send queue: a capability that cannot prove it ran is assumed broken */
+    applied: ST.applied.toJSON(), preview: ST.applied.by_kind.preview || { chosen: 0, applied: 0, explained_diff: 0, mismatch: 0, unverifiable: 0 },
+    throttle: THR, send_queue: SENDQ.summary(),
+    applied_cost: Object.assign({}, ST.verifyCost, { ms: +ST.verifyCost.ms.toFixed(2), mean_ms_per_run: ST.verifyCost.runs ? +(ST.verifyCost.ms / ST.verifyCost.runs).toFixed(3) : null,
+      where: 'after the choice is sent (setImmediate), on a wait request, or at game end — never inside a decision budget' }),
     timer_on_seen: ST.timerOnSeen, games: ST.games, game_records: ST.gameRecords || 0, games_file: GAMES_FILE, replays: SAVER.COUNTERS, world_errors: ST.worldErrors, decisions_without_time_line: ST.noTimerLine,
     preview_sheet_wait_ms: stats(ST.previewSheetWaitMs),
     counters: { policy: P.COUNTERS, world: WB.COUNTERS, prior: PA.COUNTERS, rollout: R.COUNTERS, api: API.COUNTERS },

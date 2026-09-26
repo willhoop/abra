@@ -1,0 +1,21 @@
+{
+ "name": "gen5-vs-prior",
+ "registered": "2026-09-26",
+ "question": "Does the MACHAMP gen5 champion, played by ROTOM's miltank-gen5 policy with XATU's belief exactly as the honest arena measured it, earn a higher per-series ladder residual than DODUO-greedy (prior) on the same account, rotation and opponent pool?",
+ "offline_evidence": "solver/results/2026-09-26-gen5-honest/: honest-information SPRT H1 against DODUO-greedy at 1 s (0.710 [0.615, 0.790], 100 games) and at 5 s (0.712 [0.618, 0.790], 104 games); release eaa5becc54eb, data/team-pool-frozen-regmc. The arena plays the humans' own bring, so arm A previews with the rotation team's own bring too.",
+ "arms": {
+  "A": { "policy": "miltank-gen5", "max_ms": 5000, "preview_max_ms": 20000,
+         "note": "gen5 MAG/DODUO/PORYGON2, k 4x4, depth 0, 1 reserved switch row (solver/machamp/league/gen5.json); search capped at 5 s and bound below it by the clock (solver/rotom/clock.js); XATU back-pair posterior + spread prior (solver/xatu/worlds.js); preview = the rotation team's own human bring. 5 s: honest H1, 0 prior fallbacks, slowest decision 6.5 s and heaviest game 89.7 s of gen5 decision time against the 55 s turn and 420 s bank." },
+  "B": { "policy": "prior", "max_ms": 0, "preview_max_ms": 20000, "note": "MAG v1 + DODUO v1 greedy; the rotation team's own human bring at preview" }
+ },
+ "assignment": "per series, sha256(seed|k|arm) mod 2 over the sorted arm ids (solver/rotom/ladder.js assign); committed before the first game",
+ "metric": "per-series residual r = S - E, E = 1/(1+10^((R_opp - R_me)/400)) from the server's pre-series ratings; ties S = 0.5",
+ "burn_in": "series played while the account's pre-series rating is below 1300 are burn-in and are not read (docs/_reports/2026-09-23-solver-research-humans-and-ladder.md §3.1, §3.4 step 2)",
+ "sprt": {
+  "statistic": "mean(r | A) - mean(r | B), normal approximation, sigma_r = 0.5 per series",
+  "h0": 0.0, "h1": 0.07, "alpha": 0.05, "beta": 0.05,
+  "read": "once, at a bound; never an interim read",
+  "expected_scale": "about 770 series per arm for +50 Elo (…humans-and-ladder.md §3.3)"
+ },
+ "headline": "mean rating over the last N >= 100 series +- SD, per arm and overall. Never the peak."
+}

@@ -56,6 +56,7 @@ const M = API.M;
 const T = require('./teams.js');
 const { makeBots } = require('./bots.js');
 const MR = require('./mega_rate.js');
+const MTIME = require('./mega_timing.js');
 const PA = require('../miltank/prior_adapter.js').create(API, require('../prior/infer.js').load());
 const R = require('../miltank/rollout.js').create(API, { buildBody: T.buildBody });
 const MT = require('../miltank/search.js').create(API, { prior: PA, rollout: R });
@@ -111,7 +112,12 @@ async function run(o) {
   let X = mk(o.x, o.seed * 1000 + 1, armX), Y = mk(o.y, o.seed * 1000 + 2, armY);
   if (!X || !Y) throw new Error('unknown bot');
   if (BREAK === 'nevermega') { X = MR.neverMega(X); Y = MR.neverMega(Y); }
+  /* DELIBERATE BREAKS for the mega TIMING check (solver/arena/mega_timing.js, solver/tests/test-mega-timing.js):
+   * meganow = mega the first turn it is offered (never delays); megalate = never mega on the first capable turn */
+  if (BREAK === 'meganow') { X = MTIME.megaNow(X, API); Y = MTIME.megaNow(Y, API); }
+  if (BREAK === 'megalate') { X = MTIME.megaLate(X, API); Y = MTIME.megaLate(Y, API); }
   const megaT = { X: MR.tally(), Y: MR.tally() };   // THE MEGA COUNTER, per bot, on the sides that could mega
+  const timingSides = { X: [], Y: [] };                // the mega TIMING timelines, per bot (solver/arena/mega_timing.js)
   const times = { X: [], Y: [] }, rec = [];
   const infos = { X: [], Y: [] };   // MILTANK's per-decision info (cells, playouts, gap), searched decisions only
   const res = { W: 0, D: 0, L: 0, capped: 0, errors: 0 };
@@ -126,7 +132,7 @@ async function run(o) {
     const rng = API.makeRng(seed);
     let S = API.newBattle(a.team, b.team, { rng });
     const ctx = PA.newGame(G);
-    const mg = MR.game(API, xIsA ? { A: megaT.X, B: megaT.Y } : { A: megaT.Y, B: megaT.X });
+    const mg = MR.game(API, xIsA ? { A: megaT.X, B: megaT.Y } : { A: megaT.Y, B: megaT.X }, { trace: true });
     let err = null;
     try {
       while (!API.isTerminal(S) && S.turn < o.cap) {
@@ -142,6 +148,7 @@ async function run(o) {
       }
     } catch (e) { err = String(e && e.message || e).slice(0, 300); }
     mg.end();
+    { const d = mg.detail(); timingSides.X.push(xIsA ? d.A : d.B); timingSides.Y.push(xIsA ? d.B : d.A); }
     let vA, capped = false;
     if (err) { res.errors++; }
     else if (API.isTerminal(S)) vA = API.winner(S);
@@ -177,7 +184,8 @@ async function run(o) {
   if (o.x === 'prior' || o.y === 'prior' || o.x === 'miltank' || o.y === 'miltank') if (!PA.COUNTERS.optionsMatched) warn.push('prior matched no option');
   for (const [k, b] of [['x', X], ['y', Y]]) if (b.PA && !b.PA.COUNTERS.optionsMatched) warn.push(b.name + ' (' + k + ') matched no option');
   const mega = { x: MR.summary(megaT.X), y: MR.summary(megaT.Y), human_rate: MR.HUMAN_RATE, floor: MR.floor(), margin: MR.MARGIN,
-                 rule: 'a bot is far below the human rate when the upper end of its Wilson 95% interval on capable sides is under floor (solver/arena/mega_rate.js)' };
+                 rule: 'a bot is far below the human rate when the upper end of its Wilson 95% interval on capable sides is under floor (solver/arena/mega_rate.js)',
+                 timing: { x: MTIME.summarize(timingSides.X), y: MTIME.summarize(timingSides.Y), definition: 'delay = mega turn - first capable turn; reasons read off the board (solver/arena/mega_timing.js)' } };
   for (const k of ['x', 'y']) {
     const m = mega[k];
     if (m.capable && !m.megas) warn.push('MEGA: ' + o[k] + ' (' + k + ') megaed on 0 of ' + m.capable + ' capable sides');

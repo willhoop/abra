@@ -40,13 +40,35 @@ The A/B run, once the A/A reads clean (pre-registered in the arms file: SPRT on 
 node solver\rotom\run_ladder.js --public --name medicham32 --release eaa5becc54eb --arms solver\rotom\arms\miltank-vs-prior.json --ladder-seed medicham32-ab1-2026-09-25 --sets 50 --tag ab1 --priority normal
 ```
 
+The gen5 A/B (added 2026-09-26): arm A is the MACHAMP gen5 champion through ROTOM's `miltank-gen5` policy at 5 s, with
+XATU's belief exactly as the honest arena measured it (`docs/_reports/2026-09-26-gen5-honest-and-ladder-prep.md`); arm B
+is `prior`. Same pre-registered SPRT on the per-series residual. The paced send and the chosen-vs-applied check
+(abra/regmc 1.14.0, below) apply to it as to every arm:
+
+```cmd
+node solver\rotom\run_ladder.js --public --name medicham32 --release eaa5becc54eb --arms solver\rotom\arms\gen5-vs-prior.json --ladder-seed medicham32-gen5ab-2026-09-26 --sets 50 --tag gen5ab --priority normal
+```
+
 **`--priority normal` (added 2026-09-25).** The clients start through `tools\lownode.cmd` at BELOW_NORMAL. A client that
 searches must not be starved by other normal-priority work, so it raises its own decider to NORMAL. MILTANK's pool
 workers stay BELOW_NORMAL. MILTANK bounds its own decision (budget + 0.5 s), but it cannot bound a process that the
 OS does not run (`docs/_reports/2026-09-25-miltank-deadline.md`). The summary records `priority` and `priority_set`.
 
 Optional flags: `--max-hours H` (no new search after H hours), `--max-errors N` (default 3),
+`--max-mismatches N` (default 3; see below), `--send-gap-ms MS` (default 650),
 `--guard willhoop[,other]`, `--guard-mode online|battle` (default `online`), `--out <dir>` (resume a run).
+
+**Every message is paced, and every choice is checked (2026-09-26, abra/regmc 1.14.0; `docs/_reports/2026-09-26-rotom-throttle-fix.md`).**
+Showdown processes one message per 600 ms per account and queues five; the next one is DROPPED with a notice. In aa2
+that dropped the game-1 team preview in 14 of 17 series. The client now sends at most one message per 650 ms, battle
+choices and the timer first (`solver/rotom/sendq.js`); a throttle notice is counted and the open choice re-sent. After
+every turn the client reads what the server actually did (`|move|`, `|switch|`, `|-mega|`, `|cant|`, the next request) and
+compares it with what it chose (`solver/rotom/applied.js`): preview bring and leads, each move and target, mega,
+switches, forced switches, the timer. A difference the log explains (flinch, sleep, a faint, a redirection, an Encore,
+a target already down) is counted as explained; anything else is a MISMATCH: an `applied_mismatch` event, a ladder
+error, a column in the series row (`during_series.applied_mismatch`, `preview_mismatch`), and after `--max-mismatches`
+of them the ladder HALTS (the open series is played out; exit 4). The check runs after the choice is sent, never inside
+the decision budget. `node solver\rotom\report.js games <run dir>\games.jsonl --include-local` prints it per game.
 
 The run directory is `solver\out\rotom\<tag>-<timestamp>\`. Its first lines name it.
 
@@ -70,8 +92,12 @@ and plays on. It never forfeits. If the supervisor itself died, rerun the **same
 **A hung client heals itself too (2026-09-25, after the aa1 hangs).** Nobody restarts the bot, so two layers:
 
 - **In the client, every wait is bounded.** An open series that sends nothing for 150 s is probed with
-  `/crq roominfo`. If the room is gone, or it stays silent through 3 probes, the series is **orphaned**: it is logged,
-  counted as a ladder error (3 in a row halt the run) and gets no row, and the loop searches on. A search older than
+  `/crq roominfo`. **If the room answers "alive, and we are in it", the series is never orphaned** (2026-09-26: aa2 k=16
+  was, and its games went on untracked beside the next series): the client re-sends the timer and the open choice and
+  keeps waiting; the server's timer bounds the game. If the room is gone, or the probes go unanswered, the series is
+  **orphaned**: it is logged, counted as a ladder error (3 in a row halt the run) and gets no row; a battle of it that is
+  still live stays tracked and played, and **no search goes out while any battle the client is in is live**. An orphan
+  that speaks again is taken back and gets its row. Nothing is ever forfeited. A search older than
   20 min is cancelled and re-sent. An open socket that is not logged in after 90 s is dropped and logged in again.
 - **In the supervisor, a watchdog** (`solver/rotom/watchdog.js`). If a client makes no progress (no search, decision,
   game message or guard answer) for `--hang-min` minutes (default 10) **and no game is open**, the supervisor kills
@@ -119,3 +145,5 @@ node solver\rotom\run_ladder.js --dry-run --release eaa5becc54eb --arms solver\r
 and then resume. `--hide-a` / `--hide-b` make that side send `/hidenext` before each search, so every series is a
 PRIVATE room (the aa1 hang shape). `--drill-a hang@S` makes client A stop moving after S sets, so the supervisor
 watchdog must restart it (use a short `--hang-min`, e.g. 1.5). `dryrun-fast.json` caps the search for speed and is refused on `--public`.
+`--throttle` turns the server's message throttle ON (a `--no-security` server has it off, which is why no local run
+ever saw the aa2 drops); `ladder-report.json` `server_throttle` proves it, and `games.applied` must read 0 mismatches.

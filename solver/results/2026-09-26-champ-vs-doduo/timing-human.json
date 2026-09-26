@@ -1,0 +1,700 @@
+{
+ "what": "human mega timing (solver/arena/mega_timing.js)",
+ "file": "C:/Users/willj/Projects/Pokemon/ABRA/solver/out/human/games.jsonl",
+ "games": 26888,
+ "sides": {
+  "capable": 48430,
+  "megas": 45952,
+  "delay0": 35729,
+  "delayed": 10223,
+  "delay": {
+   "0": 35729,
+   "1": 4650,
+   "2": 1690,
+   "3": 1455,
+   "4": 1080,
+   "5": 666,
+   "6": 354,
+   "7": 180,
+   "8": 78,
+   "9": 31,
+   "10": 20,
+   "11": 9,
+   "12": 6,
+   "13": 2,
+   "14": 2
+  },
+  "reasons": {
+   "switched_out_and_back": 3932,
+   "none_readable": 3626,
+   "other_holder_first": 1052,
+   "trick_room_changed": 1100,
+   "mega_resets_field": 1501,
+   "field_lost_while_held": 132,
+   "boost_banked": 555,
+   "mega_overrides_other_field": 461
+  },
+  "first_held_action": {
+   "fake_out": 407,
+   "protect": 4144,
+   "switch": 3244,
+   "attack": 832,
+   "other": 187,
+   "field_move": 229,
+   "setup": 291,
+   "status_other": 42
+  },
+  "held_actions": {
+   "fake_out": 445,
+   "switch": 4816,
+   "protect": 5182,
+   "attack": 1409,
+   "other": 239,
+   "field_move": 295,
+   "setup": 379,
+   "status_other": 71
+  },
+  "reason_combos": {
+   "switched_out_and_back": 2970,
+   "none_readable": 3626,
+   "other_holder_first": 704,
+   "trick_room_changed": 344,
+   "mega_resets_field": 477,
+   "field_lost_while_held+mega_resets_field+switched_out_and_back": 38,
+   "mega_resets_field+trick_room_changed": 43,
+   "boost_banked+trick_room_changed": 53,
+   "switched_out_and_back+trick_room_changed": 435,
+   "boost_banked": 419,
+   "other_holder_first+trick_room_changed": 112,
+   "mega_overrides_other_field+mega_resets_field": 182,
+   "mega_overrides_other_field+mega_resets_field+switched_out_and_back+trick_room_changed": 12,
+   "mega_overrides_other_field+mega_resets_field+other_holder_first": 55,
+   "mega_overrides_other_field+mega_resets_field+switched_out_and_back": 111,
+   "mega_resets_field+switched_out_and_back": 248,
+   "mega_resets_field+other_holder_first": 148,
+   "mega_overrides_other_field+mega_resets_field+other_holder_first+trick_room_changed": 5,
+   "mega_resets_field+other_holder_first+trick_room_changed": 15,
+   "field_lost_while_held+mega_overrides_other_field+mega_resets_field": 52,
+   "boost_banked+field_lost_while_held+mega_overrides_other_field+mega_resets_field": 9,
+   "mega_resets_field+switched_out_and_back+trick_room_changed": 53,
+   "field_lost_while_held+mega_resets_field": 9,
+   "field_lost_while_held+mega_overrides_other_field+mega_resets_field+trick_room_changed": 5,
+   "boost_banked+switched_out_and_back+trick_room_changed": 4,
+   "boost_banked+other_holder_first": 12,
+   "mega_overrides_other_field+mega_resets_field+trick_room_changed": 12,
+   "field_lost_while_held+mega_overrides_other_field+mega_resets_field+switched_out_and_back": 9,
+   "boost_banked+switched_out_and_back": 43,
+   "boost_banked+mega_overrides_other_field+mega_resets_field+trick_room_changed": 1,
+   "boost_banked+mega_resets_field": 3,
+   "field_lost_while_held+mega_resets_field+switched_out_and_back+trick_room_changed": 1,
+   "boost_banked+mega_overrides_other_field+mega_resets_field": 2,
+   "boost_banked+field_lost_while_held+mega_overrides_other_field+mega_resets_field+trick_room_changed": 1,
+   "boost_banked+field_lost_while_held+mega_resets_field+switched_out_and_back+trick_room_changed": 1,
+   "field_lost_while_held+mega_overrides_other_field+mega_resets_field+switched_out_and_back+trick_room_changed": 2,
+   "boost_banked+mega_overrides_other_field+mega_resets_field+switched_out_and_back": 1,
+   "boost_banked+field_lost_while_held+mega_resets_field": 1,
+   "boost_banked+field_lost_while_held+mega_overrides_other_field+mega_resets_field+switched_out_and_back+trick_room_changed": 1,
+   "boost_banked+mega_overrides_other_field+mega_resets_field+other_holder_first": 1,
+   "boost_banked+field_lost_while_held+mega_resets_field+switched_out_and_back": 3
+  },
+  "delay0_share": 0.7775,
+  "delayed_share": 0.2225,
+  "delayed_ci95": [
+   0.2187,
+   0.2263
+  ],
+  "delay_mean": 0.539,
+  "reason_share": {
+   "switched_out_and_back": 0.3846,
+   "none_readable": 0.3547,
+   "other_holder_first": 0.1029,
+   "trick_room_changed": 0.1076,
+   "mega_resets_field": 0.1468,
+   "field_lost_while_held": 0.0129,
+   "boost_banked": 0.0543,
+   "mega_overrides_other_field": 0.0451
+  }
+ },
+ "by_rating": {
+  "1100-1199": {
+   "capable": 17130,
+   "megas": 16262,
+   "delayed": 3625,
+   "delayed_share": 0.2229,
+   "delayed_ci95": [
+    0.2166,
+    0.2294
+   ],
+   "delay_mean": 0.532
+  },
+  "<1100": {
+   "capable": 23070,
+   "megas": 21867,
+   "delayed": 4837,
+   "delayed_share": 0.2212,
+   "delayed_ci95": [
+    0.2157,
+    0.2268
+   ],
+   "delay_mean": 0.542
+  },
+  "1200-1299": {
+   "capable": 6098,
+   "megas": 5796,
+   "delayed": 1275,
+   "delayed_share": 0.22,
+   "delayed_ci95": [
+    0.2095,
+    0.2308
+   ],
+   "delay_mean": 0.526
+  },
+  "1300+": {
+   "capable": 2132,
+   "megas": 2027,
+   "delayed": 486,
+   "delayed_share": 0.2398,
+   "delayed_ci95": [
+    0.2217,
+    0.2588
+   ],
+   "delay_mean": 0.6
+  }
+ },
+ "by_end": {
+  "forfeit": {
+   "capable": 18097,
+   "megas": 16494,
+   "delayed": 3342,
+   "delayed_share": 0.2026,
+   "delayed_ci95": [
+    0.1966,
+    0.2088
+   ],
+   "delay_mean": 0.444
+  },
+  "normal": {
+   "capable": 29717,
+   "megas": 28939,
+   "delayed": 6756,
+   "delayed_share": 0.2335,
+   "delayed_ci95": [
+    0.2286,
+    0.2384
+   ],
+   "delay_mean": 0.592
+  },
+  "inactivity": {
+   "capable": 616,
+   "megas": 519,
+   "delayed": 125,
+   "delayed_share": 0.2408,
+   "delayed_ci95": [
+    0.206,
+    0.2795
+   ],
+   "delay_mean": 0.603
+  }
+ },
+ "by_forme": {
+  "Salamence-Mega": {
+   "megas": 8455,
+   "delayed": 2072,
+   "reasons": {
+    "trick_room_changed": 162,
+    "switched_out_and_back": 938,
+    "none_readable": 837,
+    "other_holder_first": 240,
+    "boost_banked": 13
+   },
+   "delayed_share": 0.2451,
+   "ci95": [
+    0.236,
+    0.2543
+   ]
+  },
+  "Raichu-Mega-Y": {
+   "megas": 4858,
+   "delayed": 1079,
+   "reasons": {
+    "switched_out_and_back": 342,
+    "none_readable": 621,
+    "other_holder_first": 74,
+    "trick_room_changed": 41,
+    "boost_banked": 40
+   },
+   "delayed_share": 0.2221,
+   "ci95": [
+    0.2106,
+    0.234
+   ]
+  },
+  "Golisopod-Mega": {
+   "megas": 3565,
+   "delayed": 628,
+   "reasons": {
+    "none_readable": 178,
+    "other_holder_first": 58,
+    "switched_out_and_back": 280,
+    "trick_room_changed": 174,
+    "boost_banked": 80
+   },
+   "delayed_share": 0.1762,
+   "ci95": [
+    0.164,
+    0.189
+   ]
+  },
+  "Charizard-Mega-Y": {
+   "megas": 3484,
+   "delayed": 1088,
+   "reasons": {
+    "mega_resets_field": 1050,
+    "trick_room_changed": 119,
+    "switched_out_and_back": 355,
+    "mega_overrides_other_field": 263,
+    "other_holder_first": 190,
+    "boost_banked": 2,
+    "none_readable": 17,
+    "field_lost_while_held": 1
+   },
+   "delayed_share": 0.3123,
+   "ci95": [
+    0.2971,
+    0.3279
+   ]
+  },
+  "Floette-Mega": {
+   "megas": 3203,
+   "delayed": 641,
+   "reasons": {
+    "none_readable": 229,
+    "switched_out_and_back": 286,
+    "other_holder_first": 45,
+    "boost_banked": 73,
+    "trick_room_changed": 54
+   },
+   "delayed_share": 0.2001,
+   "ci95": [
+    0.1866,
+    0.2143
+   ]
+  },
+  "Gardevoir-Mega": {
+   "megas": 2613,
+   "delayed": 455,
+   "reasons": {
+    "none_readable": 194,
+    "switched_out_and_back": 156,
+    "trick_room_changed": 105,
+    "other_holder_first": 28,
+    "boost_banked": 9
+   },
+   "delayed_share": 0.1741,
+   "ci95": [
+    0.1601,
+    0.1891
+   ]
+  },
+  "Garchomp-Mega-Z": {
+   "megas": 1697,
+   "delayed": 425,
+   "reasons": {
+    "other_holder_first": 34,
+    "switched_out_and_back": 187,
+    "trick_room_changed": 37,
+    "none_readable": 188,
+    "boost_banked": 1
+   },
+   "delayed_share": 0.2504,
+   "ci95": [
+    0.2304,
+    0.2716
+   ]
+  },
+  "Gengar-Mega": {
+   "megas": 1652,
+   "delayed": 133,
+   "reasons": {
+    "switched_out_and_back": 88,
+    "none_readable": 38,
+    "trick_room_changed": 11,
+    "other_holder_first": 5
+   },
+   "delayed_share": 0.0805,
+   "ci95": [
+    0.0683,
+    0.0946
+   ]
+  },
+  "Froslass-Mega": {
+   "megas": 1603,
+   "delayed": 284,
+   "reasons": {
+    "mega_resets_field": 277,
+    "trick_room_changed": 26,
+    "mega_overrides_other_field": 86,
+    "switched_out_and_back": 87,
+    "other_holder_first": 21,
+    "none_readable": 4,
+    "field_lost_while_held": 2,
+    "boost_banked": 1
+   },
+   "delayed_share": 0.1772,
+   "ci95": [
+    0.1593,
+    0.1966
+   ]
+  },
+  "Staraptor-Mega": {
+   "megas": 1569,
+   "delayed": 345,
+   "reasons": {
+    "trick_room_changed": 26,
+    "switched_out_and_back": 132,
+    "other_holder_first": 67,
+    "none_readable": 139
+   },
+   "delayed_share": 0.2199,
+   "ci95": [
+    0.2001,
+    0.241
+   ]
+  },
+  "Tyranitar-Mega": {
+   "megas": 1456,
+   "delayed": 658,
+   "reasons": {
+    "switched_out_and_back": 257,
+    "trick_room_changed": 59,
+    "mega_resets_field": 153,
+    "field_lost_while_held": 129,
+    "none_readable": 204,
+    "mega_overrides_other_field": 102,
+    "boost_banked": 38,
+    "other_holder_first": 75
+   },
+   "delayed_share": 0.4519,
+   "ci95": [
+    0.4265,
+    0.4776
+   ]
+  },
+  "Metagross-Mega": {
+   "megas": 1321,
+   "delayed": 302,
+   "reasons": {
+    "switched_out_and_back": 110,
+    "none_readable": 149,
+    "boost_banked": 15,
+    "trick_room_changed": 23,
+    "other_holder_first": 18
+   },
+   "delayed_share": 0.2286,
+   "ci95": [
+    0.2068,
+    0.252
+   ]
+  },
+  "Lucario-Mega-Z": {
+   "megas": 1181,
+   "delayed": 291,
+   "reasons": {
+    "none_readable": 108,
+    "boost_banked": 70,
+    "switched_out_and_back": 85,
+    "other_holder_first": 22,
+    "trick_room_changed": 16
+   },
+   "delayed_share": 0.2464,
+   "ci95": [
+    0.2227,
+    0.2718
+   ]
+  },
+  "Camerupt-Mega": {
+   "megas": 952,
+   "delayed": 83,
+   "reasons": {
+    "none_readable": 31,
+    "trick_room_changed": 34,
+    "other_holder_first": 10,
+    "switched_out_and_back": 26,
+    "boost_banked": 1
+   },
+   "delayed_share": 0.0872,
+   "ci95": [
+    0.0709,
+    0.1068
+   ]
+  },
+  "Swampert-Mega": {
+   "megas": 951,
+   "delayed": 186,
+   "reasons": {
+    "switched_out_and_back": 92,
+    "none_readable": 78,
+    "other_holder_first": 12,
+    "trick_room_changed": 15,
+    "boost_banked": 2
+   },
+   "delayed_share": 0.1956,
+   "ci95": [
+    0.1716,
+    0.222
+   ]
+  },
+  "Delphox-Mega": {
+   "megas": 859,
+   "delayed": 192,
+   "reasons": {
+    "none_readable": 85,
+    "switched_out_and_back": 74,
+    "other_holder_first": 6,
+    "boost_banked": 23,
+    "trick_room_changed": 11
+   },
+   "delayed_share": 0.2235,
+   "ci95": [
+    0.1969,
+    0.2526
+   ]
+  },
+  "Baxcalibur-Mega": {
+   "megas": 745,
+   "delayed": 154,
+   "reasons": {
+    "switched_out_and_back": 62,
+    "none_readable": 60,
+    "boost_banked": 19,
+    "trick_room_changed": 14,
+    "other_holder_first": 10
+   },
+   "delayed_share": 0.2067,
+   "ci95": [
+    0.1792,
+    0.2373
+   ]
+  },
+  "Dragonite-Mega": {
+   "megas": 713,
+   "delayed": 134,
+   "reasons": {
+    "none_readable": 80,
+    "switched_out_and_back": 43,
+    "other_holder_first": 9,
+    "trick_room_changed": 8
+   },
+   "delayed_share": 0.1879,
+   "ci95": [
+    0.161,
+    0.2183
+   ]
+  },
+  "Glimmora-Mega": {
+   "megas": 699,
+   "delayed": 184,
+   "reasons": {
+    "none_readable": 97,
+    "switched_out_and_back": 59,
+    "trick_room_changed": 15,
+    "other_holder_first": 20
+   },
+   "delayed_share": 0.2632,
+   "ci95": [
+    0.2319,
+    0.2971
+   ]
+  },
+  "Blastoise-Mega": {
+   "megas": 601,
+   "delayed": 84,
+   "reasons": {
+    "switched_out_and_back": 26,
+    "other_holder_first": 9,
+    "none_readable": 34,
+    "trick_room_changed": 26,
+    "boost_banked": 4
+   },
+   "delayed_share": 0.1398,
+   "ci95": [
+    0.1143,
+    0.1698
+   ]
+  },
+  "Aerodactyl-Mega": {
+   "megas": 411,
+   "delayed": 79,
+   "reasons": {
+    "switched_out_and_back": 32,
+    "none_readable": 38,
+    "other_holder_first": 6,
+    "trick_room_changed": 9
+   },
+   "delayed_share": 0.1922,
+   "ci95": [
+    0.157,
+    0.2331
+   ]
+  },
+  "Absol-Mega-Z": {
+   "megas": 334,
+   "delayed": 63,
+   "reasons": {
+    "none_readable": 21,
+    "other_holder_first": 5,
+    "switched_out_and_back": 28,
+    "trick_room_changed": 10,
+    "boost_banked": 6
+   },
+   "delayed_share": 0.1886,
+   "ci95": [
+    0.1503,
+    0.234
+   ]
+  },
+  "Mawile-Mega": {
+   "megas": 319,
+   "delayed": 54,
+   "reasons": {
+    "none_readable": 19,
+    "switched_out_and_back": 21,
+    "trick_room_changed": 19,
+    "other_holder_first": 6,
+    "boost_banked": 2
+   },
+   "delayed_share": 0.1693,
+   "ci95": [
+    0.1321,
+    0.2143
+   ]
+  },
+  "Scovillain-Mega": {
+   "megas": 269,
+   "delayed": 80,
+   "reasons": {
+    "other_holder_first": 4,
+    "boost_banked": 61,
+    "trick_room_changed": 7,
+    "switched_out_and_back": 13,
+    "none_readable": 5
+   },
+   "delayed_share": 0.2974,
+   "ci95": [
+    0.2459,
+    0.3546
+   ]
+  },
+  "Blaziken-Mega": {
+   "megas": 237,
+   "delayed": 58,
+   "reasons": {
+    "boost_banked": 35,
+    "trick_room_changed": 4,
+    "none_readable": 3,
+    "other_holder_first": 10,
+    "switched_out_and_back": 17
+   },
+   "delayed_share": 0.2447,
+   "ci95": [
+    0.1943,
+    0.3032
+   ]
+  },
+  "Alakazam-Mega": {
+   "megas": 124,
+   "delayed": 19,
+   "reasons": {
+    "none_readable": 8,
+    "switched_out_and_back": 7,
+    "boost_banked": 2,
+    "other_holder_first": 3
+   },
+   "delayed_share": 0.1532,
+   "ci95": [
+    0.1003,
+    0.227
+   ]
+  },
+  "Pyroar-Mega": {
+   "megas": 113,
+   "delayed": 16,
+   "reasons": {
+    "none_readable": 9,
+    "trick_room_changed": 1,
+    "switched_out_and_back": 6
+   },
+   "delayed_share": 0.1416,
+   "ci95": [
+    0.0891,
+    0.2177
+   ]
+  },
+  "Venusaur-Mega": {
+   "megas": 102,
+   "delayed": 13,
+   "reasons": {
+    "switched_out_and_back": 4,
+    "none_readable": 8,
+    "other_holder_first": 1
+   },
+   "delayed_share": 0.1275,
+   "ci95": [
+    0.076,
+    0.2059
+   ]
+  },
+  "Scrafty-Mega": {
+   "megas": 102,
+   "delayed": 21,
+   "reasons": {
+    "other_holder_first": 3,
+    "switched_out_and_back": 9,
+    "trick_room_changed": 8,
+    "none_readable": 6
+   },
+   "delayed_share": 0.2059,
+   "ci95": [
+    0.1388,
+    0.2943
+   ]
+  },
+  "Charizard-Mega-X": {
+   "megas": 100,
+   "delayed": 33,
+   "reasons": {
+    "trick_room_changed": 4,
+    "none_readable": 9,
+    "switched_out_and_back": 11,
+    "boost_banked": 10,
+    "other_holder_first": 2
+   },
+   "delayed_share": 0.33,
+   "ci95": [
+    0.2456,
+    0.4269
+   ]
+  },
+  "Lopunny-Mega": {
+   "megas": 100,
+   "delayed": 14,
+   "reasons": {
+    "none_readable": 6,
+    "switched_out_and_back": 3,
+    "other_holder_first": 4,
+    "trick_room_changed": 2
+   },
+   "delayed_share": 0.14,
+   "ci95": [
+    0.0853,
+    0.2214
+   ]
+  }
+ },
+ "band": [
+  0.0725,
+  0.3725
+ ],
+ "margin": 0.15,
+ "min_megas": 50
+}

@@ -1,0 +1,298 @@
+{
+ "what": "SPRT read at the bound (solver/machamp/sprt_read.js)",
+ "sprt_file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\.claude\\worktrees\\agent-a0e29027ba742f35a\\solver\\out\\cvd\\sprt-gen5-1s.json",
+ "verdict": "H1 — X is stronger (elo1 = +20 accepted)",
+ "llr_at_stop": 3.0076826026217414,
+ "bounds": [
+  -2.9444389791664403,
+  2.9444389791664403
+ ],
+ "preregistered": {
+  "elo0": 0,
+  "elo1": 20,
+  "alpha": 0.05,
+  "beta": 0.05,
+  "max_games": 2000,
+  "unit": "pair of games on one battle seed, seats swapped",
+  "statistic": "normal-approximation GSPRT on pair scores (Fishtest)"
+ },
+ "x": {
+  "file": "solver/machamp/league/gen5.json",
+  "spec": {
+   "name": "gen5",
+   "kind": "miltank",
+   "mag": "solver/machamp/models/gen5/mag-gen5.json",
+   "doduo": "solver/machamp/models/gen5/doduo-gen5.json",
+   "pory2": "solver/machamp/models/gen5/porygon2-gen5.json",
+   "budgetMs": 1000,
+   "k1": 4,
+   "k2": 4,
+   "depth": 0,
+   "reserveSwitch": 1
+  },
+  "digests": {
+   "mag": "65e76caf2423b28b",
+   "doduo": "abb0b88dd573b728",
+   "pory2": "cf8ad3f7bd0d4a33"
+  }
+ },
+ "y": {
+  "file": "solver/machamp/league/human-clone.json",
+  "spec": {
+   "name": "human-clone",
+   "kind": "greedy",
+   "mag": "solver/mag/model/mag-v1.json",
+   "doduo": "solver/mag/model/doduo-v1.json"
+  },
+  "digests": {
+   "mag": "c720dd9e0696bc3e",
+   "doduo": "da319ee23b44770a"
+  }
+ },
+ "engine_release": "eaa5becc54eb",
+ "release_stamp": {
+  "engine_release": "eaa5becc54eb",
+  "engine_release_cut": "2026-09-24T20:12:54.367Z",
+  "engine_release_cuts": 50,
+  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+  "source_digests": {
+   "engine/medicham2-browser.js": "2caee2eeabb0",
+   "engine/board.js": "c85a3b756c98",
+   "engine/rollout_leaf.js": "eacf05ff8d30",
+   "engine/position_features.js": "bb71676d3669",
+   "engine/tags.js": "13cdeb051720",
+   "engine/champions_sim.js": "8094725f52a8",
+   "data/residual-order.json": "eff160ad1c5a",
+   "data/switchin-order.json": "24a007a66b7d",
+   "engine/mc_key.js": "aaa095762671",
+   "engine/lookup.js": "17f49e5aed43",
+   "engine/set_priors.js": "f8a81445ee3a",
+   "engine/smogon_priors.js": "ebd062f756c8",
+   "engine/quality.js": "ebc37c7c9d05",
+   "engine/showdown_path.js": "46646401ede2",
+   "engine/regulation.js": "827f5138ecf5",
+   "data/move-effects.js": "f35ecd91ba86",
+   "data/ability-blocks.json": "86741fd35452",
+   "data/smogon-priors.json": "f2dc78cea6c5",
+   "data/regulations.json": "6c7c3e3dd06c",
+   "data/quality-filter.json": "042524dd1df7",
+   "data/engine-data.js": "bbc417dfae0e",
+   "data/abra-tags.js": "fc30f9a9392e",
+   "data/tags.json": "26ee107ce6a8",
+   "data/policy-weights.json": "626c1d240782",
+   "data/policy-weights-joint.json": "e2aca467ff04",
+   "data/move-priors.json": "e667fe8ab457",
+   "engine/pp.js": "30b12a4ef623",
+   "data/rollout-switch-census.json": "b8a5cee2f0a9",
+   "engine/medicham_api.js": "f0264a11558b",
+   "data/engine-data-regmc.js": "a6ad04e92d4e",
+   "data/tags-regmc.json": "ac1a00fa40ee",
+   "data/move-priors-regmc.json": "eab0c9b023df",
+   "data/move-effects-regmc.js": "8c57407e7641"
+  }
+ },
+ "pool": {
+  "pool_source": {
+   "kind": "team-store",
+   "file": "data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+   "file_sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+   "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709"
+  },
+  "test_pairs": 173,
+  "cycled_ids_sha256": "113be25167d10d4a"
+ },
+ "flags": {
+  "release": "eaa5becc54eb",
+  "x": "solver/machamp/league/gen5.json",
+  "y": "solver/machamp/league/human-clone.json",
+  "elo0": 0,
+  "elo1": 20,
+  "alpha": 0.05,
+  "beta": 0.05,
+  "maxGames": 2000,
+  "seed": 26001,
+  "workers": 3,
+  "store": "data/team-pool-frozen-regmc",
+  "out": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\.claude\\worktrees\\agent-a0e29027ba742f35a\\solver\\out\\cvd\\sprt-gen5-1s.json",
+  "cap": 50
+ },
+ "started": "2026-09-25T23:43:15.308Z",
+ "finished": "2026-09-25T23:53:26.657Z",
+ "wall_s": 611.461,
+ "counted": {
+  "games": 180,
+  "W": 113,
+  "D": 0,
+  "L": 67,
+  "score_x": 0.6277777777777778,
+  "ci95_x": [
+   0.5551790568016651,
+   0.6950363460233755
+  ],
+  "ci_caption": "Wilson 95% at a data-dependent stopping time: conditional on the stop, slightly optimistic",
+  "pairs": {
+   "both": 32,
+   "split": 49,
+   "lost": 9
+  },
+  "agrees_with_sprt": true
+ },
+ "clock": {
+  "rule": {
+   "maxPerTurn_s": 55,
+   "starting_s": 420,
+   "grace_s": 90,
+   "source": "ruleTable of gen9championsvgc2026regmcbo3 (timer rule)"
+  },
+  "x_ms": {
+   "decisions": 1304,
+   "mean": 1026.9,
+   "p50": 955,
+   "p95": 1247,
+   "p99": 2033,
+   "max": 10881
+  },
+  "y_ms": {
+   "decisions": 1304,
+   "mean": 100.2,
+   "p95": 262,
+   "max": 5641
+  },
+  "x_game_sum_s": {
+   "mean": 7.4,
+   "p95": 12.011,
+   "max": 21.406
+  },
+  "breaches": {
+   "decisions_over_maxPerTurn": 0,
+   "games_over_starting_bank": 0
+  }
+ },
+ "search_counters_all_played": {
+  "fallbacks": 0,
+  "decisions": 2700,
+  "forced": 1,
+  "searched": 1349,
+  "playouts": 102644,
+  "cells": 21576,
+  "unfilled": 3378,
+  "zero_playouts": 18,
+  "fallback_decisions": 53,
+  "fallback_sparse": 35,
+  "fallback_empty": 18,
+  "caption": "cumulative over every game the workers played (incl. games past the stop); both bots in the worker share the agent counters, the greedy bot contributes no searched decision",
+  "prior_fallback_share": 0.0393,
+  "playouts_per_searched": 76.1,
+  "unfilled_share": 0.1566
+ },
+ "mega_timing": {
+  "x": {
+   "capable": 166,
+   "megas": 158,
+   "delay0": 122,
+   "delayed": 36,
+   "delay": {
+    "0": 122,
+    "1": 15,
+    "2": 11,
+    "3": 3,
+    "4": 4,
+    "5": 2,
+    "6": 1
+   },
+   "reasons": {
+    "none_readable": 15,
+    "switched_out_and_back": 12,
+    "boost_banked": 5,
+    "other_holder_first": 3,
+    "trick_room_changed": 4,
+    "mega_resets_field": 1
+   },
+   "first_held_action": {
+    "protect": 13,
+    "attack": 6,
+    "switch": 12,
+    "setup": 3
+   },
+   "held_actions": {
+    "protect": 19,
+    "attack": 8,
+    "switch": 15,
+    "setup": 7,
+    "field_move": 1
+   },
+   "reason_combos": {
+    "none_readable": 15,
+    "switched_out_and_back": 9,
+    "boost_banked": 5,
+    "other_holder_first": 2,
+    "switched_out_and_back+trick_room_changed": 3,
+    "mega_resets_field+other_holder_first": 1,
+    "trick_room_changed": 1
+   },
+   "delay0_share": 0.7722,
+   "delayed_share": 0.2278,
+   "delayed_ci95": [
+    0.1694,
+    0.2993
+   ],
+   "delay_mean": 0.494,
+   "reason_share": {
+    "none_readable": 0.4167,
+    "switched_out_and_back": 0.3333,
+    "boost_banked": 0.1389,
+    "other_holder_first": 0.0833,
+    "trick_room_changed": 0.1111,
+    "mega_resets_field": 0.0278
+   }
+  },
+  "y": {
+   "capable": 174,
+   "megas": 148,
+   "delay0": 125,
+   "delayed": 23,
+   "delay": {
+    "0": 125,
+    "1": 11,
+    "2": 5,
+    "3": 3,
+    "4": 2,
+    "5": 1,
+    "7": 1
+   },
+   "reasons": {
+    "other_holder_first": 4,
+    "none_readable": 10,
+    "switched_out_and_back": 9,
+    "trick_room_changed": 2
+   },
+   "first_held_action": {
+    "protect": 10,
+    "switch": 9
+   },
+   "held_actions": {
+    "protect": 10,
+    "switch": 11
+   },
+   "reason_combos": {
+    "other_holder_first": 4,
+    "none_readable": 10,
+    "switched_out_and_back": 7,
+    "switched_out_and_back+trick_room_changed": 2
+   },
+   "delay0_share": 0.8446,
+   "delayed_share": 0.1554,
+   "delayed_ci95": [
+    0.1058,
+    0.2224
+   ],
+   "delay_mean": 0.338,
+   "reason_share": {
+    "other_holder_first": 0.1739,
+    "none_readable": 0.4348,
+    "switched_out_and_back": 0.3913,
+    "trick_room_changed": 0.087
+   }
+  }
+ }
+}

@@ -62,6 +62,10 @@ function aggregate(dir) {
       world_errors: dec.filter(d => d.world && !d.world.ok).length, world_error_samples: dec.filter(d => d.world && !d.world.ok).slice(0, 3).map(d => d.world.err),
       restarts: state ? state.restarts : 0,
       counters: lastSum.counters ? { policy: lastSum.counters.policy, world: lastSum.counters.world } : null,
+      /* chosen vs applied (solver/rotom/applied.js), the throttle and the send queue, from the client's own summary */
+      applied: lastSum.applied ? (({ chosen, applied, explained_diff, mismatch, unverifiable, by_kind, why }) => ({ chosen, applied, explained_diff, mismatch, unverifiable, by_kind, why }))(lastSum.applied) : null,
+      applied_mismatch_events: ev.filter(e => e.type === 'applied_mismatch').length, preview_verify: ev.filter(e => e.type === 'preview_verify').map(e => e.ok),
+      throttle_notices: ev.filter(e => e.type === 'throttle_notice').length, applied_cost: lastSum.applied_cost || null, send_queue: lastSum.send_queue || null,
     };
   }
   /* per-series clock use, from the series artifacts */
@@ -131,6 +135,20 @@ function gamesReport(file, o) {
     return { n: s.length, mean: +(s.reduce((a, b) => a + b, 0) / s.length).toFixed(1), min: s[0], p10: q(0.1), p50: q(0.5), p90: q(0.9), max: s[s.length - 1] }; };
   const rep = { saved: 0, failed: 0, skipped: 0, missing: 0, retried: 0 };
   for (const r of recs) { const x = r.replay; if (!x) rep.missing++; else { rep[x.status] = (rep[x.status] || 0) + 1; if ((x.attempts || 0) > 1) rep.retried++; } }
+  /* CHOSEN VS APPLIED per game and in total (rotom.js writes `applied` into every game record since abra/regmc 1.14.0; an
+   * older record has none and is counted as `no_check`, never as clean) */
+  const appliedTot = { games_checked: 0, no_check: 0, chosen: 0, applied: 0, explained_diff: 0, mismatch: 0, unverifiable: 0, by_kind: {}, why: {} };
+  const appliedGames = [];
+  for (const r of recs) {
+    const a = r.applied;
+    if (!a) { appliedTot.no_check++; continue; }
+    appliedTot.games_checked++;
+    for (const k of ['chosen', 'applied', 'explained_diff', 'mismatch', 'unverifiable']) appliedTot[k] += a[k] || 0;
+    for (const [k, v] of Object.entries(a.by_kind || {})) { const m = appliedTot.by_kind[k] = appliedTot.by_kind[k] || { chosen: 0, applied: 0, explained_diff: 0, mismatch: 0, unverifiable: 0 }; for (const x of Object.keys(m)) m[x] += v[x] || 0; }
+    for (const [w, n] of Object.entries(a.why || {})) appliedTot.why[w] = (appliedTot.why[w] || 0) + n;
+    appliedGames.push({ series: r.series, game: r.game, room: r.room, chosen: a.chosen, applied: a.applied, explained_diff: a.explained_diff, mismatch: a.mismatch, unverifiable: a.unverifiable, mismatches: (a.mismatches || []).slice(0, 5) });
+  }
+  appliedTot.mismatch_rate = appliedTot.chosen ? +(appliedTot.mismatch / appliedTot.chosen).toFixed(4) : null;
   const losses = recs.filter(r => r.result && !r.result.mine && !r.result.tie).map(r => ({ series: r.series, game: r.game, opponent: r.opponent, our_team: r.our_team,
     turns: r.result.turns, replay: r.replay && r.replay.url || null, replay_status: r.replay && r.replay.status, battle_log: r.battle_log, decisions: r.decisions && r.decisions.log }));
   const decisionsLinked = recs.filter(r => r.decisions && r.decisions.log && fs.existsSync(path.join(__dirname, '..', '..', r.decisions.log))).length;
@@ -143,6 +161,7 @@ function gamesReport(file, o) {
     teams,
     clock: { used_s: st(used), bank_left_s: st(bank), bank_left_hist: bankHist },
     replays: Object.assign(rep, { records: recs.length, decision_logs_present: decisionsLinked }),
+    applied: Object.assign(appliedTot, { games: appliedGames }),
     losses,
   };
 }
@@ -162,6 +181,10 @@ if (require.main === module) {
     for (const [t, v] of Object.entries(r.teams)) console.log(`  team ${t}: games ${v.won}/${v.games}, series ${v.series_won}/${v.series}`);
     console.log('clock used (s) ' + JSON.stringify(r.clock.used_s) + '\nbank left (s) ' + JSON.stringify(r.clock.bank_left_s) + ' ' + JSON.stringify(r.clock.bank_left_hist));
     console.log('replays ' + JSON.stringify(r.replays));
+    const A = r.applied;
+    console.log(`chosen vs applied: ${A.chosen} checks in ${A.games_checked} games (${A.no_check} records predate the check) — applied ${A.applied}, explained ${A.explained_diff}, MISMATCH ${A.mismatch}${A.mismatch_rate != null ? ' (' + pct(A.mismatch_rate) + ')' : ''}, unverifiable ${A.unverifiable}`);
+    console.log('  by kind ' + JSON.stringify(A.by_kind) + '\n  explained by ' + JSON.stringify(A.why));
+    for (const g of A.games) console.log(`  ${g.mismatch ? 'MISMATCH' : 'ok      '} ${g.room}  chosen ${g.chosen} applied ${g.applied} explained ${g.explained_diff} mismatch ${g.mismatch}` + (g.mismatch ? '  ' + JSON.stringify(g.mismatches.map(m => m.kind + ': ' + m.chosen + ' -> ' + m.applied)) : ''));
     for (const l of r.losses) console.log(`  LOSS ${l.series} g${l.game} vs ${l.opponent}: ${l.replay || '(no replay: ' + l.replay_status + ')'}`);
   } else {
     const dir = argv[0];

@@ -14,9 +14,12 @@
  *   WORLD    the MEDICHAM position built from the captured log + request: my HP and max HP are the request's
  *            exactly, my actives are the request's, the opponent's revealed bodies are the log's, and MEDICHAM's
  *            joints that the request allows are non-empty.
- *   POLICY   prior, miltank (a short budget) and random each return a request-legal choice on a move request;
- *            prior, miltank and random on a forced switch; preview (prior and the search) returns four
- *            distinct positions.
+ *   POLICY   prior, miltank (a short budget), miltank-gen5 and random each return a request-legal choice on a move
+ *            request; prior, miltank, miltank-gen5 and random on a forced switch; preview (prior and the search)
+ *            returns four distinct positions, and miltank-gen5's preview is the team's own human bring.
+ *   GEN5     miltank-gen5 searched with the gen5 nets (their digests), laid every revealed opponent body at its
+ *            displayed percentage and at the zero-SP line of its nature (solver/xatu/worlds.js publicOpp), drew
+ *            worlds from XATU when a posterior was given, and scored forced-switch candidates with the same searcher.
  *   LOCK     a second client on the same lock is refused while the holder is alive; a dead holder's lock is
  *            taken over and reported; a public server has ONE machine-wide lock whatever the account; the
  *            password is read from the env var and reported by SOURCE only.
@@ -155,6 +158,29 @@ for (const f of moveFx) {
     const r = P.move(name, { req: f.req, world: w, coin, budgetMs: 300, xatuBack: null });
     ok('POLICY', r.choice && RQ.isLegal(f.req, r.choice), name + ' move choice ' + (r && r.choice));
   }
+  /* miltank-gen5 on a FRESH world (a policy may lay the root in place), with a XATU-shaped posterior over the
+   * opponent's rows that are not revealed */
+  {
+    const w5 = worldOf(f, 'move');
+    const oppP = f.me === 'p1' ? 'p2' : 'p1';
+    const revRows = w5.theirs.filter(x => x.pub && x.pub.seen).map(x => x.s);
+    const rest = [0, 1, 2, 3, 4, 5].filter(i => !revRows.includes(i));
+    const back = rest.length >= 2 ? [{ pair: [rest[0], rest[1]], p: 0.75 }, { pair: [rest[rest.length - 2], rest[rest.length - 1]], p: 0.25 }] : null;
+    const w0 = P.gen5().XW.COUNTERS.worlds;
+    const r = P.move('miltank-gen5', { req: f.req, world: w5, coin, budgetMs: 700, xatuBack: back });
+    ok('POLICY', r.choice && RQ.isLegal(f.req, r.choice), 'miltank-gen5 move choice ' + (r && r.choice));
+    const g = P.gen5();
+    ok('GEN5', r.info && r.info.gen5 && r.info.gen5.mag === g.digests.mag && /gen5/.test(g.spec.mag) && /gen5/.test(g.leafModel), 'gen5 nets: ' + JSON.stringify(r.info && r.info.gen5));
+    ok('GEN5', r.info.forced || (r.info.playouts > 0 && g.XW.COUNTERS.worlds > w0), 'miltank-gen5 searched (playouts ' + r.info.playouts + ', worlds ' + (g.XW.COUNTERS.worlds - w0) + ')');
+    const XWm = require('../xatu/worlds.js');
+    for (const x of w5.theirs) {
+      if (!x.pub || !x.pub.seen || x.pub.fnt) continue;
+      const pct = (x.pub.max || 100) === 100 ? x.pub.hp : XWm.pctOf(x.pub.hp, x.pub.max);
+      ok('GEN5', XWm.pctOf(x.b.curHP, x.b.st.hp) === pct, `opponent ${x.b.name} laid at its displayed ${pct}% (${x.b.curHP}/${x.b.st.hp})`);
+      const z = T.buildBody(API.M, f.sheets[oppP][x.s]); z.name = x.b.name; g.XW.applySpread(z, null, f.sheets[oppP][x.s]);
+      ok('GEN5', JSON.stringify(z.st) === JSON.stringify(x.b.st), `opponent ${x.b.name} at the zero-SP line of its nature`);
+    }
+  }
 }
 for (const f of forceFx) {
   const w = worldOf(f, 'switch');
@@ -162,12 +188,18 @@ for (const f of forceFx) {
     const r = P.forceSwitch(name, { req: f.req, world: w, coin, budgetMs: 400, xatuBack: null });
     ok('POLICY', r.choice && RQ.isLegal(f.req, r.choice), name + ' forced-switch choice ' + (r && r.choice));
   }
+  const s0 = P.COUNTERS.gen5.switchScored;
+  const r5 = P.forceSwitch('miltank-gen5', { req: f.req, world: worldOf(f, 'switch'), coin, budgetMs: 1200, xatuBack: null });
+  ok('POLICY', r5.choice && RQ.isLegal(f.req, r5.choice), 'miltank-gen5 forced-switch choice ' + (r5 && r5.choice));
+  ok('GEN5', r5.info.only || P.COUNTERS.gen5.switchScored > s0, 'miltank-gen5 scored its forced-switch candidates with the searcher: ' + JSON.stringify(r5.info).slice(0, 200));
 }
 {
   const f = prevFx;
   const d = { req: f.req, coin, sheets: f.sheets, me: f.me, budgetMs: 800, teamBring: [0, 1, 2, 3], series: { oppLast: { brought: [0, 1, 2, 3], leads: [0, 1], won: true } } };
   const p = P.preview('prior', d);
   ok('POLICY', p.order.length === 4 && new Set(p.order).size === 4, 'prior preview ' + p.order);
+  const p5 = P.preview('miltank-gen5', Object.assign({}, d, { budgetMs: 20000 }));
+  ok('POLICY', !p5.search && JSON.stringify(p5.order) === JSON.stringify([1, 2, 3, 4]), 'miltank-gen5 preview is the human bring ' + JSON.stringify(p5.order));
   const q = P.previewSearch(d, [0, 1, 2, 3]);
   ok('POLICY', q.order.length === 4 && new Set(q.order).size === 4 && q.order.every(x => x >= 1 && x <= 6), 'preview search ' + JSON.stringify(q.order));
   ok('POLICY', P.COUNTERS.previewPlayouts > 0 && q.info.oppModel === 'series carry-over', 'preview search played nothing / ignored the series: ' + JSON.stringify(q.info));

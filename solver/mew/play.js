@@ -27,6 +27,21 @@
  * by a seeded stride. Each pair is played twice on the SAME battle seed with the bots swapped (the arena's
  * paired seating), so each bot plays each sheet once.
  *
+ * INFORMATION (--info honest | omniscient; 2026-09-26, docs/_reports/2026-09-26-gen5-honest-and-ladder-prep.md).
+ *   honest      THE DEFAULT FOR A MATCH, and so for every strength claim (sprt.js, gate.js). The true battle has hidden
+ *               spreads: every body on both sides carries a Stat Point spread drawn per team pair from XATU's self-play
+ *               generator (solver/xatu/worlds.js truthSpreads, seeded by the battle seed, so both seatings of a pair
+ *               play the same truth) under its sheet's nature. Each decision is taken on a PUBLIC VIEW of that battle
+ *               (honestView below): the decider's own side exact; the opponent's unrevealed back line replaced by
+ *               XATU's MAP back pair, every opponent body at zero SP under its nature, a revealed body's HP laid from
+ *               the percentage the Champions client shows. A MILTANK bot's worlds then draw the back pair from XATU's
+ *               posterior and every opponent spread from XATU's spread belief (solver/xatu/worlds.js — the SAME
+ *               module ROTOM's miltank-gen5 policy uses). The chosen joint is played on the TRUE battle.
+ *   omniscient  the pre-2026-09-26 arena, kept as a LABELLED option: no spreads exist (every body the table's flat
+ *               line), and the searcher is handed the true battle (its worlds still redraw the unrevealed back line,
+ *               uniformly). Self-play's default, because the MACHAMP loop's recipes were pre-registered on it.
+ * The mode is on every match line (`info`) and in the shard summary; the honest counters are in `honest`.
+ *
  * A GAME ENDS on a wipe (`isTerminal`) or at --cap turns, where the engine's HP rule (`horizonScore`) decides it
  * and the game is counted as capped. An error ends the game, is counted, and the game scores nothing.
  */
@@ -49,6 +64,8 @@ const AG = require('./agent.js').create(API, { buildBody: T.buildBody });
 const PA0 = require('../miltank/prior_adapter.js').create(API, null);   // the game's history recorder (model-free)
 
 const MODE = flag('--mode', 'selfplay');
+const INFO = flag('--info', MODE === 'match' ? 'honest' : 'omniscient');
+if (!['honest', 'omniscient'].includes(INFO)) { console.error('mew/play: --info must be honest or omniscient'); process.exit(2); }
 /* DELIBERATE BREAK (env MACHAMP_BREAK=seat): in a match, X sits on side A in both games of a pair — the paired
  * seating is gone. solver/tests/test-machamp.js GATE must go red.
  * DELIBERATE BREAK (env MACHAMP_BREAK=fallback): a search fallback is not recorded (the pre-2026-09-25 behaviour).
@@ -66,14 +83,26 @@ const MR = require('../arena/mega_rate.js');
 const MEGA = {};
 const megaT = name => (MEGA[name] || (MEGA[name] = MR.tally()));
 const t0 = Date.now();
+/* running search counters, snapshotted onto every match line: a SPRT kills its workers at the bound and a killed
+ * worker writes no summary, so the counters must already be on disk (solver/machamp/sprt.js reads the last line) */
+const RUN = { searched: 0, playouts: 0, cells: 0, unfilled: 0, zero_playouts: 0, fallback_decisions: 0 };
+
+/* ---- HONEST INFORMATION (see the header): solver/xatu/worlds.js arenaGame / arenaView ---- */
+const XW = AG.XW;
+const HON = XW.HON;
 
 async function playGame(G, botA, botB, seed, recordFor) {
   const a = T.buildTeam(M, G, 'p1'), b = T.buildTeam(M, G, 'p2');
   if (!a || !b) return { unbuildable: true };
+  if (INFO === 'honest') {   // the TRUE spreads, the same for both seatings of a pair (seeded by the battle seed)
+    const truth = XW.truthSpreads(G.sheets, seed);
+    for (const [p, t] of [['p1', a], ['p2', b]]) for (const m of t.team) { XW.applySpread(m, truth[p][m._solverSheet], G.sheets[p][m._solverSheet]); HON.truth_bodies++; }
+  }
   const rng = API.makeRng(seed);
   const S = API.newBattle(a.team, b.team, { rng });
+  const H = INFO === 'honest' ? XW.arenaGame(G, S, PA0) : null;
   const ctx = PA0.newGame(G);
-  const mg = MR.game(API, { A: megaT(botA.name), B: megaT(botB.name) });
+  const mg = MR.game(API, { A: megaT(botA.name), B: megaT(botB.name) }, { trace: MODE === 'match' });   // match: the mega TIMING timeline per game (mega_timing.js)
   const decisions = [], fallbacks = [];
   let err = null;
   const ms = { A: [], B: [] };
@@ -82,14 +111,18 @@ async function playGame(G, botA, botB, seed, recordFor) {
       const ch = {};
       for (const [side, bot] of [['A', botA], ['B', botB]]) {
         const t = Date.now();
-        ch[side] = await bot.choose(S, side, ctx);
+        const hv = H ? XW.arenaView(H, G, S, side, PA0) : null;
+        const SV = hv ? hv.V : S;
+        ch[side] = await bot.choose(SV, side, ctx, hv ? hv.hb : undefined);
         ms[side].push(Date.now() - t);
         const info = ch[side].info || {};
-        if (info.playouts != null) decStats.push({ playouts: info.playouts, cells: info.m * info.n, unfilled: info.unfilled, ms: info.ms });
+        if (info.playouts != null) { decStats.push({ playouts: info.playouts, cells: info.m * info.n, unfilled: info.unfilled, ms: info.ms });
+          RUN.searched++; RUN.playouts += info.playouts; RUN.cells += info.m * info.n; RUN.unfilled += info.unfilled || 0; if (!info.playouts) RUN.zero_playouts++; }
+        if (info.fallback) { RUN.fallback_decisions++; RUN['fallback_' + info.fallback] = (RUN['fallback_' + info.fallback] || 0) + 1; }   // MILTANK's too-empty-to-solve prior fallback (search.js), per kind
         if (recordFor && recordFor[side] && info.rec) {
           const rec = info.rec;
-          const jc = bot.PA.jointCells(ctx, S, side, side, rec.rows);
-          const bs = PA0.row(ctx, S, side).game.brought_seen;
+          const jc = bot.PA.jointCells(ctx, SV, side, side, rec.rows);
+          const bs = PA0.row(ctx, SV, side).game.brought_seen;
           decisions.push({ t: ctx.hist.length, side, bs, v: info.value, x: rec.x.map(z => +z.toFixed(5)), y: rec.y ? rec.y.map(z => +z.toFixed(5)) : null,
             cells: jc ? jc.cells : null, keys: jc ? jc.keys : null, n: jc ? jc.n : null, m: info.m, nc: info.n, playouts: info.playouts,
             unfilled: info.unfilled, pick: info.pick, ms: info.ms, agent: bot.name,
@@ -100,8 +133,8 @@ async function playGame(G, botA, botB, seed, recordFor) {
            * trace of the positions where the search was starved. They go in a SEPARATE list (`fallbacks`), so every
            * consumer of `decisions` (x·A·y = v, the root value) is untouched; build_doduo.js reads both. The target is
            * the joint actually played, on its DODUO cell. */
-          const jc = bot.PA.jointCells(ctx, S, side, side, [ch[side].joint]);
-          const bs = PA0.row(ctx, S, side).game.brought_seen;
+          const jc = bot.PA.jointCells(ctx, SV, side, side, [ch[side].joint]);
+          const bs = PA0.row(ctx, SV, side).game.brought_seen;
           fallbacks.push({ t: ctx.hist.length, side, bs, fb: info.fallback === true ? 'threw' : String(info.fallback), x: [1],
             cells: jc ? jc.cells : null, keys: jc ? jc.keys : null, n: jc ? jc.n : null, m: 1, nc: info.n || 1,
             playouts: info.playouts == null ? null : info.playouts, unfilled: 0, ms: info.ms == null ? null : info.ms, agent: bot.name });
@@ -116,7 +149,7 @@ async function playGame(G, botA, botB, seed, recordFor) {
   mg.end();
   let vA = null, capped = false;
   if (!err) { if (API.isTerminal(S)) vA = API.winner(S); else { vA = API.horizonScore(S); capped = true; } }
-  return { vA, capped, err, turns: S.turn, hist: ctx.hist, decisions, fallbacks, ms };
+  return { vA, capped, err, turns: S.turn, hist: ctx.hist, decisions, fallbacks, ms, mega: mg.detail() };
 }
 
 async function selfplay() {
@@ -179,8 +212,11 @@ async function match() {
       if (r.unbuildable) { counts.unbuildable++; per.push({ pi, id: G.id, xSide: xIsA ? 'A' : 'B', unbuildable: true }); continue; }
       counts.games++; if (r.err) counts.errors++; if (r.capped) counts.capped++;
       const vX = r.err ? null : (xIsA ? r.vA : 1 - r.vA);
-      per.push({ pi, id: G.id, xSide: xIsA ? 'A' : 'B', seed, vX, turns: r.turns, capped: r.capped, err: r.err,
-                 ms_x: r.ms[xIsA ? 'A' : 'B'], ms_y: r.ms[xIsA ? 'B' : 'A'] });
+      per.push({ pi, id: G.id, xSide: xIsA ? 'A' : 'B', seed, info: INFO, vX, turns: r.turns, capped: r.capped, err: r.err,
+                 ms_x: r.ms[xIsA ? 'A' : 'B'], ms_y: r.ms[xIsA ? 'B' : 'A'],
+                 mega: r.mega ? { x: r.mega[xIsA ? 'A' : 'B'], y: r.mega[xIsA ? 'B' : 'A'] } : null,
+                 ctr: Object.assign({ fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0 }, RUN,
+                   INFO === 'honest' ? { hon_views: HON.views, hon_back_xatu: HON.back_xatu, hon_back_error: HON.back_error, xw: Object.assign({}, XW.COUNTERS) } : {}) });
     }
     if (OUT) fs.writeFileSync(OUT, per.map(p => JSON.stringify(p)).join('\n') + '\n');
     console.log(`  [shard ${SHARD}] pair ${pi}  games ${counts.games}  errors ${counts.errors}  fallbacks ${AG.COUNTERS.fallbacks}  ${((Date.now() - t0) / 1000).toFixed(0)}s`);
@@ -191,7 +227,7 @@ async function match() {
 
 (async () => {
   const r = MODE === 'match' ? await match() : await selfplay();
-  const summary = { mode: MODE, break: BREAK || null, shard: SHARD, shards: SHARDS, seed: SEED, cap: CAP, engine_release: ENGINE.id, release_stamp: ENGINE.stamp, argv, wall_s: (Date.now() - t0) / 1000,
+  const summary = { mode: MODE, info: INFO, honest: INFO === 'honest' ? Object.assign({}, HON, { worlds: XW.COUNTERS }) : null, break: BREAK || null, shard: SHARD, shards: SHARDS, seed: SEED, cap: CAP, engine_release: ENGINE.id, release_stamp: ENGINE.stamp, argv, wall_s: (Date.now() - t0) / 1000,
     agent_counters: AG.COUNTERS, rollout: AG.R.COUNTERS, api: API.COUNTERS,
     mega: { by_agent: Object.fromEntries(Object.entries(MEGA).map(([k, t]) => [k, MR.summary(t)])), human_rate: MR.HUMAN_RATE, floor: MR.floor() },
     search: decStats.length ? { decisions: decStats.length, playouts_mean: decStats.reduce((s, d) => s + d.playouts, 0) / decStats.length,

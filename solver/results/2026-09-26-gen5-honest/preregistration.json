@@ -1,0 +1,20 @@
+{
+ "what": "gen5 against DODUO-greedy under HONEST information, at the two clock-sized budgets of the omniscient run (solver/results/2026-09-26-champ-vs-doduo/). Written 2026-09-26 BEFORE the first game of either arm.",
+ "question": "Does the omniscient margin survive when the searcher sees only what a ladder player sees: both open sheets, the revealed bring, the displayed HP and every public event, but no Stat Point spread and no unrevealed back two (drawn from XATU's belief)?",
+ "code": "commit a2c3cd88 (solver/xatu/worlds.js, solver/mew/play.js --info honest); solver/tests/test-honest-info.js GREEN 1954/1954 and RED under HONEST_BREAK=peek on that commit",
+ "engine_release": "eaa5becc54eb",
+ "team_store": "data/team-pool-frozen-regmc (pool digest 792daded918f; games.bo3.jsonl a68263bb568d), TEST pairs, cycled (solver/mew/pairs.js)",
+ "information": "honest (sprt.js --info honest, the default): the TRUE battle has hidden spreads (every body, both sides: XATU's self-play generator seeded by the battle seed, under the sheet nature); each decision of BOTH bots is taken on the decider's public view (solver/xatu/worlds.js arenaView); gen5's worlds draw the back pair from XATU's posterior (game 1, no memory) and every opponent spread from XATU's spread belief (prior, no observations fed).",
+ "x_arms": {
+  "gen5-1s": "solver/machamp/league/gen5.json (MILTANK, gen5 MAG/DODUO/PORYGON2, k 4x4, depth 0, 1 reserved switch row, budgetMs 1000)",
+  "gen5-5s": "solver/results/2026-09-26-champ-vs-doduo/gen5-5s.json (identical except budgetMs 5000)"
+ },
+ "y": "solver/machamp/league/human-clone.json = DODUO-greedy (MAG v1 + DODUO v1 argmax legal joint, no search) = ROTOM's `prior` policy",
+ "test": "solver/machamp/sprt.js: normal-approximation GSPRT on pair scores; elo0 0, elo1 +20, alpha 0.05, beta 0.05, max 2,000 games (1,000 pairs), index order, read once at the bound. H1 = gen5 is proven stronger at that budget under honest information. H0 = not stronger. No bound = INCONCLUSIVE.",
+ "seeds": { "gen5-1s": 26001, "gen5-5s": 26005, "note": "the SAME seeds as the omniscient run, so pair i is the same team pair on the same battle seed in both; the games differ because the true battle now carries spreads" },
+ "flags": "--release eaa5becc54eb --workers 3 --cap 50 --max-games 2000 --team-store data/team-pool-frozen-regmc --info honest; one arm at a time",
+ "run_order": "gen5-1s first, then gen5-5s",
+ "reported_with_the_verdict": "Wilson 95% on the counted games (conditional on the stop) next to the omniscient arm's; per-decision wall-clock of gen5; per-game sum; MILTANK prior-fallback share; playouts per searched decision; the honest counters (views, XATU posteriors, worlds, spreads drawn, uniform back-line fallbacks).",
+ "clock_safe_rule": "as the omniscient run: no gen5 decision over 55 s and no game whose summed gen5 decision time is over 420 s (solver/rotom/clock.js readRule).",
+ "caveat_declared_before": "Wall-clock budget on a shared machine (a live ladder run is executing from the main checkout). The honest arm plays a different GAME from the omniscient arm (spreads exist), so the difference between the two margins is information plus the spread game, not information alone."
+}

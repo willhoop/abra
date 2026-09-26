@@ -90,6 +90,22 @@ This section says only what a division agent needs before it starts.
   refuses every non-loopback connection in every process), `login_stub.js`, `build_ladder_teams.js` →
   `teams/ladder-rotation.json`, and `arms/`. Runbook with the exact commands: `solver/rotom/LADDER.md`.
   Account: `docs/_reports/2026-09-25-rotom-ladder-mode.md`. **A public launch is Will's call.**
+- **gen5 holds under honest information; ROTOM plays it (2026-09-26, abra/regmc 1.16.0).** The arena's default for a
+  match is now honest (`solver/mew/play.js --info honest`, `solver/xatu/worlds.js`): hidden spreads, the decider's public
+  view, XATU's belief in the worlds. gen5 vs DODUO-greedy: H1 at 1 s (0.710 [0.615, 0.790]) and 5 s (0.712 [0.618, 0.790]).
+  ROTOM policy `miltank-gen5` uses the same module; arms `solver/rotom/arms/gen5-vs-prior.json` (A at 5 s) are
+  prepared, not launched. Account: `docs/_reports/2026-09-26-gen5-honest-and-ladder-prep.md`.
+- **gen5 beats DODUO-greedy at a clock-safe budget (2026-09-26, abra/regmc 1.15.0).** SPRT H1 at 1 s and at 5 s on
+  release `eaa5becc54eb`. Before gen5 can be the ladder bot, ROTOM needs a policy that plays a league spec
+  (`solver/mew/agent.js`); its `miltank` policy is v1 nets at depth 2. Mega timing is measured against humans and
+  checked by `solver/tests/test-mega-timing.js`. Account: `docs/_reports/2026-09-26-champion-vs-doduo-and-mega-timing.md`.
+
+- **ROTOM's choices provably reach Showdown (2026-09-26, abra/regmc 1.14.0).** Sends are paced to the server's message
+  throttle, which had dropped the game-1 preview in 14 of 17 aa2 series (`solver/rotom/sendq.js`). Every decision is
+  checked against what the server did — preview, move, target, mega, switch, forced, timer, team
+  (`solver/rotom/applied.js`); a mismatch is a ladder error, `--max-mismatches` halt. An alive series we are in is
+  never orphaned, and no search goes out while any battle we are in is live. `run_ladder.js --throttle` for dry runs.
+  Account: `docs/_reports/2026-09-26-rotom-throttle-fix.md`.
 - **ROTOM heals a hung ladder loop (2026-09-25, abra/regmc 1.12.0).** A private series no longer spawns a phantom
   series, which was the cause of both aa1 hangs. Every loop wait is bounded (a silent series is probed, then
   orphaned as an error). `run_ladder.js --hang-min` restarts a client that makes no progress and has no game open.

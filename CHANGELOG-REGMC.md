@@ -21,6 +21,110 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.16.0] — 2026-09-26
+
+### Added
+- **Honest information in the arena** (`solver/mew/play.js --info honest`, the default for a match, so for `sprt.js`
+  and `gate.js`, which now take `--info` and record it). The true battle carries hidden Stat Point spreads on every
+  body (XATU's self-play generator, seeded per team pair, under the sheet nature), and each decision of both bots is
+  taken on the decider's public view: own side exact; the opponent at zero SP under its nature, HP at the Champions
+  displayed percentage (`floor(100·hp/max) || 1`, pokemon-showdown-mc `sim/pokemon.ts` getHealth at `f10d679`), the
+  unrevealed back line from XATU's MAP pair. MILTANK's worlds draw the back pair from XATU's posterior and every
+  opponent spread from XATU's spread belief. `omniscient` stays as a labelled option. One implementation,
+  `solver/xatu/worlds.js`, shared with ROTOM. Check `solver/tests/test-honest-info.js`: GREEN 1954/1954, RED under
+  `HONEST_BREAK=peek`.
+- **gen5 stays stronger than DODUO-greedy under honest information.** Pre-registered SPRTs (elo0 0, elo1 +20,
+  α = β = 0.05, ≤ 2,000 games, the omniscient run's seeds), release `eaa5becc54eb`, the frozen Reg M-C team store:
+  1 s H1 after 100 games, 0.710 [0.615, 0.790]; 5 s H1 after 104 games, 0.712 [0.618, 0.790]. The omniscient
+  figures (1.15.0) stand as what they measured: 0.628 [0.555, 0.695] and 0.766 [0.649, 0.853]. Clock-safe: slowest
+  gen5 decision 6.5 s, heaviest game 89.7 s of the 420 s bank.
+- **ROTOM `miltank-gen5` policy.** gen5 MAG/DODUO/PORYGON2, k 4×4, depth 0, 1 reserved switch row, the clock's
+  budget capped by the arm, lean playouts, the hard deadline and the idle GC; the belief through `worlds.js` exactly
+  as the honest arena; preview = the rotation team's own human bring. Local bo3 sets (3 series, 7 games) and a
+  16-series ladder dry run: 0 timeouts, 0 invalid choices, 0 fallbacks. `test-rotom.js` GREEN 105/105 with new
+  POLICY and GEN5 clauses.
+- **`solver/rotom/arms/gen5-vs-prior.json`**: arm A `miltank-gen5` at 5 s, arm B `prior`, pre-registered like
+  `miltank-vs-prior.json`. Not launched: a ladder series is Will's call.
+- `solver/mag/model/mag-v1.vocab.json`: the vocabulary of the human build MAG v1 + DODUO v1 were trained on.
+
+### Fixed
+- **`test-machamp` REBUILD no longer depends on an untracked build output.** `build_doduo.js` read
+  `solver/out/mag/meta.json` by default; it now reads the tracked vocabulary, refuses any vocabulary whose dataset
+  digest or embedding rows disagree with the MAG model, and records which file it read. `test-machamp` GREEN 100/100,
+  every deliberate break RED.
+
+### Changed
+- The MACHAMP loops (`loop.js`, `loop_sprt.js`) pass `--info omniscient` explicitly: their recipes were
+  pre-registered on that arena. Self-play's default stays omniscient.
+
+### Notes
+- **Basis.** unchanged. The honest figures are new figures for a new question; the omniscient ones are not withdrawn.
+- Correction to 1.15.0's report: the omniscient arena did not show the search the opponent's unrevealed back line
+  (the worlds redrew it uniformly); it showed exact HP, and no hidden spreads existed.
+
+## [1.15.0] — 2026-09-26
+
+### Added
+- **The gen5 self-play champion is proven stronger than DODUO-greedy at both clock-safe budgets.** Pre-registered
+  SPRTs (elo0 0, elo1 +20, α = β = 0.05, ≤ 2,000 games) on release `eaa5becc54eb` and the frozen Reg M-C team store:
+  at 1 s H1 after 180 games, 0.628 [0.555, 0.695]; at 5 s H1 after 64 games, 0.766 [0.649, 0.853]. No decision over
+  55 s, no game over the 420 s bank (worst: 10.9 s and 21.4 s at 1 s; 5.6 s and 56.9 s at 5 s). This replaces the
+  provisional "DODUO-greedy by default of evidence" of 1.4.0, which measured a different MILTANK configuration.
+  ROTOM cannot play gen5 yet: its `miltank` policy is v1 nets, heuristic leaf, depth 2.
+- **Mega TIMING, humans and bots** (`solver/arena/mega_timing.js`). Humans make 22.25% of their megas after the first
+  turn they could (10,223 of 45,952). The board reasons are read, not guessed: out and back 38.5%, a field the mega
+  re-sets 14.7%, Trick Room 10.8%, another holder first 10.3%, a banked boost 5.4%. Mega evolution re-fires the forme's
+  ability (Showdown `sim/pokemon.ts`), and with the sand mega 129 of 658 delayed megas were made after the sand was
+  gone. gen5 delays 22.8% at 1 s and 29.1% at 5 s; DODUO-greedy 15.5% and 23.1%.
+- `solver/tests/test-mega-timing.js`: a bot fails when its Wilson interval on the delayed share lies wholly outside
+  the human share ± 0.15. The RED runs (`ARENA_BREAK=meganow`, `megalate`) caught a blind first version, and it was
+  fixed before being trusted.
+- `solver/mew/play.js`: every match line carries the mega timeline and a snapshot of the search counters, so a run
+  killed at an SPRT bound still proves its search ran. `solver/machamp/sprt_read.js` reads a finished SPRT once.
+
+## [1.14.0] — 2026-09-26
+
+### Fixed
+- **ROTOM's choices are no longer lost to Showdown's message throttle.** The server processes one message per 600 ms
+  per account, queues five and DROPS the next with a notice (`pokemon-showdown-mc server/users.ts:1429-1467`). ROTOM
+  sent everything at once, and in aa2 the burst at the start of a series dropped the game-1 team preview in 14 of 17
+  series (the server played slots 1-4, leads 1+2) and the battle's `/timer on`, while the decision log said
+  `sent: true`. New `solver/rotom/sendq.js`: one frame per 650 ms, mirroring the server's backlog, choices and the timer
+  first, aging bounded. A throttle notice is counted and the open choice re-sent; a redundant resend is never counted
+  as an invalid choice. The decision log field `sent` is now `queued`.
+- **An alive series we are in is never orphaned.** aa2 k=16 answered "alive, 2 users, we are in it" three times and was
+  orphaned anyway. The watch now repairs it (timer and the open choice re-sent) and waits; only a room that is gone, or
+  probes that go unanswered, orphan a series (`ladder.js stallAction`, `rotom.js onRoomInfo`).
+- **An orphan can no longer run beside the next series.** A live battle of an orphaned series stays tracked and played,
+  and `openSeries()` counts every live battle, so no search goes out while any battle we are in is live. An orphan that
+  speaks again is taken back and gets its row. Nothing is ever forfeited.
+- `run_ladder.js --dry-run` records the local server's pid in `pids.json` (it was `null`).
+- The ladder's exit waits (bounded) for a game record whose replay save is still in flight; a dry run had left its
+  last game's record pending.
+
+### Added
+- **Chosen vs applied, for every decision ROTOM sends** (`solver/rotom/applied.js`): the team, preview bring and leads,
+  each move and target, mega, switches, forced switches and the timer, read back from the server's own lines and its
+  next request. A difference is EXPLAINED only when a line says why (cant, a faint, a target already down, a spread
+  move, a redirection derived from the format, an Encore, the game ending); anything else is a MISMATCH: an
+  `applied_mismatch` event, a ladder error at once, `applied_mismatch` / `preview_mismatch` in the series row, a per-game
+  `applied` block in `games.jsonl`, printed by `report.js games`, and `--max-mismatches` (default 3) HALTS the ladder.
+  The check runs after the choice is written, never inside a decision budget (measured in `summary.applied_cost`).
+- `solver/rotom/applied_audit.js`: the same check offline over a finished run (read only).
+- `run_ladder.js --throttle`: a local dry run with the server's throttle ON (a `--no-security` server has it off);
+  `ladder-report.json` `server_throttle` proves it.
+- Tests: `solver/tests/test-rotom-throttle.js` (the k=16 burst through a line-for-line model of the throttle; the real
+  client against a throttled scripted server playing the checkout's simulator; a planted mismatch that must be caught;
+  a zero-mismatch rate floor) — GREEN 33/33, RED 9/19 on the pre-fix client. `solver/tests/test-rotom-applied.js`
+  GREEN 31/31 with its BREAK clauses. `test-rotom-private-series` SILENT rewritten (alive is not orphaned) plus
+  UNANSWERED, GREEN 25/25. `test-rotom-ladder` 114/114.
+
+### Notes
+- **Basis.** unchanged. No published figure moves. aa1/aa2 re-read offline: 0 of 1,401 non-preview checks were
+  mismatches; the throttle hit the preview window only. Dry run with the throttle ON (`--sets 5`, release
+  `eaa5becc54eb`): 0 notices, 26/26 previews applied, 0 mismatches in 787 checks, the check 0.8–0.9 ms per turn off
+  the decision path. `docs/_reports/2026-09-26-rotom-throttle-fix.md`.
+
 ## [1.13.0] — 2026-09-25
 
 ### Changed
