@@ -8,6 +8,13 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-27
 
+### ROTOM adaptive clock; lookahead options screened at 2 s (abra/regmc 1.24.0)
+- Adaptive (target 4.5 s: stop when clear, run to 2x target when close, capped by the bank) vs fixed 5 s, gen5, honest:
+  SPRT **H0 at 748 games, 0.491 [0.455, 0.526]**, 3.63 s vs 4.72 s per searched decision, 0 timeouts. Same strength
+  within resolution, 23% less clock. 4,000 simulated slow games: 0 bank-outs; RED when the line is ignored.
+- Options (quiesce/flatEps/reserveNoRepeat) on vs off at adaptive 2 s: 0.500 [0.431, 0.569], PASS; the ~10 s SPRT runs.
+  Account: `docs/_reports/2026-09-27-adaptive-clock.md`.
+
 ### Repeat Protect: the depth-0 horizon, a fix that works on the table and loses at 1 s — not deployed (abra/regmc 1.23.0)
 - Cause, on the 13 positions where DODUO offers a repeat: not noise (SE median 0.0024, halves 0.626/0.607), not the die
   (success 0.34 vs the engine's 1/3). Scored on its failed playouts only the repeat keeps 0.054 of 0.609. The success branch

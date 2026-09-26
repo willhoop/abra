@@ -21,6 +21,43 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.24.0] — 2026-09-27
+
+### Added
+- **ROTOM's adaptive per-decision clock** (`solver/rotom/adaptive.js`). Each searched decision is planned around a target
+  mean: it stops early when one candidate beats every other beyond noise against the opponent's mix (paired per-pass
+  differences, 2 SE), stops at the target when nothing is close, and runs up to twice the target when two candidates are
+  within 1 SE, paid for by what the clear decisions saved in the same game. A safety line from the bank the server
+  reports caps every plan: at most two fair shares of the bank left after 30 s and 1 s per expected request (90th
+  percentile), never more than the turn less 8 s; under 400 ms the move is `prior`, counted. MILTANK's hard deadline is
+  unchanged: the hook (`o.onPass` → `cells.js fillSerial`) can only end a fill earlier. ROTOM: `--adaptive-target-ms T`
+  or an arm's `"adaptive": { "targetMs": T }`; the decision log carries `budget.adaptive` and `adapt`, the summary
+  `adaptive`. Arena: a league spec's `adaptive`, on a simulated bank from the checkout's rule.
+- `solver/tests/test-adaptive-clock.js` (RULE, BANK, CREDIT, STOP, ARENA): 30/30. RED under `ROTOM_CLOCK_BREAK=nocap`
+  (999 simulated bank-outs) and `=nostop`. `solver/bench/adaptive_tune.js` (train-pair tuning), `adaptive_read.js`
+  (both sides' clock from a finished SPRT).
+
+### Changed
+- `solver/rotom/clock.js`: `eRemHi` (the 90th percentile of requests left); the server's tick is 5 s
+  (`server/room-battle.ts` `TICK_TIME`), not 10 s as its comment said.
+- `solver/mew/play.js` match lines carry `searched_x/y` and the adaptive stops `adapt_x/y`.
+
+### Notes
+- **Adaptive vs a fixed 5 s, same gen5, honest arena, release `eaa5becc54eb`:** pre-registered SPRT (elo0 0, elo1 +20,
+  α = β = 0.05) **H0 at 748 games, 0.491 [0.455, 0.526]** at **3,628 vs 4,717 ms per searched decision**; 0 timeouts
+  either side; heaviest game 134.3 s vs 169.7 s of decision time. Not shown stronger, not shown weaker, 23% less clock.
+  Stops: clear 53%, hard 35%, soft 12%. `solver/results/2026-09-27-adaptive-clock/`. A first registration (target 5 s)
+  was aborted on its own time condition after 6 games, score unread; the tuning's time accounting was the cause.
+- **The deeper-lookahead options at a longer clock.** Screen at adaptive 2 s, options on vs off: **0.500 [0.431, 0.569]**
+  over 200 games, PASS by the pre-registered rule (they lost at a fixed 1 s, 0.418). The SPRT at adaptive ~10 s is
+  running (`solver/results/2026-09-27-adaptive-options/preregistration.json`).
+- No arms file uses the adaptive clock; putting it on a ladder arm is a new pre-registration and Will's call.
+- `tests/test-docs-current.js` was red on origin/main at the merge (3b(d): the census `1024` in the white paper and the
+  technical docs, pinned to `e1d04b89`, lost its binding when the census moved to 1027). Both rows now name
+  abra/regmc 0.125.0, which records the figure; no figure changed. 39/39.
+
+---
+
 ## [1.23.0] — 2026-09-27
 
 ### Added
