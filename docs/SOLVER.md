@@ -90,6 +90,10 @@ This section says only what a division agent needs before it starts.
   refuses every non-loopback connection in every process), `login_stub.js`, `build_ladder_teams.js` →
   `teams/ladder-rotation.json`, and `arms/`. Runbook with the exact commands: `solver/rotom/LADDER.md`.
   Account: `docs/_reports/2026-09-25-rotom-ladder-mode.md`. **A public launch is Will's call.**
+- **gen5 beats DODUO-greedy at a clock-safe budget (2026-09-26, abra/regmc 1.14.0).** SPRT H1 at 1 s and at 5 s on
+  release `eaa5becc54eb`. Before gen5 can be the ladder bot, ROTOM needs a policy that plays a league spec
+  (`solver/mew/agent.js`); its `miltank` policy is v1 nets at depth 2. Mega timing is measured against humans and
+  checked by `solver/tests/test-mega-timing.js`. Account: `docs/_reports/2026-09-26-champion-vs-doduo-and-mega-timing.md`.
 - **ROTOM heals a hung ladder loop (2026-09-25, abra/regmc 1.12.0).** A private series no longer spawns a phantom
   series, which was the cause of both aa1 hangs. Every loop wait is bounded (a silent series is probed, then
   orphaned as an error). `run_ladder.js --hang-min` restarts a client that makes no progress and has no game open.

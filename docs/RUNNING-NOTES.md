@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.14.0] — 2026-09-26 — **gen5 beats DODUO-greedy at 1 s and 5 s (SPRT H1 both); mega timing measured against humans**
+- **What changed.** New `solver/arena/mega_timing.js` (per-side mega timeline, board reasons, human pass, `check()`, breaks `meganow`/`megalate`), `solver/tests/test-mega-timing.js`, `solver/machamp/sprt_read.js`. `solver/arena/mega_rate.js` records the timeline (`trace`, `detail()`). `solver/arena/arena.js` adds `mega.timing` and the two breaks. `solver/mew/play.js` puts the mega timeline and a search-counter snapshot on every match line. Pre-registration, 5 s spec and reads in `solver/results/2026-09-26-champ-vs-doduo/`.
+- **Measured.** Release `eaa5becc54eb`, `--team-store data/team-pool-frozen-regmc`, `--workers 3 --cap 50 --max-games 2000`, seeds 26001/26005. gen5 vs DODUO-greedy: 1 s H1 at 180 games, 0.628 [0.555, 0.695]; 5 s H1 at 64 games, 0.766 [0.649, 0.853] (`sprt-gen5-{1s,5s}-read.json`). Clock-safe (max decision 10.9 s / 5.6 s; max game 21.4 s / 56.9 s). Prior fallback 3.9% at 1 s, 0 at 5 s. Humans delay 10,223 of 45,952 megas = 0.2225 [0.2187, 0.2263] (`solver/out/mega/timing-human.json`); gen5 0.228 (1 s) and 0.291 (5 s), DODUO-greedy 0.155 and 0.231. Test result in the report. `docs/_reports/2026-09-26-champion-vs-doduo-and-mega-timing.md`.
+- **Basis.** unchanged.
+- **Supersedes.** The ladder-bot choice "DODUO-greedy, provisional by default of evidence" (abra/regmc 1.4.0) — it measured MILTANK v1 nets at depth 2, not gen5. No figure is retracted.
+- **Owed to the next major.** MODELS and the technical docs: gen5 vs DODUO-greedy, the mega timing definition and check.
+
 ## [abra/regmc 1.13.0] — 2026-09-25 — **MACHAMP warm-start recipe pre-registered; the search's fallback decisions enter the training data**
 - **What changed.** `solver/machamp/loop_sprt.js --recipe warm` + `solver/machamp/preregistration-warm.json`: warm start from the champion, lr DODUO 1e-4 / PORYGON2 1.5e-4, champion self-play weight 3, DODUO tolerance from the clone. `solver/mew/play.js` records search fallbacks (`fallbacks`), `build_doduo.js` trains on them, `build_pory2.js`/`build_doduo.js --weights`, both trainers read `w.f32`. `test-machamp` clause FALLBACK and break `MACHAMP_BREAK=fallback`; test budget 150 → 300 ms.
 - **Measured.** NO FIGURE. `test-machamp` GREEN 87/87, all nine deliberate breaks RED. loop-sp7 held 14 unrecorded fallback decisions (14,010 searched vs 13,996 recorded, its manifest).

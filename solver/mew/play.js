@@ -66,6 +66,9 @@ const MR = require('../arena/mega_rate.js');
 const MEGA = {};
 const megaT = name => (MEGA[name] || (MEGA[name] = MR.tally()));
 const t0 = Date.now();
+/* running search counters, snapshotted onto every match line: a SPRT kills its workers at the bound and a killed
+ * worker writes no summary, so the counters must already be on disk (solver/machamp/sprt.js reads the last line) */
+const RUN = { searched: 0, playouts: 0, cells: 0, unfilled: 0, zero_playouts: 0, fallback_decisions: 0 };
 
 async function playGame(G, botA, botB, seed, recordFor) {
   const a = T.buildTeam(M, G, 'p1'), b = T.buildTeam(M, G, 'p2');
@@ -73,7 +76,7 @@ async function playGame(G, botA, botB, seed, recordFor) {
   const rng = API.makeRng(seed);
   const S = API.newBattle(a.team, b.team, { rng });
   const ctx = PA0.newGame(G);
-  const mg = MR.game(API, { A: megaT(botA.name), B: megaT(botB.name) });
+  const mg = MR.game(API, { A: megaT(botA.name), B: megaT(botB.name) }, { trace: MODE === 'match' });   // match: the mega TIMING timeline per game (mega_timing.js)
   const decisions = [], fallbacks = [];
   let err = null;
   const ms = { A: [], B: [] };
@@ -85,7 +88,9 @@ async function playGame(G, botA, botB, seed, recordFor) {
         ch[side] = await bot.choose(S, side, ctx);
         ms[side].push(Date.now() - t);
         const info = ch[side].info || {};
-        if (info.playouts != null) decStats.push({ playouts: info.playouts, cells: info.m * info.n, unfilled: info.unfilled, ms: info.ms });
+        if (info.playouts != null) { decStats.push({ playouts: info.playouts, cells: info.m * info.n, unfilled: info.unfilled, ms: info.ms });
+          RUN.searched++; RUN.playouts += info.playouts; RUN.cells += info.m * info.n; RUN.unfilled += info.unfilled || 0; if (!info.playouts) RUN.zero_playouts++; }
+        if (info.fallback) { RUN.fallback_decisions++; RUN['fallback_' + info.fallback] = (RUN['fallback_' + info.fallback] || 0) + 1; }   // MILTANK's too-empty-to-solve prior fallback (search.js), per kind
         if (recordFor && recordFor[side] && info.rec) {
           const rec = info.rec;
           const jc = bot.PA.jointCells(ctx, S, side, side, rec.rows);
@@ -116,7 +121,7 @@ async function playGame(G, botA, botB, seed, recordFor) {
   mg.end();
   let vA = null, capped = false;
   if (!err) { if (API.isTerminal(S)) vA = API.winner(S); else { vA = API.horizonScore(S); capped = true; } }
-  return { vA, capped, err, turns: S.turn, hist: ctx.hist, decisions, fallbacks, ms };
+  return { vA, capped, err, turns: S.turn, hist: ctx.hist, decisions, fallbacks, ms, mega: mg.detail() };
 }
 
 async function selfplay() {
@@ -180,7 +185,9 @@ async function match() {
       counts.games++; if (r.err) counts.errors++; if (r.capped) counts.capped++;
       const vX = r.err ? null : (xIsA ? r.vA : 1 - r.vA);
       per.push({ pi, id: G.id, xSide: xIsA ? 'A' : 'B', seed, vX, turns: r.turns, capped: r.capped, err: r.err,
-                 ms_x: r.ms[xIsA ? 'A' : 'B'], ms_y: r.ms[xIsA ? 'B' : 'A'] });
+                 ms_x: r.ms[xIsA ? 'A' : 'B'], ms_y: r.ms[xIsA ? 'B' : 'A'],
+                 mega: r.mega ? { x: r.mega[xIsA ? 'A' : 'B'], y: r.mega[xIsA ? 'B' : 'A'] } : null,
+                 ctr: Object.assign({ fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced }, RUN) });
     }
     if (OUT) fs.writeFileSync(OUT, per.map(p => JSON.stringify(p)).join('\n') + '\n');
     console.log(`  [shard ${SHARD}] pair ${pi}  games ${counts.games}  errors ${counts.errors}  fallbacks ${AG.COUNTERS.fallbacks}  ${((Date.now() - t0) / 1000).toFixed(0)}s`);

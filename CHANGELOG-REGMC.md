@@ -21,6 +21,26 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.14.0] — 2026-09-26
+
+### Added
+- **The gen5 self-play champion is proven stronger than DODUO-greedy at both clock-safe budgets.** Pre-registered
+  SPRTs (elo0 0, elo1 +20, α = β = 0.05, ≤ 2,000 games) on release `eaa5becc54eb` and the frozen Reg M-C team store:
+  at 1 s H1 after 180 games, 0.628 [0.555, 0.695]; at 5 s H1 after 64 games, 0.766 [0.649, 0.853]. No decision over
+  55 s, no game over the 420 s bank (worst: 10.9 s and 21.4 s at 1 s; 5.6 s and 56.9 s at 5 s). This replaces the
+  provisional "DODUO-greedy by default of evidence" of 1.4.0, which measured a different MILTANK configuration.
+  ROTOM cannot play gen5 yet: its `miltank` policy is v1 nets, heuristic leaf, depth 2.
+- **Mega TIMING, humans and bots** (`solver/arena/mega_timing.js`). Humans make 22.25% of their megas after the first
+  turn they could (10,223 of 45,952). The board reasons are read, not guessed: out and back 38.5%, a field the mega
+  re-sets 14.7%, Trick Room 10.8%, another holder first 10.3%, a banked boost 5.4%. Mega evolution re-fires the forme's
+  ability (Showdown `sim/pokemon.ts`), and with the sand mega 129 of 658 delayed megas were made after the sand was
+  gone. gen5 delays 22.8% at 1 s and 29.1% at 5 s; DODUO-greedy 15.5% and 23.1%.
+- `solver/tests/test-mega-timing.js`: a bot fails when its Wilson interval on the delayed share lies wholly outside
+  the human share ± 0.15. The RED runs (`ARENA_BREAK=meganow`, `megalate`) caught a blind first version, and it was
+  fixed before being trusted.
+- `solver/mew/play.js`: every match line carries the mega timeline and a snapshot of the search counters, so a run
+  killed at an SPRT bound still proves its search ran. `solver/machamp/sprt_read.js` reads a finished SPRT once.
+
 ## [1.13.0] — 2026-09-25
 
 ### Changed
