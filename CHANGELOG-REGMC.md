@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.17.0] — 2026-09-26
+## [1.18.0] — 2026-09-26
 
 ### Added
 - **MAG v2, the per-slot DEAD-CLICK gate** (`solver/mag/gate.js`). MAG no longer scores or ranks (Will, 2026-09-25).
@@ -52,7 +52,7 @@ rewritten; what changed and why is stated.
   checkout) is absent here — an environment gap, owed a re-run from the main checkout.
 
 ### Notes
-- Built and measured 2026-09-25 on a branch numbered 1.12.0, which main had meanwhile used; merged and renumbered 1.17.0 on 2026-09-26.
+- Built and measured 2026-09-25 on a branch numbered 1.12.0, which main had meanwhile used; merged and renumbered 1.18.0 on 2026-09-26 (1.17.0 went to ROTOM's end reasons meanwhile).
 - Release `eaa5becc54eb`, held-out Reg M-C decisions (seed 4, 1,999): the human's joint survives both gates **99.85%
   [99.56, 99.95]** — below the pre-registered 99.9%; all 3 losses are clicks their replays show failed or did nothing.
   MAG cuts 1.56% of per-slot options and weights 1.84% near zero; joints removed: MAG 2.29%, pair gate 4.10%, either
@@ -62,6 +62,34 @@ rewritten; what changed and why is stated.
   No strength gain shown. Artifacts `solver/results/2026-09-25-gates/`; account `docs/_reports/2026-09-25-mag-doduo-gates.md`.
 - `docs/ENGINE.md`: the `#509` residual (a shielded status move reads success here, null in the authority) filed
   again with its readers; not fixed, and the gate works around it.
+
+## [1.17.0] — 2026-09-26
+
+### Added
+- **ROTOM records how every game and series ended** (`solver/rotom/endings.js`, from the protocol lines, following
+  the spec in `docs/_reports/2026-09-26-click-outcomes.md` §6). Per game (game record, `game_end` event, series book):
+  `end_reason` normal / forfeit_opp / forfeit_me / timeout_opp / timeout_me / inactivity / tie / unknown, `end_by`,
+  `end_turn`, `at_preview`, `end_raw`. Per series (ladder row, series book `end`): the same plus walkaway_opp /
+  walkaway_me (someone left between games), `end_game`, `games_won`/`games_lost`, `any_forfeit_opp`, `games_end[]`.
+- **Our own forfeit, timeout or walkaway HALTS the ladder** (`ladder.js onSelfQuit`): one is a ladder error, a
+  `self_quit` event and a halt (no new search, exit 4 once idle). It must be zero.
+- **`node solver/rotom/report.js ladder <run dir>`**: the record RATED ONLY, with and without the series the
+  opponent handed us, per arm, mean S and S − E ± SD, unrated series listed and excluded. `run_ladder.js` writes the
+  same record per client into `ladder-report.json`.
+- **`solver/rotom/backfill_ends.js`** derived the fields for aa1, aa2 and gen5ab into NEW files beside the originals
+  (`ladder-series-medicham32.ends.jsonl`, `games-ends-medicham32.jsonl`); the originals are untouched. All three
+  runs: 0 self quits. Rated records with / without the opponent's quits: aa1 5-5 / 2-5, aa2 5-11 / 2-11, gen5ab
+  arm A 8-11 / 3-11, arm B 7-10 / 2-10.
+- Tests: `solver/tests/test-rotom-endings.js` (59/59, six deliberate breaks each RED) and
+  `solver/tests/test-rotom-endings-live.js` (the real client against a scripted server, 19/19; RED under
+  `--break selfquit`).
+
+### Fixed
+- **An unrated series no longer enters a record or a mean.** gen5ab k30 was `rated: false` with `S = 1`, and any
+  count that did not filter scored it as a win. `endings.js ladderRecord` throws without `{ rated: true }`;
+  `report.js gamesReport` counts rated series only (teams and game rates too) and lists the unrated ones.
+
+---
 
 ## [1.16.0] — 2026-09-26
 

@@ -169,10 +169,12 @@ function mk(o) {
   /* ---------------- REPORT ---------------- */
   {
     const f = path.join(tmp, 'games.jsonl');
-    const g = (series, game, mine, team, local, url) => JSON.stringify({ client: 'medicham32', local, series, game, room: 'battle-x-' + series + game, our_team: team, opponent: 'opp' + series,
-      result: { mine, tie: false, turns: 9 }, clock: { used_s: 100 + game, bank_left_s: 200 - 10 * game }, replay: { status: url ? 'saved' : 'failed', url, attempts: 1 }, decisions: { log: 'nope.jsonl' } });
-    fs.writeFileSync(f, [g('s1', 1, true, 'T1', false, 'u11'), g('s1', 2, true, 'T1', false, 'u12'),
-      g('s2', 1, false, 'T2', false, 'u21'), g('s2', 2, true, 'T2', false, null), g('s2', 3, false, 'T2', false, 'u23'),
+    /* the deciding game carries both players' rating lines: a record is over RATED series only (report.js, endings.js ladderRecord) */
+    const g = (series, game, mine, team, local, url, rated) => JSON.stringify({ client: 'medicham32', local, series, game, room: 'battle-x-' + series + game, our_team: team, opponent: 'opp' + series,
+      result: { mine, tie: false, turns: 9 }, clock: { used_s: 100 + game, bank_left_s: 200 - 10 * game }, replay: { status: url ? 'saved' : 'failed', url, attempts: 1 }, decisions: { log: 'nope.jsonl' },
+      end_reason: 'normal', rating_after: rated ? { p1: { before: 1000, after: 1010 }, p2: { before: 1000, after: 990 } } : null });
+    fs.writeFileSync(f, [g('s1', 1, true, 'T1', false, 'u11'), g('s1', 2, true, 'T1', false, 'u12', true),
+      g('s2', 1, false, 'T2', false, 'u21'), g('s2', 2, true, 'T2', false, null), g('s2', 3, false, 'T2', false, 'u23', true),
       g('s3', 1, true, 'T1', true, 'local'), '{not json'].join('\n') + '\n');
     const R = require('../rotom/report.js').gamesReport(f);
     ok(R.records.used === 5 && R.records.local_excluded === 1 && R.records.unparseable === 1, 'local excluded, bad line counted: ' + JSON.stringify(R.records));

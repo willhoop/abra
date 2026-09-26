@@ -3,6 +3,13 @@
  *
  *   node solver/rotom/report.js <out dir> [--json <file>]
  *   node solver/rotom/report.js games [games.jsonl] [--client <name>] [--include-local] [--json <file>]
+ *   node solver/rotom/report.js ladder <run dir> [--json <file>]      the ladder record: RATED series only, with and without
+ *                                                                     the series the opponent handed us (forfeit/timeout/walkaway)
+ *
+ * EVERY RECORD AND EVERY MEAN IS OVER RATED SERIES ONLY (endings.js ladderRecord requires `{ rated: true }`): gen5ab k30 was
+ * unrated (no rating lines, S 1) and was counted as a win by any figure that did not filter. An unrated series is listed,
+ * never scored. How each game and series ended (end_reason) comes from solver/rotom/endings.js; a record without the
+ * field is derived from its own battle log, or counted as unknown — never guessed normal.
  *
  * Reads every decisions-*.jsonl, events-*.jsonl, summary-*.json and series/*.json the clients wrote. Nothing is
  * typed here: a figure is a count over those files. The checks: 0 timeouts (a choice sent after the turn's time,
@@ -13,6 +20,8 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const ENDINGS = require('./endings.js');
+const ROOT = path.join(__dirname, '..', '..');
 
 function readJsonl(f) { try { return fs.readFileSync(f, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)); } catch (e) { return []; } }
 function stats(a) {
@@ -23,7 +32,9 @@ function stats(a) {
 
 function aggregate(dir) {
   const files = fs.readdirSync(dir);
-  const names = [...new Set(files.filter(f => /^decisions-.*\.jsonl$/.test(f)).map(f => f.slice(10, -6)))];
+  /* a client that made no decision (every game ended before a request: a preview forfeit) still has events to count */
+  const names = [...new Set(files.filter(f => /^decisions-.*\.jsonl$/.test(f)).map(f => f.slice(10, -6))
+    .concat(files.filter(f => /^events-.*\.jsonl$/.test(f)).map(f => f.slice(7, -6))))];
   const clients = {};
   for (const n of names) {
     const dec = readJsonl(path.join(dir, 'decisions-' + n + '.jsonl'));
@@ -66,6 +77,9 @@ function aggregate(dir) {
       applied: lastSum.applied ? (({ chosen, applied, explained_diff, mismatch, unverifiable, by_kind, why }) => ({ chosen, applied, explained_diff, mismatch, unverifiable, by_kind, why }))(lastSum.applied) : null,
       applied_mismatch_events: ev.filter(e => e.type === 'applied_mismatch').length, preview_verify: ev.filter(e => e.type === 'preview_verify').map(e => e.ok),
       throttle_notices: ev.filter(e => e.type === 'throttle_notice').length, applied_cost: lastSum.applied_cost || null, send_queue: lastSum.send_queue || null,
+      /* how the games ended (game_end carries end_reason since abra/regmc 1.15.0), and OUR OWN forfeits/timeouts/walkaways (must be 0) */
+      end_reasons: ev.filter(e => e.type === 'game_end').reduce((m, e) => { const k = e.end_reason || 'not_recorded'; m[k] = (m[k] || 0) + 1; return m; }, {}),
+      self_quits: ev.filter(e => e.type === 'self_quit').length, self_quit_samples: ev.filter(e => e.type === 'self_quit').slice(0, 5),
     };
   }
   /* per-series clock use, from the series artifacts */
@@ -79,10 +93,33 @@ function aggregate(dir) {
     invalid: Object.values(clients).reduce((s, c) => s + c.invalid, 0),
     crashed_sets: Object.values(clients).reduce((s, c) => s + c.sets_unfinished.length, 0),
     uncaught: Object.values(clients).reduce((s, c) => s + c.uncaught, 0),
+    self_quits: Object.values(clients).reduce((s, c) => s + c.self_quits, 0),
     series: new Set(series.map(s => s.id)).size, series_finished: new Set(series.filter(s => s.result).map(s => s.id)).size,
     games: Math.max(0, ...Object.values(clients).map(c => c.games)),
   };
-  return { dir, totals, clients, series: series.map(s => ({ client: s.client, id: s.id, winner: s.result && s.result.winner, games: s.games.map(g => ({ gnum: g.gnum, winner: g.winner, turns: g.turns, clockUsed_s: g.clockUsed, bankLeft: g.bankLeft })), reloaded: s.reloaded || 0 })) };
+  return { dir, totals, clients, series: series.map(s => ({ client: s.client, id: s.id, winner: s.result && s.result.winner, games: s.games.map(g => ({ gnum: g.gnum, winner: g.winner, turns: g.turns, clockUsed_s: g.clockUsed, bankLeft: g.bankLeft })), reloaded: s.reloaded || 0, end_reason: s.end ? s.end.end_reason : null })) };
+}
+
+/* the ladder record of one run directory: its series rows (with end fields, or the backfill file next to them, or derived
+ * now from the run's own logs by backfill_ends.js), RATED ONLY, with and without the opponent's quits */
+function ladderReport(dir, o) {
+  o = o || {};
+  const rows = []; const sources = [];
+  const files = fs.readdirSync(dir).filter(f => /^ladder-series-.*\.jsonl$/.test(f) && !/\.ends\.jsonl$/.test(f));
+  let derived = null;
+  for (const f of files) {
+    const R = readJsonl(path.join(dir, f));
+    const endsF = path.join(dir, f.replace(/\.jsonl$/, '.ends.jsonl'));
+    if (R.every(r => 'end_reason' in r)) { rows.push(...R); sources.push({ file: f, ends: 'row' }); }
+    else if (fs.existsSync(endsF)) { rows.push(...readJsonl(endsF)); sources.push({ file: path.basename(endsF), ends: 'backfill file' }); }
+    else {
+      derived = derived || require('./backfill_ends.js').deriveRun(dir);
+      const name = f.slice('ladder-series-'.length, -'.jsonl'.length);
+      rows.push(...((derived.clients[name] || {}).rows || R)); sources.push({ file: f, ends: 'derived now from the run logs' });
+    }
+  }
+  const rec = ENDINGS.ladderRecord(rows, { rated: true, dryRun: !!o.dryRun });
+  return Object.assign({ dir, sources, rows: rows.length }, rec);
 }
 
 /* ================= OUR GAMES: the per-game ledger rotom.js writes (default solver/out/rotom/games.jsonl) =================
@@ -106,6 +143,15 @@ function gamesReport(file, o) {
   let bad = 0; const all = [];
   for (const l of lines) { try { all.push(JSON.parse(l)); } catch (e) { bad++; } }
   const recs = all.filter(r => (o.includeLocal || !r.local) && (!o.client || String(r.client).toLowerCase() === String(o.client).toLowerCase()));
+  /* how each game ended: the record's own field, or derived now from its battle log, or unknown */
+  const endOf = r => {
+    if (r.end_reason) return r.end_reason;
+    if (r._end === undefined) {
+      r._end = null;
+      try { if (r.battle_log) { const f = path.isAbsolute(r.battle_log) ? r.battle_log : path.join(o.root || ROOT, r.battle_log); if (fs.existsSync(f)) r._end = ENDINGS.gameEnd(fs.readFileSync(f, 'utf8').split('\n'), r.client).end_reason; } } catch (e) { r._end = null; }
+    }
+    return r._end || 'unknown';
+  };
   const key = r => r.client + '|' + (r.series || r.room);
   const bySeries = new Map();
   for (const r of recs) { const k = key(r); if (!bySeries.has(k)) bySeries.set(k, []); bySeries.get(k).push(r); }
@@ -113,14 +159,27 @@ function gamesReport(file, o) {
     G.sort((a, b) => (a.game || 0) - (b.game || 0));
     const w = G.filter(g => g.result && g.result.mine).length, l = G.filter(g => g.result && !g.result.mine && !g.result.tie).length;
     const last = G[G.length - 1];
+    const lastEnd = endOf(last);
+    /* a series that ended short on a quit in its last game is decided by it; a walkaway between games cannot be seen from
+     * game records alone (it has no game) and stays `unfinished` here — the ladder rows (`report.js ladder`) carry it */
+    let result = w >= 2 ? 'W' : l >= 2 ? 'L' : 'unfinished';
+    if (result === 'unfinished' && ENDINGS.OPP_QUIT.has(lastEnd)) result = 'W';
+    if (result === 'unfinished' && ENDINGS.SELF_QUIT.has(lastEnd)) result = 'L';
+    const rated = G.some(g => g.rating_after && Object.keys(g.rating_after).length >= 2);
     return { client: last.client, series: last.series, opponent: last.opponent, our_team: last.our_team, games: G.length, won: w, lost: l,
-             result: w >= 2 ? 'W' : l >= 2 ? 'L' : 'unfinished', score: w + '-' + l,
+             result, score: w + '-' + l, rated, end_reason: result === 'unfinished' ? null : lastEnd, game_ends: G.map(endOf),
              rating: last.rating_after || null, replays: G.map(g => g.replay && g.replay.url || null) };
   });
-  const decided = series.filter(s => s.result !== 'unfinished');
-  const gamesDecided = recs.filter(r => r.result && !r.result.tie);
+  const quitWin = s => s.result === 'W' && ENDINGS.OPP_QUIT.has(s.end_reason);
+  /* RATED ONLY: an unrated series is listed in series_unrated and never enters a record, a rate or a team's series count */
+  const decided = series.filter(s => s.result !== 'unfinished' && s.rated);
+  const ratedKeys = new Set(series.filter(s => s.rated).map(s => s.client + '|' + s.series));
+  const gamesDecided = recs.filter(r => r.result && !r.result.tie && ratedKeys.has(key(r)));
+  const endReasons = {}; for (const r of recs) { const k = endOf(r); endReasons[k] = (endReasons[k] || 0) + 1; }
+  const selfQuits = recs.filter(r => ENDINGS.SELF_QUIT.has(endOf(r))).map(r => ({ series: r.series, game: r.game, room: r.room, end_reason: endOf(r) }));
   const teams = {};
   for (const r of recs) {
+    if (!ratedKeys.has(key(r))) continue;   // rated series only
     const t = teams[r.our_team || '?'] = teams[r.our_team || '?'] || { games: 0, won: 0, series: 0, series_won: 0 };
     t.games++; if (r.result && r.result.mine) t.won++;
   }
@@ -155,8 +214,11 @@ function gamesReport(file, o) {
   return {
     file, generated: new Date().toISOString(), filter: { client: o.client || null, include_local: !!o.includeLocal },
     records: { lines: lines.length, unparseable: bad, used: recs.length, local_excluded: o.includeLocal ? 0 : all.filter(r => r.local).length },
-    games: { n: recs.length, ...rate(gamesDecided.filter(r => r.result.mine).length, gamesDecided.length), ties: recs.length - gamesDecided.length },
-    series: { n: series.length, decided: decided.length, ...rate(decided.filter(s => s.result === 'W').length, decided.length) },
+    games: { n: gamesDecided.length, ...rate(gamesDecided.filter(r => r.result.mine).length, gamesDecided.length), ties: recs.filter(r => r.result && r.result.tie && ratedKeys.has(key(r))).length, in_unrated_series: recs.filter(r => !ratedKeys.has(key(r))).length, filter: 'games of rated series only' },
+    series: { n: series.filter(s => s.rated).length, decided: decided.length, ...rate(decided.filter(s => s.result === 'W').length, decided.length), filter: 'rated series only',
+              without_quit_wins: (d => rate(d.filter(s => s.result === 'W').length, d.length))(decided.filter(s => !quitWin(s))), quit_wins: decided.filter(quitWin).length },
+    series_unrated: series.filter(s => !s.rated).map(s => ({ series: s.series, opponent: s.opponent, result: s.result, score: s.score, end_reason: s.end_reason })),
+    end_reasons: endReasons, self_quits: selfQuits,
     record_by_series: series,
     teams,
     clock: { used_s: st(used), bank_left_s: st(bank), bank_left_hist: bankHist },
@@ -169,15 +231,26 @@ function gamesReport(file, o) {
 if (require.main === module) {
   const argv = process.argv.slice(2);
   const fl = k => { const i = argv.indexOf('--' + k); return i >= 0 ? argv[i + 1] : null; };
-  if (argv[0] === 'games') {
+  if (argv[0] === 'ladder') {
+    const r = ladderReport(path.resolve(argv[1]), { dryRun: argv.includes('--dry-run') });
+    if (fl('json')) fs.writeFileSync(fl('json'), JSON.stringify(r, null, 1));
+    const line = (lab, b) => console.log(`${lab.padEnd(12)} all ${b.all.record} (mean S ${b.all.mean_S}, S−E ${b.all.residual.mean} ± ${b.all.residual.sd} sd, n ${b.all.series})   without quit wins ${b.without_quit_wins.record} (mean S ${b.without_quit_wins.mean_S}, S−E ${b.without_quit_wins.residual.mean} ± ${b.without_quit_wins.residual.sd} sd)   quit wins ${b.quit_wins} ${JSON.stringify(b.quit_wins_by)}   SELF QUITS ${b.self_quits}${b.end_unknown ? '   end unknown ' + b.end_unknown : ''}`);
+    console.log(`${r.rows} series rows — ${r.dir} (${r.sources.map(s => s.file + ': ' + s.ends).join('; ')})   RATED ONLY`);
+    line('total', r);
+    for (const [a, b] of Object.entries(r.by_arm)) line('arm ' + a, b);
+    console.log('unrated, excluded: ' + (r.unrated_excluded.length ? JSON.stringify(r.unrated_excluded) : 'none'));
+    if (r.self_quits) console.log('!!! OUR OWN FORFEIT / TIMEOUT / WALKAWAY: ' + r.self_quits + ' — must be 0');
+  } else if (argv[0] === 'games') {
     const file = argv[1] && !argv[1].startsWith('--') ? argv[1] : path.join(__dirname, '..', 'out', 'rotom', 'games.jsonl');
-    const r = gamesReport(file, { client: fl('client'), includeLocal: argv.includes('--include-local') });
+    const r = gamesReport(file, { client: fl('client'), includeLocal: argv.includes('--include-local'), root: fl('root') || undefined });   // --root: where battle_log paths resolve (default this checkout)
     if (fl('json')) fs.writeFileSync(fl('json'), JSON.stringify(r, null, 1));
     const g = r.games, s = r.series, pct = x => x == null ? '-' : (100 * x).toFixed(1) + '%';
     console.log(`${r.records.used} game records (${r.records.local_excluded} local excluded, ${r.records.unparseable} unparseable) — ${file}`);
     console.log(`games  ${g.won}/${g.n - g.ties} ${pct(g.rate)}  95% CI ${g.ci95 ? pct(g.ci95[0]) + '–' + pct(g.ci95[1]) : '-'}`);
-    console.log(`series ${s.won}/${s.decided} ${pct(s.rate)}  95% CI ${s.ci95 ? pct(s.ci95[0]) + '–' + pct(s.ci95[1]) : '-'}  (${s.n - s.decided} unfinished)`);
-    for (const x of r.record_by_series) console.log(`  ${x.result} ${x.score}  ${x.series}  vs ${x.opponent}  team ${x.our_team}`);
+    console.log(`series ${s.won}/${s.decided} ${pct(s.rate)}  95% CI ${s.ci95 ? pct(s.ci95[0]) + '–' + pct(s.ci95[1]) : '-'}  (${s.n - s.decided} unfinished) RATED ONLY — without quit wins ${s.without_quit_wins.won}/${s.without_quit_wins.n} ${pct(s.without_quit_wins.rate)} (${s.quit_wins} quit wins)`);
+    console.log('  (a series counts as rated here only if a game record carries both rating lines; a record written before they arrived reads unrated and is left out. The ladder figure is `report.js ladder <run dir>`, from the series rows.)');
+    console.log(`unrated series (excluded): ${r.series_unrated.length}   end reasons ${JSON.stringify(r.end_reasons)}   SELF QUITS ${r.self_quits.length}${r.self_quits.length ? ' !!! must be 0 ' + JSON.stringify(r.self_quits) : ''}`);
+    for (const x of r.record_by_series) console.log(`  ${x.result} ${x.score}  ${x.rated ? 'rated  ' : 'UNRATED'} ${x.end_reason || '-'}  ${x.series}  vs ${x.opponent}  team ${x.our_team}`);
     for (const [t, v] of Object.entries(r.teams)) console.log(`  team ${t}: games ${v.won}/${v.games}, series ${v.series_won}/${v.series}`);
     console.log('clock used (s) ' + JSON.stringify(r.clock.used_s) + '\nbank left (s) ' + JSON.stringify(r.clock.bank_left_s) + ' ' + JSON.stringify(r.clock.bank_left_hist));
     console.log('replays ' + JSON.stringify(r.replays));
@@ -194,4 +267,4 @@ if (require.main === module) {
     console.log(JSON.stringify(head, null, 1));
   }
 }
-module.exports = { aggregate, stats, gamesReport, wilson };
+module.exports = { aggregate, stats, gamesReport, ladderReport, wilson };

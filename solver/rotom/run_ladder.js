@@ -203,12 +203,16 @@ async function main() {
                 incidents: (() => { try { return fs.readFileSync(INCIDENTS, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)); } catch (e) { return []; } })() } };
   try { R.protocol = require('./report.js').aggregate(OUT); } catch (e) { R.protocol = { error: e.message }; }
   const rows = [];
-  for (const f of fs.readdirSync(OUT).filter(f => /^ladder-series-.*\.jsonl$/.test(f))) for (const l of fs.readFileSync(path.join(OUT, f), 'utf8').split('\n').filter(Boolean)) rows.push(JSON.parse(l));
+  for (const f of fs.readdirSync(OUT).filter(f => /^ladder-series-.*\.jsonl$/.test(f) && !/\.ends\.jsonl$/.test(f))) for (const l of fs.readFileSync(path.join(OUT, f), 'utf8').split('\n').filter(Boolean)) rows.push(JSON.parse(l));
   R.series_rows = rows.length;
   R.by_arm = {}; R.by_team = {};
   for (const r of rows) { R.by_arm[r.arm] = (R.by_arm[r.arm] || 0) + 1; R.by_team[r.team] = (R.by_team[r.team] || 0) + 1; }
   R.rated_rows = rows.filter(r => r.rated).length;
-  R.residuals = rows.map(r => ({ client: r.client, k: r.k, arm: r.arm, team: r.team, S: r.S, E: r.E, residual: r.residual, opp: r.opponent, fallbacks: r.during_series.fallbacks, invalid: r.during_series.invalid, timeouts: r.during_series.timeouts }));
+  /* THE RECORD, per client: RATED series only (endings.js ladderRecord refuses anything else), with and without the series the
+   * opponent handed us (forfeit / timeout / walkaway), and our own quits, which must be 0 */
+  R.record = {};
+  for (const c of [...new Set(rows.map(r => r.client))]) { try { R.record[c] = require('./endings.js').ladderRecord(rows.filter(r => r.client === c), { rated: true, dryRun: DRY }); } catch (e) { R.record[c] = { error: e.message }; } }
+  R.residuals = rows.map(r => ({ client: r.client, k: r.k, arm: r.arm, team: r.team, rated: r.rated, end_reason: r.end_reason || null, S: r.S, E: r.E, residual: r.residual, opp: r.opponent, fallbacks: r.during_series.fallbacks, invalid: r.during_series.invalid, timeouts: r.during_series.timeouts }));
   const states = fs.readdirSync(OUT).filter(f => /^ladder-state-.*\.json$/.test(f)).map(f => JSON.parse(fs.readFileSync(path.join(OUT, f), 'utf8')));
   R.guard = states.map(s => ({ checks: s.guard.checks, pauses: s.guard.pauses, unknown: s.guard.unknown, incidents: s.incidents, halted: s.halted, consec_errors: s.consecErrors, searches: s.searches, orphans: (s.orphans || []).length, errors: (s.errors || []).map(e => e.kind), plan: s.plan.digest.slice(0, 16) }));
   R.guard_window = guardEv;
@@ -230,7 +234,8 @@ async function main() {
   }
   fs.writeFileSync(path.join(OUT, 'ladder-report.json'), JSON.stringify(R, null, 1));
   log('report -> ' + path.join(OUT, 'ladder-report.json'));
-  log(JSON.stringify({ series_rows: R.series_rows, by_arm: R.by_arm, by_team: R.by_team, rated: R.rated_rows, guard: R.guard, applied: R.games && R.games.applied && { games: R.games.applied.games_checked, checks: R.games.applied.chosen, mismatch: R.games.applied.mismatch, preview: R.games.applied.by_kind.preview }, netguard: R.netguard && Object.fromEntries(Object.entries(R.netguard.files).map(([k, v]) => [k, v.blocked])) }));
+  log(JSON.stringify({ series_rows: R.series_rows, by_arm: R.by_arm, by_team: R.by_team, rated: R.rated_rows,
+    record: Object.fromEntries(Object.entries(R.record).map(([c, x]) => [c, x.error ? x : { rated_all: x.all.record, without_quit_wins: x.without_quit_wins.record, quit_wins: x.quit_wins, self_quits: x.self_quits, unrated_excluded: x.unrated_excluded.length }])), guard: R.guard, applied: R.games && R.games.applied && { games: R.games.applied.games_checked, checks: R.games.applied.chosen, mismatch: R.games.applied.mismatch, preview: R.games.applied.by_kind.preview }, netguard: R.netguard && Object.fromEntries(Object.entries(R.netguard.files).map(([k, v]) => [k, v.blocked])) }));
   process.exit(clients.some(c => c.failed) ? 1 : 0);
 }
 main().catch(e => { console.error(e && e.stack || e); process.exit(1); });

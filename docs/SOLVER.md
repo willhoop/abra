@@ -90,6 +90,11 @@ This section says only what a division agent needs before it starts.
   refuses every non-loopback connection in every process), `login_stub.js`, `build_ladder_teams.js` →
   `teams/ladder-rotation.json`, and `arms/`. Runbook with the exact commands: `solver/rotom/LADDER.md`.
   Account: `docs/_reports/2026-09-25-rotom-ladder-mode.md`. **A public launch is Will's call.**
+- **ROTOM knows how each series ended, and never counts an unrated one (2026-09-26, abra/regmc 1.17.0).** Game and
+  series rows carry `end_reason` (`solver/rotom/endings.js`), including the walkaway between games that no game log
+  shows. Our own forfeit, timeout or walkaway is a ladder error and a HALT. Every record or mean is over rated series
+  only, reported with and without the opponent's quits (`node solver/rotom/report.js ladder <run dir>`). Account:
+  `docs/_reports/2026-09-26-rotom-end-reasons.md`.
 - **gen5 holds under honest information; ROTOM plays it (2026-09-26, abra/regmc 1.16.0).** The arena's default for a
   match is now honest (`solver/mew/play.js --info honest`, `solver/xatu/worlds.js`): hidden spreads, the decider's public
   view, XATU's belief in the worlds. gen5 vs DODUO-greedy: H1 at 1 s (0.710 [0.615, 0.790]) and 5 s (0.712 [0.618, 0.790]).

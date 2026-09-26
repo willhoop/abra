@@ -8,6 +8,14 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-26
 
+### ROTOM end reasons, the self-quit halt, rated-only records (abra/regmc 1.17.0)
+- Every game and series now says how it ended (`solver/rotom/endings.js`): normal, forfeit, battle-timer timeout,
+  all-inactive, or a walkaway between games. Our own forfeit/timeout/walkaway halts the ladder; it must be zero.
+- `report.js ladder <run dir>`: rated only, with and without the opponent's quits. gen5ab k30 (unrated) no longer counts.
+- Backfill (new files beside the originals): aa1, aa2, gen5ab have 0 self quits; gen5ab rated 15-21, 5-21 without
+  the opponent's quits.
+- Detail: `docs/_reports/2026-09-26-rotom-end-reasons.md`.
+
 ### gen5 under honest information; ROTOM `miltank-gen5`; gen5-vs-prior arms (abra/regmc 1.16.0)
 - The arena now hides what a ladder player cannot see (`--info honest`, the default for a match): hidden spreads in
   the true battle; each decision on the decider's public view; worlds from XATU's back-pair posterior and spread
@@ -73,7 +81,7 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 ### MACHAMP loop — one line per generation (solver/machamp/loop_sprt.js)
 - gen7: rejected — SPRT H0 after 652 games, 0.489 [0.451, 0.528] vs gen5; clone 0.670; PORYGON2 human Δ -0.0059 PASS. `solver/machamp/models/gen7/gates.json`
 - gen6: rejected — SPRT H0 after 166 games, 0.434 [0.361, 0.510] vs gen5; clone 0.705; PORYGON2 human Δ -0.0051 PASS. `solver/machamp/models/gen6/gates.json`
-### MAG v2 (dead-click gate) and DODUO v2 (pair gate) — different jobs (abra/regmc 1.17.0; built 2026-09-25 on a branch, merged 2026-09-26)
+### MAG v2 (dead-click gate) and DODUO v2 (pair gate) — different jobs (abra/regmc 1.18.0; built 2026-09-25 on a branch, merged 2026-09-26)
 - MAG no longer scores: it cuts a click only if MEDICHAM never reports it succeeding, over every partner option and a
   covering design of the opponent's joints; a click rescued only by a switch is SOFT (weight 1e-3). DODUO keeps its
   learned score and cuts a joint only when one click changes nothing beside THIS partner click and does beside another.
