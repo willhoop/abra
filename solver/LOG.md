@@ -8,7 +8,7 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-26
 
-### gen5 under honest information; ROTOM `miltank-gen5`; gen5-vs-prior arms (abra/regmc 1.15.0)
+### gen5 under honest information; ROTOM `miltank-gen5`; gen5-vs-prior arms (abra/regmc 1.16.0)
 - The arena now hides what a ladder player cannot see (`--info honest`, the default for a match): hidden spreads in
   the true battle; each decision on the decider's public view; worlds from XATU's back-pair posterior and spread
   belief (`solver/xatu/worlds.js`, shared with ROTOM). gen5 vs DODUO-greedy stays H1: 1 s 0.710 [0.615, 0.790],
@@ -18,7 +18,7 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 - test-machamp REBUILD reads a tracked vocabulary (`solver/mag/model/mag-v1.vocab.json`), not `solver/out/mag`.
 - Detail: `docs/_reports/2026-09-26-gen5-honest-and-ladder-prep.md`.
 
-### gen5 vs DODUO-greedy, and mega timing (abra/regmc 1.14.0)
+### gen5 vs DODUO-greedy, and mega timing (abra/regmc 1.15.0)
 - gen5 is proven stronger than DODUO-greedy: SPRT H1 at 1 s (180 games, 0.628 [0.555, 0.695]) and at 5 s (64 games,
   0.766 [0.649, 0.853]). Both clock-safe. ROTOM cannot play gen5 yet (its `miltank` policy is v1 nets); the arena
   search also sees the true battle, so the ladder margin is likely smaller.
@@ -27,9 +27,19 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 - New check `solver/tests/test-mega-timing.js`; its RED runs caught a blind first version.
 - Detail: `docs/_reports/2026-09-26-champion-vs-doduo-and-mega-timing.md`.
 
+### ROTOM: paced sends, no orphaned live series, chosen-vs-applied on every decision (abra/regmc 1.14.0)
+- The server's message throttle (600 ms, 5 queued, the next dropped) lost the game-1 preview in 14 of 17 aa2 series.
+  Sends are now paced to mirror the server's queue, choices first; a notice re-sends the open choice.
+- An alive series we are in is never orphaned, and no search goes out while any battle we are in is live.
+- Every decision is checked against what the server did (preview, move, target, mega, switch, forced, timer, team);
+  a mismatch is a ladder error and 3 halt the ladder. The check costs no decision time.
+- aa1/aa2 offline: 0 of 1,401 non-preview checks mismatched; only the preview was hit. Dry run with the throttle ON:
+  5 series, 26 game records, 0 notices, 26/26 previews applied, 0 mismatches in 787 checks; the check costs
+  0.8–0.9 ms per turn, off the decision path.
+- Detail: `docs/_reports/2026-09-26-rotom-throttle-fix.md`.
+
 ### MACHAMP loop — one line per generation (solver/machamp/loop_sprt.js)
 - (warm) gen8: rejected — SPRT H0 after 284 games, 0.465 [0.408, 0.523] vs gen5; clone 0.735; PORYGON2 human Δ -0.0048 PASS. `solver/machamp/models/gen8/gates.json`
-
 
 ## 2026-09-25
 

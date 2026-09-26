@@ -84,7 +84,7 @@ const OUT = path.resolve(flag('out', path.join(LIVE_DIR, TAG + '-' + new Date().
 fs.mkdirSync(OUT, { recursive: true });
 const NG = DRY ? require('./netguard.js').install({ log: path.join(OUT, 'netguard-supervisor.jsonl') }) : null;
 for (const k of ['release', 'arms', 'ladder-seed', 'sets']) if (!flag(k, '')) { console.error('--' + k + ' is required'); process.exit(2); }
-const PASS = ['release', 'arms', 'sets', 'max-errors', 'max-hours', 'guard', 'guard-mode', 'seed', 'margin', 'reserve', 'min-search-ms', 'rotation', 'priority', 'series-idle-ms', 'series-probe-ms', 'series-max-probes']
+const PASS = ['release', 'arms', 'sets', 'max-errors', 'max-hours', 'guard', 'guard-mode', 'seed', 'margin', 'reserve', 'min-search-ms', 'rotation', 'priority', 'series-idle-ms', 'series-probe-ms', 'series-max-probes', 'max-mismatches', 'send-gap-ms']
   .filter(k => flag(k, null) != null).flatMap(k => ['--' + k, flag(k)]);
 const KILLF = path.resolve(flag('kill-file', DRY ? path.join(OUT, 'KILL') : path.join(LIVE_DIR, 'KILL')));
 const MAX_RESTARTS = +flag('max-restarts', 5);
@@ -142,7 +142,7 @@ async function startDryServer(port) {
    * invalidatecss, addreplay), the assertion stub (the clients' /api/login), the local config preload
    * (loginserver / routes.root / routes.replays -> loopback; the Tor exit-list fetch refused by name) and the socket
    * guard in every server process. */
-  const S = await require('./local_server.js').start({ port, out: OUT, assertions: true, log });
+  const S = await require('./local_server.js').start({ port, out: OUT, assertions: true, log, throttle: has('throttle') });   // --throttle: the server's message throttle ON, as live
   return { srv: S.srv, stub: S.stub, mock: S.mock, checkout: S.checkout, stop: S.stop };
 }
 
@@ -167,6 +167,7 @@ async function main() {
   if (DRY) {
     const port = +flag('port', 8795);
     S = await startDryServer(port);
+    PIDS.server = S.srv && S.srv.pid; savePids();   // recorded so --kill can stop the server tree by its pid too
     const server = 'ws://localhost:' + port + '/showdown/websocket';
     const t = TAG.replace(/[^a-z0-9]/gi, '').toLowerCase().slice(0, 8);
     /* replays and per-game records: the SAME hooks as every other run (rotom.js endBattle -> replay.js -> games.jsonl),
@@ -222,11 +223,14 @@ async function main() {
                    totals: require('./local_server.js').netTotals(OUT),
                    rule: 'every non-loopback connection in every process of the run was REFUSED before DNS; a blocked attempt sends no packet. The local config should leave NOTHING for the guard to refuse: totals.public_connects_blocked must be 0' };
     try { R.games = require('./report.js').gamesReport(path.join(OUT, 'games.jsonl'), { includeLocal: true }); } catch (e) { R.games = { error: e.message }; }
+    /* --throttle: the proof the server really throttled (the preload logs every process that turned Config.nothrottle off) */
+    { let on = 0; try { on = fs.readFileSync(path.join(OUT, 'netguard-server.jsonl'), 'utf8').split('\n').filter(l => /"throttle_on":true/.test(l)).length; } catch (e) { /* none */ }
+      R.server_throttle = { requested: has('throttle'), processes_throttle_on: on, rule: 'pokemon-showdown-mc server/users.ts User#chat: 600 ms per message, 5 queued, the next DROPPED with a notice' }; }
     S.stop();   // my own server tree, by pid, and both stand-ins
   }
   fs.writeFileSync(path.join(OUT, 'ladder-report.json'), JSON.stringify(R, null, 1));
   log('report -> ' + path.join(OUT, 'ladder-report.json'));
-  log(JSON.stringify({ series_rows: R.series_rows, by_arm: R.by_arm, by_team: R.by_team, rated: R.rated_rows, guard: R.guard, netguard: R.netguard && Object.fromEntries(Object.entries(R.netguard.files).map(([k, v]) => [k, v.blocked])) }));
+  log(JSON.stringify({ series_rows: R.series_rows, by_arm: R.by_arm, by_team: R.by_team, rated: R.rated_rows, guard: R.guard, applied: R.games && R.games.applied && { games: R.games.applied.games_checked, checks: R.games.applied.chosen, mismatch: R.games.applied.mismatch, preview: R.games.applied.by_kind.preview }, netguard: R.netguard && Object.fromEntries(Object.entries(R.netguard.files).map(([k, v]) => [k, v.blocked])) }));
   process.exit(clients.some(c => c.failed) ? 1 : 0);
 }
 main().catch(e => { console.error(e && e.stack || e); process.exit(1); });

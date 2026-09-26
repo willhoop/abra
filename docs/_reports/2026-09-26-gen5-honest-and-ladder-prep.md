@@ -26,7 +26,7 @@ A live ladder run (aa2, main checkout) shared the machine throughout. Nothing in
   0 fallbacks** in both; every gen5 decision searched with XATU's posterior.
 - **test-machamp REBUILD is fixed**: the vocabulary `build_doduo.js` needs is now tracked beside the model and checked
   against it; it no longer reads an untracked build output.
-- **Correction to the earlier report**: the omniscient arena did NOT let the search see the opponent's unrevealed
+- **Correction to the earlier report (abra/regmc 1.15.0, renumbered from 1.14.0 at the merge with the ROTOM throttle fix)**: the omniscient arena did NOT let the search see the opponent's unrevealed
   back line — `rollout.js sampleWorld` redrew it uniformly per world. What it saw that a player cannot was exact HP,
   and it faced no hidden spreads because none existed.
 
@@ -187,7 +187,19 @@ node solver\rotom\run_ladder.js --public --name medicham32 --release eaa5becc54e
   solved without load" — a load-sensitive clause (its "no load" control ran beside this session's work and the live
   ladder run), in files this change does not touch (`search.js`, `pool.js`, `cells.js`, the bench). Re-run of the
   clause: 6/6 GREEN (pool 100%, serial 87%, both over its 80% floor).
-- `tests/test-docs-current.js`: see the commit.
+- `tests/test-docs-current.js` 39/39.
+
+**After merging the ROTOM throttle fix (origin/main `4a24d6ea`, abra/regmc 1.14.0; this change renumbered to 1.16.0,
+the gen5-vs-DODUO one to 1.15.0).** `rotom.js` keeps both: the paced send and `runVerify` after every choice, and the
+gen5 policy lists and branches. `test-rotom` 105/105, `test-rotom-throttle` 33/33, `test-rotom-applied` 31/31,
+`test-rotom-ladder` 114/114, `test-rotom-private-series` 25/25, `test-honest-info` 1954/1954, `test-docs-current`
+39/39. (`test-rotom-throttle` and `test-rotom-applied` need `SHOWDOWN_PATH` set when run from a worktree:
+`solver/human/dex.js` looks for the checkout one directory above the repository.)
+
+Ladder dry run after the merge (`--arms solver/rotom/arms/gen5-vs-prior.json --ladder-seed dry-gen5-merge-2026-09-26
+--sets 3 --port 8799`): 6 series rows (A 4, B 2), 12 games, **272 applied checks, 0 mismatches; previews 12 chosen,
+12 applied, 0 mismatches**; 0 timeouts, 0 invalid, 0 fallbacks, 0 throttle notices, 0 orphans, 0 blocked public
+connections; 50 gen5 move decisions, all searched, 0 search fallbacks.
 
 ## 7. Owed
 

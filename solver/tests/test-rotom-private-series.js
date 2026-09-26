@@ -22,7 +22,10 @@
  *                   battle for an old battle id, one row each, and the post-SERIES-OVER game record reproduced.
  *   GONE            a series room that goes silent and whose roominfo says it no longer exists is ORPHANED (logged,
  *                   counted as a ladder error) and the loop searches again.
- *   SILENT          a series room that still exists but sends nothing through every probe is orphaned too.
+ *   SILENT          a series room that still exists, answers roominfo "alive, we are in it", and sends nothing is NOT
+ *                   orphaned (2026-09-26, aa2 k=16: it was, and the ladder searched beside a live series): no search
+ *                   while it lasts; when it ends, one row and the loop searches again.
+ *   UNANSWERED      a series room whose probes go unanswered is orphaned (logged, a ladder error) and the loop searches.
  *
  * The client is our own child process; it is killed by its pid only.
  */
@@ -64,6 +67,7 @@ const PRIVATE = [
 for (const s of PRIVATE) { s.newBo = s.bo + '-' + s.pw; s.newB = s.b.map(([id, pw]) => id + '-' + pw); s.oldB = s.b.map(([id]) => id); }
 const BO_GONE = 'game-bestof3-' + P + '2799000001';
 const BO_SILENT = 'game-bestof3-' + P + '2799000003';
+const BO_MUTE = 'game-bestof3-' + P + '2799000005';
 const TITLE = '[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)*';
 
 /* ---------------- a minimal RFC 6455 server (text frames only) + the /api/login stand-in ---------------- */
@@ -93,6 +97,7 @@ function onClientText(text) {
   if ((m = /^\/crq userdetails (\S+)/.exec(body))) { glob('|queryresponse|userdetails|' + JSON.stringify({ id: m[1], userid: m[1], name: m[1], rooms: false })); return; }
   if ((m = /^\/crq roominfo (\S+)/.exec(body))) {
     H.probes.push({ t: Date.now(), room: m[1] });
+    if (H.roominfo[m[1]] === 'mute') return;   // UNANSWERED: no answer at all
     const alive = H.roominfo[m[1]] === 'alive';
     glob('|queryresponse|roominfo|' + JSON.stringify(alive ? { id: m[1], roomid: m[1], title: 'x', type: 'chat', visibility: 'public', users: [' medicham32', ' Someone'] } : { id: m[1], error: 'not found or access denied' }));
     return;
@@ -161,10 +166,16 @@ H.onSearch[2] = () => {   /* a series that goes silent and whose room no longer 
   at(300, () => updatesearch([BO_GONE]));
   H.onJoin[BO_GONE] = () => at(40, () => { room(BO_GONE, ['|init|chat', '|title|someone vs. medicham32']); updatesearch(null); });
 };
-H.onSearch[3] = () => {   /* a series whose room still exists and never speaks again */
+H.onSearch[3] = () => {   /* a series whose room still exists, answers alive with us in it, and says nothing for 16 s */
   H.roominfo[BO_SILENT] = 'alive';
   at(300, () => updatesearch([BO_SILENT]));
-  H.onJoin[BO_SILENT] = () => at(40, () => { room(BO_SILENT, ['|init|chat', '|title|someone else vs. medicham32']); updatesearch(null); });
+  H.onJoin[BO_SILENT] = () => at(40, () => { room(BO_SILENT, ['|init|chat', '|title|someone else vs. medicham32']); updatesearch(null);
+    at(16000, () => { H.silentEndAt = Date.now(); room(BO_SILENT, ['|win|medicham32']); }); });
+};
+H.onSearch[4] = () => {   /* a series whose probes go unanswered */
+  H.roominfo[BO_MUTE] = 'mute';
+  at(300, () => updatesearch([BO_MUTE]));
+  H.onJoin[BO_MUTE] = () => at(40, () => { room(BO_MUTE, ['|init|chat', '|title|a third vs. medicham32']); updatesearch(null); });
 };
 
 async function main() {
@@ -213,14 +224,21 @@ async function main() {
     ok('GONE', g && orph.some(o => o.room === BO_GONE && /gone/.test(o.why)), 'a silent series whose room is gone is orphaned and the loop searches again: ' + JSON.stringify(orph.map(o => [o.room.slice(-10), o.why])));
     ok('GONE', H.probes.some(p => p.room === BO_GONE), 'the client PROBED the silent room (roominfo) before orphaning it');
     ok('GONE', E.some(e => e.type === 'ladder_error' && e.kind === 'series_orphan'), 'an orphan is counted as a ladder error (a run of them halts), never silent');
-    /* SILENT: alive through every probe -> orphaned */
+    /* SILENT: alive, and we are in it -> never orphaned; no search until it ends */
     const sl = await waitFor(() => H.searches.length >= 5, 60000);
     E = ev();
     const o3 = E.filter(e => e.type === 'ladder_series_orphan' && e.room === BO_SILENT);
-    ok('SILENT', sl && o3.length === 1, 'a room that still exists but never speaks is orphaned after its probes: ' + JSON.stringify(o3.map(o => o.why)));
-    ok('SILENT', H.probes.filter(p => p.room === BO_SILENT).length >= 2, 'probed ' + H.probes.filter(p => p.room === BO_SILENT).length + 'x before giving up');
+    ok('SILENT', sl && o3.length === 0, 'a room that answers "alive, we are in it" is NOT orphaned: ' + JSON.stringify(o3.map(o => o.why)));
+    ok('SILENT', H.probes.filter(p => p.room === BO_SILENT).length >= 2, 'it was probed ' + H.probes.filter(p => p.room === BO_SILENT).length + 'x through its silence (else this asks nothing)');
+    ok('SILENT', sl && H.silentEndAt && H.searches[4] > H.silentEndAt, 'no search while it was alive: the next search came ' + (H.silentEndAt ? ((H.searches[4] - H.silentEndAt) / 1000).toFixed(1) + ' s after its |win|' : '(it never ended)'));
+    /* UNANSWERED: probes that get no answer -> orphaned */
+    const mu = await waitFor(() => H.searches.length >= 6, 60000);
+    E = ev();
+    const o4 = E.filter(e => e.type === 'ladder_series_orphan' && e.room === BO_MUTE);
+    ok('UNANSWERED', mu && o4.length === 1 && /unanswered/.test(o4[0].why), 'a room whose probes go unanswered is orphaned and the loop searches again: ' + JSON.stringify(o4.map(o => o.why)));
+    await sleep(22000);   // the SILENT row waits RATING_WAIT_MS for rating lines that never come
     const LS = JSON.parse(fs.readFileSync(path.join(OUT, 'ladder-state-medicham32.json'), 'utf8'));
-    ok('STATE', (LS.orphans || []).length === 2 && LS.k === 4 && LS.done === 2, 'ladder state: 2 series done, 2 orphaned, k=4: ' + JSON.stringify({ k: LS.k, done: LS.done, orphans: (LS.orphans || []).length }));
+    ok('STATE', (LS.orphans || []).length === 2 && LS.k === 5 && LS.done === 3, 'ladder state: 3 series done, 2 orphaned, k=5: ' + JSON.stringify({ k: LS.k, done: LS.done, orphans: (LS.orphans || []).length }));
   } catch (e) { if (e.message !== 'STUCK') { fails++; console.log('  FAIL [HARNESS] ' + e.stack); } }
   finally {
     if (exited === null) { try { process.kill(child.pid); } catch (e) { /* gone */ } }

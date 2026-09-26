@@ -33,8 +33,12 @@
  * EVERY WAIT IS BOUNDED (2026-09-25, the aa1 hang: docs/_reports/2026-09-25-rotom-series-hang.md). The loop waits on four
  * things and each has a timeout with a logged recovery, so no single missing server message can stall it:
  *   an open series      silent for SERIES_IDLE_MS -> probe the room (`/crq roominfo`, which the server always answers);
- *                       gone, or still silent after SERIES_MAX_PROBES probes -> ORPHANED: logged, counted as a ladder
- *                       error (so a run of them halts), no series row (its result is unknown), and the loop searches on
+ *                       an answer "alive, and we are in it" is LIFE: never orphaned (2026-09-26, aa2 k=16 — a live series
+ *                       waiting on a dropped choice was orphaned and the ladder searched beside it); rotom.js repairs it
+ *                       (timer on, the open choice re-sent) and the server's timer bounds the wait. Gone, or probes that
+ *                       go UNANSWERED -> ORPHANED: logged, counted as a ladder error (so a run of them halts), no series
+ *                       row (its result is unknown). A live battle of an orphaned series is still played, and no new
+ *                       search goes out while any battle we are in is live (rotom.js openSeries)
  *   the rating lines    RATING_WAIT_MS, then the row is written without them (unchanged)
  *   the guard answer    GUARD_TIMEOUT_MS, then fail closed (unchanged)
  *   a search            SEARCH_MAX_MS in the queue -> cancel and search again; not logged in for LOGIN_WAIT_MS on an
@@ -91,14 +95,18 @@ function parseRatingLine(line) {
 /* a battle / bo3 room id without the `-<password>pw` suffix a hidden room gets (rooms.ts setPrivacy): the SAME series */
 function canonRoom(id) { const m = /^((?:battle|game-bestof\d+)-[a-z0-9]+-\d+)-[a-z0-9]+pw$/.exec(String(id || '')); return m ? m[1] : String(id || ''); }
 const isPrivateId = id => canonRoom(id) !== String(id || '');
-/* one open series' watch -> what to do now. w = { lastSeen, probes, probeSentAt, gone }. Pure; unit-tested. */
+/* one open series' watch -> what to do now. w = { lastSeen, probes, probeSentAt, gone, lastAlive }. Pure; unit-tested.
+ * lastAlive = when a probe last answered "alive, and we are in it": a series that did so within one full probe cycle is
+ * NEVER orphaned — it is probed again (and repaired by the caller) for as long as it stays alive. */
 function stallAction(w, now, cfg) {
   const c = Object.assign({ idleMs: SERIES_IDLE_MS, probeMs: SERIES_PROBE_MS, maxProbes: SERIES_MAX_PROBES }, cfg || {});
   if (w.gone) return { do: 'orphan', why: 'room gone (' + w.gone + ')' };
   const idle = now - (w.lastSeen || 0);
   if (idle < c.idleMs) return { do: 'none' };
   if (w.probeSentAt && now - w.probeSentAt < c.probeMs) return { do: 'none', why: 'probe in flight' };
-  if ((w.probes || 0) >= c.maxProbes) return { do: 'orphan', why: 'silent ' + Math.round(idle / 1000) + ' s through ' + (w.probes || 0) + ' probes' };
+  const aliveRecently = w.lastAlive && now - w.lastAlive < c.idleMs + c.probeMs * (c.maxProbes + 1);
+  if ((w.probes || 0) >= c.maxProbes && !aliveRecently) return { do: 'orphan', why: 'silent ' + Math.round(idle / 1000) + ' s through ' + (w.probes || 0) + ' unanswered probes' };
+  if ((w.probes || 0) >= c.maxProbes) return { do: 'probe', why: 'silent ' + Math.round(idle / 1000) + ' s, but alive and we are in it: waiting' };
   return { do: 'probe', why: 'silent ' + Math.round(idle / 1000) + ' s' };
 }
 const expected = (rMe, rOpp) => 1 / (1 + Math.pow(10, (rOpp - rMe) / 400));
@@ -303,6 +311,31 @@ function create(o) {
     o.event('rating_line', { room: bestof, who: x.id, before: x.before, after: x.after });
     if (r.ended && Object.keys(r.ratings).length >= 2) finalize(bestof);
   }
+  /* CHOSEN VS APPLIED (rotom.js recordVerdict -> solver/rotom/applied.js): every mismatch is a ladder error the moment it is
+   * seen, and --max-mismatches of them in a run HALT the ladder (no new search; the open series is played out) */
+  function onMismatch(bestof, detail) {
+    S.mismatches = (S.mismatches || 0) + 1;
+    error('applied_mismatch', detail);
+    const cap = o.maxMismatches == null ? 3 : o.maxMismatches;
+    if (cap > 0 && S.mismatches >= cap && !S.halted) {
+      S.halted = S.mismatches + ' applied mismatches (a choice the server did not apply): --max-mismatches ' + cap; save();
+      o.say('HALTED: ' + S.halted + ' — no new searches'); o.event('ladder_halt', { why: S.halted });
+      if (searching) { o.send('|/cancelsearch'); searching = false; }
+    }
+  }
+  /* an orphaned series spoke again: take it back, so its result gets a row after all */
+  function onSeriesResume(room, why) {
+    const r = series.get(room); if (!r || !r.orphaned) return;
+    const was = r.orphaned; r.orphaned = null;
+    const rec = S.orphans.find(x => x.room === room && !x.resumed); if (rec) rec.resumed = new Date(now()).toISOString();
+    o.event('ladder_series_resume', { room, k: r.k, was, why }); save();
+  }
+  /* a throttle notice after /utm or /search: the search may be running with the wrong team, or not at all — cancel it and
+   * let the next tick send /utm + /search again */
+  function redoSearch(why) {
+    o.send('|/cancelsearch'); searching = false; searchSentAt = 0; searchingSince = 0;
+    o.event('ladder_redo_search', { why }); setTimeout(() => tick('redo search'), 1500);
+  }
   function onSeriesEnd(bestof, res) {
     const r = series.get(bestof) || onSeriesStart(bestof);
     if (r.orphaned) { o.event('ladder_win_after_orphan', { room: bestof, k: r.k, result: res }); return; }   // already counted; never a second verdict
@@ -326,11 +359,17 @@ function create(o) {
       rated: !!(rm && ro), rating_me: rm || null, rating_opp: ro || null, S: Sc, E: E == null ? null : +E.toFixed(4), residual: E == null ? null : +(Sc - E).toFixed(4),
       result: res, started: r.started, ended: r.ended, resumed: !!r.resumed, counters_partial: !!r.counters_partial,
       during_series: { fallbacks: delta(cb.fallbacks, ca.fallbacks), invalid: (ca.invalid || 0) - (cb.invalid || 0), timeouts: (ca.timeouts || 0) - (cb.timeouts || 0),
-                       decisions: (ca.decisions || 0) - (cb.decisions || 0), crashes_caught: (ca.crashes || 0) - (cb.crashes || 0) },
+                       decisions: (ca.decisions || 0) - (cb.decisions || 0), crashes_caught: (ca.crashes || 0) - (cb.crashes || 0),
+                       /* chosen vs applied: checks made, mismatches (preview among them), throttle notices */
+                       applied_checks: (ca.applied_checks || 0) - (cb.applied_checks || 0), applied_mismatch: (ca.applied_mismatch || 0) - (cb.applied_mismatch || 0),
+                       preview_mismatch: (ca.preview_mismatch || 0) - (cb.preview_mismatch || 0), throttle_notices: (ca.throttle_notices || 0) - (cb.throttle_notices || 0) },
       plan: { seed: S.plan.seed, digest: S.plan.digest }, release: o.release, dry_run: !!o.dryRun, server: o.server };
     try { fs.appendFileSync(SERIESF, JSON.stringify(row) + '\n'); } catch (e) { /* never fatal */ }
-    const clean = row.during_series.invalid === 0 && row.during_series.timeouts === 0 && row.during_series.crashes_caught === 0;
-    if (clean) S.consecErrors = 0; else error('series', 'invalid ' + row.during_series.invalid + ', timeouts ' + row.during_series.timeouts + ', crashes ' + row.during_series.crashes_caught);
+    const ds = row.during_series;
+    const other = ds.invalid !== 0 || ds.timeouts !== 0 || ds.crashes_caught !== 0;
+    /* a mismatch was already counted as an error when it was seen (onMismatch): a series with one is never "clean" */
+    if (other) error('series', 'invalid ' + ds.invalid + ', timeouts ' + ds.timeouts + ', crashes ' + ds.crashes_caught);
+    else if (!ds.applied_mismatch) S.consecErrors = 0;
     S.done = (S.done || 0) + 1; save();
     o.event('ladder_series_row', { k: r.k, arm: r.arm, S: Sc, E: row.E, residual: row.residual, rated: row.rated });
     o.say('LADDER ROW k=' + r.k + ' arm ' + r.arm + ' S=' + Sc + (E == null ? ' (no rating lines)' : ' E=' + E.toFixed(3)));
@@ -359,6 +398,7 @@ function create(o) {
   /* a process that restarts after a crash counts one error (the watchdog restarted it) */
   if (o.restartedAfterCrash) error('restart', 'process restarted by the watchdog');
   return { tick, onQuery, onUpdateSearch, onPopup, onLoginFailed, onSeriesStart, onSeriesEnd, onPlayer, onRaw, armOf, teamOf, requestStop, renameSeries, onSeriesOrphan,
+           onMismatch, onSeriesResume, redoSearch,
            state: () => S, plan: () => S.plan, pendingAssignment: pending, isSearching: () => searching, seriesFile: SERIESF };
 }
 
