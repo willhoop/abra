@@ -1,0 +1,27 @@
+{
+ "what": "MACHAMP unattended loop, WARM-START recipe, generations 8 onward (solver/machamp/loop_sprt.js --recipe warm). Written 2026-09-25 BEFORE generation 8's first self-play game. Every generation runs solver/machamp/preregistration-loop.json unchanged except where stated here.",
+ "why": "gen6 (H0 after 166 games, 0.434) and gen7 (H0 after 652 games, 0.489) both failed the SPRT against gen5, and both restarted training from MAG v1 + DODUO v1 and PORYGON2 v0, so each candidate threw away what gen5 had learned (docs/_reports/2026-09-25-machamp-loop.md).",
+ "engine_release": "eaa5becc54eb",
+ "start": { "champion": "solver/machamp/league/gen5.json", "previous": "solver/machamp/league/gen0-r2.json", "clone": "solver/machamp/league/human-clone.json", "first_generation": 8 },
+ "changes_from_the_loop": {
+  "warm_start": "MAG/DODUO start from the CURRENT CHAMPION's mag and doduo files; PORYGON2 starts from the champion's pory2 file (was: MAG v1 + DODUO v1, PORYGON2 v0)",
+  "learning_rate": "DODUO 1e-4 (was 3e-4); PORYGON2 1.5e-4 (was 5e-4); epochs unchanged (3 and 6)",
+  "recency_weight": "a self-play directory whose manifest league.current digests (mag, doduo, pory2) equal the current champion's files carries sample weight 3; every other directory 1. Weights are normalised to mean 1 over the self-play TRAIN rows, so the self-play:human balance is unchanged (build_doduo.js / build_pory2.js --weights; train_doduo.py / train_pory2.py read w.f32)",
+  "doduo_human_pull": "unchanged: beta 0.7, human weight 3.0, anchor = the frozen human clone (DODUO v1). The epoch-selection tolerance (+0.05 nats) is measured from the CLONE's human val NLL, not the warm init's (train_doduo.py --tol-ref anchor), so the drift cannot compound across generations",
+  "pory2_target": "unchanged: 0.5 z + 0.5 v_deep, v_deep = 4 rollouts x 3 turns of DODUO-v1 play then frozen PORYGON2 v0 (deep_value.js)",
+  "fallback_decisions": "the search's FALLBACK decisions (table too empty to solve, or the search threw; the prior's top legal joint was played) are recorded by solver/mew/play.js in each game's `fallbacks` list from this recipe on, and build_doduo.js keeps them as DODUO targets on the played joint's cell (same beta/anchor mix). Directories played before 2026-09-25 hold none: their fallbacks were never recorded",
+  "no_op": "if BOTH nets select epoch -1 (the champion unchanged) the generation cannot be tested against itself and the loop stops"
+ },
+ "unchanged": {
+  "selfplay": "1,000 games per generation, seed 200 + n, league { current 0.6, previous 0.2, clone 0.2 }, TRAIN pairs of data/team-pool-frozen-regmc, MILTANK k 4x4, 1 reserved switch row, 1000 ms, depth 0, 3 workers -> solver/out/selfplay/eaa5becc54eb/loop-sp<n>",
+  "pool": "every self-play directory on this release: gen0, gen1, r2-sp0, r2-sp1, r3-sp0, loop-sp6, loop-sp7 and each new loop-sp<k>",
+  "gates": {
+   "G_pory2_human": "95% upper bound of (new - PORYGON2 v0) held-out human log-loss <= +0.004",
+   "G_beats_previous": "SPRT vs the CURRENT champion: elo0 0, elo1 +20, alpha = beta = 0.05, pair scores, index order, <= 2,000 games, battle seed 9001 + 10 (n - 5), 3 workers; PASS iff H1. Read once, at the bound; no interim LLR is printed",
+   "G_not_lose_clone": "200 games vs the human clone (battle seed 9002 + 10 (n - 5)); Wilson 95% upper bound >= 0.5",
+   "accept": "all three pass; the candidate becomes the champion and the old champion becomes 'previous'"
+  }
+ },
+ "publish": "accepted: merge origin/main, write the CHANGELOG-REGMC + RUNNING-NOTES rows (a MINOR above main's top) + one solver/LOG.md line + a section in docs/_reports/2026-09-25-machamp-warm-loop.md, commit models + spec (never data), run solver/tests/test-machamp.js and tests/test-docs-current.js — both GREEN or the loop stops unpushed — then push HEAD:main, never forced. Rejected: the solver/LOG.md line and the report section only.",
+ "stop": "two consecutive generations that fail the SPRT; or the file solver/out/machamp/STOP; or any error; or a no-op generation"
+}

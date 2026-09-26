@@ -21,6 +21,34 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.13.0] — 2026-09-25
+
+### Changed
+- **MACHAMP's loop gains a warm-start recipe** (`solver/machamp/loop_sprt.js --recipe warm`, pre-registered in
+  `solver/machamp/preregistration-warm.json` before generation 8's first game). gen6 and gen7 failed the SPRT against
+  gen5 after each restarted training from MAG v1 + DODUO v1 and PORYGON2 v0. Under `warm` both nets start from the
+  CURRENT CHAMPION at a smaller learning rate (DODUO 1e-4, PORYGON2 1.5e-4); the champion's own self-play carries
+  sample weight 3 (`--weights` in `build_doduo.js` / `build_pory2.js`, `w.f32` read by both trainers); DODUO's pull
+  to the human clone is unchanged (β 0.7, human weight 3.0) and its selection tolerance is now measured from the
+  clone (`train_doduo.py --tol-ref anchor`), so drift cannot compound; PORYGON2's target stays 0.5·z + 0.5·v_deep.
+  An accepted generation is pushed only after `test-machamp` and `tests/test-docs-current.js` are GREEN.
+
+### Added
+- **The search's fallback decisions are recorded and trained on.** When the table is too empty to solve (or the
+  search throws) MILTANK plays the prior's top legal joint; those decisions were never written to the self-play
+  record. `solver/mew/play.js` now keeps them in each game's `fallbacks` list with the played joint's DODUO cell,
+  `run.js` counts them in the manifest and warns, and `build_doduo.js` keeps them as targets.
+- `test-machamp` clause **FALLBACK** (a 1 ms search): fallbacks recorded, rebuilt identically, kept, and `--weights`
+  written per decision. RED under the new deliberate break `MACHAMP_BREAK=fallback`. GREEN 87/87 with all nine
+  deliberate breaks RED.
+
+### Fixed
+- `test-machamp`'s search budget 150 → 300 ms: under another run's load every 150 ms decision fell back, and RECORD
+  went red on 0 searched decisions — the machine, not the code.
+
+### Notes
+- **Basis.** unchanged. No figure moves; generation results land as their own rows.
+
 ## [1.12.0] — 2026-09-25
 
 ### Fixed

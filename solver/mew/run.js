@@ -57,7 +57,7 @@ async function main() {
   });
   const ok = shards.filter(s => s.summary);
   const sum = k => ok.reduce((a, s) => a + (s.summary.counts[k] || 0), 0);
-  const counts = { games: sum('games'), errors: sum('errors'), capped: sum('capped'), unbuildable: sum('unbuildable'), decisions: sum('decisions'),
+  const counts = { games: sum('games'), errors: sum('errors'), capped: sum('capped'), unbuildable: sum('unbuildable'), decisions: sum('decisions'), fallback_decisions: sum('fallback_decisions'),
     rows: sum('rows'), decisions_unmapped_rows: sum('decisions_unmapped_rows'), opp: {}, current_score: {} };
   for (const s of ok) for (const k in s.summary.counts.opp) counts.opp[k] = (counts.opp[k] || 0) + s.summary.counts.opp[k];
   for (const s of ok) for (const k in s.summary.counts.current_score) { const c = counts.current_score[k] || [0, 0]; c[0] += s.summary.counts.current_score[k][0]; c[1] += s.summary.counts.current_score[k][1]; counts.current_score[k] = c; }
@@ -70,6 +70,7 @@ async function main() {
   if (!rollout.leafPory2) warnings.push('PORYGON2 leaf served 0 evaluations');
   if (!rollout.playouts) warnings.push('0 playouts');
   if (!counts.decisions) warnings.push('0 recorded decisions');
+  if (counts.fallback_decisions) warnings.push(`${counts.fallback_decisions} search FALLBACK decisions (too empty to solve, or threw) recorded in the games' fallbacks lists`);
   if (agent.fallbacks) warnings.push(`${agent.fallbacks} FALLBACKS to the prior's top legal joint (search threw)`);
   if (counts.errors) warnings.push(`${counts.errors} games ended in an engine/agent error`);
   const first = ok[0] ? ok[0].summary : {};

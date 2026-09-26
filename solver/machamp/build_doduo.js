@@ -38,6 +38,12 @@ const OUT = path.resolve(ROOT, arg('--out', 'solver/out/machamp/doduo'));
 const META = JSON.parse(fs.readFileSync(path.resolve(ROOT, arg('--meta', 'solver/out/mag/meta.json')), 'utf8'));
 const MAGF = path.resolve(ROOT, arg('--mag', 'solver/mag/model/mag-v1.json'));
 const MAXUNF = +arg('--max-unfilled', 0.5), MINMASS = +arg('--min-mass', 0.5), VALPCT = +arg('--val-pct', 10);
+/* --weights w1,w2,… : one sample weight per --selfplay directory, written per decision to w.f32 (the trainer weights
+ * the self-play loss by it). Default 1 for every directory. --no-fallbacks leaves out the games' `fallbacks` lists
+ * (the search's fallback decisions, recorded by solver/mew/play.js from 2026-09-25; a target on the played joint). */
+const WEIGHTS = String(arg('--weights', '')).split(',').filter(Boolean).map(Number);
+if (WEIGHTS.length && (WEIGHTS.length !== DIRS.length || !WEIGHTS.every(w => w > 0 && Number.isFinite(w)))) throw new Error('build_doduo: --weights needs one positive number per --selfplay directory');
+const FALLBACKS = !process.argv.includes('--no-fallbacks');
 /* DELIBERATE BREAK (env MACHAMP_BREAK=row): the row is rebuilt one turn late (the previous turn's state stands in
  * for the decision's), the off-by-one this file could make. solver/tests/test-machamp.js REBUILD must go red. */
 const BREAK = process.env.MACHAMP_BREAK || '';
@@ -55,7 +61,7 @@ class Writer {
   constructor(dir) {
     fs.mkdirSync(dir, { recursive: true });
     this.fd = {};
-    for (const f of ['ctx.f32', 'cand.f32', 'cand_attr.i32', 'cand_label.u8', 'slot.i32', 'dec.i32', 'slot_x.i32', 'cand_x.i32', 'tgt.i32', 'tgt.f32', 'val.f32'])
+    for (const f of ['ctx.f32', 'cand.f32', 'cand_attr.i32', 'cand_label.u8', 'slot.i32', 'dec.i32', 'slot_x.i32', 'cand_x.i32', 'tgt.i32', 'tgt.f32', 'val.f32', 'w.f32'])
       this.fd[f] = fs.openSync(path.join(dir, f), 'w');
     this.nSlots = 0; this.nCands = 0; this.nDec = 0; this.nTgt = 0;
   }
@@ -80,17 +86,21 @@ function rowOf(rec, d) {
 function build() {
   const t0 = Date.now();
   const W = { train: new Writer(path.join(OUT, 'train')), val: new Writer(path.join(OUT, 'val')) };
-  const c = { games: 0, decisions: 0, kept: 0, no_cells: 0, too_unfilled: 0, low_mass: 0, key_mismatch: 0, slot_mismatch: 0, mass_kept: 0, by_split: { train: 0, val: 0 }, hist_missing: 0 };
+  const c = { games: 0, decisions: 0, fallbacks_seen: 0, fallbacks_kept: 0, kept_by_dir: {}, kept: 0, no_cells: 0, too_unfilled: 0, low_mass: 0, key_mismatch: 0, slot_mismatch: 0, mass_kept: 0, by_split: { train: 0, val: 0 }, hist_missing: 0 };
   const sources = [];
-  for (const dir of DIRS) {
+  for (const [di, dir] of DIRS.entries()) {
+    const wDir = WEIGHTS.length ? WEIGHTS[di] : 1;
+    const dirKey = path.relative(ROOT, dir).split(path.sep).join('/');
+    c.kept_by_dir[dirKey] = { weight: wDir, decisions: 0, fallbacks: 0 };
     for (const f of fs.readdirSync(dir).filter(f => /^shard-\d+\.jsonl\.gz$/.test(f)).sort()) sources.push({ file: path.relative(ROOT, path.join(dir, f)).split(path.sep).join('/'), sha256: sha(path.join(dir, f)) });
     let gi = 0;
     for (const rec of records(dir)) {
       c.games++; gi++;
       const split = isVal(rec.id + ':' + rec.run_seed + ':' + rec.g) ? 'val' : 'train';
       const w = W[split];
-      for (const d of rec.decisions) {
-        c.decisions++;
+      const all = rec.decisions.map(d => [d, false]).concat(FALLBACKS ? (rec.fallbacks || []).map(d => [d, true]) : []);
+      for (const [d, isFb] of all) {
+        if (isFb) c.fallbacks_seen++; else c.decisions++;
         if (!d.cells) { c.no_cells++; continue; }
         if (d.unfilled / (d.m * d.nc) > MAXUNF) { c.too_unfilled++; continue; }
         if (!rec.hist[d.t]) { c.hist_missing++; continue; }
@@ -131,7 +141,9 @@ function build() {
         }
         w.write('dec.i32', Int32Array.from([slotIdx[0], slotIdx[1], 0, gi, d.t, side === 'p1' ? 0 : 1, 0]));
         for (const [k, p] of mass) { const [a, b] = k.split(',').map(Number); w.write('tgt.i32', Int32Array.from([w.nDec, a, b])); w.write('tgt.f32', Float32Array.from([p / kept])); w.nTgt++; }
-        w.write('val.f32', Float32Array.from([d.v]));
+        w.write('val.f32', Float32Array.from([d.v == null ? NaN : d.v]));
+        w.write('w.f32', Float32Array.from([wDir]));
+        if (isFb) { c.fallbacks_kept++; c.kept_by_dir[dirKey].fallbacks++; } else c.kept_by_dir[dirKey].decisions++;
         w.nDec++; c.kept++; c.mass_kept += kept; c.by_split[split]++;
       }
     }
@@ -140,7 +152,7 @@ function build() {
   c.mass_kept_mean = c.kept ? +(c.mass_kept / c.kept).toFixed(4) : null; delete c.mass_kept;
   const meta = { generated: new Date().toISOString(), generator: 'solver/machamp/build_doduo.js', what: 'DODUO self-play targets: the search mix on DODUO cells',
     sources, human_meta: { dataset: META.dataset, split: META.split }, mag_model: { path: path.relative(ROOT, MAGF).split(path.sep).join('/'), sha256: sha(MAGF), freq: MJ.freq },
-    flags: { max_unfilled: MAXUNF, min_mass: MINMASS, val_pct: VALPCT, break: BREAK || null },
+    flags: { max_unfilled: MAXUNF, min_mass: MINMASS, val_pct: VALPCT, weights: WEIGHTS.length ? WEIGHTS : null, fallbacks: FALLBACKS, break: BREAK || null },
     ctx_names: META.ctx_names, cand_names: META.cand_names, pair_names: META.pair_names, slot_x_names: META.slot_x_names, v0_feature_version: META.v0_feature_version,
     joint_status: META.joint_status, slot_status: META.slot_status, move_vocab: moveVocab, species_vocab: speciesVocab,
     sizes: Object.fromEntries(Object.entries(W).map(([k, w]) => [k, { decisions: w.nDec, slots: w.nSlots, cands: w.nCands, targets: w.nTgt }])),

@@ -20,7 +20,8 @@
  * re-featurise every position and every decision later, through the same encoders the nets use), and one
  * row per SEARCHED decision: the side, its brought_seen view, the root value v (for the deciding side), the
  * row mix x and column mix y, each row's DODUO cell (a, b) and candidate keys, and the search counters.
- * Forced decisions and the human clone's argmax are not training targets and are not recorded as decisions.
+ * Forced decisions and the human clone's argmax are not training targets and are not recorded as decisions. A search
+ * FALLBACK (too empty to solve, or the search threw) is recorded in the game's `fallbacks` list with the joint played.
  *
  * MATCH. The pairs are `--pairs` TEST team pairs (both players held out of every net's training data), picked
  * by a seeded stride. Each pair is played twice on the SAME battle seed with the bots swapped (the arena's
@@ -49,7 +50,9 @@ const PA0 = require('../miltank/prior_adapter.js').create(API, null);   // the g
 
 const MODE = flag('--mode', 'selfplay');
 /* DELIBERATE BREAK (env MACHAMP_BREAK=seat): in a match, X sits on side A in both games of a pair — the paired
- * seating is gone. solver/tests/test-machamp.js GATE must go red. */
+ * seating is gone. solver/tests/test-machamp.js GATE must go red.
+ * DELIBERATE BREAK (env MACHAMP_BREAK=fallback): a search fallback is not recorded (the pre-2026-09-25 behaviour).
+ * solver/tests/test-machamp.js FALLBACK must go red. */
 const BREAK = process.env.MACHAMP_BREAK || '';
 const SHARD = +flag('--shard', 0), SHARDS = +flag('--shards', 1);
 const SEED = +flag('--seed', 1), CAP = +flag('--cap', 50);
@@ -71,7 +74,7 @@ async function playGame(G, botA, botB, seed, recordFor) {
   const S = API.newBattle(a.team, b.team, { rng });
   const ctx = PA0.newGame(G);
   const mg = MR.game(API, { A: megaT(botA.name), B: megaT(botB.name) });
-  const decisions = [];
+  const decisions = [], fallbacks = [];
   let err = null;
   const ms = { A: [], B: [] };
   try {
@@ -91,6 +94,17 @@ async function playGame(G, botA, botB, seed, recordFor) {
             cells: jc ? jc.cells : null, keys: jc ? jc.keys : null, n: jc ? jc.n : null, m: info.m, nc: info.n, playouts: info.playouts,
             unfilled: info.unfilled, pick: info.pick, ms: info.ms, agent: bot.name,
             A: rec.A.map(r => r.map(z => +z.toFixed(4))) });
+        } else if (recordFor && recordFor[side] && info.fallback && !info.forced && BREAK !== 'fallback') {
+          /* THE SEARCH FELL BACK (the table was too empty to solve, or the search threw) and played the ranking prior's
+           * top legal joint. Until 2026-09-25 these decisions were not recorded at all, so the training data held no
+           * trace of the positions where the search was starved. They go in a SEPARATE list (`fallbacks`), so every
+           * consumer of `decisions` (x·A·y = v, the root value) is untouched; build_doduo.js reads both. The target is
+           * the joint actually played, on its DODUO cell. */
+          const jc = bot.PA.jointCells(ctx, S, side, side, [ch[side].joint]);
+          const bs = PA0.row(ctx, S, side).game.brought_seen;
+          fallbacks.push({ t: ctx.hist.length, side, bs, fb: info.fallback === true ? 'threw' : String(info.fallback), x: [1],
+            cells: jc ? jc.cells : null, keys: jc ? jc.keys : null, n: jc ? jc.n : null, m: 1, nc: info.n || 1,
+            playouts: info.playouts == null ? null : info.playouts, unfilled: 0, ms: info.ms == null ? null : info.ms, agent: bot.name });
         }
       }
       PA0.record(ctx, S, ch.A.joint, ch.B.joint);
@@ -102,7 +116,7 @@ async function playGame(G, botA, botB, seed, recordFor) {
   mg.end();
   let vA = null, capped = false;
   if (!err) { if (API.isTerminal(S)) vA = API.winner(S); else { vA = API.horizonScore(S); capped = true; } }
-  return { vA, capped, err, turns: S.turn, hist: ctx.hist, decisions, ms };
+  return { vA, capped, err, turns: S.turn, hist: ctx.hist, decisions, fallbacks, ms };
 }
 
 async function selfplay() {
@@ -115,7 +129,7 @@ async function selfplay() {
   const w = Object.assign({ current: 0.6, previous: 0.2, clone: 0.2 }, L.weights || {});
   if (!agents.previous) { w.current += w.previous; w.previous = 0; }
   const wsum = w.current + w.previous + w.clone;
-  const counts = { games: 0, errors: 0, capped: 0, unbuildable: 0, decisions: 0, decisions_unmapped_rows: 0, rows: 0, opp: { current: 0, previous: 0, clone: 0 }, current_score: { current: [0, 0], previous: [0, 0], clone: [0, 0] } };
+  const counts = { games: 0, errors: 0, capped: 0, unbuildable: 0, decisions: 0, fallback_decisions: 0, decisions_unmapped_rows: 0, rows: 0, opp: { current: 0, previous: 0, clone: 0 }, current_score: { current: [0, 0], previous: [0, 0], clone: [0, 0] } };
   if (OUT) fs.mkdirSync(path.dirname(OUT), { recursive: true });
   if (OUT && fs.existsSync(OUT)) fs.unlinkSync(OUT);   // this shard's own output from an earlier attempt of the same run
   for (let g = SHARD; g < N; g += SHARDS) {
@@ -133,11 +147,11 @@ async function selfplay() {
     counts.games++; counts.opp[oppKey]++;
     if (r.err) counts.errors++;
     if (r.capped) counts.capped++;
-    counts.decisions += r.decisions.length;
+    counts.decisions += r.decisions.length; counts.fallback_decisions += r.fallbacks.length;
     for (const d of r.decisions) { counts.rows += d.m; if (d.cells) counts.decisions_unmapped_rows += d.cells.filter(c => !c).length; }
     if (r.vA != null) { const vCur = curA ? r.vA : 1 - r.vA; counts.current_score[oppKey][0] += vCur; counts.current_score[oppKey][1]++; }
     const rec = { g, id: G.id, release: ENGINE.id, run_seed: SEED, battle_seed: SEED * 1000003 + g, agents: { A: bA.name, B: bB.name }, opp: oppKey, cur_side: curA ? 'A' : 'B',
-      sheets: G.sheets, brought: G.brought, vA: r.vA, capped: r.capped, err: r.err, turns: r.turns, hist: r.hist, decisions: r.decisions };
+      sheets: G.sheets, brought: G.brought, vA: r.vA, capped: r.capped, err: r.err, turns: r.turns, hist: r.hist, decisions: r.decisions, fallbacks: r.fallbacks };
     if (OUT) fs.appendFileSync(OUT, zlib.gzipSync(JSON.stringify(rec) + '\n'));
     if (counts.games % 10 === 0) console.log(`  [shard ${SHARD}] ${counts.games} games  ${counts.decisions} decisions  errors ${counts.errors}  fallbacks ${AG.COUNTERS.fallbacks}  ${((Date.now() - t0) / 1000).toFixed(0)}s`);
   }

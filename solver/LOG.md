@@ -8,6 +8,13 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-25
 
+### MACHAMP warm-start recipe (abra/regmc 1.13.0)
+- gen6 and gen7 lost the SPRT to gen5 after each restarted from v1/v0. The loop's `--recipe warm` starts both nets
+  from the champion at a smaller learning rate, weights the champion's own self-play 3:1, keeps the strong DODUO
+  pull to the clone (tolerance now measured from the clone), and keeps 0.5·z + 0.5·v_deep.
+- The search's fallback decisions were never recorded (loop-sp7: 14). They are now, and DODUO trains on them.
+- Pre-registered: `solver/machamp/preregistration-warm.json`. Results: `docs/_reports/2026-09-25-machamp-warm-loop.md`.
+
 ### ROTOM private-series hang fixed; bounded waits; supervisor watchdog (abra/regmc 1.12.0)
 - Both aa1 hangs (after k=3 and k=6) had one cause. A hidden series is renamed `…-<pw>pw`, the client also joined
   the old id, and that id's `noinit|nonexistent` reply created a phantom series (k=4, k=7) that never ended. Fixed

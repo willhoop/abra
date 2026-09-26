@@ -19,6 +19,20 @@
  *      Accepted: models + spec + CHANGELOG-REGMC + RUNNING-NOTES + one solver/LOG.md line + the report section, as a
  *      MINOR above main's top. Rejected: the one solver/LOG.md line and the report section only.
  * STOP when two generations in a row fail the SPRT, when solver/out/machamp/STOP exists, or on an error. Resumable.
+ *
+ * --recipe warm (solver/machamp/preregistration-warm.json, from generation 8). gen6 and gen7 failed because every
+ * generation restarted training from MAG v1 + DODUO v1 and PORYGON2 v0. Under `warm`:
+ *   - MAG/DODUO and PORYGON2 are WARM-STARTED from the CURRENT CHAMPION's files, at a smaller learning rate
+ *     (DODUO 1e-4, was 3e-4; PORYGON2 1.5e-4, was 5e-4);
+ *   - the champion's OWN self-play (a directory whose manifest's league.current digests equal the champion's files)
+ *     carries sample weight 3; every other directory 1 (build_doduo.js / build_pory2.js --weights);
+ *   - the DODUO pull toward the human clone is unchanged (beta 0.7, human weight 3.0, anchor DODUO v1), and the
+ *     epoch-selection tolerance is measured from the CLONE's human val NLL, not the warm init's, so drift cannot
+ *     compound generation over generation (train_doduo.py --tol-ref anchor);
+ *   - the PORYGON2 target is unchanged: 0.5 z + 0.5 v_deep (3-turn rollouts);
+ *   - the search's FALLBACK decisions (solver/mew/play.js `fallbacks`, recorded from this recipe on) are DODUO targets;
+ *   - accepted: test-machamp and tests/test-docs-current.js must be GREEN before the push, else the loop stops unpushed;
+ *   - a generation whose two nets both select epoch -1 (the champion unchanged) stops the loop: it cannot be tested.
  * Every child runs at the parent's priority (BELOWNORMAL under lownode); at most 3 workers at a time.
  */
 'use strict';
@@ -29,14 +43,19 @@ const argv = process.argv.slice(2);
 const flag = (k, d) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : d; };
 const ROOT = path.join(__dirname, '..', '..');
 const REL = flag('--release', 'eaa5becc54eb');
+const RECIPE = flag('--recipe', 'r3');
+if (!['r3', 'warm'].includes(RECIPE)) throw new Error('unknown --recipe ' + RECIPE);
+const WARM = RECIPE === 'warm';
+const PREREG = WARM ? 'solver/machamp/preregistration-warm.json' : 'solver/machamp/preregistration-loop.json';
+const CHAMP_W = 3;   // warm: the sample weight of the champion's own self-play (pre-registered)
 const W = Math.min(3, +flag('--workers', 3));
 const PUBLISH = argv.includes('--publish');
 const OUTR = path.join(ROOT, 'solver', 'out', 'machamp', REL);
 const SPROOT = path.join(ROOT, 'solver', 'out', 'selfplay', REL);
-const STATE = path.resolve(ROOT, flag('--state', path.join('solver', 'out', 'machamp', REL, 'loop-sprt-state.json')));
+const STATE = path.resolve(ROOT, flag('--state', path.join('solver', 'out', 'machamp', REL, WARM ? 'loop-warm-state.json' : 'loop-sprt-state.json')));
 const STOPF = path.join(ROOT, 'solver', 'out', 'machamp', 'STOP');
 const STORE = 'C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc';
-const REPORT = path.join(ROOT, 'docs', '_reports', '2026-09-25-machamp-loop.md');
+const REPORT = path.join(ROOT, 'docs', '_reports', WARM ? '2026-09-25-machamp-warm-loop.md' : '2026-09-25-machamp-loop.md');
 const rel = p => path.relative(ROOT, p).split(path.sep).join('/');
 const today = () => new Date().toISOString().slice(0, 10);
 const J = f => JSON.parse(fs.readFileSync(path.resolve(ROOT, f), 'utf8'));
@@ -133,7 +152,7 @@ function publish(v, S) {
   const files = ['solver/LOG.md', rel(REPORT)];
   const n = v.gen, g = v.G_beats_previous_SPRT, c = v.G_not_lose_clone, p = v.G_pory2_human;
   const ci = x => '[' + x.map(z => z.toFixed(3)).join(', ') + ']';
-  const line = `gen${n}: ${v.accepted ? '**ACCEPTED**' : 'rejected'} — SPRT ${g.verdict.split(' ')[0]} after ${g.games_used} games, ` +
+  const line = `${WARM ? '(warm) ' : ''}gen${n}: ${v.accepted ? '**ACCEPTED**' : 'rejected'} — SPRT ${g.verdict.split(' ')[0]} after ${g.games_used} games, ` +
     `${g.result.score_x.toFixed(3)} ${ci(g.result.ci95_x)} vs ${path.basename(v.champion_before, '.json')}; clone ${c.score.toFixed(3)}; ` +
     `PORYGON2 human Δ ${p.diff.toFixed(4)} ${p.pass ? 'PASS' : 'FAIL'}. \`solver/machamp/models/gen${n}/gates.json\``;
   logLine(line);
@@ -143,13 +162,15 @@ function publish(v, S) {
     `- **SPRT vs ${path.basename(v.champion_before, '.json')}** (elo0 0, elo1 +20, α = β = 0.05): **${g.verdict}**, LLR ${g.llr_at_stop == null ? 'n/a' : g.llr_at_stop.toFixed(2)}, ` +
     `${g.pairs_used} pairs = ${g.games_used} games; ${g.result.W}–${g.result.L} = ${g.result.score_x.toFixed(3)} ${ci(g.result.ci95_x)} (Wilson at the stop, slightly optimistic).\n` +
     `- Human clone: ${c.score.toFixed(3)} ${ci(c.ci95)} (${c.pass ? 'PASS' : 'FAIL'}). PORYGON2 human log-loss vs v0: ${p.diff.toFixed(4)} ${ci(p.ci95)} (${p.pass ? 'PASS' : 'FAIL'}).\n` +
-    `- DODUO drift from the human clone: ${v.doduo_drift.toFixed(4)} nats.\n- Champion after: \`${v.champion_after}\`.\n`;
-  if (!fs.existsSync(REPORT)) fs.writeFileSync(REPORT, '# MACHAMP unattended loop — one section per generation\n\nWritten by `solver/machamp/loop_sprt.js` under `solver/machamp/preregistration-loop.json`. Historical by construction.\n');
+    `- DODUO drift from the human clone: ${v.doduo_drift.toFixed(4)} nats.\n- Champion after: \`${v.champion_after}\`.\n` +
+    (v.recipe && v.recipe.name === 'warm' ? `- Recipe: warm start from \`${v.recipe.init}\`; lr DODUO ${v.recipe.lr_doduo}, PORYGON2 ${v.recipe.lr_pory2}; champion self-play weight ${v.recipe.champion_weight} on ${v.recipe.champion_dirs.join(', ') || 'none'}; ` +
+      `fallback decisions in the DODUO targets: ${v.pool.fallbacks_kept}; selected epochs DODUO ${v.recipe.selected_epoch.doduo}, PORYGON2 ${v.recipe.selected_epoch.pory2}.\n` : '');
+  if (!fs.existsSync(REPORT)) fs.writeFileSync(REPORT, `# MACHAMP unattended loop${WARM ? ' — warm-start recipe' : ''} — one section per generation\n\nWritten by \`solver/machamp/loop_sprt.js${WARM ? ' --recipe warm' : ''}\` under \`${PREREG}\`. Historical by construction.\n`);
   fs.appendFileSync(REPORT, sec);
   let msg = `MACHAMP gen${n} ${v.accepted ? 'accepted' : 'rejected'}: SPRT ${g.verdict.split(' ')[0]} after ${g.games_used} games`;
   if (v.accepted) {
     const t = topVersion(); const ver = `${t[0]}.${t[1] + 1}.0`;
-    insertBefore('CHANGELOG-REGMC.md', /^## \[/m, `## [${ver}] — ${today()}\n\n### Added\n- **MACHAMP gen${n} accepted** (\`solver/machamp/models/gen${n}/\`, \`league/gen${n}.json\`), the unattended loop under \`solver/machamp/preregistration-loop.json\`.\n\n### Notes\n` +
+    insertBefore('CHANGELOG-REGMC.md', /^## \[/m, `## [${ver}] — ${today()}\n\n### Added\n- **MACHAMP gen${n} accepted** (\`solver/machamp/models/gen${n}/\`, \`league/gen${n}.json\`), the unattended loop under \`${PREREG}\`${WARM ? ' (warm start from the champion, smaller learning rate, champion self-play weighted 3, fallback decisions in the DODUO targets)' : ''}.\n\n### Notes\n` +
       `- SPRT vs ${path.basename(v.champion_before, '.json')} (elo0 0, elo1 +20, α = β = 0.05): H1 after ${g.games_used} games; ${g.result.score_x.toFixed(3)} ${ci(g.result.ci95_x)}. Human clone ${c.score.toFixed(3)} ${ci(c.ci95)}; PORYGON2 human Δ ${p.diff.toFixed(4)} ${ci(p.ci95)}.\n` +
       `- Source: \`solver/machamp/models/gen${n}/gates.json\`. Account: \`${rel(REPORT)}\`.\n- **Basis.** unchanged.\n\n`);
     insertBefore('docs/RUNNING-NOTES.md', /^## \[abra\/regmc /m, `## [abra/regmc ${ver}] — ${today()} — **MACHAMP gen${n} accepted by SPRT (H1 after ${g.games_used} games, ${g.result.score_x.toFixed(3)} ${ci(g.result.ci95_x)})**\n` +
@@ -162,6 +183,17 @@ function publish(v, S) {
   if (DRY) { log('dry publish: would commit', files.join(' '), '|', msg); return; }
   git(['add', ...files]);
   git(['commit', '-q', '-m', msg + '\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>']);
+  if (WARM && v.accepted) {
+    /* the tests must be GREEN before an accepted generation reaches main; a red one stops the loop, unpushed */
+    for (const t of ['solver/tests/test-machamp.js', 'tests/test-docs-current.js']) {
+      const lf = path.join(OUTR, 'logs', `loop-gen${n}-${path.basename(t, '.js')}.log`);
+      const r = cp.spawnSync(process.execPath, [path.join(ROOT, t)], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 27, env: Object.assign({}, process.env, { ARENA_TEST_RELEASE: REL }) });
+      fs.writeFileSync(lf, (r.stdout || '') + (r.stderr || ''));
+      log(t, 'exit', r.status, '->', rel(lf));
+      S.tests = (S.tests || []).concat([{ gen: n, test: t, exit: r.status }]);
+      if (r.status !== 0) throw new Error(`${t} is not GREEN (exit ${r.status}) for accepted gen${n}: committed locally, NOT pushed; see ${rel(lf)}`);
+    }
+  }
   for (let tries = 0; tries < 2; tries++) {
     const r = git(['push', 'origin', 'HEAD:main'], true);
     if (r.status === 0) { log('pushed', git(['rev-parse', '--short', 'HEAD']).stdout.trim()); S.pushes = (S.pushes || []).concat([{ gen: n, head: git(['rev-parse', 'HEAD']).stdout.trim() }]); return; }
@@ -189,6 +221,12 @@ function generation(S) {
     stamp('selfplay', { dir: rel(spDir), games: m.counts.games, games_per_hour: m.games_per_hour, unfilled: m.search.unfilled_share, warnings: m.warnings });
   }
   const dirs = poolDirs();
+  /* warm: the champion's own self-play carries weight CHAMP_W, every other directory 1 */
+  const ASHA = require('../mew/agent.js').sha;
+  const champDg = { mag: ASHA(champ.mag), doduo: ASHA(champ.doduo), pory2: ASHA(champ.pory2) };
+  const isChampDir = d => { const m = J(path.join(d, 'manifest.json')); const c = m.league && m.league.current; return !!(c && c.digests && c.digests.mag === champDg.mag && c.digests.doduo === champDg.doduo && c.digests.pory2 === champDg.pory2); };
+  const weights = dirs.map(d => (WARM && isChampDir(d) ? CHAMP_W : 1));
+  const wArgs = WARM ? ['--weights', weights.join(',')] : [];
   for (const d of dirs) {
     const dd = deepDirFor(d);
     if (fs.existsSync(path.join(dd, 'deep.summary.json'))) continue;
@@ -197,25 +235,31 @@ function generation(S) {
     if (ds.counts.replay_mismatch || ds.counts.no_joint || ds.counts.errors) throw new Error('deep values: replay did not reproduce ' + rel(d) + ' ' + JSON.stringify(ds.counts));
   }
   if (!done('build')) {
-    node(path.join(__dirname, 'build_doduo.js'), ['--selfplay', dirs.map(rel).join(','), '--out', rel(path.join(cand, 'doduo'))], `loop-gen${n}-build-doduo`, 3072);
-    node(path.join(__dirname, 'build_pory2.js'), ['--release', REL, '--selfplay', dirs.map(rel).join(','), '--deep', [...new Set(dirs.map(deepDirFor))].map(rel).join(','), '--out', rel(path.join(cand, 'pory2'))], `loop-gen${n}-build-pory2`, 3072);
+    node(path.join(__dirname, 'build_doduo.js'), ['--selfplay', dirs.map(rel).join(','), ...wArgs, '--out', rel(path.join(cand, 'doduo'))], `loop-gen${n}-build-doduo`, 3072);
+    node(path.join(__dirname, 'build_pory2.js'), ['--release', REL, '--selfplay', dirs.map(rel).join(','), ...wArgs, '--deep', [...new Set(dirs.map(deepDirFor))].map(rel).join(','), '--out', rel(path.join(cand, 'pory2'))], `loop-gen${n}-build-pory2`, 3072);
     const dm = J(path.join(cand, 'doduo', 'meta.json')), pm = J(path.join(cand, 'pory2', 'meta.json'));
-    stamp('build', { dirs: dirs.map(rel), doduo_decisions: dm.counts.kept, pory2_positions: pm.counts.positions, pory2_with_deep: pm.counts.with_deep });
+    stamp('build', { dirs: dirs.map(rel), weights, doduo_decisions: dm.counts.kept, doduo_fallbacks_seen: dm.counts.fallbacks_seen || 0, doduo_fallbacks_kept: dm.counts.fallbacks_kept || 0,
+      pory2_positions: pm.counts.positions, pory2_with_deep: pm.counts.with_deep });
   }
   const poryOut = path.join(modelDir, `porygon2-gen${n}.json`), poryMet = path.join(modelDir, `porygon2-gen${n}.metrics.json`);
   if (!done('train-pory2')) {
-    py(path.join('solver', 'machamp', 'train_pory2.py'), ['--init', 'solver/porygon2/model/porygon2-v0.json', '--human', 'solver/out/porygon2/human-' + REL, '--selfplay', rel(path.join(cand, 'pory2')),
+    py(path.join('solver', 'machamp', 'train_pory2.py'), ['--init', WARM ? champ.pory2 : 'solver/porygon2/model/porygon2-v0.json', ...(WARM ? ['--lr', '1.5e-4'] : []), '--human', 'solver/out/porygon2/human-' + REL, '--selfplay', rel(path.join(cand, 'pory2')),
       '--out', rel(poryOut), '--metrics', rel(poryMet), '--name', `PORYGON2 gen${n}`, '--threads', '4', '--seed', String(n), '--fixture', rel(path.join(modelDir, `porygon2-gen${n}.fixture.json`))], `loop-gen${n}-train-pory2`);
     stamp('train-pory2');
   }
   if (!done('train-doduo')) {
-    py(path.join('solver', 'machamp', 'train_doduo.py'), ['--init-mag', 'solver/mag/model/mag-v1.json', '--init-doduo', 'solver/mag/model/doduo-v1.json', '--human', 'solver/out/mag',
+    py(path.join('solver', 'machamp', 'train_doduo.py'), ['--init-mag', WARM ? champ.mag : 'solver/mag/model/mag-v1.json', '--init-doduo', WARM ? champ.doduo : 'solver/mag/model/doduo-v1.json',
+      ...(WARM ? ['--lr', '1e-4', '--tol-ref', 'anchor'] : []), '--human', 'solver/out/mag',
       '--selfplay', rel(path.join(cand, 'doduo')), '--out-dir', rel(modelDir), '--tag', `gen${n}`, '--metrics', rel(path.join(modelDir, `doduo-gen${n}.metrics.json`)),
       '--beta', '0.7', '--human-weight', '3.0', '--threads', '4', '--seed', String(n), '--fixture', rel(path.join(modelDir, `doduo-gen${n}.fixture.json`))], `loop-gen${n}-train-doduo`);
     stamp('train-doduo');
   }
   const specF = path.join(__dirname, 'league', `gen${n}.json`);
   fs.writeFileSync(specF, JSON.stringify(Object.assign({}, champ, { name: `gen${n}`, mag: rel(path.join(modelDir, `mag-gen${n}.json`)), doduo: rel(path.join(modelDir, `doduo-gen${n}.json`)), pory2: rel(poryOut) }), null, 1) + '\n');
+  if (WARM) {
+    const ed = J(path.join(modelDir, `doduo-gen${n}.metrics.json`)).selected_epoch, ep = J(poryMet).selected_epoch;
+    if (ed === -1 && ep === -1) throw new Error(`gen${n}: both nets selected epoch -1 (the champion unchanged); the candidate cannot be tested against itself — stopping`);
+  }
   const sprtOut = path.join(OUTR, 'gates', `gen${n}-sprt.json`), cloneOut = path.join(OUTR, 'gates', `gen${n}-not-lose-clone.json`);
   if (!done('sprt')) {
     node(path.join(__dirname, 'sprt.js'), ['--release', REL, '--x', rel(specF), '--y', S.champion, '--elo0', '0', '--elo1', '20', '--alpha', '0.05', '--beta', '0.05', '--max-games', '2000',
@@ -227,11 +271,15 @@ function generation(S) {
     stamp('clone');
   }
   const sp = J(sprtOut), cl = J(cloneOut), pm = J(poryMet).gate_nonworse_vs_v0, dd = J(path.join(modelDir, `doduo-gen${n}.metrics.json`)).human_test_vs_v1.joint_ll.diff;
-  const v = { gen: n, candidate: rel(specF), champion_before: S.champion, preregistration: 'solver/machamp/preregistration-loop.json',
+  const bst = S.stages[K('build')];
+  const v = { gen: n, candidate: rel(specF), champion_before: S.champion, preregistration: PREREG,
+    recipe: WARM ? { name: 'warm', init: S.champion, lr_doduo: 1e-4, lr_pory2: 1.5e-4, tol_ref: 'anchor', beta: 0.7, human_weight: 3.0, champion_weight: CHAMP_W,
+      champion_dirs: bst.dirs.filter((d, i) => (bst.weights || [])[i] === CHAMP_W),
+      selected_epoch: { doduo: J(path.join(modelDir, `doduo-gen${n}.metrics.json`)).selected_epoch, pory2: J(poryMet).selected_epoch } } : { name: 'r3' },
     G_pory2_human: { diff: pm.diff, ci95: pm.ci95, pass: pm.pass },
     G_beats_previous_SPRT: { verdict: sp.verdict, llr_at_stop: sp.llr_at_stop, pairs_used: sp.pairs_used, games_used: sp.games_used, result: sp.result, elo_estimate: sp.elo_estimate },
     G_not_lose_clone: { score: cl.result.score_x, ci95: cl.result.ci95_x, W: cl.result.W, L: cl.result.L, pass: cl.pass },
-    selfplay: S.stages[K('selfplay')], pool: { dirs: S.stages[K('build')].dirs.length, doduo_decisions: S.stages[K('build')].doduo_decisions, pory2_positions: S.stages[K('build')].pory2_positions, pory2_with_deep: S.stages[K('build')].pory2_with_deep },
+    selfplay: S.stages[K('selfplay')], pool: { dirs: S.stages[K('build')].dirs.length, doduo_decisions: S.stages[K('build')].doduo_decisions, pory2_positions: S.stages[K('build')].pory2_positions, pory2_with_deep: S.stages[K('build')].pory2_with_deep, fallbacks_kept: bst.doduo_fallbacks_kept || 0 },
     doduo_drift: dd, at: new Date().toISOString() };
   v.sprt_pass = sp.verdict.startsWith('H1');
   v.accepted = !!(pm.pass && v.sprt_pass && cl.pass);
@@ -251,8 +299,9 @@ function main() {
   const armed = Object.keys(process.env).filter(k => /_BREAK$/.test(k) && process.env[k]);
   if (armed.length) throw new Error('refusing to run with a deliberate break armed: ' + armed.join(', '));
   let S = load();
-  if (!S) { S = { what: 'MACHAMP unattended loop state', release: REL, preregistration: 'solver/machamp/preregistration-loop.json', started: new Date().toISOString(),
-    champion: 'solver/machamp/league/gen5.json', previous: 'solver/machamp/league/gen0-r2.json', clone: 'solver/machamp/league/human-clone.json', next: +flag('--start', 6), fails: 0, history: [], stages: {} }; save(S); }
+  if (!S) { S = { what: 'MACHAMP unattended loop state', release: REL, recipe: RECIPE, preregistration: PREREG, started: new Date().toISOString(),
+    champion: 'solver/machamp/league/gen5.json', previous: 'solver/machamp/league/gen0-r2.json', clone: 'solver/machamp/league/human-clone.json', next: +flag('--start', WARM ? 8 : 6), fails: 0, history: [], stages: {} }; save(S); }
+  if ((S.recipe || 'r3') !== RECIPE) throw new Error(`state ${rel(STATE)} was written under recipe ${S.recipe || 'r3'}, not ${RECIPE}`);
   for (;;) {
     if (fs.existsSync(STOPF)) { log('STOP file present: stopping'); break; }
     if ((S.fails || 0) >= 2) { log('two consecutive generations failed the SPRT: stopping'); break; }

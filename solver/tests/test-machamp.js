@@ -20,6 +20,9 @@
  *   DEEP     deep_value.js replays both games exactly (0 mismatches) and writes one deep value per recorded position.
  *   SPRT     s(+20 Elo), a strong and a weak synthetic player each reach their bound, an unfinished pair blocks the
  *            test at its index, an errored pair is excluded.
+ *   FALLBACK a starved search (budget 1 ms: no cell can fill, so the search falls back to the prior's top joint) records
+ *            its decisions in the game's `fallbacks` list, each with the joint played on a DODUO cell; build_doduo.js keeps
+ *            them as targets (rebuilt identically), and --weights writes the directory's weight on every decision.
  *   PARITY   for every trained generation on disk (solver/machamp/models/gen*): the Node forward passes reproduce
  *            the Python float64 logits of the EXPORTED files on the trainer's fixture — PORYGON2 to 1e-9 and
  *            MAG+DODUO to 1e-9 — and each fixture names the file's own digest. With no generation trained this
@@ -31,6 +34,7 @@
  *   MACHAMP_BREAK=seat     a match seats X on side A twice                       -> GATE
  *   MACHAMP_BREAK=replay   the deep-value replay uses the wrong battle seed      -> DEEP
  *   MACHAMP_BREAK=sprtsign the SPRT's log-likelihood ratio has its sign flipped  -> SPRT
+ *   MACHAMP_BREAK=fallback play.js does not record a search fallback (the pre-2026-09-25 behaviour) -> FALLBACK
  *   MILTANK_BREAK=leaf     the heuristic is served when PORYGON2 is asked for    -> LEAF
  *   PORY2_INFER_BREAK=pool the PORYGON2 forward pass drops its max pool          -> PARITY (only when a generation exists)
  */
@@ -59,17 +63,19 @@ const want = c => !ONLY.length || ONLY.includes(c);
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'machamp-test-'));
 const nodeRun = (script, args, env) => cp.spawnSync(process.execPath, ['--max-old-space-size=1536', script, ...args], { cwd: ROOT, encoding: 'utf8', env: Object.assign({}, process.env, env || {}), maxBuffer: 1 << 26 });
 
+/* budget 300 ms (150 until 2026-09-25): under another run's load a 150 ms search fell back on EVERY decision, and RECORD
+ * saw 0 searched decisions and went red for a reason that was the machine, not the code */
 const SPEC = { name: 'test-gen', kind: 'miltank', mag: 'solver/mag/model/mag-v1.json', doduo: 'solver/mag/model/doduo-v1.json',
-  pory2: 'solver/porygon2/model/porygon2-v0.json', budgetMs: 150, k1: 4, k2: 4, depth: 0, reserveSwitch: 1 };
+  pory2: 'solver/porygon2/model/porygon2-v0.json', budgetMs: 300, k1: 4, k2: 4, depth: 0, reserveSwitch: 1 };
 const CLONE = { name: 'test-clone', kind: 'greedy', mag: 'solver/mag/model/mag-v1.json', doduo: 'solver/mag/model/doduo-v1.json' };
 
 /* ---------------- self-play games (shared by RECORD, REBUILD, TARGETS) ---------------- */
-function selfplay(dir, env) {
-  const league = path.join(TMP, 'league.json');
-  fs.writeFileSync(league, JSON.stringify({ current: SPEC, clone: CLONE, weights: { current: 1, previous: 0, clone: 0 } }));
+function selfplay(dir, env, spec, cap) {
+  const league = path.join(TMP, 'league-' + path.basename(dir) + '.json');
+  fs.writeFileSync(league, JSON.stringify({ current: spec || SPEC, clone: CLONE, weights: { current: 1, previous: 0, clone: 0 } }));
   fs.mkdirSync(dir, { recursive: true });
   const r = nodeRun(path.join(ROOT, 'solver', 'mew', 'play.js'), ['--mode', 'selfplay', '--release', REL, '--league', league, '--games', '2', '--seed', '3',
-    '--cap', '12', '--out', path.join(dir, 'shard-0.jsonl.gz')], env);
+    '--cap', String(cap || 12), '--out', path.join(dir, 'shard-0.jsonl.gz')], env);
   if (r.status !== 0) { console.log(r.stdout, r.stderr); return null; }
   return zlib.gunzipSync(fs.readFileSync(path.join(dir, 'shard-0.jsonl.gz'))).toString('utf8').trim().split('\n').map(JSON.parse);
 }
@@ -285,16 +291,46 @@ function checkSprt(X) {
   ok('SPRT', X.skip.verdict === 'H1', 'an errored pair is excluded, not counted');
 }
 
+/* ---------------- FALLBACK ---------------- */
+function fallbackProbe(env) {
+  const dir = path.join(TMP, 'fb-' + (env ? 'red' : 'ok'));
+  const recs = selfplay(dir, env, Object.assign({}, SPEC, { name: 'test-starved', budgetMs: 1 }), 4);
+  if (!recs) return null;
+  const out = path.join(TMP, 'doduo-fb-' + (env ? 'red' : 'ok'));
+  const r = nodeRun(path.join(ROOT, 'solver', 'machamp', 'build_doduo.js'), ['--selfplay', dir, '--weights', '2', '--out', out, '--val-pct', '0'], env);
+  if (r.status !== 0) { console.log(r.stderr); return { recs, meta: null }; }
+  const meta = JSON.parse(fs.readFileSync(path.join(out, 'meta.json'), 'utf8'));
+  const b = fs.readFileSync(path.join(out, 'train', 'w.f32'));
+  return { recs, meta, w: Array.from(new Float32Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength))) };
+}
+function checkFallback(F) {
+  ok('FALLBACK', !!(F && F.recs), 'starved self-play ran');
+  if (!F || !F.recs) return;
+  const fb = F.recs.flatMap(g => g.fallbacks || []);
+  ok('FALLBACK', fb.length >= 2, `a starved search's fallback decisions are recorded (${fb.length})`);
+  ok('FALLBACK', fb.every(d => d.fb && d.x.length === 1 && d.x[0] === 1 && d.m === 1), 'each fallback names its kind and carries the played joint as its one row');
+  const mapped = fb.filter(d => d.cells && d.cells[0]).length;
+  ok('FALLBACK', fb.length > 0 && mapped / fb.length >= 0.9, `at least 90% of fallbacks carry a DODUO cell (${mapped}/${fb.length})`);
+  ok('FALLBACK', !!F.meta, 'build_doduo ran on the fallbacks');
+  if (!F.meta) return;
+  const c = F.meta.counts;
+  ok('FALLBACK', c.fallbacks_seen === fb.length && c.fallbacks_kept > 0 && c.key_mismatch === 0 && c.slot_mismatch === 0,
+    `build_doduo keeps the fallbacks as targets, rebuilt identically (seen ${c.fallbacks_seen}, kept ${c.fallbacks_kept}, key mismatches ${c.key_mismatch})`);
+  ok('FALLBACK', F.w.length === c.kept && F.w.every(x => x === 2), `--weights writes the directory's weight on every decision (${F.w.length} of ${c.kept})`);
+  console.log(`  FALLBACK: ${fb.length} fallback decisions recorded, ${c.fallbacks_kept} kept as DODUO targets`);
+}
+
 /* ---------------- run ---------------- */
 const t0 = Date.now();
 const spDir = path.join(TMP, 'sp');
 let recs = null;
 if (want('RECORD') || want('REBUILD') || want('TARGETS') || want('DEEP')) { recs = selfplay(spDir); checkRecord(recs); }
-const nDec = recs ? recs.reduce((a, g) => a + g.decisions.length, 0) : 0;
+const nDec = recs ? recs.reduce((a, g) => a + g.decisions.length + (g.fallbacks || []).length, 0) : 0;   // build_doduo reads both lists
 if (want('REBUILD')) checkRebuild(rebuild(spDir), nDec);
 if (want('TARGETS')) checkTargets(targets(spDir), recs);
 if (want('DEEP')) checkDeep(deep(spDir), recs);
 if (want('SPRT')) checkSprt(sprtProbe());
+if (want('FALLBACK')) checkFallback(fallbackProbe());
 if (want('LEAF')) checkLeaf(leafProbe());
 if (want('GATE')) checkGate(gate());
 if (want('PARITY')) checkParity(parity());
@@ -317,6 +353,7 @@ if (!NO_RED && green) {
   if (want('GATE')) redOf('MACHAMP_BREAK=seat', 'GATE', () => checkGate(gate({ MACHAMP_BREAK: 'seat' })));
   if (recs && want('DEEP')) redOf('MACHAMP_BREAK=replay', 'DEEP', () => checkDeep(deep(spDir, { MACHAMP_BREAK: 'replay' }), recs));
   if (want('SPRT')) redOf('MACHAMP_BREAK=sprtsign', 'SPRT', () => checkSprt(sprtProbe({ MACHAMP_BREAK: 'sprtsign' })));
+  if (want('FALLBACK')) redOf('MACHAMP_BREAK=fallback', 'FALLBACK', () => checkFallback(fallbackProbe({ MACHAMP_BREAK: 'fallback' })));
   if (want('LEAF')) redOf('MILTANK_BREAK=leaf', 'LEAF', () => checkLeaf(leafProbe({ MILTANK_BREAK: 'leaf' })));
   if (want('PARITY') && !blind) {
     redOf('PORY2_INFER_BREAK=pool', 'PARITY', () => checkParity(parity({ PORY2_INFER_BREAK: 'pool' })));

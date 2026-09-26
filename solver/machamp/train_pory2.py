@@ -145,13 +145,20 @@ s1, s2 = H.M[:, hc['split_p1']], H.M[:, hc['split_p2']]
 h_train = np.where((s1 == 0) & (s2 == 0))[0]
 h_val = np.where((s1 == 1) | (s2 == 1))[0]; h_val_w = ((s1 == 1).astype(np.float64) + (s2 == 1))[h_val]
 h_test = np.where((s1 == 2) | (s2 == 2))[0]; h_test_w = ((s1 == 2).astype(np.float64) + (s2 == 2))[h_test]
-SP = Tensors(args.selfplay, extra=('z', 'v', 'target') + (('deep',) if os.path.exists(os.path.join(args.selfplay, 'deep.f32')) else ()))
+SP = Tensors(args.selfplay, extra=('z', 'v', 'target') + (('deep',) if os.path.exists(os.path.join(args.selfplay, 'deep.f32')) else ())
+             + (('w',) if os.path.exists(os.path.join(args.selfplay, 'w.f32')) else ()))
+if not hasattr(SP, 'w'):
+    SP.w = np.ones(SP.N)
 # V1's reference value: the independent deep rollout value when the tensors carry one, else the search root value
 VREF = SP.deep if hasattr(SP, 'deep') else SP.v
 VREF_NAME = 'deep rollout value (solver/machamp/deep_value.js)' if hasattr(SP, 'deep') else 'search root value'
 sc = SP.col
 sp_val_mask = SP.M[:, sc['split']] == 1
 sp_train = np.where(~sp_val_mask)[0]; sp_val = np.where(sp_val_mask)[0]
+# per-position sample weights (build_pory2.js --weights), normalised to mean 1 on TRAIN so the self-play:human balance is unchanged
+W_NORM = float(SP.w[sp_train].mean()) if len(sp_train) else 1.0
+SP.w = SP.w / W_NORM
+WEIGHTED = bool(np.any(SP.w != 1.0))
 log(f'human: train {len(h_train)} val {len(h_val)} test {len(h_test)} | self-play: train {len(sp_train)} val {len(sp_val)} (with v: {int((~np.isnan(SP.v)).sum())})')
 if H.meta.get('engine_release') != SP.meta.get('engine_release'):
     raise SystemExit(f"human tensors were encoded on release {H.meta.get('engine_release')}, self-play on {SP.meta.get('engine_release')}: refusing to mix engines")
@@ -175,7 +182,7 @@ def wmean(v, w):
 
 def evaluate_val(model):
     lh = wmean(ll(predict(model, H, h_val), hy[h_val]), h_val_w)
-    ls = float(ll(predict(model, SP, sp_val), SP.target[sp_val]).mean()) if len(sp_val) else float('nan')
+    ls = wmean(ll(predict(model, SP, sp_val), SP.target[sp_val]), SP.w[sp_val]) if len(sp_val) else float('nan')
     return lh, ls
 
 
@@ -190,6 +197,7 @@ history = [{'epoch': -1, 'human_val_logloss': lh0, 'selfplay_val_loss': ls0}]
 states = {-1: {k: v.clone() for k, v in model.state_dict().items()}}
 opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.wd)
 lossf = nn.BCEWithLogitsLoss()
+lossw = nn.BCEWithLogitsLoss(reduction='none')
 rng = np.random.default_rng(args.seed)
 BS = 1024
 for ep in range(args.epochs):
@@ -206,7 +214,8 @@ for ep in range(args.epochs):
         opt.zero_grad()
         loss = 0.0
         if len(a):
-            B = SP.batch(np.sort(a), SP.target[np.sort(a)]); loss = loss + lossf(model(B), B['y']) * len(a)
+            B = SP.batch(np.sort(a), SP.target[np.sort(a)])
+            loss = loss + (lossw(model(B), B['y']) * torch.from_numpy(SP.w[np.sort(a)]).to(B['y'].dtype)).sum()
         if len(b):
             B = H.batch(np.sort(b), hy[np.sort(b)]); loss = loss + lossf(model(B), B['y']) * len(b)
         loss = loss / max(1, len(a) + len(b))
@@ -289,7 +298,7 @@ metrics = {'model': args.name, 'out': {'path': args.out.replace('\\', '/'), 'sha
            'selfplay_tensors': {'dir': args.selfplay, 'counts': SP.meta['counts'], 'lambda': SP.meta['lambda'], 'sources': SP.meta['sources']},
            'positions': {'human_train': int(len(h_train)), 'human_val': int(len(h_val)), 'human_test': int(len(h_test)), 'human_test_views': float(h_test_w.sum()),
                          'selfplay_train': int(len(sp_train)), 'selfplay_val': int(len(sp_val))},
-           'flags': vars(args), 'history': history, 'selected_epoch': pick['epoch'],
+           'flags': vars(args), 'history': history, 'selected_epoch': pick['epoch'], 'selfplay_weights': {'weighted': WEIGHTED, 'train_mean_raw': W_NORM},
            'test': test, 'by_turn': by_turn, 'v1_selfplay_val_mse_vs_search_value': v1,
            'gate_nonworse_vs_v0': {'rule': 'PASS iff the 95% upper bound of (new - v0) held-out human log-loss <= +0.004 (the v0 split-half floor)',
                                    'diff': gate['mean'], 'ci95': gate['ci95'], 'pass': bool(gate['ci95'][1] <= 0.004)},

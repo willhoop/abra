@@ -43,6 +43,7 @@ ap.add_argument('--epochs', type=int, default=3)
 ap.add_argument('--lr', type=float, default=3e-4)
 ap.add_argument('--batch', type=int, default=256)
 ap.add_argument('--tol', type=float, default=0.05)
+ap.add_argument('--tol-ref', choices=['init', 'anchor'], default='init', help="the human val NLL the tolerance is measured from: the init's (default) or the frozen human clone's (a warm start from a champion must not let the drift compound generation over generation)")
 ap.add_argument('--threads', type=int, default=4)
 ap.add_argument('--seed', type=int, default=1)
 ap.add_argument('--boot', type=int, default=1000)
@@ -84,6 +85,9 @@ def load_mm(d, extra=False):
         order = np.argsort(ti[:, 0], kind='stable')
         S['tgt_start'] = np.searchsorted(ti[order, 0], np.arange(len(S['dec']) + 1))
         S['tgt_order'] = order
+        wf = os.path.join(d, 'w.f32')
+        S['w'] = np.fromfile(wf, np.float32).astype(np.float64) if os.path.exists(wf) else np.ones(len(S['dec']))
+        assert len(S['w']) == len(S['dec']), 'w.f32 does not hold one weight per decision: ' + d
     return S
 
 
@@ -100,6 +104,10 @@ def target(S, ids, K):
 SPM = json.load(open(os.path.join(args.selfplay, 'meta.json')))
 assert SPM['move_vocab'] == MT.META['move_vocab'] and SPM['species_vocab'] == MT.META['species_vocab'], 'self-play tensors were indexed with another vocabulary than the human build'
 SPtr, SPva = load_mm(os.path.join(args.selfplay, 'train'), True), load_mm(os.path.join(args.selfplay, 'val'), True)
+# per-decision sample weights (build_doduo.js --weights), normalised to mean 1 on TRAIN so the self-play:human balance is unchanged
+W_NORM = float(SPtr['w'].mean()) if len(SPtr['w']) else 1.0
+SPtr['w'] = SPtr['w'] / W_NORM; SPva['w'] = SPva['w'] / W_NORM
+WEIGHTED = bool(np.any(SPtr['w'] != 1.0))
 HTR, HVA = load_mm(os.path.join(args.human, 'train')), load_mm(os.path.join(args.human, 'val'))
 
 
@@ -157,7 +165,8 @@ def val_metrics(net):
     with torch.no_grad():
         ids = np.arange(len(SPva['dec']))
         for i in range(0, len(ids), 512):
-            lj, _ = sp_losses(SPva, ids[i:i + 512], net, 0.0); tot += lj.sum().item(); n += len(lj)
+            wv = torch.from_numpy(SPva['w'][ids[i:i + 512]]).to(torch.float32)
+            lj, _ = sp_losses(SPva, ids[i:i + 512], net, 0.0); tot += (lj * wv).sum().item(); n += wv.sum().item()
         for i in range(0, len(h_va), 1024):
             lj, _ = human_losses(HVA, h_va[i:i + 1024], net); hj += lj.sum().item(); hn += len(lj)
     net.train()
@@ -166,7 +175,12 @@ def val_metrics(net):
 
 torch.manual_seed(args.seed); rng = np.random.default_rng(args.seed)
 sp0, hv0 = val_metrics(model)
-log(f'init: self-play val CE {sp0:.4f}  human val NLL {hv0:.4f}')
+log(f'init: self-play val CE {sp0:.4f}  human val NLL {hv0:.4f}  (self-play weighted: {WEIGHTED})')
+hv_ref = hv0
+if args.tol_ref == 'anchor':
+    _, hv_ref = val_metrics(anchor)
+    anchor.eval()   # val_metrics() leaves its net in train mode; the anchor must stay in eval
+    log(f'anchor (human clone) human val NLL {hv_ref:.4f}: the selection tolerance is measured from it')
 history = [{'epoch': -1, 'selfplay_val_ce': sp0, 'human_val_nll': hv0}]
 states = {-1: {k: v.clone() for k, v in model.state_dict().items()}}
 opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=args.lr, weight_decay=1e-5)
@@ -178,8 +192,9 @@ for ep in range(args.epochs):
     for i in range(0, len(perm), args.batch):
         a = np.sort(perm[i:i + args.batch]); h = np.sort(hp[i:i + args.batch])
         lj, lm = sp_losses(SPtr, a, model, args.beta)
+        wa = torch.from_numpy(SPtr['w'][a]).to(lj.dtype)
         hj, hm = human_losses(HTR, h, model)
-        loss = (lj.mean() + lm.mean()) + args.human_weight * (hj.mean() + hm.mean())
+        loss = ((lj * wa).mean() + (lm * wa).mean()) + args.human_weight * (hj.mean() + hm.mean())
         opt.zero_grad(); loss.backward(); opt.step()
         rs += lj.mean().item(); rh += hj.mean().item(); steps += 1
     spv, hv = val_metrics(model)
@@ -187,7 +202,7 @@ for ep in range(args.epochs):
     states[ep] = {k: v.clone() for k, v in model.state_dict().items()}
     log(f'epoch {ep}: train sp CE {rs / steps:.4f} human NLL {rh / steps:.4f} | val sp CE {spv:.4f} human NLL {hv:.4f}  {time.time() - t:.0f}s')
 
-ok = [h for h in history if h['human_val_nll'] <= hv0 + args.tol]
+ok = [h for h in history if h['human_val_nll'] <= hv_ref + args.tol]
 pick = min(ok, key=lambda h: h['selfplay_val_ce']) if ok else history[0]
 log('selected epoch', pick['epoch'])
 model.load_state_dict(states[pick['epoch']]); model.eval()
@@ -201,7 +216,7 @@ def export():
     common = {'generated': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'generator': 'solver/machamp/train_doduo.py', 'torch': torch.__version__,
               'dataset': M['dataset'], 'split': M['split'], 'feature_version': M['feature_version'], 'v0_feature_version': M['v0_feature_version'],
               'init': {'mag': {'path': args.init_mag, 'sha256': sha(args.init_mag)}, 'doduo': {'path': args.init_doduo, 'sha256': sha(args.init_doduo)}},
-              'selfplay': {'dir': args.selfplay, 'sources': SPM['sources']}, 'machamp': {'beta': args.beta, 'human_weight': args.human_weight, 'selected_epoch': pick['epoch']}}
+              'selfplay': {'dir': args.selfplay, 'sources': SPM['sources']}, 'machamp': {'beta': args.beta, 'human_weight': args.human_weight, 'lr': args.lr, 'tol_ref': args.tol_ref, 'selfplay_weighted': WEIGHTED, 'selected_epoch': pick['epoch']}}
     mag = dict(M); mag.update(common); mag.update({'name': 'mag-' + args.tag, 'params': {k: P[k] for k in mag_keys}, 'val_history': history})
     mpath = os.path.join(args.out_dir, 'mag-' + args.tag + '.json'); json.dump(mag, open(mpath, 'w'))
     dod = dict(Dj); dod.update(common); dod.update({'name': 'doduo-' + args.tag, 'mag': {'path': mpath.replace('\\', '/'), 'sha256': sha(mpath)},
@@ -240,7 +255,8 @@ keep = {k: summ[k] for k in ('joint_ll', 'joint_r1', 'joint_r4', 'joint_r8', 'jo
 metrics = {'tag': args.tag, 'models': {'mag': {'path': mpath.replace('\\', '/'), 'sha256': sha(mpath)}, 'doduo': {'path': dpath.replace('\\', '/'), 'sha256': sha(dpath)}},
            'init': {'mag': sha(args.init_mag), 'doduo': sha(args.init_doduo)}, 'anchor_human_clone': {'mag': sha(args.anchor_mag), 'doduo': sha(args.anchor_doduo)},
            'selfplay_tensors': {'dir': args.selfplay, 'sizes': SPM['sizes'], 'counts': SPM['counts']}, 'flags': vars(args),
-           'history': history, 'selected_epoch': pick['epoch'],
+           'history': history, 'selected_epoch': pick['epoch'], 'tol_ref': {'kind': args.tol_ref, 'human_val_nll': hv_ref},
+           'selfplay_weights': {'weighted': WEIGHTED, 'train_mean_raw': W_NORM},
            'human_test_vs_v1': {'what': 'held-out human TEST decisions, exact joints; diff = new - v1 (the human clone); 95% player-cluster bootstrap', **keep},
            'seconds': round(time.time() - T0)}
 json.dump(metrics, open(args.metrics, 'w'), indent=1)
