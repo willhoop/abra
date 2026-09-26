@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-24T22:56:58.081Z",
+ "generated": "2026-09-26T12:38:33.078Z",
  "by": "tests/roster.js",
  "stage": "items",
  "swap_leaf_correction": {
@@ -7,12 +7,12 @@
   "real_ability_rewrite_kept": 0,
   "control_arm_bookkeeping_dropped": 0
  },
- "engine_release": "eaa5becc54eb",
- "engine_release_cut": "2026-09-24T20:12:54.367Z",
- "engine_release_cuts": 22,
+ "engine_release": "4067de46a0ee",
+ "engine_release_cut": "2026-09-26T12:18:04.454Z",
+ "engine_release_cuts": 4,
  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
  "source_digests": {
-  "engine/medicham2-browser.js": "2caee2eeabb0",
+  "engine/medicham2-browser.js": "33219d25bdf1",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "eacf05ff8d30",
   "engine/position_features.js": "bb71676d3669",
@@ -97,7 +97,7 @@
   }
  },
  "plant_anchors": {
-  "release": "eaa5becc54eb",
+  "release": "4067de46a0ee",
   "checked": 28,
   "dead": [],
   "reds_ran": true
