@@ -19,6 +19,8 @@
  *            UNINFORMATIVE about the click, not a failure of it. (Flinch, full paralysis and sleep write false:
  *            the engine's own "cant", so those worlds count.)
  *   okOpp[k] the same result for the OPPONENT's body in slot k (read by the MAG gate: did a target's shield hold?)
+ *   fl[k]    the body in my slot k set a FLINCH this step on a body that had not acted yet (see watchFlinch) — the
+ *            purpose of a flinch move (solver/mag/purpose.js, 2026-09-26)
  *   board    engine/board_state.js `readMedi` of the position after the step (the MEDICHAM bar's definition of
  *            the board), from the frozen byte copy solver/doduo/board_state.frozen.js. Used by the pair gate to
  *            ask "did this click change anything the partner's click did not already change".
@@ -138,14 +140,33 @@ function create(API, opts) {
    * result after the hit steps — a Normal move into a Ghost ally reads true, then false. Showdown's field is what
    * `useMove` leaves at the end of the action, so ok = the last true/false/null written. The turn-end roll
    * (`_mvResLast = _mvRes; _mvRes = undefined`) and a switch-out's clear write `undefined`, which is ignored. */
-  function watch(m) {
-    const w = { exec: false, ok: false };
+  function watch(m, tag, cur) {
+    const w = { exec: false, ok: false, fl: false };
     if (!m) return w;
     let v = m._mvRes;
     Object.defineProperty(m, '_mvRes', { configurable: true, enumerable: true,
       get() { return v; },
-      set(x) { v = x; if (x === true || x === false || x === null) { w.exec = true; w.ok = BREAK === 'anytrue' ? (w.ok || x === true) : x === true; } } });
+      set(x) { v = x; if (x === true || x === false || x === null) { if (cur) cur.actor = tag; w.exec = true; w.ok = BREAK === 'anytrue' ? (w.ok || x === true) : x === true; } } });
     return w;
+  }
+  /* WHO FLINCHED WHOM (2026-09-26, the tiered gates: a flinch move's PURPOSE is the flinch, solver/mag/purpose.js).
+   * MEDICHAM sets `_flinch = true` on a target only when that target has not acted yet and nothing refuses the flinch
+   * (the secondary loop's flinch branch: `unresolved.has(tg)`, then `refusesFlinch`). The write is attributed to the
+   * body whose move is executing: the engine writes that body's provisional move result the moment its move is used,
+   * before the hit and its secondaries (probe.js `watch` records it as `cur.actor`). byTag[tag] = true when the body
+   * tagged `tag` set a flinch on anybody this step. */
+  function watchFlinch(m, cur) {
+    if (!m) return;
+    let v = m._flinch;
+    Object.defineProperty(m, '_flinch', { configurable: true, enumerable: true,
+      get() { return v; },
+      set(x) {
+        v = x;
+        if (x !== true) return;
+        /* DELIBERATE BREAK `flinchany`: any flinch is credited to both of my slots (no attribution) */
+        if (BREAK === 'flinchany') { cur.byTag.m0 = cur.byTag.m1 = true; return; }
+        if (cur.actor) cur.byTag[cur.actor] = true;
+      } });
   }
 
   /* W: the world. o.alt: other worlds (the opponent's hidden back line drawn differently) the MAG gate re-checks
@@ -160,6 +181,12 @@ function create(API, opts) {
     const bufs = [v8.serialize(C)].concat((o.alt || []).map(x => v8.serialize(prep(x, tall))));
     const cache = new Map();
     const pos = { side, opp, la, lo, steps: 0, errors: 0, worlds: bufs.length, salt: o.salt | 0 };
+    /* the volatiles the board reads (the keys of readMedi's volatile leaves on this position), for solver/mag/purpose.js */
+    pos.readVol = () => pos._readVol || (pos._readVol = (() => {
+      const b = BS.readMedi(v8.deserialize(bufs[0]), { id: toID, fails: {} });
+      const a = [...((b.sides.p1 || {}).active || []), ...((b.sides.p2 || {}).active || [])].find(x => x && x.vol);
+      return new Set(Object.keys((a && a.vol) || {}));
+    })());
     pos.run = function run(jS, jO, d, ro) {
       ro = ro || {};
       const wi = ro.world | 0;
@@ -168,9 +195,11 @@ function create(API, opts) {
       if (hit) { COUNTERS.cacheHits++; return hit; }
       const S = v8.deserialize(bufs[wi]);
       const own = side === 'A' ? S.actA : S.actB;
-      const w = [watch(own[0]), watch(own[1])];
+      const cur = { actor: null, byTag: {} };
+      const w = [watch(own[0], 'm0', cur), watch(own[1], 'm1', cur)];
       const foes = side === 'A' ? S.actB : S.actA;
-      const wo = [watch(foes[0]), watch(foes[1])];
+      const wo = [watch(foes[0], 'o0', cur), watch(foes[1], 'o1', cur)];
+      for (const m of [own[0], own[1], foes[0], foes[1]]) watchFlinch(m, cur);
       let err = null;
       try {
         API.makeLean(S);
@@ -185,7 +214,8 @@ function create(API, opts) {
       if (ro.board && !err) { board = JSON.stringify(BS.readMedi(S, { id: toID, fails: {} })); COUNTERS.boards++; }
       const exec = BREAK === 'exec' ? [true, true] : [w[0].exec, w[1].exec];
       const r = { exec: err ? [false, false] : exec, ok: err ? [false, false] : [w[0].ok, w[1].ok],
-                  okOpp: err ? [false, false] : [wo[0].ok, wo[1].ok], board, err };
+                  okOpp: err ? [false, false] : [wo[0].ok, wo[1].ok], board, err,
+                  fl: err ? [false, false] : [!!cur.byTag.m0, !!cur.byTag.m1] };
       cache.set(key, r);
       return r;
     };

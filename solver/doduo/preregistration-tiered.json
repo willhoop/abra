@@ -1,0 +1,50 @@
+{
+ "what": "The TIERED gates (Will, 2026-09-26): ALWAYS BANNED = no branch (the target staying, or any switch-in the opponent has) achieves the click's PURPOSE -> removed; MOSTLY BANNED = futile against the body in now, achieved only on a switch -> weighted by the probability of a rescuing switch under the HUMAN switch model (MAG v1 + DODUO v1, scored from the opponent's seat in the gate's world), floored at 0.001, never removed. The purpose is read off the move's data (solver/mag/purpose.js): a guaranteed-flinch damaging move -> the flinch; a status move aimed at a body that applies a status, a stat change or a board-read volatile -> its effect on the target's board; everything else -> MEDICHAM's move result. MAG (per slot) and DODUO's pair gate stay distinct jobs. Written before any measured run; development used seeds 98 and 99 only.",
+ "release": "eaa5becc54eb",
+ "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+ "human_dataset": "C:/Users/willj/Projects/Pokemon/ABRA/solver/out/human/games.jsonl (sha256 9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8, the same bytes as the 2026-09-25 gates run)",
+ "tests": {
+  "survival_full": {
+   "instrument": "solver/doduo/eval_gates.js --release eaa5becc54eb --n 2000 --seed 5 --workers 3",
+   "sample": "2,000 fully observed joint decisions by TEST-split players, a seeded stride (seed 5: fresh, never used to build or fix the gates)",
+   "bar": "the human's actual joint survives the always-banned tier (MAG dead on neither click, the pair gate does not cut the joint) in >= 99.9% of evaluated decisions (point estimate), AND every loss is a real misclick: its replay shows the click failed or did nothing",
+   "also_reported": "options per purpose x verdict; the verdicts the purpose changed (v_result -> v); the removal fractions and the MAG x pair 2x2 as on 2026-09-25"
+  },
+  "survival_census": {
+   "instrument": "solver/doduo/eval_gates.js --release eaa5becc54eb --n 20501 --seed 6 --workers 3 --human-only",
+   "sample": "every eligible held-out decision (20,501 at this dataset digest): MAG on the human's own clicks, the pair gate on the human joint",
+   "bar": "as survival_full, on the whole population"
+  },
+  "mostly_banned_humans": {
+   "instrument": "the same two runs, tiered.human_mostly_banned",
+   "descriptive, no bar": "how often a human's click is mostly-banned (share of the human's move clicks, Wilson 95%); its switch-model weight; how often the opponent's ACTUAL joint held a rescuing switch; how often the click achieved its purpose against the opponent's actual joint (the gate's world, either dice set)"
+  },
+  "doduo_greedy": {
+   "instrument": "solver/machamp/sprt.js --release eaa5becc54eb --x solver/doduo/specs/doduo-greedy-tiered.json --y solver/machamp/league/human-clone.json --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 400 --seed 61 --workers 3 --team-store <team_store>",
+   "arms": { "x": "DODUO v1 argmax over the tiered-gated candidates", "y": "DODUO v1 argmax over every legal joint" },
+   "information": "honest (sprt.js default since 2026-09-26)",
+   "bar": "read once, at the bound or at 400 games: H1 / H0 / INCONCLUSIVE with the score and its Wilson 95% interval"
+  },
+  "miltank": {
+   "instrument": "solver/machamp/sprt.js --release eaa5becc54eb --x solver/doduo/specs/gen5-tiered.json --y solver/machamp/league/gen5.json --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 400 --seed 62 --workers 3 --team-store <team_store>",
+   "arms": { "x": "MILTANK gen5 nets, 1,000 ms, k 4x4, depth 0, reserve 1 switch, candidates ranked by the tiered-gated DODUO v2 (gate budget 600 steps / 150 ms a side, inside the 1,000 ms)", "y": "the same agent, ungated" },
+   "equal_wall_clock": "the gate is paid out of the same 1,000 ms",
+   "bar": "as doduo_greedy"
+  },
+  "click_rates": {
+   "instrument": "solver/arena/click_rates.js on every match row of the two SPRTs (clicks.x / clicks.y), over the games the SPRT counted",
+   "rates": "Protect repeat rate = Protect-family clicks by a body whose streak is live / Protect-family clicks; immune-hit rate = single-target damaging clicks into a body MEDICHAM's damage function prices at 0 / single-target damaging clicks",
+   "descriptive, no bar": "each rate per arm with a Wilson 95% interval; the prediction, stated before the run, is that the tiered arm's immune-hit rate is no higher than the ungated arm's"
+  }
+ },
+ "policy_choices_not_measurements": {
+  "mostly_banned_floor": 0.001,
+  "switch_model": "solver/mag/model/mag-v1.json + solver/mag/model/doduo-v1.json",
+  "hidden_bench_alt_draws_max": 16,
+  "tall_world_K": 4096,
+  "cover_rounds": 2,
+  "miltank_gate_step_budget": 600,
+  "miltank_gate_ms_budget_per_side": 150,
+  "tall_world_hp_fraction_cap": 0.6
+ }
+}

@@ -40,6 +40,10 @@ const ROOT = path.join(__dirname, '..', '..');
 const REL_ID = flag('--release', null);
 const OUT = path.resolve(ROOT, flag('--out', 'solver/out/gates/eval'));
 const N = +flag('--n', 2000), SEED = +flag('--seed', 1), WORKERS = Math.min(3, +flag('--workers', 3));
+/* --human-only (2026-09-26): judge only the HUMAN's clicks (MAG on each, the pair gate on the human joint, and a slot's
+ * other options only when the human's click is dead, for the slot guard) — the survival and the mostly-banned questions
+ * over many more decisions, without the per-joint removal tables */
+const HUMAN_ONLY = argv.includes('--human-only');
 const SHARD = flag('--shard', null), SHARDS = +flag('--shards', 1);
 const HUMAN = flag('--human', path.join('C:', 'Users', 'willj', 'Projects', 'Pokemon', 'ABRA', 'solver', 'out', 'human', 'games.jsonl'));
 const SALT = 'abra-prior-v0';
@@ -112,6 +116,8 @@ function worker(shard, shards) {
   const probe = PR.create(API);
   const MG = require('../mag/gate.js').create(API);
   const DG = require('../doduo/gate.js').create(API, { mag: MG });
+  /* the human switch model and the soft weight, exactly as DODUO v2 applies them in play (solver/doduo/v2.js) */
+  const V2 = require('../doduo/v2.js').create(API, {});
   const games = new Map();
   for (const l of fs.readFileSync(path.join(OUT, 'games.jsonl'), 'utf8').split('\n')) if (l) { const g = JSON.parse(l); games.set(g.game.id, g); }
   const picks = fs.readFileSync(path.join(OUT, 'selection.jsonl'), 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l));
@@ -131,7 +137,7 @@ function worker(shard, shards) {
     done++;
     if (done % 25 === 0) console.log(`  [shard ${shard}] ${done} decisions  ${((Date.now() - t0) / 1000).toFixed(0)}s`);
   }
-  fs.writeFileSync(outF.replace(/\.jsonl$/, '.summary.json'), JSON.stringify({ shard, done, wall_s: (Date.now() - t0) / 1000, probe: probe.COUNTERS, mag: MG.COUNTERS, pair: DG.COUNTERS, world: WB.COUNTERS, release: ENGINE.stamp }, null, 1));
+  fs.writeFileSync(outF.replace(/\.jsonl$/, '.summary.json'), JSON.stringify({ shard, done, wall_s: (Date.now() - t0) / 1000, probe: probe.COUNTERS, mag: MG.COUNTERS, pair: DG.COUNTERS, switch_model: V2.COUNTERS, world: WB.COUNTERS, release: ENGINE.stamp }, null, 1));
 
   function synthRequest(G, st, me) {
     const sheet = G.sheets[me];
@@ -182,10 +188,12 @@ function worker(shard, shards) {
     const r = { side: w.side, world_notes: w.notes, turn: t.n };
     if (occ.some(k => !human[k])) { r.unmatched = occ.filter(k => !human[k]).map(k => A[k === 0 ? 'a' : 'b']); r.menu = pos.la.slots.map(s => s && s.options.map(o => PR.optKey(o))); return r; }
     /* MAG, every option */
-    const V = MG.slotVerdicts(pos);
+    const V = HUMAN_ONLY ? [0, 1].map(k => { const m = new Map(); const o = human[k]; if (!o) return m; const v = MG.verdict(pos, k, o); m.set(PR.optKey(o), v);
+      if (v.v === 'dead') for (const x of pos.la.slots[k].options) m.set(PR.optKey(x), MG.verdict(pos, k, x));   // the slot guard needs the whole slot
+      return m; }) : MG.slotVerdicts(pos);
     const vOf = (k, o) => (o ? V[k].get(PR.optKey(o)) : null);
     /* the slot guard: a slot whose every option is dead is not cut at all (nothing may be cut to zero) */
-    const slotAllDead = [0, 1].map(k => { const sl = pos.la.slots[k]; return !!(sl && sl.options.length && sl.options.every(o => { const v = vOf(k, o); return v && v.v === 'dead'; })); });
+    const slotAllDead = [0, 1].map(k => { const sl = pos.la.slots[k]; return !!(sl && sl.options.length && sl.options.every(o => { const v = vOf(k, o); return v && v.v === 'dead'; })); });   // human-only: a slot not fully judged is never 'all dead' (an unjudged option is undefined)
     const magDead = (k, o) => { const v = vOf(k, o); return !!(v && v.v === 'dead' && !slotAllDead[k]); };
     const tally = { live: 0, soft: 0, dead: 0, untested: 0, na: 0 };
     for (let k = 0; k < 2; k++) for (const v of V[k].values()) tally[v.v]++;
@@ -194,7 +202,7 @@ function worker(shard, shards) {
     const J = pos.la.joint;
     let magCut = 0, pairCut = 0, both = 0, survive = 0, bothOnDead = 0;
     const pairCuts = [], bothEx = [], pairClickMag = {};
-    for (const j of J) {
+    for (const j of (HUMAN_ONLY ? [] : J)) {
       const mc = j.some((o, k) => magDead(k, o));
       const pv = DG.pairVerdict(pos, j);
       if (mc) magCut++;
@@ -207,6 +215,35 @@ function worker(shard, shards) {
     const hv = human.map((o, k) => (o ? (vOf(k, o) || {}).v : null));
     const hMag = human.some((o, k) => o && magDead(k, o));
     const hPair = hj ? DG.pairVerdict(pos, hj) : null;
+    /* ---- THE TIERED GATES (2026-09-26): what the PURPOSE changed, and the human's MOSTLY-BANNED clicks ---- */
+    const purp = {}, changed = [];
+    for (let k = 0; k < 2; k++) for (const [key, v] of V[k]) {
+      if (!v.purpose) continue;
+      const q = purp[v.purpose] || (purp[v.purpose] = {});
+      q[v.v] = (q[v.v] || 0) + 1;
+      if (v.v_result) { const ck = v.v_result + '->' + v.v; q[ck] = (q[ck] || 0) + 1; if (changed.length < 8) changed.push(k + ':' + key + ' ' + ck); }
+    }
+    const oppSide = w.side === 'A' ? 'B' : 'A';
+    const Aopp = t.actions[opp] || {};
+    const oppActs = [0, 1].map(k => Aopp[k === 0 ? 'a' : 'b'] || null);
+    const oppOpt = pos.lo.slots.map((s, k) => (s && oppActs[k] && exactAction(oppActs[k]) ? findOpt(pos.lo, k, oppActs[k], C, oppSide) : null));
+    const oppJ = pos.lo.slots.every((s, k) => !s || oppOpt[k]) ? (pos.lo.joint.find(j => j.every((o, k) => !oppOpt[k] || PR.optKey(o) === PR.optKey(oppOpt[k]))) || null) : null;
+    const oppSwitched = oppActs.map(x => !!(x && x.kind === 'switch'));
+    let dist;
+    const softHuman = [];
+    for (let k = 0; k < 2; k++) {
+      const o = human[k], v = o && vOf(k, o);
+      if (!v || v.v !== 'soft') continue;
+      if (dist === undefined) dist = V2.oppDist(w.ctx, w.S, oppSide);
+      const weight = V2.softWeight(v, dist, pos);
+      const rescueMade = oppJ ? oppJ.some((x, s) => x && x.kind === 'switch' && (v.rescue || []).some(q => q === s + ':' + PR.optKey(x) || q === s + ':any')) : null;
+      let pay = null;
+      if (oppJ && hj) pay = [0, 1].map(d => MG.achievedAgainst(pos, k, hj, oppJ, d));
+      softHuman.push({ k, click: PR.optKey(o), purpose: v.purpose, weight, rescue: v.rescue, why: v.why, opp_switched: oppSwitched, opp_joint_found: !!oppJ,
+        rescue_switch_made: rescueMade, paid_off: pay ? pay.some(x => x.achieved) : null, pay });
+    }
+    Object.assign(r, { purpose_table: purp, purpose_changed: changed, opp_switched_any: oppSwitched.some(Boolean), opp_joint_found: !!oppJ, human_soft_clicks: softHuman,
+      human_move_clicks: human.filter(o => o && o.kind === 'move').length });
     Object.assign(r, { ms: Date.now() - ts, steps: pos.steps, errors: pos.errors, options: tally, slot_all_dead: slotAllDead,
       product: nProd, joints: J.length, mag_cut: magCut, pair_cut: pairCut, both_cut: both, both_pair_on_dead: bothOnDead, both_examples: bothEx, pair_cut_click_mag_verdict: pairClickMag, survive,
       human: human.map(o => o && PR.optKey(o)), human_verdicts: hv, human_joint_found: !!hj,
@@ -228,7 +265,7 @@ async function coordinator() {
   console.log('selection', JSON.stringify(sel));
   const kids = [];
   for (let i = 0; i < WORKERS; i++) {
-    const ch = cp.fork(__filename, ['--release', REL_ID, '--out', OUT, '--shard', String(i), '--shards', String(WORKERS)], { execArgv: ['--max-old-space-size=2048'] });
+    const ch = cp.fork(__filename, ['--release', REL_ID, '--out', OUT, '--shard', String(i), '--shards', String(WORKERS)].concat(HUMAN_ONLY ? ['--human-only'] : []), { execArgv: ['--max-old-space-size=2048'] });
     console.log('eval_gates: shard ' + i + ' pid ' + ch.pid);
     kids.push(new Promise(res => ch.on('exit', c => res(c))));
   }
@@ -244,7 +281,7 @@ async function coordinator() {
   const judged = opts.live + opts.soft + opts.dead + opts.untested;
   const result = {
     what: 'MAG v2 + DODUO v2 dead-click gates on held-out human Reg M-C decisions (solver/doduo/eval_gates.js)',
-    engine_release: REL_ID, flags: { n: N, seed: SEED, workers: WORKERS, human: HUMAN }, dataset_sha256: sel.sha, selection: sel,
+    engine_release: REL_ID, flags: { n: N, seed: SEED, workers: WORKERS, human: HUMAN, human_only: HUMAN_ONLY }, dataset_sha256: sel.sha, selection: sel,
     counts: S,
     survival: { survived: ok.length - lossAny.length, n: ok.length, rate: (ok.length - lossAny.length) / ok.length, ci95: wilson(ok.length - lossAny.length, ok.length),
       lost_to_mag: lossM.length, lost_to_pair: lossP.length, target: 0.999 },
@@ -260,6 +297,33 @@ async function coordinator() {
     pair_cut_click_mag_verdict: ['live', 'soft', 'dead', 'untested', 'na', 'none'].reduce((o, k) => (o[k] = sum(r => (r.pair_cut_click_mag_verdict || {})[k] || 0), o), {}),
     decisions_with: { any_mag_dead: ok.filter(r => r.options.dead > 0).length, any_soft: ok.filter(r => r.options.soft > 0).length, any_pair_cut: ok.filter(r => r.pair_cut > 0).length },
     human_soft: ok.filter(r => r.human_verdicts.includes('soft')).length,
+    tiered: (() => {
+      /* the 2026-09-26 tiers: ALWAYS BANNED = dead (removed), MOSTLY BANNED = soft (weighted by the human switch model) */
+      const purpose = {};
+      for (const r of ok) for (const [p, q] of Object.entries(r.purpose_table || {})) { const t = purpose[p] || (purpose[p] = {}); for (const [k, n] of Object.entries(q)) t[k] = (t[k] || 0) + n; }
+      const S = ok.flatMap(r => (r.human_soft_clicks || []).map(x => Object.assign({ decision: r.i }, x)));
+      const moveClicks = sum(r => r.human_move_clicks || 0);
+      const withJ = S.filter(x => x.opp_joint_found);
+      const k = f => S.filter(f).length;
+      const mean = a => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+      return {
+        purpose_by_verdict: purpose,
+        purpose_changed_examples: ok.flatMap(r => (r.purpose_changed || []).map(c => r.id + ' t' + r.turn + ' ' + c)).slice(0, 40),
+        human_mostly_banned: {
+          clicks: S.length, of_move_clicks: moveClicks, rate: S.length / (moveClicks || 1), rate_ci95: wilson(S.length, moveClicks),
+          decisions_with_one: ok.filter(r => (r.human_soft_clicks || []).length).length, of_decisions: ok.length,
+          weight_mean: mean(S.map(x => x.weight)), weight_min: S.length ? Math.min(...S.map(x => x.weight)) : null, weight_max: S.length ? Math.max(...S.map(x => x.weight)) : null,
+          opponent_switched_any: k(x => x.opp_switched.some(Boolean)),
+          opponent_joint_observed: withJ.length,
+          rescuing_switch_made: k(x => x.rescue_switch_made === true), rescuing_switch_rate_ci95: wilson(k(x => x.rescue_switch_made === true), withJ.length),
+          paid_off: k(x => x.paid_off === true), paid_off_rate_ci95: wilson(k(x => x.paid_off === true), withJ.length),
+          paid_off_when_opponent_switched: k(x => x.paid_off === true && x.opp_switched.some(Boolean)),
+          by_purpose: S.reduce((o, x) => (o[x.purpose] = (o[x.purpose] || 0) + 1, o), {}),
+          by_move: S.reduce((o, x) => { const m = x.click.split(':')[1]; o[m] = (o[m] || 0) + 1; return o; }, {}),
+          caption: 'paid_off = the click achieved its PURPOSE when the human joint is played against the opponent\'s ACTUAL joint in the gate\'s world (either dice set). rescuing_switch_made = the opponent\'s actual joint held a switch the gate found to rescue the click. Both over decisions whose opposing joint is fully observed.' },
+        base_rate_opponent_switched_any: { decisions: ok.filter(r => r.opp_switched_any).length, of: ok.length },
+      };
+    })(),
     cost: { ms_mean: sum(r => r.ms) / ok.length, ms_p50: ok.map(r => r.ms).sort((a, b) => a - b)[ok.length >> 1], ms_max: Math.max(...ok.map(r => r.ms)), steps_mean: sum(r => r.steps) / ok.length, step_errors: sum(r => r.errors) },
     losses: lossAny.map(r => ({ id: r.id, turn: r.turn, p: r.p, human: r.human, human_verdicts: r.human_verdicts, mag: r.human_mag_cut, pair: r.human_pair_cut, actives: r.actives, foes: r.foes, loss: r.loss })),
     unmatched_examples: recs.filter(r => r.unmatched).slice(0, 20).map(r => ({ id: r.id, ti: r.ti, p: r.p, unmatched: r.unmatched, menu: r.menu })),

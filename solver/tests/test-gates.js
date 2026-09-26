@@ -42,11 +42,26 @@
  *               evidence, a held one is skipped
  *   PARITY      every option of each opposing slot appears in the cover on BOTH dice regimes
  *   FROZEN      solver/doduo/board_state.frozen.js is the copy its receipt names
+ *   --- the tiered gates (2026-09-26, Will): ALWAYS BANNED = no branch achieves the click's PURPOSE (removed); MOSTLY
+ *   BANNED = futile against the body in now, achieved only on a switch (weighted by the human switch model) ---
+ *   FAKEOUT     a guaranteed-flinch move into a body whose ability refuses the flinch is DEAD even with a flinchable bench
+ *               (a switch-in is never flinched) and even though it lands damage; into a type-immune body with a bench it
+ *               would hit, DEAD (the 2026-09-25 gate said soft); into a flinchable body, LIVE. My partner knows the same
+ *               move, so a flinch it lands is not credited to me
+ *   ENCORE      a Prankster Encore into a Dark body that has moved is DEAD with a bench (a switch-in has no last move);
+ *               into a non-Dark body that has moved, LIVE. Read on the board, because MEDICHAM's move result says success
+ *               on the Dark target (filed in docs/ENGINE.md 2026-09-26)
+ *   WEIGHT      a mostly-banned click's weight is the switch model's probability of a rescuing switch (two stand-in
+ *               models give two different weights, each equal to the model's own mass), never the old constant
+ *   SHIELDRES   a status click whose purpose is its move RESULT, at a foe whose only click is a holding Protect: UNTESTED
+ *               (every world skipped), never read live off the #509 residual
+ *   BENCH       in live play the alternative worlds put every unrevealed sheet member on the bench
  *
  * RED, unless --no-red: re-runs itself under each GATE_BREAK and REQUIRES the named clause to fail:
  *   anytrue -> IMMUNE, softhard -> IMMUNE, nopartner -> PARTNER, pairany -> DISJOINT, norep -> REACH, exec -> EXEC,
- *   dice -> DICE, short -> TALL, shieldcounts -> STATUSED, fullheal -> HEAL, megapass -> MEGA, secfree -> SEC,
- *   shieldskipall -> SHIELDFAIL, parity -> PARITY, twovalued -> UNKNOWN.
+ *   dice -> DICE, short -> TALL, shieldcounts -> SHIELDRES (was STATUSED until 2026-09-26: a status click is now read on the board), fullheal -> HEAL, megapass -> MEGA, secfree -> SEC,
+ *   shieldskipall -> SHIELDFAIL, parity -> PARITY, twovalued -> UNKNOWN, purposeresult -> FAKEOUT and ENCORE,
+ *   flinchany -> FAKEOUT, softconst -> WEIGHT, benchone -> BENCH.
  */
 'use strict';
 require('../arena/env.js');
@@ -476,6 +491,177 @@ if (!immune) cannot('no derived (move, immune species, plain species) triple pas
   console.log(`  PARITY: ${opts - missing}/${opts} opposing options meet both the pinned and the free dice`);
 }
 
+/* ================= THE TIERED GATES (2026-09-26, Will): always banned (removed) / mostly banned (weighted) ================= */
+const BSF = require('../doduo/board_state.frozen.js');
+const secsOf = m => (m.secondaries || (m.secondary ? [m.secondary] : [])).filter(Boolean);
+/* one engine step from S with both joints given (side A's and side B's options), the copy returned */
+function stepOnce(S, jA, jB, seed) { const T = API.clone(S); API.stepInPlace(T, jA, jB, M.midEventDice({ seed: seed || 5, reset: false })); return T; }
+const resOf = m => (m ? (m._mvResLast !== undefined ? m._mvResLast : m._mvRes) : undefined);
+
+/* ---------- FAKEOUT: a flinch move's PURPOSE is the flinch ---------- */
+{
+  /* the flinch moves, read off the dex independently of solver/mag/purpose.js (a damaging move whose guaranteed
+   * secondary is a flinch), so a break of purpose.js cannot empty the fixture */
+  const FL = MOVES.filter(m => (m.category === 'Physical' || m.category === 'Special') && m.target === 'normal' && secsOf(m).some(s => s.chance === 100 && s.volatileStatus === 'flinch'));
+  /* the abilities that refuse a flinch, asked of the ability's own handler (Dex.forFormat), never named */
+  const ABIL = D.abilities.all().filter(X.legal).sort(byId);
+  const refusesFlinch = a => { try { return typeof a.onTryAddVolatile === 'function' && a.onTryAddVolatile.call({}, { id: 'flinch' }, {}) === null; } catch (e) { return false; } };
+  const UNFL = ABIL.filter(refusesFlinch);
+  if (!FL.length) cannot('no damaging move with a guaranteed flinch in this regulation');
+  if (!UNFL.length) cannot('no ability that refuses a flinch in this regulation');
+  let done = false;
+  for (const fo of FL) for (const ua of UNFL) {
+    if (done) break;
+    const hits = s => D.getImmunity(fo.type, s.types) && D.getImmunity(weak.type, s.types);
+    const F = SPECIES.find(s => hits(s) && Object.values(s.abilities || {}).map(X.toID).includes(ua.id));
+    const U = quietSpecies.find(s => s !== F && D.getImmunity(weak.type, s.types));
+    const P = quietSpecies.find(s => ![F, U].includes(s) && D.getImmunity(weak.type, s.types));
+    const N2 = quietSpecies.find(s => ![F, U, P].includes(s) && hits(s) && s.baseStats.hp >= 60);
+    const B3 = quietSpecies.find(s => ![F, U, P, N2].includes(s) && hits(s));
+    const G = quietSpecies.find(s => ![F, U, P, N2, B3].includes(s) && !D.getImmunity(fo.type, s.types));
+    if (!F || !U || !P || !N2 || !B3 || !G) continue;
+    const foeF = () => { const b = body(F, FOE); b.ability = ua.id; return b; };
+    /* PREMISE (the engine, one plain step): the flinch move lands on the refusing body and does NOT stop its attack; on
+     * the plain body it does; into the immune-typed body it does not land at all */
+    const pre = (foe) => {
+      const S = battle([body(U, [fo, stallMove]), body(P, [stallMove])], [foe, body(N2, FOE)]);
+      const la = API.legalActions(S, 'A'), lb = API.legalActions(S, 'B');
+      const a = mvOpt(la, 0, fo.id, 1), b = mvOpt(lb, 0, weak.id, 1);
+      if (!a || !b) return null;
+      const T = stepOnce(S, [a, PR.PASS], [b, PR.PASS]);
+      return { mine: resOf(T.actA[0]), theirs: resOf(T.actB[0]) };
+    };
+    const pF = pre(foeF()), pN = pre(body(N2, FOE)), pG = pre(body(G, FOE));
+    if (!pF || !pN || !pG || pF.mine !== true || pF.theirs !== true || pN.mine !== true || pN.theirs === true || pG.mine === true) continue;
+    /* the board: my partner ALSO knows the flinch move (so a flinch landed by the partner must not be credited to me), and
+     * the foes have a bench whose body the move would hit and flinch-able — a switch-in still cannot be stopped */
+    const S1 = battle([body(U, [fo, stallMove]), body(P, [fo, stallMove])], [foeF(), body(N2, FOE), body(B3, FOE)]);
+    const p1 = pos(S1);
+    const vF = MG.verdict(p1, 0, mvOpt(p1.la, 0, fo.id, 1)), vN = MG.verdict(p1, 0, mvOpt(p1.la, 0, fo.id, 2));
+    ok('FAKEOUT', vF.v === 'dead', `${fo.id} into a ${ua.id} ${F.id} with a flinchable bench: expected dead (always banned), got ${vF.v} (${vF.why || ''})`);
+    ok('FAKEOUT', vN.v === 'live', `${fo.id} into a flinchable ${N2.id}: expected live (kept), got ${vN.v} (${vN.why || ''})`);
+    /* the type-immune target with a bench the move would hit: the 2026-09-25 gate said SOFT (a switch-in takes the hit);
+     * the purpose says DEAD (a switch-in is never flinched) */
+    const S2 = battle([body(U, [fo, stallMove]), body(P, [fo, stallMove])], [body(G, FOE), body(N2, FOE), body(B3, FOE)]);
+    const p2 = pos(S2);
+    const vG = MG.verdict(p2, 0, mvOpt(p2.la, 0, fo.id, 1));
+    ok('FAKEOUT', vG.v === 'dead', `${fo.id} into a type-immune ${G.id} with a bench the move would hit: expected dead, got ${vG.v} (${vG.why || ''})`);
+    console.log(`  FAKEOUT: ${U.id} ${fo.id} into a ${ua.id} ${F.id} -> ${vF.v}${vF.v_result ? ' (move result alone: ' + vF.v_result + ')' : ''}; into ${G.id} [${G.types}] -> ${vG.v}${vG.v_result ? ' (move result alone: ' + vG.v_result + ')' : ''}; into ${N2.id} -> ${vN.v}`);
+    done = true;
+  }
+  if (!done) cannot('no derived (flinch move, flinch-refusing ability, species) set passed its premise');
+}
+
+/* ---------- ENCORE: Prankster Encore into a Dark type (Will's example) ---------- */
+{
+  const enc = D.moves.get('encore'), prank = D.abilities.get('prankster');      // Will's example; asserted legal before use
+  if (!X.legal(enc) || !X.legal(prank)) cannot('Encore or Prankster is not in this regulation');
+  const U = SPECIES.find(s => Object.values(s.abilities || {}).map(X.toID).includes(prank.id) && D.getImmunity(weak.type, s.types));
+  const darkQ = quietSpecies.filter(s => s.types.includes('Dark') && D.getImmunity(weak.type, s.types));
+  const plainQ = quietSpecies.filter(s => !s.types.includes('Dark') && D.getImmunity(weak.type, s.types) && s !== U);
+  let done = false;
+  for (const Dk of darkQ) {
+    const P = plainQ[0], N = plainQ[1], B3 = plainQ[2];
+    if (!U || !P || !N || !B3) break;
+    const mk = (lastDk, lastN) => {
+      const a = body(U, [enc, stallMove]); a.ability = prank.id;
+      const d = body(Dk, FOE), n = body(N, FOE), b3 = body(B3, FOE);
+      if (lastDk) d._lastMove = weak.id;
+      if (lastN) n._lastMove = weak.id;
+      return battle([a, body(P, [stallMove])], [d, n, b3]);
+    };
+    /* PREMISE, read on the BOARD (engine/board_state.js readMedi's encore leaf on the target), not on the move result —
+     * the move result reads success on the Dark target here where the authority reads failure (docs/ENGINE.md,
+     * 2026-09-26): on the plain foe that has moved, the Encore lands; on the same foe with no last move (a fresh
+     * switch-in) it does not; on the Dark foe that has moved it does not (the Prankster refusal) */
+    const pre = (S, tgt) => { const la = API.legalActions(S, 'A'), lb = API.legalActions(S, 'B');
+      const a = mvOpt(la, 0, enc.id, tgt); const b = [mvOpt(lb, 0, weak.id, 1), mvOpt(lb, 1, weak.id, 1)];
+      if (!a || !b[0] || !b[1]) return undefined;
+      const T = stepOnce(S, [a, PR.PASS], b);
+      return !!((BSF.readMedi(T, { id: X.toID, fails: {} }).sides.p2.active[tgt - 1] || {}).vol || {}).encore; };
+    if (pre(mk(true, true), 2) !== true || pre(mk(true, false), 2) !== false || pre(mk(true, true), 1) !== false) continue;
+    const S = mk(true, true);
+    const p = pos(S);
+    const vD = MG.verdict(p, 0, mvOpt(p.la, 0, enc.id, 1)), vN = MG.verdict(p, 0, mvOpt(p.la, 0, enc.id, 2));
+    ok('ENCORE', vD.v === 'dead', `Prankster ${enc.id} into a Dark ${Dk.id} with a bench: expected dead (always banned), got ${vD.v} (${vD.why || ''})`);
+    ok('ENCORE', vN.v === 'live', `Prankster ${enc.id} into a ${N.id} that has already moved: expected live (kept), got ${vN.v} (${vN.why || ''})`);
+    console.log(`  ENCORE: ${U.id} (${prank.id}) ${enc.id} into a Dark ${Dk.id} with ${B3.id} on the bench -> ${vD.v}${vD.v_result ? ' (move result alone: ' + vD.v_result + ')' : ''}; into a ${N.id} that has moved -> ${vN.v}`);
+    done = true;
+    break;
+  }
+  if (!done) cannot('no derived Prankster / Dark / plain fixture passed its premise');
+}
+
+/* ---------- SHIELDRES: a held shield is still skipped for a click whose purpose is its move RESULT ---------- */
+{
+  /* Since the tiered gates, a status move that applies a status, a stat change or a volatile the board reads is judged on
+   * the BOARD (purpose 'effect'), so the #509 residual (a shielded status move reads success) cannot make it look live —
+   * which is why STATUSED no longer sees `shieldcounts`. A status move aimed at a foe whose purpose is still its move
+   * result (no status, no stat change, no board-read volatile) keeps the old exposure: at a foe whose only click is a
+   * Protect that holds, every world must be skipped (UNTESTED), never read as a success. Derived by property. */
+  const PU = require('../mag/purpose.js');
+  const U = quietSpecies[30], Pn = quietSpecies[31], N = quietSpecies[32], N2 = quietSpecies[33];
+  const mk = (foeMoves) => battle([body(U, [stallMove]), body(Pn, [stallMove])], [body(N, foeMoves), body(N2, [weak])]);
+  const p0 = pos(mk(FOE));
+  const rv = p0.readVol();
+  let done = false;
+  for (const sm of MOVES.filter(m => m.category === 'Status' && m.target === 'normal' && m.flags.protect && !m.onTry && !m.onTryHit && (m.accuracy === true || m.accuracy >= 90)
+    && PU.purposeOf(m.id, rv) === 'result')) {
+    const S0 = battle([body(U, [sm, stallMove]), body(Pn, [stallMove])], [body(N, [weak]), body(N2, [weak])]);
+    const o0 = mvOpt(API.legalActions(S0, 'A'), 0, sm.id, 1);
+    if (!o0 || premise(S0, 0, o0) !== true) continue;                          // it works on a foe that does not hide
+    const S = battle([body(U, [sm, stallMove]), body(Pn, [stallMove])], [body(N, [stallMove]), body(N2, [weak])]);
+    const p = pos(S);
+    const v = MG.verdict(p, 0, mvOpt(p.la, 0, sm.id, 1));
+    ok('SHIELDRES', v.v === 'untested', `${sm.id} (purpose: its move result) at a foe whose only click is a holding ${stallMove.id}: expected untested, got ${v.v} (${v.why || ''})`);
+    console.log(`  SHIELDRES: ${sm.id} at a foe that can only ${stallMove.id} -> ${v.v}`);
+    done = true;
+    break;
+  }
+  if (!done) cannot('no result-purpose status move passed its premise');
+}
+
+/* ---------- WEIGHT: a mostly-banned click is weighted by the switch model, not a constant ---------- */
+{
+  const { mv, F, N, U, P } = immune;
+  const B3 = quietSpecies.find(s => ![U, P, F, N].includes(s) && D.getImmunity(mv.type, s.types));
+  const S1 = battle([body(U, [mv, stallMove]), body(P, [stallMove])], [body(F, FOE), body(N, FOE), body(B3, FOE)]);
+  const p1 = pos(S1);
+  const v = MG.verdict(p1, 0, mvOpt(p1.la, 0, mv.id, 1));
+  /* a stand-in switch model: every opposing joint scores 1, a joint in which the immune foe's slot switches scores z */
+  const stub = z => ({ scoreJoints: (ctx, W, side, viewer, lo) => Float64Array.from(lo.joint.map(j => (j[0] && j[0].kind === 'switch' ? z : 1))) });
+  const V2m = require('../doduo/v2.js');
+  const wOf = z => { const V = V2m.create(API, { switchPA: stub(z) }); const d = V.oppDist({}, S1, 'B'); return { w: V.softWeight(v, d, p1), d, V }; };
+  const a = wOf(4), b = wOf(0.05);
+  /* the expected weight, computed here from the stand-in model: its mass on joints whose slot-0 option is a rescuing switch */
+  const expect = z => { let num = 0, den = 0; for (const j of p1.lo.joint) { const s = j[0] && j[0].kind === 'switch' ? z : 1; den += s; if ((v.rescue || []).some(r => r === '0:' + PR.optKey(j[0]) || r === '0:any') && j[0].kind === 'switch') num += s; } return num / den; };
+  ok('WEIGHT', v.v === 'soft' && (v.rescue || []).length > 0, `the immune click with a bench: expected soft with a rescue list, got ${v.v} rescue ${JSON.stringify(v.rescue)}`);
+  ok('WEIGHT', Math.abs(a.w - Math.max(a.V.FLOOR, expect(4))) < 1e-9 && Math.abs(b.w - Math.max(b.V.FLOOR, expect(0.05))) < 1e-9 && a.w > b.w && a.w < 1 && b.w > a.V.FLOOR,
+    `weights ${a.w} / ${b.w}, expected ${expect(4)} / ${expect(0.05)} from the two switch models (floor ${a.V.FLOOR})`);
+  console.log(`  WEIGHT: ${mv.id} into ${F.id} (soft, rescued by ${(v.rescue || []).join(' ')}) -> weight ${a.w.toFixed(4)} when switching is likely, ${b.w.toFixed(4)} when it is not`);
+}
+
+/* ---------- BENCH: the alternative worlds put every possible switch-in on the bench ---------- */
+{
+  const T = require('../arena/teams.js');
+  const L = T.loadGames({ n: 3, seed: 11, M });
+  if (L.refused || !L.games.length) cannot('no human game to stage the hidden-bench fixture: ' + (L.refused || 'none built'));
+  const R = require('../miltank/rollout.js').create(API, { buildBody: T.buildBody });
+  const PA0 = require('../miltank/prior_adapter.js').create(API, null);
+  const V = require('../doduo/v2.js').create(API, { rollout: R });
+  const W2 = V.wrap(PA0);
+  let games = 0, full = 0, cands = 0, cov = 0;
+  for (const G of L.games) {
+    const a = T.buildTeam(M, G, 'p1'), b = T.buildTeam(M, G, 'p2');
+    const S = API.newBattle(a.team, b.team, { rng: API.makeRng(3) });
+    const wd = W2.gateWorld(PA0.newGame(G), S, 'A', 'A');
+    games++; cands += wd.cand.length; cov += wd.covered.length;
+    if (wd.cand.length >= 3 && wd.covered.length === wd.cand.length) full++;
+  }
+  ok('BENCH', games > 0 && full === games, `every unrevealed sheet member stood on the bench in some world in ${full} of ${games} positions (${cov} of ${cands} candidates)`);
+  console.log(`  BENCH: ${cov}/${cands} unrevealed sheet members covered by the alternative worlds over ${games} turn-1 positions`);
+}
+
 /* ---------- FROZEN ---------- */
 {
   const rc = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'doduo', 'board_state.frozen.json'), 'utf8'));
@@ -488,7 +674,8 @@ const brk = probe.BROKEN || MG.BROKEN || DG.BROKEN;
 console.log('test-gates: ' + (checks - fails) + '/' + checks + ' checks' + (brk ? '  [BREAK ' + brk + ']' : '') + '  failed clauses: ' + ([...failed].join(',') || 'none'));
 
 if (!NO_RED && !brk) {
-  const need = [['anytrue', 'IMMUNE'], ['softhard', 'IMMUNE'], ['nopartner', 'PARTNER'], ['pairany', 'DISJOINT'], ['norep', 'REACH'], ['exec', 'EXEC'], ['dice', 'DICE'], ['short', 'TALL'], ['shieldcounts', 'STATUSED'], ['fullheal', 'HEAL'], ['megapass', 'MEGA'], ['secfree', 'SEC'], ['shieldskipall', 'SHIELDFAIL'], ['parity', 'PARITY'], ['twovalued', 'UNKNOWN']];
+  const need = [['anytrue', 'IMMUNE'], ['softhard', 'IMMUNE'], ['nopartner', 'PARTNER'], ['pairany', 'DISJOINT'], ['norep', 'REACH'], ['exec', 'EXEC'], ['dice', 'DICE'], ['short', 'TALL'], ['shieldcounts', 'SHIELDRES'], ['fullheal', 'HEAL'], ['megapass', 'MEGA'], ['secfree', 'SEC'], ['shieldskipall', 'SHIELDFAIL'], ['parity', 'PARITY'], ['twovalued', 'UNKNOWN'],
+    ['purposeresult', 'FAKEOUT'], ['purposeresult', 'ENCORE'], ['flinchany', 'FAKEOUT'], ['softconst', 'WEIGHT'], ['benchone', 'BENCH']];
   let blind = 0;
   for (const [v, clause] of need) {
     const res = cp.spawnSync(process.execPath, [__filename, '--no-red'], { env: Object.assign({}, process.env, { GATE_BREAK: v }), encoding: 'utf8' });

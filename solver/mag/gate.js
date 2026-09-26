@@ -5,6 +5,11 @@
  * only while the opponent keeps its current body in. DODUO (solver/doduo/) scores what survives, and carries the
  * PAIR-level gate for combinations that are futile only together.
  *
+ * TIERED, 2026-09-26 (Will): 'dead' is ALWAYS BANNED (no branch — the target staying or any switch-in — achieves the
+ * click's PURPOSE, solver/mag/purpose.js) and is removed; 'soft' is MOSTLY BANNED (futile against the body in now,
+ * achieved only on a switch) and is weighted by the probability of a rescuing switch under the human switch model
+ * (solver/doduo/v2.js), not removed. See verdict() below.
+ *
  *   const G = require('./solver/mag/gate.js').create(API, { probe })
  *   G.verdict(pos, k, opt)  -> { v: 'live'|'soft'|'dead'|'untested'|'na', inf, worlds, why }
  *   G.slotVerdicts(pos)     -> [ Map(optKey -> verdict), Map(...) ]   every option of both of `pos.side`'s slots
@@ -39,11 +44,13 @@
  */
 'use strict';
 const P = require('./probe.js');
+const PU = require('./purpose.js');
+const DEX = () => require('../human/dex.js').D;
 const BREAK = (typeof process !== 'undefined' && process.env && process.env.GATE_BREAK) || '';
 
 function create(API, deps) {
   deps = deps || {};
-  const COUNTERS = { verdicts: 0, live: 0, soft: 0, dead: 0, untested: 0, na: 0, budgetStops: 0, altRescued: 0, uninformativeWorlds: 0, shieldWorlds: 0 };
+  const COUNTERS = { verdicts: 0, live: 0, soft: 0, dead: 0, untested: 0, na: 0, budgetStops: 0, altRescued: 0, uninformativeWorlds: 0, shieldWorlds: 0, purposeChanged: 0 };
 
   /* my partner's options that can stand beside `a` in one legal joint */
   function partners(pos, k, a) {
@@ -71,55 +78,124 @@ function create(API, deps) {
     return out;
   }
 
+  /* THE PURPOSE, NOT THE RESULT (2026-09-26, Will's tiered gates). A world counts as a success only if the click's
+   * PURPOSE was achieved there (solver/mag/purpose.js): the engine's move result for most moves, and for a flinch move
+   * the flinch itself. So a Fake Out into a body that cannot flinch fails in every world, and a switch-in can never
+   * rescue it (a switch-in has already spent its action on the switch): ALWAYS BANNED. The worlds are unchanged.
+   *
+   * TWO TIERS, one set of worlds:
+   *   dead ("always banned")   no world achieves the purpose — the target staying, or ANY switch-in the opponent has
+   *                            (every option of each opposing slot, the switches included, is in the cover; in live
+   *                            play the hidden back line is re-checked in alternative worlds that between them put
+   *                            every unrevealed sheet member on the bench — solver/doduo/v2.js). REMOVED.
+   *   soft ("mostly banned")   achieved only in worlds where the opponent switched. The verdict carries `rescue`: the
+   *                            switch options (slot:option) present in a rescuing world ('slot:any' when the rescue
+   *                            came from another draw of the hidden back line), so DODUO v2 weights the click by the
+   *                            probability that the opponent makes one of them under the human switch model.
+   * `v_result` is the verdict the move RESULT alone gives (the 2026-09-25 gate), kept where it differs, so the change
+   * the purpose makes is counted rather than asserted. */
+  /* did the click's TARGET(S) end the turn differently from the pass counterfactual? Only the bodies the move is aimed at
+   * are compared (the user's own leaves — its PP, its last move — differ whenever it moves at all). */
+  function targetDiff(pos, k, a, r1, r0) {
+    if (!r1 || !r0 || r1.board == null || r0.board == null) return false;
+    const b1 = JSON.parse(r1.board), b0 = JSON.parse(r0.board);
+    const mine = pos.side === 'A' ? 'p1' : 'p2', foe = pos.side === 'A' ? 'p2' : 'p1';
+    let at;
+    if (a.target > 0) at = [[foe, a.target - 1]];
+    else if (a.target != null && a.target < 0) at = [[mine, -a.target - 1]];
+    else {
+      const t = (DEX().moves.get(a.move) || {}).target;
+      at = [[foe, 0], [foe, 1]];
+      if (t === 'allAdjacent') at.push([mine, 1 - k]);
+    }
+    const pick = (b, sd, i) => JSON.stringify(((b.sides[sd] || {}).active || [])[i] || null);
+    return at.some(([sd, i]) => pick(b1, sd, i) !== pick(b0, sd, i));
+  }
+
+  const purposeAt = (pos, a) => PU.purposeOf(a.move, pos.readVol ? pos.readVol() : null);
+  /* was click `a` (slot k)'s PURPOSE achieved in the world (j, oj, di[, alternative world wi])? r = that world's plain
+   * result. 'effect' (a status move aimed at a body): the move result AND the target's turn-end board differing from the
+   * same world with this slot passing (a mega click's counterfactual still mega-evolves: probe.js PASS_MEGA). */
+  function achievedWorld(pos, k, a, purpose, r, j, oj, di, wi) {
+    if (purpose !== 'effect') return PU.achieved(purpose, r, k);
+    if (!r.ok[k]) return false;
+    const passJ = j.map((x, i) => (i === k ? (x && x.mega ? P.PASS_MEGA : P.PASS) : x));
+    const r1 = pos.run(j, oj, di, { board: true, world: wi | 0 }), r0 = pos.run(passJ, oj, di, { board: true, world: wi | 0 });
+    return targetDiff(pos, k, a, r1, r0);
+  }
+  /* the same question for ONE given pair of joints (the held-out eval: the human's click against the opponent's actual
+   * joint) -> { exec, achieved, result } */
+  function achievedAgainst(pos, k, jS, jO, di) {
+    const a = jS[k];
+    const r = pos.run(jS, jO, di | 0);
+    if (!r.exec[k]) return { exec: false, achieved: false, result: false };
+    return { exec: true, achieved: achievedWorld(pos, k, a, purposeAt(pos, a), r, jS, jO, di | 0, 0), result: !!r.ok[k] };
+  }
+
   function verdict(pos, k, a, o) {
     o = o || {};
     pos.mag = pos.mag || new Map();
     const key = k + '@' + P.optKey(a);
     if (pos.mag.has(key)) return pos.mag.get(key);
-    const done = v => { COUNTERS.verdicts++; COUNTERS[v.v]++; pos.mag.set(key, v); return v; };
+    const done = v => { COUNTERS.verdicts++; COUNTERS[v.v]++; if (v.v_result) COUNTERS.purposeChanged++; pos.mag.set(key, v); return v; };
     if (!P.isMove(a) || a.move === 'struggle') return done({ v: 'na' });
     const B = partners(pos, k, a);
     if (!B.length) return done({ v: 'untested', why: 'no partner option fits beside it' });
+    const purpose = purposeAt(pos, a);
+    const achievedIn = (r, j, oj, di, wi) => achievedWorld(pos, k, a, purpose, r, j, oj, di, wi);
     const W = worlds(pos, k, a, B);
-    let inf = 0, succSw = false, swInf = 0, n = 0;
+    const st = { inf: 0, swInf: 0, n: 0 };
+    /* p: the purpose; r: the move result alone (read off the same cached engine answers) */
+    const T = { p: { live: false, succSw: false, rescue: new Set() }, r: { live: false, succSw: false } };
+    const addRescue = (wo, set) => { wo.forEach((x, s) => { if (x && x.kind === 'switch') set.add(s + ':' + P.optKey(x)); }); };
     for (const w of W) {
-      if (P.over(pos, o)) { COUNTERS.budgetStops++; return done({ v: 'untested', why: 'step budget', worlds: n, inf }); }
-      n++;
+      if (T.p.live && (purpose === 'result' || T.r.live)) break;
+      if (P.over(pos, o)) { COUNTERS.budgetStops++; return done({ v: 'untested', why: 'step budget', worlds: st.n, inf: st.inf, purpose }); }
+      st.n++;
       const j = k === 0 ? [a, w.b] : [w.b, a];
-      /* A WORLD IN WHICH THE TARGET SHIELDED SAYS NOTHING ABOUT THE CLICK. Protect blocks everything, so it is no
-       * evidence either way — and MEDICHAM's move result for a STATUS move blocked by a shield reads success where the
-       * authority's is null (the known residual of ROADMAP #509, docs/ENGINE.md), which would make every status click
-       * at a Protect user look live. The world is skipped, as a world where the body never acted is. */
+      /* A WORLD IN WHICH THE TARGET SHIELDED SAYS NOTHING ABOUT THE CLICK (probe.js shieldHeld; the #509 residual
+       * makes a blocked status click read as a success). Skipped only when the shield HELD, by its own move result. */
       const tgtAct = a.target == null ? null : a.target > 0 ? w.o[a.target - 1] : (-a.target - 1 === 1 - k ? w.b : null);
       if (P.isShield(tgtAct) && BREAK === 'shieldskipall') { COUNTERS.shieldWorlds++; continue; }
       const r = pos.run(j, w.o, w.di);
-      /* A WORLD IN WHICH THE TARGET'S SHIELD HELD SAYS NOTHING ABOUT THE CLICK (probe.js shieldHeld; the #509 residual
-       * makes a blocked status click read as a success). Skipped only when the shield HELD, by its own move result: a
-       * shield that failed on a streak roll is no shield (the first version skipped every shield world). */
       if (BREAK !== 'shieldcounts' && P.shieldHeld(k, a, w.b, w.o, r)) { COUNTERS.shieldWorlds++; continue; }
       if (!r.exec[k]) { COUNTERS.uninformativeWorlds++; continue; }
-      inf++;
+      st.inf++;
       const sw = P.hasSwitch(w.o);
-      if (sw) swInf++;
-      if (r.ok[k]) {
-        if (!sw) return done({ v: 'live', worlds: n, inf });
-        succSw = true;
-      }
+      if (sw) st.swInf++;
+      if ((!T.p.live || sw) && achievedIn(r, j, w.o, w.di, 0)) { if (!sw) T.p.live = true; else { T.p.succSw = true; addRescue(w.o, T.p.rescue); } }
+      if (r.ok[k]) { if (!sw) T.r.live = true; else T.r.succSw = true; }
     }
-    if (!inf) return done({ v: 'untested', why: 'no informative world', worlds: n, inf });
-    if (succSw) return done({ v: BREAK === 'softhard' ? 'dead' : 'soft', worlds: n, inf, why: 'succeeds only when the opponent switches' });
-    /* no success anywhere. If the opponent could switch but no switch world was informative, hardness is unshown. */
+    if (!st.inf) return done({ v: 'untested', why: 'no informative world', worlds: st.n, inf: st.inf, purpose });
     const oppCanSwitch = pos.lo.slots.some(s => s && s.options.some(x => x.kind === 'switch'));
-    if (oppCanSwitch && !swInf) return done({ v: 'soft', worlds: n, inf, why: 'no informative switch world; not shown dead against a switch-in' });
     /* the hidden back line: re-check the switch worlds in the alternative worlds */
-    for (let wi = 1; wi < pos.worlds; wi++) {
-      for (const w of W) {
-        if (!P.hasSwitch(w.o)) continue;
-        const r = pos.run(k === 0 ? [a, w.b] : [w.b, a], w.o, w.di, { world: wi });
-        if (r.exec[k] && r.ok[k]) { COUNTERS.altRescued++; return done({ v: 'soft', worlds: n, inf, why: 'a switch-in from another draw of the hidden back line rescues it' }); }
+    const altRescue = (pred, set) => {
+      for (let wi = 1; wi < pos.worlds; wi++) {
+        for (const w of W) {
+          if (!P.hasSwitch(w.o)) continue;
+          const j = k === 0 ? [a, w.b] : [w.b, a];
+          const r = pos.run(j, w.o, w.di, { world: wi });
+          if (r.exec[k] && pred(r, j, w.o, w.di, wi)) { if (set) w.o.forEach((x, s) => { if (x && x.kind === 'switch') set.add(s + ':any'); }); return true; }
+        }
       }
-    }
-    return done({ v: 'dead', worlds: n, inf, why: 'failed in every informative world' });
+      return false;
+    };
+    const classify = (t, pred, set) => {
+      if (t.live) return { v: 'live' };
+      if (t.succSw) return { v: BREAK === 'softhard' ? 'dead' : 'soft', why: 'achieves its purpose only when the opponent switches' };
+      /* no success anywhere. If the opponent could switch but no switch world was informative, hardness is unshown. */
+      if (oppCanSwitch && !st.swInf) {
+        if (set) pos.lo.slots.forEach((sl, s) => { if (sl && sl.options.some(x => x.kind === 'switch')) set.add(s + ':any'); });
+        return { v: 'soft', why: 'no informative switch world; not shown dead against a switch-in' };
+      }
+      if (altRescue(pred, set)) { if (set) COUNTERS.altRescued++; return { v: 'soft', why: 'a switch-in from another draw of the hidden back line rescues it' }; }
+      return { v: 'dead', why: purpose === 'flinch' ? 'no world flinches a body that had not yet acted' : 'failed in every informative world' };
+    };
+    const vp = classify(T.p, achievedIn, T.p.rescue);
+    const out = Object.assign({ worlds: st.n, inf: st.inf, purpose }, vp);
+    if (vp.v === 'soft') out.rescue = [...T.p.rescue];
+    if (purpose !== 'result') { const vr = classify(T.r, r => r.ok[k], null).v; if (vr !== vp.v) out.v_result = vr; }
+    return done(out);
   }
 
   function slotVerdicts(pos, o) {
@@ -132,7 +208,7 @@ function create(API, deps) {
     });
   }
 
-  return { COUNTERS, verdict, slotVerdicts, partners, worlds, BROKEN: BREAK || null };
+  return { COUNTERS, verdict, slotVerdicts, partners, worlds, achievedAgainst, purposeAt, BROKEN: BREAK || null };
 }
 
 module.exports = { create };

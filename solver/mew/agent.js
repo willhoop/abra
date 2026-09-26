@@ -44,7 +44,7 @@ function create(API, opts) {
   const MTmod = require('../miltank/search.js');
   const coinOf = seed => API.M.rngStreams({ seed }).any;
   const COUNTERS = { fallbacks: 0, fallback_errors: [], decisions: 0, searched: 0, forced: 0, gates: {} };
-  const GATE_FILES = ['solver/mag/probe.js', 'solver/mag/gate.js', 'solver/doduo/gate.js', 'solver/doduo/v2.js', 'solver/doduo/board_state.frozen.js'];
+  const GATE_FILES = ['solver/mag/probe.js', 'solver/mag/purpose.js', 'solver/mag/gate.js', 'solver/doduo/gate.js', 'solver/doduo/v2.js', 'solver/doduo/board_state.frozen.js'];
   const LOADED = new Map();
   const XW = require('../xatu/worlds.js').create(API, { R });
 
@@ -58,7 +58,7 @@ function create(API, opts) {
     if (spec.gates) {
       const g = spec.gates === true ? {} : spec.gates;
       const need = spec.kind === 'miltank' ? { all: Math.max(spec.k1 || 8, spec.k2 || 8), switch: spec.reserveSwitch == null ? 2 : spec.reserveSwitch, mega: 1 } : { all: 1 };
-      const V2 = require('../doduo/v2.js').create(API, { rollout: R, soft: g.soft, maxSteps: g.maxSteps, maxMs: g.maxMs, need });
+      const V2 = require('../doduo/v2.js').create(API, { rollout: R, soft: g.soft, floor: g.floor, switchModel: g.switchModel, maxSteps: g.maxSteps, maxMs: g.maxMs, need });
       PA = V2.wrap(PA);
       COUNTERS.gates[spec.name] = V2.COUNTERS;
       const h = crypto.createHash('sha256');
