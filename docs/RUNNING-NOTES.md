@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [Unreleased] — 2026-09-27 — **CHOMP v1: a preview scorer learned from simulated outcomes passes gate (a); gate (b) not read (branch only)**
+- **What changed.** New `solver/chomp/v1/` (prereg, targeted-sample generator, engine matchup features, rows, `train.py`, JS scorer, `chomp1.js` with SLOWKING and the bo3 adjustment, readers), arena arm `chomp1` (`solver/chomp/arms.js`), a spec `preview` field in `solver/mew/play.js --mode match`, ROTOM's `--preview chomp` hook serves v1 (`CHOMP_VERSION=v0` for v0) and passes the series. `solver/tests/test-chomp1.js`. No engine byte moved.
+- **Measured.** Gate (a), release `eaa5becc54eb`: held-out Δlog-loss vs the human-modal-bring baseline **−0.0203 [−0.0309, −0.0108]**, n = 3,119 (`solver/chomp/v1/model/chomp1.metrics.json`); human-only +0.0022 [−0.0101, +0.0147]. Gate (b) NOT READ (screen stopped at 26 of 200 games).
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none until gate (b) is read; then MODELS (CHOMP entry).
+
 ## [Unreleased] — 2026-09-26 — **CHOMP v0 merged onto main as the base for CHOMP v1 (branch only)**
 - **What changed.** `solver/chomp/` v0, ROTOM `--preview chomp`, arena `--preview-x/-y`, `--plan`, `--blind`, `solver/tests/test-chomp.js` merged from `1e1f3fa3`. Conflicts in `solver/rotom/*.js` and `solver/arena/arena.js` keep main's clock and gen5 code and add the preview hook. No engine byte moved.
 - **Measured.** NO FIGURE. test-chomp 36/36, test-rotom 105/105, test-arena 15/15 on the merged tree.

@@ -8,6 +8,14 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-27
 
+### CHOMP v1 — learned preview scorer; gate (a) PASS, gate (b) not read (branch worktree-agent-a1d0f3564f3c6d52c, unmerged)
+- `solver/chomp/v1/`: a cell scorer learned from 25,008 targeted DODUO-greedy games with varied brings, the gen5 self-play
+  corpus and human games (engine matchup aggregates + species bring/lead values, antisymmetric); SLOWKING LP; bo3 adjustment
+  from the opponent's last game. Pre-registered (`solver/chomp/v1/preregistration.json`). Release `eaa5becc54eb`.
+- Gate (a) PASS: held-out Δlog-loss vs the human-modal-bring baseline −0.0203 [−0.0309, −0.0108]; RED on a shuffled-label break.
+- Gate (b) (honest gen5 arena, CHOMP vs human-modal preview) NOT READ: the screen was stopped at 26 of 200 games at Will's
+  stopping point. Commands to finish: `docs/_reports/2026-09-27-chomp-v1.md` §5. test-chomp1 32/32, 6 breaks red.
+
 ### ROTOM adaptive clock; lookahead options screened at 2 s (abra/regmc 1.24.0)
 - Adaptive (target 4.5 s: stop when clear, run to 2x target when close, capped by the bank) vs fixed 5 s, gen5, honest:
   SPRT **H0 at 748 games, 0.491 [0.455, 0.526]**, 3.63 s vs 4.72 s per searched decision, 0 timeouts. Same strength
