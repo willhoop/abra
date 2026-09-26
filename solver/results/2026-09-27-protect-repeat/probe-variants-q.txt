@@ -1,0 +1,11 @@
+  positions 40 (a side-A body with the counter >= 1 and its Protect legal); repeat row among the candidates in 13
+  DODUO (ranking prior) mean mass on repeat joints: 0.106
+  passes   2: mean mix mass on repeat rows 0.123, sampled a repeat 5/40 = 0.125
+  variant base      @48 passes: repeat offered at 13/40; mix mass on repeat rows WHEN offered 0.611, sampled 8/13
+  variant quiesce   @48 passes: repeat offered at 13/40; mix mass on repeat rows WHEN offered 0.421, sampled 5/13
+  variant heuristic @48 passes: repeat offered at 13/40; mix mass on repeat rows WHEN offered 0.641, sampled 8/13
+  variant quiesceheur @48 passes: repeat offered at 13/40; mix mass on repeat rows WHEN offered 0.344, sampled 4/13
+  variant base      value gap (best repeat row − best other row, vs the solved column mix): n 13, median 0.0001, min -0.3794, max 0.0768, all [-0.3794,-0.0988,-0.0394,0,0,0,0.0001,0.0003,0.0007,0.0028,0.0099,0.0122,0.0768]
+  variant quiesce   value gap (best repeat row − best other row, vs the solved column mix): n 13, median 0, min -0.3954, max 0.1465, all [-0.3954,-0.3524,-0.0415,-0.001,-0.0001,0,0,0,0,0,0,0.0094,0.1465]
+  variant heuristic value gap (best repeat row − best other row, vs the solved column mix): n 13, median 0.0489, min -0.1348, max 0.1655, all [-0.1348,-0.0795,-0.0157,-0.0151,0,0.0189,0.0489,0.0615,0.0709,0.073,0.0853,0.1246,0.1655]
+  variant quiesceheur value gap (best repeat row − best other row, vs the solved column mix): n 13, median 0, min -0.1048, max 0.0992, all [-0.1048,-0.0981,-0.0841,-0.0411,-0.0383,-0.0256,0,0,0,0,0,0,0.0992]

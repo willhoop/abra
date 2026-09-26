@@ -1,0 +1,156 @@
+{
+ "what": "MACHAMP SPRT (solver/machamp/sprt.js)",
+ "started": "2026-09-26T13:55:15.091Z",
+ "finished": "2026-09-26T14:15:20.494Z",
+ "preregistered": {
+  "elo0": 0,
+  "elo1": 20,
+  "alpha": 0.05,
+  "beta": 0.05,
+  "max_games": 2000,
+  "unit": "pair of games on one battle seed, seats swapped",
+  "statistic": "normal-approximation GSPRT on pair scores (Fishtest)",
+  "information": "honest: hidden spreads; each decision on the decider public view with the XATU belief (solver/xatu/worlds.js)"
+ },
+ "engine_release": "eaa5becc54eb",
+ "flags": {
+  "release": "eaa5becc54eb",
+  "x": "solver/results/2026-09-27-protect-repeat/gen5-quiesce.json",
+  "y": "solver/machamp/league/gen5.json",
+  "elo0": 0,
+  "elo1": 20,
+  "alpha": 0.05,
+  "beta": 0.05,
+  "maxGames": 2000,
+  "seed": 26270,
+  "workers": 3,
+  "store": "data/team-pool-frozen-regmc",
+  "out": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\.claude\\worktrees\\agent-a8053dd83420b6ffe\\solver\\out\\protect-repeat\\s-fix-vs-gen5.json",
+  "cap": 50,
+  "info": "honest"
+ },
+ "x": {
+  "file": "solver/results/2026-09-27-protect-repeat/gen5-quiesce.json",
+  "spec": {
+   "name": "gen5-quiesce",
+   "kind": "miltank",
+   "mag": "solver/machamp/models/gen5/mag-gen5.json",
+   "doduo": "solver/machamp/models/gen5/doduo-gen5.json",
+   "pory2": "solver/machamp/models/gen5/porygon2-gen5.json",
+   "budgetMs": 1000,
+   "k1": 4,
+   "k2": 4,
+   "depth": 0,
+   "reserveSwitch": 1,
+   "quiesce": "all",
+   "flatEps": 0.001,
+   "reserveNoRepeat": true
+  },
+  "digests": {
+   "mag": "65e76caf2423b28b",
+   "doduo": "abb0b88dd573b728",
+   "pory2": "cf8ad3f7bd0d4a33"
+  }
+ },
+ "y": {
+  "file": "solver/machamp/league/gen5.json",
+  "spec": {
+   "name": "gen5",
+   "kind": "miltank",
+   "mag": "solver/machamp/models/gen5/mag-gen5.json",
+   "doduo": "solver/machamp/models/gen5/doduo-gen5.json",
+   "pory2": "solver/machamp/models/gen5/porygon2-gen5.json",
+   "budgetMs": 1000,
+   "k1": 4,
+   "k2": 4,
+   "depth": 0,
+   "reserveSwitch": 1
+  },
+  "digests": {
+   "mag": "65e76caf2423b28b",
+   "doduo": "abb0b88dd573b728",
+   "pory2": "cf8ad3f7bd0d4a33"
+  }
+ },
+ "verdict": "H0 — X is not stronger (elo0 = 0 accepted)",
+ "llr_at_stop": -2.9636360115347964,
+ "bounds": [
+  -2.9444389791664403,
+  2.9444389791664403
+ ],
+ "stop_pair_index": 96,
+ "pairs_used": 97,
+ "games_used": 194,
+ "excluded_errored_pairs": 0,
+ "games_played_total": 200,
+ "games_played_after_stop_not_counted": 6,
+ "result": {
+  "W": 81,
+  "D": 0,
+  "L": 113,
+  "score_x": 0.4175257731958763,
+  "ci95_x": [
+   0.35038949457704766,
+   0.48786494736034075
+  ],
+  "ci_caption": "Wilson 95% at a data-dependent stopping time: conditional on the stop, slightly optimistic"
+ },
+ "elo_estimate": -57.83736984190798,
+ "pool": {
+  "pool_source": {
+   "kind": "team-store",
+   "file": "data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+   "file_sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+   "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709"
+  },
+  "test_pairs": 173,
+  "cycled_ids_sha256": "113be25167d10d4a"
+ },
+ "release_stamp": {
+  "engine_release": "eaa5becc54eb",
+  "engine_release_cut": "2026-09-24T20:12:54.367Z",
+  "engine_release_cuts": 50,
+  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+  "source_digests": {
+   "engine/medicham2-browser.js": "2caee2eeabb0",
+   "engine/board.js": "c85a3b756c98",
+   "engine/rollout_leaf.js": "eacf05ff8d30",
+   "engine/position_features.js": "bb71676d3669",
+   "engine/tags.js": "13cdeb051720",
+   "engine/champions_sim.js": "8094725f52a8",
+   "data/residual-order.json": "eff160ad1c5a",
+   "data/switchin-order.json": "24a007a66b7d",
+   "engine/mc_key.js": "aaa095762671",
+   "engine/lookup.js": "17f49e5aed43",
+   "engine/set_priors.js": "f8a81445ee3a",
+   "engine/smogon_priors.js": "ebd062f756c8",
+   "engine/quality.js": "ebc37c7c9d05",
+   "engine/showdown_path.js": "46646401ede2",
+   "engine/regulation.js": "827f5138ecf5",
+   "data/move-effects.js": "f35ecd91ba86",
+   "data/ability-blocks.json": "86741fd35452",
+   "data/smogon-priors.json": "f2dc78cea6c5",
+   "data/regulations.json": "6c7c3e3dd06c",
+   "data/quality-filter.json": "042524dd1df7",
+   "data/engine-data.js": "bbc417dfae0e",
+   "data/abra-tags.js": "fc30f9a9392e",
+   "data/tags.json": "26ee107ce6a8",
+   "data/policy-weights.json": "626c1d240782",
+   "data/policy-weights-joint.json": "e2aca467ff04",
+   "data/move-priors.json": "e667fe8ab457",
+   "engine/pp.js": "30b12a4ef623",
+   "data/rollout-switch-census.json": "b8a5cee2f0a9",
+   "engine/medicham_api.js": "f0264a11558b",
+   "data/engine-data-regmc.js": "a6ad04e92d4e",
+   "data/tags-regmc.json": "ac1a00fa40ee",
+   "data/move-priors-regmc.json": "eab0c9b023df",
+   "data/move-effects-regmc.js": "8c57407e7641"
+  }
+ },
+ "worker_exits": [
+  null,
+  null,
+  null
+ ],
+ "wall_s": 1205.414
+}

@@ -1,0 +1,31 @@
+{
+ "result": "solver\\out\\protect-repeat\\s-fix-vs-gen5.json",
+ "games": 194,
+ "games_without_counter": 0,
+ "x": "solver/results/2026-09-27-protect-repeat/gen5-quiesce.json",
+ "y": "solver/machamp/league/gen5.json",
+ "arms": {
+  "x": {
+   "actions": 3299,
+   "protects": 567,
+   "failed": 59,
+   "consec": 87,
+   "consecFailed": 53,
+   "share": 0.1719,
+   "fail_rate": 0.1041,
+   "consec_share": 0.1534,
+   "consec_fail_rate": 0.6092
+  },
+  "y": {
+   "actions": 3317,
+   "protects": 541,
+   "failed": 63,
+   "consec": 84,
+   "consecFailed": 54,
+   "share": 0.1631,
+   "fail_rate": 0.1165,
+   "consec_share": 0.1553,
+   "consec_fail_rate": 0.6429
+  }
+ }
+}

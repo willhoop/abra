@@ -1,0 +1,29 @@
+{
+ "result": "solver\\out\\protect-repeat\\g-fix-vs-doduo.json",
+ "games": 200,
+ "games_without_counter": 0,
+ "arms": {
+  "x": {
+   "actions": 3197,
+   "protects": 521,
+   "failed": 41,
+   "consec": 55,
+   "consecFailed": 32,
+   "share": 0.163,
+   "fail_rate": 0.0787,
+   "consec_share": 0.1056,
+   "consec_fail_rate": 0.5818
+  },
+  "y": {
+   "actions": 3132,
+   "protects": 433,
+   "failed": 31,
+   "consec": 38,
+   "consecFailed": 28,
+   "share": 0.1383,
+   "fail_rate": 0.0716,
+   "consec_share": 0.0878,
+   "consec_fail_rate": 0.7368
+  }
+ }
+}

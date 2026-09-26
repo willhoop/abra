@@ -1,0 +1,3 @@
+  40 positions, 1000 ms a decision, true battle (no XATU worlds), one process
+  off  playouts/decision 172.6  passes 11.25  unfilled cells 0.00  prior fallbacks 0  flat 0  ms 945
+  on   playouts/decision 133.3  passes 8.80  unfilled cells 0.17  prior fallbacks 0  flat 3  ms 948

@@ -1,0 +1,33 @@
+    pos 3 base        mass 1.000 value 0.0176 gap 0.0122 rows [["quickattack","pass"],["quickattack","pass"],["detect","pass"],["hypervoice","pass"]] x [0,0,1,0]
+    pos 3 quiesce     mass 0.250 value 0.0000 gap 0.0000 rows [["quickattack","pass"],["quickattack","pass"],["detect","pass"],["hypervoice","pass"]] x [0.25,0.25,0.25,0.25]
+    pos 7 base        mass 0.913 value 0.2724 gap 0.0003 rows [["scald","protect"],["scald","flashcannon"],["icebeam","flashcannon"],["icebeam","protect"]] x [0.29,0.09,0,0.62]
+    pos 7 quiesce     mass 0.991 value 0.4427 gap 0.0094 rows [["scald","protect"],["scald","flashcannon"],["icebeam","flashcannon"],["icebeam","protect"]] x [0.99,0.01,0,0]
+    pos 15 base        mass 0.072 value 0.2534 gap 0.0000 rows [["sw3","tailwind"],["psychic","tailwind"],["hypervoice","tailwind"],["protect","tailwind"]] x [0,0.93,0,0.07]
+    pos 15 quiesce     mass 0.000 value 0.1620 gap -0.0415 rows [["sw3","tailwind"],["psychic","tailwind"],["hypervoice","tailwind"],["protect","tailwind"]] x [0.43,0.57,0,0]
+    pos 17 base        mass 0.998 value 0.0045 gap 0.0028 rows [["earthquake","tailwind"],["earthquake","protect"],["earthquake","encore"],["earthquake","moonblast"]] x [0,1,0,0]
+    pos 17 quiesce     mass 0.000 value 0.0017 gap -0.0010 rows [["earthquake","tailwind"],["earthquake","protect"],["earthquake","encore"],["earthquake","moonblast"]] x [0.14,0,0.86,0]
+    pos 23 base        mass 0.000 value 0.8290 gap -0.0988 rows [["wideguard","sw3"],["sw3","closecombat"],["shadowball","sw3"],["shadowball","sw3"]] x [0,0.84,0,0.16]
+    pos 23 quiesce     mass 0.000 value 0.8290 gap -0.3524 rows [["wideguard","sw3"],["sw3","closecombat"],["shadowball","sw3"],["shadowball","sw3"]] x [0,0.84,0,0.16]
+    pos 26 base        mass 1.000 value 0.0001 gap 0.0001 rows [["protect","pass"],["hypervoice","pass"],["tailwind","pass"],["dracometeor","pass"]] x [1,0,0,0]
+    pos 26 quiesce     mass 1.000 value 0.0000 gap 0.0000 rows [["protect","pass"],["hypervoice","pass"],["tailwind","pass"],["dracometeor","pass"]] x [1,0,0,0]
+    pos 29 base        mass 0.997 value 0.0099 gap 0.0099 rows [["protect","pass"],["ancientpower","pass"],["heatwave","pass"],["earthpower","pass"]] x [1,0,0,0]
+    pos 29 quiesce     mass 0.000 value 0.0000 gap -0.0000 rows [["protect","pass"],["ancientpower","pass"],["heatwave","pass"],["earthpower","pass"]] x [0,0,1,0]
+    pos 32 base        mass 1.000 value 0.0007 gap 0.0007 rows [["direclaw","pass"],["swordsdance","pass"],["closecombat","pass"],["protect","pass"]] x [0,0,0,1]
+    pos 32 quiesce     mass 1.000 value 0.0000 gap 0.0000 rows [["direclaw","pass"],["swordsdance","pass"],["closecombat","pass"],["protect","pass"]] x [0,0,0,1]
+    pos 33 base        mass 0.333 value 1.0000 gap 0.0000 rows [["drainpunch","hypervoice"],["drainpunch","trickroom"],["knockoff","hypervoice"],["drainpunch","protect"]] x [0.33,0.33,0,0.33]
+    pos 33 quiesce     mass 0.333 value 1.0000 gap 0.0000 rows [["drainpunch","hypervoice"],["drainpunch","trickroom"],["knockoff","hypervoice"],["drainpunch","protect"]] x [0.33,0.33,0,0.33]
+    pos 34 base        mass 0.000 value 0.6256 gap -0.0394 rows [["sw2","calmmind"],["flareblitz","protect+M"],["fakeout","calmmind"],["fakeout","calmmind"]] x [0,0,1,0]
+    pos 34 quiesce     mass 0.231 value 0.6298 gap -0.0001 rows [["sw2","calmmind"],["flareblitz","protect+M"],["fakeout","calmmind"],["fakeout","calmmind"]] x [0,0.23,0.77,0]
+    pos 35 base        mass 0.000 value 0.8975 gap -0.3794 rows [["sw2","dazzlinggleam"],["flareblitz","protect+M"],["fakeout","drainingkiss"],["fakeout","dazzlinggleam"]] x [0.31,0,0.01,0.68]
+    pos 35 quiesce     mass 0.000 value 0.9587 gap -0.3954 rows [["sw2","dazzlinggleam"],["flareblitz","protect+M"],["fakeout","drainingkiss"],["fakeout","dazzlinggleam"]] x [0,0,0,1]
+    pos 37 base        mass 1.000 value 0.2220 gap 0.0768 rows [["sw3","dazzlinggleam"],["protect","dazzlinggleam+M"],["sw3","lightofruin"],["sw3","lightofruin"]] x [0,1,0,0]
+    pos 37 quiesce     mass 1.000 value 0.2917 gap 0.1465 rows [["sw3","dazzlinggleam"],["protect","dazzlinggleam+M"],["sw3","lightofruin"],["sw3","lightofruin"]] x [0,1,0,0]
+    pos 39 base        mass 0.634 value 0.0043 gap 0.0000 rows [["shadowball","pass"],["shadowball","pass"],["protect","pass"],["nastyplot","pass"]] x [0.37,0,0.63,0]
+    pos 39 quiesce     mass 0.663 value 0.0000 gap 0.0000 rows [["shadowball","pass"],["shadowball","pass"],["protect","pass"],["nastyplot","pass"]] x [0.34,0,0.66,0]
+  positions 40 (a side-A body with the counter >= 1 and its Protect legal); repeat row among the candidates in 13
+  DODUO (ranking prior) mean mass on repeat joints: 0.106
+  passes   1: mean mix mass on repeat rows 0.116, sampled a repeat 5/40 = 0.125
+  variant base      @48 passes: repeat offered at 13/40; mix mass on repeat rows WHEN offered 0.611, sampled 8/13
+  variant quiesce   @48 passes: repeat offered at 13/40; mix mass on repeat rows WHEN offered 0.421, sampled 5/13
+  variant base      value gap (best repeat row − best other row, vs the solved column mix): n 13, median 0.0001, min -0.3794, max 0.0768, all [-0.3794,-0.0988,-0.0394,0,0,0,0.0001,0.0003,0.0007,0.0028,0.0099,0.0122,0.0768]
+  variant quiesce   value gap (best repeat row − best other row, vs the solved column mix): n 13, median 0, min -0.3954, max 0.1465, all [-0.3954,-0.3524,-0.0415,-0.001,-0.0001,0,0,0,0,0,0,0.0094,0.1465]

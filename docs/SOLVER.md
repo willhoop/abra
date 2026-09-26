@@ -102,6 +102,14 @@ This section says only what a division agent needs before it starts.
   Protect about 60% of the time when DODUO offers one, under either leaf and with 8 columns. Open for MILTANK and DODUO.
   Arena Protect counters: `solver/arena/protect_stats.js`, `protect_read.js`. Account:
   `docs/_reports/2026-09-26-protect-overuse.md`.
+- **Repeat Protect, the rest (2026-09-27, abra/regmc 1.21.0).** The depth-0 mix is the horizon effect: the repeat's value
+  is its success branch, where the leaf counts a KO that lands one turn later as survival. MILTANK has three options, off
+  unless a spec sets them: `quiesce` ('all': one extension turn in every playout), `flatEps` (a flat table plays the
+  ranking prior) and `reserveNoRepeat` (the reserved mega row repeats no Protect). Counters `quiesced`, `quietHeld`,
+  `flatPrior`, `megaUnbundled`; test `solver/tests/test-miltank-quiesce.js`. On the probe positions the played repeat mass
+  goes 0.611 → 0.200. **At 1 s the package LOSES to gen5**, SPRT H0, 0.418 [0.350, 0.488] in 194 games, and leaves the arena
+  Protect rates where they were. **Not deployed.** At 5 s it is untested for strength. DODUO already carries the counter
+  (`stall_repeat`), so it was not retrained. Account: `docs/_reports/2026-09-27-protect-repeat-fix.md`.
 - **The tiered gates (2026-09-26, abra/regmc 1.19.0).** MAG removes a click no branch can make achieve its purpose
   (`solver/mag/purpose.js`) and marks one rescued only by a switch, which DODUO v2 weights by the human switch model;
   the pair gate leaves MAG-dead clicks to MAG. Held-out survival 99.60% / 99.69% (2 pair-gate errors in 20,482); no

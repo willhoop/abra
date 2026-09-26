@@ -1,0 +1,9 @@
+  fixtures: 5 positions (a side-A body carrying the counter, a repeat row offered), 16 passes
+  OFF/EXTEND/JOINT: 164 quiet playouts, 156 held, extended 140 ('held') and 232 ('all'), 112 extension slots
+  EFFECT: mean mass played on repeat rows 0.587 off -> 0.200 on
+  POOL: 2 decisions, worker extensions 58
+test-miltank-quiesce: 1195/1195 checks  failed clauses: none
+  RED MILTANK_BREAK=quiesce -> EXTEND: fails as required
+  RED MILTANK_BREAK=quiesce -> EFFECT: fails as required
+  RED MILTANK_BREAK=flat -> FLAT: fails as required
+  RED MILTANK_BREAK=megabundle -> MEGA: fails as required

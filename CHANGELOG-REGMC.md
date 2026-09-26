@@ -21,6 +21,43 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.21.0] — 2026-09-27
+
+### Added
+- **Three MILTANK options against the repeat-Protect mix, OFF by default and NOT deployed.** `quiesce` 'all'
+  (`solver/miltank/rollout.js` QUIESCENCE): every playout plays one extension turn before the leaf. Each side repeats
+  its non-protect moves, and a slot that protected takes the ranking prior's best non-protect move at the root.
+  `flatEps` (`solver/miltank/search.js`): when every played cell is within the bound, the ranking prior's top joint is
+  played. `reserveNoRepeat`: the reserved mega row is the best mega joint that repeats no stall-rolling move. A league
+  spec carries them (`solver/mew/agent.js searchExtras`), and so do ROTOM's `miltank-gen5` options. Counters: `quiesced`,
+  `quietHeld`, `quiesceDecisions`, `flatPrior`, `megaUnbundled`. A match row carries `ctr.quiesced`, and a gate carries
+  `rollout_quiesced`, with a warning when an arm asks for quiescence and gets none.
+- `solver/tests/test-miltank-quiesce.js` (OFF, EXTEND, JOINT, EFFECT, FLAT, MEGA, POOL, AGENT): 1195/1195. It is RED
+  under `MILTANK_BREAK=quiesce`, `flat` and `megabundle`.
+- Probes: `probe_protect_cells.js` (inside the cells: SE, the die, failed-only mass, the delayed KO),
+  `probe_doduo_arena_protect.js` (DODUO's feature against the engine counter on its own positions),
+  `probe_quiesce_cost.js` (playouts at a fixed clock). `probe_protect_passes.js` gains the fix variants and `--detail`.
+
+### Notes
+- **The cause is the depth-0 horizon.** On the 13 positions where DODUO offers a repeat, the die is sampled at the
+  engine's odds (0.34 against 1/3). The per-cell SE is small (median 0.0024 at 96 passes), and the halves of the passes
+  agree (0.626 and 0.607). Scored on its failed playouts only, the repeat keeps 0.054 of 0.609. In the high-mass
+  positions the shielded body is alive at the leaf and dead a turn later in 671 of 898 success branches. Two smaller
+  mechanisms: ties in positions already lost, and one reserved mega row that bundled the repeat (3 of 13).
+- **Probe:** the played repeat mass goes 0.611 → 0.200 (48 passes). Mode 'held', which extends only the playouts in
+  which a protect held, was built first and rejected before any game: it scores a protect row one turn deeper than its
+  neighbours, and on one position it raised the mass, 0.913 → 0.991.
+- **Arena, release `eaa5becc54eb`, honest, frozen Reg M-C store.** SPRT against gen5 at 1 s (elo0 0, elo1 +20,
+  α = β = 0.05): **H0 after 194 games, 0.418 [0.350, 0.488], a loss.** The package costs about 23% of the playouts. The
+  Protect rates in those games: fail 10.4% (gen5 11.7%) and consecutive share 15.3% (gen5 15.5%). Against DODUO-greedy,
+  on gen5's pairs and seeds: at 1 s 0.615 (gen5 0.660); at 5 s 0.685 (gen5-5s 0.695). At 5 s the fail rate is 7.1%
+  (gen5-5s 13.4%), but the DODUO-greedy gauge moved 10.9% → 8.4% between those runs. The pre-registered share and
+  consecutive bars FAILED at both budgets, and the fail bar passed only at 5 s.
+- **Not deployed:** `solver/machamp/league/gen5.json` is unchanged. A 5 s strength SPRT is prepared and not run
+  (`docs/_reports/2026-09-27-protect-repeat-fix.md`).
+- **DODUO was not retrained.** Its `stall_repeat` feature already matches the engine's counter: 440/443 (v1) and
+  498/503 (gen5). The counter's magnitude is not a feature: at counter 2 it re-clicks in 9 of 14 and 13 of 18 decisions.
+
 ## [1.20.0] — 2026-09-26
 
 ### Fixed

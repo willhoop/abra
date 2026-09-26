@@ -1,0 +1,5 @@
+  DODUO gen5 greedy vs itself, 120 TEST-pair games, 2543 slot-decisions with a protect-family move offered
+  feature vs engine counter: stall_repeat=1 & counter>=1 498; stall_repeat=1 & counter=0 23; stall_repeat=0 & counter>=1 5; stall_repeat=0 & counter=0 2017
+  counter0  n  2040  stall_repeat fired 23  DODUO mass on family 0.228  argmax clicks it 492 = 0.241  of those held 487
+  counter1  n   485  stall_repeat fired 484  DODUO mass on family 0.139  argmax clicks it 75 = 0.155  of those held 22
+  counter2  n    18  stall_repeat fired 14  DODUO mass on family 0.552  argmax clicks it 13 = 0.722  of those held 2
