@@ -8,6 +8,8 @@
  *     me       'p1' | 'p2'
  *     req      this decision's |request| JSON (my side, EXACT: HP, stats, item, who is active, who was brought)
  *     oppGuess sheet indices to fill the opponent's unrevealed back line (XATU's MAP back pair), or null
+ *     lines    the room's public protocol lines so far (ROTOM's B.lines), for the consecutive-Protect counter; absent =
+ *              no counter laid, and COUNTERS.stallNoLines says so
  *   -> { S, side: 'A'|'B', ctx, posOfTeam(teamIdx) -> request position (1-based), notes: [...] }
  *
  * THE SOLVER'S OWN WORLD BUILDERS. Bodies come from solver/arena/teams.js `buildBody` (the arena's builder: the
@@ -26,7 +28,10 @@
  *          mega forme, `_wasOut` (revealed); unrevealed back line from `oppGuess` (the search redraws it per world).
  *   field: weather, terrain, Trick Room, Tailwind, screens and the other side conditions the engine names, with the
  *          turns left computed from the DEX's own duration (Dex.forFormat — not a typed 5 or 4) minus turns elapsed.
- *   NOT laid on: PP, sleep/toxic counters, volatiles (Substitute, Taunt, Encore, confusion, Leech Seed, Perish),
+ *   the consecutive-Protect counter (2026-09-26, docs/_reports/2026-09-26-protect-overuse.md): with `lines` (the room's
+ *          public protocol so far) every body's `tookProtectTurns` is laid from the log — see stallStreaks below. Before
+ *          this the world carried none, so a SECOND Protect looked as safe as the first to every playout.
+ *   NOT laid on: PP, sleep/toxic counters, the other volatiles (Substitute, Taunt, Encore, confusion, Leech Seed, Perish),
  *          Choice locks on the opponent, stat-changing items already used, turns-out beyond "came in this turn".
  *   The request, not this world, decides legality; a world gap can make the SEARCH worse, never a choice invalid.
  */
@@ -62,9 +67,72 @@ function parseCond(s) {
 }
 const baseSpecies = s => { const sp = X.D.species.get(toID(s)); return sp && sp.exists ? toID(sp.baseSpecies) : toID(s); };
 
+/* THE CONSECUTIVE-PROTECT COUNTER, READ OFF THE PUBLIC LOG (2026-09-26, docs/_reports/2026-09-26-protect-overuse.md).
+ *
+ * The rule is Showdown's `stall` volatile (pokemon-showdown-mc data/conditions.ts, printed by
+ * solver/tests/probe_protect_repeat.js): a SUCCESSFUL protect-family use adds or restarts it (the counter
+ * triples) and refreshes `duration: 2`; a lost roll deletes it; a turn with no successful use lets it lapse. So at the
+ * start of a turn a body's counter is the length of its unbroken run of successful uses ending on the last closed
+ * turn. MEDICHAM holds that as `tookProtectTurns` (engine/medicham2-browser.js `_stallRoll`, `_stallExpire`).
+ *
+ * What the log shows. A use is the user's own `|move|` line of a protect-family move (solver/arena/protect_stats.js,
+ * derived from the format); it SUCCEEDED when the protect condition announces itself on the user before that user's
+ * next line — `|-singleturn|<user>|…` (the onStart / onSideStart of every family member, data/moves.ts). A turn is the
+ * block between two `|turn|` lines; the block still open counts as closed once it reaches `|upkeep|` (a replacement
+ * request after the residual). A body that leaves the field (switched, dragged, fainted) loses the volatile.
+ * Bodies are keyed by side and nickname, then mapped to sheet rows by the sheet's nickname.
+ *   stallStreaks(lines, sheets) -> Map('p1:<sheet row>' -> n >= 1)
+ * DELIBERATE BREAK (env ROTOM_WORLD_BREAK=nostall): the map comes back empty — the pre-fix world.
+ * solver/tests/test-rotom-world-stall.js must go red under it. */
+const WORLD_BREAK = (typeof process !== 'undefined' && process.env && process.env.ROTOM_WORLD_BREAK) || '';
+function stallStreaks(lines, sheets) {
+  const FAM = require('../arena/protect_stats.js').family();
+  const out = new Map();
+  if (WORLD_BREAK === 'nostall') return out;
+  const identKey = id => { const m = /^(p[12])[ab]?:\s?(.*)$/.exec(String(id || '').trim()); return m ? m[1] + ':' + m[2] : null; };
+  const streak = new Map();          // body key -> run length ending on the last closed turn
+  let succ = new Set(), pending = new Set(), used = false, upkeep = false;
+  const close = () => {
+    for (const k of [...streak.keys()]) if (!succ.has(k)) streak.delete(k);
+    for (const k of succ) streak.set(k, (streak.get(k) || 0) + 1);
+    succ = new Set(); pending = new Set(); used = false; upkeep = false;
+  };
+  const leave = k => { if (!k) return; streak.delete(k); succ.delete(k); pending.delete(k); };
+  const posOcc = new Map();          // 'p1a' -> body key
+  for (const raw of lines || []) {
+    const p = String(raw).split('|');
+    const cmd = p[1];
+    if (cmd === 'turn') { if (used) close(); else { succ = new Set(); pending = new Set(); } used = true; continue; }
+    if (cmd === 'upkeep') { upkeep = true; continue; }
+    if (cmd === 'switch' || cmd === 'drag' || cmd === 'replace') {
+      const pos = /^(p[12][ab]?)/.exec(p[2] || ''); const k = identKey(p[2]);
+      if (pos) { leave(posOcc.get(pos[1])); posOcc.set(pos[1], k); }
+      leave(k); continue;
+    }
+    if (cmd === 'faint') { leave(identKey(p[2])); continue; }
+    if (cmd === 'move') {
+      const k = identKey(p[2]);
+      pending.delete(k);
+      const mv = X.D.moves.get(toID(p[3]));
+      if (k && mv && mv.exists && FAM.has(mv.id)) pending.add(k);
+      continue;
+    }
+    if (cmd === '-singleturn') { const k = identKey(p[2]); if (pending.has(k)) { succ.add(k); pending.delete(k); } continue; }
+    if (cmd === 'cant') { pending.delete(identKey(p[2])); continue; }
+  }
+  if (upkeep) close();
+  for (const [k, n] of streak) {
+    const [side, nick] = [k.slice(0, 2), k.slice(3)];
+    const i = ((sheets && sheets[side]) || []).findIndex(r => r && r.nick === nick);
+    if (i >= 0 && n > 0) out.set(side + ':' + i, n);
+  }
+  return out;
+}
+
 function create(API) {
   const M = API.M;
-  const COUNTERS = { built: 0, failed: 0, megaApplied: 0, megaFailed: 0, mineUnmatched: 0, oppGuessUsed: 0, oppFilledBlind: 0 };
+  const COUNTERS = { built: 0, failed: 0, megaApplied: 0, megaFailed: 0, mineUnmatched: 0, oppGuessUsed: 0, oppFilledBlind: 0,
+                     stallLaid: 0, stallNoLines: 0 };
 
   /* my request position -> my sheet row: by nickname first (the ident), then by base species */
   function mySheetIndex(sheet, p) {
@@ -179,6 +247,15 @@ function create(API) {
       }
     }
 
+    /* ---- the consecutive-Protect counter, from the public log (stallStreaks above) ---- */
+    if (o.lines) {
+      const st2 = stallStreaks(o.lines, sheets);
+      for (const [p, list] of [[me, mine], [opp, theirs]]) for (const x of list) {
+        const n = st2.get(p + ':' + x.s);
+        if (n && live(x.b)) { x.b.tookProtectTurns = n; x.b._stallFresh = false; COUNTERS.stallLaid++; }
+      }
+    } else COUNTERS.stallNoLines++;
+
     /* ---- field ---- */
     const f = S.field;
     if (st.weather && st.weather.name) {
@@ -215,4 +292,4 @@ function create(API) {
   return { COUNTERS, build, duration, parseCond };
 }
 
-module.exports = { create, duration, parseCond };
+module.exports = { create, duration, parseCond, stallStreaks };

@@ -1,0 +1,29 @@
+{
+ "result": "solver\\out\\protect\\p5-before.json",
+ "games": 200,
+ "games_without_counter": 0,
+ "arms": {
+  "x": {
+   "actions": 3336,
+   "protects": 565,
+   "failed": 74,
+   "consec": 100,
+   "consecFailed": 68,
+   "share": 0.1694,
+   "fail_rate": 0.131,
+   "consec_share": 0.177,
+   "consec_fail_rate": 0.68
+  },
+  "y": {
+   "actions": 3257,
+   "protects": 509,
+   "failed": 44,
+   "consec": 80,
+   "consecFailed": 40,
+   "share": 0.1563,
+   "fail_rate": 0.0864,
+   "consec_share": 0.1572,
+   "consec_fail_rate": 0.5
+  }
+ }
+}

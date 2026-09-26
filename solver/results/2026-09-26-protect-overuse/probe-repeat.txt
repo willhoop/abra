@@ -1,0 +1,7 @@
+  stall (from the format): duration 2  counterMax 729
+    onStallMove(pokemon) { const counter = this.effectState.counter || 1; this.debug(`Success chance: ${Math.round(100 / counter)}%`); const success = this.randomChance(1, counter); if (!success) delete p
+  board: pair gen9championsvgc2026regmcbo3-2678153606  A slot 0 = Raichu clicking protect
+  turn 1: shield up on 600 of 600
+  turn 2 full          success 195 / 600 = 0.325
+  turn 2 lean          success 195 / 600 = 0.325
+  turn 2 counter-lost  success 600 / 600 = 1.000

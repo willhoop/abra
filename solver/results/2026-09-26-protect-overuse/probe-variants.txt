@@ -1,0 +1,7 @@
+  positions 40 (a side-A body with the counter >= 1 and its Protect legal); repeat row among the candidates in 13
+  DODUO (ranking prior) mean mass on repeat joints: 0.106
+  passes   2: mean mix mass on repeat rows 0.123, sampled a repeat 5/40 = 0.125
+  variant base      @48 passes: repeat offered at 13/40; mix mass on repeat rows WHEN offered 0.611, sampled 8/13
+  variant heuristic @48 passes: repeat offered at 13/40; mix mass on repeat rows WHEN offered 0.641, sampled 8/13
+  variant k2x8      @48 passes: repeat offered at 13/40; mix mass on repeat rows WHEN offered 0.776, sampled 11/13
+  variant k1x8      @48 passes: repeat offered at 18/40; mix mass on repeat rows WHEN offered 0.560, sampled 9/18

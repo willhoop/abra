@@ -43,6 +43,16 @@ function create(API, opts) {
   const LOADED = new Map();
   const XW = require('../xatu/worlds.js').create(API, { R });
 
+  /* spec.view_drops_stall (2026-09-26, docs/_reports/2026-09-26-protect-overuse.md): the agent's view carries NO
+   * consecutive-Protect counter — every body's `tookProtectTurns` zeroed, as ROTOM's world.js built the live position
+   * before 2026-09-26 (it laid no volatile, and the `stall` counter is one). It exists to measure the PRE-FIX live
+   * agent in the arena, and it is only legal on an honest view: that view is the decider's own fresh clone
+   * (solver/xatu/worlds.js arenaView), so zeroing it never touches the true battle. On anything else it throws. */
+  function dropStall(S, hb) {
+    if (!hb) throw new Error('mew/agent: view_drops_stall needs the honest view (--info honest); it would edit the true battle');
+    for (const m of [...S.sfA.team, ...S.sfB.team]) if (m) { m.tookProtectTurns = 0; m._stallFresh = false; }
+    COUNTERS.stallDropped = (COUNTERS.stallDropped || 0) + 1;
+  }
   function load(spec) {
     if (!spec || !spec.name || !spec.kind) throw new Error('mew/agent: a spec needs name and kind');
     const key = JSON.stringify(spec);
@@ -71,6 +81,7 @@ function create(API, opts) {
                                 leaf: 'pory2', leafModel: abs(spec.pory2), coin }, extra || {});
       return { name: spec.name, kind: 'miltank', PA, MT, choose(S, side, ctx, hb) {
         COUNTERS.decisions++;
+        if (spec.view_drops_stall) dropStall(S, hb);
         try {
           const r = (hb ? MTmod.create(API, { prior: PA, rollout: XW.rollout(hb) }) : MT).decide(S, side, ctx, o);
           if (hb) COUNTERS.honest = (COUNTERS.honest || 0) + 1;

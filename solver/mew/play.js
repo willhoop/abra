@@ -80,6 +80,8 @@ const hash32 = (a, b) => { let h = (a * 2654435761 ^ b * 2246822519) >>> 0; h ^=
 const decStats = [];
 /* THE MEGA COUNTER per agent name, on the sides that could mega (solver/arena/mega_rate.js); in the shard summary */
 const MR = require('../arena/mega_rate.js');
+/* THE PROTECT COUNTER per game and side (solver/arena/protect_stats.js; docs/_reports/2026-09-26-protect-overuse.md) */
+const PS = require('../arena/protect_stats.js').create(API);
 const MEGA = {};
 const megaT = name => (MEGA[name] || (MEGA[name] = MR.tally()));
 const t0 = Date.now();
@@ -104,6 +106,7 @@ async function playGame(G, botA, botB, seed, recordFor) {
   const ctx = PA0.newGame(G);
   const mg = MR.game(API, { A: megaT(botA.name), B: megaT(botB.name) }, { trace: MODE === 'match' });   // match: the mega TIMING timeline per game (mega_timing.js)
   const decisions = [], fallbacks = [];
+  const pg = PS.game();
   let err = null;
   const ms = { A: [], B: [] };
   try {
@@ -142,14 +145,16 @@ async function playGame(G, botA, botB, seed, recordFor) {
       }
       PA0.record(ctx, S, ch.A.joint, ch.B.joint);
       mg.decide(S, 'A', ch.A.joint); mg.decide(S, 'B', ch.B.joint);
+      pg.before(S, ch.A.joint, ch.B.joint);
       API.stepInPlace(S, ch.A.joint, ch.B.joint, rng);
+      pg.after(S);
       mg.stepped(S);
     }
   } catch (e) { err = String(e && e.stack || e).slice(0, 400); }
   mg.end();
   let vA = null, capped = false;
   if (!err) { if (API.isTerminal(S)) vA = API.winner(S); else { vA = API.horizonScore(S); capped = true; } }
-  return { vA, capped, err, turns: S.turn, hist: ctx.hist, decisions, fallbacks, ms, mega: mg.detail() };
+  return { vA, capped, err, turns: S.turn, hist: ctx.hist, decisions, fallbacks, ms, mega: mg.detail(), protect: pg.out() };
 }
 
 async function selfplay() {
@@ -215,7 +220,8 @@ async function match() {
       per.push({ pi, id: G.id, xSide: xIsA ? 'A' : 'B', seed, info: INFO, vX, turns: r.turns, capped: r.capped, err: r.err,
                  ms_x: r.ms[xIsA ? 'A' : 'B'], ms_y: r.ms[xIsA ? 'B' : 'A'],
                  mega: r.mega ? { x: r.mega[xIsA ? 'A' : 'B'], y: r.mega[xIsA ? 'B' : 'A'] } : null,
-                 ctr: Object.assign({ fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0 }, RUN,
+                 protect: r.protect ? { x: r.protect[xIsA ? 'A' : 'B'], y: r.protect[xIsA ? 'B' : 'A'] } : null,
+                 ctr: Object.assign({ fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0, stall_dropped: AG.COUNTERS.stallDropped || 0 }, RUN,
                    INFO === 'honest' ? { hon_views: HON.views, hon_back_xatu: HON.back_xatu, hon_back_error: HON.back_error, xw: Object.assign({}, XW.COUNTERS) } : {}) });
     }
     if (OUT) fs.writeFileSync(OUT, per.map(p => JSON.stringify(p)).join('\n') + '\n');

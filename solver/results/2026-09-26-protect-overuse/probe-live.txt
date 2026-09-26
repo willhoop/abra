@@ -1,0 +1,4 @@
+  humans (opponents)           {"withCounter":146,"repeat":4,"repeatFailed":4,"fresh":1719,"freshProtect":171}  P(repeat | counter) = 0.027  P(protect | fresh) = 0.099
+  ours-B (prior)               {"withCounter":114,"repeat":17,"repeatFailed":12,"fresh":769,"freshProtect":131}  P(repeat | counter) = 0.149  P(protect | fresh) = 0.170
+  ours-A (miltank-gen5)        {"withCounter":90,"repeat":28,"repeatFailed":20,"fresh":466,"freshProtect":83}  P(repeat | counter) = 0.311  P(protect | fresh) = 0.178
+  ours-A (prior)               {"withCounter":59,"repeat":7,"repeatFailed":5,"fresh":317,"freshProtect":64}  P(repeat | counter) = 0.119  P(protect | fresh) = 0.202

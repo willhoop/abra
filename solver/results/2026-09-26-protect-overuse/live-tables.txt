@@ -1,0 +1,11 @@
+# live-tables.script.js over gen5ab decisions-medicham32.jsonl (read only). Only the COLUMN figures are read: the decision log carries no request, so rows cannot be mapped to moves and famRows/meanMixOnFam/pickedFam are 0 by construction, not measured.
+{
+  decisions: 298,
+  rows: 1191,
+  famRows: 0,
+  meanMixOnFam: 0,
+  pickedFam: 0,
+  cols: 1192,
+  colsWithOppProtect: 0.171,
+  colsWithOppSwitch: 0.241
+}

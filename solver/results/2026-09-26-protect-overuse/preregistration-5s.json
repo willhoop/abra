@@ -1,0 +1,17 @@
+{
+ "what": "ADDENDUM to preregistration.json, written 2026-09-26 AFTER P-before and P-after (1 s) were read and BEFORE the first game of the runs below. The 1 s runs were read once, as registered; their bars are reported as they fell (the cause bar and the share bar both FAILED at 1 s) and are not re-drawn.",
+ "why": "At 1 s the search fills each of its 16 cells about 1.75 times (p-after.json search: playouts p50 28-29 per decision), so the stall die is sampled once or twice per cell and a repeat Protect looks free in about a third of decisions whatever the counter says. The live arm ran 5 s: 85 passes on its first logged decision (decisions-medicham32.jsonl, gen5ab). The mechanism is a counter the search reads through its playouts, so it has to be measured at the budget the defect was measured at.",
+ "arms": {
+  "gen5-5s": "solver/results/2026-09-26-champ-vs-doduo/gen5-5s.json — counter carried (ROTOM after the fix)",
+  "gen5-5s-lost-stall": "solver/results/2026-09-26-protect-overuse/gen5-5s-lost-stall.json — counter dropped (ROTOM before the fix)"
+ },
+ "runs": {
+  "P5-before": "gate.js --x gen5-5s-lost-stall --y solver/machamp/league/human-clone.json --pairs 100 --pair-seed 1 --seed 26100 --workers 3 --cap 50 --info honest --rule notlose --team-store data/team-pool-frozen-regmc --release eaa5becc54eb",
+  "P5-after": "the same with --x gen5-5s"
+ },
+ "bars": {
+  "cause": "unchanged from preregistration.json: P5-before fail rate >= 10% AND P5-after fail rate <= 7.2%.",
+  "share": "unchanged: P5-after share <= 15.5%.",
+  "strength": "P5-after vs P5-before against the SAME opponent on the SAME 100 pairs and seeds: descriptive (scores with Wilson 95%), plus the pre-registered 1 s non-regression SPRT (preregistration.json run S) as the formal strength read. No new SPRT is registered here."
+ }
+}
