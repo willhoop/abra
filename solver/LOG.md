@@ -8,6 +8,14 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-26
 
+### ROTOM end reasons, the self-quit halt, rated-only records (abra/regmc 1.17.0)
+- Every game and series now says how it ended (`solver/rotom/endings.js`): normal, forfeit, battle-timer timeout,
+  all-inactive, or a walkaway between games. Our own forfeit/timeout/walkaway halts the ladder; it must be zero.
+- `report.js ladder <run dir>`: rated only, with and without the opponent's quits. gen5ab k30 (unrated) no longer counts.
+- Backfill (new files beside the originals): aa1, aa2, gen5ab have 0 self quits; gen5ab rated 15-21, 5-21 without
+  the opponent's quits.
+- Detail: `docs/_reports/2026-09-26-rotom-end-reasons.md`.
+
 ### gen5 under honest information; ROTOM `miltank-gen5`; gen5-vs-prior arms (abra/regmc 1.16.0)
 - The arena now hides what a ladder player cannot see (`--info honest`, the default for a match): hidden spreads in
   the true battle; each decision on the decider's public view; worlds from XATU's back-pair posterior and spread
