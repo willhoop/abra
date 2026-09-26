@@ -94,7 +94,12 @@ if (MODE === 'collect' && !argv.includes('--shard')) {
     return { br: r.vstar - br, vy: r.vstar - vy }; };
   const res = T => Math.max(20, Math.min(300, Math.round(T * 0.06)));
   const timeAt = (r, P) => (P ? r.passes[P - 1].ms : 0);
-  function fixed(T) { let t = 0, br = 0, vy = 0, n = 0; for (const r of recs) { let P = 0; for (const p of r.passes) if (p.ms <= T - res(T)) P++; P = Math.max(1, P); const g = regret(r, P); br += g.br; vy += g.vy; t += Math.min(T, timeAt(r, P) + 30); n++; } return { name: 'fixed ' + T, ms: t / n, br: br / n, vy: vy / n }; }
+  /* TIME ACCOUNTING (corrected 2026-09-26 after the first SPRT attempt, report §3): a real fill does not stop because this
+   * recording ran out of passes. A fixed budget always fills to T − reserve; an adaptive decision that was still going when
+   * the recording ended is charged to where its rule would have stopped it — the hard line if its table was close, else
+   * the soft line. Its regret is read from all the recorded passes (optimistic by the same amount for both). */
+  const SOLVE_MS = 40;
+  function fixed(T) { let t = 0, br = 0, vy = 0, n = 0; for (const r of recs) { let P = 0; for (const p of r.passes) if (p.ms <= T - res(T)) P++; P = Math.max(1, P); const g = regret(r, P); br += g.br; vy += g.vy; t += T - res(T) + SOLVE_MS; n++; } return { name: 'fixed ' + T, ms: t / n, br: br / n, vy: vy / n }; }
   function adaptive(cfg) {
     const byGame = new Map(); for (const r of recs) { if (!byGame.has(r.g)) byGame.set(r.g, []); byGame.get(r.g).push(r); }
     let t = 0, br = 0, vy = 0, n = 0; const stops = {};
@@ -108,8 +113,10 @@ if (MODE === 'collect' && !argv.includes('--shard')) {
           if (r.passes[P - 1].ms > pl.hardMs - res(pl.hardMs)) { P = Math.max(1, P - 1); rec.stop = 'hard'; break; }
           if (f(r.vs.slice(0, P), { rows: new Array(r.m), cols: new Array(r.n) }, Date.now() - r.passes[P - 1].ms)) break;
         }
-        if (P > r.passes.length) { P = r.passes.length; if (rec.stop === 'none') rec.stop = 'end-of-data'; }
-        const ms = Math.min(pl.hardMs, timeAt(r, P) + 30);
+        let ms;
+        if (P > r.passes.length) { P = r.passes.length; rec.stop = rec.state === 'close' ? 'hard' : 'soft';
+          ms = Math.max(timeAt(r, P), rec.state === 'close' ? pl.hardMs - res(pl.hardMs) : pl.softMs - res(pl.softMs)) + SOLVE_MS; }
+        else ms = (rec.stop === 'hard' ? pl.hardMs - res(pl.hardMs) : timeAt(r, P)) + SOLVE_MS;
         A.spent(ms, true, { kind: 'move', stop: rec.stop });
         stops[rec.stop] = (stops[rec.stop] || 0) + 1;
         const g = regret(r, P); br += g.br; vy += g.vy; t += ms; n++;
@@ -118,8 +125,9 @@ if (MODE === 'collect' && !argv.includes('--shard')) {
     return { name: 'adaptive ' + JSON.stringify(cfg), ms: t / n, br: br / n, vy: vy / n, stops };
   }
   const rows = [1000, 2000, 3000, 5000, 8000, 10000].map(fixed);
-  for (const cfg of [{ targetMs: 5000 }, { targetMs: 4500 }, { targetMs: 4000 }, { targetMs: 5000, clearZ: 2.5 }, { targetMs: 5000, clearZ: 1.5 }, { targetMs: 5000, closeZ: 0.5 },
-                     { targetMs: 5000, closeZ: 1.5 }, { targetMs: 5000, minPasses: 8 }, { targetMs: 4500, stretch: 2.5 }, { targetMs: 5000, minMs: 1500 }]) rows.push(adaptive(cfg));
+  const cfgs = flag('--cfgs') ? JSON.parse(flag('--cfgs')) : [{ targetMs: 5000 }, { targetMs: 5000, credit0Ms: 0 }, { targetMs: 4700, credit0Ms: 0 }, { targetMs: 4500, credit0Ms: 0 }, { targetMs: 4700, credit0Ms: 0, minMs: 1500 },
+    { targetMs: 4700, credit0Ms: 0, clearZ: 2.5 }, { targetMs: 4700, credit0Ms: 0, clearZ: 1.5 }, { targetMs: 4700, credit0Ms: 0, closeZ: 0.5 }, { targetMs: 4700, credit0Ms: 0, stretch: 3 }, { targetMs: 4700, credit0Ms: 2350 }];
+  for (const cfg of cfgs) rows.push(adaptive(cfg));
   const out = { what: 'adaptive clock tuning on TRAIN pairs (solver/bench/adaptive_tune.js)', decisions: recs.length, games: new Set(recs.map(r => r.g)).size,
                 release: recs[0] && recs[0].release, rows: rows.map(r => ({ name: r.name, mean_ms: +r.ms.toFixed(0), regret_br_x1000: +(1000 * r.br).toFixed(2), regret_vs_yref_x1000: +(1000 * r.vy).toFixed(2), stops: r.stops })) };
   for (const r of out.rows) console.log(r.name.padEnd(48), 'ms', String(r.mean_ms).padStart(6), ' regret-br x1000', String(r.regret_br_x1000).padStart(6), ' regret-vs-yref x1000', String(r.regret_vs_yref_x1000).padStart(6), r.stops ? JSON.stringify(r.stops) : '');

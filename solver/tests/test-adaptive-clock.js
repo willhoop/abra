@@ -93,7 +93,7 @@ function simulateGame(seed, cfg, model, lenLo, lenHi) {
     minBank = Math.min(minBank, bank);
     if (kind !== 'switch') turn++;
   }
-  return { minBank, timeouts, bankOut, searched, spentMs, lowBank, maxSpent, nReq };
+  return { minBank, timeouts, bankOut, searched, spentMs, lowBank, maxSpent, nReq, capped: A.COUNTERS.capped_by_clock };
 }
 
 if (want('BANK')) {
@@ -104,19 +104,20 @@ if (want('BANK')) {
   ];
   const agg = { outs: 0, tos: 0, minB: Infinity };
   for (const a of arms) {
-    let outs = 0, tos = 0, minB = Infinity, low = 0, maxT = 0, games = 0, dec = 0;
+    let outs = 0, tos = 0, minB = Infinity, low = 0, maxT = 0, games = 0, dec = 0, capped = 0;
     for (let g = 0; g < 2000; g++) {
       const cfg = g % 2 ? { targetMs: 5000 } : { targetMs: 15000, stretch: 3 };   // half of them with a greedy target
       const r = simulateGame(1000 + g, cfg, a.model, a.lo, a.hi);
       games++; dec += r.searched;
       if (r.bankOut) outs++;
-      tos += r.timeouts; low += r.lowBank; minB = Math.min(minB, r.minBank); maxT = Math.max(maxT, r.maxSpent);
+      tos += r.timeouts; low += r.lowBank; capped += r.capped; minB = Math.min(minB, r.minBank); maxT = Math.max(maxT, r.maxSpent);
     }
     console.log('  BANK [' + a.name + ']: ' + games + ' simulated slow games, ' + dec + ' searched decisions, bank-outs ' + outs + ', turn timeouts ' + tos +
-                ', lowest bank ' + minB.toFixed(0) + ' s, low-bank prior answers ' + low + ', slowest decision ' + maxT.toFixed(1) + ' s' + (AD.BREAK ? '  [BREAK ' + AD.BREAK + ']' : ''));
+                ', lowest bank ' + minB.toFixed(0) + ' s, decisions capped by the bank/turn line ' + capped + ', low-bank prior answers ' + low + ', slowest decision ' + maxT.toFixed(1) + ' s' + (AD.BREAK ? '  [BREAK ' + AD.BREAK + ']' : ''));
     ok('BANK', outs === 0, a.name + ': ' + outs + ' simulated games ran the bank out');
     ok('BANK', tos === 0, a.name + ': ' + tos + ' turn timeouts');
-    ok('BANK', low > 0, a.name + ': the low-bank prior answer never fired, so the safety line was never reached');
+    ok('BANK', capped > 0, a.name + ': no decision was capped by the bank or turn line, so the safety line was never reached');
+    if (a.model === 'server') ok('BANK', low > 0, a.name + ': the low-bank prior answer never fired in 40-80-request games');
     agg.outs += outs; agg.tos += tos; agg.minB = Math.min(agg.minB, minB);
   }
   if (argv.includes('--child')) console.log('CHILD ' + JSON.stringify(agg));

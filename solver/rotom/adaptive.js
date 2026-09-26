@@ -48,9 +48,9 @@ const SK = require('../slowking/matrix.js');
 const BREAK = (typeof process !== 'undefined' && process.env && process.env.ROTOM_CLOCK_BREAK) || '';
 
 const DEFAULTS = {
-  targetMs: 5000,       // the mean a searched decision is planned around
+  targetMs: 4500,       // the mean a searched decision is planned around (4.5 s: under a fixed 5 s budget's measured 4.74 s)
   stretch: 2,           // a close decision may take up to stretch · target
-  credit0Ms: null,      // the per-game allowance a close decision may borrow before any saving; null = target
+  credit0Ms: null,      // the per-game allowance a close decision may borrow before any saving; null = target / 3
   minMs: 750,           // no clear stop before this much of the decision has passed
   minPasses: 4,         // ... nor before this many complete passes (the se needs them)
   clearZ: 2,
@@ -65,7 +65,7 @@ const DEFAULTS = {
 function create(opts) {
   const o = Object.assign({}, DEFAULTS, opts || {});
   delete o.counters;
-  if (o.credit0Ms == null) o.credit0Ms = o.targetMs;
+  if (o.credit0Ms == null) o.credit0Ms = Math.round(o.targetMs / 3);
   const COUNTERS = (opts && opts.counters) || { plans: 0, low_bank: 0, capped_by_clock: 0, capped_by_credit: 0, stops: { clear: 0, soft: 0, hard: 0, none: 0 },
                      decisions_searched: 0, spent_ms: 0, games: 0 };
   let credit = o.credit0Ms;
