@@ -45,6 +45,12 @@ rewritten; what changed and why is stated.
   Out is selectable again); last move, Protect streak, moves used since entry and PP are laid on from the log; an
   empty opposing slot keeps its place. Found by the gates' held-out run; changes the live client's menu.
 
+### Fixed
+- **`solver/tests/test-machamp.js --no-red` ran ZERO clauses and printed `0/0 GREEN`.** `--only` was read as
+  `argv[indexOf('--only') + 1]`, which with no `--only` is `argv[0]`. Now `--only` is read only when given. Run in this
+  worktree it is RED on REBUILD and TARGETS because `solver/out/mag/meta.json` (an untracked build output of the main
+  checkout) is absent here — an environment gap, owed a re-run from the main checkout.
+
 ### Notes
 - Release `eaa5becc54eb`, held-out Reg M-C decisions (seed 4, 1,999): the human's joint survives both gates **99.85%
   [99.56, 99.95]** — below the pre-registered 99.9%; all 3 losses are clicks their replays show failed or did nothing.

@@ -46,7 +46,8 @@ process.env.ABRA_REGULATION = process.env.ABRA_REGULATION || 'regmc';
 require('../arena/env.js');
 const argv = process.argv.slice(2);
 const NO_RED = argv.includes('--no-red');
-const ONLY = (argv[argv.indexOf('--only') + 1] || '').split(',').filter(Boolean);
+/* --only CLAUSE,CLAUSE; absent = every clause. (It read argv[indexOf('--only') + 1], which with no --only is argv[0] — so `--no-red` alone ran ZERO clauses and printed 0/0 GREEN. Found 2026-09-25.) */
+const ONLY = argv.includes('--only') ? String(argv[argv.indexOf('--only') + 1] || '').split(',').filter(Boolean) : [];
 const REL = process.env.ARENA_TEST_RELEASE || (argv.includes('--release') ? argv[argv.indexOf('--release') + 1] : 'eaa5becc54eb');
 const sha = f => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex');
 
