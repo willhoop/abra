@@ -52,8 +52,10 @@
  *               would hit, DEAD (the 2026-09-25 gate said soft); into a flinchable body, LIVE. My partner knows the same
  *               move, so a flinch it lands is not credited to me
  *   ENCORE      a Prankster Encore into a Dark body that has moved is DEAD with a bench (a switch-in has no last move);
- *               into a non-Dark body that has moved, LIVE. Read on the board, because MEDICHAM's move result says success
- *               on the Dark target (filed in docs/ENGINE.md 2026-09-26)
+ *               into a non-Dark body that has moved, LIVE. Read off the ENGINE'S MOVE RESULT: MEDICHAM ends the refused
+ *               move `false` since abra/regmc 1.21.0, so the gate's board workaround is gone. Its break is the engine's
+ *               own knob MEDI_PRANKSTER_RESULT_TRUE=1 (the pre-fix `true`): a gate that reads the result then calls the
+ *               Dark Encore live and ENCORE goes red; the board workaround would have kept it dead and stayed green
  *   WEIGHT      a mostly-banned click's weight is the switch model's probability of a rescuing switch (two stand-in
  *               models give two different weights, each equal to the model's own mass), never the old constant
  *   SHIELDRES   a status click whose purpose is its move RESULT, at a foe whose only click is a holding Protect: UNTESTED
@@ -62,9 +64,11 @@
  *
  * RED, unless --no-red: re-runs itself under each GATE_BREAK and REQUIRES the named clause to fail:
  *   anytrue -> IMMUNE, softhard -> IMMUNE, nopartner -> PARTNER, pairany -> ALLFUTILE (was DISJOINT until 2026-09-26), pairondead -> DISJOINT, norep -> REACH, exec -> EXEC,
- *   dice -> DICE, short -> TALL, shieldcounts -> SHIELDRES (was STATUSED until 2026-09-26: a status click is now read on the board), fullheal -> HEAL, megapass -> MEGA, secfree -> SEC,
- *   shieldskipall -> SHIELDFAIL, parity -> PARITY, twovalued -> UNKNOWN, purposeresult -> FAKEOUT and ENCORE,
- *   flinchany -> FAKEOUT, softconst -> WEIGHT, benchone -> BENCH.
+ *   dice -> DICE, short -> TALL, shieldcounts -> SHIELDRES (was STATUSED until 2026-09-26), fullheal -> HEAL, megapass -> MEGA, secfree -> SEC,
+ *   shieldskipall -> SHIELDFAIL, parity -> PARITY, twovalued -> UNKNOWN, purposeresult -> FAKEOUT,
+ *   flinchany -> FAKEOUT, softconst -> WEIGHT, benchone -> BENCH,
+ *   prankstertrue -> ENCORE (not a gate break: the run sets the ENGINE knob MEDI_PRANKSTER_RESULT_TRUE=1; was
+ *   purposeresult -> ENCORE until the engine fix made that break blind, 2026-09-26).
  */
 'use strict';
 require('../arena/env.js');
@@ -580,22 +584,27 @@ const resOf = m => (m ? (m._mvResLast !== undefined ? m._mvResLast : m._mvRes) :
       if (lastN) n._lastMove = weak.id;
       return battle([a, body(P, [stallMove])], [d, n, b3]);
     };
-    /* PREMISE, read on the BOARD (engine/board_state.js readMedi's encore leaf on the target), not on the move result —
-     * the move result reads success on the Dark target here where the authority reads failure (docs/ENGINE.md,
-     * 2026-09-26): on the plain foe that has moved, the Encore lands; on the same foe with no last move (a fresh
-     * switch-in) it does not; on the Dark foe that has moved it does not (the Prankster refusal) */
+    /* PREMISE, read on the BOARD (engine/board_state.js readMedi's encore leaf on the target), independently of the move
+     * result the gate reads — so the knob that falsifies the result (MEDI_PRANKSTER_RESULT_TRUE=1) leaves the premise
+     * standing and the fixture is still played: on the plain foe that has moved, the Encore lands; on the same foe with
+     * no last move (a fresh switch-in) it does not; on the Dark foe that has moved it does not (the Prankster refusal) */
     const pre = (S, tgt) => { const la = API.legalActions(S, 'A'), lb = API.legalActions(S, 'B');
       const a = mvOpt(la, 0, enc.id, tgt); const b = [mvOpt(lb, 0, weak.id, 1), mvOpt(lb, 1, weak.id, 1)];
       if (!a || !b[0] || !b[1]) return undefined;
       const T = stepOnce(S, [a, PR.PASS], b);
       return !!((BSF.readMedi(T, { id: X.toID, fails: {} }).sides.p2.active[tgt - 1] || {}).vol || {}).encore; };
     if (pre(mk(true, true), 2) !== true || pre(mk(true, false), 2) !== false || pre(mk(true, true), 1) !== false) continue;
+    /* what the gate reads: the engine's own move result for the refused Encore (false on the fixed engine; true under
+     * the knob) — printed, not asserted, so the knob reaches the VERDICT rather than a premise */
+    const resD = (() => { const S0 = mk(true, true), la = API.legalActions(S0, 'A'), lb = API.legalActions(S0, 'B');
+      const T = stepOnce(S0, [mvOpt(la, 0, enc.id, 1), PR.PASS], [mvOpt(lb, 0, weak.id, 1), mvOpt(lb, 1, weak.id, 1)]);
+      return resOf(T.actA[0]); })();
     const S = mk(true, true);
     const p = pos(S);
     const vD = MG.verdict(p, 0, mvOpt(p.la, 0, enc.id, 1)), vN = MG.verdict(p, 0, mvOpt(p.la, 0, enc.id, 2));
     ok('ENCORE', vD.v === 'dead', `Prankster ${enc.id} into a Dark ${Dk.id} with a bench: expected dead (always banned), got ${vD.v} (${vD.why || ''})`);
     ok('ENCORE', vN.v === 'live', `Prankster ${enc.id} into a ${N.id} that has already moved: expected live (kept), got ${vN.v} (${vN.why || ''})`);
-    console.log(`  ENCORE: ${U.id} (${prank.id}) ${enc.id} into a Dark ${Dk.id} with ${B3.id} on the bench -> ${vD.v}${vD.v_result ? ' (move result alone: ' + vD.v_result + ')' : ''}; into a ${N.id} that has moved -> ${vN.v}`);
+    console.log(`  ENCORE: ${U.id} (${prank.id}) ${enc.id} into a Dark ${Dk.id} with ${B3.id} on the bench -> ${vD.v} (engine move result ${resD}, purpose ${vD.purpose}); into a ${N.id} that has moved -> ${vN.v}`);
     done = true;
     break;
   }
@@ -604,19 +613,15 @@ const resOf = m => (m ? (m._mvResLast !== undefined ? m._mvResLast : m._mvRes) :
 
 /* ---------- SHIELDRES: a held shield is still skipped for a click whose purpose is its move RESULT ---------- */
 {
-  /* Since the tiered gates, a status move that applies a status, a stat change or a volatile the board reads is judged on
-   * the BOARD (purpose 'effect'), so the #509 residual (a shielded status move reads success) cannot make it look live —
-   * which is why STATUSED no longer sees `shieldcounts`. A status move aimed at a foe whose purpose is still its move
-   * result (no status, no stat change, no board-read volatile) keeps the old exposure: at a foe whose only click is a
-   * Protect that holds, every world must be skipped (UNTESTED), never read as a success. Derived by property. */
+  /* A status move aimed at a foe whose purpose is its move result: at a foe whose only click is a Protect that holds,
+   * every world must be skipped (UNTESTED), never read as a success or a failure — a held shield says nothing about the
+   * click. (The 2026-09-26 board-read 'effect' purpose is gone; every status move is read off the result again.)
+   * Derived by property. */
   const PU = require('../mag/purpose.js');
   const U = quietSpecies[30], Pn = quietSpecies[31], N = quietSpecies[32], N2 = quietSpecies[33];
-  const mk = (foeMoves) => battle([body(U, [stallMove]), body(Pn, [stallMove])], [body(N, foeMoves), body(N2, [weak])]);
-  const p0 = pos(mk(FOE));
-  const rv = p0.readVol();
   let done = false;
   for (const sm of MOVES.filter(m => m.category === 'Status' && m.target === 'normal' && m.flags.protect && !m.onTry && !m.onTryHit && (m.accuracy === true || m.accuracy >= 90)
-    && PU.purposeOf(m.id, rv) === 'result')) {
+    && PU.purposeOf(m.id) === 'result')) {
     const S0 = battle([body(U, [sm, stallMove]), body(Pn, [stallMove])], [body(N, [weak]), body(N2, [weak])]);
     const o0 = mvOpt(API.legalActions(S0, 'A'), 0, sm.id, 1);
     if (!o0 || premise(S0, 0, o0) !== true) continue;                          // it works on a foe that does not hide
@@ -729,10 +734,12 @@ console.log('test-gates: ' + (checks - fails) + '/' + checks + ' checks' + (brk 
 
 if (!NO_RED && !brk) {
   const need = [['anytrue', 'IMMUNE'], ['softhard', 'IMMUNE'], ['nopartner', 'PARTNER'], ['pairany', 'ALLFUTILE'], ['pairondead', 'DISJOINT'], ['norep', 'REACH'], ['exec', 'EXEC'], ['dice', 'DICE'], ['short', 'TALL'], ['shieldcounts', 'SHIELDRES'], ['fullheal', 'HEAL'], ['megapass', 'MEGA'], ['secfree', 'SEC'], ['shieldskipall', 'SHIELDFAIL'], ['parity', 'PARITY'], ['twovalued', 'UNKNOWN'],
-    ['purposeresult', 'FAKEOUT'], ['purposeresult', 'ENCORE'], ['flinchany', 'FAKEOUT'], ['softconst', 'WEIGHT'], ['benchone', 'BENCH']];
+    ['purposeresult', 'FAKEOUT'], ['flinchany', 'FAKEOUT'], ['softconst', 'WEIGHT'], ['benchone', 'BENCH'], ['prankstertrue', 'ENCORE']];
+  /* a break that lives in the ENGINE, not the gate: the knob it sets, beside GATE_BREAK (which only labels the run) */
+  const ENGINE_KNOB = { prankstertrue: { MEDI_PRANKSTER_RESULT_TRUE: '1' } };
   let blind = 0;
   for (const [v, clause] of need) {
-    const res = cp.spawnSync(process.execPath, [__filename, '--no-red'], { env: Object.assign({}, process.env, { GATE_BREAK: v }), encoding: 'utf8' });
+    const res = cp.spawnSync(process.execPath, [__filename, '--no-red'], { env: Object.assign({}, process.env, { GATE_BREAK: v }, ENGINE_KNOB[v] || {}), encoding: 'utf8' });
     const line = (res.stdout || '').split('\n').find(l => l.startsWith('test-gates:') && l.includes('failed clauses')) || '';
     const seen = new RegExp('failed clauses: .*\\b' + clause + '\\b').test(line) && res.status === 1;
     console.log('  RED GATE_BREAK=' + v + ' -> ' + clause + ': ' + (seen ? 'fails as required' : 'STAYED GREEN (blind)  ' + line));

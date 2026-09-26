@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-24T20:21:54.376Z",
+  "generated": "2026-09-26T12:31:28.537Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 1024,
-  "live": 1024,
+  "probed": 1027,
+  "live": 1027,
   "missing": 0,
-  "armed": 1024,
+  "armed": 1027,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -4483,7 +4483,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.6% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.5% (format 20, generic 30), control Rock Slide 28.0% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5864,6 +5864,26 @@
       "label": "a MISSED Stomping Tantrum doubles the next one, and the counter says so",
       "live": true,
       "detail": "[Stomping Tantrum damage, MEDSEEN.powerDoubledAfterFailure delta] — after a High Horsepower that LANDED [93,0] (the counter must be EXACTLY 0)   |   after one that MISSED [183,2] (double, and the counter must have moved — a miss sets moveThisTurnResult to false, not null. The delta counts base-power EVALUATIONS, not clicks, so it is asserted >= 1)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "priorityMod",
+      "label": "a Prankster status move a Dark foe refuses FAILS the move — the user's Stomping Tantrum doubles next turn",
+      "live": true,
+      "detail": "Stomping Tantrum into the same Milotic the turn after a Taunt — Prankster into Dark (refused) 183 (must be double); no Prankster into Dark 93; Prankster into Water 93 (both must be the plain 75)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesStatusMoves",
+      "label": "a status move a Good as Gold body refuses FAILS the move, and one a Protect stops does NOT",
+      "live": true,
+      "detail": "Stomping Tantrum into the same Milotic the turn after a Taunt — refused by Good as Gold 183 (must be double: the refusal is a FAILURE); stopped by Protect 93 and landed 93 (both the plain 75: NOT_FAIL is not a failure)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7424,6 +7444,16 @@
       "label": "Sleep Talk calls one of the user OWN moves, free, without waking it",
       "live": true,
       "detail": "[HP the foe pair loses, the user status] - ASLEEP 96/slp, Sleep Talk own slot at 11 and the CALLED Ice Beam slot untouched (undefined); CONTROL awake 0/- with a -fail. The status must still read slp: the called move used to re-enter the sleep gate and spend a second tick",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "priorityMod",
+      "label": "a Prankster Sleep Talk's CALLED damaging move is refused by a Dark foe",
+      "live": true,
+      "detail": "HP the foe pair lost to the Ice Beam a sleeping body's Sleep Talk called — Prankster, foes Dark 0 (must be 0: the called move inherits the boost); no Prankster 96; Prankster, foes Water 48 (both must land)",
       "hollow": false,
       "armed": true,
       "directCall": false

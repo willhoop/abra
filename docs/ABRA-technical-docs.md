@@ -69,7 +69,7 @@ account is `docs/_reports/2026-09-24-regmc-gate-final.md`.
 | Whole game, lattice 1900 | 1497 games, no board parts (`data/game-differential.g1900-regmc.json`) |
 | Narration | zero undeclared on each lattice; the baseline is 0 of 955 (`data/whole-game-baseline-regmc.json`) |
 | Staged mechanics | 4867 games; none threw (`data/all-mechanics-fire-regmc.json`) |
-| Census | 1024 rows live (`data/mechanics-census-regmc.json`) |
+| Census | 1024 rows live (`e1d04b89:data/mechanics-census-regmc.json:live`, pin `123aa264f88d`) |
 
 ### 0.4 The limits of the verdict
 

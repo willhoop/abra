@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.21.0] — 2026-09-27
+## [1.23.0] — 2026-09-27
 
 ### Added
 - **Three MILTANK options against the repeat-Protect mix, OFF by default and NOT deployed.** `quiesce` 'all'
@@ -57,6 +57,57 @@ rewritten; what changed and why is stated.
   (`docs/_reports/2026-09-27-protect-repeat-fix.md`).
 - **DODUO was not retrained.** Its `stall_repeat` feature already matches the engine's counter: 440/443 (v1) and
   498/503 (gen5). The counter's magnitude is not a feature: at counter 2 it re-clicks in 9 of 14 and 13 of 18 decisions.
+
+## [1.22.0] — 2026-09-26
+
+### Changed
+- **MAG's gate now reads a status click off the engine's move result. The board workaround is removed.** The tiered
+  gates (1.19.0) judged a status move aimed at a body off the target's board, because MEDICHAM ended a Prankster status
+  move refused by a Dark target `true`. 1.21.0 fixed that result. On 300 held-out decisions on release `4067de46a0ee`,
+  the board reading changed 1 verdict of 78, and it was wrong: a Hypnosis at a fainted slot retargeted onto the live foe
+  and slept it. `solver/mag/purpose.js` keeps `'flinch'` and `'result'`. `gate.js` drops `targetDiff` and its two extra
+  steps per world. `probe.js` drops `readVol`.
+
+### Fixed
+- **`solver/tests/test-gates.js` was BLIND (exit 3) and is now green, with every break red.** The ENCORE break was
+  `purposeresult`, and it saw only the old wrong result. It is now the engine's own knob `MEDI_PRANKSTER_RESULT_TRUE=1`.
+  Under that knob the gate calls the Dark Encore live and ENCORE fails. With the old board workaround restored, the same
+  knob left ENCORE green, so the break separates the two gates. `docs/_reports/2026-09-26-encore-break-reaim.md`.
+
+---
+
+## [1.21.0] — 2026-09-26
+
+### Fixed
+- **A Prankster status move a Dark foe refuses now FAILS the move.** MEDICHAM got the effect and the `-immune` line right
+  and left the move result `true`; the authority ends it `false` (`hitStepTryImmunity` writes `hitResults[i] = false`).
+  It is board-material: a Prankster Grimmsnarl's Taunt refused by Persian-Alola, then Stomping Tantrum into it, took
+  488 HP in the authority and 523 here. Fixed on every Prankster road (`pranksterRefuse`, the `tryHitRefusal` record,
+  the spread rows: `false` only when no target is left). Leech Seed's refusal was also silent and now writes `-immune`.
+  Filed by SOLVER on release `eaa5becc54eb`. Knob `MEDI_PRANKSTER_RESULT_TRUE`.
+- **A called move inherits its caller's Prankster boost.** `useMoveInner` copies `pranksterBoosted` onto the called
+  move and the step asks the flag, not the category, so a Prankster Sleep Talk's Foul Play into a Dark foe is refused
+  there; here it dealt 15. The damaging step now asks it. Knob `MEDI_PRANKSTER_CALLED_BLIND`.
+- **The same field on the other status refusals** (found by the probe's own controls, authority read first): in the
+  `affect` and major-status branches Good as Gold, the absorbers, the move-class door, powder, the type chart,
+  `onTryImmunity`, a miss, an empty-handed Trick/Switcheroo and a Magic Bounce now end the move `false`, and a shield
+  ends it `null` (the `#509` residual). Knob `MEDI_STATUS_REFUSAL_RESULT_TRUE`.
+
+### Added
+- `tests/probe_prankster_dark_result.js`: both engines, the move result and the boards, over every foe-aimed status move
+  a legal Prankster carrier learns (34), each with a non-Dark and a no-Prankster control, plus the all-Dark spread
+  arm, the Stomping Tantrum outcome, the called move, redirection, Magic Bounce and six siblings. 0 RED.
+- Three census rows that read Stomping Tantrum's damage (Prankster into Dark; the called move; Good as Gold vs
+  Protect). Census 1024 → 1027 live, 0 missing; each row goes MISSING under its own knob and no other row moves.
+
+### Notes
+- **Why the gate missed it:** `engine/board_state.js` does not compare the move result, and every earlier Prankster
+  check read the effect or the line. Comparing the result as a board leaf is MEASURE's call and is not done here.
+- **Gate re-run, release `4067de46a0ee`, census pin `f534f1592eda`:** lattices 0 board / 0 narration of 955, 1266 and
+  1497; roster 166/166, 210/214, 510/511. Damage 0 of 6000 at every corner (`data/engine-diff-regmc.json`); mechanics staged 0 diverge over 4,867 games (`data/all-mechanics-fire-regmc.json`). `node engine/quarantine.js` (Reg M-C): **OPEN, 10 of 10.**
+- **Owed to SOLVER:** `solver/tests/test-gates.js` now exits 3 (BLIND): its ENCORE clause proved the `purposeresult`
+  break on the engine's wrong result, and the right result reads "dead" too. Exit 0 again under
+  `MEDI_PRANKSTER_RESULT_TRUE=1`. ENGINE may not edit `solver/`.
 
 ## [1.20.0] — 2026-09-26
 

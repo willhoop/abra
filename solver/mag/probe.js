@@ -182,12 +182,6 @@ function create(API, opts) {
     const bufs = [v8.serialize(C)].concat((o.alt || []).map(x => v8.serialize(prep(x, tall))));
     const cache = new Map();
     const pos = { side, opp, la, lo, steps: 0, errors: 0, worlds: bufs.length, salt: o.salt | 0 };
-    /* the volatiles the board reads (the keys of readMedi's volatile leaves on this position), for solver/mag/purpose.js */
-    pos.readVol = () => pos._readVol || (pos._readVol = (() => {
-      const b = BS.readMedi(v8.deserialize(bufs[0]), { id: toID, fails: {} });
-      const a = [...((b.sides.p1 || {}).active || []), ...((b.sides.p2 || {}).active || [])].find(x => x && x.vol);
-      return new Set(Object.keys((a && a.vol) || {}));
-    })());
     pos.run = function run(jS, jO, d, ro) {
       ro = ro || {};
       const wi = ro.world | 0;

@@ -8,7 +8,7 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-27
 
-### Repeat Protect: the depth-0 horizon, a fix that works on the table and loses at 1 s — not deployed (abra/regmc 1.21.0)
+### Repeat Protect: the depth-0 horizon, a fix that works on the table and loses at 1 s — not deployed (abra/regmc 1.23.0)
 - Cause, on the 13 positions where DODUO offers a repeat: not noise (SE median 0.0024, halves 0.626/0.607), not the die
   (success 0.34 vs the engine's 1/3). Scored on its failed playouts only the repeat keeps 0.054 of 0.609. The success branch
   is a delayed KO the depth-0 leaf counts as survival (alive at the leaf, dead a turn later in 671 of 898). Two smaller
@@ -23,6 +23,12 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 - Test `solver/tests/test-miltank-quiesce.js` 1195/1195, RED on 3 breaks. Detail: `docs/_reports/2026-09-27-protect-repeat-fix.md`.
 
 ## 2026-09-26
+
+### ENCORE break re-aimed; the gate's board workaround removed (abra/regmc 1.22.0)
+- `test-gates` was BLIND after ENGINE fixed the Prankster-into-Dark move result. It is now green with every break red.
+  ENCORE's break is the engine knob `MEDI_PRANKSTER_RESULT_TRUE=1`. The gate reads a status click off the move result
+  again. On the fixed release the board reading changed 1 of 78 verdicts, and wrongly. Detail:
+  `docs/_reports/2026-09-26-encore-break-reaim.md`.
 
 ### Protect overuse: the live world lost the counter (fixed); most of the excess is the search's own mix (abra/regmc 1.20.0)
 - The live search re-clicked Protect on 31% of the turns its body carried the counter (20 of 28 failed). The human

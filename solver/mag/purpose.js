@@ -5,9 +5,8 @@
  * engine report this click a success" to "did the engine show this click's PURPOSE achieved".
  *
  *   const PU = require('./solver/mag/purpose.js');
- *   PU.purposeOf(moveId, readVol) -> 'flinch' | 'effect' | 'result'     readVol = the volatiles the board reads
- *   PU.achieved(purpose, r, k, r0) -> bool     r = a probe world (solver/mag/probe.js), k = my slot, r0 = the same world
- *                                              with slot k passing (needed for 'effect' only, both read with the board)
+ *   PU.purposeOf(moveId) -> 'flinch' | 'result'
+ *   PU.achieved(purpose, r, k) -> bool     r = a probe world (solver/mag/probe.js), k = my slot
  *
  * THE RULE, from the move's data:
  *   'flinch'   a damaging move whose GUARANTEED secondary (chance 100) is a flinch. Its purpose is to take the target's
@@ -17,70 +16,57 @@
  *              click (probe.js attributes each flinch write to the body whose move was executing). A switch-in has
  *              already spent its action on the switch, so a flinch on it is always too late: a flinch move cannot be
  *              rescued by a switch. Derived today: `node solver/mag/purpose.js`.
- *   'effect'   a STATUS move aimed at another body (not `self`, not the whole field or a side) whose effect is a status,
- *              a stat change, or a volatile the board reads (`readVol`: the keys of engine/board_state.js `readMedi`'s
- *              volatile leaves, read off the frozen copy at run time). Achieved when the move result is a success AND
- *              the turn-end board differs from the same world with this slot passing — the effect is ON the board.
- *              Needed because MEDICHAM's move result can say success when nothing was applied: a Prankster-boosted
- *              status move refused by a Dark target ends with the result `true` here and `false` in the authority
- *              (filed in docs/ENGINE.md 2026-09-26, not fixed), which is exactly Will's Prankster Encore example.
  *   'result'   every other move: MEDICHAM's own move result (probe.js `ok`, Showdown's moveThisTurnResult) — the
- *              damage landed, the side or field condition went up, the self-targeted move worked.
+ *              damage landed, the side or field condition went up, the self-targeted move worked, the status move's
+ *              status, stat change or volatile went on.
+ *
+ * NO 'effect' PURPOSE SINCE 2026-09-26 (evening). The tiered gates first read a status move aimed at a body off the
+ * target's BOARD (result AND the turn-end board differing from a pass), because MEDICHAM ended a Prankster status move
+ * refused by a Dark target `true` where the authority ends it `false` — Will's Prankster Encore example. ENGINE fixed
+ * the result in abra/regmc 1.21.0 (release 4067de46a0ee), and on 300 held-out decisions on that release the board
+ * reading changed one verdict of 78 status clicks, wrongly (a Hypnosis at a fainted slot retargeted onto the live foe
+ * and slept it; the board compared the empty slot). So the status move is read off the engine's result like every
+ * other move, and solver/tests/test-gates.js ENCORE proves the gate reads it: under the engine's own knob
+ * MEDI_PRANKSTER_RESULT_TRUE=1 (the pre-fix `true`), ENCORE goes red.
  *
  * WHAT THIS DOES NOT DECIDE (stated, a question for Will): a damaging move whose guaranteed rider is NOT a flinch — a
  * speed drop, a stat drop — keeps DAMAGE as its purpose here, so it is never banned because the rider is refused (a
  * Clear Body-style target). The count is printed by `node solver/mag/purpose.js`; reading their purpose as the rider
- * would ban clicks that still deal damage, which is a design call, not a derivation. A status volatile the board does
- * not read (Helping Hand's, for one) stays 'result': an effect the board cannot see is never read as absent.
+ * would ban clicks that still deal damage, which is a design call, not a derivation.
  *
- * DELIBERATE BREAK (env GATE_BREAK=purposeresult): every move's purpose is its move result (the 2026-09-25 gate) — Fake
- * Out into an Inner Focus body then reads LIVE, and a Prankster Encore into a Dark body reads LIVE.
- * solver/tests/test-gates.js FAKEOUT and ENCORE must go red.
+ * DELIBERATE BREAK (env GATE_BREAK=purposeresult): every move's purpose is its move result (the 2026-09-25 gate) — a
+ * flinch move into a body whose ability refuses the flinch then reads LIVE. solver/tests/test-gates.js FAKEOUT must go red.
  */
 'use strict';
 const BREAK = (typeof process !== 'undefined' && process.env && process.env.GATE_BREAK) || '';
 const CACHE = new Map();
 const secs = m => (m.secondaries || (m.secondary ? [m.secondary] : [])).filter(Boolean);
-const AIMED = new Set(['normal', 'any', 'adjacentFoe', 'adjacentAlly', 'adjacentAllyOrSelf', 'allAdjacentFoes', 'allAdjacent', 'randomNormal']);
 
-function purposeOf(id, readVol) {
+function purposeOf(id) {
   if (!id) return 'result';
-  const key = id + (readVol ? '|v' : '');
-  if (CACHE.has(key)) return CACHE.get(key);
+  if (CACHE.has(id)) return CACHE.get(id);
   const D = require('../human/dex.js').D;
   const m = D.moves.get(id);
   let p = 'result';
-  if (BREAK !== 'purposeresult' && m && m.exists) {
-    if (m.category !== 'Status' && secs(m).some(s => s.chance === 100 && s.volatileStatus === 'flinch')) p = 'flinch';
-    else if (m.category === 'Status' && AIMED.has(m.target)
-      && (m.status || (m.boosts && Object.keys(m.boosts).length) || (m.volatileStatus && readVol && readVol.has(m.volatileStatus)))) p = 'effect';
-  }
-  CACHE.set(key, p);
+  if (BREAK !== 'purposeresult' && m && m.exists && m.category !== 'Status' && secs(m).some(s => s.chance === 100 && s.volatileStatus === 'flinch')) p = 'flinch';
+  CACHE.set(id, p);
   return p;
 }
-/* r: probe world result; k: my slot; r0: the pass counterfactual of the same world (boards read), for 'effect' */
-function achieved(purpose, r, k, r0) {
+/* r: probe world result; k: my slot */
+function achieved(purpose, r, k) {
   if (purpose === 'flinch') return !!(r.ok[k] && r.fl && r.fl[k]);
-  if (purpose === 'effect') return !!(r.ok[k] && r0 && r.board != null && r0.board != null && r.board !== r0.board);
   return !!r.ok[k];
 }
 
-module.exports = { purposeOf, achieved, AIMED, BROKEN: BREAK || null };
+module.exports = { purposeOf, achieved, BROKEN: BREAK || null };
 
 if (require.main === module) {
   require('../arena/env.js');
   const X = require('../human/dex.js');
-  const BS = require('../doduo/board_state.frozen.js');
   const L = X.D.moves.all().filter(X.legal);
-  /* the board's volatile leaves, read off one built body (the same derivation solver/mag/gate.js makes on a position) */
-  const API = require('../../engine/medicham_api.js');
-  const sp = X.D.species.all().filter(s => X.legal(s) && !s.isMega && !s.forme)[0];
-  const S = API.newBattle([API.M.buildMon(sp.id, {}), API.M.buildMon(sp.id, {})], [API.M.buildMon(sp.id, {}), API.M.buildMon(sp.id, {})], { seeded: true });
-  const readVol = new Set(Object.keys(BS.readMedi(S, { id: X.toID, fails: {} }).sides.p1.active[0].vol || {}));
   const byP = {};
-  for (const m of L) { const p = purposeOf(m.id, readVol); (byP[p] = byP[p] || []).push(m.id); }
+  for (const m of L) { const p = purposeOf(m.id); (byP[p] = byP[p] || []).push(m.id); }
   console.log('flinch-purpose moves (' + (byP.flinch || []).length + '): ' + (byP.flinch || []).join(' '));
-  console.log('effect-purpose moves (' + (byP.effect || []).length + '): ' + (byP.effect || []).join(' '));
   console.log('result-purpose moves: ' + (byP.result || []).length);
   const rider = L.filter(m => m.category !== 'Status' && secs(m).some(s => s.chance === 100 && s.volatileStatus !== 'flinch'));
   console.log('damaging moves with a guaranteed NON-flinch rider (damage stays their purpose): ' + rider.length);

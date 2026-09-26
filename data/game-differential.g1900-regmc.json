@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-24T21:19:17.877Z",
+  "generated": "2026-09-26T13:48:23.867Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:de38d17e15a2/credit:observed-effect/v1/nature:real",
   "games_requested": 1900,
@@ -64,7 +64,7 @@
       "credit_events": {
         "effect": 808221,
         "negative": 2640,
-        "click": 1722496
+        "click": 1732535
       },
       "classes": []
     }
@@ -84,7 +84,7 @@
   },
   "games": 1497,
   "turns_cap": 50,
-  "elapsed_s": 1283.7,
+  "elapsed_s": 1163.8,
   "credit_turn_profile": {
     "rows_with_any_credit": 271,
     "credits_with_no_turn_index": 0,
@@ -128,34 +128,34 @@
       }
     ],
     "credit_events_by_turn": {
-      "1": 122013,
-      "2": 123544,
-      "3": 123571,
-      "4": 125032,
-      "5": 120776,
-      "6": 110949,
-      "7": 98968,
-      "8": 82976,
-      "9": 65402,
-      "10": 51929,
-      "11": 41565,
-      "12": 31209,
-      "13": 24971,
-      "14": 17848,
-      "15": 13123,
-      "16": 9207,
-      "17": 6607,
-      "18": 4532,
-      "19": 3390,
-      "20": 2677,
-      "21": 1847,
-      "22": 1256,
-      "23": 628,
-      "24": 343,
-      "25": 343,
-      "26": 180,
+      "1": 122363,
+      "2": 123933,
+      "3": 124006,
+      "4": 125495,
+      "5": 121233,
+      "6": 111401,
+      "7": 99371,
+      "8": 83289,
+      "9": 65654,
+      "10": 52125,
+      "11": 41742,
+      "12": 31345,
+      "13": 25093,
+      "14": 17942,
+      "15": 13203,
+      "16": 9263,
+      "17": 6652,
+      "18": 4562,
+      "19": 3413,
+      "20": 2700,
+      "21": 1862,
+      "22": 1266,
+      "23": 632,
+      "24": 345,
+      "25": 347,
+      "26": 182,
       "27": 135,
-      "28": 116,
+      "28": 118,
       "29": 108,
       "30": 104,
       "31": 38,
@@ -7437,8 +7437,8 @@
     "why": "Primarina clicked Haze on turn 1 into a board with zero boosts on it. Haze is a no-op there, the census marked it exercised, and because the census STEERS the sample a falsely credited row then steered every later run AWAY from testing it.",
     "rows_with_an_observed_effect": 403,
     "rows_that_can_be_witnessed_on_a_board": 446,
-    "rows_that_name_no_board_leaf": 506,
-    "rows_credited_by_a_connected_click_only": 473,
+    "rows_that_name_no_board_leaf": 509,
+    "rows_credited_by_a_connected_click_only": 476,
     "rows_clicked_or_present_that_did_nothing": 14,
     "rows_clicked_or_present_that_did_nothing_list": [
       "ability:clearsScreensOnEntry",
@@ -7496,11 +7496,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 10590,
+        "credit": 14120,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 23664
+          "click": 31552
         },
         "attempts": 0
       },
@@ -8246,11 +8246,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 10590,
+        "credit": 14120,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 23664
+          "click": 31552
         },
         "attempts": 0
       },
@@ -9525,11 +9525,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 5025,
+        "credit": 6030,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 10755
+          "click": 12906
         },
         "attempts": 0
       },
@@ -12353,11 +12353,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 5025,
+        "credit": 6030,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 10755
+          "click": 12906
         },
         "attempts": 0
       },
@@ -12366,11 +12366,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 5025,
+        "credit": 6030,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 10755
+          "click": 12906
         },
         "attempts": 0
       },
@@ -12379,11 +12379,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 5025,
+        "credit": 6030,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 10755
+          "click": 12906
         },
         "attempts": 0
       },
@@ -12407,11 +12407,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 10590,
+        "credit": 14120,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 23664
+          "click": 31552
         },
         "attempts": 0
       },
@@ -12422,11 +12422,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 10590,
+        "credit": 14120,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 23664
+          "click": 31552
         },
         "attempts": 0
       },
@@ -15553,6 +15553,34 @@
         "attempts": 66
       },
       {
+        "key": "ability:priorityMod",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [
+          "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
+        ],
+        "credit": 14120,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 31552
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:refusesStatusMoves",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 6030,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 12906
+        },
+        "attempts": 0
+      },
+      {
         "key": "move:spreadFoes",
         "kind": "no-board-leaf",
         "families": [],
@@ -18002,6 +18030,21 @@
         "attempts": 0
       },
       {
+        "key": "ability:priorityMod",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [
+          "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
+        ],
+        "credit": 14120,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 31552
+        },
+        "attempts": 0
+      },
+      {
         "key": "move:refusedByPseudoWeather",
         "kind": "effect",
         "families": [
@@ -18779,11 +18822,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 10590,
+        "credit": 14120,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 23664
+          "click": 31552
         },
         "attempts": 0
       },
@@ -20792,11 +20835,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 5025,
+        "credit": 6030,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 10755
+          "click": 12906
         },
         "attempts": 0
       },
@@ -21644,11 +21687,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 10590,
+        "credit": 14120,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 23664
+          "click": 31552
         },
         "attempts": 0
       },
@@ -22360,13 +22403,13 @@
     ]
   },
   "coverage": {
-    "measurable": 952,
-    "exercised": 893,
+    "measurable": 955,
+    "exercised": 896,
     "exercised_note": "THE OLD NUMBER — an entity of this row connected or stood on the field. It is kept so the drop to credit.rows_with_an_observed_effect is readable, and it is NOT the coverage claim any more.",
     "exercised_by_a_connected_move": 525,
     "move_targets": 559,
-    "present_on_the_field_only": 368,
-    "ability_or_item_targets": 393,
+    "present_on_the_field_only": 371,
+    "ability_or_item_targets": 396,
     "median_completed_turns_before_divergence": 9,
     "unmeasurable_by_this_instrument": [
       {
@@ -23085,7 +23128,7 @@
     "driver_inputs": [
       {
         "file": "data/move-priors-regmc.json",
-        "read_from": "release eaa5becc54eb",
+        "read_from": "release 4067de46a0ee",
         "digest": "eab0c9b023df",
         "generated": "2026-09-21",
         "rows": 280,
@@ -23111,7 +23154,7 @@
         "rows": 48,
         "what": "the DECLARED SKIP LIST — every event medicham2 says it does not emit is removed from the Showdown side before alignment, so this decides what can count as a divergence",
         "derived_from_medicham2": "1e35c4df04aa",
-        "medicham2_played": "2caee2eeabb0"
+        "medicham2_played": "33219d25bdf1"
       }
     ],
     "driver_code": {
@@ -23143,18 +23186,18 @@
         "engine/board_state.js": "e1a59f82e80a",
         "engine/diff_swarm.js": "1c50526141d6",
         "engine/divergence_shape.js": "94b5c6548142",
-        "engine/effect_kind.js": "ad0ae817aac2",
-        "engine/empirical_driver.js": "4f2f2e1e6df6",
+        "engine/effect_kind.js": "10a7c982994f",
+        "engine/empirical_driver.js": "e6ad4a3a7b43",
         "engine/end_state_severity.js": "6cd7666b4a02",
         "engine/engine_release.js": "675f2ba369bd",
         "engine/fixture_legality.js": "42bb3443d333",
         "engine/game_differential.js": "0eb15a0b3fea",
         "engine/names.js": "ba54d547c0a0",
         "engine/run_stamp.js": "9b44ac36f0d1",
-        "engine/steering.js": "7c85e3d88fb2"
+        "engine/steering.js": "c61ad94ed8f0"
       },
       "digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content) — a line ending is not part of the instrument. `files_raw`/`raw_digest` carry the byte answer.",
-      "raw_digest": "79e9dcf0aeed",
+      "raw_digest": "eaf130366f51",
       "digest": "826ceca498e5",
       "unresolved": [
         "engine/game_differential.js -> ./tests/roster.js (does not resolve on disk)",
@@ -23167,16 +23210,16 @@
       "does_not_cover": "a computed require path, a dynamic import, the Showdown checkout beyond `showdown_commit`, and data/protocol-events.json (read as data, not required)."
     },
     "input": "data/mechanics-census.json",
-    "input_read_from": "data/verification/census-pin-regmc-123aa264f88d.json",
-    "input_digest": "123aa264f88d",
-    "input_raw_digest": "123aa264f88d",
+    "input_read_from": "data/verification/census-pin-regmc-f534f1592eda.json",
+    "input_digest": "f534f1592eda",
+    "input_raw_digest": "f534f1592eda",
     "input_digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content)",
-    "input_rows": 1024,
-    "input_generated": "2026-09-24T20:21:54.376Z",
-    "input_live_digest": "123aa264f88d",
+    "input_rows": 1027,
+    "input_generated": "2026-09-26T12:31:28.537Z",
+    "input_live_digest": "f534f1592eda",
     "pinned": true,
     "matches_live": true,
-    "selects_from": 952,
+    "selects_from": 955,
     "unmeasurable": 72,
     "credit": "observed-effect/v1 — a row is exercised when a board leaf in a family the tag's own params name changed across the turn, or when a declared negative case was reached and did not fire. A click alone counts for nothing. ROADMAP #91.",
     "team_pool_digest": "ede5538f9153",
@@ -23185,12 +23228,12 @@
     "team_store_pinned_to": "data/team-pool-frozen-regmc"
   },
   "baseline_comparability": null,
-  "engine_release": "eaa5becc54eb",
-  "engine_release_cut": "2026-09-24T20:12:54.367Z",
-  "engine_release_cuts": 8,
+  "engine_release": "4067de46a0ee",
+  "engine_release_cut": "2026-09-26T12:18:04.454Z",
+  "engine_release_cuts": 5,
   "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
   "source_digests": {
-    "engine/medicham2-browser.js": "2caee2eeabb0",
+    "engine/medicham2-browser.js": "33219d25bdf1",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "eacf05ff8d30",
     "engine/position_features.js": "bb71676d3669",

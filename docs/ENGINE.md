@@ -1,3 +1,28 @@
+## A PRANKSTER STATUS MOVE A DARK FOE REFUSES FAILS THE MOVE, AND SO DOES A CALLED ONE; THE OTHER STATUS REFUSALS FAIL IT TOO, AND A SHIELD ENDS IT `null` (REG M-C). 2026-09-27 (abra/regmc 1.21.0)
+
+- The filed SOLVER defect was board-material: a Prankster Grimmsnarl's Taunt refused by Persian-Alola, then Stomping
+  Tantrum into it, took 488 HP in the authority and 523 here (move result `false` / `true`). Fixed at every Prankster
+  road (`pranksterRefuse`, the `tryHitRefusal` record, the spread rows, and Leech Seed, whose refusal was also
+  silent). Knob `MEDI_PRANKSTER_RESULT_TRUE`.
+- A CALLED move inherits the caller's boost and the step asks the flag, not the category: a Prankster Sleep Talk's
+  Foul Play into a Dark foe is refused there and dealt 15 here. Fixed in the damaging branch's `_stepTryImm`. Knob
+  `MEDI_PRANKSTER_CALLED_BLIND`.
+- Siblings found by the probe's own control arms, same field, fixed in the `affect` and major-status branches: Good as
+  Gold, the absorbers, the move-class door, powder, the type chart, onTryImmunity, a miss, an empty-handed
+  Trick/Switcheroo and a Magic Bounce left `true` (authority `false`); a shield left `true` (authority `null`, the `#509`
+  residual). Knob `MEDI_STATUS_REFUSAL_RESULT_TRUE`.
+- Probe `tests/probe_prankster_dark_result.js` (both engines): 34 foe-aimed status moves over six legal carriers, each
+  with a non-Dark and a no-Prankster control; an all-Dark spread arm; the Stomping Tantrum outcome; the called move;
+  redirection away from a Dark foe; Magic Bounce onto a Dark Prankster user (lands in both: the note owing it was
+  stale); six sibling arms. Census rows (`priorityMod` x2, `refusesStatusMoves`): 1024 -> 1027 live, 0 missing.
+- Why the gate missed it: `engine/board_state.js` does not compare the move result, and every earlier Prankster row
+  read the effect or the line, both of which were right. The field reaches a board only through Stomping Tantrum,
+  Temper Flare and the Metronome item.
+- Hand list: **the Prankster result, the called-move refusal and the `#509` residual (these two branches) leave it.**
+  Not measured, filed: the sibling results on the other status branches (trap, curse, typecopy, soak, spite, yawn);
+  an Encore that swaps a Prankster body's chosen status move for a damaging one. Report
+  `docs/_reports/2026-09-27-prankster-dark.md`.
+
 ## REG M-C NARRATION AFTER THE LAST THREE FIXES: 0 / 0 / 0, BOARDS 0. 2026-09-24 (abra/regmc 0.123.0)
 
 - Release `015ab5fd1cc1`, pinned as 0.119.0, same samples. The three hand-list causes filed in 0.119.0 are closed
@@ -18448,6 +18473,7 @@ board-material effect was found. Stomping Tantrum reads `=== false` and sees no 
 field has readers, not because a board parts.
 SOLVER works around it by skipping every world in which the click's target shielded
 (`docs/_reports/2026-09-25-mag-doduo-gates.md`); the engine is not edited.
+*(CLOSED 2026-09-27, abra/regmc 1.21.0, for the `affect` and major-status branches: a shielded status move now ends `null`. Probe `tests/probe_prankster_dark_result.js` arms `sib-protect-affect` / `sib-protect-status`. See the entry at the top of this file.)*
 
 **FILED BY SOLVER, NOT FIXED (2026-09-26) — A PRANKSTER-BOOSTED STATUS MOVE REFUSED BY A DARK TARGET ENDS WITH THE MOVE
 RESULT `true` HERE AND `false` IN THE AUTHORITY, ON RELEASE `eaa5becc54eb`.** Same field as the `#509` residual above,
@@ -18465,6 +18491,7 @@ doubles there and not here — **board-material in principle; not yet seen in th
 `solver/tests/test-gates.js` ENCORE reads the effect off the board precisely because the result is wrong. SOLVER
 reads a status click's purpose off the target's board (`solver/mag/purpose.js` 'effect'), so its gates no longer
 depend on this field for these moves; the engine is not edited.
+*(CLOSED 2026-09-27, abra/regmc 1.21.0: the result is `false` on every Prankster road, and a called move's inherited boost is refused too. Probe `tests/probe_prankster_dark_result.js`; census row `priorityMod` "a Prankster status move a Dark foe refuses FAILS the move". See the entry at the top of this file.)*
 
 ---
 
