@@ -1,0 +1,29 @@
+{
+ "what": "PORYGON2 v1-r1 — the SAME v1 recipe retrained on the enlarged self-play corpus (p2v1-c0 + p2v1-c1, 13,603 games), and its gate (c) SPRT re-run. Written 2026-09-29 BEFORE the c1 tensors were built, before any r1 fit, and before any r1 arena game.",
+ "why": "v1 (solver/porygon2/model/porygon2-v1.json, commit adc3bda1) passed gate (a) but gate (c) ran to its 2,000-game budget INCONCLUSIVE (1,032-968 = 0.516 [0.494, 0.538], LLR +0.54). v1 trained on only 3,603 games of the cheap 2-pass corpus; p2v1-c1 adds 10,000 more games of the same league. The question: does ~3.8x the new corpus make the value net a provably stronger player?",
+ "engine_release": "eaa5becc54eb (verified intact in this worktree before the build)",
+ "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc (games.bo3.jsonl sha256 a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3; games.ots.jsonl 4dcc2aa61562...; pool-receipt.json 456927f0a4f8...; FROZEN.md b3cb79ed682e...)",
+ "baseline": "gen5's PORYGON2 inside solver/machamp/league/gen5.json — the SAME baseline as v1's gate (c), so the two SPRTs answer the same question",
+ "corpus": {
+  "p2v1-c0": "3,603 games, seed 1001; manifest sha256 7b9569f57614e5dd28ede7bfa5ac45e33d77c2625d1a8c4d44e08b8b04e411d0; shards e230d5ca101c.., bf7e6da6059c.., f494f13d6971..",
+  "p2v1-c1": "10,000 games, seed 2001, same league file (sha256 424a70a22990845209e29c57fddd4b615061a16f8b99608755323885745fc50c), 2-pass cap honoured (32.0 playouts per decision mean), 0 errors, 1 capped; manifest sha256 de336bb23e6b1bf4360f4b6d46cd95c035d9d7d11ddd17b55fd8c1e79dfc0aed; shards 9f867ba04d95.., 82c2ad29b7e6.., f9235d8ef1df..; copied from the main checkout into this worktree's solver/out/selfplay/eaa5becc54eb/p2v1-c1 with the shard sha256s re-verified",
+  "total_new": 13603
+ },
+ "build": "solver/porygon2/v1/build.js --release eaa5becc54eb --selfplay solver/out/selfplay/eaa5becc54eb/p2v1-c1 --shard i --shards 3, i = 0..2 -> solver/out/p2v1r/sp/p2v1-c1-s<i>. replay_mismatch must be 0. Every other build (human s0, the 10 earlier self-play directories, p2v1-c0) is REUSED byte-for-byte from worktree agent-a0e24792bde666457's solver/out/p2v1/, read by absolute path.",
+ "labels": "UNCHANGED: the 5,466 labels v1 trained on (labels/labels-0..2.jsonl, labels2/labels-0.jsonl of that worktree). c1 is NOT deep-labelled in this run; its rows get the pre-registered 'selfplay_other' target y = 0.75 z + 0.25 v_root.",
+ "targets": "as solver/porygon2/v1/preregistration.json, unchanged",
+ "training": {
+  "script": "solver/porygon2/v1/train.py",
+  "arm": "attn only — the arm v1's pre-registered rule already chose; the architecture is held fixed so the only change is the data. No `sets` arm is fitted, so no arm choice is made.",
+  "flags": "--arch attn --epochs 12 --threads 3 --lr 1e-3 --wd 1e-4 --dropout 0.1 --seed 1 --boot 2000 --block 2048 --bs 512 --human-weight 1 (v1's flags exactly)",
+  "eval_exclude": "gen0, gen1, r2-sp0, r2-sp1 (gen5 trained on those games), as v1",
+  "selection": "the epoch with the lowest combined validation loss, as v1"
+ },
+ "gates": {
+  "a_heldout": "as v1: PASS iff the 95% upper bound of (r1 - gen5) log-loss vs the outcome is < 0 on BOTH the human test set and the self-play test set. NOTE: the self-play test set now also holds p2v1-c1's 10% test split, so it is not the identical set v1 was read on; r1 vs v1 on v1's test rows is reported beside it.",
+  "c_sprt": "solver/machamp/sprt.js --release eaa5becc54eb --x solver/porygon2/v1/gen5-p2v1r1.json --y solver/machamp/league/gen5.json --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 2000 --seed 9101 --workers 3 --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --info honest. Both arms: gen5 MAG + DODUO, MILTANK k 4x4, 1 reserved switch row, depth 0, 1,000 ms per decision. IDENTICAL parameters and battle seed to v1's inconclusive run. PASS iff H1. Read once, at the bound or the budget; no interim LLR.",
+  "d_vs_doduo": "run ONLY if (c) is H1: the same machinery vs solver/machamp/league/human-clone.json, seed 9102, workers 1; reported",
+  "land": "on main only if (a) passes AND (c) is H1 AND test-porygon2-v1 (+ run_breaks RED on every break) and test-docs-current are green. Otherwise: report, results and notes row on main; the model switch does not land."
+ },
+ "outputs": "solver/out/p2v1r/ (gitignored); the model, if trained, at solver/porygon2/model/porygon2-v1r1.json"
+}

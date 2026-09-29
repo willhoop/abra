@@ -8,6 +8,12 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-29
 
+### PORYGON2 v1 retrained on the enlarged corpus: H0, not landed (abra/regmc 1.26.0)
+- v1's recipe with 10,000 more cheap self-play games (13,603 total). Gate (c) SPRT vs gen5, same parameters and seed as
+  v1: **H0 at 868 games, 0.492 [0.459, 0.525]**. v1's run was 0.516, inconclusive at 2,000 games. Gate (a) fails on the
+  human half. Against v1, r1 is better on self-play positions and worse on human ones. More of the same corpus does not
+  help. v1 code merges to main; no model switch. `docs/_reports/2026-09-29-porygon2-v1-retrain.md`.
+
 ### orient.js reads the model list from this plan's registry (abra/regmc 1.25.2)
 - `node engine/orient.js` section 5 now reads the Name and Role columns of §2 of `solver/PLAN.md`. Rename that heading or the `Name`/`Role` header cells and orient.js exits 1. `docs/_reports/2026-09-29-orient-models.md`.
 
@@ -88,6 +94,15 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 - Backfill (new files beside the originals): aa1, aa2, gen5ab have 0 self quits; gen5ab rated 15-21, 5-21 without
   the opponent's quits.
 - Detail: `docs/_reports/2026-09-26-rotom-end-reasons.md`.
+### PORYGON2 v1 — better predictor, strength not shown (branch worktree-agent-a0e24792bde666457, NOT landed)
+- Honest-state encoder (sheets, benches, items, HP, status, boosts, volatiles, shield streak via the engine's stall counter,
+  PP, timers, speed order, per-token damage race), one attention block, trained on human games + 13,803 self-play games with
+  5,466 search-improved labels (MILTANK 6×6, 8 passes, both seats; 12 exact endgames). Release `eaa5becc54eb`.
+- Gate (a) PASS: held-out log-loss vs gen5 −0.0076 [−0.0115, −0.0036] human, −0.0138 [−0.0208, −0.0068] self-play.
+- Gate (c) FAIL: MILTANK+v1 vs MILTANK+gen5, honest, 1 s: INCONCLUSIVE at 2,000 games, 0.516 [0.494, 0.538]. (d) vs
+  DODUO-greedy H1 at 124 games, 0.677. Corpus `p2v1-c0` 1,770 g/h (2.4×, not 10×; RAM-starved machine).
+- Detail: `docs/_reports/2026-09-27-porygon2-v1.md`.
+
 
 ### gen5 under honest information; ROTOM `miltank-gen5`; gen5-vs-prior arms (abra/regmc 1.16.0)
 - The arena now hides what a ladder player cannot see (`--info honest`, the default for a match): hidden spreads in

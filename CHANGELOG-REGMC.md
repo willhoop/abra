@@ -21,6 +21,30 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.26.1] — 2026-09-29
+
+### Changed
+- Division ledgers restamped by `node engine/status.js --write` from the main checkout, after 1.25.0–1.26.0. Also committed:
+  the Reg M-C work list `data/open-work-regmc.json` (`ABRA_REGULATION=regmc node engine/open_work.js`, exit 0) and the
+  provenance ratchet `data/provenance-stamp-regmc.json` (`ABRA_REGULATION=regmc engine/provenance.js`, exit 0). Both were
+  re-run in the main checkout, which holds the releases. The gate reads OPEN. PATCH: no published figure moves.
+
+## [1.26.0] — 2026-09-29
+
+### Added
+- **PORYGON2 v1 on main, not switched in.** The v1 branch merges: the honest-state value net (`solver/porygon2/v1/`),
+  its model, its tests (`solver/tests/test-porygon2-v1.js`, `run_breaks.js`), and `leaf.js` dispatch for a v1 file.
+  `solver/mew/agent.js` gains `spec.maxPasses` alongside main's `searchExtras`. v1's gate (c) figure publishes for the
+  first time: SPRT vs gen5, 2,000 games, 0.516 [0.494, 0.538], INCONCLUSIVE (`docs/_reports/2026-09-27-porygon2-v1.md`).
+- **PORYGON2 v1-r1**: v1 retrained on the enlarged self-play corpus, 13,603 games (`p2v1-c0` + `p2v1-c1`). It comes
+  with a pre-registration (`solver/porygon2/v1/preregistration-r1.json`) and a paired two-model comparator
+  (`solver/porygon2/v1/compare.js`). Results are in `solver/results/2026-09-29-porygon2-v1-r1/`.
+
+### Notes
+- **r1 does not land. Gate (c): H0 after 868 games, 0.492 [0.459, 0.525], LLR −3.06.** Gate (a) fails on the human
+  half, −0.0032 [−0.0078, +0.0018]. Against v1 on v1's own test rows, r1 is worse on humans (+0.0045 [+0.0005, +0.0090])
+  and better on self-play (−0.0079 [−0.0136, −0.0022]). `solver/machamp/league/gen5.json` is unchanged.
+- MINOR: new figures, basis unchanged. `docs/_reports/2026-09-29-porygon2-v1-retrain.md`.
 ## [1.25.3] — 2026-09-29
 
 ### Fixed
