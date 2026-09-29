@@ -1860,6 +1860,17 @@ function writeStampFile(list, verifiedCount, discovery) {
    * can audit afterwards is the ratchet laundering itself. The event stays in the file. */
   const history = (prev && Array.isArray(prev.discoveries) ? prev.discoveries : []).slice();
   if (discovery) history.push(discovery);
+  /* THE FIRST STAMP MUST NAME ITSELF, OR THE SECOND RUN FAILS BY CONSTRUCTION. 2026-09-29, MEASURE.
+   * This file is in the graph (graph_files) and carries no `source_digests`, so once it exists it
+   * rests on mtime alone. On the run that FIRST writes it, it does not exist yet, so it cannot be in
+   * `list` — and the next run then sees an in-graph artifact newly mtime-only and reports RATCHET
+   * BROKEN against the stamp it just wrote. Measured on the first Reg M-C stamp
+   * (`data/provenance-stamp-regmc.json`): run 1 wrote it, run 2 exited 1 naming only
+   * `provenance-stamp.json`. Reg M-B's stamp already lists itself, so this changes nothing there. It
+   * applies only when no stamp existed at the start of the run, and only to this one file — it is the
+   * checker's own output, not a generator that dropped its receipt. */
+  const SELF = 'provenance-stamp.json';
+  if (!prev && ARTIFACTS.some(a => a.file === SELF) && !list.includes(SELF)) list = list.concat(SELF).sort();
   try {
     fs.writeFileSync(STAMP, JSON.stringify({
       note: 'RATCHET. mtime_only_files may SHRINK and may never grow. mtime cannot detect an artifact '
