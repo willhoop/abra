@@ -21,6 +21,23 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.28.0] — 2026-09-29
+
+### Added
+- **Weighted chance for MILTANK's cells, behind a flag (`chance`, off by default; gen5.json untouched).**
+  `solver/miltank/chance.js` enumerates a turn's dice by probability. It hands the step a scripted `rngStreams` struct
+  and finds each die's thresholds by bisection on the board, so no probability is restated in solver code. Each class
+  plays at a drawn u (stratified sampling: unbiased). Against a 1,000-sample playout mean on 24 real joint pairs:
+  |z| median 0.48, max 1.80. Cost per joint pair: 7 buckets and 138 stepped turns (median; p90 17 and 354), about 250
+  playouts of wall time; efficiency per ms vs playouts median 0.40. At gen5's 1 s clock it fills 55% of the table
+  against 100%. Speed-tie dice are drawn, never branched: their value stays on the battle.
+- `solver/tests/test-miltank-chance.js` (67 checks; RED under `MILTANK_BREAK=chance`), `solver/bench/chance_bench.js`,
+  `solver/bench/chance_fill.js`, the arm `solver/miltank/chance-gen5.json` and `solver/miltank/preregistration-chance.json`.
+  The phase-2 SPRT is prepared behind a feasibility gate that this arm fails today; not run.
+  `docs/_reports/2026-09-29-weighted-chance-search.md`.
+
+---
+
 ## [1.27.0] — 2026-09-29
 
 ### Added

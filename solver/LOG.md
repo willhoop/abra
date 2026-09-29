@@ -8,6 +8,12 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-29
 
+### Weighted chance in MILTANK's cells: correct, too expensive; flag off (abra/regmc 1.28.0)
+- Every die of the first turn enumerated by probability (thresholds found on the engine, stratified so unbiased).
+  Matches the sampled mean on 24 of 24 pairs (|z| max 1.80). But one cell costs a median 138 stepped turns
+  (~250 playouts) and fills 55% of the table at 1 s. The SPRT is pre-registered behind a fill gate it fails; not run.
+  Per-draw KO/no-KO bucketing was measured biased (a 12.7% survival enumerated as 0). `docs/_reports/2026-09-29-weighted-chance-search.md`.
+
 ### Lookahead options at the real clock (adaptive 14 s): screen PASS, SPRT prepared not run (abra/regmc 1.27.0)
 - On vs off, both target 14 s, 200 games: **0.505 [0.436, 0.574]**, 0 timeouts, options fired (2.33 M quiesced playouts).
   Not at equal clock (9.94 s vs 8.91 s); off at 17 s matches on at 14 s (9.95 s, 40-game time-only calibration).

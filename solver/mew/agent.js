@@ -40,7 +40,7 @@ const abs = p => (path.isAbsolute(p) ? p : path.join(ROOT, p));
 const sha = p => crypto.createHash('sha256').update(fs.readFileSync(abs(p))).digest('hex').slice(0, 16);
 
 /* the search options a league spec may carry beyond k, depth and the leaf (solver/miltank/search.js); absent = off */
-const SEARCH_EXTRAS = ['quiesce', 'flatEps', 'reserveNoRepeat'];
+const SEARCH_EXTRAS = ['quiesce', 'flatEps', 'reserveNoRepeat', 'chance'];
 function searchExtras(spec) {
   const o = {};
   for (const k of SEARCH_EXTRAS) if (spec && spec[k] != null && spec[k] !== false) o[k] = spec[k];

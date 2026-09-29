@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.28.0] — 2026-09-29 — **Weighted chance in MILTANK's cells: correct, too expensive; flag off, SPRT prepared not run**
+- **What changed.** New `solver/miltank/chance.js` (a turn's dice enumerated by probability, the engine's thresholds found by bisection, stratified so unbiased), wired through `rollout.js`/`cells.js`/`search.js` and `solver/mew/agent.js` as the spec option `chance`, off by default. Test `solver/tests/test-miltank-chance.js`, benches `solver/bench/chance_bench.js`, `chance_fill.js`, arm `solver/miltank/chance-gen5.json`, pre-registration `solver/miltank/preregistration-chance.json`.
+- **Measured.** Release `eaa5becc54eb`, 24 real joint pairs, heuristic leaf, depth 0: expectation vs 1,000-sample mean |z| median 0.48, max 1.80; buckets median 7 (p90 17, max 74); stepped turns median 138 (p90 354, max 884); about 250 playouts of wall time; efficiency median 0.40 (`solver/out/chance/f-coarse.json`, gitignored). Fill at 1 s: 0.547 vs 1.0, 1 fallback in 8 (`f-fill-1s.json`). Offline, not an arena figure.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none (the flag is on no arm).
+
 ## [abra/regmc 1.27.0] — 2026-09-29 — **The lookahead options pass a screen at the real ~10 s clock; the equal-clock SPRT is prepared, not run**
 - **What changed.** New results only: `solver/results/2026-09-29-lookahead-screen-14s/` (arms on-14s, off-14s, off-17s; two pre-registrations; smoke, screen and calibration results and reads). No code changed.
 - **Measured.** Screen, options on vs off at adaptive target 14 s, gen5, honest, `eaa5becc54eb`, 200 games: 101–99, 0.505 [0.436, 0.574], PASS; 9,940 vs 8,912 ms per searched decision; 0 timeouts, 0 fallbacks; 2,329,935 quiesced playouts (`screen-14s.json`, `screen-14s-read.json`). Calibration: off at 17 s spends 9,952 ms per searched decision, within 5% of on at 14 s, MATCHED (`calib-off17-read.json`). 163–194 s per game per worker.

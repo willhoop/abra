@@ -7,6 +7,8 @@
  *       leafCtx = { mode:'pory2', sheets } selects the PORYGON2 leaf (solver/miltank/rollout.js); absent = heuristic
  *       quiesce = { fb:{A:[opt|null, opt|null], B:[…]} } plays one extension turn after a turn in which a protect held
  *                 (solver/miltank/rollout.js QUIESCENCE); absent = the playout it always was
+ *       chance = solver/miltank/chance.js options: each cell's first turn is enumerated by probability instead of rolled
+ *                (rollout.js chancePlayout); absent = the playout it always was
  *   playPass(API, R, job, p, deadline) -> { p, v: Float64Array(m·n), stopped }
  *   passRunner(API, R, job, p)          -> { p, v, step(deadline, sliceEnd) -> 'done'|'deadline'|'slice' }  (the same pass, in slices)
  *       cells are played from startCell(p) onward, wrapping (see startCell below)
@@ -57,7 +59,7 @@ function passRunner(API, R, job, p) {
       const c = (off + t * K) % mn, i = (c / n) | 0, j = c - i * n;
       const jA = job.side === 'A' ? job.rows[i] : job.cols[j], jB = job.side === 'A' ? job.cols[j] : job.rows[i];
       const t1 = Date.now();
-      const vA = R.playout(W, jA, jB, seed, job.depth, job.leafCtx, job.abortAt, job.quiesce);
+      const vA = R.playout(W, jA, jB, seed, job.depth, job.leafCtx, job.abortAt, job.quiesce, job.chance);
       v[c] = job.side === 'A' ? vA : 1 - vA;            // NaN (abandoned at job.abortAt) stays an unplayed cell
       t++;
       const now = Date.now();

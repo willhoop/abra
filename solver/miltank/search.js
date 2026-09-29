@@ -20,6 +20,8 @@
  *   quiesce = true | 'all': every playout plays one extension turn (each side carries on with its plan) before the leaf;
  *   'held': only a playout in which a protect-family use HELD (the horizon fix, docs/_reports/2026-09-27-protect-repeat-fix.md;
  *   solver/miltank/rollout.js QUIESCENCE). Off by default.
+ *   chance = true | { dmg:'exact'|'coarse'|'sample', rep, massEps, maxEvals, delta }: WEIGHTED CHANCE for each cell's first turn
+ *   (solver/miltank/chance.js, docs/_reports/2026-09-29-weighted-chance-search.md). Off by default.
  *   flatEps = e: when every played cell is within e of every other, play the ranking prior's top joint (counted flatPrior).
  *   reserveNoRepeat = true: the reserved mega row is the prior's best mega joint that repeats no Protect, when one exists
  *   (counted megaUnbundled when that differs from the plain top). Both off by default; same report.
@@ -65,7 +67,8 @@ const SEARCH_BREAK = (typeof process !== 'undefined' && process.env && process.e
 function create(API, deps) {
   const PA = deps.prior, R = deps.rollout;
   const COUNTERS = { decisions: 0, forced: 0, cells: 0, playouts: 0, unfilled: 0, reservedSwitch: 0, reservedMega: 0, rmIters: 0, overBudget: 0, pory2Decisions: 0,
-                     fallbackEmpty: 0, fallbackSparse: 0, deadlineCut: 0, quiesceDecisions: 0, flatPrior: 0, megaUnbundled: 0 };
+                     fallbackEmpty: 0, fallbackSparse: 0, deadlineCut: 0, quiesceDecisions: 0, flatPrior: 0, megaUnbundled: 0,
+                     chanceDecisions: 0, chanceOnePass: 0 };
 
   function rank(scores, joints, k, reserveSwitch, wantMega, avoidMega) {
     const idx = scores.map((p, i) => i).sort((a, b) => scores[b] - scores[a] || a - b);
@@ -122,6 +125,18 @@ function create(API, deps) {
       });
       job.quiesce = { fb: { [side]: best(laMe, sMe), [opp]: best(laOp, sOp) }, mode: o.quiesce === 'held' ? 'held' : 'all' };
       COUNTERS.quiesceDecisions++;
+    }
+    /* WEIGHTED CHANCE (o.chance = true | solver/miltank/chance.js options): each cell's first turn is enumerated by
+     * probability instead of rolled (solver/miltank/rollout.js chancePlayout). Off by default. Not combined with
+     * quiescence in v1 (refused, not ignored). A cell is then a function of the world alone, so when the opponent has no
+     * unrevealed body every pass would repeat pass 0 exactly: the fill is capped at one pass (counted chanceOnePass). */
+    if (o.chance) {
+      if (o.quiesce) throw new Error('MILTANK: chance and quiesce are not combined (v1)');
+      job.chance = o.chance === true ? {} : Object.assign({}, o.chance);
+      const osf = opp === 'A' ? S.sfA : S.sfB;
+      job.chanceOnePass = osf.team.length - belief.revealed.size <= 0;
+      COUNTERS.chanceDecisions++;
+      if (job.chanceOnePass) COUNTERS.chanceOnePass++;
     }
     /* THE LEAF: o.leaf, else env MILTANK_LEAF, else the heuristic. PORYGON2 needs both open sheets (p1 = side A). */
     const leafMode = o.leaf || LEAF_ENV || 'heuristic';
@@ -205,7 +220,7 @@ function create(API, deps) {
     const b = begin(S, side, ctx, o);
     if (b.done) return b.done;
     /* o.onPass(vs, job, t0) -> true stops the fill after a complete pass (ROTOM's adaptive clock, solver/rotom/adaptive.js) */
-    const acc = C.fillSerial(API, R, b.job, b.fillBy, o.maxPasses, o.onPass ? vs => o.onPass(vs, b.job, b.t0) : undefined);
+    const acc = C.fillSerial(API, R, b.job, b.fillBy, b.job.chanceOnePass ? 1 : o.maxPasses, o.onPass ? vs => o.onPass(vs, b.job, b.t0) : undefined);
     return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin, { overrun_ms: acc.overrunMs, max_world_ms: acc.maxWorldMs, max_playout_ms: acc.maxPlayoutMs, adapt_stop: acc.adapted || undefined }, b.priorTop);
   }
   /* 2'. CELLS across worker processes (o.pool = solver/miltank/pool.js). The SAME passes: with a pass cap
@@ -215,7 +230,7 @@ function create(API, deps) {
     if (!o.pool) return decide(S, side, ctx, o);
     const b = begin(S, side, ctx, o);
     if (b.done) return b.done;
-    const acc = await o.pool.fill(Object.assign({}, b.job, { deadline: b.fillBy, maxPasses: o.maxPasses || 0 }));
+    const acc = await o.pool.fill(Object.assign({}, b.job, { deadline: b.fillBy, maxPasses: b.job.chanceOnePass ? 1 : (o.maxPasses || 0) }));
     COUNTERS.pooled = (COUNTERS.pooled || 0) + 1;
     return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin, { workers: acc.workers, late_workers: acc.late || 0 }, b.priorTop);
   }

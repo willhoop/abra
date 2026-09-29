@@ -116,6 +116,11 @@ This section says only what a division agent needs before it starts.
   goes 0.611 → 0.200. **At 1 s the package LOSES to gen5**, SPRT H0, 0.418 [0.350, 0.488] in 194 games, and leaves the arena
   Protect rates where they were. **Not deployed.** At 5 s it is untested for strength. DODUO already carries the counter
   (`stall_repeat`), so it was not retrained. Account: `docs/_reports/2026-09-27-protect-repeat-fix.md`.
+- **Weighted chance (2026-09-29, abra/regmc 1.28.0).** Spec option `chance` (off by default): each cell's first turn is
+  enumerated by probability (`solver/miltank/chance.js`, stratified, unbiased; counters `chancePlayouts`,
+  `chanceBuckets`, `chanceEvals`, `chanceTruncatedMass`, `chanceDecisions`). Correct (|z| max 1.80 on 24 pairs), but a
+  cell costs about 250 playouts of wall time and the table fills 55% at 1 s. **Not deployed**; its SPRT waits on a fill
+  gate it fails (`solver/miltank/preregistration-chance.json`). Account: `docs/_reports/2026-09-29-weighted-chance-search.md`.
 - **The tiered gates (2026-09-26, abra/regmc 1.19.0).** MAG removes a click no branch can make achieve its purpose
   (`solver/mag/purpose.js`) and marks one rescued only by a switch, which DODUO v2 weights by the human switch model;
   the pair gate leaves MAG-dead clicks to MAG. Held-out survival 99.60% / 99.69% (2 pair-gate errors in 20,482); no

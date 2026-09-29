@@ -1,0 +1,25 @@
+{
+ "what": "WEIGHTED CHANCE in MILTANK's cells (solver/miltank/chance.js): each cell's first turn enumerated by probability — the engine's own dice thresholds, found by bisection on a scripted rngStreams struct, each stratum played at a drawn u — instead of one seeded roll per playout. Phase 2 of Will's 2026-09-29 idea. Written 2026-09-29 BEFORE any arena, self-play or SPRT game with the chance arm. NOT RUN.",
+ "engine_release": "eaa5becc54eb",
+ "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc (absolute: worktrees lack games.bo3.jsonl)",
+ "information": "honest (--info honest)",
+ "arms": {
+  "x": "solver/miltank/chance-gen5.json — gen5 exactly (MAG + DODUO + PORYGON2 gen5, MILTANK k 4x4, 1 reserved switch row, depth 0, 1,000 ms per decision) plus chance { dmg: coarse, massEps: 0.01, maxEvals: 4000 }",
+  "y": "solver/machamp/league/gen5.json — the current search, unchanged",
+  "equal_wall_clock": "both arms budgetMs 1000 per decision, the same hard deadline and fallback rule (solver/miltank/search.js); the chance arm spends its budget on enumerations instead of playouts. No other difference."
+ },
+ "gate_0_feasibility": {
+  "why": "An arm that cannot fill its table inside the clock is not the chance search: it is the ranking prior (search.js falls back when a row is empty or under 25% of cells hold a value). An SPRT of that arm would measure the fallback, not the idea.",
+  "command": "node solver/bench/chance_fill.js --release eaa5becc54eb --games 6 --budget 1000 --dmg coarse --out solver/out/chance/<date>/fill-gate.json",
+  "pass": "the chance arm's mean filled fraction >= 0.99 AND fallbacks = 0 over the bench's decisions",
+  "measured_2026_09_29_before_registration": "FAILS at 1,000 ms: filled 0.547, 1 of 8 decisions fell back, 1 pass (one world) against 64.9 for the current search (solver/out/chance/f-fill-1s.json, 3 games). At 10,000 ms: filled 0.774, 0 fallbacks, 1.5 passes against 396.5 (f-fill-10s.json). The SPRT below is NOT to be launched on this arm; gate 0 must pass first on whatever variant is proposed.",
+  "on_fail": "no SPRT. Report the fill figures; the flag stays off."
+ },
+ "sprt": {
+  "command": "cmd.exe /c tools\\lownode.cmd solver\\machamp\\sprt.js --release eaa5becc54eb --x solver/miltank/chance-gen5.json --y solver/machamp/league/gen5.json --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 2000 --seed 9301 --workers 3 --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --info honest --out solver/out/chance/<date>/sprt-chance.json",
+  "run_only_if": "gate 0 passes",
+  "pass": "H1. Read once, at the bound or the 2,000-game budget; no interim LLR.",
+  "counters_to_report": "rollout chancePlayouts, chanceBuckets, chanceEvals, chanceTruncatedMass; MILTANK chanceDecisions, chanceOnePass, fallbackEmpty, fallbackSparse, unfilled, overBudget. A chance arm with chancePlayouts = 0 is a broken run, not a result."
+ },
+ "land": "the flag becomes a default only on an SPRT H1 at equal wall-clock. gen5.json is not edited by this work."
+}

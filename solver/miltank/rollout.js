@@ -8,9 +8,10 @@
  *   R.sampleWorld(S, oppSide, belief, coin)  a clone of S with the opponent's UNREVEALED bench re-drawn
  *                                      (belief = { sheet: [6 rows], revealed: Set(current team idx) })
  *   R.prepare(W)                       a world serialised once, for many playouts (see prepare below)
- *   R.playout(W, jA, jB, seed, depth[, lctx[, abortAt[, q]]])  copy W (or a prepared W), step (jA, jB) on seeded dice, `depth` random
+ *   R.playout(W, jA, jB, seed, depth[, lctx[, abortAt[, q[, ch]]]])  copy W (or a prepared W), step (jA, jB) on seeded dice, `depth` random
  *                                      turns, leaf; NaN if the clock passed abortAt between turns (see playFrom);
- *                                      q = { fb, mode:'all'|'held' } turns QUIESCENCE on (below)
+ *                                      q = { fb, mode:'all'|'held' } turns QUIESCENCE on (below); ch = chance.js options turns
+ *                                      WEIGHTED CHANCE on for the first turn (chancePlayout below)
  *
  * THE PLAYOUT POLICY IS NOT A LEGALITY AUTHORITY. `legalActions` is, and it costs ~2 ms a call because
  * it snapshots and restores every process-wide counter so that it can be a pure read (the differential
@@ -65,7 +66,7 @@ function create(API, opts) {
   const M = API.M;
   const buildBody = opts.buildBody;
   const COUNTERS = { playouts: 0, playoutTurns: 0, worlds: 0, bodiesSwapped: 0, wipes: 0, leafHeuristic: 0, leafPory2: 0, prepared: 0, fastClones: 0, leanPlayouts: 0, aborted: 0,
-                     quietHeld: 0, quiesced: 0 };
+                     quietHeld: 0, quiesced: 0, chancePlayouts: 0, chanceBuckets: 0, chanceEvals: 0, chanceTruncatedMass: 0 };
   /* one PORYGON2 leaf per model file: lctx.model names a generation's net (solver/mew, solver/machamp);
    * absent = the default v0 file, exactly as before */
   const PORY2 = new Map();
@@ -247,7 +248,41 @@ function create(API, opts) {
     if (abortAt && Date.now() >= abortAt) { COUNTERS.aborted++; return NaN; }
     return leaf(S, lctx);
   }
-  function playout(W, jA, jB, seed, depth, lctx, abortAt, q) {
+  /* WEIGHTED CHANCE (2026-09-29, solver/miltank/chance.js; docs/_reports/2026-09-29-weighted-chance-search.md). With ch set,
+   * the cell's first turn is not one seeded roll: every die of it is enumerated by its probability (the engine's own
+   * thresholds, found by the enumerator, never restated here), the distinct boards are the buckets, and the value is
+   * Σ w · (the playout from that board: `depth` random turns on the seeded dice, then the leaf). Off unless the job carries
+   * `chance`; quiescence is not combined with it (search.js refuses the pair). Counted: chancePlayouts, chanceBuckets,
+   * chanceEvals (stepped turns the enumeration cost), chanceTruncatedMass. */
+  let CH = null;
+  function chancePlayout(W, jA, jB, seed, depth, lctx, abortAt, ch) {
+    if (!CH) CH = require('./chance.js').create(API);
+    const Wp = W && W.prepared ? W : prepare(W);
+    let res;
+    try { res = CH.enumerate(Wp, jA, jB, Object.assign({ seed }, ch, { abortAt })); }
+    catch (e) { if (e && e.abort) { COUNTERS.aborted++; return NaN; } throw e; }
+    COUNTERS.chancePlayouts++; COUNTERS.chanceBuckets += res.buckets.length; COUNTERS.chanceEvals += res.stats.evals;
+    COUNTERS.chanceTruncatedMass += res.stats.truncatedMass;
+    const body = () => {
+      const rng = dice(seed);
+      const coin = M.rngStreams({ seed: seed + 7919 }).any;
+      let v = 0;
+      for (const b of res.buckets) {
+        const S = b.S;
+        for (let d = 0; d < depth && !API.isTerminal(S); d++) {
+          if (abortAt && Date.now() >= abortAt) { COUNTERS.aborted++; return NaN; }
+          API.stepInPlace(S, randomJoint(S, 'A', coin), randomJoint(S, 'B', coin), rng);
+          COUNTERS.playoutTurns++;
+        }
+        v += b.w * leaf(S, lctx);
+      }
+      return v;
+    };
+    return API.leanRun(body);
+  }
+
+  function playout(W, jA, jB, seed, depth, lctx, abortAt, q, ch) {
+    if (ch) return chancePlayout(W, jA, jB, seed, depth, lctx, abortAt, ch);
     const S = copy(W);
     if (!LEAN) return playFrom(S, jA, jB, seed, depth, lctx, abortAt, q);
     API.makeLean(S);
