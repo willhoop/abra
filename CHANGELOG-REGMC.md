@@ -21,6 +21,21 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.27.0] — 2026-09-29
+
+### Added
+- **The lookahead options screened at ROTOM's real clock (adaptive target 14 s): 0.505 [0.436, 0.574], 200 games,
+  PASS.** Options on (quiesce all, flatEps 0.001, reserveNoRepeat) against off, gen5, honest, release `eaa5becc54eb`,
+  the same 100 TEST pairs as the 2 s screen. 0 errors, 0 fallbacks, 0 timeouts; 2,329,935 quiesced playouts. Pre-registered
+  before the first game. The screen was not at equal clock: on spent 9,940 ms per searched decision, off 8,912.
+- **Time calibration: options off at target 17 s spends 9,952 ms, matched to options on at 14 s** (40 games, time only,
+  pre-registered). A first attempt was killed at Will's pause and is void.
+- The equal-clock SPRT (on 14 s vs off 17 s) is prepared, not run: 30–36 h at its 2,000-game cap from a measured
+  163–194 s per game. Recommendation: low expected value, overnight filler only. The options stay off.
+  `docs/_reports/2026-09-29-lookahead-screen-14s.md`, `solver/results/2026-09-29-lookahead-screen-14s/`.
+
+---
+
 ## [1.26.1] — 2026-09-29
 
 ### Changed

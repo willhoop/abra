@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.27.0] — 2026-09-29 — **The lookahead options pass a screen at the real ~10 s clock; the equal-clock SPRT is prepared, not run**
+- **What changed.** New results only: `solver/results/2026-09-29-lookahead-screen-14s/` (arms on-14s, off-14s, off-17s; two pre-registrations; smoke, screen and calibration results and reads). No code changed.
+- **Measured.** Screen, options on vs off at adaptive target 14 s, gen5, honest, `eaa5becc54eb`, 200 games: 101–99, 0.505 [0.436, 0.574], PASS; 9,940 vs 8,912 ms per searched decision; 0 timeouts, 0 fallbacks; 2,329,935 quiesced playouts (`screen-14s.json`, `screen-14s-read.json`). Calibration: off at 17 s spends 9,952 ms per searched decision, within 5% of on at 14 s, MATCHED (`calib-off17-read.json`). 163–194 s per game per worker.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published. The ~38 h estimate for the options SPRT is replaced by a measured 30–36 h at its 2,000-game cap.
+- **Owed to the next major.** none (the options are on no arm).
+
 ## [abra/regmc 1.26.1] — 2026-09-29 — **Ledgers restamped from main; the Reg M-C work list and provenance stamp committed**
 - **What changed.** `status.js --write`, `open_work.js` and `provenance.js` were run under `ABRA_REGULATION=regmc` in the main checkout, all exit 0, and their outputs were committed. No code.
 - **Measured.** NO FIGURE.

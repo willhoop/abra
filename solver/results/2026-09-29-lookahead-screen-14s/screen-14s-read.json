@@ -1,0 +1,73 @@
+{
+ "sprt": "solver/out/lookahead-14s/screen-14s.json",
+ "result": {
+  "W": 101,
+  "D": 0,
+  "L": 99,
+  "errors": 0,
+  "capped": 0,
+  "unbuildable": 0,
+  "played": 200,
+  "score_x": 0.505,
+  "ci95_x": [
+   0.4362687594824017,
+   0.5735427804584151
+  ]
+ },
+ "counted_games": 200,
+ "rule": {
+  "starting": 420,
+  "grace": 90,
+  "maxPerTurn": 55,
+  "source": "ruleTable of gen9championsvgc2026regmcbo3 (timer rule)"
+ },
+ "x": {
+  "games": 200,
+  "decisions": 1697,
+  "searched": 1697,
+  "ms_per_searched": 9940.3,
+  "ms_per_decision": 9940.3,
+  "max_decision_ms": 27742,
+  "bank_used_s": {
+   "mean": 84.3,
+   "p95": 151.5,
+   "max": 200.4
+  },
+  "timeouts": {
+   "decisions_over_turn": 0,
+   "games_over_bank": 0
+  },
+  "adaptive_stops": {
+   "hard": 534,
+   "clear": 967,
+   "soft": 196
+  }
+ },
+ "y": {
+  "games": 200,
+  "decisions": 1697,
+  "searched": 1697,
+  "ms_per_searched": 8911.8,
+  "ms_per_decision": 8911.8,
+  "max_decision_ms": 27745,
+  "bank_used_s": {
+   "mean": 75.6,
+   "p95": 145.2,
+   "max": 174.3
+  },
+  "timeouts": {
+   "decisions_over_turn": 0,
+   "games_over_bank": 0
+  }
+ },
+ "time_condition": {
+  "rule": "X ms per searched decision <= Y",
+  "x": 9940.3,
+  "y": 8911.8,
+  "holds": false
+ },
+ "clock_safe": {
+  "x_timeouts": 0,
+  "holds": true
+ }
+}

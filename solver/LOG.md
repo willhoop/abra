@@ -8,6 +8,12 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-29
 
+### Lookahead options at the real clock (adaptive 14 s): screen PASS, SPRT prepared not run (abra/regmc 1.27.0)
+- On vs off, both target 14 s, 200 games: **0.505 [0.436, 0.574]**, 0 timeouts, options fired (2.33 M quiesced playouts).
+  Not at equal clock (9.94 s vs 8.91 s); off at 17 s matches on at 14 s (9.95 s, 40-game time-only calibration).
+- Equal-clock SPRT (on 14 s vs off 17 s): 30–36 h at the cap; likely H0; overnight filler only. Options stay off.
+  `docs/_reports/2026-09-29-lookahead-screen-14s.md`.
+
 ### PORYGON2 v1 retrained on the enlarged corpus: H0, not landed (abra/regmc 1.26.0)
 - v1's recipe with 10,000 more cheap self-play games (13,603 total). Gate (c) SPRT vs gen5, same parameters and seed as
   v1: **H0 at 868 games, 0.492 [0.459, 0.525]**. v1's run was 0.516, inconclusive at 2,000 games. Gate (a) fails on the
