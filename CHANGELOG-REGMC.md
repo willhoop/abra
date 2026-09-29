@@ -21,6 +21,16 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.24.1] — 2026-09-27
+
+### Notes
+- **Correction to 1.24.0: the lookahead-options SPRT at adaptive ~10 s is not running.** It was stopped by its pids at a
+  stopping point Will asked for, after 134 games, and its score was never read; nothing is concluded about the options
+  at ~10 s. Clock only: 8.85 s (on) vs 8.17 s (off) per searched decision, 0 timeouts, heaviest game 324 s. The re-run
+  (new seed, target ~14 s for a ~10 s mean, ~38 h) is owed. `docs/_reports/2026-09-27-adaptive-clock.md` §8.
+
+---
+
 ## [1.24.0] — 2026-09-27
 
 ### Added

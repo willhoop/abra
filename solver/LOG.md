@@ -14,6 +14,7 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
   within resolution, 23% less clock. 4,000 simulated slow games: 0 bank-outs; RED when the line is ignored.
 - Options (quiesce/flatEps/reserveNoRepeat) on vs off at adaptive 2 s: 0.500 [0.431, 0.569], PASS; the ~10 s SPRT runs.
   Account: `docs/_reports/2026-09-27-adaptive-clock.md`.
+- (1.24.1) The ~10 s options SPRT was stopped UNREAD after 134 games at Will's stopping point; re-run owed.
 
 ### Repeat Protect: the depth-0 horizon, a fix that works on the table and loses at 1 s — not deployed (abra/regmc 1.23.0)
 - Cause, on the 13 positions where DODUO offers a repeat: not noise (SE median 0.0024, halves 0.626/0.607), not the die
