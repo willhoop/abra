@@ -603,7 +603,8 @@ function engine() {
     if (m.shrink_declared) {
       say(`    declared shrink ${m.shrink_declared.from} -> ${m.shrink_declared.to}: ${m.shrink_declared.reason}`);
     }
-  } else say('  interaction matrix: NOT DERIVED (data/interaction-matrix.json absent — run tests/test-interaction-matrix.js --full)');
+  } else say('  interaction matrix: NOT DERIVED (' + require('./regulation.js').artifactFor('data/interaction-matrix.json')
+    + ' absent — run tests/test-interaction-matrix.js --full)');
 
   /* THE RELEASE LADDER — THE ONE NUMBER THAT SAYS WHETHER THIS APPROACH TERMINATES.
    *

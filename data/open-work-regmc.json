@@ -1,7 +1,7 @@
 {
-  "generated": "2026-09-29T07:49:25.577Z",
+  "generated": "2026-09-29T07:49:24.745Z",
   "by": "engine/open_work.js",
-  "regulation": "regmb",
+  "regulation": "regmc",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
@@ -10,8 +10,8 @@
     "open": 200,
     "closed": 385,
     "open_asserting_breakage": 19,
-    "measured_disagreements": 0,
-    "unregistered": 0
+    "measured_disagreements": null,
+    "unregistered": null
   },
   "open": [
     {
@@ -1818,10 +1818,10 @@
   "unregistered": [],
   "instruments": [
     {
-      "artifact": "data/interaction-matrix.json",
-      "present": true,
-      "generated": "2026-08-11T22:00:06.336Z",
-      "age_days": 48.4
+      "artifact": "data/interaction-matrix-regmc.json",
+      "present": false,
+      "generated": null,
+      "age_days": null
     }
   ]
 }

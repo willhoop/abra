@@ -21,6 +21,72 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.25.2] — 2026-09-29
+
+### Fixed
+- **`node engine/orient.js` derives the models again, from `solver/PLAN.md` §2.** It exited 1 with `CANNOT DERIVE: THE
+  MODELS`: section 5 keyed on a `**Job:**` line under an ALL-CAPS heading, or a pipeline-table row, in `docs/MODELS.md`,
+  and the Reg M-C 1.0.0 docs pass (`ccf447fc`) rewrote that file with neither. The section now reads the Name and Role
+  columns of the registry table that CLAUDE.md names as the Reg M-C model registry: 20 rows, 20 models, exit 0. It reads
+  no Status or result column. A missing heading or a missing Name/Role header cell fails by name; a row with no
+  ALL-CAPS name or no role is printed as unclassified. `tests/test-orient.js` is green, and each new failure path was
+  shown red on a deliberate edit of `solver/PLAN.md`, then restored.
+
+### Notes
+- No published figure moves (PATCH). `docs/_reports/2026-09-29-orient-models.md`.
+
+## [1.25.1] — 2026-09-29
+
+### Fixed
+- **`node engine/open_work.js` runs under Reg M-C.** With `ABRA_REGULATION=regmc` it exited 1: the artifact seam refused
+  its write onto `data/open-work.json`, which names no regulation. The list's register half (`docs/ROADMAP.md`) is
+  shared, but its measured half is the interaction matrix, which is staged against a regulation's checkout. So
+  `open-work.json` and `interaction-matrix.json` are now in `PER_REGULATION_ARTIFACTS` (`engine/regulation.js`), and a
+  Reg M-C run writes `data/open-work-regmc.json`. An absent Reg M-C matrix prints `NOT MEASURED` and is stored as
+  `null`, not 0. Before this, a Reg M-C `open_work.js` or `status.js` read Reg M-B's matrix as its own.
+- **`provenance-stamp.json` is per regulation too.** The ratchet covers the artifact graph as the seam presents it. A
+  Reg M-C run compared its view with Reg M-B's baseline, and its write was refused and caught on one printed line.
+- `engine/docs_scan.js` treats `open-work-<id>.json` as a copy of the register, not an artifact, like the Reg M-B copy.
+- Checked and not changed: `status.js --write` (writes `docs/` only), `where.js`, `orient.js`, `coverage.js`,
+  `register_reality.js` (already declared). `engine_release.js census --write` still refuses under Reg M-C; its file is
+  regulation-neutral, so run it plain.
+
+### Notes
+- No published figure moves and no mechanic changes (PATCH). `docs/_reports/2026-09-29-open-work-regmc.md`.
+
+## [1.25.0] — 2026-09-29
+
+### Added
+- **CHOMP, the team-preview solver** (`solver/chomp/`). v0 (PORYGON2 v0 scores the 90 × 90 cells, SLOWKING solves them)
+  fails its bar and is kept as the baseline. **v1** (`solver/chomp/v1/`) learns the cell scorer from 25,008 targeted
+  DODUO-greedy games with varied brings, the gen5 self-play corpus and human games, solves the table with SLOWKING, and
+  adjusts games 2 and 3 of a series to what the opponent brought before. Pre-registered in
+  `solver/chomp/v1/preregistration.json`.
+- ROTOM `--preview chomp` serves CHOMP v1 (`CHOMP_VERSION=v0` for v0) with the fallback counted (`chomp:threw`). The
+  default is still `--preview policy`; no ladder arm uses CHOMP. Putting it on a ladder arm is Will's call.
+- Arena arm `chomp1` (`solver/chomp/arms.js`); a league spec's `preview` field in `solver/mew/play.js --mode match`.
+- `solver/tests/test-chomp.js`, `solver/tests/test-chomp1.js`.
+
+### Notes
+- **Gates, release `eaa5becc54eb`, `--info honest`, gen5 at 1 s, frozen pool:** (a) held-out Δlog-loss −0.0203
+  [−0.0309, −0.0108], PASS; (b) screen 0.625 [0.556, 0.689] over 200 games, PASS; (b) SPRT vs the human-modal preview,
+  **H1 at 524 games, 0.561 [0.518, 0.603]**; (c) vs the humans' own recorded bring, report-only, **0.470 [0.422, 0.519]**
+  over 400 games: no clear edge over the bring the humans chose for that matchup. `solver/results/2026-09-27-chomp-v1/`,
+  `docs/_reports/2026-09-27-chomp-v1.md`, `docs/_reports/2026-09-29-chomp-v1-landed.md`.
+- Not tested: v1 against v0 (the M8 exit test), and CHOMP on the ladder.
+
+---
+
+## [1.24.1] — 2026-09-27
+
+### Notes
+- **Correction to 1.24.0: the lookahead-options SPRT at adaptive ~10 s is not running.** It was stopped by its pids at a
+  stopping point Will asked for, after 134 games, and its score was never read; nothing is concluded about the options
+  at ~10 s. Clock only: 8.85 s (on) vs 8.17 s (off) per searched decision, 0 timeouts, heaviest game 324 s. The re-run
+  (new seed, target ~14 s for a ~10 s mean, ~38 h) is owed. `docs/_reports/2026-09-27-adaptive-clock.md` §8.
+
+---
+
 ## [1.24.0] — 2026-09-27
 
 ### Added

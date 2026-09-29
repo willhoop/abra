@@ -76,7 +76,15 @@ This section says only what a division agent needs before it starts.
   fixed the budget (0.1% empty) and still accepted nothing: gen3 lost to the champion 0.430. The DODUO update is the
   suspect (§10 of the report). Round 3 (pooled data, deep-value PORYGON2, anchored DODUO) produced the first
   accepted generation: gen5, SPRT H1 at +20 Elo after 1,268 games (report §12).
-- **Not built:** CHOMP, PORYGON2, GARY, HYPNO, DUSK, WOBBUFFET, DITTO, ROTOM, ALAKAZAM,
+- **CHOMP v1 is built and promoted (2026-09-29, abra/regmc 1.25.0).** `solver/chomp/v1/`: a learned cell scorer,
+  SLOWKING, the bo3 adjustment. Against the human-modal preview, SPRT **H1 at 524 games, 0.561 [0.518, 0.603]**; against
+  the humans' own recorded bring (report-only) **0.470 [0.422, 0.519]**, no clear edge. ROTOM serves it under
+  `--preview chomp`; the default preview is unchanged and no ladder arm uses it. `solver/results/2026-09-27-chomp-v1/`,
+  `docs/_reports/2026-09-29-chomp-v1-landed.md`.
+- **CHOMP v0** (`solver/chomp/`, 2026-09-25, release `eaa5becc54eb`) **fails its bar**: its preview loses to
+  the human bring (SPRT H0 accepted) and ties random. The PORYGON2 cells carry no bring signal.
+  `docs/_reports/2026-09-25-chomp-v0.md`.
+- **Not built:** PORYGON2, GARY, HYPNO, DUSK, WOBBUFFET, DITTO, ROTOM, ALAKAZAM,
   KADABRA (and JOLTEON, only if CHOMP needs a pre-screen). Order: `solver/PLAN.md` §3, milestones M1–M8.
 - **MILTANK's decision deadline is hard (2026-09-25, abra/regmc 1.9.0).** A decision returns within budget + 500 ms
   under load, on both the pool path and the serial path. When the table is too empty, it falls back, counted, to
@@ -117,7 +125,7 @@ This section says only what a division agent needs before it starts.
 - **ROTOM has an adaptive clock (2026-09-27, abra/regmc 1.24.0).** `solver/rotom/adaptive.js`: little time on a clear
   table, up to twice the target on a close one, capped by the bank the server reports. Against a fixed 5 s it is not
   shown stronger or weaker (SPRT H0, 0.491 [0.455, 0.526], 748 games) at 3.63 s vs 4.72 s per decision, 0 timeouts. No
-  ladder arm uses it yet. The lookahead options pass a 2 s screen on it (0.500); the ~10 s SPRT is running. Account:
+  ladder arm uses it yet. The lookahead options pass a 2 s screen on it (0.500); their ~10 s SPRT was stopped unread (1.24.1), re-run owed. Account:
   `docs/_reports/2026-09-27-adaptive-clock.md`.
 - **ROTOM knows how each series ended, and never counts an unrated one (2026-09-26, abra/regmc 1.17.0).** Game and
   series rows carry `end_reason` (`solver/rotom/endings.js`), including the walkaway between games that no game log

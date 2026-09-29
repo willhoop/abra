@@ -536,6 +536,19 @@ const PER_REGULATION_ARTIFACTS = Object.freeze([
    * own stores by engine/usage_regulation.js (engine/analyze.js dispatches to it), and read LIVE by the
    * differential's severity ranking -- which, until this line, ranked Reg M-C bodies by Reg M-B usage. */
   [/^meta-usage\.json$/, 'engine/analyze.js', 'the CHOMP-facing species usage model, and the severity ranking in the differential'],
+  /* 2026-09-29 (ENGINE, abra/regmc) -- THE STATE PRINTERS. `ABRA_REGULATION=regmc node engine/open_work.js`
+   * died on the guard below: it writes a fixed data/open-work.json. Decided from what each file is BUILT
+   * FROM, not from the refusal's suggestion. open-work.json is the shared register (docs/ROADMAP.md, which
+   * both gates read) PLUS the interaction matrix's parting pairs -- and the matrix is a staging of carrier x
+   * reactor pairs against a Showdown checkout, so it is per regulation in truth; until this line a Reg M-C
+   * run of open_work.js and status.js read Reg M-B's matrix and printed its 1642/1642 as the M-C answer.
+   * provenance-stamp.json is the mtime ratchet over the artifact graph AS THIS PROCESS SEES IT, and under
+   * the seam a Reg M-C process sees the siblings under the unsuffixed names -- so the M-C view was being
+   * ratcheted against the M-B baseline, and its write was refused (caught, one printed line). All three
+   * are therefore per regulation. Not one of them is a gate input (quarantine.js reads none of them). */
+  [/^open-work\.json$/, 'engine/open_work.js', 'the open-work list: the shared register plus this regulation\'s measured disagreements'],
+  [/^interaction-matrix\.json$/, 'tests/test-interaction-matrix.js', 'carrier x reactor pairs staged against this regulation\'s checkout'],
+  [/^provenance-stamp\.json$/, 'engine/provenance.js', 'the mtime-only ratchet over the artifact graph as this regulation\'s seam presents it'],
 ]);
 const POOL_DIR = 'data/team-pool-frozen';
 const isPerRegulation = base => PER_REGULATION_ARTIFACTS.some(([re]) => re.test(String(base)));

@@ -6,7 +6,26 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ---
 
+## 2026-09-29
+
+### orient.js reads the model list from this plan's registry (abra/regmc 1.25.2)
+- `node engine/orient.js` section 5 now reads the Name and Role columns of §2 of `solver/PLAN.md`. Rename that heading or the `Name`/`Role` header cells and orient.js exits 1. `docs/_reports/2026-09-29-orient-models.md`.
+
+### CHOMP v1 lands on main (abra/regmc 1.25.0)
+- Gates on release `eaa5becc54eb`, honest, gen5 1 s: (b) screen 0.625 [0.556, 0.689] PASS; (b) SPRT vs human-modal
+  **H1 at 524 games, 0.561 [0.518, 0.603]**; (c) vs the humans' own bring, report-only, **0.470 [0.422, 0.519]**: no edge.
+- ROTOM `--preview chomp` serves v1; the default preview and every ladder arm are unchanged. Results copied to
+  `solver/results/2026-09-27-chomp-v1/`. Account: `docs/_reports/2026-09-29-chomp-v1-landed.md`.
+
 ## 2026-09-27
+
+### CHOMP v1 — learned preview scorer; gate (a) PASS, gate (b) not read (branch worktree-agent-a1d0f3564f3c6d52c, unmerged)
+- `solver/chomp/v1/`: a cell scorer learned from 25,008 targeted DODUO-greedy games with varied brings, the gen5 self-play
+  corpus and human games (engine matchup aggregates + species bring/lead values, antisymmetric); SLOWKING LP; bo3 adjustment
+  from the opponent's last game. Pre-registered (`solver/chomp/v1/preregistration.json`). Release `eaa5becc54eb`.
+- Gate (a) PASS: held-out Δlog-loss vs the human-modal-bring baseline −0.0203 [−0.0309, −0.0108]; RED on a shuffled-label break.
+- Gate (b) (honest gen5 arena, CHOMP vs human-modal preview) NOT READ: the screen was stopped at 26 of 200 games at Will's
+  stopping point. Commands to finish: `docs/_reports/2026-09-27-chomp-v1.md` §5. test-chomp1 32/32, 6 breaks red.
 
 ### ROTOM adaptive clock; lookahead options screened at 2 s (abra/regmc 1.24.0)
 - Adaptive (target 4.5 s: stop when clear, run to 2x target when close, capped by the bank) vs fixed 5 s, gen5, honest:
@@ -14,6 +33,7 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
   within resolution, 23% less clock. 4,000 simulated slow games: 0 bank-outs; RED when the line is ignored.
 - Options (quiesce/flatEps/reserveNoRepeat) on vs off at adaptive 2 s: 0.500 [0.431, 0.569], PASS; the ~10 s SPRT runs.
   Account: `docs/_reports/2026-09-27-adaptive-clock.md`.
+- (1.24.1) The ~10 s options SPRT was stopped UNREAD after 134 games at Will's stopping point; re-run owed.
 
 ### Repeat Protect: the depth-0 horizon, a fix that works on the table and loses at 1 s — not deployed (abra/regmc 1.23.0)
 - Cause, on the 13 positions where DODUO offers a repeat: not noise (SE median 0.0024, halves 0.626/0.607), not the die
@@ -251,6 +271,26 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
   A search in progress is invisible to the server's API: that gap is stated, and the rule is "log willhoop out".
 - Dry run on a local server, the same client code path, with every non-loopback connection refused in every process.
 - Runbook `solver/rotom/LADDER.md`. Detail: `docs/_reports/2026-09-25-rotom-ladder-mode.md`.
+
+## 2026-09-25
+
+### CHOMP v0 — the team-preview solver (branch worktree-agent-a9256d31a5fab9468, unmerged)
+- `solver/chomp/`: PORYGON2 v0 scores all 90 × 90 cells on the turn-1 position after the leads, with each side's back
+  two written in as seen bench members. SLOWKING's LP solves the table. An optional MILTANK refinement plays CRN
+  playouts on the support. `chomp.js` is the standalone interface (sheets in, mix and win chances out). ROTOM uses it
+  under `--preview chomp`, with the fallback counted.
+- Release `eaa5becc54eb`. Pre-registered plan (`solver/out/chomp/v0/plan.json`). Pairs are from non-TRAIN players only.
+  Doduo greedy on both sides. Paired seeds, 200 games per arm, SPRT H0 0.50 / H1 0.55, read once.
+- **It fails its bar.** Against the human's own bring **0.430 (0.363–0.499), SPRT H0 accepted**. Against the
+  human-modal prior 0.485 and against random preview 0.510, both inconclusive. Post-hoc controls: human vs random 0.560,
+  prior vs random 0.565. So the arena sees brings, and CHOMP's are no better than random.
+- (a) CHOMP matches the human lead pair 4.0% of the time. Uniform gets 6.7% and the prior 10.0%. In CHOMP's own table, a human
+  option's regret equals a random option's.
+- (c) The mix is exact in its own table (< 1e-5). Greedy is exploitable by 0.030, maximin by 0.016 and the human option by 0.115.
+  Refinement moves the cells by 0.044 and the mix by TV 0.63, so the equilibrium is noise. The owed fix is a self-play-trained cell scorer.
+- `solver/tests/test-chomp.js` GREEN 36/36, RED on 4 breaks. Detail: `docs/_reports/2026-09-25-chomp-v0.md`.
+
+---
 
 ## 2026-09-24
 

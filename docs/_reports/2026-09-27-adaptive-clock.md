@@ -24,6 +24,8 @@ Artifacts: `solver/results/2026-09-27-adaptive-clock/`. Engine: frozen release `
   deliberate break that ignores the line: 999 bank-outs.
 - **ROTOM plays it.** A local run (2 bo3 sets, 4 games, `--adaptive-target-ms 4500`): 42 planned decisions, 0 timeouts,
   0 invalid, 0 fallbacks, no decision past its hard line + 500 ms.
+- **The deeper-lookahead options on the adaptive clock:** pass a 2 s screen (0.500 [0.431, 0.569], 200 games). Their
+  ~10 s SPRT was STOPPED UNREAD after 134 games at Will's stopping point; nothing is concluded (§8).
 - **One pre-registered run was aborted** on its own time condition after 6 games, before any score was read (§3).
 
 ## 1. The design
@@ -189,7 +191,17 @@ a 200-game screen at adaptive 2 s, and the long SPRT at adaptive ~10 s only if t
 fallbacks; mean decision 1,695 ms (on) vs 1,789 ms (off); 326,550 quiesced playouts, so the option ran. **PASS** (upper
 bound ≥ 0.5 and point ≥ 0.47). At 2 s the loss seen at 1 s is gone.
 
-**SPRT, options on vs off, both adaptive target 12 s** (expected ~10 s per decision): running; see §9.
+**SPRT, options on vs off, both adaptive target 12 s** (`sprt.js --seed 27102 --workers 3`, the rest as §4). **STOPPED
+UNREAD** at a stopping point Will asked for, after 134 games (66 pairs, 1.9 h), by its pids; the score was never read and
+does not exist as a result. Clock only (the time condition, not the score): 8,850 ms (on) vs 8,165 ms (off) per searched
+decision, slowest decision 23.8 s, heaviest game 324.2 s of decision time, 0 decisions over 55 s, 0 games over 420 s,
+0 errors. The realised mean is ~8.5 s, not 10: at a longer target more decisions stop clear, so the target/mean ratio
+falls (0.81 at 4.5 s, ~0.71 at 12 s). The shards are in `solver/out/adaptive-options/sprt-10s-on-vs-off.shards/`
+(gitignored); they are NOT to be read as a partial SPRT.
+
+**What is left.** (1) Re-register the 10 s SPRT at a new seed (target ~14 s for a ~10 s mean) and run it to its bound:
+about 38 h at 3 workers, 2,000 games max. (2) Only on H1, put the options into a ladder arm. (3) A ladder arm with the
+adaptive clock at ~10 s needs its own pre-registration and Will's OK.
 
 ## 9. Owed
 

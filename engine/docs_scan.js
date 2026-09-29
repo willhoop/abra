@@ -1975,7 +1975,13 @@ const NOT_AN_ARTIFACT = new Set(['docs-currency-baseline.json', 'open-work.json'
  * document can never vouch for a figure in one rule while being refused in another. It matters more
  * since 2026-09-11: the untraced-figure grandfather list lives in docs-currency-baseline.json and holds
  * thousands of figures as written. */
-const isArtifactRel = rel => !NOT_AN_ARTIFACT.has(path.basename(String(rel)));
+/* 2026-09-29: open-work.json is per regulation (engine/regulation.js), so a Reg M-C run writes
+ * open-work-regmc.json -- the same copy of the register under a sibling name. The sibling rule is
+ * `-<id>` before the extension; strip it before asking, or the M-C copy becomes the loop above. */
+const isArtifactRel = rel => {
+  const b = path.basename(String(rel));
+  return !NOT_AN_ARTIFACT.has(b) && !NOT_AN_ARTIFACT.has(b.replace(/-[a-z0-9]+(\.json)$/, '$1'));
+};
 let allNumsCache = null;
 function allArtifactNumbers() {
   if (allNumsCache) return allNumsCache;

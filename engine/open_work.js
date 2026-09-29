@@ -41,7 +41,13 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
-const OUT = path.join(ROOT, 'data', 'open-work.json');
+/* PER REGULATION (engine/regulation.js PER_REGULATION_ARTIFACTS, 2026-09-29). The register half is shared;
+ * the measured half is this regulation's interaction matrix, so the list is too. Named explicitly rather
+ * than left to the fs seam, so the path printed below is the path written. */
+const REG = require('./regulation.js');
+const OUT_REL = REG.artifactFor('data/open-work.json');
+const OUT = path.join(ROOT, OUT_REL);
+const MATRIX_REL = REG.artifactFor('data/interaction-matrix.json');
 const Q = require('./quarantine.js');
 const ENGINE_ONLY = process.argv.includes('--engine');
 const AS_JSON = process.argv.includes('--json');
@@ -84,11 +90,11 @@ const readJSON = (p) => {
   }
 };
 const measured = [];
-const matrix = readJSON('data/interaction-matrix.json');
+const matrix = readJSON(MATRIX_REL);
 if (matrix && Array.isArray(matrix.parting)) {
   for (const r of matrix.parting)
     measured.push({ subject: r.carrier + ' -> ' + r.reactor, uses: r.uses || 0,
-                    instrument: 'data/interaction-matrix.json', generated: matrix.generated,
+                    instrument: MATRIX_REL, generated: matrix.generated,
                     detail: (r.diffs || []).map(d => d[0] + ' medi=' + d[1] + ' sd=' + d[2]).join(' | ') });
 }
 /* the register mentions a subject if either name appears in any OPEN row's title */
@@ -107,6 +113,7 @@ const ageDays = (iso) => iso ? ((Date.now() - Date.parse(iso)) / 86400000) : nul
 const art = {
   generated: new Date().toISOString(),
   by: 'engine/open_work.js',
+  regulation: REG.ID,
   what: 'Every register row not marked closed, plus every defect a live instrument is measuring that '
       + 'has no register row. The answer to "what is open" — printed, never typed.',
   why: 'On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: '
@@ -117,9 +124,11 @@ const art = {
       + 'direction to err. UNREGISTERED is the stronger signal — measured, not filed.',
   counts: { register_rows: rows.length, open: open.length, closed: rows.length - open.length,
             open_asserting_breakage: open.filter(r => r.saysBroken).length,
-            measured_disagreements: measured.length, unregistered: unregistered.length },
+            /* null, not 0, when the instrument is absent: an unmeasured half is not an empty one */
+            measured_disagreements: matrix ? measured.length : null,
+            unregistered: matrix ? unregistered.length : null },
   open, unregistered,
-  instruments: [{ artifact: 'data/interaction-matrix.json', generated: matrix && matrix.generated,
+  instruments: [{ artifact: MATRIX_REL, present: !!matrix, generated: matrix && matrix.generated,
                   age_days: matrix ? +ageDays(matrix.generated).toFixed(1) : null }],
 };
 fs.writeFileSync(OUT, JSON.stringify(art, null, 2) + '\n');
@@ -132,7 +141,11 @@ console.log('    ' + String(c.register_rows).padStart(4) + '  register rows');
 console.log('    ' + String(c.closed).padStart(4) + '  marked closed');
 console.log('    ' + String(c.open).padStart(4) + '  OPEN'
           + '   (' + c.open_asserting_breakage + ' of them assert breakage — those are what the gate counts)');
-console.log('    ' + String(c.unregistered).padStart(4) + '  MEASURED BUT UNREGISTERED\n');
+console.log('    ' + (c.unregistered == null ? 'NOT MEASURED' : String(c.unregistered).padStart(4))
+          + '  MEASURED BUT UNREGISTERED'
+          + (matrix ? '' : '  (' + MATRIX_REL + ' is absent for ' + REG.ID
+                           + ' -- the measured half did not run; it is not empty)')
+          + '\n');
 
 /* ---- 3. THE DOCUMENTATION DEBT ------------------------------------------------------------------
  *
@@ -180,4 +193,4 @@ for (const i of art.instruments)
   if (i.age_days != null && i.age_days > 1)
     console.log('  WARNING: ' + i.artifact + ' is ' + i.age_days + ' days old. Anything read out of it '
               + 'describes the engine of that day, not this one.\n');
-console.log('  wrote data/open-work.json');
+console.log('  wrote ' + OUT_REL + '  (regulation ' + REG.ID + ')');

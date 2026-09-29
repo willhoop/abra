@@ -116,7 +116,9 @@ const NAMES = [J('data/game-differential'), J('data/game-differential.g1350'), J
   J('data/all-mechanics-fire'), J('data/all-mechanics-fire.boardstate'), J('data/mechanics-census'),
   J('data/engine-release'), J('data/published-samples'), J('data/whole-game-baseline'),
   J('data/quarantine-stamp'), J('data/decision-impact'), J('data/register-reality'), J('data/click-counts'),
-  J('data/sheet-usage'), J('data/diff-team-pool'), 'data/team-pool-frozen', J('data/tags')];
+  J('data/sheet-usage'), J('data/diff-team-pool'), 'data/team-pool-frozen', J('data/tags'),
+  /* 2026-09-29: the state printers' per-regulation files (open_work.js crashed on the guard under regmc) */
+  J('data/open-work'), J('data/interaction-matrix'), J('data/provenance-stamp')];
 const MAPCODE = `
   const REG = require('./engine/regulation.js');
   const Q = require('./engine/quarantine.js');
