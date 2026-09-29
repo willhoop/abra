@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-29T21:21:10.335Z",
+  "generated": "2026-09-29T22:19:22.561Z",
   "by": "tests/test-interaction-matrix.js",
   "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
   "depth": "full",
@@ -68,15 +68,15 @@
     "field-setter-self-switches: the case would be about the replacement, not the field": 1,
     "field-not-in-projection: persists, but neither engine projection carries it": 4
   },
-  "live": 1683,
-  "agree": 1683,
+  "live": 1685,
+  "agree": 1685,
   "part": 0,
   "agreement_pct": 100,
   "staged_pct_of_theoretical": 31.7,
-  "inert": 523,
+  "inert": 524,
   "saturated": 119,
-  "ko_timing": 1,
-  "threw": 2,
+  "ko_timing": 0,
+  "threw": 0,
   "not_compared": [
     "hp amount",
     "accuracy misses",
@@ -2597,6 +2597,19 @@
       "reactor_kind": "ability",
       "holder": "Vivillon",
       "side": "def",
+      "evaluator": "state"
+    },
+    {
+      "axis": "flag",
+      "key": "statusMove",
+      "layer": "legality",
+      "carrier": "curse",
+      "carrier_uses": 347,
+      "user": "Gengar",
+      "reactor": "quickclaw",
+      "reactor_kind": "item",
+      "holder": "Venusaur",
+      "side": "atk",
       "evaluator": "state"
     },
     {
@@ -6891,66 +6904,7 @@
     }
   ],
   "parting": [],
-  "threw_rows": [
-    {
-      "key": "statusMove",
-      "carrier": "curse",
-      "reactor": "goodasgold",
-      "why": "1287/test turn 1: p1 choice rejected — \"move 1 1, move 1\"  (Can't move: You can't choose a target for Curse)"
-    },
-    {
-      "key": "statusMove",
-      "carrier": "curse",
-      "reactor": "quickclaw",
-      "why": "1421/test turn 1: p1 choice rejected — \"move 1 1, move 1\"  (Can't move: You can't choose a target for Curse)"
-    }
-  ],
-  "off_gate": 2,
-  "off_gate_rows": [
-    {
-      "key": "statusMove",
-      "bucket": "inert",
-      "carrier": "gastroacid",
-      "reactor": "quickclaw",
-      "kind": "item",
-      "uses": 8,
-      "diffs": [
-        {
-          "path": ".B.active[0].ability",
-          "medi": "\"\"",
-          "sd": "\"honeygather\""
-        }
-      ]
-    },
-    {
-      "key": "physicalMove",
-      "bucket": "ko",
-      "carrier": "aurawheel",
-      "reactor": "weakarmor",
-      "kind": "ability",
-      "uses": 71,
-      "diffs": [
-        {
-          "path": ".B.active[0].species",
-          "medi": "\"corviknight\"",
-          "sd": "\"skarmory\""
-        },
-        {
-          "path": ".B.active[0].hurt",
-          "medi": "false",
-          "sd": "true"
-        },
-        {
-          "path": ".B.active[0].boosts.def",
-          "medi": "0",
-          "sd": "1"
-        },
-        {
-          "path": ".B.active[0].boosts.spe",
-          "medi": "0",
-          "sd": "2"
-        }
-      ]
-    }
-  ]
+  "threw_rows": [],
+  "off_gate": 0,
+  "off_gate_rows": []
 }

@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.29.0] — 2026-09-29 — **The Reg M-C interaction matrix, re-run after the harness fixes, agrees on every pair**
+- **What changed.** A full matrix re-run, plus `open_work.js` and `status.js --write`, all under `ABRA_REGULATION=regmc` in the main checkout. No code.
+- **Measured.** 1,685 LIVE pairs; 0 KO-timing, 0 INERT-case disagreements, 0 THREW (`data/interaction-matrix-regmc.json`).
+- **Basis.** unchanged.
+- **Supersedes.** The first Reg M-C matrix reading of 2026-09-29 17:21: 1,683 LIVE, 1 KO-timing, 2 INERT-case disagreements, 2 THREW. That reading was never published in a living document.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 1.28.1] — 2026-09-29 — **The first Reg M-C matrix's four non-agreeing rows were all the instrument; fixed there, the engine did not change**
 - **What changed.** `tests/test-game-diff.js`: `projMedi` reads the parked (identity) ability, and under `pinDice` medicham2's `dmg` stream is pinned to the authority's pinned damage index (92%, not 93%). `tests/interaction_matrix.js`: a carrier's foe-aim is read from the authority's per-user move request, so a non-Ghost Curse is not emitted. New probe `tests/probe_regmc_matrix_offgate.js`. `engine/` is untouched.
 - **Measured.** Probe RED 6 arms before, GREEN after, `ABRA_REGULATION=regmc`. Single pairs only: `gastroacid -> quickclaw` agrees; `curse -> goodasgold` and `curse -> quickclaw` run on Gengar (no throw); `aurawheel -> weakarmor` agrees, Skarmory left on 0.0143 in both engines. 176 of 177 Curse, Gastro Acid and Weak Armor cases agree; the other is a damage case with no verdict. The full matrix was NOT re-run.

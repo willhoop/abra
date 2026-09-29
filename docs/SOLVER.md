@@ -47,7 +47,7 @@ SOLVER (was SEARCH) — the retired Reg M-B rollout rows; the Reg M-C solver is 
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
 ```
 
-_stamped 2026-09-29 11:47_
+_stamped 2026-09-29 18:21_
 
 <!-- /GENERATED -->
 

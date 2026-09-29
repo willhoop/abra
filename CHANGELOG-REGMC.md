@@ -21,6 +21,15 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.29.0] — 2026-09-29
+
+### Changed
+- **The Reg M-C interaction matrix was re-run after the 1.28.1 harness fixes: every pair agrees.** 1,685 pairs are LIVE,
+  with 0 KO-timing disagreements, 0 disagreements in INERT cases and 0 THREW (`data/interaction-matrix-regmc.json`,
+  `ABRA_REGULATION=regmc node tests/test-interaction-matrix.js --full`, main checkout). It replaces the first reading
+  (1,683 LIVE, 1 KO-timing, 2 INERT-case disagreements, 2 THREW), all four of which 1.28.1 traced to the instrument.
+  The Reg M-C work list and the division ledgers were restamped from main. The gate reads OPEN.
+
 ## [1.28.1] — 2026-09-29
 
 ### Fixed

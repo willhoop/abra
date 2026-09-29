@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-29T21:21:53.724Z",
+  "generated": "2026-09-29T22:19:23.563Z",
   "by": "engine/open_work.js",
   "regulation": "regmc",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
@@ -1820,7 +1820,7 @@
     {
       "artifact": "data/interaction-matrix-regmc.json",
       "present": true,
-      "generated": "2026-09-29T21:21:10.335Z",
+      "generated": "2026-09-29T22:19:22.561Z",
       "age_days": 0
     }
   ]
