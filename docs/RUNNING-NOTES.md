@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.29.1] — 2026-09-29 — **`test-game-diff.js` and five more engine tests write per-regulation files under Reg M-C**
+- **What changed.** `engine/regulation.js` `PER_REGULATION_ARTIFACTS` gains `game-diff.json`, `forme-assert.json`, `switch-back-renamed.json`, `tag-walk.json`, `tag-consumption.json` and `unmodelled-clicks.json`. Each writer names its path through `artifactFor`. `test-game-diff.js` and `test-unmodelled-clicks.js` read the tags through `fileFor`, because a bare fs read returned Reg M-B's under Reg M-C. `test-tag-consumed.js` prints `NO BASELINE` when it has none. `tests/test-regulation-artifacts.js` maps the six names.
+- **Measured.** NO FIGURE. `ABRA_REGULATION=regmc node tests/test-game-diff.js` exit 1 (the guard refused `data/game-diff.json` after 5 of 5 games agreed) → exit 0, writes `data/game-diff-regmc.json` (`showdown_commit` `f10d6798`). The plain run exits 0 and writes `data/game-diff.json` (`20ad99ff`). The other five: regmc exit 0, sibling written; plain exit 0.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published. Before this, a Reg M-C `test-tag-consumed.js` or `test-unmodelled-clicks.js` checked itself against Reg M-B's baseline.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 1.29.0] — 2026-09-29 — **The Reg M-C interaction matrix, re-run after the harness fixes, agrees on every pair**
 - **What changed.** A full matrix re-run, plus `open_work.js` and `status.js --write`, all under `ABRA_REGULATION=regmc` in the main checkout. No code.
 - **Measured.** 1,685 LIVE pairs; 0 KO-timing, 0 INERT-case disagreements, 0 THREW (`data/interaction-matrix-regmc.json`).

@@ -1,0 +1,54 @@
+{
+  "generated": "2026-09-29T22:43:31.370Z",
+  "by": "tests/test-game-diff.js",
+  "regulation": "regmc",
+  "format": "gen9championsvgc2026regmc",
+  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+  "not_compared": [
+    "hp amount",
+    "accuracy misses",
+    "chance secondaries",
+    "crit",
+    "a reactor whose effect is a ROLL",
+    "a pair where one engine KOs and the other does not",
+    "the `protect` volatile",
+    "Showdown-only volatiles",
+    "PP",
+    "stat VALUES"
+  ],
+  "injected_divergence_proof": true,
+  "games": [
+    {
+      "name": "tailwind expires on the right turn",
+      "turns": 6,
+      "threw": null,
+      "first_divergence": null
+    },
+    {
+      "name": "trick room sets, toggles off, and expires",
+      "turns": 8,
+      "threw": null,
+      "first_divergence": null
+    },
+    {
+      "name": "weather is replaced and terrain expires",
+      "turns": 8,
+      "threw": null,
+      "first_divergence": null
+    },
+    {
+      "name": "switches, entry abilities and bench composition",
+      "turns": 4,
+      "threw": null,
+      "first_divergence": null
+    },
+    {
+      "name": "a screen expires and a hazard outlives it",
+      "turns": 7,
+      "threw": null,
+      "first_divergence": null
+    }
+  ],
+  "pairs": null,
+  "write_policy": "GREEN-ONLY. Written only after injectedDivergenceProof() passed. A run whose comparator failed its own planted-divergence proof exits 1 before this file is touched, so a reader never has to know how to refuse an artifact written by a broken instrument."
+}

@@ -74,7 +74,13 @@ if (!process.env.SHOWDOWN_PATH) {
 const CS = require(D('engine', 'champions_sim.js'));
 const { Dex, Teams, Battle } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
-const tags = JSON.parse(fs.readFileSync(D('data', 'tags.json'), 'utf8'));
+/* PER REGULATION (engine/regulation.js PER_REGULATION_ARTIFACTS, 2026-09-29). The artifact is written to
+ * REG.artifactFor's path, so the printed path is the written path. The tags are read through REG.fileFor:
+ * the table and the tag file follow the regulation through `require`, but a bare fs read of
+ * data/tags.json does NOT, and under Reg M-C `--pairs` was generating its pairs off Reg M-B's linkage. */
+const REG = require(D('engine', 'regulation.js'));
+const OUT_REL = REG.artifactFor('data/game-diff.json');
+const tags = JSON.parse(fs.readFileSync(D(REG.fileFor('data/tags.json')), 'utf8'));
 
 const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -805,13 +811,13 @@ console.log('');
  * of anything. Same shape as tests/test-rulebook-collision.js, which exits before its write. */
 if (!proof.ok) {
   console.log('  REFUSED — the comparator could not find a divergence that was PLANTED in it, so no');
-  console.log('  game below would mean anything. data/game-diff.json is NOT written and the artifact');
+  console.log('  game below would mean anything. ' + OUT_REL + ' is NOT written and the artifact');
   console.log('  on disk is left as it was: a stale honest number beats a fresh fictitious one.');
   process.exit(1);
 }
 
 const artifact = { generated: new Date().toISOString(), by: 'tests/test-game-diff.js',
-  showdown_commit: CS.PINNED_COMMIT, not_compared: NOT_COMPARED.map(x => x[0]),
+  regulation: REG.ID, format: CS.FORMAT, showdown_commit: CS.PINNED_COMMIT, not_compared: NOT_COMPARED.map(x => x[0]),
   injected_divergence_proof: proof.ok, games: [], pairs: null };
 
 if (doGames) {
@@ -861,5 +867,5 @@ if (doPairs) {
 artifact.write_policy = 'GREEN-ONLY. Written only after injectedDivergenceProof() passed. A run whose '
   + 'comparator failed its own planted-divergence proof exits 1 before this file is touched, so a '
   + 'reader never has to know how to refuse an artifact written by a broken instrument.';
-fs.writeFileSync(D('data', 'game-diff.json'), JSON.stringify(artifact, null, 2) + '\n');
-console.log('  wrote data/game-diff.json');
+fs.writeFileSync(D(OUT_REL), JSON.stringify(artifact, null, 2) + '\n');
+console.log('  wrote ' + OUT_REL + '  (regulation ' + REG.ID + ')');
