@@ -119,8 +119,11 @@ function create(API, opts) {
     function bot(seed, extra) {
       const coin = coinOf(seed);
       if (spec.kind === 'greedy') return { name: spec.name, kind: 'greedy', PA, choose(S, side, ctx) { COUNTERS.decisions++; return argmax(S, side, ctx); } };
+      /* spec.maxPasses (2026-09-26, PORYGON2 v1's corpus): a PASS CAP instead of a clock — every decision fills exactly
+       * that many passes (unless the budget runs out first), so a cheap self-play game is as fast as the cap allows and
+       * replays the same playouts whatever the machine load. Absent = the clock alone, exactly as before. */
       const o = Object.assign({ budgetMs: spec.budgetMs, k1: spec.k1, k2: spec.k2, depth: spec.depth, reserveSwitch: spec.reserveSwitch,
-                                leaf: 'pory2', leafModel: abs(spec.pory2), coin }, searchExtras(spec), extra || {});
+                                leaf: 'pory2', leafModel: abs(spec.pory2), coin }, searchExtras(spec), spec.maxPasses ? { maxPasses: spec.maxPasses } : {}, extra || {});
       /* spec.adaptive (2026-09-27): ROTOM's adaptive clock (solver/rotom/adaptive.js) plans each decision on a simulated
        * VGC bank — the rule read from the checkout (solver/rotom/clock.js readRule), charged with this bot's own wall ms per
        * decision — instead of spec.budgetMs. One allocator per bot, and a bot plays one game. */
