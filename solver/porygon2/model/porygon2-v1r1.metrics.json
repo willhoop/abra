@@ -1,0 +1,1283 @@
+{
+ "model": "PORYGON2 v1-r1",
+ "arch": "attn",
+ "params": 65905,
+ "out": {
+  "path": "solver/out/p2v1r/final/attn.json",
+  "sha256": "36a2f675076733af8cccc8fcc86b892c36a3ced66162950005aa3e8c5a56a10b"
+ },
+ "engine_release": "eaa5becc54eb",
+ "flags": {
+  "data": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/human/s0,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/loop-sp9,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/loop-sp8,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/loop-sp7,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/loop-sp6,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/r3-sp0,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/p2v1-c0,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/r2-sp1,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/r2-sp0,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/gen1,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/gen0,solver/out/p2v1r/sp/p2v1-c1-s0,solver/out/p2v1r/sp/p2v1-c1-s1,solver/out/p2v1r/sp/p2v1-c1-s2",
+  "arch": "attn",
+  "out": "solver/out/p2v1r/final/attn.json",
+  "metrics": "solver/out/p2v1r/final/attn.metrics.json",
+  "labels": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/labels/labels-0.jsonl,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/labels/labels-1.jsonl,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/labels/labels-2.jsonl,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/labels2/labels-0.jsonl",
+  "fixture": "solver/out/p2v1r/final/attn.fx.json",
+  "threads": 3,
+  "epochs": 12,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "dropout": 0.1,
+  "seed": 1,
+  "boot": 2000,
+  "block": 2048,
+  "bs": 512,
+  "human_weight": 1.0,
+  "max_rows": 0,
+  "name": "PORYGON2 v1-r1",
+  "eval_exclude": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/gen0,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/gen1,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/r2-sp0,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/r2-sp1"
+ },
+ "history": [
+  {
+   "epoch": 0,
+   "train_loss": 0.4892494585968199,
+   "val": {
+    "human": 0.5165025891204466,
+    "selfplay": 0.45761851413010113,
+    "combined": 0.48706055162527384
+   },
+   "seconds": 44.7
+  },
+  {
+   "epoch": 1,
+   "train_loss": 0.47170130105245683,
+   "val": {
+    "human": 0.5163590449493547,
+    "selfplay": 0.4491700818148002,
+    "combined": 0.48276456338207746
+   },
+   "seconds": 157.3
+  },
+  {
+   "epoch": 2,
+   "train_loss": 0.4666487826707245,
+   "val": {
+    "human": 0.5165810902003951,
+    "selfplay": 0.45203030479711165,
+    "combined": 0.4843056974987534
+   },
+   "seconds": 40.7
+  },
+  {
+   "epoch": 3,
+   "train_loss": 0.46393588491848536,
+   "val": {
+    "human": 0.5116812143691922,
+    "selfplay": 0.45692530656684877,
+    "combined": 0.4843032604680205
+   },
+   "seconds": 151.4
+  },
+  {
+   "epoch": 4,
+   "train_loss": 0.46003202128136816,
+   "val": {
+    "human": 0.5067650700719268,
+    "selfplay": 0.4450777536446845,
+    "combined": 0.47592141185830567
+   },
+   "seconds": 43.8
+  },
+  {
+   "epoch": 5,
+   "train_loss": 0.4577269138040997,
+   "val": {
+    "human": 0.506341635247269,
+    "selfplay": 0.4470500026463046,
+    "combined": 0.4766958189467868
+   },
+   "seconds": 161.5
+  },
+  {
+   "epoch": 6,
+   "train_loss": 0.45388989717108214,
+   "val": {
+    "human": 0.5103970419142618,
+    "selfplay": 0.4471714282801739,
+    "combined": 0.4787842350972179
+   },
+   "seconds": 133.0
+  },
+  {
+   "epoch": 7,
+   "train_loss": 0.4518905466863217,
+   "val": {
+    "human": 0.5056607999211683,
+    "selfplay": 0.4507708617915527,
+    "combined": 0.4782158308563605
+   },
+   "seconds": 52.7
+  },
+  {
+   "epoch": 8,
+   "train_loss": 0.4487638927911171,
+   "val": {
+    "human": 0.5056122955429949,
+    "selfplay": 0.4470309464882244,
+    "combined": 0.47632162101560965
+   },
+   "seconds": 36.3
+  },
+  {
+   "epoch": 9,
+   "train_loss": 0.44697654451642715,
+   "val": {
+    "human": 0.5085284765653323,
+    "selfplay": 0.45114374103799826,
+    "combined": 0.4798361088016653
+   },
+   "seconds": 162.7
+  },
+  {
+   "epoch": 10,
+   "train_loss": 0.4447041727290861,
+   "val": {
+    "human": 0.5044914226943402,
+    "selfplay": 0.4490201159334179,
+    "combined": 0.4767557693138791
+   },
+   "seconds": 37.5
+  },
+  {
+   "epoch": 11,
+   "train_loss": 0.4431443213848841,
+   "val": {
+    "human": 0.505536192368437,
+    "selfplay": 0.4485287177513463,
+    "combined": 0.47703245505989167
+   },
+   "seconds": 168.5
+  }
+ ],
+ "selected_epoch": 4,
+ "data": [
+  {
+   "dir": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/human/s0",
+   "kind": "human",
+   "N": 185480,
+   "train": 119334,
+   "val": 33567,
+   "test": 36083,
+   "deep_labels": 0,
+   "exact_labels": 0,
+   "root_values": 0
+  },
+  {
+   "dir": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/loop-sp9",
+   "kind": "selfplay",
+   "N": 7768,
+   "train": 6487,
+   "val": 652,
+   "test": 629,
+   "deep_labels": 1336,
+   "exact_labels": 1,
+   "root_values": 7760
+  },
+  {
+   "dir": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/loop-sp8",
+   "kind": "selfplay",
+   "N": 7805,
+   "train": 6372,
+   "val": 719,
+   "test": 714,
+   "deep_labels": 1357,
+   "exact_labels": 3,
+   "root_values": 7782
+  },
+  {
+   "dir": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/loop-sp7",
+   "kind": "selfplay",
+   "N": 7775,
+   "train": 6021,
+   "val": 989,
+   "test": 765,
+   "deep_labels": 0,
+   "exact_labels": 0,
+   "root_values": 7768
+  },
+  {
+   "dir": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/loop-sp6",
+   "kind": "selfplay",
+   "N": 7603,
+   "train": 6187,
+   "val": 755,
+   "test": 661,
+   "deep_labels": 0,
+   "exact_labels": 0,
+   "root_values": 7600
+  },
+  {
+   "dir": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/r3-sp0",
+   "kind": "selfplay",
+   "N": 7743,
+   "train": 6348,
+   "val": 693,
+   "test": 702,
+   "deep_labels": 0,
+   "exact_labels": 0,
+   "root_values": 7741
+  },
+  {
+   "dir": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/p2v1-c0",
+   "kind": "selfplay",
+   "N": 27337,
+   "train": 21938,
+   "val": 2649,
+   "test": 2750,
+   "deep_labels": 1629,
+   "exact_labels": 5,
+   "root_values": 27321
+  },
+  {
+   "dir": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/r2-sp1",
+   "kind": "selfplay",
+   "N": 7731,
+   "train": 6330,
+   "val": 555,
+   "test": 846,
+   "deep_labels": 1132,
+   "exact_labels": 3,
+   "root_values": 7731
+  },
+  {
+   "dir": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/r2-sp0",
+   "kind": "selfplay",
+   "N": 7707,
+   "train": 6111,
+   "val": 821,
+   "test": 775,
+   "deep_labels": 0,
+   "exact_labels": 0,
+   "root_values": 7688
+  },
+  {
+   "dir": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/gen1",
+   "kind": "selfplay",
+   "N": 11906,
+   "train": 9402,
+   "val": 1406,
+   "test": 1098,
+   "deep_labels": 0,
+   "exact_labels": 0,
+   "root_values": 8098
+  },
+  {
+   "dir": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/gen0",
+   "kind": "selfplay",
+   "N": 12194,
+   "train": 9903,
+   "val": 1127,
+   "test": 1164,
+   "deep_labels": 0,
+   "exact_labels": 0,
+   "root_values": 5985
+  },
+  {
+   "dir": "solver/out/p2v1r/sp/p2v1-c1-s0",
+   "kind": "selfplay",
+   "N": 25350,
+   "train": 20040,
+   "val": 2626,
+   "test": 2684,
+   "deep_labels": 0,
+   "exact_labels": 0,
+   "root_values": 25347
+  },
+  {
+   "dir": "solver/out/p2v1r/sp/p2v1-c1-s1",
+   "kind": "selfplay",
+   "N": 25381,
+   "train": 20307,
+   "val": 2550,
+   "test": 2524,
+   "deep_labels": 0,
+   "exact_labels": 0,
+   "root_values": 25377
+  },
+  {
+   "dir": "solver/out/p2v1r/sp/p2v1-c1-s2",
+   "kind": "selfplay",
+   "N": 25320,
+   "train": 20643,
+   "val": 2347,
+   "test": 2330,
+   "deep_labels": 0,
+   "exact_labels": 0,
+   "root_values": 25312
+  }
+ ],
+ "labels_files": [
+  "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/labels/labels-0.jsonl",
+  "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/labels/labels-1.jsonl",
+  "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/labels/labels-2.jsonl",
+  "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/labels2/labels-0.jsonl"
+ ],
+ "test": {
+  "human": {
+   "v1": {
+    "logloss": {
+     "mean": 0.511328,
+     "ci95": [
+      0.501435,
+      0.521961
+     ],
+     "n_views": 37829.0,
+     "n_games": 5220
+    },
+    "brier": {
+     "mean": 0.173424,
+     "ci95": [
+      0.169668,
+      0.177568
+     ],
+     "n_views": 37829.0,
+     "n_games": 5220
+    }
+   },
+   "gen5": {
+    "logloss": {
+     "mean": 0.514498,
+     "ci95": [
+      0.505508,
+      0.523697
+     ],
+     "n_views": 37829.0,
+     "n_games": 5220
+    },
+    "brier": {
+     "mean": 0.174956,
+     "ci95": [
+      0.171401,
+      0.178513
+     ],
+     "n_views": 37829.0,
+     "n_games": 5220
+    }
+   },
+   "v1_minus_gen5": {
+    "logloss": {
+     "mean": -0.00317,
+     "ci95": [
+      -0.007804,
+      0.001797
+     ],
+     "n_views": 37829.0,
+     "n_games": 5220
+    },
+    "brier": {
+     "mean": -0.001532,
+     "ci95": [
+      -0.003239,
+      0.000259
+     ],
+     "n_views": 37829.0,
+     "n_games": 5220
+    }
+   },
+   "by_turn": {
+    "1": {
+     "v1_logloss": {
+      "mean": 0.67372,
+      "ci95": [
+       0.665584,
+       0.682013
+      ],
+      "n_views": 5480.0,
+      "n_games": 5220
+     },
+     "gen5_logloss": {
+      "mean": 0.673395,
+      "ci95": [
+       0.667658,
+       0.679226
+      ],
+      "n_views": 5480.0,
+      "n_games": 5220
+     },
+     "v1_minus_gen5_logloss": {
+      "mean": 0.000324,
+      "ci95": [
+       -0.004344,
+       0.00543
+      ],
+      "n_views": 5480.0,
+      "n_games": 5220
+     },
+     "v1_brier": {
+      "mean": 0.240253,
+      "ci95": [
+       0.236519,
+       0.24412
+      ],
+      "n_views": 5480.0,
+      "n_games": 5220
+     },
+     "gen5_brier": {
+      "mean": 0.24038,
+      "ci95": [
+       0.237591,
+       0.243148
+      ],
+      "n_views": 5480.0,
+      "n_games": 5220
+     }
+    },
+    "2": {
+     "v1_logloss": {
+      "mean": 0.625194,
+      "ci95": [
+       0.614059,
+       0.636629
+      ],
+      "n_views": 5412.0,
+      "n_games": 5155
+     },
+     "gen5_logloss": {
+      "mean": 0.629679,
+      "ci95": [
+       0.620182,
+       0.63926
+      ],
+      "n_views": 5412.0,
+      "n_games": 5155
+     },
+     "v1_minus_gen5_logloss": {
+      "mean": -0.004485,
+      "ci95": [
+       -0.010075,
+       0.001063
+      ],
+      "n_views": 5412.0,
+      "n_games": 5155
+     },
+     "v1_brier": {
+      "mean": 0.218057,
+      "ci95": [
+       0.213361,
+       0.223057
+      ],
+      "n_views": 5412.0,
+      "n_games": 5155
+     },
+     "gen5_brier": {
+      "mean": 0.22041,
+      "ci95": [
+       0.216168,
+       0.224751
+      ],
+      "n_views": 5412.0,
+      "n_games": 5155
+     }
+    },
+    "3": {
+     "v1_logloss": {
+      "mean": 0.562382,
+      "ci95": [
+       0.549105,
+       0.575904
+      ],
+      "n_views": 5255.0,
+      "n_games": 5006
+     },
+     "gen5_logloss": {
+      "mean": 0.571725,
+      "ci95": [
+       0.559216,
+       0.583708
+      ],
+      "n_views": 5255.0,
+      "n_games": 5006
+     },
+     "v1_minus_gen5_logloss": {
+      "mean": -0.009343,
+      "ci95": [
+       -0.014831,
+       -0.003988
+      ],
+      "n_views": 5255.0,
+      "n_games": 5006
+     },
+     "v1_brier": {
+      "mean": 0.191761,
+      "ci95": [
+       0.186452,
+       0.19731
+      ],
+      "n_views": 5255.0,
+      "n_games": 5006
+     },
+     "gen5_brier": {
+      "mean": 0.195909,
+      "ci95": [
+       0.190853,
+       0.200931
+      ],
+      "n_views": 5255.0,
+      "n_games": 5006
+     }
+    },
+    "4-5": {
+     "v1_logloss": {
+      "mean": 0.481732,
+      "ci95": [
+       0.467828,
+       0.496274
+      ],
+      "n_views": 9506.0,
+      "n_games": 4762
+     },
+     "gen5_logloss": {
+      "mean": 0.48962,
+      "ci95": [
+       0.476575,
+       0.503469
+      ],
+      "n_views": 9506.0,
+      "n_games": 4762
+     },
+     "v1_minus_gen5_logloss": {
+      "mean": -0.007889,
+      "ci95": [
+       -0.013257,
+       -0.002462
+      ],
+      "n_views": 9506.0,
+      "n_games": 4762
+     },
+     "v1_brier": {
+      "mean": 0.160601,
+      "ci95": [
+       0.15521,
+       0.166149
+      ],
+      "n_views": 9506.0,
+      "n_games": 4762
+     },
+     "gen5_brier": {
+      "mean": 0.163558,
+      "ci95": [
+       0.158378,
+       0.168978
+      ],
+      "n_views": 9506.0,
+      "n_games": 4762
+     }
+    },
+    "6-8": {
+     "v1_logloss": {
+      "mean": 0.39498,
+      "ci95": [
+       0.376503,
+       0.414009
+      ],
+      "n_views": 8690.0,
+      "n_games": 3603
+     },
+     "gen5_logloss": {
+      "mean": 0.398114,
+      "ci95": [
+       0.381648,
+       0.41536
+      ],
+      "n_views": 8690.0,
+      "n_games": 3603
+     },
+     "v1_minus_gen5_logloss": {
+      "mean": -0.003134,
+      "ci95": [
+       -0.009834,
+       0.003429
+      ],
+      "n_views": 8690.0,
+      "n_games": 3603
+     },
+     "v1_brier": {
+      "mean": 0.127684,
+      "ci95": [
+       0.121219,
+       0.134533
+      ],
+      "n_views": 8690.0,
+      "n_games": 3603
+     },
+     "gen5_brier": {
+      "mean": 0.129293,
+      "ci95": [
+       0.123036,
+       0.135762
+      ],
+      "n_views": 8690.0,
+      "n_games": 3603
+     }
+    },
+    "9+": {
+     "v1_logloss": {
+      "mean": 0.373048,
+      "ci95": [
+       0.328764,
+       0.422901
+      ],
+      "n_views": 3486.0,
+      "n_games": 1278
+     },
+     "gen5_logloss": {
+      "mean": 0.357587,
+      "ci95": [
+       0.323966,
+       0.390698
+      ],
+      "n_views": 3486.0,
+      "n_games": 1278
+     },
+     "v1_minus_gen5_logloss": {
+      "mean": 0.015461,
+      "ci95": [
+       -0.01021,
+       0.054028
+      ],
+      "n_views": 3486.0,
+      "n_games": 1278
+     },
+     "v1_brier": {
+      "mean": 0.120419,
+      "ci95": [
+       0.105157,
+       0.137787
+      ],
+      "n_views": 3486.0,
+      "n_games": 1278
+     },
+     "gen5_brier": {
+      "mean": 0.114862,
+      "ci95": [
+       0.10333,
+       0.126157
+      ],
+      "n_views": 3486.0,
+      "n_games": 1278
+     }
+    }
+   },
+   "calibration": {
+    "v1": {
+     "bins": [
+      {
+       "bin": 0,
+       "n_views": 4279.0,
+       "pred": 0.0339,
+       "won": 0.0421
+      },
+      {
+       "bin": 1,
+       "n_views": 2704.0,
+       "pred": 0.1511,
+       "won": 0.1731
+      },
+      {
+       "bin": 2,
+       "n_views": 3344.0,
+       "pred": 0.252,
+       "won": 0.2928
+      },
+      {
+       "bin": 3,
+       "n_views": 4018.0,
+       "pred": 0.3509,
+       "won": 0.3721
+      },
+      {
+       "bin": 4,
+       "n_views": 4340.0,
+       "pred": 0.4497,
+       "won": 0.4525
+      },
+      {
+       "bin": 5,
+       "n_views": 4618.0,
+       "pred": 0.5494,
+       "won": 0.547
+      },
+      {
+       "bin": 6,
+       "n_views": 4095.0,
+       "pred": 0.6501,
+       "won": 0.63
+      },
+      {
+       "bin": 7,
+       "n_views": 3347.0,
+       "pred": 0.748,
+       "won": 0.7362
+      },
+      {
+       "bin": 8,
+       "n_views": 2811.0,
+       "pred": 0.8486,
+       "won": 0.8428
+      },
+      {
+       "bin": 9,
+       "n_views": 4273.0,
+       "pred": 0.9646,
+       "won": 0.9506
+      }
+     ],
+     "ece": 0.0142
+    },
+    "gen5": {
+     "bins": [
+      {
+       "bin": 0,
+       "n_views": 3988.0,
+       "pred": 0.0384,
+       "won": 0.0411
+      },
+      {
+       "bin": 1,
+       "n_views": 2470.0,
+       "pred": 0.1518,
+       "won": 0.1611
+      },
+      {
+       "bin": 2,
+       "n_views": 2927.0,
+       "pred": 0.2522,
+       "won": 0.2535
+      },
+      {
+       "bin": 3,
+       "n_views": 4184.0,
+       "pred": 0.3526,
+       "won": 0.363
+      },
+      {
+       "bin": 4,
+       "n_views": 5283.0,
+       "pred": 0.4519,
+       "won": 0.4664
+      },
+      {
+       "bin": 5,
+       "n_views": 5337.0,
+       "pred": 0.5489,
+       "won": 0.5511
+      },
+      {
+       "bin": 6,
+       "n_views": 4139.0,
+       "pred": 0.6475,
+       "won": 0.6487
+      },
+      {
+       "bin": 7,
+       "n_views": 3133.0,
+       "pred": 0.7486,
+       "won": 0.7399
+      },
+      {
+       "bin": 8,
+       "n_views": 2446.0,
+       "pred": 0.848,
+       "won": 0.8602
+      },
+      {
+       "bin": 9,
+       "n_views": 3922.0,
+       "pred": 0.9607,
+       "won": 0.9567
+      }
+     ],
+     "ece": 0.00653
+    }
+   }
+  },
+  "selfplay": {
+   "v1": {
+    "logloss": {
+     "mean": 0.410892,
+     "ci95": [
+      0.395509,
+      0.425266
+     ],
+     "n_views": 13759.0,
+     "n_games": 1804
+    },
+    "brier": {
+     "mean": 0.136922,
+     "ci95": [
+      0.130889,
+      0.142325
+     ],
+     "n_views": 13759.0,
+     "n_games": 1804
+    }
+   },
+   "gen5": {
+    "logloss": {
+     "mean": 0.427459,
+     "ci95": [
+      0.413413,
+      0.441379
+     ],
+     "n_views": 13759.0,
+     "n_games": 1804
+    },
+    "brier": {
+     "mean": 0.142858,
+     "ci95": [
+      0.137303,
+      0.148274
+     ],
+     "n_views": 13759.0,
+     "n_games": 1804
+    }
+   },
+   "v1_minus_gen5": {
+    "logloss": {
+     "mean": -0.016567,
+     "ci95": [
+      -0.02135,
+      -0.011183
+     ],
+     "n_views": 13759.0,
+     "n_games": 1804
+    },
+    "brier": {
+     "mean": -0.005936,
+     "ci95": [
+      -0.007804,
+      -0.003875
+     ],
+     "n_views": 13759.0,
+     "n_games": 1804
+    }
+   },
+   "by_turn": {
+    "1": {
+     "v1_logloss": {
+      "mean": 0.642996,
+      "ci95": [
+       0.63027,
+       0.656146
+      ],
+      "n_views": 1804.0,
+      "n_games": 1804
+     },
+     "gen5_logloss": {
+      "mean": 0.660829,
+      "ci95": [
+       0.6509,
+       0.670675
+      ],
+      "n_views": 1804.0,
+      "n_games": 1804
+     },
+     "v1_minus_gen5_logloss": {
+      "mean": -0.017833,
+      "ci95": [
+       -0.024839,
+       -0.010226
+      ],
+      "n_views": 1804.0,
+      "n_games": 1804
+     },
+     "v1_brier": {
+      "mean": 0.2261,
+      "ci95": [
+       0.22009,
+       0.232216
+      ],
+      "n_views": 1804.0,
+      "n_games": 1804
+     },
+     "gen5_brier": {
+      "mean": 0.234244,
+      "ci95": [
+       0.229586,
+       0.2389
+      ],
+      "n_views": 1804.0,
+      "n_games": 1804
+     }
+    },
+    "2": {
+     "v1_logloss": {
+      "mean": 0.570773,
+      "ci95": [
+       0.552889,
+       0.588209
+      ],
+      "n_views": 1804.0,
+      "n_games": 1804
+     },
+     "gen5_logloss": {
+      "mean": 0.592281,
+      "ci95": [
+       0.576082,
+       0.608227
+      ],
+      "n_views": 1804.0,
+      "n_games": 1804
+     },
+     "v1_minus_gen5_logloss": {
+      "mean": -0.021508,
+      "ci95": [
+       -0.029289,
+       -0.013837
+      ],
+      "n_views": 1804.0,
+      "n_games": 1804
+     },
+     "v1_brier": {
+      "mean": 0.195049,
+      "ci95": [
+       0.187219,
+       0.202781
+      ],
+      "n_views": 1804.0,
+      "n_games": 1804
+     },
+     "gen5_brier": {
+      "mean": 0.203724,
+      "ci95": [
+       0.196286,
+       0.210778
+      ],
+      "n_views": 1804.0,
+      "n_games": 1804
+     }
+    },
+    "3": {
+     "v1_logloss": {
+      "mean": 0.498729,
+      "ci95": [
+       0.476736,
+       0.518834
+      ],
+      "n_views": 1804.0,
+      "n_games": 1804
+     },
+     "gen5_logloss": {
+      "mean": 0.511208,
+      "ci95": [
+       0.490359,
+       0.53078
+      ],
+      "n_views": 1804.0,
+      "n_games": 1804
+     },
+     "v1_minus_gen5_logloss": {
+      "mean": -0.012479,
+      "ci95": [
+       -0.020464,
+       -0.004468
+      ],
+      "n_views": 1804.0,
+      "n_games": 1804
+     },
+     "v1_brier": {
+      "mean": 0.166687,
+      "ci95": [
+       0.157795,
+       0.174758
+      ],
+      "n_views": 1804.0,
+      "n_games": 1804
+     },
+     "gen5_brier": {
+      "mean": 0.171644,
+      "ci95": [
+       0.163173,
+       0.179818
+      ],
+      "n_views": 1804.0,
+      "n_games": 1804
+     }
+    },
+    "4-5": {
+     "v1_logloss": {
+      "mean": 0.388583,
+      "ci95": [
+       0.364687,
+       0.411436
+      ],
+      "n_views": 3431.0,
+      "n_games": 1772
+     },
+     "gen5_logloss": {
+      "mean": 0.403319,
+      "ci95": [
+       0.381748,
+       0.424183
+      ],
+      "n_views": 3431.0,
+      "n_games": 1772
+     },
+     "v1_minus_gen5_logloss": {
+      "mean": -0.014736,
+      "ci95": [
+       -0.021991,
+       -0.007594
+      ],
+      "n_views": 3431.0,
+      "n_games": 1772
+     },
+     "v1_brier": {
+      "mean": 0.126463,
+      "ci95": [
+       0.117647,
+       0.134976
+      ],
+      "n_views": 3431.0,
+      "n_games": 1772
+     },
+     "gen5_brier": {
+      "mean": 0.131576,
+      "ci95": [
+       0.123208,
+       0.139535
+      ],
+      "n_views": 3431.0,
+      "n_games": 1772
+     }
+    },
+    "6-8": {
+     "v1_logloss": {
+      "mean": 0.275846,
+      "ci95": [
+       0.251698,
+       0.300233
+      ],
+      "n_views": 3445.0,
+      "n_games": 1444
+     },
+     "gen5_logloss": {
+      "mean": 0.289547,
+      "ci95": [
+       0.266706,
+       0.311881
+      ],
+      "n_views": 3445.0,
+      "n_games": 1444
+     },
+     "v1_minus_gen5_logloss": {
+      "mean": -0.013701,
+      "ci95": [
+       -0.021496,
+       -0.004529
+      ],
+      "n_views": 3445.0,
+      "n_games": 1444
+     },
+     "v1_brier": {
+      "mean": 0.088149,
+      "ci95": [
+       0.079294,
+       0.097006
+      ],
+      "n_views": 3445.0,
+      "n_games": 1444
+     },
+     "gen5_brier": {
+      "mean": 0.092321,
+      "ci95": [
+       0.083671,
+       0.100933
+      ],
+      "n_views": 3445.0,
+      "n_games": 1444
+     }
+    },
+    "9+": {
+     "v1_logloss": {
+      "mean": 0.190758,
+      "ci95": [
+       0.159236,
+       0.225138
+      ],
+      "n_views": 1471.0,
+      "n_games": 574
+     },
+     "gen5_logloss": {
+      "mean": 0.215706,
+      "ci95": [
+       0.179294,
+       0.253792
+      ],
+      "n_views": 1471.0,
+      "n_games": 574
+     },
+     "v1_minus_gen5_logloss": {
+      "mean": -0.024947,
+      "ci95": [
+       -0.039241,
+       -0.011526
+      ],
+      "n_views": 1471.0,
+      "n_games": 574
+     },
+     "v1_brier": {
+      "mean": 0.058388,
+      "ci95": [
+       0.046774,
+       0.071048
+      ],
+      "n_views": 1471.0,
+      "n_games": 574
+     },
+     "gen5_brier": {
+      "mean": 0.06551,
+      "ci95": [
+       0.05218,
+       0.079683
+      ],
+      "n_views": 1471.0,
+      "n_games": 574
+     }
+    }
+   },
+   "calibration": {
+    "v1": {
+     "bins": [
+      {
+       "bin": 0,
+       "n_views": 2383.0,
+       "pred": 0.0257,
+       "won": 0.018
+      },
+      {
+       "bin": 1,
+       "n_views": 930.0,
+       "pred": 0.1494,
+       "won": 0.128
+      },
+      {
+       "bin": 2,
+       "n_views": 1031.0,
+       "pred": 0.2509,
+       "won": 0.2289
+      },
+      {
+       "bin": 3,
+       "n_views": 1226.0,
+       "pred": 0.3511,
+       "won": 0.3075
+      },
+      {
+       "bin": 4,
+       "n_views": 1303.0,
+       "pred": 0.4496,
+       "won": 0.4275
+      },
+      {
+       "bin": 5,
+       "n_views": 1366.0,
+       "pred": 0.5484,
+       "won": 0.5315
+      },
+      {
+       "bin": 6,
+       "n_views": 1244.0,
+       "pred": 0.65,
+       "won": 0.6431
+      },
+      {
+       "bin": 7,
+       "n_views": 1012.0,
+       "pred": 0.7482,
+       "won": 0.7441
+      },
+      {
+       "bin": 8,
+       "n_views": 885.0,
+       "pred": 0.85,
+       "won": 0.861
+      },
+      {
+       "bin": 9,
+       "n_views": 2379.0,
+       "pred": 0.9724,
+       "won": 0.9752
+      }
+     ],
+     "ece": 0.0142
+    },
+    "gen5": {
+     "bins": [
+      {
+       "bin": 0,
+       "n_views": 2174.0,
+       "pred": 0.0316,
+       "won": 0.0189
+      },
+      {
+       "bin": 1,
+       "n_views": 879.0,
+       "pred": 0.1497,
+       "won": 0.1308
+      },
+      {
+       "bin": 2,
+       "n_views": 1013.0,
+       "pred": 0.2507,
+       "won": 0.2211
+      },
+      {
+       "bin": 3,
+       "n_views": 1284.0,
+       "pred": 0.3526,
+       "won": 0.2897
+      },
+      {
+       "bin": 4,
+       "n_views": 1621.0,
+       "pred": 0.4523,
+       "won": 0.4448
+      },
+      {
+       "bin": 5,
+       "n_views": 1578.0,
+       "pred": 0.5478,
+       "won": 0.5184
+      },
+      {
+       "bin": 6,
+       "n_views": 1251.0,
+       "pred": 0.6478,
+       "won": 0.6619
+      },
+      {
+       "bin": 7,
+       "n_views": 958.0,
+       "pred": 0.7482,
+       "won": 0.7683
+      },
+      {
+       "bin": 8,
+       "n_views": 863.0,
+       "pred": 0.8517,
+       "won": 0.8633
+      },
+      {
+       "bin": 9,
+       "n_views": 2138.0,
+       "pred": 0.9672,
+       "won": 0.979
+      }
+     ],
+     "ece": 0.02076
+    }
+   }
+  }
+ },
+ "count_hp": {
+  "weights": [
+   2.7293,
+   3.643
+  ],
+  "human_test_logloss": 0.577171,
+  "selfplay_test_logloss": 0.501573
+ },
+ "seconds": 1198
+}

@@ -1,0 +1,140 @@
+{
+ "what": "two exported PORYGON2 v1 models on the same held-out rows (split 2), paired, clustered by game; B − A < 0 means B predicts the outcome better",
+ "a": {
+  "path": "solver/porygon2/model/porygon2-v1.json",
+  "sha256": "01bb559ef0e7e8e22f098466ac8ad5a1782c7cc029cb83838797fa0dd1b4d3f5"
+ },
+ "b": {
+  "path": "solver/porygon2/model/porygon2-v1r1.json",
+  "sha256": "36a2f675076733af8cccc8fcc86b892c36a3ced66162950005aa3e8c5a56a10b"
+ },
+ "argv": [
+  "--a",
+  "solver/porygon2/model/porygon2-v1.json",
+  "--b",
+  "solver/porygon2/model/porygon2-v1r1.json",
+  "--human",
+  "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/human/s0",
+  "--selfplay",
+  "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/loop-sp9,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/loop-sp8,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/loop-sp7,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/loop-sp6,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/r3-sp0,C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a0e24792bde666457/solver/out/p2v1/sp/p2v1-c0",
+  "--boot",
+  "2000",
+  "--out",
+  "solver/out/p2v1r/cmp-v1-vs-r1-on-v1-test.json"
+ ],
+ "boot": 2000,
+ "human": {
+  "rows": 36083,
+  "a_logloss": {
+   "mean": 0.506853,
+   "ci95": [
+    0.496356,
+    0.517565
+   ],
+   "n_views": 37829,
+   "n_games": 5220
+  },
+  "b_logloss": {
+   "mean": 0.511328,
+   "ci95": [
+    0.501042,
+    0.522383
+   ],
+   "n_views": 37829,
+   "n_games": 5220
+  },
+  "b_minus_a_logloss": {
+   "mean": 0.004474,
+   "ci95": [
+    0.00049,
+    0.008978
+   ],
+   "n_views": 37829,
+   "n_games": 5220
+  },
+  "a_brier": {
+   "mean": 0.171333,
+   "ci95": [
+    0.167433,
+    0.175353
+   ],
+   "n_views": 37829,
+   "n_games": 5220
+  },
+  "b_brier": {
+   "mean": 0.173424,
+   "ci95": [
+    0.169537,
+    0.177528
+   ],
+   "n_views": 37829,
+   "n_games": 5220
+  },
+  "b_minus_a_brier": {
+   "mean": 0.00209,
+   "ci95": [
+    0.000589,
+    0.0037
+   ],
+   "n_views": 37829,
+   "n_games": 5220
+  }
+ },
+ "selfplay": {
+  "rows": 6221,
+  "a_logloss": {
+   "mean": 0.406809,
+   "ci95": [
+    0.385973,
+    0.428682
+   ],
+   "n_views": 6221,
+   "n_games": 798
+  },
+  "b_logloss": {
+   "mean": 0.398885,
+   "ci95": [
+    0.378385,
+    0.420728
+   ],
+   "n_views": 6221,
+   "n_games": 798
+  },
+  "b_minus_a_logloss": {
+   "mean": -0.007924,
+   "ci95": [
+    -0.01359,
+    -0.002223
+   ],
+   "n_views": 6221,
+   "n_games": 798
+  },
+  "a_brier": {
+   "mean": 0.136061,
+   "ci95": [
+    0.128131,
+    0.144445
+   ],
+   "n_views": 6221,
+   "n_games": 798
+  },
+  "b_brier": {
+   "mean": 0.132779,
+   "ci95": [
+    0.124947,
+    0.141104
+   ],
+   "n_views": 6221,
+   "n_games": 798
+  },
+  "b_minus_a_brier": {
+   "mean": -0.003282,
+   "ci95": [
+    -0.005444,
+    -0.001075
+   ],
+   "n_views": 6221,
+   "n_games": 798
+  }
+ }
+}

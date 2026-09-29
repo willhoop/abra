@@ -53,6 +53,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.26.0] — 2026-09-29 — **PORYGON2 v1 retrained on 13,603 self-play games: not a stronger player (SPRT H0), not landed**
+- **What changed.** The PORYGON2 v1 branch merges to main with no model switch (`solver/porygon2/v1/`, `solver/porygon2/leaf.js` v1 dispatch, `solver/mew/agent.js` `maxPasses`). New: `solver/porygon2/v1/preregistration-r1.json`, `gen5-p2v1r1.json`, `compare.js`, and `solver/porygon2/model/porygon2-v1r1.json` + metrics.
+- **Measured.** r1 vs gen5, SPRT, honest, `eaa5becc54eb`, seed 9101, elo0 0 / elo1 20, α = β = 0.05: **H0 at 868 games, 427–441 = 0.492 [0.459, 0.525]**, LLR −3.06, 0 errors, 74 fallback decisions of 16,014 (`solver/results/2026-09-29-porygon2-v1-r1/r1-vs-gen5.json`). Gate (a): human −0.0032 [−0.0078, +0.0018] FAIL; self-play −0.0166 [−0.0214, −0.0112] (`solver/porygon2/model/porygon2-v1r1.metrics.json`). r1 − v1 on v1's test rows: human +0.0045 [+0.0005, +0.0090], self-play −0.0079 [−0.0136, −0.0022] (`cmp-v1-vs-r1-on-v1-test.json`). v1 itself, the same SPRT: 2,000 games, 0.516 [0.494, 0.538], INCONCLUSIVE (`solver/results/2026-09-26-porygon2-v1/v1-vs-gen5.json`). test-porygon2-v1 25/25 on r1, RED on all 5 breaks.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** MODELS: PORYGON2 v1 and v1-r1, neither of them promoted.
+- **OWED, NOT RUN (commands).** In §OWED of `docs/_reports/2026-09-29-porygon2-v1-retrain.md`: v1's SPRT to a decision (4,000 games, seed 9103), and deep labels on c1.
+
 ## [abra/regmc 1.25.2] — 2026-09-29 — **`orient.js` reads the models from the solver registry, and exits 0 again**
 - **What changed.** `engine/orient.js` section 5 (THE MODELS) now parses the Name and Role columns of the `solver/PLAN.md` §2 registry table. Before, it parsed `docs/MODELS.md` for `**Job:**` lines and a pipeline table. The Reg M-C 1.0.0 docs pass (`ccf447fc`) removed both, so the section derived 0 models and the tool exited 1. The header comments name the new source.
 - **Measured.** NO FIGURE. `node engine/orient.js` exit 1 → exit 0, 8/8 sections, 20 models (every registry row). `node tests/test-orient.js` GREEN. It was shown RED by renaming the registry heading and by renaming the `Role` header cell, and both edits were reverted.

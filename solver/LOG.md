@@ -8,6 +8,12 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-29
 
+### PORYGON2 v1 retrained on the enlarged corpus: H0, not landed (abra/regmc 1.26.0)
+- v1's recipe with 10,000 more cheap self-play games (13,603 total). Gate (c) SPRT vs gen5, same parameters and seed as
+  v1: **H0 at 868 games, 0.492 [0.459, 0.525]**. v1's run was 0.516, inconclusive at 2,000 games. Gate (a) fails on the
+  human half. Against v1, r1 is better on self-play positions and worse on human ones. More of the same corpus does not
+  help. v1 code merges to main; no model switch. `docs/_reports/2026-09-29-porygon2-v1-retrain.md`.
+
 ### orient.js reads the model list from this plan's registry (abra/regmc 1.25.2)
 - `node engine/orient.js` section 5 now reads the Name and Role columns of §2 of `solver/PLAN.md`. Rename that heading or the `Name`/`Role` header cells and orient.js exits 1. `docs/_reports/2026-09-29-orient-models.md`.
 
