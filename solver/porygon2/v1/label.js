@@ -2,7 +2,7 @@
  * solver/porygon2/v1/label.js — SEARCH-IMPROVED value labels for PORYGON2 v1, on a frozen release.
  *
  *   node solver/porygon2/v1/label.js --release <id> --selfplay <dir>[,<dir>…] --out <dir> [--workers 4] [--per-game 2]
- *        [--k 6] [--passes 12] [--seed 1] [--leaf solver/machamp/models/gen5/porygon2-gen5.json] [--limit N]
+ *        [--k 6] [--passes 12] [--seed 1] [--leaf solver/machamp/models/gen5/porygon2-gen5.json] [--limit N] [--train-only]
  *   (a worker: the same with --shard i --shards n; the coordinator forks them)
  *
  * For each self-play game (replayed EXACTLY, solver/porygon2/v1/replay.js), --per-game positions are drawn by a seeded
@@ -44,6 +44,10 @@ const DEADLINE = flag('--deadline', null) ? Date.parse(flag('--deadline')) : Inf
 const LEAF = path.resolve(ROOT, flag('--leaf', 'solver/machamp/models/gen5/porygon2-gen5.json'));
 const MAG = flag('--mag', 'solver/machamp/models/gen5/mag-gen5.json'), DODUO = flag('--doduo', 'solver/machamp/models/gen5/doduo-gen5.json');
 const h32 = s => crypto.createHash('sha256').update(s).digest().readUInt32BE(0);
+/* --train-only: label only the games build.js puts in the TRAIN split (its gameSplit, copied byte for byte: build.js:48).
+ * A val or test game's label is never trained on, so labelling it spends the budget on nothing (2026-09-30, c1 deep labels). */
+const TRAIN_ONLY = argv.includes('--train-only');
+const gameSplit = k => { const h = crypto.createHash('sha256').update('porygon2-v1-sp:' + k).digest().readUInt32BE(0) % 100; return h < 80 ? 0 : h < 90 ? 1 : 2; };
 
 function* records(dir) {
   for (const f of fs.readdirSync(dir).filter(f => /^shard-\d+\.jsonl\.gz$/.test(f)).sort()) {
@@ -100,6 +104,7 @@ function worker(shard, shards) {
       if (c.games >= LIMIT) break;
       if (Date.now() > DEADLINE) { c.stopped_at_deadline = 1; break; }
       const gkey = dkey + '|' + rec.g + '|' + rec.run_seed;
+      if (TRAIN_ONLY && gameSplit(gkey) !== 0) { c.skipped_not_train = (c.skipped_not_train || 0) + 1; continue; }
       const n = rec.hist.length;
       if (!n || rec.vA == null) continue;
       /* the positions to label: PER distinct turn indices by a seeded hash of the game key */
@@ -170,7 +175,7 @@ async function coordinator() {
   const first = sums.find(Boolean) || {};
   const summary = { what: 'PORYGON2 v1 search-improved labels (solver/porygon2/v1/label.js)', engine_release: first.engine_release, release_stamp: first.release_stamp,
     flags: { selfplay: DIRS.map(d => path.relative(ROOT, d).split(path.sep).join('/')), per_game: PER, k: K, passes: PASSES, chance: CHANCE, exact_depth: EXACT_DEPTH, seed: SEED,
-      leaf: path.relative(ROOT, LEAF).split(path.sep).join('/'), mag: MAG, doduo: DODUO, workers: W, limit: LIMIT === Infinity ? null : LIMIT, deadline: flag('--deadline', null) },
+      leaf: path.relative(ROOT, LEAF).split(path.sep).join('/'), mag: MAG, doduo: DODUO, workers: W, limit: LIMIT === Infinity ? null : LIMIT, deadline: flag('--deadline', null), train_only: TRAIN_ONLY },
     counts, exits, wall_s: (Date.now() - t0) / 1000 };
   fs.writeFileSync(path.join(OUT, 'labels.summary.json'), JSON.stringify(summary, null, 1));
   console.log(JSON.stringify({ counts, wall_s: summary.wall_s }));
