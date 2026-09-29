@@ -1,7 +1,7 @@
 {
   "note": "RATCHET. mtime_only_files may SHRINK and may never grow. mtime cannot detect an artifact written after an input it read before, which is how a 7,100-game WOBBUFFET re-run was cleared as ok on 2026-08-04 while measuring two different defenders. The LIST is recorded rather than a count: the first time this fired it could only say \"one more than last time\", nobody could tell which file, and status.js printed NOT DERIVED for a session. THE ONE WAY IT MAY GROW is a recorded DISCOVERY — the checker learning to see artifacts it could not see before is the opposite event from a generator dropping its stamp, and every such growth is listed in `discoveries` with its date, its reason and its files.",
   "fix": "Stamp engine_release.open().stamp() (or run_stamp.sourceDigests()) as `source_digests`.",
-  "mtime_only": 188,
+  "mtime_only": 189,
   "mtime_only_files": [
     "_bench-belownormal.json",
     "_bench-headline.json",
@@ -15,6 +15,7 @@
     "_bench-scaling-interleaved.json",
     "_bench-scaling.json",
     "_r220-census-pin.json",
+    "_scratch-bench-smoke.json",
     "ab-batch-effect.json",
     "ability-blocks.json",
     "abra-meta.js",
@@ -196,7 +197,7 @@
     "exploitability.json",
     "medicham-bench.json"
   ],
-  "verified": 1,
+  "verified": 3,
   "graph_files": [
     "_bench-belownormal.json",
     "_bench-headline.json",
@@ -216,6 +217,7 @@
     "_r220-gd-pre.json",
     "_r220-void-pair-POST.json",
     "_r220-void-pair-PRE.json",
+    "_scratch-bench-smoke.json",
     "_turncap-cap12.json",
     "_turncap-cap16.json",
     "_turncap-cap30.json",
@@ -511,6 +513,7 @@
     "_r220-dump-post.json",
     "_r220-dump-pre.json",
     "_scratch-jobs3.json",
+    "_scratch-scovillain-dump.json",
     "all-mechanics-fire.boardstate.json",
     "artifact-accessors.json",
     "conditional-audit.json",
@@ -541,6 +544,17 @@
     "smogon-priors.observed.json",
     "test-waivers.json"
   ],
-  "discoveries": [],
-  "generated": "2026-09-29T08:25:25.399Z"
+  "discoveries": [
+    {
+      "when": "2026-09-29T15:45:34.850Z",
+      "reason": "the writer scan gained coverage and these artifacts became visible unstamped. How each newly visible writer was found: 1 DECLARED BY THE ARTIFACT",
+      "basis": "exact — diffed against the previous stamp's graph_files",
+      "graph_before": 289,
+      "graph_after": 290,
+      "files": [
+        "_scratch-bench-smoke.json"
+      ]
+    }
+  ],
+  "generated": "2026-09-29T15:47:17.144Z"
 }

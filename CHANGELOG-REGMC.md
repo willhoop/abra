@@ -21,6 +21,14 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.26.1] — 2026-09-29
+
+### Changed
+- Division ledgers restamped by `node engine/status.js --write` from the main checkout, after 1.25.0–1.26.0. Also committed:
+  the Reg M-C work list `data/open-work-regmc.json` (`ABRA_REGULATION=regmc node engine/open_work.js`, exit 0) and the
+  provenance ratchet `data/provenance-stamp-regmc.json` (`ABRA_REGULATION=regmc engine/provenance.js`, exit 0). Both were
+  re-run in the main checkout, which holds the releases. The gate reads OPEN. PATCH: no published figure moves.
+
 ## [1.26.0] — 2026-09-29
 
 ### Added
