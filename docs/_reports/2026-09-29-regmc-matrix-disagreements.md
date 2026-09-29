@@ -1,90 +1,83 @@
-# Reg M-C interaction matrix: the off-gate and thrown rows (2026-09-29) — PAUSED, NOT FINISHED
+# Reg M-C interaction matrix: the off-gate, KO-timing and thrown rows (2026-09-29)
 
 Source artifact: `data/interaction-matrix-regmc.json` in the main checkout, generated 2026-09-29T21:21Z,
 Showdown `f10d6798`, `--full`: 2328 run, 1683 live, 1683 agree, 1 ko, 2 threw, 2 off-gate.
 
-Work stopped at Will's pause. **No file under `engine/` or `tests/` was edited. The engine did not
-change, so no Reg M-C gate figure is invalidated by this pass.** All findings below were reproduced one
-pair at a time (`IM.generate({depth: Infinity})` then `runState` on the single case; scratch driver, not
-committed), `ABRA_REGULATION=regmc`, checkout `pokemon-showdown-mc`.
+**Verdict: all four rows were the INSTRUMENT. Fixed at the instrument (abra/regmc 1.27.1). No file under
+`engine/` changed, so no Reg M-C gate figure needs a re-run because of this.** The probe
+`tests/probe_regmc_matrix_offgate.js` was RED on 6 arms before the fixes and GREEN after
+(`ABRA_REGULATION=regmc`, checkout `pokemon-showdown-mc`). Only single pairs were run. The full matrix,
+gate, differentials and roster were not.
+
+The work paused once at Will's stop (WIP commit `45b1c1a8`, this file only) and resumed at his "back to work".
 
 ## Item 1 and item 3 are the same row
 
-The single KO-TIMING row is `aurawheel -> weakarmor` (bucket `ko`). The brief listed it twice.
+The single KO-TIMING row is `aurawheel -> weakarmor` (bucket `ko`). It is also one of the two off-gate rows.
 
-## Aura Wheel -> Weak Armor — UNDECIDED (leaning instrument: stat alignment or turn order), not fixed
+## Aura Wheel -> Weak Armor: INSTRUMENT (pinned dice pick different damage rolls), fixed
 
-Staging: Morpeko (Honey Gather, no item) clicks Aura Wheel at Skarmory; Skarmory clicks Iron Defense.
-- medicham2: Skarmory is KO'd in BOTH arms (Weak Armor and the Honey Gather control) and Corviknight
-  refills. `mediWitness` is empty — the KO is not about Weak Armor at all.
-- Showdown: Skarmory survives in BOTH arms, hurt; control ends at Def +2 (Iron Defense landed), test
-  arm at Def +1 / Spe +2 (Iron Defense +2, Weak Armor -1/+2).
-So it is a whole-hit damage-size (or order) split independent of the reactor. The Weak Armor
-arithmetic itself agrees wherever Skarmory survives.
+Staging: Morpeko (Honey Gather, no item) clicks Aura Wheel into Skarmory, and Skarmory clicks Iron Defense.
+- medicham2 KO'd Skarmory in BOTH arms (Weak Armor and the Honey Gather control). The authority left it
+  on 2/140 HP (fraction 0.0143) in both arms. `mediWitness` was empty, so Weak Armor was not the cause.
+- Turn order agrees. `alignStats` copies medicham2's stats onto the authority's bodies: Morpeko has 156
+  Speed and Skarmory 126, so Aura Wheel lands before Iron Defense in both engines.
+- The dice: under `pinDice` the authority's `prng.random` is `PIN_RANDOM`, so `randomizer`'s `random(16)`
+  returns 8, which is the 92% roll (`sim/battle.ts` `randomizer`: `100 - this.random(16)`). The harness gave
+  medicham2 `rng = () => 0.5`, and `damageRollIndex(0.5) = 15 - floor(8) = 7`, which is the 93% roll. So
+  the damage was 138 against 140, into 140 HP. Every pinned hit in the matrix was one roll apart. `hurt`
+  hides that, but a hit within one roll of the target's HP does not.
+- Fix (`tests/test-game-diff.js` `runScript`): under `pinDice`, medicham2 gets a stream struct. `dmg` is
+  `(2*(15-PIN_RANDOM(16))+1)/32`, the centre of the bucket that maps onto the authority's index (the same
+  expression `tests/probe_hp_pair.js` uses). Every other stream stays 0.5, so no chance event moves.
+  Unpinned runs keep the plain function. Only the matrix passes `pinDice`, so its state evaluator is the
+  only reader. The damage evaluator's medicham2 side reads `dmgRange` and does not use this rng.
+- After the fix, Skarmory is left on 0.0143 in both engines, in both arms, and the pair agrees (Def +1 /
+  Spe +2 in the test arm).
 
-Not yet decided, and these are the three things to read next:
-1. **Turn order.** If Skarmory's Iron Defense lands before Aura Wheel in Showdown and after it (or not at
-   all) in medicham2, +2 Def explains the survival. `runScript` aligns `storedStats` to medicham2's
-   `buildMon` bodies (`tests/test-game-diff.js` `alignStats`), so speed should agree — check it on the
-   staged board, including Aura Wheel's own Spe +1 and any Champions priority change.
-2. **Damage.** Read the HP each engine leaves in the control arm (`mediHp`/`sdHp` from `collect`) and
-   compare against `tests/test-engine-diff.js`'s owner for Aura Wheel (Morpeko Full Belly form, Electric,
-   into Steel/Flying).
-3. **Only then** read both checkouts' `aurawheel` handlers (`data/moves.ts` and
-   `data/mods/champions/moves.ts` in `pokemon-showdown-mc`).
-Scoreboard it would move if an engine defect: the matrix `ko` bucket (1 -> 0) and, if damage,
-`tests/test-engine-diff.js`; the pinned pool likely not at all (Morpeko is rare).
+## Gastro Acid -> Quick Claw: INSTRUMENT (projection read the wrong field), fixed
 
-## Gastro Acid -> Quick Claw — INSTRUMENT, diagnosed, not yet fixed
+The symptom was `.B.active[0].ability`, medi `""` against showdown `"honeygather"`, the same in both arms.
+medicham2 suppresses an ability by parking it (`abSuppress`: `_abParked` holds the identity, and `ability`
+is emptied so that every reader sees the suppression). Its own comment names `abilityOn(m)` as the identity
+read for the board's `ability` leaf. The authority keeps `pokemon.ability` and adds the `gastroacid`
+volatile, and `projShowdown` reads that. `projMedi` read raw `m.ability`. It now reads
+`_abParked ?? ability`. The probe also asserts that the medicham2 body really is still suppressed
+(`ability ""`, parked `honeygather`), so the fix is a read and does not hide anything.
+`engine/board_state.js` already compares Gastro Acid as volatile presence, so the gate never saw this.
 
-`.B.active[0].ability` medi `""` vs showdown `"honeygather"`, identical in both arms (so INERT on the
-reference side — Quick Claw on the attacker changes nothing here). Cause: medicham2 implements Gastro
-Acid by PARKING the ability (`abSuppress`, `engine/medicham2-browser.js` ~21630-21680:
-`m._abParked = ab; m.ability = ''`), and states that `abilityOn(m)` is the identity read for the board's
-`ability` leaf. Showdown keeps `pokemon.ability` and adds the `gastroacid` volatile. The matrix
-projection `projMedi` in `tests/test-game-diff.js` (~line 145) reads raw `m.ability`, i.e. what can act,
-not the identity Showdown's projection reads. `engine/board_state.js` already compares Gastro Acid as
-volatile PRESENCE and reads identity, so the gate's board comparator is not affected.
+## Curse -> Good as Gold, Curse -> Quick Claw (THREW): HARNESS (generator), fixed
 
-This is the only state case in the Reg M-C matrix where Gastro Acid lands (`gastroacid -> goodasgold`
-is blocked; `gastroacid -> disguise` is a damage-evaluator case), which is why no other row showed it.
+The generator gave Curse to Venusaur, because the dex `target` is `normal`. The authority rewrites a
+non-Ghost Curse's request target to `self` (`sim/pokemon.ts` `getMoveRequestData`, `case 'curse'`; the
+Champions mod's `curse.onModifyMove` does the same at run time). `Side#choose` then rejects any target
+location. The fix is `requestTarget(mv, sp)` / `aimsAtFoe` in `tests/interaction_matrix.js`, applied to
+the defender-side user pick, the attacker-side user pick and the control-carrier pick. If no learner aims
+the move at a foe, the case is dropped by name. Both cases now stage on Gengar and run. `curse ->
+goodasgold` is live and agrees; `curse -> quickclaw` is inert and agrees.
 
-Fix owed (instrument only, no engine change): in `projMedi`, `ability: norm(m._abParked != null ?
-m._abParked : m.ability)` (or `M.abilityOn` if exported). Scoreboard: the matrix off-gate count 2 -> 1;
-nothing else should move. Show the row red before and green after on the single pair.
+The same two throws, and `aurawheel -> weakarmor` off-gate, are in the Reg M-B matrix of 2026-08-11. These
+are not Reg M-C traps, so there is no `docs/REGULATION-ROTATION.md` row.
 
-## Curse -> Good as Gold, Curse -> Quick Claw (THREW) — HARNESS, diagnosed, not yet fixed
+## Affected-pair re-check (not the full matrix)
 
-The generator picked a non-Ghost user (Venusaur) and admitted Curse because the dex `target` is
-`normal`. The authority rewrites the REQUEST target for a non-Ghost user: `sim/pokemon.ts` ~999
-(`case 'curse': if (!this.hasType('Ghost')) target = 'self'`), and the Champions mod's `curse.onModifyMove`
-(`data/mods/champions/moves.ts` ~165) sets `move.target = 'self'` likewise. `sim/side.ts` ~671 then
-rejects any target location: "You can't choose a target for Curse". Non-Ghost Curse is a self-boost, not
-a foe-aimed carrier, so these two cases should never have been emitted with that user.
+All state and damage cases whose carrier is Curse or Gastro Acid, or whose reactor is Weak Armor: 177
+cases. 176 agree. The remaining one is `gastroacid -> disguise`, a damage-evaluator case that returns no
+verdict.
 
-Fix owed (generator, `tests/interaction_matrix.js` ~673 and the `users`/atk-side `user` picks): evaluate
-`NEEDS_FOE` against the target the authority's move request gives THIS user (mirror the
-`getMoveRequestData` switch, citing its line), prefer a Ghost user for Curse, and drop with a named reason
-if none learns it. Scoreboard: the matrix threw count 2 -> 0; the two pairs either go live against a Ghost
-user or join the drop ledger. Check the Reg M-B matrix artifact for the same two rows before calling it a
-Reg M-C trap for `docs/REGULATION-ROTATION.md`.
+## Found in passing, not fixed
+
+`ABRA_REGULATION=regmc node tests/test-game-diff.js` passes its scripted games, then exits on the
+regulation write guard: it writes the fixed `data/game-diff.json`. That is the same class as 1.25.1's
+`open_work.js`: `game-diff.json` needs declaring in `PER_REGULATION_ARTIFACTS`. It predates this change.
 
 ## OWED, NOT RUN
 
-Resume from a clean worktree, Reg M-C, single pairs only (no full matrix, gate, differential, roster):
-
-```bash
-# reproduce each pair (driver: generate --full cases, pick one, runState it)
-ABRA_REGULATION=regmc node -e "const T=require('./tests/test-interaction-matrix.js'),IM=require('./tests/interaction_matrix.js');const g=IM.generate({depth:Infinity});for(const k of ['gastroacid>quickclaw','aurawheel>weakarmor','curse>goodasgold','curse>quickclaw']){const [a,b]=k.split('>');const c=g.cases.find(c=>c.carrier.id===a&&c.reactor.id===b);console.log(k,c?JSON.stringify(T.runState(c)):'not emitted')}"
-```
-
-1. Gastro Acid: patch `projMedi` identity read; re-run the line above; expect `agrees: true`.
-2. Curse: patch the generator's foe-aim test to the per-user request target; re-run; expect both rows
-   either live against a Ghost user or dropped by name, and no `failure`.
-3. Aura Wheel: dump `collect` HP and turn order for both arms; decide instrument vs engine; if engine,
-   knob + probe red-on-knob before the fix, and state that every Reg M-C gate figure then needs a re-run
-   on a new release (owed, not done here).
-4. Then: RUNNING-NOTES row with `**Basis.**`, CHANGELOG-REGMC entry at the next free abra/regmc version
-   (merge origin/main first), `docs/ENGINE.md`, `node engine/status.js --write`.
-5. Owed to whoever holds the slot, not this pass: `ABRA_REGULATION=regmc node tests/test-interaction-matrix.js --full`
-   to regenerate the artifact after 1 and 2 land.
+1. The full Reg M-C matrix re-run. The dmg pin moves every pinned state case's medicham2 damage by one
+   roll, towards the authority, so the live and KO counts can move. Expected: `ko` 1 -> 0, `threw` 2 -> 0,
+   `off_gate` 2 -> 0 (or 1 if the Weak Armor row now agrees).
+   `ABRA_REGULATION=regmc tools\lownode.cmd tests\test-interaction-matrix.js --full`
+   (then commit `data/interaction-matrix-regmc.json` and `ABRA_REGULATION=regmc node engine/open_work.js`).
+2. `node engine/status.js --write` from the main checkout, after merge. It is not run from a worktree,
+   because it writes missing untracked files as fact.
+3. Declare `game-diff.json` per-regulation (see above), as its own change.

@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.27.1] — 2026-09-29 — **The first Reg M-C matrix's four non-agreeing rows were all the instrument; fixed there, the engine did not change**
+- **What changed.** `tests/test-game-diff.js`: `projMedi` reads the parked (identity) ability, and under `pinDice` medicham2's `dmg` stream is pinned to the authority's pinned damage index (92%, not 93%). `tests/interaction_matrix.js`: a carrier's foe-aim is read from the authority's per-user move request, so a non-Ghost Curse is not emitted. New probe `tests/probe_regmc_matrix_offgate.js`. `engine/` is untouched.
+- **Measured.** Probe RED 6 arms before, GREEN after, `ABRA_REGULATION=regmc`. Single pairs only: `gastroacid -> quickclaw` agrees; `curse -> goodasgold` and `curse -> quickclaw` run on Gengar (no throw); `aurawheel -> weakarmor` agrees, Skarmory left on 0.0143 in both engines. 176 of 177 Curse, Gastro Acid and Weak Armor cases agree; the other is a damage case with no verdict. The full matrix was NOT re-run.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing yet. The matrix figures in `data/interaction-matrix-regmc.json` (1 KO-timing, 2 threw, 2 off-gate) stand until the owed `--full` re-run.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 1.27.0] — 2026-09-29 — **The lookahead options pass a screen at the real ~10 s clock; the equal-clock SPRT is prepared, not run**
 - **What changed.** New results only: `solver/results/2026-09-29-lookahead-screen-14s/` (arms on-14s, off-14s, off-17s; two pre-registrations; smoke, screen and calibration results and reads). No code changed.
 - **Measured.** Screen, options on vs off at adaptive target 14 s, gen5, honest, `eaa5becc54eb`, 200 games: 101–99, 0.505 [0.436, 0.574], PASS; 9,940 vs 8,912 ms per searched decision; 0 timeouts, 0 fallbacks; 2,329,935 quiesced playouts (`screen-14s.json`, `screen-14s-read.json`). Calibration: off at 17 s spends 9,952 ms per searched decision, within 5% of on at 14 s, MATCHED (`calib-off17-read.json`). 163–194 s per game per worker.

@@ -21,6 +21,21 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.27.1] — 2026-09-29
+
+### Fixed
+- **The first Reg M-C interaction matrix's four non-agreeing rows were all the instrument. The engine did not change.**
+  `gastroacid -> quickclaw`: the projection read medicham2's acting ability, which a suppression parks, instead of the
+  identity the authority reports (`tests/test-game-diff.js` `projMedi`). `curse -> goodasgold` and `curse -> quickclaw`
+  (THREW): the generator gave Curse to a non-Ghost body, and the authority's move request makes that `self`
+  (`tests/interaction_matrix.js`, `requestTarget`). `aurawheel -> weakarmor` (KO-TIMING): the two pinned dice chose
+  different damage rolls, 92% against 93%, which is 138 against 140 into a 140-HP Skarmory (`runScript` now pins
+  medicham2's `dmg` stream to the authority's index under `pinDice`). Probe `tests/probe_regmc_matrix_offgate.js`, RED
+  then GREEN. PATCH: no figure is re-measured here; the `--full` matrix re-run is owed.
+  `docs/_reports/2026-09-29-regmc-matrix-disagreements.md`.
+
+---
+
 ## [1.27.0] — 2026-09-29
 
 ### Added

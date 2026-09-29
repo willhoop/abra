@@ -1,3 +1,17 @@
+## THE FIRST REG M-C MATRIX'S FOUR NON-AGREEING ROWS WERE THE INSTRUMENT; THE ENGINE DID NOT CHANGE. 2026-09-29 (abra/regmc 1.27.1)
+
+- `data/interaction-matrix-regmc.json` (2026-09-29, `--full`): 1683/1683 live agree, plus 1 KO-timing, 2 threw and
+  2 off-gate. The KO-timing row and one off-gate row are the same pair, `aurawheel -> weakarmor`.
+- `gastroacid -> quickclaw`: `projMedi` read the acting ability, which `abSuppress` parks; it now reads the identity,
+  like `board_state.js` and the authority's `pokemon.ability`.
+- `curse -> goodasgold`, `curse -> quickclaw` (THREW): a non-Ghost Curse is `self` in the authority's move request
+  (`sim/pokemon.ts` `getMoveRequestData`). The generator now reads foe-aim per user (`requestTarget`) and uses Gengar.
+- `aurawheel -> weakarmor`: not Weak Armor (both arms KO'd here, neither there). The pinned dice chose different damage
+  rolls: the authority's `random(16)` pinned to 8 is 92%, and `damageRollIndex(0.5)` is 93%. `runScript` now pins the
+  `dmg` stream to the authority's index under `pinDice`. Skarmory is left on 2/140 in both engines.
+- Probe `tests/probe_regmc_matrix_offgate.js` (RED 6 arms -> GREEN). No knob: no engine code changed. Census unchanged.
+  Owed: the `--full` Reg M-C matrix re-run. Report `docs/_reports/2026-09-29-regmc-matrix-disagreements.md`.
+
 ## `open_work.js` RUNS UNDER REG M-C; THE STATE PRINTERS' FILES ARE PER REGULATION. 2026-09-29 (abra/regmc 1.25.1)
 
 - `ABRA_REGULATION=regmc node engine/open_work.js` exited 1 on the write guard: it wrote a fixed
