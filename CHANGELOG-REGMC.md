@@ -21,6 +21,26 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.30.1] — 2026-09-29
+
+### Fixed
+- **`tests/test-game-diff.js` runs under Reg M-C.** With `ABRA_REGULATION=regmc` it played all five scripted games and
+  then exited 1: the write guard refused `data/game-diff.json`, which names no regulation. The artifact is built from
+  the regulation's Showdown checkout (it stamps `showdown_commit`: `f10d6798` under Reg M-C, `20ad99ff` under Reg M-B),
+  its table and its tags. So it is per regulation, and a Reg M-C run now writes `data/game-diff-regmc.json`.
+- **Five more `tests/` files, decided the same way:** `forme-assert.json`, `switch-back-renamed.json` and
+  `tag-walk.json` died on the guard in the same way. `tag-consumption.json` and `unmodelled-clicks.json` are ratchets.
+  Under Reg M-C they compared the Reg M-C view with Reg M-B's baseline and passed, and `test-unmodelled-clicks.js`
+  exited 0 doing it. All six are now in `PER_REGULATION_ARTIFACTS`, and each test prints the path it writes.
+- `test-game-diff.js --pairs` and `test-unmodelled-clicks.js` read the tags with `fs.readFileSync('data/tags.json')`.
+  Under Reg M-C that returns Reg M-B's file, because only `require` follows the regulation. Both now read
+  `REG.fileFor('data/tags.json')`.
+- `test-tag-consumed.js` prints `NO BASELINE` when it has none. Before, it skipped both ratchet checks without a word.
+- Checked and left alone, with reasons, in the report: `mechanics_rank.js` and `mechanics_surface.js` (not guarded, but
+  their output is regulation-neutral, measured), `test-rulebook-collision.js`, `test-knob-control-arm.js`,
+  `test-medicham-coverage.js`, `mutation_harness.js` and the baseline and `--update` writers.
+- No published figure moves (PATCH). `docs/_reports/2026-09-30-regmc-test-write-guard.md`.
+
 ## [1.30.0] — 2026-09-29
 
 ### Fixed

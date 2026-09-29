@@ -53,6 +53,12 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.30.1] — 2026-09-29 — **`test-game-diff.js` and five more engine tests write per-regulation files under Reg M-C**
+- **What changed.** `engine/regulation.js` `PER_REGULATION_ARTIFACTS` gains `game-diff.json`, `forme-assert.json`, `switch-back-renamed.json`, `tag-walk.json`, `tag-consumption.json` and `unmodelled-clicks.json`. Each writer names its path through `artifactFor`. `test-game-diff.js` and `test-unmodelled-clicks.js` read the tags through `fileFor`, because a bare fs read returned Reg M-B's under Reg M-C. `test-tag-consumed.js` prints `NO BASELINE` when it has none. `tests/test-regulation-artifacts.js` maps the six names.
+- **Measured.** NO FIGURE. `ABRA_REGULATION=regmc node tests/test-game-diff.js` exit 1 (the guard refused `data/game-diff.json` after 5 of 5 games agreed) → exit 0, writes `data/game-diff-regmc.json` (`showdown_commit` `f10d6798`). The plain run exits 0 and writes `data/game-diff.json` (`20ad99ff`). The other five: regmc exit 0, sibling written; plain exit 0.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published. Before this, a Reg M-C `test-tag-consumed.js` or `test-unmodelled-clicks.js` checked itself against Reg M-B's baseline.
+
 ## [abra/regmc 1.30.0] — 2026-09-29 — **The ladder supervisor dropped `--preview chomp`; fixed, and a CHOMP ladder run is prepared, not launched**
 - **What changed.** `solver/rotom/run_ladder.js` forwards `preview`, `preview-max-ms` and `adaptive-target-ms` to the client. `solver/rotom/rotom.js`: an arm's own `preview`, `preview_by` in the summary, `preview_mode` on the decision, and a CHOMP preview no longer counted as the fallback `used:chomp`. New arms file `solver/rotom/arms/gen5-chomp.json` and test `solver/tests/test-rotom-chomp-live.js`.
 - **Measured.** NO FIGURE. Test: GREEN 13/13, RED under both breaks (arm without `preview`; client reading the flag only). `test-rotom` 105/105, `test-rotom-ladder` 114/114, `test-chomp1` 32/32, `test-rotom-applied` 31/31, `test-rotom-throttle` 33/33, `test-rotom-endings` 59/59, `test-rotom-private-series` 25/25.

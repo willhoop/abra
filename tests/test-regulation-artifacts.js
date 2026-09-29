@@ -118,7 +118,10 @@ const NAMES = [J('data/game-differential'), J('data/game-differential.g1350'), J
   J('data/quarantine-stamp'), J('data/decision-impact'), J('data/register-reality'), J('data/click-counts'),
   J('data/sheet-usage'), J('data/diff-team-pool'), 'data/team-pool-frozen', J('data/tags'),
   /* 2026-09-29: the state printers' per-regulation files (open_work.js crashed on the guard under regmc) */
-  J('data/open-work'), J('data/interaction-matrix'), J('data/provenance-stamp')];
+  J('data/open-work'), J('data/interaction-matrix'), J('data/provenance-stamp'),
+  /* 2026-09-29: the engine-against-Showdown tests' files (test-game-diff.js crashed on the guard under regmc) */
+  J('data/game-diff'), J('data/forme-assert'), J('data/switch-back-renamed'), J('data/tag-walk'),
+  J('data/tag-consumption'), J('data/unmodelled-clicks')];
 const MAPCODE = `
   const REG = require('./engine/regulation.js');
   const Q = require('./engine/quarantine.js');

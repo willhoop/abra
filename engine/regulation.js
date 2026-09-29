@@ -549,6 +549,22 @@ const PER_REGULATION_ARTIFACTS = Object.freeze([
   [/^open-work\.json$/, 'engine/open_work.js', 'the open-work list: the shared register plus this regulation\'s measured disagreements'],
   [/^interaction-matrix\.json$/, 'tests/test-interaction-matrix.js', 'carrier x reactor pairs staged against this regulation\'s checkout'],
   [/^provenance-stamp\.json$/, 'engine/provenance.js', 'the mtime-only ratchet over the artifact graph as this regulation\'s seam presents it'],
+  /* 2026-09-29 (ENGINE, abra/regmc) -- THE ENGINE-AGAINST-SHOWDOWN TESTS. `ABRA_REGULATION=regmc node
+   * tests/test-game-diff.js` played every scripted game and then died on the guard below: it writes a fixed
+   * data/game-diff.json. Decided the same way as the state printers above, from what each file is BUILT FROM.
+   * Every one of these six stages bodies from the regulation's table (data/engine-data-regmc.js), reads the
+   * regulation's tags, or plays against the regulation's Showdown checkout -- game-diff.json stamps
+   * `showdown_commit`, which is f10d6798 under Reg M-C and 20ad99ff under Reg M-B. Four of them died on the
+   * guard the same way (game-diff, forme-assert, switch-back-renamed, tag-walk); two are RATCHETS that read
+   * their own previous file (tag-consumption, unmodelled-clicks), and under Reg M-C they were comparing the
+   * M-C view against Reg M-B's baseline and passing -- the provenance-stamp hazard above. Not one is a gate
+   * input (quarantine.js reads none of them). docs/_reports/2026-09-30-regmc-test-write-guard.md. */
+  [/^game-diff\.json$/, 'tests/test-game-diff.js', 'scripted multi-turn games played against this regulation\'s checkout'],
+  [/^forme-assert\.json$/, 'tests/test-forme-assert.js', 'forme-change assertions against this regulation\'s checkout, table and tags'],
+  [/^switch-back-renamed\.json$/, 'tests/test-switch-back-renamed.js', 'a renamed body switched back in, against this regulation\'s checkout'],
+  [/^tag-walk\.json$/, 'tests/walk_tags.js', 'every tag checked against this regulation\'s checkout'],
+  [/^tag-consumption\.json$/, 'tests/test-tag-consumed.js', 'the tag-consumer ratchet over this regulation\'s tags'],
+  [/^unmodelled-clicks\.json$/, 'tests/test-unmodelled-clicks.js', 'the no-op-turn ratchet over this regulation\'s tags and table'],
 ]);
 const POOL_DIR = 'data/team-pool-frozen';
 const isPerRegulation = base => PER_REGULATION_ARTIFACTS.some(([re]) => re.test(String(base)));
