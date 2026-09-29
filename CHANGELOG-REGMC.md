@@ -21,6 +21,25 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.25.1] — 2026-09-29
+
+### Fixed
+- **`node engine/open_work.js` runs under Reg M-C.** With `ABRA_REGULATION=regmc` it exited 1: the artifact seam refused
+  its write onto `data/open-work.json`, which names no regulation. The list's register half (`docs/ROADMAP.md`) is
+  shared, but its measured half is the interaction matrix, which is staged against a regulation's checkout. So
+  `open-work.json` and `interaction-matrix.json` are now in `PER_REGULATION_ARTIFACTS` (`engine/regulation.js`), and a
+  Reg M-C run writes `data/open-work-regmc.json`. An absent Reg M-C matrix prints `NOT MEASURED` and is stored as
+  `null`, not 0. Before this, a Reg M-C `open_work.js` or `status.js` read Reg M-B's matrix as its own.
+- **`provenance-stamp.json` is per regulation too.** The ratchet covers the artifact graph as the seam presents it. A
+  Reg M-C run compared its view with Reg M-B's baseline, and its write was refused and caught on one printed line.
+- `engine/docs_scan.js` treats `open-work-<id>.json` as a copy of the register, not an artifact, like the Reg M-B copy.
+- Checked and not changed: `status.js --write` (writes `docs/` only), `where.js`, `orient.js`, `coverage.js`,
+  `register_reality.js` (already declared). `engine_release.js census --write` still refuses under Reg M-C; its file is
+  regulation-neutral, so run it plain.
+
+### Notes
+- No published figure moves and no mechanic changes (PATCH). `docs/_reports/2026-09-29-open-work-regmc.md`.
+
 ## [1.25.0] — 2026-09-29
 
 ### Added

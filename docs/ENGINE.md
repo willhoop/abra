@@ -1,3 +1,22 @@
+## `open_work.js` RUNS UNDER REG M-C; THE STATE PRINTERS' FILES ARE PER REGULATION. 2026-09-29 (abra/regmc 1.25.1)
+
+- `ABRA_REGULATION=regmc node engine/open_work.js` exited 1 on the write guard: it wrote a fixed
+  `data/open-work.json`. Decided from its inputs, not from the refusal's suggestion: the register half
+  (`docs/ROADMAP.md`) is shared, but the measured half is the interaction matrix, which stages pairs
+  against a checkout and so is per regulation. Until now a Reg M-C run of `open_work.js` and `status.js`
+  read Reg M-B's matrix and printed its 1642/1642 as the Reg M-C answer.
+- Declared in `PER_REGULATION_ARTIFACTS`: `open-work.json`, `interaction-matrix.json`, `provenance-stamp.json`
+  (the provenance ratchet is over the artifact graph as the seam shows it, so an M-C run was comparing its
+  view against M-B's baseline and its write was refused, caught and printed on one line). None of the
+  three is a gate input.
+- An absent M-C matrix is printed as `NOT MEASURED` and stored as `null`, never 0. `data/open-work-regmc.json`
+  is on the `docs_scan.js` not-an-artifact list with the M-B copy.
+- Checked, not changed: `status.js --write` writes only `docs/` (not guarded); `where.js`, `orient.js` and
+  `coverage.js` write nothing; `register_reality.js` was already declared; `engine_release.js census --write`
+  still refuses under Reg M-C (`release-census.json` is regulation-neutral, so run it plain).
+  Report `docs/_reports/2026-09-29-open-work-regmc.md`.
+- No mechanic changed. The census does not move.
+
 ## A PRANKSTER STATUS MOVE A DARK FOE REFUSES FAILS THE MOVE, AND SO DOES A CALLED ONE; THE OTHER STATUS REFUSALS FAIL IT TOO, AND A SHIELD ENDS IT `null` (REG M-C). 2026-09-27 (abra/regmc 1.21.0)
 
 - The filed SOLVER defect was board-material: a Prankster Grimmsnarl's Taunt refused by Persian-Alola, then Stomping
