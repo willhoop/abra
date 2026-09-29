@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.25.2] — 2026-09-29 — **`orient.js` reads the models from the solver registry, and exits 0 again**
+- **What changed.** `engine/orient.js` section 5 (THE MODELS) now parses the Name and Role columns of the `solver/PLAN.md` §2 registry table. Before, it parsed `docs/MODELS.md` for `**Job:**` lines and a pipeline table. The Reg M-C 1.0.0 docs pass (`ccf447fc`) removed both, so the section derived 0 models and the tool exited 1. The header comments name the new source.
+- **Measured.** NO FIGURE. `node engine/orient.js` exit 1 → exit 0, 8/8 sections, 20 models (every registry row). `node tests/test-orient.js` GREEN. It was shown RED by renaming the registry heading and by renaming the `Role` header cell, and both edits were reverted.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none. `docs/MODELS.md` is no longer read by orient.js.
+
 ## [abra/regmc 1.25.1] — 2026-09-29 — **`open_work.js` runs under Reg M-C; the state printers' files are per regulation**
 - **What changed.** `engine/regulation.js` `PER_REGULATION_ARTIFACTS` gains `open-work.json`, `interaction-matrix.json` and `provenance-stamp.json`. `engine/open_work.js` names its output and its matrix through `artifactFor`, stamps `regulation`, and prints `NOT MEASURED` (stored `null`) when the matrix is absent. `engine/docs_scan.js` treats `open-work-<id>.json` as not an artifact, like the M-B copy. `engine/status.js` names the regulation's matrix path when it is absent. `tests/test-regulation-artifacts.js` maps the three names.
 - **Measured.** NO FIGURE. `ABRA_REGULATION=regmc node engine/open_work.js` exit 1 (the guard refused `data/open-work.json`) → exit 0, writes `data/open-work-regmc.json` (585 rows, 200 open, matrix NOT MEASURED). The plain run still exits 0 and writes `data/open-work.json`.

@@ -8,6 +8,9 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-29
 
+### orient.js reads the model list from this plan's registry (abra/regmc 1.25.2)
+- `node engine/orient.js` section 5 now reads the Name and Role columns of §2 of `solver/PLAN.md`. Rename that heading or the `Name`/`Role` header cells and orient.js exits 1. `docs/_reports/2026-09-29-orient-models.md`.
+
 ### CHOMP v1 lands on main (abra/regmc 1.25.0)
 - Gates on release `eaa5becc54eb`, honest, gen5 1 s: (b) screen 0.625 [0.556, 0.689] PASS; (b) SPRT vs human-modal
   **H1 at 524 games, 0.561 [0.518, 0.603]**; (c) vs the humans' own bring, report-only, **0.470 [0.422, 0.519]**: no edge.

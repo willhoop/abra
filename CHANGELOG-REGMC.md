@@ -21,6 +21,20 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.25.2] — 2026-09-29
+
+### Fixed
+- **`node engine/orient.js` derives the models again, from `solver/PLAN.md` §2.** It exited 1 with `CANNOT DERIVE: THE
+  MODELS`: section 5 keyed on a `**Job:**` line under an ALL-CAPS heading, or a pipeline-table row, in `docs/MODELS.md`,
+  and the Reg M-C 1.0.0 docs pass (`ccf447fc`) rewrote that file with neither. The section now reads the Name and Role
+  columns of the registry table that CLAUDE.md names as the Reg M-C model registry: 20 rows, 20 models, exit 0. It reads
+  no Status or result column. A missing heading or a missing Name/Role header cell fails by name; a row with no
+  ALL-CAPS name or no role is printed as unclassified. `tests/test-orient.js` is green, and each new failure path was
+  shown red on a deliberate edit of `solver/PLAN.md`, then restored.
+
+### Notes
+- No published figure moves (PATCH). `docs/_reports/2026-09-29-orient-models.md`.
+
 ## [1.25.1] — 2026-09-29
 
 ### Fixed

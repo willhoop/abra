@@ -30,9 +30,10 @@
  *                            disagree.
  *   2. THE FILESYSTEM      — which divisions exist is `.claude/agents/*.md`, not a list. Add a division
  *                            and it appears here with no edit to this file. That is the WEB lesson.
- *   3. DECLARED REGISTRIES — `SOURCES` in engine/engine_release.js for the frozen set.
+ *   3. DECLARED REGISTRIES — `SOURCES` in engine/engine_release.js for the frozen set, and the model
+ *                            registry table in solver/PLAN.md §2 for the models (since 2026-09-29).
  *   4. PROSE, LAST         — and only ever for the ONE-LINE INTENT of a thing (what question a model
- *                            answers, out of docs/MODELS.md). Anything parsed out of prose is the
+ *                            answers — the Role column of that registry). Anything parsed out of prose is the
  *                            fragile part, and every prose parser here says what shape it keys on.
  *
  * ================= IT ANSWERS "WHAT AND WHERE", NEVER "HOW MUCH" ====================================
@@ -71,7 +72,7 @@
  *
  * Sections 1, 5 and 7 parse PROSE, and a parser keyed to a shape catches that shape and nothing else —
  * the same class as the species-key ratchet that scanned for known-bad spellings and missed a new one.
- * Concretely: MODELS keys on a `**Job:**` line or a row of the per-turn pipeline table, and OWED keys
+ * Concretely: MODELS keys on the Name/Role columns of the solver/PLAN.md §2 registry table, and OWED keys
  * on a heading containing the word OWED. A model documented some third way, or a report that spells its
  * unfinished work differently, IS MISSED — so both sections print how many candidates they could not
  * classify and name them. That is the mitigation, and it is weaker than a derivation. Sections 2, 3, 4
@@ -252,56 +253,56 @@ head(4, 'WHAT PLAYS A GAME — only ONE of these may run at a time  [computed]')
 }
 
 /* ---- 5. THE MODELS -----------------------------------------------------------------------------
- * PROSE PARSER, and the most fragile section here. Two shapes, both from docs/MODELS.md:
- *   - a row of the per-turn pipeline table (`| 3 | **MILTANK** | what happens if we play it out? |`)
- *   - a `**Job:**` line under a `## CODENAME` heading
- * A model documented a third way is MISSED, so every ALL-CAPS heading that matched neither is NAMED
- * below rather than dropped. Results and build status are STATE and are deliberately not read. */
-head(5, 'THE MODELS — the QUESTION each answers, never its result  [source: docs/MODELS.md, prose]');
+ * DECLARED REGISTRY, parsed out of a markdown table: `solver/PLAN.md` §2 "Model registry", which
+ * CLAUDE.md names as the Reg M-C model registry. Until 2026-09-29 this read docs/MODELS.md for a
+ * `**Job:**` line under an ALL-CAPS `## ` heading or a row of the per-turn pipeline table. The Reg
+ * M-C 1.0.0 docs pass (ccf447fc) rewrote MODELS.md with mixed-case headings, no `**Job:**` lines and
+ * no pipeline table, and moved the registry to PLAN.md §2 — so this section derived ZERO models and
+ * said so, which is the failure path working as designed.
+ *
+ * Shape keyed on: the `## ` heading matching /Model registry/, a header row whose cells include
+ * `Name` and `Role`, and one row per model whose Name cell carries a bold name. The model's NAME is
+ * the first ALL-CAPS token in that cell (so `**The live client** (ROTOM)` reads ROTOM and
+ * `**MAG** (= MAGNEMITE)` reads MAG). Only the ROLE column is printed: Status, results and baselines
+ * are STATE and are deliberately not read. A row whose name or role will not parse is NAMED as
+ * unclassified, never dropped. */
+head(5, 'THE MODELS — the QUESTION each answers, never its result  [source: solver/PLAN.md §2, registry table]');
 {
-  const md = broken('models') ? '' : rd(D('docs', 'MODELS.md'));
-  if (md == null) fail('THE MODELS', 'docs/MODELS.md is unreadable');
+  const PLAN = D('solver', 'PLAN.md');
+  const md = broken('models') ? '' : rd(PLAN);
+  if (md == null) fail('THE MODELS', 'solver/PLAN.md is unreadable');
   else {
-    const asks = new Map();
-    for (const m of md.matchAll(/^\|\s*[0-9—-]+\s*\|\s*\*\*([A-Z0-9][A-Z0-9 _-]*)\*\*\s*\|\s*([^|]+)\|/gm)) {
-      asks.set(m[1].trim(), m[2].trim());
-    }
-    const fromTable = asks.size;
-    const lines = md.split('\n');
-    let cur = null;
-    const order = [], jobs = new Map();
-    for (const ln of lines) {
-      const h = ln.match(/^##\s+([A-Z][A-Z0-9_ /-]*[A-Z0-9])(?:\s*[(—-]|\s*$)/);
-      if (/^##\s/.test(ln)) { cur = h ? h[1].trim() : null; if (cur && !order.includes(cur)) order.push(cur); continue; }
-      if (cur && !jobs.has(cur)) {
-        const j = ln.match(/^\*\*Job:\*\*\s*(.+)$/);
-        if (j) jobs.set(cur, j[1].replace(/\*\*/g, '').trim());
+    const body = mdSection(md, /Model registry/i);
+    const rows = (body || '').split('\n').filter(l => /^\s*\|/.test(l));
+    const cells = l => l.trim().replace(/^\|/, '').replace(/\|\s*$/, '').split('|').map(c => c.trim());
+    const hdr = rows.length ? cells(rows[0]).map(c => c.replace(/\*\*/g, '').toLowerCase()) : [];
+    const iName = hdr.indexOf('name'), iRole = hdr.indexOf('role');
+    const named = [], unclassified = [];
+    if (!body) fail('THE MODELS', 'solver/PLAN.md has no `## ` heading matching /Model registry/');
+    else if (iName < 0 || iRole < 0) fail('THE MODELS', 'the registry table has no `Name` and `Role` header cells');
+    else {
+      for (const r of rows.slice(1)) {
+        if (/^\s*\|[\s:|-]+\|\s*$/.test(r)) continue;                     // the |---|---| rule
+        const c = cells(r);
+        const cell = c[iName] || '';
+        const name = (cell.replace(/\*\*/g, '').match(/\b[A-Z][A-Z0-9]{2,}\b/) || [])[0];
+        const role = (c[iRole] || '').replace(/\*\*/g, '').replace(/`/g, '').trim();
+        if (name && role) named.push([name, role]); else unclassified.push(cell || r.trim().slice(0, 40));
+      }
+      for (const [name, q] of named) {
+        console.log('  ' + name.padEnd(14) + (q.length > 88 ? q.slice(0, 85) + '...' : q));
+      }
+      if (!named.length) fail('THE MODELS', 'the registry table in solver/PLAN.md §2 carried no row with a bold ALL-CAPS name and a role');
+      console.log('\n  ' + named.length + ' models carry a question (every row of the solver/PLAN.md §2 registry).');
+      if (unclassified.length) {
+        console.log('  ' + unclassified.length + ' registry row(s) had no ALL-CAPS name or no role and are NOT classified — named, not dropped:');
+        console.log('    ' + unclassified.join(', '));
       }
     }
-    const named = [], unclassified = [];
-    for (const name of order) {
-      const q = asks.get(name) || jobs.get(name) || null;
-      if (q) named.push([name, q]); else unclassified.push(name);
-    }
-    /* A MODEL IN THE PIPELINE TABLE WITH NO `## ` SECTION WAS BEING DROPPED SILENTLY, and that is the
-     * failure this whole file exists to prevent — the first run of this section printed neither HYPNO
-     * nor MAG, because the table names MAG and the ledger heading says MAGNEMITE. Anything the table
-     * knows about is a model whether or not it has a section of its own. */
-    for (const [name, q] of asks) if (!order.includes(name)) named.push([name + ' *', q]);
-    for (const [name, q] of named) {
-      console.log('  ' + name.padEnd(14) + (q.length > 88 ? q.slice(0, 85) + '...' : q));
-    }
-    if (!named.length) fail('THE MODELS', 'no model heading carried a **Job:** line or a pipeline-table row');
-    console.log('\n  ' + named.length + ' models carry a question (' + fromTable + ' from the per-turn pipeline table;');
-    console.log('  `*` = named by that table with no ledger section of its own).');
-    if (unclassified.length) {
-      console.log('  ' + unclassified.length + ' ALL-CAPS heading(s) matched NEITHER shape and are NOT classified — named, not dropped:');
-      console.log('    ' + unclassified.join(', '));
-    }
-    console.log('  [docs/MODELS.md age ' + ageOf(D('docs', 'MODELS.md')) + ']');
+    console.log('  [solver/PLAN.md age ' + ageOf(PLAN) + ']');
     console.log('  FEATURES ARE PER-MODEL — these are differently-shaped questions and sharing a vector');
     console.log('  is a category error. FACTS (damage, speed order, the sheet) are GLOBAL: one');
-    console.log('  implementation everyone calls. Composition (who runs when) is MODELS.md\'s pipeline table.');
+    console.log('  implementation everyone calls. Composition (who runs when) is solver/PLAN.md Appendix C.');
   }
 }
 
