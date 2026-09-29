@@ -564,6 +564,18 @@ function carrierRollVerdict(key, mv) {
   return {};
 }
 const NEEDS_FOE = new Set(['normal', 'any', 'adjacentFoe']);
+/* THE TARGET THE AUTHORITY'S MOVE REQUEST GIVES *THIS* BODY, not the dex's `target`. The request rewrites a
+ * move's target per user in `Pokemon#getMoveRequestData` (sim/pokemon.ts, the `switch (moveSlot.id)` below
+ * `let target = moveSlot.target`), and `Side#choose` validates the choice against THAT: a non-Ghost Curse is
+ * `self`, so naming a foe is rejected ("You can't choose a target for Curse"). The first Reg M-C matrix
+ * (2026-09-29) threw on `curse -> goodasgold` and `curse -> quickclaw` because the generator gave Curse to
+ * Venusaur. The switch's other two cases do not stage here: Pollen Puff's is Heal Block at run time, and
+ * Tera Starstorm's is a Terapagos-Stellar body. tests/probe_regmc_matrix_offgate.js. */
+function requestTarget(mv, sp) {
+  if (mv.id === 'curse' && !((sp && sp.types) || []).includes('Ghost')) return 'self';
+  return mv.target;
+}
+const aimsAtFoe = (mv, sp) => NEEDS_FOE.has(requestTarget(mv, sp));
 /* A reactor whose OWN effect is a die. Static paralyses 30% of the time; comparing it is comparing
  * luck. Read out of the param, never off a list of names. */
 function reactorIsChancy(cls) {
@@ -671,8 +683,10 @@ function axisFlag(depth, log) {
         const roll = carrierRollVerdict(key, mv);
         if (roll.drop) { log.add(roll.drop, key + ' ' + c.id, 1, [r.id, c.id]); continue; }
         if (!NEEDS_FOE.has(mv.target)) { log.add('carrier-does-not-aim-at-a-foe: target=' + mv.target, key + ' ' + c.id, 1, [r.id, c.id]); continue; }
-        const users = usersOf(c.id);
-        if (!users.length) { log.add('no-user: no species in MC.mons learns the carrier move', key + ' ' + c.id, 1, [r.id, c.id]); continue; }
+        const learners = usersOf(c.id);
+        if (!learners.length) { log.add('no-user: no species in MC.mons learns the carrier move', key + ' ' + c.id, 1, [r.id, c.id]); continue; }
+        const users = learners.filter(sp => aimsAtFoe(mv, sp));
+        if (!users.length) { log.add('carrier-does-not-aim-at-a-foe: the move request retargets it for every body that learns it', key + ' ' + c.id, 1, [r.id, c.id]); continue; }
         if (cls.layer === 'damage' && !ratioCanMeasure(c.id)) { log.add('carrier-unmeasurable-by-ratio: a residual or a multi-hit lands in the same HP delta as the multiplier', key + ' ' + c.id, 1, [r.id, c.id]); continue; }
         if (r.kind === 'move') {
           /* A REACTOR MOVE IS CLICKED, NOT HELD, so its control cannot be "remove the ability" --
@@ -696,7 +710,7 @@ function axisFlag(depth, log) {
           /* THE HOLDER OF AN ATTACKER-SIDE ABILITY MUST BE THE ONE CLICKING. Tough Claws on the
            * defender is a case in which nothing can happen. */
           const pool = r.kind === 'ability' ? speciesWithAbility(r.id) : SPECIES;
-          user = pool.find(sp => learns(sp, c.id));
+          user = pool.find(sp => learns(sp, c.id) && aimsAtFoe(mv, sp));
           if (!user) { log.add('no-user: no body both has the attacker-side reactor and learns the carrier', label + ' ' + c.id, 1, [r.id, c.id]); continue; }
           holder = SPECIES.find(sp => effectiveness(mv.type, typesOf(sp)) > 0 && sp.id !== user.id);
           if (!holder) { log.add('no-holder: no legal target for the carrier', label + ' ' + c.id, 1, [r.id, c.id]); continue; }
@@ -767,7 +781,7 @@ function controlCarrier(flagKey, mv, user, log, label, who) {
     if (!m.exists || m.category !== mv.category) return false;
     if (carriesLinkageKey(m, flagKey) !== false) return false;   /* the move's own flags, not the index */
     if (moveIsDeterministic(m)) return false;
-    if (!NEEDS_FOE.has(m.target)) return false;
+    if (!aimsAtFoe(m, user)) return false;
     return learns(user, id);
   });
   if (!cand.length) return log.add('no-control-carrier: the user has no flagless move of the same category', label, 1, who);

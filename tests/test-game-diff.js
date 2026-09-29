@@ -142,7 +142,12 @@ function projMedi(S) {
     status: m.status || '',
     boosts: Object.fromEntries(BOOST_KEYS.map(([sd, en]) => [sd, m.boosts[en] | 0])),
     vol: Object.keys(VOL_MAP).filter(k => VOL_MAP[k](m)).sort(),
-    item: norm(m.item), ability: norm(m.ability),
+    /* THE IDENTITY, NOT WHAT CAN ACT. A suppressed ability (Gastro Acid) is PARKED in medicham2 --
+     * `_abParked` holds it and `ability` empties (`abSuppress`) -- while the authority keeps
+     * `pokemon.ability` and adds the volatile, which is what projShowdown reads. Reading the raw field
+     * parted `gastroacid -> quickclaw` on the first Reg M-C matrix (2026-09-29) with the engine right.
+     * `engine/board_state.js` already reads the identity; tests/probe_regmc_matrix_offgate.js. */
+    item: norm(m.item), ability: norm(m._abParked != null ? m._abParked : m.ability),
     types: (m.types || []).slice().sort(),
   }) : null;
   const side = (act, bench, sf) => ({
@@ -365,7 +370,21 @@ function runScript(name, setsA, setsB, script, opts) {
   /* The rng is pinned to the MIDDLE of every range on the medicham2 side. It cannot make the two
    * engines agree (trap 2) — it only stops medicham2 itself being non-reproducible between the real
    * run and the injected-divergence run. */
-  const rng = () => 0.5;
+  let rng = () => 0.5;
+  /* AND UNDER `pinDice` THE DAMAGE ROLL IS THE SAME ROLL ON BOTH SIDES, WHICH 0.5 IS NOT. The authority's
+   * `randomizer` spends `random(16)` (sim/battle.ts), pinned below to PIN_RANDOM(16) = 8, the 92% roll;
+   * medicham2's `damageRollIndex(0.5)` is 15 - floor(8) = 7, the 93% roll. One index apart on every hit, so
+   * a hit that lands within one roll of the target's HP is a KO in one engine and not the other: the first
+   * Reg M-C matrix (2026-09-29) filed `aurawheel -> weakarmor` as KO-TIMING on exactly that, 140 against 138
+   * into a 140-HP Skarmory, in BOTH arms. Only the `dmg` stream moves, onto the centre of the bucket that
+   * maps to the authority's index -- the same expression tests/probe_hp_pair.js uses. Every other stream
+   * stays 0.5, so no chance event moves. Unpinned runs keep the plain function.
+   * tests/probe_regmc_matrix_offgate.js. */
+  if (opts.pinDice) {
+    const idx = PIN_RANDOM(16);
+    const u = (2 * (16 - 1 - idx) + 1) / 32;
+    rng = { any: () => 0.5, dmg: () => u, split: false, seed: null };
+  }
   /* PIN SHOWDOWN'S DICE TOO — opt-in, because the interaction matrix runs the SAME case TWICE (with
    * the reactor and with an inert control) and subtracts one from the other. A seeded PRNG is
    * reproducible run-to-run and NOT arm-to-arm: swapping an ability changes how many rolls the turn

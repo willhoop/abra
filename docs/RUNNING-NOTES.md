@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.28.1] — 2026-09-29 — **The first Reg M-C matrix's four non-agreeing rows were all the instrument; fixed there, the engine did not change**
+- **What changed.** `tests/test-game-diff.js`: `projMedi` reads the parked (identity) ability, and under `pinDice` medicham2's `dmg` stream is pinned to the authority's pinned damage index (92%, not 93%). `tests/interaction_matrix.js`: a carrier's foe-aim is read from the authority's per-user move request, so a non-Ghost Curse is not emitted. New probe `tests/probe_regmc_matrix_offgate.js`. `engine/` is untouched.
+- **Measured.** Probe RED 6 arms before, GREEN after, `ABRA_REGULATION=regmc`. Single pairs only: `gastroacid -> quickclaw` agrees; `curse -> goodasgold` and `curse -> quickclaw` run on Gengar (no throw); `aurawheel -> weakarmor` agrees, Skarmory left on 0.0143 in both engines. 176 of 177 Curse, Gastro Acid and Weak Armor cases agree; the other is a damage case with no verdict. The full matrix was NOT re-run.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing yet. The matrix figures in `data/interaction-matrix-regmc.json` (1 KO-timing, 2 threw, 2 off-gate) stand until the owed `--full` re-run.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 1.28.0] — 2026-09-29 — **Weighted chance in MILTANK's cells: correct, too expensive; flag off, SPRT prepared not run**
 - **What changed.** New `solver/miltank/chance.js` (a turn's dice enumerated by probability, the engine's thresholds found by bisection, stratified so unbiased), wired through `rollout.js`/`cells.js`/`search.js` and `solver/mew/agent.js` as the spec option `chance`, off by default. Test `solver/tests/test-miltank-chance.js`, benches `solver/bench/chance_bench.js`, `chance_fill.js`, arm `solver/miltank/chance-gen5.json`, pre-registration `solver/miltank/preregistration-chance.json`.
 - **Measured.** Release `eaa5becc54eb`, 24 real joint pairs, heuristic leaf, depth 0: expectation vs 1,000-sample mean |z| median 0.48, max 1.80; buckets median 7 (p90 17, max 74); stepped turns median 138 (p90 354, max 884); about 250 playouts of wall time; efficiency median 0.40 (`solver/out/chance/f-coarse.json`, gitignored). Fill at 1 s: 0.547 vs 1.0, 1 fallback in 8 (`f-fill-1s.json`). Offline, not an arena figure.
