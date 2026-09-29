@@ -1,0 +1,112 @@
+{
+ "what": "CHOMP v1 pre-registration (solver/chomp/v1/prereg.js). Written before any targeted game, any fit and any arena game.",
+ "written": "2026-09-26T17:40:05.884Z",
+ "engine_release": "eaa5becc54eb",
+ "inputs": {
+  "team_store": {
+   "dir": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+   "file_sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+   "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709",
+   "split_counts": {
+    "scanned": 23473,
+    "bot": 158,
+    "bring_incomplete": 7179,
+    "sheet_not_six": 0,
+    "mixed_split": 5623,
+    "train": 10200,
+    "val": 140,
+    "test": 173
+   }
+  },
+  "human_dataset": {
+   "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\solver\\out\\human\\games.jsonl",
+   "sha256": "9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8",
+   "games_kept": 26888
+  },
+  "selfplay_corpus": {
+   "dir": "C:/Users/willj/Projects/Pokemon/ABRA/solver/out/selfplay/eaa5becc54eb/p2v1-c0",
+   "rule": "every shard is verified against manifest.json sha256 before it is read"
+  },
+  "human_prior": {
+   "train_sides": 35131,
+   "species": 266,
+   "teams": 7212,
+   "alpha": 4,
+   "a": 3
+  },
+  "bo3_rates": {
+   "file": "solver/out/meta/bo3.json (main checkout)",
+   "input_sha256": "96353a78793796c3160845dd126f3ea41226bd6feed14a3851834505dde0bfe1",
+   "same_four": {
+    "won": 0.6098,
+    "lost": 0.2966
+   },
+   "same_lead_pair": {
+    "won": 0.4711,
+    "lost": 0.223
+   }
+  }
+ },
+ "targeted_samples": {
+  "bot": "DODUO greedy on both sides (solver/arena/bots.js greedy over MAG v1 + DODUO v1), omniscient, cap 40 turns (horizonScore decides a capped game, counted)",
+  "options": "per side: with prob 1/2 uniform over the 90 options, else drawn from the human prior of that sheet",
+  "pairs": {
+   "test": "173 x 16",
+   "val": "140 x 16",
+   "train": "2500 x 8 (a seeded stride over the TRAIN pairs)"
+  },
+  "jobs": 25008,
+  "jobs_file": "solver/out/chomp/v1/gen/jobs.jsonl",
+  "jobs_sha256": "c8b6a1605ba2ee8d8b697eccb23e414957a908ca3e32e88ebb94f453afa1d679"
+ },
+ "scorer": {
+  "question": "P(side p1 wins | both open sheets, p1 option a, p2 option b)",
+  "family": "antisymmetric: logit = tau_source * (h(g(a|b), g(b|a)) - h(g(b|a), g(a|b))); g = engine matchup aggregates of the brought four and the leads (MEDICHAM dmgRange/hitProb/effSpeed on the sheet bodies at the flat spread, mega forme where the sheet can mega) plus per-species bring and lead values",
+  "arms": {
+   "lin": "h linear",
+   "mlp": "h = one hidden layer of 32 (tanh)"
+  },
+  "selection": "the arm and the epoch with the lower VAL log-loss (targeted VAL games + corpus VAL fold + human VAL games), read once",
+  "sources": {
+   "targeted": "tau fixed at 1",
+   "selfplay": "tau learned",
+   "human": "tau learned"
+  },
+  "table_source": "selfplay (the arena bot is gen5 MILTANK): each cell = sigmoid(tau_selfplay * logit)",
+  "splits": "targeted: by pair split; corpus: 20% of TRAIN-pair games held out by sha256(pair id) (10% val, 10% test); human: both players TRAIN -> train, both VAL -> val, both TEST -> test"
+ },
+ "gate_a": {
+  "question": "does the scorer predict held-out outcomes better than the same family that sees only the human-modal bring",
+  "baseline": "the same family (same arm selection rule), fitted with every side's option replaced by the human-prior MODAL option of its sheet, and evaluated at the modal options",
+  "metric": "log-loss per game (label = the win, or horizonScore on a capped game); delta = LL(scorer) - LL(baseline); 95% CI by a bootstrap over TEAM PAIRS (2,000 resamples, seed 1)",
+  "sets": {
+   "T1": "targeted games on TEST pairs",
+   "T2": "corpus test fold",
+   "T3": "human games, both players TEST, both options known (reported, not gated)"
+  },
+  "pass": "the CI upper bound of delta on T1 and T2 POOLED (clustered by pair) is below 0"
+ },
+ "gate_b": {
+  "harness": "solver/machamp/sprt.js --info honest, release eaa5becc54eb, --team-store the frozen pool, --workers 3, --cap 50; X and Y are gen5 (solver/machamp/league/gen5.json, 1,000 ms) with a preview field",
+  "x": "gen5 + preview chomp1 (CHOMP v1 mix, SAMPLED with a coin seeded per game and side)",
+  "y": "gen5 + preview hprior (the human-modal option of its own sheet: the current opponent-blind preview)",
+  "screen": "first a fixed 200-game match (100 pairs, seed 61) at 1 s through solver/mew/play.js --mode match --cycle; proceed to the SPRT iff the screen score is >= 0.500",
+  "sprt": {
+   "elo0": 0,
+   "elo1": 20,
+   "alpha": 0.05,
+   "beta": 0.05,
+   "max_games": 2000,
+   "seed": 67,
+   "read": "once, at the bound or at the budget"
+  },
+  "pass": "SPRT accepts H1"
+ },
+ "gate_c": {
+  "what": "X = gen5 + chomp1 vs Y = gen5 + the humans' own recorded bring of the pair (as v0), honest, 1 s, fixed 400 games (200 pairs, seed 71). Reported with a Wilson 95% interval; not a promotion test."
+ },
+ "bo3": {
+  "rule": "games 2 and 3: their observed previous four F and leads L and their previous result r. Opponent model q = s4[r] * (sl[r] * delta(F,L) + (1 - sl[r]) * uniform over the other 5 lead pairs of F) + (1 - s4[r]) * (their equilibrium mix restricted to fours other than F, renormalised). s4 = same_four rate by previous result, sl = min(1, same_lead_pair / same_four), read from bo3.json at run time. Our mix = (1 - lambda) * our equilibrium mix + lambda * the best response to q, lambda = 0.5.",
+  "measured": "in-table only: V(mix, q) against V(equilibrium, q) and the exploitability of the adjusted mix, on the gate (b) screen pairs. No bo3 arena exists; not a play-strength claim."
+ }
+}

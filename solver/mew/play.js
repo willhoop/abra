@@ -90,6 +90,7 @@ const megaT = name => (MEGA[name] || (MEGA[name] = MR.tally()));
 const t0 = Date.now();
 /* running search counters, snapshotted onto every match line: a SPRT kills its workers at the bound and a killed
  * worker writes no summary, so the counters must already be on disk (solver/machamp/sprt.js reads the last line) */
+let PREVIEW_ARMS = null;   // the match's preview arms (solver/chomp/arms.js), when a spec asks for one
 const RUN = { searched: 0, playouts: 0, cells: 0, unfilled: 0, zero_playouts: 0, fallback_decisions: 0 };
 
 /* ---- HONEST INFORMATION (see the header): solver/xatu/worlds.js arenaGame / arenaView ---- */
@@ -215,16 +216,29 @@ async function match() {
   const list = CYCLE ? Array.from({ length: NP }, (_, i) => base[i % base.length]) : base;
   const per = [];
   const counts = { games: 0, errors: 0, capped: 0, unbuildable: 0 };
+  /* TEAM PREVIEW ARMS (2026-09-26, CHOMP v1): a spec may carry `preview` (solver/chomp/arms.js: human | hprior | random |
+   * chomp | chomp1). Absent on both specs = the humans' own recorded bring, exactly as before. The arm picks from the open
+   * sheets only; each pick is on the match line (`preview`) and every arm's picks and fallbacks are in the shard summary. */
+  const PVA = X.spec.preview || Y.spec.preview ? require('../chomp/arms.js').create({ API }) : null;
+  PREVIEW_ARMS = PVA;
   for (let pi = SHARD; pi < list.length; pi += SHARDS) {
-    const G = list[pi];
+    const G0 = list[pi];
     const seed = SEED * 100000 + pi;
     for (const xIsA of (BREAK === 'seat' ? [true, true] : [true, false])) {
       const bx = X.bot(SEED * 7919 + pi * 4 + (xIsA ? 1 : 3)), by = Y.bot(SEED * 7919 + pi * 4 + (xIsA ? 2 : 4));
+      let G = G0, pv = null;
+      if (PVA) {
+        const armA = (xIsA ? X.spec.preview : Y.spec.preview) || 'human', armB = (xIsA ? Y.spec.preview : X.spec.preview) || 'human';
+        const pa = PVA.choose(armA, G0, 'p1', seed * 4 + 1), pb = PVA.choose(armB, G0, 'p2', seed * 4 + 2);
+        G = Object.assign({}, G0, { brought: { p1: pa.order, p2: pb.order } });
+        const ia = Object.assign({ arm: armA, order: pa.order }, pa.info), ib = Object.assign({ arm: armB, order: pb.order }, pb.info);
+        pv = { x: xIsA ? ia : ib, y: xIsA ? ib : ia };
+      }
       const r = await playGame(G, xIsA ? bx : by, xIsA ? by : bx, seed, null);
       if (r.unbuildable) { counts.unbuildable++; per.push({ pi, id: G.id, xSide: xIsA ? 'A' : 'B', unbuildable: true }); continue; }
       counts.games++; if (r.err) counts.errors++; if (r.capped) counts.capped++;
       const vX = r.err ? null : (xIsA ? r.vA : 1 - r.vA);
-      per.push({ pi, id: G.id, xSide: xIsA ? 'A' : 'B', seed, info: INFO, vX, turns: r.turns, capped: r.capped, err: r.err,
+      per.push({ pi, id: G.id, xSide: xIsA ? 'A' : 'B', seed, info: INFO, vX, turns: r.turns, capped: r.capped, err: r.err, preview: pv || undefined,
                  ms_x: r.ms[xIsA ? 'A' : 'B'], ms_y: r.ms[xIsA ? 'B' : 'A'], searched_x: r.srch[xIsA ? 'A' : 'B'], searched_y: r.srch[xIsA ? 'B' : 'A'],
                  adapt_x: Object.keys(r.stops[xIsA ? 'A' : 'B']).length ? r.stops[xIsA ? 'A' : 'B'] : undefined, adapt_y: Object.keys(r.stops[xIsA ? 'B' : 'A']).length ? r.stops[xIsA ? 'B' : 'A'] : undefined,
                  mega: r.mega ? { x: r.mega[xIsA ? 'A' : 'B'], y: r.mega[xIsA ? 'B' : 'A'] } : null,
@@ -243,7 +257,7 @@ async function match() {
 (async () => {
   const r = MODE === 'match' ? await match() : await selfplay();
   const summary = { mode: MODE, info: INFO, honest: INFO === 'honest' ? Object.assign({}, HON, { worlds: XW.COUNTERS }) : null, break: BREAK || null, shard: SHARD, shards: SHARDS, seed: SEED, cap: CAP, engine_release: ENGINE.id, release_stamp: ENGINE.stamp, argv, wall_s: (Date.now() - t0) / 1000,
-    agent_counters: AG.COUNTERS, rollout: AG.R.COUNTERS, api: API.COUNTERS,
+    agent_counters: AG.COUNTERS, rollout: AG.R.COUNTERS, api: API.COUNTERS, preview_arms: PREVIEW_ARMS ? PREVIEW_ARMS.COUNTERS : null,
     mega: { by_agent: Object.fromEntries(Object.entries(MEGA).map(([k, t]) => [k, MR.summary(t)])), human_rate: MR.HUMAN_RATE, floor: MR.floor() },
     search: decStats.length ? { decisions: decStats.length, playouts_mean: decStats.reduce((s, d) => s + d.playouts, 0) / decStats.length,
       playouts_p50: decStats.map(d => d.playouts).sort((a, b) => a - b)[decStats.length >> 1],

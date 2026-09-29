@@ -26,8 +26,8 @@ is dated before 2026-09-24 stands as written — it is evidence, and it was meas
   narrow the candidates, MILTANK fills a payoff matrix by playouts (then PORYGON2's value), SLOWKING
   solves it, and HYPNO applies a capped exploit dial; MEW and MACHAMP train it by self-play; ROTOM
   plays it on the ladder.
-- **CHOMP is the team-preview solver, rebuilt inside ABRA** under `solver/chomp/` (not built yet; milestone
-  M4). The `../CHOMP` repository runs on stale mainline data and is reference only. **ROTOM is the live client.** It replaces
+- **CHOMP is the team-preview solver, rebuilt inside ABRA** under `solver/chomp/` (v1 built and promoted 2026-09-29, abra/regmc 1.25.0: ROTOM `--preview chomp`,
+  on no ladder arm yet). The `../CHOMP` repository runs on stale mainline data and is reference only. **ROTOM is the live client.** It replaces
   `engine/mag_bot.js`.
 - **The finish line is high on the ladder**, account `medicham32`, cleared with Showdown staff. The
   headline is a settled rating ± SD over the last N series and the per-series residual `S − E`. Never

@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.25.0] — 2026-09-29 — **CHOMP v1, the team-preview solver, lands: it beats the human-modal preview by SPRT, and shows no edge over the humans' own bring**
+- **What changed.** Merged `solver/chomp/` (v0, `1e1f3fa3`) and `solver/chomp/v1/` (the learned cell scorer, SLOWKING, the bo3 adjustment; branch `worktree-agent-a1d0f3564f3c6d52c`, head `760565a9`). ROTOM `--preview chomp` now serves v1 (`CHOMP_VERSION=v0` for v0) and passes the series; the default preview is unchanged (`--preview policy`), and no ladder arm or command selects CHOMP. Arena arm `chomp1`, a spec `preview` field in `solver/mew/play.js --mode match`. `solver/tests/test-chomp.js`, `solver/tests/test-chomp1.js`. Gate results copied to `solver/results/2026-09-27-chomp-v1/` with a derived `provenance.json`. No engine byte moved.
+- **Measured.** Release `eaa5becc54eb`, `--info honest`, gen5 at 1 s both sides, `--team-store data/team-pool-frozen-regmc` (pool digest `792daded…`), `--cap 50`, pre-registered in `solver/chomp/v1/preregistration.json`. Gate (a): held-out Δlog-loss vs the human-modal-bring baseline **−0.0203 [−0.0309, −0.0108]**, n = 3,119 (`solver/chomp/v1/model/chomp1.metrics.json`). Gate (b) screen, 200 games, seed 61: **0.625 [0.556, 0.689]**, bar ≥ 0.500, PASS (`screen-vs-hprior.json`). Gate (b) SPRT vs the human-modal preview (elo0 0, elo1 +20, α = β = 0.05, seed 67): **H1 at 524 games, 294–230, 0.561 [0.518, 0.603]**, LLR 3.02 (`sprt-chomp1-vs-hprior.json`; the interval is at a data-dependent stop). Gate (c), report-only, vs the humans' own recorded bring, 400 games, seed 71: **0.470 [0.422, 0.519]** (`gatec-vs-human.json`) — no clear edge, point estimate below even. CHOMP made the X preview in every game (200 + 538 + 400); `chomp1Failed` 0 in the screen and gate (c) summaries; 1 in-battle search fallback decision in 7,360 in gate (c).
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published. CHOMP v0's figures (`docs/_reports/2026-09-25-chomp-v0.md`) stand as what v0 measured.
+- **Owed to the next major.** `docs/MODELS.md` CHOMP entry: v0 fails, v1 passes (a) and (b), gate (c) shows no edge over the humans' own bring.
+
 ## [abra/regmc 1.24.2] — 2026-09-27 — **Session close: /start lessons, ledgers restamped, OWED commands recorded**
 - **What changed.** `.claude/skills/start/SKILL.md` §7/§8 lessons from the ladder and solver work; ledgers restamped by `status.js --write`. No code.
 - **Measured.** NO FIGURE.

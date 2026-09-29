@@ -1,0 +1,604 @@
+{
+ "what": "CHOMP v1 gate (b) screen, gate (b) SPRT and gate (c): provenance of the three copied result files, read out of each shard summary (solver/mew/play.js --mode match). Derived 2026-09-29 by a one-off script; the source files are gitignored under the branch worktree solver/out/chomp/v1/.",
+ "source": {
+  "worktree": ".claude/worktrees/agent-a1d0f3564f3c6d52c",
+  "branch": "worktree-agent-a1d0f3564f3c6d52c",
+  "head": "760565a9",
+  "dir": "solver/out/chomp/v1"
+ },
+ "copied": {
+  "screen-vs-hprior.json": "screen/screen.json",
+  "sprt-chomp1-vs-hprior.json": "sprt/chomp1-vs-hprior.json",
+  "gatec-vs-human.json": "gatec/gatec.json"
+ },
+ "model_sha256": "7dfc0d81b0b1f9a3086d74fd43306cac936436864272c2c6564a86cfa1be9379",
+ "preregistration_sha256": "472b8bccd143360207a086d31af6fcbe0e25d8128dd5d08a7847d05c1f33b6a8",
+ "runs": {
+  "screen": [
+   {
+    "shard": 0,
+    "engine_release": "eaa5becc54eb",
+    "info": "honest",
+    "seed": 61,
+    "cap": 50,
+    "argv": [
+     "--mode",
+     "match",
+     "--cycle",
+     "--release",
+     "eaa5becc54eb",
+     "--x",
+     "solver/chomp/v1/specs/gen5-chomp1.json",
+     "--y",
+     "solver/chomp/v1/specs/gen5-hprior.json",
+     "--pairs",
+     "100",
+     "--pair-seed",
+     "1",
+     "--seed",
+     "61",
+     "--shard",
+     "0",
+     "--shards",
+     "3",
+     "--cap",
+     "50",
+     "--info",
+     "honest",
+     "--team-store",
+     "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+     "--out",
+     "solver/out/chomp/v1/screen/shard-0.jsonl"
+    ],
+    "pool": {
+     "pool_source": {
+      "kind": "team-store",
+      "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+      "file_sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+      "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709"
+     },
+     "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+     "test_pairs": 173,
+     "picked": 100,
+     "ids_sha256": "d0197de47a82c273",
+     "counts": {
+      "scanned": 23473,
+      "bot": 158,
+      "bring_incomplete": 7179,
+      "sheet_not_six": 0,
+      "mixed_split": 5623,
+      "train": 10200,
+      "val": 140,
+      "test": 173
+     }
+    },
+    "counts": {
+     "games": 68,
+     "errors": 0,
+     "capped": 0,
+     "unbuildable": 0
+    },
+    "preview_arms": {
+     "picks": {
+      "chomp1": 68,
+      "hprior": 68
+     },
+     "chompCached": 0,
+     "chompInline": 0,
+     "chompFailed": 0,
+     "chomp1Solves": 68,
+     "chomp1Cached": 0,
+     "chomp1Failed": 0,
+     "chomp1Ms": 5210
+    },
+    "search": {
+     "decisions": 1249,
+     "playouts_mean": 256.61889511609286,
+     "playouts_p50": 172,
+     "unfilled_share": 0.00030090270812437313,
+     "ms_mean": 944.6100880704564
+    },
+    "agent_counters": {
+     "fallbacks": 0,
+     "decisions": 1252,
+     "searched": 1249,
+     "forced": 3
+    },
+    "honest_back": {
+     "back_xatu": 1252,
+     "back_none": 0,
+     "back_error": 0
+    },
+    "wall_s": 1201.131,
+    "shard_sha256": "24cddadf0636d4813dd5dbd1335f9b960b12fec126c8e6a10d090d449a98bdcb"
+   },
+   {
+    "shard": 1,
+    "engine_release": "eaa5becc54eb",
+    "info": "honest",
+    "seed": 61,
+    "cap": 50,
+    "argv": [
+     "--mode",
+     "match",
+     "--cycle",
+     "--release",
+     "eaa5becc54eb",
+     "--x",
+     "solver/chomp/v1/specs/gen5-chomp1.json",
+     "--y",
+     "solver/chomp/v1/specs/gen5-hprior.json",
+     "--pairs",
+     "100",
+     "--pair-seed",
+     "1",
+     "--seed",
+     "61",
+     "--shard",
+     "1",
+     "--shards",
+     "3",
+     "--cap",
+     "50",
+     "--info",
+     "honest",
+     "--team-store",
+     "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+     "--out",
+     "solver/out/chomp/v1/screen/shard-1.jsonl"
+    ],
+    "pool": {
+     "pool_source": {
+      "kind": "team-store",
+      "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+      "file_sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+      "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709"
+     },
+     "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+     "test_pairs": 173,
+     "picked": 100,
+     "ids_sha256": "d0197de47a82c273",
+     "counts": {
+      "scanned": 23473,
+      "bot": 158,
+      "bring_incomplete": 7179,
+      "sheet_not_six": 0,
+      "mixed_split": 5623,
+      "train": 10200,
+      "val": 140,
+      "test": 173
+     }
+    },
+    "counts": {
+     "games": 66,
+     "errors": 0,
+     "capped": 0,
+     "unbuildable": 0
+    },
+    "preview_arms": {
+     "picks": {
+      "chomp1": 66,
+      "hprior": 66
+     },
+     "chompCached": 0,
+     "chompInline": 0,
+     "chompFailed": 0,
+     "chomp1Solves": 66,
+     "chomp1Cached": 0,
+     "chomp1Failed": 0,
+     "chomp1Ms": 4798
+    },
+    "search": {
+     "decisions": 1203,
+     "playouts_mean": 256.120532003325,
+     "playouts_p50": 166,
+     "unfilled_share": 0.00036511579386605466,
+     "ms_mean": 945.0340814630091
+    },
+    "agent_counters": {
+     "fallbacks": 0,
+     "decisions": 1206,
+     "searched": 1203,
+     "forced": 3
+    },
+    "honest_back": {
+     "back_xatu": 1206,
+     "back_none": 0,
+     "back_error": 0
+    },
+    "wall_s": 1157.6,
+    "shard_sha256": "727f1ef226674ece02a8bd4658e247b997c814382dd8feb2646364b97e1b4061"
+   },
+   {
+    "shard": 2,
+    "engine_release": "eaa5becc54eb",
+    "info": "honest",
+    "seed": 61,
+    "cap": 50,
+    "argv": [
+     "--mode",
+     "match",
+     "--cycle",
+     "--release",
+     "eaa5becc54eb",
+     "--x",
+     "solver/chomp/v1/specs/gen5-chomp1.json",
+     "--y",
+     "solver/chomp/v1/specs/gen5-hprior.json",
+     "--pairs",
+     "100",
+     "--pair-seed",
+     "1",
+     "--seed",
+     "61",
+     "--shard",
+     "2",
+     "--shards",
+     "3",
+     "--cap",
+     "50",
+     "--info",
+     "honest",
+     "--team-store",
+     "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+     "--out",
+     "solver/out/chomp/v1/screen/shard-2.jsonl"
+    ],
+    "pool": {
+     "pool_source": {
+      "kind": "team-store",
+      "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+      "file_sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+      "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709"
+     },
+     "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+     "test_pairs": 173,
+     "picked": 100,
+     "ids_sha256": "d0197de47a82c273",
+     "counts": {
+      "scanned": 23473,
+      "bot": 158,
+      "bring_incomplete": 7179,
+      "sheet_not_six": 0,
+      "mixed_split": 5623,
+      "train": 10200,
+      "val": 140,
+      "test": 173
+     }
+    },
+    "counts": {
+     "games": 66,
+     "errors": 0,
+     "capped": 0,
+     "unbuildable": 0
+    },
+    "preview_arms": {
+     "picks": {
+      "chomp1": 66,
+      "hprior": 66
+     },
+     "chompCached": 0,
+     "chompInline": 0,
+     "chompFailed": 0,
+     "chomp1Solves": 66,
+     "chomp1Cached": 0,
+     "chomp1Failed": 0,
+     "chomp1Ms": 4704
+    },
+    "search": {
+     "decisions": 1334,
+     "playouts_mean": 290.25112443778113,
+     "playouts_p50": 173,
+     "unfilled_share": 0.0004706325301204819,
+     "ms_mean": 944.3808095952024
+    },
+    "agent_counters": {
+     "fallbacks": 0,
+     "decisions": 1334,
+     "searched": 1334,
+     "forced": 0
+    },
+    "honest_back": {
+     "back_xatu": 1334,
+     "back_none": 0,
+     "back_error": 0
+    },
+    "wall_s": 1280.433,
+    "shard_sha256": "6950fdc49b5bd614f38e9e9066c28f5afb5a917a59ac1db662fab22f0fa39daa"
+   }
+  ],
+  "gatec": [
+   {
+    "shard": 0,
+    "engine_release": "eaa5becc54eb",
+    "info": "honest",
+    "seed": 71,
+    "cap": 50,
+    "argv": [
+     "--mode",
+     "match",
+     "--cycle",
+     "--release",
+     "eaa5becc54eb",
+     "--x",
+     "solver/chomp/v1/specs/gen5-chomp1.json",
+     "--y",
+     "solver/chomp/v1/specs/gen5-human.json",
+     "--pairs",
+     "200",
+     "--pair-seed",
+     "1",
+     "--seed",
+     "71",
+     "--shard",
+     "0",
+     "--shards",
+     "3",
+     "--cap",
+     "50",
+     "--info",
+     "honest",
+     "--team-store",
+     "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+     "--out",
+     "solver/out/chomp/v1/gatec/shard-0.jsonl"
+    ],
+    "pool": {
+     "pool_source": {
+      "kind": "team-store",
+      "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+      "file_sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+      "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709"
+     },
+     "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+     "test_pairs": 173,
+     "picked": 200,
+     "ids_sha256": "f21ce24b63096dbd",
+     "counts": {
+      "scanned": 23473,
+      "bot": 158,
+      "bring_incomplete": 7179,
+      "sheet_not_six": 0,
+      "mixed_split": 5623,
+      "train": 10200,
+      "val": 140,
+      "test": 173
+     }
+    },
+    "counts": {
+     "games": 134,
+     "errors": 0,
+     "capped": 0,
+     "unbuildable": 0
+    },
+    "preview_arms": {
+     "picks": {
+      "chomp1": 134,
+      "human": 134
+     },
+     "chompCached": 0,
+     "chompInline": 0,
+     "chompFailed": 0,
+     "chomp1Solves": 134,
+     "chomp1Cached": 0,
+     "chomp1Failed": 0,
+     "chomp1Ms": 14542
+    },
+    "search": {
+     "decisions": 2416,
+     "playouts_mean": 204.54221854304635,
+     "playouts_p50": 87,
+     "unfilled_share": 0,
+     "ms_mean": 947.5115894039735
+    },
+    "agent_counters": {
+     "fallbacks": 0,
+     "decisions": 2438,
+     "searched": 2416,
+     "forced": 22
+    },
+    "honest_back": {
+     "back_xatu": 2438,
+     "back_none": 0,
+     "back_error": 0
+    },
+    "wall_s": 2328.895,
+    "shard_sha256": "798e88a4f4ce49732351098d365630af799797536a28d7ef43a3a96390e07135"
+   },
+   {
+    "shard": 1,
+    "engine_release": "eaa5becc54eb",
+    "info": "honest",
+    "seed": 71,
+    "cap": 50,
+    "argv": [
+     "--mode",
+     "match",
+     "--cycle",
+     "--release",
+     "eaa5becc54eb",
+     "--x",
+     "solver/chomp/v1/specs/gen5-chomp1.json",
+     "--y",
+     "solver/chomp/v1/specs/gen5-human.json",
+     "--pairs",
+     "200",
+     "--pair-seed",
+     "1",
+     "--seed",
+     "71",
+     "--shard",
+     "1",
+     "--shards",
+     "3",
+     "--cap",
+     "50",
+     "--info",
+     "honest",
+     "--team-store",
+     "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+     "--out",
+     "solver/out/chomp/v1/gatec/shard-1.jsonl"
+    ],
+    "pool": {
+     "pool_source": {
+      "kind": "team-store",
+      "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+      "file_sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+      "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709"
+     },
+     "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+     "test_pairs": 173,
+     "picked": 200,
+     "ids_sha256": "f21ce24b63096dbd",
+     "counts": {
+      "scanned": 23473,
+      "bot": 158,
+      "bring_incomplete": 7179,
+      "sheet_not_six": 0,
+      "mixed_split": 5623,
+      "train": 10200,
+      "val": 140,
+      "test": 173
+     }
+    },
+    "counts": {
+     "games": 134,
+     "errors": 0,
+     "capped": 0,
+     "unbuildable": 0
+    },
+    "preview_arms": {
+     "picks": {
+      "chomp1": 134,
+      "human": 134
+     },
+     "chompCached": 0,
+     "chompInline": 0,
+     "chompFailed": 0,
+     "chomp1Solves": 134,
+     "chomp1Cached": 0,
+     "chomp1Failed": 0,
+     "chomp1Ms": 14913
+    },
+    "search": {
+     "decisions": 2447,
+     "playouts_mean": 200.62975071516144,
+     "playouts_p50": 81,
+     "unfilled_share": 0.00010234367004400778,
+     "ms_mean": 947.3158970167552
+    },
+    "agent_counters": {
+     "fallbacks": 0,
+     "decisions": 2450,
+     "searched": 2447,
+     "forced": 3
+    },
+    "honest_back": {
+     "back_xatu": 2450,
+     "back_none": 0,
+     "back_error": 0
+    },
+    "wall_s": 2359.209,
+    "shard_sha256": "baef68ab7f7bee775f0b7c308e2924dd63be53e09f96cfb56331456022ceee62"
+   },
+   {
+    "shard": 2,
+    "engine_release": "eaa5becc54eb",
+    "info": "honest",
+    "seed": 71,
+    "cap": 50,
+    "argv": [
+     "--mode",
+     "match",
+     "--cycle",
+     "--release",
+     "eaa5becc54eb",
+     "--x",
+     "solver/chomp/v1/specs/gen5-chomp1.json",
+     "--y",
+     "solver/chomp/v1/specs/gen5-human.json",
+     "--pairs",
+     "200",
+     "--pair-seed",
+     "1",
+     "--seed",
+     "71",
+     "--shard",
+     "2",
+     "--shards",
+     "3",
+     "--cap",
+     "50",
+     "--info",
+     "honest",
+     "--team-store",
+     "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+     "--out",
+     "solver/out/chomp/v1/gatec/shard-2.jsonl"
+    ],
+    "pool": {
+     "pool_source": {
+      "kind": "team-store",
+      "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+      "file_sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+      "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709"
+     },
+     "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+     "test_pairs": 173,
+     "picked": 200,
+     "ids_sha256": "f21ce24b63096dbd",
+     "counts": {
+      "scanned": 23473,
+      "bot": 158,
+      "bring_incomplete": 7179,
+      "sheet_not_six": 0,
+      "mixed_split": 5623,
+      "train": 10200,
+      "val": 140,
+      "test": 173
+     }
+    },
+    "counts": {
+     "games": 132,
+     "errors": 0,
+     "capped": 0,
+     "unbuildable": 0
+    },
+    "preview_arms": {
+     "picks": {
+      "chomp1": 132,
+      "human": 132
+     },
+     "chompCached": 0,
+     "chompInline": 0,
+     "chompFailed": 0,
+     "chomp1Solves": 132,
+     "chomp1Cached": 0,
+     "chomp1Failed": 0,
+     "chomp1Ms": 13841
+    },
+    "search": {
+     "decisions": 2468,
+     "playouts_mean": 198.76175040518638,
+     "playouts_p50": 90,
+     "unfilled_share": 0.0004316473694901483,
+     "ms_mean": 947.2289303079417
+    },
+    "agent_counters": {
+     "fallbacks": 0,
+     "decisions": 2472,
+     "searched": 2468,
+     "forced": 4
+    },
+    "honest_back": {
+     "back_xatu": 2472,
+     "back_none": 0,
+     "back_error": 0
+    },
+    "wall_s": 2377.133,
+    "shard_sha256": "52380cbedd3c42e49e48d5a16c4a83bec837a6fa5d014b2b264333498fe2c1d3"
+   }
+  ]
+ }
+}

@@ -21,6 +21,29 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.25.0] — 2026-09-29
+
+### Added
+- **CHOMP, the team-preview solver** (`solver/chomp/`). v0 (PORYGON2 v0 scores the 90 × 90 cells, SLOWKING solves them)
+  fails its bar and is kept as the baseline. **v1** (`solver/chomp/v1/`) learns the cell scorer from 25,008 targeted
+  DODUO-greedy games with varied brings, the gen5 self-play corpus and human games, solves the table with SLOWKING, and
+  adjusts games 2 and 3 of a series to what the opponent brought before. Pre-registered in
+  `solver/chomp/v1/preregistration.json`.
+- ROTOM `--preview chomp` serves CHOMP v1 (`CHOMP_VERSION=v0` for v0) with the fallback counted (`chomp:threw`). The
+  default is still `--preview policy`; no ladder arm uses CHOMP. Putting it on a ladder arm is Will's call.
+- Arena arm `chomp1` (`solver/chomp/arms.js`); a league spec's `preview` field in `solver/mew/play.js --mode match`.
+- `solver/tests/test-chomp.js`, `solver/tests/test-chomp1.js`.
+
+### Notes
+- **Gates, release `eaa5becc54eb`, `--info honest`, gen5 at 1 s, frozen pool:** (a) held-out Δlog-loss −0.0203
+  [−0.0309, −0.0108], PASS; (b) screen 0.625 [0.556, 0.689] over 200 games, PASS; (b) SPRT vs the human-modal preview,
+  **H1 at 524 games, 0.561 [0.518, 0.603]**; (c) vs the humans' own recorded bring, report-only, **0.470 [0.422, 0.519]**
+  over 400 games: no clear edge over the bring the humans chose for that matchup. `solver/results/2026-09-27-chomp-v1/`,
+  `docs/_reports/2026-09-27-chomp-v1.md`, `docs/_reports/2026-09-29-chomp-v1-landed.md`.
+- Not tested: v1 against v0 (the M8 exit test), and CHOMP on the ladder.
+
+---
+
 ## [1.24.1] — 2026-09-27
 
 ### Notes

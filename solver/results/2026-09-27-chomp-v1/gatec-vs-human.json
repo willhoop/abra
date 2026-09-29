@@ -1,0 +1,80 @@
+{
+ "files": [
+  "solver/out/chomp/v1/gatec/shard-0.jsonl",
+  "solver/out/chomp/v1/gatec/shard-1.jsonl",
+  "solver/out/chomp/v1/gatec/shard-2.jsonl"
+ ],
+ "games": 400,
+ "scored": 400,
+ "errors": 0,
+ "capped": 0,
+ "unbuildable": 0,
+ "W": 188,
+ "D": 0,
+ "L": 212,
+ "score_x": 0.47,
+ "ci95_x": [
+  0.42160601793747937,
+  0.5189647404985014
+ ],
+ "pairs": {
+  "both": 37,
+  "split": 114,
+  "lost": 49,
+  "n": 200,
+  "mean": 0.47,
+  "ci95": [
+   0.42463633490829067,
+   0.5153636650917093
+  ]
+ },
+ "preview": {
+  "games_with_preview": 400,
+  "arms": {
+   "chomp1:x": {
+    "picks": 400,
+    "fallbacks": 0,
+    "support_mean": 1.96,
+    "p_mean": 0.7133242499999999
+   },
+   "human:y": {
+    "picks": 400,
+    "fallbacks": 0,
+    "support_mean": null,
+    "p_mean": null
+   }
+  }
+ },
+ "search": [
+  {
+   "fallbacks": 0,
+   "decisions": 2438,
+   "honest": 2438,
+   "hon_views": 2438,
+   "hon_back_xatu": 2438,
+   "hon_back_error": 0,
+   "zero_playouts": 0,
+   "fallback_decisions": 0
+  },
+  {
+   "fallbacks": 0,
+   "decisions": 2450,
+   "honest": 2450,
+   "hon_views": 2450,
+   "hon_back_xatu": 2450,
+   "hon_back_error": 0,
+   "zero_playouts": 0,
+   "fallback_decisions": 0
+  },
+  {
+   "fallbacks": 0,
+   "decisions": 2472,
+   "honest": 2472,
+   "hon_views": 2472,
+   "hon_back_xatu": 2472,
+   "hon_back_error": 0,
+   "zero_playouts": 0,
+   "fallback_decisions": 1
+  }
+ ]
+}
