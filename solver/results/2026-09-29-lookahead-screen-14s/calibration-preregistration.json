@@ -1,0 +1,10 @@
+{
+ "what": "TIME-ONLY calibration for the equal-wall-clock SPRT. Written 2026-09-29 after the screen was read (screen-14s.json: PASS, but X/Y ms per searched decision 9,940 / 8,912 = 1.115 > the pre-registered 1.10, so the screen was NOT at equal wall-clock) and BEFORE the first calibration game.",
+ "question": "Which options-OFF adaptive target spends the same mean ms per searched decision as options-ON at target 14000 (9,940 ms in the screen)? Linear read of the two measured OFF points (target 12 s -> 8,165 ms in the stopped SPRT's clock, target 14 s -> 8,912 ms) gives ~16.8 s; 17 s is tried.",
+ "x": "solver/results/2026-09-29-lookahead-screen-14s/off-17s.json (options OFF, targetMs 17000, credit0Ms 5667 = target/3)",
+ "y": "solver/results/2026-09-29-lookahead-screen-14s/off-14s.json (options OFF, targetMs 14000)",
+ "why_this_opponent": "off-17s vs off-14s carries no information about the options hypothesis, so nothing the SPRT will test is peeked at. Its score is not read as evidence of anything.",
+ "command": "solver/machamp/gate.js --release eaa5becc54eb --x <off-17s> --y <off-14s> --pairs 20 --pair-seed 2 --seed 29102 --workers 4 --cap 50 --rule notlose --info honest --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --out solver/out/lookahead-14s/calib-off17.json",
+ "games": 40,
+ "rule": "MATCHED iff off-17s ms per searched decision is within 5% of 9,940 ms (9,443..10,437). Otherwise the SPRT command names a re-interpolated OFF target and says that it is unmeasured. Clock rule as the screen: 0 decisions over 55 s, 0 games over 420 s."
+}
