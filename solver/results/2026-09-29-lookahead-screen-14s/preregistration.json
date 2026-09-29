@@ -1,0 +1,35 @@
+{
+ "what": "SCREEN: the MILTANK deeper-lookahead options (quiesce 'all' + flatEps 0.001 + reserveNoRepeat) ON vs OFF, both arms on ROTOM's adaptive clock at targetMs 14000 (credit0Ms 4667 = target/3, the rule used at 2 s and 12 s). Written 2026-09-29 AFTER a 6-game smoke (not counted, score not used) and BEFORE the first screen game.",
+ "why": "Will, 2026-09-29: 'Lets do small test runs first before committing to a 38 hour one.' The owed item is the options SPRT at ~14 s adaptive (docs/_reports/2026-09-27-adaptive-clock.md section 8). The earlier ~10 s (target 12 s) SPRT, seed 27102, was stopped unread after 134 games at Will's stopping point; its shards are not read here.",
+ "engine_release": "eaa5becc54eb",
+ "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc (games.bo3.jsonl sha256 a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3, the same file as the 2 s screen), TEST pairs",
+ "information": "honest",
+ "x": "solver/results/2026-09-29-lookahead-screen-14s/on-14s.json",
+ "y": "solver/results/2026-09-29-lookahead-screen-14s/off-14s.json",
+ "arms_differ_only_in": ["quiesce", "flatEps", "reserveNoRepeat", "name"],
+ "smoke": {
+  "command": "solver/machamp/gate.js --release eaa5becc54eb --x <on-14s> --y <off-14s> --pairs 3 --pair-seed 29 --seed 29000 --workers 3 --cap 50 --rule notlose --info honest --team-store <store> --out solver/out/lookahead-14s/smoke.json",
+  "purpose": "per-game wall time, options firing, timeouts. Its score is NOT part of the screen and is not used.",
+  "measured": {
+   "games": 6, "errors": 0, "fallbacks": 0, "warnings": 0,
+   "wall_s_per_pair_by_worker": [244, 402, 585],
+   "wall_s_per_game_mean": 205,
+   "ms_per_searched_decision": { "x_on": 10490.3, "y_off": 8861.7 },
+   "max_decision_ms": { "x_on": 27706, "y_off": 27717 },
+   "bank_used_s_max": { "x_on": 176.7, "y_off": 175.3 },
+   "timeouts": { "decisions_over_55s": 0, "games_over_420s": 0 },
+   "rollout_quiesced": 165546,
+   "x_adaptive_stops": { "clear": 32, "hard": 28, "soft": 3 }
+  }
+ },
+ "screen": {
+  "command": "solver/machamp/gate.js --release eaa5becc54eb --x <on-14s> --y <off-14s> --pairs 100 --pair-seed 1 --seed 29101 --workers 4 --cap 50 --rule notlose --info honest --team-store <store> --out solver/out/lookahead-14s/screen-14s.json",
+  "games": 200,
+  "sizing": "205 s per game per worker (smoke) x 25 pairs x 2 games per worker at 4 workers = ~2.9 h. pair-seed 1 = the same 100 TEST pairs as the 2 s screen, so only the clock changed.",
+  "read": "ONCE, after all 200 games, with gate.js's result and solver/bench/adaptive_read.js.",
+  "pass_rule": "PASS iff the Wilson 95% upper bound of X's score is >= 0.5 AND X's point score is >= 0.47 (the stage-1 rule of solver/results/2026-09-27-adaptive-options/preregistration.json, unchanged). FAIL = do not run the SPRT; the options stay off.",
+  "clock_rule": "0 decisions over 55 s and 0 games over 420 s of decision time for EITHER arm; 0 fallbacks; rollout_quiesced > 0. A breach is a FAIL whatever the score.",
+  "equal_wall_clock_check": "Reported, not part of pass/fail: X/Y ms per searched decision. If the ratio exceeds 1.10 the screen is NOT at equal wall-clock (the smoke read 1.18), and the SPRT recommendation must say how it matches time (e.g. Y's target raised so the means agree) rather than run as is.",
+  "what_a_pass_means": "No loss shown at 200 games (the interval is about +/- 0.07): necessary for the SPRT, not evidence that the options are stronger. The SPRT (elo0 0, elo1 +20) decides that."
+ }
+}
