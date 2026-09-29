@@ -40,6 +40,20 @@ _stamped 2026-09-26 19:05_
 
 <!-- /GENERATED -->
 
+## REG M-C's GATE RELEASES ARE TRACKED, AND ITS FIRST PROVENANCE RATCHET EXITS 0. 2026-09-29 (abra/regmc 1.25.3)
+
+- **RULE 5 was red on the first Reg M-C run.** Twelve artifacts cited by living documents named releases that were not
+  in the repository: `4067de46a0ee` (the tree the gate artifacts were re-run on) and `eaa5becc54eb` (where the gate
+  opened). Both are now force-tracked. Each verifies 33/33 and opens from index bytes (`git checkout-index` into
+  scratch, then `verify`/`open` with `{store}`). Growth: 11 new blobs, 3.71 MB zlib at most.
+- **Three of the rows were not Reg M-B figures.** Under Reg M-C the artifact seam serves `data/<name>.json` from its
+  `-regmc` sibling, but `PUBLISHED_BY` is keyed on the name the document cites. So Reg M-B documents appear to cite Reg
+  M-C releases. The real Reg M-B stamps name `fb8073869b72`, which is untracked. A Reg M-C RULE 5 does not check Reg
+  M-B's chain.
+- **The first stamp of a regulation now names itself.** Before this, run 2 always failed the ratchet on
+  `provenance-stamp.json`. The fix was shown red, then green.
+- Full account and the owed commands: `docs/_reports/2026-09-29-untracked-releases.md`.
+
 ## #310 AND #442 ANSWER IN BOTH REGULATIONS. NEITHER CANNOT-ANSWER WAS THE ENGINE; REG M-B'S #442 RED IS A STALE CENSUS. 2026-09-24 (abra/regmc 0.100.3)
 
 - **Why they could not answer under Reg M-C.** Both instruments hardcoded Reg M-B: a forced `SHOWDOWN_PATH`, a

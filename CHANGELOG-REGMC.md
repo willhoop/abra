@@ -37,6 +37,27 @@ rewritten; what changed and why is stated.
   half, −0.0032 [−0.0078, +0.0018]. Against v1 on v1's own test rows, r1 is worse on humans (+0.0045 [+0.0005, +0.0090])
   and better on self-play (−0.0079 [−0.0136, −0.0022]). `solver/machamp/league/gen5.json` is unchanged.
 - MINOR: new figures, basis unchanged. `docs/_reports/2026-09-29-porygon2-v1-retrain.md`.
+## [1.25.3] — 2026-09-29
+
+### Fixed
+- **The Reg M-C gate's published figures can be re-opened from a clone.** `ABRA_REGULATION=regmc node
+  engine/provenance.js` exited 1 on RULE 5. Twelve artifacts cited by living documents were stamped with releases whose
+  `data/releases/<id>/` was not tracked: `eaa5becc54eb` (where the gate opened, 1.0.0) and `4067de46a0ee` (the tree the
+  gate artifacts were re-run on). Both are now force-tracked. From a checkout of the index bytes, each verifies 33/33 and
+  opens. Growth: 11 new blobs, 9.77 MB raw and 3.71 MB zlib. The largest file is 4.3 MB. `data/releases/** -text` was
+  already in place, so the CRLF files keep their bytes. `78fb4a85b1a0` is not tracked, because only two ledger rows name
+  it.
+- **The first provenance stamp of a regulation names itself.** On its first write, `provenance-stamp.json` did not exist,
+  so it was left out of `mtime_only_files`. The next run then reported `RATCHET BROKEN: provenance-stamp.json` and exited
+  1, and so did every run after it. `writeStampFile` now adds the file on the run that creates the stamp. This was shown
+  red (run 2 exited 1) and then green (two runs, both exit 0). Nothing changes for Reg M-B, whose stamp already lists
+  itself.
+- `data/provenance-stamp-regmc.json` is committed. It is Reg M-C's first ratchet baseline.
+
+### Notes
+- No published figure moves (PATCH). Under Reg M-C, the unsuffixed Reg M-B names are served from their `-regmc`
+  siblings, so RULE 5 run under Reg M-C does not check Reg M-B's chain. That chain cites `fb8073869b72`, which is also
+  untracked. Reg M-B is retired, and that release was not tracked here. `docs/_reports/2026-09-29-untracked-releases.md`.
 
 ## [1.25.2] — 2026-09-29
 

@@ -60,6 +60,28 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Supersedes.** Nothing published.
 - **Owed to the next major.** MODELS: PORYGON2 v1 and v1-r1, neither of them promoted.
 - **OWED, NOT RUN (commands).** In §OWED of `docs/_reports/2026-09-29-porygon2-v1-retrain.md`: v1's SPRT to a decision (4,000 games, seed 9103), and deep labels on c1.
+## [abra/regmc 1.25.3] — 2026-09-29 — **Reg M-C's gate releases are in the repository, and its provenance ratchet exits 0**
+- **What changed.**
+  - `data/releases/eaa5becc54eb/` and `data/releases/4067de46a0ee/` are force-tracked (`git add -f`, 70 paths).
+  - `engine/provenance.js` `writeStampFile` lists `provenance-stamp.json` itself on the run that first creates a
+    regulation's stamp.
+  - `data/provenance-stamp-regmc.json` is committed as Reg M-C's first ratchet baseline.
+- **Measured.** NO FIGURE.
+  - `ABRA_REGULATION=regmc node engine/provenance.js`: exit 1 (RULE 5, 12 hard-arm artifacts) → exit 0, *"every release
+    cited by an artifact a published document names is in the repository"*.
+  - Both releases verify 33/33 and open from `git checkout-index` bytes.
+  - The ratchet self-reference was red (run 2 exit 1, `RATCHET BROKEN: provenance-stamp.json`), then green (two fresh
+    runs, both exit 0).
+- **Growth budget.**
+  - Working tree: +18,964,210 B.
+  - History: 11 new blobs, 9,768,583 B raw, 3,709,788 B zlib (at most; delta compression shrinks it). The other 27 blobs
+    are already in HEAD.
+  - Largest file: 4.3 MB against the 100 MB wall. This is one-off; nothing grows.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none. This does not cover Reg M-B's chain: under Reg M-C the unsuffixed names alias to
+  `-regmc`, and Reg M-B cites `fb8073869b72`, which is untracked. `docs/_reports/2026-09-29-untracked-releases.md`
+  (OWED, NOT RUN).
 
 ## [abra/regmc 1.25.2] — 2026-09-29 — **`orient.js` reads the models from the solver registry, and exits 0 again**
 - **What changed.** `engine/orient.js` section 5 (THE MODELS) now parses the Name and Role columns of the `solver/PLAN.md` §2 registry table. Before, it parsed `docs/MODELS.md` for `**Job:**` lines and a pipeline table. The Reg M-C 1.0.0 docs pass (`ccf447fc`) removed both, so the section derived 0 models and the tool exited 1. The header comments name the new source.
