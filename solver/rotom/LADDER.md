@@ -49,6 +49,19 @@ is `prior`. Same pre-registered SPRT on the per-series residual. The paced send 
 node solver\rotom\run_ladder.js --public --name medicham32 --release eaa5becc54eb --arms solver\rotom\arms\gen5-vs-prior.json --ladder-seed medicham32-gen5ab-2026-09-26 --sets 50 --tag gen5ab --priority normal
 ```
 
+The CHOMP readiness run (added 2026-09-29): one arm, gen5 at 5 s exactly as gen5ab arm A, with CHOMP v1 at team preview.
+The arm names its preview (`"preview": "chomp"`), so the preview is in the plan digest and in every row's `arm_config`. No
+SPRT; read it with `report.js ladder` and the preview counters (`docs/_reports/2026-09-30-chomp-ladder-prep.md`):
+
+```cmd
+node solver\rotom\run_ladder.js --public --name medicham32 --release eaa5becc54eb --arms solver\rotom\arms\gen5-chomp.json --ladder-seed medicham32-chomp1-2026-09-30 --sets 20 --tag chomp1 --priority normal --max-hours 4
+```
+
+**An arm's `preview` (added 2026-09-29).** `"policy"` (the default: the move policy's preview, the team's own bring for
+`prior` and `miltank-gen5`) or `"chomp"` (CHOMP v1; a throw or an illegal answer falls to the team's bring, counted
+`chomp:threw` / `chomp:illegal`). The client flag `--preview` sets it for every arm that names none. Until 2026-09-29 the
+supervisor did not forward `--preview` at all.
+
 **`--priority normal` (added 2026-09-25).** The clients start through `tools\lownode.cmd` at BELOW_NORMAL. A client that
 searches must not be starved by other normal-priority work, so it raises its own decider to NORMAL. MILTANK's pool
 workers stay BELOW_NORMAL. MILTANK bounds its own decision (budget + 0.5 s), but it cannot bound a process that the

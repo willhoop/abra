@@ -8,6 +8,13 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-29
 
+### CHOMP ladder run prepared, not launched; `--preview chomp` was dropped by the supervisor (abra/regmc 1.30.0)
+- `run_ladder.js` never forwarded `--preview` to the client, so the documented one-flag launch would have played the
+  team's own bring with nothing reporting it. Fixed; an arm may now name its own `preview`, and the new arms file
+  `solver/rotom/arms/gen5-chomp.json` (gen5 at 5 s, CHOMP at preview, one arm) carries it into the plan digest and every
+  row. New `solver/tests/test-rotom-chomp-live.js` 13/13 (real client, scripted server: CHOMP's choice is sent), RED on
+  both breaks. The launch command is Will's. `docs/_reports/2026-09-30-chomp-ladder-prep.md`.
+
 ### Weighted chance in MILTANK's cells: correct, too expensive; flag off (abra/regmc 1.28.0)
 - Every die of the first turn enumerated by probability (thresholds found on the engine, stratified so unbiased).
   Matches the sampled mean on 24 of 24 pairs (|z| max 1.80). But one cell costs a median 138 stepped turns

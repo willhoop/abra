@@ -21,6 +21,31 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.30.0] — 2026-09-29
+
+### Fixed
+- **`solver/rotom/run_ladder.js` dropped `--preview chomp`.** The supervisor forwards a fixed list of flags to the
+  ladder client, and `preview`, `preview-max-ms` and `adaptive-target-ms` were not on it. The launch the CHOMP v1 report
+  named (`run_ladder.js ... --preview chomp`) would have played the rotation team's own bring on every preview, and
+  nothing would have said so. All three are now forwarded.
+- **A CHOMP preview was counted as a fallback.** Every preview CHOMP answered added `used:chomp` to the fallback
+  counters, because CHOMP is not the arm's move policy. It is no longer counted; CHOMP failing still is
+  (`chomp:threw`, `chomp:illegal`).
+
+### Added
+- **An arm may name its own preview** (`"preview": "chomp"` in an arms file; `solver/rotom/rotom.js`). It is then in
+  the plan digest and in every series row's `arm_config`, not only in a client flag. The summary gains `preview_by`
+  (which policy answered each preview), and each preview decision records `preview_mode`.
+- **`solver/rotom/arms/gen5-chomp.json`**: one arm, gen5 at 5 s exactly as gen5ab arm A, with CHOMP v1 at preview. A
+  readiness run, no SPRT. Prepared for Will, not launched (`docs/_reports/2026-09-30-chomp-ladder-prep.md`).
+- **`solver/tests/test-rotom-chomp-live.js`**: the real ladder client against a scripted local server, playing that
+  arms file: CHOMP's choice is sent to the battle room for the preview request and is legal, the row carries the
+  preview, and no fallback is counted. GREEN 13/13; RED with the preview removed from the arm and with a client that
+  reads only the flag.
+
+### Notes
+- No game was played on the public server. No published figure moves.
+
 ## [1.29.0] — 2026-09-29
 
 ### Changed

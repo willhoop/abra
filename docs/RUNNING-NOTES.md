@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.30.0] — 2026-09-29 — **The ladder supervisor dropped `--preview chomp`; fixed, and a CHOMP ladder run is prepared, not launched**
+- **What changed.** `solver/rotom/run_ladder.js` forwards `preview`, `preview-max-ms` and `adaptive-target-ms` to the client. `solver/rotom/rotom.js`: an arm's own `preview`, `preview_by` in the summary, `preview_mode` on the decision, and a CHOMP preview no longer counted as the fallback `used:chomp`. New arms file `solver/rotom/arms/gen5-chomp.json` and test `solver/tests/test-rotom-chomp-live.js`.
+- **Measured.** NO FIGURE. Test: GREEN 13/13, RED under both breaks (arm without `preview`; client reading the flag only). `test-rotom` 105/105, `test-rotom-ladder` 114/114, `test-chomp1` 32/32, `test-rotom-applied` 31/31, `test-rotom-throttle` 33/33, `test-rotom-endings` 59/59, `test-rotom-private-series` 25/25.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 1.29.0] — 2026-09-29 — **The Reg M-C interaction matrix, re-run after the harness fixes, agrees on every pair**
 - **What changed.** A full matrix re-run, plus `open_work.js` and `status.js --write`, all under `ABRA_REGULATION=regmc` in the main checkout. No code.
 - **Measured.** 1,685 LIVE pairs; 0 KO-timing, 0 INERT-case disagreements, 0 THREW (`data/interaction-matrix-regmc.json`).

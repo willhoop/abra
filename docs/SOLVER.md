@@ -79,6 +79,10 @@ This section says only what a division agent needs before it starts.
   the humans' own recorded bring (report-only) **0.470 [0.422, 0.519]**, no clear edge. ROTOM serves it under
   `--preview chomp`; the default preview is unchanged and no ladder arm uses it. `solver/results/2026-09-27-chomp-v1/`,
   `docs/_reports/2026-09-29-chomp-v1-landed.md`.
+- **CHOMP ladder run prepared, not launched (2026-09-29, abra/regmc 1.30.0).** `run_ladder.js` had dropped
+  `--preview` (fixed); an arm now names its own preview. Arms file `solver/rotom/arms/gen5-chomp.json`; proof the
+  choice is sent: `solver/tests/test-rotom-chomp-live.js`. Command for Will:
+  `docs/_reports/2026-09-30-chomp-ladder-prep.md`.
 - **CHOMP v0** (`solver/chomp/`, 2026-09-25, release `eaa5becc54eb`) **fails its bar**: its preview loses to
   the human bring (SPRT H0 accepted) and ties random. The PORYGON2 cells carry no bring signal.
   `docs/_reports/2026-09-25-chomp-v0.md`.
