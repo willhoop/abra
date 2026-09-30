@@ -53,6 +53,26 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.45.0] — 2026-09-30 — **CHOMP v2 (per-set spreads + field effects): gate (a) FAILS against v1, not promoted**
+- **What changed.**
+  - New `solver/chomp/v2/`:
+    - v1's 22 facts plus an 18-feature field block. Setters come from the tags; facts are recomputed by MEDICHAM
+      under the field.
+    - A per-set spread (ROTOM's rule with MEDICHAM oracles).
+    - The rows, the training, the scorer, `chomp2`, the pre-registrations and `fact_shift.js`.
+  - Arm `chomp2`. `buildBody` refuses an unknown ability instead of filling it.
+- **Measured.** Release `eaa5becc54eb`, frozen pool `792daded`. All from `docs/_reports/2026-09-30-chomp-v2.md`
+  (`solver/chomp/v2/model/chomp2.metrics.json`, `solver/out/chomp/v2/fact_shift.json`):
+  - Spread against the table stat line, 173 TEST sheet pairs (12,456 member pairs): speed order changes on 12.2%
+    (flips outright on 6.6%), KO-from-full on 14.9%, and the expected hit moves on 76% (mean |Δ| 0.087).
+  - The field: the room flips 95.7% of speed orders and own Tailwind 40.2%. Rain moves 20.8% of hits (KO 7.9%),
+    sun 18.3%, psychic terrain 10.1% and grassy terrain 7.1%.
+  - Gate (a), T1+T2 pooled: Δlog-loss v2 − v1 = **−0.0004 [−0.0032, +0.0024]**, n = 3,119, FAIL.
+    T3 (human): +0.0004 [−0.0036, +0.0042].
+- **Basis.** unchanged.
+- **Supersedes.** Nothing. CHOMP v1 stays the served preview.
+- **Owed to the next major.** MODELS: CHOMP v2 (built, gate (a) failed).
+
 ## [abra/regmc 1.44.0] — 2026-09-30 — **Ladder spreads: a fast species holds its speed tier; both rotations re-spread, teams unchanged**
 - **What changed.** `solver/rotom/spreads.js` `speedFor` works from the tiers, the 0.75 quantile and the heaviest
   flippable tier. `solver/rotom/teams/ladder-rotation.json` and `ladder-rotation-top.json` are re-spread (Stat Points

@@ -8,6 +8,13 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-30
 
+### CHOMP v2: spreads and field effects; gate (a) fails against v1 (abra/regmc 1.45.0)
+- The facts move a lot: a per-set spread changes 12% of speed orders, and the room flips 96% of them. The scorer does
+  not get better at predicting outcomes: VAL picked `flat+field`, and TEST Δ −0.0004 [−0.0032, +0.0024] is a FAIL.
+- The simulated outcomes were played at the engine table's stat line. The spread facts describe bodies those games
+  never fielded, and `set+field` lost on VAL.
+- `docs/_reports/2026-09-30-chomp-v2.md`.
+
 ### Spreads: fast species keep their Speed (abra/regmc 1.44.0)
 - Fast species (Sneasler, Gengar-Mega, Raichu-Mega) ran 0 Speed because they already beat the median uninvested.
 - Top-tier sets now run the cap. Everyone else buys the heaviest tier just under them. Both rotations are re-spread

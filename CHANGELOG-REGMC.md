@@ -21,6 +21,30 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.45.0] — 2026-09-30
+
+### Added
+- **CHOMP v2: per-set spreads and field effects in the preview scorer. Gate (a) FAILS against v1; nothing is promoted.**
+  - `solver/chomp/v2/` has v1's 22 engine facts plus an 18-feature field block. The setters are read from the release's
+    tags. Every field fact is recomputed by MEDICHAM under that field (weather, terrain, the speed-inverting room, the
+    side speed doubler).
+  - It also has a per-set spread: ROTOM's `spreads.js` rule, inherited, with its damage and speed tables from MEDICHAM.
+    That matches the Showdown-oracle spread on 20 of 20 test sets and costs about 0.25 s of CPU per set against 34 s.
+  - The rows are v1's 41,026 rows, row for row, and v1's 22 features are reproduced exactly on every row.
+  - Pre-registered (`solver/chomp/v2/preregistration.json`); v1 was re-scored exactly (VAL 0.653259).
+    - VAL selected `flat+field` / `lin` (0.65140 against v1's 0.65326). `set+field` did worse (0.65428).
+    - Gate (a) on TEST, T1+T2 pooled: Δlog-loss **−0.0004 [−0.0032, +0.0024]**, n = 3,119: **FAIL**.
+    - Break (shuffled labels): +0.0312, FAIL as required.
+  - Gate (b) is not pre-registered: `prereg_b.js` refuses on a failed (a).
+- **Arm `chomp2`** in `solver/chomp/arms.js`, and a scorer hook in `chomp1.js` (`o.scorer`). No ROTOM change.
+- `solver/tests/test-chomp2.js`: GREEN 30/30, and every one of its 5 deliberate breaks goes RED.
+
+### Fixed
+- **`solver/arena/teams.js` `buildBody` no longer fills an unknown ability silently** with the species' first ability.
+  - A declared legal ability is kept. A species with exactly one legal ability gets it.
+  - Otherwise the body is refused, unless the caller asks for the old fill by name. Every case is counted.
+  - 0 of 225,720 human-dataset sheet rows are affected.
+
 ## [1.44.0] — 2026-09-30
 
 ### Fixed
