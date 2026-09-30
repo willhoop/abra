@@ -52,5 +52,11 @@
   "data": "Rebuilt on the same parsed stores (bo1 sha256 341e5953c4c7..., bo3 3e5affee9991...): bo1 41,989 games / 286,770 positions, bo3 36,232 / 251,760 (solver/porygon2/v2/manifest-*.json). The data line of addendum_2026_09_30 is superseded by this one; every other clause of that addendum stands.",
   "gate_a_eligible": "bo3 TEST games with v1_unseen = true: 1,526 (10,733 positions). By min-rating band: <1100 577, 1100-1199 413, 1200-1299 160, >=1300 82, unrated 294. So the gating bands are <1100 and 1100-1199.",
   "checkpoint": "train.py writes a checkpoint every epoch and resumes from it; resuming does not change the selection rule."
+ },
+ "addendum_2026_09_30c": {
+  "when": "2026-09-30, after the second attempt was stopped at epoch 3 (k1) because the machine is CPU-starved at BelowNormal (about 2 ms per position forward, single thread), and BEFORE any stage-B model existed.",
+  "validation_rows": "Selection reads the selection format (A: bo1, B: bo3) on EVERY position of its val games, as before; the other format is scored on one FIXED position per val game and is reported only. The rows are fixed for the run.",
+  "early_stop": "Every arm stops after 6 epochs without a validation improvement (the text above says \"at most 30 epochs\"); the selected epoch is still the one with the lowest validation log-loss.",
+  "threads": "One torch thread per process (measured faster than 2, 4 or 8 on this loaded machine)."
  }
 }

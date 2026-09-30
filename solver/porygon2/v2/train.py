@@ -37,7 +37,7 @@ ap.add_argument('--wd', type=float, default=1e-4)
 ap.add_argument('--dropout', type=float, default=0.1)
 ap.add_argument('--bs', type=int, default=512)
 ap.add_argument('--seed', type=int, default=1)
-ap.add_argument('--threads', type=int, default=4)
+ap.add_argument('--threads', type=int, default=1)
 ap.add_argument('--replay-share', type=float, default=0.25)
 ap.add_argument('--unequal-weight', type=int, default=2)
 ap.add_argument('--no-aux', action='store_true')
@@ -107,9 +107,16 @@ def predict(D, games, bs=4096, no_rating=False, rows=None):
     return (np.concatenate(out), np.concatenate(Y)) if out else (np.zeros(0), np.zeros(0))
 
 
-def val_ll(D, games):
-    lg, y = predict(D, games, no_rating=args.no_rating)
+def val_ll(D, rows):
+    lg, y = predict(D, None, no_rating=args.no_rating, rows=rows)
     return float(NT.ll(lg, y).mean()), len(y)
+
+
+# VALIDATION ROWS, fixed for the run (2026-09-30, CPU budget): the SELECTION format (A: bo1, B: bo3) is scored on EVERY
+# position of its val games; the other format on one fixed position per val game, reported only. Fixed rows make the
+# epoch-to-epoch comparison exact rather than a fresh draw.
+val_rng = np.random.default_rng(1234)
+VROWS = {'bo1': bo1.rows_of(va1, 0 if args.stage == 'A' else 1, val_rng), 'bo3': bo3.rows_of(va3, 0 if args.stage == 'B' else 1, val_rng)}
 
 
 # a fixed train sample for the AlphaGo train-minus-val diagnostic
@@ -201,7 +208,7 @@ for ep in range(start_ep, args.epochs):
             l, parts = train_step(batches); tot += l; nb += 1
             for k, v in parts.items(): parts_tot[k] = parts_tot.get(k, 0) + v
     sched.step()
-    v1l, n1v = val_ll(bo1, va1); v3l, n3v = val_ll(bo3, va3)
+    v1l, n1v = val_ll(bo1, VROWS['bo1']); v3l, n3v = val_ll(bo3, VROWS['bo3'])
     lgd, yd = predict(TRD, None, rows=diag_rows, no_rating=args.no_rating); trd = float(NT.ll(lgd, yd).mean())
     sel = v1l if args.stage == 'A' else v3l
     rec = {'epoch': ep, 'train_loss': tot / max(1, nb), 'steps': nb, 'val_bo1': v1l, 'val_bo3': v3l, 'train_sample_ll': trd,
