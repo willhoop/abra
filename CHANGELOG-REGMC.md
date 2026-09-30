@@ -21,6 +21,109 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.44.0] — 2026-09-30
+
+### Fixed
+- **A fast species no longer runs 0 Speed.** The 1.35.0 rule gave a set that is neither Scarf/Tailwind nor Trick
+  Room the least Speed SP that beat the top-meta median (138). Sneasler, Gengar-Mega and Raichu already beat 138 with 0,
+  so they got 0 and lost to every invested member of their own tier. Two chomp1 OUTSPED losses followed.
+- The rule now works against the population's speed tiers (every member at the top of its speed options):
+  - a set whose cap speed reaches the 0.75 quantile of the tiers (172 on this store) runs the cap;
+  - otherwise it runs the least SP that beats the heaviest tier it can flip by investing;
+  - Scarf / Tailwind at the cap and Trick Room at 0 are unchanged.
+- **Both rotations re-spread** with `solver/rotom/respread.js`, on the same store sha as before (`fe78202a`). The
+  teams are unchanged. For example Sneasler 0 → 32 Speed SP (speed 172), Gengar-Mega 0 → 32 (200), Raichu-Mega 0 → 32
+  (200) and Froslass-Mega → 32 (189). Middle-speed sets now buy the tier just under them (Incineroar 23, Kingambit 11).
+- The population re-read at floor 1410 with 150 teams, where the old record said 1409 and 148. The same store now
+  filters differently since the store-quality change of 1.36.0. Both files record the new population.
+
+### Added
+- `solver/tests/test-rotom-spreads.js` TIER clause: every such set runs `speedFor` on the file's own recorded tiers,
+  and no top-tier set runs below the cap. Red under `--break tier` and `SPREADS_BREAK=median`. GREEN 27 of 27,
+  including REPRODUCE on the recorded store.
+
+## [1.43.0] — 2026-09-30
+
+### Fixed
+- **Weather, terrain and room clocks are no longer one turn short for a lead or a post-residual set.** The old path
+  computed turns left as duration minus (turn - turn set). A weather or terrain set by a lead, or by a replacement after
+  the residual, has had no tick by the next turn, so it was laid one short.
+  - Example: a lead Sand Stream or Psychic Surge lasts to the residual of turn 5, so 5 turns are left at turn 1. The old
+    path laid 4.
+  - The field is now laid from the log (`layField`): each clock is the condition's duration, asked with the setter's
+    current item, minus the residuals since it was set.
+  - Magic Room, Wonder Room and Fairy Lock are laid too.
+
+### Added
+- `solver/tests/test-rotom-world-clocks.js` FIELD clause. At every turn start of five chomp1 games, each weather,
+  terrain, Trick Room and Tailwind clock the world lays is held against the turns the server let it run. 22 compared,
+  15 lead-set, 0 mismatches. Red under `ROTOM_WORLD_BREAK=turnclock` (12 mismatches).
+
+## [1.42.0] — 2026-09-30
+
+### Fixed
+- **Entry hazards now go where the engine reads them.** `solver/rotom/world.js` wrote Stealth Rock, Spikes, Toxic
+  Spikes and Sticky Web into `sf.sc`, but the engine lays and reads hazards only in `sf.hz`. So in every ROTOM world a
+  hazard did nothing: a switch-in took no Toxic Spikes poison and no Stealth Rock chip.
+  - Now laid in `sf.hz` with their layers. The membership is the dex's: a foe-side condition with a switch-in effect.
+  - Replay of AngryGator g3 turn 3 (chomp1): Toxic Spikes from Glimmora's Toxic Debris is on our side. Switching
+    Rillaboom in now poisons it in the engine, as the server did. Before the fix it did not.
+
+### Added
+- `solver/tests/test-rotom-world-clocks.js` HAZARDS clause. Red under `ROTOM_WORLD_BREAK=hzsc`, 2 of 18.
+
+## [1.41.0] — 2026-09-30
+
+### Fixed
+- **ROTOM's world now carries an ability changed mid-battle.** In pandywulu g1 turn 8 the server refused our
+  `switch 4` because our Incineroar was trapped. Espeon had Skill Swapped our Gengar-Mega's Shadow Tag on turn 6, and
+  the world still gave Espeon its sheet's Magic Bounce.
+  - Rebuilt from the saved log, the world now gives Espeon Shadow Tag and our Gengar-Mega Defiant (restoring Shadow Tag
+    on a switch).
+  - The engine now offers Incineroar 0 switches. Before the fix it offered 1, the one ROTOM chose.
+- The trap cannot come from the request: Showdown's Shadow Tag traps with `tryTrap(true)`, which the request hides.
+- Read from the log: Skill Swap in both directions (an ally swap names no ability, so the held ones swap), any
+  `-ability` carrying `[from]` (Trace, Role Play, Entrainment, Worry Seed, Simple Beam, Wandering Spirit), Mummy,
+  Gastro Acid (`_abParked`) and the reset a mega forme makes.
+- For my side the request's `ability` and `baseAbility` win (`_preAb`). Neutralizing Gas has no legal Reg M-C species
+  and is out of scope.
+
+### Added
+- `solver/tests/test-rotom-world-clocks.js` ABILITY clause. Red under `ROTOM_WORLD_BREAK=noability`, 3 of 16.
+
+## [1.40.0] — 2026-09-30
+
+### Fixed
+- **ROTOM's world now lays the Perish count.** In sdkvndfv g1 turn 4 the search valued 0.844 with both our actives at
+  perish 1, and the server fainted both. Rebuilt from that game's saved log, the world now lays `_perish` 1 on both, and
+  one engine step from it faints both.
+- **The rest of the class is laid from the same log walk** (`solver/rotom/world_log.js`, new):
+  - Taunt, Encore (with its move and lock), Disable (with its move), Heal Block, Throat Chop and every other volatile a
+    legal move starts. The duration is the dex's, and the turn adjustment is read from the condition's own `onStart`.
+  - Substitute, Leech Seed, confusion, partial and hard traps, Yawn, sleep ticks, the toxic stage and a Choice lock.
+  - Each goes on the engine field `engine/board_state.js` reads for it.
+
+### Added
+- `solver/tests/test-rotom-world-clocks.js`: PERISH (the replay above), CLOCKS (the engine's menu honours a laid Taunt
+  and Encore) and AUDIT (every board leaf is CARRIED or OWED). Red under `ROTOM_WORLD_BREAK=noclocks`, 11 of 13.
+- `solver/tests/ladder_replay.js` rebuilds a world from a saved ladder log. The two post-mortem games are fixtures.
+- Account: `docs/_reports/2026-09-30-rotom-world-fixes.md`.
+
+## [1.39.0] — 2026-09-30
+
+### Added
+- **A post-mortem of the ladder losses.** Every chomp1 game lost without a forfeit (26) has a hand-read turning point
+  and one mechanism class:
+  - VISIBLE_KO 5, SPEED_CONTROL 5, SUCKER_PUNCH 4, OUTSPED 4;
+  - SETUP 3, BEHIND_FROM_PREVIEW 3, UNSEEN_ACTION 1, PERISH 1.
+  - No loss was a timeout or a chosen-versus-applied mismatch.
+- **The root value is +0.19 too high in [0.5, 0.9)**, 95% game-clustered CI [0.06, 0.32]. That is 668 ladder
+  decisions in 90 games from both search-arm runs.
+- **PORYGON2 v2 with depth addresses 13 of the 26.** The 1.35.0 spreads address 2. Sucker Punch (4) and the missing
+  Perish count (1) have no planned fix.
+- Files: `solver/results/2026-09-30-ladder-loss-postmortem/`: `postmortem.js` (read-only, derives `measured.json`)
+  and `classifications.json`. Account: `docs/_reports/2026-09-30-ladder-loss-postmortem.md`.
+
 ## [1.38.0] — 2026-09-30
 
 ### Fixed

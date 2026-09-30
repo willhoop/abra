@@ -1,0 +1,172 @@
+|title|medicham32 vs. sbsbsh
+|j|☆medicham32
+|j|☆sbsbsh
+|html|<table width="100%"><tr><td align="left">medicham32</td><td align="right">sbsbsh</tr><tr><td align="left"><i class="fa fa-circle-o"></i> <i class="fa fa-circle-o"></i> </td><td align="right"><i class="fa fa-circle-o"></i> <i class="fa fa-circle-o"></i> </tr></table>
+|uhtml|bestof|<h2><strong>Game 1</strong> of <a href="/game-bestof3-gen9championsvgc2026regmcbo3-2690128110">a best-of-3</a></h2>
+|t:|1790726529
+|gametype|doubles
+|player|p1|medicham32|101|1129
+|player|p2|sbsbsh|266|1040
+|gen|9
+|tier|[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)
+|rated|
+|rule|Species Clause: Limit one of each Pokémon
+|rule|Item Clause: Limit 1 of each item
+|clearpoke
+|poke|p1|Corviknight, L50, F|
+|poke|p1|Tyranitar, L50, F|
+|poke|p1|Sneasler, L50, M|
+|poke|p1|Indeedee, L50, M|
+|poke|p1|Salamence, L50, M|
+|poke|p1|Excadrill, L50, F|
+|poke|p2|Hydreigon, L50, M|
+|poke|p2|Typhlosion-Hisui, L50, F|
+|poke|p2|Indeedee, L50, M|
+|poke|p2|Sneasler, L50, M|
+|poke|p2|Floette-Eternal, L50, F|
+|poke|p2|Lopunny, L50, F|
+|teampreview|4
+|showteam|p1|Corviknight||PsychicSeed|MirrorArmor|BraveBird,PowerTrip,Roost,BulkUp|Impish||F|||50|]Tyranitar||Tyranitarite|SandStream|RockSlide,KnockOff,LowKick,Protect|Jolly||F|||50|]Sneasler||WhiteHerb|Unburden|CloseCombat,DireClaw,Coaching,Protect|Adamant||M|||50|]Indeedee||ChoiceScarf|PsychicSurge|ExpandingForce,MysticalFire,Trick,Protect|Modest||M|||50|]Salamence||Salamencite|Intimidate|HyperVoice,DracoMeteor,Flamethrower,Protect|Timid||M|||50|]Excadrill||FocusSash|SandRush|IronHead,HighHorsepower,RockSlide,Protect|Adamant||F|||50|
+|showteam|p2|Hydreigon||ChoiceScarf|Levitate|DracoMeteor,DarkPulse,Flamethrower,Tailwind|Modest||M|||50|]Typhlosion-Hisui||Charcoal|Blaze|Eruption,BurnUp,ShadowBall,Protect|Timid||F|||50|]Indeedee||LifeOrb|PsychicSurge|ExpandingForce,HyperVoice,HelpingHand,Protect|Timid||M|||50|]Sneasler||PsychicSeed|Unburden|FakeOut,CloseCombat,DireClaw,Protect|Adamant||M|||50|]Floette-Eternal||Floettite|FlowerVeil|LightofRuin,DazzlingGleam,Moonblast,Protect|Timid||F|||50|]Lopunny||Lopunnite|Limber|FakeOut,CloseCombat,AfterYou,Protect|Jolly||F|||50|
+|
+|t:|1790726581
+|teamsize|p1|4
+|teamsize|p2|4
+|start
+|switch|p1a: Tyranitar|Tyranitar, L50, F|207/207
+|switch|p1b: Indeedee|Indeedee, L50, M|167/167
+|switch|p2a: Floette|Floette-Eternal, L50, F|100/100
+|switch|p2b: Hydreigon|Hydreigon, L50, M|100/100
+|-fieldstart|move: Psychic Terrain|[from] ability: Psychic Surge|[of] p1b: Indeedee
+|-weather|Sandstorm|[from] ability: Sand Stream|[of] p1a: Tyranitar
+|turn|1
+|
+|t:|1790726607
+|switch|p1b: Excadrill|Excadrill, L50, F|217/217
+|detailschange|p2a: Floette|Floette-Mega, L50, F
+|-mega|p2a: Floette|Floette|Floettite
+|-ability|p2a: Floette|Fairy Aura
+|move|p1a: Tyranitar|Protect|p1a: Tyranitar
+|-singleturn|p1a: Tyranitar|Protect
+|move|p2b: Hydreigon|Dark Pulse|p1b: Excadrill
+|-damage|p1b: Excadrill|109/217
+|move|p2a: Floette|Dazzling Gleam|p1a: Tyranitar|[spread] p1b
+|-activate|p1a: Tyranitar|move: Protect
+|-resisted|p1b: Excadrill|1
+|-damage|p1b: Excadrill|55/217
+|
+|-weather|Sandstorm|[upkeep]
+|-damage|p2b: Hydreigon|94/100|[from] Sandstorm
+|-damage|p2a: Floette|94/100|[from] Sandstorm
+|upkeep
+|turn|2
+|
+|t:|1790726626
+|move|p2a: Floette|Protect|p2a: Floette
+|-singleturn|p2a: Floette|Protect
+|move|p2b: Hydreigon|Dark Pulse|p1b: Excadrill
+|-damage|p1b: Excadrill|0 fnt
+|faint|p1b: Excadrill
+|move|p1a: Tyranitar|Low Kick|p2b: Hydreigon
+|-supereffective|p2b: Hydreigon|1
+|-damage|p2b: Hydreigon|18/100
+|
+|-weather|Sandstorm|[upkeep]
+|-damage|p2b: Hydreigon|12/100|[from] Sandstorm
+|-damage|p2a: Floette|88/100|[from] Sandstorm
+|upkeep
+|
+|t:|1790726631
+|switch|p1b: Sneasler|Sneasler, L50, M|187/187
+|turn|3
+|
+|t:|1790726655
+|move|p2b: Hydreigon|Dark Pulse|p1b: Sneasler
+|-resisted|p1b: Sneasler|1
+|-damage|p1b: Sneasler|139/187
+|move|p2a: Floette|Dazzling Gleam|p1a: Tyranitar|[spread] p1a,p1b
+|-supereffective|p1a: Tyranitar|1
+|-damage|p1a: Tyranitar|93/207
+|-damage|p1b: Sneasler|34/187
+|move|p1b: Sneasler|Dire Claw|p2a: Floette
+|-supereffective|p2a: Floette|1
+|-damage|p2a: Floette|0 fnt
+|faint|p2a: Floette
+|move|p1a: Tyranitar|Low Kick|p2b: Hydreigon
+|-supereffective|p2b: Hydreigon|1
+|-damage|p2b: Hydreigon|0 fnt
+|faint|p2b: Hydreigon
+|
+|-weather|Sandstorm|[upkeep]
+|-damage|p1b: Sneasler|23/187|[from] Sandstorm
+|upkeep
+|
+|t:|1790726672
+|switch|p2a: Sneasler|Sneasler, L50, M|100/100
+|switch|p2b: Indeedee|Indeedee, L50, M|100/100
+|-enditem|p2a: Sneasler|Psychic Seed
+|-boost|p2a: Sneasler|spd|1|[from] item: Psychic Seed
+|turn|4
+|
+|t:|1790726688
+|move|p1b: Sneasler|Protect|p1b: Sneasler
+|-singleturn|p1b: Sneasler|Protect
+|move|p1a: Tyranitar|Protect|p1a: Tyranitar
+|-singleturn|p1a: Tyranitar|Protect
+|move|p2a: Sneasler|Close Combat|p1a: Tyranitar
+|-activate|p1a: Tyranitar|move: Protect
+|move|p2b: Indeedee|Expanding Force|p1a: Tyranitar|[spread] 
+|-activate|p1a: Tyranitar|move: Protect
+|-activate|p1b: Sneasler|move: Protect
+|
+|-weather|Sandstorm|[upkeep]
+|-damage|p2a: Sneasler|94/100|[from] Sandstorm
+|-damage|p2b: Indeedee|94/100|[from] Sandstorm
+|-damage|p1b: Sneasler|12/187|[from] Sandstorm
+|upkeep
+|turn|5
+|
+|t:|1790726705
+|switch|p1b: Indeedee|Indeedee, L50, M|167/167
+|detailschange|p1a: Tyranitar|Tyranitar-Mega, L50, F
+|-mega|p1a: Tyranitar|Tyranitar|Tyranitarite
+|move|p2b: Indeedee|Protect|p2b: Indeedee
+|-singleturn|p2b: Indeedee|Protect
+|move|p2a: Sneasler|Close Combat|p1a: Tyranitar
+|-supereffective|p1a: Tyranitar|2
+|-crit|p1a: Tyranitar
+|-damage|p1a: Tyranitar|0 fnt
+|-unboost|p2a: Sneasler|def|1
+|-unboost|p2a: Sneasler|spd|1
+|faint|p1a: Tyranitar
+|
+|-weather|none
+|-fieldend|move: Psychic Terrain
+|upkeep
+|
+|t:|1790726705
+|switch|p1a: Sneasler|Sneasler, L50, M|12/187
+|turn|6
+|
+|t:|1790726723
+|move|p2a: Sneasler|Protect|p2a: Sneasler
+|-singleturn|p2a: Sneasler|Protect
+|move|p1b: Indeedee|Expanding Force|p2a: Sneasler
+|-activate|p2a: Sneasler|move: Protect
+|move|p2b: Indeedee|Hyper Voice|p1a: Sneasler|[spread] p1a,p1b
+|-damage|p1a: Sneasler|0 fnt
+|-damage|p1b: Indeedee|92/167
+|faint|p1a: Sneasler
+|-damage|p2b: Indeedee|84/100|[from] item: Life Orb
+|
+|upkeep
+|turn|7
+|
+|t:|1790726736
+|move|p2a: Sneasler|Close Combat|p1b: Indeedee
+|-damage|p1b: Indeedee|0 fnt
+|-unboost|p2a: Sneasler|def|1
+|-unboost|p2a: Sneasler|spd|1
+|faint|p1b: Indeedee
+|
+|win|sbsbsh

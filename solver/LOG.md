@@ -8,6 +8,46 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-30
 
+### Spreads: fast species keep their Speed (abra/regmc 1.44.0)
+- Fast species (Sneasler, Gengar-Mega, Raichu-Mega) ran 0 Speed because they already beat the median uninvested.
+- Top-tier sets now run the cap. Everyone else buys the heaviest tier just under them. Both rotations are re-spread
+  with the teams unchanged.
+- No series has been played on the new spreads; the command is Will's.
+
+### ROTOM's world: field clocks counted in residuals (abra/regmc 1.43.0)
+- Lead-set weather and terrain were laid one turn short. The world's clocks now count residuals.
+- Checked against the server on 22 field clocks from five real ladder games, with 0 mismatches. The old path got 12
+  of them wrong.
+
+### ROTOM's world: entry hazards in sf.hz (abra/regmc 1.42.0)
+- Every hazard in every ROTOM world sat in the wrong field (`sf.sc`), so the search never saw hazard damage.
+- Now in `sf.hz`. Replayed on the real log, Rillaboom switching into Toxic Spikes is poisoned, as on the server.
+
+### ROTOM's world carries ability changes (the Skill-Swapped Shadow Tag) (abra/regmc 1.41.0)
+- The post-mortem's refused switch (pandywulu g1 t8) was a Skill-Swapped Shadow Tag the world did not carry.
+- Replayed on the real log, Espeon now holds Shadow Tag, and the engine offers our Incineroar no switch, as the server
+  decided.
+
+### ROTOM's world carries Perish and the volatile class (abra/regmc 1.40.0)
+- The world now carries the Perish count (the post-mortem's PERISH loss) and the rest of the log-visible volatile class.
+  Replayed on the real chomp1 log, turn 4 now lays perish 1 on both our actives, and one engine step faints both, as
+  the server did.
+- `solver/rotom/world_log.js` `CARRIED` / `OWED` is the audited list. The test fails on any engine board leaf that is
+  in neither.
+- Detail: `docs/_reports/2026-09-30-rotom-world-fixes.md`.
+
+### Ladder loss post-mortem: why ROTOM loses the series it plays out (abra/regmc 1.39.0)
+- The 26 chomp1 losses without a forfeit, by the mechanism at the turning point:
+  - VISIBLE_KO 5, SPEED_CONTROL 5, SUCKER_PUNCH 4, OUTSPED 4;
+  - SETUP 3, BEHIND_FROM_PREVIEW 3, UNSEEN_ACTION 1, PERISH 1.
+  - No timeouts. The one applied mismatch came after its game's turning point.
+- The root value is +0.19 too high in [0.5, 0.9), CI [0.06, 0.32], on 668 ladder decisions in 90 games. It is
+  calibrated below 0.1 and above 0.9.
+- PORYGON2 v2 with depth addresses 13 of the 26. The 1.35.0 spreads address 2 (Scarf Basculegion).
+- Unowned: Sucker Punch into Protect or status (10 of 20 failed in losses). Also unowned: ROTOM's world lays no
+  Perish count and no Skill-Swapped ability.
+- `solver/results/2026-09-30-ladder-loss-postmortem/`, `docs/_reports/2026-09-30-ladder-loss-postmortem.md`.
+
 ### PORYGON2 v2: design pre-registered, datasets built, nothing trained (abra/regmc 1.37.0)
 - The value is over the public state. Each unrevealed field is an UNK token, never a prior. Both ratings are inputs
   (Maia-2 form), queried at 1600.

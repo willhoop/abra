@@ -1,0 +1,156 @@
+|title|Jaylek vs. medicham32
+|j|☆Jaylek
+|j|☆medicham32
+|html|<table width="100%"><tr><td align="left">Jaylek</td><td align="right">medicham32</tr><tr><td align="left"><i class="fa fa-circle-o"></i> <i class="fa fa-circle-o"></i> </td><td align="right"><i class="fa fa-circle-o"></i> <i class="fa fa-circle-o"></i> </tr></table>
+|uhtml|bestof|<h2><strong>Game 1</strong> of <a href="/game-bestof3-gen9championsvgc2026regmcbo3-2690154482-xyn1fpf3ed5q7nc5dt2hi71eyvwhy5tpw">a best-of-3</a></h2>
+|t:|1790730471
+|gametype|doubles
+|player|p1|Jaylek|aaron|1147
+|player|p2|medicham32|101|1100
+|gen|9
+|tier|[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)
+|rated|
+|rule|Species Clause: Limit one of each Pokémon
+|rule|Item Clause: Limit 1 of each item
+|clearpoke
+|poke|p1|Scovillain, L50, F|
+|poke|p1|Indeedee, L50, M|
+|poke|p1|Gholdengo, L50|
+|poke|p1|Annihilape, L50, M|
+|poke|p1|Sylveon, L50, F|
+|poke|p1|Salamence, L50, M|
+|poke|p2|Indeedee-F, L50, F|
+|poke|p2|Gardevoir, L50, F|
+|poke|p2|Sneasler, L50, F|
+|poke|p2|Basculegion, L50, M|
+|poke|p2|Pelipper, L50, M|
+|poke|p2|Archaludon, L50, F|
+|teampreview|4
+|showteam|p1|Scovillain||Scovillainite|Moody|Overheat,LeechSeed,RagePowder,Protect|Calm||F|||50|]Indeedee||ChoiceScarf|PsychicSurge|ExpandingForce,MysticalFire,AfterYou,TrickRoom|Timid||M|||50|]Gholdengo||LifeOrb|GoodasGold|MakeItRain,ShadowBall,NastyPlot,Protect|Timid|||||50|]Annihilape||PsychicSeed|Defiant|CloseCombat,ShadowClaw,RockSlide,Protect|Jolly||M|||50|]Sylveon||FairyFeather|Pixilate|HyperVoice,HyperBeam,MysticalFire,Detect|Modest||F|||50|]Salamence||Salamencite|Intimidate|HyperVoice,DracoMeteor,Flamethrower,Protect|Timid||M|||50|
+|showteam|p2|Indeedee-F||SitrusBerry|PsychicSurge|TrickRoom,FollowMe,HelpingHand,Psychic|Bold||F|||50|]Gardevoir||Gardevoirite|Synchronize|HyperVoice,ExpandingForce,Protect,ShadowBall|Modest||F|||50|]Sneasler||PsychicSeed|Unburden|CloseCombat,DireClaw,RockTomb,Protect|Adamant||F|||50|]Basculegion||ChoiceScarf|Adaptability|WaveCrash,AquaJet,FlipTurn,LastRespects|Jolly||M|||50|]Pelipper||FocusSash|Drizzle|WeatherBall,Tailwind,Hurricane,Protect|Modest||M|||50|]Archaludon||Leftovers|Stamina|DragonPulse,FlashCannon,ElectroShot,Protect|Modest||F|||50|
+|
+|t:|1790730522
+|teamsize|p1|4
+|teamsize|p2|4
+|start
+|switch|p1a: Scovillain|Scovillain, L50, F|100/100
+|switch|p1b: Gholdengo|Gholdengo, L50|100/100
+|switch|p2a: Gardevoir|Gardevoir, L50, F|175/175
+|switch|p2b: Pelipper|Pelipper, L50, M|167/167
+|-weather|RainDance|[from] ability: Drizzle|[of] p2b: Pelipper
+|turn|1
+|
+|t:|1790730531
+|detailschange|p2a: Gardevoir|Gardevoir-Mega, L50, F
+|-mega|p2a: Gardevoir|Gardevoir|Gardevoirite
+|detailschange|p1a: Scovillain|Scovillain-Mega, L50, F
+|-mega|p1a: Scovillain|Scovillain|Scovillainite
+|move|p1a: Scovillain|Rage Powder|p1a: Scovillain
+|-singleturn|p1a: Scovillain|move: Rage Powder
+|move|p1b: Gholdengo|Nasty Plot|p1b: Gholdengo
+|-boost|p1b: Gholdengo|spa|2
+|move|p2a: Gardevoir|Shadow Ball|p1a: Scovillain
+|-damage|p1a: Scovillain|67/100
+|-status|p2a: Gardevoir|brn|[from] ability: Spicy Spray|[of] p1a: Scovillain
+|move|p2b: Pelipper|Hurricane|p1a: Scovillain
+|-supereffective|p1a: Scovillain|1
+|-damage|p1a: Scovillain|0 fnt
+|-status|p2b: Pelipper|brn|[from] ability: Spicy Spray|[of] p1a: Scovillain
+|faint|p1a: Scovillain
+|
+|-weather|RainDance|[upkeep]
+|-damage|p2a: Gardevoir|165/175 brn|[from] brn
+|-damage|p2b: Pelipper|157/167 brn|[from] brn
+|upkeep
+|
+|t:|1790730542
+|switch|p1a: Indeedee|Indeedee, L50, M|100/100
+|-fieldstart|move: Psychic Terrain|[from] ability: Psychic Surge|[of] p1a: Indeedee
+|turn|2
+|
+|t:|1790730548
+|move|p1a: Indeedee|Expanding Force|p2b: Pelipper|[spread] p2a,p2b
+|-resisted|p2a: Gardevoir|1
+|-damage|p2a: Gardevoir|129/175 brn
+|-damage|p2b: Pelipper|25/167 brn
+|move|p1b: Gholdengo|Shadow Ball|p2a: Gardevoir
+|-supereffective|p2a: Gardevoir|1
+|-damage|p2a: Gardevoir|0 fnt
+|faint|p2a: Gardevoir
+|-damage|p1b: Gholdengo|90/100|[from] item: Life Orb
+|move|p2b: Pelipper|Weather Ball|p1a: Indeedee
+|-damage|p1a: Indeedee|1/100
+|
+|-weather|RainDance|[upkeep]
+|-damage|p2b: Pelipper|15/167 brn|[from] brn
+|upkeep
+|
+|t:|1790730553
+|switch|p2a: Basculegion|Basculegion, L50, M|227/227
+|turn|3
+|
+|t:|1790730572
+|switch|p2b: Archaludon|Archaludon, L50, F|197/197
+|move|p1a: Indeedee|Expanding Force|p2a: Basculegion|[spread] p2a,p2b
+|-resisted|p2b: Archaludon|1
+|-damage|p2a: Basculegion|100/227
+|-damage|p2b: Archaludon|128/197
+|-ability|p2b: Archaludon|Stamina|boost
+|-boost|p2b: Archaludon|def|1
+|move|p2a: Basculegion|Last Respects|p1b: Gholdengo
+|-supereffective|p1b: Gholdengo|1
+|-damage|p1b: Gholdengo|0 fnt
+|faint|p1b: Gholdengo
+|
+|-weather|RainDance|[upkeep]
+|-heal|p2b: Archaludon|140/197|[from] item: Leftovers
+|upkeep
+|
+|t:|1790730576
+|switch|p1b: Sylveon|Sylveon, L50, F|100/100
+|turn|4
+|
+|t:|1790730583
+|move|p1a: Indeedee|Expanding Force|p2b: Archaludon|[spread] p2a,p2b
+|-resisted|p2b: Archaludon|1
+|-damage|p2a: Basculegion|0 fnt
+|-damage|p2b: Archaludon|78/197
+|-ability|p2b: Archaludon|Stamina|boost
+|-boost|p2b: Archaludon|def|1
+|faint|p2a: Basculegion
+|move|p2b: Archaludon|Electro Shot||[still]
+|-prepare|p2b: Archaludon|Electro Shot
+|-boost|p2b: Archaludon|spa|1
+|-anim|p2b: Archaludon|Electro Shot|p1b: Sylveon
+|-damage|p1b: Sylveon|50/100g
+|move|p1b: Sylveon|Hyper Voice|p2b: Archaludon
+|-damage|p2b: Archaludon|0 fnt
+|faint|p2b: Archaludon
+|
+|-weather|RainDance|[upkeep]
+|upkeep
+|
+|t:|1790730588
+|switch|p2b: Pelipper|Pelipper, L50, M|15/167 brn
+|turn|5
+|
+|t:|1790730593
+|move|p2b: Pelipper|Protect|p2b: Pelipper
+|-singleturn|p2b: Pelipper|Protect
+|move|p1a: Indeedee|Expanding Force|p2b: Pelipper
+|-activate|p2b: Pelipper|move: Protect
+|move|p1b: Sylveon|Hyper Voice|p2b: Pelipper
+|-activate|p2b: Pelipper|move: Protect
+|
+|-weather|none
+|-damage|p2b: Pelipper|5/167 brn|[from] brn
+|upkeep
+|turn|6
+|
+|t:|1790730598
+|move|p1a: Indeedee|Expanding Force|p2b: Pelipper
+|-crit|p2b: Pelipper
+|-damage|p2b: Pelipper|0 fnt
+|faint|p2b: Pelipper
+|
+|win|Jaylek

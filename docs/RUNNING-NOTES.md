@@ -53,6 +53,85 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.44.0] — 2026-09-30 — **Ladder spreads: a fast species holds its speed tier; both rotations re-spread, teams unchanged**
+- **What changed.** `solver/rotom/spreads.js` `speedFor` works from the tiers, the 0.75 quantile and the heaviest
+  flippable tier. `solver/rotom/teams/ladder-rotation.json` and `ladder-rotation-top.json` are re-spread (Stat Points
+  only). `test-rotom-spreads.js` gains a TIER clause.
+- **Measured.**
+  - Top-tier speed 172. Median still 138.
+  - Of 48 sets that are neither Scarf/Tailwind nor Trick Room, 16 are top tier and now run 32 Speed SP.
+  - Sneasler, Gengar-Mega and Raichu-Mega went from 0 to 32.
+  - `test-rotom-spreads.js` GREEN 27 of 27, REPRODUCE included. RED under `--break tier` (17 of 19) and
+    `SPREADS_BREAK=median` (24 of 27).
+  - Population: floor 1410, 150 teams (was 1409 and 148), on the same store sha.
+- **Basis.** unchanged.
+- **Supersedes.** The 1.35.0 spreads in both rotation files (`spreads` blocks). No series has played either.
+- **Owed to the next major.** MODELS: ROTOM's ladder spreads rule.
+
+## [abra/regmc 1.43.0] — 2026-09-30 — **ROTOM's world lays the field from the log with its clocks in residuals; lead-set weather and terrain are no longer one turn short**
+- **What changed.** `solver/rotom/world.js` `layField`: with the log, the field comes from `world_log.walk` and its
+  clocks count residuals (`|upkeep|`), not turn numbers. The old public-state path stays for a build without the log.
+- **Measured.** 22 field clocks over five chomp1 fixture games (15 lead-set) agree with the server's own end turns.
+  Under the old path, 12 of the 22 are one short, every one of them a lead-set weather or terrain.
+  `test-rotom-world-clocks.js` GREEN 20 of 20. RED under `turnclock`, `hzsc`, `noability` and `noclocks`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MODELS: ROTOM's world fidelity.
+
+## [abra/regmc 1.42.0] — 2026-09-30 — **ROTOM's world lays entry hazards where the engine reads them (sf.hz, not sf.sc)**
+- **What changed.** `solver/rotom/world.js`: a side condition that is an entry hazard (`world_log.hazards()`, derived)
+  is laid in `sf.hz`, not `sf.sc`.
+- **Measured.** Replay of AngryGator g3 turn 3 (chomp1 fixture): `sf.hz` `{toxicspikes: 1}`, and Rillaboom is `psn`
+  after switching in, as on the server. Under `ROTOM_WORLD_BREAK=hzsc` the hazard sits in `sf.sc` and Rillaboom stays
+  clean. `test-rotom-world-clocks.js` GREEN 18 of 18, RED 2 of 18 under the break.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MODELS: ROTOM's world fidelity.
+
+## [abra/regmc 1.41.0] — 2026-09-30 — **ROTOM's world carries a changed ability; a Skill-Swapped Shadow Tag now traps in the search as it did on the server**
+- **What changed.** `solver/rotom/world.js` `layBody` lays the log's ability changes (from `solver/rotom/world_log.js`)
+  on the opponent's bodies, with `_preAb`. On mine, the request's `ability` and `baseAbility` win.
+- **Measured.** Replay of pandywulu g1 turn 8 (chomp1 fixture):
+  - Espeon: magicbounce before, shadowtag after.
+  - Our Gengar-Mega: defiant, restores shadowtag.
+  - The engine offers our Incineroar 1 switch before, 0 after. The server refused the switch as trapped.
+  - `test-rotom-world-clocks.js` GREEN 16 of 16, RED 3 of 16 under `ROTOM_WORLD_BREAK=noability`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MODELS: ROTOM's world fidelity.
+
+## [abra/regmc 1.40.0] — 2026-09-30 — **ROTOM's world carries the Perish count and the other volatile clocks from the log**
+- **What changed.** New `solver/rotom/world_log.js`, a single walk of the public protocol. `solver/rotom/world.js`
+  `layBody` lays what it finds: Perish, the duration and presence volatiles, Substitute, Leech Seed, confusion, traps,
+  Yawn, sleep ticks, the toxic stage and a Choice lock.
+- **Measured.** Replay of sdkvndfv g1 turn 4 (fixture from chomp1): Salamence and Volcarona `_perish` 1 and 1, and both
+  faint after one engine step. Under `ROTOM_WORLD_BREAK=noclocks`: undefined, and neither faints.
+  `test-rotom-world-clocks.js` GREEN 13 of 13, RED 11 of 13 under the break. AUDIT: 68 board leaves, 54 carried,
+  14 owed.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MODELS: ROTOM's world fidelity (what is laid, what is owed).
+
+## [abra/regmc 1.39.0] — 2026-09-30 — **Ladder loss post-mortem: 26 losses classed by mechanism; the root value is +0.19 too high mid-game**
+- **What changed.** New `solver/results/2026-09-30-ladder-loss-postmortem/`:
+  - `postmortem.js` reads ROTOM's saved ladder games and plays nothing;
+  - `measured.json` is its output;
+  - `classifications.json` holds the hand-read turning point and class of each loss.
+- **Measured.**
+  - The chomp1 search arm lost 26 games without a forfeit (`measured.json`).
+  - Classes (`classifications.json`): VISIBLE_KO 5, SPEED_CONTROL 5, SUCKER_PUNCH 4, OUTSPED 4, SETUP 3,
+    BEHIND_FROM_PREVIEW 3, UNSEEN_ACTION 1, PERISH 1.
+  - Timeouts 0. Chosen-versus-applied mismatches 1, after that game's turning point.
+  - Calibration, chomp1 plus the gen5ab search arm: 668 decisions in 90 games.
+    - Values in [0.5, 0.9) are +0.191 too high, CI [0.062, 0.318].
+    - Turn 1: +0.189 [0.070, 0.275].
+    - Brier 0.184 against 0.234 for a constant.
+    - On games that end without a forfeit, the Brier score is no better than a constant (0.1857 against 0.1852).
+  - The opponent's move ids fell in a searched column on 67% of chomp1 decisions: 66% in losses, 69% in wins.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MODELS: the live calibration of the gen5 root value, as PORYGON2 v2's ladder baseline.
+
 ## [abra/regmc 1.38.0] — 2026-09-30 — **`data/tags-regmc.json` re-weighted from the full `.gz` store; its receipt names the store it opened; one guard click rate moves**
 - **What changed.**
   - `engine/tag_dex.js` `usage()` records `usage_from` via `quality.js` `storePath()`: the file the read actually
