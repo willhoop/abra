@@ -1,0 +1,101 @@
+{
+ "result": "solver/out/pikl/screen-2s-kl01.json",
+ "score": {
+  "W": 91,
+  "D": 0,
+  "L": 109,
+  "errors": 0,
+  "capped": 0,
+  "unbuildable": 0,
+  "played": 200,
+  "score_x": 0.455,
+  "ci95_x": [
+   0.38748099090226035,
+   0.5242151496303886
+  ]
+ },
+ "pass_notlose": true,
+ "clock_ratio": 1.0063817663817665,
+ "decision_ms": {
+  "x": {
+   "n": 1791,
+   "mean": 1766.2,
+   "p50": 1753,
+   "p99": 3770,
+   "max": 3792
+  },
+  "y": {
+   "n": 1791,
+   "mean": 1755,
+   "p50": 1702,
+   "p99": 3770,
+   "max": 3790
+  }
+ },
+ "clock_bar": true,
+ "warnings": [],
+ "kl": {
+  "gen5-kl01-adaptive-2s": {
+   "lambda": 0.01,
+   "decisions": 1784,
+   "changed": 429,
+   "missMe": 1,
+   "missOpp": 0,
+   "klSum": 1298.7332000000006,
+   "tvSum": 404.31150000000014,
+   "worstSum": 7.486559999999999,
+   "worstMax": 0.05536,
+   "prot": 478.2401999999999,
+   "prot0": 512.1824999999999,
+   "dbl": 68.2137,
+   "dbl0": 75.54079999999999,
+   "gapMax": 0.000010909446132523204,
+   "mean_tv": 0.22663200672645747,
+   "mean_worst": 0.004196502242152466,
+   "pick_changed_share": 0.24047085201793722,
+   "mean_kl": 0.7279894618834084,
+   "prot_mass_mean": 0.268071860986547,
+   "prot0_mass_mean": 0.28709781390134526,
+   "dbl_mass_mean": 0.038236378923766814,
+   "dbl0_mass_mean": 0.04234349775784753
+  }
+ },
+ "fallbacks_all_agents_summed_over_shards": 0,
+ "shards_read": 4,
+ "protect": {
+  "result": "solver\\out\\pikl\\screen-2s-kl01.json",
+  "games": 200,
+  "games_without_counter": 0,
+  "arms": {
+   "x": {
+    "actions": 3370,
+    "protects": 553,
+    "failed": 67,
+    "consec": 82,
+    "consecFailed": 59,
+    "pairs": 1579,
+    "doubles": 72,
+    "share": 0.1641,
+    "fail_rate": 0.1212,
+    "consec_share": 0.1483,
+    "double_share": 0.0456,
+    "consec_fail_rate": 0.7195
+   },
+   "y": {
+    "actions": 3356,
+    "protects": 570,
+    "failed": 88,
+    "consec": 103,
+    "consecFailed": 82,
+    "pairs": 1566,
+    "doubles": 74,
+    "share": 0.1698,
+    "fail_rate": 0.1544,
+    "consec_share": 0.1807,
+    "double_share": 0.0473,
+    "consec_fail_rate": 0.7961
+   }
+  }
+ },
+ "verdict": "VOID"
+}

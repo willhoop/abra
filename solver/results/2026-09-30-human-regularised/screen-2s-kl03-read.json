@@ -1,0 +1,101 @@
+{
+ "result": "solver/out/pikl/screen-2s-kl03.json",
+ "score": {
+  "W": 103,
+  "D": 0,
+  "L": 97,
+  "errors": 0,
+  "capped": 0,
+  "unbuildable": 0,
+  "played": 200,
+  "score_x": 0.515,
+  "ci95_x": [
+   0.44610724474630287,
+   0.5833273750761475
+  ]
+ },
+ "pass_notlose": true,
+ "clock_ratio": 0.9926857142857143,
+ "decision_ms": {
+  "x": {
+   "n": 1829,
+   "mean": 1737.2,
+   "p50": 1673,
+   "p99": 3770,
+   "max": 3786
+  },
+  "y": {
+   "n": 1829,
+   "mean": 1750,
+   "p50": 1683,
+   "p99": 3769,
+   "max": 3788
+  }
+ },
+ "clock_bar": true,
+ "warnings": [],
+ "kl": {
+  "gen5-kl03-adaptive-2s": {
+   "lambda": 0.03,
+   "decisions": 1827,
+   "changed": 665,
+   "missMe": 0,
+   "missOpp": 0,
+   "klSum": 817.81436,
+   "tvSum": 628.5202000000002,
+   "worstSum": 22.41783000000001,
+   "worstMax": 0.21112,
+   "prot": 455.13319999999993,
+   "prot0": 513.3266999999998,
+   "dbl": 64.75049999999999,
+   "dbl0": 72.1667,
+   "gapMax": 0.000009993190460300116,
+   "mean_tv": 0.3440176245210729,
+   "mean_worst": 0.012270295566502469,
+   "pick_changed_share": 0.36398467432950193,
+   "mean_kl": 0.4476269074986316,
+   "prot_mass_mean": 0.2491150519978106,
+   "prot0_mass_mean": 0.28096699507389156,
+   "dbl_mass_mean": 0.03544088669950738,
+   "dbl0_mass_mean": 0.03950010946907499
+  }
+ },
+ "fallbacks_all_agents_summed_over_shards": 0,
+ "shards_read": 4,
+ "protect": {
+  "result": "solver\\out\\pikl\\screen-2s-kl03.json",
+  "games": 200,
+  "games_without_counter": 0,
+  "arms": {
+   "x": {
+    "actions": 3423,
+    "protects": 509,
+    "failed": 48,
+    "consec": 61,
+    "consecFailed": 40,
+    "pairs": 1596,
+    "doubles": 63,
+    "share": 0.1487,
+    "fail_rate": 0.0943,
+    "consec_share": 0.1198,
+    "double_share": 0.0395,
+    "consec_fail_rate": 0.6557
+   },
+   "y": {
+    "actions": 3389,
+    "protects": 636,
+    "failed": 95,
+    "consec": 141,
+    "consecFailed": 90,
+    "pairs": 1561,
+    "doubles": 84,
+    "share": 0.1877,
+    "fail_rate": 0.1494,
+    "consec_share": 0.2217,
+    "double_share": 0.0538,
+    "consec_fail_rate": 0.6383
+   }
+  }
+ },
+ "verdict": "PASS"
+}

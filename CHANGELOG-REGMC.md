@@ -21,6 +21,20 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.48.0] — 2026-09-30
+
+### Notes
+- **The human-regularised solve's pre-registered phase B ran**
+  (`docs/_reports/2026-09-30-human-regularised-phase-b.md`). All screens used gen5 + `kl` against gen5, release
+  `eaa5becc54eb` (pinned as pre-registered; `97451d5fbf40` also passes the gate), the same 100 TEST pairs, 200 games
+  each, honest, on the adaptive clock.
+- **λ 0.03 passes both screens.** 2 s: 0.515 [0.446, 0.583], clock ratio 0.993. 14 s: 0.525 [0.456, 0.593], ratio
+  1.000. At 14 s the Protect share is 15.6% against 18.1% and the Protect fail rate 10.1% against 16.9%.
+- **λ 0.1 fails:** 0.405 [0.339, 0.474].
+- **λ 0.01 is VOID by its capability clause.** One of 1,784 decisions used the uniform anchor, and the clause requires
+  0. Its score was 0.455 [0.387, 0.524], ratio 1.006.
+- No SPRT. The flag stays off and on no arm, and turning it on is Will's call.
+
 ## [1.47.0] — 2026-09-30
 
 ### Added

@@ -8,6 +8,12 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-30
 
+### piKL phase B: λ 0.03 passes 2 s and 14 s; λ 0.1 loses (abra/regmc 1.48.0)
+- 2 s: λ 0.01 0.455 (VOID: 1 uniform-anchor decision of 1,784), λ 0.03 0.515 [0.446, 0.583] PASS, λ 0.1 0.405
+  [0.339, 0.474] FAIL. All clock ratios are 0.99-1.01. 14 s, λ 0.03: 0.525 [0.456, 0.593], ratio 1.000.
+- At 14 s the Protect fail rate is 10.1% vs 16.9% and the share 15.6% vs 18.1%. No SPRT; the flag is off.
+  `docs/_reports/2026-09-30-human-regularised-phase-b.md`.
+
 ### PORYGON2 v2 trained; gate (a) fails by a hair, not landed (abra/regmc 1.47.0)
 v2 (public state, UNK tokens, Maia-2 ratings, auxiliary heads, bo1 pretrain then bo3 fine-tune, K = 1) against v1 on 1,521
 bo3 test games v1 never saw: −0.0098 [−0.0202, +0.0002]. The upper bound misses 0 by 0.0002, so FAIL. v2 beats gen5's

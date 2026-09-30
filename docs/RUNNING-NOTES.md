@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.48.0] — 2026-09-30 — **piKL phase B: λ 0.03 passes the 2 s and 14 s screens and cuts the Protect fail rate; λ 0.1 loses; λ 0.01 VOID by its capability clause**
+- **What changed.** No code. The pre-registered phase-B screens ran: gen5 + `kl` against gen5 on release `eaa5becc54eb`, the same 100 TEST pairs, pair-seed 1, honest, adaptive 2 s, then 14 s for the best passing λ. The reads are in `solver/results/2026-09-30-human-regularised/screen-*-read.json`, and the new 14 s spec is `screen-14s-kl03.json`. The flag stays off and on no arm.
+- **Measured.** 2 s screens, 200 games each: λ 0.01 0.455 [0.387, 0.524], ratio 1.006, VOID (missMe 1 of 1,784); λ 0.03 0.515 [0.446, 0.583], ratio 0.993, PASS; λ 0.1 0.405 [0.339, 0.474], FAIL. 14 s screen, λ 0.03: 0.525 [0.456, 0.593], ratio 1.000, PASS. At 14 s the Protect share is 15.6% vs 18.1% and the fail rate 10.1% vs 16.9% (protect_read). No SPRT.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** `docs/MODELS.md` (SLOWKING: the human-regularised solve), only if Will puts it on an arm.
+
 ## [abra/regmc 1.47.0] — 2026-09-30 — **PORYGON2 v2 trained; gate (a) FAILS by a hair; not landed, no SPRT**
 - **What changed.**
   - New v2 encoder (`features.js`, `encode.js`), net and trainer (`net.py`, `train.py`), gate reader (`gate_a.py`,

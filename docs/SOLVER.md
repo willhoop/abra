@@ -111,6 +111,10 @@ This section says only what a division agent needs before it starts.
   S − E no worse than the top baseline. It holds 5 teams, rated 1478 to 1596. The arms file
   `solver/rotom/arms/gen5-chomp-top.json` names the rotation. Command for Will:
   `docs/_reports/2026-09-30-top-meta-rotation.md`.
+- **piKL phase B (2026-09-30, abra/regmc 1.48.0).** λ 0.03 passes both screens: 2 s 0.515 [0.446, 0.583], 14 s
+  0.525 [0.456, 0.593], clock ratios 0.99-1.00. At 14 s the Protect fail rate is 10.1% vs 16.9%. λ 0.1 fails (0.405). λ 0.01
+  is VOID by its capability clause (1 uniform-anchor decision). No SPRT; the flag is off.
+  `docs/_reports/2026-09-30-human-regularised-phase-b.md`.
 - **Human-regularised search (piKL), phase A (2026-09-30, abra/regmc 1.34.0).** Spec flag `kl` (lambda; off, on no
   arm): SLOWKING solves the KL-regularised root game with gen5's DODUO as the anchor (`solveKL`). On 579 held-out human
   decisions and the same recorded tables, top-1 agreement is 0.216 at lambda 0 and 0.268 at 0.1 (+0.052 [0.021, 0.083]).
