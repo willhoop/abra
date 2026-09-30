@@ -1,0 +1,35 @@
+{
+ "what": "SPRT 2 of 2 (2026-09-30): gen5 with PORYGON2 v2 as its leaf value against gen5 as is (gen5's own PORYGON2 net), at equal wall-clock. Approved by Will 2026-09-30 ('1 2'). Written BEFORE the first game of this SPRT and never revised after one.",
+ "outside_the_original_preregistration": "THIS SPRT RUNS OUTSIDE PORYGON2 v2's ORIGINAL PRE-REGISTRATION, BY WILL'S DECISION. solver/porygon2/v2/preregistration.json makes gate (c), the play SPRT, conditional on gate (a) passing. Gate (a) FAILED by the pre-registered rule: v2 - v1 log-loss = -0.0098 [-0.0202, +0.0002] (solver/porygon2/v2/gate-a.json; docs/_reports/2026-09-30-porygon2-v2-train.md). v2 - gen5's net = -0.0127 [-0.0202, -0.0048], reported there and not gating. Will approved testing v2 in play anyway; the baseline here is the net gen5 actually uses, not v1.",
+ "code": "worktree branch worktree-agent-a53483ec982dfb1a1 off main 5eca2c42 (abra/regmc 1.48.0), plus the per-model leaf counter (solver/miltank/rollout.js leafByModel / leafOwn, solver/mew/play.js ctr.leaf_by_model / ctr.leaf_own), which changes no decision. main is NOT merged during the run.",
+ "leaf_build_status": "The Node forward pass, the flag and the leaf existed before this file (1.47.0): solver/porygon2/v2/infer.js, solver/porygon2/leaf.js dispatch on arch v2-transformer, solver/porygon2/v2/leaf.js counters.evals. solver/tests/test-porygon2-v2.js --leaf GREEN 32/32 (Node vs Python worst 8.9e-16), RED under PORY2V2_INFER_BREAK=rating. NEW here: solver/tests/test-porygon2-v2-arena.js GREEN 8/8 (one pair: v2 file 9 leaf calls = its own evals, 0 errors; gen5's net 15), RED under MILTANK_BREAK=leaf.",
+ "engine_release": "eaa5becc54eb (the gate also passes on 97451d5fbf40; eaa5becc54eb is kept for comparability with the phase B screens and with v2's own features, which were computed on it)",
+ "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc, TEST pairs (solver/mew/pairs.js), pair-seed 1",
+ "information": "honest",
+ "arms": {
+  "x": { "file": "solver/porygon2/v2/gen5-p2v2.json", "sha256_at_prereg": "82b406e37cbaa9e17180a7fa9c20445db2b693ef87d7254ebc425ad6164dec7f", "name": "gen5-p2v2",
+         "leaf_model": { "file": "solver/porygon2/v2/model/porygon2-v2-k1.json", "sha256": "d5409446cb6ff77667253a22fd921ace259201bbcda46285002f7d67052e76b1", "rating_query": "[1600, 1600] (solver/porygon2/v2/leaf.js default; self-play both chairs)" } },
+  "y": { "file": "solver/machamp/league/gen5.json", "sha256_at_prereg": "f00664df6285b2e5f739344d95c773f15c2904a7212f887b3be92f7066663862", "name": "gen5",
+         "leaf_model": { "file": "solver/machamp/models/gen5/porygon2-gen5.json", "sha256": "cf8ad3f7bd0d4a33d87d9b9e891154800cf27540e7d4a93ef85b2513b713f3c6" } },
+  "difference": "ONLY the pory2 field. Same MAG and DODUO (gen5), k 4x4, depth 0, 1 reserved switch row, budgetMs 1000."
+ },
+ "clock": "EQUAL WALL-CLOCK: both arms search on the same time budget (budgetMs 1000; MILTANK's cell fill stops on the clock, so a slower leaf buys fewer playouts, it does not buy more time). This is gen5 'as is' (solver/machamp/league/gen5.json) and the clock in v2's own gate (c) command (docs/_reports/2026-09-30-porygon2-v2-train.md OWED 4). It is NOT the 14 s ladder clock; that is stated, not hidden.",
+ "sprt": { "elo0": 0, "elo1": 20, "alpha": 0.05, "beta": 0.05, "max_games": 2000, "unit": "pair of games on one battle seed, seats swapped", "statistic": "normal-approximation GSPRT on pair scores (solver/machamp/sprt.js)" },
+ "seed": 30002,
+ "seed_note": "NEW: v2's unrun gate (c) template named 9301/9302; 30002 appears nowhere else in solver/ or docs/.",
+ "workers": 3,
+ "cap": 50,
+ "command": "cmd.exe /c tools\\lownode.cmd solver/machamp/sprt.js --release eaa5becc54eb --x solver/porygon2/v2/gen5-p2v2.json --y solver/machamp/league/gen5.json --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 2000 --seed 30002 --workers 3 --cap 50 --info honest --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --out solver/out/sprt-pikl-v2/sprt2-p2v2-vs-gen5.json",
+ "order": "starts only after SPRT 1 (preregistration-sprt1-pikl.json) has stopped: one game-playing job at a time.",
+ "reading_rule": {
+  "when": "ONCE, after sprt.js stops (a bound crossed or the game budget spent). sprt.js prints no interim LLR; nothing is read before the stop. A run stopped by anything else (a pause, a crash, a kill) is VOID and is re-run from this file with the same seed.",
+  "verdict": "sprt.js verdict: H1 (X stronger by elo1 accepted), H0 (elo0 accepted), or INCONCLUSIVE (2,000 games, no bound).",
+  "clock": "solver/machamp/sprt_read.js: clock ratio = clock.x_ms.mean / clock.y_ms.mean over the counted games; must be <= 1.10. Above 1.10 an H1 is NOT a strength claim and is reported as VOID-BY-CLOCK.",
+  "capability": "the v2 leaf must prove it ran, from each worker's last shard line summed: ctr.leaf_own['porygon2-v2-k1.json'].evals > 0 with errors = 0, equal to ctr.leaf_by_model['porygon2-v2-k1.json'], and ctr.leaf_by_model['porygon2-gen5.json'] > 0 (Y on its own net). Any of these false = VOID.",
+  "errors": "errored pairs are excluded by sprt.js and counted; VOID if they exceed 5% of the pairs used. Agent fallbacks and MILTANK prior fallbacks are read and stated.",
+  "also_read_not_bars": "per-arm leaf calls (the cost of v2 at equal clock), the Protect counters (solver/arena/protect_read.js), the ladder clock-rule breaches. None decides the verdict.",
+  "ci_caption": "the Wilson 95% interval at the stop is conditional on a data-dependent stopping time and slightly optimistic."
+ },
+ "on_H1": "report only. v2 goes onto no ladder arm and no league default; that is Will's call even on H1. An H1 here does not retro-pass gate (a).",
+ "on_H0_or_inconclusive": "report only; v2 stays off every arm."
+}

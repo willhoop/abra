@@ -66,12 +66,17 @@ function create(API, opts) {
   const M = API.M;
   const buildBody = opts.buildBody;
   const COUNTERS = { playouts: 0, playoutTurns: 0, worlds: 0, bodiesSwapped: 0, wipes: 0, leafHeuristic: 0, leafPory2: 0, prepared: 0, fastClones: 0, leanPlayouts: 0, aborted: 0,
-                     quietHeld: 0, quiesced: 0, chancePlayouts: 0, chanceBuckets: 0, chanceEvals: 0, chanceTruncatedMass: 0 };
+                     quietHeld: 0, quiesced: 0, chancePlayouts: 0, chanceBuckets: 0, chanceEvals: 0, chanceTruncatedMass: 0, leafByModel: {} };
   /* one PORYGON2 leaf per model file: lctx.model names a generation's net (solver/mew, solver/machamp);
    * absent = the default v0 file, exactly as before */
   const PORY2 = new Map();
   const pory2 = model => { const k = model || ''; if (!PORY2.has(k)) PORY2.set(k, require('../porygon2/leaf.js').create(API, model ? { model } : {})); return PORY2.get(k); };
   const LEAN = !LEAN_OFF && opts.lean !== false && typeof API.makeLean === 'function';
+  /* PER-MODEL LEAF COUNTERS (2026-09-30, SPRT 2: PORYGON2 v2 vs gen5's net). leafPory2 sums every arm in a worker, so it cannot
+   * prove WHICH net served; leafByModel counts calls by model file name, and leafOwn() returns each loaded leaf's OWN
+   * counters (the v2 leaf's { evals, errors }), so an arm that names v2 must show v2 evaluations or it did not run. */
+  const modelKey = model => (model ? String(model).split(/[\\/]/).pop() : 'default');
+  const leafOwn = () => { const o = {}; for (const [k, L] of PORY2) if (L && L.counters) o[modelKey(k)] = Object.assign({}, L.counters); return o; };
 
   function targetType(m, id) {
     const tc = M.moveTargetClass(id);
@@ -134,7 +139,7 @@ function create(API, opts) {
 
   function leaf(S, lctx) {
     if (API.isTerminal(S)) { COUNTERS.wipes++; return API.winner(S); }
-    if (lctx && lctx.mode === 'pory2' && BREAK !== 'leaf') { COUNTERS.leafPory2++; return pory2(lctx.model).value(S, lctx.sheets); }
+    if (lctx && lctx.mode === 'pory2' && BREAK !== 'leaf') { COUNTERS.leafPory2++; const mk = modelKey(lctx.model); COUNTERS.leafByModel[mk] = (COUNTERS.leafByModel[mk] || 0) + 1; return pory2(lctx.model).value(S, lctx.sheets); }
     COUNTERS.leafHeuristic++;
     const s = team => team.reduce((a, m) => a + (live(m) ? 0.5 + 0.5 * Math.max(0, m.curHP) / m.st.hp : 0), 0) / Math.max(1, team.length);
     return 0.5 + (s(S.sfA.team) - s(S.sfB.team)) / 2;
@@ -323,7 +328,7 @@ function create(API, opts) {
     return j;
   }
 
-  return { COUNTERS, LEAN, slotSupport, randomJoint, quietJoint, leaf, sampleWorld, swapBody, body, prepare, copy, dice, playout, BROKEN: BREAK || null };
+  return { COUNTERS, leafOwn, LEAN, slotSupport, randomJoint, quietJoint, leaf, sampleWorld, swapBody, body, prepare, copy, dice, playout, BROKEN: BREAK || null };
 }
 
 module.exports = { create };
