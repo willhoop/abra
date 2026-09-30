@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.34.0] — 2026-09-30 — **The human-regularised root solve (piKL) is built behind a flag. It moves the search toward the human click, and it does not fix the turn-4 double Protect.**
+- **What changed.** `solver/slowking/matrix.js` `solveKL`. `solver/miltank/search.js` spec option `kl` (λ). The anchor is the ranking prior's scores on the rows and columns. The plain solve runs beside it for the counters. `solver/mew/agent.js` and `play.js` carry the `kl` counters, and `solver/rotom/policy.js` taps `solveKL`. New: `solver/miltank/eval_kl_human.js`, `solver/tests/probe_kl_replay.js`, `probe_kl_repeat.js`, `test-miltank-kl.js`. The flag is off by default and on no arm.
+- **Measured.** Held-out human decisions, n=579, one recorded gen5 table each (16 passes, release `eaa5becc54eb`): top-1 agreement 0.216 (λ 0) → 0.268 (λ 0.1), Δ +0.052 [0.021, 0.083]. The worst-case cost on the table is 0.035 (`solver/results/2026-09-30-human-regularised/human-agreement.json`). The repeat-Protect mass on the 13 offered positions is 0.611 → 0.243 at λ 0.03 (`repeat-protect.json`). chomp1 g1 t4 double-Protect mass is 0.851 → 0.709 at λ 0.03 and 0.386 at λ 0.1 (`replay-chomp1-g1-t4.json`). No game was played. The 2 s screens are pre-registered, not run.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** `docs/MODELS.md` (SLOWKING: the human-regularised solve, if phase B lands it).
+
 ## [abra/regmc 1.33.0] — 2026-09-30 — **Reg M-C counted by rating on the full stores; most top-ladder players upload nothing**
 - **What changed.** New count of the full Reg M-C stores (`.gz` passed explicitly; `quality.js` `storePath()` would serve the 09-21 plain snapshot). Streaming read, no simulator. `docs/REGULATION-ROTATION.md` gains a row for the stale-plain-store trap.
 - **Measured.** Clean (quality.js `reasons()` + behavioural bots): bo3 25,238 (lower ≥ 1300/1400/1500 = 715/89/0), bo1 29,537 (lower ≥ 1500/1600 = 361/31). Zero-upload share of live-ladder players ≥ 1500: bo3 80.9% (76 of 94), bo1 57.4% (287 of 500). bo3 series 17,464. The data is in `data/verification/2026-09-30-high-rated-regmc-counts.json`, n = 37,165 bo3 and 59,196 bo1 games to 2026-09-29 21:02, and the comparison baseline is the 09-21 snapshot.

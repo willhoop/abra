@@ -1,0 +1,547 @@
+{
+ "log": "../../../solver/out/rotom/chomp1-2026-09-29T23-13-11-521Z/games/medicham32/battle-gen9championsvgc2026regmcbo3-2690121468-je1ca9h7t1ieywx0ohi326o4gihs7lfpw.log",
+ "turn": 4,
+ "me": "p1",
+ "release": "eaa5becc54eb",
+ "passes": 96,
+ "seeds": 3,
+ "grid": [
+  0,
+  0.001,
+  0.003,
+  0.01,
+  0.03,
+  0.1,
+  0.3,
+  "inf"
+ ],
+ "runs": [
+  {
+   "coin": 4000,
+   "rows": [
+    "move 3 mega, switch 4",
+    "move 3 mega, move 4",
+    "move 3 mega, move 3 2",
+    "move 4 mega, move 4"
+   ],
+   "cols": [
+    "psychic 1, aquajet 2",
+    "trickroom, protect",
+    "psychic 1, protect",
+    "psychic 1, hypervoice"
+   ],
+   "value": 0.822,
+   "played_choice": "move 4 mega, move 4",
+   "tau_row": [
+    0.121,
+    0.3766,
+    0.2973,
+    0.2051
+   ],
+   "tau_col": [
+    0.4021,
+    0.3113,
+    0.1513,
+    0.1352
+   ],
+   "A": [
+    [
+     0.8656,
+     0.7716,
+     0.8867,
+     0.6831
+    ],
+    [
+     0.8112,
+     0.8647,
+     0.8112,
+     0.6762
+    ],
+    [
+     0.7063,
+     0.8647,
+     0.8112,
+     0.4088
+    ],
+    [
+     0.8471,
+     0.8142,
+     0.8471,
+     0.8471
+    ]
+   ],
+   "byLambda": {
+    "0": {
+     "mix": [
+      0,
+      0.148,
+      0,
+      0.851
+     ],
+     "argmax": "move 4 mega, move 4",
+     "double_protect_mass": 0.851,
+     "protect_mass": 1
+    },
+    "0.001": {
+     "mix": [
+      0,
+      0.148,
+      0,
+      0.852
+     ],
+     "argmax": "move 4 mega, move 4",
+     "double_protect_mass": 0.852,
+     "protect_mass": 1
+    },
+    "0.003": {
+     "mix": [
+      0,
+      0.145,
+      0,
+      0.855
+     ],
+     "argmax": "move 4 mega, move 4",
+     "double_protect_mass": 0.855,
+     "protect_mass": 1
+    },
+    "0.01": {
+     "mix": [
+      0.001,
+      0.153,
+      0,
+      0.847
+     ],
+     "argmax": "move 4 mega, move 4",
+     "double_protect_mass": 0.847,
+     "protect_mass": 0.999
+    },
+    "0.03": {
+     "mix": [
+      0.056,
+      0.231,
+      0.004,
+      0.709
+     ],
+     "argmax": "move 4 mega, move 4",
+     "double_protect_mass": 0.709,
+     "protect_mass": 0.94
+    },
+    "0.1": {
+     "mix": [
+      0.135,
+      0.389,
+      0.091,
+      0.386
+     ],
+     "argmax": "move 3 mega, move 4",
+     "double_protect_mass": 0.386,
+     "protect_mass": 0.775
+    },
+    "0.3": {
+     "mix": [
+      0.131,
+      0.396,
+      0.226,
+      0.247
+     ],
+     "argmax": "move 3 mega, move 4",
+     "double_protect_mass": 0.247,
+     "protect_mass": 0.643
+    },
+    "inf": {
+     "mix": [
+      0.121,
+      0.377,
+      0.297,
+      0.205
+     ],
+     "argmax": "move 3 mega, move 4",
+     "double_protect_mass": 0.205,
+     "protect_mass": 0.582
+    }
+   }
+  },
+  {
+   "coin": 4001,
+   "rows": [
+    "move 3 mega, switch 4",
+    "move 3 mega, move 4",
+    "move 3 mega, move 3 2",
+    "move 4 mega, move 4"
+   ],
+   "cols": [
+    "psychic 1, aquajet 2",
+    "trickroom, protect",
+    "psychic 1, protect",
+    "psychic 1, hypervoice"
+   ],
+   "value": 0.822,
+   "played_choice": "move 4 mega, move 4",
+   "tau_row": [
+    0.121,
+    0.3766,
+    0.2973,
+    0.2051
+   ],
+   "tau_col": [
+    0.4021,
+    0.3113,
+    0.1513,
+    0.1352
+   ],
+   "A": [
+    [
+     0.8661,
+     0.7716,
+     0.8867,
+     0.6844
+    ],
+    [
+     0.8112,
+     0.8647,
+     0.8112,
+     0.6773
+    ],
+    [
+     0.7092,
+     0.8647,
+     0.8112,
+     0.4105
+    ],
+    [
+     0.8471,
+     0.8142,
+     0.8471,
+     0.8471
+    ]
+   ],
+   "byLambda": {
+    "0": {
+     "mix": [
+      0,
+      0.148,
+      0,
+      0.852
+     ],
+     "argmax": "move 4 mega, move 4",
+     "double_protect_mass": 0.852,
+     "protect_mass": 1
+    },
+    "0.001": {
+     "mix": [
+      0,
+      0.148,
+      0,
+      0.852
+     ],
+     "argmax": "move 4 mega, move 4",
+     "double_protect_mass": 0.852,
+     "protect_mass": 1
+    },
+    "0.003": {
+     "mix": [
+      0,
+      0.146,
+      0,
+      0.854
+     ],
+     "argmax": "move 4 mega, move 4",
+     "double_protect_mass": 0.854,
+     "protect_mass": 1
+    },
+    "0.01": {
+     "mix": [
+      0.001,
+      0.154,
+      0,
+      0.846
+     ],
+     "argmax": "move 4 mega, move 4",
+     "double_protect_mass": 0.846,
+     "protect_mass": 0.999
+    },
+    "0.03": {
+     "mix": [
+      0.057,
+      0.233,
+      0.004,
+      0.706
+     ],
+     "argmax": "move 4 mega, move 4",
+     "double_protect_mass": 0.706,
+     "protect_mass": 0.939
+    },
+    "0.1": {
+     "mix": [
+      0.135,
+      0.389,
+      0.092,
+      0.384
+     ],
+     "argmax": "move 3 mega, move 4",
+     "double_protect_mass": 0.384,
+     "protect_mass": 0.773
+    },
+    "0.3": {
+     "mix": [
+      0.131,
+      0.395,
+      0.227,
+      0.247
+     ],
+     "argmax": "move 3 mega, move 4",
+     "double_protect_mass": 0.247,
+     "protect_mass": 0.642
+    },
+    "inf": {
+     "mix": [
+      0.121,
+      0.377,
+      0.297,
+      0.205
+     ],
+     "argmax": "move 3 mega, move 4",
+     "double_protect_mass": 0.205,
+     "protect_mass": 0.582
+    }
+   }
+  },
+  {
+   "coin": 4002,
+   "rows": [
+    "move 3 mega, switch 4",
+    "move 3 mega, move 4",
+    "move 3 mega, move 3 2",
+    "move 4 mega, move 4"
+   ],
+   "cols": [
+    "psychic 1, aquajet 2",
+    "trickroom, protect",
+    "psychic 1, protect",
+    "psychic 1, hypervoice"
+   ],
+   "value": 0.822,
+   "played_choice": "move 4 mega, move 4",
+   "tau_row": [
+    0.121,
+    0.3766,
+    0.2973,
+    0.2051
+   ],
+   "tau_col": [
+    0.4021,
+    0.3113,
+    0.1513,
+    0.1352
+   ],
+   "A": [
+    [
+     0.8663,
+     0.7716,
+     0.8867,
+     0.6881
+    ],
+    [
+     0.8112,
+     0.8647,
+     0.8112,
+     0.6757
+    ],
+    [
+     0.7099,
+     0.8647,
+     0.8112,
+     0.4081
+    ],
+    [
+     0.8471,
+     0.8142,
+     0.8471,
+     0.8471
+    ]
+   ],
+   "byLambda": {
+    "0": {
+     "mix": [
+      0,
+      0.148,
+      0,
+      0.852
+     ],
+     "argmax": "move 4 mega, move 4",
+     "double_protect_mass": 0.852,
+     "protect_mass": 1
+    },
+    "0.001": {
+     "mix": [
+      0,
+      0.147,
+      0,
+      0.853
+     ],
+     "argmax": "move 4 mega, move 4",
+     "double_protect_mass": 0.853,
+     "protect_mass": 1
+    },
+    "0.003": {
+     "mix": [
+      0,
+      0.145,
+      0,
+      0.855
+     ],
+     "argmax": "move 4 mega, move 4",
+     "double_protect_mass": 0.855,
+     "protect_mass": 1
+    },
+    "0.01": {
+     "mix": [
+      0.001,
+      0.152,
+      0,
+      0.847
+     ],
+     "argmax": "move 4 mega, move 4",
+     "double_protect_mass": 0.847,
+     "protect_mass": 0.999
+    },
+    "0.03": {
+     "mix": [
+      0.059,
+      0.23,
+      0.004,
+      0.707
+     ],
+     "argmax": "move 4 mega, move 4",
+     "double_protect_mass": 0.707,
+     "protect_mass": 0.937
+    },
+    "0.1": {
+     "mix": [
+      0.137,
+      0.387,
+      0.091,
+      0.385
+     ],
+     "argmax": "move 3 mega, move 4",
+     "double_protect_mass": 0.385,
+     "protect_mass": 0.772
+    },
+    "0.3": {
+     "mix": [
+      0.131,
+      0.395,
+      0.227,
+      0.247
+     ],
+     "argmax": "move 3 mega, move 4",
+     "double_protect_mass": 0.247,
+     "protect_mass": 0.642
+    },
+    "inf": {
+     "mix": [
+      0.121,
+      0.377,
+      0.297,
+      0.205
+     ],
+     "argmax": "move 3 mega, move 4",
+     "double_protect_mass": 0.205,
+     "protect_mass": 0.582
+    }
+   }
+  }
+ ],
+ "live": {
+  "lambda": 0.03,
+  "runs": [
+   {
+    "coin": 4000,
+    "choice": "move 4 mega, move 4",
+    "mix": [
+     0.056,
+     0.231,
+     0.004,
+     0.709
+    ],
+    "kl": {
+     "missMe": false,
+     "missOpp": false,
+     "kl": 0.70537,
+     "tv": 0.1429,
+     "worst": 0.02509,
+     "pick0": 3,
+     "changed": false,
+     "prot": 0.9399,
+     "prot0": 1,
+     "dbl": 0.7086,
+     "dbl0": 0.8515,
+     "gap": 0.0000095233138738271,
+     "gapNash": 0.039732707283749336,
+     "value0": 0.8216995239682213,
+     "iters": 256
+    },
+    "same_table": true,
+    "matches_offline": true
+   },
+   {
+    "coin": 4001,
+    "choice": "move 4 mega, move 4",
+    "mix": [
+     0.057,
+     0.233,
+     0.004,
+     0.706
+    ],
+    "kl": {
+     "missMe": false,
+     "missOpp": false,
+     "kl": 0.70095,
+     "tv": 0.1453,
+     "worst": 0.02518,
+     "pick0": 3,
+     "changed": false,
+     "prot": 0.9391,
+     "prot0": 0.9999,
+     "dbl": 0.7065,
+     "dbl0": 0.8518,
+     "gap": 0.00000939553858891884,
+     "gapNash": 0.03979985927416796,
+     "value0": 0.821737785695945,
+     "iters": 256
+    },
+    "same_table": true,
+    "matches_offline": true
+   },
+   {
+    "coin": 4002,
+    "choice": "move 4 mega, move 4",
+    "mix": [
+     0.059,
+     0.23,
+     0.004,
+     0.707
+    ],
+    "kl": {
+     "missMe": false,
+     "missOpp": false,
+     "kl": 0.70142,
+     "tv": 0.1453,
+     "worst": 0.02518,
+     "pick0": 3,
+     "changed": false,
+     "prot": 0.9369,
+     "prot0": 1,
+     "dbl": 0.707,
+     "dbl0": 0.8523,
+     "gap": 0.000009565841395331454,
+     "gapNash": 0.03978596446310445,
+     "value0": 0.8216834051263288,
+     "iters": 256
+    },
+    "same_table": true,
+    "matches_offline": true
+   }
+  ]
+ }
+}

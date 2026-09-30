@@ -8,12 +8,22 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-30
 
+<<<<<<< HEAD
 ### The double-Protect soft gate: built, off; the prompting case is exempt by its own terrain clause (abra/regmc 1.32.0)
 - Will's rule in `solver/doduo/double_protect.js` (`gates.doubleProtect`, `tiers: false` alone). On 20,482 held-out
   human decisions: double Protect 3.15%, survival 99.63% [99.54, 99.71]. Humans honour Fake Out, Trick Room, Tailwind
   and Perish (13-50% against a 2.2% base) and ignore terrain, weather and screens (0.7-2.9%). chomp1 g1 t4 is exempt by
   the opponent's Grassy Terrain, so the gated search still double-Protects (0.85). With terrain off, it plays mega
   Substitute plus a switch. Phase B is pre-registered, not run. `docs/_reports/2026-09-30-double-protect-gate.md`.
+=======
+### Human-regularised search (piKL): built behind `kl`, phase A only (abra/regmc 1.34.0)
+- SLOWKING can solve `x·A·y − λ·KL(x‖τ_me) + λ·KL(y‖τ_opp)` with gen5's DODUO as τ. Flag `kl` (λ), off, on no arm.
+- Held-out humans (579, same tables): top-1 0.216 → 0.268 at λ 0.1 (+0.052 [0.021, 0.083]), above DODUO alone (0.230).
+  The worst-case cost on the table is 0.035. The repeat-Protect mass is 0.611 → 0.243 at λ 0.03 (the anchor's floor).
+- chomp1 t4: the double Protect keeps 0.71 at λ 0.03. The table makes it maximin and barely charges for Trick Room, so
+  it is a horizon fault. 2 s screens at λ 0.01, 0.03 and 0.1 are pre-registered, not run.
+  `docs/_reports/2026-09-30-human-regularised-search.md`.
+>>>>>>> origin/worktree-agent-a2930a277737baf60
 
 ## 2026-09-29
 
