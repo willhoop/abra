@@ -21,6 +21,24 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.38.0] — 2026-09-30
+
+### Fixed
+- **The Reg M-C tag file's usage receipt names the store it opened.** `engine/tag_dex.js` `usage()` wrote the plain
+  `data/games.<format>.jsonl` paths it requested into `usage_from`. Since 1.36.0 the read goes through
+  `quality.js` `storePath()`, which can open the `.gz`, so the receipt could not say which store weighted the file.
+  It now asks `storePath()` too.
+
+### Changed
+- **`data/tags-regmc.json` is regenerated from the full `.gz` stores.** The 2026-09-24 file was probably weighted by
+  the plain snapshot that stopped at 2026-09-21. `sheet_entries` goes from 205,836 to 325,296.
+  - Every row, tag list, parameter object and tag-index entry is identical. Only usage counts, examples and the
+    `linkage` carrier lists moved.
+  - **One usage count reaches the simulator.** The engine chooser's one-turn-guard click rate is
+    `0.35 × uses / max(uses)` (`medicham2-browser.js` `sideGuardClickRate`). Quick Guard's rate goes 0.0271 → 0.0390.
+    A release cut from this tree needs the Reg M-C gate re-run. It was not run here. The commands are in
+    `docs/_reports/2026-09-30-tags-regmc-store.md`.
+
 ## [1.37.0] — 2026-09-30
 
 ### Added

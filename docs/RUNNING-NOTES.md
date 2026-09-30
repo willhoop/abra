@@ -53,6 +53,25 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.38.0] — 2026-09-30 — **`data/tags-regmc.json` re-weighted from the full `.gz` store; its receipt names the store it opened; one guard click rate moves**
+- **What changed.**
+  - `engine/tag_dex.js` `usage()` records `usage_from` via `quality.js` `storePath()`: the file the read actually
+    opened, not the plain path it asked for.
+  - `data/tags-regmc.json` regenerated. The old file (2026-09-24) was weighted by the stale plain store.
+  - No Reg M-C browser tag bundle exists, so `build/build_tags_js.js` was not run.
+- **Measured.** `sheet_entries` 205,836 → 325,296 (27,108 clean open-sheet games, both `.gz` stores).
+  - Rows (515 moves / 166 items / 216 abilities), every `tags` list, every `params` object and the tag index are
+    identical.
+  - Only `uses` (786 rows), `examples` and the `linkage` carrier lists moved. The simulator does not read `linkage`.
+  - **The simulator reads one of these.** `medicham2-browser.js` `sideGuardClickRate` sets the engine chooser's
+    one-turn-guard click rate to `0.35 × uses / max(uses)`. Quick Guard 380/4,907 → 811/7,285: rate 0.0271 → 0.0390.
+    Wide Guard stays at 0.35.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published. The Reg M-C gate verdict belongs to release `eaa5becc54eb`, which froze the
+  old tag file, so it still stands for that release. A release cut from this tree needs the gate re-run
+  (`docs/_reports/2026-09-30-tags-regmc-store.md`, OWED).
+- **Owed to the next major.** none.
+
 ## [abra/regmc 1.37.0] — 2026-09-30 — **PORYGON2 v2: design pre-registered and datasets built; nothing trained**
 - **What changed.**
   - New `solver/porygon2/v2/`: `reveal.js` and `extract.js`, the store-only position extractor; `DESIGN.md`;
