@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.35.0] — 2026-09-30
+## [1.37.0] — 2026-09-30
 
 ### Added
 - **PORYGON2 v2 is designed and its training data is built. It is not trained, and no gate has been run.**
@@ -50,9 +50,15 @@ rewritten; what changed and why is stated.
     open sheets and must not be used on bo1 data.
   - The parsed store's `sets` has errors, found by the cross-check: a Traced ability is credited to the tracer, an item
     is credited to the wrong member, and a move named in a `|cant|` line is missed. These are OPS's to fix.
-- Main carried committed merge-conflict markers in `docs/SOLVER.md` and `solver/LOG.md` (from merge `ec14dd86`). They
-  are removed in this merge, and every entry from both sides is kept.
+- 1.37.0, not the next number: two unmerged branches already claim 1.35.0 (the rotation spreads and the store-quality
+  pass), so 1.35.0 and 1.36.0 are left to them.
 - `docs/_reports/2026-09-30-porygon2-v2-design.md`.
+
+## [1.34.2] — 2026-09-30
+
+### Fixed
+- **Conflict markers left in `docs/SOLVER.md` and `solver/LOG.md` by the 1.34.0 merge are removed; both sides are kept.**
+  The top-meta rotation's entry and the human-regularised search's entry each survive whole. PATCH: no figure moves.
 
 ## [1.34.1] — 2026-09-30
 

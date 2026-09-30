@@ -53,13 +53,12 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
-## [abra/regmc 1.35.0] — 2026-09-30 — **PORYGON2 v2: design pre-registered and datasets built; nothing trained**
+## [abra/regmc 1.37.0] — 2026-09-30 — **PORYGON2 v2: design pre-registered and datasets built; nothing trained**
 - **What changed.**
   - New `solver/porygon2/v2/`: `reveal.js` and `extract.js`, the store-only position extractor; `DESIGN.md`;
     `preregistration.json`; `manifest-bo1.json` and `manifest-bo3.json`.
   - New test `solver/tests/test-porygon2-v2-extract.js`.
   - `solver/PLAN.md`: the PORYGON2 status cell.
-  - Removed the merge-conflict markers that main carried in `docs/SOLVER.md` and `solver/LOG.md` (from merge `ec14dd86`); every entry is kept.
 - **Measured.**
   - bo1: 27,116 games / 218,815 positions. bo3: 24,940 / 197,905 (`solver/porygon2/v2/manifest-*.json`).
   - Both players at 1500 or above: bo1 364, bo3 0.
@@ -69,6 +68,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Basis.** unchanged.
 - **Supersedes.** Nothing.
 - **Owed to the next major.** MODELS: PORYGON2 v2 (designed, not trained).
+
+## [abra/regmc 1.34.2] — 2026-09-30 — **Conflict markers removed from the SOLVER ledger and the solver log**
+- **What changed.** The coordinator's 1.34.0 merge committed unresolved conflict markers into `docs/SOLVER.md` and `solver/LOG.md`. They are resolved now, keeping both entries. No code.
+- **Measured.** NO FIGURE.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none.
 
 ## [abra/regmc 1.34.1] — 2026-09-30 — **CHANGELOG-REGMC heading fix after the overnight merges**
 - **What changed.** The double-Protect entry's CHANGELOG heading reads 1.32.0 again; the 1.34.0 merge renumber had renamed it. Its notes row already read 1.32.0. No code.

@@ -1,7 +1,7 @@
 # PORYGON2 v2 — design and training dataset (2026-09-30)
 
 SOLVER. Store-only work: no simulator was read, no game was played, no net was trained, no gate was run.
-abra/regmc 1.35.0 (committed first as 1.34.0; renumbered on the merge with main, which had taken 1.34.0 and 1.34.1), branch `worktree-agent-a9e323f35bad91d08`.
+abra/regmc 1.37.0 (committed first as 1.34.0; renumbered on merging main, which had taken 1.34.0 to 1.34.2, while two unmerged branches claim 1.35.0), branch `worktree-agent-a9e323f35bad91d08`.
 
 ## Verdict
 
@@ -85,6 +85,12 @@ games than MEASURE's 21:18Z count:
 **Cross-check against MEASURE.** On the earlier snapshot of the bo1 file (59,196 games), the same quality rules gave
 **29,537** clean games in a trial run of this builder. That is exactly MEASURE's quality figure. The bo3 file has moved
 since MEASURE counted it, so its 25,238 cannot be compared.
+
+**The quality rules will move.** These counts use `engine/quality.js` at sha256 `ebc37c7c…`, recorded in the manifests.
+An unmerged store-quality branch changes three things: `storePath()`, the Reg M-C legality and custom-rule verdicts, and
+a tempo clause for behavioural bots (its commit message gives bo3 8 → 0 and bo1 15 → 7 flagged accounts). Rebuild the
+datasets after it lands (OWED step 0). The per-game exclusion reasons are in the manifest, so the difference can be
+counted.
 
 **Split** (MAG/DODUO's player salt, lifted to the game):
 
