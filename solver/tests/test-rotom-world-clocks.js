@@ -15,6 +15,8 @@
  *             own: sleep ticks, the toxic stage, Disable's -1 and Rest's fixed sleep.
  *   ABILITY   pandywulu g1, turn 8: Espeon holds the Shadow Tag it Skill Swapped, and the engine offers our Incineroar no
  *             switch (the server refused it: trapped). RED under ROTOM_WORLD_BREAK=noability.
+ *   HAZARDS   AngryGator g3, turn 3: Toxic Spikes on our side is in sf.hz, and switching Rillaboom in poisons it in the
+ *             engine (the server poisoned it). RED under ROTOM_WORLD_BREAK=hzsc.
  *   AUDIT     every per-body leaf engine/board_state.js mediBody reads, and every field leaf of readMedi, is either
  *             CARRIED or OWED in world_log.js (a leaf in neither fails by name).
  *   RED       ROTOM_WORLD_BREAK=noclocks (the pre-fix world: no body clocks, no log field) turns PERISH and CLOCKS red.
@@ -104,6 +106,28 @@ const toID = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   const sw = k >= 0 ? la.slots[k].options.filter(o => o.kind === 'switch').length : -1;
   ok('ABILITY', k >= 0 && sw === 0, 'the engine offers our Incineroar ' + sw + ' switch options at turn 8 (the server refused its switch: trapped)');
   console.log('  ABILITY Espeon ' + (esp && esp.ability) + ' | Gengar ' + (gen && gen.ability) + ' (restores ' + (gen && gen._preAb) + ') | Incineroar switch options ' + sw);
+}
+
+/* ---------------- HAZARDS (abra/regmc 1.42.0) ----------------
+ * AngryGator g3: Glimmora's Toxic Debris laid Toxic Spikes on our side on turn 1; on turn 3 our Rillaboom switched in
+ * and the server poisoned it (`-status|p1a: Rillaboom|psn`). From the turn-3 world, switching Kingambit out for Rillaboom
+ * must poison Rillaboom in the engine. RED under ROTOM_WORLD_BREAK=hzsc (the hazard written into sf.sc). */
+{
+  const w = LR.worldAt(WB, { log: path.join(FX, 'angrygator-g3.battle.txt'), me: 'p1', bring: [3, 5, 0, 2], cut: '|turn|3', hpOf });
+  const sf = w.side === 'A' ? w.S.sfA : w.S.sfB;
+  ok('HAZARDS', sf.hz && sf.hz.toxicspikes === 1, 'our side carries Toxic Spikes ' + JSON.stringify(sf.hz || {}) + ' in sf.hz (the engine reads hazards there), sf.sc ' + JSON.stringify(sf.sc || {}));
+  const kin = LR.bodyOf(w, 'p1', 'Kingambit'), ril = LR.bodyOf(w, 'p1', 'Rillaboom');
+  const la = API.legalActions(w.S, w.side), th = API.legalActions(w.S, opp(w.side));
+  const k = acts(w.S, w.side).indexOf(kin);
+  const jm = la.joint.find(j => j[k] && j[k].kind === 'switch' && j[k].ident === 'rillaboom' && j[1 - k] && j[1 - k].kind === 'move');
+  let st = null;
+  if (jm) {
+    const S2 = API.step(w.S, w.side === 'A' ? jm : th.joint[0], w.side === 'A' ? th.joint[0] : jm, API.makeRng(3));
+    const r2 = (w.side === 'A' ? S2.sfA : S2.sfB).team.find(m => /^rillaboom/i.test(m.name));
+    st = r2 ? r2.status : null;
+  }
+  ok('HAZARDS', !!jm && st === 'psn', 'Rillaboom switched in over Toxic Spikes: status ' + st + ' (the server: psn)' + (jm ? '' : ' — no switch joint found'));
+  console.log('  HAZARDS sf.hz ' + JSON.stringify(sf.hz || {}) + ' | Rillaboom after the switch: ' + st);
 }
 
 /* ---------------- AUDIT ---------------- */

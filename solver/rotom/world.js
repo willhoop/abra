@@ -136,7 +136,7 @@ function create(API) {
                      stallLaid: 0, stallNoLines: 0 };
 
   Object.assign(COUNTERS, { perishLaid: 0, volLaid: 0, subLaid: 0, seedLaid: 0, confusionLaid: 0, trapLaid: 0, yawnLaid: 0,
-                            slpLaid: 0, toxLaid: 0, lockLaid: 0, abilityLaid: 0 });
+                            slpLaid: 0, toxLaid: 0, lockLaid: 0, abilityLaid: 0, hazardLaid: 0 });
 
   /* THE BODY'S CLOCKS AND VOLATILES FROM THE LOG (2026-09-30, solver/rotom/world_log.js). Each engine field is the one
    * engine/board_state.js mediBody reads for that volatile, laid at the value the engine holds at a turn boundary.
@@ -436,6 +436,12 @@ function create(API) {
       for (const [name, c] of Object.entries(cond)) {
         const id = toID(name);
         if (id === 'tailwind') { f[key] = left('tailwind', c.since, turnN); continue; }
+        /* ENTRY HAZARDS LIVE IN sf.hz (2026-09-30, abra/regmc 1.42.0). The engine lays and reads Stealth Rock, Spikes,
+         * Toxic Spikes and Sticky Web in `sf.hz` (layHazard; engine/board_state.js readMedi `hazards`) and never in
+         * `sf.sc`, so a hazard this world wrote into `sf.sc` did nothing: a switch-in took no Toxic Spikes poison and no
+         * Stealth Rock chip. Membership is the dex's (a foe-side condition with a switch-in effect, world_log.hazards).
+         * DELIBERATE BREAK ROTOM_WORLD_BREAK=hzsc: the old sf.sc write. */
+        if (WL.hazards().has(id) && WORLD_BREAK !== 'hzsc') { (sf.hz = sf.hz || {})[id] = c.layers || 1; COUNTERS.hazardLaid++; continue; }
         const mv = X.D.moves.get(id);
         if (mv && mv.exists) sf.sc[id] = duration(id) ? left(id, c.since, turnN) : (c.layers || 1);
         else notes.push('side condition not mapped: ' + name);

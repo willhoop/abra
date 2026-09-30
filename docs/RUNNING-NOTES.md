@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.42.0] — 2026-09-30 — **ROTOM's world lays entry hazards where the engine reads them (sf.hz, not sf.sc)**
+- **What changed.** `solver/rotom/world.js`: a side condition that is an entry hazard (`world_log.hazards()`, derived)
+  is laid in `sf.hz`, not `sf.sc`.
+- **Measured.** Replay of AngryGator g3 turn 3 (chomp1 fixture): `sf.hz` `{toxicspikes: 1}`, and Rillaboom is `psn`
+  after switching in, as on the server. Under `ROTOM_WORLD_BREAK=hzsc` the hazard sits in `sf.sc` and Rillaboom stays
+  clean. `test-rotom-world-clocks.js` GREEN 18 of 18, RED 2 of 18 under the break.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MODELS: ROTOM's world fidelity.
+
 ## [abra/regmc 1.41.0] — 2026-09-30 — **ROTOM's world carries a changed ability; a Skill-Swapped Shadow Tag now traps in the search as it did on the server**
 - **What changed.** `solver/rotom/world.js` `layBody` lays the log's ability changes (from `solver/rotom/world_log.js`)
   on the opponent's bodies, with `_preAb`. On mine, the request's `ability` and `baseAbility` win.

@@ -8,6 +8,10 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-30
 
+### ROTOM's world: entry hazards in sf.hz (abra/regmc 1.42.0)
+- Every hazard in every ROTOM world sat in the wrong field (`sf.sc`), so the search never saw hazard damage.
+- Now in `sf.hz`. Replayed on the real log, Rillaboom switching into Toxic Spikes is poisoned, as on the server.
+
 ### ROTOM's world carries ability changes (the Skill-Swapped Shadow Tag) (abra/regmc 1.41.0)
 - The post-mortem's refused switch (pandywulu g1 t8) was a Skill-Swapped Shadow Tag the world did not carry.
 - Replayed on the real log, Espeon now holds Shadow Tag, and the engine offers our Incineroar no switch, as the server

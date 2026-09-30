@@ -355,14 +355,14 @@ const CARRIED = {
   throatchop: '_noSound (duration)', lockon: '_vol', minimize: '_vol', noretreat: '_vol', dragoncheer: '_vol', gastroacid: 'with the ability',
   powertrick: '_vol', smackdown: '_vol', stockpile: '_vol layers', stall: 'stallStreaks (1.20.0)',
   weather: 'public state', weather_turns: 'turn arithmetic (world.js left())', terrain: 'public state', terrain_turns: 'turn arithmetic', trickroom_turns: 'turn arithmetic',
-  gravity_turns: 'turn arithmetic', tailwind: 'turn arithmetic', screens: 'sf.sc, turn arithmetic',
+  gravity_turns: 'turn arithmetic', tailwind: 'turn arithmetic', screens: 'sf.sc, turn arithmetic', hazards: 'sf.hz layers (sf.sc until 1.42.0, which the engine never read for a hazard)',
 };
 const OWED = {
   types: 'type changes (Soak-like, typeadd/typechange) are not laid; the body keeps its sheet types',
   last_item: 'not laid', ate_berry: 'not laid (Belch / Cud Chew read it)', charging: 'a two-turn move in progress is not laid',
   uproar: 'not laid (engine _mtLock)', mustrecharge: 'not laid (engine _recharge)', flashfire: 'the Flash Fire boost is not laid',
   lockedmove: 'a rampage lock is not laid (engine _mtLock)', allyswitch: 'the Ally Switch ladder is not laid', metronome: 'the Metronome item ladder is not laid',
-  unburden: 'the Unburden boost is not laid', hazards: 'laid into sf.sc, which the engine does not read for hazards (sf.hz): OWED',
+  unburden: 'the Unburden boost is not laid',
   magicroom_turns: 'not laid', wonderroom_turns: 'not laid', fairylock_turns: 'not laid', party: 'bench rows carry no volatiles (correct: they leave with the body)',
   pp: 'one PP per move seen (the count beyond one is hidden)', slots: 'Wish / Healing Wish slot conditions are not laid',
 };

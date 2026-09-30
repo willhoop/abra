@@ -21,6 +21,19 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.42.0] — 2026-09-30
+
+### Fixed
+- **Entry hazards now go where the engine reads them.** `solver/rotom/world.js` wrote Stealth Rock, Spikes, Toxic
+  Spikes and Sticky Web into `sf.sc`, but the engine lays and reads hazards only in `sf.hz`. So in every ROTOM world a
+  hazard did nothing: a switch-in took no Toxic Spikes poison and no Stealth Rock chip.
+  - Now laid in `sf.hz` with their layers. The membership is the dex's: a foe-side condition with a switch-in effect.
+  - Replay of AngryGator g3 turn 3 (chomp1): Toxic Spikes from Glimmora's Toxic Debris is on our side. Switching
+    Rillaboom in now poisons it in the engine, as the server did. Before the fix it did not.
+
+### Added
+- `solver/tests/test-rotom-world-clocks.js` HAZARDS clause. Red under `ROTOM_WORLD_BREAK=hzsc`, 2 of 18.
+
 ## [1.41.0] — 2026-09-30
 
 ### Fixed
