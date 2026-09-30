@@ -2,6 +2,7 @@
 
     python solver/porygon2/v1/train.py --data <dir>[,<dir>...] --arch sets|attn --out <model.json> --metrics <metrics.json>
         [--labels <jsonl>[,<jsonl>...]] [--fixture <json>] [--threads 6] [--epochs 12] [--lr 1e-3] [--seed 1]
+        [--labelled-only <dir>[,<dir>...]]   (those self-play dirs train and validate only on their deep/exact-labelled rows)
 
 DATA. Every --data directory is a solver/porygon2/v1/build.js output (human or self-play), read through np.memmap. Rows are
 visited in shuffled BLOCKS of contiguous rows (a block is read sequentially; the order of blocks and the rows inside a batch
@@ -48,6 +49,7 @@ ap.add_argument('--bs', type=int, default=512)
 ap.add_argument('--human-weight', type=float, default=1.0)
 ap.add_argument('--max-rows', type=int, default=0, help='debug: cap rows per directory')
 ap.add_argument('--name', default='PORYGON2 v1')
+ap.add_argument('--labelled-only', default='', help='comma list of self-play data dirs whose TRAIN and VAL rows are cut to the rows that carry a deep or exact label (TEST rows untouched); 2026-09-30, better labels not more positions')
 ap.add_argument('--eval-exclude', default='', help='comma list of data dirs whose TEST rows are left out of the gate (gen5 trained on those games)')
 args = ap.parse_args()
 
@@ -131,6 +133,7 @@ for f in [x for x in args.labels.split(',') if x]:
         if o.get('kind') == 'exact' or k not in LAB or LAB[k][0] != 'exact': LAB[k] = (o.get('kind', 'deep'), float(o['v']))
 
 # per-row targets, weights, split masks
+LONLY = set(os.path.normpath(x) for x in args.labelled_only.split(',') if x)
 for d in DSs:
     c = d.col; N = d.N
     d.y = d.z.copy(); d.vdeep = np.full(N, np.nan); d.vexact = np.full(N, np.nan)
@@ -149,6 +152,12 @@ for d in DSs:
         em = ~np.isnan(d.vexact); d.y[em] = d.vexact[em]
         s = d.M[:, c['split_p1']]
         d.train = np.where(s == 0)[0]; d.val = np.where(s == 1)[0]; d.test = np.where(s == 2)[0]
+        lab = (~np.isnan(d.vdeep)) | (~np.isnan(d.vexact))
+        d.labels_matched = int(lab.sum())
+        d.labelled_only = os.path.normpath(d.dir) in LONLY
+        if d.labelled_only:
+            d.labels_off_train = int(lab[d.val].sum() + lab[d.test].sum())
+            d.train = d.train[lab[d.train]]; d.val = d.val[lab[d.val]]
         d.val_w = np.ones(len(d.val)); d.test_w = np.ones(len(d.test))
     else:
         s1, s2 = d.M[:, c['split_p1']], d.M[:, c['split_p2']]
@@ -156,8 +165,15 @@ for d in DSs:
         d.val = np.where((s1 == 1) | (s2 == 1))[0]; d.val_w = ((s1 == 1).astype(np.float64) + (s2 == 1))[d.val]
         d.test = np.where((s1 == 2) | (s2 == 2))[0]; d.test_w = ((s1 == 2).astype(np.float64) + (s2 == 2))[d.test]
         d.w[:] = args.human_weight
-    log(f'{d.dir}: {d.kind} N {N} train {len(d.train)} val {len(d.val)} test {len(d.test)}'
+    d.labels_matched = getattr(d, 'labels_matched', 0)
+    log(f'{d.dir}: {d.kind} N {N}' + (' LABELLED-ONLY' if getattr(d, 'labelled_only', False) else '') + f' train {len(d.train)} val {len(d.val)} test {len(d.test)}'
         + (f' | deep {int((~np.isnan(d.vdeep)).sum())} exact {int((~np.isnan(d.vexact)).sum())} root {int((~np.isnan(d.vroot)).sum())}' if d.kind == 'selfplay' else ''))
+
+
+unknown_dirs = LONLY - set(os.path.normpath(d.dir) for d in DSs)
+if unknown_dirs: raise SystemExit(f'--labelled-only names a dir that is not in --data: {sorted(unknown_dirs)}')
+LAB_UNMATCHED = len(LAB) - sum(d.labels_matched for d in DSs)
+log(f'labels read {len(LAB)} matched to a row {len(LAB) - LAB_UNMATCHED} unmatched {LAB_UNMATCHED}')
 
 
 # ------------------------------------------------------------------ the nets
@@ -399,8 +415,9 @@ out_sha = hashlib.sha256(s.encode('utf8')).hexdigest()
 metrics = {'model': args.name, 'arch': args.arch, 'params': nparams, 'out': {'path': args.out.replace('\\', '/'), 'sha256': out_sha},
            'engine_release': list(REL)[0], 'flags': vars(args), 'history': history, 'selected_epoch': best[2],
            'data': [{'dir': d.dir.replace('\\', '/'), 'kind': d.kind, 'N': d.N, 'train': int(len(d.train)), 'val': int(len(d.val)), 'test': int(len(d.test)),
-                     'deep_labels': int((~np.isnan(d.vdeep)).sum()), 'exact_labels': int((~np.isnan(d.vexact)).sum()), 'root_values': int((~np.isnan(d.vroot)).sum()) if d.kind == 'selfplay' else 0} for d in DSs],
-           'labels_files': [x for x in args.labels.split(',') if x], 'test': test, 'count_hp': chp, 'seconds': round(time.time() - T0)}
+                     'deep_labels': int((~np.isnan(d.vdeep)).sum()), 'exact_labels': int((~np.isnan(d.vexact)).sum()), 'root_values': int((~np.isnan(d.vroot)).sum()) if d.kind == 'selfplay' else 0,
+                     'labelled_only': bool(getattr(d, 'labelled_only', False)), 'labels_off_train': int(getattr(d, 'labels_off_train', 0))} for d in DSs],
+           'labels_read': len(LAB), 'labels_unmatched': int(LAB_UNMATCHED), 'labels_files': [x for x in args.labels.split(',') if x], 'test': test, 'count_hp': chp, 'seconds': round(time.time() - T0)}
 json.dump(metrics, open(args.metrics, 'w', encoding='utf8'), indent=1)
 log('wrote', args.out, args.metrics)
 

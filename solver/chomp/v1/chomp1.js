@@ -63,7 +63,8 @@ function create(o) {
   o = o || {};
   let API = o.API, ENGINE = null;
   if (!API) { ENGINE = require('../../arena/engine.js').load(o.release || null); API = ENGINE.API; }
-  const SC = require('./scorer.js').create(API, { model: o.model, source: o.source });
+  /* o.scorer: a ready cell scorer with v1's interface (table, COUNTERS, file) — CHOMP v2 (solver/chomp/v2/chomp2.js) passes its own */
+  const SC = o.scorer ? o.scorer(API) : require('./scorer.js').create(API, { model: o.model, source: o.source });
   const COUNTERS = { solves: 0, lpPivots: 0, failures: 0, bo3Adjusted: 0 };
   let RATES = null;
   const rates = () => (RATES || (RATES = o.bo3Rates || bo3Rates(o.bo3File)));

@@ -1,0 +1,140 @@
+{
+ "what": "two exported PORYGON2 v1 models on the same held-out rows (split 2), paired, clustered by game; B − A < 0 means B predicts the outcome better",
+ "a": {
+  "path": "solver/porygon2/model/porygon2-v1r1.json",
+  "sha256": "36a2f675076733af8cccc8fcc86b892c36a3ced66162950005aa3e8c5a56a10b"
+ },
+ "b": {
+  "path": "solver/porygon2/model/porygon2-v1r2.json",
+  "sha256": "902f7c6982bb5da702f249bd12b4c014244072a2d757901290289c7366d28fc3"
+ },
+ "argv": [
+  "--a",
+  "solver/porygon2/model/porygon2-v1r1.json",
+  "--b",
+  "solver/porygon2/model/porygon2-v1r2.json",
+  "--human",
+  "solver/out/p2v2/in/human-s0",
+  "--selfplay",
+  "solver/out/p2v2/in/sp/loop-sp9,solver/out/p2v2/in/sp/loop-sp8,solver/out/p2v2/in/sp/loop-sp7,solver/out/p2v2/in/sp/loop-sp6,solver/out/p2v2/in/sp/r3-sp0,solver/out/p2v2/in/sp/p2v1-c0",
+  "--boot",
+  "2000",
+  "--out",
+  "solver/out/p2v2/cmp-r1-vs-r2-on-v1-test.json"
+ ],
+ "boot": 2000,
+ "human": {
+  "rows": 36083,
+  "a_logloss": {
+   "mean": 0.511328,
+   "ci95": [
+    0.501042,
+    0.522383
+   ],
+   "n_views": 37829,
+   "n_games": 5220
+  },
+  "b_logloss": {
+   "mean": 0.510113,
+   "ci95": [
+    0.499685,
+    0.520794
+   ],
+   "n_views": 37829,
+   "n_games": 5220
+  },
+  "b_minus_a_logloss": {
+   "mean": -0.001214,
+   "ci95": [
+    -0.004195,
+    0.001738
+   ],
+   "n_views": 37829,
+   "n_games": 5220
+  },
+  "a_brier": {
+   "mean": 0.173424,
+   "ci95": [
+    0.169537,
+    0.177528
+   ],
+   "n_views": 37829,
+   "n_games": 5220
+  },
+  "b_brier": {
+   "mean": 0.173075,
+   "ci95": [
+    0.169116,
+    0.177105
+   ],
+   "n_views": 37829,
+   "n_games": 5220
+  },
+  "b_minus_a_brier": {
+   "mean": -0.000349,
+   "ci95": [
+    -0.001519,
+    0.00076
+   ],
+   "n_views": 37829,
+   "n_games": 5220
+  }
+ },
+ "selfplay": {
+  "rows": 6221,
+  "a_logloss": {
+   "mean": 0.398885,
+   "ci95": [
+    0.378385,
+    0.420728
+   ],
+   "n_views": 6221,
+   "n_games": 798
+  },
+  "b_logloss": {
+   "mean": 0.402041,
+   "ci95": [
+    0.381397,
+    0.424142
+   ],
+   "n_views": 6221,
+   "n_games": 798
+  },
+  "b_minus_a_logloss": {
+   "mean": 0.003156,
+   "ci95": [
+    -0.003225,
+    0.008917
+   ],
+   "n_views": 6221,
+   "n_games": 798
+  },
+  "a_brier": {
+   "mean": 0.132779,
+   "ci95": [
+    0.124947,
+    0.141104
+   ],
+   "n_views": 6221,
+   "n_games": 798
+  },
+  "b_brier": {
+   "mean": 0.134599,
+   "ci95": [
+    0.126623,
+    0.143183
+   ],
+   "n_views": 6221,
+   "n_games": 798
+  },
+  "b_minus_a_brier": {
+   "mean": 0.00182,
+   "ci95": [
+    -0.000559,
+    0.003976
+   ],
+   "n_views": 6221,
+   "n_games": 798
+  }
+ }
+}

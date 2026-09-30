@@ -1,3 +1,12 @@
+## THE REG M-C TAG FILE IS RE-WEIGHTED FROM THE FULL STORE, AND ONE USAGE COUNT IS A SIMULATOR INPUT. 2026-09-30 (abra/regmc 1.38.0)
+
+- `data/tags-regmc.json` was weighted by the stale plain store (205,836 sheet entries). It is now weighted by the
+  `.gz` stores (325,296). `usage_from` records the file `storePath()` opened, not the path requested.
+- Rows, tags, params and the tag index are byte-identical before and after. Usage does change one engine behaviour:
+  `sideGuardClickRate` scales the chooser's one-turn-guard click rate by `uses`. Quick Guard goes 0.0271 → 0.0390.
+  **A tag regeneration is an engine change.** The gate is owed on the next release. It was not run here.
+- No mechanic changed. The census does not move. Report `docs/_reports/2026-09-30-tags-regmc-store.md`.
+
 ## `test-game-diff.js` AND FIVE MORE ENGINE TESTS WRITE PER-REGULATION FILES UNDER REG M-C. 2026-09-29 (abra/regmc 1.30.1)
 
 - `ABRA_REGULATION=regmc node tests/test-game-diff.js` played 5 of 5 games, all agreeing, then exited 1 on the write

@@ -1,0 +1,241 @@
+|title|medicham32 vs. pandywulu
+|j|☆medicham32
+|j|☆pandywulu
+|html|<table width="100%"><tr><td align="left">medicham32</td><td align="right">pandywulu</tr><tr><td align="left"><i class="fa fa-circle-o"></i> <i class="fa fa-circle-o"></i> </td><td align="right"><i class="fa fa-circle-o"></i> <i class="fa fa-circle-o"></i> </tr></table>
+|uhtml|bestof|<h2><strong>Game 1</strong> of <a href="/game-bestof3-gen9championsvgc2026regmcbo3-2690163130">a best-of-3</a></h2>
+|t:|1790731774
+|gametype|doubles
+|player|p1|medicham32|101|1122
+|player|p2|pandywulu|170|1040
+|gen|9
+|tier|[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)
+|rated|
+|rule|Species Clause: Limit one of each Pokémon
+|rule|Item Clause: Limit 1 of each item
+|clearpoke
+|poke|p1|Gengar, L50, M|
+|poke|p1|Incineroar, L50, M|
+|poke|p1|Rillaboom, L50, M|
+|poke|p1|Kingambit, L50, F|
+|poke|p1|Hippowdon, L50, F|
+|poke|p1|Sneasler, L50, F|
+|poke|p2|Espeon, L50, F|
+|poke|p2|Persian-Alola, L50, M|
+|poke|p2|Inteleon, L50, F|
+|poke|p2|Pelipper, L50, F|
+|poke|p2|Dragapult, L50, M|
+|poke|p2|Lucario, L50, M|
+|teampreview|4
+|showteam|p1|Gengar||Gengarite|CursedBody|ShadowBall,SludgeBomb,Substitute,Protect|Timid||M|||50|]Incineroar||SitrusBerry|Intimidate|FakeOut,FlareBlitz,Snarl,PartingShot|Impish||M|||50|]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,GrassyGlide,LowKick,FakeOut|Adamant||M|||50|]Kingambit||LifeOrb|Defiant|SuckerPunch,KowtowCleave,SwordsDance,Protect|Adamant||F|||50|]Hippowdon||Leftovers|SandStream|HighHorsepower,StoneEdge,Yawn,Protect|Careful||F|||50|]Sneasler||WhiteHerb|Unburden|CloseCombat,DireClaw,FakeOut,Protect|Adamant||F|||50|
+|showteam|p2|Espeon||FocusSash|MagicBounce|ExpandingForce,SkillSwap,Protect,WeatherBall|Timid||F|||50|]Persian-Alola||RockyHelmet|FurCoat|KnockOff,Protect,FakeOut,PartingShot|Adamant||M|||50|]Inteleon||ScopeLens|Sniper|SnipeShot,IceBeam,DarkPulse,Protect|Timid||F|||50|]Pelipper||BrightPowder|Drizzle|Tailwind,WideGuard,Hurricane,WeatherBall|Timid||F|||50|]Dragapult||ExpertBelt|Infiltrator|DracoMeteor,WillOWisp,ShadowBall,DragonCheer|Modest||M|||50|]Lucario||LucarioniteZ|InnerFocus|Detect,AuraSphere,FlashCannon,NastyPlot|Timid||M|||50|
+|
+|t:|1790731797
+|teamsize|p1|4
+|teamsize|p2|4
+|start
+|switch|p1a: Gengar|Gengar, L50, M|167/167
+|switch|p1b: Kingambit|Kingambit, L50, F|207/207
+|switch|p2a: Espeon|Espeon, L50, F|100/100
+|switch|p2b: Persian|Persian-Alola, L50, M|100/100
+|turn|1
+|
+|t:|1790731820
+|detailschange|p1a: Gengar|Gengar-Mega, L50, M
+|-mega|p1a: Gengar|Gengar|Gengarite
+|move|p1a: Gengar|Protect|p1a: Gengar
+|-singleturn|p1a: Gengar|Protect
+|move|p1b: Kingambit|Protect|p1b: Kingambit
+|-singleturn|p1b: Kingambit|Protect
+|move|p2a: Espeon|Skill Swap|p1b: Kingambit
+|-activate|p1b: Kingambit|move: Protect
+|move|p2b: Persian|Parting Shot|p1b: Kingambit
+|-activate|p1b: Kingambit|move: Protect
+|
+|upkeep
+|turn|2
+|
+|t:|1790731831
+|switch|p1a: Incineroar|Incineroar, L50, M|202/202
+|-ability|p1a: Incineroar|Intimidate|boost
+|-unboost|p2a: Espeon|atk|1
+|-unboost|p2b: Persian|atk|1
+|move|p2a: Espeon|Skill Swap|p1b: Kingambit
+|-activate|p2a: Espeon|Skill Swap|Defiant|Magic Bounce|[of] p1b: Kingambit
+|move|p2b: Persian|Parting Shot|p1b: Kingambit
+|move|p1b: Kingambit|Parting Shot|p2b: Persian|[from] ability: Magic Bounce
+|-unboost|p2b: Persian|atk|1
+|-unboost|p2b: Persian|spa|1
+|
+|t:|1790731836
+|switch|p1b: Gengar|Gengar-Mega, L50, M|167/167|[from] Parting Shot
+|
+|upkeep
+|turn|3
+|
+|t:|1790731851
+|switch|p1b: Kingambit|Kingambit, L50, F|207/207
+|move|p2a: Espeon|Protect|p2a: Espeon
+|-singleturn|p2a: Espeon|Protect
+|move|p2b: Persian|Protect|p2b: Persian
+|-singleturn|p2b: Persian|Protect
+|move|p1a: Incineroar|Fake Out|p2b: Persian
+|-activate|p2b: Persian|move: Protect
+|
+|upkeep
+|turn|4
+|
+|t:|1790731869
+|move|p2a: Espeon|Skill Swap|p1b: Kingambit
+|-activate|p2a: Espeon|Skill Swap|Defiant|Defiant|[of] p1b: Kingambit
+|move|p2b: Persian|Parting Shot|p1b: Kingambit
+|-unboost|p1b: Kingambit|atk|1
+|-ability|p1b: Kingambit|Defiant|boost
+|-boost|p1b: Kingambit|atk|2
+|-unboost|p1b: Kingambit|spa|1
+|-ability|p1b: Kingambit|Defiant|boost
+|-boost|p1b: Kingambit|atk|2
+|
+|t:|1790731879
+|switch|p2b: Lucario|Lucario, L50, M|100/100|[from] Parting Shot
+|move|p1a: Incineroar|Parting Shot|p2b: Lucario
+|-unboost|p2b: Lucario|atk|1
+|-unboost|p2b: Lucario|spa|1
+|
+|t:|1790731884
+|switch|p1a: Gengar|Gengar-Mega, L50, M|167/167|[from] Parting Shot
+|move|p1b: Kingambit|Swords Dance|p1b: Kingambit
+|-boost|p1b: Kingambit|atk|2
+|
+|upkeep
+|turn|5
+|
+|t:|1790731908
+|detailschange|p2b: Lucario|Lucario-Mega-Z, L50, M
+|-mega|p2b: Lucario|Lucario|Lucarionite Z
+|move|p1a: Gengar|Protect|p1a: Gengar
+|-singleturn|p1a: Gengar|Protect
+|move|p1b: Kingambit|Protect|p1b: Kingambit
+|-singleturn|p1b: Kingambit|Protect
+|move|p2b: Lucario|Nasty Plot|p2b: Lucario
+|-boost|p2b: Lucario|spa|2
+|move|p2a: Espeon|Skill Swap|p1a: Gengar
+|-activate|p1a: Gengar|move: Protect
+|
+|upkeep
+|turn|6
+|
+|t:|1790731939
+|move|p1b: Kingambit|Sucker Punch|p2b: Lucario
+|-resisted|p2b: Lucario|1
+|-damage|p2b: Lucario|17/100
+|-damage|p1b: Kingambit|187/207|[from] item: Life Orb
+|move|p2b: Lucario|Aura Sphere|p1b: Kingambit
+|-supereffective|p1b: Kingambit|2
+|-damage|p1b: Kingambit|0 fnt
+|faint|p1b: Kingambit
+|move|p2a: Espeon|Skill Swap|p1a: Gengar
+|-activate|p2a: Espeon|Skill Swap|Shadow Tag|Defiant|[of] p1a: Gengar
+|move|p1a: Gengar|Substitute|p1a: Gengar
+|-start|p1a: Gengar|Substitute
+|-damage|p1a: Gengar|126/167
+|
+|upkeep
+|
+|t:|1790731944
+|switch|p1b: Incineroar|Incineroar, L50, M|202/202
+|-ability|p1b: Incineroar|Intimidate|boost
+|-unboost|p2a: Espeon|atk|1
+|-unboost|p2b: Lucario|atk|1
+|turn|7
+|
+|t:|1790731962
+|move|p2b: Lucario|Detect|p2b: Lucario
+|-singleturn|p2b: Lucario|Protect
+|move|p2a: Espeon|Protect|p2a: Espeon
+|-singleturn|p2a: Espeon|Protect
+|move|p1b: Incineroar|Fake Out|p2a: Espeon
+|-activate|p2a: Espeon|move: Protect
+|move|p1a: Gengar|Shadow Ball|p2b: Lucario
+|-activate|p2b: Lucario|move: Protect
+|
+|upkeep
+|turn|8
+|
+|t:|1790731980
+|move|p1a: Gengar|Protect|p1a: Gengar
+|-singleturn|p1a: Gengar|Protect
+|move|p2b: Lucario|Aura Sphere|p1b: Incineroar
+|-supereffective|p1b: Incineroar|1
+|-damage|p1b: Incineroar|0 fnt
+|faint|p1b: Incineroar
+|move|p2a: Espeon|Expanding Force|p1a: Gengar
+|-activate|p1a: Gengar|move: Protect
+|
+|upkeep
+|
+|t:|1790731980
+|switch|p1b: Sneasler|Sneasler, L50, F|187/187
+|turn|9
+|
+|t:|1790732002
+|move|p2b: Lucario|Detect|p2b: Lucario
+|-singleturn|p2b: Lucario|Protect
+|move|p2a: Espeon|Protect|p2a: Espeon
+|-singleturn|p2a: Espeon|Protect
+|move|p1b: Sneasler|Fake Out|p2a: Espeon
+|-activate|p2a: Espeon|move: Protect
+|move|p1a: Gengar|Shadow Ball|p2b: Lucario
+|-activate|p2b: Lucario|move: Protect
+|
+|upkeep
+|turn|10
+|
+|t:|1790732029
+|move|p2b: Lucario|Flash Cannon|p1a: Gengar
+|-end|p1a: Gengar|Substitute
+|move|p2a: Espeon|Skill Swap|p1b: Sneasler
+|-activate|p2a: Espeon|Skill Swap|Unburden|Shadow Tag|[of] p1b: Sneasler
+|move|p1a: Gengar|Shadow Ball|p2b: Lucario
+|-damage|p2b: Lucario|0 fnt
+|faint|p2b: Lucario
+|move|p1b: Sneasler|Dire Claw|p2a: Espeon
+|-damage|p2a: Espeon|20/100y
+|
+|upkeep
+|
+|t:|1790732043
+|switch|p2b: Persian|Persian-Alola, L50, M|100/100
+|turn|11
+|
+|t:|1790732067
+|move|p2b: Persian|Fake Out|p1b: Sneasler
+|-damage|p1b: Sneasler|168/187
+|move|p2a: Espeon|Expanding Force|p1a: Gengar
+|-supereffective|p1a: Gengar|1
+|-damage|p1a: Gengar|0 fnt
+|faint|p1a: Gengar
+|cant|p1b: Sneasler|flinch
+|
+|upkeep
+|turn|12
+|
+|t:|1790732087
+|move|p1b: Sneasler|Protect|p1b: Sneasler
+|-singleturn|p1b: Sneasler|Protect
+|move|p2a: Espeon|Expanding Force|p1b: Sneasler
+|-activate|p1b: Sneasler|move: Protect
+|move|p2b: Persian|Parting Shot|p1b: Sneasler
+|-activate|p1b: Sneasler|move: Protect
+|
+|upkeep
+|turn|13
+|
+|t:|1790732098
+|move|p1b: Sneasler|Protect||[still]
+|-fail|p1b: Sneasler
+|move|p2a: Espeon|Expanding Force|p1b: Sneasler
+|-supereffective|p1b: Sneasler|2
+|-damage|p1b: Sneasler|0 fnt
+|faint|p1b: Sneasler
+|
+|win|pandywulu

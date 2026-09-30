@@ -1,0 +1,3398 @@
+{
+ "generated_by": "solver/results/2026-09-30-ladder-loss-postmortem/postmortem.js",
+ "root": "solver/out/rotom (main checkout)",
+ "runs": {
+  "chomp1-2026-09-29T23-13-11-521Z": {
+   "search_arm_games": 49,
+   "won": 23,
+   "won_by_opponent_forfeit": 12,
+   "lost_without_forfeit": 26,
+   "lost_with_forfeit": 0,
+   "calibration_all": {
+    "decisions": 370,
+    "games": 49,
+    "mean_value": 0.496,
+    "win_rate": 0.4,
+    "brier": 0.1909,
+    "brier_constant": 0.24,
+    "auc": 0.813,
+    "bins": [
+     {
+      "lo": 0,
+      "n": 73,
+      "games": 27,
+      "mean_value": 0.026,
+      "win": 0.082
+     },
+     {
+      "lo": 0.1,
+      "n": 24,
+      "games": 13,
+      "mean_value": 0.155,
+      "win": 0.375
+     },
+     {
+      "lo": 0.2,
+      "n": 29,
+      "games": 19,
+      "mean_value": 0.254,
+      "win": 0.172
+     },
+     {
+      "lo": 0.3,
+      "n": 24,
+      "games": 21,
+      "mean_value": 0.352,
+      "win": 0.208
+     },
+     {
+      "lo": 0.4,
+      "n": 31,
+      "games": 20,
+      "mean_value": 0.451,
+      "win": 0.129
+     },
+     {
+      "lo": 0.5,
+      "n": 24,
+      "games": 16,
+      "mean_value": 0.558,
+      "win": 0.583
+     },
+     {
+      "lo": 0.6,
+      "n": 42,
+      "games": 26,
+      "mean_value": 0.655,
+      "win": 0.381
+     },
+     {
+      "lo": 0.7,
+      "n": 30,
+      "games": 24,
+      "mean_value": 0.745,
+      "win": 0.467
+     },
+     {
+      "lo": 0.8,
+      "n": 40,
+      "games": 28,
+      "mean_value": 0.849,
+      "win": 0.65
+     },
+     {
+      "lo": 0.9,
+      "n": 53,
+      "games": 23,
+      "mean_value": 0.964,
+      "win": 0.925
+     }
+    ]
+   },
+   "calibration_normal_end": {
+    "decisions": 301,
+    "games": 37,
+    "mean_value": 0.456,
+    "win_rate": 0.262,
+    "brier": 0.1925,
+    "brier_constant": 0.1936,
+    "auc": 0.836,
+    "bins": [
+     {
+      "lo": 0,
+      "n": 70,
+      "games": 26,
+      "mean_value": 0.025,
+      "win": 0.043
+     },
+     {
+      "lo": 0.1,
+      "n": 19,
+      "games": 11,
+      "mean_value": 0.155,
+      "win": 0.211
+     },
+     {
+      "lo": 0.2,
+      "n": 28,
+      "games": 18,
+      "mean_value": 0.256,
+      "win": 0.143
+     },
+     {
+      "lo": 0.3,
+      "n": 20,
+      "games": 18,
+      "mean_value": 0.354,
+      "win": 0.05
+     },
+     {
+      "lo": 0.4,
+      "n": 29,
+      "games": 18,
+      "mean_value": 0.451,
+      "win": 0.069
+     },
+     {
+      "lo": 0.5,
+      "n": 14,
+      "games": 11,
+      "mean_value": 0.546,
+      "win": 0.286
+     },
+     {
+      "lo": 0.6,
+      "n": 36,
+      "games": 22,
+      "mean_value": 0.655,
+      "win": 0.278
+     },
+     {
+      "lo": 0.7,
+      "n": 21,
+      "games": 17,
+      "mean_value": 0.745,
+      "win": 0.238
+     },
+     {
+      "lo": 0.8,
+      "n": 27,
+      "games": 18,
+      "mean_value": 0.847,
+      "win": 0.481
+     },
+     {
+      "lo": 0.9,
+      "n": 37,
+      "games": 14,
+      "mean_value": 0.964,
+      "win": 0.892
+     }
+    ]
+   },
+   "calibration_turn1": {
+    "decisions": 49,
+    "games": 49,
+    "mean_value": 0.615,
+    "win_rate": 0.469,
+    "brier": 0.2431,
+    "brier_constant": 0.2491,
+    "auc": 0.666,
+    "bins": [
+     {
+      "lo": 0.2,
+      "n": 1,
+      "games": 1,
+      "mean_value": 0.234,
+      "win": 0
+     },
+     {
+      "lo": 0.3,
+      "n": 3,
+      "games": 3,
+      "mean_value": 0.36,
+      "win": 0
+     },
+     {
+      "lo": 0.4,
+      "n": 9,
+      "games": 9,
+      "mean_value": 0.459,
+      "win": 0.333
+     },
+     {
+      "lo": 0.5,
+      "n": 9,
+      "games": 9,
+      "mean_value": 0.545,
+      "win": 0.556
+     },
+     {
+      "lo": 0.6,
+      "n": 13,
+      "games": 13,
+      "mean_value": 0.648,
+      "win": 0.462
+     },
+     {
+      "lo": 0.7,
+      "n": 6,
+      "games": 6,
+      "mean_value": 0.741,
+      "win": 0.333
+     },
+     {
+      "lo": 0.8,
+      "n": 8,
+      "games": 8,
+      "mean_value": 0.864,
+      "win": 0.875
+     }
+    ]
+   },
+   "gap_05_09_all": {
+    "games": 46,
+    "decisions": 136,
+    "gap": 0.2,
+    "ci95": [
+     0.046,
+     0.373
+    ],
+    "seed": 7,
+    "B": 2000
+   },
+   "opponent_action_in_searched_columns": {
+    "all": {
+     "covered": 239,
+     "n": 355,
+     "rate": 0.673
+    },
+    "lost": {
+     "covered": 147,
+     "n": 222,
+     "rate": 0.662
+    },
+    "won": {
+     "covered": 92,
+     "n": 133,
+     "rate": 0.692
+    }
+   },
+   "detectors": {
+    "lost": {
+     "games": 26,
+     "sp_used": 20,
+     "games_with_sp_used": 12,
+     "sp_failed": 10,
+     "double_protect_turns": 16,
+     "games_with_double_protect_turns": 13,
+     "protect_failed": 21,
+     "games_with_protect_failed": 17,
+     "opp_trick_room": 4,
+     "opp_tailwind": 3,
+     "my_perish_faints": 3,
+     "my_flinches": 15,
+     "games_with_my_flinches": 10,
+     "games_with_sp_failed": 7,
+     "games_with_opp_trick_room": 4,
+     "games_with_opp_tailwind": 3,
+     "games_with_my_perish_faints": 1
+    },
+    "won_without_forfeit": {
+     "games": 11,
+     "sp_used": 5,
+     "sp_failed": 2,
+     "double_protect_turns": 2,
+     "protect_failed": 0,
+     "opp_trick_room": 3,
+     "games_with_opp_trick_room": 3,
+     "opp_tailwind": 0,
+     "my_perish_faints": 0,
+     "my_flinches": 5,
+     "games_with_my_flinches": 5,
+     "games_with_sp_used": 3,
+     "games_with_sp_failed": 2,
+     "games_with_double_protect_turns": 2
+    }
+   },
+   "turning_points": [
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690111302",
+     "game": 1,
+     "end_turn": 12,
+     "max_value": {
+      "turn": 4,
+      "v": 0.764,
+      "choice": "move 1 2, move 2 1"
+     },
+     "largest_drop": {
+      "after_turn": 9,
+      "from": 0.296,
+      "drop": 0.262,
+      "choice": "move 4, move 4"
+     },
+     "values": [
+      [
+       1,
+       0.489
+      ],
+      [
+       2,
+       0.606
+      ],
+      [
+       3,
+       0.499
+      ],
+      [
+       4,
+       0.764
+      ],
+      [
+       5,
+       0.534
+      ],
+      [
+       6,
+       0.426
+      ],
+      [
+       7,
+       0.426
+      ],
+      [
+       8,
+       0.301
+      ],
+      [
+       9,
+       0.296
+      ],
+      [
+       10,
+       0.034
+      ],
+      [
+       11,
+       0.012
+      ],
+      [
+       12,
+       0.003
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690115224",
+     "game": 3,
+     "end_turn": 11,
+     "max_value": {
+      "turn": 5,
+      "v": 0.851,
+      "choice": "move 1 2, move 2 1"
+     },
+     "largest_drop": {
+      "after_turn": 5,
+      "from": 0.851,
+      "drop": 0.355,
+      "choice": "move 1 2, move 2 1"
+     },
+     "values": [
+      [
+       1,
+       0.487
+      ],
+      [
+       2,
+       0.48
+      ],
+      [
+       3,
+       0.212
+      ],
+      [
+       4,
+       0.641
+      ],
+      [
+       5,
+       0.851
+      ],
+      [
+       6,
+       0.496
+      ],
+      [
+       7,
+       0.282
+      ],
+      [
+       8,
+       0.26
+      ],
+      [
+       9,
+       0.063
+      ],
+      [
+       10,
+       0.149
+      ],
+      [
+       11,
+       0.009
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690116810",
+     "game": 1,
+     "end_turn": 10,
+     "max_value": {
+      "turn": 2,
+      "v": 0.816,
+      "choice": "switch 3, move 3"
+     },
+     "largest_drop": {
+      "after_turn": 8,
+      "from": 0.753,
+      "drop": 0.563,
+      "choice": "move 1 1, move 1 2"
+     },
+     "values": [
+      [
+       1,
+       0.768
+      ],
+      [
+       2,
+       0.816
+      ],
+      [
+       3,
+       0.619
+      ],
+      [
+       4,
+       0.628
+      ],
+      [
+       5,
+       0.561
+      ],
+      [
+       6,
+       0.407
+      ],
+      [
+       7,
+       0.597
+      ],
+      [
+       8,
+       0.753
+      ],
+      [
+       9,
+       0.189
+      ],
+      [
+       10,
+       0.003
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690118545",
+     "game": 2,
+     "end_turn": 8,
+     "max_value": {
+      "turn": 1,
+      "v": 0.688,
+      "choice": "move 4, move 4"
+     },
+     "largest_drop": {
+      "after_turn": 2,
+      "from": 0.609,
+      "drop": 0.309,
+      "choice": "switch 4, move 3"
+     },
+     "values": [
+      [
+       1,
+       0.688
+      ],
+      [
+       2,
+       0.609
+      ],
+      [
+       3,
+       0.3
+      ],
+      [
+       4,
+       0.097
+      ],
+      [
+       5,
+       0.023
+      ],
+      [
+       6,
+       0.009
+      ],
+      [
+       7,
+       0.002
+      ],
+      [
+       8,
+       0.001
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690119994",
+     "game": 2,
+     "end_turn": 7,
+     "max_value": {
+      "turn": 2,
+      "v": 0.815,
+      "choice": "move 2 2, move 4"
+     },
+     "largest_drop": {
+      "after_turn": 2,
+      "from": 0.815,
+      "drop": 0.395,
+      "choice": "move 2 2, move 4"
+     },
+     "values": [
+      [
+       1,
+       0.788
+      ],
+      [
+       2,
+       0.815
+      ],
+      [
+       3,
+       0.42
+      ],
+      [
+       4,
+       0.235
+      ],
+      [
+       5,
+       0.241
+      ],
+      [
+       6,
+       0.016
+      ],
+      [
+       7,
+       0.005
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690120749",
+     "game": 3,
+     "end_turn": 7,
+     "max_value": {
+      "turn": 3,
+      "v": 0.815,
+      "choice": "move 4, move 1 2"
+     },
+     "largest_drop": {
+      "after_turn": 3,
+      "from": 0.815,
+      "drop": 0.469,
+      "choice": "move 4, move 1 2"
+     },
+     "values": [
+      [
+       1,
+       0.607
+      ],
+      [
+       2,
+       0.429
+      ],
+      [
+       3,
+       0.815
+      ],
+      [
+       4,
+       0.345
+      ],
+      [
+       5,
+       0.011
+      ],
+      [
+       6,
+       0.004
+      ],
+      [
+       7,
+       0.006
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690121468-je1ca9h7t1ieywx0ohi326o4gihs7lfpw",
+     "game": 1,
+     "end_turn": 7,
+     "max_value": {
+      "turn": 4,
+      "v": 0.825,
+      "choice": "move 4 mega, move 4"
+     },
+     "largest_drop": {
+      "after_turn": 4,
+      "from": 0.825,
+      "drop": 0.565,
+      "choice": "move 4 mega, move 4"
+     },
+     "values": [
+      [
+       1,
+       0.495
+      ],
+      [
+       2,
+       0.685
+      ],
+      [
+       3,
+       0.77
+      ],
+      [
+       4,
+       0.825
+      ],
+      [
+       5,
+       0.259
+      ],
+      [
+       6,
+       0.277
+      ],
+      [
+       7,
+       0.036
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690124113",
+     "game": 1,
+     "end_turn": 6,
+     "max_value": {
+      "turn": 2,
+      "v": 0.63,
+      "choice": "move 3, switch 4"
+     },
+     "largest_drop": {
+      "after_turn": 4,
+      "from": 0.275,
+      "drop": 0.217,
+      "choice": "move 4, move 4"
+     },
+     "values": [
+      [
+       1,
+       0.432
+      ],
+      [
+       2,
+       0.63
+      ],
+      [
+       3,
+       0.484
+      ],
+      [
+       4,
+       0.275
+      ],
+      [
+       5,
+       0.059
+      ],
+      [
+       6,
+       0
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690128111",
+     "game": 1,
+     "end_turn": 7,
+     "max_value": {
+      "turn": 6,
+      "v": 0.868,
+      "choice": "move 1 2, move 1 1"
+     },
+     "largest_drop": {
+      "after_turn": 6,
+      "from": 0.868,
+      "drop": 0.865,
+      "choice": "move 1 2, move 1 1"
+     },
+     "values": [
+      [
+       1,
+       0.538
+      ],
+      [
+       2,
+       0.389
+      ],
+      [
+       3,
+       0.522
+      ],
+      [
+       4,
+       0.565
+      ],
+      [
+       5,
+       0.443
+      ],
+      [
+       6,
+       0.868
+      ],
+      [
+       7,
+       0.002
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690132190-r4atre079140vjncw3sx9nnurpigng8pw",
+     "game": 2,
+     "end_turn": 10,
+     "max_value": {
+      "turn": 1,
+      "v": 0.457,
+      "choice": "move 1 mega, move 1 1"
+     },
+     "largest_drop": {
+      "after_turn": 5,
+      "from": 0.402,
+      "drop": 0.35,
+      "choice": "move 1 1, move 1 1"
+     },
+     "values": [
+      [
+       1,
+       0.457
+      ],
+      [
+       2,
+       0.364
+      ],
+      [
+       3,
+       0.365
+      ],
+      [
+       4,
+       0.3
+      ],
+      [
+       5,
+       0.402
+      ],
+      [
+       6,
+       0.052
+      ],
+      [
+       7,
+       0.044
+      ],
+      [
+       8,
+       0.006
+      ],
+      [
+       9,
+       0.006
+      ],
+      [
+       10,
+       0.007
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690133981",
+     "game": 1,
+     "end_turn": 13,
+     "max_value": {
+      "turn": 3,
+      "v": 0.947,
+      "choice": "move 1 2, move 3 1"
+     },
+     "largest_drop": {
+      "after_turn": 9,
+      "from": 0.699,
+      "drop": 0.684,
+      "choice": "move 1 1, move 1 1"
+     },
+     "values": [
+      [
+       1,
+       0.657
+      ],
+      [
+       2,
+       0.695
+      ],
+      [
+       3,
+       0.947
+      ],
+      [
+       4,
+       0.78
+      ],
+      [
+       5,
+       0.691
+      ],
+      [
+       6,
+       0.635
+      ],
+      [
+       7,
+       0.273
+      ],
+      [
+       8,
+       0.072
+      ],
+      [
+       9,
+       0.699
+      ],
+      [
+       10,
+       0.016
+      ],
+      [
+       11,
+       0.005
+      ],
+      [
+       12,
+       0.006
+      ],
+      [
+       13,
+       0.001
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690137512-hnu56nou8rto5eo17quxe9bve6ih34ypw",
+     "game": 1,
+     "end_turn": 9,
+     "max_value": {
+      "turn": 3,
+      "v": 0.713,
+      "choice": "move 2 2, move 1 2"
+     },
+     "largest_drop": {
+      "after_turn": 7,
+      "from": 0.524,
+      "drop": 0.467,
+      "choice": "move 3 2, move 2 1"
+     },
+     "values": [
+      [
+       1,
+       0.678
+      ],
+      [
+       2,
+       0.377
+      ],
+      [
+       3,
+       0.713
+      ],
+      [
+       4,
+       0.458
+      ],
+      [
+       5,
+       0.425
+      ],
+      [
+       6,
+       0.476
+      ],
+      [
+       7,
+       0.524
+      ],
+      [
+       8,
+       0.057
+      ],
+      [
+       9,
+       0.003
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690138516-ol05sba9c38m92ic0h5wt1810eomapepw",
+     "game": 2,
+     "end_turn": 9,
+     "max_value": {
+      "turn": 1,
+      "v": 0.565,
+      "choice": "move 3 mega, move 2 1"
+     },
+     "largest_drop": {
+      "after_turn": 4,
+      "from": 0.419,
+      "drop": 0.274,
+      "choice": "move 3 1, move 1 2"
+     },
+     "values": [
+      [
+       1,
+       0.565
+      ],
+      [
+       2,
+       0.344
+      ],
+      [
+       3,
+       0.437
+      ],
+      [
+       4,
+       0.419
+      ],
+      [
+       5,
+       0.145
+      ],
+      [
+       6,
+       0.17
+      ],
+      [
+       7,
+       0.015
+      ],
+      [
+       8,
+       0.006
+      ],
+      [
+       9,
+       0.002
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690142835-aish3b3iqj0k97iwvdygorbefgl9n6wpw",
+     "game": 2,
+     "end_turn": 6,
+     "max_value": {
+      "turn": 3,
+      "v": 0.312,
+      "choice": "switch 4, move 2 1"
+     },
+     "largest_drop": {
+      "after_turn": 4,
+      "from": 0.186,
+      "drop": 0.175,
+      "choice": "move 2 2, move 2 1"
+     },
+     "values": [
+      [
+       1,
+       0.234
+      ],
+      [
+       2,
+       0.244
+      ],
+      [
+       3,
+       0.312
+      ],
+      [
+       4,
+       0.186
+      ],
+      [
+       5,
+       0.011
+      ],
+      [
+       6,
+       0.009
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690144606-f9qmh4eh8tn7uf9m5d4psf2ifajbjclpw",
+     "game": 3,
+     "end_turn": 10,
+     "max_value": {
+      "turn": 6,
+      "v": 0.848,
+      "choice": "move 1 2, move 3"
+     },
+     "largest_drop": {
+      "after_turn": 7,
+      "from": 0.611,
+      "drop": 0.56,
+      "choice": "move 4, move 4"
+     },
+     "values": [
+      [
+       1,
+       0.629
+      ],
+      [
+       2,
+       0.493
+      ],
+      [
+       3,
+       0.434
+      ],
+      [
+       4,
+       0.628
+      ],
+      [
+       5,
+       0.72
+      ],
+      [
+       6,
+       0.848
+      ],
+      [
+       7,
+       0.611
+      ],
+      [
+       8,
+       0.051
+      ],
+      [
+       9,
+       0.068
+      ],
+      [
+       10,
+       0.034
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690146981-p1kcd17hr43vi1q4fp9uct8q36yqbygpw",
+     "game": 1,
+     "end_turn": 4,
+     "max_value": {
+      "turn": 1,
+      "v": 0.354,
+      "choice": "move 2 mega, move 2 2"
+     },
+     "largest_drop": {
+      "after_turn": 2,
+      "from": 0.272,
+      "drop": 0.115,
+      "choice": "move 1 2, move 3 1"
+     },
+     "values": [
+      [
+       1,
+       0.354
+      ],
+      [
+       2,
+       0.272
+      ],
+      [
+       3,
+       0.157
+      ],
+      [
+       4,
+       0.101
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690148012-3vtgmssb54kxtsrasjaem728vgp9bqjpw",
+     "game": 2,
+     "end_turn": 7,
+     "max_value": {
+      "turn": 3,
+      "v": 0.677,
+      "choice": "move 1 1, move 1 2"
+     },
+     "largest_drop": {
+      "after_turn": 3,
+      "from": 0.677,
+      "drop": 0.404,
+      "choice": "move 1 1, move 1 2"
+     },
+     "values": [
+      [
+       1,
+       0.366
+      ],
+      [
+       2,
+       0.45
+      ],
+      [
+       3,
+       0.677
+      ],
+      [
+       4,
+       0.272
+      ],
+      [
+       5,
+       0.043
+      ],
+      [
+       6,
+       0.299
+      ],
+      [
+       7,
+       0.039
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690149705",
+     "game": 1,
+     "end_turn": 5,
+     "max_value": {
+      "turn": 1,
+      "v": 0.501,
+      "choice": "move 3, move 4"
+     },
+     "largest_drop": {
+      "after_turn": 1,
+      "from": 0.501,
+      "drop": 0.268,
+      "choice": "move 3, move 4"
+     },
+     "values": [
+      [
+       1,
+       0.501
+      ],
+      [
+       2,
+       0.233
+      ],
+      [
+       3,
+       0.056
+      ],
+      [
+       4,
+       0.003
+      ],
+      [
+       5,
+       0
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690150445",
+     "game": 2,
+     "end_turn": 9,
+     "max_value": {
+      "turn": 2,
+      "v": 0.711,
+      "choice": "switch 4, move 1 1"
+     },
+     "largest_drop": {
+      "after_turn": 4,
+      "from": 0.645,
+      "drop": 0.424,
+      "choice": "switch 4, move 1 2"
+     },
+     "values": [
+      [
+       1,
+       0.36
+      ],
+      [
+       2,
+       0.711
+      ],
+      [
+       3,
+       0.693
+      ],
+      [
+       4,
+       0.645
+      ],
+      [
+       5,
+       0.222
+      ],
+      [
+       6,
+       0.006
+      ],
+      [
+       7,
+       0.005
+      ],
+      [
+       8,
+       0.002
+      ],
+      [
+       9,
+       0.002
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690151595",
+     "game": 1,
+     "end_turn": 11,
+     "max_value": {
+      "turn": 5,
+      "v": 0.869,
+      "choice": "move 1 2, move 2 1"
+     },
+     "largest_drop": {
+      "after_turn": 5,
+      "from": 0.869,
+      "drop": 0.506,
+      "choice": "move 1 2, move 2 1"
+     },
+     "values": [
+      [
+       1,
+       0.653
+      ],
+      [
+       2,
+       0.721
+      ],
+      [
+       3,
+       0.652
+      ],
+      [
+       4,
+       0.752
+      ],
+      [
+       5,
+       0.869
+      ],
+      [
+       6,
+       0.363
+      ],
+      [
+       7,
+       0.164
+      ],
+      [
+       8,
+       0.005
+      ],
+      [
+       9,
+       0
+      ],
+      [
+       10,
+       0.019
+      ],
+      [
+       11,
+       0.008
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690153326",
+     "game": 2,
+     "end_turn": 9,
+     "max_value": {
+      "turn": 4,
+      "v": 0.951,
+      "choice": "move 1 2, move 2 1"
+     },
+     "largest_drop": {
+      "after_turn": 5,
+      "from": 0.843,
+      "drop": 0.586,
+      "choice": "move 2 1, move 4"
+     },
+     "values": [
+      [
+       1,
+       0.654
+      ],
+      [
+       2,
+       0.369
+      ],
+      [
+       3,
+       0.637
+      ],
+      [
+       4,
+       0.951
+      ],
+      [
+       5,
+       0.843
+      ],
+      [
+       6,
+       0.257
+      ],
+      [
+       7,
+       0.346
+      ],
+      [
+       8,
+       0.091
+      ],
+      [
+       9,
+       0.002
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690154483-dpuuw8l7j3wu1kjy9ambegncf9jk8glpw",
+     "game": 1,
+     "end_turn": 6,
+     "max_value": {
+      "turn": 3,
+      "v": 0.77,
+      "choice": "move 4 2, switch 4"
+     },
+     "largest_drop": {
+      "after_turn": 4,
+      "from": 0.426,
+      "drop": 0.414,
+      "choice": "move 4 2, move 3 2"
+     },
+     "values": [
+      [
+       1,
+       0.72
+      ],
+      [
+       2,
+       0.393
+      ],
+      [
+       3,
+       0.77
+      ],
+      [
+       4,
+       0.426
+      ],
+      [
+       5,
+       0.012
+      ],
+      [
+       6,
+       0
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690155966-opk22cxudmmmpffuartn88fs8q2bh54pw",
+     "game": 3,
+     "end_turn": 7,
+     "max_value": {
+      "turn": 2,
+      "v": 0.679,
+      "choice": "move 1 mega, move 1 2"
+     },
+     "largest_drop": {
+      "after_turn": 2,
+      "from": 0.679,
+      "drop": 0.339,
+      "choice": "move 1 mega, move 1 2"
+     },
+     "values": [
+      [
+       1,
+       0.404
+      ],
+      [
+       2,
+       0.679
+      ],
+      [
+       3,
+       0.34
+      ],
+      [
+       4,
+       0.166
+      ],
+      [
+       5,
+       0.122
+      ],
+      [
+       6,
+       0.163
+      ],
+      [
+       7,
+       0.138
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690156746-fo3175ocrtqccorctoq86eyujesnwe8pw",
+     "game": 1,
+     "end_turn": 9,
+     "max_value": {
+      "turn": 3,
+      "v": 0.912,
+      "choice": "move 2, move 3"
+     },
+     "largest_drop": {
+      "after_turn": 4,
+      "from": 0.844,
+      "drop": 0.787,
+      "choice": "move 1 1, move 1 2"
+     },
+     "values": [
+      [
+       1,
+       0.74
+      ],
+      [
+       2,
+       0.802
+      ],
+      [
+       3,
+       0.912
+      ],
+      [
+       4,
+       0.844
+      ],
+      [
+       5,
+       0.057
+      ],
+      [
+       6,
+       0.059
+      ],
+      [
+       7,
+       0.188
+      ],
+      [
+       8,
+       0.195
+      ],
+      [
+       9,
+       0.281
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690157657-j0lwxbefp3tsdfy40broshgl3r5le9ypw",
+     "game": 2,
+     "end_turn": 9,
+     "max_value": {
+      "turn": 1,
+      "v": 0.6,
+      "choice": "move 1 1 mega, move 4 2"
+     },
+     "largest_drop": {
+      "after_turn": 1,
+      "from": 0.6,
+      "drop": 0.256,
+      "choice": "move 1 1 mega, move 4 2"
+     },
+     "values": [
+      [
+       1,
+       0.6
+      ],
+      [
+       2,
+       0.343
+      ],
+      [
+       3,
+       0.254
+      ],
+      [
+       4,
+       0.27
+      ],
+      [
+       5,
+       0.215
+      ],
+      [
+       6,
+       0.162
+      ],
+      [
+       7,
+       0.004
+      ],
+      [
+       8,
+       0.004
+      ],
+      [
+       9,
+       0.002
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690163131",
+     "game": 1,
+     "end_turn": 13,
+     "max_value": {
+      "turn": 4,
+      "v": 0.916,
+      "choice": "move 4 2, move 3"
+     },
+     "largest_drop": {
+      "after_turn": 11,
+      "from": 0.725,
+      "drop": 0.674,
+      "choice": "move 2 1, move 1 2"
+     },
+     "values": [
+      [
+       1,
+       0.841
+      ],
+      [
+       2,
+       0.875
+      ],
+      [
+       3,
+       0.829
+      ],
+      [
+       4,
+       0.916
+      ],
+      [
+       5,
+       0.798
+      ],
+      [
+       6,
+       0.456
+      ],
+      [
+       7,
+       0.389
+      ],
+      [
+       8,
+       0.216
+      ],
+      [
+       8,
+       0.062
+      ],
+      [
+       9,
+       0.077
+      ],
+      [
+       10,
+       0.034
+      ],
+      [
+       11,
+       0.725
+      ],
+      [
+       12,
+       0.051
+      ],
+      [
+       13,
+       0.016
+      ]
+     ]
+    }
+   ],
+   "chomp_preview_value": {
+    "all": {
+     "n": 49,
+     "mean_value": 0.548,
+     "win": 0.469
+    },
+    "normal_end": {
+     "n": 37,
+     "mean_value": 0.538,
+     "win": 0.297
+    },
+    "v_ge_055": {
+     "n": 27,
+     "mean_value": 0.619,
+     "win": 0.556
+    },
+    "v_lt_055": {
+     "n": 22,
+     "mean_value": 0.46,
+     "win": 0.364
+    }
+   }
+  },
+  "gen5ab-2026-09-26T04-06-53-848Z": {
+   "search_arm_games": 41,
+   "won": 16,
+   "won_by_opponent_forfeit": 9,
+   "lost_without_forfeit": 25,
+   "lost_with_forfeit": 0,
+   "calibration_all": {
+    "decisions": 298,
+    "games": 41,
+    "mean_value": 0.444,
+    "win_rate": 0.342,
+    "brier": 0.1758,
+    "brier_constant": 0.2251,
+    "auc": 0.821,
+    "bins": [
+     {
+      "lo": 0,
+      "n": 70,
+      "games": 25,
+      "mean_value": 0.035,
+      "win": 0.043
+     },
+     {
+      "lo": 0.1,
+      "n": 24,
+      "games": 13,
+      "mean_value": 0.15,
+      "win": 0.042
+     },
+     {
+      "lo": 0.2,
+      "n": 19,
+      "games": 13,
+      "mean_value": 0.241,
+      "win": 0.263
+     },
+     {
+      "lo": 0.3,
+      "n": 26,
+      "games": 16,
+      "mean_value": 0.345,
+      "win": 0.269
+     },
+     {
+      "lo": 0.4,
+      "n": 20,
+      "games": 15,
+      "mean_value": 0.451,
+      "win": 0.25
+     },
+     {
+      "lo": 0.5,
+      "n": 27,
+      "games": 17,
+      "mean_value": 0.564,
+      "win": 0.259
+     },
+     {
+      "lo": 0.6,
+      "n": 32,
+      "games": 19,
+      "mean_value": 0.652,
+      "win": 0.813
+     },
+     {
+      "lo": 0.7,
+      "n": 35,
+      "games": 20,
+      "mean_value": 0.753,
+      "win": 0.314
+     },
+     {
+      "lo": 0.8,
+      "n": 20,
+      "games": 12,
+      "mean_value": 0.851,
+      "win": 0.75
+     },
+     {
+      "lo": 0.9,
+      "n": 25,
+      "games": 15,
+      "mean_value": 0.974,
+      "win": 0.88
+     }
+    ]
+   },
+   "calibration_normal_end": {
+    "decisions": 253,
+    "games": 32,
+    "mean_value": 0.405,
+    "win_rate": 0.225,
+    "brier": 0.1777,
+    "brier_constant": 0.1745,
+    "auc": 0.827,
+    "bins": [
+     {
+      "lo": 0,
+      "n": 68,
+      "games": 24,
+      "mean_value": 0.035,
+      "win": 0.015
+     },
+     {
+      "lo": 0.1,
+      "n": 24,
+      "games": 13,
+      "mean_value": 0.15,
+      "win": 0.042
+     },
+     {
+      "lo": 0.2,
+      "n": 18,
+      "games": 12,
+      "mean_value": 0.24,
+      "win": 0.222
+     },
+     {
+      "lo": 0.3,
+      "n": 23,
+      "games": 15,
+      "mean_value": 0.345,
+      "win": 0.174
+     },
+     {
+      "lo": 0.4,
+      "n": 16,
+      "games": 13,
+      "mean_value": 0.454,
+      "win": 0.063
+     },
+     {
+      "lo": 0.5,
+      "n": 25,
+      "games": 16,
+      "mean_value": 0.562,
+      "win": 0.2
+     },
+     {
+      "lo": 0.6,
+      "n": 20,
+      "games": 11,
+      "mean_value": 0.654,
+      "win": 0.7
+     },
+     {
+      "lo": 0.7,
+      "n": 28,
+      "games": 16,
+      "mean_value": 0.753,
+      "win": 0.143
+     },
+     {
+      "lo": 0.8,
+      "n": 12,
+      "games": 7,
+      "mean_value": 0.856,
+      "win": 0.583
+     },
+     {
+      "lo": 0.9,
+      "n": 19,
+      "games": 10,
+      "mean_value": 0.971,
+      "win": 0.842
+     }
+    ]
+   },
+   "calibration_turn1": {
+    "decisions": 41,
+    "games": 41,
+    "mean_value": 0.631,
+    "win_rate": 0.39,
+    "brier": 0.292,
+    "brier_constant": 0.238,
+    "auc": 0.573,
+    "bins": [
+     {
+      "lo": 0.3,
+      "n": 3,
+      "games": 3,
+      "mean_value": 0.369,
+      "win": 0
+     },
+     {
+      "lo": 0.4,
+      "n": 3,
+      "games": 3,
+      "mean_value": 0.442,
+      "win": 0
+     },
+     {
+      "lo": 0.5,
+      "n": 8,
+      "games": 8,
+      "mean_value": 0.571,
+      "win": 0.125
+     },
+     {
+      "lo": 0.6,
+      "n": 15,
+      "games": 15,
+      "mean_value": 0.642,
+      "win": 0.867
+     },
+     {
+      "lo": 0.7,
+      "n": 10,
+      "games": 10,
+      "mean_value": 0.748,
+      "win": 0.1
+     },
+     {
+      "lo": 0.8,
+      "n": 2,
+      "games": 2,
+      "mean_value": 0.88,
+      "win": 0.5
+     }
+    ]
+   },
+   "gap_05_09_all": {
+    "games": 38,
+    "decisions": 114,
+    "gap": 0.179,
+    "ci95": [
+     0.009,
+     0.389
+    ],
+    "seed": 7,
+    "B": 2000
+   },
+   "opponent_action_in_searched_columns": {
+    "all": {
+     "covered": 166,
+     "n": 287,
+     "rate": 0.578
+    },
+    "lost": {
+     "covered": 119,
+     "n": 195,
+     "rate": 0.61
+    },
+    "won": {
+     "covered": 47,
+     "n": 92,
+     "rate": 0.511
+    }
+   },
+   "detectors": {
+    "lost": {
+     "games": 25,
+     "sp_used": 5,
+     "sp_failed": 1,
+     "double_protect_turns": 13,
+     "games_with_double_protect_turns": 9,
+     "protect_failed": 19,
+     "opp_trick_room": 13,
+     "opp_tailwind": 6,
+     "games_with_opp_tailwind": 6,
+     "my_perish_faints": 0,
+     "my_flinches": 8,
+     "games_with_my_flinches": 6,
+     "games_with_protect_failed": 12,
+     "games_with_sp_used": 4,
+     "games_with_opp_trick_room": 12,
+     "games_with_sp_failed": 1
+    },
+    "won_without_forfeit": {
+     "games": 7,
+     "sp_used": 0,
+     "sp_failed": 0,
+     "double_protect_turns": 0,
+     "protect_failed": 1,
+     "opp_trick_room": 2,
+     "opp_tailwind": 2,
+     "games_with_opp_tailwind": 2,
+     "my_perish_faints": 0,
+     "my_flinches": 3,
+     "games_with_opp_trick_room": 2,
+     "games_with_protect_failed": 1,
+     "games_with_my_flinches": 2
+    }
+   },
+   "turning_points": [
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688035918",
+     "game": 1,
+     "end_turn": 10,
+     "max_value": {
+      "turn": 1,
+      "v": 0.731,
+      "choice": "move 1 2, move 2 2"
+     },
+     "largest_drop": {
+      "after_turn": 4,
+      "from": 0.593,
+      "drop": 0.374,
+      "choice": "move 1 mega, move 1 1"
+     },
+     "values": [
+      [
+       1,
+       0.731
+      ],
+      [
+       2,
+       0.409
+      ],
+      [
+       3,
+       0.571
+      ],
+      [
+       4,
+       0.593
+      ],
+      [
+       5,
+       0.219
+      ],
+      [
+       6,
+       0.026
+      ],
+      [
+       7,
+       0.012
+      ],
+      [
+       8,
+       0.013
+      ],
+      [
+       9,
+       0.183
+      ],
+      [
+       10,
+       0.062
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688037293",
+     "game": 2,
+     "end_turn": 8,
+     "max_value": {
+      "turn": 7,
+      "v": 0.99,
+      "choice": "move 2 1, move 3"
+     },
+     "largest_drop": {
+      "after_turn": 7,
+      "from": 0.99,
+      "drop": 0.948,
+      "choice": "move 2 1, move 3"
+     },
+     "values": [
+      [
+       1,
+       0.561
+      ],
+      [
+       2,
+       0.354
+      ],
+      [
+       3,
+       0.136
+      ],
+      [
+       4,
+       0.356
+      ],
+      [
+       5,
+       0.134
+      ],
+      [
+       6,
+       0.194
+      ],
+      [
+       7,
+       0.99
+      ],
+      [
+       8,
+       0.042
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688042008",
+     "game": 1,
+     "end_turn": 9,
+     "max_value": {
+      "turn": 1,
+      "v": 0.58,
+      "choice": "move 3, move 2 2 mega"
+     },
+     "largest_drop": {
+      "after_turn": 2,
+      "from": 0.536,
+      "drop": 0.275,
+      "choice": "move 4, move 4"
+     },
+     "values": [
+      [
+       1,
+       0.58
+      ],
+      [
+       2,
+       0.536
+      ],
+      [
+       3,
+       0.261
+      ],
+      [
+       4,
+       0.16
+      ],
+      [
+       5,
+       0.208
+      ],
+      [
+       6,
+       0.064
+      ],
+      [
+       7,
+       0.099
+      ],
+      [
+       8,
+       0.211
+      ],
+      [
+       9,
+       0.07
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688042743",
+     "game": 2,
+     "end_turn": 5,
+     "max_value": {
+      "turn": 1,
+      "v": 0.565,
+      "choice": "move 3, move 3 1 mega"
+     },
+     "largest_drop": {
+      "after_turn": 4,
+      "from": 0.339,
+      "drop": 0.331,
+      "choice": "move 4, move 1 1"
+     },
+     "values": [
+      [
+       1,
+       0.565
+      ],
+      [
+       2,
+       0.375
+      ],
+      [
+       3,
+       0.233
+      ],
+      [
+       4,
+       0.339
+      ],
+      [
+       5,
+       0.008
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688043522-0i4ff6htnd415mx8h4jyt1p9pgji79xpw",
+     "game": 1,
+     "end_turn": 12,
+     "max_value": {
+      "turn": 5,
+      "v": 0.913,
+      "choice": "switch 3, move 2 2"
+     },
+     "largest_drop": {
+      "after_turn": 6,
+      "from": 0.588,
+      "drop": 0.554,
+      "choice": "move 1 2, move 2 1"
+     },
+     "values": [
+      [
+       1,
+       0.355
+      ],
+      [
+       2,
+       0.167
+      ],
+      [
+       3,
+       0.522
+      ],
+      [
+       4,
+       0.769
+      ],
+      [
+       5,
+       0.913
+      ],
+      [
+       6,
+       0.588
+      ],
+      [
+       7,
+       0.034
+      ],
+      [
+       8,
+       0.107
+      ],
+      [
+       9,
+       0.062
+      ],
+      [
+       10,
+       0.003
+      ],
+      [
+       11,
+       0.003
+      ],
+      [
+       12,
+       0.002
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688044516-h0bp9ymk9jwnl728ok48sctqqoi35twpw",
+     "game": 2,
+     "end_turn": 11,
+     "max_value": {
+      "turn": 4,
+      "v": 0.356,
+      "choice": "move 3, move 2 1"
+     },
+     "largest_drop": {
+      "after_turn": 4,
+      "from": 0.356,
+      "drop": 0.209,
+      "choice": "move 3, move 2 1"
+     },
+     "values": [
+      [
+       1,
+       0.355
+      ],
+      [
+       2,
+       0.168
+      ],
+      [
+       3,
+       0.167
+      ],
+      [
+       4,
+       0.356
+      ],
+      [
+       5,
+       0.147
+      ],
+      [
+       6,
+       0.099
+      ],
+      [
+       7,
+       0.049
+      ],
+      [
+       8,
+       0.001
+      ],
+      [
+       9,
+       0
+      ],
+      [
+       10,
+       0
+      ],
+      [
+       11,
+       0
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688045204",
+     "game": 1,
+     "end_turn": 6,
+     "max_value": {
+      "turn": 1,
+      "v": 0.628,
+      "choice": "move 1 mega, move 3 -1"
+     },
+     "largest_drop": {
+      "after_turn": 2,
+      "from": 0.524,
+      "drop": 0.486,
+      "choice": "move 1 1, move 4 2"
+     },
+     "values": [
+      [
+       1,
+       0.628
+      ],
+      [
+       2,
+       0.524
+      ],
+      [
+       3,
+       0.039
+      ],
+      [
+       4,
+       0.003
+      ],
+      [
+       5,
+       0.011
+      ],
+      [
+       6,
+       0.001
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688047546-lfgud7q46uacvcy7j4ydoj9fa7btf55pw",
+     "game": 1,
+     "end_turn": 7,
+     "max_value": {
+      "turn": 5,
+      "v": 0.773,
+      "choice": "move 4, move 4"
+     },
+     "largest_drop": {
+      "after_turn": 6,
+      "from": 0.523,
+      "drop": 0.478,
+      "choice": "switch 4, move 1 1"
+     },
+     "values": [
+      [
+       1,
+       0.552
+      ],
+      [
+       2,
+       0.505
+      ],
+      [
+       3,
+       0.457
+      ],
+      [
+       4,
+       0.734
+      ],
+      [
+       5,
+       0.773
+      ],
+      [
+       6,
+       0.523
+      ],
+      [
+       7,
+       0.045
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688048426-q0mwl6qoyvk2bw3mqm67v5camdfrbqfpw",
+     "game": 2,
+     "end_turn": 11,
+     "max_value": {
+      "turn": 1,
+      "v": 0.786,
+      "choice": "move 1 2, switch 3"
+     },
+     "largest_drop": {
+      "after_turn": 1,
+      "from": 0.786,
+      "drop": 0.44,
+      "choice": "move 1 2, switch 3"
+     },
+     "values": [
+      [
+       1,
+       0.786
+      ],
+      [
+       2,
+       0.347
+      ],
+      [
+       3,
+       0.575
+      ],
+      [
+       4,
+       0.741
+      ],
+      [
+       5,
+       0.496
+      ],
+      [
+       6,
+       0.229
+      ],
+      [
+       7,
+       0.103
+      ],
+      [
+       8,
+       0.111
+      ],
+      [
+       9,
+       0.183
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688049677",
+     "game": 1,
+     "end_turn": 11,
+     "max_value": {
+      "turn": 1,
+      "v": 0.472,
+      "choice": "move 1 2 mega, move 3"
+     },
+     "largest_drop": {
+      "after_turn": 9,
+      "from": 0.307,
+      "drop": 0.259,
+      "choice": "move 3 1, move 1 1"
+     },
+     "values": [
+      [
+       1,
+       0.472
+      ],
+      [
+       2,
+       0.311
+      ],
+      [
+       3,
+       0.395
+      ],
+      [
+       4,
+       0.411
+      ],
+      [
+       5,
+       0.176
+      ],
+      [
+       6,
+       0.087
+      ],
+      [
+       7,
+       0.061
+      ],
+      [
+       8,
+       0.12
+      ],
+      [
+       9,
+       0.307
+      ],
+      [
+       10,
+       0.048
+      ],
+      [
+       11,
+       0.064
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688051443",
+     "game": 2,
+     "end_turn": 7,
+     "max_value": {
+      "turn": 2,
+      "v": 0.725,
+      "choice": "move 4 2, move 1 1"
+     },
+     "largest_drop": {
+      "after_turn": 3,
+      "from": 0.646,
+      "drop": 0.352,
+      "choice": "move 3 2, move 1 1"
+     },
+     "values": [
+      [
+       1,
+       0.695
+      ],
+      [
+       2,
+       0.725
+      ],
+      [
+       3,
+       0.646
+      ],
+      [
+       4,
+       0.293
+      ],
+      [
+       5,
+       0.462
+      ],
+      [
+       6,
+       0.322
+      ],
+      [
+       7,
+       0.063
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688053815",
+     "game": 2,
+     "end_turn": 8,
+     "max_value": {
+      "turn": 2,
+      "v": 0.596,
+      "choice": "move 3, move 1 1"
+     },
+     "largest_drop": {
+      "after_turn": 2,
+      "from": 0.596,
+      "drop": 0.38,
+      "choice": "move 3, move 1 1"
+     },
+     "values": [
+      [
+       1,
+       0.586
+      ],
+      [
+       2,
+       0.596
+      ],
+      [
+       3,
+       0.216
+      ],
+      [
+       4,
+       0.394
+      ],
+      [
+       5,
+       0.034
+      ],
+      [
+       6,
+       0.036
+      ],
+      [
+       7,
+       0.009
+      ],
+      [
+       8,
+       0.041
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688059243-gaanrrh5bb6ox49txx46r3pflvhhsq8pw",
+     "game": 1,
+     "end_turn": 9,
+     "max_value": {
+      "turn": 2,
+      "v": 0.721,
+      "choice": "move 1, switch 3"
+     },
+     "largest_drop": {
+      "after_turn": 8,
+      "from": 0.596,
+      "drop": 0.596,
+      "choice": "move 1 1, move 4 2"
+     },
+     "values": [
+      [
+       1,
+       0.703
+      ],
+      [
+       2,
+       0.721
+      ],
+      [
+       3,
+       0.691
+      ],
+      [
+       4,
+       0.409
+      ],
+      [
+       5,
+       0.082
+      ],
+      [
+       6,
+       0.421
+      ],
+      [
+       7,
+       0.71
+      ],
+      [
+       8,
+       0.596
+      ],
+      [
+       9,
+       0
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688060589-jkylhwmc0u6uh43h7345xh9ystvklv9pw",
+     "game": 3,
+     "end_turn": 3,
+     "max_value": {
+      "turn": 1,
+      "v": 0.749,
+      "choice": "move 1 mega, move 2"
+     },
+     "largest_drop": {
+      "after_turn": 2,
+      "from": 0.482,
+      "drop": 0.454,
+      "choice": "move 1, switch 4"
+     },
+     "values": [
+      [
+       1,
+       0.749
+      ],
+      [
+       2,
+       0.482
+      ],
+      [
+       3,
+       0.028
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688063201",
+     "game": 1,
+     "end_turn": 5,
+     "max_value": {
+      "turn": 4,
+      "v": 0.96,
+      "choice": "move 3, move 4"
+     },
+     "largest_drop": {
+      "after_turn": 4,
+      "from": 0.96,
+      "drop": 0.623,
+      "choice": "move 3, move 4"
+     },
+     "values": [
+      [
+       1,
+       0.766
+      ],
+      [
+       2,
+       0.854
+      ],
+      [
+       3,
+       0.778
+      ],
+      [
+       4,
+       0.96
+      ],
+      [
+       5,
+       0.337
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688063939",
+     "game": 2,
+     "end_turn": 5,
+     "max_value": {
+      "turn": 1,
+      "v": 0.77,
+      "choice": "move 1 mega, move 3 -1"
+     },
+     "largest_drop": {
+      "after_turn": 1,
+      "from": 0.77,
+      "drop": 0.475,
+      "choice": "move 1 mega, move 3 -1"
+     },
+     "values": [
+      [
+       1,
+       0.77
+      ],
+      [
+       2,
+       0.296
+      ],
+      [
+       3,
+       0.092
+      ],
+      [
+       4,
+       0.022
+      ],
+      [
+       5,
+       0
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688066421",
+     "game": 1,
+     "end_turn": 9,
+     "max_value": {
+      "turn": 1,
+      "v": 0.587,
+      "choice": "move 3 1, move 1 2 mega"
+     },
+     "largest_drop": {
+      "after_turn": 1,
+      "from": 0.587,
+      "drop": 0.272,
+      "choice": "move 3 1, move 1 2 mega"
+     },
+     "values": [
+      [
+       1,
+       0.587
+      ],
+      [
+       2,
+       0.315
+      ],
+      [
+       3,
+       0.331
+      ],
+      [
+       4,
+       0.212
+      ],
+      [
+       5,
+       0.19
+      ],
+      [
+       6,
+       0.211
+      ],
+      [
+       7,
+       0.127
+      ],
+      [
+       8,
+       0.081
+      ],
+      [
+       9,
+       0
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688072061",
+     "game": 1,
+     "end_turn": 11,
+     "max_value": {
+      "turn": 3,
+      "v": 0.864,
+      "choice": "move 1 1, move 2 2"
+     },
+     "largest_drop": {
+      "after_turn": 8,
+      "from": 0.69,
+      "drop": 0.645,
+      "choice": "move 3, move 3 1"
+     },
+     "values": [
+      [
+       1,
+       0.786
+      ],
+      [
+       2,
+       0.86
+      ],
+      [
+       3,
+       0.864
+      ],
+      [
+       4,
+       0.81
+      ],
+      [
+       5,
+       0.497
+      ],
+      [
+       6,
+       0.734
+      ],
+      [
+       7,
+       0.784
+      ],
+      [
+       8,
+       0.69
+      ],
+      [
+       9,
+       0.045
+      ],
+      [
+       10,
+       0.053
+      ],
+      [
+       11,
+       0.053
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688073594",
+     "game": 3,
+     "end_turn": 6,
+     "max_value": {
+      "turn": 3,
+      "v": 0.55,
+      "choice": "move 3 2, move 1 2"
+     },
+     "largest_drop": {
+      "after_turn": 3,
+      "from": 0.55,
+      "drop": 0.509,
+      "choice": "move 3 2, move 1 2"
+     },
+     "values": [
+      [
+       1,
+       0.455
+      ],
+      [
+       2,
+       0.318
+      ],
+      [
+       3,
+       0.55
+      ],
+      [
+       4,
+       0.041
+      ],
+      [
+       5,
+       0.043
+      ],
+      [
+       6,
+       0.082
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688078494",
+     "game": 1,
+     "end_turn": 7,
+     "max_value": {
+      "turn": 1,
+      "v": 0.736,
+      "choice": "move 1 2, move 4 mega"
+     },
+     "largest_drop": {
+      "after_turn": 1,
+      "from": 0.736,
+      "drop": 0.463,
+      "choice": "move 1 2, move 4 mega"
+     },
+     "values": [
+      [
+       1,
+       0.736
+      ],
+      [
+       2,
+       0.273
+      ],
+      [
+       3,
+       0.156
+      ],
+      [
+       4,
+       0.12
+      ],
+      [
+       5,
+       0.205
+      ],
+      [
+       6,
+       0.169
+      ],
+      [
+       7,
+       0.023
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688079230",
+     "game": 2,
+     "end_turn": 7,
+     "max_value": {
+      "turn": 1,
+      "v": 0.541,
+      "choice": "move 4, move 3 mega"
+     },
+     "largest_drop": {
+      "after_turn": 1,
+      "from": 0.541,
+      "drop": 0.274,
+      "choice": "move 4, move 3 mega"
+     },
+     "values": [
+      [
+       1,
+       0.541
+      ],
+      [
+       2,
+       0.268
+      ],
+      [
+       3,
+       0.126
+      ],
+      [
+       4,
+       0.068
+      ],
+      [
+       5,
+       0.048
+      ],
+      [
+       6,
+       0.009
+      ],
+      [
+       7,
+       0.009
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688084478-hshglmw1l03an9d3rk9nskjrrg193lnpw",
+     "game": 1,
+     "end_turn": 10,
+     "max_value": {
+      "turn": 5,
+      "v": 0.787,
+      "choice": "move 3 1, move 3 2 mega"
+     },
+     "largest_drop": {
+      "after_turn": 5,
+      "from": 0.787,
+      "drop": 0.781,
+      "choice": "move 3 1, move 3 2 mega"
+     },
+     "values": [
+      [
+       1,
+       0.399
+      ],
+      [
+       2,
+       0.098
+      ],
+      [
+       3,
+       0.741
+      ],
+      [
+       4,
+       0.678
+      ],
+      [
+       5,
+       0.787
+      ],
+      [
+       6,
+       0.007
+      ],
+      [
+       7,
+       0.003
+      ],
+      [
+       8,
+       0.004
+      ],
+      [
+       9,
+       0.002
+      ],
+      [
+       10,
+       0.001
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688085055-khs9a6yqu8io807soq62b5t9eqhemk0pw",
+     "game": 2,
+     "end_turn": 7,
+     "max_value": {
+      "turn": 1,
+      "v": 0.4,
+      "choice": "move 3 2, move 3"
+     },
+     "largest_drop": {
+      "after_turn": 1,
+      "from": 0.4,
+      "drop": 0.32,
+      "choice": "move 3 2, move 3"
+     },
+     "values": [
+      [
+       1,
+       0.4
+      ],
+      [
+       2,
+       0.081
+      ],
+      [
+       3,
+       0.149
+      ],
+      [
+       4,
+       0.039
+      ],
+      [
+       5,
+       0
+      ],
+      [
+       6,
+       0.001
+      ],
+      [
+       7,
+       0.001
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688086568",
+     "game": 1,
+     "end_turn": 6,
+     "max_value": {
+      "turn": 1,
+      "v": 0.889,
+      "choice": "move 2 2 mega, move 3 -1"
+     },
+     "largest_drop": {
+      "after_turn": 4,
+      "from": 0.455,
+      "drop": 0.443,
+      "choice": "move 3 2, switch 4"
+     },
+     "values": [
+      [
+       1,
+       0.889
+      ],
+      [
+       2,
+       0.774
+      ],
+      [
+       3,
+       0.792
+      ],
+      [
+       4,
+       0.455
+      ],
+      [
+       5,
+       0.013
+      ],
+      [
+       6,
+       0
+      ]
+     ]
+    },
+    {
+     "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688087178",
+     "game": 2,
+     "end_turn": 8,
+     "max_value": {
+      "turn": 1,
+      "v": 0.738,
+      "choice": "move 1 mega, move 1"
+     },
+     "largest_drop": {
+      "after_turn": 6,
+      "from": 0.499,
+      "drop": 0.352,
+      "choice": "move 2 1, move 2"
+     },
+     "values": [
+      [
+       1,
+       0.738
+      ],
+      [
+       2,
+       0.736
+      ],
+      [
+       3,
+       0.487
+      ],
+      [
+       4,
+       0.565
+      ],
+      [
+       5,
+       0.307
+      ],
+      [
+       6,
+       0.499
+      ],
+      [
+       7,
+       0.147
+      ],
+      [
+       8,
+       0.075
+      ]
+     ]
+    }
+   ]
+  }
+ },
+ "pooled": {
+  "calibration_all": {
+   "decisions": 668,
+   "games": 90,
+   "mean_value": 0.473,
+   "win_rate": 0.374,
+   "brier": 0.1842,
+   "brier_constant": 0.2342,
+   "auc": 0.816,
+   "bins": [
+    {
+     "lo": 0,
+     "n": 143,
+     "games": 52,
+     "mean_value": 0.03,
+     "win": 0.063
+    },
+    {
+     "lo": 0.1,
+     "n": 48,
+     "games": 26,
+     "mean_value": 0.153,
+     "win": 0.208
+    },
+    {
+     "lo": 0.2,
+     "n": 48,
+     "games": 32,
+     "mean_value": 0.249,
+     "win": 0.208
+    },
+    {
+     "lo": 0.3,
+     "n": 50,
+     "games": 37,
+     "mean_value": 0.348,
+     "win": 0.24
+    },
+    {
+     "lo": 0.4,
+     "n": 51,
+     "games": 35,
+     "mean_value": 0.451,
+     "win": 0.176
+    },
+    {
+     "lo": 0.5,
+     "n": 51,
+     "games": 33,
+     "mean_value": 0.562,
+     "win": 0.412
+    },
+    {
+     "lo": 0.6,
+     "n": 74,
+     "games": 45,
+     "mean_value": 0.654,
+     "win": 0.568
+    },
+    {
+     "lo": 0.7,
+     "n": 65,
+     "games": 44,
+     "mean_value": 0.749,
+     "win": 0.385
+    },
+    {
+     "lo": 0.8,
+     "n": 60,
+     "games": 40,
+     "mean_value": 0.85,
+     "win": 0.683
+    },
+    {
+     "lo": 0.9,
+     "n": 78,
+     "games": 38,
+     "mean_value": 0.967,
+     "win": 0.91
+    }
+   ]
+  },
+  "calibration_normal_end": {
+   "decisions": 554,
+   "games": 69,
+   "mean_value": 0.433,
+   "win_rate": 0.245,
+   "brier": 0.1857,
+   "brier_constant": 0.1852,
+   "auc": 0.831,
+   "bins": [
+    {
+     "lo": 0,
+     "n": 138,
+     "games": 50,
+     "mean_value": 0.03,
+     "win": 0.029
+    },
+    {
+     "lo": 0.1,
+     "n": 43,
+     "games": 24,
+     "mean_value": 0.152,
+     "win": 0.116
+    },
+    {
+     "lo": 0.2,
+     "n": 46,
+     "games": 30,
+     "mean_value": 0.25,
+     "win": 0.174
+    },
+    {
+     "lo": 0.3,
+     "n": 43,
+     "games": 33,
+     "mean_value": 0.349,
+     "win": 0.116
+    },
+    {
+     "lo": 0.4,
+     "n": 45,
+     "games": 31,
+     "mean_value": 0.452,
+     "win": 0.067
+    },
+    {
+     "lo": 0.5,
+     "n": 39,
+     "games": 27,
+     "mean_value": 0.557,
+     "win": 0.231
+    },
+    {
+     "lo": 0.6,
+     "n": 56,
+     "games": 33,
+     "mean_value": 0.655,
+     "win": 0.429
+    },
+    {
+     "lo": 0.7,
+     "n": 49,
+     "games": 33,
+     "mean_value": 0.75,
+     "win": 0.184
+    },
+    {
+     "lo": 0.8,
+     "n": 39,
+     "games": 25,
+     "mean_value": 0.85,
+     "win": 0.513
+    },
+    {
+     "lo": 0.9,
+     "n": 56,
+     "games": 24,
+     "mean_value": 0.966,
+     "win": 0.875
+    }
+   ]
+  },
+  "gap_05_09_all": {
+   "games": 84,
+   "decisions": 250,
+   "gap": 0.191,
+   "ci95": [
+    0.062,
+    0.318
+   ],
+   "seed": 7,
+   "B": 2000
+  },
+  "gap_05_09_normal_end": {
+   "games": 63,
+   "decisions": 183,
+   "gap": 0.362,
+   "ci95": [
+    0.226,
+    0.504
+   ],
+   "seed": 7,
+   "B": 2000
+  },
+  "gap_turn1_all": {
+   "games": 90,
+   "decisions": 90,
+   "gap": 0.189,
+   "ci95": [
+    0.07,
+    0.275
+   ],
+   "seed": 7,
+   "B": 2000
+  }
+ }
+}

@@ -5,7 +5,8 @@
  *   const L = T.loadGames({ file, ids, M })      -> exactly those game ids, in that order (a pre-registered list)
  *   G = { id, sheets:{p1:[6 sheet rows], p2:[...]}, brought:{p1:[4 sheet idx, leads first], p2:[...]} }
  *   T.buildTeam(M, G, 'p1')                      -> { team:[4 bodies], sheetOf:[sheet idx per team idx] } | null
- *   T.buildBody(M, sheetRow)                     -> one body, or null
+ *   T.buildBody(M, sheetRow[, { abilityUnknown }]) -> one body, or null (an unknown ability refuses; see buildBody)
+ *   T.COUNTERS                                    ability resolutions: only-option, filled-first (asked for), refused
  *
  * THE SOURCE IS READ ONLY. The dataset (solver/human/build_dataset.js, ~500 MB, untracked) lives in the
  * MAIN checkout at solver/out/human/games.jsonl; a worktree has no copy. `--human <file>` points
@@ -34,7 +35,8 @@ const toID = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 let _X = null;
 const dex = () => (_X || (_X = require('../human/dex.js')));
 
-function buildBody(M, p) {
+const COUNTERS = { abilityOnlyOption: 0, abilityFilledFirst: 0, abilityUnknownRefused: 0 };
+function buildBody(M, p, opts) {
   if (!p || !p.species) return null;
   const D = dex().D;
   let b;
@@ -50,9 +52,23 @@ function buildBody(M, p) {
   const it = toID(p.item);
   b.item = it && D.items.get(it).exists ? it : '';
   const sp = D.species.get(toID(p.species));
-  const legal = sp && sp.exists ? Object.values(sp.abilities || {}).map(toID) : [];
+  const legal = sp && sp.exists ? [...new Set(Object.values(sp.abilities || {}).map(toID))] : [];
   const ab = toID(p.ability);
-  b.ability = legal.includes(ab) ? ab : (legal[0] || b.ability);
+  /* THE ABILITY IS THE SHEET'S, OR IT IS KNOWN, OR THE BODY IS REFUSED (2026-09-30, CHOMP v2 brief). This used to read
+   * `legal.includes(ab) ? ab : legal[0]`: a row with no ability, or one this species cannot have, was silently given
+   * the species' FIRST ability, and nothing counted it. Open sheets declare the ability, so no current caller's data
+   * reaches the fill (measured 2026-09-30: 0 of 225,720 human-dataset sheet rows have a missing or illegal ability);
+   * the fill was a latent guess waiting for the first caller with an unknown one. Now:
+   *   - the sheet's ability, when this species can have it;
+   *   - else, when the species has exactly ONE legal ability, that one (it is a fact, not a guess) — counted;
+   *   - else null (the body does not build) — counted — unless the caller asks for the old fill by name with
+   *     opts.abilityUnknown === 'first', which is counted too.
+   * DELIBERATE BREAK (env TEAMS_BREAK=abilityfill): the old silent fill. solver/tests/test-chomp2.js ABILITY must go red. */
+  if (process.env.TEAMS_BREAK === 'abilityfill') { b.ability = legal.includes(ab) ? ab : (legal[0] || b.ability); return b; }
+  if (legal.includes(ab)) b.ability = ab;
+  else if (legal.length === 1) { b.ability = legal[0]; COUNTERS.abilityOnlyOption++; }
+  else if (opts && opts.abilityUnknown === 'first' && legal.length) { b.ability = legal[0]; COUNTERS.abilityFilledFirst++; }
+  else { COUNTERS.abilityUnknownRefused++; return null; }
   return b;
 }
 
@@ -134,4 +150,4 @@ function scan(file) {
   return { eligible, scanned, skipped };
 }
 
-module.exports = { loadGames, buildTeam, buildBody, DEFAULT_FILE, toID };
+module.exports = { loadGames, buildTeam, buildBody, DEFAULT_FILE, toID, COUNTERS };
