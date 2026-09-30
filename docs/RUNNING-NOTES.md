@@ -53,6 +53,18 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.40.0] — 2026-09-30 — **ROTOM's world carries the Perish count and the other volatile clocks from the log**
+- **What changed.** New `solver/rotom/world_log.js`, a single walk of the public protocol. `solver/rotom/world.js`
+  `layBody` lays what it finds: Perish, the duration and presence volatiles, Substitute, Leech Seed, confusion, traps,
+  Yawn, sleep ticks, the toxic stage and a Choice lock.
+- **Measured.** Replay of sdkvndfv g1 turn 4 (fixture from chomp1): Salamence and Volcarona `_perish` 1 and 1, and both
+  faint after one engine step. Under `ROTOM_WORLD_BREAK=noclocks`: undefined, and neither faints.
+  `test-rotom-world-clocks.js` GREEN 13 of 13, RED 11 of 13 under the break. AUDIT: 68 board leaves, 54 carried,
+  14 owed.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MODELS: ROTOM's world fidelity (what is laid, what is owed).
+
 ## [abra/regmc 1.39.0] — 2026-09-30 — **Ladder loss post-mortem: 26 losses classed by mechanism; the root value is +0.19 too high mid-game**
 - **What changed.** New `solver/results/2026-09-30-ladder-loss-postmortem/`:
   - `postmortem.js` reads ROTOM's saved ladder games and plays nothing;

@@ -38,6 +38,7 @@
 'use strict';
 const X = require('../human/dex.js');
 const T = require('../arena/teams.js');
+const WL = require('./world_log.js');
 const toID = X.toID;
 
 const WEATHER_OF = { raindance: 'rain', sunnyday: 'sun', sandstorm: 'sand', snowscape: 'snow', snow: 'snow', hail: 'snow' };   // vocabulary (prior_adapter.js WEATHER, inverted)
@@ -133,6 +134,68 @@ function create(API) {
   const M = API.M;
   const COUNTERS = { built: 0, failed: 0, megaApplied: 0, megaFailed: 0, mineUnmatched: 0, oppGuessUsed: 0, oppFilledBlind: 0,
                      stallLaid: 0, stallNoLines: 0 };
+
+  Object.assign(COUNTERS, { perishLaid: 0, volLaid: 0, subLaid: 0, seedLaid: 0, confusionLaid: 0, trapLaid: 0, yawnLaid: 0,
+                            slpLaid: 0, toxLaid: 0, lockLaid: 0 });
+
+  /* THE BODY'S CLOCKS AND VOLATILES FROM THE LOG (2026-09-30, solver/rotom/world_log.js). Each engine field is the one
+   * engine/board_state.js mediBody reads for that volatile, laid at the value the engine holds at a turn boundary.
+   * Hidden quantities are stated, not guessed silently: a Substitute's remaining HP is not in the log (laid as a fresh
+   * doll, the engine's own size); a confusion's remaining count is hidden (laid as the posterior mean given the attempts
+   * seen, from the dex's own draw). */
+  function layBody(b, L, reqP, bodyOfKey, sideOfP, U) {
+    if (!live(b)) return;
+    const age = s => U - s;
+    if (b.status === 'slp' && L.slp) { b.slpTurns = L.slp.ticks; if (L.slp.rest && WL.restTime()) b.slpTime = WL.restTime(); COUNTERS.slpLaid++; }
+    if (!L.active) return;
+    if (b.status === 'tox' && L.tox) { b.toxTurns = Math.max(0, age(L.tox.since)); COUNTERS.toxLaid++; }
+    if (L.perish != null) { b._perish = L.perish; COUNTERS.perishLaid++; }
+    if (L.sub) {
+      const sb = M.moveTagParam('substitute', 'substitute') || {};
+      const rd = sb.rounds === 'ceil' ? Math.ceil : sb.rounds === 'round' ? Math.round : Math.floor;
+      b._sub = Math.max(1, rd(b.st.hp * (+sb.buffer || 0.25))); COUNTERS.subLaid++;
+    }
+    if (L.seed) {
+      const pt = M.moveTagParam('leechseed', 'perTurnHP') || {};
+      b._seededBy = { by: bodyOfKey.get(L.seed.byKey) || null, per: pt.per, side: L.seed.side ? sideOfP(L.seed.side) : null, slot: L.seed.slot };
+      COUNTERS.seedLaid++;
+    }
+    if (L.confusion) {
+      const R = WL.confusionRange(), a = L.confusion.attempts;
+      if (R) { let s = 0, n = 0; for (let t = Math.max(R[0], a + 1); t <= R[1]; t++) { s += t - a; n++; } (b._vol = b._vol || {}).confusion = n ? Math.max(1, Math.round(s / n)) : 1; COUNTERS.confusionLaid++; }
+    }
+    if (L.trapPartial) {
+      const tg = M.moveTagParam(L.trapPartial.mv, 'partialTrap');
+      if (tg) {
+        const by = bodyOfKey.get(L.trapPartial.byKey) || null;
+        const ci = tg.chipItem, hit = ci && ci.item && by && by.item === ci.item && +ci.chipPerTurn > 0;
+        b._trap = { frac: hit ? +ci.chipPerTurn : +tg.chipPerTurn, turns: Math.max(1, +tg.duration - age(L.trapPartial.start)), by, mv: L.trapPartial.mv };
+        if (hit) b._trap.div = Math.round(1 / +ci.chipPerTurn);
+        COUNTERS.trapLaid++;
+      }
+    }
+    if (L.trapHard) { b._trapHard = { by: bodyOfKey.get(L.trapHard.byKey) || null, mv: L.trapHard.mv }; COUNTERS.trapLaid++; }
+    if (L.yawn) { b._yawn = Math.max(1, (WL.durationOf('yawn') || 1) - age(L.yawn.start)); COUNTERS.yawnLaid++; }
+    for (const [id, e] of L.vols) {
+      if (!WL.volatileIds().has(id)) continue;
+      const d = WL.durationOf(id, null, e.effect);
+      const left = d ? Math.max(1, d - age(e.start) + (e.adj || 0)) : 1;
+      if (id === 'healblock') { b._healBlock = left; COUNTERS.volLaid++; continue; }
+      if (id === 'throatchop') { b._noSound = left; COUNTERS.volLaid++; continue; }
+      if (id === 'gastroacid') continue;                        // laid with the ability
+      b._vol = b._vol || {};
+      b._vol[id] = id === 'stockpile' ? (e.layers || 1) : left;
+      if (id === 'encore' && e.arg) { b._encoreMove = e.arg; if (b._lockT !== Infinity) { b._lock = e.arg; b._lockT = left; } }
+      if (id === 'disable' && e.arg) b._sealed = e.arg;
+      COUNTERS.volLaid++;
+    }
+    /* a Choice lock: the body holds a choice item now and has used a move since it came in */
+    const item = toID(reqP ? reqP.item : L.item);
+    const it = item ? X.D.items.get(item) : null;
+    if (it && it.exists && it.isChoice && L.movedSinceEntry && L.lastMoveSinceEntry && (b.moves || []).includes(L.lastMoveSinceEntry)) {
+      b._lock = L.lastMoveSinceEntry; b._lockT = Infinity; COUNTERS.lockLaid++;
+    }
+  }
 
   /* my request position -> my sheet row: by nickname first (the ident), then by base species */
   function mySheetIndex(sheet, p) {
@@ -334,8 +397,20 @@ function create(API) {
       }
     } else COUNTERS.stallNoLines++;
 
-    /* ---- field ---- */
+    /* ---- the clocks, volatiles and abilities the log shows (2026-09-30, solver/rotom/world_log.js;
+     * docs/_reports/2026-09-30-rotom-world-fixes.md). With the log, the field below is laid from it too. ---- */
     const f = S.field;
+    let LG = null;
+    if (o.lines) {
+      LG = WL.walk(o.lines, sheets);
+      const bodyOfKey = new Map();
+      for (const [p, list] of [[me, mine], [opp, theirs]]) for (const x of list) bodyOfKey.set(p + ':' + x.s, x.b);
+      const sideOfP = p => (p === me ? side : sideOp);
+      for (const [p, list] of [[me, mine], [opp, theirs]]) for (const x of list) {
+        const L = LG.bodies.get(p + ':' + x.s); if (!L) continue;
+        layBody(x.b, L, p === me ? x.p : null, bodyOfKey, sideOfP, LG.U);
+      }
+    }
     if (st.weather && st.weather.name) {
       const w = WEATHER_OF[toID(st.weather.name)];
       if (w) { f.weather = w; f.weatherT = left(st.weather.name, st.weather.since, turnN); } else notes.push('weather not mapped: ' + st.weather.name);

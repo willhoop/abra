@@ -8,6 +8,14 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-30
 
+### ROTOM's world carries Perish and the volatile class (abra/regmc 1.40.0)
+- The world now carries the Perish count (the post-mortem's PERISH loss) and the rest of the log-visible volatile class.
+  Replayed on the real chomp1 log, turn 4 now lays perish 1 on both our actives, and one engine step faints both, as
+  the server did.
+- `solver/rotom/world_log.js` `CARRIED` / `OWED` is the audited list. The test fails on any engine board leaf that is
+  in neither.
+- Detail: `docs/_reports/2026-09-30-rotom-world-fixes.md`.
+
 ### Ladder loss post-mortem: why ROTOM loses the series it plays out (abra/regmc 1.39.0)
 - The 26 chomp1 losses without a forfeit, by the mechanism at the turning point:
   - VISIBLE_KO 5, SPEED_CONTROL 5, SUCKER_PUNCH 4, OUTSPED 4;

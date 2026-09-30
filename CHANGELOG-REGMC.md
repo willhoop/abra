@@ -21,6 +21,24 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.40.0] — 2026-09-30
+
+### Fixed
+- **ROTOM's world now lays the Perish count.** In sdkvndfv g1 turn 4 the search valued 0.844 with both our actives at
+  perish 1, and the server fainted both. Rebuilt from that game's saved log, the world now lays `_perish` 1 on both, and
+  one engine step from it faints both.
+- **The rest of the class is laid from the same log walk** (`solver/rotom/world_log.js`, new):
+  - Taunt, Encore (with its move and lock), Disable (with its move), Heal Block, Throat Chop and every other volatile a
+    legal move starts. The duration is the dex's, and the turn adjustment is read from the condition's own `onStart`.
+  - Substitute, Leech Seed, confusion, partial and hard traps, Yawn, sleep ticks, the toxic stage and a Choice lock.
+  - Each goes on the engine field `engine/board_state.js` reads for it.
+
+### Added
+- `solver/tests/test-rotom-world-clocks.js`: PERISH (the replay above), CLOCKS (the engine's menu honours a laid Taunt
+  and Encore) and AUDIT (every board leaf is CARRIED or OWED). Red under `ROTOM_WORLD_BREAK=noclocks`, 11 of 13.
+- `solver/tests/ladder_replay.js` rebuilds a world from a saved ladder log. The two post-mortem games are fixtures.
+- Account: `docs/_reports/2026-09-30-rotom-world-fixes.md`.
+
 ## [1.39.0] — 2026-09-30
 
 ### Added
