@@ -83,6 +83,12 @@ This section says only what a division agent needs before it starts.
   `--preview` (fixed); an arm now names its own preview. Arms file `solver/rotom/arms/gen5-chomp.json`; proof the
   choice is sent: `solver/tests/test-rotom-chomp-live.js`. Command for Will:
   `docs/_reports/2026-09-30-chomp-ladder-prep.md`.
+- **Top-meta ladder rotation prepared, not launched (2026-09-29, abra/regmc 1.31.0).** Will asked for top-rated meta teams
+  only. `solver/rotom/build_top_rotation.js` builds `solver/rotom/teams/ladder-rotation-top.json`: floor 1409 (q0.99 of
+  rated bo3 sides), sixes used by 2 or more players at the floor, every species on 3% or more of the top teams, and
+  S − E no worse than the top baseline. It holds 5 teams, rated 1478 to 1596. The arms file
+  `solver/rotom/arms/gen5-chomp-top.json` names the rotation. Command for Will:
+  `docs/_reports/2026-09-30-top-meta-rotation.md`.
 - **CHOMP v0** (`solver/chomp/`, 2026-09-25, release `eaa5becc54eb`) **fails its bar**: its preview loses to
   the human bring (SPRT H0 accepted) and ties random. The PORYGON2 cells carry no bring signal.
   `docs/_reports/2026-09-25-chomp-v0.md`.

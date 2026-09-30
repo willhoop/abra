@@ -1,0 +1,496 @@
+{
+ "generated": "2026-09-30T00:42:41.635Z",
+ "format": "gen9championsvgc2026regmcbo3",
+ "checkout_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+ "builder": "solver/rotom/build_top_rotation.js",
+ "source": {
+  "store": {
+   "path": "data/games.gen9championsvgc2026regmcbo3.jsonl.gz",
+   "sha256": "fe78202a851545b71a19c507617d2a470020e5b72d07a393f86ae0fedee9bb25",
+   "games": 37491,
+   "first": "2026-09-09 08:08",
+   "last": "2026-09-30 00:20"
+  },
+  "archetypes": {
+   "path": "solver/out/meta/archetypes.json",
+   "sha256": "19dab2d06b75dce02d354fe4a0e3f1eebd90367002b34a75d43fe35d8b21a764",
+   "k": 8
+  }
+ },
+ "rule": {
+  "FLOOR_PCT": 0.99,
+  "MIN_PLAYERS": 2,
+  "MIN_GAMES": 8,
+  "MIN_SPECIES_SHARE": 0.03,
+  "NEAR_SAME": 5,
+  "MAX_TEAMS": 5,
+  "MIN_TEAMS": 3,
+  "floor": 1409,
+  "floor_is": "the 0.99 quantile of the ratings of every rated human open-sheet bo3 side in the store",
+  "games_excluded_by_quality_filter": 759,
+  "excluded_by_reason": {
+   "bot": 220,
+   "behavioural_bot": 539
+  },
+  "behavioural_bots": [
+   "AI damage calc",
+   "Afmoad",
+   "Anne Choa",
+   "CemitaVGC",
+   "NoMoreRegMC",
+   "monfish",
+   "swedish yonkagor",
+   "zinso45"
+  ],
+  "rated_sides": 63366,
+  "sides_at_floor": 648,
+  "decided_at_floor": 604,
+  "players_at_floor": 87,
+  "player_teams_at_floor": 148,
+  "baseline_resid_at_floor": -0.0491
+ },
+ "spread_rule": "32 HP, 32 in the attack stat its moves use more (dex move category), 2 Spe; nature from the sheet (build_assets.js spreadFor)",
+ "validator": "Showdown TeamValidator.get(gen9championsvgc2026regmcbo3) on the Reg M-C checkout — every team below passed",
+ "families_considered": [
+  {
+   "six": "aerodactyl,charizard,farigiraf,garchomp,kingambit,sylveon",
+   "players": 7,
+   "games": 25,
+   "win": 0.68,
+   "resid": 0.0676,
+   "archetype": "six:aerodactyl,charizard,farigiraf,garchomp,kingambit,sylveon",
+   "kept": true,
+   "why": [],
+   "refused": []
+  },
+  {
+   "six": "arcaninehisui,gholdengo,raichu,rillaboom,salamence,sneasler",
+   "players": 4,
+   "games": 15,
+   "win": 0.667,
+   "resid": -0.0373,
+   "archetype": "guru:3",
+   "kept": true,
+   "why": [],
+   "refused": [
+    "gen9championsvgc2026regmcbo3-2690051443: sheet/bring incomplete",
+    "gen9championsvgc2026regmcbo3-2690052897: sheet/bring incomplete",
+    "gen9championsvgc2026regmcbo3-2687402872: sheet/bring incomplete"
+   ]
+  },
+  {
+   "six": "dragonite,floetteeternal,gholdengo,incineroar,rillaboom,sneasler",
+   "players": 3,
+   "games": 49,
+   "win": 0.735,
+   "resid": 0.1535,
+   "archetype": "guru:0",
+   "kept": true,
+   "why": [],
+   "refused": []
+  },
+  {
+   "six": "arcaninehisui,froslass,kingambit,raichu,rillaboom,sneasler",
+   "players": 3,
+   "games": 20,
+   "win": 0.5,
+   "resid": -0.0154,
+   "archetype": "six:arcaninehisui,froslass,kingambit,raichu,rillaboom,sneasler",
+   "kept": true,
+   "why": [],
+   "refused": [
+    "gen9championsvgc2026regmcbo3-2685968897: sheet/bring incomplete"
+   ]
+  },
+  {
+   "six": "froslass,garchomp,kingambit,rillaboom,sneasler,volcarona",
+   "players": 3,
+   "games": 19,
+   "win": 0.579,
+   "resid": -0.0422,
+   "archetype": "six:froslass,garchomp,kingambit,rillaboom,sneasler,volcarona",
+   "kept": true,
+   "why": [],
+   "refused": []
+  },
+  {
+   "six": "arcaninehisui,gholdengo,raichu,rillaboom,staraptor,sylveon",
+   "players": 3,
+   "games": 11,
+   "win": 0.364,
+   "resid": -0.3134,
+   "archetype": "guru:3",
+   "kept": false,
+   "why": [
+    "S-E -0.313 < top baseline -0.049",
+    "archetype guru:3 already taken",
+    "rotation full"
+   ],
+   "refused": []
+  },
+  {
+   "six": "archaludon,charizard,grimmsnarl,pelipper,swampert,venusaur",
+   "players": 3,
+   "games": 9,
+   "win": 0.333,
+   "resid": -0.2372,
+   "archetype": "six:archaludon,charizard,grimmsnarl,pelipper,swampert,venusaur",
+   "kept": false,
+   "why": [
+    "S-E -0.237 < top baseline -0.049",
+    "rotation full"
+   ],
+   "refused": []
+  },
+  {
+   "six": "garchomp,gholdengo,incineroar,raichu,rillaboom,volcarona",
+   "players": 3,
+   "games": 4,
+   "win": 0.25,
+   "resid": -0.3115,
+   "archetype": "six:garchomp,gholdengo,incineroar,raichu,rillaboom,volcarona",
+   "kept": false,
+   "why": [
+    "games 4 < 8",
+    "S-E -0.311 < top baseline -0.049",
+    "rotation full"
+   ],
+   "refused": []
+  },
+  {
+   "six": "floetteeternal,gholdengo,incineroar,rillaboom,salamence,sneasler",
+   "players": 2,
+   "games": 23,
+   "win": 0.609,
+   "resid": -0.0551,
+   "archetype": "guru:0",
+   "kept": false,
+   "why": [
+    "S-E -0.055 < top baseline -0.049",
+    "near-identical to T3",
+    "archetype guru:0 already taken",
+    "rotation full"
+   ],
+   "refused": []
+  },
+  {
+   "six": "archaludon,charizard,farigiraf,golisopod,grimmsnarl,politoed",
+   "players": 2,
+   "games": 18,
+   "win": 0.5,
+   "resid": -0.1244,
+   "archetype": "six:archaludon,charizard,farigiraf,golisopod,grimmsnarl,politoed",
+   "kept": false,
+   "why": [
+    "S-E -0.124 < top baseline -0.049",
+    "rotation full"
+   ],
+   "refused": []
+  },
+  {
+   "six": "basculegion,floetteeternal,garchomp,incineroar,rillaboom,volcarona",
+   "players": 2,
+   "games": 10,
+   "win": 0.6,
+   "resid": 0.0555,
+   "archetype": "six:basculegion,floetteeternal,garchomp,incineroar,rillaboom,volcarona",
+   "kept": false,
+   "why": [
+    "rotation full"
+   ],
+   "refused": []
+  },
+  {
+   "six": "charizard,indeedee,kingambit,kommoo,meowsticf,sneasler",
+   "players": 2,
+   "games": 4,
+   "win": 0.25,
+   "resid": -0.2869,
+   "archetype": "six:charizard,indeedee,kingambit,kommoo,meowsticf,sneasler",
+   "kept": false,
+   "why": [
+    "games 4 < 8",
+    "off-meta species meowsticf 1.4%",
+    "S-E -0.287 < top baseline -0.049",
+    "rotation full"
+   ],
+   "refused": []
+  },
+  {
+   "six": "basculegion,charizard,floetteeternal,garchomp,incineroar,whimsicott",
+   "players": 2,
+   "games": 2,
+   "win": 1,
+   "resid": 0.5729,
+   "archetype": "six:basculegion,charizard,floetteeternal,garchomp,incineroar,whimsicott",
+   "kept": false,
+   "why": [
+    "games 2 < 8",
+    "rotation full"
+   ],
+   "refused": []
+  }
+ ],
+ "teams": [
+  {
+   "id": "T1",
+   "archetype": {
+    "id": "six:aerodactyl,charizard,farigiraf,garchomp,kingambit,sylveon",
+    "label": "Kingambit / Garchomp / Charizard / Farigiraf / Sylveon / Aerodactyl",
+    "source": "the exact six (no stable GURU archetype holds it); label = the six, most-used at the floor first (three names collided: two sixes share Rillaboom / Kingambit / Sneasler)"
+   },
+   "from_game": "gen9championsvgc2026regmcbo3-2688791113",
+   "date": "2026-09-27 18:41",
+   "rating": 1596,
+   "player": "nessie123",
+   "family": {
+    "players": 7,
+    "side_games": 25,
+    "win": 0.68,
+    "resid": 0.0676,
+    "species_share_at_floor": {
+     "aerodactyl": 4.7,
+     "charizard": 19.6,
+     "farigiraf": 18.9,
+     "garchomp": 30.4,
+     "kingambit": 35.1,
+     "sylveon": 16.2
+    }
+   },
+   "six_ids": [
+    "kingambit",
+    "garchomp",
+    "charizard",
+    "sylveon",
+    "farigiraf",
+    "aerodactyl"
+   ],
+   "species": [
+    "Kingambit",
+    "Garchomp",
+    "Charizard",
+    "Sylveon",
+    "Farigiraf",
+    "Aerodactyl"
+   ],
+   "bring": [
+    4,
+    2,
+    0,
+    1
+   ],
+   "packed": "Kingambit||FocusSash|Defiant|KowtowCleave,SuckerPunch,IronHead,LowKick|Adamant|32,32,,,,2|M||||]Garchomp||LifeOrb|RoughSkin|DragonClaw,StompingTantrum,Earthquake,Protect|Jolly|32,32,,,,2|M||||]Charizard||CharizarditeY|Blaze|HeatWave,SolarBeam,WeatherBall,Protect|Modest|32,,,32,,2|M||||]Sylveon||FairyFeather|Pixilate|HyperVoice,HyperBeam,QuickAttack,Protect|Modest|32,,,32,,2|M||||]Farigiraf||SitrusBerry|ArmorTail|TrickRoom,Psychic,Thunderbolt,Protect|Bold|32,,,32,,2|M||||]Aerodactyl||Aerodactylite|Unnerve|RockSlide,DualWingbeat,Tailwind,Protect|Jolly|32,32,,,,2|M||||"
+  },
+  {
+   "id": "T2",
+   "archetype": {
+    "id": "guru:3",
+    "label": "Rillaboom / Gholdengo / Arcanine-Hisui",
+    "source": "GURU archetypes.json",
+    "share": 0.1257,
+    "cosine": 0.893,
+    "defining": [
+     "rillaboom",
+     "gholdengo",
+     "arcaninehisui",
+     "raichu"
+    ]
+   },
+   "from_game": "gen9championsvgc2026regmcbo3-2687403922",
+   "date": "2026-09-25 02:00",
+   "rating": 1478,
+   "player": "marcosdeltasena31",
+   "family": {
+    "players": 4,
+    "side_games": 15,
+    "win": 0.667,
+    "resid": -0.0373,
+    "species_share_at_floor": {
+     "arcaninehisui": 14.9,
+     "gholdengo": 25.7,
+     "raichu": 24.3,
+     "rillaboom": 51.4,
+     "salamence": 20.3,
+     "sneasler": 45.3
+    }
+   },
+   "six_ids": [
+    "salamence",
+    "raichu",
+    "sneasler",
+    "rillaboom",
+    "gholdengo",
+    "arcaninehisui"
+   ],
+   "species": [
+    "Salamence",
+    "Raichu",
+    "Sneasler",
+    "Rillaboom",
+    "Gholdengo",
+    "Arcanine-Hisui"
+   ],
+   "bring": [
+    0,
+    5,
+    4,
+    2
+   ],
+   "packed": "Salamence||Salamencite|Intimidate|HyperVoice,DracoMeteor,Tailwind,Protect|Timid|32,,,32,,2|M||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|32,,,32,,2|F||||]Sneasler||GrassySeed|Unburden|DireClaw,CloseCombat,FakeOut,Protect|Adamant|32,32,,,,2|F||||]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,FakeOut,GrassyGlide,HighHorsepower|Adamant|32,32,,,,2|M||||]Gholdengo||LifeOrb|GoodasGold|MakeItRain,ShadowBall,NastyPlot,Protect|Timid|32,,,32,,2|||||]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly|32,32,,,,2|M||||"
+  },
+  {
+   "id": "T3",
+   "archetype": {
+    "id": "guru:0",
+    "label": "Incineroar / Rillaboom / Sneasler",
+    "source": "GURU archetypes.json",
+    "share": 0.2259,
+    "cosine": 0.81,
+    "defining": [
+     "incineroar",
+     "rillaboom",
+     "sneasler"
+    ]
+   },
+   "from_game": "gen9championsvgc2026regmcbo3-2687201627",
+   "date": "2026-09-24 18:44",
+   "rating": 1534,
+   "player": "emmagrande",
+   "family": {
+    "players": 3,
+    "side_games": 49,
+    "win": 0.735,
+    "resid": 0.1535,
+    "species_share_at_floor": {
+     "dragonite": 6.8,
+     "floetteeternal": 12.2,
+     "gholdengo": 25.7,
+     "incineroar": 30.4,
+     "rillaboom": 51.4,
+     "sneasler": 45.3
+    }
+   },
+   "six_ids": [
+    "incineroar",
+    "rillaboom",
+    "sneasler",
+    "floetteeternal",
+    "gholdengo",
+    "dragonite"
+   ],
+   "species": [
+    "Incineroar",
+    "Rillaboom",
+    "Sneasler",
+    "Floette-Eternal",
+    "Gholdengo",
+    "Dragonite"
+   ],
+   "bring": [
+    4,
+    5,
+    1,
+    0
+   ],
+   "packed": "Incineroar||SitrusBerry|Intimidate|FlareBlitz,ThroatChop,PartingShot,FakeOut|Careful|32,32,,,,2|F||||]Rillaboom||MiracleSeed|GrassySurge|FakeOut,WoodHammer,GrassyGlide,HighHorsepower|Adamant|32,32,,,,2|M||||]Sneasler||GrassySeed|Unburden|CloseCombat,RockSlide,SwordsDance,Protect|Adamant|32,32,,,,2|F||||]Floette-Eternal||Floettite|FlowerVeil|DazzlingGleam,DrainingKiss,CalmMind,Protect|Modest|32,,,32,,2|F||||]Gholdengo||ChoiceScarf|GoodasGold|MakeItRain,ShadowBall,PowerGem,Trick|Modest|32,,,32,,2|||||]Dragonite||Dragoninite|InnerFocus|DragonPulse,HeatWave,Tailwind,Protect|Modest|32,,,32,,2|M||||"
+  },
+  {
+   "id": "T4",
+   "archetype": {
+    "id": "six:arcaninehisui,froslass,kingambit,raichu,rillaboom,sneasler",
+    "label": "Rillaboom / Sneasler / Kingambit / Raichu / Arcanine-Hisui / Froslass",
+    "source": "the exact six (no stable GURU archetype holds it); label = the six, most-used at the floor first (three names collided: two sixes share Rillaboom / Kingambit / Sneasler)"
+   },
+   "from_game": "gen9championsvgc2026regmcbo3-2689308610",
+   "date": "2026-09-28 17:09",
+   "rating": 1498,
+   "player": "cabezafracassata",
+   "family": {
+    "players": 3,
+    "side_games": 20,
+    "win": 0.5,
+    "resid": -0.0154,
+    "species_share_at_floor": {
+     "arcaninehisui": 14.9,
+     "froslass": 12.2,
+     "kingambit": 35.1,
+     "raichu": 24.3,
+     "rillaboom": 51.4,
+     "sneasler": 45.3
+    }
+   },
+   "six_ids": [
+    "rillaboom",
+    "kingambit",
+    "sneasler",
+    "arcaninehisui",
+    "froslass",
+    "raichu"
+   ],
+   "species": [
+    "Rillaboom",
+    "Kingambit",
+    "Sneasler",
+    "Arcanine-Hisui",
+    "Froslass",
+    "Raichu"
+   ],
+   "bring": [
+    4,
+    2,
+    3,
+    5
+   ],
+   "packed": "Rillaboom||MiracleSeed|GrassySurge|WoodHammer,FakeOut,HighHorsepower,GrassyGlide|Adamant|32,32,,,,2|M||||]Kingambit||LifeOrb|Defiant|SwordsDance,SuckerPunch,KowtowCleave,Protect|Adamant|32,32,,,,2|F||||]Sneasler||GrassySeed|Unburden|DireClaw,CloseCombat,RockSlide,Protect|Adamant|32,32,,,,2|F||||]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly|32,32,,,,2|M||||]Froslass||Froslassite|CursedBody|Blizzard,ShadowBall,AuroraVeil,Protect|Timid|32,,,32,,2|F||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|32,,,32,,2|F||||"
+  },
+  {
+   "id": "T5",
+   "archetype": {
+    "id": "six:froslass,garchomp,kingambit,rillaboom,sneasler,volcarona",
+    "label": "Rillaboom / Sneasler / Kingambit / Garchomp / Volcarona / Froslass",
+    "source": "the exact six (no stable GURU archetype holds it); label = the six, most-used at the floor first (three names collided: two sixes share Rillaboom / Kingambit / Sneasler)"
+   },
+   "from_game": "gen9championsvgc2026regmcbo3-2685861544",
+   "date": "2026-09-22 15:58",
+   "rating": 1505,
+   "player": "mmjej",
+   "family": {
+    "players": 3,
+    "side_games": 19,
+    "win": 0.579,
+    "resid": -0.0422,
+    "species_share_at_floor": {
+     "froslass": 12.2,
+     "garchomp": 30.4,
+     "kingambit": 35.1,
+     "rillaboom": 51.4,
+     "sneasler": 45.3,
+     "volcarona": 15.5
+    }
+   },
+   "six_ids": [
+    "froslass",
+    "rillaboom",
+    "volcarona",
+    "kingambit",
+    "garchomp",
+    "sneasler"
+   ],
+   "species": [
+    "Froslass",
+    "Rillaboom",
+    "Volcarona",
+    "Kingambit",
+    "Garchomp",
+    "Sneasler"
+   ],
+   "bring": [
+    2,
+    4,
+    1,
+    5
+   ],
+   "packed": "Froslass||Froslassite|CursedBody|Blizzard,ShadowBall,AuroraVeil,Protect|Timid|32,,,32,,2|F||||]Rillaboom||OccaBerry|GrassySurge|GrassyGlide,WoodHammer,HighHorsepower,FakeOut|Adamant|32,32,,,,2|M||||]Volcarona||GrassySeed|FlameBody|Protect,HeatWave,GigaDrain,QuiverDance|Modest|32,,,32,,2|F||||]Kingambit||LifeOrb|Defiant|Protect,KowtowCleave,SuckerPunch,SwordsDance|Adamant|32,32,,,,2|F||||]Garchomp||ChoiceScarf|RoughSkin|DragonClaw,StompingTantrum,RockSlide,RockTomb|Adamant|32,32,,,,2|F||||]Sneasler||WhiteHerb|Unburden|Protect,CloseCombat,DireClaw,FakeOut|Adamant|32,32,,,,2|F||||"
+  }
+ ]
+}

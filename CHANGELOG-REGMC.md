@@ -21,6 +21,41 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.31.0] — 2026-09-29
+
+### Added
+- **A top-meta ladder rotation, `solver/rotom/teams/ladder-rotation-top.json`, built by
+  `solver/rotom/build_top_rotation.js`** (Will, 2026-09-29: top-rated meta teams only, after he saw a Hippowdon on our
+  team). Read from the tracked bo3 store (37,491 games, 2026-09-09 to 2026-09-30 00:20, sha256 `fe78202a8515`). The builder reads the
+  `.gz` by name, not through `engine/quality.js` `storePath()`, which prefers the stale plain file. It drops the 759 games
+  that the corpus filter marks as bot or behavioural-bot games. A team qualifies when it was played at or above the **floor of 1409, the 99th percentile of 63,366 rated human open-sheet bo3
+  sides**; its exact six is brought by at least 2 distinct players at the floor over at least 8 decided games; every
+  species is on at least 3% of the top teams; and its mean S − E there is no worse than the top baseline (−0.049). Near
+  duplicates (5 shared species) and a second team from one archetype are skipped. **5 teams, rated 1478 to 1596, from sixes of 7, 4, 3, 3 and 3 players.**
+  Every team passes `TeamValidator` for `gen9championsvgc2026regmcbo3`, and every species, item, ability and move passes
+  the format's legality filter. Incomplete sheets are dropped.
+- **Arms file `solver/rotom/arms/gen5-chomp-top.json`.** It is `gen5-chomp.json` (arm A unchanged) plus
+  `"rotation": "solver/rotom/teams/ladder-rotation-top.json"`. `gen5-chomp.json` is not changed.
+- **New test `solver/tests/test-rotom-top-rotation.js`**, 10 of 10. It goes RED under each deliberate break: a team
+  re-rated 1200, a nonstandard item, and a species at 0.5%.
+
+### Changed
+- **`solver/rotom/rotom.js`: an arms file can name its rotation.** In ladder mode, the arm's `rotation` key is the
+  rotation, so the plan digest (rotation file and sha256) and every series row (`team_meta`) follow from the arm.
+  A `--rotation` that contradicts it is refused with exit 2, and so is a named rotation that does not exist. An arms
+  file with no `rotation` key reads as before.
+- `solver/tests/test-rotom-ladder.js` validates every rotation that an arms file names, and has three new STARTUP
+  refusals.
+
+### Notes
+- **The old rotation was already top-rated.** Its teams were rated 1379 to 1549, in the 98.3rd to 100th percentile.
+  The problem was that it had no meta test. Each of its five sixes was used by only 1 player at the floor. L1 carried
+  Hippowdon and L5 carried Corviknight, and each of those species is on 0.7% of the top teams.
+- The screen is noisy at its edge: one hour of new games moved one family across the S − E bar and changed the fifth
+  team. The committed file is the snapshot the arm plays.
+- No ladder series is launched. The chomp1 run on `gen5-chomp.json` is live and is not touched. The launch command is in
+  `docs/_reports/2026-09-30-top-meta-rotation.md` §OWED, NOT RUN. No published figure moves.
+
 ## [1.30.1] — 2026-09-29
 
 ### Fixed

@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.31.0] — 2026-09-29 — **ROTOM gets a top-meta ladder rotation, and an arm that names it**
+- **What changed.** New `solver/rotom/build_top_rotation.js` writes `solver/rotom/teams/ladder-rotation-top.json`. New arms file `solver/rotom/arms/gen5-chomp-top.json` (gen5-chomp plus `rotation`). `solver/rotom/rotom.js` reads an arm's `rotation` and refuses a contradicting `--rotation`. New test `solver/tests/test-rotom-top-rotation.js`; `test-rotom-ladder.js` extended.
+- **Measured.** Floor 1409 (q0.99 of 63,366 rated open-sheet bo3 sides; median 1119, max 1630), 648 sides and 87 players at the floor, top baseline S − E −0.049, 759 bot and behavioural-bot games excluded. 5 teams rated 1478–1596, from families of 7, 4, 3, 3 and 3 players (25, 15, 49, 20 and 19 games). The old rotation was 1379–1549 (median 1462), all five sixes one-player, two with a species at 0.7% of top teams. Store `data/games.gen9championsvgc2026regmcbo3.jsonl.gz` sha256 `fe78202a8515`, 37,491 games, read by name (not through `quality.js` `storePath()`). Tests: top-rotation 10/10 and RED on the floor, illegal and off-meta breaks.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published. No series was played on the new rotation.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 1.30.1] — 2026-09-29 — **`test-game-diff.js` and five more engine tests write per-regulation files under Reg M-C**
 - **What changed.** `engine/regulation.js` `PER_REGULATION_ARTIFACTS` gains `game-diff.json`, `forme-assert.json`, `switch-back-renamed.json`, `tag-walk.json`, `tag-consumption.json` and `unmodelled-clicks.json`. Each writer names its path through `artifactFor`. `test-game-diff.js` and `test-unmodelled-clicks.js` read the tags through `fileFor`, because a bare fs read returned Reg M-B's under Reg M-C. `test-tag-consumed.js` prints `NO BASELINE` when it has none. `tests/test-regulation-artifacts.js` maps the six names.
 - **Measured.** NO FIGURE. `ABRA_REGULATION=regmc node tests/test-game-diff.js` exit 1 (the guard refused `data/game-diff.json` after 5 of 5 games agreed) → exit 0, writes `data/game-diff-regmc.json` (`showdown_commit` `f10d6798`). The plain run exits 0 and writes `data/game-diff.json` (`20ad99ff`). The other five: regmc exit 0, sibling written; plain exit 0.

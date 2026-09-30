@@ -95,7 +95,20 @@ const ADAPT = require('./adaptive.js');
 const TIMER = flag('timer', 'on');
 const DRILL = flag('drill', '');                     // drop@S.G.T | crash@S.G.T  (set, game, turn; 1-based)
 const DUMP_REQ = +flag('dump-requests', 0);          // write the first N requests (+ the public log so far) as test fixtures
-const TEAM_POOL = has('ladder') ? flag('rotation', path.join(__dirname, 'teams', 'ladder-rotation.json')) : flag('team-pool', path.join(__dirname, 'teams', 'regmc-pool.json'));
+/* THE ARM NAMES ITS ROTATION (2026-09-30). An arms file may carry `rotation`: a repo-relative path to the team rotation it
+ * is played with. In ladder mode that is the rotation, so the record (the plan's rotation file + sha256, every series row's
+ * team_meta) follows from the arm alone. --rotation may repeat it, never contradict it; with no `rotation` key the old
+ * default (teams/ladder-rotation.json, or --rotation) stands, so every arms file written before this reads as before. */
+const ARMS_ROTATION = (() => {
+  if (!has('ladder') || !flag('arms', '')) return null;
+  let r = null; try { r = JSON.parse(fs.readFileSync(path.resolve(flag('arms', '')), 'utf8')).rotation; } catch (e) { return null; /* validated later */ }
+  return r ? path.resolve(ROOT, r) : null;
+})();
+if (ARMS_ROTATION && flag('rotation', '') && path.resolve(flag('rotation', '')) !== ARMS_ROTATION) {
+  console.error('--rotation ' + flag('rotation', '') + ' contradicts the arms file, which names ' + path.relative(ROOT, ARMS_ROTATION) + '. Refusing.'); process.exit(2);
+}
+if (ARMS_ROTATION && !fs.existsSync(ARMS_ROTATION)) { console.error('the arms file names rotation ' + ARMS_ROTATION + ', which does not exist. Refusing.'); process.exit(2); }
+const TEAM_POOL = has('ladder') ? (ARMS_ROTATION || flag('rotation', path.join(__dirname, 'teams', 'ladder-rotation.json'))) : flag('team-pool', path.join(__dirname, 'teams', 'regmc-pool.json'));
 const FORMAT_ID = 'gen9championsvgc2026regmcbo3';
 const GAMES_FILE = path.resolve(flag('games-file', path.join(ROOT, 'solver', 'out', 'rotom', 'games.jsonl')));
 const SAVE_REPLAYS = flag('save-replays', 'on');     // on | off

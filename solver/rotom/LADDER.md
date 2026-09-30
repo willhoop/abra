@@ -17,7 +17,7 @@ Format: `gen9championsvgc2026regmcbo3` (Force Open Team Sheets, Best of 3). Code
 | The frozen release is on disk | `node engine/engine_release.js list` shows `eaa5becc54eb`. Ladder mode refuses any release cut before it (PRE-GATE). |
 | No STOP or KILL file is left over | `dir solver\out\rotom\STOP solver\out\rotom\KILL` finds nothing. A fresh run refuses to start while one exists. |
 | Tests green | `node solver/tests/test-rotom-ladder.js` and `node solver/tests/test-rotom.js` |
-| The rotation is current | `solver/rotom/teams/ladder-rotation.json`: 5 teams, one per stable Reg M-C archetype, each passed Showdown's TeamValidator. The client re-validates every team at start-up and refuses to start on a failure. Rebuild with `node solver/rotom/build_ladder_teams.js` (then commit it) only between runs, because the plan digest includes the rotation. |
+| The rotation is current | `solver/rotom/teams/ladder-rotation.json`: 5 teams, one per stable Reg M-C archetype, each passed Showdown's TeamValidator. The client re-validates every team at start-up and refuses to start on a failure. Rebuild with `node solver/rotom/build_ladder_teams.js` (then commit it) only between runs, because the plan digest includes the rotation. An arms file that names a `rotation` (for example `gen5-chomp-top.json`, which names `solver/rotom/teams/ladder-rotation-top.json`, built by `node solver/rotom/build_top_rotation.js`) plays that rotation; `node solver/tests/test-rotom-top-rotation.js` checks it. |
 
 ## 2. Start (public ladder)
 
@@ -56,6 +56,17 @@ SPRT; read it with `report.js ladder` and the preview counters (`docs/_reports/2
 ```cmd
 node solver\rotom\run_ladder.js --public --name medicham32 --release eaa5becc54eb --arms solver\rotom\arms\gen5-chomp.json --ladder-seed medicham32-chomp1-2026-09-30 --sets 20 --tag chomp1 --priority normal --max-hours 4
 ```
+
+The same run on the TOP-META rotation (added 2026-09-29, abra/regmc 1.31.0). The arm names its rotation (`"rotation"`), so
+the rotation file and its sha256 are in the plan digest, and each row's `team_meta` carries the team's rating and archetype.
+Do not pool its residuals with chomp1's: the rotation is part of the arm (`docs/_reports/2026-09-30-top-meta-rotation.md`):
+
+```cmd
+node solver\rotom\run_ladder.js --public --name medicham32 --release eaa5becc54eb --arms solver\rotom\arms\gen5-chomp-top.json --ladder-seed medicham32-chomptop-2026-09-30 --sets 20 --tag chomptop --priority normal --max-hours 4
+```
+
+**An arm's `rotation` (added 2026-09-29).** A repo-relative path. In ladder mode it is the rotation. A `--rotation` that
+contradicts it is refused, and so is a path that does not exist. With no `rotation` key the default stands.
 
 **An arm's `preview` (added 2026-09-29).** `"policy"` (the default: the move policy's preview, the team's own bring for
 `prior` and `miltank-gen5`) or `"chomp"` (CHOMP v1; a throw or an illegal answer falls to the team's bring, counted
