@@ -8,6 +8,12 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-30
 
+### PORYGON2 v2 trained; gate (a) fails by a hair, not landed (abra/regmc 1.47.0)
+v2 (public state, UNK tokens, Maia-2 ratings, auxiliary heads, bo1 pretrain then bo3 fine-tune, K = 1) against v1 on 1,521
+bo3 test games v1 never saw: −0.0098 [−0.0202, +0.0002]. The upper bound misses 0 by 0.0002, so FAIL. v2 beats gen5's
+net (−0.0127 [−0.0202, −0.0048]). The quality rule is now called, not copied, and forfeits and short games stay in the
+value-net data (Will). The next read waits for fresh v1-unseen shards. `docs/_reports/2026-09-30-porygon2-v2-train.md`.
+
 ### PORYGON2 v1-r2: deep labels on c1; gate (a) fails on humans, no SPRT (abra/regmc 1.46.0)
 - 13,414 deep labels (k 6x6, 8 passes) on 4,123 c1 train games. Only those rows are added, and the human share is held
   at v1's. vs gen5: human −0.0044 [−0.0086, +0.0002], a FAIL by 0.0002. Self-play −0.0131 [−0.0178, −0.0084].

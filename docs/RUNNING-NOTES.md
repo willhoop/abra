@@ -53,6 +53,27 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.47.0] — 2026-09-30 — **PORYGON2 v2 trained; gate (a) FAILS by a hair; not landed, no SPRT**
+- **What changed.**
+  - New v2 encoder (`features.js`, `encode.js`), net and trainer (`net.py`, `train.py`), gate reader (`gate_a.py`,
+    `score_v1.js`), Node forward pass (`infer.js`, `export.py`) and leaf (`leaf.js`), all under `solver/porygon2/v2/`.
+  - `solver/porygon2/leaf.js` dispatches a v2 file. No arm names one.
+  - New tests `test-porygon2-v2-features.js` and `test-porygon2-v2.js`.
+  - `build_dataset.js` and `meta/extract.js` call `quality.js` `reasons()`; game-shape codes are counted, not charged.
+  - The v2 datasets record `quality_reasons` and keep the game-shape codes (Will).
+  - `preregistration.json` addenda a, b and c were all committed before any stage-B model existed.
+- **Measured.** Release `eaa5becc54eb`.
+  - Datasets: bo1 41,989 / 286,770, bo3 36,232 / 251,760 (`solver/porygon2/v2/manifest-*.json`).
+  - K = 1 was selected on bo3 validation: 0.5063, against K = 2 0.5075 and K = all 0.5120.
+  - Gate (a), v2 − v1, pooled over 1,521 v1-unseen bo3 test games: **−0.0098 [−0.0202, +0.0002]**, so FAIL.
+    Bands: <1100 −0.0165 (575 games); 1100–1199 −0.0014 (413).
+  - v2 − gen5: −0.0127 [−0.0202, −0.0048]. ECE: v2 0.018, v1 0.017, gen5 0.018. Every ablation is worse than v2.
+  - Source: `solver/porygon2/v2/gate-a.json`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published. The 1.37.0 dataset counts (27,116 / 218,815 and 24,940 / 197,905) are replaced
+  by the rebuilt datasets. gen5 stays the champion's value net.
+- **Owed to the next major.** MODELS: PORYGON2 v2 (trained, gate (a) failed).
+
 ## [abra/regmc 1.46.1] — 2026-09-30 — **Reg M-C gate re-run on release `97451d5fbf40` (re-weighted tags): OPEN, 10 of 10, nothing moved**
 - **What changed.** No code. New release `97451d5fbf40` (force-tracked), cut after 1.38.0 re-weighted
   `data/tags-regmc.json`, which moves Quick Guard's chooser click rate (abra/regmc 1.38.0). The gate artifacts are re-run on it.

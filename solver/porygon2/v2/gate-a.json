@@ -1,0 +1,1018 @@
+{
+ "what": "PORYGON2 v2 gate (a): held-out bo3 TEST positions from v1-unseen games, paired against v1 on (game id, turn)",
+ "read_once": true,
+ "generated": "2026-09-30T12:05:56Z",
+ "model": {
+  "path": "solver/out/porygon2-v2/runs/k1/B/model.pt",
+  "sha256": "2eb775e74a042887c0b52cf0704ffd0263c29dc9b5e7e2104b359d7e0709e1a3",
+  "flags": {
+   "stage": "B",
+   "data": "solver/out/porygon2-v2",
+   "out": "solver/out/porygon2-v2/runs/k1/B",
+   "init": "solver/out/porygon2-v2/runs/k1/A/model.pt",
+   "k": 1,
+   "epochs": 30,
+   "lr": 0.0003,
+   "wd": 0.0001,
+   "dropout": 0.1,
+   "bs": 512,
+   "seed": 1,
+   "threads": 1,
+   "replay_share": 0.25,
+   "unequal_weight": 2,
+   "no_aux": false,
+   "no_rating": false,
+   "aux_target": 0.25,
+   "aux_warm": 200,
+   "max_games": 0,
+   "patience": 6
+  }
+ },
+ "v1": {
+  "path": "solver/porygon2/model/porygon2-v1.json",
+  "sha256": "01bb559ef0e7e8e22f098466ac8ad5a1782c7cc029cb83838797fa0dd1b4d3f5"
+ },
+ "gen5": {
+  "path": "solver/machamp/models/gen5/porygon2-gen5.json",
+  "sha256": "cf8ad3f7bd0d4a33d87d9b9e891154800cf27540e7d4a93ef85b2513b713f3c6"
+ },
+ "v1_scores": {
+  "path": "solver/out/porygon2-v2/gate-v1-scores.jsonl",
+  "sha256": "9f46a73ec219974ff6691b607542f1143b4b617caf61b33b1ecae59705481e13",
+  "counts": {
+   "wanted": 1526,
+   "found": 1521,
+   "positions": 10728,
+   "skipped_no_winner": 0,
+   "errors": 0
+  }
+ },
+ "release": "eaa5becc54eb",
+ "bo3_input_sha256": "8993a422f4df938fb2ed23930d35a722aef33791496618671e8c45900e33f59d",
+ "boot": 2000,
+ "seed": 1,
+ "coverage": {
+  "eligible_games": 1526,
+  "eligible_positions": 10733,
+  "paired_positions": 10728,
+  "paired_games": 1521,
+  "unpaired_positions": 5,
+  "tie_positions_dropped": 0
+ },
+ "pooled": {
+  "v2_logloss": {
+   "mean": 0.513179,
+   "ci95": [
+    0.495635,
+    0.53217
+   ],
+   "positions": 10728,
+   "games": 1521
+  },
+  "v1_logloss": {
+   "mean": 0.523019,
+   "ci95": [
+    0.504212,
+    0.543387
+   ],
+   "positions": 10728,
+   "games": 1521
+  },
+  "gen5_logloss": {
+   "mean": 0.525831,
+   "ci95": [
+    0.508598,
+    0.543527
+   ],
+   "positions": 10728,
+   "games": 1521
+  },
+  "count_hp_logloss": {
+   "mean": 0.570241,
+   "ci95": [
+    0.555921,
+    0.585404
+   ],
+   "positions": 10728,
+   "games": 1521
+  },
+  "v2_minus_v1_logloss": {
+   "mean": -0.009841,
+   "ci95": [
+    -0.020174,
+    0.000175
+   ],
+   "positions": 10728,
+   "games": 1521
+  },
+  "v2_minus_gen5_logloss": {
+   "mean": -0.012652,
+   "ci95": [
+    -0.020156,
+    -0.004773
+   ],
+   "positions": 10728,
+   "games": 1521
+  },
+  "v2_brier": {
+   "mean": 0.174038,
+   "ci95": [
+    0.167251,
+    0.181301
+   ],
+   "positions": 10728,
+   "games": 1521
+  },
+  "v1_brier": {
+   "mean": 0.17774,
+   "ci95": [
+    0.170587,
+    0.185044
+   ],
+   "positions": 10728,
+   "games": 1521
+  },
+  "gen5_brier": {
+   "mean": 0.179332,
+   "ci95": [
+    0.172713,
+    0.186264
+   ],
+   "positions": 10728,
+   "games": 1521
+  },
+  "v2_minus_v1_brier": {
+   "mean": -0.003702,
+   "ci95": [
+    -0.007385,
+    7.8e-05
+   ],
+   "positions": 10728,
+   "games": 1521
+  },
+  "v2_unrated_inputs_logloss": {
+   "mean": 0.5163,
+   "ci95": [
+    0.499702,
+    0.534522
+   ],
+   "positions": 10728,
+   "games": 1521
+  },
+  "v2_unrated_inputs_minus_v1_logloss": {
+   "mean": -0.00672,
+   "ci95": [
+    -0.016887,
+    0.003397
+   ],
+   "positions": 10728,
+   "games": 1521
+  }
+ },
+ "by_band": {
+  "<1100": {
+   "games": 575,
+   "gates": true,
+   "v2_minus_v1_logloss": {
+    "mean": -0.016544,
+    "ci95": [
+     -0.034899,
+     0.001714
+    ],
+    "positions": 4018,
+    "games": 575
+   },
+   "v2_logloss": {
+    "mean": 0.493392,
+    "ci95": [
+     0.464442,
+     0.523548
+    ],
+    "positions": 4018,
+    "games": 575
+   },
+   "v1_logloss": {
+    "mean": 0.509935,
+    "ci95": [
+     0.477962,
+     0.5429
+    ],
+    "positions": 4018,
+    "games": 575
+   },
+   "gen5_logloss": {
+    "mean": 0.511732,
+    "ci95": [
+     0.485321,
+     0.539265
+    ],
+    "positions": 4018,
+    "games": 575
+   },
+   "v2_minus_v1_brier": {
+    "mean": -0.005979,
+    "ci95": [
+     -0.012469,
+     0.000596
+    ],
+    "positions": 4018,
+    "games": 575
+   }
+  },
+  "1100-1199": {
+   "games": 413,
+   "gates": true,
+   "v2_minus_v1_logloss": {
+    "mean": -0.001431,
+    "ci95": [
+     -0.017191,
+     0.015652
+    ],
+    "positions": 2957,
+    "games": 413
+   },
+   "v2_logloss": {
+    "mean": 0.514078,
+    "ci95": [
+     0.48187,
+     0.548719
+    ],
+    "positions": 2957,
+    "games": 413
+   },
+   "v1_logloss": {
+    "mean": 0.515509,
+    "ci95": [
+     0.483033,
+     0.550939
+    ],
+    "positions": 2957,
+    "games": 413
+   },
+   "gen5_logloss": {
+    "mean": 0.516858,
+    "ci95": [
+     0.48675,
+     0.547491
+    ],
+    "positions": 2957,
+    "games": 413
+   },
+   "v2_minus_v1_brier": {
+    "mean": -0.000419,
+    "ci95": [
+     -0.006341,
+     0.006243
+    ],
+    "positions": 2957,
+    "games": 413
+   }
+  },
+  "1200-1299": {
+   "games": 157,
+   "gates": false,
+   "v2_minus_v1_logloss": {
+    "mean": -0.011976,
+    "ci95": [
+     -0.047008,
+     0.018808
+    ],
+    "positions": 1104,
+    "games": 157
+   },
+   "v2_logloss": {
+    "mean": 0.541549,
+    "ci95": [
+     0.485601,
+     0.60052
+    ],
+    "positions": 1104,
+    "games": 157
+   },
+   "v1_logloss": {
+    "mean": 0.553525,
+    "ci95": [
+     0.490378,
+     0.617912
+    ],
+    "positions": 1104,
+    "games": 157
+   },
+   "gen5_logloss": {
+    "mean": 0.550283,
+    "ci95": [
+     0.499701,
+     0.602782
+    ],
+    "positions": 1104,
+    "games": 157
+   },
+   "v2_minus_v1_brier": {
+    "mean": -0.004748,
+    "ci95": [
+     -0.018955,
+     0.00775
+    ],
+    "positions": 1104,
+    "games": 157
+   }
+  },
+  ">=1300": {
+   "games": 82,
+   "gates": false,
+   "v2_minus_v1_logloss": {
+    "mean": 0.015364,
+    "ci95": [
+     -0.030673,
+     0.069256
+    ],
+    "positions": 608,
+    "games": 82
+   },
+   "v2_logloss": {
+    "mean": 0.583818,
+    "ci95": [
+     0.482547,
+     0.687872
+    ],
+    "positions": 608,
+    "games": 82
+   },
+   "v1_logloss": {
+    "mean": 0.568454,
+    "ci95": [
+     0.480238,
+     0.659874
+    ],
+    "positions": 608,
+    "games": 82
+   },
+   "gen5_logloss": {
+    "mean": 0.601507,
+    "ci95": [
+     0.505493,
+     0.708451
+    ],
+    "positions": 608,
+    "games": 82
+   },
+   "v2_minus_v1_brier": {
+    "mean": 0.004448,
+    "ci95": [
+     -0.01298,
+     0.024704
+    ],
+    "positions": 608,
+    "games": 82
+   }
+  },
+  "unrated": {
+   "games": 294,
+   "gates": false,
+   "v2_minus_v1_logloss": {
+    "mean": -0.015182,
+    "ci95": [
+     -0.033814,
+     0.003381
+    ],
+    "positions": 2041,
+    "games": 294
+   },
+   "v2_logloss": {
+    "mean": 0.514441,
+    "ci95": [
+     0.476313,
+     0.55265
+    ],
+    "positions": 2041,
+    "games": 294
+   },
+   "v1_logloss": {
+    "mean": 0.529623,
+    "ci95": [
+     0.487583,
+     0.569234
+    ],
+    "positions": 2041,
+    "games": 294
+   },
+   "gen5_logloss": {
+    "mean": 0.530816,
+    "ci95": [
+     0.492933,
+     0.56795
+    ],
+    "positions": 2041,
+    "games": 294
+   },
+   "v2_minus_v1_brier": {
+    "mean": -0.005836,
+    "ci95": [
+     -0.013571,
+     0.001793
+    ],
+    "positions": 2041,
+    "games": 294
+   }
+  }
+ },
+ "turns_1_3": {
+  "v2_minus_v1_logloss": {
+   "mean": -0.01265,
+   "ci95": [
+    -0.022535,
+    -0.002902
+   ],
+   "positions": 4477,
+   "games": 1521
+  },
+  "v2_logloss": {
+   "mean": 0.617913,
+   "ci95": [
+    0.602123,
+    0.633429
+   ],
+   "positions": 4477,
+   "games": 1521
+  },
+  "v1_logloss": {
+   "mean": 0.630562,
+   "ci95": [
+    0.614538,
+    0.646329
+   ],
+   "positions": 4477,
+   "games": 1521
+  }
+ },
+ "turns_4_plus": {
+  "v2_minus_v1_logloss": {
+   "mean": -0.007828,
+   "ci95": [
+    -0.020472,
+    0.005658
+   ],
+   "positions": 6251,
+   "games": 1382
+  }
+ },
+ "calibration": {
+  "v2": {
+   "ece": 0.018,
+   "bins": [
+    {
+     "bin": 0,
+     "n": 1290,
+     "pred": 0.0345,
+     "won": 0.0481
+    },
+    {
+     "bin": 1,
+     "n": 752,
+     "pred": 0.1504,
+     "won": 0.1649
+    },
+    {
+     "bin": 2,
+     "n": 909,
+     "pred": 0.253,
+     "won": 0.2937
+    },
+    {
+     "bin": 3,
+     "n": 1222,
+     "pred": 0.3519,
+     "won": 0.3584
+    },
+    {
+     "bin": 4,
+     "n": 1344,
+     "pred": 0.4509,
+     "won": 0.4055
+    },
+    {
+     "bin": 5,
+     "n": 1347,
+     "pred": 0.5492,
+     "won": 0.533
+    },
+    {
+     "bin": 6,
+     "n": 1118,
+     "pred": 0.6478,
+     "won": 0.6333
+    },
+    {
+     "bin": 7,
+     "n": 911,
+     "pred": 0.7492,
+     "won": 0.742
+    },
+    {
+     "bin": 8,
+     "n": 741,
+     "pred": 0.8481,
+     "won": 0.8421
+    },
+    {
+     "bin": 9,
+     "n": 1094,
+     "pred": 0.9631,
+     "won": 0.9543
+    }
+   ]
+  },
+  "v1": {
+   "ece": 0.01705,
+   "bins": [
+    {
+     "bin": 0,
+     "n": 1294,
+     "pred": 0.0308,
+     "won": 0.0518
+    },
+    {
+     "bin": 1,
+     "n": 686,
+     "pred": 0.1517,
+     "won": 0.1793
+    },
+    {
+     "bin": 2,
+     "n": 907,
+     "pred": 0.2532,
+     "won": 0.2547
+    },
+    {
+     "bin": 3,
+     "n": 1210,
+     "pred": 0.3531,
+     "won": 0.3669
+    },
+    {
+     "bin": 4,
+     "n": 1433,
+     "pred": 0.4508,
+     "won": 0.4424
+    },
+    {
+     "bin": 5,
+     "n": 1352,
+     "pred": 0.5485,
+     "won": 0.5459
+    },
+    {
+     "bin": 6,
+     "n": 1179,
+     "pred": 0.6486,
+     "won": 0.6014
+    },
+    {
+     "bin": 7,
+     "n": 856,
+     "pred": 0.7473,
+     "won": 0.7348
+    },
+    {
+     "bin": 8,
+     "n": 689,
+     "pred": 0.8483,
+     "won": 0.8099
+    },
+    {
+     "bin": 9,
+     "n": 1122,
+     "pred": 0.9656,
+     "won": 0.9563
+    }
+   ]
+  },
+  "gen5": {
+   "ece": 0.01803,
+   "bins": [
+    {
+     "bin": 0,
+     "n": 1163,
+     "pred": 0.0378,
+     "won": 0.0482
+    },
+    {
+     "bin": 1,
+     "n": 683,
+     "pred": 0.1504,
+     "won": 0.1816
+    },
+    {
+     "bin": 2,
+     "n": 894,
+     "pred": 0.2529,
+     "won": 0.2718
+    },
+    {
+     "bin": 3,
+     "n": 1239,
+     "pred": 0.3531,
+     "won": 0.3414
+    },
+    {
+     "bin": 4,
+     "n": 1548,
+     "pred": 0.4526,
+     "won": 0.4541
+    },
+    {
+     "bin": 5,
+     "n": 1492,
+     "pred": 0.5474,
+     "won": 0.5007
+    },
+    {
+     "bin": 6,
+     "n": 1163,
+     "pred": 0.6464,
+     "won": 0.6182
+    },
+    {
+     "bin": 7,
+     "n": 838,
+     "pred": 0.7485,
+     "won": 0.7649
+    },
+    {
+     "bin": 8,
+     "n": 718,
+     "pred": 0.8494,
+     "won": 0.8468
+    },
+    {
+     "bin": 9,
+     "n": 990,
+     "pred": 0.9598,
+     "won": 0.9515
+    }
+   ]
+  }
+ },
+ "aux_losses_eligible": {
+  "surv": 0.416353278183475,
+  "hp": 0.270138639600948,
+  "mat": 1.595114651829668,
+  "hpd": 0.08499875044951531,
+  "nks": 1.0385933804743046,
+  "nkd": 1.034005476962395,
+  "tl": 1.203770742216015
+ },
+ "verdict": {
+  "rule": "PASS iff pooled 95% upper bound of logloss(v2) - logloss(v1) < 0 AND point estimate <= 0 in every gating band (>= 200 games)",
+  "pooled_upper": 0.000175,
+  "pooled_ok": false,
+  "gating_bands": [
+   "<1100",
+   "1100-1199"
+  ],
+  "bands_ok": true,
+  "PASS": false
+ },
+ "bo1_test_v2": {
+  "pooled": {
+   "mean": 0.549184,
+   "ci95": [
+    0.540195,
+    0.557936
+   ],
+   "positions": 57876,
+   "games": 8492
+  },
+  "by_band": {
+   "1100-1199": {
+    "mean": 0.544424,
+    "ci95": [
+     0.529203,
+     0.559609
+    ],
+    "positions": 14702,
+    "games": 2156
+   },
+   "1200-1299": {
+    "mean": 0.550048,
+    "ci95": [
+     0.530348,
+     0.570679
+    ],
+    "positions": 8538,
+    "games": 1246
+   },
+   "1300-1399": {
+    "mean": 0.555829,
+    "ci95": [
+     0.532573,
+     0.580307
+    ],
+    "positions": 6592,
+    "games": 951
+   },
+   "1400-1499": {
+    "mean": 0.514623,
+    "ci95": [
+     0.484259,
+     0.54693
+    ],
+    "positions": 2386,
+    "games": 365
+   },
+   "1500-1599": {
+    "mean": 0.599022,
+    "ci95": [
+     0.53698,
+     0.665716
+    ],
+    "positions": 783,
+    "games": 110
+   },
+   "<1100": {
+    "mean": 0.5443,
+    "ci95": [
+     0.5287,
+     0.561579
+    ],
+    "positions": 20349,
+    "games": 3012
+   },
+   ">=1600": {
+    "mean": 0.663368,
+    "ci95": [
+     0.534887,
+     0.829115
+    ],
+    "positions": 48,
+    "games": 7
+   },
+   "unrated": {
+    "mean": 0.584057,
+    "ci95": [
+     0.554237,
+     0.616271
+    ],
+    "positions": 4478,
+    "games": 645
+   }
+  },
+  "calibration": {
+   "ece": 0.02825,
+   "bins": [
+    {
+     "bin": 0,
+     "n": 5548,
+     "pred": 0.038,
+     "won": 0.0634
+    },
+    {
+     "bin": 1,
+     "n": 4062,
+     "pred": 0.1505,
+     "won": 0.1977
+    },
+    {
+     "bin": 2,
+     "n": 4949,
+     "pred": 0.2523,
+     "won": 0.311
+    },
+    {
+     "bin": 3,
+     "n": 6403,
+     "pred": 0.352,
+     "won": 0.3881
+    },
+    {
+     "bin": 4,
+     "n": 7525,
+     "pred": 0.4506,
+     "won": 0.4712
+    },
+    {
+     "bin": 5,
+     "n": 7548,
+     "pred": 0.5491,
+     "won": 0.5462
+    },
+    {
+     "bin": 6,
+     "n": 6405,
+     "pred": 0.648,
+     "won": 0.6226
+    },
+    {
+     "bin": 7,
+     "n": 5195,
+     "pred": 0.7487,
+     "won": 0.7136
+    },
+    {
+     "bin": 8,
+     "n": 4347,
+     "pred": 0.849,
+     "won": 0.8194
+    },
+    {
+     "bin": 9,
+     "n": 5894,
+     "pred": 0.9619,
+     "won": 0.9398
+    }
+   ]
+  },
+  "CORRECTION": "Found after the one read, 2026-09-30: both_at_least_1500 and both_at_least_1600 counted UNRATED games as rated >= the threshold (an unrated rating became +inf). They are WRONG and are not reported. The same population is read correctly from by_band: min rating 1500-1599 (110 games) plus >=1600 (7 games) = 117 bo1 test games with both players at 1500+. gate_a.py is fixed; the gate verdict is unaffected (bo1 is diagnostic).",
+  "both_at_least_1500_WRONG": {
+   "mean": 0.573254,
+   "ci95": [
+    0.535981,
+    0.61347
+   ],
+   "positions": 2298,
+   "games": 317
+  },
+  "both_at_least_1600_WRONG": {
+   "mean": 0.546891,
+   "ci95": [
+    0.504707,
+    0.588929
+   ],
+   "positions": 1474,
+   "games": 200
+  }
+ },
+ "ablations": {
+  "k2": {
+   "model": {
+    "path": "solver/out/porygon2-v2/runs/k2/B/model.pt",
+    "sha256": "252dd9c183aefffb672014fa87caccdff61478ed9a1be46fb4fa84d48f621e56"
+   },
+   "read_unrated": false,
+   "logloss": {
+    "mean": 0.513374,
+    "ci95": [
+     0.495974,
+     0.532092
+    ],
+    "positions": 10728,
+    "games": 1521
+   },
+   "minus_v1_logloss": {
+    "mean": -0.009645,
+    "ci95": [
+     -0.019497,
+     5e-06
+    ],
+    "positions": 10728,
+    "games": 1521
+   },
+   "minus_v2_logloss": {
+    "mean": 0.000195,
+    "ci95": [
+     -0.003982,
+     0.004194
+    ],
+    "positions": 10728,
+    "games": 1521
+   }
+  },
+  "kall": {
+   "model": {
+    "path": "solver/out/porygon2-v2/runs/kall/B/model.pt",
+    "sha256": "2f8953d89bc4ddd2c17d5cc1d4431ef1b6fec2ff0e1cc24eb8d72a55a1dcf4dd"
+   },
+   "read_unrated": false,
+   "logloss": {
+    "mean": 0.514485,
+    "ci95": [
+     0.49689,
+     0.53254
+    ],
+    "positions": 10728,
+    "games": 1521
+   },
+   "minus_v1_logloss": {
+    "mean": -0.008534,
+    "ci95": [
+     -0.018148,
+     0.000837
+    ],
+    "positions": 10728,
+    "games": 1521
+   },
+   "minus_v2_logloss": {
+    "mean": 0.001306,
+    "ci95": [
+     -0.004072,
+     0.006447
+    ],
+    "positions": 10728,
+    "games": 1521
+   }
+  },
+  "no_aux": {
+   "model": {
+    "path": "solver/out/porygon2-v2/runs/k1-noaux/B/model.pt",
+    "sha256": "57b2854cf8fe5fb0d864e7e56a6332279941f0e18f2f3d80062b731f6205aa77"
+   },
+   "read_unrated": false,
+   "logloss": {
+    "mean": 0.514928,
+    "ci95": [
+     0.497293,
+     0.533998
+    ],
+    "positions": 10728,
+    "games": 1521
+   },
+   "minus_v1_logloss": {
+    "mean": -0.008091,
+    "ci95": [
+     -0.018257,
+     0.002245
+    ],
+    "positions": 10728,
+    "games": 1521
+   },
+   "minus_v2_logloss": {
+    "mean": 0.001749,
+    "ci95": [
+     -0.000861,
+     0.004433
+    ],
+    "positions": 10728,
+    "games": 1521
+   }
+  },
+  "no_rating": {
+   "model": {
+    "path": "solver/out/porygon2-v2/runs/k1-norating/B/model.pt",
+    "sha256": "82c8a53a9e97cf7116e7946ced78f248fe75e206bd604632f9d65de8f8fc7c56"
+   },
+   "read_unrated": true,
+   "logloss": {
+    "mean": 0.515211,
+    "ci95": [
+     0.49815,
+     0.533845
+    ],
+    "positions": 10728,
+    "games": 1521
+   },
+   "minus_v1_logloss": {
+    "mean": -0.007808,
+    "ci95": [
+     -0.017895,
+     0.002305
+    ],
+    "positions": 10728,
+    "games": 1521
+   },
+   "minus_v2_logloss": {
+    "mean": 0.002033,
+    "ci95": [
+     -0.001521,
+     0.005844
+    ],
+    "positions": 10728,
+    "games": 1521
+   }
+  },
+  "no_pretrain": {
+   "model": {
+    "path": "solver/out/porygon2-v2/runs/k1-nopretrain/B/model.pt",
+    "sha256": "896597fb767c00c44ee454ee459a1f0df0c4c8e8145d26da43617191d8ab90f9"
+   },
+   "read_unrated": false,
+   "logloss": {
+    "mean": 0.515593,
+    "ci95": [
+     0.497809,
+     0.534171
+    ],
+    "positions": 10728,
+    "games": 1521
+   },
+   "minus_v1_logloss": {
+    "mean": -0.007426,
+    "ci95": [
+     -0.017985,
+     0.002697
+    ],
+    "positions": 10728,
+    "games": 1521
+   },
+   "minus_v2_logloss": {
+    "mean": 0.002414,
+    "ci95": [
+     -0.002029,
+     0.007118
+    ],
+    "positions": 10728,
+    "games": 1521
+   }
+  }
+ },
+ "seconds": 150
+}
