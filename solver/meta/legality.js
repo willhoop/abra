@@ -12,7 +12,9 @@ function checkout() {
   const reg = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'regulations.json'), 'utf8'));
   const e = (reg.runtime && reg.runtime.regmc) || reg.regmc;
   if (!e || !e.checkout || !e.showdownFormat || !e.bo3Format) throw new Error('data/regulations.json has no complete regmc runtime entry');
-  const dir = path.resolve(ROOT, '..', e.checkout);
+  /* an explicit SHOWDOWN_PATH wins, as in solver/human/dex.js and solver/arena/env.js: from a worktree, ROOT/.. is not
+   * the directory that holds the checkout */
+  const dir = process.env.SHOWDOWN_PATH ? path.resolve(process.env.SHOWDOWN_PATH) : path.resolve(ROOT, '..', e.checkout);
   if (!fs.existsSync(path.join(dir, 'dist', 'sim'))) throw new Error('M-C checkout not built at ' + dir);
   // The commit is read from the checkout's own .git files — no git command is run.
   let head = null;

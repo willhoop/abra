@@ -20,6 +20,12 @@ const crypto = require('crypto');
 const X = require('./dex.js');
 const { parseGame, parseShowteam, ParseError } = require('./parse_game.js');
 const { extract } = require('../../engine/durable-ingest.js');
+/* THE STORE'S QUALITY RULES ARE engine/quality.js's, CALLED, NEVER COPIED (2026-09-30). This file used to read
+ * min_games / max_distinct_teams out of data/quality-filter.json and run its own behavioural-bot rule, so when MEASURE
+ * added the Reg M-C tempo clause (abra/regmc 1.36.0) the copy kept the old rule. Every game is now turned into the
+ * store's own row shape by durable-ingest extract() and charged by Q.reasons(g, cfg, Q.behaviouralBots(...)): the bot
+ * set, the forfeit rule, the bring rule, the Reg M-C legality verdict and the custom-ruleset verdict, as they are today. */
+const Q = require('../../engine/quality.js');
 
 const ROOT = path.join(__dirname, '..', '..');
 const rel = p => path.relative(ROOT, p).replace(/\\/g, '/');
@@ -27,7 +33,6 @@ const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i >= 0 
 const LIMIT = +arg('limit', 0) || 0;
 const OUT = path.resolve(ROOT, arg('out', 'solver/out/human'));
 const RAWDIR = path.join(ROOT, 'data', 'raw', 'games.' + X.FORMAT);
-const QF_PATH = path.join(ROOT, 'data', 'quality-filter.json');
 
 /* Our own accounts. `willhoop` is Will's; `medicham32` per the brief; `MAG` is engine/mag_bot.js's
  * default --name (line 61) and `MAG2` the fallback it prints when the name is taken. */
@@ -37,8 +42,19 @@ const OWN = new Set(['medicham32', 'willhoop', 'mag', 'mag2']);
  * boundary in which an Eject Button is declared was played under the pre-fix rule. */
 const EJECT_BOUNDARY = Date.parse('2026-09-14T00:00:00Z') / 1000;
 
+/* quality.js reason codes: `bot` and `behavioural_bot` keep this file's historical names (named_bot, behavioural_bot);
+ * every other code is charged as `quality:<code>`. A code quality.js adds later is still recorded, after this order. */
+const QUALITY_NAME = code => code === 'bot' ? 'named_bot' : code === 'behavioural_bot' ? 'behavioural_bot' : 'quality:' + code;
+/* GAME-SHAPE codes are quality.js's and are COUNTED, NOT CHARGED. They judge whether a game is a complete record
+ * (forfeit before any action, under 3 turns, fewer than four revealed per side), not whether it is a legitimate human game;
+ * a DECISION dataset keeps a partial game's decisions and has its own `no_action` rule. Charging them removed 1,016 of the
+ * first 3,000 bo3 rows (partial_bring), measured 2026-09-30 — a change to MAG/DODUO's data nobody decided. Every
+ * population code (bots, legality, declared and detected custom rules, corrupt winner) is charged. */
+const GAME_SHAPE = new Set(['forfeit_no_action', 'short', 'partial_bring']);
 const REASON_ORDER = ['duplicate_id', 'wrong_format', 'no_open_sheet', 'custom_rules', 'own_account', 'named_bot',
-  'behavioural_bot', 'illegal_entity', 'pre_ejectbutton_fix', 'illusion_on_sheet', 'no_result', 'no_action', 'parse_error'];
+  'behavioural_bot', 'quality:illegal_team',
+  'quality:corrupt_winner', 'quality:nonstandard_ruleset', 'quality:custom_ruleset', 'quality:unreadable',
+  'illegal_entity', 'pre_ejectbutton_fix', 'illusion_on_sheet', 'no_result', 'no_action', 'parse_error'];
 
 const sha256 = b => crypto.createHash('sha256').update(b).digest('hex');
 const inc = (o, k, n = 1) => { o[k] = (o[k] || 0) + n; };
@@ -91,12 +107,11 @@ function baseId(sp) { const s = X.species(sp); return s.exists ? X.toID(s.baseSp
 function main() {
   const t0 = Date.now();
   fs.mkdirSync(OUT, { recursive: true });
-  const qf = JSON.parse(fs.readFileSync(QF_PATH, 'utf8'));
-  const bbRule = qf.rules.exclude_behavioural_bots;
+  const cfg = Q.config();
 
   const { inputs, rows: allRows } = readShards();
   const rows = LIMIT ? allRows.slice(0, LIMIT) : allRows;
-  const byReason = {}, allReasons = {}, parseCodes = {}, parseExamples = {};
+  const byReason = {}, allReasons = {}, parseCodes = {}, parseExamples = {}, qualityShapeNotCharged = {};
   const excl = new Map();                 // id-or-index -> {reasons:[], detail}
   const addEx = (key, r, d) => { let e = excl.get(key); if (!e) excl.set(key, e = { reasons: [], detail: {} }); if (!e.reasons.includes(r)) e.reasons.push(r); if (d) e.detail[r] = d; };
 
@@ -109,18 +124,16 @@ function main() {
     if (seen.has(r.id)) { if (seen.get(r.id).log !== r.log) dupConflict++; addEx(r.id + '#dup' + k, 'duplicate_id'); continue; }
     seen.set(r.id, r); uniq.push(r);
   }
-  const H = new Map(), acctGames = new Map(), acctTeams = new Map();
+  /* the store-shaped row of every unique game (durable-ingest extract, the ingest's own parser), slim, for the bot set;
+   * the full row is re-made in pass 2 and charged there */
+  const H = new Map(), qSlim = [];
+  let qUnreadable = 0;
   for (const r of uniq) {
-    const h = header(r); H.set(r.id, h);
-    for (const s of ['p1', 'p2']) {
-      const n = h[s]; if (!n) continue;
-      acctGames.set(n, (acctGames.get(n) || 0) + 1);
-      const six = (h.sheets[s] || []).map(m => m.species_id).sort().join('|');
-      if (six) { if (!acctTeams.has(n)) acctTeams.set(n, new Set()); acctTeams.get(n).add(six); }
-    }
+    H.set(r.id, header(r));
+    let g = null; try { g = extract(r.id, r.uploadtime, r.log); } catch (e) { qUnreadable++; }
+    if (g) qSlim.push({ id: g.id, date: g.date, p1: g.p1, p2: g.p2, six: g.six });
   }
-  const behaviouralBots = new Set();
-  if (bbRule && bbRule.on) for (const [n, c] of acctGames) { const t = acctTeams.get(n); if (c >= bbRule.min_games && t && t.size <= bbRule.max_distinct_teams) behaviouralBots.add(n); }
+  const behaviouralBots = Q.behaviouralBots(qSlim, cfg);
 
   // ---- pass 2: filter + parse + write
   const gOut = fs.openSync(path.join(OUT, 'games.jsonl.tmp'), 'w');
@@ -139,9 +152,12 @@ function main() {
     const names = [h.p1, h.p2].filter(Boolean);
     if (names.some(n => OWN.has(X.toID(n)))) addEx(id, 'own_account', names.filter(n => OWN.has(X.toID(n))).join(','));
     let ex = null;
-    try { ex = extract(id, r.uploadtime, r.log); } catch (e) { /* cross-check only */ }
-    if (ex && ((ex.p1 && ex.p1.bot) || (ex.p2 && ex.p2.bot))) addEx(id, 'named_bot', names.join(','));
-    if (names.some(n => behaviouralBots.has(n))) addEx(id, 'behavioural_bot', names.filter(n => behaviouralBots.has(n)).join(','));
+    try { ex = extract(id, r.uploadtime, r.log); } catch (e) { /* charged below as quality:unreadable */ }
+    if (!ex) addEx(id, 'quality:unreadable');
+    else for (const code of Q.reasons(ex, cfg, behaviouralBots)) {
+      if (GAME_SHAPE.has(code)) { inc(qualityShapeNotCharged, code); continue; }
+      addEx(id, QUALITY_NAME(code), code === 'bot' || code === 'behavioural_bot' ? names.join(',') : null);
+    }
     if (h.sheets.p1 && h.sheets.p2) {
       const bad = illegalEntities(h.sheets);
       if (bad.length) addEx(id, 'illegal_entity', bad.join(';'));
@@ -212,7 +228,7 @@ function main() {
   // ---- exclusions
   const xOut = fs.openSync(path.join(OUT, 'exclusions.jsonl'), 'w');
   for (const [key, e] of excl) {
-    const primary = REASON_ORDER.find(r => e.reasons.includes(r));
+    const primary = REASON_ORDER.find(r => e.reasons.includes(r)) || e.reasons[0];
     inc(byReason, primary);
     for (const r of e.reasons) inc(allReasons, r);
     fs.writeSync(xOut, JSON.stringify({ id: key.replace(/#.*$/, ''), reason: primary, reasons: e.reasons, detail: e.detail }) + '\n');
@@ -231,8 +247,11 @@ function main() {
     filters: {
       order: REASON_ORDER,
       own_accounts: [...OWN],
-      named_bot: 'engine/durable-ingest.js extract() p?.bot (its name regex)',
-      behavioural_bot: { rule: 'data/quality-filter.json rules.exclude_behavioural_bots', min_games: bbRule && bbRule.min_games, max_distinct_teams: bbRule && bbRule.max_distinct_teams, computed_over: 'every unique game in this stream', accounts: [...behaviouralBots] },
+      quality: { rule: 'engine/quality.js reasons(g, cfg, behaviouralBots(...)) on the durable-ingest extract() row of every game; bot -> named_bot, behavioural_bot -> behavioural_bot, any other code -> quality:<code>',
+        config_version: cfg.version || null, quality_js_sha256: sha256(fs.readFileSync(path.join(ROOT, 'engine', 'quality.js'))),
+        quality_filter_sha256: sha256(fs.readFileSync(path.join(ROOT, 'data', 'quality-filter.json'))),
+        behavioural_bot_rule: cfg.rules.exclude_behavioural_bots, computed_over: 'every unique game in this stream (' + qSlim.length + ' readable, ' + qUnreadable + ' unreadable)',
+        behavioural_bot_accounts: [...behaviouralBots].sort(), game_shape_codes_counted_not_charged: [...GAME_SHAPE], game_shape_not_charged_counts: qualityShapeNotCharged },
       custom_rules: 'Showdown infobox `N custom rule(s):` in the raw log',
       illegal_entity: 'any sheet species/item/ability/move with isNonstandard or tier Illegal under Dex.forFormat(' + X.FORMAT + ') — learnsets NOT checked',
       pre_ejectbutton_fix: 'uploadtime < 2026-09-14T00:00Z AND Eject Button on either sheet (data/team-pool-frozen-regmc/FROZEN.md)',

@@ -12,8 +12,9 @@
  * overlap of every reason is also counted):
  *   closed_sheet        bo1 game without open sheets — out of scope (Will: open team sheets only)
  *   own_account         either player is one of ours (OWN below)
- *   bot_flag            the store's `bot` flag, or the name regex quality-filter.json declares
- *   behavioural_bot     account with >= 50 games in these stores and exactly one distinct six
+ *   bot_flag, behavioural_bot, quality:<code>
+ *                       engine/quality.js reasons(), with its behaviouralBots() over both stores (since 2026-09-30;
+ *                       the bot rules used to be copied here and missed the Reg M-C tempo clause)
  *   custom_ruleset      the raw log carries Showdown's `N custom rule(s):` infobox
  *   illegal_entity      a species/item/ability/move/nature on either sheet is not legal in M-C
  *   validator_reject    Showdown's M-C TeamValidator rejects a sheet for a reason other than the
@@ -27,8 +28,17 @@ const L = require('./lib.js');
 const LEG = require('./legality.js');
 
 const OWN = new Set(['medicham32', 'willhoop', 'mag', 'mag2', 'miltank', 'miltank2']);
-const BOT_NAME = /^pcrlbot|bot\d|^[a-z]+bot$/i;   // READ: data/quality-filter.json rules.exclude_bot_games.detection
-const BEHAV_MIN_GAMES = 50, BEHAV_MAX_TEAMS = 1;  // READ: data/quality-filter.json rules.exclude_behavioural_bots
+/* THE STORE'S QUALITY RULES ARE engine/quality.js's, CALLED, NEVER COPIED (2026-09-30). This file used to hard-code the
+ * bot-name regex and the behavioural-bot thresholds (50 games / 1 team), so MEASURE's Reg M-C tempo clause
+ * (abra/regmc 1.36.0) never reached it. Each store row now keeps the fields quality.js reads, the bot set is
+ * Q.behaviouralBots() over both stores (as before), and every game is charged by Q.reasons(): `bot` -> bot_flag,
+ * `behavioural_bot` -> behavioural_bot, any other code -> quality:<code>. */
+const Q = require('../../engine/quality.js');
+const QUALITY_NAME = code => code === 'bot' ? 'bot_flag' : code === 'behavioural_bot' ? 'behavioural_bot' : 'quality:' + code;
+/* the fields engine/quality.js reasons() and behaviouralBots() read, and no more: turns keep their count and whether an
+ * action happened (the first move or switch), as solver/porygon2/v2/extract.js keeps them */
+const qualityRow = o => ({ id: o.id, date: o.date, p1: o.p1, p2: o.p2, six: o.six, forfeit: o.forfeit, brought: o.brought,
+  turns: (o.turns || []).map(t => ({ ev: (t.ev || []).filter(e => e.t === 'm' || e.t === 's').slice(0, 1) })) });
 
 async function main() {
   const t0 = Date.now();
@@ -64,7 +74,8 @@ async function main() {
     const r = await L.eachJsonl(abs, o => {
       if (!o || !o.id) return;
       if (games.has(o.id)) { dup++; return; }
-      games.set(o.id, compact(o, k));
+      const c = compact(o, k); c.q = qualityRow(o);
+      games.set(o.id, c);
       added++;
     });
     perFile.push({ path: L.rel(abs), rows: r.rows, bad_lines: r.bad, added, already_had: dup });
@@ -90,14 +101,8 @@ async function main() {
   console.log(`raw: ${rawRows} rows, ${raw.size} distinct ids, ${[...raw.values()].filter(f => f.custom).length} with a custom-rule infobox`);
 
   /* ---- behavioural bots: over every game in both stores ----------------------------------- */
-  const acct = new Map();
-  for (const g of games.values()) for (let s = 0; s < 2; s++) {
-    const n = L.toID(g.p[s].n);
-    const a = acct.get(n) || { games: 0, teams: new Set() };
-    a.games++; a.teams.add(g.six[s].slice().sort().join(','));
-    acct.set(n, a);
-  }
-  const behavBots = new Set([...acct.entries()].filter(([, a]) => a.games >= BEHAV_MIN_GAMES && a.teams.size <= BEHAV_MAX_TEAMS).map(([n]) => n));
+  const qcfg = Q.config();
+  const behavBots = Q.behaviouralBots([...games.values()].map(g => g.q), qcfg);   // account NAMES as the store spells them
 
   /* ---- legality: every entity, then every distinct sheet ---------------------------------- */
   const ent = { species: new Map(), item: new Map(), ability: new Map(), move: new Map(), nature: new Map() };
@@ -139,9 +144,13 @@ async function main() {
   legality.mega_forme = { observed: megaFormes.size, illegal: [...megaFormes].filter(([id]) => !leg.check('species', id).ok).map(([id, n]) => ({ id, uses: n })) };
 
   /* ---- charge each game ------------------------------------------------------------------- */
-  const REASONS = ['closed_sheet', 'own_account', 'bot_flag', 'behavioural_bot', 'custom_ruleset', 'illegal_entity', 'validator_reject'];
+  const GAME_SHAPE = new Set(['forfeit_no_action', 'short', 'partial_bring']);
+  const shapeNotCharged = {};
+  const REASONS = ['closed_sheet', 'own_account', 'bot_flag', 'behavioural_bot', 'quality:illegal_team', 'quality:corrupt_winner', 'quality:nonstandard_ruleset', 'quality:custom_ruleset',
+    'custom_ruleset', 'illegal_entity', 'validator_reject'];
   const first = Object.fromEntries(REASONS.map(r => [r, { bo1: 0, bo3: 0 }]));
   const any = Object.fromEntries(REASONS.map(r => [r, { bo1: 0, bo3: 0 }]));
+  const slot = (o, r) => (o[r] = o[r] || { bo1: 0, bo3: 0 });   // a code quality.js adds later is still counted, by name
   const ownSeen = {}, behavSeen = {};
   const untestable = { bo1: 0, bo3: 0 }, unrated = { bo1: 0, bo3: 0 };
   const kept = [];
@@ -151,8 +160,12 @@ async function main() {
     if (!g.sheets) hits.push('closed_sheet');
     const names = g.p.map(p => L.toID(p.n));
     if (names.some(n => OWN.has(n))) { hits.push('own_account'); names.filter(n => OWN.has(n)).forEach(n => { ownSeen[n] = (ownSeen[n] || 0) + 1; }); }
-    if (g.p.some(p => p.bot || BOT_NAME.test(p.n))) hits.push('bot_flag');
-    if (names.some(n => behavBots.has(n))) { hits.push('behavioural_bot'); names.filter(n => behavBots.has(n)).forEach(n => { behavSeen[n] = (behavSeen[n] || 0) + 1; }); }
+    const qr = Q.reasons(g.q, qcfg, behavBots);
+    /* game-shape codes (forfeit before any action, short, partial bring) are COUNTED, NOT CHARGED: this analysis never
+     * applied them and a sheet is evidence of what was built whatever the game's length (solver/human/build_dataset.js
+     * GAME_SHAPE, same reasoning) */
+    for (const code of qr) { if (GAME_SHAPE.has(code)) { slot(shapeNotCharged, code)[g.fmt]++; continue; } hits.push(QUALITY_NAME(code)); }
+    if (qr.includes('behavioural_bot')) g.p.map(p => p.n).filter(n => behavBots.has(n)).forEach(n => { const k = L.toID(n); behavSeen[k] = (behavSeen[k] || 0) + 1; });
     if (rf && rf.custom) hits.push('custom_ruleset');
     if (g.sheets) {
       let ill = false;
@@ -163,8 +176,10 @@ async function main() {
       if (ill) hits.push('illegal_entity');
       if (g.sheets.some(sh => sheetVerdict.get(g.fmt + '|' + JSON.stringify(sh)).real > 0)) hits.push('validator_reject');
     }
-    for (const h of hits) any[h][g.fmt]++;
-    if (hits.length) { first[hits[0]][g.fmt]++; continue; }
+    hits.sort((a, b) => (REASONS.indexOf(a) < 0 ? 99 : REASONS.indexOf(a)) - (REASONS.indexOf(b) < 0 ? 99 : REASONS.indexOf(b)));
+    for (const h of hits) slot(any, h)[g.fmt]++;
+    delete g.q;
+    if (hits.length) { slot(first, hits[0])[g.fmt]++; continue; }
     if (!rf) untestable[g.fmt]++;
     else if (!rf.rated) unrated[g.fmt]++;
     g.raw = rf ? { rated: rf.rated, gameNo: rf.gameNo, series: rf.series } : null;
@@ -191,7 +206,9 @@ async function main() {
       first_date: kept.length ? kept[0].date : null, last_date: kept.length ? kept[kept.length - 1].date : null },
     exclusions: { order: REASONS, charged_first: first, any_overlap: any },
     own_accounts_listed: [...OWN], own_accounts_seen: ownSeen,
-    behavioural_bots: { rule: { min_games: BEHAV_MIN_GAMES, max_distinct_teams: BEHAV_MAX_TEAMS }, accounts: behavSeen },
+    behavioural_bots: { rule: qcfg.rules.exclude_behavioural_bots, via: 'engine/quality.js behaviouralBots() over both stores, charged by reasons()',
+      quality_config_version: qcfg.version || null, quality_js_sha256: L.sha256File(path.join(L.ROOT, 'engine', 'quality.js')), accounts: behavSeen,
+      game_shape_codes_counted_not_charged: [...GAME_SHAPE], game_shape_not_charged_counts: shapeNotCharged },
     custom_rule_strings: [...ruleStrings].sort((a, b) => b[1] - a[1]).map(([rules, rows]) => ({ rules, rows })),
     kept_but_untestable_for_custom_rules: untestable,
     kept_unrated: unrated,

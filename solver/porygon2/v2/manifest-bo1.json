@@ -1,7 +1,7 @@
 {
  "what": "PORYGON2 v2 position dataset, bo1 (gen9championsvgc2026regmc): the public state at the start of every turn, per-field reveal state, both pre-game ratings, outcome and auxiliary labels",
- "built": "2026-09-30T02:19:37.701Z",
- "seconds": 305,
+ "built": "2026-09-30T04:57:44.995Z",
+ "seconds": 61,
  "node": "v24.15.0",
  "argv": [
   "--fmt",
@@ -18,8 +18,8 @@
  "code": {
   "solver/porygon2/v2/reveal.js": "b1cc88db672d8c31aeae740923b61983bd85ffc1969e24de2a587406ad2f3a29",
   "solver/porygon2/v2/extract.js": "9b665af6c1dd7d744be6a7cef0c71926538965e086c9a4736d5b95d3a7ce0788",
-  "engine/quality.js": "ebc37c7c9d05ffda4c3f0aaaab8fc62b87957be191cc626bfb264e193f3360b6",
-  "data/quality-filter.json": "042524dd1df787be9f105d0e335c4e80ebb2341aa5a8b79f428b713365cbaf68",
+  "engine/quality.js": "9b168679e3e91ba7b4ca84841741a3176bda6ef7471831209e10f254100ed351",
+  "data/quality-filter.json": "c74b46002e2da1429fc15d7bb9caa918c3195e1cf96a0674a525661194d2aacc",
   "solver/human/dex.js": "765e33ab28deb013e41a6c69cd60c83fd7b0710f46dea42877eff9811f3c3a86"
  },
  "inputs": [
@@ -1938,31 +1938,25 @@
  ],
  "quality": {
   "config_version": "1.6.0",
-  "behavioural_bot_accounts": 15,
+  "behavioural_bot_accounts": 7,
   "behavioural_bot_names": [
    "AI_Paku",
    "Crituvyn72957",
-   "HospitalityCheck",
-   "Novicebest",
    "SC-Control",
    "SC-SME",
    "Scorecard-Pokemon",
    "Thornlace48812",
-   "Tulpeon",
-   "cosmonaut.009",
-   "ednasbreakout",
-   "kevdan42",
-   "monfish",
-   "stupid春bigㄟ",
-   "underabridgevgc"
+   "kevdan42"
   ],
   "excluded_first_reason": {
-   "partial_bring": 11891,
-   "short": 3471,
-   "forfeit_no_action": 258,
+   "partial_bring": 12067,
+   "short": 3532,
+   "forfeit_no_action": 260,
    "bot": 6264,
    "own_account": 6,
-   "behavioural_bot": 8119
+   "behavioural_bot": 7384,
+   "illegal_team": 20,
+   "custom_ruleset": 10
   },
   "excluded_any_reason": {
    "partial_bring": 20651,
@@ -1970,7 +1964,9 @@
    "forfeit_no_action": 383,
    "bot": 6264,
    "own_account": 8,
-   "behavioural_bot": 8188
+   "behavioural_bot": 7426,
+   "illegal_team": 35,
+   "custom_ruleset": 75
   }
  },
  "filters": {
@@ -2006,268 +2002,268 @@
   "store_bad_json": 0,
   "store_duplicate_ids": 0,
   "store_games": 59752,
-  "quality_clean": 29749,
-  "after_own_account": 29743,
+  "quality_clean": 30215,
+  "after_own_account": 30209,
   "raw_rows_read": 61165,
   "raw_duplicate_ids": 912,
   "raw_duplicate_conflicting_logs": 0,
   "excluded_after_quality": {
-   "illusion_possible": 684,
-   "custom_rules": 1689,
-   "pre_ejectbutton_fix": 248,
-   "no_result": 6
+   "illusion_possible": 688,
+   "custom_rules": 1662,
+   "pre_ejectbutton_fix": 249,
+   "no_result": 7
   },
-  "kept": 27116
+  "kept": 27603
  },
  "parse_errors": {},
  "parse_examples": {},
  "counts": {
-  "games": 27116,
-  "positions": 218815,
+  "games": 27603,
+  "positions": 222744,
   "split": {
    "train": {
-    "games": 16970,
-    "positions": 137281
+    "games": 17251,
+    "positions": 139613
    },
    "val": {
-    "games": 4603,
-    "positions": 36954
+    "games": 4749,
+    "positions": 38095
    },
    "test": {
-    "games": 5543,
-    "positions": 44580
+    "games": 5603,
+    "positions": 45036
    }
   },
   "by_band_min": {
    "1100-1199": {
-    "games": 6723,
-    "positions": 53676,
-    "test_games": 1392,
-    "test_positions": 11155
+    "games": 6883,
+    "positions": 54948,
+    "test_games": 1413,
+    "test_positions": 11301
    },
    "<1100": {
-    "games": 9815,
-    "positions": 79350,
-    "test_games": 1888,
-    "test_positions": 15328
+    "games": 9966,
+    "positions": 80603,
+    "test_games": 1908,
+    "test_positions": 15497
    },
    "1300-1399": {
-    "games": 2838,
-    "positions": 22707,
-    "test_games": 645,
-    "test_positions": 5260
+    "games": 2898,
+    "positions": 23164,
+    "test_games": 649,
+    "test_positions": 5290
    },
    "unrated": {
-    "games": 2322,
-    "positions": 19299,
+    "games": 2334,
+    "positions": 19389,
     "test_games": 451,
     "test_positions": 3629
    },
    "1200-1299": {
-    "games": 3971,
-    "positions": 32042,
-    "test_games": 856,
-    "test_positions": 6785
+    "games": 4039,
+    "positions": 32574,
+    "test_games": 867,
+    "test_positions": 6863
    },
    "1400-1499": {
-    "games": 1083,
-    "positions": 8781,
-    "test_games": 234,
-    "test_positions": 1784
+    "games": 1107,
+    "positions": 9001,
+    "test_games": 237,
+    "test_positions": 1808
    },
    "1500-1599": {
-    "games": 331,
-    "positions": 2696,
-    "test_games": 72,
-    "test_positions": 602
+    "games": 342,
+    "positions": 2795,
+    "test_games": 73,
+    "test_positions": 611
    },
    ">=1600": {
-    "games": 33,
-    "positions": 264,
+    "games": 34,
+    "positions": 270,
     "test_games": 5,
     "test_positions": 37
    }
   },
   "by_band_max": {
    "1100-1199": {
-    "games": 8240,
-    "positions": 65894,
-    "test_games": 1652,
-    "test_positions": 13134
+    "games": 8420,
+    "positions": 67321,
+    "test_games": 1680,
+    "test_positions": 13348
    },
    "<1100": {
-    "games": 5504,
-    "positions": 44763,
-    "test_games": 1056,
-    "test_positions": 8691
+    "games": 5570,
+    "positions": 45339,
+    "test_games": 1063,
+    "test_positions": 8752
    },
    "1300-1399": {
-    "games": 3540,
-    "positions": 28326,
-    "test_games": 787,
-    "test_positions": 6330
+    "games": 3611,
+    "positions": 28877,
+    "test_games": 795,
+    "test_positions": 6386
    },
    "1200-1299": {
-    "games": 4809,
-    "positions": 38632,
-    "test_games": 990,
-    "test_positions": 7960
+    "games": 4912,
+    "positions": 39454,
+    "test_games": 1002,
+    "test_positions": 8047
    },
    "unrated": {
-    "games": 2322,
-    "positions": 19299,
+    "games": 2334,
+    "positions": 19389,
     "test_games": 451,
     "test_positions": 3629
    },
    "1400-1499": {
-    "games": 1847,
-    "positions": 14951,
-    "test_games": 444,
-    "test_positions": 3514
+    "games": 1878,
+    "positions": 15190,
+    "test_games": 446,
+    "test_positions": 3530
    },
    "1500-1599": {
-    "games": 659,
-    "positions": 5341,
-    "test_games": 127,
-    "test_positions": 1016
+    "games": 678,
+    "positions": 5523,
+    "test_games": 128,
+    "test_positions": 1021
    },
    ">=1600": {
-    "games": 195,
-    "positions": 1609,
-    "test_games": 36,
-    "test_positions": 306
+    "games": 200,
+    "positions": 1651,
+    "test_games": 38,
+    "test_positions": 323
    }
   },
   "min_at_least": {
    "1300": {
-    "games": 4285,
-    "positions": 34448,
-    "test_games": 956
+    "games": 4381,
+    "positions": 35230,
+    "test_games": 964
    },
    "1400": {
-    "games": 1447,
-    "positions": 11741,
-    "test_games": 311
+    "games": 1483,
+    "positions": 12066,
+    "test_games": 315
    },
    "1500": {
-    "games": 364,
-    "positions": 2960,
-    "test_games": 77
+    "games": 376,
+    "positions": 3065,
+    "test_games": 78
    },
    "1600": {
-    "games": 33,
-    "positions": 264,
+    "games": 34,
+    "positions": 270,
     "test_games": 5
    }
   },
   "max_at_least": {
    "1300": {
-    "games": 6241,
-    "positions": 50227,
-    "test_games": 1394
+    "games": 6367,
+    "positions": 51241,
+    "test_games": 1407
    },
    "1400": {
-    "games": 2701,
-    "positions": 21901,
-    "test_games": 607
+    "games": 2756,
+    "positions": 22364,
+    "test_games": 612
    },
    "1500": {
-    "games": 854,
-    "positions": 6950,
-    "test_games": 163
+    "games": 878,
+    "positions": 7174,
+    "test_games": 166
    },
    "1600": {
-    "games": 195,
-    "positions": 1609,
-    "test_games": 36
+    "games": 200,
+    "positions": 1651,
+    "test_games": 38
    }
   },
-  "both_rated": 24794,
+  "both_rated": 25269,
   "end": {
-   "normal": 18464,
-   "forfeit": 8340,
-   "inactivity": 312
+   "normal": 18864,
+   "forfeit": 8423,
+   "inactivity": 316
   },
   "z": {
-   "0": 13468,
-   "1": 13648
+   "0": 13723,
+   "1": 13880
   },
-  "sheets_public": 526
+  "sheets_public": 559
  },
  "reveal_counters": {
-  "lines": 5361124,
+  "lines": 5457920,
   "ability_refused": 8,
-  "ability_unattributed": 49,
-  "item_reveals": 141795,
-  "ability_reveals": 87466,
-  "move_reveals": 392450,
-  "skill_swap": 642,
+  "ability_unattributed": 52,
+  "item_reveals": 144216,
+  "ability_reveals": 89013,
+  "move_reveals": 399022,
+  "skill_swap": 647,
   "moves_overflow": 0,
-  "dex_deduced_ability": 26563
+  "dex_deduced_ability": 26949
  },
  "reveal_at_game_end": {
-  "brought_members": 216928,
-  "moves_known": 409273,
-  "item_orig_known": 120833,
-  "ability_base_known": 109364,
-  "ability_by_dex": 17690,
+  "brought_members": 220824,
+  "moves_known": 416901,
+  "item_orig_known": 123053,
+  "ability_base_known": 111450,
+  "ability_by_dex": 17965,
   "by_turn": {
    "t1": {
-    "positions": 27116,
-    "members_on_field_so_far": 108464,
-    "moves_known": 8413,
-    "item_orig_known": 7600,
-    "ability_base_known": 45938
+    "positions": 27603,
+    "members_on_field_so_far": 110412,
+    "moves_known": 8941,
+    "item_orig_known": 7795,
+    "ability_base_known": 46844
    },
    "t2": {
-    "positions": 27116,
-    "members_on_field_so_far": 130445,
-    "moves_known": 96651,
-    "item_orig_known": 41642,
-    "ability_base_known": 60824
+    "positions": 27603,
+    "members_on_field_so_far": 132787,
+    "moves_known": 98741,
+    "item_orig_known": 42494,
+    "ability_base_known": 62001
    },
    "t3": {
-    "positions": 27116,
-    "members_on_field_so_far": 160168,
-    "moves_known": 167546,
-    "item_orig_known": 60735,
-    "ability_base_known": 77331
+    "positions": 27603,
+    "members_on_field_so_far": 163047,
+    "moves_known": 170883,
+    "item_orig_known": 61910,
+    "ability_base_known": 78805
    },
    "t4-5": {
-    "positions": 52875,
-    "members_on_field_so_far": 372037,
-    "moves_known": 497067,
-    "item_orig_known": 164124,
-    "ability_base_known": 182846
+    "positions": 53827,
+    "members_on_field_so_far": 378757,
+    "moves_known": 506713,
+    "item_orig_known": 167236,
+    "ability_base_known": 186344
    },
    "t6-8": {
-    "positions": 55323,
-    "members_on_field_so_far": 428026,
-    "moves_known": 745317,
-    "item_orig_known": 219639,
-    "ability_base_known": 217010
+    "positions": 56332,
+    "members_on_field_so_far": 435845,
+    "moves_known": 759470,
+    "item_orig_known": 223781,
+    "ability_base_known": 221230
    },
    "t9+": {
-    "positions": 29269,
-    "members_on_field_so_far": 232402,
-    "moves_known": 520197,
-    "item_orig_known": 134872,
-    "ability_base_known": 125299
+    "positions": 29776,
+    "members_on_field_so_far": 236438,
+    "moves_known": 529372,
+    "item_orig_known": 137327,
+    "ability_base_known": 127649
    }
   },
-  "moves_known_per_brought_member": 1.887,
-  "item_orig_known_share": 0.557,
-  "ability_base_known_share": 0.5041
+  "moves_known_per_brought_member": 1.888,
+  "item_orig_known_share": 0.5572,
+  "ability_base_known_share": 0.5047
  },
  "crosscheck_vs_store_sets": {
-  "members": 182872,
-  "moves_equal": 180102,
-  "moves_subset_of_store": 180420,
-  "store_subset_of_moves": 182553,
-  "item_compared": 34753,
-  "item_equal": 33903,
-  "ability_compared": 64047,
-  "ability_equal": 62323,
+  "members": 185993,
+  "moves_equal": 183147,
+  "moves_subset_of_store": 183467,
+  "store_subset_of_moves": 185672,
+  "item_compared": 35349,
+  "item_equal": 34495,
+  "ability_compared": 65042,
+  "ability_equal": 63302,
   "disagree_examples": [
    {
     "id": "gen9championsvgc2026regmc-2678206804",
@@ -2391,10 +2387,10 @@
  "outputs": [
   {
    "path": "solver/out/porygon2-v2/bo1/games.jsonl.gz",
-   "bytes": 30941366,
-   "sha256": "10f3554bfcb9560198794669d71aca53ba4b6051fd67d58ac744d787d32d015a",
-   "games": 27116,
-   "positions": 218815
+   "bytes": 31498839,
+   "sha256": "0e1c73116569cd8bc350b6cf60cb4557eb18d5e87374e560caacb123d9628fe2",
+   "games": 27603,
+   "positions": 222744
   }
  ]
 }
