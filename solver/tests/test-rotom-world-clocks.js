@@ -17,6 +17,9 @@
  *             switch (the server refused it: trapped). RED under ROTOM_WORLD_BREAK=noability.
  *   HAZARDS   AngryGator g3, turn 3: Toxic Spikes on our side is in sf.hz, and switching Rillaboom in poisons it in the
  *             engine (the server poisoned it). RED under ROTOM_WORLD_BREAK=hzsc.
+ *   FIELD     at every turn start of five chomp1 games, each weather / terrain / Trick Room / Tailwind clock the world lays
+ *             equals the turns the server let it run (read from the rest of the log); lead-set effects included. RED
+ *             under ROTOM_WORLD_BREAK=turnclock.
  *   AUDIT     every per-body leaf engine/board_state.js mediBody reads, and every field leaf of readMedi, is either
  *             CARRIED or OWED in world_log.js (a leaf in neither fails by name).
  *   RED       ROTOM_WORLD_BREAK=noclocks (the pre-fix world: no body clocks, no log field) turns PERISH and CLOCKS red.
@@ -128,6 +131,41 @@ const toID = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   }
   ok('HAZARDS', !!jm && st === 'psn', 'Rillaboom switched in over Toxic Spikes: status ' + st + ' (the server: psn)' + (jm ? '' : ' — no switch joint found'));
   console.log('  HAZARDS sf.hz ' + JSON.stringify(sf.hz || {}) + ' | Rillaboom after the switch: ' + st);
+}
+
+/* ---------------- FIELD (abra/regmc 1.43.0) ----------------
+ * At every turn start of every fixture game, each weather, terrain, Trick Room and Tailwind the rebuilt world lays is
+ * held against the SERVER's own answer, read from the rest of that log: the effect ended in the residual of the turn
+ * whose `-weather|none` / `-fieldend` / `-sideend` line it is, so the turns it had left = the residuals from here to
+ * that one inclusive. An effect replaced or still up at the game's end is skipped (no answer). At least one LEAD-set
+ * effect (set before turn 1) must be compared: that is the case the turn arithmetic got wrong.
+ * RED under ROTOM_WORLD_BREAK=turnclock (the old path: turns left = duration - (turn - turn set)). */
+{
+  let compared = 0, lead = 0; const bad = [];
+  const games = [['sdkvndfv-g1.battle.txt', 'p2', [0, 5, 2, 4]], ['pandywulu-g1.battle.txt', 'p1', [0, 3, 1, 5]], ['angrygator-g3.battle.txt', 'p1', [3, 5, 0, 2]],
+                 ['lead-psychic-sand.battle.txt', 'p1', null], ['lead-rain.battle.txt', 'p2', null]];
+  for (const [file, me, bring] of games) {
+    const all = fs.readFileSync(path.join(FX, file), 'utf8').replace(/\r/g, '').split('\n');
+    const turnsAt = all.map((l, i) => (/^\|turn\|\d+$/.test(l) ? i : -1)).filter(i => i >= 0);
+    for (const i of turnsAt) {
+      let w;
+      try { w = LR.worldAt(WB, { log: path.join(FX, file), me, bring, cut: all[i], hpOf }); } catch (e) { bad.push(file + ' ' + all[i] + ': build threw ' + e.message); continue; }
+      const F = w.S.field;
+      /* the server's answer for an effect: scan forward for its end or its replacement */
+      const answer = (isEnd, isReplace) => { let up = 0; for (let j = i + 1; j < all.length; j++) { const l = all[j]; if (isEnd(l)) return up + 1; if (isReplace(l)) return null; if (l === '|upkeep') up++; } return null; };
+      const leadSet = re => { for (let j = 0; j < i; j++) if (re.test(all[j])) return all.slice(0, j).every(l => !/^\|turn\|/.test(l)); return false; };
+      const check = (name, got, want, isLead) => { if (want == null) return; compared++; if (isLead) lead++; if (got !== want) bad.push(file + ' ' + all[i] + ' ' + name + ': world ' + got + ', server ' + want + (isLead ? ' (lead-set)' : '')); };
+      if (F.weather) check('weather ' + F.weather, F.weatherT, answer(l => l === '|-weather|none', l => /^\|-weather\|(?!none)/.test(l) && !/\[upkeep\]/.test(l)), leadSet(/^\|-weather\|(?!none)/));
+      if (F.terrain) { const T0 = F.terrain; check('terrain ' + T0, F.terrainT, answer(l => new RegExp('^\\|-fieldend\\|move: ' + T0 + ' Terrain', 'i').test(l), l => /^\|-fieldstart\|move: \w+ Terrain/.test(l)), leadSet(/^\|-fieldstart\|move: \w+ Terrain/)); }
+      if (F.tr > 0) check('trickroom', F.tr, answer(l => /^\|-fieldend\|move: Trick Room/.test(l), () => false), false);
+      for (const [p, key] of [[me, w.side === 'A' ? 'twA' : 'twB'], [me === 'p1' ? 'p2' : 'p1', w.side === 'A' ? 'twB' : 'twA']]) {
+        if (F[key] > 0) check('tailwind ' + p, F[key], answer(l => new RegExp('^\\|-sideend\\|' + p + ':.*\\|move: Tailwind').test(l), () => false), false);
+      }
+    }
+  }
+  ok('FIELD', !bad.length, bad.slice(0, 6).join(' | ') + (bad.length > 6 ? ' ... ' + bad.length + ' in all' : ''));
+  ok('FIELD', compared >= 10 && lead >= 1, 'coverage: ' + compared + ' field clocks compared, ' + lead + ' of them lead-set (need >= 10 and >= 1)');
+  console.log('  FIELD   ' + compared + ' field clocks compared with the server over ' + games.length + ' ladder games, ' + lead + ' lead-set; mismatches ' + bad.length);
 }
 
 /* ---------------- AUDIT ---------------- */

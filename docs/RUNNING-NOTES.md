@@ -53,6 +53,16 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.43.0] — 2026-09-30 — **ROTOM's world lays the field from the log with its clocks in residuals; lead-set weather and terrain are no longer one turn short**
+- **What changed.** `solver/rotom/world.js` `layField`: with the log, the field comes from `world_log.walk` and its
+  clocks count residuals (`|upkeep|`), not turn numbers. The old public-state path stays for a build without the log.
+- **Measured.** 22 field clocks over five chomp1 fixture games (15 lead-set) agree with the server's own end turns.
+  Under the old path, 12 of the 22 are one short, every one of them a lead-set weather or terrain.
+  `test-rotom-world-clocks.js` GREEN 20 of 20. RED under `turnclock`, `hzsc`, `noability` and `noclocks`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MODELS: ROTOM's world fidelity.
+
 ## [abra/regmc 1.42.0] — 2026-09-30 — **ROTOM's world lays entry hazards where the engine reads them (sf.hz, not sf.sc)**
 - **What changed.** `solver/rotom/world.js`: a side condition that is an entry hazard (`world_log.hazards()`, derived)
   is laid in `sf.hz`, not `sf.sc`.

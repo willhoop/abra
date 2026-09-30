@@ -21,6 +21,23 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.43.0] — 2026-09-30
+
+### Fixed
+- **Weather, terrain and room clocks are no longer one turn short for a lead or a post-residual set.** The old path
+  computed turns left as duration minus (turn - turn set). A weather or terrain set by a lead, or by a replacement after
+  the residual, has had no tick by the next turn, so it was laid one short.
+  - Example: a lead Sand Stream or Psychic Surge lasts to the residual of turn 5, so 5 turns are left at turn 1. The old
+    path laid 4.
+  - The field is now laid from the log (`layField`): each clock is the condition's duration, asked with the setter's
+    current item, minus the residuals since it was set.
+  - Magic Room, Wonder Room and Fairy Lock are laid too.
+
+### Added
+- `solver/tests/test-rotom-world-clocks.js` FIELD clause. At every turn start of five chomp1 games, each weather,
+  terrain, Trick Room and Tailwind clock the world lays is held against the turns the server let it run. 22 compared,
+  15 lead-set, 0 mismatches. Red under `ROTOM_WORLD_BREAK=turnclock` (12 mismatches).
+
 ## [1.42.0] — 2026-09-30
 
 ### Fixed

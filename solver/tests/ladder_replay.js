@@ -40,7 +40,8 @@ function build(o) {
     else if (c === '-enditem') m.item = '';
     else if (c === '-item') m.item = p[3].toLowerCase().replace(/[^a-z0-9]/g, '');
   }
-  const bring = o.bring.map(i => mon[i]);
+  /* no preview choice given: the mons the log has shown, then the first unshown sheet rows (the world needs four) */
+  const bring = o.bring ? o.bring.map(i => mon[i]) : mon.filter(m => m.cond).concat(mon.filter(m => !m.cond)).slice(0, 4);
   const order = bring.filter(m => m.pos === 'a').concat(bring.filter(m => m.pos === 'b'), bring.filter(m => !m.pos));
   const req = { side: { id: me, pokemon: order.map(m => ({ ident: me + ': ' + m.nick, details: m.details, condition: m.cond || '100/100', active: !!m.pos, item: m.item })) } };
   /* a brought mon that never appeared is at full HP; `o.hpOf(sheetRow)` gives its max (the test builds the body) */

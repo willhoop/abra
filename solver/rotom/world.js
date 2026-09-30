@@ -136,7 +136,7 @@ function create(API) {
                      stallLaid: 0, stallNoLines: 0 };
 
   Object.assign(COUNTERS, { perishLaid: 0, volLaid: 0, subLaid: 0, seedLaid: 0, confusionLaid: 0, trapLaid: 0, yawnLaid: 0,
-                            slpLaid: 0, toxLaid: 0, lockLaid: 0, abilityLaid: 0, hazardLaid: 0 });
+                            slpLaid: 0, toxLaid: 0, lockLaid: 0, abilityLaid: 0, hazardLaid: 0, fieldLaid: 0, fieldFromLog: 0 });
 
   /* THE BODY'S CLOCKS AND VOLATILES FROM THE LOG (2026-09-30, solver/rotom/world_log.js). Each engine field is the one
    * engine/board_state.js mediBody reads for that volatile, laid at the value the engine holds at a turn boundary.
@@ -203,6 +203,33 @@ function create(API) {
     const it = item ? X.D.items.get(item) : null;
     if (it && it.exists && it.isChoice && L.movedSinceEntry && L.lastMoveSinceEntry && (b.moves || []).includes(L.lastMoveSinceEntry)) {
       b._lock = L.lastMoveSinceEntry; b._lockT = Infinity; COUNTERS.lockLaid++;
+    }
+  }
+
+  /* THE FIELD FROM THE LOG, ITS CLOCKS COUNTED IN RESIDUALS (2026-09-30, abra/regmc 1.43.0). The old path (below, kept
+   * for a build without the log and for the break) computed turns left as duration - (turn - turn set). A lead weather
+   * or terrain (set before turn 1) and one set by a replacement after the residual have had NO tick by the next turn, so
+   * it laid them one turn short: a lead Sand Stream or Psychic Surge lasts to the residual of turn 5 on the ladder logs,
+   * 5 left at turn 1, where the old path said 4. The duration is the condition's, asked with the setter's current item
+   * (Heat Rock, Damp Rock, Smooth Rock, Icy Rock, Terrain Extender, Light Clay). */
+  function layField(S, LG, side, me, opp, sfMe, sfOp, notes) {
+    const f = S.field, U = LG.U;
+    const itemOf = key => { const b = key && LG.bodies.get(key); return b ? b.item : ''; };
+    const left = e => { const d = WL.durationOf(e.id, itemOf(e.setter)); return d ? Math.max(1, d - (U - e.start)) : 1; };
+    const w = LG.field.weather;
+    if (w) { const k = WEATHER_OF[w.id]; if (k) { f.weather = k; f.weatherT = left(w); COUNTERS.fieldLaid++; } else notes.push('weather not mapped: ' + w.name); }
+    const t = LG.field.terrain;
+    if (t) { f.terrain = t.id.replace(/terrain$/, ''); f.terrainT = left(t); COUNTERS.fieldLaid++; }
+    const PSEUDO = { trickroom: 'tr', gravity: 'gravity', magicroom: 'magicRoom', wonderroom: 'wonderRoom', fairylock: 'fairylock' };
+    for (const [id, e] of LG.field.pseudo) { if (PSEUDO[id]) { f[PSEUDO[id]] = left(e); COUNTERS.fieldLaid++; } else notes.push('pseudo-weather not mapped: ' + e.name); }
+    for (const [p, sf, key] of [[me, sfMe, side === 'A' ? 'twA' : 'twB'], [opp, sfOp, side === 'A' ? 'twB' : 'twA']]) {
+      for (const [id, e] of LG.field.sides[p]) {
+        if (id === 'tailwind') { f[key] = left(e); COUNTERS.fieldLaid++; continue; }
+        if (WL.hazards().has(id) && WORLD_BREAK !== 'hzsc') { (sf.hz = sf.hz || {})[id] = e.layers || 1; COUNTERS.hazardLaid++; continue; }
+        const mv = X.D.moves.get(id);
+        if (mv && mv.exists) { sf.sc[id] = WL.durationOf(id) ? left(e) : (e.layers || 1); COUNTERS.fieldLaid++; }
+        else notes.push('side condition not mapped: ' + id);
+      }
     }
   }
 
@@ -420,6 +447,10 @@ function create(API) {
         layBody(x.b, L, p === me ? x.p : null, bodyOfKey, sideOfP, LG.U);
       }
     }
+    /* the field: from the log, clocks in residuals (layField, 1.43.0); the old public-state path stands for a build without
+     * the log and under ROTOM_WORLD_BREAK=turnclock (and noclocks) */
+    if (LG && !LG.broken && WORLD_BREAK !== 'turnclock') { layField(S, LG, side, me, opp, sfMe, sfOp, notes); COUNTERS.fieldFromLog++; }
+    else {
     if (st.weather && st.weather.name) {
       const w = WEATHER_OF[toID(st.weather.name)];
       if (w) { f.weather = w; f.weatherT = left(st.weather.name, st.weather.since, turnN); } else notes.push('weather not mapped: ' + st.weather.name);
@@ -446,6 +477,7 @@ function create(API) {
         if (mv && mv.exists) sf.sc[id] = duration(id) ? left(id, c.since, turnN) : (c.layers || 1);
         else notes.push('side condition not mapped: ' + name);
       }
+    }
     }
 
     COUNTERS.built++;

@@ -8,6 +8,11 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-30
 
+### ROTOM's world: field clocks counted in residuals (abra/regmc 1.43.0)
+- Lead-set weather and terrain were laid one turn short. The world's clocks now count residuals.
+- Checked against the server on 22 field clocks from five real ladder games, with 0 mismatches. The old path got 12
+  of them wrong.
+
 ### ROTOM's world: entry hazards in sf.hz (abra/regmc 1.42.0)
 - Every hazard in every ROTOM world sat in the wrong field (`sf.sc`), so the search never saw hazard damage.
 - Now in `sf.hz`. Replayed on the real log, Rillaboom switching into Toxic Spikes is poisoned, as on the server.
