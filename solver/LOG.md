@@ -6,6 +6,15 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ---
 
+## 2026-09-30
+
+### The double-Protect soft gate: built, off; the prompting case is exempt by its own terrain clause (abra/regmc 1.32.0)
+- Will's rule in `solver/doduo/double_protect.js` (`gates.doubleProtect`, `tiers: false` alone). On 20,482 held-out
+  human decisions: double Protect 3.15%, survival 99.63% [99.54, 99.71]. Humans honour Fake Out, Trick Room, Tailwind
+  and Perish (13-50% against a 2.2% base) and ignore terrain, weather and screens (0.7-2.9%). chomp1 g1 t4 is exempt by
+  the opponent's Grassy Terrain, so the gated search still double-Protects (0.85). With terrain off, it plays mega
+  Substitute plus a switch. Phase B is pre-registered, not run. `docs/_reports/2026-09-30-double-protect-gate.md`.
+
 ## 2026-09-29
 
 ### A top-meta ladder rotation and an arm that names it (abra/regmc 1.31.0)

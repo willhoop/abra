@@ -1,0 +1,350 @@
+{
+ "log": "../../../solver/out/rotom/chomp1-2026-09-29T23-13-11-521Z/games/medicham32/battle-gen9championsvgc2026regmcbo3-2690121468-je1ca9h7t1ieywx0ohi326o4gihs7lfpw.log",
+ "turn": 4,
+ "me": "p1",
+ "release": "eaa5becc54eb",
+ "passes": 96,
+ "seeds": 3,
+ "request_synthesised": {
+  "active": [
+   {
+    "moves": [
+     "shadowball",
+     "sludgebomb",
+     "substitute",
+     "protect"
+    ],
+    "canMegaEvo": true
+   },
+   {
+    "moves": [
+     "highhorsepower",
+     "stoneedge",
+     "yawn",
+     "protect"
+    ],
+    "canMegaEvo": false
+   }
+  ],
+  "pokemon": [
+   "p1a: Gengar 135/135",
+   "p1b: Hippowdon 90/183",
+   "p1a: Kingambit 0 fnt",
+   "p1a: Sneasler 155/155"
+  ]
+ },
+ "arms": {
+  "ungated": {
+   "runs": [
+    {
+     "choice": "move 4 mega, move 4",
+     "rows": [
+      "move 3 mega, switch 4",
+      "move 3 mega, move 4",
+      "move 3 mega, move 3 2",
+      "move 4 mega, move 4"
+     ],
+     "cols": [
+      "psychic 1, aquajet 2",
+      "trickroom, protect",
+      "psychic 1, protect",
+      "psychic 1, hypervoice"
+     ],
+     "mix": [
+      0,
+      0.148,
+      0,
+      0.851
+     ],
+     "value": 0.822,
+     "passes": 96
+    },
+    {
+     "choice": "move 4 mega, move 4",
+     "rows": [
+      "move 3 mega, switch 4",
+      "move 3 mega, move 4",
+      "move 3 mega, move 3 2",
+      "move 4 mega, move 4"
+     ],
+     "cols": [
+      "psychic 1, aquajet 2",
+      "trickroom, protect",
+      "psychic 1, protect",
+      "psychic 1, hypervoice"
+     ],
+     "mix": [
+      0,
+      0.148,
+      0,
+      0.852
+     ],
+     "value": 0.822,
+     "passes": 96
+    },
+    {
+     "choice": "move 4 mega, move 4",
+     "rows": [
+      "move 3 mega, switch 4",
+      "move 3 mega, move 4",
+      "move 3 mega, move 3 2",
+      "move 4 mega, move 4"
+     ],
+     "cols": [
+      "psychic 1, aquajet 2",
+      "trickroom, protect",
+      "psychic 1, protect",
+      "psychic 1, hypervoice"
+     ],
+     "mix": [
+      0,
+      0.148,
+      0,
+      0.852
+     ],
+     "value": 0.822,
+     "passes": 96
+    }
+   ],
+   "gate": null,
+   "stall": null
+  },
+  "dp": {
+   "runs": [
+    {
+     "choice": "move 4 mega, move 4",
+     "rows": [
+      "move 3 mega, switch 4",
+      "move 3 mega, move 4",
+      "move 3 mega, move 3 2",
+      "move 4 mega, move 4"
+     ],
+     "cols": [
+      "psychic 1, aquajet 2",
+      "trickroom, protect",
+      "psychic 1, protect",
+      "psychic 1, hypervoice"
+     ],
+     "mix": [
+      0,
+      0.148,
+      0,
+      0.851
+     ],
+     "value": 0.822,
+     "passes": 96
+    },
+    {
+     "choice": "move 4 mega, move 4",
+     "rows": [
+      "move 3 mega, switch 4",
+      "move 3 mega, move 4",
+      "move 3 mega, move 3 2",
+      "move 4 mega, move 4"
+     ],
+     "cols": [
+      "psychic 1, aquajet 2",
+      "trickroom, protect",
+      "psychic 1, protect",
+      "psychic 1, hypervoice"
+     ],
+     "mix": [
+      0,
+      0.148,
+      0,
+      0.852
+     ],
+     "value": 0.822,
+     "passes": 96
+    },
+    {
+     "choice": "move 4 mega, move 4",
+     "rows": [
+      "move 3 mega, switch 4",
+      "move 3 mega, move 4",
+      "move 3 mega, move 3 2",
+      "move 4 mega, move 4"
+     ],
+     "cols": [
+      "psychic 1, aquajet 2",
+      "trickroom, protect",
+      "psychic 1, protect",
+      "psychic 1, hypervoice"
+     ],
+     "mix": [
+      0,
+      0.148,
+      0,
+      0.852
+     ],
+     "value": 0.822,
+     "passes": 96
+    }
+   ],
+   "gate": {
+    "calls": 6,
+    "offered": 3,
+    "jointsWeighted": 0,
+    "fired": 0,
+    "exempt": 3,
+    "topDemoted": 0,
+    "by": {
+     "trickroom": 0,
+     "weather": 0,
+     "terrain": 3,
+     "tailwind": 0,
+     "screen": 0,
+     "fakeout": 0,
+     "firstturn": 0,
+     "perish": 0,
+     "residual": 0
+    },
+    "contested": {
+     "weather": 0,
+     "terrain": 0
+    },
+    "pubReads": 9,
+    "weight": 0.001,
+    "exemptOff": []
+   },
+   "stall": {
+    "reasons": [
+     "terrain"
+    ],
+    "detail": {
+     "weatherSetter": {
+      "id": "sand",
+      "left": 3,
+      "theirs": false,
+      "mine": true
+     },
+     "terrainSetter": {
+      "id": "grassy",
+      "left": 1,
+      "theirs": true,
+      "mine": false
+     },
+     "terrain": 1
+    }
+   }
+  },
+  "dp-noterr": {
+   "runs": [
+    {
+     "choice": "move 3 mega, switch 4",
+     "rows": [
+      "move 3 mega, switch 4",
+      "move 3 mega, move 4",
+      "move 3 mega, move 3 2",
+      "move 3 mega, move 1 2"
+     ],
+     "cols": [
+      "psychic 1, aquajet 2",
+      "trickroom, protect",
+      "psychic 1, protect",
+      "psychic 1, hypervoice"
+     ],
+     "mix": [
+      0.997,
+      0.003,
+      0,
+      0
+     ],
+     "value": 0.683,
+     "passes": 96
+    },
+    {
+     "choice": "move 3 mega, switch 4",
+     "rows": [
+      "move 3 mega, switch 4",
+      "move 3 mega, move 4",
+      "move 3 mega, move 3 2",
+      "move 3 mega, move 1 2"
+     ],
+     "cols": [
+      "psychic 1, aquajet 2",
+      "trickroom, protect",
+      "psychic 1, protect",
+      "psychic 1, hypervoice"
+     ],
+     "mix": [
+      0.997,
+      0.003,
+      0,
+      0
+     ],
+     "value": 0.684,
+     "passes": 96
+    },
+    {
+     "choice": "move 3 mega, switch 4",
+     "rows": [
+      "move 3 mega, switch 4",
+      "move 3 mega, move 4",
+      "move 3 mega, move 3 2",
+      "move 3 mega, move 1 2"
+     ],
+     "cols": [
+      "psychic 1, aquajet 2",
+      "trickroom, protect",
+      "psychic 1, protect",
+      "psychic 1, hypervoice"
+     ],
+     "mix": [
+      0.999,
+      0.001,
+      0,
+      0
+     ],
+     "value": 0.688,
+     "passes": 96
+    }
+   ],
+   "gate": {
+    "calls": 6,
+    "offered": 3,
+    "jointsWeighted": 6,
+    "fired": 3,
+    "exempt": 0,
+    "topDemoted": 0,
+    "by": {
+     "trickroom": 0,
+     "weather": 0,
+     "terrain": 0,
+     "tailwind": 0,
+     "screen": 0,
+     "fakeout": 0,
+     "firstturn": 0,
+     "perish": 0,
+     "residual": 0
+    },
+    "contested": {
+     "weather": 0,
+     "terrain": 0
+    },
+    "pubReads": 9,
+    "weight": 0.001,
+    "exemptOff": [
+     "terrain"
+    ]
+   },
+   "stall": {
+    "reasons": [],
+    "detail": {
+     "weatherSetter": {
+      "id": "sand",
+      "left": 3,
+      "theirs": false,
+      "mine": true
+     },
+     "terrainSetter": {
+      "id": "grassy",
+      "left": 1,
+      "theirs": true,
+      "mine": false
+     }
+    }
+   }
+  }
+ }
+}

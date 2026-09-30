@@ -4,7 +4,8 @@
  *
  * Reads <result>.shards/shard-*.jsonl (solver/mew/play.js --mode match lines). For an SPRT result only the COUNTED
  * pairs (index <= stop_pair_index) are summed unless --all; a gate reads every game. Prints, per arm (x, y): actions,
- * protect clicks, share, failed, fail rate, consecutive, consecutive failed. A finished run only — never a live one.
+ * protect clicks, share, failed, fail rate, consecutive, consecutive failed, and the double-Protect share (turns both slots
+ * clicked a self-shield / turns both slots chose; rows written before 2026-09-29 carry no `pairs` and read null). A finished run only — never a live one.
  */
 'use strict';
 const fs = require('fs');
@@ -30,7 +31,7 @@ const out = { result: path.relative(process.cwd(), res), games, games_without_co
 for (const a of ['x', 'y']) {
   const s = sum[a];
   out.arms[a] = Object.assign({}, s, { share: s.actions ? +(s.protects / s.actions).toFixed(4) : null, fail_rate: s.protects ? +(s.failed / s.protects).toFixed(4) : null,
-    consec_share: s.protects ? +(s.consec / s.protects).toFixed(4) : null, consec_fail_rate: s.consec ? +(s.consecFailed / s.consec).toFixed(4) : null });
+    consec_share: s.protects ? +(s.consec / s.protects).toFixed(4) : null, double_share: s.pairs ? +(s.doubles / s.pairs).toFixed(4) : null, consec_fail_rate: s.consec ? +(s.consecFailed / s.consec).toFixed(4) : null });
 }
 console.log(JSON.stringify(out, null, 1));
 if (missing) { console.error('  WARNING: ' + missing + ' games carry no protect counter (played before solver/arena/protect_stats.js was wired)'); process.exitCode = 1; }
