@@ -21,6 +21,48 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [Unreleased]
+
+**Basis CHANGED for every arena figure.** No figure in the published documents moves: `docs/MODELS.md` withholds
+arena strength. What moves is the basis of the arena series owed to the next major. Declared CHANGED, this row must
+be cut as an `X.0.0`: proposed 2.0.0, with the document pass. It is left unreleased for the coordinator to cut.
+
+### Changed
+- **The offline arena fields real per-set spreads (Will, 2026-09-30, "3").** Self-play, MACHAMP gates, SPRTs and
+  `solver/arena/arena.js` no longer play every body at the engine table's flat line (omniscient) or at a random XATU
+  spread (honest). They play `role-v1` by default: `solver/rotom/spreads.js`'s rule per set, the spreads ROTOM fields
+  on the ladder.
+  - One source: `solver/arena/spread_source.js`. It reads the table `solver/arena/spreads/role-v1.json` (14,247 sets)
+    and lays each spread with `solver/xatu/worlds.js` `applySpread`, the stat path the honest arena and ROTOM already
+    use. A set the table lacks is derived at play time by the same rule and counted.
+  - Modes: `role-v1` (default), `xatu-random` (the old honest truth, unchanged), `flat` (the old omniscient body,
+    unchanged). Flag `--spreads` on `arena.js`, `mew/play.js`, `mew/run.js`, `machamp/gate.js`, `machamp/sprt.js`,
+    `chomp/plan.js` and `chomp/v1/gen.js`.
+  - Every match line, self-play record, shard summary, gate, SPRT and arena artifact records the mode, the table's
+    sha256 and a digest of every spread fielded. A plan written before this change re-plays `flat`.
+  - Replays of recorded self-play (`machamp/deep_value.js`, `porygon2/v1/replay.js`) rebuild at the record's own mode.
+    A record with no mode is `flat`.
+- `solver/chomp/v2/spreads.js` `table()` also reads the arena table's encoding.
+
+### Added
+- `solver/arena/build_spreads.js`: builds the role-v1 table against the ladder rotations' own population (store
+  `fe78202a`, floor 1410, 150 teams).
+  - The rule's oracles are read from MEDICHAM (CHOMP v2's MediDeriver).
+  - A set the ladder plays takes the ladder's recorded spread. One set, a Raichu, was overridden: the MEDICHAM oracle
+    stages a Stance Change attacker in its Shield forme.
+  - Against the Showdown oracle: 43 of 44 rotation sets and 19 of 20 sampled sets are identical. Speed is identical
+    on all 64.
+- `solver/tests/test-arena-spreads.js`: RULE, PARITY, RECORD. GREEN 15/15. It went RED on both deliberate breaks.
+  - PARITY: the arena body of every set ROTOM plays equals ROTOM's fielded stat line (60 of 60). Choice Scarf sets are
+    at their maximum Speed (4 of 4) and Trick Room sets at their minimum (2 of 2).
+
+### Notes
+- **Filed to ENGINE, not fixed:** the mega swap cannot recompute a spread that invests HP. 114 of 3,293 role-v1 mega
+  sets land one point off after mega evolution, 23 of them on Speed (`docs/ENGINE.md`).
+- Arena figures measured before this change are not comparable with those after it. The list, and the re-run
+  commands for the gen5 baselines and CHOMP v2's gate (a), are in `docs/_reports/2026-09-30-arena-real-spreads.md`.
+  No screen or SPRT was run here.
+
 ## [1.48.0] — 2026-09-30
 
 ### Notes

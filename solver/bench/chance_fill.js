@@ -67,5 +67,5 @@ for (const arm of ['base', 'chance']) {
 summary.counters = { miltank: MT.COUNTERS, rollout: R.COUNTERS };
 console.log(JSON.stringify({ base: summary.base, chance: summary.chance }, null, 1));
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
-fs.writeFileSync(OUT, JSON.stringify(Object.assign({ at: new Date().toISOString(), flags: { release: RELEASE, games: GAMES, budget: BUDGET, k: K, dmg: DMG, leaf: 'heuristic', depth: 0, reserveSwitch: 1 } }, E.stamp, { summary, rows }), null, 1));
+fs.writeFileSync(OUT, JSON.stringify(Object.assign({ at: new Date().toISOString(), flags: { release: RELEASE, games: GAMES, budget: BUDGET, k: K, dmg: DMG, leaf: 'heuristic', depth: 0, reserveSwitch: 1 } }, E.stamp, { spreads: T.defaultSpreads(M).stamp(), summary, rows }), null, 1));
 console.log('wrote ' + OUT);

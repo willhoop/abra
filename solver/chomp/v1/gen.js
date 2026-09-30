@@ -3,6 +3,7 @@
  *
  *   node solver/chomp/v1/gen.js --release eaa5becc54eb --team-store <dir> --shard K --shards N [--cap 40]
  *   -> solver/out/chomp/v1/gen/games-K.jsonl   one line per finished job (appended; a restart skips finished jobs)
+ *      [--spreads MODE]: flat writes there (the pre-change games); any other mode -> solver/out/chomp/v1/gen/<mode>/
  *
  * Omniscient (the arena's DODUO bot reads the true battle), which is what "short playouts" asks for: the point is
  * the bring's value under a fixed, fast, reasonable policy, not the belief machinery. Every game is counted
@@ -29,11 +30,20 @@ const B = makeBots(API, {});
 const bot = B.greedy('doduo', PA);
 
 const SHARD = +flag('--shard', 0), SHARDS = +flag('--shards', 1), CAP = +flag('--cap', 40);
-const dir = path.join(ROOT, 'solver', 'out', 'chomp', 'v1', 'gen');
-const jobs = fs.readFileSync(path.join(dir, 'jobs.jsonl'), 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l));
+/* THE SPREAD MODE (solver/arena/spread_source.js, 2026-09-30): --spreads, default role-v1. The games of one mode go in
+ * their own directory (flat keeps the original `gen/`), because a restart RESUMES from the finished jobs on disk and
+ * must never finish a flat run at role-v1 or the reverse. Every line records its mode; a mixed file throws. */
+const SS = require('../../arena/spread_source.js');
+const SPREADS = flag('--spreads', SS.DEFAULT);
+if (!SS.MODES.includes(SPREADS)) { console.error('gen: --spreads must be one of ' + SS.MODES.join(', ')); process.exit(2); }
+const SRC = SS.open(SPREADS, { M });
+const jobsDir = path.join(ROOT, 'solver', 'out', 'chomp', 'v1', 'gen');
+const dir = SPREADS === 'flat' ? jobsDir : path.join(jobsDir, SPREADS);
+fs.mkdirSync(dir, { recursive: true });
+const jobs = fs.readFileSync(path.join(jobsDir, 'jobs.jsonl'), 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l));
 const out = path.join(dir, 'games-' + SHARD + '.jsonl');
 const done = new Set();
-if (fs.existsSync(out)) for (const l of fs.readFileSync(out, 'utf8').split('\n')) { if (!l) continue; try { done.add(JSON.parse(l).job); } catch (e) { /* a torn last line: replayed */ } }
+if (fs.existsSync(out)) for (const l of fs.readFileSync(out, 'utf8').split('\n')) { if (!l) continue; let r; try { r = JSON.parse(l); } catch (e) { continue; /* a torn last line: replayed */ } if ((r.spreads || 'flat') !== SPREADS) throw new Error('gen: ' + out + ' holds ' + (r.spreads || 'flat') + ' games and this run plays ' + SPREADS); done.add(r.job); }
 const P = PAIRS.load({ teamStore: flag('--team-store') });
 const byId = new Map();
 for (const s of ['train', 'val', 'test']) for (const G of P[s]) byId.set(G.id, G);
@@ -44,8 +54,9 @@ for (const j of jobs) {
   const G0 = byId.get(j.id);
   if (!G0) { C.missing++; continue; }
   const G = Object.assign({}, G0, { brought: { p1: O.OPTIONS[j.a].order.slice(), p2: O.OPTIONS[j.b].order.slice() } });
-  const a = T.buildTeam(M, G, 'p1'), b = T.buildTeam(M, G, 'p2');
-  if (!a || !b) { C.unbuildable++; fs.appendFileSync(out, JSON.stringify({ job: j.job, unbuildable: true }) + '\n'); continue; }
+  const spreadsFor = SRC.mode === 'flat' ? null : SRC.spreadsFor(G, j.seed);
+  const a = T.buildTeam(M, G, 'p1', { spreads: SRC, seed: j.seed, spreadsFor }), b = T.buildTeam(M, G, 'p2', { spreads: SRC, seed: j.seed, spreadsFor });
+  if (!a || !b) { C.unbuildable++; fs.appendFileSync(out, JSON.stringify({ job: j.job, spreads: SPREADS, unbuildable: true }) + '\n'); continue; }
   const rng = API.makeRng(j.seed);
   const S = API.newBattle(a.team, b.team, { rng });
   const ctx = PA.newGame(G);
@@ -60,11 +71,11 @@ for (const j of jobs) {
   let vA = null, capped = false;
   if (!err) { if (API.isTerminal(S)) vA = API.winner(S); else { vA = API.horizonScore(S); capped = true; C.capped++; } } else C.errors++;
   C.games++;
-  fs.appendFileSync(out, JSON.stringify({ job: j.job, split: j.split, id: j.id, a: j.a, b: j.b, seed: j.seed, vA, capped, turns: S.turn, err,
+  fs.appendFileSync(out, JSON.stringify({ job: j.job, spreads: SPREADS, split: j.split, id: j.id, a: j.a, b: j.b, seed: j.seed, vA, capped, turns: S.turn, err,
     ctr: C.games % 50 === 0 ? { pa: { calls: PA.COUNTERS.calls, nullDecision: PA.COUNTERS.nullDecision, optionsMatched: PA.COUNTERS.optionsMatched, optionsUnmatched: PA.COUNTERS.optionsUnmatched } } : undefined }) + '\n');
   if (C.games % 200 === 0) console.log(`[gen ${SHARD}] ${C.games} games  errors ${C.errors}  capped ${C.capped}  ${((Date.now() - t0) / 1000).toFixed(0)}s`);
 }
-fs.writeFileSync(out.replace(/\.jsonl$/, '.summary.json'), JSON.stringify({ release: ENGINE.id, stamp: ENGINE.stamp, shard: SHARD, shards: SHARDS, cap: CAP, counters: C,
+fs.writeFileSync(out.replace(/\.jsonl$/, '.summary.json'), JSON.stringify({ release: ENGINE.id, stamp: ENGINE.stamp, spreads: SRC.stamp(), shard: SHARD, shards: SHARDS, cap: CAP, counters: C,
   pa: { calls: PA.COUNTERS.calls, nullDecision: PA.COUNTERS.nullDecision, optionsMatched: PA.COUNTERS.optionsMatched, optionsUnmatched: PA.COUNTERS.optionsUnmatched },
   pool: { file: P.file, file_sha256: P.file_sha256, pool_digest: P.pool_digest }, wall_s: (Date.now() - t0) / 1000 }, null, 1));
 console.log(`[gen ${SHARD}] done ${JSON.stringify(C)}`);

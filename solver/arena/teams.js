@@ -4,7 +4,7 @@
  *   const L = T.loadGames({ file, n, seed })    -> { games:[G], file, scanned, eligible, skipped:{...} }
  *   const L = T.loadGames({ file, ids, M })      -> exactly those game ids, in that order (a pre-registered list)
  *   G = { id, sheets:{p1:[6 sheet rows], p2:[...]}, brought:{p1:[4 sheet idx, leads first], p2:[...]} }
- *   T.buildTeam(M, G, 'p1')                      -> { team:[4 bodies], sheetOf:[sheet idx per team idx] } | null
+ *   T.buildTeam(M, G, 'p1'[, { spreads, seed }]) -> { team:[4 bodies], sheetOf:[sheet idx per team idx], spreads:mode } | null
  *   T.buildBody(M, sheetRow[, { abilityUnknown }]) -> one body, or null (an unknown ability refuses; see buildBody)
  *   T.COUNTERS                                    ability resolutions: only-option, filled-first (asked for), refused
  *
@@ -21,9 +21,10 @@
  * A BODY is built the way tests/medicham_api_fixtures.js builds one (the fixture the API was accepted
  * on): the engine's table row by species (`buildMon`), then the sheet's moves, item and ability laid
  * on, stones kept so a body can mega mid-battle. Moves, items and abilities are validated against the
- * Reg M-C dex (solver/human/dex.js reads Dex.forFormat), never typed. SPREADS ARE THE TABLE'S FLAT LINE
- * FOR EVERY BODY ON BOTH SIDES — open sheets do not carry spreads and the nature is not applied — so
- * the arena is symmetric, and no bot can gain or lose from a spread it could not have known.
+ * Reg M-C dex (solver/human/dex.js reads Dex.forFormat), never typed. buildBody's body is the TABLE'S FLAT
+ * LINE (no spread, no nature). buildTeam then lays the ARENA'S SPREAD on each body — solver/arena/spread_source.js,
+ * default `role-v1`: solver/rotom/spreads.js's rule per set, the spreads the ladder plays (abra/regmc 1.49.0). Until
+ * 1.49.0 every omniscient / arena.js body kept the flat line; `{ spreads: 'flat' }` still builds that.
  */
 'use strict';
 const fs = require('fs');
@@ -72,7 +73,16 @@ function buildBody(M, p, opts) {
   return b;
 }
 
-function buildTeam(M, G, side) {
+/* THE SPREAD (2026-09-30, abra/regmc 1.49.0; solver/arena/spread_source.js). A team is built at the arena's spread
+ * mode, and the DEFAULT is `role-v1` — the ladder's rule, per set — no longer the table's flat line:
+ *   opts.spreads  a source from spread_source.open(), or a mode name ('role-v1' | 'xatu-random' | 'flat'); absent = the
+ *                 process default (spread_source.DEFAULT, or env ARENA_SPREADS)
+ *   opts.seed     the battle seed (xatu-random draws per team pair from it; the other modes ignore it)
+ *   opts.spreadsFor  the { p1, p2 } spreads already drawn for this game (so both sides share one draw)
+ * `flat` is the pre-1.49.0 body. A buildability check (loadGames, mew/pairs.js) passes { spreads: 'flat' }: whether a
+ * body builds does not depend on its spread, and a check must not derive one. */
+function buildTeam(M, G, side, opts) {
+  opts = opts || {};
   const team = [], sheetOf = [];
   for (const s of G.brought[side]) {
     const b = buildBody(M, G.sheets[side][s]);
@@ -80,12 +90,20 @@ function buildTeam(M, G, side) {
     b._solverSheet = s;   // STABLE identity: the engine reorders `sf.team` on a switch, as Showdown does
     team.push(b); sheetOf.push(s);
   }
-  return team.length === 4 ? { team, sheetOf } : null;
+  if (team.length !== 4) return null;
+  const SS = require('./spread_source.js');
+  const src = opts.spreads && typeof opts.spreads === 'object' ? opts.spreads : opts.spreads ? SS.open(opts.spreads, { M }) : defaultSpreads(M);
+  if (src.mode !== 'flat') {
+    const sp = opts.spreadsFor || src.spreadsFor(G, opts.seed);
+    src.dress(team, G.sheets[side], sp[side]);
+  }
+  return { team, sheetOf, spreads: src.mode };
 }
 
 /* one pass over the file; keeps only the small per-game header + sheets. The eligible list is kept per
  * file for the life of the process (a second match in one process does not re-read 500 MB). */
 const SCANS = new Map();
+const FLAT = { spreads: 'flat' };   // buildability only (see buildTeam)
 function loadGames(o) {
   o = o || {};
   const file = o.file || DEFAULT_FILE;
@@ -99,7 +117,7 @@ function loadGames(o) {
   if (o.ids) {
     const byId = new Map(eligible.map(G => [G.id, G]));
     const games = [], missing = [];
-    for (const id of o.ids) { const G = byId.get(id); if (!G || (M && (!buildTeam(M, G, 'p1') || !buildTeam(M, G, 'p2')))) missing.push(id); else games.push(G); }
+    for (const id of o.ids) { const G = byId.get(id); if (!G || (M && (!buildTeam(M, G, 'p1', FLAT) || !buildTeam(M, G, 'p2', FLAT)))) missing.push(id); else games.push(G); }
     return { games, file, scanned, eligible: eligible.length, skipped: Object.assign(skipped, { not_in_eligible_or_unbuildable: missing.length }), stride: null, ids: true, missing };
   }
   /* seeded stride over the eligible list, then drop any pair that does not build */
@@ -109,7 +127,7 @@ function loadGames(o) {
   const off = (o.seed || 0) % stride;
   for (let i = off; i < eligible.length && games.length < n; i += stride) {
     const G = eligible[i];
-    if (M && (!buildTeam(M, G, 'p1') || !buildTeam(M, G, 'p2'))) { skipped.unbuildable++; continue; }
+    if (M && (!buildTeam(M, G, 'p1', FLAT) || !buildTeam(M, G, 'p2', FLAT))) { skipped.unbuildable++; continue; }
     games.push(G);
   }
   return { games, file, scanned, eligible: eligible.length, skipped, stride };
@@ -150,4 +168,8 @@ function scan(file) {
   return { eligible, scanned, skipped };
 }
 
-module.exports = { loadGames, buildTeam, buildBody, DEFAULT_FILE, toID, COUNTERS };
+/* the spread source a buildTeam with no opts.spreads plays (env ARENA_SPREADS, else spread_source.DEFAULT) — for a caller
+ * that records what it fielded: `spreads: T.defaultSpreads(M).stamp()` */
+function defaultSpreads(M) { const SS = require('./spread_source.js'); return SS.open(process.env.ARENA_SPREADS || SS.DEFAULT, { M }); }
+
+module.exports = { loadGames, buildTeam, buildBody, defaultSpreads, DEFAULT_FILE, toID, COUNTERS };

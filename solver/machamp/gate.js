@@ -4,6 +4,9 @@
  *   cmd.exe /c tools\lownode.cmd solver\machamp\gate.js --release <id> --x <spec.json> --y <spec.json>
  *        --pairs 100 --pair-seed S --seed S --workers 4 --out <result.json> [--cap 50] [--rule beats|notlose]
  *        [--info honest|omniscient]   default HONEST (solver/mew/play.js); recorded in flags.info (2026-09-26)
+ *        [--spreads role-v1|xatu-random|flat]   the TRUE bodies' Stat Points (solver/arena/spread_source.js); default
+ *        role-v1 since abra/regmc 1.49.0; recorded in flags.spreads and the `spreads` block. A gate before 1.49.0 played
+ *        xatu-random (honest) or flat (omniscient).
  *
  * 100 pairs = 200 games: each TEST pair (solver/mew/pairs.js — both players held out of every net's training data)
  * is played twice on the same battle seed with the bots swapped. The shards (solver/mew/play.js --mode match) are
@@ -67,10 +70,11 @@ async function main() {
   const dir = out.replace(/\.json$/, '') + '.shards';
   fs.mkdirSync(dir, { recursive: true });
   const human = flag('--human', null), store = flag('--team-store', null);
+  const spreads = flag('--spreads', require('../arena/spread_source.js').DEFAULT);   // solver/arena/spread_source.js (1.49.0)
   const started = new Date().toISOString();
   const { res: exits, wall_s } = await forkShards(path.join(__dirname, '..', 'mew', 'play.js'), W, i => ['--mode', 'match', '--release', rel,
     '--x', path.resolve(ROOT, X), '--y', path.resolve(ROOT, Y), '--pairs', String(NP), '--pair-seed', String(PS), '--seed', String(seed),
-    '--shard', String(i), '--shards', String(W), '--cap', String(cap), '--out', path.join(dir, `shard-${i}.jsonl`), '--info', info, ...(human ? ['--human', human] : []), ...(store ? ['--team-store', store] : [])], 'gate');
+    '--shard', String(i), '--shards', String(W), '--cap', String(cap), '--out', path.join(dir, `shard-${i}.jsonl`), '--info', info, ...(human ? ['--human', human] : []), ...(store ? ['--team-store', store] : []), '--spreads', spreads], 'gate');
   const sums = exits.map(e => { try { return JSON.parse(fs.readFileSync(path.join(dir, `shard-${e.shard}.jsonl.summary.json`), 'utf8')); } catch (err) { return null; } });
   const per = [].concat(...sums.filter(Boolean).map(s => s.per));
   const m = merge(per);
@@ -86,13 +90,16 @@ async function main() {
   /* QUIESCENCE (solver/miltank/rollout.js, 2026-09-27): an arm that asks for it must show extensions */
   const quiesced = sums.filter(Boolean).reduce((a, s) => a + (s.rollout.quiesced || 0), 0);
   if ([first.x, first.y].some(a => a && a.spec.quiesce) && !quiesced) warnings.push('an arm asked for quiescence and 0 playouts were extended');
+  const SPREADS = require('../arena/spread_source.js').mergeStamps(sums.filter(Boolean).map(s => s.spreads), spreads);
+  warnings.push(...SPREADS.warnings);
   const expected = 2 * NP;
   if (m.n + m.res.errors + m.res.unbuildable !== expected) warnings.push(`expected ${expected} games, merged ${m.n} scored + ${m.res.errors} errored + ${m.res.unbuildable} unbuildable`);
   const ms = key => { const a = [].concat(...per.map(p => p[key] || [])).sort((p, q) => p - q); return a.length ? { n: a.length, mean: +(a.reduce((p, q) => p + q, 0) / a.length).toFixed(1), p50: a[a.length >> 1], p99: a[Math.floor(0.99 * (a.length - 1))], max: a[a.length - 1] } : null; };
   const result = {
     what: 'MACHAMP gate (solver/machamp/gate.js)', started, finished: new Date().toISOString(),
     engine_release: first.engine_release || rel, release_stamp: first.release_stamp || null,
-    flags: { release: rel, x: X, y: Y, pairs: NP, games: 2 * NP, pair_seed: PS, seed, workers: W, cap, rule, human, team_store: store, info },
+    flags: { release: rel, x: X, y: Y, pairs: NP, games: 2 * NP, pair_seed: PS, seed, workers: W, cap, rule, human, team_store: store, info, spreads },
+    spreads: SPREADS,
     x: first.x || null, y: first.y || null, pool: first.pool || null,
     result: { ...m.res, played: m.n, score_x: m.score, ci95_x: m.ci95 }, paired: { team_pairs: NP, ...m.pairs },
     rule: { name: rule, text: rule === 'beats' ? 'PASS iff Wilson 95% lower bound of X score > 0.5' : 'PASS iff Wilson 95% upper bound of X score >= 0.5' },

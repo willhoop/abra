@@ -3,7 +3,11 @@
  *
  *   cmd.exe /c tools\lownode.cmd solver\machamp\sprt.js --release <id> --x <spec.json> --y <spec.json>
  *        --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 2000 --seed S --workers 3
- *        --team-store <dir> --out <result.json> [--info honest|omniscient]
+ *        --team-store <dir> --out <result.json> [--info honest|omniscient] [--spreads role-v1|xatu-random|flat]
+ *
+ * SPREADS (abra/regmc 1.49.0). --spreads (default role-v1: the ladder's rule per set, solver/arena/spread_source.js) is
+ * the TRUE bodies' Stat Points on both sides; it is in `preregistered.spreads`, on every match line and in `spreads`.
+ * Every SPRT before 1.49.0 played xatu-random (honest) or flat (omniscient) and is not comparable with a role-v1 one.
  *
  * INFORMATION (2026-09-26). --info defaults to HONEST (solver/mew/play.js: hidden spreads in the true battle, and each
  * decision taken on the decider's public view with XATU's belief over what it cannot see). `omniscient` is the
@@ -40,6 +44,20 @@ const { wilson } = require('./gate.js');
 /* DELIBERATE BREAK (env MACHAMP_BREAK=sprtsign): the LLR's sign is flipped, so a stronger X is accepted as H0.
  * solver/tests/test-machamp.js SPRT must go red. */
 const BREAK = process.env.MACHAMP_BREAK || '';
+/* the spread block of the result: the mode every counted line says it played (the killed workers write no summary, so it
+ * is read from the lines), the table the coordinator opens for that mode, and the last counter snapshot per shard */
+function spreadsBlock(o, ENGINE, counted) {
+  const SS = require('../arena/spread_source.js');
+  const modes = [...new Set(counted.map(p => p.spreads || 'NOT RECORDED (a pre-1.49.0 worker)'))];
+  const st = SS.open(o.spreads, { M: ENGINE.API.M }).stamp();
+  const last = {}; for (const p of counted) if (p.ctr && p.ctr.spreads) last[p.pi % o.workers] = p.ctr.spreads;
+  const counters = {}; for (const c of Object.values(last)) for (const [k, v] of Object.entries(c)) counters[k] = (counters[k] || 0) + v;
+  const warnings = [];
+  if (modes.length !== 1 || modes[0] !== o.spreads) warnings.push('SPREADS: asked for ' + o.spreads + ', the counted lines say ' + modes.join(', '));
+  if (o.spreads === 'role-v1' && counters.flat_fallback) warnings.push('SPREADS: ' + counters.flat_fallback + ' role-v1 rows played the FLAT line');
+  if (o.spreads === 'role-v1' && counters.derived_at_play) warnings.push('SPREADS: ' + counters.derived_at_play + ' sets derived at play time');
+  return { spreads: o.spreads, lines_say: modes, table: st.table || null, what: st.what, counters_last_snapshot: counters, warnings };
+}
 const sOf = elo => 1 / (1 + Math.pow(10, -elo / 400));
 function llr(scores, elo0, elo1) {
   const N = scores.length;
@@ -70,7 +88,8 @@ async function main() {
   const o = { release: flag('--release'), x: flag('--x'), y: flag('--y'), elo0: +flag('--elo0', 0), elo1: +flag('--elo1', 20),
     alpha: +flag('--alpha', 0.05), beta: +flag('--beta', 0.05), maxGames: +flag('--max-games', 2000), seed: +flag('--seed', 1),
     workers: +flag('--workers', 3), store: flag('--team-store', null), out: path.resolve(ROOT, flag('--out')), cap: +flag('--cap', 50),
-    info: flag('--info', 'honest') };
+    info: flag('--info', 'honest'), spreads: flag('--spreads', require('../arena/spread_source.js').DEFAULT) };
+  if (!require('../arena/spread_source.js').MODES.includes(o.spreads)) throw new Error('sprt: --spreads must be one of ' + require('../arena/spread_source.js').MODES.join(', '));
   if (!['honest', 'omniscient'].includes(o.info)) throw new Error('sprt: --info must be honest or omniscient');
   if (!o.release || !o.x || !o.y || !flag('--out')) throw new Error('usage: --release --x --y --out');
   if (o.workers > 3) throw new Error('sprt: at most 3 workers');
@@ -84,7 +103,7 @@ async function main() {
     if (fs.existsSync(f)) fs.unlinkSync(f);
     const ch = cp.fork(path.join(ROOT, 'solver', 'mew', 'play.js'), ['--mode', 'match', '--cycle', '--release', o.release, '--x', path.resolve(ROOT, o.x), '--y', path.resolve(ROOT, o.y),
       '--pairs', String(NP), '--pair-seed', '1', '--seed', String(o.seed), '--shard', String(i), '--shards', String(o.workers), '--cap', String(o.cap),
-      '--out', f, '--info', o.info, ...(o.store ? ['--team-store', o.store] : [])], { execArgv: ['--max-old-space-size=1536'], stdio: ['ignore', 'ignore', 'inherit', 'ipc'] });
+      '--out', f, '--info', o.info, '--spreads', o.spreads, ...(o.store ? ['--team-store', o.store] : [])], { execArgv: ['--max-old-space-size=1536'], stdio: ['ignore', 'ignore', 'inherit', 'ipc'] });
     kids.push({ ch, f, code: null });
     ch.on('exit', code => { kids[i].code = code; });
     console.log(`sprt: shard ${i} pid ${ch.pid}`);
@@ -131,7 +150,8 @@ async function main() {
   const result = {
     what: 'MACHAMP SPRT (solver/machamp/sprt.js)', started, finished: new Date().toISOString(),
     preregistered: { elo0: o.elo0, elo1: o.elo1, alpha: o.alpha, beta: o.beta, max_games: o.maxGames, unit: 'pair of games on one battle seed, seats swapped', statistic: 'normal-approximation GSPRT on pair scores (Fishtest)',
-      information: o.info === 'honest' ? 'honest: hidden spreads; each decision on the decider public view with the XATU belief (solver/xatu/worlds.js)' : 'omniscient: no spreads; the searcher reads the true battle' },
+      spreads: o.spreads + ' (solver/arena/spread_source.js: the TRUE body Stat Points on both sides)',
+      information: o.info === 'honest' ? 'honest: hidden spreads; each decision on the decider public view with the XATU belief (solver/xatu/worlds.js)' : 'omniscient: the searcher reads the true battle (its bodies at the spreads mode above)' },
     engine_release: o.release, flags: o, x: spec(o.x), y: spec(o.y),
     verdict: d.stop == null ? 'INCONCLUSIVE (no bound crossed by the game budget)' : d.verdict === 'H1' ? `H1 — X is stronger (elo1 = +${o.elo1} accepted)` : `H0 — X is not stronger (elo0 = ${o.elo0} accepted)`,
     llr_at_stop: d.llr, bounds: [d.A, d.B], stop_pair_index: d.stop, pairs_used: d.pairs, games_used: n,
@@ -140,6 +160,7 @@ async function main() {
     result: { W, D, L, score_x: n ? (W + D / 2) / n : null, ci95_x: wilson(W + D / 2, n), ci_caption: 'Wilson 95% at a data-dependent stopping time: conditional on the stop, slightly optimistic' },
     elo_estimate: n ? (() => { const sc = (W + D / 2) / n; return -400 * Math.log10(1 / Math.min(Math.max(sc, 1e-6), 1 - 1e-6) - 1); })() : null,
     pool: sum ? sum.pool : null, release_stamp: sum ? sum.release_stamp : null,
+    spreads: spreadsBlock(o, ENGINE, counted),
     worker_exits: kids.map(k => k.code), wall_s: (Date.now() - t0) / 1000,
   };
   fs.writeFileSync(o.out, JSON.stringify(result, null, 1));

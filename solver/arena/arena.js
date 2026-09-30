@@ -10,6 +10,9 @@
  *        [--plan <solver/out/chomp/.../plan.json>]  play exactly the plan's pre-registered team pairs, and read CHOMP's
  *        solved tables from beside it; the plan's SPRT is evaluated ONCE at the end and written into the artifact
  *        [--blind]   progress lines print the game count only — no interim score (never read an interim SPRT)
+ *        [--spreads role-v1|xatu-random|flat]   the bodies' Stat Points (solver/arena/spread_source.js). Default role-v1
+ *        (the ladder's rule per set) since abra/regmc 1.49.0; every arena figure before it played `flat`. A --plan's own
+ *        `spreads` is used when the flag is absent (a pre-1.49.0 plan has none, so it re-plays flat).
  *
  * BOTS. <league spec .json> (a MACHAMP generation via solver/mew/agent.js, e.g. solver/machamp/league/gen5.json) | random | prior (human prior v0, greedy) | doduo (MAG v1 + DODUO v1 joint, greedy) | mag (MAG v1
  * alone, the two slots factorised, greedy) | miltank (MILTANK v1 at --budget ms per decision).
@@ -25,7 +28,8 @@
  * with the ids of the team pairs played in sample.ids_sha256, so two artifacts can be shown to share a pool.
  *
  * DESIGN.
- *  - Teams: REAL Reg M-C open sheets and the humans' own brought four and leads (solver/arena/teams.js).
+ *  - Teams: REAL Reg M-C open sheets and the humans' own brought four and leads (solver/arena/teams.js), at the
+ *    --spreads mode's Stat Points (both sides, one draw per team pair, so both seatings play the same bodies).
  *  - PAIRED SEATING: each team pair is played twice with the bots swapped between the two sheets, on the
  *    SAME battle seed. Each bot plays each team once, so a lopsided team pair cannot decide the match.
  *    `--games` is therefore rounded up to an even number; it is part of the sample definition.
@@ -63,7 +67,16 @@ const { makeBots } = require('./bots.js');
 const MR = require('./mega_rate.js');
 const MTIME = require('./mega_timing.js');
 const PA = require('../miltank/prior_adapter.js').create(API, require('../prior/infer.js').load());
-const R = require('../miltank/rollout.js').create(API, { buildBody: T.buildBody });
+/* THE SPREAD MODE (abra/regmc 1.49.0, solver/arena/spread_source.js): --spreads, else the --plan's own `spreads`, else
+ * role-v1. A plan written before 1.49.0 carries none and its games were played flat, so it re-plays `flat` unless told. */
+const SS = require('./spread_source.js');
+const PLAN_SPREADS = (() => { const f = flag('--plan', null); if (!f) return null; try { return JSON.parse(fs.readFileSync(path.resolve(f), 'utf8')).spreads || 'flat'; } catch (e) { return null; } })();
+const SPREADS = flag('--spreads', PLAN_SPREADS || SS.DEFAULT);
+if (!SS.MODES.includes(SPREADS)) throw new Error('arena: --spreads must be one of ' + SS.MODES.join(', '));
+if (PLAN_SPREADS && flag('--spreads', null) && flag('--spreads') !== PLAN_SPREADS) console.log(`ARENA: --spreads ${SPREADS} overrides the plan's ${PLAN_SPREADS}: the plan's pre-registered question is a different one`);
+const SRC = SS.open(SPREADS, { M });
+/* the searcher reads the true battle here (no honest view), so its redrawn hidden bodies are built at the same mode */
+const R = require('../miltank/rollout.js').create(API, { buildBody: SRC.bodyBuilder(T.buildBody) });
 const MT = require('../miltank/search.js').create(API, { prior: PA, rollout: R });
 /* The MAG v1 + DODUO v1 bots each get their own prior adapter over solver/mag/infer.js (loaded only when
  * asked for). DODUO is the joint coordinator's argmax; MAG is MAG alone, its two slots independent — the
@@ -112,7 +125,7 @@ async function run(o) {
    * self-play champion as an arena bot. Its search fallbacks are counted in AG.COUNTERS and reported below. */
   let AG = null;
   function leagueBot(file, seed) {
-    AG = AG || require('../mew/agent.js').create(API, { buildBody: T.buildBody, rollout: R });
+    AG = AG || require('../mew/agent.js').create(API, { buildBody: SRC.bodyBuilder(T.buildBody), rollout: R });
     const spec = JSON.parse(fs.readFileSync(path.isAbsolute(file) ? file : path.join(ROOT, file), 'utf8'));
     return AG.load(spec).bot(seed);
   }
@@ -145,7 +158,8 @@ async function run(o) {
       G = Object.assign({}, G, { brought: { p1: pa.order, p2: pb.order } });
       pv = { A: Object.assign({ arm: armA, order: pa.order }, pa.info), B: Object.assign({ arm: armB, order: pb.order }, pb.info) };
     }
-    const a = T.buildTeam(M, G, 'p1'), b = T.buildTeam(M, G, 'p2');
+    const spreadsFor = SRC.mode === 'flat' ? null : SRC.spreadsFor(G, seed);
+    const a = T.buildTeam(M, G, 'p1', { spreads: SRC, seed, spreadsFor }), b = T.buildTeam(M, G, 'p2', { spreads: SRC, seed, spreadsFor });
     if (!a || !b) throw new Error('game ' + G.id + ': a previewed four does not build');
     const rng = API.makeRng(seed);
     let S = API.newBattle(a.team, b.team, { rng });
@@ -210,6 +224,8 @@ async function run(o) {
     if (m.capable && !m.megas) warn.push('MEGA: ' + o[k] + ' (' + k + ') megaed on 0 of ' + m.capable + ' capable sides');
     else if (m.capable && m.ci95[1] < mega.floor) warn.push('MEGA: ' + o[k] + ' (' + k + ') megaed on ' + m.megas + '/' + m.capable + ' capable sides, CI upper ' + m.ci95[1] + ' < floor ' + mega.floor);
   }
+  const spreadStamp = SRC.stamp();
+  warn.push(...SS.mergeStamps([spreadStamp], SPREADS).warnings);
   if (AG && AG.COUNTERS.fallbacks) warn.push('league agent search FELL BACK to its prior ' + AG.COUNTERS.fallbacks + ' times');
   if (PV) {
     for (const a of [o.previewX, o.previewY]) if (a && !PV.COUNTERS.picks[a]) warn.push('preview arm ' + a + ' picked 0 times');
@@ -237,7 +253,8 @@ async function run(o) {
       unfilled_share: +(a.reduce((s, i) => s + i.unfilled, 0) / a.reduce((s, i) => s + i.m * i.n, 0)).toFixed(4),
       slowking_gap: { mean: +(a.reduce((s, i) => s + i.gap, 0) / a.length).toExponential(2), max: +Math.max(...a.map(i => i.gap)).toExponential(2) },
       mix_support: stats(a.map(i => i.support)) }])),
-    flags: { release: ENGINE.id, x: o.x, y: o.y, games: N, seed: o.seed, preview_x: o.previewX || null, preview_y: o.previewY || null, plan: o.plan || null, blind: !!o.blind, budget_ms: o.budget, depth: o.depth, k1: o.k1, k2: o.k2, cap: o.cap, reserve_switch: 2, workers: o.workers || 0,
+    spreads: spreadStamp,
+    flags: { release: ENGINE.id, spreads: SPREADS, x: o.x, y: o.y, games: N, seed: o.seed, preview_x: o.previewX || null, preview_y: o.previewY || null, plan: o.plan || null, blind: !!o.blind, budget_ms: o.budget, depth: o.depth, k1: o.k1, k2: o.k2, cap: o.cap, reserve_switch: 2, workers: o.workers || 0,
              leaf_x: armX.leaf || process.env.MILTANK_LEAF || 'heuristic', leaf_y: armY.leaf || process.env.MILTANK_LEAF || 'heuristic', depth_x: armX.depth, depth_y: armY.depth },
     sample: { human_file: L.file, pool_sha256: POOL_SHA(L.file), manifest_generated: manifest, scanned: L.scanned, eligible: L.eligible, skipped: L.skipped, stride: L.stride,
               ids_sha256: crypto.createHash('sha256').update(L.games.map(g => g.id).join('\n')).digest('hex').slice(0, 16) },

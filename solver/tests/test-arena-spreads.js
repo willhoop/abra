@@ -1,0 +1,152 @@
+/* solver/tests/test-arena-spreads.js — the arena fields the spreads the ladder fields, and every artifact says which
+ * spreads it played (solver/arena/spread_source.js; abra/regmc 1.49.0).
+ *
+ *   node solver/tests/test-arena-spreads.js [--no-red] [--only RULE,PARITY,RECORD] [--release <id>]
+ *        exit 0 GREEN, 1 RED, 2 CANNOT ANSWER, 3 BLIND (a deliberate break stayed green)
+ *
+ *   RULE     the format's levers, read from it: every role-v1 table entry is within the validator's SP total (evLimit)
+ *            and the 32 cap; the table was built by solver/rotom/spreads.js's CURRENT rule text; the default mode is
+ *            role-v1; `flat` and `xatu-random` still exist (to re-run a pre-1.49.0 figure).
+ *   PARITY   for EVERY set ROTOM plays (every ladder rotation file with recorded spreads), the body the ARENA builds for
+ *            it (solver/arena/teams.js buildTeam, the default mode, on a game holding that team) carries exactly the stat
+ *            line ROTOM fields: the checkout's own statModify (solver/xatu/sd.js statValue — what the |request| reports)
+ *            at the rotation's RECORDED Stat Points and the sheet's nature, all six stats, HP included. Every Choice
+ *            Scarf set's arena Speed is the maximum over SP 0..32 and every Trick Room set's the minimum; at least one of
+ *            each, or the clause asks nothing. And `flat` still builds the pre-1.49.0 body (the table line, no nature).
+ *   RECORD   a 1-pair match through solver/mew/play.js (two greedy human-clone agents, --cap 3): with no --spreads every
+ *            line says role-v1, the summary's stamp names the table file at its sha256 and a fielded digest, and all 16
+ *            bodies were dressed; with --spreads flat every line says flat and 0 bodies were dressed; with
+ *            --spreads xatu-random 16 bodies were dressed and the lines say so.
+ *
+ * RED, unless --no-red: SPREADS_SOURCE_BREAK=scarf (a Choice Scarf set's Speed SP moved to HP — the 1.34.0 arena Speed)
+ * must turn PARITY red; SPREADS_SOURCE_BREAK=stamp (the artifact block says `flat` whatever was fielded) must turn
+ * RECORD red.
+ */
+'use strict';
+const fs = require('fs');
+const path = require('path');
+const cp = require('child_process');
+const os = require('os');
+const ROOT = path.join(__dirname, '..', '..');
+process.env.ABRA_REGULATION = process.env.ABRA_REGULATION || 'regmc';
+require('../arena/env.js');
+const argv = process.argv.slice(2);
+const NO_RED = argv.includes('--no-red');
+const ONLY = argv.includes('--only') ? argv[argv.indexOf('--only') + 1].split(',') : null;
+const want = c => !ONLY || ONLY.includes(c);
+const REL = process.env.ARENA_TEST_RELEASE || (argv.includes('--release') ? argv[argv.indexOf('--release') + 1] : 'eaa5becc54eb');
+const MAIN = 'C:/Users/willj/Projects/Pokemon/ABRA';
+const STORE = [path.join(ROOT, 'data', 'team-pool-frozen-regmc'), path.join(MAIN, 'data', 'team-pool-frozen-regmc')].find(d => fs.existsSync(path.join(d, 'games.bo3.jsonl')));
+if (!fs.existsSync(path.join(ROOT, 'data', 'releases', REL))) { console.log('CANNOT ANSWER: release ' + REL + ' is not in data/releases'); process.exit(2); }
+const SS = require('../arena/spread_source.js');
+if (!fs.existsSync(SS.TABLE_FILE)) { console.log('CANNOT ANSWER: no role-v1 table at ' + SS.TABLE_FILE); process.exit(2); }
+
+let fails = 0, checks = 0;
+const failed = new Set();
+const ok = (clause, c, msg) => { checks++; if (!c) { fails++; failed.add(clause); console.log('  FAIL [' + clause + '] ' + msg); } };
+const STATS = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
+const KEY = { hp: 'hp', atk: 'at', def: 'df', spa: 'sa', spd: 'sd', spe: 'sp' };
+
+const ENGINE = require('../arena/engine.js').load(REL);
+const M = ENGINE.API.M;
+const T = require('../arena/teams.js');
+const SD = require('../xatu/sd.js');
+const SPR = require('../rotom/spreads.js');
+const X = require('../human/dex.js');
+
+/* ---------------- RULE ---------------- */
+if (want('RULE')) {
+  const J = JSON.parse(fs.readFileSync(SS.TABLE_FILE, 'utf8'));
+  let bad = 0; const vals = Object.values(J.spreads);
+  for (const v of vals) { const e = SS.decode(v).evs; const tot = STATS.reduce((a, s) => a + e[s], 0); if (tot > SD.SP_TOTAL || STATS.some(s => e[s] > SD.SP_CAP || e[s] < 0)) bad++; }
+  ok('RULE', vals.length > 1000 && bad === 0, `every table spread is within the format's total ${SD.SP_TOTAL} and cap ${SD.SP_CAP} (${bad} of ${vals.length} outside)`);
+  ok('RULE', J.provenance.rule === SPR.RULE_TEXT, 'the table was built by solver/rotom/spreads.js\'s current rule');
+  ok('RULE', SS.DEFAULT === 'role-v1' && ['flat', 'xatu-random', 'role-v1'].every(m => SS.MODES.includes(m)), 'default role-v1; flat and xatu-random kept');
+  console.log(`  RULE: ${vals.length} table sets, SP total ${SD.SP_TOTAL}, cap ${SD.SP_CAP}`);
+}
+
+/* ---------------- PARITY ---------------- */
+if (want('PARITY')) {
+  const dir = path.join(ROOT, 'solver', 'rotom', 'teams');
+  const rots = fs.readdirSync(dir).filter(f => /^ladder-rotation.*\.json$/.test(f)).map(f => [f, JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'))])
+    .filter(([, J]) => Array.isArray(J.teams) && J.teams.every(t => Array.isArray(t.spreads)));
+  let sets = 0, lineSame = 0, scarf = 0, scarfMax = 0, tr = 0, trMin = 0, flatOk = 0, flatN = 0;
+  const diffs = [];
+  for (const [f, J] of rots) for (const t of J.teams) {
+    const rows = t.spreads.map(z => ({ species: z.species, item: z.item, ability: z.ability, nature: z.nature, moves: z.moves.slice() }));
+    for (const brought of [[0, 1, 2, 3], [2, 3, 4, 5]]) {
+      const G = { id: 'parity', sheets: { p1: rows, p2: rows }, brought: { p1: brought, p2: brought } };
+      const got = T.buildTeam(M, G, 'p1'), flat = T.buildTeam(M, G, 'p1', { spreads: 'flat' });
+      if (!got) { ok('PARITY', false, f + ' ' + t.id + ': the arena could not build the team'); continue; }
+      got.team.forEach((b, k) => {
+        const s = got.sheetOf[k], z = t.spreads[s], row = rows[s];
+        if (brought[0] === 2 && s < 4) return;   // each row once
+        sets++;
+        const want = {}; for (const st of STATS) want[st] = SD.statValue(row.species, row.nature, st, z.evs[st]);
+        const have = {}; for (const st of STATS) have[st] = b.st[KEY[st]];
+        const same = STATS.every(st => want[st] === have[st]);
+        if (same) lineSame++; else if (diffs.length < 8) diffs.push(f + ' ' + t.id + ' ' + row.species + ' want ' + STATS.map(x => want[x]).join('/') + ' arena ' + STATS.map(x => have[x]).join('/'));
+        const spe = []; for (let v = 0; v <= SD.SP_CAP; v++) spe.push(SD.statValue(row.species, row.nature, 'spe', v));
+        const role = SPR.role(row);
+        if (X.toID(row.item) === 'choicescarf' && role.role === 'fast') { scarf++; if (have.spe === Math.max(...spe)) scarfMax++; else if (diffs.length < 8) diffs.push('Scarf ' + row.species + ' arena Speed ' + have.spe + ' max ' + Math.max(...spe)); }
+        if (role.role === 'trickroom') { tr++; if (have.spe === Math.min(...spe)) trMin++; else if (diffs.length < 8) diffs.push('Trick Room ' + row.species + ' arena Speed ' + have.spe + ' min ' + Math.min(...spe)); }
+        const fb = flat.team[k]; flatN++;
+        const line = M.buildMon(fb.name, {}); if (line && JSON.stringify(fb.st) === JSON.stringify(line.st) && !fb._nature) flatOk++;
+      });
+    }
+  }
+  ok('PARITY', sets > 0 && lineSame === sets, `the arena body equals ROTOM's fielded stat line on every rotation set (${lineSame} of ${sets})`);
+  ok('PARITY', scarf > 0 && scarfMax === scarf, `every Choice Scarf set runs its maximum Speed in the arena (${scarfMax} of ${scarf})`);
+  ok('PARITY', tr > 0 && trMin === tr, `every Trick Room set runs its minimum Speed in the arena (${trMin} of ${tr})`);
+  ok('PARITY', flatN > 0 && flatOk === flatN, `--spreads flat still builds the pre-1.49.0 body: the table line, no nature (${flatOk} of ${flatN})`);
+  for (const d of diffs) console.log('    ' + d);
+  console.log(`  PARITY: ${sets} rotation sets, line identical ${lineSame}; Scarf ${scarfMax}/${scarf} at max Speed; Trick Room ${trMin}/${tr} at min`);
+}
+
+/* ---------------- RECORD ---------------- */
+if (want('RECORD')) {
+  if (!STORE) { console.log('  RECORD: CANNOT ANSWER — no frozen team store (games.bo3.jsonl) in this checkout or the main one'); ok('RECORD', false, 'no frozen team store'); }
+  else {
+    const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'arena-spreads-'));
+    const sha = f => require('crypto').createHash('sha256').update(fs.readFileSync(f)).digest('hex');
+    const clone = path.join(ROOT, 'solver', 'machamp', 'league', 'human-clone.json');
+    const play = (tag, extra) => {
+      const out = path.join(TMP, tag + '.jsonl');
+      const r = cp.spawnSync(process.execPath, ['--max-old-space-size=1536', path.join(ROOT, 'solver', 'mew', 'play.js'), '--mode', 'match', '--release', REL, '--x', clone, '--y', clone,
+        '--pairs', '1', '--pair-seed', '2', '--seed', '9', '--cap', '3', '--team-store', STORE, '--out', out, ...extra], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 26 });
+      ok('RECORD', r.status === 0, tag + ': play.js ran (exit ' + r.status + ') ' + String(r.stderr || '').slice(-300));
+      if (r.status !== 0) return null;
+      return { s: JSON.parse(fs.readFileSync(out + '.summary.json', 'utf8')), lines: fs.readFileSync(out, 'utf8').trim().split('\n').map(JSON.parse) };
+    };
+    const d = play('default', []);
+    if (d) {
+      ok('RECORD', d.lines.length === 2 && d.lines.every(l => l.spreads === 'role-v1'), 'no --spreads: every match line says role-v1 (' + d.lines.map(l => l.spreads).join(',') + ')');
+      ok('RECORD', d.s.spreads && d.s.spreads.spreads === 'role-v1' && d.s.spreads.table && d.s.spreads.table.sha256 === sha(SS.TABLE_FILE) && d.s.spreads.fielded && d.s.spreads.fielded.sets > 0,
+        'the summary stamps role-v1, the table at its sha256 and a fielded digest (' + JSON.stringify(d.s.spreads && { spreads: d.s.spreads.spreads, table: d.s.spreads.table && d.s.spreads.table.sha256.slice(0, 12), fielded: d.s.spreads.fielded }) + ')');
+      ok('RECORD', d.s.spreads && d.s.spreads.counters.bodies_dressed === 16 && !d.s.spreads.counters.flat_fallback, 'all 16 bodies dressed at role-v1 (' + JSON.stringify(d.s.spreads && d.s.spreads.counters) + ')');
+    }
+    const f = play('flat', ['--spreads', 'flat']);
+    if (f) {
+      ok('RECORD', f.lines.every(l => l.spreads === 'flat') && f.s.spreads.spreads === 'flat' && f.s.spreads.counters.bodies_dressed === 0, '--spreads flat: every line and the stamp say flat, 0 bodies dressed');
+    }
+    const x = play('xatu', ['--spreads', 'xatu-random']);
+    if (x) {
+      ok('RECORD', x.lines.every(l => l.spreads === 'xatu-random') && x.s.spreads.spreads === 'xatu-random' && x.s.spreads.counters.bodies_dressed === 16, '--spreads xatu-random: the lines and stamp say so, 16 bodies dressed');
+    }
+    console.log('  RECORD: default ' + (d && d.s.spreads.spreads) + ', flat ' + (f && f.s.spreads.spreads) + ', xatu ' + (x && x.s.spreads.spreads));
+  }
+}
+
+/* ---------------- RED ---------------- */
+let blind = false;
+if (!NO_RED && !ONLY) {
+  for (const [brk, clause] of [['scarf', 'PARITY'], ['stamp', 'RECORD']]) {
+    const r = cp.spawnSync(process.execPath, [__filename, '--no-red', '--only', clause, '--release', REL], { cwd: ROOT, encoding: 'utf8', env: Object.assign({}, process.env, { SPREADS_SOURCE_BREAK: brk }), maxBuffer: 1 << 26 });
+    const red = r.status === 1 && new RegExp('FAIL \\[' + clause + '\\]').test(r.stdout);
+    console.log(`  RED SPREADS_SOURCE_BREAK=${brk}: ${red ? clause + ' went red, as it must' : 'STAYED GREEN (exit ' + r.status + ') — the test is blind'}`);
+    if (!red) blind = true;
+  }
+}
+
+console.log(`\ntest-arena-spreads: ${checks - fails}/${checks} ${fails ? 'RED ' + JSON.stringify([...failed]) : blind ? 'BLIND' : 'GREEN'}`);
+process.exit(fails ? 1 : blind ? 3 : 0);

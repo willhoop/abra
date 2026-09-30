@@ -54,6 +54,7 @@ function worker(shard, shards) {
   const T = require('../arena/teams.js');
   const PA = require('../miltank/prior_adapter.js').create(API, require('../mag/infer.js').load());   // DODUO v1, frozen
   const R = require('../miltank/rollout.js').create(API, { buildBody: T.buildBody });
+  const replayed = {};   // spread mode -> games replayed at it
   const L = require('../porygon2/leaf.js').create(API, { model: LEAF });
   const c = { games: 0, positions: 0, replay_mismatch: 0, no_joint: 0, rollouts: 0, terminal: 0, leaf: 0, errors: 0 };
   const out = path.join(OUT, `deep-${shard}.jsonl`);
@@ -100,7 +101,11 @@ function worker(shard, shards) {
       c.games++;
       try {
         const G = { id: rec.id, sheets: rec.sheets, brought: rec.brought };
-        const a = T.buildTeam(M, G, 'p1'), b = T.buildTeam(M, G, 'p2');
+        /* EXACT REPLAY INCLUDES THE SPREADS: the record's own mode (abra/regmc 1.49.0; a record without one predates it
+         * and was played `flat`), never this process's default — a replay at another spread departs on turn 1 */
+        const mode = rec.spreads || 'flat';
+        replayed[mode] = (replayed[mode] || 0) + 1;
+        const a = T.buildTeam(M, G, 'p1', { spreads: mode, seed: rec.battle_seed }), b = T.buildTeam(M, G, 'p2', { spreads: mode, seed: rec.battle_seed });
         const rng = API.makeRng(BREAK === 'replay' ? rec.battle_seed + 1 : rec.battle_seed);
         const S = API.newBattle(a.team, b.team, { rng });
         const ctx = PA.newGame(G);
@@ -123,7 +128,7 @@ function worker(shard, shards) {
       if (c.games % 50 === 0) console.log(`  [deep ${shard}] ${c.games} games ${c.positions} positions mismatch ${c.replay_mismatch} ${((Date.now() - t0) / 1000).toFixed(0)}s`);
     }
   }
-  fs.writeFileSync(out + '.summary.json', JSON.stringify({ shard, counts: c, engine_release: ENGINE.id, release_stamp: ENGINE.stamp, seconds: (Date.now() - t0) / 1000, break: BREAK || null }));
+  fs.writeFileSync(out + '.summary.json', JSON.stringify({ shard, counts: c, spreads: Object.fromEntries(Object.keys(replayed).map(m => [m, Object.assign({ games: replayed[m] }, require('../arena/spread_source.js').open(m, { M }).stamp())])), engine_release: ENGINE.id, release_stamp: ENGINE.stamp, seconds: (Date.now() - t0) / 1000, break: BREAK || null }));
   console.log(`  [deep ${shard}] done ${JSON.stringify(c)}`);
 }
 
