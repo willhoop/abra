@@ -6,6 +6,18 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ---
 
+## 2026-09-30
+
+### PORYGON2 v2: design pre-registered, datasets built, nothing trained (abra/regmc 1.34.0)
+- The value is over the public state. Each unrevealed field is an UNK token, never a prior. Both ratings are inputs
+  (Maia-2 form), queried at 1600.
+- Training pretrains on bo1, then fine-tunes on bo3 with bo1 replay, at K = 1 position per game per epoch.
+- The auxiliary heads are the KataGo ownership/score analogues. `solver/porygon2/v2/DESIGN.md`.
+- Datasets: bo1 27,116 games / 218,815 positions; bo3 24,940 / 197,905.
+- Both players at 1500 or above: bo1 364, bo3 0.
+- Gate (a) can resolve only the bands below 1200 on bo3: 1,023 test games that v1 never saw.
+- Leak test GREEN 222,895/222,895; RED on 2 breaks. `docs/_reports/2026-09-30-porygon2-v2-design.md`.
+
 ## 2026-09-29
 
 ### CHOMP ladder run prepared, not launched; `--preview chomp` was dropped by the supervisor (abra/regmc 1.30.0)

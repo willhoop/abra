@@ -21,6 +21,37 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.34.0] — 2026-09-30
+
+### Added
+- **PORYGON2 v2 is designed and its training data is built. It is not trained, and no gate has been run.**
+  - `solver/porygon2/v2/DESIGN.md` gives the cited design. v2 is a value over the public state. Every unrevealed field
+    is an UNK token and is never filled from a prior. Both pre-game ratings are inputs, in the Maia-2 form. The MEDICHAM
+    pair facts are computed on known fields only. There are auxiliary heads in the KataGo style. Training uses K = 1
+    position per game per epoch. The schedule is bo1 pretrain, then bo3 fine-tune.
+  - `solver/porygon2/v2/preregistration.json` holds gate (a) by rating band, on bo3 test games that v1 never saw, and
+    gate (c): an SPRT against v1 at equal wall-clock. Neither has been run.
+- **`solver/porygon2/v2/reveal.js` and `extract.js`** are the store-only position extractor.
+  - It reads the parsed `.gz` store explicitly and applies `engine/quality.js` `reasons()` with the behavioural-bot set.
+  - It rebuilds the public state at every `|turn|n` from the raw log, with a per-field reveal state, both ratings and
+    the labels.
+  - bo1: **27,116 games / 218,815 positions**. bo3: **24,940 / 197,905**. The files are in
+    `solver/out/porygon2-v2/` (gitignored). The manifests `solver/porygon2/v2/manifest-bo1.json` and `manifest-bo3.json`
+    record the inputs and outputs by sha256.
+  - Both players at 1500 or above: bo1 364 games, bo3 **0**.
+- **`solver/tests/test-porygon2-v2-extract.js`**: a position at turn n is byte-identical to one built from the log cut
+  at `|turn|n`, and every revealed field in it is named before that line. GREEN 222,895/222,895 on 590 real games. It
+  goes RED under `PORY2V2_BREAK=leak` and under `PORY2V2_BREAK=late`.
+
+### Notes
+- MINOR: new dataset figures; the basis is unchanged; no published figure moves.
+- Filed, not fixed:
+  - `solver/arena/teams.js` `buildBody` fills an unknown ability with the species' first ability. That is harmless for
+    open sheets and must not be used on bo1 data.
+  - The parsed store's `sets` has errors, found by the cross-check: a Traced ability is credited to the tracer, an item
+    is credited to the wrong member, and a move named in a `|cant|` line is missed. These are OPS's to fix.
+- `docs/_reports/2026-09-30-porygon2-v2-design.md`.
+
 ## [1.30.1] — 2026-09-29
 
 ### Fixed

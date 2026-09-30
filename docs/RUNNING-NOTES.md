@@ -53,6 +53,22 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.34.0] — 2026-09-30 — **PORYGON2 v2: design pre-registered and datasets built; nothing trained**
+- **What changed.**
+  - New `solver/porygon2/v2/`: `reveal.js` and `extract.js`, the store-only position extractor; `DESIGN.md`;
+    `preregistration.json`; `manifest-bo1.json` and `manifest-bo3.json`.
+  - New test `solver/tests/test-porygon2-v2-extract.js`.
+  - `solver/PLAN.md`: the PORYGON2 status cell.
+- **Measured.**
+  - bo1: 27,116 games / 218,815 positions. bo3: 24,940 / 197,905 (`solver/porygon2/v2/manifest-*.json`).
+  - Both players at 1500 or above: bo1 364, bo3 0.
+  - bo3 test games v1 never saw: 1,023.
+  - Leak test GREEN 222,895/222,895; RED under both breaks.
+  - bo1 end-of-game reveals against the store's `sets`: moves identical 98.49% of 182,872 members.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MODELS: PORYGON2 v2 (designed, not trained).
+
 ## [abra/regmc 1.30.1] — 2026-09-29 — **`test-game-diff.js` and five more engine tests write per-regulation files under Reg M-C**
 - **What changed.** `engine/regulation.js` `PER_REGULATION_ARTIFACTS` gains `game-diff.json`, `forme-assert.json`, `switch-back-renamed.json`, `tag-walk.json`, `tag-consumption.json` and `unmodelled-clicks.json`. Each writer names its path through `artifactFor`. `test-game-diff.js` and `test-unmodelled-clicks.js` read the tags through `fileFor`, because a bare fs read returned Reg M-B's under Reg M-C. `test-tag-consumed.js` prints `NO BASELINE` when it has none. `tests/test-regulation-artifacts.js` maps the six names.
 - **Measured.** NO FIGURE. `ABRA_REGULATION=regmc node tests/test-game-diff.js` exit 1 (the guard refused `data/game-diff.json` after 5 of 5 games agreed) → exit 0, writes `data/game-diff-regmc.json` (`showdown_commit` `f10d6798`). The plain run exits 0 and writes `data/game-diff.json` (`20ad99ff`). The other five: regmc exit 0, sibling written; plain exit 0.
