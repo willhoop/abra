@@ -53,6 +53,19 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.46.1] — 2026-09-30 — **Reg M-C gate re-run on release `97451d5fbf40` (re-weighted tags): OPEN, 10 of 10, nothing moved**
+- **What changed.** No code. New release `97451d5fbf40` (force-tracked), cut after 1.38.0 re-weighted
+  `data/tags-regmc.json`, which moves Quick Guard's chooser click rate (abra/regmc 1.38.0). The gate artifacts are re-run on it.
+- **Measured.** Release `97451d5fbf40`, census pin `data/verification/census-pin-regmc-1b81d0d24513.json` (1027 live,
+  0 missing), `data/team-pool-frozen-regmc`. Lattices `--games` 1200 / 1600 / 1900: board-material and narration 0 of
+  955 / 1266 / 1497 (`data/game-differential{,.g1600,.g1900}-regmc.json`). Damage 0 of 6000 at every corner
+  (`data/engine-diff-regmc.json`); roster 166/166, 210/214, 510/511 (`data/roster.{items,abilities,moves}-regmc.json`);
+  mechanics staged 0 diverge over 4,867 games (`data/all-mechanics-fire-regmc.json`). `node engine/quarantine.js`
+  (Reg M-C): **OPEN, 10 of 10.** `docs/_reports/2026-09-30-regmc-gate-rerun.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing. Every gate figure reads the same as on `4067de46a0ee`; only the release it stands on moves.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 1.46.0] — 2026-09-30 — **PORYGON2 v1-r2 (deep labels on c1): gate (a) FAILS on the human half, no SPRT, not landed**
 - **What changed.**
   - `solver/porygon2/v1/label.js` gains two flags: `--train-only` labels only train-split games, and

@@ -23,7 +23,7 @@ MEASURE — can we believe a number
     older than its input engine-data.js
     (+10 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 214 unsafe, 2 void (declared), 35 possibly stale, 30 ok, 10 missing
+  provenance: 259 unsafe, 2 void (declared), 11 possibly stale, 15 ok, 10 missing
     RATCHET TRIPPED — the unstamped list grew; provenance.js exited non-zero: _diag41-sample.json, _diag46-cards.json, _diag46-sample.json, _diag46b-cards.json, _diag46b-sample.json, _diag77-cards.json
     their generators ship without recording what CONTENT they read — stamp source_digests
   click censoring: WITHHELD — engine/provenance.js calls data/click-censoring-census.json UNSAFE.
@@ -38,7 +38,7 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-09-24 15:17
 ```
 
-_stamped 2026-09-29 18:21_
+_stamped 2026-09-30 08:46_
 
 <!-- /GENERATED -->
 

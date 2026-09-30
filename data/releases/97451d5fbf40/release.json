@@ -1,0 +1,333 @@
+{
+  "id": "97451d5fbf40",
+  "cut": "2026-09-30T10:36:08.275Z",
+  "why": "tags-regmc re-weighted from the .gz store (abra/regmc 1.38.0): gate re-run",
+  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+  "cuts": [
+    {
+      "at": "2026-09-30T10:36:08.275Z",
+      "why": "tags-regmc re-weighted from the .gz store (abra/regmc 1.38.0): gate re-run",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 22296,
+        "entry": "engine/engine_release.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:08:38.370Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 21436,
+        "entry": "tests/test-perish-song.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:08:43.838Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 21668,
+        "entry": "tests/test-forme-assert.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:08:47.461Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 18144,
+        "entry": "tests/probe_regenerator_line.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:17:23.718Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 11396,
+        "entry": "tests/probe_poltergeist_item_line.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:17:44.286Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 8716,
+        "entry": "tests/probe_mental_herb_order.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:17:48.879Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 18892,
+        "entry": "engine/all_mechanics_fire.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:20:21.732Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 15388,
+        "entry": "tests/probe_mid_cat_reload.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:31:26.646Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 25604,
+        "entry": "tests/test-perish-song.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:31:45.280Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 22344,
+        "entry": "tests/test-forme-assert.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:31:55.002Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 25852,
+        "entry": "tests/probe_regenerator_line.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:38:16.232Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 23160,
+        "entry": "tests/probe_poltergeist_item_line.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:38:36.296Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 22780,
+        "entry": "tests/probe_mental_herb_order.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:38:40.235Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 16300,
+        "entry": "engine/all_mechanics_fire.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:41:11.371Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 15368,
+        "entry": "tests/probe_mid_cat_reload.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:41:18.770Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 8600,
+        "entry": "tests/probe_encore_pp_end.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:41:20.023Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 17760,
+        "entry": "tests/probe_disguise_crit.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:41:23.582Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 16924,
+        "entry": "tests/probe_accuracy_roads.js"
+      }
+    },
+    {
+      "at": "2026-09-30T12:42:14.406Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+      "by": {
+        "pid": 15756,
+        "entry": "tests/probe_volatile_leaves.js"
+      }
+    }
+  ],
+  "files": {
+    "engine/medicham2-browser.js": "33219d25bdf1",
+    "engine/board.js": "c85a3b756c98",
+    "engine/rollout_leaf.js": "eacf05ff8d30",
+    "engine/position_features.js": "bb71676d3669",
+    "engine/tags.js": "13cdeb051720",
+    "engine/champions_sim.js": "8094725f52a8",
+    "data/residual-order.json": "eff160ad1c5a",
+    "data/switchin-order.json": "24a007a66b7d",
+    "engine/mc_key.js": "aaa095762671",
+    "engine/lookup.js": "17f49e5aed43",
+    "engine/set_priors.js": "f8a81445ee3a",
+    "engine/smogon_priors.js": "ebd062f756c8",
+    "engine/quality.js": "9b168679e3e9",
+    "engine/showdown_path.js": "46646401ede2",
+    "engine/regulation.js": "c00dcf435c9d",
+    "data/move-effects.js": "f35ecd91ba86",
+    "data/ability-blocks.json": "86741fd35452",
+    "data/smogon-priors.json": "f2dc78cea6c5",
+    "data/regulations.json": "6c7c3e3dd06c",
+    "data/quality-filter.json": "c74b46002e2d",
+    "data/engine-data.js": "bbc417dfae0e",
+    "data/abra-tags.js": "fc30f9a9392e",
+    "data/tags.json": "26ee107ce6a8",
+    "data/policy-weights.json": "626c1d240782",
+    "data/policy-weights-joint.json": "e2aca467ff04",
+    "data/move-priors.json": "e667fe8ab457",
+    "engine/pp.js": "30b12a4ef623",
+    "data/rollout-switch-census.json": "b8a5cee2f0a9",
+    "engine/medicham_api.js": "f0264a11558b",
+    "data/engine-data-regmc.js": "a6ad04e92d4e",
+    "data/tags-regmc.json": "87cbb3889809",
+    "data/move-priors-regmc.json": "eab0c9b023df",
+    "data/move-effects-regmc.js": "8c57407e7641"
+  },
+  "regulation": "regmc",
+  "engine_data": "data/engine-data-regmc.js",
+  "regulation_files": [
+    "data/engine-data-regmc.js",
+    "data/tags-regmc.json",
+    "data/move-priors-regmc.json",
+    "data/move-effects-regmc.js"
+  ],
+  "provides": [
+    "ACCMOD",
+    "CH_EXACT",
+    "CH_ONE",
+    "CODE_OF_STATUS",
+    "EXPOSURE_HORIZON",
+    "MEDFAILS",
+    "MEDI_SPREAD",
+    "MEDSEEN",
+    "MID_EVENT_SEED",
+    "NATURE_SHIFT",
+    "PROTECTMOVES",
+    "RESIDUAL_CLOCK_ORDER",
+    "RESIDUAL_EXPIRY",
+    "RESIDUAL_GROUPS",
+    "RNG_STREAMS",
+    "STALL_SHARED",
+    "SUBPASS",
+    "TRACE_EVENTS",
+    "TURN_ORDER",
+    "WEATHER_REFUSES_STATUS",
+    "accStageMul",
+    "actionPriority",
+    "applyEntryEffects",
+    "applyIntimidate",
+    "applyStatus",
+    "auraStateOf",
+    "battle",
+    "battleInit",
+    "battleOver",
+    "battleResult",
+    "battleScopeNew",
+    "battleScopeRun",
+    "battleTurn",
+    "bestMoveVs",
+    "buildMon",
+    "buildMonFromSet",
+    "canMegaNow",
+    "canTakeStatus",
+    "ch4096",
+    "clickFragility",
+    "compareTurnOrder",
+    "dmgRange",
+    "effSpeed",
+    "fails",
+    "foeThreatensGuardClass",
+    "futureSight",
+    "guardMoveAimedAtFoes",
+    "hitChance",
+    "hitProb",
+    "isGrounded",
+    "leanRun",
+    "md4096",
+    "mdChain",
+    "megaEvolveNow",
+    "megaTargetFor",
+    "midEventBase",
+    "midEventDice",
+    "midEventHash",
+    "midEventLog",
+    "midEventValue",
+    "moveAccuracy",
+    "moveDisabledBy",
+    "moveFx",
+    "movePriority",
+    "moveTagParam",
+    "moveTargetClass",
+    "mustStruggle",
+    "natureL50",
+    "natureShift",
+    "natureStat",
+    "parsePaste",
+    "physicalShare",
+    "playerAction",
+    "powderBlocked",
+    "ppMax",
+    "ppSpentMap",
+    "pranksterBlocked",
+    "printedAccuracy",
+    "priorityRefusedAbove",
+    "punishExposure",
+    "residualClockPlacement",
+    "residualExpiryDeferred",
+    "residualFollowerReport",
+    "residualFollowerRuns",
+    "residualShadowProbe",
+    "residualShadowSortForTest",
+    "rngStreams",
+    "seen",
+    "selectableMoves",
+    "setPurePriors",
+    "sideGuardClickRate",
+    "sideWiped",
+    "sortTurnOrder",
+    "speedFlipShare",
+    "spreadL50",
+    "stallBoardCounter",
+    "stallCounter",
+    "statusCostOf",
+    "switchTrapVerdict",
+    "terrainId",
+    "traceCanon",
+    "traceCounts",
+    "traceListSink",
+    "turnOrderKey",
+    "weatherId",
+    "weatherTurns",
+    "winProb2"
+  ],
+  "provides_by": "engine_release.js exportedNames — static parse of module.exports, comments stripped",
+  "note": "IMMUTABLE. A measurement reads these bytes, not the live tree, so other divisions may keep working while it runs. Re-cutting an identical tree returns this same id and APPENDS to cuts[]; `cut` and `why` are the FIRST freeze of these bytes and are never overwritten. The event log is cuts.jsonl beside this file and is the source of truth for cuts[]."
+}

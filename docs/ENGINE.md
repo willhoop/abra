@@ -2350,33 +2350,27 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  1027/1027 probed mechanics live, 0 missing   (census 2026-09-26 08:31)
+  1027/1027 probed mechanics live, 0 missing   (census 2026-09-30 06:40)
     the census probes what somebody thought to probe: 305 of 307 in-scope tags carry a probe, 2 carry none (20 of 327
     tags have no in-scope carrier); 0 of 381 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 3.3 days old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-26 10:02)
-    seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
-    the volley loop IS damage-compared in this draw: 150 of 6000 rows ran as volleys (132 multi-hit move, 18 Parental
-    Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 10 of the 14 moves carrying the
-    multiHit tag were drawn; 4 were never drawn at all (bonerush, doublehit, scaleshot, tailslap) — never drawn is a
-    SAMPLING gap, not an exclusion.
-    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
-    a differential hit is NOT in the census count above — the census probes what someone thought to probe
-  interaction matrix: 1685/1685 live carrier x reactor pairs agree with the official engine (100.0%)   (2026-09-29 18:19)
-    2328 of 7337 theoretical pairs staged — agreement is a claim about the 2328 that ran, not about the 7337
-      524 inert      not scored — the reference engine behaves identically with and without the reactor
-      119 saturated  not scored — the control arm already dealt 100% of HP, so a damage ratio is clamped
+    (all-mechanics-fire.json, 41 min old). node engine/coverage.js
+  differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/97451d5fbf40/ is not in the repository. Cited by docs/ADR-002-showdown-is-the-authority.md, docs/DAMAGE-STAGES.md. From a fresh clone this figure's evidence chain ends at the string "97451d5fbf40".
+    it becomes quotable again when this is re-run: node tests/test-engine-diff.js
+  interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
+    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
+    it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 8af4bdbb88f4 now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 305/307 in-scope probed, 2 unprobed;  307/307 have an engine consumer on every in-scope row, 0 do not;  20 of 327 tags have no in-scope carrier
-    consumedBy comes from engine/tag_dex.js grepping board.js and medicham2-browser.js for a hint
-    string, which misses tags looked up by name — so "no consumer" over-states the gap.
+  tag coverage: WITHHELD — engine/provenance.js calls data/tags.json UNSAFE.
+    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
+    it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-09-29 18:21_
+_stamped 2026-09-30 08:46_
 
 <!-- /GENERATED -->
 

@@ -21,6 +21,22 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.46.1] — 2026-09-30
+
+### Notes
+- **Reg M-C gate re-run on a new release, `97451d5fbf40`: OPEN, 10 of 10. No figure moved.** 1.38.0 re-weighted
+  `data/tags-regmc.json` from the full .gz store, which moves Quick Guard's chooser click rate (0.0271 -> 0.0390), so
+  the gate artifacts stamped on `4067de46a0ee` described a different engine. Three more frozen files differ from
+  `4067de46a0ee` (`engine/regulation.js`, `engine/quality.js`, `data/quality-filter.json`); the simulator is
+  byte-identical.
+  - Census 1027 live / 0 missing, pin `census-pin-regmc-1b81d0d24513.json`; pool `data/team-pool-frozen-regmc`.
+  - Lattices (`--games` 1200 / 1600 / 1900, Reg M-C's `LATTICE_GAMES`): 0 board-material and 0 narration of 955,
+    1266 and 1497, the same pools and the same compared-boundary counts as before.
+  - Damage 0 of 6000 at every corner; roster 166/166, 210/214, 510/511; mechanics staged 0 diverge over 4,867 games.
+  - The release directory is force-tracked so the artifacts re-open from a clone.
+  - PATCH: every published gate figure is unchanged; only the release it was measured on moves.
+    `docs/_reports/2026-09-30-regmc-gate-rerun.md`.
+
 ## [1.46.0] — 2026-09-30
 
 ### Added
