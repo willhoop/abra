@@ -53,6 +53,21 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.44.0] — 2026-09-30 — **Ladder spreads: a fast species holds its speed tier; both rotations re-spread, teams unchanged**
+- **What changed.** `solver/rotom/spreads.js` `speedFor` works from the tiers, the 0.75 quantile and the heaviest
+  flippable tier. `solver/rotom/teams/ladder-rotation.json` and `ladder-rotation-top.json` are re-spread (Stat Points
+  only). `test-rotom-spreads.js` gains a TIER clause.
+- **Measured.**
+  - Top-tier speed 172. Median still 138.
+  - Of 48 sets that are neither Scarf/Tailwind nor Trick Room, 16 are top tier and now run 32 Speed SP.
+  - Sneasler, Gengar-Mega and Raichu-Mega went from 0 to 32.
+  - `test-rotom-spreads.js` GREEN 27 of 27, REPRODUCE included. RED under `--break tier` (17 of 19) and
+    `SPREADS_BREAK=median` (24 of 27).
+  - Population: floor 1410, 150 teams (was 1409 and 148), on the same store sha.
+- **Basis.** unchanged.
+- **Supersedes.** The 1.35.0 spreads in both rotation files (`spreads` blocks). No series has played either.
+- **Owed to the next major.** MODELS: ROTOM's ladder spreads rule.
+
 ## [abra/regmc 1.43.0] — 2026-09-30 — **ROTOM's world lays the field from the log with its clocks in residuals; lead-set weather and terrain are no longer one turn short**
 - **What changed.** `solver/rotom/world.js` `layField`: with the log, the field comes from `world_log.walk` and its
   clocks count residuals (`|upkeep|`), not turn numbers. The old public-state path stays for a build without the log.

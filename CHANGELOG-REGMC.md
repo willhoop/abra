@@ -21,6 +21,27 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.44.0] — 2026-09-30
+
+### Fixed
+- **A fast species no longer runs 0 Speed.** The 1.35.0 rule gave a set that is neither Scarf/Tailwind nor Trick
+  Room the least Speed SP that beat the top-meta median (138). Sneasler, Gengar-Mega and Raichu already beat 138 with 0,
+  so they got 0 and lost to every invested member of their own tier. Two chomp1 OUTSPED losses followed.
+- The rule now works against the population's speed tiers (every member at the top of its speed options):
+  - a set whose cap speed reaches the 0.75 quantile of the tiers (172 on this store) runs the cap;
+  - otherwise it runs the least SP that beats the heaviest tier it can flip by investing;
+  - Scarf / Tailwind at the cap and Trick Room at 0 are unchanged.
+- **Both rotations re-spread** with `solver/rotom/respread.js`, on the same store sha as before (`fe78202a`). The
+  teams are unchanged. For example Sneasler 0 → 32 Speed SP (speed 172), Gengar-Mega 0 → 32 (200), Raichu-Mega 0 → 32
+  (200) and Froslass-Mega → 32 (189). Middle-speed sets now buy the tier just under them (Incineroar 23, Kingambit 11).
+- The population re-read at floor 1410 with 150 teams, where the old record said 1409 and 148. The same store now
+  filters differently since the store-quality change of 1.36.0. Both files record the new population.
+
+### Added
+- `solver/tests/test-rotom-spreads.js` TIER clause: every such set runs `speedFor` on the file's own recorded tiers,
+  and no top-tier set runs below the cap. Red under `--break tier` and `SPREADS_BREAK=median`. GREEN 27 of 27,
+  including REPRODUCE on the recorded store.
+
 ## [1.43.0] — 2026-09-30
 
 ### Fixed

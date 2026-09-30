@@ -49,7 +49,7 @@
   "player_teams_at_floor": 148,
   "baseline_resid_at_floor": -0.0491
  },
- "spread_rule": "solver/rotom/spreads.js: OBSERVED Reg M-C spread (Smogon moveset file for gen9championsvgc2026regmcbo3, modal spread for the species with the sheet nature) if one exists, else DERIVED: role from the set (Choice Scarf or Tailwind -> Speed at the cap; Trick Room -> Speed 0; else the least SP that outspeeds the weighted median effective speed of the top-meta population at full Speed investment, or 0); then the least HP/Def/SpD SP that survives the weighted median top-meta attacker's best hit (top roll), or 0; the rest into the used attacking stat; any remainder to the bulk split surviving most. Nature and IVs are the sheet's / the format's.",
+ "spread_rule": "solver/rotom/spreads.js: OBSERVED Reg M-C spread (Smogon moveset file for gen9championsvgc2026regmcbo3, modal spread for the species with the sheet nature) if one exists, else DERIVED: role from the set (Choice Scarf or Tailwind -> Speed at the cap; Trick Room -> Speed 0; else, with the top-meta population's effective speeds at full Speed investment as the tiers: the cap when the set's cap speed reaches the weighted 0.75 quantile of those tiers, otherwise the least SP that strictly outspeeds the heaviest tier between its speed at 0 SP and its speed at the cap, or 0 if there is none); then the least HP/Def/SpD SP that survives the weighted median top-meta attacker's best hit (top roll), or 0; the rest into the used attacking stat; any remainder to the bulk split surviving most. Nature and IVs are the sheet's / the format's.",
  "validator": "Showdown TeamValidator.get(gen9championsvgc2026regmcbo3) on the Reg M-C checkout — every team below passed",
  "families_considered": [
   {
@@ -279,7 +279,7 @@
     0,
     1
    ],
-   "packed": "Kingambit||FocusSash|Defiant|KowtowCleave,SuckerPunch,IronHead,LowKick|Adamant|32,32,2,,,|M||||]Garchomp||LifeOrb|RoughSkin|DragonClaw,StompingTantrum,Earthquake,Protect|Jolly|6,32,,,23,5|M||||]Charizard||CharizarditeY|Blaze|HeatWave,SolarBeam,WeatherBall,Protect|Modest|14,,,32,1,19|M||||]Sylveon||FairyFeather|Pixilate|HyperVoice,HyperBeam,QuickAttack,Protect|Modest|7,,26,32,1,|M||||]Farigiraf||SitrusBerry|ArmorTail|TrickRoom,Psychic,Thunderbolt,Protect|Bold|20,,10,32,4,|M||||]Aerodactyl||Aerodactylite|Unnerve|RockSlide,DualWingbeat,Tailwind,Protect|Jolly|2,32,,,,32|M||||",
+   "packed": "Kingambit||FocusSash|Defiant|KowtowCleave,SuckerPunch,IronHead,LowKick|Adamant|23,32,,,,11|M||||]Garchomp||LifeOrb|RoughSkin|DragonClaw,StompingTantrum,Earthquake,Protect|Jolly|6,32,,,24,4|M||||]Charizard||CharizarditeY|Blaze|HeatWave,SolarBeam,WeatherBall,Protect|Modest|15,,,32,1,18|M||||]Sylveon||FairyFeather|Pixilate|HyperVoice,HyperBeam,QuickAttack,Protect|Modest|3,,8,32,,23|M||||]Farigiraf||SitrusBerry|ArmorTail|TrickRoom,Psychic,Thunderbolt,Protect|Bold|20,,10,32,4,|M||||]Aerodactyl||Aerodactylite|Unnerve|RockSlide,DualWingbeat,Tailwind,Protect|Jolly|2,32,,,,32|M||||",
    "spreads": [
     {
      "species": "Kingambit",
@@ -293,12 +293,12 @@
       "Low Kick"
      ],
      "evs": {
-      "hp": 32,
+      "hp": 23,
       "atk": 32,
-      "def": 2,
+      "def": 0,
       "spa": 0,
       "spd": 0,
-      "spe": 0
+      "spe": 11
      },
      "source": "derived",
      "role": "other",
@@ -306,9 +306,12 @@
      "conflict": null,
      "attack_stat": "atk",
      "speed": {
-      "sp": 0,
-      "effective": 70,
-      "median": 138
+      "sp": 11,
+      "effective": 81,
+      "at_cap": 102,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 80"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
@@ -333,8 +336,8 @@
       "atk": 32,
       "def": 0,
       "spa": 0,
-      "spd": 23,
-      "spe": 5
+      "spd": 24,
+      "spe": 4
      },
      "source": "derived",
      "role": "other",
@@ -342,13 +345,16 @@
      "conflict": null,
      "attack_stat": "atk",
      "speed": {
-      "sp": 5,
-      "effective": 139,
-      "median": 138
+      "sp": 4,
+      "effective": 138,
+      "at_cap": 169,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 137"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.801,
+      "share_survived": 0.8,
       "share_at_zero": 0.734,
       "endures": false
      }
@@ -365,12 +371,12 @@
       "Protect"
      ],
      "evs": {
-      "hp": 14,
+      "hp": 15,
       "atk": 0,
       "def": 0,
       "spa": 32,
       "spd": 1,
-      "spe": 19
+      "spe": 18
      },
      "source": "derived",
      "role": "other",
@@ -378,14 +384,17 @@
      "conflict": null,
      "attack_stat": "spa",
      "speed": {
-      "sp": 19,
-      "effective": 139,
-      "median": 138
+      "sp": 18,
+      "effective": 138,
+      "at_cap": 152,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 137"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.75,
-      "share_at_zero": 0.691,
+      "share_survived": 0.749,
+      "share_at_zero": 0.692,
       "endures": false
      }
     },
@@ -401,12 +410,12 @@
       "Protect"
      ],
      "evs": {
-      "hp": 7,
+      "hp": 3,
       "atk": 0,
-      "def": 26,
+      "def": 8,
       "spa": 32,
-      "spd": 1,
-      "spe": 0
+      "spd": 0,
+      "spe": 23
      },
      "source": "derived",
      "role": "other",
@@ -414,14 +423,17 @@
      "conflict": null,
      "attack_stat": "spa",
      "speed": {
-      "sp": 0,
-      "effective": 80,
-      "median": 138
+      "sp": 23,
+      "effective": 103,
+      "at_cap": 112,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 102"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.813,
-      "share_at_zero": 0.609,
+      "share_survived": 0.672,
+      "share_at_zero": 0.606,
       "endures": false
      }
     },
@@ -452,12 +464,15 @@
      "speed": {
       "sp": 0,
       "effective": 80,
-      "median": 138
+      "at_cap": 112,
+      "median": 138,
+      "top_tier": 172,
+      "why": "Trick Room: 0"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
       "share_survived": 0.902,
-      "share_at_zero": 0.824,
+      "share_at_zero": 0.82,
       "endures": false
      }
     },
@@ -488,12 +503,15 @@
      "speed": {
       "sp": 32,
       "effective": 222,
-      "median": 138
+      "at_cap": 222,
+      "median": 138,
+      "top_tier": 172,
+      "why": "fast role: the cap"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.59,
-      "share_at_zero": 0.581,
+      "share_survived": 0.588,
+      "share_at_zero": 0.579,
       "endures": false
      }
     }
@@ -554,7 +572,7 @@
     4,
     2
    ],
-   "packed": "Salamence||Salamencite|Intimidate|HyperVoice,DracoMeteor,Tailwind,Protect|Timid|2,,,32,,32|M||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|23,,,32,11,|F||||]Sneasler||GrassySeed|Unburden|DireClaw,CloseCombat,FakeOut,Protect|Adamant|16,32,17,,1,|F||||]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,FakeOut,GrassyGlide,HighHorsepower|Adamant|20,32,1,,13,|M||||]Gholdengo||LifeOrb|GoodasGold|MakeItRain,ShadowBall,NastyPlot,Protect|Timid|3,,8,32,,23|||||]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly|17,32,,,,17|M||||",
+   "packed": "Salamence||Salamencite|Intimidate|HyperVoice,DracoMeteor,Tailwind,Protect|Timid|2,,,32,,32|M||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|22,,2,10,,32|F||||]Sneasler||GrassySeed|Unburden|DireClaw,CloseCombat,FakeOut,Protect|Adamant|3,25,5,,1,32|F||||]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,FakeOut,GrassyGlide,HighHorsepower|Adamant|2,32,,,24,8|M||||]Gholdengo||LifeOrb|GoodasGold|MakeItRain,ShadowBall,NastyPlot,Protect|Timid|4,,8,32,,22|||||]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly|18,32,,,,16|M||||",
    "spreads": [
     {
      "species": "Salamence",
@@ -583,7 +601,10 @@
      "speed": {
       "sp": 32,
       "effective": 189,
-      "median": 138
+      "at_cap": 189,
+      "median": 138,
+      "top_tier": 172,
+      "why": "fast role: the cap"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
@@ -604,12 +625,12 @@
       "Protect"
      ],
      "evs": {
-      "hp": 23,
+      "hp": 22,
       "atk": 0,
-      "def": 0,
-      "spa": 32,
-      "spd": 11,
-      "spe": 0
+      "def": 2,
+      "spa": 10,
+      "spd": 0,
+      "spe": 32
      },
      "source": "derived",
      "role": "other",
@@ -617,14 +638,17 @@
      "conflict": null,
      "attack_stat": "spa",
      "speed": {
-      "sp": 0,
-      "effective": 165,
-      "median": 138
+      "sp": 32,
+      "effective": 200,
+      "at_cap": 200,
+      "median": 138,
+      "top_tier": 172,
+      "why": "top speed tier: the cap"
      },
      "bulk": {
       "why": "least SP surviving the median attacker",
-      "share_survived": 0.551,
-      "share_at_zero": 0.391,
+      "share_survived": 0.501,
+      "share_at_zero": 0.387,
       "endures": false
      }
     },
@@ -640,12 +664,12 @@
       "Protect"
      ],
      "evs": {
-      "hp": 16,
-      "atk": 32,
-      "def": 17,
+      "hp": 3,
+      "atk": 25,
+      "def": 5,
       "spa": 0,
       "spd": 1,
-      "spe": 0
+      "spe": 32
      },
      "source": "derived",
      "role": "other",
@@ -653,14 +677,17 @@
      "conflict": null,
      "attack_stat": "atk",
      "speed": {
-      "sp": 0,
-      "effective": 140,
-      "median": 138
+      "sp": 32,
+      "effective": 172,
+      "at_cap": 172,
+      "median": 138,
+      "top_tier": 172,
+      "why": "top speed tier: the cap"
      },
      "bulk": {
       "why": "least SP surviving the median attacker",
-      "share_survived": 0.66,
-      "share_at_zero": 0.43,
+      "share_survived": 0.507,
+      "share_at_zero": 0.432,
       "endures": false
      }
     },
@@ -676,12 +703,12 @@
       "High Horsepower"
      ],
      "evs": {
-      "hp": 20,
+      "hp": 2,
       "atk": 32,
-      "def": 1,
+      "def": 0,
       "spa": 0,
-      "spd": 13,
-      "spe": 0
+      "spd": 24,
+      "spe": 8
      },
      "source": "derived",
      "role": "other",
@@ -689,14 +716,17 @@
      "conflict": null,
      "attack_stat": "atk",
      "speed": {
-      "sp": 0,
-      "effective": 105,
-      "median": 138
+      "sp": 8,
+      "effective": 113,
+      "at_cap": 137,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 112"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.708,
-      "share_at_zero": 0.533,
+      "share_survived": 0.646,
+      "share_at_zero": 0.532,
       "endures": false
      }
     },
@@ -712,12 +742,12 @@
       "Protect"
      ],
      "evs": {
-      "hp": 3,
+      "hp": 4,
       "atk": 0,
       "def": 8,
       "spa": 32,
       "spd": 0,
-      "spe": 23
+      "spe": 22
      },
      "source": "derived",
      "role": "other",
@@ -725,14 +755,17 @@
      "conflict": null,
      "attack_stat": "spa",
      "speed": {
-      "sp": 23,
-      "effective": 139,
-      "median": 138
+      "sp": 22,
+      "effective": 138,
+      "at_cap": 149,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 137"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.622,
-      "share_at_zero": 0.591,
+      "share_survived": 0.618,
+      "share_at_zero": 0.589,
       "endures": false
      }
     },
@@ -748,12 +781,12 @@
       "Protect"
      ],
      "evs": {
-      "hp": 17,
+      "hp": 18,
       "atk": 32,
       "def": 0,
       "spa": 0,
       "spd": 0,
-      "spe": 17
+      "spe": 16
      },
      "source": "derived",
      "role": "other",
@@ -761,9 +794,12 @@
      "conflict": null,
      "attack_stat": "atk",
      "speed": {
-      "sp": 17,
-      "effective": 139,
-      "median": 138
+      "sp": 16,
+      "effective": 138,
+      "at_cap": 156,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 137"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
@@ -828,7 +864,7 @@
     1,
     0
    ],
-   "packed": "Incineroar||SitrusBerry|Intimidate|FlareBlitz,ThroatChop,PartingShot,FakeOut|Careful|21,32,,,13,|F||||]Rillaboom||MiracleSeed|GrassySurge|FakeOut,WoodHammer,GrassyGlide,HighHorsepower|Adamant|20,32,1,,13,|M||||]Sneasler||GrassySeed|Unburden|CloseCombat,RockSlide,SwordsDance,Protect|Adamant|16,32,17,,1,|F||||]Floette-Eternal||Floettite|FlowerVeil|DazzlingGleam,DrainingKiss,CalmMind,Protect|Modest|15,,2,32,,17|F||||]Gholdengo||ChoiceScarf|GoodasGold|MakeItRain,ShadowBall,PowerGem,Trick|Modest|1,,1,32,,32|||||]Dragonite||Dragoninite|InnerFocus|DragonPulse,HeatWave,Tailwind,Protect|Modest|2,,,32,,32|M||||",
+   "packed": "Incineroar||SitrusBerry|Intimidate|FlareBlitz,ThroatChop,PartingShot,FakeOut|Careful|7,32,4,,,23|F||||]Rillaboom||MiracleSeed|GrassySurge|FakeOut,WoodHammer,GrassyGlide,HighHorsepower|Adamant|2,32,,,24,8|M||||]Sneasler||GrassySeed|Unburden|CloseCombat,RockSlide,SwordsDance,Protect|Adamant|3,25,5,,1,32|F||||]Floette-Eternal||Floettite|FlowerVeil|DazzlingGleam,DrainingKiss,CalmMind,Protect|Modest|16,,2,32,,16|F||||]Gholdengo||ChoiceScarf|GoodasGold|MakeItRain,ShadowBall,PowerGem,Trick|Modest|1,,1,32,,32|||||]Dragonite||Dragoninite|InnerFocus|DragonPulse,HeatWave,Tailwind,Protect|Modest|2,,,32,,32|M||||",
    "spreads": [
     {
      "species": "Incineroar",
@@ -842,12 +878,12 @@
       "Fake Out"
      ],
      "evs": {
-      "hp": 21,
+      "hp": 7,
       "atk": 32,
-      "def": 0,
+      "def": 4,
       "spa": 0,
-      "spd": 13,
-      "spe": 0
+      "spd": 0,
+      "spe": 23
      },
      "source": "derived",
      "role": "other",
@@ -855,14 +891,17 @@
      "conflict": null,
      "attack_stat": "atk",
      "speed": {
-      "sp": 0,
-      "effective": 80,
-      "median": 138
+      "sp": 23,
+      "effective": 103,
+      "at_cap": 112,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 102"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.795,
-      "share_at_zero": 0.684,
+      "share_survived": 0.704,
+      "share_at_zero": 0.681,
       "endures": false
      }
     },
@@ -878,12 +917,12 @@
       "High Horsepower"
      ],
      "evs": {
-      "hp": 20,
+      "hp": 2,
       "atk": 32,
-      "def": 1,
+      "def": 0,
       "spa": 0,
-      "spd": 13,
-      "spe": 0
+      "spd": 24,
+      "spe": 8
      },
      "source": "derived",
      "role": "other",
@@ -891,14 +930,17 @@
      "conflict": null,
      "attack_stat": "atk",
      "speed": {
-      "sp": 0,
-      "effective": 105,
-      "median": 138
+      "sp": 8,
+      "effective": 113,
+      "at_cap": 137,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 112"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.708,
-      "share_at_zero": 0.533,
+      "share_survived": 0.646,
+      "share_at_zero": 0.532,
       "endures": false
      }
     },
@@ -914,12 +956,12 @@
       "Protect"
      ],
      "evs": {
-      "hp": 16,
-      "atk": 32,
-      "def": 17,
+      "hp": 3,
+      "atk": 25,
+      "def": 5,
       "spa": 0,
       "spd": 1,
-      "spe": 0
+      "spe": 32
      },
      "source": "derived",
      "role": "other",
@@ -927,14 +969,17 @@
      "conflict": null,
      "attack_stat": "atk",
      "speed": {
-      "sp": 0,
-      "effective": 140,
-      "median": 138
+      "sp": 32,
+      "effective": 172,
+      "at_cap": 172,
+      "median": 138,
+      "top_tier": 172,
+      "why": "top speed tier: the cap"
      },
      "bulk": {
       "why": "least SP surviving the median attacker",
-      "share_survived": 0.66,
-      "share_at_zero": 0.43,
+      "share_survived": 0.507,
+      "share_at_zero": 0.432,
       "endures": false
      }
     },
@@ -950,12 +995,12 @@
       "Protect"
      ],
      "evs": {
-      "hp": 15,
+      "hp": 16,
       "atk": 0,
       "def": 2,
       "spa": 32,
       "spd": 0,
-      "spe": 17
+      "spe": 16
      },
      "source": "derived",
      "role": "other",
@@ -963,14 +1008,17 @@
      "conflict": null,
      "attack_stat": "spa",
      "speed": {
-      "sp": 17,
-      "effective": 139,
-      "median": 138
+      "sp": 16,
+      "effective": 138,
+      "at_cap": 154,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 137"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.702,
-      "share_at_zero": 0.644,
+      "share_survived": 0.701,
+      "share_at_zero": 0.642,
       "endures": false
      }
     },
@@ -1001,12 +1049,15 @@
      "speed": {
       "sp": 32,
       "effective": 204,
-      "median": 138
+      "at_cap": 204,
+      "median": 138,
+      "top_tier": 172,
+      "why": "fast role: the cap"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.601,
-      "share_at_zero": 0.591,
+      "share_survived": 0.598,
+      "share_at_zero": 0.589,
       "endures": false
      }
     },
@@ -1037,12 +1088,15 @@
      "speed": {
       "sp": 32,
       "effective": 152,
-      "median": 138
+      "at_cap": 152,
+      "median": 138,
+      "top_tier": 172,
+      "why": "fast role: the cap"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.971,
-      "share_at_zero": 0.971,
+      "share_survived": 0.97,
+      "share_at_zero": 0.97,
       "endures": false
      }
     }
@@ -1095,7 +1149,7 @@
     3,
     5
    ],
-   "packed": "Rillaboom||MiracleSeed|GrassySurge|WoodHammer,FakeOut,HighHorsepower,GrassyGlide|Adamant|20,32,1,,13,|M||||]Kingambit||LifeOrb|Defiant|SwordsDance,SuckerPunch,KowtowCleave,Protect|Adamant|32,32,,,2,|F||||]Sneasler||GrassySeed|Unburden|DireClaw,CloseCombat,RockSlide,Protect|Adamant|16,32,17,,1,|F||||]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly|17,32,,,,17|M||||]Froslass||Froslassite|CursedBody|Blizzard,ShadowBall,AuroraVeil,Protect|Timid|19,,5,32,10,|F||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|23,,,32,11,|F||||",
+   "packed": "Rillaboom||MiracleSeed|GrassySurge|WoodHammer,FakeOut,HighHorsepower,GrassyGlide|Adamant|2,32,,,24,8|M||||]Kingambit||LifeOrb|Defiant|SwordsDance,SuckerPunch,KowtowCleave,Protect|Adamant|23,32,,,,11|F||||]Sneasler||GrassySeed|Unburden|DireClaw,CloseCombat,RockSlide,Protect|Adamant|3,25,5,,1,32|F||||]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly|18,32,,,,16|M||||]Froslass||Froslassite|CursedBody|Blizzard,ShadowBall,AuroraVeil,Protect|Timid|14,,1,9,10,32|F||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|22,,2,10,,32|F||||",
    "spreads": [
     {
      "species": "Rillaboom",
@@ -1109,12 +1163,12 @@
       "Grassy Glide"
      ],
      "evs": {
-      "hp": 20,
+      "hp": 2,
       "atk": 32,
-      "def": 1,
+      "def": 0,
       "spa": 0,
-      "spd": 13,
-      "spe": 0
+      "spd": 24,
+      "spe": 8
      },
      "source": "derived",
      "role": "other",
@@ -1122,14 +1176,17 @@
      "conflict": null,
      "attack_stat": "atk",
      "speed": {
-      "sp": 0,
-      "effective": 105,
-      "median": 138
+      "sp": 8,
+      "effective": 113,
+      "at_cap": 137,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 112"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.708,
-      "share_at_zero": 0.533,
+      "share_survived": 0.646,
+      "share_at_zero": 0.532,
       "endures": false
      }
     },
@@ -1145,12 +1202,12 @@
       "Protect"
      ],
      "evs": {
-      "hp": 32,
+      "hp": 23,
       "atk": 32,
       "def": 0,
       "spa": 0,
-      "spd": 2,
-      "spe": 0
+      "spd": 0,
+      "spe": 11
      },
      "source": "derived",
      "role": "other",
@@ -1158,14 +1215,17 @@
      "conflict": null,
      "attack_stat": "atk",
      "speed": {
-      "sp": 0,
-      "effective": 70,
-      "median": 138
+      "sp": 11,
+      "effective": 81,
+      "at_cap": 102,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 80"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.715,
-      "share_at_zero": 0.577,
+      "share_survived": 0.684,
+      "share_at_zero": 0.572,
       "endures": false
      }
     },
@@ -1181,12 +1241,12 @@
       "Protect"
      ],
      "evs": {
-      "hp": 16,
-      "atk": 32,
-      "def": 17,
+      "hp": 3,
+      "atk": 25,
+      "def": 5,
       "spa": 0,
       "spd": 1,
-      "spe": 0
+      "spe": 32
      },
      "source": "derived",
      "role": "other",
@@ -1194,14 +1254,17 @@
      "conflict": null,
      "attack_stat": "atk",
      "speed": {
-      "sp": 0,
-      "effective": 140,
-      "median": 138
+      "sp": 32,
+      "effective": 172,
+      "at_cap": 172,
+      "median": 138,
+      "top_tier": 172,
+      "why": "top speed tier: the cap"
      },
      "bulk": {
       "why": "least SP surviving the median attacker",
-      "share_survived": 0.66,
-      "share_at_zero": 0.43,
+      "share_survived": 0.507,
+      "share_at_zero": 0.432,
       "endures": false
      }
     },
@@ -1217,12 +1280,12 @@
       "Protect"
      ],
      "evs": {
-      "hp": 17,
+      "hp": 18,
       "atk": 32,
       "def": 0,
       "spa": 0,
       "spd": 0,
-      "spe": 17
+      "spe": 16
      },
      "source": "derived",
      "role": "other",
@@ -1230,9 +1293,12 @@
      "conflict": null,
      "attack_stat": "atk",
      "speed": {
-      "sp": 17,
-      "effective": 139,
-      "median": 138
+      "sp": 16,
+      "effective": 138,
+      "at_cap": 156,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 137"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
@@ -1253,12 +1319,12 @@
       "Protect"
      ],
      "evs": {
-      "hp": 19,
+      "hp": 14,
       "atk": 0,
-      "def": 5,
-      "spa": 32,
+      "def": 1,
+      "spa": 9,
       "spd": 10,
-      "spe": 0
+      "spe": 32
      },
      "source": "derived",
      "role": "other",
@@ -1266,13 +1332,16 @@
      "conflict": null,
      "attack_stat": "spa",
      "speed": {
-      "sp": 0,
-      "effective": 154,
-      "median": 138
+      "sp": 32,
+      "effective": 189,
+      "at_cap": 189,
+      "median": 138,
+      "top_tier": 172,
+      "why": "top speed tier: the cap"
      },
      "bulk": {
       "why": "least SP surviving the median attacker",
-      "share_survived": 0.541,
+      "share_survived": 0.506,
       "share_at_zero": 0.392,
       "endures": false
      }
@@ -1289,12 +1358,12 @@
       "Protect"
      ],
      "evs": {
-      "hp": 23,
+      "hp": 22,
       "atk": 0,
-      "def": 0,
-      "spa": 32,
-      "spd": 11,
-      "spe": 0
+      "def": 2,
+      "spa": 10,
+      "spd": 0,
+      "spe": 32
      },
      "source": "derived",
      "role": "other",
@@ -1302,14 +1371,17 @@
      "conflict": null,
      "attack_stat": "spa",
      "speed": {
-      "sp": 0,
-      "effective": 165,
-      "median": 138
+      "sp": 32,
+      "effective": 200,
+      "at_cap": 200,
+      "median": 138,
+      "top_tier": 172,
+      "why": "top speed tier: the cap"
      },
      "bulk": {
       "why": "least SP surviving the median attacker",
-      "share_survived": 0.551,
-      "share_at_zero": 0.391,
+      "share_survived": 0.501,
+      "share_at_zero": 0.387,
       "endures": false
      }
     }
@@ -1362,7 +1434,7 @@
     1,
     5
    ],
-   "packed": "Froslass||Froslassite|CursedBody|Blizzard,ShadowBall,AuroraVeil,Protect|Timid|19,,5,32,10,|F||||]Rillaboom||OccaBerry|GrassySurge|GrassyGlide,WoodHammer,HighHorsepower,FakeOut|Adamant|31,32,,,3,|M||||]Volcarona||GrassySeed|FlameBody|Protect,HeatWave,GigaDrain,QuiverDance|Modest|6,,9,32,,19|F||||]Kingambit||LifeOrb|Defiant|Protect,KowtowCleave,SuckerPunch,SwordsDance|Adamant|32,32,,,2,|F||||]Garchomp||ChoiceScarf|RoughSkin|DragonClaw,StompingTantrum,RockSlide,RockTomb|Adamant|2,32,,,,32|F||||]Sneasler||WhiteHerb|Unburden|Protect,CloseCombat,DireClaw,FakeOut|Adamant|16,32,17,,1,|F||||",
+   "packed": "Froslass||Froslassite|CursedBody|Blizzard,ShadowBall,AuroraVeil,Protect|Timid|14,,1,9,10,32|F||||]Rillaboom||OccaBerry|GrassySurge|GrassyGlide,WoodHammer,HighHorsepower,FakeOut|Adamant|20,32,1,,5,8|M||||]Volcarona||GrassySeed|FlameBody|Protect,HeatWave,GigaDrain,QuiverDance|Modest|1,,15,32,,18|F||||]Kingambit||LifeOrb|Defiant|Protect,KowtowCleave,SuckerPunch,SwordsDance|Adamant|23,32,,,,11|F||||]Garchomp||ChoiceScarf|RoughSkin|DragonClaw,StompingTantrum,RockSlide,RockTomb|Adamant|2,32,,,,32|F||||]Sneasler||WhiteHerb|Unburden|Protect,CloseCombat,DireClaw,FakeOut|Adamant|3,25,5,,1,32|F||||",
    "spreads": [
     {
      "species": "Froslass",
@@ -1376,12 +1448,12 @@
       "Protect"
      ],
      "evs": {
-      "hp": 19,
+      "hp": 14,
       "atk": 0,
-      "def": 5,
-      "spa": 32,
+      "def": 1,
+      "spa": 9,
       "spd": 10,
-      "spe": 0
+      "spe": 32
      },
      "source": "derived",
      "role": "other",
@@ -1389,13 +1461,16 @@
      "conflict": null,
      "attack_stat": "spa",
      "speed": {
-      "sp": 0,
-      "effective": 154,
-      "median": 138
+      "sp": 32,
+      "effective": 189,
+      "at_cap": 189,
+      "median": 138,
+      "top_tier": 172,
+      "why": "top speed tier: the cap"
      },
      "bulk": {
       "why": "least SP surviving the median attacker",
-      "share_survived": 0.541,
+      "share_survived": 0.506,
       "share_at_zero": 0.392,
       "endures": false
      }
@@ -1412,12 +1487,12 @@
       "Fake Out"
      ],
      "evs": {
-      "hp": 31,
+      "hp": 20,
       "atk": 32,
-      "def": 0,
+      "def": 1,
       "spa": 0,
-      "spd": 3,
-      "spe": 0
+      "spd": 5,
+      "spe": 8
      },
      "source": "derived",
      "role": "other",
@@ -1425,14 +1500,17 @@
      "conflict": null,
      "attack_stat": "atk",
      "speed": {
-      "sp": 0,
-      "effective": 105,
-      "median": 138
+      "sp": 8,
+      "effective": 113,
+      "at_cap": 137,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 112"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.838,
-      "share_at_zero": 0.682,
+      "share_survived": 0.798,
+      "share_at_zero": 0.683,
       "endures": false
      }
     },
@@ -1448,12 +1526,12 @@
       "Quiver Dance"
      ],
      "evs": {
-      "hp": 6,
+      "hp": 1,
       "atk": 0,
-      "def": 9,
+      "def": 15,
       "spa": 32,
       "spd": 0,
-      "spe": 19
+      "spe": 18
      },
      "source": "derived",
      "role": "other",
@@ -1461,14 +1539,17 @@
      "conflict": null,
      "attack_stat": "spa",
      "speed": {
-      "sp": 19,
-      "effective": 139,
-      "median": 138
+      "sp": 18,
+      "effective": 138,
+      "at_cap": 152,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 137"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.727,
-      "share_at_zero": 0.679,
+      "share_survived": 0.732,
+      "share_at_zero": 0.677,
       "endures": false
      }
     },
@@ -1484,12 +1565,12 @@
       "Swords Dance"
      ],
      "evs": {
-      "hp": 32,
+      "hp": 23,
       "atk": 32,
       "def": 0,
       "spa": 0,
-      "spd": 2,
-      "spe": 0
+      "spd": 0,
+      "spe": 11
      },
      "source": "derived",
      "role": "other",
@@ -1497,14 +1578,17 @@
      "conflict": null,
      "attack_stat": "atk",
      "speed": {
-      "sp": 0,
-      "effective": 70,
-      "median": 138
+      "sp": 11,
+      "effective": 81,
+      "at_cap": 102,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 80"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.715,
-      "share_at_zero": 0.577,
+      "share_survived": 0.684,
+      "share_at_zero": 0.572,
       "endures": false
      }
     },
@@ -1535,7 +1619,10 @@
      "speed": {
       "sp": 32,
       "effective": 231,
-      "median": 138
+      "at_cap": 231,
+      "median": 138,
+      "top_tier": 172,
+      "why": "fast role: the cap"
      },
      "bulk": {
       "why": "survives the median attacker at 0 SP",
@@ -1556,12 +1643,12 @@
       "Fake Out"
      ],
      "evs": {
-      "hp": 16,
-      "atk": 32,
-      "def": 17,
+      "hp": 3,
+      "atk": 25,
+      "def": 5,
       "spa": 0,
       "spd": 1,
-      "spe": 0
+      "spe": 32
      },
      "source": "derived",
      "role": "other",
@@ -1569,14 +1656,17 @@
      "conflict": null,
      "attack_stat": "atk",
      "speed": {
-      "sp": 0,
-      "effective": 140,
-      "median": 138
+      "sp": 32,
+      "effective": 172,
+      "at_cap": 172,
+      "median": 138,
+      "top_tier": 172,
+      "why": "top speed tier: the cap"
      },
      "bulk": {
       "why": "least SP surviving the median attacker",
-      "share_survived": 0.66,
-      "share_at_zero": 0.43,
+      "share_survived": 0.507,
+      "share_at_zero": 0.432,
       "endures": false
      }
     }
@@ -1586,23 +1676,332 @@
  "spread_source": {
   "store": "solver/out/rotom/store-fe78202a.jsonl.gz",
   "store_sha256": "fe78202a851545b71a19c507617d2a470020e5b72d07a393f86ae0fedee9bb25",
-  "floor": 1409,
-  "rule": "solver/rotom/spreads.js: OBSERVED Reg M-C spread (Smogon moveset file for gen9championsvgc2026regmcbo3, modal spread for the species with the sheet nature) if one exists, else DERIVED: role from the set (Choice Scarf or Tailwind -> Speed at the cap; Trick Room -> Speed 0; else the least SP that outspeeds the weighted median effective speed of the top-meta population at full Speed investment, or 0); then the least HP/Def/SpD SP that survives the weighted median top-meta attacker's best hit (top roll), or 0; the rest into the used attacking stat; any remainder to the bulk split surviving most. Nature and IVs are the sheet's / the format's.",
+  "floor": 1410,
+  "rule": "solver/rotom/spreads.js: OBSERVED Reg M-C spread (Smogon moveset file for gen9championsvgc2026regmcbo3, modal spread for the species with the sheet nature) if one exists, else DERIVED: role from the set (Choice Scarf or Tailwind -> Speed at the cap; Trick Room -> Speed 0; else, with the top-meta population's effective speeds at full Speed investment as the tiers: the cap when the set's cap speed reaches the weighted 0.75 quantile of those tiers, otherwise the least SP that strictly outspeeds the heaviest tier between its speed at 0 SP and its speed at the cap, or 0 if there is none); then the least HP/Def/SpD SP that survives the weighted median top-meta attacker's best hit (top roll), or 0; the rest into the used attacking stat; any remainder to the bulk split surviving most. Nature and IVs are the sheet's / the format's.",
   "observed": "none: no Reg M-C Smogon moveset file for gen9championsvgc2026regmcbo3 under data/smogon-stats/ (the September 2026 files are due about 2026-10-04)",
   "population": {
-   "teams": 148,
-   "slots": 888,
-   "unique_sets": 384
+   "teams": 150,
+   "slots": 900,
+   "unique_sets": 389
   },
   "speed_equilibrium": {
    "median_speed": 138,
-   "benchmark": "weighted median effective speed of the top-meta population, every set at the top of its speed options (Trick Room sets at 0), sheet natures, neutral field"
+   "top_speed": 172,
+   "top_quantile": 0.75,
+   "tiers": [
+    [
+     44,
+     0.006667
+    ],
+    [
+     45,
+     0.006667
+    ],
+    [
+     60,
+     0.006667
+    ],
+    [
+     64,
+     0.04
+    ],
+    [
+     72,
+     0.093333
+    ],
+    [
+     80,
+     0.1
+    ],
+    [
+     81,
+     0.006667
+    ],
+    [
+     82,
+     0.013333
+    ],
+    [
+     84,
+     0.006667
+    ],
+    [
+     85,
+     0.013333
+    ],
+    [
+     90,
+     0.02
+    ],
+    [
+     91,
+     0.033333
+    ],
+    [
+     92,
+     0.046667
+    ],
+    [
+     94,
+     0.026667
+    ],
+    [
+     95,
+     0.02
+    ],
+    [
+     99,
+     0.006667
+    ],
+    [
+     100,
+     0.06
+    ],
+    [
+     102,
+     0.353333
+    ],
+    [
+     105,
+     0.06
+    ],
+    [
+     108,
+     0.006667
+    ],
+    [
+     112,
+     0.58
+    ],
+    [
+     114,
+     0.006667
+    ],
+    [
+     117,
+     0.093333
+    ],
+    [
+     119,
+     0.006667
+    ],
+    [
+     122,
+     0.126667
+    ],
+    [
+     123,
+     0.04
+    ],
+    [
+     124,
+     0.006667
+    ],
+    [
+     126,
+     0.02
+    ],
+    [
+     127,
+     0.04
+    ],
+    [
+     128,
+     0.013333
+    ],
+    [
+     130,
+     0.086667
+    ],
+    [
+     132,
+     0.046667
+    ],
+    [
+     133,
+     0.046667
+    ],
+    [
+     135,
+     0.04
+    ],
+    [
+     136,
+     0.153333
+    ],
+    [
+     137,
+     0.753333
+    ],
+    [
+     138,
+     0.013333
+    ],
+    [
+     139,
+     0.026667
+    ],
+    [
+     140,
+     0.033333
+    ],
+    [
+     142,
+     0.02
+    ],
+    [
+     143,
+     0.006667
+    ],
+    [
+     144,
+     0.006667
+    ],
+    [
+     145,
+     0.02
+    ],
+    [
+     146,
+     0.006667
+    ],
+    [
+     149,
+     0.093333
+    ],
+    [
+     150,
+     0.006667
+    ],
+    [
+     152,
+     0.333333
+    ],
+    [
+     153,
+     0.02
+    ],
+    [
+     154,
+     0.12
+    ],
+    [
+     156,
+     0.166667
+    ],
+    [
+     161,
+     0.026667
+    ],
+    [
+     162,
+     0.02
+    ],
+    [
+     167,
+     0.146667
+    ],
+    [
+     168,
+     0.02
+    ],
+    [
+     169,
+     0.093333
+    ],
+    [
+     172,
+     0.433333
+    ],
+    [
+     178,
+     0.08
+    ],
+    [
+     182,
+     0.04
+    ],
+    [
+     184,
+     0.06
+    ],
+    [
+     189,
+     0.373333
+    ],
+    [
+     193,
+     0.013333
+    ],
+    [
+     194,
+     0.013333
+    ],
+    [
+     195,
+     0.026667
+    ],
+    [
+     200,
+     0.253333
+    ],
+    [
+     203,
+     0.16
+    ],
+    [
+     204,
+     0.066667
+    ],
+    [
+     213,
+     0.033333
+    ],
+    [
+     214,
+     0.06
+    ],
+    [
+     220,
+     0.013333
+    ],
+    [
+     222,
+     0.046667
+    ],
+    [
+     223,
+     0.04
+    ],
+    [
+     225,
+     0.013333
+    ],
+    [
+     231,
+     0.06
+    ],
+    [
+     234,
+     0.026667
+    ],
+    [
+     241,
+     0.013333
+    ],
+    [
+     253,
+     0.006667
+    ]
+   ],
+   "benchmark": "weighted effective speeds of the top-meta population, every set at the top of its speed options (Trick Room sets at 0), sheet natures, neutral field: the median (bulk and the record), the top-tier quantile, and the tiers (speed -> weight)"
   },
   "median_quantile": 0.5,
+  "top_tier_quantile": 0.75,
   "counters": {
-   "battles": 17281,
-   "damage_calls": 1318100,
-   "no_damage": 2687,
+   "battles": 17506,
+   "damage_calls": 1336272,
+   "no_damage": 2709,
    "endures": 4,
    "observed": 0,
    "derived": 60
@@ -1610,7 +2009,7 @@
  },
  "respread": {
   "by": "solver/rotom/respread.js",
-  "at": "2026-09-30T01:59:44.698Z",
+  "at": "2026-09-30T08:30:23.522Z",
   "note": "teams unchanged; Stat Points only"
  }
 }

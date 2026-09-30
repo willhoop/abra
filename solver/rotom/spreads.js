@@ -25,11 +25,15 @@
  * THE DERIVATION — one principle, "beat the median opponent with the least SP, or spend nothing", in role order:
  *   ROLE, from the set alone: `fast` if it holds Choice Scarf or carries Tailwind; `trickroom` if it carries Trick Room;
  *        a set with both roles is `other` and is named in the output.
- *   SPEED. fast -> the cap. trickroom -> 0. other -> the least SP whose EFFECTIVE speed (the sim's getActionSpeed on a
- *        neutral field: Scarf, the mega forme, abilities — all the engine's) strictly exceeds the population's weighted
- *        median effective speed with every member at the top of its speed options (Trick Room sets at 0); 0 if even the
- *        cap cannot. (A fixed point — the median of the rule's own output — was tried first and does not exist: speed
- *        creep cycles, 114 -> 138 and back, on the 2026-09-30 store. So the benchmark assumes the opponent invested.)
+ *   SPEED. fast -> the cap. trickroom -> 0. other -> against the TIERS: the population's EFFECTIVE speeds (the sim's
+ *        getActionSpeed on a neutral field: Scarf, the mega forme, abilities — all the engine's) with every member at the
+ *        top of its speed options (Trick Room sets at 0), weighted. A set whose cap speed reaches the TOP_TIER (0.75)
+ *        quantile runs the cap; otherwise the least SP that strictly beats the heaviest tier between its own speed at 0
+ *        SP and at the cap (the most common set it can flip by investing); 0 if there is none. (A fixed point — the
+ *        median of the rule's own output — was tried first and does not exist: speed creep cycles, 114 -> 138 and back,
+ *        on the 2026-09-30 store. So the tiers assume the opponent invested.)
+ *        REPLACED 2026-09-30: until then `other` took the least SP beating the weighted MEDIAN, so a fast species already
+ *        above the median at 0 SP ran 0 (Sneasler, Gengar-Mega) and lost to its own invested tier on the ladder.
  *   BULK. Every population set attacks with its strongest move against this set (the sim's getDamage, top roll, no
  *        crit, a spread move at the spread modifier, a fixed multi-hit count multiplied; the attacker's attack stat at
  *        the cap with its own nature, on a neutral field, both at full HP). A hit is survived when the damage is below
@@ -54,8 +58,10 @@ const ROOT = path.join(__dirname, '..', '..');
 const STATS = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
 const SP_TOTAL = SD.SP_TOTAL, SP_CAP = SD.SP_CAP;
 const N = SP_CAP + 1;
-const MEDIAN = 0.5;                 // the one parameter: beat / survive the median member of the top-meta population
-const RULE_TEXT = 'solver/rotom/spreads.js: OBSERVED Reg M-C spread (Smogon moveset file for ' + X.FORMAT + ', modal spread for the species with the sheet nature) if one exists, else DERIVED: role from the set (Choice Scarf or Tailwind -> Speed at the cap; Trick Room -> Speed 0; else the least SP that outspeeds the weighted median effective speed of the top-meta population at full Speed investment, or 0); then the least HP/Def/SpD SP that survives the weighted median top-meta attacker\'s best hit (top roll), or 0; the rest into the used attacking stat; any remainder to the bulk split surviving most. Nature and IVs are the sheet\'s / the format\'s.';
+const MEDIAN = 0.5;                 // survive the median attacker of the top-meta population
+const TOP_TIER = 0.75;              // a set whose cap speed reaches this quantile of the population's speeds runs the cap
+const SPREADS_BREAK = (process.env && process.env.SPREADS_BREAK) || '';
+const RULE_TEXT = 'solver/rotom/spreads.js: OBSERVED Reg M-C spread (Smogon moveset file for ' + X.FORMAT + ', modal spread for the species with the sheet nature) if one exists, else DERIVED: role from the set (Choice Scarf or Tailwind -> Speed at the cap; Trick Room -> Speed 0; else, with the top-meta population\'s effective speeds at full Speed investment as the tiers: the cap when the set\'s cap speed reaches the weighted ' + TOP_TIER + ' quantile of those tiers, otherwise the least SP that strictly outspeeds the heaviest tier between its speed at 0 SP and its speed at the cap, or 0 if there is none); then the least HP/Def/SpD SP that survives the weighted median top-meta attacker\'s best hit (top roll), or 0; the rest into the used attacking stat; any remainder to the bulk split surviving most. Nature and IVs are the sheet\'s / the format\'s.';
 
 const evStr = e => STATS.map(s => e[s]).join('/');
 
@@ -208,20 +214,46 @@ class Deriver {
     const s = pairs.slice().sort((a, b) => a[0] - b[0]); const tot = s.reduce((a, x) => a + x[1], 0);
     let c = 0; for (const [v, w] of s) { c += w; if (c >= tot * MEDIAN - 1e-12) return v; } return s[s.length - 1][0];
   }
+  /* SPEED FOR AN `other` SET (2026-09-30, docs/_reports/2026-09-30-rotom-world-fixes.md). The 1.35.0 rule took the least
+   * SP that beat the population median M — and a fast species already above M at 0 SP (Sneasler, Gengar-Mega, Raichu on
+   * the 2026-09-30 store) got 0, so it lost to every invested member of its own tier (chomp1 games 9 and 26). The rule now:
+   *   TOP TIER  the set's cap speed is at or above the population's TOP_TIER quantile (every member at the top of its
+   *             speed options) -> the cap: a set that lives among the fastest competes with its own tier and its mirror.
+   *   ELSE      the most common tier it can FLIP by investing: of the population's full-investment speeds in
+   *             [its speed at 0 SP, its speed at the cap), the one with the most weight (a tie -> the faster); the least
+   *             SP that strictly beats it. No such tier -> 0 (investing outspeeds nothing it does not already).
+   * DELIBERATE BREAK (env SPREADS_BREAK=median): the 1.35.0 rule. solver/tests/test-rotom-spreads.js TIER must go red. */
   speedFor(row, M) {
     const r = role(row);
     if (r.role === 'fast') return SP_CAP;
     if (r.role === 'trickroom') return 0;
-    const v = Deriver.leastAbove(this.speeds(row), M);
-    return v < 0 ? 0 : v;
+    const eff = this.speeds(row);
+    if (SPREADS_BREAK === 'median') { const v = Deriver.leastAbove(eff, M); return v < 0 ? 0 : v; }
+    if (eff[SP_CAP] >= this.eq.top_speed) return SP_CAP;
+    const t = Deriver.flipTier(this.eq.tiers, eff);
+    return t == null ? 0 : Deriver.leastAbove(eff, t);
+  }
+  /* the heaviest population speed tier in [eff[0], eff[cap]) (a tie -> the faster), or null */
+  static flipTier(tiers, eff) {
+    let best = null;
+    for (const [s, w] of tiers) if (s >= eff[0] && s < eff[SP_CAP] && (!best || w > best[1] + 1e-12 || (Math.abs(w - best[1]) <= 1e-12 && s > best[0]))) best = [s, w];
+    return best ? best[0] : null;
+  }
+  static wQuantile(pairs, q) {
+    const s = pairs.slice().sort((a, b) => a[0] - b[0]); const tot = s.reduce((a, x) => a + x[1], 0);
+    let c = 0; for (const [v, w] of s) { c += w; if (c >= tot * q - 1e-12) return v; } return s[s.length - 1][0];
   }
   /* the benchmark: the population's weighted median EFFECTIVE speed with every member at the top of its speed options
    * (Trick Room sets at 0) — "beat the median opponent even if it invested fully". Not a fixed point of this rule: that
    * was tried and it does not exist — best-responding to the median creeps it 114 -> 138 and then falls back
    * (speed creep has no pure equilibrium), so the benchmark is stated against full investment instead. */
   speedEquilibrium() {
-    const M = Deriver.wMedian(this.uniq.map(u => [this.speeds(u.row)[role(u.row).role === 'trickroom' ? 0 : SP_CAP], u.w]));
-    this.eq = { median_speed: M, benchmark: 'weighted median effective speed of the top-meta population, every set at the top of its speed options (Trick Room sets at 0), sheet natures, neutral field' };
+    const pairs = this.uniq.map(u => [this.speeds(u.row)[role(u.row).role === 'trickroom' ? 0 : SP_CAP], u.w]);
+    const M = Deriver.wMedian(pairs);
+    const tiers = new Map(); for (const [s, w] of pairs) tiers.set(s, (tiers.get(s) || 0) + w);
+    this.eq = { median_speed: M, top_speed: Deriver.wQuantile(pairs, TOP_TIER), top_quantile: TOP_TIER,
+                tiers: [...tiers.entries()].sort((a, b) => a[0] - b[0]).map(([s, w]) => [s, +w.toFixed(6)]),
+                benchmark: 'weighted effective speeds of the top-meta population, every set at the top of its speed options (Trick Room sets at 0), sheet natures, neutral field: the median (bulk and the record), the top-tier quantile, and the tiers (speed -> weight)' };
   }
   /* for one defending set: per population attacker, its physical and special max-damage tables over the defending
    * stat 0..cap, whether the defender endures any hit from full, and the weight. */
@@ -309,7 +341,8 @@ class Deriver {
     evs.hp = fin.hp; evs.def = fin.def; evs.spd = fin.spd;
     this.counters.derived++;
     return { evs, source: 'derived', role: r.role, role_by: r.by || null, conflict: r.conflict || null, attack_stat: as,
-             speed: { sp: spe, effective: this.speeds(row)[spe], median: this.eq.median_speed },
+             speed: { sp: spe, effective: this.speeds(row)[spe], at_cap: this.speeds(row)[SP_CAP], median: this.eq.median_speed, top_tier: this.eq.top_speed,
+                      why: r.role === 'fast' ? 'fast role: the cap' : r.role === 'trickroom' ? 'Trick Room: 0' : this.speeds(row)[SP_CAP] >= this.eq.top_speed ? 'top speed tier: the cap' : (() => { const t = Deriver.flipTier(this.eq.tiers, this.speeds(row)); return t == null ? 'no tier to flip: 0' : 'outspeeds the heaviest flippable tier ' + t; })() },
              bulk: { why: bulkWhy, share_survived: +fin.share.toFixed(3), share_at_zero: +first.at0.toFixed(3), endures: first.H.endures } };
   }
   spreadFor(row) {
@@ -320,7 +353,7 @@ class Deriver {
   provenance() {
     return { rule: RULE_TEXT, observed: this.obs ? { file: this.obs.file, sha256: this.obs.sha256 } : 'none: no Reg M-C Smogon moveset file for ' + X.FORMAT + ' under data/smogon-stats/ (the September 2026 files are due about 2026-10-04)',
              population: { teams: this.pop.teams, slots: this.pop.slots.length, unique_sets: this.uniq.length },
-             speed_equilibrium: this.eq, median_quantile: MEDIAN, counters: this.counters };
+             speed_equilibrium: this.eq, median_quantile: MEDIAN, top_tier_quantile: TOP_TIER, counters: this.counters };
   }
 }
 
@@ -336,4 +369,4 @@ function recorded(rot) {
 /* a whole team: rows -> [{species, ...set, evs, ...why}] (the set is recorded so the spread can be matched to it) */
 function teamSpreads(D, rows) { return rows.map(r => Object.assign({ species: r.species, item: r.item, ability: r.ability, nature: r.nature, moves: r.moves.slice() }, D.spreadFor(r))); }
 
-module.exports = { Deriver, population, teamSpreads, recorded, setKey, role, attackStat, forme, parseMoveset, findObserved, loadObserved, observedSpread, evStr, RULE_TEXT, SP_TOTAL, SP_CAP, MEDIAN };
+module.exports = { Deriver, population, teamSpreads, recorded, setKey, role, attackStat, forme, parseMoveset, findObserved, loadObserved, observedSpread, evStr, RULE_TEXT, SP_TOTAL, SP_CAP, MEDIAN, TOP_TIER };

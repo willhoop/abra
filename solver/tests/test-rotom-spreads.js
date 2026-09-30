@@ -22,6 +22,10 @@
  *   HOOK       the OBSERVED path: a synthetic Smogon moveset block for this format is parsed, and the nature-matched
  *              highest-share spread is taken; a spread over the cap is refused; findObserved() only ever names a file for
  *              this format; the files' `observed` provenance says what findObserved() finds today.
+ *   TIER       (2026-09-30) every set that is neither fast nor Trick Room runs the Speed SP spreads.js speedFor gives it
+ *              against the rotation's own recorded tiers; no such set whose cap speed reaches the top-tier quantile runs
+ *              below the cap. `--break tier` (a top-tier set dropped to 0, the 1.35.0 answer) and env SPREADS_BREAK=median
+ *              (the 1.35.0 rule in speedFor) must each go RED. At least one top-tier and one other set, or it asks nothing.
  *   REPRODUCE  when the store the spreads were derived from is on disk at its recorded sha256, re-deriving a fast set, a
  *              Trick Room set and one other gives the recorded spreads. Otherwise NOT CHECKED, named — never a pass.
  *   CONTROL    the ROLE / RECORD checks refuse each of the three breaks on a copy.
@@ -73,6 +77,27 @@ function checkRole(name, rot, tally) {
   }
   return bad;
 }
+/* TIER (2026-09-30): every `other` set runs the Speed SP the rule gives it against the rotation's OWN recorded tiers
+ * (spread_source.speed_equilibrium: tiers, top_speed), with the sim's effective speeds; and — the defect this guards —
+ * no `other` set whose cap speed reaches the top tier runs below the cap. Uses spreads.js speedFor itself, so
+ * SPREADS_BREAK=median (the 1.35.0 rule) turns it red. */
+const _spe = Object.assign(Object.create(SP.Deriver.prototype), { _spe: new Map(), counters: { battles: 0 } });
+function checkTier(name, rot, tally) {
+  const bad = [];
+  const eq = rot.spread_source && rot.spread_source.speed_equilibrium;
+  if (!(eq && Array.isArray(eq.tiers) && eq.tiers.length && eq.top_speed > 0)) return [name + ' spread_source.speed_equilibrium records no tiers / top_speed'];
+  _spe.eq = eq;
+  for (const t of rot.teams) for (const s of Teams.unpack(t.packed)) {
+    if (SP.role(s).role !== 'other') continue;
+    const eff = _spe.speeds(s);
+    const want = _spe.speedFor(s, eq.median_speed);
+    const top = eff[SP.SP_CAP] >= eq.top_speed;
+    if (tally) { tally.other++; if (top) tally.top++; }
+    if (s.evs.spe !== want) bad.push(name + ' ' + t.id + ' ' + s.species + ' runs Speed SP ' + s.evs.spe + ' (speed ' + eff[s.evs.spe] + '); the rule gives ' + want + ' (speed ' + eff[want] + ', cap ' + eff[SP.SP_CAP] + ', top tier ' + eq.top_speed + ')');
+    if (top && s.evs.spe !== SP.SP_CAP) bad.push(name + ' ' + t.id + ' ' + s.species + ' reaches the top tier (' + eff[SP.SP_CAP] + ' >= ' + eq.top_speed + ') but runs Speed SP ' + s.evs.spe);
+  }
+  return bad;
+}
 function checkRecord(name, rot) {
   const bad = [];
   if (rot.spread_rule !== SP.RULE_TEXT) bad.push(name + ' spread_rule is not spreads.js RULE_TEXT');
@@ -106,8 +131,15 @@ const BREAKS = {
   scarf: r => editFirst(r, 'fast', s => { s.evs.spe -= 1; s.evs.hp < SP.SP_CAP ? s.evs.hp++ : s.evs.def++; }),
   trickroom: r => editFirst(r, 'trickroom', s => { const k = STATS.filter(x => x !== 'spe').sort((a, b) => s.evs[b] - s.evs[a])[0]; s.evs[k]--; s.evs.spe++; }),
   record: r => { if (!r.teams[0].spreads) return r; const z = r.teams[0].spreads[0]; const k = z.evs.hp > 0 ? 'hp' : 'atk'; z.evs = Object.assign({}, z.evs, { [k]: z.evs[k] + (z.evs[k] > 0 ? -1 : 1) }); return r; },
+  /* the first top-tier `other` set drops to Speed SP 0 (the 1.35.0 answer for Sneasler / Gengar-Mega), SP moved to HP / Def */
+  tier: r => {
+    const eq = r.spread_source && r.spread_source.speed_equilibrium; if (!eq) return r;
+    for (const t of r.teams) { const sets = Teams.unpack(t.packed); const i = sets.findIndex(s => SP.role(s).role === 'other' && s.evs.spe > 0 && _spe.speeds(s)[SP.SP_CAP] >= eq.top_speed);
+      if (i >= 0) { const s = sets[i]; let n = s.evs.spe; s.evs.spe = 0; for (const k of ['hp', 'def', 'spd', 'atk', 'spa']) { const add = Math.min(n, SP.SP_CAP - s.evs[k]); s.evs[k] += add; n -= add; } t.packed = Teams.pack(sets); if (t.spreads) t.spreads[i].evs = Object.assign({}, s.evs); return r; } }
+    return r;
+  },
 };
-if (BREAK && !BREAKS[BREAK]) { console.error('unknown --break ' + BREAK + ' (scarf | trickroom | record)'); process.exit(2); }
+if (BREAK && !BREAKS[BREAK]) { console.error('unknown --break ' + BREAK + ' (scarf | trickroom | record | tier)'); process.exit(2); }
 
 /* ---------------- RULE ---------------- */
 {
@@ -120,15 +152,19 @@ if (BREAK && !BREAKS[BREAK]) { console.error('unknown --break ' + BREAK + ' (sca
 }
 
 /* ---------------- ROLE + RECORD ---------------- */
-const tally = { fast: 0, tr: 0 };
+const tally = { fast: 0, tr: 0, other: 0, top: 0 };
 for (const [f, rot] of ROTS) {
   const subj = BREAK ? BREAKS[BREAK](clone(rot)) : rot;
   const b1 = checkRole(f, subj, tally);
   ok('ROLE', !b1.length, b1.join(' | '));
   const b2 = checkRecord(f, subj);
   ok('RECORD', !b2.length, b2.join(' | '));
+  const b3 = checkTier(f, subj, tally);
+  ok('TIER', !b3.length, b3.join(' | '));
 }
 ok('ROLE', tally.fast >= 1 && tally.tr >= 1, 'the rotations hold ' + tally.fast + ' fast-role and ' + tally.tr + ' Trick Room sets (need >= 1 of each, or ROLE asks nothing)');
+ok('TIER', tally.top >= 1 && tally.other > tally.top, 'the rotations hold ' + tally.top + ' top-tier and ' + (tally.other - tally.top) + ' other `other` sets (need >= 1 of each, or TIER asks nothing)');
+console.log('  TIER    ' + tally.other + ' `other` sets checked, ' + tally.top + ' of them in the top speed tier');
 
 /* ---------------- HOOK ---------------- */
 {
@@ -176,7 +212,7 @@ if (!BREAK) {
 /* ---------------- CONTROL ---------------- */
 if (!BREAK) for (const [k, fn] of Object.entries(BREAKS)) {
   let seen = false;
-  for (const [f, rot] of ROTS) { const b = clone(rot); fn(b); if ((k === 'record' ? checkRecord(f, b) : checkRole(f, b)).length) seen = true; }
+  for (const [f, rot] of ROTS) { const b = clone(rot); fn(b); if ((k === 'record' ? checkRecord(f, b) : k === 'tier' ? checkTier(f, b) : checkRole(f, b)).length) seen = true; }
   ok('CONTROL', seen, 'the ' + k + ' break is refused');
 }
 
