@@ -89,7 +89,7 @@ This section says only what a division agent needs before it starts.
   S − E no worse than the top baseline. It holds 5 teams, rated 1478 to 1596. The arms file
   `solver/rotom/arms/gen5-chomp-top.json` names the rotation. Command for Will:
   `docs/_reports/2026-09-30-top-meta-rotation.md`.
-- **Ladder spreads fit each set's role (2026-09-30, abra/regmc 1.34.0).** `solver/rotom/spreads.js`: a Reg M-C
+- **Ladder spreads fit each set's role (2026-09-30, abra/regmc 1.35.0).** `solver/rotom/spreads.js`: a Reg M-C
   observed spread first (Smogon moveset file, none yet), else derived against the top-meta population. Scarf and
   Tailwind sets get Speed at the cap, Trick Room sets get 0, and other sets get the least SP that beats the top-meta
   median at full investment. Then median-hit bulk, then the attack stat. Both rotations are re-spread (teams unchanged)

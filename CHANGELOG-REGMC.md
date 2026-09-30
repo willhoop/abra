@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.34.0] — 2026-09-30
+## [1.35.0] — 2026-09-30
 
 ### Fixed
 - **ROTOM's ladder teams now carry Stat Point spreads that fit each set's role.** Open sheets carry no Stat Points, and
@@ -60,7 +60,7 @@ rewritten; what changed and why is stated.
   `test-rotom-top-rotation.js` REBUILD replays the recorded spreads (it re-checks the team choice).
 
 ### Notes
-- **The version is 1.34.0, not 1.32.0.** Three pushed branches (double-protect, top-meta rotation, store recount) all
+- **The version is 1.35.0, not 1.32.0.** Three pushed branches (double-protect, top-meta rotation, store recount) all
   claim 1.31.0 and will be renumbered at merge into 1.31.0 to 1.33.0.
 - No ladder series is launched. The live chomp1 run on the main checkout plays the old spreads; a series in flight is
   not touched. No published figure moves.

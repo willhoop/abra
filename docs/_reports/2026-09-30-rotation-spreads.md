@@ -1,4 +1,4 @@
-# ROTOM's ladder spreads: from one flat spread to one per role (abra/regmc 1.34.0)
+# ROTOM's ladder spreads: from one flat spread to one per role (abra/regmc 1.35.0)
 
 2026-09-30. SOLVER. Branch `worktree-agent-ad709405a9532c067`, based on `worktree-agent-ac90042e1051cc68c` (the
 top-meta rotation, not yet on main) with `origin/main` merged in. No ladder game was played and no arena game was

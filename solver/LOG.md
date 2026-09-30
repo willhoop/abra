@@ -8,7 +8,7 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-30
 
-### ROTOM's ladder spreads fit each set's role (abra/regmc 1.34.0)
+### ROTOM's ladder spreads fit each set's role (abra/regmc 1.35.0)
 - The top-meta rotation agent found it: the store has no Stat Points, so every rotation gave every set 32 HP / 32 attack /
   2 Speed. Choice Scarf and Tailwind sets ran 2 Speed; Trick Room setters ran 2 above their minimum.
 - New `solver/rotom/spreads.js`. An observed Reg M-C spread comes first (a Smogon moveset file for the format, due about
