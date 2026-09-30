@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.35.0] — 2026-09-30
+## [1.36.0] — 2026-09-30
 
 ### Fixed
 - **`engine/quality.js` `storePath()` reads the newer of the plain file and the `.gz`, and prints which it chose.** Until
@@ -56,6 +56,56 @@ rewritten; what changed and why is stated.
   25,460 → 25,807, bo1 29,749 → 30,215. JS and Python select identical ids on both stores. On the same stores this
   pass moves the usage model's competitive view 26,710 → 27,063 games. No team rate moves more than 0.21 points and
   the top 10 is unchanged. `docs/_reports/2026-09-30-regmc-store-quality.md`.
+
+## [1.35.0] — 2026-09-30
+
+### Fixed
+- **ROTOM's ladder teams now carry Stat Point spreads that fit each set's role.** Open sheets carry no Stat Points, and
+  every rotation before this gave every set 32 HP / 32 attack / 2 Speed. So the Choice Scarf sets (Basculegion,
+  Indeedee, Gholdengo, Garchomp) and the Tailwind setters ran 2 Speed, and the two Trick Room setters (Indeedee-F,
+  Farigiraf) ran 2 Speed above their minimum. Both rotations are re-spread: `solver/rotom/teams/ladder-rotation.json`
+  and `solver/rotom/teams/ladder-rotation-top.json` (the arm `gen5-chomp-top.json` plays the second). The teams, sheets,
+  natures and bring are unchanged; only `evs` moved, and every team passes `TeamValidator` for
+  `gen9championsvgc2026regmcbo3`.
+
+### Added
+- **`solver/rotom/spreads.js`.** A Reg M-C observed spread comes first if one exists (a Smogon moveset file for the
+  format under `data/smogon-stats/<YYYY-MM>/moveset/`; the most-used spread for the species with the sheet nature).
+  None exists yet; the September 2026 files are due about 2026-10-04. Otherwise the spread is derived from the set's
+  role against the top-meta population: the 148 distinct player teams at or above the 1409 floor of the bo3 store
+  (sha256 `fe78202a8515`, the store the top rotation was built from), 384 distinct sets. Choice Scarf or Tailwind
+  gives Speed at the cap, and Trick Room gives Speed 0. Any other set gets the least Speed that outspeeds the weighted
+  median effective speed of that population at full investment (138), or 0 if the cap cannot reach it. Bulk is the
+  least HP/Def/SpD that survives the median top-meta attacker's best hit (sim `getDamage`, top roll), or 0. The rest
+  goes to the attacking stat, and any remainder to the bulk split that survives the most hits. Every stat, speed and
+  damage figure is the Reg M-C checkout's own code.
+- **`solver/rotom/respread.js`** gives an existing rotation new spreads without re-choosing its teams. It refuses to
+  write if anything but `evs` changes or the validator refuses.
+- Each rotation team records `spreads` (per set: SP vector, source, role, speed and bulk evidence). The file records
+  `spread_rule` and `spread_source` (store, sha256, floor, population, speed benchmark, counters). The plan digest
+  carries them, and every series row's `team_meta` now carries `spreads` and `spread_source`
+  (`solver/rotom/ladder.js`).
+- **New test `solver/tests/test-rotom-spreads.js`**, 23 of 23. It checks that every Choice Scarf or Tailwind set is at
+  the top of its speed options and every Trick Room set is at the bottom, by the sim's Speed stat. It goes RED on each
+  of three deliberate breaks (one Speed SP off a fast set, one onto a Trick Room set, a recorded spread that differs
+  from the packed team). It was also RED on the old files.
+
+### Changed
+- `build_top_rotation.js` and `build_ladder_teams.js` derive spreads the same way for future builds.
+  `build_assets.packTeam` takes an optional spread list; the offline `regmc-pool.json` keeps the flat spread.
+  `test-rotom-top-rotation.js` REBUILD replays the recorded spreads (it re-checks the team choice).
+
+### Notes
+- **The version is 1.35.0, not 1.32.0.** Three pushed branches (double-protect, top-meta rotation, store recount) all
+  claim 1.31.0 and will be renumbered at merge into 1.31.0 to 1.33.0.
+- No ladder series is launched. The live chomp1 run on the main checkout plays the old spreads; a series in flight is
+  not touched. No published figure moves.
+
+## [1.34.2] — 2026-09-30
+
+### Fixed
+- **Conflict markers left in `docs/SOLVER.md` and `solver/LOG.md` by the 1.34.0 merge are removed; both sides are kept.**
+  The top-meta rotation's entry and the human-regularised search's entry each survive whole. PATCH: no figure moves.
 
 ## [1.34.1] — 2026-09-30
 

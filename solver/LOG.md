@@ -8,14 +8,12 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-30
 
-<<<<<<< HEAD
 ### The double-Protect soft gate: built, off; the prompting case is exempt by its own terrain clause (abra/regmc 1.32.0)
 - Will's rule in `solver/doduo/double_protect.js` (`gates.doubleProtect`, `tiers: false` alone). On 20,482 held-out
   human decisions: double Protect 3.15%, survival 99.63% [99.54, 99.71]. Humans honour Fake Out, Trick Room, Tailwind
   and Perish (13-50% against a 2.2% base) and ignore terrain, weather and screens (0.7-2.9%). chomp1 g1 t4 is exempt by
   the opponent's Grassy Terrain, so the gated search still double-Protects (0.85). With terrain off, it plays mega
   Substitute plus a switch. Phase B is pre-registered, not run. `docs/_reports/2026-09-30-double-protect-gate.md`.
-=======
 ### Human-regularised search (piKL): built behind `kl`, phase A only (abra/regmc 1.34.0)
 - SLOWKING can solve `x·A·y − λ·KL(x‖τ_me) + λ·KL(y‖τ_opp)` with gen5's DODUO as τ. Flag `kl` (λ), off, on no arm.
 - Held-out humans (579, same tables): top-1 0.216 → 0.268 at λ 0.1 (+0.052 [0.021, 0.083]), above DODUO alone (0.230).
@@ -23,7 +21,18 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 - chomp1 t4: the double Protect keeps 0.71 at λ 0.03. The table makes it maximin and barely charges for Trick Room, so
   it is a horizon fault. 2 s screens at λ 0.01, 0.03 and 0.1 are pre-registered, not run.
   `docs/_reports/2026-09-30-human-regularised-search.md`.
->>>>>>> origin/worktree-agent-a2930a277737baf60
+### ROTOM's ladder spreads fit each set's role (abra/regmc 1.35.0)
+- The top-meta rotation agent found it: the store has no Stat Points, so every rotation gave every set 32 HP / 32 attack /
+  2 Speed. Choice Scarf and Tailwind sets ran 2 Speed; Trick Room setters ran 2 above their minimum.
+- New `solver/rotom/spreads.js`. An observed Reg M-C spread comes first (a Smogon moveset file for the format, due about
+  2026-10-04; none today). Otherwise it derives: Scarf or Tailwind gives Speed 32, Trick Room gives 0, and any other set
+  gets the least SP that outspeeds the top-meta median at full investment (138), else 0. Then the least bulk that
+  survives the median top-meta attacker's best hit (sim getDamage), the rest to the attack stat, and any remainder to
+  bulk. Population: 148 top teams at floor 1409, store `fe78202a8515`. A fixed-point median was tried first; speed creep
+  has no fixed point (114 -> 138, then back), so the benchmark assumes full investment.
+- `respread.js` re-spread both rotations; the teams are unchanged. The spreads ride in the plan digest and in
+  `team_meta`. Test `test-rotom-spreads.js` 23/23 and RED on 3 breaks and on the old files.
+  `docs/_reports/2026-09-30-rotation-spreads.md`.
 
 ## 2026-09-29
 

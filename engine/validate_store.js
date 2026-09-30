@@ -49,7 +49,7 @@ const fs = require('fs');
 const path = require('path');
 const RS = require('./run_stamp.js');
 const VALIDATE_SOURCES = ['engine/validate_store.js', 'data/games.ladder.jsonl', 'data/games.bo3.jsonl', 'data/games.ots.jsonl'];
-/* THE REGULATION IS SELECTED, NOT READ OFF `active` — 2026-09-30 (MEASURE, abra/regmc 1.35.0). This file
+/* THE REGULATION IS SELECTED, NOT READ OFF `active` — 2026-09-30 (MEASURE, abra/regmc 1.36.0). This file
  * read data/regulations.json's `active` and three fixed Reg M-B store names, so it could only ever judge
  * Reg M-B, and `exclude_illegal_teams` removed 0 Reg M-C games while reporting ON. It now honours
  * --regulation / ABRA_REGULATION through engine/regulation.js (the one resolver, already loaded by

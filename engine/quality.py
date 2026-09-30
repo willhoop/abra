@@ -42,7 +42,7 @@ def _store_handle(path=None):
     100 MB per-file limit -- about 38 hours of collection from the point where every push fails.
     git now tracks <store>.jsonl.gz and .gitignore excludes the plain .jsonl.
 
-    THE NEWER FILE WINS WHEN BOTH EXIST (2026-09-30, abra/regmc 1.35.0; it was "plain wins"). For
+    THE NEWER FILE WINS WHEN BOTH EXIST (2026-09-30, abra/regmc 1.36.0; it was "plain wins"). For
     Reg M-C the plain file on this machine is a stale local snapshot and the .gz the collector commits
     is current, so plain-wins served ~60% of the store. The newer mtime is still the plain file where a
     local collector appends to it. The choice is printed once per path. Mirrors storePath() in
@@ -104,7 +104,7 @@ def behavioural_bots(games, cfg=None):
     r = cfg['rules'].get('exclude_behavioural_bots')
     if not r or not r['on']:
         return set()
-    # THE TEMPO CLAUSE (2026-09-30, abra/regmc 1.35.0) - mirrors engine/quality.js. An account with a
+    # THE TEMPO CLAUSE (2026-09-30, abra/regmc 1.36.0) - mirrors engine/quality.js. An account with a
     # game whose id matches tempo_applies_id_pattern must ALSO reach min_games_in_one_day on one day.
     min_day = r.get('min_games_in_one_day') or 0
     applies_rx = re.compile(r['tempo_applies_id_pattern']) if (min_day and r.get('tempo_applies_id_pattern')) else None
@@ -178,7 +178,7 @@ def illegal_teams():
               file=sys.stderr)
         _LEGAL = out
         return out
-    # EVERY REGULATION'S VERDICT (2026-09-30, abra/regmc 1.35.0) - mirrors illegalTeams() in
+    # EVERY REGULATION'S VERDICT (2026-09-30, abra/regmc 1.36.0) - mirrors illegalTeams() in
     # engine/quality.js: data/store-validation-<id>.json siblings are read and their keyed ids unioned.
     siblings = _sibling_verdicts('store-validation', v)
     out['verdicts'] = [{'source': rel, 'format': s.get('format'), 'generated': s.get('generated'),

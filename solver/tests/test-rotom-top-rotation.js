@@ -16,7 +16,8 @@
  *   CONTROL   the same check REFUSES each of the three breaks on a copy (so a green CHECK is a check that can see).
  *   ARM       solver/rotom/arms/gen5-chomp-top.json names this rotation, and its arm A equals gen5-chomp.json's arm A.
  *   REBUILD   when the store's sha256 equals the one recorded, a rebuild gives the same teams (same games, same packed
- *             sets). When the store has moved (the hourly ingest), it says so and counts it NOT CHECKED — never a pass.
+ *             sets; the spreads replayed from the file). When the store has moved (the hourly ingest), it says so and
+ *             counts it NOT CHECKED — never a pass.
  */
 'use strict';
 process.env.ABRA_REGULATION = process.env.ABRA_REGULATION || 'regmc';
@@ -76,7 +77,9 @@ for (const [k, f] of Object.entries(BREAKS)) {
   const shaNow = crypto.createHash('sha256').update(fs.readFileSync(B.STORE_DEFAULT)).digest('hex');
   if (shaNow !== ROT.source.store.sha256) { notChecked++; console.log('  NOT CHECKED [REBUILD] the store moved since the build (' + ROT.source.store.sha256.slice(0, 12) + ' -> ' + shaNow.slice(0, 12) + '); a rebuild would read other games'); }
   else {
-    const re = B.build({});
+    /* the spreads are replayed from the file (SP.recorded): this clause re-checks the TEAM CHOICE; re-deriving the
+     * spreads is solver/tests/test-rotom-spreads.js's REPRODUCE clause, which pins its own store */
+    const re = B.build({ deriver: require('../rotom/spreads.js').recorded(ROT) });
     ok('REBUILD', JSON.stringify(re.teams.map(t => [t.from_game, t.packed, t.bring])) === JSON.stringify(ROT.teams.map(t => [t.from_game, t.packed, t.bring])) && re.rule.floor === ROT.rule.floor,
        'a rebuild on the same store gives the same floor and teams');
   }

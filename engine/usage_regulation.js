@@ -312,7 +312,7 @@ function main() {
       filter: 'data/quality-filter.json',
       filter_version: cfg.version,
       funnel,
-      /* 2026-09-30 (abra/regmc 1.35.0): both rules are now ASKED of this regulation. Until then they keyed
+      /* 2026-09-30 (abra/regmc 1.36.0): both rules are now ASKED of this regulation. Until then they keyed
        * on Reg M-B's verdicts and were published here as not asked. */
       verdicts_of_this_regulation: {
         illegal_team: (Q.illegalTeams().verdicts || []).filter(v => v.format === REGN.FORMAT || v.format === REGN.BO3_FORMAT),

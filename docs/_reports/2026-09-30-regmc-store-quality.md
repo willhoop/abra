@@ -1,6 +1,6 @@
 # Reg M-C store quality: the stale plain file, the M-B-keyed rules, and the bot rule — 2026-09-30
 
-MEASURE, abra/regmc 1.35.0. Streaming store reads and one validator pass. No simulator, no games, no gate.
+MEASURE, abra/regmc 1.36.0. Streaming store reads and one validator pass. No simulator, no games, no gate.
 Run with plain `node`, not `tools\lownode.cmd`: this worktree's shell refuses a `cmd /c` it cannot prove
 stays inside the worktree.
 

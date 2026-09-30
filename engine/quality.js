@@ -35,7 +35,7 @@ function config() { if (!_cfg) _cfg = JSON.parse(fs.readFileSync(CONFIG, 'utf8')
  * still what the collector appends to and still what exists on a working machine, so nothing about
  * local workflow changes; it is simply no longer the thing git carries.
  *
- * ~~PLAIN WINS WHEN BOTH EXIST~~ -- RETIRED 2026-09-30 (MEASURE, abra/regmc 1.35.0). That rule assumed
+ * ~~PLAIN WINS WHEN BOTH EXIST~~ -- RETIRED 2026-09-30 (MEASURE, abra/regmc 1.36.0). That rule assumed
  * the plain file is the live one this machine's collector appends to. For Reg M-C it is the reverse:
  * the collector runs in GitHub Actions and commits the .gz, and the plain data/games.<format>.jsonl on
  * this machine is a local snapshot that stopped at 2026-09-21 while the .gz ran on to 2026-09-29. So
@@ -157,7 +157,7 @@ function _behaviouralBotsUncached(games, cfg) {
   cfg = cfg || config();
   const r = cfg.rules.exclude_behavioural_bots;
   if (!r || !r.on) return new Set();
-  /* THE TEMPO CLAUSE -- 2026-09-30 (MEASURE, abra/regmc 1.35.0). On Reg M-C, one team over 50 games is
+  /* THE TEMPO CLAUSE -- 2026-09-30 (MEASURE, abra/regmc 1.36.0). On Reg M-C, one team over 50 games is
    * not a bot signature on its own: it flagged two accounts on the live top 500 (bo1 #290, bo3 #109)
    * and every flagged bo3 account, while the bots proper sit in a separate cluster at 120-600 games in
    * ONE calendar day. So an account must also reach `min_games_in_one_day` on some day. The clause
@@ -243,7 +243,7 @@ function illegalTeams() {
       + `NO game is excluded for legality. Run: node engine/validate_store.js --write`);
     _legal = out; return out;
   }
-  /* EVERY REGULATION'S VERDICT, NOT ONLY REG M-B'S — 2026-09-30 (MEASURE, abra/regmc 1.35.0).
+  /* EVERY REGULATION'S VERDICT, NOT ONLY REG M-B'S — 2026-09-30 (MEASURE, abra/regmc 1.36.0).
    * data/store-validation.json is Reg M-B's, judged under Reg M-B's format, and holds no Reg M-C id, so
    * this rule removed 0 Reg M-C games while reporting itself ON. engine/validate_store.js now writes one
    * verdict per regulation (data/store-validation-<id>.json, by engine/regulation.js's sibling rule),

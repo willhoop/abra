@@ -37,7 +37,7 @@
 const fs = require('fs'), path = require('path'), readline = require('readline');
 
 const D = (...p) => path.join(__dirname, '..', ...p);
-/* REGULATION-AWARE — 2026-09-30 (MEASURE, abra/regmc 1.35.0). This scanned Reg M-B's ladder raw logs
+/* REGULATION-AWARE — 2026-09-30 (MEASURE, abra/regmc 1.36.0). This scanned Reg M-B's ladder raw logs
  * and nothing else, so `exclude_custom_ruleset` removed 0 Reg M-C games while reporting ON. Under a
  * non-owner regulation (--regulation / ABRA_REGULATION, through engine/regulation.js) the defaults are
  * that regulation's raw-log shards (data/raw/games.<format>/*.jsonl.gz, both formats, plus any flat

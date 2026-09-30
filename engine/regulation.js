@@ -565,7 +565,7 @@ const PER_REGULATION_ARTIFACTS = Object.freeze([
   [/^tag-walk\.json$/, 'tests/walk_tags.js', 'every tag checked against this regulation\'s checkout'],
   [/^tag-consumption\.json$/, 'tests/test-tag-consumed.js', 'the tag-consumer ratchet over this regulation\'s tags'],
   [/^unmodelled-clicks\.json$/, 'tests/test-unmodelled-clicks.js', 'the no-op-turn ratchet over this regulation\'s tags and table'],
-  /* 2026-09-30 (MEASURE, abra/regmc 1.35.0) -- THE TWO QUALITY VERDICTS. Each is a judgement of THIS
+  /* 2026-09-30 (MEASURE, abra/regmc 1.36.0) -- THE TWO QUALITY VERDICTS. Each is a judgement of THIS
    * regulation's stores: the legality verdict by this regulation's TeamValidator, the custom-ruleset scan
    * over this regulation's raw logs. Until this line both were Reg M-B's only, so the rules that read them
    * removed 0 Reg M-C games while reporting ON. engine/quality.js reads every regulation's sibling and
