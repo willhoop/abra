@@ -45,6 +45,7 @@ ap.add_argument('--no-rating', action='store_true')
 ap.add_argument('--aux-target', type=float, default=0.25)
 ap.add_argument('--aux-warm', type=int, default=200)
 ap.add_argument('--max-games', type=int, default=0, help='debug: cap train games')
+ap.add_argument('--patience', type=int, default=0, help='stop after this many epochs without a val improvement (0 = off); the selection rule is unchanged')
 args = ap.parse_args()
 if args.lr is None: args.lr = 1e-3 if args.stage == 'A' else 3e-4
 
@@ -187,6 +188,7 @@ for ep in range(args.epochs):
     history.append(rec)
     log(f'epoch {ep}: train {rec["train_loss"]:.5f} val bo1 {v1l:.5f} bo3 {v3l:.5f} | train-sample {trd:.5f} (train-val {trd - sel:+.5f}) {rec["seconds"]}s')
     if sel < best[0]: best = (sel, {k: v.clone() for k, v in model.state_dict().items()}, ep)
+    if args.patience and ep - best[2] >= args.patience: log(f'no val improvement for {args.patience} epochs: stop'); break
 
 model.load_state_dict(best[1])
 log('selected epoch', best[2], 'val', round(best[0], 5))
