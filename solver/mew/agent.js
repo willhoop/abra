@@ -9,11 +9,14 @@
  *   spec = { name, kind: 'miltank', mag, doduo, pory2, budgetMs, k1, k2, depth, reserveSwitch[, gates][, quiesce] }
  *   quiesce (2026-09-27): true | 'all' = every search playout plays one extension turn; 'held' = only after a protect held
  *   (solver/miltank/rollout.js QUIESCENCE); flatEps: a flat table plays the prior's top joint; reserveNoRepeat: the mega row
- *   repeats no Protect when it can (solver/miltank/search.js; docs/_reports/2026-09-27-protect-repeat-fix.md)
+ *   repeats no Protect when it can (solver/miltank/search.js; docs/_reports/2026-09-27-protect-repeat-fix.md); kl (2026-09-30): lambda of the
+ *   human-regularised solve (piKL; solver/miltank/search.js, docs/_reports/2026-09-30-human-regularised-search.md), off when absent
  *        | { name, kind: 'greedy',  mag, doduo[, gates] }   the HUMAN CLONE: DODUO's argmax legal joint, no search
  *   gates (2026-09-25, docs/_reports/2026-09-25-mag-doduo-gates.md): true or { soft, maxSteps, maxMs } — the prior is wrapped
  *   by DODUO v2 (solver/doduo/v2.js): MAG v2's per-slot dead-click gate and DODUO v2's pair gate cut, MAG's soft verdict
- *   down-weights, and DODUO's own score ranks what is left. The gate code is digested into `digests.gates`, and its
+ *   down-weights, and DODUO's own score ranks what is left. gates.doubleProtect (2026-09-29, true | { weight, exemptOff }):
+ *   the double-Protect soft gate (solver/doduo/double_protect.js), OFF by default; gates.tiers === false runs it alone,
+ *   with no MAG/pair verdicts (no engine steps). The gate code is digested into `digests.gates`, and its
  *   counters are in COUNTERS.gates[<agent name>].
  *   Paths are relative to the repository root. Every model file is digested into `digests`, so an artifact
  *   says which weights played, not which file names.
@@ -40,7 +43,7 @@ const abs = p => (path.isAbsolute(p) ? p : path.join(ROOT, p));
 const sha = p => crypto.createHash('sha256').update(fs.readFileSync(abs(p))).digest('hex').slice(0, 16);
 
 /* the search options a league spec may carry beyond k, depth and the leaf (solver/miltank/search.js); absent = off */
-const SEARCH_EXTRAS = ['quiesce', 'flatEps', 'reserveNoRepeat', 'chance'];
+const SEARCH_EXTRAS = ['quiesce', 'flatEps', 'reserveNoRepeat', 'chance', 'kl'];
 function searchExtras(spec) {
   const o = {};
   for (const k of SEARCH_EXTRAS) if (spec && spec[k] != null && spec[k] !== false) o[k] = spec[k];
@@ -55,7 +58,7 @@ function create(API, opts) {
   const MTmod = require('../miltank/search.js');
   const coinOf = seed => API.M.rngStreams({ seed }).any;
   const COUNTERS = { fallbacks: 0, fallback_errors: [], decisions: 0, searched: 0, forced: 0, gates: {} };
-  const GATE_FILES = ['solver/mag/probe.js', 'solver/mag/purpose.js', 'solver/mag/gate.js', 'solver/doduo/gate.js', 'solver/doduo/v2.js', 'solver/doduo/board_state.frozen.js'];
+  const GATE_FILES = ['solver/mag/probe.js', 'solver/mag/purpose.js', 'solver/mag/gate.js', 'solver/doduo/gate.js', 'solver/doduo/v2.js', 'solver/doduo/board_state.frozen.js', 'solver/doduo/double_protect.js'];
   const LOADED = new Map();
   const XW = require('../xatu/worlds.js').create(API, { R });
 
@@ -95,7 +98,8 @@ function create(API, opts) {
     if (spec.gates) {
       const g = spec.gates === true ? {} : spec.gates;
       const need = spec.kind === 'miltank' ? { all: Math.max(spec.k1 || 8, spec.k2 || 8), switch: spec.reserveSwitch == null ? 2 : spec.reserveSwitch, mega: 1 } : { all: 1 };
-      const V2 = require('../doduo/v2.js').create(API, { rollout: R, soft: g.soft, floor: g.floor, switchModel: g.switchModel, maxSteps: g.maxSteps, maxMs: g.maxMs, need });
+      const V2 = require('../doduo/v2.js').create(API, { rollout: R, soft: g.soft, floor: g.floor, switchModel: g.switchModel, maxSteps: g.maxSteps, maxMs: g.maxMs, need,
+        doubleProtect: g.doubleProtect, tiers: g.tiers });
       PA = V2.wrap(PA);
       COUNTERS.gates[spec.name] = V2.COUNTERS;
       const h = crypto.createHash('sha256');
@@ -149,6 +153,16 @@ function create(API, opts) {
             if (searched && rec.stop === 'none') rec.stop = 'hard';
             AD.charge(Date.now() - tIn, searched, rec);
             r.info = Object.assign({}, r.info, { adapt: { stop: searched ? rec.stop : 'forced', hard: rec.plan.hardMs, soft: rec.plan.softMs, credit: rec.plan.creditMs, bank: +AD.bank.toFixed(1) } });
+          }
+          /* the human-regularised solve's counters, per agent (the honest path makes a MILTANK per decision, so its own
+           * COUNTERS do not survive the decision): summed here from each decision's info.kl (solver/miltank/search.js) */
+          if (r.info && r.info.kl) {
+            const K = (COUNTERS.kl = COUNTERS.kl || {})[spec.name] || (COUNTERS.kl[spec.name] = { lambda: r.info.lambda, decisions: 0, changed: 0, missMe: 0, missOpp: 0,
+              klSum: 0, tvSum: 0, worstSum: 0, worstMax: 0, prot: 0, prot0: 0, dbl: 0, dbl0: 0, gapMax: 0 });
+            const q = r.info.kl;
+            K.decisions++; if (q.changed) K.changed++; if (q.missMe) K.missMe++; if (q.missOpp) K.missOpp++;
+            K.klSum += q.kl; K.tvSum += q.tv; K.worstSum += q.worst; if (q.worst > K.worstMax) K.worstMax = q.worst;
+            K.prot += q.prot; K.prot0 += q.prot0; K.dbl += q.dbl; K.dbl0 += q.dbl0; if (q.gap > K.gapMax) K.gapMax = q.gap;
           }
           return r;
         } catch (e) {

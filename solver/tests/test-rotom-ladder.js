@@ -22,8 +22,9 @@
  *             host) and verifies RSA-SHA1 against its public key, exactly as server/verifier.ts checks it.
  *   STARTUP   rotom.js refuses (exit 2, before any socket): --ladder alone; --ladder --public as a non-ladder account;
  *             --dry-run on a non-local server; --ladder without --release; a pre-gate --release; a dry-run-only arms file
- *             on --public. No test here ever opens a public connection: every child runs with the netguard preload.
- *   ROTATION  solver/rotom/teams/ladder-rotation.json holds 3-5 teams, each passes Showdown's TeamValidator for the bo3
+ *             on --public; a --rotation contradicting the arm's `rotation`; an arm naming a missing rotation. No test here ever opens a public connection: every child runs with the netguard preload.
+ *   ROTATION  solver/rotom/teams/ladder-rotation.json, and every rotation an arms file names (`rotation`), holds 3-5 teams,
+ *             each passes Showdown's TeamValidator for the bo3
  *             format, distinct archetypes, a four-body bring of distinct sheet indices, leads first.
  *   SOURCE    nothing in the ladder code sends /forfeit; the password appears only in the login POST body.
  */
@@ -338,23 +339,47 @@ function mkController(dir, extra) {
   ok('STARTUP', r.status === 2 && /PRE-GATE/.test(r.stderr), 'a pre-gate release refused: ' + (r.stderr || '').slice(0, 200));
   r = runRotom(['--ladder', '--public', '--name', 'medicham32', '--server', 'wss://sim3.psim.us/showdown/websocket', '--release', L.GATE_RELEASE, '--arms', 'solver/rotom/arms/dryrun-fast.json', '--ladder-seed', 'x'].concat(common));
   ok('STARTUP', r.status === 2 && /(dry_run_only|no password)/.test(r.stderr), 'a dry-run-only arms file on --public refused (or no password): ' + (r.stderr || '').slice(0, 200));
+  /* THE ARM NAMES ITS ROTATION: --rotation may repeat the arms file's `rotation`, never contradict it; a missing one is refused */
+  const armsTop = path.join(TMP, 'arms-top.json'), armsGone = path.join(TMP, 'arms-gone.json');
+  const top = JSON.parse(fs.readFileSync(path.join(ROOT, 'solver', 'rotom', 'arms', 'gen5-chomp-top.json'), 'utf8'));
+  fs.writeFileSync(armsTop, JSON.stringify(top));
+  fs.writeFileSync(armsGone, JSON.stringify(Object.assign({}, top, { rotation: 'solver/rotom/teams/no-such-rotation.json' })));
+  r = runRotom(['--ladder', '--dry-run', '--name', 'rotomx', '--release', older, '--arms', armsTop, '--rotation', 'solver/rotom/teams/ladder-rotation.json', '--ladder-seed', 'x'].concat(common));
+  ok('STARTUP', r.status === 2 && /contradicts the arms file/.test(r.stderr), 'a --rotation that contradicts the rotation the arm names is refused: ' + (r.stderr || '').slice(0, 200));
+  r = runRotom(['--ladder', '--dry-run', '--name', 'rotomx', '--release', older, '--arms', armsTop, '--rotation', top.rotation, '--ladder-seed', 'x'].concat(common));
+  ok('STARTUP', r.status === 2 && /PRE-GATE/.test(r.stderr) && !/contradicts/.test(r.stderr), 'a --rotation that repeats the rotation the arm names passes that check (then the pre-gate release is refused): ' + (r.stderr || '').slice(0, 200));
+  r = runRotom(['--ladder', '--dry-run', '--name', 'rotomx', '--release', older, '--arms', armsGone, '--ladder-seed', 'x'].concat(common));
+  ok('STARTUP', r.status === 2 && /does not exist/.test(r.stderr), 'an arm naming a missing rotation is refused: ' + (r.stderr || '').slice(0, 200));
+
   let ng = []; try { ng = fs.readFileSync(path.join(TMP, 'startup-netguard.jsonl'), 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)); } catch (e) { /* none */ }
   ok('STARTUP', ng.filter(x => x.blocked).length === 0, 'no refused child ever TRIED a public connection: ' + JSON.stringify(ng.filter(x => x.blocked)));
 
   /* ---------------- ROTATION ---------------- */
-  const ROT = JSON.parse(fs.readFileSync(path.join(ROOT, 'solver', 'rotom', 'teams', 'ladder-rotation.json'), 'utf8'));
-  ok('ROTATION', ROT.teams.length >= 3 && ROT.teams.length <= 5, 'rotation size ' + ROT.teams.length);
-  ok('ROTATION', ROT.format === 'gen9championsvgc2026regmcbo3', 'format ' + ROT.format);
+  /* every rotation a run can play: the default, and every one an arms file names */
+  const armsDir = path.join(ROOT, 'solver', 'rotom', 'arms');
+  const rotFiles = new Set([path.join('solver', 'rotom', 'teams', 'ladder-rotation.json')]);
+  for (const f of fs.readdirSync(armsDir).filter(f => f.endsWith('.json'))) {
+    const a = JSON.parse(fs.readFileSync(path.join(armsDir, f), 'utf8'));
+    if (a.rotation) { ok('ROTATION', fs.existsSync(path.join(ROOT, a.rotation)), f + ' names rotation ' + a.rotation + ', which exists'); rotFiles.add(path.normalize(a.rotation)); }
+  }
+  ok('ROTATION', rotFiles.has(path.join('solver', 'rotom', 'teams', 'ladder-rotation-top.json')), 'the top-meta rotation is named by an arm: ' + [...rotFiles].join(', '));
   require('../arena/env.js');
   const X = require('../human/dex.js');
   const { Teams, TeamValidator } = require(path.join(X.SHOWDOWN_PATH, 'dist', 'sim'));
-  const V = TeamValidator.get(ROT.format);
-  for (const t of ROT.teams) {
-    const pr = V.validateTeam(Teams.unpack(t.packed));
-    ok('ROTATION', !pr, t.id + ' passes TeamValidator: ' + JSON.stringify(pr));
-    ok('ROTATION', t.bring.length === 4 && new Set(t.bring).size === 4 && t.bring.every(i => i >= 0 && i < 6), t.id + ' bring ' + JSON.stringify(t.bring));
+  for (const rf of rotFiles) {
+    if (!fs.existsSync(path.join(ROOT, rf))) continue;
+    const ROT = JSON.parse(fs.readFileSync(path.join(ROOT, rf), 'utf8'));
+    ok('ROTATION', ROT.teams.length >= 3 && ROT.teams.length <= 5, rf + ' rotation size ' + ROT.teams.length);
+    ok('ROTATION', ROT.format === 'gen9championsvgc2026regmcbo3', rf + ' format ' + ROT.format);
+    const V = TeamValidator.get(ROT.format);
+    for (const t of ROT.teams) {
+      const pr = V.validateTeam(Teams.unpack(t.packed));
+      ok('ROTATION', !pr, rf + ' ' + t.id + ' passes TeamValidator: ' + JSON.stringify(pr));
+      ok('ROTATION', t.bring.length === 4 && new Set(t.bring).size === 4 && t.bring.every(i => i >= 0 && i < 6), rf + ' ' + t.id + ' bring ' + JSON.stringify(t.bring));
+      ok('ROTATION', t.archetype && t.archetype.label && t.from_game && t.rating > 0, rf + ' ' + t.id + ' carries the team_meta fields (archetype label, from_game, rating)');
+    }
+    ok('ROTATION', new Set(ROT.teams.map(t => t.archetype.id)).size === ROT.teams.length, rf + ' one team per archetype');
   }
-  ok('ROTATION', new Set(ROT.teams.map(t => t.archetype.id)).size === ROT.teams.length, 'one team per archetype');
 
   /* ---------------- SOURCE ---------------- */
   const src = ['rotom.js', 'ladder.js', 'run_ladder.js'].map(f => fs.readFileSync(path.join(ROOT, 'solver', 'rotom', f), 'utf8')).join('\n');

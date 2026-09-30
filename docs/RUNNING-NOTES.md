@@ -53,12 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
-## [abra/regmc 1.34.0] — 2026-09-30 — **PORYGON2 v2: design pre-registered and datasets built; nothing trained**
+## [abra/regmc 1.35.0] — 2026-09-30 — **PORYGON2 v2: design pre-registered and datasets built; nothing trained**
 - **What changed.**
   - New `solver/porygon2/v2/`: `reveal.js` and `extract.js`, the store-only position extractor; `DESIGN.md`;
     `preregistration.json`; `manifest-bo1.json` and `manifest-bo3.json`.
   - New test `solver/tests/test-porygon2-v2-extract.js`.
   - `solver/PLAN.md`: the PORYGON2 status cell.
+  - Removed the merge-conflict markers that main carried in `docs/SOLVER.md` and `solver/LOG.md` (from merge `ec14dd86`); every entry is kept.
 - **Measured.**
   - bo1: 27,116 games / 218,815 positions. bo3: 24,940 / 197,905 (`solver/porygon2/v2/manifest-*.json`).
   - Both players at 1500 or above: bo1 364, bo3 0.
@@ -68,6 +69,40 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Basis.** unchanged.
 - **Supersedes.** Nothing.
 - **Owed to the next major.** MODELS: PORYGON2 v2 (designed, not trained).
+
+## [abra/regmc 1.34.1] — 2026-09-30 — **CHANGELOG-REGMC heading fix after the overnight merges**
+- **What changed.** The double-Protect entry's CHANGELOG heading reads 1.32.0 again; the 1.34.0 merge renumber had renamed it. Its notes row already read 1.32.0. No code.
+- **Measured.** NO FIGURE.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none.
+
+## [abra/regmc 1.34.0] — 2026-09-30 — **The human-regularised root solve (piKL) is built behind a flag. It moves the search toward the human click, and it does not fix the turn-4 double Protect.**
+- **What changed.** `solver/slowking/matrix.js` `solveKL`. `solver/miltank/search.js` spec option `kl` (λ). The anchor is the ranking prior's scores on the rows and columns. The plain solve runs beside it for the counters. `solver/mew/agent.js` and `play.js` carry the `kl` counters, and `solver/rotom/policy.js` taps `solveKL`. New: `solver/miltank/eval_kl_human.js`, `solver/tests/probe_kl_replay.js`, `probe_kl_repeat.js`, `test-miltank-kl.js`. The flag is off by default and on no arm.
+- **Measured.** Held-out human decisions, n=579, one recorded gen5 table each (16 passes, release `eaa5becc54eb`): top-1 agreement 0.216 (λ 0) → 0.268 (λ 0.1), Δ +0.052 [0.021, 0.083]. The worst-case cost on the table is 0.035 (`solver/results/2026-09-30-human-regularised/human-agreement.json`). The repeat-Protect mass on the 13 offered positions is 0.611 → 0.243 at λ 0.03 (`repeat-protect.json`). chomp1 g1 t4 double-Protect mass is 0.851 → 0.709 at λ 0.03 and 0.386 at λ 0.1 (`replay-chomp1-g1-t4.json`). No game was played. The 2 s screens are pre-registered, not run.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** `docs/MODELS.md` (SLOWKING: the human-regularised solve, if phase B lands it).
+
+## [abra/regmc 1.33.0] — 2026-09-30 — **Reg M-C counted by rating on the full stores; most top-ladder players upload nothing**
+- **What changed.** New count of the full Reg M-C stores (`.gz` passed explicitly; `quality.js` `storePath()` would serve the 09-21 plain snapshot). Streaming read, no simulator. `docs/REGULATION-ROTATION.md` gains a row for the stale-plain-store trap.
+- **Measured.** Clean (quality.js `reasons()` + behavioural bots): bo3 25,238 (lower ≥ 1300/1400/1500 = 715/89/0), bo1 29,537 (lower ≥ 1500/1600 = 361/31). Zero-upload share of live-ladder players ≥ 1500: bo3 80.9% (76 of 94), bo1 57.4% (287 of 500). bo3 series 17,464. The data is in `data/verification/2026-09-30-high-rated-regmc-counts.json`, n = 37,165 bo3 and 59,196 bo1 games to 2026-09-29 21:02, and the comparison baseline is the 09-21 snapshot.
+- **Basis.** unchanged.
+- **Supersedes.** The OPS snapshot counts (bo3 16,119, bo1 18,890 clean; bo1 reveal 1.43 moves) were never published in a living document, and they do not reproduce on their own files. Quote this file's figures instead.
+
+## [abra/regmc 1.32.0] — 2026-09-30 — **The double-Protect soft gate: built, off by default; humans honour four of its stall reasons and ignore terrain and screens**
+- **What changed.** New `solver/doduo/double_protect.js` (Will's rule: both actives on a protect-type move is weighted to 0.001 unless a stall condition holds), wired into DODUO v2 as `gates.doubleProtect` (`gates.tiers: false` runs it alone). `eval_gates.js --dp`, `solver/doduo/dp_rates.js`, `solver/tests/probe_dp_replay.js`, test `solver/tests/test-double-protect.js`. `protect_stats.js` counts `pairs`/`doubles`; `world.js` puts the current public state on `ctx.pubNow`. On no arm.
+- **Measured.** Release `eaa5becc54eb`, all 20,482 held-out human decisions: humans double-Protect on 646 (3.15%). 571 are exempt, 75 are not. Survival 99.63% [99.54, 99.71]. Human rate when offered: 2.2% with no exemption. With one reason alone: Fake Out 16.5%, Trick Room 14.8%, Tailwind 13.0%, Perish 50.0% (n 28), terrain 2.2%, weather 2.9%, screen 0.7%. Artifacts: `solver/results/2026-09-30-double-protect/eval-human-dp.json` and `human-dp-rates.json`. chomp1 game 1 turn 4 is exempt by the opponent's Grassy Terrain (1 turn left), so the gated search still plays the double Protect: mix 0.85, as ungated (`replay-chomp1-g1-t4.json`). With terrain off, it plays mega Substitute plus a switch at 0.997. Test 34/34, and RED under 4 breaks.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none (the flag is on no arm).
+
+## [abra/regmc 1.31.0] — 2026-09-29 — **ROTOM gets a top-meta ladder rotation, and an arm that names it**
+- **What changed.** New `solver/rotom/build_top_rotation.js` writes `solver/rotom/teams/ladder-rotation-top.json`. New arms file `solver/rotom/arms/gen5-chomp-top.json` (gen5-chomp plus `rotation`). `solver/rotom/rotom.js` reads an arm's `rotation` and refuses a contradicting `--rotation`. New test `solver/tests/test-rotom-top-rotation.js`; `test-rotom-ladder.js` extended.
+- **Measured.** Floor 1409 (q0.99 of 63,366 rated open-sheet bo3 sides; median 1119, max 1630), 648 sides and 87 players at the floor, top baseline S − E −0.049, 759 bot and behavioural-bot games excluded. 5 teams rated 1478–1596, from families of 7, 4, 3, 3 and 3 players (25, 15, 49, 20 and 19 games). The old rotation was 1379–1549 (median 1462), all five sixes one-player, two with a species at 0.7% of top teams. Store `data/games.gen9championsvgc2026regmcbo3.jsonl.gz` sha256 `fe78202a8515`, 37,491 games, read by name (not through `quality.js` `storePath()`). Tests: top-rotation 10/10 and RED on the floor, illegal and off-meta breaks.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published. No series was played on the new rotation.
+- **Owed to the next major.** none.
 
 ## [abra/regmc 1.30.1] — 2026-09-29 — **`test-game-diff.js` and five more engine tests write per-regulation files under Reg M-C**
 - **What changed.** `engine/regulation.js` `PER_REGULATION_ARTIFACTS` gains `game-diff.json`, `forme-assert.json`, `switch-back-renamed.json`, `tag-walk.json`, `tag-consumption.json` and `unmodelled-clicks.json`. Each writer names its path through `artifactFor`. `test-game-diff.js` and `test-unmodelled-clicks.js` read the tags through `fileFor`, because a bare fs read returned Reg M-B's under Reg M-C. `test-tag-consumed.js` prints `NO BASELINE` when it has none. `tests/test-regulation-artifacts.js` maps the six names.

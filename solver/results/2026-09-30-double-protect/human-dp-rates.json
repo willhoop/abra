@@ -1,0 +1,169 @@
+{
+ "dir": "solver/out/gates/eaa5becc54eb/dp-all",
+ "evaluated": 20482,
+ "offered": 9128,
+ "by_exemption": [
+  {
+   "name": "no exemption",
+   "n": 3466,
+   "human_double": 75,
+   "rate": 0.02163877668782458,
+   "ci95": [
+    0.01729814935870495,
+    0.027038629588207203
+   ]
+  },
+  {
+   "name": "only fakeout",
+   "n": 727,
+   "human_double": 120,
+   "rate": 0.16506189821182943,
+   "ci95": [
+    0.13984991077183503,
+    0.1937950267905588
+   ]
+  },
+  {
+   "name": "only trickroom",
+   "n": 237,
+   "human_double": 35,
+   "rate": 0.14767932489451477,
+   "ci95": [
+    0.10814045697244351,
+    0.19845773868810682
+   ]
+  },
+  {
+   "name": "only tailwind",
+   "n": 368,
+   "human_double": 48,
+   "rate": 0.13043478260869565,
+   "ci95": [
+    0.09980917672478022,
+    0.16869655259652216
+   ]
+  },
+  {
+   "name": "only perish",
+   "n": 28,
+   "human_double": 14,
+   "rate": 0.5,
+   "ci95": [
+    0.32632846832446344,
+    0.6736715316755366
+   ]
+  },
+  {
+   "name": "only weather",
+   "n": 781,
+   "human_double": 23,
+   "rate": 0.029449423815621,
+   "ci95": [
+    0.01970245305862885,
+    0.04380284533534008
+   ]
+  },
+  {
+   "name": "only terrain",
+   "n": 1298,
+   "human_double": 29,
+   "rate": 0.02234206471494607,
+   "ci95": [
+    0.015600333990162193,
+    0.03190283382994741
+   ]
+  },
+  {
+   "name": "only screen",
+   "n": 151,
+   "human_double": 1,
+   "rate": 0.006622516556291391,
+   "ci95": [
+    0.001169964816982218,
+    0.036556330958829965
+   ]
+  },
+  {
+   "name": "only residual",
+   "n": 126,
+   "human_double": 5,
+   "rate": 0.03968253968253968,
+   "ci95": [
+    0.017066861379560188,
+    0.08953687732975948
+   ]
+  },
+  {
+   "name": "only firstturn",
+   "n": 13,
+   "human_double": 1,
+   "rate": 0.07692307692307693,
+   "ci95": [
+    0.013710066379696325,
+    0.3331453392824736
+   ]
+  }
+ ],
+ "variants": [
+  {
+   "exempt_off": [],
+   "human_doubles": 646,
+   "gated": 75,
+   "survival": 0.9963382482179475,
+   "ci95": [
+    0.9954128160712362,
+    0.9970775290654751
+   ],
+   "fires_on_offered": 3466,
+   "offered": 9128
+  },
+  {
+   "exempt_off": [
+    "terrain",
+    "screen"
+   ],
+   "human_doubles": 646,
+   "gated": 106,
+   "survival": 0.9948247241480325,
+   "ci95": [
+    0.993744977670171,
+    0.9957188869728125
+   ],
+   "fires_on_offered": 4925,
+   "offered": 9128
+  },
+  {
+   "exempt_off": [
+    "terrain",
+    "screen",
+    "weather"
+   ],
+   "human_doubles": 646,
+   "gated": 138,
+   "survival": 0.9932623767210234,
+   "ci95": [
+    0.9920458166621371,
+    0.994293939084095
+   ],
+   "fires_on_offered": 6033,
+   "offered": 9128
+  },
+  {
+   "exempt_off": [
+    "terrain",
+    "screen",
+    "weather",
+    "residual"
+   ],
+   "human_doubles": 646,
+   "gated": 165,
+   "survival": 0.9919441460794844,
+   "ci95": [
+    0.9906242903840642,
+    0.9930794984805338
+   ],
+   "fires_on_offered": 6328,
+   "offered": 9128
+  }
+ ]
+}

@@ -1,0 +1,4319 @@
+{
+ "what": "The double-Protect soft gate (solver/doduo/double_protect.js) on held-out human Reg M-C decisions (solver/doduo/eval_gates.js --dp)",
+ "engine_release": "eaa5becc54eb",
+ "flags": {
+  "n": 30000,
+  "seed": 1,
+  "workers": 3,
+  "human": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\solver\\out\\human\\games.jsonl",
+  "dp": true
+ },
+ "dataset_sha256": "9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8",
+ "selection": {
+  "sha": "9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8",
+  "counts": {
+   "games": 26888,
+   "test_games": 5220,
+   "eligible_games": 3627,
+   "decisions_seen": 29951,
+   "eligible": 20501
+  },
+  "stride": 1,
+  "picks": 20501,
+  "games": 3606
+ },
+ "counts": {
+  "decisions": 20501,
+  "errors": 0,
+  "unmatched": 19,
+  "evaluated": 20482,
+  "both_slots_chose": 18718,
+  "double_offered": 9128
+ },
+ "human_double": {
+  "n": 646,
+  "of_evaluated": 20482,
+  "rate": 0.03153988868274583,
+  "rate_ci95": [
+   0.029232808409602535,
+   0.03402266458009392
+  ],
+  "of_offered": 9128,
+  "rate_when_offered": 0.07077125328659072,
+  "rate_when_offered_ci95": [
+   0.06568895474175256,
+   0.07621468931619958
+  ]
+ },
+ "exemptions_of_human_doubles": {
+  "any": 571,
+  "by_reason": {
+   "weather": 107,
+   "fakeout": 294,
+   "terrain": 233,
+   "residual": 46,
+   "trickroom": 99,
+   "screen": 20,
+   "tailwind": 99,
+   "none": 75,
+   "perish": 19,
+   "firstturn": 3
+  },
+  "exact_sets": {
+   "fakeout+weather": 9,
+   "fakeout+terrain+weather": 4,
+   "residual+terrain": 12,
+   "fakeout": 120,
+   "terrain": 29,
+   "trickroom": 35,
+   "fakeout+screen": 3,
+   "fakeout+trickroom+weather": 2,
+   "fakeout+terrain": 118,
+   "tailwind+terrain": 10,
+   "terrain+trickroom+weather": 1,
+   "terrain+trickroom": 23,
+   "none": 75,
+   "fakeout+tailwind": 7,
+   "tailwind": 48,
+   "tailwind+weather": 12,
+   "residual+trickroom": 3,
+   "terrain+weather": 4,
+   "residual+weather": 6,
+   "weather": 23,
+   "fakeout+screen+weather": 2,
+   "fakeout+tailwind+terrain": 13,
+   "trickroom+weather": 20,
+   "fakeout+trickroom": 3,
+   "screen+weather": 4,
+   "residual": 5,
+   "residual+terrain+trickroom": 2,
+   "perish": 14,
+   "residual+screen+weather": 1,
+   "screen+tailwind+weather": 2,
+   "residual+trickroom+weather": 2,
+   "fakeout+screen+terrain+weather": 2,
+   "perish+weather": 2,
+   "firstturn": 1,
+   "firstturn+weather": 1,
+   "residual+terrain+trickroom+weather": 2,
+   "fakeout+residual": 4,
+   "fakeout+firstturn+trickroom": 1,
+   "fakeout+terrain+trickroom": 3,
+   "residual+terrain+weather": 3,
+   "screen+tailwind": 2,
+   "residual+tailwind+terrain": 1,
+   "screen+terrain": 1,
+   "perish+trickroom+weather": 1,
+   "tailwind+terrain+weather": 1,
+   "screen+terrain+weather": 1,
+   "fakeout+residual+terrain": 2,
+   "residual+screen+tailwind": 1,
+   "screen": 1,
+   "residual+tailwind+weather": 1,
+   "perish+tailwind": 1,
+   "fakeout+residual+terrain+weather": 1,
+   "perish+trickroom": 1
+  }
+ },
+ "survival": {
+  "gated": 75,
+  "n": 20482,
+  "survived": 20407,
+  "rate": 0.9963382482179475,
+  "ci95": [
+   0.9954128160712362,
+   0.9970775290654751
+  ],
+  "of_human_doubles_gated": 0.11609907120743033,
+  "gated_ci95_of_doubles": [
+   0.09363397178984499,
+   0.14310310382981373
+  ],
+  "caption": "survival = the human joint is NOT weighted by the gate (it is not a double protect, or a stall condition holds). The gate weights, it never removes."
+ },
+ "base_rates_when_offered": {
+  "exempt": 5662,
+  "not_exempt": 3466,
+  "by_reason": {
+   "none": 3466,
+   "terrain": 2641,
+   "fakeout": 1581,
+   "trickroom": 552,
+   "tailwind": 723,
+   "weather": 1552,
+   "firstturn": 20,
+   "screen": 420,
+   "residual": 380,
+   "perish": 39
+  },
+  "human_double_rate_exempt": 0.10084775697633346,
+  "human_double_rate_exempt_ci95": [
+   0.09327268560624838,
+   0.10896410124638797
+  ],
+  "human_double_rate_not_exempt": 0.02163877668782458,
+  "human_double_rate_not_exempt_ci95": [
+   0.01729814935870495,
+   0.027038629588207203
+  ]
+ },
+ "gated_human_doubles": [
+  {
+   "id": "gen9championsvgc2026regmcbo3-2678908444",
+   "turn": 1,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "arcanine-hisui",
+    "floette-eternal"
+   ],
+   "foes": [
+    "charizard",
+    "sylveon"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "switch",
+    "Hyper Voice"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679053979",
+   "turn": 5,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:banefulbunker:"
+   ],
+   "actives": [
+    "gholdengo",
+    "toxapex"
+   ],
+   "foes": [
+    "gallade",
+    "ampharos-mega"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 1,
+    "tr": 1,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "trSpeed": {
+     "me": 98,
+     "them": 101,
+     "left": 1
+    },
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 1,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Wide Guard",
+    "Thunderbolt"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679085645",
+   "turn": 9,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "indeedee-f",
+    "sneasler"
+   ],
+   "foes": [
+    "kingambit",
+    "floette-mega"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Sucker Punch",
+    "Moonblast"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679491724",
+   "turn": 1,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "scovillain",
+    "sneasler"
+   ],
+   "foes": [
+    "salamence",
+    "excadrill"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Hyper Voice",
+    "switch"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679920150",
+   "turn": 1,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "salamence",
+    "arcanine-hisui"
+   ],
+   "foes": [
+    "tsareena",
+    "arcanine-hisui"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "U-turn",
+    "Head Smash"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681458396",
+   "turn": 5,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:spikyshield:"
+   ],
+   "actives": [
+    "armarouge",
+    "glimmora"
+   ],
+   "foes": [
+    "staraptor",
+    "arcanine-hisui"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "psychic",
+    "terrainT": 3,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "psychic",
+     "left": 3,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Close Combat",
+    "Head Smash"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681431431",
+   "turn": 1,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "salamence",
+    "armarouge"
+   ],
+   "foes": [
+    "metagross",
+    "basculegion"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Stomping Tantrum",
+    "Aqua Jet"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681561723",
+   "turn": 9,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "politoed",
+    "gengar-mega"
+   ],
+   "foes": [
+    "sneasler",
+    "arcanine-hisui"
+   ],
+   "field": {
+    "weather": "rain",
+    "weatherT": 3,
+    "terrain": "grassy",
+    "terrainT": 1,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "rain",
+     "left": 3,
+     "theirs": false,
+     "mine": true
+    },
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 1,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Rock Slide",
+    "Head Smash"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681550179",
+   "turn": 9,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "floette-mega",
+    "pelipper"
+   ],
+   "foes": [
+    "raichu-mega-y",
+    "gholdengo"
+   ],
+   "field": {
+    "weather": "rain",
+    "weatherT": 4,
+    "terrain": "grassy",
+    "terrainT": 2,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "rain",
+     "left": 4,
+     "theirs": false,
+     "mine": true
+    },
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 2,
+     "theirs": true,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Encore",
+    "Shadow Ball"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681863412",
+   "turn": 7,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "salamence-mega",
+    "sneasler"
+   ],
+   "foes": [
+    "gholdengo",
+    "staraptor-mega"
+   ],
+   "field": {
+    "weather": "sand",
+    "weatherT": 2,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "sand",
+     "left": 2,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Make It Rain",
+    "Tailwind"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2682193054",
+   "turn": 1,
+   "p": "p1",
+   "human": [
+    "m:protect::M",
+    "m:protect:"
+   ],
+   "actives": [
+    "raichu",
+    "gholdengo"
+   ],
+   "foes": [
+    "sneasler",
+    "basculegion"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Throat Chop",
+    "Wave Crash"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2682167340",
+   "turn": 8,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "arcanine-hisui",
+    "kommoo"
+   ],
+   "foes": [
+    "gholdengo",
+    "sinistcha"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 1,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "trSpeed": {
+     "me": 139,
+     "them": 141,
+     "left": 1
+    }
+   },
+   "opp_actions": [
+    "Make It Rain",
+    null
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2682520765",
+   "turn": 6,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "excadrill",
+    "tyranitar-mega"
+   ],
+   "foes": [
+    "gholdengo",
+    "swampert-mega"
+   ],
+   "field": {
+    "weather": "sand",
+    "weatherT": 3,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "sand",
+     "left": 3,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Nasty Plot",
+    "Protect"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2682649736",
+   "turn": 6,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "archaludon",
+    "politoed"
+   ],
+   "foes": [
+    "kingambit",
+    "basculegion"
+   ],
+   "field": {
+    "weather": "rain",
+    "weatherT": 1,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "rain",
+     "left": 1,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Kowtow Cleave",
+    "Protect"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2682713458",
+   "turn": 10,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "tyranitar",
+    "salamence-mega"
+   ],
+   "foes": [
+    "gholdengo",
+    "raichu-mega-y"
+   ],
+   "field": {
+    "weather": "sand",
+    "weatherT": 4,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "sand",
+     "left": 4,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Nasty Plot",
+    "Zap Cannon"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2682708049",
+   "turn": 4,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "gengar-mega",
+    "rillaboom"
+   ],
+   "foes": [
+    "raichu-mega-y",
+    "arcanine-hisui"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 3,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 3,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Zap Cannon",
+    "Flare Blitz"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2683064187",
+   "turn": 7,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "metagross",
+    "froslass-mega"
+   ],
+   "foes": [
+    "basculegion",
+    "salamence-mega"
+   ],
+   "field": {
+    "weather": "snow",
+    "weatherT": 4,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "snow",
+     "left": 4,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Last Respects",
+    "Draco Meteor"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2683376991",
+   "turn": 4,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "kommoo",
+    "gengar-mega"
+   ],
+   "foes": [
+    "milotic",
+    "arcanine-hisui"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 1,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 1,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Ice Beam",
+    "Flare Blitz"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2683730065",
+   "turn": 4,
+   "p": "p1",
+   "human": [
+    "m:detect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "blaziken-mega",
+    "sneasler"
+   ],
+   "foes": [
+    "milotic",
+    "indeedee"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "psychic",
+    "terrainT": 1,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "psychic",
+     "left": 1,
+     "theirs": true,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Muddy Water",
+    "Expanding Force"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2684662471",
+   "turn": 16,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:kingsshield:"
+   ],
+   "actives": [
+    "swampert",
+    "aegislash"
+   ],
+   "foes": [
+    "arcanine-hisui",
+    "rillaboom"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Protect",
+    "Grassy Glide"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2684713171",
+   "turn": 1,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "tyranitar",
+    "excadrill"
+   ],
+   "foes": [
+    "sneasler",
+    "tyranitar"
+   ],
+   "field": {
+    "weather": "sand",
+    "weatherT": 4,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "sand",
+     "left": 4,
+     "theirs": true,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Protect",
+    "Low Kick"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2685072911",
+   "turn": 4,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "meowstic-f-mega",
+    "ninetales"
+   ],
+   "foes": [
+    "kingambit",
+    "sneasler"
+   ],
+   "field": {
+    "weather": "sun",
+    "weatherT": 2,
+    "terrain": "psychic",
+    "terrainT": 1,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "sun",
+     "left": 2,
+     "theirs": true,
+     "mine": true
+    },
+    "terrainSetter": {
+     "id": "psychic",
+     "left": 1,
+     "theirs": true,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Kowtow Cleave",
+    "Protect"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2685441585",
+   "turn": 1,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "floette-eternal",
+    "whimsicott"
+   ],
+   "foes": [
+    "sneasler",
+    "excadrill"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Dire Claw",
+    "Iron Head"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2685511206",
+   "turn": 3,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "incineroar",
+    "gengar-mega"
+   ],
+   "foes": [
+    "raichu-mega-y",
+    "kingambit"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 2,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 2,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Zap Cannon",
+    "Kowtow Cleave"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2685754409",
+   "turn": 5,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "salamence",
+    "azumarill"
+   ],
+   "foes": [
+    "rillaboom",
+    "garchomp"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 1,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 1,
+     "theirs": true,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Wood Hammer",
+    "locked"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2686092811",
+   "turn": 3,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "incineroar",
+    "gengar-mega"
+   ],
+   "foes": [
+    "garchomp-mega-z",
+    "indeedee-f"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 2,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 2,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Earth Power",
+    "Psychic"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2680094940",
+   "turn": 9,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:banefulbunker:"
+   ],
+   "actives": [
+    "golisopod-mega",
+    "toxapex"
+   ],
+   "foes": [
+    "golisopod-mega",
+    "toxapex"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Liquidation",
+    "Liquidation"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2680640735",
+   "turn": 2,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "incineroar",
+    "gengar-mega"
+   ],
+   "foes": [
+    "staraptor-mega",
+    "gholdengo"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Tailwind",
+    "Protect"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681390761",
+   "turn": 2,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "gengar-mega",
+    "incineroar"
+   ],
+   "foes": [
+    "milotic",
+    "salamence-mega"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Ice Beam",
+    "Hyper Voice"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681372688",
+   "turn": 1,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "indeedee-f",
+    "armarouge"
+   ],
+   "foes": [
+    "gholdengo",
+    "sylveon"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "psychic",
+    "terrainT": 4,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "psychic",
+     "left": 4,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Nasty Plot",
+    "Hyper Beam"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681563297",
+   "turn": 10,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "gengar-mega",
+    "politoed"
+   ],
+   "foes": [
+    "sneasler",
+    "milotic"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 2,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 2,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Rock Slide",
+    "Scald"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681561723",
+   "turn": 10,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "politoed",
+    "incineroar"
+   ],
+   "foes": [
+    "sneasler",
+    "arcanine-hisui"
+   ],
+   "field": {
+    "weather": "rain",
+    "weatherT": 2,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "rain",
+     "left": 2,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Close Combat",
+    "Head Smash"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681975889",
+   "turn": 8,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "tyranitar-mega",
+    "excadrill"
+   ],
+   "foes": [
+    "kingambit",
+    "rillaboom"
+   ],
+   "field": {
+    "weather": "sand",
+    "weatherT": 4,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 2,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "sand",
+     "left": 4,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Sucker Punch",
+    "Wood Hammer"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2682303060",
+   "turn": 2,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "gengar-mega",
+    "archaludon"
+   ],
+   "foes": [
+    "kingambit",
+    "farigiraf"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Kowtow Cleave",
+    "Trick Room"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2682446819",
+   "turn": 6,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect::M"
+   ],
+   "actives": [
+    "milotic",
+    "tyranitar"
+   ],
+   "foes": [
+    "kingambit",
+    "sylveon"
+   ],
+   "field": {
+    "weather": "sand",
+    "weatherT": 4,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "sand",
+     "left": 4,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Protect",
+    "Hyper Voice"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2682588433",
+   "turn": 4,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "sneasler",
+    "gholdengo"
+   ],
+   "foes": [
+    "sneasler",
+    "salamence"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 3,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 3,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Close Combat",
+    "Tailwind"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2682757385",
+   "turn": 6,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "rillaboom",
+    "gengar-mega"
+   ],
+   "foes": [
+    "sneasler",
+    "sceptile-mega"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 1,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 1,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Dire Claw",
+    "Earth Power"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2682930310",
+   "turn": 1,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:detect:"
+   ],
+   "actives": [
+    "dragonite",
+    "blaziken"
+   ],
+   "foes": [
+    "kingambit",
+    "arcanine-hisui"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "switch",
+    "Head Smash"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2682925106",
+   "turn": 1,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "golisopod",
+    "indeedee-f"
+   ],
+   "foes": [
+    "liepard",
+    "staraptor"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "psychic",
+    "terrainT": 4,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "psychic",
+     "left": 4,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Screech",
+    "Close Combat"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2683498508",
+   "turn": 6,
+   "p": "p2",
+   "human": [
+    "m:protect::M",
+    "m:protect:"
+   ],
+   "actives": [
+    "garchomp",
+    "gholdengo"
+   ],
+   "foes": [
+    "rillaboom",
+    "gholdengo"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Wood Hammer",
+    "Shadow Ball"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2683641776",
+   "turn": 8,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "tyranitar",
+    "excadrill"
+   ],
+   "foes": [
+    "raichu-mega-y",
+    "incineroar"
+   ],
+   "field": {
+    "weather": "sand",
+    "weatherT": 2,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "sand",
+     "left": 2,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Protect",
+    "switch"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2683786659",
+   "turn": 9,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "politoed",
+    "gengar-mega"
+   ],
+   "foes": [
+    "volcarona",
+    "baxcalibur-mega"
+   ],
+   "field": {
+    "weather": "rain",
+    "weatherT": 4,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "rain",
+     "left": 4,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Overheat",
+    "Glaive Rush"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2684258196",
+   "turn": 9,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "tyranitar",
+    "excadrill"
+   ],
+   "foes": [
+    "milotic",
+    "sneasler"
+   ],
+   "field": {
+    "weather": "sand",
+    "weatherT": 2,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "sand",
+     "left": 2,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Muddy Water",
+    "Rock Slide"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2684349882",
+   "turn": 1,
+   "p": "p2",
+   "human": [
+    "m:banefulbunker:",
+    "m:protect:"
+   ],
+   "actives": [
+    "toxapex",
+    "excadrill"
+   ],
+   "foes": [
+    "farigiraf",
+    "staraptor"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Trick Room",
+    "Final Gambit"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2684347270",
+   "turn": 9,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "politoed",
+    "archaludon"
+   ],
+   "foes": [
+    "rillaboom",
+    "arcanine-hisui"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    null,
+    "Flare Blitz"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2684662471",
+   "turn": 1,
+   "p": "p2",
+   "human": [
+    "m:protect::M",
+    "m:protect:"
+   ],
+   "actives": [
+    "salamence",
+    "arcanine-hisui"
+   ],
+   "foes": [
+    "aegislash",
+    "rotom-heat"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "King's Shield",
+    "switch"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2684662471",
+   "turn": 8,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "salamence-mega",
+    "arcanine-hisui"
+   ],
+   "foes": [
+    "rotom-heat",
+    "aegislash"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 1
+   },
+   "detail": {},
+   "opp_actions": [
+    "Thunderbolt",
+    "Shadow Ball"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2685070374",
+   "turn": 4,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "indeedee-f",
+    "espathra"
+   ],
+   "foes": [
+    "charizard",
+    "kingambit"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "psychic",
+    "terrainT": 1,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "psychic",
+     "left": 1,
+     "theirs": true,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Heat Wave",
+    "Kowtow Cleave"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2685942946",
+   "turn": 6,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "incineroar",
+    "gengar-mega"
+   ],
+   "foes": [
+    "milotic",
+    "ceruledge"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 1,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 1,
+     "theirs": true,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Muddy Water",
+    "Swords Dance"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2686121042",
+   "turn": 5,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "basculegion",
+    "camerupt-mega"
+   ],
+   "foes": [
+    "raichu-mega-y",
+    "farigiraf"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "psychic",
+    "terrainT": 1,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "psychic",
+     "left": 1,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    null,
+    "Expanding Force"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2686195448",
+   "turn": 4,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "indeedee-f",
+    "kommoo"
+   ],
+   "foes": [
+    "arcanine-hisui",
+    "gholdengo"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "psychic",
+    "terrainT": 3,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "psychic",
+     "left": 3,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Head Smash",
+    "Protect"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2677954055",
+   "turn": 6,
+   "p": "p1",
+   "human": [
+    "m:detect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "blaziken",
+    "kingambit"
+   ],
+   "foes": [
+    "golisopod-mega",
+    "hatterene"
+   ],
+   "field": {
+    "weather": "sun",
+    "weatherT": 1,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "sun",
+     "left": 1,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Protect",
+    "Trick Room"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2678490333",
+   "turn": 1,
+   "p": "p1",
+   "human": [
+    "m:protect::M",
+    "m:detect:"
+   ],
+   "actives": [
+    "absol",
+    "sylveon"
+   ],
+   "foes": [
+    "garchomp",
+    "sneasler"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "switch",
+    "Close Combat"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2678906901",
+   "turn": 2,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "salamence-mega",
+    "sneasler"
+   ],
+   "foes": [
+    "floette-eternal",
+    "farigiraf"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Dazzling Gleam",
+    "Expanding Force"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679466521",
+   "turn": 1,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "salamence",
+    "sneasler"
+   ],
+   "foes": [
+    "sylveon",
+    "charizard"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "switch",
+    "Heat Wave"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2680287801",
+   "turn": 13,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "toxapex",
+    "salamence-mega"
+   ],
+   "foes": [
+    "sneasler",
+    "gholdengo"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    null,
+    "Nasty Plot"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681135330",
+   "turn": 6,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "sylveon",
+    "charizard-mega-y"
+   ],
+   "foes": [
+    "kingambit",
+    "sneasler"
+   ],
+   "field": {
+    "weather": "sun",
+    "weatherT": 4,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 1,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "trSpeed": {
+     "me": 125,
+     "them": 130,
+     "left": 1
+    },
+    "weatherSetter": {
+     "id": "sun",
+     "left": 4,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Kowtow Cleave",
+    "Protect"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681487466",
+   "turn": 1,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "tyranitar",
+    "excadrill"
+   ],
+   "foes": [
+    "froslass",
+    "kingambit"
+   ],
+   "field": {
+    "weather": "sand",
+    "weatherT": 4,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "sand",
+     "left": 4,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Protect",
+    "Iron Head"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681561723",
+   "turn": 8,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "politoed",
+    "gengar-mega"
+   ],
+   "foes": [
+    "sneasler",
+    "arcanine-hisui"
+   ],
+   "field": {
+    "weather": "rain",
+    "weatherT": 4,
+    "terrain": "grassy",
+    "terrainT": 2,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "rain",
+     "left": 4,
+     "theirs": false,
+     "mine": true
+    },
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 2,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Close Combat",
+    "Head Smash"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681915292",
+   "turn": 1,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "basculegion",
+    "kingambit"
+   ],
+   "foes": [
+    "typhlosion-hisui",
+    "gardevoir"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Heat Wave",
+    "Hyper Voice"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681935827",
+   "turn": 4,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "excadrill",
+    "gardevoir"
+   ],
+   "foes": [
+    "golisopod-mega",
+    "armarouge"
+   ],
+   "field": {
+    "weather": "sand",
+    "weatherT": 1,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "sand",
+     "left": 1,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Leech Life",
+    "Protect"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2682729360",
+   "turn": 2,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "gengar-mega",
+    "incineroar"
+   ],
+   "foes": [
+    "raichu-mega-y",
+    "incineroar"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Zap Cannon",
+    "Throat Chop"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2682757385",
+   "turn": 3,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "gengar-mega",
+    "incineroar"
+   ],
+   "foes": [
+    "rotom-heat",
+    "garchomp"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 4,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 4,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Discharge",
+    "Rock Slide"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2683278570",
+   "turn": 4,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "gengar-mega",
+    "rillaboom"
+   ],
+   "foes": [
+    "indeedee-f",
+    "armarouge"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 3,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 3,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Follow Me",
+    "Armor Cannon"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2683278570",
+   "turn": 8,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "politoed",
+    "gengar-mega"
+   ],
+   "foes": [
+    "salamence",
+    "lucario-mega-z"
+   ],
+   "field": {
+    "weather": "rain",
+    "weatherT": 3,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "rain",
+     "left": 3,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Draco Meteor",
+    "Dark Pulse"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2683357844",
+   "turn": 2,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "gengar-mega",
+    "rillaboom"
+   ],
+   "foes": [
+    "toxtricity",
+    "incineroar"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 3,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 3,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Nuzzle",
+    "Parting Shot"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2683348673",
+   "turn": 2,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "gengar-mega",
+    "rillaboom"
+   ],
+   "foes": [
+    "salamence-mega",
+    "arcanine-hisui"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 3,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 3,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Hyper Voice",
+    "Head Smash"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2683300386",
+   "turn": 1,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "charizard",
+    "sneasler"
+   ],
+   "foes": [
+    "froslass",
+    "garchomp"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Protect",
+    "Stomping Tantrum"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2683786659",
+   "turn": 11,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "politoed",
+    "gengar-mega"
+   ],
+   "foes": [
+    "volcarona",
+    "baxcalibur-mega"
+   ],
+   "field": {
+    "weather": "rain",
+    "weatherT": 2,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "weatherSetter": {
+     "id": "rain",
+     "left": 2,
+     "theirs": false,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Overheat",
+    "Glaive Rush"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2683926648",
+   "turn": 1,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "charizard",
+    "whimsicott"
+   ],
+   "foes": [
+    "hydreigon",
+    "charizard"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Snarl",
+    "Heat Wave"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2684693454",
+   "turn": 2,
+   "p": "p2",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "sylveon",
+    "farigiraf"
+   ],
+   "foes": [
+    "aegislash",
+    "incineroar"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 4,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "trSpeed": {
+     "me": 92.5,
+     "them": 92.5,
+     "left": 4
+    }
+   },
+   "opp_actions": [
+    "Sacred Sword",
+    "Flare Blitz"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2684849117",
+   "turn": 9,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "incineroar",
+    "gengar-mega"
+   ],
+   "foes": [
+    "salamence-mega",
+    "rillaboom"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 2,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {
+    "terrainSetter": {
+     "id": "grassy",
+     "left": 2,
+     "theirs": true,
+     "mine": true
+    }
+   },
+   "opp_actions": [
+    "Hyper Voice",
+    "U-turn"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2685562844",
+   "turn": 1,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "arcanine-hisui",
+    "metagross"
+   ],
+   "foes": [
+    "milotic",
+    "ceruledge"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Scald",
+    "Protect"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2685813945",
+   "turn": 1,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "gholdengo",
+    "salamence"
+   ],
+   "foes": [
+    "charizard",
+    "sylveon"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Heat Wave",
+    "switch"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2686130985",
+   "turn": 8,
+   "p": "p1",
+   "human": [
+    "m:protect:",
+    "m:protect:"
+   ],
+   "actives": [
+    "gengar-mega",
+    "incineroar"
+   ],
+   "foes": [
+    "incineroar",
+    "archaludon"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "detail": {},
+   "opp_actions": [
+    "Darkest Lariat",
+    "Dragon Pulse"
+   ]
+  }
+ ],
+ "exempt_human_doubles_sample": [
+  {
+   "id": "gen9championsvgc2026regmcbo3-2677988994",
+   "turn": 4,
+   "reasons": [
+    "weather",
+    "fakeout"
+   ],
+   "actives": [
+    "lycanroc-dusk",
+    "kingambit"
+   ],
+   "foes": [
+    "absol",
+    "sneasler"
+   ],
+   "field": {
+    "weather": "rain",
+    "weatherT": 1,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Shadow Claw",
+    "Fake Out"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2677948190",
+   "turn": 3,
+   "reasons": [
+    "weather",
+    "terrain",
+    "fakeout"
+   ],
+   "actives": [
+    "sneasler",
+    "basculegion"
+   ],
+   "foes": [
+    "lucario-mega-z",
+    "rillaboom"
+   ],
+   "field": {
+    "weather": "sun",
+    "weatherT": 3,
+    "terrain": "grassy",
+    "terrainT": 4,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Nasty Plot",
+    "Fake Out"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2677946095",
+   "turn": 5,
+   "reasons": [
+    "terrain",
+    "residual"
+   ],
+   "actives": [
+    "basculegion",
+    "kingambit"
+   ],
+   "foes": [
+    "sneasler",
+    "alakazam-mega"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "psychic",
+    "terrainT": 1,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "switch",
+    "Protect"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2678258367",
+   "turn": 7,
+   "reasons": [
+    "fakeout"
+   ],
+   "actives": [
+    "rillaboom",
+    "arcanine-hisui"
+   ],
+   "foes": [
+    "blastoise-mega",
+    "sneasler"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 2,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Dark Pulse",
+    "Quick Guard"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2678232027",
+   "turn": 5,
+   "reasons": [
+    "terrain"
+   ],
+   "actives": [
+    "sylveon",
+    "farigiraf"
+   ],
+   "foes": [
+    "gardevoir-mega",
+    "sneasler"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "psychic",
+    "terrainT": 1,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Dazzling Gleam",
+    null
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2678389845",
+   "turn": 6,
+   "reasons": [
+    "trickroom"
+   ],
+   "actives": [
+    "salamence-mega",
+    "excadrill"
+   ],
+   "foes": [
+    "salamence-mega",
+    "sinistcha"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 2,
+    "twA": 0,
+    "twB": 1
+   },
+   "opp_actions": [
+    "Hyper Voice",
+    "Matcha Gotcha"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2678494131",
+   "turn": 8,
+   "reasons": [
+    "screen",
+    "fakeout"
+   ],
+   "actives": [
+    "tyranitar",
+    "aegislash"
+   ],
+   "foes": [
+    "incineroar",
+    "floette-mega"
+   ],
+   "field": {
+    "weather": "sand",
+    "weatherT": 4,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 2,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Fake Out",
+    "Moonblast"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2678590689",
+   "turn": 5,
+   "reasons": [
+    "trickroom",
+    "weather",
+    "fakeout"
+   ],
+   "actives": [
+    "blaziken",
+    "glimmora"
+   ],
+   "foes": [
+    "sneasler",
+    "torkoal"
+   ],
+   "field": {
+    "weather": "sun",
+    "weatherT": 2,
+    "terrain": "grassy",
+    "terrainT": 4,
+    "tr": 1,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Rock Slide",
+    "Eruption"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2678586749",
+   "turn": 2,
+   "reasons": [
+    "terrain",
+    "residual"
+   ],
+   "actives": [
+    "basculegion",
+    "scovillain-mega"
+   ],
+   "foes": [
+    "indeedee",
+    "sneasler"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "psychic",
+    "terrainT": 3,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Expanding Force",
+    "Throat Chop"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2678641889",
+   "turn": 6,
+   "reasons": [
+    "fakeout"
+   ],
+   "actives": [
+    "primarina",
+    "glimmora"
+   ],
+   "foes": [
+    "incineroar",
+    "mawile-mega"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Fake Out",
+    "Play Rough"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2678719846",
+   "turn": 4,
+   "reasons": [
+    "terrain",
+    "fakeout"
+   ],
+   "actives": [
+    "whimsicott",
+    "glimmora"
+   ],
+   "foes": [
+    "rillaboom",
+    "salamence"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 2,
+    "tr": 0,
+    "twA": 0,
+    "twB": 3
+   },
+   "opp_actions": [
+    "Fake Out",
+    "Tailwind"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2678715693",
+   "turn": 3,
+   "reasons": [
+    "terrain",
+    "tailwind"
+   ],
+   "actives": [
+    "glimmora-mega",
+    "whimsicott"
+   ],
+   "foes": [
+    "kingambit",
+    "basculegion"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 2,
+    "tr": 0,
+    "twA": 2,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Iron Head",
+    "Wave Crash"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2678699937",
+   "turn": 3,
+   "reasons": [
+    "trickroom",
+    "weather",
+    "terrain"
+   ],
+   "actives": [
+    "milotic",
+    "tyranitar"
+   ],
+   "foes": [
+    "kingambit",
+    "torkoal"
+   ],
+   "field": {
+    "weather": "sun",
+    "weatherT": 4,
+    "terrain": "psychic",
+    "terrainT": 2,
+    "tr": 3,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Iron Head",
+    "Eruption"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2678698948",
+   "turn": 4,
+   "reasons": [
+    "trickroom"
+   ],
+   "actives": [
+    "mamoswine",
+    "sneasler"
+   ],
+   "foes": [
+    "gardevoir",
+    "indeedee-f"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "psychic",
+    "terrainT": 1,
+    "tr": 2,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Hyper Voice",
+    "Psychic"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2678822073",
+   "turn": 4,
+   "reasons": [
+    "trickroom",
+    "terrain"
+   ],
+   "actives": [
+    "kingambit",
+    "farigiraf"
+   ],
+   "foes": [
+    "grapploct",
+    "camerupt"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "psychic",
+    "terrainT": 1,
+    "tr": 2,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Payback",
+    "Eruption"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2678936166",
+   "turn": 1,
+   "reasons": [
+    "fakeout"
+   ],
+   "actives": [
+    "sneasler",
+    "lycanroc-dusk"
+   ],
+   "foes": [
+    "gardevoir",
+    "sneasler"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Expanding Force",
+    "switch"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679021257",
+   "turn": 4,
+   "reasons": [
+    "tailwind",
+    "fakeout"
+   ],
+   "actives": [
+    "sneasler",
+    "salamence-mega"
+   ],
+   "foes": [
+    "kingambit",
+    "rillaboom"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 1,
+    "tr": 0,
+    "twA": 2,
+    "twB": 2
+   },
+   "opp_actions": [
+    "Kowtow Cleave",
+    "Fake Out"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679006150",
+   "turn": 8,
+   "reasons": [
+    "tailwind"
+   ],
+   "actives": [
+    "arcanine-hisui",
+    "sneasler"
+   ],
+   "foes": [
+    "salamence-mega",
+    "gholdengo"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 1,
+    "twB": 0
+   },
+   "opp_actions": [
+    null,
+    "Make It Rain"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679053979",
+   "turn": 9,
+   "reasons": [
+    "trickroom",
+    "terrain"
+   ],
+   "actives": [
+    "rillaboom",
+    "charizard-mega-y"
+   ],
+   "foes": [
+    "indeedee-f",
+    "ampharos-mega"
+   ],
+   "field": {
+    "weather": "sun",
+    "weatherT": 3,
+    "terrain": "psychic",
+    "terrainT": 4,
+    "tr": 2,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Psychic",
+    "Thunderbolt"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679130262",
+   "turn": 5,
+   "reasons": [
+    "weather",
+    "tailwind"
+   ],
+   "actives": [
+    "arcanine-hisui",
+    "salamence-mega"
+   ],
+   "foes": [
+    "baxcalibur",
+    "ninetales-alola"
+   ],
+   "field": {
+    "weather": "snow",
+    "weatherT": 1,
+    "terrain": "grassy",
+    "terrainT": 3,
+    "tr": 0,
+    "twA": 2,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Glaive Rush",
+    "Aurora Veil"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679092250",
+   "turn": 4,
+   "reasons": [
+    "tailwind"
+   ],
+   "actives": [
+    "arcanine-hisui",
+    "kingambit"
+   ],
+   "foes": [
+    "arcanine-hisui",
+    "kingambit"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 1
+   },
+   "opp_actions": [
+    "switch",
+    "Kowtow Cleave"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679060020",
+   "turn": 5,
+   "reasons": [
+    "trickroom",
+    "residual"
+   ],
+   "actives": [
+    "gholdengo",
+    "rillaboom"
+   ],
+   "foes": [
+    "ampharos-mega",
+    "indeedee-f"
+   ],
+   "field": {
+    "weather": "sun",
+    "weatherT": 1,
+    "terrain": "grassy",
+    "terrainT": 3,
+    "tr": 1,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Thunderbolt",
+    "Helping Hand"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679149767",
+   "turn": 6,
+   "reasons": [
+    "weather",
+    "terrain"
+   ],
+   "actives": [
+    "farigiraf",
+    "salamence"
+   ],
+   "foes": [
+    "rillaboom",
+    "arcanine-hisui"
+   ],
+   "field": {
+    "weather": "snow",
+    "weatherT": 5,
+    "terrain": "grassy",
+    "terrainT": 2,
+    "tr": 1,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Wood Hammer",
+    "Protect"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679180438",
+   "turn": 9,
+   "reasons": [
+    "trickroom"
+   ],
+   "actives": [
+    "salamence-mega",
+    "basculegion"
+   ],
+   "foes": [
+    "farigiraf",
+    "golisopod-mega"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 2,
+    "tr": 1,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    null,
+    "Swords Dance"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679174206",
+   "turn": 6,
+   "reasons": [
+    "weather",
+    "residual"
+   ],
+   "actives": [
+    "golisopod",
+    "toxapex"
+   ],
+   "foes": [
+    "garchomp",
+    "sneasler"
+   ],
+   "field": {
+    "weather": "sun",
+    "weatherT": 5,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Earthquake",
+    "Protect"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679344989",
+   "turn": 9,
+   "reasons": [
+    "tailwind"
+   ],
+   "actives": [
+    "floette-mega",
+    "sneasler"
+   ],
+   "foes": [
+    "eelektross-mega",
+    "garchomp"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 1,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Supercell Slam",
+    "switch"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679291065",
+   "turn": 11,
+   "reasons": [
+    "fakeout"
+   ],
+   "actives": [
+    "salamence-mega",
+    "sneasler"
+   ],
+   "foes": [
+    "basculegion",
+    "incineroar"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 2,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Last Respects",
+    "Fake Out"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679281156",
+   "turn": 2,
+   "reasons": [
+    "trickroom",
+    "terrain"
+   ],
+   "actives": [
+    "baxcalibur-mega",
+    "kingambit"
+   ],
+   "foes": [
+    "camerupt",
+    "armarouge"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "psychic",
+    "terrainT": 3,
+    "tr": 4,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Earth Power",
+    "Expanding Force"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679424792",
+   "turn": 5,
+   "reasons": [
+    "terrain",
+    "tailwind"
+   ],
+   "actives": [
+    "sneasler",
+    "raichu-mega-y"
+   ],
+   "foes": [
+    "gholdengo",
+    "salamence-mega"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 1,
+    "tr": 0,
+    "twA": 1,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Nasty Plot",
+    null
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679496477",
+   "turn": 9,
+   "reasons": [
+    "weather"
+   ],
+   "actives": [
+    "lycanroc-dusk",
+    "kingambit"
+   ],
+   "foes": [
+    "salamence-mega",
+    "tyranitar"
+   ],
+   "field": {
+    "weather": "sand",
+    "weatherT": 2,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Double-Edge",
+    "Protect"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679488331",
+   "turn": 1,
+   "reasons": [
+    "terrain",
+    "fakeout"
+   ],
+   "actives": [
+    "sneasler",
+    "milotic"
+   ],
+   "foes": [
+    "floette-eternal",
+    "rillaboom"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 4,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "switch",
+    "Wood Hammer"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679445760",
+   "turn": 9,
+   "reasons": [
+    "tailwind"
+   ],
+   "actives": [
+    "volcarona",
+    "baxcalibur-mega"
+   ],
+   "foes": [
+    "golisopod-mega",
+    "milotic"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 2,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Iron Head",
+    "Life Dew"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679440043",
+   "turn": 1,
+   "reasons": [
+    "weather",
+    "fakeout"
+   ],
+   "actives": [
+    "sylveon",
+    "farigiraf"
+   ],
+   "foes": [
+    "kangaskhan",
+    "politoed"
+   ],
+   "field": {
+    "weather": "rain",
+    "weatherT": 4,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Crunch",
+    "Muddy Water"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679610536",
+   "turn": 4,
+   "reasons": [
+    "terrain",
+    "fakeout"
+   ],
+   "actives": [
+    "basculegion",
+    "indeedee-f"
+   ],
+   "foes": [
+    "basculegion",
+    "rillaboom"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 4,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Last Respects",
+    "Fake Out"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679591088",
+   "turn": 5,
+   "reasons": [
+    "terrain"
+   ],
+   "actives": [
+    "charizard-mega-y",
+    "kingambit"
+   ],
+   "foes": [
+    "armarouge",
+    "basculegion"
+   ],
+   "field": {
+    "weather": "sun",
+    "weatherT": 1,
+    "terrain": "psychic",
+    "terrainT": 1,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Armor Cannon",
+    "Aqua Jet"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679621442",
+   "turn": 3,
+   "reasons": [
+    "terrain",
+    "residual"
+   ],
+   "actives": [
+    "toxapex",
+    "lucario"
+   ],
+   "foes": [
+    "rillaboom",
+    "basculegion"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 2,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "switch",
+    "Protect"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679676152",
+   "turn": 4,
+   "reasons": [
+    "weather",
+    "screen",
+    "fakeout"
+   ],
+   "actives": [
+    "tinkaton",
+    "sirfetchd"
+   ],
+   "foes": [
+    "sneasler",
+    "kingambit"
+   ],
+   "field": {
+    "weather": "snow",
+    "weatherT": 2,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Fake Out",
+    "Iron Head"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679646341",
+   "turn": 5,
+   "reasons": [
+    "trickroom",
+    "terrain"
+   ],
+   "actives": [
+    "milotic",
+    "tinkaton"
+   ],
+   "foes": [
+    "mawile-mega",
+    "farigiraf"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": "grassy",
+    "terrainT": 1,
+    "tr": 2,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "switch",
+    "Psychic"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679648395",
+   "turn": 6,
+   "reasons": [
+    "trickroom"
+   ],
+   "actives": [
+    "tinkaton",
+    "salamence"
+   ],
+   "foes": [
+    "rillaboom",
+    "kommoo"
+   ],
+   "field": {
+    "weather": null,
+    "weatherT": 0,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 1,
+    "twA": 0,
+    "twB": 0
+   },
+   "opp_actions": [
+    "Grassy Glide",
+    "Clanging Scales"
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679829755",
+   "turn": 7,
+   "reasons": [
+    "tailwind"
+   ],
+   "actives": [
+    "charizard-mega-y",
+    "sneasler"
+   ],
+   "foes": [
+    "milotic",
+    "mawile-mega"
+   ],
+   "field": {
+    "weather": "sun",
+    "weatherT": 4,
+    "terrain": null,
+    "terrainT": 0,
+    "tr": 0,
+    "twA": 1,
+    "twB": 0
+   },
+   "opp_actions": [
+    null,
+    "Sucker Punch"
+   ]
+  }
+ ],
+ "unmatched_examples": [
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679058655",
+   "ti": 10,
+   "unmatched": [
+    {
+     "kind": "move",
+     "move": "Struggle",
+     "target": null,
+     "target_loc": null,
+     "target_certain": true,
+     "executed": true,
+     "mon": 2
+    }
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679721372",
+   "ti": 2,
+   "unmatched": [
+    {
+     "kind": "move",
+     "move": "Curse",
+     "target": "p1b",
+     "target_loc": -2,
+     "target_certain": true,
+     "executed": true,
+     "mega": true,
+     "mon": 1
+    }
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2679717132",
+   "ti": 1,
+   "unmatched": [
+    {
+     "kind": "move",
+     "move": "Curse",
+     "target": "p1b",
+     "target_loc": -2,
+     "target_certain": true,
+     "executed": true,
+     "mega": true,
+     "mon": 1
+    }
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681312915",
+   "ti": 2,
+   "unmatched": [
+    {
+     "kind": "move",
+     "move": "Curse",
+     "target": "p1b",
+     "target_loc": -2,
+     "target_certain": true,
+     "executed": true,
+     "mega": true,
+     "mon": 4
+    }
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681312915",
+   "ti": 8,
+   "unmatched": [
+    {
+     "kind": "move",
+     "move": "Curse",
+     "target": "p1b",
+     "target_loc": -2,
+     "target_certain": true,
+     "executed": true,
+     "mon": 4
+    }
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681661978",
+   "ti": 6,
+   "unmatched": [
+    {
+     "kind": "move",
+     "move": "Curse",
+     "target": "p2b",
+     "target_loc": -2,
+     "target_certain": true,
+     "executed": true,
+     "mon": 4
+    }
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2683031311",
+   "ti": 4,
+   "unmatched": [
+    {
+     "kind": "move",
+     "move": "Struggle",
+     "target": null,
+     "target_loc": null,
+     "target_certain": true,
+     "executed": true,
+     "mon": 5
+    }
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2684361139",
+   "ti": 2,
+   "unmatched": [
+    {
+     "kind": "move",
+     "move": "Struggle",
+     "target": null,
+     "target_loc": null,
+     "target_certain": true,
+     "executed": true,
+     "mon": 3
+    }
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2685858419",
+   "ti": 7,
+   "unmatched": [
+    {
+     "kind": "move",
+     "move": "Zap Cannon",
+     "target": "p2b",
+     "target_loc": 2,
+     "target_certain": true,
+     "executed": true,
+     "mon": 3
+    }
+   ]
+  },
+  {
+   "id": "gen9championsvgc2026regmcbo3-2681312915",
+   "ti": 6,
+   "unmatched": [
+    {
+     "kind": "move",
+     "move": "Curse",
+     "target": "p1b",
+     "target_loc": -2,
+     "target_certain": true,
+     "executed": true,
+     "mon": 4
+    }
+   ]
+  }
+ ],
+ "error_examples": [],
+ "shard_counters": [
+  {
+   "done": 6834,
+   "wall_s": 261.892,
+   "double_protect": {
+    "calls": 0,
+    "offered": 0,
+    "jointsWeighted": 0,
+    "fired": 0,
+    "exempt": 0,
+    "topDemoted": 0,
+    "by": {
+     "trickroom": 0,
+     "weather": 0,
+     "terrain": 0,
+     "tailwind": 0,
+     "screen": 0,
+     "fakeout": 0,
+     "firstturn": 0,
+     "perish": 0,
+     "residual": 0
+    },
+    "contested": {
+     "weather": 42,
+     "terrain": 149
+    },
+    "pubReads": 8972,
+    "weight": 0.001,
+    "exemptOff": []
+   },
+   "world": {
+    "built": 6834,
+    "failed": 0,
+    "megaApplied": 7879,
+    "megaFailed": 0,
+    "mineUnmatched": 0,
+    "oppGuessUsed": 5517,
+    "oppFilledBlind": 0,
+    "stallLaid": 0,
+    "stallNoLines": 6834
+   }
+  },
+  {
+   "done": 6834,
+   "wall_s": 262.416,
+   "double_protect": {
+    "calls": 0,
+    "offered": 0,
+    "jointsWeighted": 0,
+    "fired": 0,
+    "exempt": 0,
+    "topDemoted": 0,
+    "by": {
+     "trickroom": 0,
+     "weather": 0,
+     "terrain": 0,
+     "tailwind": 0,
+     "screen": 0,
+     "fakeout": 0,
+     "firstturn": 0,
+     "perish": 0,
+     "residual": 0
+    },
+    "contested": {
+     "weather": 26,
+     "terrain": 142
+    },
+    "pubReads": 8983,
+    "weight": 0.001,
+    "exemptOff": []
+   },
+   "world": {
+    "built": 6834,
+    "failed": 0,
+    "megaApplied": 7830,
+    "megaFailed": 0,
+    "mineUnmatched": 0,
+    "oppGuessUsed": 5587,
+    "oppFilledBlind": 0,
+    "stallLaid": 0,
+    "stallNoLines": 6834
+   }
+  },
+  {
+   "done": 6833,
+   "wall_s": 262.227,
+   "double_protect": {
+    "calls": 0,
+    "offered": 0,
+    "jointsWeighted": 0,
+    "fired": 0,
+    "exempt": 0,
+    "topDemoted": 0,
+    "by": {
+     "trickroom": 0,
+     "weather": 0,
+     "terrain": 0,
+     "tailwind": 0,
+     "screen": 0,
+     "fakeout": 0,
+     "firstturn": 0,
+     "perish": 0,
+     "residual": 0
+    },
+    "contested": {
+     "weather": 33,
+     "terrain": 127
+    },
+    "pubReads": 9052,
+    "weight": 0.001,
+    "exemptOff": []
+   },
+   "world": {
+    "built": 6833,
+    "failed": 0,
+    "megaApplied": 7710,
+    "megaFailed": 0,
+    "mineUnmatched": 0,
+    "oppGuessUsed": 5626,
+    "oppFilledBlind": 0,
+    "stallLaid": 0,
+    "stallNoLines": 6833
+   }
+  }
+ ],
+ "worker_exits": [
+  0,
+  0,
+  0
+ ],
+ "release_stamp": {
+  "engine_release": "eaa5becc54eb",
+  "engine_release_cut": "2026-09-24T20:12:54.367Z",
+  "engine_release_cuts": 50,
+  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+  "source_digests": {
+   "engine/medicham2-browser.js": "2caee2eeabb0",
+   "engine/board.js": "c85a3b756c98",
+   "engine/rollout_leaf.js": "eacf05ff8d30",
+   "engine/position_features.js": "bb71676d3669",
+   "engine/tags.js": "13cdeb051720",
+   "engine/champions_sim.js": "8094725f52a8",
+   "data/residual-order.json": "eff160ad1c5a",
+   "data/switchin-order.json": "24a007a66b7d",
+   "engine/mc_key.js": "aaa095762671",
+   "engine/lookup.js": "17f49e5aed43",
+   "engine/set_priors.js": "f8a81445ee3a",
+   "engine/smogon_priors.js": "ebd062f756c8",
+   "engine/quality.js": "ebc37c7c9d05",
+   "engine/showdown_path.js": "46646401ede2",
+   "engine/regulation.js": "827f5138ecf5",
+   "data/move-effects.js": "f35ecd91ba86",
+   "data/ability-blocks.json": "86741fd35452",
+   "data/smogon-priors.json": "f2dc78cea6c5",
+   "data/regulations.json": "6c7c3e3dd06c",
+   "data/quality-filter.json": "042524dd1df7",
+   "data/engine-data.js": "bbc417dfae0e",
+   "data/abra-tags.js": "fc30f9a9392e",
+   "data/tags.json": "26ee107ce6a8",
+   "data/policy-weights.json": "626c1d240782",
+   "data/policy-weights-joint.json": "e2aca467ff04",
+   "data/move-priors.json": "e667fe8ab457",
+   "engine/pp.js": "30b12a4ef623",
+   "data/rollout-switch-census.json": "b8a5cee2f0a9",
+   "engine/medicham_api.js": "f0264a11558b",
+   "data/engine-data-regmc.js": "a6ad04e92d4e",
+   "data/tags-regmc.json": "ac1a00fa40ee",
+   "data/move-priors-regmc.json": "eab0c9b023df",
+   "data/move-effects-regmc.js": "8c57407e7641"
+  }
+ },
+ "wall_s": 292.393
+}

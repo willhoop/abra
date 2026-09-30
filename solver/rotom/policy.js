@@ -50,7 +50,7 @@ function create(deps) {
     if (C.__rotomTap) return;
     const f0 = C.fillSerial;
     C.fillSerial = function (api, R, job) { if (TAP.on) TAP.job = job; return f0.apply(this, arguments); };
-    for (const k of ['solveRM', 'solveLP']) {
+    for (const k of ['solveRM', 'solveLP', 'solveKL']) {   // solveKL: the human-regularised solve (o.kl) runs AFTER the plain one, so the tap keeps the mix that played
       const s0 = SK[k];
       if (typeof s0 !== 'function') continue;
       SK[k] = function (A) { const sol = s0.apply(this, arguments); if (TAP.on) { TAP.A = A; TAP.sol = sol; } return sol; };
@@ -219,7 +219,7 @@ function create(deps) {
     COUNTERS.gen5.decisions++;
     TAP.on = true; TAP.job = null; TAP.A = null; TAP.sol = null;
     let r;
-    try { r = MT.decide(w.S, w.side, w.ctx, gen5Opts(d.budgetMs, d.coin, d.onPass ? { onPass: d.onPass } : undefined)); }   // d.onPass: the adaptive clock's early stop (solver/rotom/adaptive.js)
+    try { r = MT.decide(w.S, w.side, w.ctx, gen5Opts(d.budgetMs, d.coin, Object.assign({}, d.onPass ? { onPass: d.onPass } : {}, d.record ? { record: true } : {}))); }   // d.onPass: the adaptive clock's early stop (solver/rotom/adaptive.js); d.record (2026-09-30, replay probes): the root in r.info.rec
     finally { TAP.on = false; }
     if (r.info && r.info.forced) COUNTERS.gen5.forced++; else COUNTERS.gen5.searched++;
     COUNTERS.gen5.fallbackEmpty += MT.COUNTERS.fallbackEmpty; COUNTERS.gen5.fallbackSparse += MT.COUNTERS.fallbackSparse;

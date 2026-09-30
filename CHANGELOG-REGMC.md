@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.34.0] — 2026-09-30
+## [1.35.0] — 2026-09-30
 
 ### Added
 - **PORYGON2 v2 is designed and its training data is built. It is not trained, and no gate has been run.**
@@ -50,7 +50,137 @@ rewritten; what changed and why is stated.
     open sheets and must not be used on bo1 data.
   - The parsed store's `sets` has errors, found by the cross-check: a Traced ability is credited to the tracer, an item
     is credited to the wrong member, and a move named in a `|cant|` line is missed. These are OPS's to fix.
+- Main carried committed merge-conflict markers in `docs/SOLVER.md` and `solver/LOG.md` (from merge `ec14dd86`). They
+  are removed in this merge, and every entry from both sides is kept.
 - `docs/_reports/2026-09-30-porygon2-v2-design.md`.
+
+## [1.34.1] — 2026-09-30
+
+### Fixed
+- **The double-Protect gate's CHANGELOG heading reads 1.32.0 again.** Merging the human-regularised branch renumbered its
+  1.32.0 to 1.34.0, and the renumber also caught this older entry's heading. PATCH: no figure moves.
+
+## [1.34.0] — 2026-09-30
+
+### Added
+- **The human-regularised root solve (piKL), behind the spec flag `kl`, off by default and on no arm.** Will asked for no
+  hand rules (2026-09-29), so the search pays a KL cost for straying from the human prior instead. SLOWKING's new
+  `solveKL` (`solver/slowking/matrix.js`) solves `x·A·y − λ·KL(x‖τ_me) + λ·KL(y‖τ_opp)` by optimistic FTRL. τ is the
+  ranking prior MILTANK already computes (gen5's DODUO over MAG), renormalised on the candidate rows and columns and
+  floored with 1e-3 uniform. λ is the one knob. A side with no prior mass is anchored to uniform and counted. The gap
+  of the regularised game is reported with every solve. The plain solve runs beside it for the counters: pick changed,
+  KL, TV, worst-case cost, and the Protect and double-Protect mass. They appear in `info.kl`, in the agent's
+  `COUNTERS.kl` and in every arena row's `ctr.kl`. ROTOM's `miltank-gen5` takes `kl` from the spec. Its table tap now
+  wraps `solveKL`.
+- New `solver/miltank/eval_kl_human.js` (the λ sweep on held-out human decisions), `solver/tests/probe_kl_replay.js`,
+  `solver/tests/probe_kl_repeat.js` and `solver/tests/test-miltank-kl.js`.
+- Phase B is pre-registered, not run: `solver/results/2026-09-30-human-regularised/preregistration.json`.
+
+### Notes
+- Offline, on 579 held-out human decisions with every λ solved on the same recorded gen5 tables (release `eaa5becc54eb`,
+  16 passes), top-1 agreement with the human joint is 0.216 at λ = 0. It is 0.240 at 0.01, 0.252 at 0.03 and 0.268 at 0.1.
+  At 0.1 the gain is +0.052 [0.021, 0.083], above DODUO's argmax over all legal joints (0.230). The worst-case cost on
+  the search's own table is 0.004 / 0.012 / 0.035.
+- The offered repeat-Protect probe (13 of 40 positions, reproducing 1.23.0's 0.611 at λ 0) has repeat mass 0.243 at
+  λ 0.03. That is the anchor's own 0.23, and it goes no lower.
+- chomp1 game 1 turn 4 keeps its double Protect at 0.85 → 0.71 of the mix at λ 0.03. The argmax changes only at λ 0.1,
+  at 0.10 of that table's worst case. The table makes the double Protect the maximin row and barely charges for the
+  opponent's Trick Room, so this is a horizon fault in the cells and not in the solve.
+- `test-miltank-kl.js` 52/52 GREEN, RED on `klignored` and `klsign`. `test-slowking` 1,559/1,559 and `test-miltank`
+  3,414/3,414 are unchanged. `test-playout-speed` is 1,184/1,184, `test-rotom` 105/105, `test-arena` 15/15 and `test-machamp` 86/86.
+  `docs/_reports/2026-09-30-human-regularised-search.md`.
+
+## [1.33.0] — 2026-09-30
+
+### Added
+- **The Reg M-C store is counted by rating band on the full `.gz` stores**, not on the 09-21 plain snapshots.
+  I read `data/games.gen9championsvgc2026regmc{,bo3}.jsonl.gz` from the main checkout. The files hold data to
+  2026-09-29 21:02. Clean games under `engine/quality.js` `reasons()`, with the behavioural-bot rule: bo3 **25,238**
+  (lower player ≥ 1300/1400/1500: 715 / 89 / 0) and bo1 **29,537** (lower ≥ 1500: 361, ≥ 1600: 31).
+- **Upload selection bias is measured against the live ladders** (2026-09-30 00:43Z). **80.9%** of the 94 bo3
+  players rated ≥ 1500, and **57.4%** of the 500 bo1 players rated ≥ 1500, have no game in the store. On the
+  snapshot the shares were 85.1% and 67.4%, so a fresher store barely moves them.
+- **bo3 series reconstructed: 17,464** from 37,165 games (same pair, 30-minute window, 3-game or 2-win cap).
+  1 series has a lower player rated ≥ 1500.
+- `data/verification/2026-09-30-high-rated-regmc-counts.json`, with the counting script embedded.
+
+### Notes
+- The OPS snapshot figures (bo3 16,119 clean, bo1 18,890, bo1 reveal 1.43 moves) did not reproduce on the same
+  files. My count gives 16,517, 19,870 and 1.69, and OPS recorded no method. The report says which figures to
+  quote and how.
+- **Four one-team accounts played 1,286–1,729 bo1 games each in under ten days** and reached a rating of 1658.
+  The behavioural-bot rule is what removes them. The rule also flags two live top-ladder accounts, so it has
+  false positives. It was left unchanged.
+- `docs/_reports/2026-09-30-high-rated-regmc-counts.md`.
+
+## [1.32.0] — 2026-09-30
+
+### Added
+- **The double-Protect soft gate (Will, 2026-09-29), OFF by default and on no arm.** A joint in which both actives click
+  a protect-type move is weighted to 0.001, never removed, unless a stall condition holds on the board. The conditions:
+  Trick Room up and favouring the opponent (their mean `effSpeed` is below mine), a weather or terrain that only the
+  opponent's revealed bodies can set, the opponent's Tailwind, a screen on the opponent's side, and a foe whose engine
+  menu offers a first-turn-only flinch move. A foe's Perish count below mine also counts, as does a foe's poison, burn,
+  Leech Seed, Salt Cure or Curse. So does any other first-turn-only move (reported apart as `firstturn`; it is not on
+  Will's list). A foe that can SET a field effect this turn is not a reason. Protect-type is the gates' own shield
+  predicate, and every entity is derived from the dex. Only my side's joints are weighted. The single-slot Protect and
+  the repeat roll are unchanged. `solver/doduo/double_protect.js`, spec `gates.doubleProtect`; `gates.tiers: false`
+  runs it with no MAG or pair verdicts. Counters: offered, fired, joints weighted, exempt by reason, contested fields,
+  top demoted.
+- `solver/doduo/eval_gates.js --dp`, `solver/doduo/dp_rates.js`, `solver/tests/probe_dp_replay.js` (a live ROTOM decision
+  replayed through gen5 per arm). `solver/tests/test-double-protect.js`: 34 checks, RED under `dpoff`, `dpnoexempt`,
+  `dpanyfield` and `dpsheetfo`.
+- `solver/arena/protect_stats.js` counts `pairs` and `doubles`; `protect_read.js` prints `double_share`.
+- `solver/rotom/world.js` puts the current public state on `ctx.pubNow`. The world lays no Perish, Leech Seed or Salt Cure,
+  and only the gate reads it.
+
+### Notes
+- Release `eaa5becc54eb`, all 20,482 held-out human decisions (`solver/results/2026-09-30-double-protect/`): humans
+  double-Protect on 646 (3.15% [2.92, 3.40]). 571 of them are exempt and 75 are not. **Survival 99.63%
+  [99.54, 99.71].** When a double protect is offered, humans click it at 2.2% [1.7, 2.7] with no exemption. With one
+  reason alone: Fake Out 16.5%, Trick Room 14.8%, Tailwind 13.0%, Perish 50.0% (n 28). Terrain (2.2%), weather (2.9%)
+  and screens (0.7%) sit at the base rate. Humans honour four of Will's reasons, and they do not stall a terrain or
+  a screen.
+- **The case that prompted the rule is exempt by the rule.** At chomp1 game 1 turn 4 the opponent's Grassy Terrain has
+  1 turn left, so the gated search plays the double Protect at 0.85, the same as ungated. With the terrain exemption
+  switched off it plays mega Substitute plus a switch at 0.997. If terrain and screens are dropped, survival falls to
+  99.48% [99.37, 99.57]. Will's call.
+- Phase B is prepared and not run: `solver/results/2026-09-30-double-protect/preregistration.json`.
+
+## [1.31.0] — 2026-09-29
+
+### Added
+- **A top-meta ladder rotation, `solver/rotom/teams/ladder-rotation-top.json`, built by
+  `solver/rotom/build_top_rotation.js`** (Will, 2026-09-29: top-rated meta teams only, after he saw a Hippowdon on our
+  team). Read from the tracked bo3 store (37,491 games, 2026-09-09 to 2026-09-30 00:20, sha256 `fe78202a8515`). The builder reads the
+  `.gz` by name, not through `engine/quality.js` `storePath()`, which prefers the stale plain file. It drops the 759 games
+  that the corpus filter marks as bot or behavioural-bot games. A team qualifies when it was played at or above the **floor of 1409, the 99th percentile of 63,366 rated human open-sheet bo3
+  sides**; its exact six is brought by at least 2 distinct players at the floor over at least 8 decided games; every
+  species is on at least 3% of the top teams; and its mean S − E there is no worse than the top baseline (−0.049). Near
+  duplicates (5 shared species) and a second team from one archetype are skipped. **5 teams, rated 1478 to 1596, from sixes of 7, 4, 3, 3 and 3 players.**
+  Every team passes `TeamValidator` for `gen9championsvgc2026regmcbo3`, and every species, item, ability and move passes
+  the format's legality filter. Incomplete sheets are dropped.
+- **Arms file `solver/rotom/arms/gen5-chomp-top.json`.** It is `gen5-chomp.json` (arm A unchanged) plus
+  `"rotation": "solver/rotom/teams/ladder-rotation-top.json"`. `gen5-chomp.json` is not changed.
+- **New test `solver/tests/test-rotom-top-rotation.js`**, 10 of 10. It goes RED under each deliberate break: a team
+  re-rated 1200, a nonstandard item, and a species at 0.5%.
+
+### Changed
+- **`solver/rotom/rotom.js`: an arms file can name its rotation.** In ladder mode, the arm's `rotation` key is the
+  rotation, so the plan digest (rotation file and sha256) and every series row (`team_meta`) follow from the arm.
+  A `--rotation` that contradicts it is refused with exit 2, and so is a named rotation that does not exist. An arms
+  file with no `rotation` key reads as before.
+- `solver/tests/test-rotom-ladder.js` validates every rotation that an arms file names, and has three new STARTUP
+  refusals.
+
+### Notes
+- **The old rotation was already top-rated.** Its teams were rated 1379 to 1549, in the 98.3rd to 100th percentile.
+  The problem was that it had no meta test. Each of its five sixes was used by only 1 player at the floor. L1 carried
+  Hippowdon and L5 carried Corviknight, and each of those species is on 0.7% of the top teams.
+- The screen is noisy at its edge: one hour of new games moved one family across the S − E bar and changed the fifth
+  team. The committed file is the snapshot the arm plays.
+- No ladder series is launched. The chomp1 run on `gen5-chomp.json` is live and is not touched. The launch command is in
+  `docs/_reports/2026-09-30-top-meta-rotation.md` §OWED, NOT RUN. No published figure moves.
 
 ## [1.30.1] — 2026-09-29
 

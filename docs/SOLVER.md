@@ -83,13 +83,26 @@ This section says only what a division agent needs before it starts.
   `--preview` (fixed); an arm now names its own preview. Arms file `solver/rotom/arms/gen5-chomp.json`; proof the
   choice is sent: `solver/tests/test-rotom-chomp-live.js`. Command for Will:
   `docs/_reports/2026-09-30-chomp-ladder-prep.md`.
-- **PORYGON2 v2: designed and its data built, not trained (2026-09-30, abra/regmc 1.34.0).** `solver/porygon2/v2/`.
+- **PORYGON2 v2: designed and its data built, not trained (2026-09-30, abra/regmc 1.35.0).** `solver/porygon2/v2/`.
   - The net is a value over the public state with UNK tokens and both ratings as inputs, pretrained on bo1 and
     fine-tuned on bo3.
   - Datasets: bo1 27,116 games / 218,815 positions; bo3 24,940 / 197,905. Both players at 1500 or above: bo1 364,
     bo3 0.
   - Leak test: `solver/tests/test-porygon2-v2-extract.js`.
   - Gates pre-registered in `preregistration.json`, not run. Account: `docs/_reports/2026-09-30-porygon2-v2-design.md`.
+- **Top-meta ladder rotation prepared, not launched (2026-09-29, abra/regmc 1.31.0).** Will asked for top-rated meta teams
+  only. `solver/rotom/build_top_rotation.js` builds `solver/rotom/teams/ladder-rotation-top.json`: floor 1409 (q0.99 of
+  rated bo3 sides), sixes used by 2 or more players at the floor, every species on 3% or more of the top teams, and
+  S − E no worse than the top baseline. It holds 5 teams, rated 1478 to 1596. The arms file
+  `solver/rotom/arms/gen5-chomp-top.json` names the rotation. Command for Will:
+  `docs/_reports/2026-09-30-top-meta-rotation.md`.
+- **Human-regularised search (piKL), phase A (2026-09-30, abra/regmc 1.34.0).** Spec flag `kl` (lambda; off, on no
+  arm): SLOWKING solves the KL-regularised root game with gen5's DODUO as the anchor (`solveKL`). On 579 held-out human
+  decisions and the same recorded tables, top-1 agreement is 0.216 at lambda 0 and 0.268 at 0.1 (+0.052 [0.021, 0.083]).
+  The worst-case cost on the search's own table is 0.035. The repeat-Protect mass is 0.611 at lambda 0 and 0.243 at 0.03,
+  where it reaches the anchor's own level. chomp1 turn 4's double Protect keeps 0.71 of the mix at 0.03. That is a horizon
+  fault in the table. The 2 s screens at lambda 0.01, 0.03 and 0.1 are pre-registered, not run.
+  `docs/_reports/2026-09-30-human-regularised-search.md`.
 - **CHOMP v0** (`solver/chomp/`, 2026-09-25, release `eaa5becc54eb`) **fails its bar**: its preview loses to
   the human bring (SPRT H0 accepted) and ties random. The PORYGON2 cells carry no bring signal.
   `docs/_reports/2026-09-25-chomp-v0.md`.
@@ -127,6 +140,13 @@ This section says only what a division agent needs before it starts.
   goes 0.611 → 0.200. **At 1 s the package LOSES to gen5**, SPRT H0, 0.418 [0.350, 0.488] in 194 games, and leaves the arena
   Protect rates where they were. **Not deployed.** At 5 s it is untested for strength. DODUO already carries the counter
   (`stall_repeat`), so it was not retrained. Account: `docs/_reports/2026-09-27-protect-repeat-fix.md`.
+- **The double-Protect soft gate (2026-09-30, abra/regmc 1.32.0).** Will's rule (`solver/doduo/double_protect.js`,
+  spec `gates.doubleProtect`, off, on no arm): both actives on a protect-type move is weighted 0.001 unless a stall
+  condition holds. On 20,482 held-out human decisions survival is 99.63% [99.54, 99.71]. Humans honour its Fake Out,
+  Trick Room, Tailwind and Perish reasons, and double-Protect at the 2.2% base rate under terrain, weather or screens.
+  The chomp1 turn-4 case is exempt by the opponent's Grassy Terrain, so the gate does not change it. Phase B (a 2 s
+  adaptive screen) is pre-registered, not run: `solver/results/2026-09-30-double-protect/preregistration.json`. Account:
+  `docs/_reports/2026-09-30-double-protect-gate.md`.
 - **Weighted chance (2026-09-29, abra/regmc 1.28.0).** Spec option `chance` (off by default): each cell's first turn is
   enumerated by probability (`solver/miltank/chance.js`, stratified, unbiased; counters `chancePlayouts`,
   `chanceBuckets`, `chanceEvals`, `chanceTruncatedMass`, `chanceDecisions`). Correct (|z| max 1.80 on 24 pairs), but a

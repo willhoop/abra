@@ -1,7 +1,7 @@
 # PORYGON2 v2 — design and training dataset (2026-09-30)
 
 SOLVER. Store-only work: no simulator was read, no game was played, no net was trained, no gate was run.
-abra/regmc 1.34.0, branch `worktree-agent-a9e323f35bad91d08`.
+abra/regmc 1.35.0 (committed first as 1.34.0; renumbered on the merge with main, which had taken 1.34.0 and 1.34.1), branch `worktree-agent-a9e323f35bad91d08`.
 
 ## Verdict
 

@@ -359,7 +359,9 @@ function create(API) {
     }
 
     COUNTERS.built++;
-    const ctx = { G: { sheets }, hist: turns.slice(0, -1).map(t => ({ n: t.n, state: t.state, actions: t.actions || { p1: {}, p2: {} } })) };
+    /* pubNow (2026-09-29): the CURRENT public state, read only by the double-Protect gate (solver/doduo/double_protect.js)
+     * for the clocks this world does not lay on (Perish, Leech Seed, Salt Cure). Nothing else reads it. */
+    const ctx = { G: { sheets }, hist: turns.slice(0, -1).map(t => ({ n: t.n, state: t.state, actions: t.actions || { p1: {}, p2: {} } })), pubNow: st };
     /* at build time my team order IS the request order, so team index k is request position k+1; the engine
      * reorders `sf.team` on a switch, so a caller maps through the body's sheet row, never through k later */
     const posOfSheet = new Map(mine.map((x, j) => [x.s, j + 1]));
