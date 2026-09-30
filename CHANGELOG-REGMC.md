@@ -21,11 +21,11 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [Unreleased]
+## [1.49.0] — 2026-09-30
 
-**Basis CHANGED for every arena figure.** No figure in the published documents moves: `docs/MODELS.md` withholds
-arena strength. What moves is the basis of the arena series owed to the next major. Declared CHANGED, this row must
-be cut as an `X.0.0`: proposed 2.0.0, with the document pass. It is left unreleased for the coordinator to cut.
+**MINOR: no published figure moves** (`docs/MODELS.md` withholds arena strength), so under the declared-public-API
+rule this is not a major. The ARENA SERIES restarts: figures before and after this change are not comparable, and
+every artifact now records its spread mode. The document pass owes a note on which mode each arena figure used.
 
 ### Changed
 - **The offline arena fields real per-set spreads (Will, 2026-09-30, "3").** Self-play, MACHAMP gates, SPRTs and
