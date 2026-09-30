@@ -42,6 +42,24 @@ _stamped 2026-09-29 18:21_
 
 <!-- /GENERATED -->
 
+## REG M-C STORE QUALITY: THE STALE PLAIN STORE IS NO LONGER READ, BOTH ID-KEYED RULES JUDGE REG M-C, AND THE BOT RULE NEEDS BOT TEMPO. 2026-09-30 (abra/regmc 1.36.0)
+
+Three traps from the 1.33.0 recount, fixed at the source before PORYGON2 v2 trains on these stores.
+
+- **`storePath()` reads the newer file and prints the choice.** On the main checkout the plain Reg M-C stores are an
+  untracked 09-21 snapshot. Every id in them is also in the `.gz`. They are left for Will to delete.
+- **The legality verdict and the custom-ruleset scan are per regulation** (`data/store-validation-regmc.json`,
+  `data/custom-ruleset-ids-regmc.json`). `quality.js` unions them, and a game id carries its format. On Reg M-C the
+  custom rule excludes only rooms that alter legality or the pick count: 89 of 2,477. The information-regime rooms are
+  published and not excluded, because the scope judgement in docs/REGMC.md is Will's.
+- **Tempo clause.** On Reg M-C, a one-team account must also play ≥ 100 games on one day. The 50-game one-team test
+  flagged two live top-500 accounts, and every flagged bo3 account. The bots sit in a separate cluster at 120–600
+  games a day. Reg M-B's bot sets are unchanged by construction.
+
+Figures and the caller audit: `docs/_reports/2026-09-30-regmc-store-quality.md`. **Owed:** SOLVER's
+`solver/human/build_dataset.js` and `solver/meta/extract.js` do not read the tempo clause. `data/tags-regmc.json`
+(ENGINE) probably weighted usage on the stale snapshot. `status.js --write` must run from main.
+
 ## REG M-C's GATE RELEASES ARE TRACKED, AND ITS FIRST PROVENANCE RATCHET EXITS 0. 2026-09-29 (abra/regmc 1.25.3)
 
 - **RULE 5 was red on the first Reg M-C run.** Twelve artifacts cited by living documents named releases that were not

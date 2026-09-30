@@ -54,6 +54,42 @@ rewritten; what changed and why is stated.
   pass), so 1.35.0 and 1.36.0 are left to them.
 - `docs/_reports/2026-09-30-porygon2-v2-design.md`.
 
+## [1.36.0] — 2026-09-30
+
+### Fixed
+- **`engine/quality.js` `storePath()` reads the newer of the plain file and the `.gz`, and prints which it chose.** Until
+  now it read the plain file whenever it existed. On the main checkout the plain Reg M-C stores are an untracked
+  09-21 snapshot, so every caller that passed a Reg M-C path read about 60% of the store and nothing reported it.
+  Every Reg M-B pair still resolves to the plain file, because the plain file is newer there. `quality.py` mirrors the
+  rule, and `scan_custom_rulesets.js` now calls `storePath()` instead of keeping its own plain-wins copy. The snapshot
+  holds no game id that the `.gz` lacks. It is not deleted here.
+- **`exclude_illegal_teams` and `exclude_custom_ruleset` now judge Reg M-C.** Before this, both keyed on Reg M-B id
+  sets and removed 0 Reg M-C games while reporting ON. `validate_store.js` and `scan_custom_rulesets.js` now honour
+  `--regulation`, judge the regulation's own two stores (the Reg M-C TeamValidator, and all 542 raw shards), and write
+  `data/store-validation-regmc.json` and `data/custom-ruleset-ids-regmc.json` (both declared per regulation in
+  `engine/regulation.js`). `quality.js` and `quality.py` union every regulation's verdict. This is safe because a game
+  id carries its format.
+- **The scanner no longer keeps every raw log alive.** A regex capture is a slice of its parent line, so the id set
+  held all 97,000 Reg M-C logs and the scan died at the 2 GB heap limit. It now copies each id and rule string.
+
+### Changed
+- **Behavioural bots on Reg M-C must also play ≥ 100 games on one calendar day** (`min_games_in_one_day`,
+  `tempo_applies_id_pattern` in `data/quality-filter.json`). The 50-game one-team test flagged two live top-500
+  accounts, and every flagged bo3 account. The bots proper form a separate cluster at 120–600 games in one day.
+  No Reg M-B id matches the pattern, so Reg M-B's bot sets are unchanged.
+- **For Reg M-C the custom-ruleset rule excludes only rooms whose rules alter legality or the pick count.** That is
+  89 of 2,477. The 2,388 information-regime rooms (`Force Open Team Sheets`, `Best of = 3`) are published
+  and not excluded, because docs/REGMC.md records that judgement as open.
+- `data/meta-usage-regmc.json` regenerated. Its provenance now lists the verdicts it was filtered by and digests them.
+
+### Notes
+- Tracked stores bo1 `76ef2de7` (59,752 games) and bo3 `d2b5041a` (37,526 games). Legality keys 48 ids (35 bo1, 13 bo3).
+  All 54 offending species are illegal under the strict `Dex.forFormat` filter. Legality and custom together remove
+  30 bo1 and 10 bo3 games that no other rule removes. Behavioural bots: bo3 8 → 0, bo1 15 → 7. Per-store clean: bo3
+  25,460 → 25,807, bo1 29,749 → 30,215. JS and Python select identical ids on both stores. On the same stores this
+  pass moves the usage model's competitive view 26,710 → 27,063 games. No team rate moves more than 0.21 points and
+  the top 10 is unchanged. `docs/_reports/2026-09-30-regmc-store-quality.md`.
+
 ## [1.35.0] — 2026-09-30
 
 ### Fixed

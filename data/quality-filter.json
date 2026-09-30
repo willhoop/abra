@@ -23,6 +23,9 @@
    "test": "either player's account played >= min_games in the window AND used exactly one distinct team",
    "min_games": 50,
    "max_distinct_teams": 1,
+   "min_games_in_one_day": 100,
+   "tempo_applies_id_pattern": "^gen9championsvgc2026regm[c-z]",
+   "tempo_clause": "ADDED 2026-09-30 (MEASURE, abra/regmc 1.36.0). An account with a game whose id matches tempo_applies_id_pattern (Reg M-C and later) is flagged only if it ALSO played >= min_games_in_one_day games on one calendar day. On Reg M-C the 50-game / one-team test flagged 15 bo1 and 8 bo3 accounts. Seven of them form a separate cluster, 120-600 games in one day: Thornlace48812, kevdan42, Scorecard-Pokemon, SC-SME, SC-Control, AI_Paku, Crituvyn72957. None forfeited more than 0.6% of their games, and all are absent from the live top 500. The other 16 (monfish counted once per store) sit at 12-48 games on their busiest day. Eleven of them lost 1-33% of their games by forfeit, which is a human act. Two hold live top-500 ranks: Novicebest, bo1 #290, and Afmoad, bo3 #109, both fetched 2026-09-30 01:33Z. The gap between the clusters is 48 to 120 games in one day, and the cut sits inside it. On a Reg M-B corpus no id matches the pattern, so Reg M-B's bot set is unchanged. docs/_reports/2026-09-30-regmc-store-quality.md",
    "rationale": "Name-based detection only catches accounts that announce themselves. These five did not, and they appeared in 52.2% of the games the name filter called clean. The decisive signal is team invariance: Carchdraw84172 played 459 games with exactly one team, 367 of them in a single day - a game every four minutes for twenty-four hours without changing a slot. Active human accounts (15-60 games) reuse their most-common team about 64% of the time, never 100%.",
    "evidence": {
     "caught": [
