@@ -34,10 +34,14 @@
 const fs = require('fs');
 const path = require('path');
 const D = (...p) => path.join(__dirname, '..', ...p);
+/* PER REGULATION (engine/regulation.js PER_REGULATION_ARTIFACTS, 2026-09-29): the printed path is the written path. */
+const OUT_REL = require('../engine/regulation.js').artifactFor('data/unmodelled-clicks.json');
 require('../engine/regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(D('data', 'engine-data.js'));
 const M = require(D('engine', 'medicham2-browser.js'));
-const TAGS = JSON.parse(fs.readFileSync(D('data', 'tags.json'), 'utf8'));
+/* The regulation's tags: `require` follows the regulation, a bare fs read of data/tags.json does not, and under
+ * Reg M-C the usage weights below were Reg M-B's (2026-09-29). */
+const TAGS = JSON.parse(fs.readFileSync(D(require('../engine/regulation.js').fileFor('data/tags.json')), 'utf8'));
 
 let fails = 0;
 const ok = (c, label, detail) => {
@@ -116,7 +120,7 @@ ok(rows.every(r => !!MC.moves[r.id]),
 }
 
 /* ---- 3. THE RATCHET ----------------------------------------------------------------------------- */
-const OUT = D('data', 'unmodelled-clicks.json');
+const OUT = path.join(__dirname, '..', OUT_REL);
 let prev = null, prevErr = null;
 /* AN ABSENT BASELINE AND AN UNREADABLE ONE ARE DIFFERENT ANSWERS. Both used to land in `prev = null`,
  * which skips the did-not-GROW comparison and lets the run pass — a ratchet that stops ratcheting
@@ -211,14 +215,14 @@ if (willWrite) {
     accepted_from_red_run: (fails && ACCEPT) ? true : undefined,
     count: rows.length, clicks, moves: rows.map(r => r.id), rows,
   }, null, 1) + '\n');
-  console.log('\n  wrote data/unmodelled-clicks.json' + (moved ? ' — the set moved' : ''));
+  console.log('\n  wrote ' + OUT_REL + (moved ? ' — the set moved' : ''));
 } else if (fails) {
-  console.log('\n  DID NOT WRITE data/unmodelled-clicks.json — this run FAILED.');
+  console.log('\n  DID NOT WRITE ' + OUT_REL + ' — this run FAILED.');
   console.log('    The baseline on disk is left exactly as it was, so the next run asks the same');
   console.log('    question and gets the same red. Re-running does not make this pass.');
   console.log('    To accept the current set deliberately:  node tests/test-unmodelled-clicks.js --accept');
 } else {
-  console.log('\n  data/unmodelled-clicks.json unchanged — the set did not move, so nothing was rewritten.');
+  console.log('\n  ' + OUT_REL + ' unchanged — the set did not move, so nothing was rewritten.');
 }
 console.log(fails ? '\nUNMODELLED CLICKS: ' + fails + ' FAILED' : '\nUNMODELLED CLICKS: all checks passed');
 process.exitCode = fails ? 1 : 0;

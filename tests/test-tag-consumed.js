@@ -44,6 +44,8 @@ const path = require('path');
 const fs0 = require('fs');
 const fs = fs0;
 const ROOT = path.join(__dirname, '..');
+/* PER REGULATION (engine/regulation.js PER_REGULATION_ARTIFACTS, 2026-09-29): the printed path is the written path. */
+const STAMP_REL = require('../engine/regulation.js').artifactFor('data/tag-consumption.json');
 require('../engine/regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(path.join(ROOT, 'data', 'engine-data.js'));
 const TAGS = require(path.join(ROOT, 'engine', 'tags.js'));
@@ -257,7 +259,7 @@ if (staged.length) {
  * section exists to produce. The write is now GREEN-ONLY with an explicit `--accept`; see the block
  * above the write itself. Neither "never refresh" nor "always refresh" is right — the correct gate is
  * the run's own verdict. */
-const STAMP = path.join(ROOT, 'data', 'tag-consumption.json');
+const STAMP = path.join(__dirname, '..', STAMP_REL);
 let prev = null;
 if (fs.existsSync(STAMP)) {
   try { prev = JSON.parse(fs.readFileSync(STAMP, 'utf8')); }
@@ -303,6 +305,11 @@ if (prevFloor) {
   ok(outside.length === 0, outside.length
     ? `${outside.length} tag(s) are DEAD outside the ratchet floor: ${outside.map(t => `${t} [${label(t)}]`).join(', ')}`
     : `no tag is DEAD outside the ratchet floor (${prevFloor.length} accepted)`);
+} else if (!prev) {
+  /* LOUD, because it is a pass that asked nothing: under a new regulation the per-regulation sibling does not
+   * exist yet (2026-09-29), and before this line the two ratchet checks were skipped without a word. */
+  console.log(`\n  NO BASELINE — ${STAMP_REL} is absent, so the two ratchet checks (lost a consumer, dead outside`);
+  console.log('  the floor) DID NOT RUN. This run writes the first floor; the next run is the first that can fail.');
 }
 /* The floor NEVER gains a member — that is the ratchet — and it is recomputed rather than copied so
  * a wired tag leaves it on the run that wires it. */
@@ -357,7 +364,7 @@ const body = o => { const c = { ...o }; delete c.generated; delete c.accepted_fr
 const moved = !prev || body(prev) !== body(payload);
 
 if (F && !ACCEPT) {
-  console.log('\n  DID NOT WRITE data/tag-consumption.json — this run FAILED, and this artifact is '
+  console.log('\n  DID NOT WRITE ' + STAMP_REL + ' — this run FAILED, and this artifact is '
     + 'this test\'s own baseline. Writing it would record the tags it just caught as the accepted '
     + 'state, and the REGRESSED / ARRIVED diagnosis would be gone on the next run.');
   console.log('  To accept the current state as the new baseline, on purpose:  node tests/test-tag-consumed.js --accept');
@@ -370,12 +377,12 @@ if (F && !ACCEPT) {
   console.log('    accepting as DEAD, having been consumed at the baseline: '
     + (newlyDead.length ? newlyDead.map(t => `${t} (was ${prevStatus[t]})`).join(', ') : 'none'));
   fs.writeFileSync(STAMP, JSON.stringify(payload, null, 2) + '\n');
-  console.log('  wrote data/tag-consumption.json — and this run still exits 1.');
+  console.log('  wrote ' + STAMP_REL + ' — and this run still exits 1.');
 } else if (!moved) {
-  console.log('\n  unchanged — nothing in the tag census moved; data/tag-consumption.json not rewritten');
+  console.log('\n  unchanged — nothing in the tag census moved; ' + STAMP_REL + ' not rewritten');
 } else {
   fs.writeFileSync(STAMP, JSON.stringify(payload, null, 2) + '\n');
-  console.log('\n  wrote data/tag-consumption.json');
+  console.log('\n  wrote ' + STAMP_REL);
 }
 
 console.log(`\nTAG CONSUMPTION TESTS: ${P} passed, ${F} failed`);

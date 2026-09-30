@@ -79,6 +79,47 @@ This section says only what a division agent needs before it starts.
   the humans' own recorded bring (report-only) **0.470 [0.422, 0.519]**, no clear edge. ROTOM serves it under
   `--preview chomp`; the default preview is unchanged and no ladder arm uses it. `solver/results/2026-09-27-chomp-v1/`,
   `docs/_reports/2026-09-29-chomp-v1-landed.md`.
+- **CHOMP ladder run prepared, not launched (2026-09-29, abra/regmc 1.30.0).** `run_ladder.js` had dropped
+  `--preview` (fixed); an arm now names its own preview. Arms file `solver/rotom/arms/gen5-chomp.json`; proof the
+  choice is sent: `solver/tests/test-rotom-chomp-live.js`. Command for Will:
+  `docs/_reports/2026-09-30-chomp-ladder-prep.md`.
+- **Why the ladder losses happen (2026-09-30, abra/regmc 1.39.0).** The 26 chomp1 losses without a forfeit, by the
+  mechanism at the turning point:
+  - VISIBLE_KO 5, SPEED_CONTROL 5, SUCKER_PUNCH 4, OUTSPED 4, SETUP 3, BEHIND_FROM_PREVIEW 3, UNSEEN_ACTION 1,
+    PERISH 1.
+  - The live root value is +0.19 too high in [0.5, 0.9), CI [0.06, 0.32], on 668 decisions in 90 games. This is the
+    ladder baseline for PORYGON2 v2.
+  - Unowned: Sucker Punch; ROTOM's world lays no Perish count and no Skill-Swapped ability.
+  - `solver/results/2026-09-30-ladder-loss-postmortem/`, `docs/_reports/2026-09-30-ladder-loss-postmortem.md`.
+- **CHOMP v2 is built. Gate (a) FAILS against v1 (2026-09-30, abra/regmc 1.45.0).** `solver/chomp/v2/`: per-set spreads
+  (ROTOM's rule with MEDICHAM oracles) and a field block recomputed by MEDICHAM. On TEST, Δlog-loss against v1 is
+  −0.0004 [−0.0032, +0.0024], which fails. v1 stays the served preview. `docs/_reports/2026-09-30-chomp-v2.md`.
+- **PORYGON2 v2: designed and its data built, not trained (2026-09-30, abra/regmc 1.37.0).** `solver/porygon2/v2/`.
+  - The net is a value over the public state with UNK tokens and both ratings as inputs, pretrained on bo1 and
+    fine-tuned on bo3.
+  - Datasets: bo1 27,116 games / 218,815 positions; bo3 24,940 / 197,905. Both players at 1500 or above: bo1 364,
+    bo3 0.
+  - Leak test: `solver/tests/test-porygon2-v2-extract.js`.
+  - Gates pre-registered in `preregistration.json`, not run. Account: `docs/_reports/2026-09-30-porygon2-v2-design.md`.
+- **Top-meta ladder rotation prepared, not launched (2026-09-29, abra/regmc 1.31.0).** Will asked for top-rated meta teams
+  only. `solver/rotom/build_top_rotation.js` builds `solver/rotom/teams/ladder-rotation-top.json`: floor 1409 (q0.99 of
+  rated bo3 sides), sixes used by 2 or more players at the floor, every species on 3% or more of the top teams, and
+  S − E no worse than the top baseline. It holds 5 teams, rated 1478 to 1596. The arms file
+  `solver/rotom/arms/gen5-chomp-top.json` names the rotation. Command for Will:
+  `docs/_reports/2026-09-30-top-meta-rotation.md`.
+- **Human-regularised search (piKL), phase A (2026-09-30, abra/regmc 1.34.0).** Spec flag `kl` (lambda; off, on no
+  arm): SLOWKING solves the KL-regularised root game with gen5's DODUO as the anchor (`solveKL`). On 579 held-out human
+  decisions and the same recorded tables, top-1 agreement is 0.216 at lambda 0 and 0.268 at 0.1 (+0.052 [0.021, 0.083]).
+  The worst-case cost on the search's own table is 0.035. The repeat-Protect mass is 0.611 at lambda 0 and 0.243 at 0.03,
+  where it reaches the anchor's own level. chomp1 turn 4's double Protect keeps 0.71 of the mix at 0.03. That is a horizon
+  fault in the table. The 2 s screens at lambda 0.01, 0.03 and 0.1 are pre-registered, not run.
+  `docs/_reports/2026-09-30-human-regularised-search.md`.
+- **Ladder spreads fit each set's role (2026-09-30, abra/regmc 1.35.0).** `solver/rotom/spreads.js`: a Reg M-C
+  observed spread first (Smogon moveset file, none yet), else derived against the top-meta population. Scarf and
+  Tailwind sets get Speed at the cap, Trick Room sets get 0, and other sets get the least SP that beats the top-meta
+  median at full investment. Then median-hit bulk, then the attack stat. Both rotations are re-spread (teams unchanged)
+  by `solver/rotom/respread.js`; test `solver/tests/test-rotom-spreads.js`.
+  `docs/_reports/2026-09-30-rotation-spreads.md`.
 - **CHOMP v0** (`solver/chomp/`, 2026-09-25, release `eaa5becc54eb`) **fails its bar**: its preview loses to
   the human bring (SPRT H0 accepted) and ties random. The PORYGON2 cells carry no bring signal.
   `docs/_reports/2026-09-25-chomp-v0.md`.
@@ -116,6 +157,13 @@ This section says only what a division agent needs before it starts.
   goes 0.611 → 0.200. **At 1 s the package LOSES to gen5**, SPRT H0, 0.418 [0.350, 0.488] in 194 games, and leaves the arena
   Protect rates where they were. **Not deployed.** At 5 s it is untested for strength. DODUO already carries the counter
   (`stall_repeat`), so it was not retrained. Account: `docs/_reports/2026-09-27-protect-repeat-fix.md`.
+- **The double-Protect soft gate (2026-09-30, abra/regmc 1.32.0).** Will's rule (`solver/doduo/double_protect.js`,
+  spec `gates.doubleProtect`, off, on no arm): both actives on a protect-type move is weighted 0.001 unless a stall
+  condition holds. On 20,482 held-out human decisions survival is 99.63% [99.54, 99.71]. Humans honour its Fake Out,
+  Trick Room, Tailwind and Perish reasons, and double-Protect at the 2.2% base rate under terrain, weather or screens.
+  The chomp1 turn-4 case is exempt by the opponent's Grassy Terrain, so the gate does not change it. Phase B (a 2 s
+  adaptive screen) is pre-registered, not run: `solver/results/2026-09-30-double-protect/preregistration.json`. Account:
+  `docs/_reports/2026-09-30-double-protect-gate.md`.
 - **Weighted chance (2026-09-29, abra/regmc 1.28.0).** Spec option `chance` (off by default): each cell's first turn is
   enumerated by probability (`solver/miltank/chance.js`, stratified, unbiased; counters `chancePlayouts`,
   `chanceBuckets`, `chanceEvals`, `chanceTruncatedMass`, `chanceDecisions`). Correct (|z| max 1.80 on 24 pairs), but a

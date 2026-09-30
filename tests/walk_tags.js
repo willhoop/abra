@@ -28,6 +28,8 @@
 const fs = require('fs');
 const path = require('path');
 const D = (...p) => path.join(__dirname, '..', ...p);
+/* PER REGULATION (engine/regulation.js PER_REGULATION_ARTIFACTS, 2026-09-29): the printed path is the written path. */
+const WALK_OUT_REL = require('../engine/regulation.js').artifactFor('data/tag-walk.json');
 require('../engine/regulation.js');   /* before the table: the selected regulation resolves which table loads */
 require(D('data', 'engine-data.js'));
 const CS = require(D('engine', 'champions_sim.js'));
@@ -231,7 +233,7 @@ for (const [k, c] of Object.entries(walkErrs.where).sort((x, y) => y[1] - x[1]).
   console.log('    x' + String(c).padEnd(5) + k);
 }
 
-fs.writeFileSync(D('data', 'tag-walk.json'), JSON.stringify({
+fs.writeFileSync(path.join(__dirname, '..', WALK_OUT_REL), JSON.stringify({
   generated: new Date().toISOString(), by: 'tests/walk_tags.js',
   design: 'The tag list says WHAT to exercise; Showdown says what should happen. No hand-written '
         + 'expectations, because seven control failures were written by hand in one session.',
@@ -241,4 +243,4 @@ fs.writeFileSync(D('data', 'tag-walk.json'), JSON.stringify({
   dropped_by_exception: walkErrs.n, dropped_where: walkErrs.where,
   notCovered: n('NOT COVERED'), skipped: n('SKIP'), rows,
 }, null, 2) + '\n');
-console.log('\n  wrote data/tag-walk.json');
+console.log('\n  wrote ' + WALK_OUT_REL);

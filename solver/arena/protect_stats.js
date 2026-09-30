@@ -22,6 +22,9 @@
  *   consec        a protect-family click by a body that clicked one on the previous turn AND it succeeded (the live
  *                 read's "consecutive": the same slot, a successful protect-family move the turn before);
  *   consecFailed  the consec clicks that failed.
+ *   pairs         turns a side chose a move or a switch in BOTH slots (2026-09-29, the double-Protect gate);
+ *   doubles       those turns on which both slots clicked a self-shield — the gate's own predicate (solver/mag/probe.js
+ *                 isShield: `stallingMove` with target `self`, so Endure is in and the side guards are out).
  *
  * THE FAMILY IS DERIVED FROM THE FORMAT, never listed: every legal move with `stallingMove`, plus every legal move
  * whose `onHitSide` adds the `stall` volatile to its user (data/moves.ts — the two side guards). The live read used
@@ -43,7 +46,8 @@ function family() {
 
 function create(API) {
   const F = family();
-  const blank = () => ({ actions: 0, protects: 0, failed: 0, consec: 0, consecFailed: 0 });
+  const blank = () => ({ actions: 0, protects: 0, failed: 0, consec: 0, consecFailed: 0, pairs: 0, doubles: 0 });
+  const isShield = require('../mag/probe.js').isShield;
   const add = (into, t) => { for (const k of Object.keys(blank())) into[k] = (into[k] || 0) + (t[k] || 0); return into; };
   const live = m => !!(m && !m.fainted && m.curHP > 0);
 
@@ -56,10 +60,12 @@ function create(API) {
         pend = [];
         for (const [sd, j] of [['A', jA], ['B', jB]]) {
           const act = sd === 'A' ? S.actA : S.actB;
+          let chose = 0, shields = 0;
           (j || []).forEach((o, k) => {
             if (!o || o.kind === 'pass' || o.forced || !live(act[k])) return;
             if (o.kind !== 'move' && o.kind !== 'switch') return;
             T[sd].actions++;
+            chose++; if (isShield(o)) shields++;
             if (o.kind === 'move' && F.has(o.move)) {
               const body = act[k];
               const c = prevUp.has(body);
@@ -67,6 +73,7 @@ function create(API) {
               pend.push({ sd, body, c });
             }
           });
+          if (chose === 2) { T[sd].pairs++; if (shields === 2) T[sd].doubles++; }
         }
       },
       after() {

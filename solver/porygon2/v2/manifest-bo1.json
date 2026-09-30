@@ -1,0 +1,2400 @@
+{
+ "what": "PORYGON2 v2 position dataset, bo1 (gen9championsvgc2026regmc): the public state at the start of every turn, per-field reveal state, both pre-game ratings, outcome and auxiliary labels",
+ "built": "2026-09-30T02:19:37.701Z",
+ "seconds": 305,
+ "node": "v24.15.0",
+ "argv": [
+  "--fmt",
+  "bo1"
+ ],
+ "format": "gen9championsvgc2026regmc",
+ "mode": "bo1",
+ "data_root": "C:/Users/willj/Projects/Pokemon/ABRA",
+ "showdown": {
+  "path": "C:/Users/willj/Projects/Pokemon/pokemon-showdown-mc",
+  "commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+  "pinned": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a"
+ },
+ "code": {
+  "solver/porygon2/v2/reveal.js": "b1cc88db672d8c31aeae740923b61983bd85ffc1969e24de2a587406ad2f3a29",
+  "solver/porygon2/v2/extract.js": "9b665af6c1dd7d744be6a7cef0c71926538965e086c9a4736d5b95d3a7ce0788",
+  "engine/quality.js": "ebc37c7c9d05ffda4c3f0aaaab8fc62b87957be191cc626bfb264e193f3360b6",
+  "data/quality-filter.json": "042524dd1df787be9f105d0e335c4e80ebb2341aa5a8b79f428b713365cbaf68",
+  "solver/human/dex.js": "765e33ab28deb013e41a6c69cd60c83fd7b0710f46dea42877eff9811f3c3a86"
+ },
+ "inputs": [
+  {
+   "role": "parsed_store",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/games.gen9championsvgc2026regmc.jsonl.gz",
+   "bytes": 45361472,
+   "sha256": "341e5953c4c7037ee37ffe936a7721f5a4e4f5143cbc8243e95eb8db3112f46f",
+   "git_blob": "76ef2de74102d8836141e3a7acab58bb41039bec",
+   "mtime": "2026-09-30T01:45:40.448Z"
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260909T1850-00.jsonl.gz",
+   "bytes": 843452,
+   "sha256": "16d45df05191a4c225eebf37095bf50a021b956d16bc4d8d030bc55275823ef6",
+   "rows": 1067
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260909T2055-00.jsonl.gz",
+   "bytes": 292681,
+   "sha256": "ca8ac935cc951c6522ea529741c2febd1322dcb5a92dc2e9fcd6f99de4eecfc8",
+   "rows": 345
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260909T2324-00.jsonl.gz",
+   "bytes": 253039,
+   "sha256": "f8ea80e0d645d6f74354cfc00cc4830c56923b0b263e7384a2e35eadf1000372",
+   "rows": 321
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260910T0100-00.jsonl.gz",
+   "bytes": 199561,
+   "sha256": "c3059d60ff7d75ccecf9a1d18613c7519b90ea5ee4bacf41a904b197d64b8e87",
+   "rows": 242
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260910T0233-00.jsonl.gz",
+   "bytes": 161926,
+   "sha256": "bbbb96f2bce1352cfa119cccbba494989b2ef672272dc224144697c0fcb35cb8",
+   "rows": 208
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260910T0450-00.jsonl.gz",
+   "bytes": 281645,
+   "sha256": "50a8778e89794e964c895e59911197ef5901328bf4c59ea7d9727041ae198a96",
+   "rows": 330
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260910T0551-00.jsonl.gz",
+   "bytes": 105931,
+   "sha256": "3ba38a6acddb4f080e31d7d95e3ebeba24f68f3ac32b77d41108c7413d1b63dc",
+   "rows": 126
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260910T0823-00.jsonl.gz",
+   "bytes": 208515,
+   "sha256": "a243864d3588676f80a9f1ad487716fc4272ccbf2937cf32d6a447dfe7ebf9de",
+   "rows": 266
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260910T1015-00.jsonl.gz",
+   "bytes": 154044,
+   "sha256": "d94f6135f1f3a379ba19ab6209a8dea797d499dcae020e0fd8eb946b44bb7193",
+   "rows": 180
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260910T1109-00.jsonl.gz",
+   "bytes": 76838,
+   "sha256": "f04f3434a9ab30f89e44e5fb16b14b3b10ae60a88134975c4f6561f66e4c976a",
+   "rows": 93
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260910T1126-00.jsonl.gz",
+   "bytes": 24737,
+   "sha256": "38d06475855e4455b00b3c8544ea9491dc0d4e0a0b490f3352eb13323fdb7938",
+   "rows": 30
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260910T1306-00.jsonl.gz",
+   "bytes": 224235,
+   "sha256": "d1cb0a38fa3d0789b1439571a23fc10c1ac0f20289f4449da085d311348b2d61",
+   "rows": 286
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260910T1618-00.jsonl.gz",
+   "bytes": 473215,
+   "sha256": "0b83f65c4481588b69c03a6bba00a13237c492be8acfd77c926ec34a22fe96a6",
+   "rows": 596
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260910T1631-00.jsonl.gz",
+   "bytes": 13920,
+   "sha256": "51cda18618fa402aaf4f5543a7e44fa808ede6c2d65bce59d4287efcffaa0733",
+   "rows": 16
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260910T1709-00.jsonl.gz",
+   "bytes": 109983,
+   "sha256": "09e623a8502e438890f125fccaa78a0941b78796dc04de84dc8dd733b7edf75d",
+   "rows": 127
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260910T1933-00.jsonl.gz",
+   "bytes": 402986,
+   "sha256": "0fa5366420964578e19101312be1f323c36cc40b139f7b46f395367b6b3a99a3",
+   "rows": 504
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260910T2001-00.jsonl.gz",
+   "bytes": 82155,
+   "sha256": "817d3365b6ef4a7e8776150ed7b9f6e331eada0f795fdb1de2e6d906956a85a7",
+   "rows": 101
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260910T2059-00.jsonl.gz",
+   "bytes": 163539,
+   "sha256": "7f94f67fa37528a5621d7e8d091af42bf06afd5aaade6bb0a66eac5b5b0106b2",
+   "rows": 205
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260910T2228-00.jsonl.gz",
+   "bytes": 206494,
+   "sha256": "9789a86f22036d7f0d2bcb1ba5f9b332287e1fbda23475bb9e6ef006b3a97732",
+   "rows": 256
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260910T2246-00.jsonl.gz",
+   "bytes": 36762,
+   "sha256": "6156a7df038caadd8af0dad637f55a0725af6f1e9f6380e02fe7fe9503f33e75",
+   "rows": 44
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260911T0057-00.jsonl.gz",
+   "bytes": 263479,
+   "sha256": "8ce27132f1175fbebfc1469e219ae9b88d0d9978385703200a1f7da08231a836",
+   "rows": 327
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260911T0126-00.jsonl.gz",
+   "bytes": 69759,
+   "sha256": "6bed2ca7f0e32d4d3732afb66a6c3c15bdbe2a548fb3d222a87328a85a1a08ab",
+   "rows": 85
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260911T0448-00.jsonl.gz",
+   "bytes": 435178,
+   "sha256": "5375b74a06d663e35deb93313fd84d58553163182ad6f71b4c16d72bf8227108",
+   "rows": 530
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260911T0550-00.jsonl.gz",
+   "bytes": 82035,
+   "sha256": "c1ac0e0d3b2eefe7e2eaada4f69c6e04741882b8f6b278f3b48c864889ee1097",
+   "rows": 106
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260911T0637-00.jsonl.gz",
+   "bytes": 64082,
+   "sha256": "b36a4c646acea9c54ea43aa14507108cc30ce6910a270c61d8add566234de1f3",
+   "rows": 79
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260911T1109-00.jsonl.gz",
+   "bytes": 386302,
+   "sha256": "5364f37e53575bfde3c96bfe1a374550f97e116a0422f831dd6ff5835698fe88",
+   "rows": 479
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260911T1127-00.jsonl.gz",
+   "bytes": 39582,
+   "sha256": "373913e3d01e72ce87df038fa6637349f479880380c553d01a684b5f50b6e8dd",
+   "rows": 47
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260911T1149-00.jsonl.gz",
+   "bytes": 65094,
+   "sha256": "d398cf806b0261f09cf981c5e6526487b5435440a651975c7ff4a47d8268362d",
+   "rows": 79
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260911T1623-00.jsonl.gz",
+   "bytes": 594518,
+   "sha256": "d8372c3ac962fd641ce33241349472173a27b33b50929d48b7afb6adf94ef78f",
+   "rows": 737
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260911T1635-00.jsonl.gz",
+   "bytes": 12139,
+   "sha256": "d28a11a8ccca4a52c1dba54f58c8bd20a41796afd78ea3f24f9fc61bf99639f5",
+   "rows": 14
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260911T1645-00.jsonl.gz",
+   "bytes": 34927,
+   "sha256": "169f24da5fa74d96955e054135d1a3795414d4cae4d48f7383e0e721ba4d4fcf",
+   "rows": 40
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260911T1935-00.jsonl.gz",
+   "bytes": 346660,
+   "sha256": "3ae94ce8eb243531e9b7751755a3a7abfd1ffbd74a8e85b4b2b877533ad0ff70",
+   "rows": 442
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260911T2000-00.jsonl.gz",
+   "bytes": 58563,
+   "sha256": "8e926e4144c3d170609af378b4ac872fe120df197c63fedf1e391d94838dbb49",
+   "rows": 70
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260911T2104-00.jsonl.gz",
+   "bytes": 148450,
+   "sha256": "5a860c0c3d482e0914ed3d5c62ac9807761112c87851deca9fc8de4ad0b5cfbe",
+   "rows": 183
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260911T2229-00.jsonl.gz",
+   "bytes": 210016,
+   "sha256": "cf7edd1e64fdd149325d7233845e133cb07a47ccb980320a8e433f67fb0d13f3",
+   "rows": 273
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260911T2246-00.jsonl.gz",
+   "bytes": 28858,
+   "sha256": "aaa4bde2b6329a3e6e43d93fac14626c69eb9937ef11def2af692cde0b60d9b9",
+   "rows": 38
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T0103-00.jsonl.gz",
+   "bytes": 230817,
+   "sha256": "2549d6fc13af07af679c53ee2b793690e83e08daf82423091e6e139dbecf7d25",
+   "rows": 288
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T0131-00.jsonl.gz",
+   "bytes": 51980,
+   "sha256": "1057e8c70bdc7717abb1f9e545fa45410420c64fcbfdc51884e94a7733e17055",
+   "rows": 69
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T0441-00.jsonl.gz",
+   "bytes": 328128,
+   "sha256": "e42f2c70d1b67fc192b5de0e04ef983bef1318ffe63e56398a006612272ee4b2",
+   "rows": 390
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T0539-00.jsonl.gz",
+   "bytes": 87527,
+   "sha256": "8bcfe3267b07d5c35e59683b67ec12829f8d50b6ad7f50faea7b9882af737901",
+   "rows": 103
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T0628-00.jsonl.gz",
+   "bytes": 76567,
+   "sha256": "2ccaf25dde3c8c1ecb6b0f91d7245dd71d2125e28b1455a74e2ec3b9309fad52",
+   "rows": 95
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T1038-00.jsonl.gz",
+   "bytes": 301326,
+   "sha256": "0139e614e68e6651bf502c4fd0710e9401a7c6805400bf79cd46c2f1a83dd39c",
+   "rows": 372
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T1054-00.jsonl.gz",
+   "bytes": 18828,
+   "sha256": "449203e4bdbbfd4ce98c004a2211eb3b1579826f0a4478b67feacee8224ac445",
+   "rows": 24
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T1114-00.jsonl.gz",
+   "bytes": 36304,
+   "sha256": "2e430b45f97c9cc75137e070741d512e58915f6bbe06c5cc9252e7342eeb0950",
+   "rows": 40
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T1401-00.jsonl.gz",
+   "bytes": 240213,
+   "sha256": "9036e32e6ded0da7a2d131029584a9fbb36e6fecab602072431805d541d37f44",
+   "rows": 295
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T1421-00.jsonl.gz",
+   "bytes": 37597,
+   "sha256": "99339a17c263c293c197a88d68d2b00f8f239a1500b067ca2a4683367405ad6d",
+   "rows": 41
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T1538-00.jsonl.gz",
+   "bytes": 127868,
+   "sha256": "54317d5af343c9904b069cb7b90a0aa7f222313524aee417dd298b35e4f0296b",
+   "rows": 156
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T1658-00.jsonl.gz",
+   "bytes": 121624,
+   "sha256": "e46e1146a197b94bd7ad88b46690ead56e658c906e1a8330b667fbd9cce08324",
+   "rows": 142
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T1726-00.jsonl.gz",
+   "bytes": 41447,
+   "sha256": "403b3282479509131e82ace3895d87580099518499c119b200c1057f5a49b993",
+   "rows": 50
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T1911-00.jsonl.gz",
+   "bytes": 172612,
+   "sha256": "e3e227b14a3f7b00cc9331b9aae881a07fc7595a8d9bb10870940bed097e46a3",
+   "rows": 208
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T1938-00.jsonl.gz",
+   "bytes": 51139,
+   "sha256": "49521606d9b8f30daa56ec09a7aeded0c8958bd16c9b95fa383a9029eaa2467b",
+   "rows": 62
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T2044-00.jsonl.gz",
+   "bytes": 118978,
+   "sha256": "7003542c0360f9047bba75a17037a49ccbb35586d33271e27bcdb6948fdf60de",
+   "rows": 150
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T2212-00.jsonl.gz",
+   "bytes": 168218,
+   "sha256": "a447fb28b2115b74fed95ddee70aaa65eb5b5e1b3e6c1a54daec420335081392",
+   "rows": 207
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260912T2232-00.jsonl.gz",
+   "bytes": 45238,
+   "sha256": "376c6f23452ca2065d6a9fcfa2c390c32360a3ebe4ac775117268426f7840b64",
+   "rows": 55
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260913T0016-00.jsonl.gz",
+   "bytes": 203254,
+   "sha256": "f878c30087f625e53497cdb9dbb270e0abe5258d24dc965ffb0330548d649469",
+   "rows": 238
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260913T0051-00.jsonl.gz",
+   "bytes": 54690,
+   "sha256": "e559ad4fd4a99933f715b7ec8146105d61ea660b8a94ba4025fe8cfaa69ddac6",
+   "rows": 69
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260913T0455-00.jsonl.gz",
+   "bytes": 404488,
+   "sha256": "5f646db1704001583faad602382fd416acfe0da90c6f6705f3c7259d2f4909d1",
+   "rows": 503
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260913T0520-00.jsonl.gz",
+   "bytes": 45408,
+   "sha256": "884d81f0ce14705ff3e8cee149af41871d0641b026e67a9755eadfd09a0a0cf7",
+   "rows": 56
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260913T0559-00.jsonl.gz",
+   "bytes": 60659,
+   "sha256": "8e2ad4988f219a70aa4a677dd5e6aa157153ad3057ccb013ee0b1e4ed55ecc29",
+   "rows": 72
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260913T1036-00.jsonl.gz",
+   "bytes": 328469,
+   "sha256": "b52d672d8f4cbd4eb8b30f6229f7dd529f2c50bef9e6f550ee1724e31d417d14",
+   "rows": 424
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260913T1141-00.jsonl.gz",
+   "bytes": 83210,
+   "sha256": "bef27088bb5d761382b6417f945746ae212009d51adeced39a412063a3347f44",
+   "rows": 98
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260913T1159-00.jsonl.gz",
+   "bytes": 21921,
+   "sha256": "c24bf4e38df45b1b27dfce9bfc5b3cac12a6650174ea5def15e72132e46cad49",
+   "rows": 28
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260913T1441-00.jsonl.gz",
+   "bytes": 192150,
+   "sha256": "96e50b9c625d24206e459a946cb3cb24577d89b0c8ba1e04a63801f40c5f885a",
+   "rows": 246
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260913T1609-00.jsonl.gz",
+   "bytes": 123241,
+   "sha256": "d6de052bbc14af00581b25babd46e4990949264655161da1cb062b9cb45fa957",
+   "rows": 158
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260913T1624-00.jsonl.gz",
+   "bytes": 21093,
+   "sha256": "28af4cb622a28ce8cd8eb245baebbda3723ca7a8ea5370fdb29f76a339402223",
+   "rows": 25
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260913T1821-00.jsonl.gz",
+   "bytes": 236871,
+   "sha256": "5f8d339b1523f5155ffe092200e7e9e2973caddfc06d8171287922dad4a3f6d7",
+   "rows": 301
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260913T1921-00.jsonl.gz",
+   "bytes": 110496,
+   "sha256": "e468e9e8b428d4270f6af2ae7dd552bb7e546beda9e97bf2d02e9cd4f39ceded",
+   "rows": 135
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260913T2057-00.jsonl.gz",
+   "bytes": 147094,
+   "sha256": "cd18a3740a636e1fa452867e9bc0cadba61c84e6748f79c355671431c54b9d2c",
+   "rows": 182
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260913T2108-00.jsonl.gz",
+   "bytes": 20952,
+   "sha256": "8bcbc73fe36e96fc3a3b96a610eacbbb2754ea35105360dc6faab513ca87c7e9",
+   "rows": 26
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260913T2221-00.jsonl.gz",
+   "bytes": 135949,
+   "sha256": "1f31977de4ced72c94217b35d3d324af48decdc1bdbea250e502313fc0b83c0d",
+   "rows": 172
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260913T2328-00.jsonl.gz",
+   "bytes": 106649,
+   "sha256": "916f234d5da8afcd7aa081cbd0ca7de5198e4717979392e0db11f2b5e1108be6",
+   "rows": 134
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260914T0058-00.jsonl.gz",
+   "bytes": 138201,
+   "sha256": "1a492860d565ab6d2bfcfd77d6a19952e189c4dddfe9166aa465b4ec5e025d47",
+   "rows": 184
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260914T0136-00.jsonl.gz",
+   "bytes": 60755,
+   "sha256": "d4b07c9dbc89e387406f8226090921f3a5776531f68b314e1e58a185e4db5721",
+   "rows": 78
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260914T0503-00.jsonl.gz",
+   "bytes": 248748,
+   "sha256": "3295541e77b61171e3b5a3262c56e3fe41a2728f388d52752dbec9555b06508d",
+   "rows": 309
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260914T0606-00.jsonl.gz",
+   "bytes": 81988,
+   "sha256": "d56391a8a8aa559696bd936e6b5be2c0b42ccd01d3452b71e8910b06000eeb9f",
+   "rows": 97
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260914T0705-00.jsonl.gz",
+   "bytes": 71058,
+   "sha256": "e557db87f6a2bfec69dded0ea4c566daf403467cec67b7ae2f24ad85e8cb8baf",
+   "rows": 86
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260914T1237-00.jsonl.gz",
+   "bytes": 405076,
+   "sha256": "49fb9665066aa2df610cff47418de0c751bd6f4ce6dd3b000b9a16befd374e73",
+   "rows": 513
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260914T1255-00.jsonl.gz",
+   "bytes": 30109,
+   "sha256": "3b7f8771d67522d5d7e97a633a034d301841b0e23d349b2a8ea1a3a377a256f0",
+   "rows": 40
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260914T1425-00.jsonl.gz",
+   "bytes": 180882,
+   "sha256": "2e975c65efe254f94317859a5234711a72fd6d27bebd1163692e1daacd6b8c57",
+   "rows": 225
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260914T1833-00.jsonl.gz",
+   "bytes": 543769,
+   "sha256": "087a066bf45c1f0c570f72a2e9d43add5406d6dc84fba9066e577af5fc03502a",
+   "rows": 682
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260914T1936-00.jsonl.gz",
+   "bytes": 93290,
+   "sha256": "24121eed3d0daf156f296ddf9b980432e56dd2c3b6cf16fbbe596acffa5cfc3c",
+   "rows": 123
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260914T2156-00.jsonl.gz",
+   "bytes": 284609,
+   "sha256": "1dce0cca2c0dbfb92569194381261495b48b8c909a1288e63d0e2c366c23a5ee",
+   "rows": 348
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260914T2226-00.jsonl.gz",
+   "bytes": 78561,
+   "sha256": "e5647457b4bf75bbe8b68805d0679633cfe1eaa6a600873c45c7b4fb8e1c6656",
+   "rows": 95
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260914T2245-00.jsonl.gz",
+   "bytes": 37618,
+   "sha256": "58203bfeaecf7910aa65c716aaef691ee1579d97be0ff237a7370e52966eb273",
+   "rows": 45
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260915T0124-00.jsonl.gz",
+   "bytes": 344976,
+   "sha256": "bbea337b7ebb167422d3a45a0c5a0a3a0a9e4b68603192f0f02e069127c9b1c4",
+   "rows": 447
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260915T0154-00.jsonl.gz",
+   "bytes": 51223,
+   "sha256": "117f0de1d5e8ad0dd0f5b1d7e8388c319f456203194c325e61b3c929e871467a",
+   "rows": 63
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260915T0502-00.jsonl.gz",
+   "bytes": 310241,
+   "sha256": "60c4c042f3ef291dfbd016da4b0933c6c67a065eee3d3191165d0e415cfc653c",
+   "rows": 381
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260915T0739-00.jsonl.gz",
+   "bytes": 221804,
+   "sha256": "bad1756f86527aaa11557447197e2f9d26e5d012657bc086f90013b855796a81",
+   "rows": 282
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260915T0802-00.jsonl.gz",
+   "bytes": 27596,
+   "sha256": "8111c37bf9df502361c7b365c6452a533a00e2bc55417013e9eb1124dd9fca17",
+   "rows": 32
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260915T1151-00.jsonl.gz",
+   "bytes": 243851,
+   "sha256": "70c6b0c49812cc01a53b6c17b14e75cbae09f9ae37270e447ecb03ea8e905722",
+   "rows": 312
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260915T1328-00.jsonl.gz",
+   "bytes": 153130,
+   "sha256": "5bcffe6c9318bd0520b7d3214a899c471363a5507e30995009dbfa4011d330cd",
+   "rows": 189
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260915T1352-00.jsonl.gz",
+   "bytes": 52028,
+   "sha256": "cb18fb60a59bf8daf616d641a25903fd792084608577646bb703bd6e81110ea1",
+   "rows": 75
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260915T1707-00.jsonl.gz",
+   "bytes": 425369,
+   "sha256": "3ecb740722f1f8459716536cea4b533ce144853a150f62417588ce04840ef786",
+   "rows": 539
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260915T1808-00.jsonl.gz",
+   "bytes": 157569,
+   "sha256": "1bc3a81f5aec03aa9f22906d09fc9f033b7a6508824a300412c24092573d0871",
+   "rows": 188
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260915T1829-00.jsonl.gz",
+   "bytes": 38120,
+   "sha256": "dc5e4ad8a6135150a9ac43513e66fd260652aff2472d2bb57fdd5e476d9858d9",
+   "rows": 48
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260915T2117-00.jsonl.gz",
+   "bytes": 363072,
+   "sha256": "be977c34d5a03b60ebea18c8dd341c8176e2897ca783c19fcaebde74f08af55a",
+   "rows": 441
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260915T2127-00.jsonl.gz",
+   "bytes": 15677,
+   "sha256": "d5d2320e1dea991a0ab26eb200cdb2accac641b7d3aff47f8a187a68a2a15ac7",
+   "rows": 16
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260915T2145-00.jsonl.gz",
+   "bytes": 32782,
+   "sha256": "e615da831a257270491fe84459c5e72b2c18df0cbcf3f768c9a23bff300287d0",
+   "rows": 37
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260916T0011-00.jsonl.gz",
+   "bytes": 281134,
+   "sha256": "04d9c53849d21005f73fc9fc84501cdbec32d2324885f23c79ea43ce5c5991d3",
+   "rows": 391
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260916T0047-00.jsonl.gz",
+   "bytes": 58105,
+   "sha256": "e4cd9fd6f27eb210f25cd5a5de283f125c703c985c1d76af4bc78ace49abb4e8",
+   "rows": 66
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260916T0455-00.jsonl.gz",
+   "bytes": 299176,
+   "sha256": "44194f998411be91f0187668ec1b4564df67f705fd504ebce558cba480996766",
+   "rows": 373
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260916T0556-00.jsonl.gz",
+   "bytes": 49662,
+   "sha256": "40e1277ffd350c2c58099ea2c2de6f5690cdaf9cf9e2d11dcb209c011a0ffd5e",
+   "rows": 65
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260916T0642-00.jsonl.gz",
+   "bytes": 47751,
+   "sha256": "bdc3a622ce853997a74ddab20a95b5e2c04af8bd10b4fa47f135aa66a4040ede",
+   "rows": 54
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260916T1125-00.jsonl.gz",
+   "bytes": 296034,
+   "sha256": "c5175b873d76bc63c18663658696a0ad0fe752f703994d17498e9523b56f7341",
+   "rows": 368
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260916T1142-00.jsonl.gz",
+   "bytes": 16097,
+   "sha256": "4e4494450ebef8353ec04e1bb971459682a47d3fa43c1c5e10b1e57847ead593",
+   "rows": 21
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260916T1250-00.jsonl.gz",
+   "bytes": 121068,
+   "sha256": "8292a9965fb75648b23848f2be6c3ea099dbba46f2835d782fcb92acbef42b94",
+   "rows": 168
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260916T1645-00.jsonl.gz",
+   "bytes": 506816,
+   "sha256": "68f1b1fe6ff49f195d3a8ca348a55513ccac0b8092aa7484b7625df6cbdec584",
+   "rows": 665
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260916T1703-00.jsonl.gz",
+   "bytes": 28406,
+   "sha256": "78a8ce3c4da571e0f6cb20871cbc681313876756c2681b281f59c35851fd5b3e",
+   "rows": 32
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260916T1745-00.jsonl.gz",
+   "bytes": 110762,
+   "sha256": "89724912ccd2a9c2cc7453c4ae9e59a44061bfa7b5de1fba44cc1e3a52a5f788",
+   "rows": 138
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260916T2002-00.jsonl.gz",
+   "bytes": 270461,
+   "sha256": "c83d4b9a66d545da78ad15e546d10ab14b05e9bb581739b7e5508c17391bb429",
+   "rows": 335
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260916T2126-00.jsonl.gz",
+   "bytes": 159091,
+   "sha256": "eb65c159c399070a79ab61161272d15f4b6094713712c181e1fe7df59d536657",
+   "rows": 199
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260916T2142-00.jsonl.gz",
+   "bytes": 36226,
+   "sha256": "4824c2416a5c44eac1e6cbca6b0bed564c4e47f7f844a10af48ed99caa0f5a80",
+   "rows": 45
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260916T2253-00.jsonl.gz",
+   "bytes": 131881,
+   "sha256": "671f30273f5d2938ff15be4b7107cbde4ac5288b0a2493529a23515377343197",
+   "rows": 162
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260917T0053-00.jsonl.gz",
+   "bytes": 175951,
+   "sha256": "419aefa83e3beb0cefa918a6ab7e75c9606bc4c4d11ed898cf468f413bf54b35",
+   "rows": 213
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260917T0120-00.jsonl.gz",
+   "bytes": 40457,
+   "sha256": "ac2a139a86bc485fc4a020263d87ac00ddbe7a482c0c8902b20c0b96811a21ab",
+   "rows": 50
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260917T0501-00.jsonl.gz",
+   "bytes": 265561,
+   "sha256": "74e3007b2eb6ea8ec9c88eeb25c8f3b19e61ad98d873cfd643f1fb2e975570f7",
+   "rows": 332
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260917T0638-00.jsonl.gz",
+   "bytes": 123432,
+   "sha256": "58dd31e3975c42754ea22ac38468dbc6a626620ad10b26ba273e1ce98f92e3ea",
+   "rows": 165
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260917T0735-00.jsonl.gz",
+   "bytes": 51951,
+   "sha256": "445d767a3401e223a37cc2392b182503f37f5ca67cbe132107a1846f31087b63",
+   "rows": 63
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260917T1149-00.jsonl.gz",
+   "bytes": 239078,
+   "sha256": "18b3267a48772af034aef749802e2dc4d205371df715bf09d5e240a5661b8189",
+   "rows": 310
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260917T1206-00.jsonl.gz",
+   "bytes": 23912,
+   "sha256": "1523b7ab5ed2763fe0591882cf7f3fa3056a7fd3f1be075a27535b1a1c6857a9",
+   "rows": 34
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260917T1324-00.jsonl.gz",
+   "bytes": 92965,
+   "sha256": "f95ffe0f447d9e740ebb9eb50a56273e35dbba771a25ae48cd28dee4708a71d5",
+   "rows": 109
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260917T1708-00.jsonl.gz",
+   "bytes": 327472,
+   "sha256": "a022dd76e3a33fd0545e7aa511ef7ae88ab9e86be8facd8de02d59aa851cb771",
+   "rows": 410
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260917T1717-00.jsonl.gz",
+   "bytes": 21452,
+   "sha256": "e998ba3515c505f1700db3d3f6995a71759c933988d42a5d3a92ef03560e5b6a",
+   "rows": 26
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260917T1810-00.jsonl.gz",
+   "bytes": 82104,
+   "sha256": "29f2f98bb6eda9150eb8e186c291dbf4e803cf2476bc464f291b24d3811c52b8",
+   "rows": 104
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260917T2034-00.jsonl.gz",
+   "bytes": 269044,
+   "sha256": "8f12de01e86dff9b27e70ac003d715cdb9d5e3947ec98065111b2d0ec5974c8c",
+   "rows": 327
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260917T2130-00.jsonl.gz",
+   "bytes": 92245,
+   "sha256": "29676dd0e5586649f2ae5895ebebe7576b67d48fde14011c7ac7403bfafad18a",
+   "rows": 113
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260917T2207-00.jsonl.gz",
+   "bytes": 63215,
+   "sha256": "3a21cff3045bcd90620099033efb2306e02fee774c2a6b239781471476486894",
+   "rows": 78
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260917T2305-00.jsonl.gz",
+   "bytes": 114948,
+   "sha256": "7cd2fdae4a541ab545152b7e1ce7576e360100a32218c50438a38fcb64cc2cb2",
+   "rows": 129
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260918T0011-00.jsonl.gz",
+   "bytes": 110027,
+   "sha256": "e733500c8ec5a3b869ed9e44f787c013e559c5baedb3ec0d5b1389f4e690716b",
+   "rows": 128
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260918T0128-00.jsonl.gz",
+   "bytes": 117206,
+   "sha256": "aad94807dfc5778949e1069281dd5219a26cf9be6803add07ab170b7f03cfd08",
+   "rows": 145
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260918T0451-00.jsonl.gz",
+   "bytes": 246759,
+   "sha256": "53861a52e8207c788357e95814a1d0cffbb7067fc41266c6858c0f1abffd2a3d",
+   "rows": 318
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260918T0550-00.jsonl.gz",
+   "bytes": 117975,
+   "sha256": "ac92b46489678d15f870e8525488f0fef419cd41fe2571dba68454ddb579e00f",
+   "rows": 156
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260918T0638-00.jsonl.gz",
+   "bytes": 95619,
+   "sha256": "d98fef1ed9f20d34c0dd0da4d3eb0c2138f0155d4dd2cb8b9b0cc8ea8710b831",
+   "rows": 124
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260918T1106-00.jsonl.gz",
+   "bytes": 468045,
+   "sha256": "833652337500609f73c2159dd823c14f2f9a83fb3d0266354b890c58526ff93f",
+   "rows": 663
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260918T1123-00.jsonl.gz",
+   "bytes": 22161,
+   "sha256": "f91a881afeaffe1587293f0404a7c0dda311f567e41f1f8cf725c31203d88a53",
+   "rows": 32
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260918T1150-00.jsonl.gz",
+   "bytes": 69201,
+   "sha256": "61ec9e7dc11df0be8f0dc19d52a528d7b7f10858a7d45cf84513b93ae4104071",
+   "rows": 86
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260918T1457-00.jsonl.gz",
+   "bytes": 266932,
+   "sha256": "d7cb3db1ae87fb62a52ebfbec982bd47533fd5afd8dcdc84576a281ae3ac2647",
+   "rows": 339
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260918T1632-00.jsonl.gz",
+   "bytes": 178074,
+   "sha256": "0e3e6b6147ad0007ec173dfbc68aad5a605ff8caac62b9f2e00d6188094f0e6a",
+   "rows": 223
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260918T1644-00.jsonl.gz",
+   "bytes": 31319,
+   "sha256": "248acff751dde34a5b2f1a98f9787384a8abf9434d280a9d95562e41a6bf2486",
+   "rows": 37
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260918T1821-00.jsonl.gz",
+   "bytes": 223797,
+   "sha256": "5f274f8af20494998c581c720922cdfa127b70dd87fbc320f74cc764d9964a1f",
+   "rows": 281
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260918T1958-00.jsonl.gz",
+   "bytes": 155529,
+   "sha256": "9eaad2a9c17908d87f178860281d71f8ddc19025f6f4ab70c56f40405187f4f8",
+   "rows": 195
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260918T2101-00.jsonl.gz",
+   "bytes": 100765,
+   "sha256": "ac19532b591c383086c8a0c4bae892b7445fead2b2d73126eed55af2a425ca57",
+   "rows": 122
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260918T2138-00.jsonl.gz",
+   "bytes": 92272,
+   "sha256": "195f47219718ed6dc4847d0016b13c3fb4b841c65049f931e7b96140f2379636",
+   "rows": 108
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260918T2250-00.jsonl.gz",
+   "bytes": 129794,
+   "sha256": "be4bc7ab459033c0b3e6813e246a2c1a716c1be73798efd8a6bbb51bd474c27b",
+   "rows": 160
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T0012-00.jsonl.gz",
+   "bytes": 116518,
+   "sha256": "4199b0a1f920d0c1932766875c274ea2255c52d91ee3d03ef386c5a7c0af69e9",
+   "rows": 146
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T0134-00.jsonl.gz",
+   "bytes": 96774,
+   "sha256": "8ee4957c6b38b0c9a17fea0d8e00210a00f27a8478ba24a0089f16ba26952426",
+   "rows": 123
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T0445-00.jsonl.gz",
+   "bytes": 182180,
+   "sha256": "e2523f9829619f8bda90782d4afb530b69188503b94880bccc43491778c76046",
+   "rows": 235
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T0546-00.jsonl.gz",
+   "bytes": 92002,
+   "sha256": "472d23fe72238a1173ad8185b6e8761f96204cb0c8e520ca2e3c1840c19dd400",
+   "rows": 114
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T0636-00.jsonl.gz",
+   "bytes": 59863,
+   "sha256": "d290aef0fe6e43ada7b744c7f1b7d85035c0ab1f00724e8f76adf2691072b8f9",
+   "rows": 71
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T1051-00.jsonl.gz",
+   "bytes": 236681,
+   "sha256": "d86a495016db497f1d9f87092df3778349f7535dcfb0fc4459bf08cc04e9b7cb",
+   "rows": 304
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T1108-00.jsonl.gz",
+   "bytes": 12366,
+   "sha256": "f664ceca97c43fd88fabff676b09f7a3b38b4d1a3d3ad6639a4fa558cdc0f057",
+   "rows": 14
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T1131-00.jsonl.gz",
+   "bytes": 15287,
+   "sha256": "3e76576219fd05eb7753bb284382f3d120aca7a183bc2ba0c847907fbf008d7a",
+   "rows": 18
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T1421-00.jsonl.gz",
+   "bytes": 155476,
+   "sha256": "b3b8d5349cb626a8fba090420dc5e1ca3f703db3c39f598367478d6426b57f31",
+   "rows": 201
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T1447-00.jsonl.gz",
+   "bytes": 31402,
+   "sha256": "ceebc43fa9e94244959e6ed78723d2716e41371e9b5b4423ce46a83254f1d241",
+   "rows": 42
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T1600-00.jsonl.gz",
+   "bytes": 76488,
+   "sha256": "7bb1c2c9386f5001d79d7425f8b7c6ed33099336a9b29655ac6619b0a03c72a2",
+   "rows": 95
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T1758-00.jsonl.gz",
+   "bytes": 212126,
+   "sha256": "ac6bc163cfa492042c471a09d4b17118da5f5c0cec3bf14907172128d2f9f182",
+   "rows": 261
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T1814-00.jsonl.gz",
+   "bytes": 18302,
+   "sha256": "64a10744218c37773918a5c0c12b984ec5b96ad89288bfbde723e845fec91d19",
+   "rows": 23
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T2033-00.jsonl.gz",
+   "bytes": 257374,
+   "sha256": "8fe589357028daa38fd03f8e75fa0b43cb9e73fac5c93c612be5f50f3a880e4c",
+   "rows": 299
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T2047-00.jsonl.gz",
+   "bytes": 14692,
+   "sha256": "a03a88c95358c6bd265360140ab0e3f3f293c59ef99591cf2816573dfc29bdde",
+   "rows": 16
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T2100-00.jsonl.gz",
+   "bytes": 22738,
+   "sha256": "828d1b6af022be97c18543c998c8cbdf4f891c0634b45ac7ef72b62768c16bd9",
+   "rows": 29
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T2256-00.jsonl.gz",
+   "bytes": 148967,
+   "sha256": "261255c680399a0cbc2e582e676118bb702b8d0f3bac59976063199a4706bccd",
+   "rows": 181
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260919T2330-00.jsonl.gz",
+   "bytes": 60374,
+   "sha256": "434b7cf5b0bc514f43e49f1b5089deec6c586361fa5f0002948d6cb77595018e",
+   "rows": 72
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260920T0101-00.jsonl.gz",
+   "bytes": 124230,
+   "sha256": "5825c3f94e96bc4ec9eeca4faaddc15b6f45b4f5614f09b792fe7989be7a8222",
+   "rows": 156
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260920T0136-00.jsonl.gz",
+   "bytes": 58386,
+   "sha256": "7ce55883a000569c2493fb251aadef9f0790833f30cc17357d57ec1804e03659",
+   "rows": 69
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260920T0502-00.jsonl.gz",
+   "bytes": 227243,
+   "sha256": "40a2cfd321123600c9969a822b4a663a8fbe022f0f2bfd88a6c46e6af9db6d38",
+   "rows": 274
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260920T0605-00.jsonl.gz",
+   "bytes": 69219,
+   "sha256": "7da5858ef6e806f6abb0e1e6f175773b76d9e24beefd6ffbd1fb41d69adc956b",
+   "rows": 86
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260920T0659-00.jsonl.gz",
+   "bytes": 36708,
+   "sha256": "3f93e3a88fa4a71d9dadb0ba5eea71eba9a4f0e6b3cb3a89ebb33c29a1e27c1c",
+   "rows": 44
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260920T1115-00.jsonl.gz",
+   "bytes": 181555,
+   "sha256": "2714e7c433a6f6b36c100d7ca5cc38046c892a0b20c269c343a8e7918034a74e",
+   "rows": 224
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260920T1132-00.jsonl.gz",
+   "bytes": 17519,
+   "sha256": "b4eef46e69240ec758d816268ae56d077ad43f3e4fdcf7e011f8622c4d077603",
+   "rows": 18
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260920T1238-00.jsonl.gz",
+   "bytes": 83891,
+   "sha256": "f196608dc83ce147eafb186aaeef9f0ad191b2753787104679d1d163955a37a8",
+   "rows": 104
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260920T1559-00.jsonl.gz",
+   "bytes": 214383,
+   "sha256": "bb08c550fd247e7c0f97d5383d72f5c9329d7a2c52013fe4db2cf821a30af5be",
+   "rows": 265
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260920T1613-00.jsonl.gz",
+   "bytes": 8884,
+   "sha256": "2859f4696e1769cab01bbe6a75deeb45d5b171f146eb2b1c3edd80c2ba7db72c",
+   "rows": 12
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260920T1630-00.jsonl.gz",
+   "bytes": 30975,
+   "sha256": "4b0c5fe84cd4a286e33ccd1cd225bc867d37344ca8c42ac39f8ffc10df61fc9b",
+   "rows": 38
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260920T1844-00.jsonl.gz",
+   "bytes": 153340,
+   "sha256": "b177b9976138f2280852f75cc4c84dd40a49a4e03d1590aefa81ee72cdcc05f5",
+   "rows": 189
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260920T1904-00.jsonl.gz",
+   "bytes": 28201,
+   "sha256": "6c0240dd340ff9323843cc130eb9cefebf6d21105932492a59d6dfc94985cd89",
+   "rows": 31
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260920T2056-00.jsonl.gz",
+   "bytes": 123334,
+   "sha256": "a49ddbe84f35ca674073351211f21b6710b9c34887396b35621cf5c9190c9a6b",
+   "rows": 142
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260920T2129-00.jsonl.gz",
+   "bytes": 43009,
+   "sha256": "448e042054455578bd5e1eda001c05d5c639b7ecc4cc015b8927fba639a453be",
+   "rows": 54
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260920T2149-00.jsonl.gz",
+   "bytes": 21925,
+   "sha256": "c2fe9c7231f96f654e9a689cbb6c675f4683d314f359ddac61de80718738631b",
+   "rows": 25
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260921T0010-00.jsonl.gz",
+   "bytes": 197477,
+   "sha256": "f5c24582846ca0da1fe688f1e9350f1b0f2559af98ce1372e316d94ccd0aaf26",
+   "rows": 243
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260921T0030-00.jsonl.gz",
+   "bytes": 27881,
+   "sha256": "5858592d2dcea7b1287ec1cbbe95f7d286a11b1e1ff30d67f9ad0dd5427473ff",
+   "rows": 35
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260921T0527-00.jsonl.gz",
+   "bytes": 380319,
+   "sha256": "135404b8add59f0864145869ccbb3ff8513b128878271a857cdadbab6f2bc1aa",
+   "rows": 468
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260921T0612-00.jsonl.gz",
+   "bytes": 26607,
+   "sha256": "f0e3989de9094fd5946c61e917f81a291f717a15a3f74c93f1eee5cc1ab4ca32",
+   "rows": 36
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260921T1107-00.jsonl.gz",
+   "bytes": 222270,
+   "sha256": "f5c616edb0e28f27b8b43051b3d36aeff6b50495fc087281197f69c233abb880",
+   "rows": 278
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260921T1358-00.jsonl.gz",
+   "bytes": 183594,
+   "sha256": "aabdfd07658c65a7d539c4d68a5803d3808c8473a90c6c75c7155cfc255fb372",
+   "rows": 224
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260921T1713-00.jsonl.gz",
+   "bytes": 359462,
+   "sha256": "f52e65da8965d4f453bb20225709023da610d322ce1ba90cb707ac20c7996c50",
+   "rows": 437
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260921T1920-00.jsonl.gz",
+   "bytes": 241228,
+   "sha256": "e7f8a7c524e6cd6039fd6849cddd7a2e52a29cddaf2bdbe57d9ee537292049fd",
+   "rows": 311
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260921T2116-00.jsonl.gz",
+   "bytes": 233973,
+   "sha256": "43e85f8928e86e62095bd6a39c66f1394fb2da5919a5982067fcd2c854e56dd9",
+   "rows": 295
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260921T2314-00.jsonl.gz",
+   "bytes": 194469,
+   "sha256": "58140cb6569cd3896fb48a84803e3ea8ca95b15ed198ecefbd9cbc638681fea1",
+   "rows": 231
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260922T0018-00.jsonl.gz",
+   "bytes": 90881,
+   "sha256": "e859d927a9e647455e22fca484c6ea7ebf6af7944a428508fe150af5de9fcc22",
+   "rows": 115
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260922T0444-00.jsonl.gz",
+   "bytes": 372925,
+   "sha256": "641703090ed9d6421f706ceeeb88e7f55c726ec5189e2a348a04e7c7c164faa8",
+   "rows": 476
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260922T0522-00.jsonl.gz",
+   "bytes": 62265,
+   "sha256": "b2a38f80013721665efcb4f5cefca8ca38c7bdc46f8c48db3bbaf787c835f3cc",
+   "rows": 77
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260922T0953-00.jsonl.gz",
+   "bytes": 272142,
+   "sha256": "7a51319057f6ed13246fbafa262318cbbdf9e45365a5cfe902ceef7f5c14739a",
+   "rows": 350
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260922T1019-00.jsonl.gz",
+   "bytes": 26556,
+   "sha256": "17b357a3f30277b946f1505c9adaf75323026da3c17ed9078acbbe4db79c67b5",
+   "rows": 33
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260922T1443-00.jsonl.gz",
+   "bytes": 366832,
+   "sha256": "845f874ba0004fedb7a79f4329d15950c70b1a58fe70f4877d76b8bb11c308eb",
+   "rows": 460
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260922T1512-00.jsonl.gz",
+   "bytes": 47113,
+   "sha256": "88b7f56c653a8efd5a018cd4cf54508e5ae1c4891b3db7205aed8df9f2ea1d59",
+   "rows": 55
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260922T1848-00.jsonl.gz",
+   "bytes": 401698,
+   "sha256": "dbdbe6b29f66a3b70255d09500e1175c4c3cc458e70362e9701699a414688cd0",
+   "rows": 502
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260922T1908-00.jsonl.gz",
+   "bytes": 42631,
+   "sha256": "f61f1c98d467c354ad0f069202abbe6f234152024f52fc37d73e1866887fb4c2",
+   "rows": 51
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260922T2202-00.jsonl.gz",
+   "bytes": 352894,
+   "sha256": "592626009c0257a97b9a2c977e9d069ec94255ab4b18bd51c84357aea9eb0766",
+   "rows": 429
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260922T2226-00.jsonl.gz",
+   "bytes": 44946,
+   "sha256": "85c217b508b7aea9fba9b7e5fef28e017f72cec27591c18347d33b24383dcae9",
+   "rows": 48
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260923T0022-00.jsonl.gz",
+   "bytes": 211576,
+   "sha256": "fea58f4e28f49e75cf7945613f10adf1fc9653316364e6f10fa5a627e8e5f252",
+   "rows": 248
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260923T0056-00.jsonl.gz",
+   "bytes": 65308,
+   "sha256": "08adfb091783764ce6ff08973c383374d42a5e72612a482ae78b5c3527737047",
+   "rows": 73
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260923T0553-00.jsonl.gz",
+   "bytes": 450399,
+   "sha256": "18127000ec69d4d992139df414308d8877c2023ddde36a6734610149ceaffd85",
+   "rows": 546
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260923T0639-00.jsonl.gz",
+   "bytes": 52285,
+   "sha256": "8ca43a1e39257d93fcafbafa1fdf6bcb75e724cd30f994d15b483f7f236fe558",
+   "rows": 69
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260923T1126-00.jsonl.gz",
+   "bytes": 303451,
+   "sha256": "da81ab629a5b1985c503e0b278f6664bd77b40e6640549c309dc59fb70af9637",
+   "rows": 371
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260923T1211-00.jsonl.gz",
+   "bytes": 50893,
+   "sha256": "d91938730309c3113060655d3f22dfd5a5832307aedcc0cb91dbf492102c9f39",
+   "rows": 61
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260923T1649-00.jsonl.gz",
+   "bytes": 398258,
+   "sha256": "8b59d7d957c9db36ae05e5b2a56e9d339b5c962005e8c7c5a8ecc72e65b91cc3",
+   "rows": 474
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260923T1729-00.jsonl.gz",
+   "bytes": 86912,
+   "sha256": "85b2254aa18092ef9aa2b2d556939cb535f88bf196016a05d28fb66cfa86dda5",
+   "rows": 106
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260923T2014-00.jsonl.gz",
+   "bytes": 371631,
+   "sha256": "6ae32dfe0b29fe075f1370a8ec8f1e50de8a38c3a1a7d9033e2bde64f27bc9a5",
+   "rows": 465
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260923T2043-00.jsonl.gz",
+   "bytes": 79286,
+   "sha256": "f8c8e185d63ae68a56c3beb88ac308ed5cdfa4e4d309a2b52a8245651512a5b2",
+   "rows": 98
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260923T2338-00.jsonl.gz",
+   "bytes": 321519,
+   "sha256": "6f86bd6ef031b426eb93053ad799dbd1c630cbabf9720320490778b6efec944d",
+   "rows": 409
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260923T2359-00.jsonl.gz",
+   "bytes": 42024,
+   "sha256": "6117d04af0389b8dbe4174048cfcc54493bf7b9d43a7646b27000bafc81c3940",
+   "rows": 54
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260924T0437-00.jsonl.gz",
+   "bytes": 471530,
+   "sha256": "6080bf254d937bc868612b5ddc713845b071153ea9742bed34f362c23d3dee37",
+   "rows": 582
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260924T0522-00.jsonl.gz",
+   "bytes": 73599,
+   "sha256": "11cfffc3ffb9b9b2be706bed8f1e451411eb014cf4f51f1fbe196b8c13abb521",
+   "rows": 87
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260924T0957-00.jsonl.gz",
+   "bytes": 257037,
+   "sha256": "d9e004d32a4e369ce5e662be31e8c26b06af55db56259c42296ca11f33b04e6e",
+   "rows": 321
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260924T1031-00.jsonl.gz",
+   "bytes": 34849,
+   "sha256": "654246a53cfd1fae803caece285fa54d53aa8403e72fcce763f6f76c2d5ff3a0",
+   "rows": 45
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260924T1458-00.jsonl.gz",
+   "bytes": 371901,
+   "sha256": "a7816055add9ab15d2d7d9d37f553d684ba60ea7a8fa94254ec37aaca15d27bf",
+   "rows": 474
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260924T1532-00.jsonl.gz",
+   "bytes": 65798,
+   "sha256": "5ce69976810a2d2ceb4d0c8578d87e132a4b0099adf3da848544636597d9fd07",
+   "rows": 88
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260924T1905-00.jsonl.gz",
+   "bytes": 405930,
+   "sha256": "6c2ce79e092e17b55f304dc024db0297d1b39d297194640ec4ab9865e80bb0c3",
+   "rows": 523
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260924T1934-00.jsonl.gz",
+   "bytes": 61315,
+   "sha256": "846a558b804c23765c05040846403e000dccf39c3ac9f6397b9453fb8fee23a8",
+   "rows": 80
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260924T2217-00.jsonl.gz",
+   "bytes": 431719,
+   "sha256": "1977eb588f0d30c65a8afdbb4eff4d7531e1f5f28fedd513d2d4df5da2d692db",
+   "rows": 543
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260924T2246-00.jsonl.gz",
+   "bytes": 74297,
+   "sha256": "444d255c6a92522f3bbd88803e44b75011dc8b10d45c29654cdbe4de7ca1c44d",
+   "rows": 89
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260925T0126-00.jsonl.gz",
+   "bytes": 309584,
+   "sha256": "0392436b52bb56bf33b456b25265ea36ab4746bc667299c59b9fccc921d9bb08",
+   "rows": 382
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260925T0155-00.jsonl.gz",
+   "bytes": 33510,
+   "sha256": "bd7843a9d92165d6b4f59e37bbdcafe1f25bbe8893d3880e76ce16c061cf18b8",
+   "rows": 43
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260925T0742-00.jsonl.gz",
+   "bytes": 589068,
+   "sha256": "26f633fe57cdd042a8f8850ec64f622a49211ab661df75b9baaf9248d7770b34",
+   "rows": 751
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260925T0812-00.jsonl.gz",
+   "bytes": 49422,
+   "sha256": "f2a1e3300cab302085e1262257e83f49f633c608a56f94f5702d4be768884de3",
+   "rows": 66
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260925T1341-00.jsonl.gz",
+   "bytes": 476192,
+   "sha256": "090d49ff686603b93e802fe03a7b363162b5536071b5f74ffa939852b6207b4a",
+   "rows": 622
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260925T1411-00.jsonl.gz",
+   "bytes": 46928,
+   "sha256": "619ce1dca923f3783a8cdca167331f1baf40e8ff913c2921dd9f35cd41ed1661",
+   "rows": 63
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260925T1832-00.jsonl.gz",
+   "bytes": 512902,
+   "sha256": "2cf7800e9624c8d6cb571563095add2dd63f34ae8dc645102b215cb34e4d33c7",
+   "rows": 636
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260925T1854-00.jsonl.gz",
+   "bytes": 52383,
+   "sha256": "1532686ed53d2aaea51d0d0a65047e0668e255d22418d6dc945a2961fba7a850",
+   "rows": 64
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260925T2216-00.jsonl.gz",
+   "bytes": 416906,
+   "sha256": "bd43c81d7eeef387535e53323666ea35846382cd1e24c5cb6e4f134cdb17163b",
+   "rows": 522
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260925T2250-00.jsonl.gz",
+   "bytes": 56098,
+   "sha256": "8fc9bb8aed97884d2bb22253b32c39e21e04d9132c0ce208a6c3266f136810bc",
+   "rows": 69
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260926T0129-00.jsonl.gz",
+   "bytes": 267008,
+   "sha256": "ba3dba5464f3878dd5b6abcc6f887410720aff3b95da58998e69b808a420e69b",
+   "rows": 329
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260926T0159-00.jsonl.gz",
+   "bytes": 42423,
+   "sha256": "c86febb8bb63e21a4fa236f7c25c24af63ae01de03628322280987991946e1c5",
+   "rows": 53
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260926T0734-00.jsonl.gz",
+   "bytes": 506368,
+   "sha256": "54bb68880a57a7a4eb9666a92bfe9a4338196d1f8794fbffaa440e86b510659a",
+   "rows": 644
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260926T0802-00.jsonl.gz",
+   "bytes": 38280,
+   "sha256": "0edf7c874936e6fdaa678e99801ca00b6f201b7e92161b749a27f6a532133a8c",
+   "rows": 47
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260926T1302-00.jsonl.gz",
+   "bytes": 335476,
+   "sha256": "fbc8940211bc676ffadca6f03feb7d864c4e087158a27c16b97fd05b0e1681e7",
+   "rows": 450
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260926T1325-00.jsonl.gz",
+   "bytes": 32093,
+   "sha256": "adc06724e71808d867da5cf5f21993161c3b18006fd205684189c3693dcf8503",
+   "rows": 38
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260926T1707-00.jsonl.gz",
+   "bytes": 376564,
+   "sha256": "f12443b643eca7b1cebdf4289cb86557f31c285c8f3c3b939a6444d4d6418745",
+   "rows": 475
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260926T1726-00.jsonl.gz",
+   "bytes": 40594,
+   "sha256": "a363c7a2ae592747ec856ae17e511a6eeb9a047e97a02b736018c89677e9f018",
+   "rows": 50
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260926T1948-00.jsonl.gz",
+   "bytes": 264196,
+   "sha256": "495c022c6a0cc358518677dd7a7ae6ff4c980a9a2bec3f1302d6c0036b557701",
+   "rows": 342
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260926T2010-00.jsonl.gz",
+   "bytes": 50040,
+   "sha256": "0c7984c133d24b2a6132ff01d36576f97607773cb4635f1edaaffe17c02fd5aa",
+   "rows": 61
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260926T2243-00.jsonl.gz",
+   "bytes": 292654,
+   "sha256": "dc59ad3f5eec79e9daf3ac504e909c8d9b47bd2b01f3ce582009a85f3c6e832c",
+   "rows": 366
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260926T2311-00.jsonl.gz",
+   "bytes": 59191,
+   "sha256": "49689df05824cd0ee52f629d3092cdc810b478c6e76c5276ccaa66f1cd27db92",
+   "rows": 69
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260927T0122-00.jsonl.gz",
+   "bytes": 222652,
+   "sha256": "c1e99358dbc735ce3f6493abda3caae51bf884bb8d678a68c9787446ab7a0577",
+   "rows": 291
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260927T0147-00.jsonl.gz",
+   "bytes": 40820,
+   "sha256": "b0a4fc945670fb51f9711df9540ade7ac30e7b397d112be4700bf90f7f4678e8",
+   "rows": 52
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260927T0803-00.jsonl.gz",
+   "bytes": 497653,
+   "sha256": "8744f62a5035ffc39fa51d02272c57f803a6a6651bbade7b33a1332bc8483fec",
+   "rows": 659
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260927T0835-00.jsonl.gz",
+   "bytes": 39318,
+   "sha256": "56dced77dc178e51ee4d2c05d9bfeded2a098ec19bb57135fe6b6cc776ac0be4",
+   "rows": 53
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260927T1354-00.jsonl.gz",
+   "bytes": 407655,
+   "sha256": "e40a01a16d8d158c88a767ab483cc9f6e6bde6567625ac25458ce5146a6a129e",
+   "rows": 543
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260927T1419-00.jsonl.gz",
+   "bytes": 38985,
+   "sha256": "9a106b7c4b913bdb822b28fcd705d4c818179bd62ac820afddd98fb6999ec97f",
+   "rows": 53
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260927T1820-00.jsonl.gz",
+   "bytes": 382400,
+   "sha256": "bf942e2aa50662bc43f344b0c4c3e59b8ee7e5a1280234cb94c926408a9f80db",
+   "rows": 481
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260927T1841-00.jsonl.gz",
+   "bytes": 34311,
+   "sha256": "3a3ab970fc7d633a7df61e6e770b99d1411c419499f88bafc352d3ca3e2f894b",
+   "rows": 47
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260927T2204-00.jsonl.gz",
+   "bytes": 446801,
+   "sha256": "73eb366cf4da24a7c8dbe3df19f66d017d8f7736ae016b008641d11364570c83",
+   "rows": 535
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260927T2235-00.jsonl.gz",
+   "bytes": 63407,
+   "sha256": "21fc66c5d5749522ebacd169ee1fc7103c9ae4f546f3504455962f53f9418316",
+   "rows": 71
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260928T0036-00.jsonl.gz",
+   "bytes": 234225,
+   "sha256": "1efb29c175fff83f9869f40bb91bbcce53ccc0cca8c20741ba0a09d7098048e0",
+   "rows": 277
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260928T0112-00.jsonl.gz",
+   "bytes": 73724,
+   "sha256": "f8534a4b9cf71e5b98c8e064674379419b8a7bb20d064c36e8826bb7a597128b",
+   "rows": 89
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260928T0644-00.jsonl.gz",
+   "bytes": 561802,
+   "sha256": "88d52ecfeb7422809e9ddd48cd134bffaa4cd0caab036dd38bf1fbe6998db4a5",
+   "rows": 702
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260928T0737-00.jsonl.gz",
+   "bytes": 70928,
+   "sha256": "15679e94a73d139bfb4632b3bcadac3c83106e1062c694604f36472a823996cf",
+   "rows": 90
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260928T1522-00.jsonl.gz",
+   "bytes": 740958,
+   "sha256": "5979aa86fca85bcfafe6f2ab2888491e0e33beebfcd5f29155be3f949bb064c4",
+   "rows": 959
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260928T1559-00.jsonl.gz",
+   "bytes": 90883,
+   "sha256": "9a3b226b75bbeee3fd0963342226877a1ce84a30c2d54e3792967e6e6a53ae42",
+   "rows": 110
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260928T2154-00.jsonl.gz",
+   "bytes": 823762,
+   "sha256": "11aeb1483ee4635061b7ae54c058de69f0c1a1398671da268d6b78cf6e8c2f45",
+   "rows": 1044
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260928T2219-00.jsonl.gz",
+   "bytes": 61813,
+   "sha256": "683cc312152223fc8352aa26fb20c5f5d81660f8df7473103afa423692c96f37",
+   "rows": 73
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260929T0151-00.jsonl.gz",
+   "bytes": 373029,
+   "sha256": "5edb4c19c827bb348c0213e451727bed5283b8642ca4fdf4f41df5bed2d75cce",
+   "rows": 493
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260929T0219-00.jsonl.gz",
+   "bytes": 48275,
+   "sha256": "e5d798c5e045fde6968ac7188b51f6b56c7b896821208b3e4e5b4e50b1f5d3b6",
+   "rows": 58
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260929T0823-00.jsonl.gz",
+   "bytes": 568750,
+   "sha256": "978ebd34ea6357614a0e077f3787187d627be8d6a50fb8f26c80112eaf5ea96a",
+   "rows": 737
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260929T0903-00.jsonl.gz",
+   "bytes": 43993,
+   "sha256": "7c80bfd3102f5185170621b9404270d821a2d9c075b30788d8af64c94733b133",
+   "rows": 59
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260929T1544-00.jsonl.gz",
+   "bytes": 609979,
+   "sha256": "1b10d853d8fe0d00bfc7720ab4c0040638866e2b05dea8d107bbf1726b998cd6",
+   "rows": 746
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260929T1610-00.jsonl.gz",
+   "bytes": 64185,
+   "sha256": "6158032f64f40f309b61671d25a9479fa7056322fe54f6dc00eddf7e8114cc11",
+   "rows": 78
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260929T2044-00.jsonl.gz",
+   "bytes": 590635,
+   "sha256": "43bdb0882444989de1904711643eac2a529e3c0ee1d7f7066fbbec838aa236c7",
+   "rows": 730
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260929T2104-00.jsonl.gz",
+   "bytes": 55450,
+   "sha256": "cacc9a54b4e558fbad77be22e6b3e7681bf6733dd3a9db115c74fa6b7e36f2cc",
+   "rows": 67
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260930T0021-00.jsonl.gz",
+   "bytes": 391213,
+   "sha256": "8076d791dbce8cf7be757e6efe88fdbaef62000d7f142d67b4c27c9e783be99e",
+   "rows": 496
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260930T0047-00.jsonl.gz",
+   "bytes": 48449,
+   "sha256": "815f92c77be6fe08910735bdeb036beb65358687f5dc4fa7ea0aaf12a5304250",
+   "rows": 60
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/games.gen9championsvgc2026regmc.raw-logs.jsonl",
+   "bytes": 7830139,
+   "sha256": "daea9452a4f060122157326209e6ddc22bdb077989378e7453a35ba61ddd9826",
+   "rows": 1412
+  }
+ ],
+ "quality": {
+  "config_version": "1.6.0",
+  "behavioural_bot_accounts": 15,
+  "behavioural_bot_names": [
+   "AI_Paku",
+   "Crituvyn72957",
+   "HospitalityCheck",
+   "Novicebest",
+   "SC-Control",
+   "SC-SME",
+   "Scorecard-Pokemon",
+   "Thornlace48812",
+   "Tulpeon",
+   "cosmonaut.009",
+   "ednasbreakout",
+   "kevdan42",
+   "monfish",
+   "stupid春bigㄟ",
+   "underabridgevgc"
+  ],
+  "excluded_first_reason": {
+   "partial_bring": 11891,
+   "short": 3471,
+   "forfeit_no_action": 258,
+   "bot": 6264,
+   "own_account": 6,
+   "behavioural_bot": 8119
+  },
+  "excluded_any_reason": {
+   "partial_bring": 20651,
+   "short": 5073,
+   "forfeit_no_action": 383,
+   "bot": 6264,
+   "own_account": 8,
+   "behavioural_bot": 8188
+  }
+ },
+ "filters": {
+  "order": [
+   "quality reasons() incl. bot + behavioural_bot",
+   "own_account",
+   "no_raw_log",
+   "wrong_format",
+   "illusion_possible (preview)",
+   "parse_error",
+   "custom_rules",
+   "illegal_entity",
+   "pre_ejectbutton_fix",
+   "no_result",
+   "no_position"
+  ],
+  "own_accounts": [
+   "medicham32",
+   "willhoop",
+   "mag",
+   "mag2",
+   "miltank",
+   "miltank2"
+  ],
+  "illusion_species": [
+   "Zoroark"
+  ],
+  "eject_boundary": "2026-09-14T00:00:00Z",
+  "split": "player split sha256(\"abra-prior-v0:\" + toID(name)) mod 100 (<80 train, <90 val, else test), lifted to the game: test if either player is test, else val if either is val, else train"
+ },
+ "funnel": {
+  "store_rows": 59752,
+  "store_bad_json": 0,
+  "store_duplicate_ids": 0,
+  "store_games": 59752,
+  "quality_clean": 29749,
+  "after_own_account": 29743,
+  "raw_rows_read": 61165,
+  "raw_duplicate_ids": 912,
+  "raw_duplicate_conflicting_logs": 0,
+  "excluded_after_quality": {
+   "illusion_possible": 684,
+   "custom_rules": 1689,
+   "pre_ejectbutton_fix": 248,
+   "no_result": 6
+  },
+  "kept": 27116
+ },
+ "parse_errors": {},
+ "parse_examples": {},
+ "counts": {
+  "games": 27116,
+  "positions": 218815,
+  "split": {
+   "train": {
+    "games": 16970,
+    "positions": 137281
+   },
+   "val": {
+    "games": 4603,
+    "positions": 36954
+   },
+   "test": {
+    "games": 5543,
+    "positions": 44580
+   }
+  },
+  "by_band_min": {
+   "1100-1199": {
+    "games": 6723,
+    "positions": 53676,
+    "test_games": 1392,
+    "test_positions": 11155
+   },
+   "<1100": {
+    "games": 9815,
+    "positions": 79350,
+    "test_games": 1888,
+    "test_positions": 15328
+   },
+   "1300-1399": {
+    "games": 2838,
+    "positions": 22707,
+    "test_games": 645,
+    "test_positions": 5260
+   },
+   "unrated": {
+    "games": 2322,
+    "positions": 19299,
+    "test_games": 451,
+    "test_positions": 3629
+   },
+   "1200-1299": {
+    "games": 3971,
+    "positions": 32042,
+    "test_games": 856,
+    "test_positions": 6785
+   },
+   "1400-1499": {
+    "games": 1083,
+    "positions": 8781,
+    "test_games": 234,
+    "test_positions": 1784
+   },
+   "1500-1599": {
+    "games": 331,
+    "positions": 2696,
+    "test_games": 72,
+    "test_positions": 602
+   },
+   ">=1600": {
+    "games": 33,
+    "positions": 264,
+    "test_games": 5,
+    "test_positions": 37
+   }
+  },
+  "by_band_max": {
+   "1100-1199": {
+    "games": 8240,
+    "positions": 65894,
+    "test_games": 1652,
+    "test_positions": 13134
+   },
+   "<1100": {
+    "games": 5504,
+    "positions": 44763,
+    "test_games": 1056,
+    "test_positions": 8691
+   },
+   "1300-1399": {
+    "games": 3540,
+    "positions": 28326,
+    "test_games": 787,
+    "test_positions": 6330
+   },
+   "1200-1299": {
+    "games": 4809,
+    "positions": 38632,
+    "test_games": 990,
+    "test_positions": 7960
+   },
+   "unrated": {
+    "games": 2322,
+    "positions": 19299,
+    "test_games": 451,
+    "test_positions": 3629
+   },
+   "1400-1499": {
+    "games": 1847,
+    "positions": 14951,
+    "test_games": 444,
+    "test_positions": 3514
+   },
+   "1500-1599": {
+    "games": 659,
+    "positions": 5341,
+    "test_games": 127,
+    "test_positions": 1016
+   },
+   ">=1600": {
+    "games": 195,
+    "positions": 1609,
+    "test_games": 36,
+    "test_positions": 306
+   }
+  },
+  "min_at_least": {
+   "1300": {
+    "games": 4285,
+    "positions": 34448,
+    "test_games": 956
+   },
+   "1400": {
+    "games": 1447,
+    "positions": 11741,
+    "test_games": 311
+   },
+   "1500": {
+    "games": 364,
+    "positions": 2960,
+    "test_games": 77
+   },
+   "1600": {
+    "games": 33,
+    "positions": 264,
+    "test_games": 5
+   }
+  },
+  "max_at_least": {
+   "1300": {
+    "games": 6241,
+    "positions": 50227,
+    "test_games": 1394
+   },
+   "1400": {
+    "games": 2701,
+    "positions": 21901,
+    "test_games": 607
+   },
+   "1500": {
+    "games": 854,
+    "positions": 6950,
+    "test_games": 163
+   },
+   "1600": {
+    "games": 195,
+    "positions": 1609,
+    "test_games": 36
+   }
+  },
+  "both_rated": 24794,
+  "end": {
+   "normal": 18464,
+   "forfeit": 8340,
+   "inactivity": 312
+  },
+  "z": {
+   "0": 13468,
+   "1": 13648
+  },
+  "sheets_public": 526
+ },
+ "reveal_counters": {
+  "lines": 5361124,
+  "ability_refused": 8,
+  "ability_unattributed": 49,
+  "item_reveals": 141795,
+  "ability_reveals": 87466,
+  "move_reveals": 392450,
+  "skill_swap": 642,
+  "moves_overflow": 0,
+  "dex_deduced_ability": 26563
+ },
+ "reveal_at_game_end": {
+  "brought_members": 216928,
+  "moves_known": 409273,
+  "item_orig_known": 120833,
+  "ability_base_known": 109364,
+  "ability_by_dex": 17690,
+  "by_turn": {
+   "t1": {
+    "positions": 27116,
+    "members_on_field_so_far": 108464,
+    "moves_known": 8413,
+    "item_orig_known": 7600,
+    "ability_base_known": 45938
+   },
+   "t2": {
+    "positions": 27116,
+    "members_on_field_so_far": 130445,
+    "moves_known": 96651,
+    "item_orig_known": 41642,
+    "ability_base_known": 60824
+   },
+   "t3": {
+    "positions": 27116,
+    "members_on_field_so_far": 160168,
+    "moves_known": 167546,
+    "item_orig_known": 60735,
+    "ability_base_known": 77331
+   },
+   "t4-5": {
+    "positions": 52875,
+    "members_on_field_so_far": 372037,
+    "moves_known": 497067,
+    "item_orig_known": 164124,
+    "ability_base_known": 182846
+   },
+   "t6-8": {
+    "positions": 55323,
+    "members_on_field_so_far": 428026,
+    "moves_known": 745317,
+    "item_orig_known": 219639,
+    "ability_base_known": 217010
+   },
+   "t9+": {
+    "positions": 29269,
+    "members_on_field_so_far": 232402,
+    "moves_known": 520197,
+    "item_orig_known": 134872,
+    "ability_base_known": 125299
+   }
+  },
+  "moves_known_per_brought_member": 1.887,
+  "item_orig_known_share": 0.557,
+  "ability_base_known_share": 0.5041
+ },
+ "crosscheck_vs_store_sets": {
+  "members": 182872,
+  "moves_equal": 180102,
+  "moves_subset_of_store": 180420,
+  "store_subset_of_moves": 182553,
+  "item_compared": 34753,
+  "item_equal": 33903,
+  "ability_compared": 64047,
+  "ability_equal": 62323,
+  "disagree_examples": [
+   {
+    "id": "gen9championsvgc2026regmc-2678206804",
+    "species": "Gardevoir",
+    "field": "ability",
+    "store": "Inner Focus",
+    "ours": "Trace"
+   },
+   {
+    "id": "gen9championsvgc2026regmc-2678203913",
+    "species": "Gardevoir",
+    "field": "ability",
+    "store": "Pixilate",
+    "ours": "Trace"
+   },
+   {
+    "id": "gen9championsvgc2026regmc-2678202953",
+    "species": "Gardevoir",
+    "field": "ability",
+    "store": "Emergency Exit",
+    "ours": "Trace"
+   },
+   {
+    "id": "gen9championsvgc2026regmc-2678194322",
+    "species": "Farigiraf",
+    "field": "moves",
+    "store": [],
+    "ours": [
+     "Trick Room"
+    ]
+   },
+   {
+    "id": "gen9championsvgc2026regmc-2678191190",
+    "species": "Floette-Eternal",
+    "field": "moves",
+    "store": [],
+    "ours": [
+     "Calm Mind",
+     "Dazzling Gleam",
+     "Protect",
+     "Moonblast"
+    ]
+   },
+   {
+    "id": "gen9championsvgc2026regmc-2678189267",
+    "species": "Floette-Eternal",
+    "field": "moves",
+    "store": [],
+    "ours": [
+     "Calm Mind",
+     "Dazzling Gleam",
+     "Protect"
+    ]
+   },
+   {
+    "id": "gen9championsvgc2026regmc-2678184190",
+    "species": "Annihilape",
+    "field": "item",
+    "store": "Colbur Berry",
+    "ours": "<UNK>"
+   },
+   {
+    "id": "gen9championsvgc2026regmc-2678187497",
+    "species": "Floette-Eternal",
+    "field": "moves",
+    "store": [],
+    "ours": [
+     "Dazzling Gleam"
+    ]
+   },
+   {
+    "id": "gen9championsvgc2026regmc-2678185870",
+    "species": "Emboar",
+    "field": "moves",
+    "store": [
+     "Flare Blitz"
+    ],
+    "ours": [
+     "Flare Blitz",
+     "Drain Punch"
+    ]
+   },
+   {
+    "id": "gen9championsvgc2026regmc-2678186371",
+    "species": "Palafin",
+    "field": "moves",
+    "store": [
+     "Flip Turn"
+    ],
+    "ours": [
+     "Flip Turn",
+     "Bulk Up"
+    ]
+   },
+   {
+    "id": "gen9championsvgc2026regmc-2678183991",
+    "species": "Floette-Eternal",
+    "field": "moves",
+    "store": [],
+    "ours": [
+     "Calm Mind",
+     "Protect"
+    ]
+   },
+   {
+    "id": "gen9championsvgc2026regmc-2678175658",
+    "species": "Palafin",
+    "field": "moves",
+    "store": [
+     "Flip Turn"
+    ],
+    "ours": [
+     "Flip Turn",
+     "Throat Chop",
+     "Jet Punch",
+     "Close Combat"
+    ]
+   }
+  ]
+ },
+ "outputs": [
+  {
+   "path": "solver/out/porygon2-v2/bo1/games.jsonl.gz",
+   "bytes": 30941366,
+   "sha256": "10f3554bfcb9560198794669d71aca53ba4b6051fd67d58ac744d787d32d015a",
+   "games": 27116,
+   "positions": 218815
+  }
+ ]
+}

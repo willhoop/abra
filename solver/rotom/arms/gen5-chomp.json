@@ -1,0 +1,20 @@
+{
+ "name": "gen5-chomp",
+ "registered": "2026-09-29",
+ "question": "First ladder run of CHOMP v1 at team preview. Does ROTOM's gen5 arm, with CHOMP choosing the bring and the leads, play a short run on the real server with every preview chosen by CHOMP and applied by the server (0 preview mismatches, 0 chomp failures, 0 self quits), and how does its rated record without opponent quits sit beside gen5ab arm A (3-11)? A readiness and smoke run, NOT a strength test: one arm, no SPRT.",
+ "offline_evidence": "CHOMP v1: gate (b) SPRT H1 vs the human-modal bring, 0.561 [0.518, 0.603], 524 games; gate (c) vs the humans' own recorded bring 0.470 [0.422, 0.519], 400 games (report-only; no clear edge over human bring choice). solver/results/2026-09-27-chomp-v1/, release eaa5becc54eb, data/team-pool-frozen-regmc, honest information, gen5 1 s both sides.",
+ "arms": {
+  "A": { "policy": "miltank-gen5", "max_ms": 5000, "preview": "chomp", "preview_max_ms": 20000,
+         "note": "Exactly gen5-vs-prior.json arm A (gen5 MAG/DODUO/PORYGON2, k 4x4, depth 0, 1 reserved switch row; search capped at 5 s and bound below it by the clock; XATU back-pair posterior + spread prior), except the preview: CHOMP v1 (solver/chomp/v1/chomp1.js, with the bo3 adjustment from the series' previous game) instead of the rotation team's own human bring. On a CHOMP throw or illegal answer the preview falls to the team's bring, counted chomp:threw / chomp:illegal. The fixed 5 s clock, not the adaptive one, so the arm differs from gen5ab arm A in the preview alone." }
+ },
+ "assignment": "every series is arm A (one arm; sha256(seed|k|arm) mod 1); the team is drawn per series from the rotation by solver/rotom/ladder.js assign, committed before the first game",
+ "metric": "per-series residual r = S - E, E = 1/(1+10^((R_opp - R_me)/400)) from the server's pre-series ratings; ties S = 0.5. Read over rated series only, with and without the series won by an opponent quit (solver/rotom/report.js ladder)",
+ "readiness_bars": {
+  "preview": "every preview decision answered by CHOMP (summary preview_by.chomp == preview decisions); chomp:threw and chomp:illegal both 0; preview_mismatch 0 on every row",
+  "safety": "self_quits 0; timeouts 0; invalid 0; applied_mismatch 0; 0 ladder errors",
+  "search": "gen5 move decisions searched; prior fallbacks counted and stated"
+ },
+ "burn_in": "series played while the account's pre-series rating is below 1300 are burn-in (all of this run is expected to be)",
+ "sprt": null,
+ "headline": "none from this run. The headline is the mean rating over the last N >= 100 series +- SD. Never the peak."
+}

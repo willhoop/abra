@@ -38,6 +38,7 @@
 'use strict';
 const X = require('../human/dex.js');
 const T = require('../arena/teams.js');
+const WL = require('./world_log.js');
 const toID = X.toID;
 
 const WEATHER_OF = { raindance: 'rain', sunnyday: 'sun', sandstorm: 'sand', snowscape: 'snow', snow: 'snow', hail: 'snow' };   // vocabulary (prior_adapter.js WEATHER, inverted)
@@ -133,6 +134,104 @@ function create(API) {
   const M = API.M;
   const COUNTERS = { built: 0, failed: 0, megaApplied: 0, megaFailed: 0, mineUnmatched: 0, oppGuessUsed: 0, oppFilledBlind: 0,
                      stallLaid: 0, stallNoLines: 0 };
+
+  Object.assign(COUNTERS, { perishLaid: 0, volLaid: 0, subLaid: 0, seedLaid: 0, confusionLaid: 0, trapLaid: 0, yawnLaid: 0,
+                            slpLaid: 0, toxLaid: 0, lockLaid: 0, abilityLaid: 0, hazardLaid: 0, fieldLaid: 0, fieldFromLog: 0 });
+
+  /* THE BODY'S CLOCKS AND VOLATILES FROM THE LOG (2026-09-30, solver/rotom/world_log.js). Each engine field is the one
+   * engine/board_state.js mediBody reads for that volatile, laid at the value the engine holds at a turn boundary.
+   * Hidden quantities are stated, not guessed silently: a Substitute's remaining HP is not in the log (laid as a fresh
+   * doll, the engine's own size); a confusion's remaining count is hidden (laid as the posterior mean given the attempts
+   * seen, from the dex's own draw). */
+  function layBody(b, L, reqP, bodyOfKey, sideOfP, U) {
+    if (!live(b)) return;
+    const age = s => U - s;
+    if (b.status === 'slp' && L.slp) { b.slpTurns = L.slp.ticks; if (L.slp.rest && WL.restTime()) b.slpTime = WL.restTime(); COUNTERS.slpLaid++; }
+    if (!L.active) return;
+    /* THE ABILITY IT HOLDS NOW (2026-09-30): observed over declared. Mine: the request's `ability` is current and
+     * `baseAbility` is what a switch restores (`_preAb`, which the engine's abRestoreOnLeave reads); without them, the
+     * log. Theirs: the log's changes (Skill Swap both ways, a [from] -ability, Mummy) over the sheet. Gastro Acid parks
+     * it (`_abParked`, the engine's abSuppress). A Skill-Swapped Shadow Tag is what trapped our Incineroar in pandywulu
+     * g1: the server hides that trap from the request, so only this world can know it. */
+    if (reqP && reqP.ability) {
+      if (reqP.baseAbility && toID(reqP.baseAbility) !== toID(reqP.ability)) { b._preAb = toID(reqP.baseAbility); COUNTERS.abilityLaid++; }
+    } else if (L.ability && L.ability !== toID(b.ability)) { b._preAb = toID(b.ability); b.ability = L.ability; COUNTERS.abilityLaid++; }
+    if (L.suppressed && b._abParked == null) { b._abParked = b.ability; b.ability = ''; (b._vol = b._vol || {}).gastroacid = 1; COUNTERS.abilityLaid++; }
+    if (b.status === 'tox' && L.tox) { b.toxTurns = Math.max(0, age(L.tox.since)); COUNTERS.toxLaid++; }
+    if (L.perish != null) { b._perish = L.perish; COUNTERS.perishLaid++; }
+    if (L.sub) {
+      const sb = M.moveTagParam('substitute', 'substitute') || {};
+      const rd = sb.rounds === 'ceil' ? Math.ceil : sb.rounds === 'round' ? Math.round : Math.floor;
+      b._sub = Math.max(1, rd(b.st.hp * (+sb.buffer || 0.25))); COUNTERS.subLaid++;
+    }
+    if (L.seed) {
+      const pt = M.moveTagParam('leechseed', 'perTurnHP') || {};
+      b._seededBy = { by: bodyOfKey.get(L.seed.byKey) || null, per: pt.per, side: L.seed.side ? sideOfP(L.seed.side) : null, slot: L.seed.slot };
+      COUNTERS.seedLaid++;
+    }
+    if (L.confusion) {
+      const R = WL.confusionRange(), a = L.confusion.attempts;
+      if (R) { let s = 0, n = 0; for (let t = Math.max(R[0], a + 1); t <= R[1]; t++) { s += t - a; n++; } (b._vol = b._vol || {}).confusion = n ? Math.max(1, Math.round(s / n)) : 1; COUNTERS.confusionLaid++; }
+    }
+    if (L.trapPartial) {
+      const tg = M.moveTagParam(L.trapPartial.mv, 'partialTrap');
+      if (tg) {
+        const by = bodyOfKey.get(L.trapPartial.byKey) || null;
+        const ci = tg.chipItem, hit = ci && ci.item && by && by.item === ci.item && +ci.chipPerTurn > 0;
+        b._trap = { frac: hit ? +ci.chipPerTurn : +tg.chipPerTurn, turns: Math.max(1, +tg.duration - age(L.trapPartial.start)), by, mv: L.trapPartial.mv };
+        if (hit) b._trap.div = Math.round(1 / +ci.chipPerTurn);
+        COUNTERS.trapLaid++;
+      }
+    }
+    if (L.trapHard) { b._trapHard = { by: bodyOfKey.get(L.trapHard.byKey) || null, mv: L.trapHard.mv }; COUNTERS.trapLaid++; }
+    if (L.yawn) { b._yawn = Math.max(1, (WL.durationOf('yawn') || 1) - age(L.yawn.start)); COUNTERS.yawnLaid++; }
+    for (const [id, e] of L.vols) {
+      if (!WL.volatileIds().has(id)) continue;
+      const d = WL.durationOf(id, null, e.effect);
+      const left = d ? Math.max(1, d - age(e.start) + (e.adj || 0)) : 1;
+      if (id === 'healblock') { b._healBlock = left; COUNTERS.volLaid++; continue; }
+      if (id === 'throatchop') { b._noSound = left; COUNTERS.volLaid++; continue; }
+      if (id === 'gastroacid') continue;                        // laid with the ability
+      b._vol = b._vol || {};
+      b._vol[id] = id === 'stockpile' ? (e.layers || 1) : left;
+      if (id === 'encore' && e.arg) { b._encoreMove = e.arg; if (b._lockT !== Infinity) { b._lock = e.arg; b._lockT = left; } }
+      if (id === 'disable' && e.arg) b._sealed = e.arg;
+      COUNTERS.volLaid++;
+    }
+    /* a Choice lock: the body holds a choice item now and has used a move since it came in */
+    const item = toID(reqP ? reqP.item : L.item);
+    const it = item ? X.D.items.get(item) : null;
+    if (it && it.exists && it.isChoice && L.movedSinceEntry && L.lastMoveSinceEntry && (b.moves || []).includes(L.lastMoveSinceEntry)) {
+      b._lock = L.lastMoveSinceEntry; b._lockT = Infinity; COUNTERS.lockLaid++;
+    }
+  }
+
+  /* THE FIELD FROM THE LOG, ITS CLOCKS COUNTED IN RESIDUALS (2026-09-30, abra/regmc 1.43.0). The old path (below, kept
+   * for a build without the log and for the break) computed turns left as duration - (turn - turn set). A lead weather
+   * or terrain (set before turn 1) and one set by a replacement after the residual have had NO tick by the next turn, so
+   * it laid them one turn short: a lead Sand Stream or Psychic Surge lasts to the residual of turn 5 on the ladder logs,
+   * 5 left at turn 1, where the old path said 4. The duration is the condition's, asked with the setter's current item
+   * (Heat Rock, Damp Rock, Smooth Rock, Icy Rock, Terrain Extender, Light Clay). */
+  function layField(S, LG, side, me, opp, sfMe, sfOp, notes) {
+    const f = S.field, U = LG.U;
+    const itemOf = key => { const b = key && LG.bodies.get(key); return b ? b.item : ''; };
+    const left = e => { const d = WL.durationOf(e.id, itemOf(e.setter)); return d ? Math.max(1, d - (U - e.start)) : 1; };
+    const w = LG.field.weather;
+    if (w) { const k = WEATHER_OF[w.id]; if (k) { f.weather = k; f.weatherT = left(w); COUNTERS.fieldLaid++; } else notes.push('weather not mapped: ' + w.name); }
+    const t = LG.field.terrain;
+    if (t) { f.terrain = t.id.replace(/terrain$/, ''); f.terrainT = left(t); COUNTERS.fieldLaid++; }
+    const PSEUDO = { trickroom: 'tr', gravity: 'gravity', magicroom: 'magicRoom', wonderroom: 'wonderRoom', fairylock: 'fairylock' };
+    for (const [id, e] of LG.field.pseudo) { if (PSEUDO[id]) { f[PSEUDO[id]] = left(e); COUNTERS.fieldLaid++; } else notes.push('pseudo-weather not mapped: ' + e.name); }
+    for (const [p, sf, key] of [[me, sfMe, side === 'A' ? 'twA' : 'twB'], [opp, sfOp, side === 'A' ? 'twB' : 'twA']]) {
+      for (const [id, e] of LG.field.sides[p]) {
+        if (id === 'tailwind') { f[key] = left(e); COUNTERS.fieldLaid++; continue; }
+        if (WL.hazards().has(id) && WORLD_BREAK !== 'hzsc') { (sf.hz = sf.hz || {})[id] = e.layers || 1; COUNTERS.hazardLaid++; continue; }
+        const mv = X.D.moves.get(id);
+        if (mv && mv.exists) { sf.sc[id] = WL.durationOf(id) ? left(e) : (e.layers || 1); COUNTERS.fieldLaid++; }
+        else notes.push('side condition not mapped: ' + id);
+      }
+    }
+  }
 
   /* my request position -> my sheet row: by nickname first (the ident), then by base species */
   function mySheetIndex(sheet, p) {
@@ -334,8 +433,24 @@ function create(API) {
       }
     } else COUNTERS.stallNoLines++;
 
-    /* ---- field ---- */
+    /* ---- the clocks, volatiles and abilities the log shows (2026-09-30, solver/rotom/world_log.js;
+     * docs/_reports/2026-09-30-rotom-world-fixes.md). With the log, the field below is laid from it too. ---- */
     const f = S.field;
+    let LG = null;
+    if (o.lines) {
+      LG = WL.walk(o.lines, sheets);
+      const bodyOfKey = new Map();
+      for (const [p, list] of [[me, mine], [opp, theirs]]) for (const x of list) bodyOfKey.set(p + ':' + x.s, x.b);
+      const sideOfP = p => (p === me ? side : sideOp);
+      for (const [p, list] of [[me, mine], [opp, theirs]]) for (const x of list) {
+        const L = LG.bodies.get(p + ':' + x.s); if (!L) continue;
+        layBody(x.b, L, p === me ? x.p : null, bodyOfKey, sideOfP, LG.U);
+      }
+    }
+    /* the field: from the log, clocks in residuals (layField, 1.43.0); the old public-state path stands for a build without
+     * the log and under ROTOM_WORLD_BREAK=turnclock (and noclocks) */
+    if (LG && !LG.broken && WORLD_BREAK !== 'turnclock') { layField(S, LG, side, me, opp, sfMe, sfOp, notes); COUNTERS.fieldFromLog++; }
+    else {
     if (st.weather && st.weather.name) {
       const w = WEATHER_OF[toID(st.weather.name)];
       if (w) { f.weather = w; f.weatherT = left(st.weather.name, st.weather.since, turnN); } else notes.push('weather not mapped: ' + st.weather.name);
@@ -352,14 +467,23 @@ function create(API) {
       for (const [name, c] of Object.entries(cond)) {
         const id = toID(name);
         if (id === 'tailwind') { f[key] = left('tailwind', c.since, turnN); continue; }
+        /* ENTRY HAZARDS LIVE IN sf.hz (2026-09-30, abra/regmc 1.42.0). The engine lays and reads Stealth Rock, Spikes,
+         * Toxic Spikes and Sticky Web in `sf.hz` (layHazard; engine/board_state.js readMedi `hazards`) and never in
+         * `sf.sc`, so a hazard this world wrote into `sf.sc` did nothing: a switch-in took no Toxic Spikes poison and no
+         * Stealth Rock chip. Membership is the dex's (a foe-side condition with a switch-in effect, world_log.hazards).
+         * DELIBERATE BREAK ROTOM_WORLD_BREAK=hzsc: the old sf.sc write. */
+        if (WL.hazards().has(id) && WORLD_BREAK !== 'hzsc') { (sf.hz = sf.hz || {})[id] = c.layers || 1; COUNTERS.hazardLaid++; continue; }
         const mv = X.D.moves.get(id);
         if (mv && mv.exists) sf.sc[id] = duration(id) ? left(id, c.since, turnN) : (c.layers || 1);
         else notes.push('side condition not mapped: ' + name);
       }
     }
+    }
 
     COUNTERS.built++;
-    const ctx = { G: { sheets }, hist: turns.slice(0, -1).map(t => ({ n: t.n, state: t.state, actions: t.actions || { p1: {}, p2: {} } })) };
+    /* pubNow (2026-09-29): the CURRENT public state, read only by the double-Protect gate (solver/doduo/double_protect.js)
+     * for the clocks this world does not lay on (Perish, Leech Seed, Salt Cure). Nothing else reads it. */
+    const ctx = { G: { sheets }, hist: turns.slice(0, -1).map(t => ({ n: t.n, state: t.state, actions: t.actions || { p1: {}, p2: {} } })), pubNow: st };
     /* at build time my team order IS the request order, so team index k is request position k+1; the engine
      * reorders `sf.team` on a switch, so a caller maps through the body's sheet row, never through k later */
     const posOfSheet = new Map(mine.map((x, j) => [x.s, j + 1]));

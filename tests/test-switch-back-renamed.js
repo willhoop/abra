@@ -59,6 +59,8 @@
 const fs = require('fs');
 const path = require('path');
 const D = (...p) => path.join(__dirname, '..', ...p);
+/* PER REGULATION (engine/regulation.js PER_REGULATION_ARTIFACTS, 2026-09-29): the printed path is the written path. */
+const SBR_OUT_REL = require('../engine/regulation.js').artifactFor('data/switch-back-renamed.json');
 const SB = require(D('tests', 'staged_board.js'));
 const JSONOUT = process.argv.includes('--json');
 const say = (...a) => { if (!JSONOUT) console.log(...a); };
@@ -311,10 +313,10 @@ const art = { generated: new Date().toISOString(), by: 'tests/test-switch-back-r
   switchkey_written_by_buildpair: stampedByBuildPair,
   switchkey_on_played_bodies: stampedByFresh,
   arms: results, known_open: declaredCount };
-fs.writeFileSync(D('data', 'switch-back-renamed.json'), JSON.stringify(art, null, 1));
+fs.writeFileSync(path.join(__dirname, '..', SBR_OUT_REL), JSON.stringify(art, null, 1));
 if (JSONOUT) console.log(JSON.stringify(art, null, 1));
 
-say('\n  wrote data/switch-back-renamed.json');
+say('\n  wrote ' + SBR_OUT_REL);
 say('  ' + (results.length - failed - declaredCount) + ' of ' + results.length + ' arms agree; '
   + declaredCount + ' DECLARED KNOWN-OPEN (red, named, not a pass).');
 if (failed) { say('\nSWITCH-BACK: RED'); process.exit(1); }

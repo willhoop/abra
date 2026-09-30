@@ -549,6 +549,30 @@ const PER_REGULATION_ARTIFACTS = Object.freeze([
   [/^open-work\.json$/, 'engine/open_work.js', 'the open-work list: the shared register plus this regulation\'s measured disagreements'],
   [/^interaction-matrix\.json$/, 'tests/test-interaction-matrix.js', 'carrier x reactor pairs staged against this regulation\'s checkout'],
   [/^provenance-stamp\.json$/, 'engine/provenance.js', 'the mtime-only ratchet over the artifact graph as this regulation\'s seam presents it'],
+  /* 2026-09-29 (ENGINE, abra/regmc) -- THE ENGINE-AGAINST-SHOWDOWN TESTS. `ABRA_REGULATION=regmc node
+   * tests/test-game-diff.js` played every scripted game and then died on the guard below: it writes a fixed
+   * data/game-diff.json. Decided the same way as the state printers above, from what each file is BUILT FROM.
+   * Every one of these six stages bodies from the regulation's table (data/engine-data-regmc.js), reads the
+   * regulation's tags, or plays against the regulation's Showdown checkout -- game-diff.json stamps
+   * `showdown_commit`, which is f10d6798 under Reg M-C and 20ad99ff under Reg M-B. Four of them died on the
+   * guard the same way (game-diff, forme-assert, switch-back-renamed, tag-walk); two are RATCHETS that read
+   * their own previous file (tag-consumption, unmodelled-clicks), and under Reg M-C they were comparing the
+   * M-C view against Reg M-B's baseline and passing -- the provenance-stamp hazard above. Not one is a gate
+   * input (quarantine.js reads none of them). docs/_reports/2026-09-30-regmc-test-write-guard.md. */
+  [/^game-diff\.json$/, 'tests/test-game-diff.js', 'scripted multi-turn games played against this regulation\'s checkout'],
+  [/^forme-assert\.json$/, 'tests/test-forme-assert.js', 'forme-change assertions against this regulation\'s checkout, table and tags'],
+  [/^switch-back-renamed\.json$/, 'tests/test-switch-back-renamed.js', 'a renamed body switched back in, against this regulation\'s checkout'],
+  [/^tag-walk\.json$/, 'tests/walk_tags.js', 'every tag checked against this regulation\'s checkout'],
+  [/^tag-consumption\.json$/, 'tests/test-tag-consumed.js', 'the tag-consumer ratchet over this regulation\'s tags'],
+  [/^unmodelled-clicks\.json$/, 'tests/test-unmodelled-clicks.js', 'the no-op-turn ratchet over this regulation\'s tags and table'],
+  /* 2026-09-30 (MEASURE, abra/regmc 1.36.0) -- THE TWO QUALITY VERDICTS. Each is a judgement of THIS
+   * regulation's stores: the legality verdict by this regulation's TeamValidator, the custom-ruleset scan
+   * over this regulation's raw logs. Until this line both were Reg M-B's only, so the rules that read them
+   * removed 0 Reg M-C games while reporting ON. engine/quality.js reads every regulation's sibling and
+   * unions the ids (a game id carries its format, so the sets cannot collide).
+   * docs/_reports/2026-09-30-regmc-store-quality.md. */
+  [/^store-validation\.json$/, 'engine/validate_store.js --write', 'every stored team through this regulation\'s TeamValidator'],
+  [/^custom-ruleset-ids\.json$/, 'engine/scan_custom_rulesets.js', 'game ids whose raw log carries a custom-rule infobox, over this regulation\'s raw logs'],
 ]);
 const POOL_DIR = 'data/team-pool-frozen';
 const isPerRegulation = base => PER_REGULATION_ARTIFACTS.some(([re]) => re.test(String(base)));

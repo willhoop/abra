@@ -18,9 +18,10 @@
  * here as `source_digests`, so engine/provenance.js reports the model stale the moment the store moves.
  *
  * THE .gz, NEVER THE PLAIN FILE. On this machine a plain data/games.<format>.jsonl can sit beside the
- * .gz as a stale local snapshot (docs/REGMC.md, "One thing found on the way"), and engine/quality.js
- * prefers the plain file when both exist -- right for Reg M-B's ladder, wrong here. The path is named
- * explicitly and a plain sibling is reported, never read.
+ * .gz as a stale local snapshot (docs/REGMC.md, "One thing found on the way"). engine/quality.js
+ * preferred the plain file when both existed until 2026-09-30 and now reads the newer; this file still
+ * names the tracked .gz explicitly, because a usage model must stamp the committed bytes. A plain
+ * sibling is reported, never read.
  *
  * THE FILTER, IN ORDER, EVERY STEP COUNTED:
  *   1. the row's `format` token is this regulation's (engine/durable-ingest.js storeFormatFor, the parser
@@ -311,20 +312,25 @@ function main() {
       filter: 'data/quality-filter.json',
       filter_version: cfg.version,
       funnel,
-      not_asked_of_this_regulation: {
-        illegal_team: 'keys on data/store-validation.json, judged over Reg M-B\'s store only; replaced here by the legality audit below',
-        custom_ruleset: 'keys on data/custom-ruleset-ids.json, scanned from Reg M-B\'s raw logs only; the ' + id
-          + ' custom-rule question is open (docs/REGMC.md, "the M-C pool carries custom-rule rooms")',
+      /* 2026-09-30 (abra/regmc 1.36.0): both rules are now ASKED of this regulation. Until then they keyed
+       * on Reg M-B's verdicts and were published here as not asked. */
+      verdicts_of_this_regulation: {
+        illegal_team: (Q.illegalTeams().verdicts || []).filter(v => v.format === REGN.FORMAT || v.format === REGN.BO3_FORMAT),
+        custom_ruleset: (Q.customRuleset().verdicts || []).filter(v => v.regulation === id),
       },
       behavioural_bots: [...bots].sort(),
-      behavioural_bots_note: 'data/quality-filter.json\'s team-invariance rule, validated on Reg M-B\'s bo1 ladder. Judged here '
-        + 'over every row of both ' + id + ' stores. Not re-validated for a bo3 open-sheet ladder, where playing one team '
-        + 'for many games is more plausible for a human.',
+      behavioural_bots_note: 'data/quality-filter.json\'s team-invariance rule plus, for ' + id + ', its tempo clause '
+        + '(min_games_in_one_day), added 2026-09-30 after the 50-game one-team test flagged two live top-500 accounts. Judged over '
+        + 'every row of both ' + id + ' stores.',
       usable: competitive.length,
       rowsInFormat: inFormat.length,
       caveat: 'Bot detection is name-based plus a team-invariance rule. Describe this set as "no bot detected", not as human.',
     },
-    source_digests: Object.fromEntries(STORES.map(s => [s.rel, s.sha256])),
+    /* The two quality verdicts are inputs too (2026-09-30): a re-run of either moves which games survive. */
+    source_digests: Object.fromEntries(STORES.map(s => [s.rel, s.sha256]).concat(
+      ['data/store-validation.json', 'data/custom-ruleset-ids.json'].map(b => REGN.artifactFor(b))
+        .filter(r => fs.existsSync(path.join(ROOT, r)))
+        .map(r => [r, crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, r))).digest('hex')]))),
     sampledTeams: out.sides,
     threats: view(out).threats,
     views: {

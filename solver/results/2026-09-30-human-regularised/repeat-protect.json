@@ -1,0 +1,427 @@
+{
+ "release": "eaa5becc54eb",
+ "positions": 40,
+ "offered": 13,
+ "passes": 48,
+ "seed": 7,
+ "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+ "grid": [
+  0,
+  0.001,
+  0.003,
+  0.01,
+  0.03,
+  0.1,
+  0.3,
+  "inf"
+ ],
+ "byLambda": {
+  "0": {
+   "repeat_mass_when_offered": 0.611,
+   "argmax_repeat": 8,
+   "of": 13
+  },
+  "0.001": {
+   "repeat_mass_when_offered": 0.501,
+   "argmax_repeat": 7,
+   "of": 13
+  },
+  "0.003": {
+   "repeat_mass_when_offered": 0.448,
+   "argmax_repeat": 7,
+   "of": 13
+  },
+  "0.01": {
+   "repeat_mass_when_offered": 0.336,
+   "argmax_repeat": 6,
+   "of": 13
+  },
+  "0.03": {
+   "repeat_mass_when_offered": 0.243,
+   "argmax_repeat": 3,
+   "of": 13
+  },
+  "0.1": {
+   "repeat_mass_when_offered": 0.227,
+   "argmax_repeat": 3,
+   "of": 13
+  },
+  "0.3": {
+   "repeat_mass_when_offered": 0.225,
+   "argmax_repeat": 4,
+   "of": 13
+  },
+  "inf": {
+   "repeat_mass_when_offered": 0.23,
+   "argmax_repeat": 4,
+   "of": 13
+  }
+ },
+ "detail": [
+  {
+   "n": 3,
+   "body": "sylveon",
+   "counter": 1,
+   "rows": [
+    "quickattack@1 | pass",
+    "quickattack@2 | pass",
+    "detect | pass",
+    "hypervoice | pass"
+   ],
+   "rep": [
+    false,
+    false,
+    true,
+    false
+   ],
+   "value": 0.0176,
+   "mass": {
+    "0": 1,
+    "0.001": 1,
+    "0.003": 0.973,
+    "0.01": 0.504,
+    "0.03": 0.249,
+    "0.1": 0.182,
+    "0.3": 0.166,
+    "inf": 0.158
+   }
+  },
+  {
+   "n": 7,
+   "body": "lucario-mega-z",
+   "counter": 1,
+   "rows": [
+    "scald@1 | protect",
+    "scald@1 | flashcannon@2",
+    "icebeam@2 | flashcannon@1",
+    "icebeam@2 | protect"
+   ],
+   "rep": [
+    true,
+    false,
+    false,
+    true
+   ],
+   "value": 0.2724,
+   "mass": {
+    "0": 0.913,
+    "0.001": 0.91,
+    "0.003": 0.904,
+    "0.01": 0.88,
+    "0.03": 0.75,
+    "0.1": 0.57,
+    "0.3": 0.488,
+    "inf": 0.516
+   }
+  },
+  {
+   "n": 15,
+   "body": "primarina",
+   "counter": 1,
+   "rows": [
+    "sw3 | tailwind",
+    "psychic@2 | tailwind",
+    "hypervoice | tailwind",
+    "protect | tailwind"
+   ],
+   "rep": [
+    false,
+    false,
+    false,
+    true
+   ],
+   "value": 0.2534,
+   "mass": {
+    "0": 0.072,
+    "0.001": 0.065,
+    "0.003": 0.05,
+    "0.01": 0.015,
+    "0.03": 0.018,
+    "0.1": 0.041,
+    "0.3": 0.048,
+    "inf": 0.049
+   }
+  },
+  {
+   "n": 17,
+   "body": "whimsicott",
+   "counter": 1,
+   "rows": [
+    "earthquake | tailwind",
+    "earthquake | protect",
+    "earthquake | encore@2",
+    "earthquake | moonblast@2"
+   ],
+   "rep": [
+    false,
+    true,
+    false,
+    false
+   ],
+   "value": 0.0045,
+   "mass": {
+    "0": 0.998,
+    "0.001": 0.912,
+    "0.003": 0.547,
+    "0.01": 0.448,
+    "0.03": 0.335,
+    "0.1": 0.277,
+    "0.3": 0.26,
+    "inf": 0.251
+   }
+  },
+  {
+   "n": 23,
+   "body": "aegislash",
+   "counter": 1,
+   "rows": [
+    "wideguard | sw3",
+    "sw3 | closecombat@2",
+    "shadowball@1 | sw3",
+    "shadowball@2 | sw3"
+   ],
+   "rep": [
+    true,
+    false,
+    false,
+    false
+   ],
+   "value": 0.829,
+   "mass": {
+    "0": 0,
+    "0.001": 0,
+    "0.003": 0,
+    "0.01": 0,
+    "0.03": 0.042,
+    "0.1": 0.181,
+    "0.3": 0.289,
+    "inf": 0.356
+   }
+  },
+  {
+   "n": 26,
+   "body": "salamence-mega",
+   "counter": 1,
+   "rows": [
+    "protect | pass",
+    "hypervoice | pass",
+    "tailwind | pass",
+    "dracometeor@2 | pass"
+   ],
+   "rep": [
+    true,
+    false,
+    false,
+    false
+   ],
+   "value": 0.0001,
+   "mass": {
+    "0": 1,
+    "0.001": 0.701,
+    "0.003": 0.681,
+    "0.01": 0.674,
+    "0.03": 0.671,
+    "0.1": 0.67,
+    "0.3": 0.67,
+    "inf": 0.67
+   }
+  },
+  {
+   "n": 29,
+   "body": "camerupt-mega",
+   "counter": 1,
+   "rows": [
+    "protect | pass",
+    "ancientpower@1 | pass",
+    "heatwave | pass",
+    "earthpower@1 | pass"
+   ],
+   "rep": [
+    true,
+    false,
+    false,
+    false
+   ],
+   "value": 0.0099,
+   "mass": {
+    "0": 0.997,
+    "0.001": 0.999,
+    "0.003": 0.975,
+    "0.01": 0.82,
+    "0.03": 0.705,
+    "0.1": 0.655,
+    "0.3": 0.64,
+    "inf": 0.633
+   }
+  },
+  {
+   "n": 32,
+   "body": "sneasler",
+   "counter": 1,
+   "rows": [
+    "direclaw@1 | pass",
+    "swordsdance | pass",
+    "closecombat@1 | pass",
+    "protect | pass"
+   ],
+   "rep": [
+    false,
+    false,
+    false,
+    true
+   ],
+   "value": 0.0007,
+   "mass": {
+    "0": 1,
+    "0.001": 0.205,
+    "0.003": 0.155,
+    "0.01": 0.139,
+    "0.03": 0.134,
+    "0.1": 0.133,
+    "0.3": 0.132,
+    "inf": 0.132
+   }
+  },
+  {
+   "n": 33,
+   "body": "farigiraf",
+   "counter": 1,
+   "rows": [
+    "drainpunch@1 | hypervoice",
+    "drainpunch@1 | trickroom",
+    "knockoff@1 | hypervoice",
+    "drainpunch@1 | protect"
+   ],
+   "rep": [
+    false,
+    false,
+    false,
+    true
+   ],
+   "value": 1,
+   "mass": {
+    "0": 0.333,
+    "0.001": 0.026,
+    "0.003": 0.025,
+    "0.01": 0.025,
+    "0.03": 0.025,
+    "0.1": 0.025,
+    "0.3": 0.025,
+    "inf": 0.025
+   }
+  },
+  {
+   "n": 34,
+   "body": "floette-eternal",
+   "counter": 1,
+   "rows": [
+    "sw2 | calmmind",
+    "flareblitz@1 | protect+M",
+    "fakeout@1 | calmmind",
+    "fakeout@2 | calmmind"
+   ],
+   "rep": [
+    false,
+    true,
+    false,
+    false
+   ],
+   "value": 0.6256,
+   "mass": {
+    "0": 0,
+    "0.001": 0,
+    "0.003": 0,
+    "0.01": 0,
+    "0.03": 0,
+    "0.1": 0,
+    "0.3": 0,
+    "inf": 0
+   }
+  },
+  {
+   "n": 35,
+   "body": "floette-eternal",
+   "counter": 1,
+   "rows": [
+    "sw2 | dazzlinggleam",
+    "flareblitz@1 | protect+M",
+    "fakeout@1 | drainingkiss@2",
+    "fakeout@1 | dazzlinggleam"
+   ],
+   "rep": [
+    false,
+    true,
+    false,
+    false
+   ],
+   "value": 0.8975,
+   "mass": {
+    "0": 0,
+    "0.001": 0,
+    "0.003": 0,
+    "0.01": 0,
+    "0.03": 0,
+    "0.1": 0,
+    "0.3": 0,
+    "inf": 0
+   }
+  },
+  {
+   "n": 37,
+   "body": "sneasler",
+   "counter": 1,
+   "rows": [
+    "sw3 | dazzlinggleam",
+    "protect | dazzlinggleam+M",
+    "sw3 | lightofruin@1",
+    "sw3 | lightofruin@2"
+   ],
+   "rep": [
+    false,
+    true,
+    false,
+    false
+   ],
+   "value": 0.222,
+   "mass": {
+    "0": 1,
+    "0.001": 1,
+    "0.003": 1,
+    "0.01": 0.589,
+    "0.03": 0.006,
+    "0.1": 0.001,
+    "0.3": 0,
+    "inf": 0
+   }
+  },
+  {
+   "n": 39,
+   "body": "gholdengo",
+   "counter": 1,
+   "rows": [
+    "shadowball@2 | pass",
+    "shadowball@1 | pass",
+    "protect | pass",
+    "nastyplot | pass"
+   ],
+   "rep": [
+    false,
+    false,
+    true,
+    false
+   ],
+   "value": 0.0043,
+   "mass": {
+    "0": 0.634,
+    "0.001": 0.694,
+    "0.003": 0.516,
+    "0.01": 0.274,
+    "0.03": 0.224,
+    "0.1": 0.21,
+    "0.3": 0.206,
+    "inf": 0.204
+   }
+  }
+ ],
+ "live_solve_repeat_mass": 0.611
+}

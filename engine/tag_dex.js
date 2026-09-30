@@ -696,7 +696,15 @@ function usage() {
   }
   F_GAMES = games;
   if (OWN) {
-    out.from = OWN.map(p => path.relative(ROOT, p).replace(/\\/g, '/'));
+    /* 2026-09-30 -- THE RECEIPT NAMES THE FILE THAT WAS OPENED, NOT THE ONE THAT WAS ASKED FOR.
+     * `usage_from` recorded the plain `data/games.<format>.jsonl` path it REQUESTED. After abra/regmc
+     * 1.36.0, `Q.readStore` resolves that through `storePath()`, which picks the newer of the plain
+     * file and its .gz. So the old receipt could not say which store the weighting came from -- and
+     * the 2026-09-24 artifact was probably built from a plain snapshot that stopped at 2026-09-21
+     * (docs/_reports/2026-09-30-tags-regmc-store.md). Asking the same resolver the read used means the
+     * two cannot disagree. */
+    const Q = require('./quality.js');
+    out.from = OWN.map(p => path.relative(ROOT, Q.storePath(p)).replace(/\\/g, '/'));
     console.log('tag_dex: ' + REGN.ID + ' usage weighted by its own stores: ' + out.from.join(', ')
       + ' -> ' + games.length + ' clean open-sheet games');
   }

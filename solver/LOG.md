@@ -6,7 +6,109 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ---
 
+## 2026-09-30
+
+### CHOMP v2: spreads and field effects; gate (a) fails against v1 (abra/regmc 1.45.0)
+- The facts move a lot: a per-set spread changes 12% of speed orders, and the room flips 96% of them. The scorer does
+  not get better at predicting outcomes: VAL picked `flat+field`, and TEST Δ −0.0004 [−0.0032, +0.0024] is a FAIL.
+- The simulated outcomes were played at the engine table's stat line. The spread facts describe bodies those games
+  never fielded, and `set+field` lost on VAL.
+- `docs/_reports/2026-09-30-chomp-v2.md`.
+
+### Spreads: fast species keep their Speed (abra/regmc 1.44.0)
+- Fast species (Sneasler, Gengar-Mega, Raichu-Mega) ran 0 Speed because they already beat the median uninvested.
+- Top-tier sets now run the cap. Everyone else buys the heaviest tier just under them. Both rotations are re-spread
+  with the teams unchanged.
+- No series has been played on the new spreads; the command is Will's.
+
+### ROTOM's world: field clocks counted in residuals (abra/regmc 1.43.0)
+- Lead-set weather and terrain were laid one turn short. The world's clocks now count residuals.
+- Checked against the server on 22 field clocks from five real ladder games, with 0 mismatches. The old path got 12
+  of them wrong.
+
+### ROTOM's world: entry hazards in sf.hz (abra/regmc 1.42.0)
+- Every hazard in every ROTOM world sat in the wrong field (`sf.sc`), so the search never saw hazard damage.
+- Now in `sf.hz`. Replayed on the real log, Rillaboom switching into Toxic Spikes is poisoned, as on the server.
+
+### ROTOM's world carries ability changes (the Skill-Swapped Shadow Tag) (abra/regmc 1.41.0)
+- The post-mortem's refused switch (pandywulu g1 t8) was a Skill-Swapped Shadow Tag the world did not carry.
+- Replayed on the real log, Espeon now holds Shadow Tag, and the engine offers our Incineroar no switch, as the server
+  decided.
+
+### ROTOM's world carries Perish and the volatile class (abra/regmc 1.40.0)
+- The world now carries the Perish count (the post-mortem's PERISH loss) and the rest of the log-visible volatile class.
+  Replayed on the real chomp1 log, turn 4 now lays perish 1 on both our actives, and one engine step faints both, as
+  the server did.
+- `solver/rotom/world_log.js` `CARRIED` / `OWED` is the audited list. The test fails on any engine board leaf that is
+  in neither.
+- Detail: `docs/_reports/2026-09-30-rotom-world-fixes.md`.
+
+### Ladder loss post-mortem: why ROTOM loses the series it plays out (abra/regmc 1.39.0)
+- The 26 chomp1 losses without a forfeit, by the mechanism at the turning point:
+  - VISIBLE_KO 5, SPEED_CONTROL 5, SUCKER_PUNCH 4, OUTSPED 4;
+  - SETUP 3, BEHIND_FROM_PREVIEW 3, UNSEEN_ACTION 1, PERISH 1.
+  - No timeouts. The one applied mismatch came after its game's turning point.
+- The root value is +0.19 too high in [0.5, 0.9), CI [0.06, 0.32], on 668 ladder decisions in 90 games. It is
+  calibrated below 0.1 and above 0.9.
+- PORYGON2 v2 with depth addresses 13 of the 26. The 1.35.0 spreads address 2 (Scarf Basculegion).
+- Unowned: Sucker Punch into Protect or status (10 of 20 failed in losses). Also unowned: ROTOM's world lays no
+  Perish count and no Skill-Swapped ability.
+- `solver/results/2026-09-30-ladder-loss-postmortem/`, `docs/_reports/2026-09-30-ladder-loss-postmortem.md`.
+
+### PORYGON2 v2: design pre-registered, datasets built, nothing trained (abra/regmc 1.37.0)
+- The value is over the public state. Each unrevealed field is an UNK token, never a prior. Both ratings are inputs
+  (Maia-2 form), queried at 1600.
+- Training pretrains on bo1, then fine-tunes on bo3 with bo1 replay, at K = 1 position per game per epoch.
+- The auxiliary heads are the KataGo ownership/score analogues. `solver/porygon2/v2/DESIGN.md`.
+- Datasets: bo1 27,116 games / 218,815 positions; bo3 24,940 / 197,905.
+- Both players at 1500 or above: bo1 364, bo3 0.
+- Gate (a) can resolve only the bands below 1200 on bo3: 1,023 test games that v1 never saw.
+- Leak test GREEN 222,895/222,895; RED on 2 breaks. `docs/_reports/2026-09-30-porygon2-v2-design.md`.
+
+### The double-Protect soft gate: built, off; the prompting case is exempt by its own terrain clause (abra/regmc 1.32.0)
+- Will's rule in `solver/doduo/double_protect.js` (`gates.doubleProtect`, `tiers: false` alone). On 20,482 held-out
+  human decisions: double Protect 3.15%, survival 99.63% [99.54, 99.71]. Humans honour Fake Out, Trick Room, Tailwind
+  and Perish (13-50% against a 2.2% base) and ignore terrain, weather and screens (0.7-2.9%). chomp1 g1 t4 is exempt by
+  the opponent's Grassy Terrain, so the gated search still double-Protects (0.85). With terrain off, it plays mega
+  Substitute plus a switch. Phase B is pre-registered, not run. `docs/_reports/2026-09-30-double-protect-gate.md`.
+
+### Human-regularised search (piKL): built behind `kl`, phase A only (abra/regmc 1.34.0)
+- SLOWKING can solve `x·A·y − λ·KL(x‖τ_me) + λ·KL(y‖τ_opp)` with gen5's DODUO as τ. Flag `kl` (λ), off, on no arm.
+- Held-out humans (579, same tables): top-1 0.216 → 0.268 at λ 0.1 (+0.052 [0.021, 0.083]), above DODUO alone (0.230).
+  The worst-case cost on the table is 0.035. The repeat-Protect mass is 0.611 → 0.243 at λ 0.03 (the anchor's floor).
+- chomp1 t4: the double Protect keeps 0.71 at λ 0.03. The table makes it maximin and barely charges for Trick Room, so
+  it is a horizon fault. 2 s screens at λ 0.01, 0.03 and 0.1 are pre-registered, not run.
+  `docs/_reports/2026-09-30-human-regularised-search.md`.
+### ROTOM's ladder spreads fit each set's role (abra/regmc 1.35.0)
+- The top-meta rotation agent found it: the store has no Stat Points, so every rotation gave every set 32 HP / 32 attack /
+  2 Speed. Choice Scarf and Tailwind sets ran 2 Speed; Trick Room setters ran 2 above their minimum.
+- New `solver/rotom/spreads.js`. An observed Reg M-C spread comes first (a Smogon moveset file for the format, due about
+  2026-10-04; none today). Otherwise it derives: Scarf or Tailwind gives Speed 32, Trick Room gives 0, and any other set
+  gets the least SP that outspeeds the top-meta median at full investment (138), else 0. Then the least bulk that
+  survives the median top-meta attacker's best hit (sim getDamage), the rest to the attack stat, and any remainder to
+  bulk. Population: 148 top teams at floor 1409, store `fe78202a8515`. A fixed-point median was tried first; speed creep
+  has no fixed point (114 -> 138, then back), so the benchmark assumes full investment.
+- `respread.js` re-spread both rotations; the teams are unchanged. The spreads ride in the plan digest and in
+  `team_meta`. Test `test-rotom-spreads.js` 23/23 and RED on 3 breaks and on the old files.
+  `docs/_reports/2026-09-30-rotation-spreads.md`.
+
 ## 2026-09-29
+
+### A top-meta ladder rotation and an arm that names it (abra/regmc 1.31.0)
+- Will saw a Hippowdon on our ladder team. The old rotation was not mid-ladder (1379-1549, the 98.3-100th percentile of
+  rated bo3 sides); it was five ONE-PLAYER sixes, two carrying a species on 0.7% of top teams (Hippowdon, Corviknight).
+- New `solver/rotom/build_top_rotation.js` -> `solver/rotom/teams/ladder-rotation-top.json`: floor 1409 (the 99th
+  percentile of 63,366 rated sides), exact sixes brought by >= 2 players at the floor, every species >= 3% of top teams,
+  family S - E no worse than the top baseline (-0.049). 5 teams, 1478-1596. Arms file `gen5-chomp-top.json` = gen5-chomp
+  plus `"rotation"`; rotom.js reads it and refuses a contradicting `--rotation`. Not launched; the command is Will's.
+  `docs/_reports/2026-09-30-top-meta-rotation.md`.
+
+### CHOMP ladder run prepared, not launched; `--preview chomp` was dropped by the supervisor (abra/regmc 1.30.0)
+- `run_ladder.js` never forwarded `--preview` to the client, so the documented one-flag launch would have played the
+  team's own bring with nothing reporting it. Fixed; an arm may now name its own `preview`, and the new arms file
+  `solver/rotom/arms/gen5-chomp.json` (gen5 at 5 s, CHOMP at preview, one arm) carries it into the plan digest and every
+  row. New `solver/tests/test-rotom-chomp-live.js` 13/13 (real client, scripted server: CHOMP's choice is sent), RED on
+  both breaks. The launch command is Will's. `docs/_reports/2026-09-30-chomp-ladder-prep.md`.
 
 ### Weighted chance in MILTANK's cells: correct, too expensive; flag off (abra/regmc 1.28.0)
 - Every die of the first turn enumerated by probability (thresholds found on the engine, stratified so unbiased).

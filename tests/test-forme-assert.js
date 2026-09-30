@@ -56,6 +56,8 @@
 const fs = require('fs');
 const path = require('path');
 const D = (...p) => path.join(__dirname, '..', ...p);
+/* PER REGULATION (engine/regulation.js PER_REGULATION_ARTIFACTS, 2026-09-29): the printed path is the written path. */
+const FORME_OUT_REL = require('../engine/regulation.js').artifactFor('data/forme-assert.json');
 const SB = require(D('tests', 'staged_board.js'));
 const CS = require(D('engine', 'champions_sim.js'));
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
@@ -472,7 +474,7 @@ if (REDS) {
  * WRITE-POLICY: findings — a disagreeing row IS the measurement and publishes with `run_ok:false`;
  * a run whose own plant went uncaught refuses to write at all. */
 if (redsMissed) {
-  say('\n  REFUSED to write data/forme-assert.json — ' + redsMissed + ' plant(s) went uncaught by the '
+  say('\n  REFUSED to write ' + FORME_OUT_REL + ' — ' + redsMissed + ' plant(s) went uncaught by the '
     + 'assertion that owns them. An assertion that cannot see a defect planted in it is not evidence '
     + 'about any forme, so none of the rows above is published. The artifact on disk is left as it was.');
   say('\nFORME ASSERT: RED');
@@ -492,10 +494,10 @@ const art = { generated: new Date().toISOString(),
   uncoverable_for_want_of_an_engine_data_row: uncoverable,
   known_open_rows: knownOpen,
   rows: results, reds_run: REDS, reds_missed: redsMissed };
-fs.writeFileSync(D('data', 'forme-assert.json'), JSON.stringify(art, null, 1));
+fs.writeFileSync(path.join(__dirname, '..', FORME_OUT_REL), JSON.stringify(art, null, 1));
 if (JSONOUT) console.log(JSON.stringify(art, null, 1));
 
-say('\n  wrote data/forme-assert.json');
+say('\n  wrote ' + FORME_OUT_REL);
 say('  ' + (results.length - failed - knownOpen) + ' of ' + results.length + ' rows agree with the '
   + 'authority on all four assertions; ' + knownOpen + ' carry a DECLARED KNOWN-OPEN assertion (red, '
   + 'named, not a pass); ' + uncoverable + ' forme(s) uncoverable for want of an engine-data row.');

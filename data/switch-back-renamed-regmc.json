@@ -1,0 +1,120 @@
+{
+ "generated": "2026-09-29T22:40:49.376Z",
+ "by": "tests/test-switch-back-renamed.js",
+ "what": "can a body medicham2 renamed mid-battle be switched back in — subject against a control on the same board and turn",
+ "write_policy": "FINDINGS. A DIFFERS arm is the measurement and is published with run_ok:false, so a consumer can refuse it. Before 2026-08-23 the artifact carried no run status at all.",
+ "run_ok": true,
+ "failed": 0,
+ "switchkey_written_by_buildpair": [
+  "morpeko",
+  "dragonite",
+  "espathra",
+  "garchomp"
+ ],
+ "switchkey_on_played_bodies": [
+  "morpeko",
+  "dragonite",
+  "espathra",
+  "garchomp"
+ ],
+ "arms": [
+  {
+   "id": "hungerswitch",
+   "what": "Morpeko is renamed to Morpeko-Hangry by a RESIDUAL, leaves, and is asked back by the name the driver names every candidate by — its base species.",
+   "ask": "morpeko",
+   "err": null,
+   "observed": {
+    "after_the_ask": [
+     "morpeko-hangry",
+     "dragonite"
+    ],
+    "authority": [
+     "morpekohangry",
+     "dragonite"
+    ],
+    "bench_while_away": [
+     "morpeko",
+     "dragonite"
+    ],
+    "bench_while_away_authority": [
+     "morpeko",
+     "dragonite"
+    ]
+   },
+   "control_returned": true,
+   "known_open": null,
+   "problems": [],
+   "verdict": "AGREES"
+  },
+  {
+   "id": "hungerswitch-restamped",
+   "what": "THE SUFFICIENCY ARM, NOW A REDUNDANCY CONTROL. It restamps `_switchKey` on the bench bodies one boundary before the ask. Until 2026-08-25 that was the fix simulated in place, because `freshBodies` dropped the stamp; the stamp now survives construction, so this arm restamps what is already stamped and MUST agree exactly as the arm above does. If the two ever disagree again, the key has stopped reaching the played bodies.",
+   "ask": "morpeko",
+   "err": null,
+   "observed": {
+    "after_the_ask": [
+     "morpeko-hangry",
+     "dragonite"
+    ],
+    "authority": [
+     "morpekohangry",
+     "dragonite"
+    ],
+    "bench_while_away": [
+     "morpeko",
+     "dragonite"
+    ],
+    "bench_while_away_authority": [
+     "morpeko",
+     "dragonite"
+    ]
+   },
+   "control_returned": true,
+   "known_open": null,
+   "problems": [],
+   "verdict": "AGREES"
+  },
+  {
+   "id": "mega-base-key",
+   "what": "A MEGA is a permanent rename — it rewrites the authority's `species` AND its `baseSpecies` — so BOTH engines hold abomasnow-mega and the ask still says abomasnow. This arm THREW until 2026-08-25; it closed when both sides moved onto `rosterKey`.",
+   "ask": "abomasnow",
+   "err": null,
+   "observed": {
+    "after_the_ask": [
+     "abomasnow-mega",
+     "dragonite"
+    ],
+    "authority": [
+     "abomasnowmega",
+     "dragonite"
+    ],
+    "bench_while_away": [
+     "abomasnow-mega",
+     "dragonite"
+    ],
+    "bench_while_away_authority": [
+     "abomasnowmega",
+     "dragonite"
+    ]
+   },
+   "control_returned": true,
+   "known_open": null,
+   "problems": [],
+   "verdict": "AGREES"
+  },
+  {
+   "id": "mega-forme-key",
+   "what": "THE OVER-FIRE CONTROL FOR THE ARM ABOVE, RE-AIMED. The same board asked by the FORME key instead of the roster identity. It must be REFUSED — if a non-identity spelling still resolves then a body can be named two ways again, and the arm above proves nothing.",
+   "ask": "abomasnowmega",
+   "err": "p1 choice rejected p1 \"pass, switch 4\": Can't pass: Your Espathra must make a move (or switch)",
+   "must_refuse": true,
+   "observed_refusal": [
+    "the game THREW: p1 choice rejected p1 \"pass, switch 4\": Can't pass: Your Espathra must make a move (or switch)"
+   ],
+   "problems": [],
+   "known_open": null,
+   "verdict": "AGREES"
+  }
+ ],
+ "known_open": 0
+}

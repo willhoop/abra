@@ -1,0 +1,31 @@
+{
+ "what": "Phase B of the human-regularised solve (piKL; solver/slowking/matrix.js solveKL, solver/miltank/search.js o.kl; Will, 2026-09-29: 'I'd rather not have arbitrary rules'). gen5 with the KL-regularised root solve at lambda in {0.01, 0.03, 0.1} against gen5 unregularised, each on ROTOM's adaptive clock at target 2 s; then the best lambda at target 14 s only if its 2 s screen passes. Written 2026-09-30 BEFORE the first game, after phase A (offline) and never revised after a game. NOT RUN: a ladder run is live from the main checkout and the game slot is shared; Will launches it. No SPRT without Will's OK.",
+ "why": "Phase A (docs/_reports/2026-09-30-human-regularised-search.md): on 579 held-out human decisions, the same recorded gen5 tables solved at each lambda, top-1 agreement with the human joint goes 0.216 (lambda 0) -> 0.240 / 0.252 / 0.268 at 0.01 / 0.03 / 0.1 (paired differences, 95% bootstrap: +0.024 [0.005, 0.043], +0.036 [0.010, 0.060], +0.052 [0.021, 0.083]); the played mix's worst-case cost on its own table is 0.004 / 0.012 / 0.035 win-probability points. The repeat-Protect mass on the 13 offered probe positions goes 0.611 -> 0.336 / 0.243 / 0.227. The question here is whether any of it costs strength.",
+ "lambda_set_rule": "Chosen from phase A before any game: 0.01 = the smallest grid value whose top-1 gain CI clears 0; 0.03 = the maximum of p(human) (the chance a SAMPLED move agrees), 0.233; 0.1 = the maximum of top-1 agreement, 0.268. 0.3 and the anchor alone were not screened: no agreement gain over 0.1, and a worst-case cost of 0.062 and 0.088.",
+ "engine_release": "eaa5becc54eb",
+ "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc (absolute: a worktree has no games.bo3.jsonl), TEST pairs",
+ "information": "honest",
+ "arms": {
+  "y": "solver/results/2026-09-30-human-regularised/screen-2s-off.json (gen5, byte-identical settings to solver/results/2026-09-30-double-protect/screen-2s-off.json)",
+  "x": "solver/results/2026-09-30-human-regularised/screen-2s-kl01.json | screen-2s-kl03.json | screen-2s-kl1.json (the same spec plus \"kl\": 0.01 | 0.03 | 0.1)",
+  "both": "gen5 MAG/DODUO/PORYGON2, k 4x4, depth 0, 1 reserved switch row, budgetMs 5000 cap, adaptive { targetMs 2000, credit0Ms 667 }. The anchor is gen5's own DODUO (over gen5 MAG) scores on the candidate rows and columns, floored with 1e-3 uniform (search.js TAU_MIX); no gates."
+ },
+ "screens_2s": [
+  { "x": "screen-2s-kl01.json", "seed": 29501, "out": "solver/out/pikl/screen-2s-kl01.json" },
+  { "x": "screen-2s-kl03.json", "seed": 29502, "out": "solver/out/pikl/screen-2s-kl03.json" },
+  { "x": "screen-2s-kl1.json",  "seed": 29503, "out": "solver/out/pikl/screen-2s-kl1.json" }
+ ],
+ "command_template": "solver/machamp/gate.js --release eaa5becc54eb --x solver/results/2026-09-30-human-regularised/<x> --y solver/results/2026-09-30-human-regularised/screen-2s-off.json --pairs 100 --pair-seed 1 --seed <seed> --workers 4 --cap 50 --rule notlose --info honest --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --out <out>",
+ "games_per_screen": 200,
+ "pass_rule": "Per lambda, read ONCE at 200 games: PASS iff (1) gate.js notlose: the Wilson 95% UPPER bound of X's score is >= 0.5, AND (2) the clock ratio decision_ms.x.mean / decision_ms.y.mean <= 1.10. Three screens are three looks: a PASS is a license for the 14 s screen, not a strength claim.",
+ "capability": "X's solve must prove it ran: the last shard row's ctr.kl['<x name>'].decisions > 0 and missMe = 0 (the anchor was the prior, not the uniform fallback). A zero is a VOID run, not a pass. ctr.fallbacks is read for both arms and stated.",
+ "read_also_not_bars": "solver/arena/protect_read.js on each result: per arm the Protect share (protect-family clicks / actions) and the Protect fail rate. Expected direction, stated before the run: X's Protect share and fail rate at or below Y's. And from ctr.kl: the mean TV to the plain mix, the pick-change share, and the mean worst-case cost (worstSum / decisions). Reported whatever they read; they do not decide PASS.",
+ "screen_14s": {
+  "rule": "ONLY IF at least one 2 s screen PASSES. The lambda is the passing one with the highest X score at 2 s; a tie (equal to 3 decimals) goes to the smaller lambda (the smaller worst-case cost).",
+  "x": "a spec written then: screen-14s-off.json plus \"kl\": <lambda> and name gen5-kl<tag>-adaptive-14s",
+  "y": "solver/results/2026-09-30-human-regularised/screen-14s-off.json (byte-identical settings to solver/results/2026-09-29-lookahead-screen-14s/off-14s.json)",
+  "command": "solver/machamp/gate.js --release eaa5becc54eb --x solver/results/2026-09-30-human-regularised/screen-14s-kl<tag>.json --y solver/results/2026-09-30-human-regularised/screen-14s-off.json --pairs 100 --pair-seed 1 --seed 29504 --workers 4 --cap 50 --rule notlose --info honest --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --out solver/out/pikl/screen-14s.json",
+  "pass_rule": "as the 2 s screens, read once at 200 games (about 2.3 h: the 14 s lookahead screen took 8,174 s)",
+  "on_pass": "the strength SPRT at the ladder budget: a separate pre-registration, and Will's call. On FAIL the flag stays off and on no arm."
+ }
+}

@@ -95,7 +95,20 @@ const ADAPT = require('./adaptive.js');
 const TIMER = flag('timer', 'on');
 const DRILL = flag('drill', '');                     // drop@S.G.T | crash@S.G.T  (set, game, turn; 1-based)
 const DUMP_REQ = +flag('dump-requests', 0);          // write the first N requests (+ the public log so far) as test fixtures
-const TEAM_POOL = has('ladder') ? flag('rotation', path.join(__dirname, 'teams', 'ladder-rotation.json')) : flag('team-pool', path.join(__dirname, 'teams', 'regmc-pool.json'));
+/* THE ARM NAMES ITS ROTATION (2026-09-30). An arms file may carry `rotation`: a repo-relative path to the team rotation it
+ * is played with. In ladder mode that is the rotation, so the record (the plan's rotation file + sha256, every series row's
+ * team_meta) follows from the arm alone. --rotation may repeat it, never contradict it; with no `rotation` key the old
+ * default (teams/ladder-rotation.json, or --rotation) stands, so every arms file written before this reads as before. */
+const ARMS_ROTATION = (() => {
+  if (!has('ladder') || !flag('arms', '')) return null;
+  let r = null; try { r = JSON.parse(fs.readFileSync(path.resolve(flag('arms', '')), 'utf8')).rotation; } catch (e) { return null; /* validated later */ }
+  return r ? path.resolve(ROOT, r) : null;
+})();
+if (ARMS_ROTATION && flag('rotation', '') && path.resolve(flag('rotation', '')) !== ARMS_ROTATION) {
+  console.error('--rotation ' + flag('rotation', '') + ' contradicts the arms file, which names ' + path.relative(ROOT, ARMS_ROTATION) + '. Refusing.'); process.exit(2);
+}
+if (ARMS_ROTATION && !fs.existsSync(ARMS_ROTATION)) { console.error('the arms file names rotation ' + ARMS_ROTATION + ', which does not exist. Refusing.'); process.exit(2); }
+const TEAM_POOL = has('ladder') ? (ARMS_ROTATION || flag('rotation', path.join(__dirname, 'teams', 'ladder-rotation.json'))) : flag('team-pool', path.join(__dirname, 'teams', 'regmc-pool.json'));
 const FORMAT_ID = 'gen9championsvgc2026regmcbo3';
 const GAMES_FILE = path.resolve(flag('games-file', path.join(ROOT, 'solver', 'out', 'rotom', 'games.jsonl')));
 const SAVE_REPLAYS = flag('save-replays', 'on');     // on | off
@@ -140,7 +153,8 @@ if (!LOCK.isLocal(SERVER) && !has('public')) {
 const POLICIES = ['prior', 'miltank', 'miltank-gen5', 'random'];
 const SEARCHES = ['miltank', 'miltank-gen5'];          // the policies that search: the clock floor, the prior fallback and the idle GC apply
 if (!POLICIES.includes(POLICY)) { console.error('unknown --policy ' + POLICY); process.exit(2); }
-if (!['policy', 'chomp'].includes(PREVIEW)) { console.error('unknown --preview ' + PREVIEW); process.exit(2); }
+const PREVIEWS = ['policy', 'chomp'];
+if (!PREVIEWS.includes(PREVIEW)) { console.error('unknown --preview ' + PREVIEW); process.exit(2); }
 if (DRY_RUN && !LOCK.isLocal(SERVER)) { console.error('--dry-run is LOCAL only: ' + SERVER + ' is not localhost. Refusing.'); process.exit(2); }
 if (DRY_RUN && has('public')) { console.error('--dry-run and --public together make no sense. Refusing.'); process.exit(2); }
 if (LADDER_MODE) {
@@ -224,8 +238,8 @@ if (ENGINE.id) { const ed = path.join(ENGINE.REL.dir, 'data', 'engine-data-regmc
     MT.decide(S, 'A', PA.newGame(G), { budgetMs: 1500, coin: API.M.rngStreams({ seed: 3 }).any });
     /* miltank-gen5: load the gen5 nets, its PORYGON2 leaf and XATU's spread belief (the checkout's sim) BEFORE a clock
      * runs, and stamp their digests; the arms file is read here only for its policy names */
-    let armsPol = [];
-    try { if (flag('arms', '')) armsPol = Object.values(JSON.parse(fs.readFileSync(path.resolve(flag('arms', '')), 'utf8')).arms || {}).map(a => a.policy); } catch (e) { /* validated later */ }
+    let armsPol = [], armsPrev = [];
+    try { if (flag('arms', '')) { const A = Object.values(JSON.parse(fs.readFileSync(path.resolve(flag('arms', '')), 'utf8')).arms || {}); armsPol = A.map(a => a.policy); armsPrev = A.map(a => a.preview); } } catch (e) { /* validated later */ }
     if (POLICY === 'miltank-gen5' || armsPol.includes('miltank-gen5')) {
       const tw = Date.now();
       P.warmGen5(S, PA.newGame(G), API.M.rngStreams({ seed: 5 }).any);
@@ -234,7 +248,7 @@ if (ENGINE.id) { const ed = path.join(ENGINE.REL.dir, 'data', 'engine-data-regmc
       say('warm-up: miltank-gen5 loaded in ' + (Date.now() - tw) + ' ms (' + JSON.stringify(g.digests) + ')');
     }
     /* CHOMP's first table pays the JIT; pay it here, not on the preview clock */
-    if (PREVIEW === 'chomp') { const t = Date.now(); P.previewChomp({ sheets: G.sheets, me: 'p1', budgetMs: 600000, coin: API.M.rngStreams({ seed: 5 }).any }); say('CHOMP warm-up table in ' + (Date.now() - t) + ' ms'); }
+    if (PREVIEW === 'chomp' || armsPrev.includes('chomp')) { const t = Date.now(); P.previewChomp({ sheets: G.sheets, me: 'p1', budgetMs: 600000, coin: API.M.rngStreams({ seed: 5 }).any }); say('CHOMP warm-up table in ' + (Date.now() - t) + ' ms'); }
   } catch (e) { say('warm-up failed (continuing): ' + e.message); }
 })();
 say('loaded engine ' + (ENGINE.id ? 'release ' + ENGINE.id : '(LIVE TREE)') + ' + MAG/DODUO + XATU in ' + (Date.now() - t0load) + ' ms; policy ' + (LADDER_MODE ? 'per series arm' : POLICY) + '; out ' + OUT);
@@ -290,6 +304,8 @@ if (LADDER_MODE) {
   const arms = JSON.parse(fs.readFileSync(armsFile, 'utf8'));
   if (arms.dry_run_only && !DRY_RUN) { console.error('--arms ' + armsFile + ' is marked dry_run_only (search caps for a harness test). Refusing it on the public ladder.'); process.exit(2); }
   for (const [id, a] of Object.entries(arms.arms || {})) if (!POLICIES.includes(a.policy)) { console.error('arm ' + id + ': unknown policy ' + a.policy); process.exit(2); }
+  /* an arm may name its own preview (2026-09-29): it is then in the plan digest and in every series row's arm_config */
+  for (const [id, a] of Object.entries(arms.arms || {})) if (a.preview != null && !PREVIEWS.includes(a.preview)) { console.error('arm ' + id + ': unknown preview ' + a.preview); process.exit(2); }
   if (Object.keys(arms.arms || {}).length < 1) { console.error('--arms ' + armsFile + ' defines no arms'); process.exit(2); }
   const shaFull = f => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex');
   const defStop = DRY_RUN ? path.join(OUT, 'STOP') : path.join(ROOT, 'solver', 'out', 'rotom', 'STOP');
@@ -1070,6 +1086,7 @@ function decide(B) {
   /* ladder: this series' pre-committed arm decides the policy and may cap the search; the clock still binds below it */
   const ARM = LADDER && B.bestof ? LADDER.armOf(B.bestof) : null;
   const POL = ARM ? ARM.policy : POLICY;
+  const PV = ARM && ARM.preview ? ARM.preview : PREVIEW;   // this series' arm may name its preview; otherwise --preview
   if (ARM && ARM.max_ms > 0 && kind !== 'preview' && bud.ms > ARM.max_ms) { bud.ms = ARM.max_ms; bud.cappedBy = 'arm'; }
   if (bud.from === 'rule') ST.noTimerLine++;
   /* the adaptive clock replaces the fixed share for a searching move or forced switch; the turn cap and the bank still bind */
@@ -1081,7 +1098,7 @@ function decide(B) {
     bud.fixedMs = bud.ms; bud.ms = pl.hardMs; bud.lowBank = pl.lowBank; bud.adaptive = pl;
     adRec = { kind, plan: pl };
   }
-  const rec = { t: t0, room: B.id, bestof: B.bestof, gnum: B.gnum, turn: B.turn, kind, rqid: req.rqid, policy: POL, arm: ARM ? ARM.id : null, budget: bud, chain: [] };
+  const rec = { t: t0, room: B.id, bestof: B.bestof, gnum: B.gnum, turn: B.turn, kind, rqid: req.rqid, policy: POL, arm: ARM ? ARM.id : null, preview_mode: kind === 'preview' ? PV : undefined, budget: bud, chain: [] };
   let choice = null, used = null, info = null;
   const opp = B.me === 'p1' ? 'p2' : 'p1';
   const coin = () => coinBase();
@@ -1113,7 +1130,7 @@ function decide(B) {
     const d = { req, coin, sheets: B.sheets, me: B.me, budgetMs: Math.min(bud.ms, ARM && ARM.preview_max_ms > 0 ? ARM.preview_max_ms : PREVIEW_MAX_MS), teamBring: team ? team.bring : null,
                 series: { oppLast: B.bestof ? BOOK.oppLast(B.bestof, B.gnum || 1, B.me) : null } };
     /* --preview chomp: CHOMP (v1 unless CHOMP_VERSION=v0) first; a throw or an over-budget table falls down the usual chain, COUNTED (chomp:threw) */
-    if (PREVIEW === 'chomp') tryPolicy('chomp', () => { const r = P.previewChomp(d); return { choice: RQ.previewChoice(r.order.map(x => posOfSheet(x - 1))), info: r.info }; });
+    if (PV === 'chomp') tryPolicy('chomp', () => { const r = P.previewChomp(d); return { choice: RQ.previewChoice(r.order.map(x => posOfSheet(x - 1))), info: r.info }; });
     tryPolicy(first, () => {
       let r = P.preview(first, d);
       if (r.search) { if (!(B.sheets.p1 && B.sheets.p2)) throw new Error('no sheets for the preview search'); r = P.previewSearch(d, r.human); r.order = r.order.map(x => posOfSheet(x - 1)); }
@@ -1143,7 +1160,10 @@ function decide(B) {
     tryPolicy('heuristic', () => ({ choice: RQ.heuristic(req) }));
   }
   if (!choice) { choice = 'default'; used = 'default'; fb('default'); }
-  if (used !== POL) fb('used:' + used);
+  /* CHOMP answering a preview it was asked to answer is the plan, not a fallback (it read `used:chomp` on every preview
+   * until 2026-09-29); CHOMP failing is still counted, as chomp:threw / chomp:illegal, and the policy that answered as used:<it> */
+  if (used !== POL && !(kind === 'preview' && PV === 'chomp' && used === 'chomp')) fb('used:' + used);
+  if (kind === 'preview') { ST.previewBy = ST.previewBy || {}; ST.previewBy[used] = (ST.previewBy[used] || 0) + 1; }
   const ms = Date.now() - t0;
   const ok = send(B.id + '|/choose ' + choice + '|' + req.rqid);
   /* checked after its turn closes (closePending / runVerify, off the decision path): what the server did, against this choice */
@@ -1211,7 +1231,7 @@ function writeSummary() {
     rooms: { renames: ROOMS.renames, ignored_noinit: ROOMS.ignoredNoinit, skipped_old_ids: ROOMS.skippedOldIds, probes: ROOMS.probes, orphans: ROOMS.orphans, watch: SERIES_WATCH,
              dup_joins_skipped: ROOMS.dupJoins, unlisted_battles: ROOMS.unlisted, alive_answers: ROOMS.aliveAnswers, repairs: ROOMS.repairs, unorphaned: ROOMS.unorphaned },
     /* chosen vs applied, the throttle and the send queue: a capability that cannot prove it ran is assumed broken */
-    applied: ST.applied.toJSON(), preview: ST.applied.by_kind.preview || { chosen: 0, applied: 0, explained_diff: 0, mismatch: 0, unverifiable: 0 },
+    applied: ST.applied.toJSON(), preview: ST.applied.by_kind.preview || { chosen: 0, applied: 0, explained_diff: 0, mismatch: 0, unverifiable: 0 }, preview_by: ST.previewBy || {},
     throttle: THR, send_queue: SENDQ.summary(),
     applied_cost: Object.assign({}, ST.verifyCost, { ms: +ST.verifyCost.ms.toFixed(2), mean_ms_per_run: ST.verifyCost.runs ? +(ST.verifyCost.ms / ST.verifyCost.runs).toFixed(3) : null,
       where: 'after the choice is sent (setImmediate), on a wait request, or at game end — never inside a decision budget' }),

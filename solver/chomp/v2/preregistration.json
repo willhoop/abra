@@ -1,0 +1,133 @@
+{
+ "what": "CHOMP v2 pre-registration (solver/chomp/v2/prereg.js). Written before any v2 row is built, any v2 scorer is fitted and any TEST row is scored by a v2 model.",
+ "written": "2026-09-30T05:36:00.586Z",
+ "engine_release": "eaa5becc54eb",
+ "brief": "Will, 2026-09-29 (memory chomp-next-evs-and-field): CHOMP should consider stat spreads and field effects.",
+ "data": {
+  "rule": "THE SAME DATA AND SPLITS AS v1, row for row. solver/chomp/v2/build_rows.js walks v1's three sources in v1's order (targeted games, the p2v1-c0 corpus, human games) and must reproduce every v1 row: the same src, split, pair, y, a, b, species ids, and v1's 22 features recomputed on the flat spread and the neutral field equal to v1's rows file to its 4-decimal rounding. Any mismatch throws; no row is dropped or added.",
+  "v1_rows": {
+   "file": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a1d0f3564f3c6d52c/solver/out/chomp/v1/rows.jsonl",
+   "sha256": "09f4bfaf9395609a636abea2fba8e905fd0c39017e259da7fc33a78ed76b2bde"
+  },
+  "team_store": {
+   "dir": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+   "file_sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+   "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709",
+   "split_counts": {
+    "scanned": 23473,
+    "bot": 158,
+    "bring_incomplete": 7179,
+    "sheet_not_six": 0,
+    "mixed_split": 5623,
+    "train": 10200,
+    "val": 140,
+    "test": 173
+   }
+  },
+  "human_dataset": {
+   "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\solver\\out\\human\\games.jsonl",
+   "sha256": "9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8",
+   "games_kept": 26888
+  },
+  "selfplay_corpus": {
+   "dir": "C:/Users/willj/Projects/Pokemon/ABRA/solver/out/selfplay/eaa5becc54eb/p2v1-c0",
+   "rule": "every shard is verified against manifest.json sha256 before it is read"
+  },
+  "counts_expected": {
+   "targeted": {
+    "test": 2768,
+    "val": 2240,
+    "train": 20000
+   },
+   "selfplay": {
+    "train": 2892,
+    "val": 360,
+    "test": 351
+   },
+   "human": {
+    "train": 12074,
+    "test": 188,
+    "val": 153
+   }
+  },
+  "caveat": "The targeted games (T1) and the self-play corpus (T2) were PLAYED at the engine table's stat line for each species (solver/arena/teams.js buildBody), not at any set spread, and on whatever field the bots set in play. Facts at a set spread therefore describe bodies those games did not field; only the human games (T3) were played at real (unrecorded) spreads. The field block describes what the players could put up, which the simulated games do model."
+ },
+ "spread": {
+  "rule": "solver/rotom/spreads.js, inherited unchanged (observed Reg M-C spread if a Smogon moveset file exists, else the role rule against the top-meta population), with its two table oracles read from MEDICHAM on the release instead of the Showdown sim, for cost (solver/chomp/v2/spreads.js MediDeriver). Population: the top-meta population of the frozen pool's games.bo3.jsonl (solver/rotom/build_top_rotation.js topSides + spreads.population). Observed: none exists on 2026-09-30.",
+  "agreement_check": "on a sample of TEST-pair sets, the MediDeriver spread against the Showdown-oracle Deriver: reported (identical spreads, identical Speed SP)",
+  "applied": "each body's stats = spreadL50(battle-forme base stats, SP, sheet nature); HP = base line + HP SP (solver/chomp/v2/features.js)"
+ },
+ "features": {
+  "v1": [
+   "cov_mean",
+   "cov_min",
+   "ko_cov",
+   "fastko_cov",
+   "sko_cov",
+   "pko_cov",
+   "dmg_mean",
+   "fast_mean",
+   "h2_cov",
+   "lead_dmg",
+   "lead_ko",
+   "lead_fastko",
+   "lead_fast",
+   "lead_best",
+   "lead_cov_four",
+   "mega_any",
+   "mega_two",
+   "mega_lead",
+   "sheet_cov_mean",
+   "sheet_ko_cov",
+   "sheet_fast_mean",
+   "sheet_dmg_mean"
+  ],
+  "field": [
+   "f_can_weather",
+   "f_can_terrain",
+   "f_can_room",
+   "f_can_tw",
+   "f_lead_auto",
+   "f_cov_my",
+   "f_ko_my",
+   "f_inc_my",
+   "f_cov_th",
+   "f_ko_th",
+   "f_inc_th",
+   "f_fast_myw",
+   "f_fast_thw",
+   "f_fast_myroom",
+   "f_fast_throom",
+   "f_fast_mytw",
+   "f_fast_thtw",
+   "f_fastko_myctl"
+  ],
+  "field_rule": "setters read from the release's tags (weatherSetter, terrainSetter, setsWeather, setsTerrain, reversesSpeed, doublesSideSpeed); every field fact recomputed by MEDICHAM (dmgRange, hitProb, effSpeed, compareTurnOrder) under the field; neutral value where a side cannot set it. No entity named."
+ },
+ "scorer": {
+  "family": "v1's: antisymmetric logit = tau_src (s(x,y) - s(y,x) + species bring/lead values); arms lin, mlp (32 tanh); the same optimiser, epochs (40), batch (512), L2 (1e-4), seed (1), vocabulary rule (>= 10 TRAIN appearances)",
+  "candidates": {
+   "flat+field": "v1's 22 at the table stat line + the field block at the table stat line (40 features)",
+   "set+field": "v1's 22 at the set spread + the field block at the set spread (40 features)"
+  },
+  "selection": "the (candidate, arm, epoch) with the lowest VAL log-loss over all VAL rows (targeted + corpus + human), read once",
+  "ablations_val_only": {
+   "set": "v1's 22 at the set spread, no field (22)",
+   "flat": "v1's 22 refit (a check that the pipeline reproduces v1's VAL log-loss, 0.65326 for lin)"
+  }
+ },
+ "gate_a": {
+  "question": "does v2 predict held-out outcomes better than CHOMP v1 as shipped?",
+  "baseline": "CHOMP v1 as shipped: solver/chomp/v1/model/chomp1.json (sha256 7dfc0d81...), evaluated by a NumPy forward pass of its exported weights on v1's own features. Before any TEST row is read, that pass must reproduce v1's recorded VAL log-loss (chomp1.metrics.json val_ll.scorer.lin) to 1e-4, or the run stops.",
+  "metric": "log-loss per row (label = the win, or horizonScore on a capped game), each model at its own source temperature; delta = LL(v2) - LL(v1); 95% CI by a bootstrap over clusters (the pair; 2,000 resamples, seed 1)",
+  "sets": {
+   "T1": "targeted games on TEST pairs",
+   "T2": "corpus test fold",
+   "T3": "human games, both players TEST (reported, not gated)"
+  },
+  "pass": "the CI upper bound of delta on T1 and T2 POOLED is below 0",
+  "read": "once",
+  "red_on_break": "CHOMP2_BREAK=shuffle shuffles v2's TRAIN labels (v1 untouched); gate (a) must FAIL"
+ },
+ "gate_b": "pre-registered separately, only if gate (a) passes (solver/chomp/v2/preregistration-gate-b.json)"
+}

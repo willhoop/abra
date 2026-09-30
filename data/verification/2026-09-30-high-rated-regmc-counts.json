@@ -1,0 +1,790 @@
+{
+ "generated": "2026-09-30T00:52:34.860Z",
+ "what": "Reg M-C store counts by rating band, reveal rates, Choice Scarf share, ladder overlap and bo3 series. Streaming read, no simulator.",
+ "read_from": "the MAIN checkout C:/Users/willj/Projects/Pokemon/ABRA/data/, .gz passed explicitly (quality.js storePath() prefers the plain file)",
+ "git_blob": {
+  "games.gen9championsvgc2026regmc.jsonl.gz": "7f11d55554cf06d81cb199e6238bb780539718d9",
+  "games.gen9championsvgc2026regmcbo3.jsonl.gz": "525160abde064e9540c88689da5d3b5db0657115",
+  "note": "origin/main at dbe59fb6 carries newer blobs (76ef2de7 / d2b5041a, committed 2026-09-30T00:47Z); this count is of the main-checkout file, games to 2026-09-29 21:02"
+ },
+ "ladder_snapshot": {
+  "fetched": "2026-09-30T00:43Z",
+  "source": "https://pokemonshowdown.com/ladder/<format>.json",
+  "rating_field": "elo",
+  "listed_per_format": 500
+ },
+ "definitions": {
+  "ops_turnslen3": "both bot:false, brought 4+4, turns.length >= 3 (turn n===3 exists gives the identical set on every file)",
+  "quality_full": "engine/quality.js reasons() empty, INCLUDING behaviouralBots() computed over the same file. The illegal-team and custom-ruleset verdicts are Reg M-B ladder id sets and remove 0 Reg M-C games",
+  "lower_higher": "min / max of p1.rating and p2.rating as stored (pre-game ladder rating); null counts as 0",
+  "reveal": "bo1: per `sets` entry (base and mega formes are separate entries), distinct moves capped at 4; item share over non-mega entries; ability share over all entries",
+  "scarf": "bo3: per side sheet, any item ChoiceScarf. own_1300 = that side rated >= 1300",
+  "ladder": "userid match (lowercase alnum) of store names to the ladder toplist; player_games_held counts player appearances",
+  "series": "bo3 rows carry no bestof room id. Group by unordered player pair, sort by battle number, start a new series when the gap to the previous game exceeds gap_min, or the current series has 3 games or a player with 2 wins"
+ },
+ "runs": {
+  "plain-bo3": {
+   "file": "C:/Users/willj/Projects/Pokemon/ABRA/data/games.gen9championsvgc2026regmcbo3.jsonl",
+   "kind": "bo3",
+   "bytes": 242005636,
+   "mtime": "2026-09-21T07:02:34.285Z",
+   "lines": 24028,
+   "dup": 0,
+   "parse_errors": 0,
+   "unique_games": 24028,
+   "date_min": "2026-09-09 08:08",
+   "date_max": "2026-09-21 05:25",
+   "behavioural_bots": [
+    "Anne Choa",
+    "swedish yonkagor",
+    "emma grande",
+    "Afmoad"
+   ],
+   "reasons_tally": {
+    "partial_bring": 7386,
+    "short": 1682,
+    "bot": 158,
+    "forfeit_no_action": 155,
+    "behavioural_bot": 247
+   },
+   "defs": {
+    "ops_turnslen3": {
+     "games": 16517,
+     "lower": {
+      "1300": 236,
+      "1400": 17,
+      "1500": 0,
+      "1600": 0
+     },
+     "higher": {
+      "1300": 975,
+      "1400": 107,
+      "1500": 3,
+      "1600": 2
+     }
+    },
+    "ops_turn_n3": {
+     "games": 16517,
+     "lower": {
+      "1300": 236,
+      "1400": 17,
+      "1500": 0,
+      "1600": 0
+     },
+     "higher": {
+      "1300": 975,
+      "1400": 107,
+      "1500": 3,
+      "1600": 2
+     }
+    },
+    "quality_no_behavioural": {
+     "games": 16517,
+     "lower": {
+      "1300": 236,
+      "1400": 17,
+      "1500": 0,
+      "1600": 0
+     },
+     "higher": {
+      "1300": 975,
+      "1400": 107,
+      "1500": 3,
+      "1600": 2
+     }
+    },
+    "quality_full": {
+     "games": 16342,
+     "lower": {
+      "1300": 213,
+      "1400": 9,
+      "1500": 0,
+      "1600": 0
+     },
+     "higher": {
+      "1300": 914,
+      "1400": 85,
+      "1500": 2,
+      "1600": 2
+     }
+    }
+   },
+   "scarf": {
+    "ops": {
+     "teams": 33034,
+     "scarf": 8186,
+     "share": 0.2478,
+     "teams_own_1300": 1211,
+     "share_own_1300": 0.3154,
+     "teams_in_lower1300_games": 472,
+     "share_lower1300_games": 0.3178
+    },
+    "quality_full": {
+     "teams": 32684,
+     "scarf": 7963,
+     "share": 0.2436,
+     "teams_own_1300": 1127,
+     "share_own_1300": 0.2804,
+     "teams_in_lower1300_games": 426,
+     "share_lower1300_games": 0.27
+    }
+   },
+   "ladder": {
+    "file": "ladder-gen9championsvgc2026regmcbo3.json",
+    "top_elo": 1707.591104110871,
+    "listed": 500,
+    "bands": {
+     "top100": {
+      "players": 100,
+      "in_store": 15,
+      "zero_uploads": 85,
+      "zero_share": 0.85,
+      "player_games_held": 291,
+      "player_games_held_clean": 200,
+      "ladder_wlt_sum": 10680,
+      "held_share_of_wlt": 0.0272
+     },
+     "elo>=1500": {
+      "players": 94,
+      "in_store": 14,
+      "zero_uploads": 80,
+      "zero_share": 0.8511,
+      "player_games_held": 274,
+      "player_games_held_clean": 191,
+      "ladder_wlt_sum": 10234,
+      "held_share_of_wlt": 0.0268
+     },
+     "elo>=1600": {
+      "players": 9,
+      "in_store": 3,
+      "zero_uploads": 6,
+      "zero_share": 0.6667,
+      "player_games_held": 54,
+      "player_games_held_clean": 32,
+      "ladder_wlt_sum": 1225,
+      "held_share_of_wlt": 0.0441
+     },
+     "elo>=1700": {
+      "players": 1,
+      "in_store": 0,
+      "zero_uploads": 1,
+      "zero_share": 1,
+      "player_games_held": 0,
+      "player_games_held_clean": 0,
+      "ladder_wlt_sum": 171,
+      "held_share_of_wlt": 0
+     },
+     "all_listed": {
+      "players": 500,
+      "in_store": 119,
+      "zero_uploads": 381,
+      "zero_share": 0.762,
+      "player_games_held": 2689,
+      "player_games_held_clean": 1790,
+      "ladder_wlt_sum": 45316,
+      "held_share_of_wlt": 0.0593
+     }
+    }
+   },
+   "series": [
+    {
+     "gap_min": 15,
+     "series": 11337,
+     "by_length": {
+      "1": 2251,
+      "2": 5481,
+      "3": 3605
+     },
+     "decided_2_wins": 8832,
+     "with_any_clean_game": 9430,
+     "all_games_clean": 5308,
+     "lower_ge_1300": 165,
+     "lower_ge_1500": 0
+    },
+    {
+     "gap_min": 30,
+     "series": 11320,
+     "by_length": {
+      "1": 2227,
+      "2": 5478,
+      "3": 3615
+     },
+     "decided_2_wins": 8845,
+     "with_any_clean_game": 9416,
+     "all_games_clean": 5292,
+     "lower_ge_1300": 165,
+     "lower_ge_1500": 0
+    },
+    {
+     "gap_min": 60,
+     "series": 11314,
+     "by_length": {
+      "1": 2217,
+      "2": 5480,
+      "3": 3617
+     },
+     "decided_2_wins": 8848,
+     "with_any_clean_game": 9414,
+     "all_games_clean": 5287,
+     "lower_ge_1300": 165,
+     "lower_ge_1500": 0
+    }
+   ],
+   "series_pairs": 10961,
+   "behavioural_bots_n": 4
+  },
+  "gz-bo3": {
+   "file": "C:/Users/willj/Projects/Pokemon/ABRA/data/games.gen9championsvgc2026regmcbo3.jsonl.gz",
+   "kind": "bo3",
+   "bytes": 37565665,
+   "mtime": "2026-09-29T21:18:33.695Z",
+   "lines": 37165,
+   "dup": 0,
+   "parse_errors": 0,
+   "unique_games": 37165,
+   "date_min": "2026-09-09 08:08",
+   "date_max": "2026-09-29 21:02",
+   "behavioural_bots": [
+    "Anne Choa",
+    "swedish yonkagor",
+    "Afmoad",
+    "zinso45",
+    "AI damage calc",
+    "monfish",
+    "CemitaVGC"
+   ],
+   "reasons_tally": {
+    "partial_bring": 11433,
+    "short": 2548,
+    "bot": 217,
+    "forfeit_no_action": 230,
+    "behavioural_bot": 476
+   },
+   "defs": {
+    "ops_turnslen3": {
+     "games": 25553,
+     "lower": {
+      "1300": 724,
+      "1400": 90,
+      "1500": 0,
+      "1600": 0
+     },
+     "higher": {
+      "1300": 2162,
+      "1400": 420,
+      "1500": 47,
+      "1600": 6
+     }
+    },
+    "ops_turn_n3": {
+     "games": 25553,
+     "lower": {
+      "1300": 724,
+      "1400": 90,
+      "1500": 0,
+      "1600": 0
+     },
+     "higher": {
+      "1300": 2162,
+      "1400": 420,
+      "1500": 47,
+      "1600": 6
+     }
+    },
+    "quality_no_behavioural": {
+     "games": 25553,
+     "lower": {
+      "1300": 724,
+      "1400": 90,
+      "1500": 0,
+      "1600": 0
+     },
+     "higher": {
+      "1300": 2162,
+      "1400": 420,
+      "1500": 47,
+      "1600": 6
+     }
+    },
+    "quality_full": {
+     "games": 25238,
+     "lower": {
+      "1300": 715,
+      "1400": 89,
+      "1500": 0,
+      "1600": 0
+     },
+     "higher": {
+      "1300": 2112,
+      "1400": 416,
+      "1500": 47,
+      "1600": 6
+     }
+    }
+   },
+   "scarf": {
+    "ops": {
+     "teams": 51106,
+     "scarf": 12536,
+     "share": 0.2453,
+     "teams_own_1300": 2886,
+     "share_own_1300": 0.2911,
+     "teams_in_lower1300_games": 1448,
+     "share_lower1300_games": 0.3025
+    },
+    "quality_full": {
+     "teams": 50476,
+     "scarf": 12231,
+     "share": 0.2423,
+     "teams_own_1300": 2827,
+     "share_own_1300": 0.2858,
+     "teams_in_lower1300_games": 1430,
+     "share_lower1300_games": 0.2979
+    }
+   },
+   "ladder": {
+    "file": "ladder-gen9championsvgc2026regmcbo3.json",
+    "top_elo": 1707.591104110871,
+    "listed": 500,
+    "bands": {
+     "top100": {
+      "players": 100,
+      "in_store": 19,
+      "zero_uploads": 81,
+      "zero_share": 0.81,
+      "player_games_held": 527,
+      "player_games_held_clean": 376,
+      "ladder_wlt_sum": 10680,
+      "held_share_of_wlt": 0.0493
+     },
+     "elo>=1500": {
+      "players": 94,
+      "in_store": 18,
+      "zero_uploads": 76,
+      "zero_share": 0.8085,
+      "player_games_held": 499,
+      "player_games_held_clean": 362,
+      "ladder_wlt_sum": 10234,
+      "held_share_of_wlt": 0.0488
+     },
+     "elo>=1600": {
+      "players": 9,
+      "in_store": 3,
+      "zero_uploads": 6,
+      "zero_share": 0.6667,
+      "player_games_held": 82,
+      "player_games_held_clean": 50,
+      "ladder_wlt_sum": 1225,
+      "held_share_of_wlt": 0.0669
+     },
+     "elo>=1700": {
+      "players": 1,
+      "in_store": 0,
+      "zero_uploads": 1,
+      "zero_share": 1,
+      "player_games_held": 0,
+      "player_games_held_clean": 0,
+      "ladder_wlt_sum": 171,
+      "held_share_of_wlt": 0
+     },
+     "all_listed": {
+      "players": 500,
+      "in_store": 142,
+      "zero_uploads": 358,
+      "zero_share": 0.716,
+      "player_games_held": 4128,
+      "player_games_held_clean": 2765,
+      "ladder_wlt_sum": 45316,
+      "held_share_of_wlt": 0.0911
+     }
+    }
+   },
+   "series": [
+    {
+     "gap_min": 15,
+     "series": 17500,
+     "by_length": {
+      "1": 3448,
+      "2": 8439,
+      "3": 5613
+     },
+     "decided_2_wins": 13664,
+     "with_any_clean_game": 14598,
+     "all_games_clean": 8128,
+     "lower_ge_1300": 490,
+     "lower_ge_1500": 1
+    },
+    {
+     "gap_min": 30,
+     "series": 17464,
+     "by_length": {
+      "1": 3391,
+      "2": 8445,
+      "3": 5628
+     },
+     "decided_2_wins": 13694,
+     "with_any_clean_game": 14573,
+     "all_games_clean": 8097,
+     "lower_ge_1300": 489,
+     "lower_ge_1500": 1
+    },
+    {
+     "gap_min": 60,
+     "series": 17455,
+     "by_length": {
+      "1": 3377,
+      "2": 8446,
+      "3": 5632
+     },
+     "decided_2_wins": 13698,
+     "with_any_clean_game": 14572,
+     "all_games_clean": 8090,
+     "lower_ge_1300": 489,
+     "lower_ge_1500": 1
+    }
+   ],
+   "series_pairs": 16849,
+   "behavioural_bots_n": 7
+  },
+  "plain-bo1": {
+   "file": "C:/Users/willj/Projects/Pokemon/ABRA/data/games.gen9championsvgc2026regmc.jsonl",
+   "kind": "bo1",
+   "bytes": 218080470,
+   "mtime": "2026-09-21T07:02:00.465Z",
+   "lines": 33743,
+   "dup": 0,
+   "parse_errors": 0,
+   "unique_games": 33743,
+   "date_min": "2026-09-09 08:13",
+   "date_max": "2026-09-21 05:25",
+   "behavioural_bots": [
+    "HospitalityCheck",
+    "StrikerMohamud",
+    "Crituvyn72957",
+    "Novicebest",
+    "Tulpeon",
+    "Thornlace48812",
+    "404J"
+   ],
+   "reasons_tally": {
+    "partial_bring": 11590,
+    "short": 2935,
+    "forfeit_no_action": 225,
+    "bot": 3543,
+    "behavioural_bot": 1743
+   },
+   "defs": {
+    "ops_turnslen3": {
+     "games": 19870,
+     "lower": {
+      "1300": 2059,
+      "1400": 561,
+      "1500": 89,
+      "1600": 2
+     },
+     "higher": {
+      "1300": 3372,
+      "1400": 1233,
+      "1500": 286,
+      "1600": 33
+     }
+    },
+    "ops_turn_n3": {
+     "games": 19870,
+     "lower": {
+      "1300": 2059,
+      "1400": 561,
+      "1500": 89,
+      "1600": 2
+     },
+     "higher": {
+      "1300": 3372,
+      "1400": 1233,
+      "1500": 286,
+      "1600": 33
+     }
+    },
+    "quality_no_behavioural": {
+     "games": 19870,
+     "lower": {
+      "1300": 2059,
+      "1400": 561,
+      "1500": 89,
+      "1600": 2
+     },
+     "higher": {
+      "1300": 3372,
+      "1400": 1233,
+      "1500": 286,
+      "1600": 33
+     }
+    },
+    "quality_full": {
+     "games": 18694,
+     "lower": {
+      "1300": 2028,
+      "1400": 548,
+      "1500": 86,
+      "1600": 2
+     },
+     "higher": {
+      "1300": 3322,
+      "1400": 1214,
+      "1500": 280,
+      "1600": 33
+     }
+    }
+   },
+   "reveal": {
+    "ops": {
+     "entries": 190288,
+     "moves_mean": 1.685,
+     "moves_share": 0.4213,
+     "item_share_nonmega": 0.2553,
+     "nonmega_entries": 155187,
+     "ability_share": 0.3603
+    },
+    "quality_full": {
+     "entries": 179052,
+     "moves_mean": 1.695,
+     "moves_share": 0.4238,
+     "item_share_nonmega": 0.2608,
+     "nonmega_entries": 146102,
+     "ability_share": 0.3652
+    }
+   },
+   "ladder": {
+    "file": "ladder-gen9championsvgc2026regmc.json",
+    "top_elo": 1797.4866822955,
+    "listed": 500,
+    "bands": {
+     "top100": {
+      "players": 100,
+      "in_store": 27,
+      "zero_uploads": 73,
+      "zero_share": 0.73,
+      "player_games_held": 363,
+      "player_games_held_clean": 239,
+      "ladder_wlt_sum": 22681,
+      "held_share_of_wlt": 0.016
+     },
+     "elo>=1500": {
+      "players": 500,
+      "in_store": 163,
+      "zero_uploads": 337,
+      "zero_share": 0.674,
+      "player_games_held": 1548,
+      "player_games_held_clean": 985,
+      "ladder_wlt_sum": 99548,
+      "held_share_of_wlt": 0.0156
+     },
+     "elo>=1600": {
+      "players": 400,
+      "in_store": 123,
+      "zero_uploads": 277,
+      "zero_share": 0.6925,
+      "player_games_held": 1204,
+      "player_games_held_clean": 760,
+      "ladder_wlt_sum": 79896,
+      "held_share_of_wlt": 0.0151
+     },
+     "elo>=1700": {
+      "players": 56,
+      "in_store": 15,
+      "zero_uploads": 41,
+      "zero_share": 0.7321,
+      "player_games_held": 197,
+      "player_games_held_clean": 133,
+      "ladder_wlt_sum": 14240,
+      "held_share_of_wlt": 0.0138
+     },
+     "all_listed": {
+      "players": 500,
+      "in_store": 163,
+      "zero_uploads": 337,
+      "zero_share": 0.674,
+      "player_games_held": 1548,
+      "player_games_held_clean": 985,
+      "ladder_wlt_sum": 99548,
+      "held_share_of_wlt": 0.0156
+     }
+    }
+   },
+   "behavioural_bots_n": 7
+  },
+  "gz-bo1": {
+   "file": "C:/Users/willj/Projects/Pokemon/ABRA/data/games.gen9championsvgc2026regmc.jsonl.gz",
+   "kind": "bo1",
+   "bytes": 44940799,
+   "mtime": "2026-09-29T21:18:31.427Z",
+   "lines": 59196,
+   "dup": 0,
+   "parse_errors": 0,
+   "unique_games": 59196,
+   "date_min": "2026-09-09 08:13",
+   "date_max": "2026-09-29 21:02",
+   "behavioural_bots": [
+    "HospitalityCheck",
+    "cosmonaut.009",
+    "Crituvyn72957",
+    "Novicebest",
+    "Tulpeon",
+    "Thornlace48812",
+    "stupid春bigㄟ",
+    "monfish",
+    "Scorecard-Pokemon",
+    "kevdan42",
+    "SC-SME",
+    "underabridgevgc",
+    "SC-Control",
+    "AI_Paku"
+   ],
+   "reasons_tally": {
+    "partial_bring": 20457,
+    "short": 5027,
+    "forfeit_no_action": 381,
+    "bot": 6213,
+    "behavioural_bot": 8001
+   },
+   "defs": {
+    "ops_turnslen3": {
+     "games": 34717,
+     "lower": {
+      "1300": 5701,
+      "1400": 1680,
+      "1500": 383,
+      "1600": 32
+     },
+     "higher": {
+      "1300": 8789,
+      "1400": 3512,
+      "1500": 1002,
+      "1600": 209
+     }
+    },
+    "ops_turn_n3": {
+     "games": 34717,
+     "lower": {
+      "1300": 5701,
+      "1400": 1680,
+      "1500": 383,
+      "1600": 32
+     },
+     "higher": {
+      "1300": 8789,
+      "1400": 3512,
+      "1500": 1002,
+      "1600": 209
+     }
+    },
+    "quality_no_behavioural": {
+     "games": 34717,
+     "lower": {
+      "1300": 5701,
+      "1400": 1680,
+      "1500": 383,
+      "1600": 32
+     },
+     "higher": {
+      "1300": 8789,
+      "1400": 3512,
+      "1500": 1002,
+      "1600": 209
+     }
+    },
+    "quality_full": {
+     "games": 29537,
+     "lower": {
+      "1300": 4311,
+      "1400": 1450,
+      "1500": 361,
+      "1600": 31
+     },
+     "higher": {
+      "1300": 6617,
+      "1400": 2829,
+      "1500": 889,
+      "1600": 201
+     }
+    }
+   },
+   "reveal": {
+    "ops": {
+     "entries": 333049,
+     "moves_mean": 1.672,
+     "moves_share": 0.418,
+     "item_share_nonmega": 0.2494,
+     "nonmega_entries": 271498,
+     "ability_share": 0.3615
+    },
+    "quality_full": {
+     "entries": 283549,
+     "moves_mean": 1.692,
+     "moves_share": 0.4231,
+     "item_share_nonmega": 0.2587,
+     "nonmega_entries": 231324,
+     "ability_share": 0.3636
+    }
+   },
+   "ladder": {
+    "file": "ladder-gen9championsvgc2026regmc.json",
+    "top_elo": 1797.4866822955,
+    "listed": 500,
+    "bands": {
+     "top100": {
+      "players": 100,
+      "in_store": 36,
+      "zero_uploads": 64,
+      "zero_share": 0.64,
+      "player_games_held": 516,
+      "player_games_held_clean": 331,
+      "ladder_wlt_sum": 22681,
+      "held_share_of_wlt": 0.0228
+     },
+     "elo>=1500": {
+      "players": 500,
+      "in_store": 213,
+      "zero_uploads": 287,
+      "zero_share": 0.574,
+      "player_games_held": 2560,
+      "player_games_held_clean": 1587,
+      "ladder_wlt_sum": 99548,
+      "held_share_of_wlt": 0.0257
+     },
+     "elo>=1600": {
+      "players": 400,
+      "in_store": 158,
+      "zero_uploads": 242,
+      "zero_share": 0.605,
+      "player_games_held": 1968,
+      "player_games_held_clean": 1211,
+      "ladder_wlt_sum": 79896,
+      "held_share_of_wlt": 0.0246
+     },
+     "elo>=1700": {
+      "players": 56,
+      "in_store": 18,
+      "zero_uploads": 38,
+      "zero_share": 0.6786,
+      "player_games_held": 281,
+      "player_games_held_clean": 183,
+      "ladder_wlt_sum": 14240,
+      "held_share_of_wlt": 0.0197
+     },
+     "all_listed": {
+      "players": 500,
+      "in_store": 213,
+      "zero_uploads": 287,
+      "zero_share": 0.574,
+      "player_games_held": 2560,
+      "player_games_held_clean": 1587,
+      "ladder_wlt_sum": 99548,
+      "held_share_of_wlt": 0.0257
+     }
+    }
+   },
+   "behavioural_bots_n": 14
+  }
+ },
+ "script": "'use strict';\n// node count.js <store-file> <bo1|bo3> <ladder.json> <out.json>\nconst fs = require('fs'), zlib = require('zlib'), readline = require('readline');\nconst WT = 'C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a2fe7875c9565f705';\nconst Q = require(WT + '/engine/quality.js');\nconst [file, kind, ladderFile, outFile] = process.argv.slice(2);\nconst cfg = Q.config();\nconst uid = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');\nconst normMv = s => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');\n\n(async () => {\n  const st = fs.statSync(file);\n  let stream = fs.createReadStream(file);\n  if (file.endsWith('.gz')) stream = stream.pipe(zlib.createGunzip());\n  const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });\n  const seen = new Set(); let lines = 0, dup = 0, bad = 0;\n  const G = [];\n  let minDate = null, maxDate = null;\n  for await (const line of rl) {\n    const s = line.trim(); if (!s) continue; lines++;\n    let g; try { g = JSON.parse(s); } catch (e) { bad++; continue; }\n    if (seen.has(g.id)) { dup++; continue; }\n    seen.add(g.id);\n    if (!minDate || g.date < minDate) minDate = g.date;\n    if (!maxDate || g.date > maxDate) maxDate = g.date;\n    const rs = Q.reasons(g, cfg, null);           // canonical, minus the behavioural-bot rule\n    const turns = g.turns || [];\n    const br = g.brought || {};\n    const opsClean = !(g.p1 && g.p1.bot) && !(g.p2 && g.p2.bot)\n      && (br.p1 || []).length === 4 && (br.p2 || []).length === 4;\n    const rec = {\n      id: g.id, date: g.date, num: +String(g.id).split('-').pop(),\n      p1: { name: (g.p1 || {}).name, rating: (g.p1 || {}).rating }, p2: { name: (g.p2 || {}).name, rating: (g.p2 || {}).rating },\n      six: g.six, winner: g.winner, rs,\n      opsLen: opsClean && turns.length >= 3,\n      opsN3: opsClean && turns.some(t => t.n === 3),\n    };\n    // reveal (bo1): per sets entry\n    if (kind === 'bo1') {\n      const e = [];\n      for (const [k, v] of Object.entries(g.sets || {})) {\n        const mv = new Set((v.moves || []).map(normMv));\n        e.push({ mega: /mega/.test(k), mv: Math.min(4, mv.size), item: !!v.item, ab: !!v.ability });\n      }\n      rec.sets = e;\n    } else {\n      const sc = {};\n      for (const sd of ['p1', 'p2']) sc[sd] = ((g.sheets || {})[sd] || []).some(m => /choicescarf/i.test(String(m.item || '').replace(/\\s/g, '')));\n      rec.scarf = sc;\n    }\n    G.push(rec);\n  }\n  const bots = Q.behaviouralBots(G, cfg);\n  for (const r of G) {\n    if ((r.p1 && bots.has(r.p1.name)) || (r.p2 && bots.has(r.p2.name))) r.rs = r.rs.concat('behavioural_bot');\n    r.clean = r.rs.length === 0;\n    r.cleanNoBehav = r.rs.filter(x => x !== 'behavioural_bot').length === 0;\n  }\n  const lo = r => Math.min(+r.p1.rating || 0, +r.p2.rating || 0);\n  const hi = r => Math.max(+r.p1.rating || 0, +r.p2.rating || 0);\n  const TH = [1300, 1400, 1500, 1600];\n  function band(sel) {\n    const S = G.filter(sel);\n    const o = { games: S.length, lower: {}, higher: {} };\n    for (const t of TH) { o.lower[t] = S.filter(r => lo(r) >= t).length; o.higher[t] = S.filter(r => hi(r) >= t).length; }\n    return o;\n  }\n  const reasonsTally = {};\n  for (const r of G) for (const x of r.rs) reasonsTally[x] = (reasonsTally[x] || 0) + 1;\n  const out = {\n    file, kind, bytes: st.size, mtime: st.mtime.toISOString(), lines, dup, parse_errors: bad,\n    unique_games: G.length, date_min: minDate, date_max: maxDate,\n    behavioural_bots: [...bots], reasons_tally: reasonsTally,\n    defs: {\n      ops_turnslen3: band(r => r.opsLen),\n      ops_turn_n3: band(r => r.opsN3),\n      quality_no_behavioural: band(r => r.cleanNoBehav),\n      quality_full: band(r => r.clean),\n    },\n  };\n  // reveal / scarf on the OPS def and on the full quality def\n  function reveal(sel) {\n    let n = 0, mv = 0, nm = 0, it = 0, ab = 0;\n    for (const r of G.filter(sel)) for (const e of r.sets) { n++; mv += e.mv; ab += e.ab; if (!e.mega) { nm++; it += e.item; } }\n    return { entries: n, moves_mean: +(mv / n).toFixed(3), moves_share: +(mv / n / 4).toFixed(4),\n             item_share_nonmega: +(it / nm).toFixed(4), nonmega_entries: nm, ability_share: +(ab / n).toFixed(4) };\n  }\n  function scarf(sel) {\n    let t = 0, s = 0, t13 = 0, s13 = 0, g13t = 0, g13s = 0;\n    for (const r of G.filter(sel)) for (const sd of ['p1', 'p2']) {\n      t++; s += r.scarf[sd];\n      if ((+r[sd].rating || 0) >= 1300) { t13++; s13 += r.scarf[sd]; }\n      if (lo(r) >= 1300) { g13t++; g13s += r.scarf[sd]; }\n    }\n    return { teams: t, scarf: s, share: +(s / t).toFixed(4), teams_own_1300: t13, share_own_1300: +(s13 / t13).toFixed(4),\n             teams_in_lower1300_games: g13t, share_lower1300_games: +(g13s / g13t).toFixed(4) };\n  }\n  if (kind === 'bo1') out.reveal = { ops: reveal(r => r.opsLen), quality_full: reveal(r => r.clean) };\n  else out.scarf = { ops: scarf(r => r.opsLen), quality_full: scarf(r => r.clean) };\n\n  // ladder overlap\n  const L = JSON.parse(fs.readFileSync(ladderFile, 'utf8')).toplist;\n  const cnt = new Map(), cntClean = new Map();\n  for (const r of G) for (const sd of ['p1', 'p2']) {\n    const u = uid(r[sd].name); cnt.set(u, (cnt.get(u) || 0) + 1);\n    if (r.clean) cntClean.set(u, (cntClean.get(u) || 0) + 1);\n  }\n  const ladder = {};\n  const bands = [['top100', p => true, 100], ['elo>=1500', p => p.elo >= 1500], ['elo>=1600', p => p.elo >= 1600], ['elo>=1700', p => p.elo >= 1700], ['all_listed', p => true]];\n  for (const [name, f, topN] of bands) {\n    let P = L.filter(f); if (topN) P = L.slice(0, topN);\n    const inStore = P.filter(p => cnt.get(p.userid));\n    const ladderGames = P.reduce((a, p) => a + (p.w + p.l + p.t), 0);\n    const held = P.reduce((a, p) => a + (cnt.get(p.userid) || 0), 0);\n    const heldClean = P.reduce((a, p) => a + (cntClean.get(p.userid) || 0), 0);\n    ladder[name] = { players: P.length, in_store: inStore.length, zero_uploads: P.length - inStore.length,\n      zero_share: +((P.length - inStore.length) / P.length).toFixed(4),\n      player_games_held: held, player_games_held_clean: heldClean, ladder_wlt_sum: ladderGames,\n      held_share_of_wlt: +(held / ladderGames).toFixed(4) };\n  }\n  // most recent game in the store per top ladder player, vs their last_played\n  out.ladder = { file: ladderFile, top_elo: L[0] && Math.max(...L.map(p => p.elo)), listed: L.length, bands: ladder };\n\n  // bo3 series\n  if (kind === 'bo3') {\n    const byPair = new Map();\n    for (const r of G) {\n      const k = [uid(r.p1.name), uid(r.p2.name)].sort().join('|');\n      if (!byPair.has(k)) byPair.set(k, []);\n      byPair.get(k).push(r);\n    }\n    const ts = d => Date.parse(d.replace(' ', 'T') + ':00Z');\n    function series(gapMin) {\n      const S = [];\n      for (const [k, arr] of byPair) {\n        arr.sort((a, b) => a.num - b.num);\n        let cur = null;\n        for (const r of arr) {\n          const done = cur && (cur.games.length >= 3 || Object.values(cur.wins).some(w => w >= 2));\n          if (!cur || done || ts(r.date) - ts(cur.last) > gapMin * 60000) { cur = { games: [], wins: {}, last: r.date }; S.push(cur); }\n          cur.games.push(r); cur.last = r.date;\n          const w = uid(r.winner); if (w) cur.wins[w] = (cur.wins[w] || 0) + 1;\n        }\n      }\n      const len = { 1: 0, 2: 0, 3: 0 };\n      let decided = 0, anyClean = 0, allClean = 0, lo1500 = 0, lo1300 = 0;\n      for (const s of S) {\n        len[s.games.length]++;\n        if (Object.values(s.wins).some(w => w >= 2)) decided++;\n        if (s.games.some(g => g.clean)) anyClean++;\n        if (s.games.every(g => g.clean)) allClean++;\n        const l = Math.max(...s.games.map(lo)); if (l >= 1300) lo1300++; if (l >= 1500) lo1500++;\n      }\n      return { gap_min: gapMin, series: S.length, by_length: len, decided_2_wins: decided,\n               with_any_clean_game: anyClean, all_games_clean: allClean, lower_ge_1300: lo1300, lower_ge_1500: lo1500 };\n    }\n    out.series = [15, 30, 60].map(series);\n    out.series_pairs = byPair.size;\n  }\n  fs.writeFileSync(outFile, JSON.stringify(out, null, 1));\n  console.log(JSON.stringify(out, (k, v) => k === 'behavioural_bots' ? v.length : v, 1));\n})();\n"
+}

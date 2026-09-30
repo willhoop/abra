@@ -1,0 +1,251 @@
+|title|sdkvndfv vs. medicham32
+|j|☆sdkvndfv
+|j|☆medicham32
+|html|<table width="100%"><tr><td align="left">sdkvndfv</td><td align="right">medicham32</tr><tr><td align="left"><i class="fa fa-circle-o"></i> <i class="fa fa-circle-o"></i> </td><td align="right"><i class="fa fa-circle-o"></i> <i class="fa fa-circle-o"></i> </tr></table>
+|uhtml|bestof|<h2><strong>Game 1</strong> of <a href="/game-bestof3-gen9championsvgc2026regmcbo3-2690156745-6u3ml1tno6gjxx4gdkps9x5a5ny77wgpw">a best-of-3</a></h2>
+|t:|1790730819
+|gametype|doubles
+|player|p1|sdkvndfv|unknown|1189
+|player|p2|medicham32|101|1078
+|gen|9
+|tier|[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)
+|rated|
+|rule|Species Clause: Limit one of each Pokémon
+|rule|Item Clause: Limit 1 of each item
+|clearpoke
+|poke|p1|Gengar, L50, F, shiny|
+|poke|p1|Incineroar, L50, F|
+|poke|p1|Rillaboom, L50, F|
+|poke|p1|Kommo-o, L50, M, shiny|
+|poke|p1|Floette-Eternal, L50, F|
+|poke|p1|Vivillon-Jungle, L50, M|
+|poke|p2|Salamence, L50, M|
+|poke|p2|Raichu, L50, F|
+|poke|p2|Sneasler, L50, F|
+|poke|p2|Rillaboom, L50, M|
+|poke|p2|Kingambit, L50, F|
+|poke|p2|Volcarona, L50, F|
+|teampreview|4
+|showteam|p1|Gengar||Gengarite|CursedBody|Protect,ShadowBall,SludgeBomb,PerishSong|Modest||F|||50|]Incineroar||SitrusBerry|Intimidate|Protect,FakeOut,FlareBlitz,PartingShot|Careful||F|||50|]Rillaboom||EjectButton|GrassySurge|Protect,FakeOut,GrassyGlide,WoodHammer|Careful||F|||50|]Kommo-o||Leftovers|Soundproof|Protect,ClangorousSoul,AuraSphere,ClangingScales|Modest||M|||50|]Floette-Eternal||Floettite|FlowerVeil|Protect,CalmMind,DrainingKiss,DazzlingGleam|Timid||F|||50|]Vivillon-Jungle||FocusSash|CompoundEyes|Protect,SleepPowder,RagePowder,PollenPuff|Timid||M|||50|
+|showteam|p2|Salamence||Salamencite|Intimidate|DracoMeteor,HyperVoice,Tailwind,Protect|Timid||M|||50|]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid||F|||50|]Sneasler||GrassySeed|Unburden|DireClaw,CloseCombat,FakeOut,Protect|Adamant||F|||50|]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,HighHorsepower,GrassyGlide,FakeOut|Adamant||M|||50|]Kingambit||ChopleBerry|Defiant|KowtowCleave,IronHead,SuckerPunch,LowKick|Adamant||F|||50|]Volcarona||Leftovers|FlameBody|Flamethrower,GigaDrain,QuiverDance,Protect|Modest||F|||50|
+|
+|t:|1790730832
+|teamsize|p1|4
+|teamsize|p2|4
+|start
+|switch|p1a: Gengar|Gengar, L50, F, shiny|100/100
+|switch|p1b: Incineroar|Incineroar, L50, F|100/100
+|switch|p2a: Salamence|Salamence, L50, M|202/202
+|switch|p2b: Volcarona|Volcarona, L50, F|192/192
+|-ability|p2a: Salamence|Intimidate|boost
+|-unboost|p1a: Gengar|atk|1
+|-unboost|p1b: Incineroar|atk|1
+|-ability|p1b: Incineroar|Intimidate|boost
+|-unboost|p2a: Salamence|atk|1
+|-unboost|p2b: Volcarona|atk|1
+|turn|1
+|
+|t:|1790730838
+|detailschange|p1a: Gengar|Gengar-Mega, L50, F, shiny
+|-mega|p1a: Gengar|Gengar|Gengarite
+|detailschange|p2a: Salamence|Salamence-Mega, L50, M
+|-mega|p2a: Salamence|Salamence|Salamencite
+|move|p1b: Incineroar|Fake Out|p2a: Salamence
+|-damage|p2a: Salamence|191/202
+|move|p1a: Gengar|Perish Song|p1a: Gengar
+|-start|p1a: Gengar|perish3|[silent]
+|-start|p1b: Incineroar|perish3|[silent]
+|-start|p2a: Salamence|perish3|[silent]
+|-start|p2b: Volcarona|perish3|[silent]
+|-fieldactivate|move: Perish Song
+|cant|p2a: Salamence|flinch
+|move|p2b: Volcarona|Quiver Dance|p2b: Volcarona
+|-boost|p2b: Volcarona|spa|1
+|-boost|p2b: Volcarona|spd|1
+|-boost|p2b: Volcarona|spe|1
+|
+|-start|p2b: Volcarona|perish3
+|-start|p1a: Gengar|perish3
+|-start|p2a: Salamence|perish3
+|-start|p1b: Incineroar|perish3
+|upkeep
+|turn|2
+|
+|t:|1790730859
+|move|p1a: Gengar|Protect|p1a: Gengar
+|-singleturn|p1a: Gengar|Protect
+|move|p1b: Incineroar|Protect|p1b: Incineroar
+|-singleturn|p1b: Incineroar|Protect
+|move|p2b: Volcarona|Quiver Dance|p2b: Volcarona
+|-boost|p2b: Volcarona|spa|1
+|-boost|p2b: Volcarona|spd|1
+|-boost|p2b: Volcarona|spe|1
+|move|p2a: Salamence|Tailwind|p2a: Salamence
+|-sidestart|p2: medicham32|move: Tailwind
+|
+|-start|p2b: Volcarona|perish2
+|-start|p2a: Salamence|perish2
+|-start|p1a: Gengar|perish2
+|-start|p1b: Incineroar|perish2
+|upkeep
+|turn|3
+|
+|t:|1790730869
+|switch|p1a: Kommo-o|Kommo-o, L50, M, shiny|100/100
+|move|p2b: Volcarona|Quiver Dance|p2b: Volcarona
+|-boost|p2b: Volcarona|spa|1
+|-boost|p2b: Volcarona|spd|1
+|-boost|p2b: Volcarona|spe|1
+|move|p2a: Salamence|Hyper Voice|p1a: Kommo-o|[spread] p1b
+|-immune|p1a: Kommo-o|[from] ability: Soundproof
+|-damage|p1b: Incineroar|65/100
+|move|p1b: Incineroar|Parting Shot|p2b: Volcarona
+|-unboost|p2b: Volcarona|atk|1
+|-unboost|p2b: Volcarona|spa|1
+|
+|t:|1790730876
+|switch|p1b: Gengar|Gengar-Mega, L50, F, shiny|100/100|[from] Parting Shot
+|
+|-start|p2b: Volcarona|perish1
+|-start|p2a: Salamence|perish1
+|upkeep
+|turn|4
+|
+|t:|1790730881
+|move|p1b: Gengar|Protect|p1b: Gengar
+|-singleturn|p1b: Gengar|Protect
+|move|p1a: Kommo-o|Protect|p1a: Kommo-o
+|-singleturn|p1a: Kommo-o|Protect
+|move|p2b: Volcarona|Flamethrower|p1b: Gengar
+|-activate|p1b: Gengar|move: Protect
+|move|p2a: Salamence|Draco Meteor|p1a: Kommo-o
+|-activate|p1a: Kommo-o|move: Protect
+|
+|-start|p2b: Volcarona|perish0
+|-start|p2a: Salamence|perish0
+|faint|p2b: Volcarona
+|faint|p2a: Salamence
+|upkeep
+|
+|t:|1790730886
+|switch|p2a: Sneasler|Sneasler, L50, F|187/187
+|switch|p2b: Kingambit|Kingambit, L50, F|207/207
+|turn|5
+|
+|t:|1790730900
+|switch|p1b: Rillaboom|Rillaboom, L50, F|100/100
+|-fieldstart|move: Grassy Terrain|[from] ability: Grassy Surge|[of] p1b: Rillaboom
+|-enditem|p2a: Sneasler|Grassy Seed
+|-boost|p2a: Sneasler|def|1|[from] item: Grassy Seed
+|move|p2a: Sneasler|Fake Out|p1a: Kommo-o
+|-damage|p1a: Kommo-o|86/100
+|move|p2b: Kingambit|Kowtow Cleave|p1b: Rillaboom
+|-damage|p1b: Rillaboom|53/100
+|-enditem|p1b: Rillaboom|Eject Button
+|
+|t:|1790730911
+|switch|p1b: Gengar|Gengar-Mega, L50, F, shiny|100/100
+|cant|p1a: Kommo-o|flinch
+|
+|-heal|p1a: Kommo-o|92/100|[from] Grassy Terrain
+|-heal|p1a: Kommo-o|98/100|[from] item: Leftovers
+|-sideend|p2: medicham32|move: Tailwind
+|upkeep
+|turn|6
+|
+|t:|1790730916
+|move|p1a: Kommo-o|Protect|p1a: Kommo-o
+|-singleturn|p1a: Kommo-o|Protect
+|move|p2a: Sneasler|Dire Claw|p1a: Kommo-o
+|-activate|p1a: Kommo-o|move: Protect
+|move|p1b: Gengar|Perish Song|p1b: Gengar
+|-immune|p1a: Kommo-o|[from] ability: Soundproof
+|-start|p1b: Gengar|perish3|[silent]
+|-start|p2a: Sneasler|perish3|[silent]
+|-start|p2b: Kingambit|perish3|[silent]
+|-fieldactivate|move: Perish Song
+|move|p2b: Kingambit|Kowtow Cleave|p1b: Gengar
+|-supereffective|p1b: Gengar|1
+|-damage|p1b: Gengar|0 fnt
+|faint|p1b: Gengar
+|
+|-heal|p1a: Kommo-o|100/100|[from] Grassy Terrain
+|-start|p2a: Sneasler|perish3
+|-start|p2b: Kingambit|perish3
+|upkeep
+|
+|t:|1790730924
+|switch|p1b: Incineroar|Incineroar, L50, F|65/100
+|-ability|p1b: Incineroar|Intimidate|boost
+|-unboost|p2a: Sneasler|atk|1
+|-unboost|p2b: Kingambit|atk|1
+|-ability|p2b: Kingambit|Defiant|boost
+|-boost|p2b: Kingambit|atk|2
+|turn|7
+|
+|t:|1790730932
+|move|p1b: Incineroar|Fake Out|p2a: Sneasler
+|-damage|p2a: Sneasler|167/187
+|cant|p2a: Sneasler|flinch
+|move|p1a: Kommo-o|Clangorous Soul|p1a: Kommo-o
+|-boost|p1a: Kommo-o|atk|1
+|-boost|p1a: Kommo-o|def|1
+|-boost|p1a: Kommo-o|spa|1
+|-boost|p1a: Kommo-o|spd|1
+|-boost|p1a: Kommo-o|spe|1
+|-damage|p1a: Kommo-o|67/100
+|move|p2b: Kingambit|Iron Head|p1a: Kommo-o
+|-damage|p1a: Kommo-o|25/100
+|
+|-heal|p2a: Sneasler|178/187|[from] Grassy Terrain
+|-heal|p1a: Kommo-o|31/100|[from] Grassy Terrain
+|-heal|p1a: Kommo-o|37/100|[from] item: Leftovers
+|-heal|p1b: Incineroar|71/100|[from] Grassy Terrain
+|-start|p2a: Sneasler|perish2
+|-start|p2b: Kingambit|perish2
+|upkeep
+|turn|8
+|
+|t:|1790730944
+|move|p1a: Kommo-o|Protect|p1a: Kommo-o
+|-singleturn|p1a: Kommo-o|Protect
+|move|p1b: Incineroar|Protect|p1b: Incineroar
+|-singleturn|p1b: Incineroar|Protect
+|move|p2a: Sneasler|Dire Claw|p1a: Kommo-o
+|-activate|p1a: Kommo-o|move: Protect
+|move|p2b: Kingambit|Low Kick|p1b: Incineroar
+|-activate|p1b: Incineroar|move: Protect
+|
+|-heal|p2a: Sneasler|187/187|[from] Grassy Terrain
+|-heal|p1a: Kommo-o|43/100|[from] Grassy Terrain
+|-heal|p1a: Kommo-o|49/100|[from] item: Leftovers
+|-heal|p1b: Incineroar|77/100|[from] Grassy Terrain
+|-start|p2a: Sneasler|perish1
+|-start|p2b: Kingambit|perish1
+|upkeep
+|turn|9
+|
+|t:|1790730955
+|move|p1b: Incineroar|Protect||[still]
+|-fail|p1b: Incineroar
+|move|p2b: Kingambit|Sucker Punch|p1a: Kommo-o
+|-resisted|p1a: Kommo-o|1
+|-damage|p1a: Kommo-o|31/100
+|move|p2a: Sneasler|Dire Claw|p1a: Kommo-o
+|-damage|p1a: Kommo-o|12/100
+|move|p1a: Kommo-o|Aura Sphere|p2b: Kingambit
+|-supereffective|p2b: Kingambit|2
+|-enditem|p2b: Kingambit|Chople Berry|[eat]
+|-enditem|p2b: Kingambit|Chople Berry|[weaken]
+|-damage|p2b: Kingambit|0 fnt
+|faint|p2b: Kingambit
+|
+|-heal|p1a: Kommo-o|18/100|[from] Grassy Terrain
+|-heal|p1a: Kommo-o|24/100|[from] item: Leftovers
+|-heal|p1b: Incineroar|83/100|[from] Grassy Terrain
+|-start|p2a: Sneasler|perish0
+|-fieldend|move: Grassy Terrain
+|upkeep
+|faint|p2a: Sneasler
+|
+|win|sdkvndfv
