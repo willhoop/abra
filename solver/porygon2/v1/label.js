@@ -47,6 +47,10 @@ const h32 = s => crypto.createHash('sha256').update(s).digest().readUInt32BE(0);
 /* --train-only: label only the games build.js puts in the TRAIN split (its gameSplit, copied byte for byte: build.js:48).
  * A val or test game's label is never trained on, so labelling it spends the budget on nothing (2026-09-30, c1 deep labels). */
 const TRAIN_ONLY = argv.includes('--train-only');
+/* --resume-after <dir>: continue a stopped run. Shard i skips every game up to and including the LAST game key in <dir>/labels-i.jsonl
+ * (a game's lines are appended in one write, so that file ends on a whole game). Needs the same --workers. (2026-09-30: the c1 run died
+ * with the machine at ~03:28Z after 4.8 h; this continues it instead of restarting.) */
+const RESUME = flag('--resume-after', null) ? path.resolve(ROOT, flag('--resume-after')) : null;
 const gameSplit = k => { const h = crypto.createHash('sha256').update('porygon2-v1-sp:' + k).digest().readUInt32BE(0) % 100; return h < 80 ? 0 : h < 90 ? 1 : 2; };
 
 function* records(dir) {
@@ -96,6 +100,12 @@ function worker(shard, shards) {
   }
 
   let gi = -1;
+  let resumeKey = null;
+  if (RESUME) {
+    const prev = fs.readFileSync(path.join(RESUME, `labels-${shard}.jsonl`), 'utf8').split(/\r?\n/).filter(l => l.trim());
+    resumeKey = JSON.parse(prev[prev.length - 1]).key;
+    c.resumed_after = resumeKey; c.resume_skipped_games = 0;
+  }
   for (const dir of DIRS) {
     const dkey = path.relative(ROOT, dir).split(path.sep).join('/');
     for (const rec of records(dir)) {
@@ -104,6 +114,7 @@ function worker(shard, shards) {
       if (c.games >= LIMIT) break;
       if (Date.now() > DEADLINE) { c.stopped_at_deadline = 1; break; }
       const gkey = dkey + '|' + rec.g + '|' + rec.run_seed;
+      if (resumeKey) { c.resume_skipped_games++; if (gkey === resumeKey) resumeKey = null; continue; }
       if (TRAIN_ONLY && gameSplit(gkey) !== 0) { c.skipped_not_train = (c.skipped_not_train || 0) + 1; continue; }
       const n = rec.hist.length;
       if (!n || rec.vA == null) continue;
@@ -175,7 +186,7 @@ async function coordinator() {
   const first = sums.find(Boolean) || {};
   const summary = { what: 'PORYGON2 v1 search-improved labels (solver/porygon2/v1/label.js)', engine_release: first.engine_release, release_stamp: first.release_stamp,
     flags: { selfplay: DIRS.map(d => path.relative(ROOT, d).split(path.sep).join('/')), per_game: PER, k: K, passes: PASSES, chance: CHANCE, exact_depth: EXACT_DEPTH, seed: SEED,
-      leaf: path.relative(ROOT, LEAF).split(path.sep).join('/'), mag: MAG, doduo: DODUO, workers: W, limit: LIMIT === Infinity ? null : LIMIT, deadline: flag('--deadline', null), train_only: TRAIN_ONLY },
+      leaf: path.relative(ROOT, LEAF).split(path.sep).join('/'), mag: MAG, doduo: DODUO, workers: W, limit: LIMIT === Infinity ? null : LIMIT, deadline: flag('--deadline', null), train_only: TRAIN_ONLY, resume_after: RESUME && path.relative(ROOT, RESUME).split(path.sep).join('/') },
     counts, exits, wall_s: (Date.now() - t0) / 1000 };
   fs.writeFileSync(path.join(OUT, 'labels.summary.json'), JSON.stringify(summary, null, 1));
   console.log(JSON.stringify({ counts, wall_s: summary.wall_s }));
