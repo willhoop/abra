@@ -1,0 +1,516 @@
+{
+ "by": "MEASURE, abra/regmc 1.35.0 (scratch builder embedded below)",
+ "generated": "2026-09-30T02:50:30.653Z",
+ "report": "docs/_reports/2026-09-30-regmc-store-quality.md",
+ "stores_read": [
+  "data/games.gen9championsvgc2026regmcbo3.jsonl.gz",
+  "data/games.gen9championsvgc2026regmc.jsonl.gz"
+ ],
+ "store_blobs": {
+  "data/games.gen9championsvgc2026regmc.jsonl.gz": "76ef2de7",
+  "data/games.gen9championsvgc2026regmcbo3.jsonl.gz": "d2b5041a"
+ },
+ "rule_old": "min_games 50, max_distinct_teams 1, no id-keyed Reg M-C verdict",
+ "rule_new": "the same plus min_games_in_one_day 100 for ids matching ^gen9championsvgc2026regm[c-z], plus data/store-validation-regmc.json and data/custom-ruleset-ids-regmc.json",
+ "stores": {
+  "games.gen9championsvgc2026regmcbo3.jsonl.gz": {
+   "games": 37526,
+   "per_store_loadGames": {
+    "clean_old_rules": 25460,
+    "clean_new_rules": 25807,
+    "bots_old": [
+     "AI damage calc",
+     "Afmoad",
+     "Anne Choa",
+     "CemitaVGC",
+     "NoMoreRegMC",
+     "monfish",
+     "swedish yonkagor",
+     "zinso45"
+    ],
+    "bots_new": [],
+    "games_touched_by_behavioural_bot_old": 539,
+    "games_touched_by_behavioural_bot_new": 0
+   },
+   "two_id_keyed_rules": {
+    "illegal_team_flagged": 13,
+    "custom_ruleset_flagged": 13,
+    "removed_only_by_these_two": 10,
+    "removed_illegal_only": 0,
+    "removed_custom_only": 0,
+    "removed_both": 10
+   }
+  },
+  "games.gen9championsvgc2026regmc.jsonl.gz": {
+   "games": 59752,
+   "per_store_loadGames": {
+    "clean_old_rules": 29749,
+    "clean_new_rules": 30215,
+    "bots_old": [
+     "AI_Paku",
+     "Crituvyn72957",
+     "HospitalityCheck",
+     "Novicebest",
+     "SC-Control",
+     "SC-SME",
+     "Scorecard-Pokemon",
+     "Thornlace48812",
+     "Tulpeon",
+     "cosmonaut.009",
+     "ednasbreakout",
+     "kevdan42",
+     "monfish",
+     "stupid春bigㄟ",
+     "underabridgevgc"
+    ],
+    "bots_new": [
+     "AI_Paku",
+     "Crituvyn72957",
+     "SC-Control",
+     "SC-SME",
+     "Scorecard-Pokemon",
+     "Thornlace48812",
+     "kevdan42"
+    ],
+    "games_touched_by_behavioural_bot_old": 8188,
+    "games_touched_by_behavioural_bot_new": 7426
+   },
+   "two_id_keyed_rules": {
+    "illegal_team_flagged": 35,
+    "custom_ruleset_flagged": 75,
+    "removed_only_by_these_two": 30,
+    "removed_illegal_only": 0,
+    "removed_custom_only": 10,
+    "removed_both": 20
+   }
+  }
+ },
+ "usage_competitive_view_same_stores": {
+  "pool_after_predicate": 39450,
+  "competitive_old_rules": 26710,
+  "competitive_new_rules": 27063,
+  "top10_old": [
+   "rillaboom",
+   "sneasler",
+   "incineroar",
+   "salamence",
+   "gholdengo",
+   "kingambit",
+   "raichu",
+   "indeedeef",
+   "basculegion",
+   "arcaninehisui"
+  ],
+  "top10_new": [
+   "rillaboom",
+   "sneasler",
+   "incineroar",
+   "salamence",
+   "gholdengo",
+   "kingambit",
+   "raichu",
+   "indeedeef",
+   "basculegion",
+   "arcaninehisui"
+  ],
+  "largest_teamRate_moves": [
+   {
+    "sp": "garchomp",
+    "old": 0.1656,
+    "new": 0.1677,
+    "delta": 0.0021
+   },
+   {
+    "sp": "arcaninehisui",
+    "old": 0.1687,
+    "new": 0.1704,
+    "delta": 0.0017
+   },
+   {
+    "sp": "floetteeternal",
+    "old": 0.1421,
+    "new": 0.1433,
+    "delta": 0.0012
+   },
+   {
+    "sp": "indeedeef",
+    "old": 0.1888,
+    "new": 0.1878,
+    "delta": -0.001
+   },
+   {
+    "sp": "archaludon",
+    "old": 0.1115,
+    "new": 0.1107,
+    "delta": -0.0008
+   },
+   {
+    "sp": "kingambit",
+    "old": 0.2463,
+    "new": 0.247,
+    "delta": 0.0007
+   },
+   {
+    "sp": "raichu",
+    "old": 0.1906,
+    "new": 0.1913,
+    "delta": 0.0007
+   },
+   {
+    "sp": "golisopod",
+    "old": 0.1251,
+    "new": 0.1244,
+    "delta": -0.0007
+   }
+  ]
+ },
+ "meta_usage_regmc_before": {
+  "generated_at": "2026-09-21T22:16:23.447Z",
+  "usable": 18021,
+  "stores": [
+   {
+    "file": "data/games.gen9championsvgc2026regmcbo3.jsonl.gz",
+    "unique_games": 25415,
+    "sha256": "cb8f9d640a4d7fb187fe7318f47058272b05617e70677de2bbc14948f9cd3ac8"
+   },
+   {
+    "file": "data/games.gen9championsvgc2026regmc.jsonl.gz",
+    "unique_games": 35324,
+    "sha256": "ca604ff5ae39e319b7113c5b7fd60126e66598a94ae16fa49f231408ce14b4b0"
+   }
+  ]
+ },
+ "one_team_accounts_ge50_games": {
+  "gen9championsvgc2026regmc": [
+   {
+    "name": "Thornlace48812",
+    "games": 1299,
+    "teams": 1,
+    "topShare": 1,
+    "days": 5,
+    "perDay": 259.8,
+    "maxDay": 600,
+    "maxr": 1314,
+    "ffLoss": 0,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "kevdan42",
+    "games": 1328,
+    "teams": 1,
+    "topShare": 1,
+    "days": 6,
+    "perDay": 221.3,
+    "maxDay": 393,
+    "maxr": 1486,
+    "ffLoss": 0,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "Scorecard-Pokemon",
+    "games": 1778,
+    "teams": 1,
+    "topShare": 1,
+    "days": 10,
+    "perDay": 177.8,
+    "maxDay": 322,
+    "maxr": 1537,
+    "ffLoss": 0,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "SC-SME",
+    "games": 1455,
+    "teams": 1,
+    "topShare": 1,
+    "days": 8,
+    "perDay": 181.9,
+    "maxDay": 294,
+    "maxr": 1561,
+    "ffLoss": 0,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "SC-Control",
+    "games": 1327,
+    "teams": 1,
+    "topShare": 1,
+    "days": 8,
+    "perDay": 165.9,
+    "maxDay": 263,
+    "maxr": 1658,
+    "ffLoss": 0,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "AI_Paku",
+    "games": 174,
+    "teams": 1,
+    "topShare": 1,
+    "days": 3,
+    "perDay": 58,
+    "maxDay": 132,
+    "maxr": 1143,
+    "ffLoss": 0.006,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "Crituvyn72957",
+    "games": 124,
+    "teams": 1,
+    "topShare": 1,
+    "days": 2,
+    "perDay": 62,
+    "maxDay": 120,
+    "maxr": 1217,
+    "ffLoss": 0,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "Tulpeon",
+    "games": 121,
+    "teams": 1,
+    "topShare": 1,
+    "days": 8,
+    "perDay": 15.1,
+    "maxDay": 48,
+    "maxr": 1325,
+    "ffLoss": 0,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "ednasbreakout",
+    "games": 50,
+    "teams": 1,
+    "topShare": 1,
+    "days": 2,
+    "perDay": 25,
+    "maxDay": 41,
+    "maxr": 1469,
+    "ffLoss": 0.28,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "underabridgevgc",
+    "games": 62,
+    "teams": 1,
+    "topShare": 1,
+    "days": 3,
+    "perDay": 20.7,
+    "maxDay": 34,
+    "maxr": 1503,
+    "ffLoss": 0.306,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "monfish",
+    "games": 155,
+    "teams": 1,
+    "topShare": 1,
+    "days": 9,
+    "perDay": 17.2,
+    "maxDay": 33,
+    "maxr": 1229,
+    "ffLoss": 0,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "stupid春bigㄟ",
+    "games": 76,
+    "teams": 1,
+    "topShare": 1,
+    "days": 7,
+    "perDay": 10.9,
+    "maxDay": 18,
+    "maxr": 1454,
+    "ffLoss": 0.013,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "HospitalityCheck",
+    "games": 195,
+    "teams": 1,
+    "topShare": 1,
+    "days": 18,
+    "perDay": 10.8,
+    "maxDay": 15,
+    "maxr": 1318,
+    "ffLoss": 0,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "Novicebest",
+    "games": 77,
+    "teams": 1,
+    "topShare": 1,
+    "days": 14,
+    "perDay": 5.5,
+    "maxDay": 15,
+    "maxr": 1636,
+    "ffLoss": 0.052,
+    "botflag": false,
+    "ladder": {
+     "rank": 290,
+     "elo": 1617,
+     "wl": 221
+    }
+   },
+   {
+    "name": "cosmonaut.009",
+    "games": 54,
+    "teams": 1,
+    "topShare": 1,
+    "days": 11,
+    "perDay": 4.9,
+    "maxDay": 13,
+    "maxr": 1253,
+    "ffLoss": 0,
+    "botflag": false,
+    "ladder": null
+   }
+  ],
+  "gen9championsvgc2026regmcbo3": [
+   {
+    "name": "CemitaVGC",
+    "games": 59,
+    "teams": 1,
+    "topShare": 1,
+    "days": 5,
+    "perDay": 11.8,
+    "maxDay": 32,
+    "maxr": 1327,
+    "ffLoss": 0.136,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "NoMoreRegMC",
+    "games": 55,
+    "teams": 1,
+    "topShare": 1,
+    "days": 4,
+    "perDay": 13.8,
+    "maxDay": 30,
+    "maxr": 1376,
+    "ffLoss": 0.309,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "Afmoad",
+    "games": 60,
+    "teams": 1,
+    "topShare": 1,
+    "days": 6,
+    "perDay": 10,
+    "maxDay": 24,
+    "maxr": 1428,
+    "ffLoss": 0.017,
+    "botflag": false,
+    "ladder": {
+     "rank": 109,
+     "elo": 1495,
+     "wl": 58
+    }
+   },
+   {
+    "name": "swedish yonkagor",
+    "games": 70,
+    "teams": 1,
+    "topShare": 1,
+    "days": 5,
+    "perDay": 14,
+    "maxDay": 23,
+    "maxr": 1319,
+    "ffLoss": 0.329,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "AI damage calc",
+    "games": 61,
+    "teams": 1,
+    "topShare": 1,
+    "days": 6,
+    "perDay": 10.2,
+    "maxDay": 21,
+    "maxr": 1317,
+    "ffLoss": 0.213,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "zinso45",
+    "games": 56,
+    "teams": 1,
+    "topShare": 1,
+    "days": 7,
+    "perDay": 8,
+    "maxDay": 20,
+    "maxr": 1152,
+    "ffLoss": 0.161,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "monfish",
+    "games": 118,
+    "teams": 1,
+    "topShare": 1,
+    "days": 10,
+    "perDay": 11.8,
+    "maxDay": 17,
+    "maxr": 1177,
+    "ffLoss": 0,
+    "botflag": false,
+    "ladder": null
+   },
+   {
+    "name": "Anne Choa",
+    "games": 60,
+    "teams": 1,
+    "topShare": 1,
+    "days": 10,
+    "perDay": 6,
+    "maxDay": 12,
+    "maxr": 1123,
+    "ffLoss": 0.067,
+    "botflag": false,
+    "ladder": null
+   }
+  ]
+ },
+ "live_ladders": {
+  "gen9championsvgc2026regmc": {
+   "url": "https://pokemonshowdown.com/ladder/gen9championsvgc2026regmc.json",
+   "fetched_mtime": "2026-09-30T01:33:12.594Z",
+   "listed": 500
+  },
+  "gen9championsvgc2026regmcbo3": {
+   "url": "https://pokemonshowdown.com/ladder/gen9championsvgc2026regmcbo3.json",
+   "fetched_mtime": "2026-09-30T01:33:15.082Z",
+   "listed": 500
+  }
+ },
+ "scripts": {
+  "bots.js": "// Per-account profile over the Reg M-C stores (worktree-tracked .gz), crossed with the live ladders.\n'use strict';\nconst fs = require('fs'), path = require('path'), zlib = require('zlib'), readline = require('readline');\nconst WT = 'C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a992c7df2135eaf4a';\nconst S = __dirname;\nconst toID = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');\nasync function profile(fmt) {\n  const f = path.join(WT, 'data', 'games.' + fmt + '.jsonl.gz');\n  const acc = new Map(); const seen = new Set(); let n = 0;\n  const rl = readline.createInterface({ input: fs.createReadStream(f).pipe(zlib.createGunzip()), crlfDelay: Infinity });\n  for await (const line of rl) {\n    if (!line.trim()) continue; let g; try { g = JSON.parse(line); } catch (e) { continue; }\n    if (seen.has(g.id)) continue; seen.add(g.id); n++;\n    const day = String(g.date || '').slice(0, 10);\n    for (const s of ['p1', 'p2']) {\n      const p = g[s] || {}; if (!p.name) continue;\n      let a = acc.get(p.name); if (!a) acc.set(p.name, a = { name: p.name, games: 0, teams: new Map(), days: new Map(), maxr: 0, ff: 0, botflag: false, sheet: 0 });\n      a.games++; a.days.set(day, (a.days.get(day) || 0) + 1);\n      const six = ((g.six || {})[s] || []).slice().sort().join('|'); if (six) a.teams.set(six, (a.teams.get(six) || 0) + 1);\n      if (p.rating > a.maxr) a.maxr = p.rating; if (p.bot) a.botflag = true;\n      if (g.forfeit && g.winner && g.winner !== p.name) a.ff++;\n    }\n  }\n  const lad = JSON.parse(fs.readFileSync(path.join(S, 'ladder-' + fmt + '.json'), 'utf8')).toplist;\n  const rank = new Map(lad.map((u, i) => [u.userid, { rank: i + 1, elo: Math.round(u.elo), wl: u.w + u.l }]));\n  const rows = [...acc.values()].map(a => {\n    const top = Math.max(0, ...a.teams.values());\n    return { name: a.name, games: a.games, teams: a.teams.size, topShare: +(top / a.games).toFixed(3), days: a.days.size,\n      perDay: +(a.games / a.days.size).toFixed(1), maxDay: Math.max(...a.days.values()), maxr: a.maxr, ffLoss: +(a.ff / a.games).toFixed(3),\n      botflag: a.botflag, ladder: rank.get(toID(a.name)) || null };\n  });\n  return { fmt, file: path.relative(WT, f), bytes: fs.statSync(f).size, games: n, accounts: rows.length, rows };\n}\n(async () => {\n  const out = {};\n  for (const fmt of ['gen9championsvgc2026regmc', 'gen9championsvgc2026regmcbo3']) out[fmt] = await profile(fmt);\n  fs.writeFileSync(path.join(S, 'bots-profile.json'), JSON.stringify(out));\n  for (const [fmt, P] of Object.entries(out)) {\n    console.log(`\\n== ${fmt}  ${P.games} games  ${P.accounts} accounts`);\n    const big = P.rows.filter(r => r.games >= 30).sort((a, b) => a.teams - b.teams || b.games - a.games);\n    console.log('one-team accounts >=30 games:');\n    for (const r of big.filter(r => r.teams === 1)) console.log(`  ${r.name.padEnd(22)} g=${r.games} days=${r.days} perDay=${r.perDay} maxDay=${r.maxDay} maxr=${r.maxr} ffLoss=${r.ffLoss} bot=${r.botflag} ladder=${r.ladder ? JSON.stringify(r.ladder) : '-'}`);\n    // distribution of perDay and maxDay for multi-team accounts >= 50 games\n    const multi = P.rows.filter(r => r.games >= 50 && r.teams > 1);\n    const q = (arr, p) => { const s = arr.slice().sort((a, b) => a - b); return s[Math.floor(p * (s.length - 1))]; };\n    console.log(`multi-team >=50 games: ${multi.length}; perDay p50 ${q(multi.map(r => r.perDay), .5)} p90 ${q(multi.map(r => r.perDay), .9)} max ${Math.max(...multi.map(r => r.perDay))}; maxDay p90 ${q(multi.map(r => r.maxDay), .9)} max ${Math.max(...multi.map(r => r.maxDay))}`);\n    const hi = multi.sort((a, b) => b.maxDay - a.maxDay).slice(0, 8);\n    for (const r of hi) console.log(`   multi ${r.name.padEnd(22)} g=${r.games} teams=${r.teams} top=${r.topShare} perDay=${r.perDay} maxDay=${r.maxDay} maxr=${r.maxr} ladder=${r.ladder ? r.ladder.rank : '-'}`);\n    // top-share distribution among >=50 multi-team\n    console.log(`   topShare>=0.9 among multi>=50: ${multi.filter(r => r.topShare >= 0.9).length}`);\n  }\n})();\n",
+  "funnel.js": "// Before/after of the three quality changes on each Reg M-C store, through engine/quality.js itself.\n// Run with ABRA_NO_STORE_CACHE=1 so the two bot sets are not served from one memo.\n'use strict';\nconst path = require('path');\nconst WT = 'C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a992c7df2135eaf4a';\nconst Q = require(path.join(WT, 'engine', 'quality.js'));\nconst cfg = Q.config();\nconst cfgOld = JSON.parse(JSON.stringify(cfg));\ndelete cfgOld.rules.exclude_behavioural_bots.min_games_in_one_day;\ndelete cfgOld.rules.exclude_behavioural_bots.tempo_applies_id_pattern;\nconst out = {};\nconst stores = ['gen9championsvgc2026regmcbo3', 'gen9championsvgc2026regmc'].map(f => path.join(WT, 'data', 'games.' + f + '.jsonl'));\nconst all = [];\nfor (const s of stores) all.push(...Q.readStore(s));\nconst botsNewAll = Q.behaviouralBots(all, cfg), botsOldAll = Q.behaviouralBots(all, cfgOld);\nfor (const s of stores) {\n  const games = Q.readStore(s);\n  const res = {};\n  for (const [label, bots] of [['per_store', null], ['both_stores', null]]) {\n    const bNew = label === 'per_store' ? Q.behaviouralBots(games, cfg) : botsNewAll;\n    const bOld = label === 'per_store' ? Q.behaviouralBots(games, cfgOld) : botsOldAll;\n    let cleanOld = 0, cleanNew = 0; const only = {}; const any = {};\n    for (const g of games) {\n      const rNew = Q.reasons(g, cfg, bNew);\n      const rOld = Q.reasons(g, cfg, bOld).filter(x => x !== 'illegal_team' && x !== 'custom_ruleset');\n      if (!rOld.length) cleanOld++;\n      if (!rNew.length) cleanNew++;\n      for (const x of rNew) any[x] = (any[x] || 0) + 1;\n      if (rNew.length === 1) only[rNew[0]] = (only[rNew[0]] || 0) + 1;\n    }\n    const oldBotGames = games.filter(g => [g.p1, g.p2].some(p => p && bOld.has(p.name))).length;\n    const newBotGames = games.filter(g => [g.p1, g.p2].some(p => p && bNew.has(p.name))).length;\n    res[label] = { games: games.length, clean_before: cleanOld, clean_after: cleanNew, bots_before: [...bOld].sort(), bots_after: [...bNew].sort(),\n      behavioural_bot_games_before: oldBotGames, behavioural_bot_games_after: newBotGames, only_reason_after: only, any_reason_after: any };\n  }\n  out[path.basename(s)] = res;\n}\nconsole.log(JSON.stringify(out, null, 1));\n",
+  "marg.js": "// Marginal removals of the two regulation-aware rules, on the full store and inside usage_regulation's pool predicate.\n'use strict';\nconst path = require('path');\nconst WT = 'C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a992c7df2135eaf4a';\nconst Q = require(path.join(WT, 'engine', 'quality.js'));\nconst cfg = Q.config();\nconst stores = ['gen9championsvgc2026regmcbo3', 'gen9championsvgc2026regmc'].map(f => path.join(WT, 'data', 'games.' + f + '.jsonl'));\nconst per = stores.map(s => Q.readStore(s));\nconst bots = Q.behaviouralBots([].concat(...per), cfg);\nfor (let i = 0; i < stores.length; i++) {\n  const t = { only_illegal: 0, only_custom: 0, only_both: 0, illegal_any: 0, custom_any: 0, sheets_both: 0, sheets_both_removed_by_new: 0 };\n  for (const g of per[i]) {\n    const rs = Q.reasons(g, cfg, bots);\n    const other = rs.filter(x => x !== 'illegal_team' && x !== 'custom_ruleset');\n    const hasI = rs.includes('illegal_team'), hasC = rs.includes('custom_ruleset');\n    if (hasI) t.illegal_any++; if (hasC) t.custom_any++;\n    if (!other.length && (hasI || hasC)) { if (hasI && hasC) t.only_both++; else if (hasI) t.only_illegal++; else t.only_custom++; }\n    const sh = g.openSheet && g.sheets && (g.sheets.p1 || []).length && (g.sheets.p2 || []).length;\n    if (sh) { t.sheets_both++; if (!other.length && (hasI || hasC)) t.sheets_both_removed_by_new++; }\n  }\n  console.log(path.basename(stores[i]), per[i].length, JSON.stringify(t));\n}\n",
+  "ruleeffect.js": "// The competitive view on the SAME current stores, old rules vs new: isolates this change from store growth.\n'use strict';\nprocess.env.ABRA_REGULATION = 'regmc';\nprocess.env.ABRA_NO_STORE_CACHE = '1';\nconst path = require('path');\nconst WT = 'C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a992c7df2135eaf4a';\nconst REGN = require(path.join(WT, 'engine', 'regulation.js'));\nconst Q = require(path.join(WT, 'engine', 'quality.js'));\nconst DI = require(path.join(WT, 'engine', 'durable-ingest.js'));\nconst PRED = require(path.join(WT, 'engine', 'regmc_pool_predicate.js'));\nconst { usage, view } = require(path.join(WT, 'engine', 'usage_table.js'));\nconst TOKEN = DI.storeFormatFor({ label: REGN.LABEL, showdownFormat: REGN.FORMAT }, 'runtime.regmc');\nconst cfg = Q.config();\nconst cfgOld = JSON.parse(JSON.stringify(cfg));\ndelete cfgOld.rules.exclude_behavioural_bots.min_games_in_one_day;\ndelete cfgOld.rules.exclude_behavioural_bots.tempo_applies_id_pattern;\nconst rows = [].concat(...[REGN.BO3_FORMAT, REGN.FORMAT].map(f => Q.readStore(path.join(WT, 'data', 'games.' + f + '.jsonl.gz'))));\nconst bNew = Q.behaviouralBots(rows, cfg), bOld = Q.behaviouralBots(rows, cfgOld);\nconst pool = rows.filter(g => g.format === TOKEN && PRED.inScope(g) && !PRED.oldRule(g));\nconst newC = pool.filter(g => !Q.reasons(g, cfg, bNew).length);\nconst oldC = pool.filter(g => !Q.reasons(g, cfg, bOld).filter(x => x !== 'illegal_team' && x !== 'custom_ruleset').length);\nconst tn = view(usage(newC, { humansOnly: true })).threats, to = view(usage(oldC, { humansOnly: true })).threats;\nconst om = Object.fromEntries(to.map(t => [t.sp, t]));\nconsole.log('pool', pool.length, 'competitive old rules', oldC.length, 'new rules', newC.length);\nconst d = tn.map(t => [t.sp, om[t.sp] ? om[t.sp].teamRate : 0, t.teamRate, +(t.teamRate - (om[t.sp] ? om[t.sp].teamRate : 0)).toFixed(4)]);\nd.sort((a, b) => Math.abs(b[3]) - Math.abs(a[3]));\nconsole.log('largest teamRate moves:'); for (const x of d.slice(0, 8)) console.log('  ', x.join('  '));\nconsole.log('top 10 order old:', to.slice(0, 10).map(t => t.sp).join(','));\nconsole.log('top 10 order new:', tn.slice(0, 10).map(t => t.sp).join(','));\n",
+  "subset.js": "// Is every game id in the stale plain Reg M-C snapshot also in the tracked .gz? (The deletion question.)\n'use strict';\nconst fs = require('fs'), zlib = require('zlib'), readline = require('readline');\nconst M = 'C:/Users/willj/Projects/Pokemon/ABRA/data/';\nasync function ids(file, gz) {\n  const s = new Set(); const inp = fs.createReadStream(file);\n  const rl = readline.createInterface({ input: gz ? inp.pipe(zlib.createGunzip()) : inp, crlfDelay: Infinity });\n  for await (const l of rl) { const m = l.match(/^\\{\"id\":\"([^\"]+)\"/); if (m) s.add(Buffer.from(m[1]).toString()); }\n  return s;\n}\n(async () => {\n  for (const f of ['games.gen9championsvgc2026regmc.jsonl', 'games.gen9championsvgc2026regmcbo3.jsonl']) {\n    const p = await ids(M + f, false), g = await ids(M + f + '.gz', true);\n    let missing = 0; for (const id of p) if (!g.has(id)) missing++;\n    console.log(f, 'plain', p.size, 'gz', g.size, 'plain ids absent from gz', missing, 'gz mtime', fs.statSync(M + f + '.gz').mtime.toISOString());\n  }\n})();\n",
+  "build_verif.js": "// Builds data/verification/2026-09-30-regmc-store-quality.json from this pass's measurement outputs,\n// re-running the marginal-removal and rule-effect counts in-process. Run with ABRA_REGULATION=regmc.\n'use strict';\nprocess.env.ABRA_NO_STORE_CACHE = '1';\nconst fs = require('fs'), path = require('path');\nconst S = __dirname;\nconst WT = 'C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-a992c7df2135eaf4a';\nconst REGN = require(path.join(WT, 'engine', 'regulation.js'));\nconst Q = require(path.join(WT, 'engine', 'quality.js'));\nconst DI = require(path.join(WT, 'engine', 'durable-ingest.js'));\nconst PRED = require(path.join(WT, 'engine', 'regmc_pool_predicate.js'));\nconst { usage, view } = require(path.join(WT, 'engine', 'usage_table.js'));\nconst cfg = Q.config();\nconst cfgOld = JSON.parse(JSON.stringify(cfg));\ndelete cfgOld.rules.exclude_behavioural_bots.min_games_in_one_day;\ndelete cfgOld.rules.exclude_behavioural_bots.tempo_applies_id_pattern;\nconst files = [REGN.BO3_FORMAT, REGN.FORMAT].map(f => path.join(WT, 'data', 'games.' + f + '.jsonl.gz'));\nconst per = files.map(f => Q.readStore(f));\nconst all = [].concat(...per);\nconst bNewAll = Q.behaviouralBots(all, cfg), bOldAll = Q.behaviouralBots(all, cfgOld);\n\nconst stores = {};\nfiles.forEach((f, i) => {\n  const games = per[i];\n  const bNew = Q.behaviouralBots(games, cfg), bOld = Q.behaviouralBots(games, cfgOld);\n  let cleanOld = 0, cleanNew = 0;\n  const m = { illegal_team_flagged: 0, custom_ruleset_flagged: 0, removed_only_by_these_two: 0, removed_illegal_only: 0, removed_custom_only: 0, removed_both: 0 };\n  for (const g of games) {\n    const rNew = Q.reasons(g, cfg, bNew);\n    const other = rNew.filter(x => x !== 'illegal_team' && x !== 'custom_ruleset');\n    const rOld = Q.reasons(g, cfg, bOld).filter(x => x !== 'illegal_team' && x !== 'custom_ruleset');\n    if (!rOld.length) cleanOld++;\n    if (!rNew.length) cleanNew++;\n    const hi = rNew.includes('illegal_team'), hc = rNew.includes('custom_ruleset');\n    if (hi) m.illegal_team_flagged++; if (hc) m.custom_ruleset_flagged++;\n    if (!other.length && (hi || hc)) { m.removed_only_by_these_two++; if (hi && hc) m.removed_both++; else if (hi) m.removed_illegal_only++; else m.removed_custom_only++; }\n  }\n  const touched = b => games.filter(g => [g.p1, g.p2].some(p => p && b.has(p.name))).length;\n  stores[path.basename(f)] = {\n    games: games.length,\n    per_store_loadGames: { clean_old_rules: cleanOld, clean_new_rules: cleanNew, bots_old: [...bOld].sort(), bots_new: [...bNew].sort(),\n      games_touched_by_behavioural_bot_old: touched(bOld), games_touched_by_behavioural_bot_new: touched(bNew) },\n    two_id_keyed_rules: m,\n  };\n});\n\nconst TOKEN = DI.storeFormatFor({ label: REGN.LABEL, showdownFormat: REGN.FORMAT }, 'runtime.regmc');\nconst pool = all.filter(g => g.format === TOKEN && PRED.inScope(g) && !PRED.oldRule(g));\nconst newC = pool.filter(g => !Q.reasons(g, cfg, bNewAll).length);\nconst oldC = pool.filter(g => !Q.reasons(g, cfg, bOldAll).filter(x => x !== 'illegal_team' && x !== 'custom_ruleset').length);\nconst tn = view(usage(newC, { humansOnly: true })).threats, to = view(usage(oldC, { humansOnly: true })).threats;\nconst om = Object.fromEntries(to.map(t => [t.sp, t.teamRate]));\nconst moves = tn.map(t => ({ sp: t.sp, old: om[t.sp] || 0, new: t.teamRate, delta: +(t.teamRate - (om[t.sp] || 0)).toFixed(4) }))\n  .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 8);\nconst before = JSON.parse(fs.readFileSync(path.join(S, 'meta-usage-regmc.before.json'), 'utf8'));\n\nconst prof = JSON.parse(fs.readFileSync(path.join(S, 'bots-profile.json'), 'utf8'));\nconst oneTeam = {};\nfor (const [fmt, P] of Object.entries(prof)) oneTeam[fmt] = P.rows.filter(r => r.teams === 1 && r.games >= 50).sort((a, b) => b.maxDay - a.maxDay);\nconst ladders = {};\nfor (const fmt of [REGN.FORMAT, REGN.BO3_FORMAT]) {\n  const f = path.join(S, 'ladder-' + fmt + '.json');\n  ladders[fmt] = { url: 'https://pokemonshowdown.com/ladder/' + fmt + '.json', fetched_mtime: fs.statSync(f).mtime.toISOString(), listed: JSON.parse(fs.readFileSync(f, 'utf8')).toplist.length };\n}\n\nconst out = {\n  by: 'MEASURE, abra/regmc 1.35.0 (scratch builder embedded below)',\n  generated: new Date().toISOString(),\n  report: 'docs/_reports/2026-09-30-regmc-store-quality.md',\n  stores_read: files.map(f => path.relative(WT, f).split(path.sep).join('/')),\n  store_blobs: { 'data/games.gen9championsvgc2026regmc.jsonl.gz': '76ef2de7', 'data/games.gen9championsvgc2026regmcbo3.jsonl.gz': 'd2b5041a' },\n  rule_old: 'min_games 50, max_distinct_teams 1, no id-keyed Reg M-C verdict',\n  rule_new: 'the same plus min_games_in_one_day ' + cfg.rules.exclude_behavioural_bots.min_games_in_one_day + ' for ids matching ' + cfg.rules.exclude_behavioural_bots.tempo_applies_id_pattern + ', plus data/store-validation-regmc.json and data/custom-ruleset-ids-regmc.json',\n  stores,\n  usage_competitive_view_same_stores: { pool_after_predicate: pool.length, competitive_old_rules: oldC.length, competitive_new_rules: newC.length,\n    top10_old: to.slice(0, 10).map(t => t.sp), top10_new: tn.slice(0, 10).map(t => t.sp), largest_teamRate_moves: moves },\n  meta_usage_regmc_before: { generated_at: before.generated_at, usable: before.provenance.usable, stores: before.provenance.stores.map(s => ({ file: s.file, unique_games: s.unique_games, sha256: s.sha256 })) },\n  one_team_accounts_ge50_games: oneTeam,\n  live_ladders: ladders,\n  scripts: Object.fromEntries(['bots.js', 'funnel.js', 'marg.js', 'ruleeffect.js', 'subset.js', 'build_verif.js'].map(n => [n, fs.readFileSync(path.join(S, n), 'utf8')])),\n};\nconst dest = path.join(WT, 'data', 'verification', '2026-09-30-regmc-store-quality.json');\nfs.writeFileSync(dest, JSON.stringify(out, null, 1) + '\\n');\nconsole.log('wrote', dest);\nfor (const [k, v] of Object.entries(stores)) console.log(k, JSON.stringify(v.per_store_loadGames.clean_old_rules), '->', v.per_store_loadGames.clean_new_rules, JSON.stringify(v.two_id_keyed_rules));\nconsole.log(JSON.stringify(out.usage_competitive_view_same_stores).slice(0, 400));\n"
+ }
+}

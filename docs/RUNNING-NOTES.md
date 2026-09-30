@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.35.0] — 2026-09-30 — **Reg M-C store quality: the stale plain store is no longer read, both id-keyed rules judge Reg M-C, and the bot rule needs bot tempo**
+- **What changed.** `engine/quality.js` / `quality.py` `storePath()` reads the newer of the plain file and the `.gz` and prints the choice. It read the plain file before. `validate_store.js` and `scan_custom_rulesets.js` honour `--regulation` and write `data/store-validation-regmc.json` and `data/custom-ruleset-ids-regmc.json`, which `quality.js` unions. For Reg M-C, only legality-altering custom rooms are excluded. `data/quality-filter.json` adds the Reg M-C tempo clause (≥ 100 games on one day). `data/meta-usage-regmc.json` regenerated.
+- **Measured.** Tracked stores bo1 `76ef2de7` n=59,752 and bo3 `d2b5041a` n=37,526. Legality keys 48 ids and custom excludes 89 (of 2,477 infobox rooms). Together they remove 30 bo1 and 10 bo3 otherwise-clean games. Bots: bo3 8 → 0, bo1 15 → 7. Clean: bo3 25,460 → 25,807, bo1 29,749 → 30,215 (`data/verification/2026-09-30-regmc-store-quality.json`). `data/meta-usage-regmc.json` usable 27,063. The move from the 09-21 file is mostly store growth (`data/verification/2026-09-30-regmc-store-quality.json`: 18,021 before). On the same stores this pass alone gives 26,710 → 27,063, with no team rate moving more than 0.21 pp. `docs/_reports/2026-09-30-regmc-store-quality.md`.
+- **Basis.** unchanged.
+- **Supersedes.** The committed usage model of 2026-09-21, replaced in the same commit. No living document quoted it. Its usable count was 18,021 (`data/verification/2026-09-30-regmc-store-quality.json`).
+- **Owed to the next major.** `docs/REGMC.md`: the custom-rule section now has a Reg M-C scan at 0% untestable, and the bot rule has a Reg M-C clause.
+
 ## [abra/regmc 1.34.1] — 2026-09-30 — **CHANGELOG-REGMC heading fix after the overnight merges**
 - **What changed.** The double-Protect entry's CHANGELOG heading reads 1.32.0 again; the 1.34.0 merge renumber had renamed it. Its notes row already read 1.32.0. No code.
 - **Measured.** NO FIGURE.

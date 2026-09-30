@@ -37,13 +37,37 @@
 const fs = require('fs'), path = require('path'), readline = require('readline');
 
 const D = (...p) => path.join(__dirname, '..', ...p);
-const RAW_DEFAULT = D('data', 'games.ladder.raw-logs.jsonl');
-const STORE_DEFAULT = D('data', 'games.ladder.jsonl');
-const REPORT = 'docs/_reports/2026-09-21-custom-ruleset-filter.md';
+/* REGULATION-AWARE — 2026-09-30 (MEASURE, abra/regmc 1.35.0). This scanned Reg M-B's ladder raw logs
+ * and nothing else, so `exclude_custom_ruleset` removed 0 Reg M-C games while reporting ON. Under a
+ * non-owner regulation (--regulation / ABRA_REGULATION, through engine/regulation.js) the defaults are
+ * that regulation's raw-log shards (data/raw/games.<format>/*.jsonl.gz, both formats, plus any flat
+ * data/games.<format>.raw-logs.jsonl) and its two parsed stores; `--raw-add <path>` adds a raw file
+ * (repeatable), and the write below is turned into data/custom-ruleset-ids-<id>.json by the regulation
+ * seam. Under Reg M-B nothing changes. */
+const REGN = require('./regulation.js');
+const Q = require('./quality.js');
+const IS_OWNER = REGN.ID === REGN.ARTIFACT_OWNER;
+const REG_FORMATS = IS_OWNER ? [] : [REGN.BO3_FORMAT, REGN.FORMAT].filter(Boolean);
+const regRaw = () => {
+  const out = [];
+  for (const fmt of REG_FORMATS) {
+    const dir = D('data', 'raw', 'games.' + fmt);
+    try { for (const f of fs.readdirSync(dir).filter(f => /\.jsonl\.gz$/.test(f)).sort()) out.push(path.join(dir, f)); }
+    catch (e) { console.error(`scan_custom_rulesets: no raw shards for ${fmt} (${e.code || e.message}); its store rows will count as UNTESTABLE.`); }
+    const flat = D('data', 'games.' + fmt + '.raw-logs.jsonl');
+    if (fs.existsSync(flat) || fs.existsSync(flat + '.gz')) out.push(flat);
+  }
+  return out;
+};
+const RAW_DEFAULT = IS_OWNER ? [D('data', 'games.ladder.raw-logs.jsonl')] : regRaw();
+const STORE_DEFAULT = IS_OWNER ? [D('data', 'games.ladder.jsonl')] : REG_FORMATS.map(f => D('data', 'games.' + f + '.jsonl'));
+const REPORT = IS_OWNER ? 'docs/_reports/2026-09-21-custom-ruleset-filter.md' : 'docs/_reports/2026-09-30-regmc-store-quality.md';
 
 const flag = (n, d) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : d; };
-const RAW = flag('--raw', RAW_DEFAULT);
-const STORE = flag('--store', STORE_DEFAULT);
+const flags = n => process.argv.map((a, i) => (a === n ? process.argv[i + 1] : null)).filter(Boolean);
+const RAWS = (flag('--raw', null) ? [flag('--raw', null)] : RAW_DEFAULT).concat(flags('--raw-add'));
+const STORES = flag('--store', null) ? [flag('--store', null)] : STORE_DEFAULT;
+if (!RAWS.length) { console.error('scan_custom_rulesets: no raw log to scan for ' + REGN.ID + ' -- refusing to write an empty verdict.'); process.exit(1); }
 /* NULL, NOT A DEFAULT CONSTANT, AND THE WRITE BELOW SPELLS THE NAME OUT. engine/provenance.js ranks
  * `the file's own name on a write line` above `its name bound to an identifier that is written`, and
  * engine/quality.py — which only READS this artifact, through `open(CUSTOM_RULESET, ...)` — scores
@@ -92,11 +116,9 @@ function stampFile(p) {
 /* PLAIN WINS WHEN BOTH EXIST, AND `.gz` IS READ WHEN IT IS ALL THERE IS — the same rule and the same
  * ordering as storePath()/readStoreText() in engine/quality.js, because a second convention for "where
  * is the store" is how two readers of one corpus disagree. On a fresh clone only the `.gz` exists. */
-function resolveStore(p) {
-  if (fs.existsSync(p)) return p;
-  if (fs.existsSync(p + '.gz')) return p + '.gz';
-  return p;                                  // let the read throw with the name the caller asked for
-}
+/* 2026-09-30: CALLED, NOT COPIED. The plain-wins copy that stood here went wrong with quality.js's for
+ * Reg M-C, where the plain file is a stale local snapshot; the one rule now lives in quality.js. */
+function resolveStore(p) { return Q.storePath(p); }
 async function eachLine(file, fn) {
   const f = resolveStore(file);
   let input = fs.createReadStream(f);
@@ -111,10 +133,14 @@ async function eachLine(file, fn) {
   const rawIds = new Set();
   const byRule = new Map();               // rule string -> { rows, alters_legality, entity_token }
   const hits = new Map();                 // id -> rule string
-  await eachLine(RAW, (line) => {
+  for (const RAW of RAWS) await eachLine(RAW, (line) => {
     rawSeen++;
-    const m = line.match(ID);
-    if (!m) { rawNoId++; return; }
+    const m0 = line.match(ID);
+    if (!m0) { rawNoId++; return; }
+    /* AN OWNED COPY OF THE ID, NOT A SLICE. A regex capture is a V8 sliced string that keeps its whole
+     * parent alive, so a Set of ids retained every raw log it was cut from: 97,000 Reg M-C logs ran the
+     * heap out at 2 GB on 2026-09-30. Reg M-B's single flat file never reached the limit. */
+    const m = [null, Buffer.from(m0[1], 'utf8').toString('utf8')];
     rawIds.add(m[1]);
     const b = line.match(BOX);
     if (!b) return;
@@ -122,7 +148,7 @@ async function eachLine(file, fn) {
     if (BOX_PLURAL.test(line)) plural++; else singular++;
     /* The captured text is a JSON string body, so a `\n` in it is two characters. Rule lists are
      * single-line in every row seen, but unescape rather than assume. */
-    const rules = b[2].replace(/\\n/g, ' ').replace(/\\"/g, '"').trim();
+    const rules = Buffer.from(b[2].replace(/\\n/g, ' ').replace(/\\"/g, '"').trim(), 'utf8').toString('utf8');
     const alters = LEGALITY.test(rules), entity = ENTITY.test(rules);
     if (alters) leg++;
     if (entity) ent++;
@@ -135,10 +161,11 @@ async function eachLine(file, fn) {
   /* ---- pass 2: the parsed store. The join, and the untestable share. ------------------------ */
   let storeSeen = 0, storeNoId = 0, joined = 0, untestable = 0, joinedLeg = 0;
   const storeIds = new Set();
-  await eachLine(STORE, (line) => {
+  for (const STORE of STORES) await eachLine(STORE, (line) => {
     storeSeen++;
-    const m = line.match(ID);
-    if (!m) { storeNoId++; return; }
+    const m0 = line.match(ID);
+    if (!m0) { storeNoId++; return; }
+    const m = [null, Buffer.from(m0[1], 'utf8').toString('utf8')];   /* owned, not a slice: see pass 1 */
     if (storeIds.has(m[1])) return;             // dedupe: first occurrence wins, as quality.js does
     storeIds.add(m[1]);
     if (!rawIds.has(m[1])) { untestable++; return; }
@@ -149,12 +176,25 @@ async function eachLine(file, fn) {
   const rules = [...byRule.entries()].sort((a, b) => b[1].rows - a[1].rows)
     .map(([k, v]) => ({ rules: k, rows: v.rows, alters_legality: v.alters_legality, entity_token: v.entity_token }));
   const ruleIndex = new Map(rules.map((r, i) => [r.rules, i]));
-  const ids = {};
-  for (const [id, r] of [...hits.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1))) ids[id] = ruleIndex.get(r);
+  /* UNDER A NON-OWNER REGULATION ONLY THE LEGALITY-ALTERING ROOMS ARE EXCLUDED — and that is a scope
+   * decision already written down, not a new one. docs/REGMC.md "THE M-C POOL CARRIES CUSTOM-RULE
+   * ROOMS": `Force Open Team Sheets` is the rule that MAKES a game open-sheet, which is Reg M-C's scope,
+   * and whether to drop the `Best of = 3` rooms "is a judgement and it has not been taken". So `ids`
+   * (what engine/quality.js excludes) holds the rooms whose rules change what a team may contain or how
+   * many are picked (LEGALITY or an explicit +X/-X entity token, the `alter_legality_union` classifier),
+   * and every other infobox room is published under `ids_information_regime_not_excluded` for that
+   * judgement. Sheet-regime rooms are already scoped by the pool predicate (openSheet and both sheets).
+   * Under Reg M-B every infobox room is excluded, as Will decided on 2026-09-21. */
+  const ids = {}, idsRegime = {};
+  for (const [id, r] of [...hits.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
+    if (IS_OWNER || LEGALITY.test(r) || ENTITY.test(r)) ids[id] = ruleIndex.get(r);
+    else idsRegime[id] = ruleIndex.get(r);
+  }
 
   const untestableShare = storeIds.size ? untestable / storeIds.size : 0;
   const out = {
     by: 'engine/scan_custom_rulesets.js',
+    ...(IS_OWNER ? {} : { regulation: REGN.ID, formats: REG_FORMATS }),
     generated: new Date().toISOString(),
     report: REPORT,
     what: 'Every game id whose RAW log carries Showdown\'s custom-rule infobox. data/quality-filter.json '
@@ -162,7 +202,10 @@ async function eachLine(file, fn) {
         + '`rule_strings`.',
     floor_not_census: 'THE INFOBOX IS IN THE RAW LOG. A store row whose raw log is not on disk cannot be '
         + 'tested, so `counts.ids` is a FLOOR. untestable.share is what this scan could not ask.',
-    sources: { raw_logs: stampFile(RAW), store: stampFile(STORE) },
+    sources: IS_OWNER ? { raw_logs: stampFile(RAWS[0]), store: stampFile(STORES[0]) } : {
+      raw_logs: { files: RAWS.length, bytes: RAWS.map(stampFile).reduce((a, x) => a + (x.bytes || 0), 0),
+                  first: stampFile(RAWS[0]).path, last: stampFile(RAWS[RAWS.length - 1]).path },
+      stores: STORES.map(stampFile) },
     counts: {
       raw_logs_scanned: rawSeen,
       raw_logs_without_id: rawNoId,
@@ -180,6 +223,7 @@ async function eachLine(file, fn) {
       joined_share: storeIds.size ? +(joined / storeIds.size).toFixed(6) : 0,
       joined_alter_legality_or_pick: joinedLeg,
       ids: Object.keys(ids).length,
+      ...(IS_OWNER ? {} : { ids_information_regime_not_excluded: Object.keys(idsRegime).length }),
     },
     untestable: {
       store_ids_with_no_raw_log: untestable,
@@ -196,6 +240,7 @@ async function eachLine(file, fn) {
     },
     rule_strings: rules,
     ids,
+    ...(IS_OWNER ? {} : { ids_information_regime_not_excluded: idsRegime }),
   };
   const body = JSON.stringify(out, null, 1) + '\n';
   if (OUT) fs.writeFileSync(OUT, body);
@@ -204,7 +249,7 @@ async function eachLine(file, fn) {
   if (QUIET) return;
   const pct = (a, b) => (b ? (100 * a / b).toFixed(2) + '%' : 'n/a');
   console.log('CUSTOM-RULESET SCAN');
-  console.log(`  raw logs             ${rawSeen.toLocaleString()} records  (${stampFile(RAW).mtime})`);
+  console.log(`  raw logs             ${rawSeen.toLocaleString()} records  (${RAWS.length} file(s); first ${stampFile(RAWS[0]).mtime})`);
   console.log(`  custom-rule infobox  ${box.toLocaleString()} (${pct(box, rawSeen)})  in ${byRule.size} distinct rule strings`);
   console.log(`    plural "rules:"    ${plural.toLocaleString()}   <- what the 2026-09-21 investigation could see`);
   console.log(`    singular "rule:"   ${singular.toLocaleString()}   <- what it could not`);
@@ -216,8 +261,10 @@ async function eachLine(file, fn) {
   /* PRINTED EVERY RUN. Silence here would let a partial scan read as a complete one. */
   console.log(`  UNTESTABLE           ${untestable.toLocaleString()} store ids have no raw log on disk `
     + `(${pct(untestable, storeIds.size)}) - the count above is a FLOOR, not a census`);
+  if (!IS_OWNER) console.log(`  EXCLUDED (${REGN.ID})       ${Object.keys(ids).length.toLocaleString()} ids whose rules alter legality or pick; `
+    + `${Object.keys(idsRegime).length.toLocaleString()} information-regime rooms published, NOT excluded (docs/REGMC.md: not yet judged)`);
   console.log('\n  top rule strings');
   for (const r of rules.slice(0, 8))
     console.log(`    ${String(r.rows).padStart(6)}  ${r.alters_legality ? 'LEGALITY' : '        '}  ${r.rules.slice(0, 84)}`);
-  console.log(`\n  wrote ${path.relative(D('.'), OUT || D('data', 'custom-ruleset-ids.json'))}`);
+  console.log(`\n  wrote ${OUT ? path.relative(D('.'), OUT) : REGN.artifactFor('data/custom-ruleset-ids.json')}`);
 })();

@@ -35,14 +35,37 @@ function config() { if (!_cfg) _cfg = JSON.parse(fs.readFileSync(CONFIG, 'utf8')
  * still what the collector appends to and still what exists on a working machine, so nothing about
  * local workflow changes; it is simply no longer the thing git carries.
  *
- * PLAIN WINS WHEN BOTH EXIST, and that ordering is deliberate. The plain file is the live one the
- * collector is writing; the .gz is a snapshot taken at commit time by build/compress-stores.js.
- * Preferring the .gz would silently serve stale games to every model on the one machine that is
- * actually collecting them. On a fresh clone only the .gz exists and it is read directly. */
+ * ~~PLAIN WINS WHEN BOTH EXIST~~ -- RETIRED 2026-09-30 (MEASURE, abra/regmc 1.35.0). That rule assumed
+ * the plain file is the live one this machine's collector appends to. For Reg M-C it is the reverse:
+ * the collector runs in GitHub Actions and commits the .gz, and the plain data/games.<format>.jsonl on
+ * this machine is a local snapshot that stopped at 2026-09-21 while the .gz ran on to 2026-09-29. So
+ * every caller handed a Reg M-C path read ~60% of the store and nothing said so
+ * (docs/_reports/2026-09-30-regmc-store-quality.md).
+ *
+ * THE NEWER FILE WINS, AND THE CHOICE IS PRINTED. When both exist, the one with the later mtime is
+ * read -- which is still the plain file on a machine whose collector is appending to it (every Reg M-B
+ * store on the main checkout: plain 2026-09-20, .gz 2026-09-06), and the .gz where the plain file is
+ * the stale leftover. A one-line notice names both and the one chosen, once per path per process, so
+ * the choice is visible rather than silent. mtime is not a content check, and the notice is what lets
+ * a reader catch the one case it gets wrong: a .gz freshly checked out over a plain file that is
+ * still being appended. On a fresh clone only the .gz exists and it is read directly. */
+const _pickNoted = new Set();
 function storePath(p) {
   const want = p || STORE;
-  if (fs.existsSync(want)) return want;
-  if (fs.existsSync(want + '.gz')) return want + '.gz';
+  const plain = fs.existsSync(want), gz = fs.existsSync(want + '.gz');
+  if (plain && gz) {
+    const mp = fs.statSync(want).mtimeMs, mg = fs.statSync(want + '.gz').mtimeMs;
+    const pick = mg > mp ? want + '.gz' : want;
+    if (!_pickNoted.has(want)) {
+      _pickNoted.add(want);
+      const d = x => new Date(x).toISOString().slice(0, 16) + 'Z';
+      console.error(`quality: both ${path.basename(want)} (${d(mp)}) and its .gz (${d(mg)}) exist; `
+        + `reading the NEWER, ${path.basename(pick)}. The other is ${((Math.abs(mg - mp)) / 86400000).toFixed(1)} days older.`);
+    }
+    return pick;
+  }
+  if (plain) return want;
+  if (gz) return want + '.gz';
   return want;                     // let the read throw with the name the caller asked for
 }
 function readStoreText(p) {
@@ -134,20 +157,39 @@ function _behaviouralBotsUncached(games, cfg) {
   cfg = cfg || config();
   const r = cfg.rules.exclude_behavioural_bots;
   if (!r || !r.on) return new Set();
-  const count = new Map(), teams = new Map();
+  /* THE TEMPO CLAUSE -- 2026-09-30 (MEASURE, abra/regmc 1.35.0). On Reg M-C, one team over 50 games is
+   * not a bot signature on its own: it flagged two accounts on the live top 500 (bo1 #290, bo3 #109)
+   * and every flagged bo3 account, while the bots proper sit in a separate cluster at 120-600 games in
+   * ONE calendar day. So an account must also reach `min_games_in_one_day` on some day. The clause
+   * applies only to an account with at least one game whose id matches `tempo_applies_id_pattern` (the
+   * Reg M-C format ids and later): Reg M-B's record is closed, and on a Reg M-B corpus the bot set
+   * stays exactly what it was. With no pattern the clause applies to nobody.
+   * Measured and argued in docs/_reports/2026-09-30-regmc-store-quality.md. */
+  const minDay = r.min_games_in_one_day || 0;
+  const appliesRx = (minDay && r.tempo_applies_id_pattern) ? new RegExp(r.tempo_applies_id_pattern) : null;
+  const count = new Map(), teams = new Map(), perDay = new Map(), tempoApplies = new Set();
   for (const g of games) {
+    const day = minDay ? String(g.date || '').slice(0, 10) : '';
+    const exempt = appliesRx ? !appliesRx.test(String(g.id || '')) : true;
     for (const s of ['p1', 'p2']) {
       const n = (g[s] || {}).name;
       if (!n) continue;
       count.set(n, (count.get(n) || 0) + 1);
       const six = ((g.six || {})[s] || []).slice().sort().join('|');
       if (six) { if (!teams.has(n)) teams.set(n, new Set()); teams.get(n).add(six); }
+      if (appliesRx) {
+        if (!perDay.has(n)) perDay.set(n, new Map());
+        const m = perDay.get(n); m.set(day, (m.get(day) || 0) + 1);
+        if (!exempt) tempoApplies.add(n);
+      }
     }
   }
   const out = new Set();
   for (const [n, c] of count) {
     const t = teams.get(n);
-    if (c >= r.min_games && t && t.size <= r.max_distinct_teams) out.add(n);
+    if (!(c >= r.min_games && t && t.size <= r.max_distinct_teams)) continue;
+    if (appliesRx && tempoApplies.has(n) && Math.max(...perDay.get(n).values()) < minDay) continue;
+    out.add(n);
   }
   return out;
 }
@@ -201,6 +243,28 @@ function illegalTeams() {
       + `NO game is excluded for legality. Run: node engine/validate_store.js --write`);
     _legal = out; return out;
   }
+  /* EVERY REGULATION'S VERDICT, NOT ONLY REG M-B'S — 2026-09-30 (MEASURE, abra/regmc 1.35.0).
+   * data/store-validation.json is Reg M-B's, judged under Reg M-B's format, and holds no Reg M-C id, so
+   * this rule removed 0 Reg M-C games while reporting itself ON. engine/validate_store.js now writes one
+   * verdict per regulation (data/store-validation-<id>.json, by engine/regulation.js's sibling rule),
+   * each judged by THAT regulation's TeamValidator, and each carrying a `keyed.ids` list. They are all
+   * read and their id sets unioned. That is safe because a game id carries its format
+   * (`gen9championsvgc2026regmc-...`), so one regulation's verdict cannot name another's game; and it
+   * means a caller reading a Reg M-C store is filtered by Reg M-C's verdict whether or not it selected
+   * the regulation. The legacy fields below stay Reg M-B's, computed exactly as before. */
+  const siblings = siblingVerdicts('store-validation', v);
+  out.verdicts = siblings.map(s => ({ source: s.rel, format: s.v.format || null, generated: s.v.generated || null,
+    judged_games: (s.v.judged || {}).games || 0, ids: ((s.v.keyed || {}).ids || []).length }));
+  const addSiblings = () => { for (const s of siblings) for (const id of ((s.v.keyed || {}).ids || [])) out.ids.add(id); };
+  if (v.regulation) {
+    /* A process that selected a non-owner regulation reads that regulation's verdict through the
+     * engine/regulation.js seam under this very name; it has no legacy block to resolve. */
+    out.generated = v.generated || null;
+    out.judged_games = (v.judged || {}).games || 0;
+    addSiblings();
+    out.expected = out.resolved = out.ids.size;
+    _legal = out; return out;
+  }
   const split = v.split || {};
   out.generated = v.generated || null;
   out.judged_games = (v.judged || {}).games || 0;
@@ -235,7 +299,32 @@ function illegalTeams() {
     `quality: exclude_illegal_teams resolved ${out.resolved} of ${out.expected} flagged game ids `
     + `(${out.unresolved} unresolved — data/store-validation.json publishes species_flagged_ids but `
     + `not item_flagged_ids, and its examples list is capped at 500). The filter is UNDER-removing.`);
+  addSiblings();                    /* AFTER the arithmetic, so the legacy counts stay Reg M-B's alone */
   _legal = out; return out;
+}
+
+/* The per-regulation verdicts beside a Reg M-B one: `data/<base>.json` itself when it is already in
+ * the new shape (the seam served a sibling under this name), plus every `data/<base>-<id>.json`.
+ * A per-regulation verdict names its `regulation`; Reg M-B's legacy files carry no such field and are
+ * read by the legacy code, never here. Deduplicated by that regulation, so a sibling read twice counts
+ * once. An unreadable sibling is reported, never skipped silently. */
+function siblingVerdicts(base, primary) {
+  const out = [], seen = new Set();
+  const take = (rel, v) => {
+    if (!v || !v.regulation || seen.has(v.regulation)) return;
+    seen.add(v.regulation); out.push({ rel, v });
+  };
+  /* A primary already in the new shape was served by the regulation seam: name the file it really is. */
+  take('data/' + base + (primary && primary.regulation ? '-' + primary.regulation : '') + '.json', primary);
+  const dir = path.join(__dirname, '..', 'data');
+  let names = [];
+  try { names = fs.readdirSync(dir).filter(f => f.startsWith(base + '-') && f.endsWith('.json')).sort(); }
+  catch (e) { console.error(`quality: cannot list ${dir} (${e.message}); no per-regulation ${base} verdict is read.`); }
+  for (const f of names) {
+    try { take('data/' + f, JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'))); }
+    catch (e) { console.error(`quality: ${f} would not read (${e.message}); its regulation's ids are NOT excluded.`); }
+  }
+  return out;
 }
 
 /* THE CUSTOM-RULESET VERDICT — A DETECTOR, AND ITS EVIDENCE IS SHOWDOWN'S OWN INFOBOX.
@@ -285,6 +374,16 @@ function customRuleset() {
   out.alter_legality = c.joined_alter_legality_or_pick || 0;
   out.untestable = u.store_ids_with_no_raw_log || 0;
   out.untestable_share = u.share || 0;
+  /* EVERY REGULATION'S SCAN, unioned — the same reasoning and the same reader as illegalTeams().
+   * engine/scan_custom_rulesets.js writes data/custom-ruleset-ids-<id>.json for a non-owner
+   * regulation; the legacy fields above stay whichever file this name served. */
+  out.verdicts = siblingVerdicts('custom-ruleset-ids', v).map(s => {
+    for (const id of Object.keys(s.v.ids || {})) out.ids.add(id);
+    const sc = s.v.counts || {}, su = s.v.untestable || {};
+    return { source: s.rel, regulation: s.v.regulation, generated: s.v.generated || null,
+             ids: Object.keys(s.v.ids || {}).length, raw_logs_scanned: sc.raw_logs_scanned || 0,
+             untestable: su.store_ids_with_no_raw_log || 0, untestable_share: su.share || 0 };
+  });
   _custom = out; return out;
 }
 
@@ -445,7 +544,7 @@ function funnel(p) {
     on: L.on, source: L.source, verdict_generated: L.generated, verdict_judged_games: L.judged_games,
     classes: L.classes, ids_expected: L.expected, ids_resolved: L.resolved,
     ids_unresolved: L.unresolved, forme_only_skipped: L.forme_only_skipped,
-    verdict_missing: L.missing,
+    verdict_missing: L.missing, verdicts: L.verdicts || [],
     removed_from_clean: all.filter(rs => rs.length === 1 && rs[0] === 'illegal_team').length,
     flagged_anywhere: all.filter(rs => rs.includes('illegal_team')).length,
   };
@@ -474,14 +573,14 @@ function funnel(p) {
   out.custom_ruleset = {
     on: CR.on, source: CR.source, generated: CR.generated, verdict_missing: CR.missing,
     ids: CR.ids.size, raw_logs_scanned: CR.raw_logs_scanned, alter_legality: CR.alter_legality,
-    untestable: CR.untestable, untestable_share: CR.untestable_share,
+    untestable: CR.untestable, untestable_share: CR.untestable_share, verdicts: CR.verdicts || [],
     removed_from_clean: all.filter(rs => rs.length === 1 && rs[0] === 'custom_ruleset').length,
     flagged_anywhere: all.filter(rs => rs.includes('custom_ruleset')).length,
   };
   return out;
 }
 
-module.exports = { config, readStore, reasons, isClean, loadGames, funnel, behaviouralBots, illegalTeams,
+module.exports = { config, storePath, readStore, reasons, isClean, loadGames, funnel, behaviouralBots, illegalTeams,
                    customRuleset, FUNNEL_STEPS, STORE, CONFIG, VALIDATION, CUSTOM_RULESET };
 
 if (require.main === module) {
@@ -521,6 +620,8 @@ if (require.main === module) {
       + `(${(100 * L.removed_from_clean / Math.max(1, f.after_full_bring)).toFixed(3)}% of the previously-clean corpus)`);
     console.log(`  flagged      ${L.flagged_anywhere} of ${t.toLocaleString()} collected `
       + `(${(100 * L.flagged_anywhere / t).toFixed(3)}%) — the rest were already excluded by another rule`);
+    for (const x of (L.verdicts || []))
+      console.log(`  + ${x.source}  (${x.format}, generated ${x.generated}, ${x.judged_games.toLocaleString()} games judged): ${x.ids} keyed ids`);
     if (L.verdict_judged_games && L.verdict_judged_games < t)
       console.log(`  UNJUDGED     ${(t - L.verdict_judged_games).toLocaleString()} games arrived after the verdict `
         + `was generated and have not been checked at all.`);
@@ -559,6 +660,9 @@ if (require.main === module) {
       + `(${(100 * R.removed_from_clean / Math.max(1, f.after_full_bring)).toFixed(3)}% of the previously-clean corpus)`);
     console.log(`  flagged      ${R.flagged_anywhere} of ${t.toLocaleString()} collected `
       + `(${(100 * R.flagged_anywhere / t).toFixed(3)}%) — the rest were already excluded by another rule`);
+    for (const x of (R.verdicts || []))
+      console.log(`  + ${x.source}  (${x.regulation}, generated ${x.generated}): ${x.ids} ids from ${x.raw_logs_scanned.toLocaleString()} raw logs; `
+        + `${x.untestable.toLocaleString()} store rows (${(100 * x.untestable_share).toFixed(2)}%) untestable`);
     console.log(`  UNTESTABLE   ${R.untestable.toLocaleString()} rows (${(100 * R.untestable_share).toFixed(2)}%) have no raw log on disk `
       + `and were never asked. This filter is a FLOOR, not a census.`);
   }

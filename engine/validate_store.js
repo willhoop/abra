@@ -49,6 +49,17 @@ const fs = require('fs');
 const path = require('path');
 const RS = require('./run_stamp.js');
 const VALIDATE_SOURCES = ['engine/validate_store.js', 'data/games.ladder.jsonl', 'data/games.bo3.jsonl', 'data/games.ots.jsonl'];
+/* THE REGULATION IS SELECTED, NOT READ OFF `active` — 2026-09-30 (MEASURE, abra/regmc 1.35.0). This file
+ * read data/regulations.json's `active` and three fixed Reg M-B store names, so it could only ever judge
+ * Reg M-B, and `exclude_illegal_teams` removed 0 Reg M-C games while reporting ON. It now honours
+ * --regulation / ABRA_REGULATION through engine/regulation.js (the one resolver, already loaded by
+ * showdown_path.js above, which also picked the regulation's Showdown checkout). Under Reg M-B nothing
+ * below changes: same format, same three stores, same artifact. Under another regulation it judges that
+ * regulation's two stores with that regulation's TeamValidator and writes data/store-validation.json,
+ * which the regulation seam turns into data/store-validation-<id>.json. */
+const REGN = require('./regulation.js');
+const Q = require('./quality.js');
+const IS_OWNER = REGN.ID === REGN.ARTIFACT_OWNER;
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
@@ -62,10 +73,8 @@ const LIMIT = (() => { const i = process.argv.indexOf('--limit'); return i > 0 ?
 /* READ, NOT TYPED. S12: the active regulation lives in data/regulations.json and every consumer asks
  * it. A literal here is a second place the format is decided, and the two go out of step in September
  * when the regulation turns over. */
-const _REGS = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'regulations.json'), 'utf8'));
-const _ACTIVE = (_REGS.regulations || {})[_REGS.active];
-const FORMAT = _ACTIVE && _ACTIVE.showdownFormat;
-if (!FORMAT) { console.error('regulations.json: active regulation has no showdownFormat'); process.exit(1); }
+const FORMAT = REGN.FORMAT;
+if (!FORMAT) { console.error('regulation ' + REGN.ID + ' has no showdownFormat'); process.exit(1); }
 /* A store line that will not parse is a game this validator never judged. Silently skipping it
  * would report "0 illegal" over games nobody looked at. */
 let UNREADABLE = 0;
@@ -366,6 +375,21 @@ const ITEM_DECLARED_RX = (() => {
  * would become a validator complaint nobody could explain. */
 const { StringDecoder } = require('string_decoder');
 function* readLines(p) {
+  /* A `.gz` store (every Reg M-C store is tracked compressed) is inflated to a Buffer, not a string,
+   * and walked in the same 4 MB slices through the same decoder, so both paths split lines alike. */
+  if (/\.gz$/.test(p)) {
+    const whole = require('zlib').gunzipSync(fs.readFileSync(p));
+    const dec = new StringDecoder('utf8');
+    let tail = '';
+    for (let o = 0; o < whole.length; o += (1 << 22)) {
+      const parts = (tail + dec.write(whole.subarray(o, Math.min(whole.length, o + (1 << 22))))).split('\n');
+      tail = parts.pop();
+      for (const l of parts) yield l;
+    }
+    tail += dec.end();
+    if (tail) yield tail;
+    return;
+  }
   const fd = fs.openSync(p, 'r');
   const buf = Buffer.alloc(1 << 22);
   const dec = new StringDecoder('utf8');
@@ -631,10 +655,15 @@ function scanGame(g, ruler, acc) {
  * the store MOVED between them rather than because the rulers differ. Same bytes, same games, both
  * verdicts. */
 function scanStore(file, rulers) {
-  const p = D('data', file);
+  /* THE SAME FILE engine/quality.js WOULD READ for a non-owner regulation: plain or .gz, the newer when
+   * both exist. The path actually opened is kept, so the receipt names it (ROADMAP #547). Reg M-B's
+   * path is the code that ran before, byte for byte. */
+  const want = D('data', file);
+  const p = IS_OWNER ? want : Q.storePath(want);
   const accs = {};
   for (const r of rulers) accs[r] = newAcc(file, r);
   if (!fs.existsSync(p)) return { missing: true, accs };
+  OPENED.push(path.relative(ROOT, p).split(path.sep).join('/'));
   const t = Date.now();
   for (const line of readLines(p)) {
     if (!line.trim()) continue;
@@ -648,10 +677,16 @@ function scanStore(file, rulers) {
 
 /* THE STORES. Every one carries `sheets` on at least some games, so both rulers run everywhere and the
  * DECLARED denominator says how many games could actually answer. Nothing here is pooled. */
-const STORE_LIST = [
+const OPENED = [];
+const STORE_LIST = IS_OWNER ? [
   { file: 'games.ladder.jsonl', what: 'closed-sheet bo1 ladder; Open Team Sheets is OPTIONAL here, so only a slice declares' },
   { file: 'games.bo3.jsonl', what: 'OUR scrape of the Force-OTS bo3 ladder — the corpus fit_policy.js SCOPES.fit fits MAG on' },
   { file: 'games.ots.jsonl', what: 'the external VGC-Bench open-sheet archive; a different collection, never pooled with bo3' },
+] : [
+  /* The regulation's own two stores, named the way the next-regulation collector names them
+   * (engine/next_regulation_ingest.js storeFor). The bo3 open-sheet store first: it is the target. */
+  { file: 'games.' + REGN.BO3_FORMAT + '.jsonl', what: REGN.ID + ' bo3 ladder, Force Open Team Sheets — the target population' },
+  { file: 'games.' + FORMAT + '.jsonl', what: REGN.ID + ' bo1 ladder; Open Team Sheets is OPTIONAL here, so only a slice declares' },
 ];
 
 const t0 = Date.now();
@@ -663,7 +698,7 @@ const secs = (Date.now() - t0) / 1000;
  * at the top level of the artifact are the LADDER store under the REVEALED ruler and nothing else,
  * because engine/quality.js reads exactly those keys — a filter whose denominator silently changed
  * shape would move every corpus in the repository without a line of its own changing. */
-const LAD = RESULTS['games.ladder.jsonl'].accs.revealed;
+const LAD = RESULTS[STORE_LIST[0].file].accs.revealed;   /* games.ladder.jsonl under Reg M-B, unchanged */
 /* `games` IS LINES PARSED AND NOT GAMES-WITH-A-REVEALED-SET, AND THE DIFFERENCE COST A CAUGHT
  * REGRESSION. The 2026-08-07 loop incremented one counter per parsed line and used it as the
  * denominator for every rate in this file; the refactor below counts a game only when the ruler had
@@ -788,11 +823,29 @@ if (WRITE) {
     }
     storeBlock[st.file] = b;
   }
+  /* THE KEYED SET FOR A NON-OWNER REGULATION — what engine/quality.js removes. Species, or a DECLARED
+   * banned item (the pattern above), on EITHER ruler, in EITHER store, unioned. Move-level rejections
+   * are NOT keyed, for the Illusion reason in engine/quality.js. Reg M-B's file keeps its old shape and
+   * no `regulation` field, so its reader's legacy path is untouched. */
+  const keyedBlock = IS_OWNER ? {} : (() => {
+    const ids = new Set(), by_store = {};
+    for (const st of STORE_LIST) {
+      const R = RESULTS[st.file];
+      if (R.missing) { by_store[st.file] = { missing: true }; continue; }
+      const u = new Set([...R.accs.revealed.keyedFlaggedIds, ...R.accs.declared.keyedFlaggedIds]);
+      by_store[st.file] = { revealed: R.accs.revealed.keyedFlaggedIds.length, declared: R.accs.declared.keyedFlaggedIds.length, union: u.size };
+      for (const id of u) ids.add(id);
+    }
+    return { regulation: REGN.ID, formats: [REGN.BO3_FORMAT, FORMAT], stores_read: OPENED,
+      keyed: { rule: 'species-level OR declared-item rejection, either ruler, either store; move/ability/other NOT keyed',
+               item_declared_pattern: ITEM_DECLARED_RX ? ITEM_DECLARED_RX.src : null, by_store, ids: [...ids].sort() } };
+  })();
   fs.writeFileSync(D('data', 'store-validation.json'), JSON.stringify({
     generated: new Date().toISOString(), by: 'engine/validate_store.js', format: FORMAT,
+    ...keyedBlock,
     /* CONTENT, NOT MTIME -- the verdict depends on the Showdown rules that graded it, and a
      * validator that cannot say which ruleset it ran under is unreadable a week later. */
-    source_digests: RS.sourceDigests(VALIDATE_SOURCES),
+    source_digests: RS.sourceDigests(IS_OWNER ? VALIDATE_SOURCES : ['engine/validate_store.js', ...OPENED]),
     judged: { games, revealed_sets: monsJudged, distinct: cache.size, seconds: +secs.toFixed(1), unreadable_lines: UNREADABLE,
       /* NEW, AND IT DOES NOT REPLACE `games`. `games` is lines parsed, which is what it has meant
        * since 2026-08-07 and what data/quality-filter.json records. This is the subset the REVEALED
@@ -837,5 +890,5 @@ if (WRITE) {
       declared_ruler_coverage: 'The DECLARED ruler can only judge a game that published sheets. Its no_ruler_input count is the number it skipped, and it is skipped rather than silently handed to the other ruler.',
     },
   }, null, 2) + '\n');
-  console.log('  -> data/store-validation.json');
+  console.log('  -> ' + REGN.artifactFor('data/store-validation.json'));
 }

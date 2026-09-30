@@ -42,16 +42,34 @@ def _store_handle(path=None):
     100 MB per-file limit -- about 38 hours of collection from the point where every push fails.
     git now tracks <store>.jsonl.gz and .gitignore excludes the plain .jsonl.
 
-    PLAIN WINS WHEN BOTH EXIST: the plain file is the live one the collector appends to, the .gz is a
-    commit-time snapshot. Preferring the .gz would serve stale games on the very machine collecting
-    them. On a fresh clone only the .gz is present and it is read directly."""
+    THE NEWER FILE WINS WHEN BOTH EXIST (2026-09-30, abra/regmc 1.35.0; it was "plain wins"). For
+    Reg M-C the plain file on this machine is a stale local snapshot and the .gz the collector commits
+    is current, so plain-wins served ~60% of the store. The newer mtime is still the plain file where a
+    local collector appends to it. The choice is printed once per path. Mirrors storePath() in
+    engine/quality.js. On a fresh clone only the .gz is present and it is read directly."""
+    import gzip
     want = path or STORE
-    if os.path.exists(want):
+    plain, gz = os.path.exists(want), os.path.exists(want + '.gz')
+    if plain and gz:
+        mp, mg = os.path.getmtime(want), os.path.getmtime(want + '.gz')
+        pick_gz = mg > mp
+        if want not in _PICK_NOTED:
+            import sys
+            _PICK_NOTED.add(want)
+            print("quality: both %s and its .gz exist; reading the NEWER, %s. The other is %.1f days older."
+                  % (os.path.basename(want), os.path.basename(want + ('.gz' if pick_gz else '')),
+                     abs(mg - mp) / 86400.0), file=sys.stderr)
+        if pick_gz:
+            return gzip.open(want + '.gz', 'rt', encoding='utf-8')
         return open(want, encoding='utf-8')
-    if os.path.exists(want + '.gz'):
-        import gzip
+    if plain:
+        return open(want, encoding='utf-8')
+    if gz:
         return gzip.open(want + '.gz', 'rt', encoding='utf-8')
     return open(want, encoding='utf-8')      # raise with the name the caller asked for
+
+
+_PICK_NOTED = set()
 
 
 def read_store(path=None):
@@ -86,9 +104,17 @@ def behavioural_bots(games, cfg=None):
     r = cfg['rules'].get('exclude_behavioural_bots')
     if not r or not r['on']:
         return set()
+    # THE TEMPO CLAUSE (2026-09-30, abra/regmc 1.35.0) - mirrors engine/quality.js. An account with a
+    # game whose id matches tempo_applies_id_pattern must ALSO reach min_games_in_one_day on one day.
+    min_day = r.get('min_games_in_one_day') or 0
+    applies_rx = re.compile(r['tempo_applies_id_pattern']) if (min_day and r.get('tempo_applies_id_pattern')) else None
     games_by = {}
     teams_by = {}
+    per_day = {}
+    tempo_applies = set()
     for g in games:
+        day = str(g.get('date') or '')[:10]
+        applies = bool(applies_rx and applies_rx.search(str(g.get('id') or '')))
         for s_ in ('p1', 'p2'):
             n = (g.get(s_) or {}).get('name')
             if not n:
@@ -97,10 +123,19 @@ def behavioural_bots(games, cfg=None):
             six = tuple(sorted((g.get('six') or {}).get(s_) or []))
             if six:
                 teams_by.setdefault(n, set()).add(six)
-    return {n for n, c in games_by.items()
-            if c >= r['min_games']
-            and teams_by.get(n)
-            and len(teams_by[n]) <= r['max_distinct_teams']}
+            if applies_rx:
+                d = per_day.setdefault(n, {})
+                d[day] = d.get(day, 0) + 1
+                if applies:
+                    tempo_applies.add(n)
+    out = set()
+    for n, c in games_by.items():
+        if not (c >= r['min_games'] and teams_by.get(n) and len(teams_by[n]) <= r['max_distinct_teams']):
+            continue
+        if applies_rx and n in tempo_applies and max(per_day[n].values()) < min_day:
+            continue
+        out.add(n)
+    return out
 
 
 _LEGAL = None
@@ -143,6 +178,24 @@ def illegal_teams():
               file=sys.stderr)
         _LEGAL = out
         return out
+    # EVERY REGULATION'S VERDICT (2026-09-30, abra/regmc 1.35.0) - mirrors illegalTeams() in
+    # engine/quality.js: data/store-validation-<id>.json siblings are read and their keyed ids unioned.
+    siblings = _sibling_verdicts('store-validation', v)
+    out['verdicts'] = [{'source': rel, 'format': s.get('format'), 'generated': s.get('generated'),
+                        'judged_games': (s.get('judged') or {}).get('games') or 0,
+                        'ids': len((s.get('keyed') or {}).get('ids') or [])} for rel, s in siblings]
+
+    def add_siblings():
+        for _, s in siblings:
+            out['ids'].update((s.get('keyed') or {}).get('ids') or [])
+
+    if v.get('regulation'):
+        out['generated'] = v.get('generated')
+        out['judged_games'] = (v.get('judged') or {}).get('games') or 0
+        add_siblings()
+        out['expected'] = out['resolved'] = len(out['ids'])
+        _LEGAL = out
+        return out
     split = v.get('split') or {}
     out['generated'] = v.get('generated')
     out['judged_games'] = (v.get('judged') or {}).get('games') or 0
@@ -173,7 +226,34 @@ def illegal_teams():
               "data/store-validation.json publishes species_flagged_ids but not item_flagged_ids, "
               "and its examples list is capped at 500). The filter is UNDER-removing."
               % (out['resolved'], out['expected'], out['unresolved']), file=sys.stderr)
+    add_siblings()          # AFTER the arithmetic, so the legacy counts stay Reg M-B's alone
     _LEGAL = out
+    return out
+
+
+def _sibling_verdicts(base, primary):
+    """Per-regulation verdicts: `data/<base>.json` when already in the new shape, plus every
+    `data/<base>-<id>.json`. Deduplicated by `regulation`. Mirrors siblingVerdicts() in quality.js."""
+    import sys
+    out, seen = [], set()
+
+    def take(rel, v):
+        if not v or not v.get('regulation') or v['regulation'] in seen:
+            return
+        seen.add(v['regulation'])
+        out.append((rel, v))
+    take('data/%s%s.json' % (base, ('-' + primary['regulation']) if primary and primary.get('regulation') else ''), primary)
+    d = os.path.join(_HERE, '..', 'data')
+    try:
+        names = sorted(f for f in os.listdir(d) if f.startswith(base + '-') and f.endswith('.json'))
+    except OSError:
+        names = []
+    for f in names:
+        try:
+            with open(os.path.join(d, f), encoding='utf-8') as fh:
+                take('data/' + f, json.load(fh))
+        except Exception as e:                               # noqa: BLE001 - reported, not swallowed
+            print("quality: %s would not read (%s); its regulation's ids are NOT excluded." % (f, e), file=sys.stderr)
     return out
 
 
@@ -225,6 +305,15 @@ def custom_ruleset():
     out['alter_legality'] = c.get('joined_alter_legality_or_pick') or 0
     out['untestable'] = u.get('store_ids_with_no_raw_log') or 0
     out['untestable_share'] = u.get('share') or 0
+    # EVERY REGULATION'S SCAN, unioned - mirrors customRuleset() in engine/quality.js.
+    out['verdicts'] = []
+    for rel, s in _sibling_verdicts('custom-ruleset-ids', v):
+        out['ids'].update((s.get('ids') or {}).keys())
+        sc, su = s.get('counts') or {}, s.get('untestable') or {}
+        out['verdicts'].append({'source': rel, 'regulation': s.get('regulation'), 'generated': s.get('generated'),
+                                'ids': len(s.get('ids') or {}), 'raw_logs_scanned': sc.get('raw_logs_scanned') or 0,
+                                'untestable': su.get('store_ids_with_no_raw_log') or 0,
+                                'untestable_share': su.get('share') or 0})
     _CUSTOM = out
     return out
 
