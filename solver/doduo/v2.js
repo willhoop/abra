@@ -57,6 +57,11 @@ function create(API, deps) {
   const probe = PR.create(API);
   const MG = MGm.create(API);
   const DG = DGm.create(API, { mag: MG });
+  /* THE DOUBLE-PROTECT SOFT GATE (Will, 2026-09-29; solver/doduo/double_protect.js): deps.doubleProtect = true |
+   * { weight, exemptOff }. OFF by default. deps.tiers === false runs it ALONE: no MAG/pair verdicts, no world, no engine
+   * steps — the joint weight is the only change to the prior's scores. */
+  const DP = deps.doubleProtect ? require('./double_protect.js').create(API, deps.doubleProtect === true ? {} : deps.doubleProtect) : null;
+  const TIERS = deps.tiers !== false;
   const COUNTERS = { calls: 0, joints: 0, verified: 0, cutMag: 0, cutPair: 0, softWeighted: 0, slotGuards: 0, budgetStops: 0, unmapped: 0, steps: 0, ms: 0, full: 0,
     /* the tiered gates (2026-09-26): the switch model's calls, its failures (counted, then the floor is used), the soft
      * weights it produced (sum, min, max, how many sat on the floor), and the hidden-bench cover of the alternative worlds */
@@ -159,6 +164,8 @@ function create(API, deps) {
       COUNTERS.calls++;
       const raw = PA.scoreJoints(ctx, S, side, viewer, la);
       const eff = Float64Array.from(raw);
+      const dpw = DP ? DP.weights(ctx, S, side, viewer, la, raw) : null;
+      if (!TIERS) { if (dpw) for (let i = 0; i < eff.length; i++) eff[i] *= dpw[i]; COUNTERS.ms += Date.now() - t0; return eff; }
       if (la.joint.length <= 1 || BREAK === 'nogate') { COUNTERS.ms += Date.now() - t0; return eff; }
       const wd = world(ctx, S, side, viewer);
       const pos = probe.position(wd.W, side, { alt: wd.alt, salt: hashN(S.turn, side === 'A' ? 1 : 2) & 0xffff });
@@ -193,7 +200,7 @@ function create(API, deps) {
         }
         const pv = DG.pairVerdict(pos, j, lim);
         if (pv.cut) { eff[i] = 0; COUNTERS.cutPair++; return; }
-        eff[i] = raw[i] * w;
+        eff[i] = raw[i] * w * (dpw ? dpw[i] : 1);
       }
       const order = Array.from(raw, (_, i) => i).sort((a, b) => raw[b] - raw[a] || a - b);
       function select(filter, need) {
@@ -221,7 +228,8 @@ function create(API, deps) {
     return Object.assign({}, PA, { scoreJoints, gated: true, gateCounters: COUNTERS, gateWorld: world });
   }
 
-  return { wrap, COUNTERS, MG, DG, probe, SOFT, FLOOR, oppDist, rescueProb, softWeight, switchPA, BROKEN: BREAK || null };
+  if (DP) COUNTERS.doubleProtect = DP.COUNTERS;
+  return { wrap, COUNTERS, DP, MG, DG, probe, SOFT, FLOOR, oppDist, rescueProb, softWeight, switchPA, BROKEN: BREAK || null };
 }
 
 module.exports = { create };

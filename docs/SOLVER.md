@@ -120,6 +120,13 @@ This section says only what a division agent needs before it starts.
   goes 0.611 → 0.200. **At 1 s the package LOSES to gen5**, SPRT H0, 0.418 [0.350, 0.488] in 194 games, and leaves the arena
   Protect rates where they were. **Not deployed.** At 5 s it is untested for strength. DODUO already carries the counter
   (`stall_repeat`), so it was not retrained. Account: `docs/_reports/2026-09-27-protect-repeat-fix.md`.
+- **The double-Protect soft gate (2026-09-30, abra/regmc 1.31.0).** Will's rule (`solver/doduo/double_protect.js`,
+  spec `gates.doubleProtect`, off, on no arm): both actives on a protect-type move is weighted 0.001 unless a stall
+  condition holds. On 20,482 held-out human decisions survival is 99.63% [99.54, 99.71]. Humans honour its Fake Out,
+  Trick Room, Tailwind and Perish reasons, and double-Protect at the 2.2% base rate under terrain, weather or screens.
+  The chomp1 turn-4 case is exempt by the opponent's Grassy Terrain, so the gate does not change it. Phase B (a 2 s
+  adaptive screen) is pre-registered, not run: `solver/results/2026-09-30-double-protect/preregistration.json`. Account:
+  `docs/_reports/2026-09-30-double-protect-gate.md`.
 - **Weighted chance (2026-09-29, abra/regmc 1.28.0).** Spec option `chance` (off by default): each cell's first turn is
   enumerated by probability (`solver/miltank/chance.js`, stratified, unbiased; counters `chancePlayouts`,
   `chanceBuckets`, `chanceEvals`, `chanceTruncatedMass`, `chanceDecisions`). Correct (|z| max 1.80 on 24 pairs), but a

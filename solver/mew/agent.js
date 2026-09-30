@@ -13,7 +13,9 @@
  *        | { name, kind: 'greedy',  mag, doduo[, gates] }   the HUMAN CLONE: DODUO's argmax legal joint, no search
  *   gates (2026-09-25, docs/_reports/2026-09-25-mag-doduo-gates.md): true or { soft, maxSteps, maxMs } — the prior is wrapped
  *   by DODUO v2 (solver/doduo/v2.js): MAG v2's per-slot dead-click gate and DODUO v2's pair gate cut, MAG's soft verdict
- *   down-weights, and DODUO's own score ranks what is left. The gate code is digested into `digests.gates`, and its
+ *   down-weights, and DODUO's own score ranks what is left. gates.doubleProtect (2026-09-29, true | { weight, exemptOff }):
+ *   the double-Protect soft gate (solver/doduo/double_protect.js), OFF by default; gates.tiers === false runs it alone,
+ *   with no MAG/pair verdicts (no engine steps). The gate code is digested into `digests.gates`, and its
  *   counters are in COUNTERS.gates[<agent name>].
  *   Paths are relative to the repository root. Every model file is digested into `digests`, so an artifact
  *   says which weights played, not which file names.
@@ -55,7 +57,7 @@ function create(API, opts) {
   const MTmod = require('../miltank/search.js');
   const coinOf = seed => API.M.rngStreams({ seed }).any;
   const COUNTERS = { fallbacks: 0, fallback_errors: [], decisions: 0, searched: 0, forced: 0, gates: {} };
-  const GATE_FILES = ['solver/mag/probe.js', 'solver/mag/purpose.js', 'solver/mag/gate.js', 'solver/doduo/gate.js', 'solver/doduo/v2.js', 'solver/doduo/board_state.frozen.js'];
+  const GATE_FILES = ['solver/mag/probe.js', 'solver/mag/purpose.js', 'solver/mag/gate.js', 'solver/doduo/gate.js', 'solver/doduo/v2.js', 'solver/doduo/board_state.frozen.js', 'solver/doduo/double_protect.js'];
   const LOADED = new Map();
   const XW = require('../xatu/worlds.js').create(API, { R });
 
@@ -95,7 +97,8 @@ function create(API, opts) {
     if (spec.gates) {
       const g = spec.gates === true ? {} : spec.gates;
       const need = spec.kind === 'miltank' ? { all: Math.max(spec.k1 || 8, spec.k2 || 8), switch: spec.reserveSwitch == null ? 2 : spec.reserveSwitch, mega: 1 } : { all: 1 };
-      const V2 = require('../doduo/v2.js').create(API, { rollout: R, soft: g.soft, floor: g.floor, switchModel: g.switchModel, maxSteps: g.maxSteps, maxMs: g.maxMs, need });
+      const V2 = require('../doduo/v2.js').create(API, { rollout: R, soft: g.soft, floor: g.floor, switchModel: g.switchModel, maxSteps: g.maxSteps, maxMs: g.maxMs, need,
+        doubleProtect: g.doubleProtect, tiers: g.tiers });
       PA = V2.wrap(PA);
       COUNTERS.gates[spec.name] = V2.COUNTERS;
       const h = crypto.createHash('sha256');

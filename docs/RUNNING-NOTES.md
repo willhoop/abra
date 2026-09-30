@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.31.0] — 2026-09-30 — **The double-Protect soft gate: built, off by default; humans honour four of its stall reasons and ignore terrain and screens**
+- **What changed.** New `solver/doduo/double_protect.js` (Will's rule: both actives on a protect-type move is weighted to 0.001 unless a stall condition holds), wired into DODUO v2 as `gates.doubleProtect` (`gates.tiers: false` runs it alone). `eval_gates.js --dp`, `solver/doduo/dp_rates.js`, `solver/tests/probe_dp_replay.js`, test `solver/tests/test-double-protect.js`. `protect_stats.js` counts `pairs`/`doubles`; `world.js` puts the current public state on `ctx.pubNow`. On no arm.
+- **Measured.** Release `eaa5becc54eb`, all 20,482 held-out human decisions: humans double-Protect on 646 (3.15%). 571 are exempt, 75 are not. Survival 99.63% [99.54, 99.71]. Human rate when offered: 2.2% with no exemption. With one reason alone: Fake Out 16.5%, Trick Room 14.8%, Tailwind 13.0%, Perish 50.0% (n 28), terrain 2.2%, weather 2.9%, screen 0.7%. Artifacts: `solver/results/2026-09-30-double-protect/eval-human-dp.json` and `human-dp-rates.json`. chomp1 game 1 turn 4 is exempt by the opponent's Grassy Terrain (1 turn left), so the gated search still plays the double Protect: mix 0.85, as ungated (`replay-chomp1-g1-t4.json`). With terrain off, it plays mega Substitute plus a switch at 0.997. Test 34/34, and RED under 4 breaks.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none (the flag is on no arm).
+
 ## [abra/regmc 1.30.1] — 2026-09-29 — **`test-game-diff.js` and five more engine tests write per-regulation files under Reg M-C**
 - **What changed.** `engine/regulation.js` `PER_REGULATION_ARTIFACTS` gains `game-diff.json`, `forme-assert.json`, `switch-back-renamed.json`, `tag-walk.json`, `tag-consumption.json` and `unmodelled-clicks.json`. Each writer names its path through `artifactFor`. `test-game-diff.js` and `test-unmodelled-clicks.js` read the tags through `fileFor`, because a bare fs read returned Reg M-B's under Reg M-C. `test-tag-consumed.js` prints `NO BASELINE` when it has none. `tests/test-regulation-artifacts.js` maps the six names.
 - **Measured.** NO FIGURE. `ABRA_REGULATION=regmc node tests/test-game-diff.js` exit 1 (the guard refused `data/game-diff.json` after 5 of 5 games agreed) → exit 0, writes `data/game-diff-regmc.json` (`showdown_commit` `f10d6798`). The plain run exits 0 and writes `data/game-diff.json` (`20ad99ff`). The other five: regmc exit 0, sibling written; plain exit 0.

@@ -44,6 +44,10 @@ const N = +flag('--n', 2000), SEED = +flag('--seed', 1), WORKERS = Math.min(3, +
  * other options only when the human's click is dead, for the slot guard) — the survival and the mostly-banned questions
  * over many more decisions, without the per-joint removal tables */
 const HUMAN_ONLY = argv.includes('--human-only');
+/* --dp (2026-09-29): the DOUBLE-PROTECT soft gate alone (solver/doduo/double_protect.js): how often the human's joint is a
+ * double protect, which stall conditions hold when it is, and how often the gate would weight the human's joint (the
+ * human joint's "survival"). No MAG or pair verdicts, no engine steps beyond the world build and one legal-action call. */
+const DP_MODE = argv.includes('--dp');
 const SHARD = flag('--shard', null), SHARDS = +flag('--shards', 1);
 const HUMAN = flag('--human', path.join('C:', 'Users', 'willj', 'Projects', 'Pokemon', 'ABRA', 'solver', 'out', 'human', 'games.jsonl'));
 const SALT = 'abra-prior-v0';
@@ -118,6 +122,7 @@ function worker(shard, shards) {
   const DG = require('../doduo/gate.js').create(API, { mag: MG });
   /* the human switch model and the soft weight, exactly as DODUO v2 applies them in play (solver/doduo/v2.js) */
   const V2 = require('../doduo/v2.js').create(API, {});
+  const DP = require('../doduo/double_protect.js').create(API, {});
   const games = new Map();
   for (const l of fs.readFileSync(path.join(OUT, 'games.jsonl'), 'utf8').split('\n')) if (l) { const g = JSON.parse(l); games.set(g.game.id, g); }
   const picks = fs.readFileSync(path.join(OUT, 'selection.jsonl'), 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l));
@@ -137,7 +142,7 @@ function worker(shard, shards) {
     done++;
     if (done % 25 === 0) console.log(`  [shard ${shard}] ${done} decisions  ${((Date.now() - t0) / 1000).toFixed(0)}s`);
   }
-  fs.writeFileSync(outF.replace(/\.jsonl$/, '.summary.json'), JSON.stringify({ shard, done, wall_s: (Date.now() - t0) / 1000, probe: probe.COUNTERS, mag: MG.COUNTERS, pair: DG.COUNTERS, switch_model: V2.COUNTERS, world: WB.COUNTERS, release: ENGINE.stamp }, null, 1));
+  fs.writeFileSync(outF.replace(/\.jsonl$/, '.summary.json'), JSON.stringify({ shard, done, wall_s: (Date.now() - t0) / 1000, double_protect: DP.COUNTERS, probe: probe.COUNTERS, mag: MG.COUNTERS, pair: DG.COUNTERS, switch_model: V2.COUNTERS, world: WB.COUNTERS, release: ENGINE.stamp }, null, 1));
 
   function synthRequest(G, st, me) {
     const sheet = G.sheets[me];
@@ -174,11 +179,37 @@ function worker(shard, shards) {
     const tl = x.target_loc == null ? null : x.target_loc;
     return sl.options.find(o => o.kind === 'move' && o.move === id && !!o.mega === !!x.mega && (o.target == null ? null : o.target) === tl) || null;
   }
+  function decideDP(w, t, me) {
+    const la = API.legalActions(w.S, w.side);
+    const A = t.actions[me];
+    const human = [0, 1].map(k => { const x = A[k === 0 ? 'a' : 'b']; return x ? findOpt(la, k, x, w.S, w.side) : null; });
+    const occ = [0, 1].filter(k => A[k === 0 ? 'a' : 'b']);
+    const r = { dp: true, side: w.side, turn: t.n, world_notes: w.notes };
+    if (occ.some(k => !human[k])) { r.unmatched = occ.filter(k => !human[k]).map(k => A[k === 0 ? 'a' : 'b']); return r; }
+    r.pair = occ.length === 2;
+    r.human = human.map(o => o && PR.optKey(o));
+    r.human_double = DP.isDouble(human);
+    r.offered = la.joint.some(j => DP.isDouble(j));
+    if (r.offered || r.human_double) {
+      const st = DP.stall(w.S, w.side, w.ctx);
+      r.reasons = st.reasons;
+      r.detail = st.detail;
+    }
+    r.gated = !!(r.human_double && !(r.reasons && r.reasons.length));
+    const C = w.S;
+    r.actives = (w.side === 'A' ? C.actA : C.actB).map(m => m && m.name);
+    r.foes = (w.side === 'A' ? C.actB : C.actA).map(m => m && m.name);
+    r.field = { weather: C.field.weather || null, weatherT: C.field.weatherT | 0, terrain: C.field.terrain || null, terrainT: C.field.terrainT | 0, tr: C.field.tr | 0, twA: C.field.twA | 0, twB: C.field.twB | 0 };
+    const Ao = t.actions[me === 'p1' ? 'p2' : 'p1'] || {};
+    r.opp_actions = [Ao.a, Ao.b].map(x => (x ? (x.kind === 'move' ? x.move : x.kind) : null));
+    return r;
+  }
   function decide(g, pk) {
     const G = g.game, t = g.turns[pk.ti], me = pk.p, opp = me === 'p1' ? 'p2' : 'p1';
     const row = { game: G, turns: g.turns.slice(0, pk.ti + 1) };
     const req = synthRequest(G, t.state, me);
     const w = WB.build({ row, sheets: G.sheets, me, req, oppGuess: G.brought_seen[opp] });
+    if (DP_MODE) return decideDP(w, t, me);
     const ts = Date.now();
     const pos = probe.position(w.S, w.side, { salt: pk.ti });
     const C = w.S;       // the world; pos.la was computed on a copy of it with the same team order
@@ -265,7 +296,7 @@ async function coordinator() {
   console.log('selection', JSON.stringify(sel));
   const kids = [];
   for (let i = 0; i < WORKERS; i++) {
-    const ch = cp.fork(__filename, ['--release', REL_ID, '--out', OUT, '--shard', String(i), '--shards', String(WORKERS)].concat(HUMAN_ONLY ? ['--human-only'] : []), { execArgv: ['--max-old-space-size=2048'] });
+    const ch = cp.fork(__filename, ['--release', REL_ID, '--out', OUT, '--shard', String(i), '--shards', String(WORKERS)].concat(HUMAN_ONLY ? ['--human-only'] : [], DP_MODE ? ['--dp'] : []), { execArgv: ['--max-old-space-size=2048'] });
     console.log('eval_gates: shard ' + i + ' pid ' + ch.pid);
     kids.push(new Promise(res => ch.on('exit', c => res(c))));
   }
@@ -274,6 +305,7 @@ async function coordinator() {
   for (let i = 0; i < WORKERS; i++) for (const l of fs.readFileSync(path.join(OUT, `decisions-${i}.jsonl`), 'utf8').split('\n')) if (l) recs.push(JSON.parse(l));
   const shardSums = Array.from({ length: WORKERS }, (_, i) => { try { return JSON.parse(fs.readFileSync(path.join(OUT, `decisions-${i}.summary.json`), 'utf8')); } catch (e) { return null; } });
   const ok = recs.filter(r => !r.error && !r.unmatched);
+  if (DP_MODE) return dpSummary(recs, ok, sel, shardSums, exits, t0);
   const S = { decisions: recs.length, errors: recs.filter(r => r.error).length, unmatched: recs.filter(r => r.unmatched).length, evaluated: ok.length };
   const lossM = ok.filter(r => r.human_mag_cut), lossP = ok.filter(r => r.human_pair_cut), lossAny = ok.filter(r => r.human_mag_cut || r.human_pair_cut);
   const sum = f => ok.reduce((a, r) => a + f(r), 0);
@@ -332,6 +364,40 @@ async function coordinator() {
   };
   fs.writeFileSync(path.join(OUT, 'summary.json'), JSON.stringify(result, null, 1));
   console.log(JSON.stringify({ counts: S, survival: result.survival, options: result.options, joints: result.joints, ablation: result.ablation_2x2_joints, cost: result.cost }, null, 1));
+}
+
+/* the --dp summary: the human double-protect rate, the stall conditions behind it, and the human joint's survival */
+function dpSummary(recs, ok, sel, shardSums, exits, t0) {
+  const n = ok.length;
+  const dbl = ok.filter(r => r.human_double), offered = ok.filter(r => r.offered), pairs = ok.filter(r => r.pair);
+  const gated = dbl.filter(r => r.gated);
+  const byReason = rs => rs.reduce((o, r) => { for (const x of new Set(r.reasons || [])) o[x] = (o[x] || 0) + 1; if (!(r.reasons || []).length) o.none = (o.none || 0) + 1; return o; }, {});
+  const exact = rs => rs.reduce((o, r) => { const R = [...new Set(r.reasons || [])]; const key = R.length ? R.sort().join('+') : 'none'; o[key] = (o[key] || 0) + 1; return o; }, {});
+  const exOff = offered.filter(r => (r.reasons || []).length), noOff = offered.filter(r => !(r.reasons || []).length);
+  const dblIn = rs => rs.filter(r => r.human_double).length;
+  const result = {
+    what: 'The double-Protect soft gate (solver/doduo/double_protect.js) on held-out human Reg M-C decisions (solver/doduo/eval_gates.js --dp)',
+    engine_release: REL_ID, flags: { n: N, seed: SEED, workers: WORKERS, human: HUMAN, dp: true }, dataset_sha256: sel.sha, selection: sel,
+    counts: { decisions: recs.length, errors: recs.filter(r => r.error).length, unmatched: recs.filter(r => r.unmatched).length, evaluated: n,
+      both_slots_chose: pairs.length, double_offered: offered.length },
+    human_double: { n: dbl.length, of_evaluated: n, rate: dbl.length / n, rate_ci95: wilson(dbl.length, n),
+      of_offered: offered.length, rate_when_offered: dbl.length / (offered.length || 1), rate_when_offered_ci95: wilson(dbl.length, offered.length) },
+    exemptions_of_human_doubles: { any: dbl.length - gated.length, by_reason: byReason(dbl), exact_sets: exact(dbl) },
+    survival: { gated: gated.length, n, survived: n - gated.length, rate: (n - gated.length) / n, ci95: wilson(n - gated.length, n),
+      of_human_doubles_gated: gated.length / (dbl.length || 1), gated_ci95_of_doubles: wilson(gated.length, dbl.length),
+      caption: 'survival = the human joint is NOT weighted by the gate (it is not a double protect, or a stall condition holds). The gate weights, it never removes.' },
+    base_rates_when_offered: { exempt: exOff.length, not_exempt: noOff.length, by_reason: byReason(offered),
+      human_double_rate_exempt: dblIn(exOff) / (exOff.length || 1), human_double_rate_exempt_ci95: wilson(dblIn(exOff), exOff.length),
+      human_double_rate_not_exempt: dblIn(noOff) / (noOff.length || 1), human_double_rate_not_exempt_ci95: wilson(dblIn(noOff), noOff.length) },
+    gated_human_doubles: gated.map(r => ({ id: r.id, turn: r.turn, p: r.p, human: r.human, actives: r.actives, foes: r.foes, field: r.field, detail: r.detail, opp_actions: r.opp_actions })),
+    exempt_human_doubles_sample: dbl.filter(r => !r.gated).slice(0, 40).map(r => ({ id: r.id, turn: r.turn, reasons: r.reasons, actives: r.actives, foes: r.foes, field: r.field, opp_actions: r.opp_actions })),
+    unmatched_examples: recs.filter(r => r.unmatched).slice(0, 10).map(r => ({ id: r.id, ti: r.ti, unmatched: r.unmatched })),
+    error_examples: recs.filter(r => r.error).slice(0, 10).map(r => ({ id: r.id, ti: r.ti, error: r.error })),
+    shard_counters: shardSums.map(x => x && { done: x.done, wall_s: x.wall_s, double_protect: x.double_protect, world: x.world }), worker_exits: exits,
+    release_stamp: shardSums[0] && shardSums[0].release, wall_s: (Date.now() - t0) / 1000,
+  };
+  fs.writeFileSync(path.join(OUT, 'summary.json'), JSON.stringify(result, null, 1));
+  console.log(JSON.stringify({ counts: result.counts, human_double: result.human_double, exemptions: result.exemptions_of_human_doubles, survival: result.survival, base: result.base_rates_when_offered }, null, 1));
 }
 
 if (SHARD != null) worker(+SHARD, SHARDS);

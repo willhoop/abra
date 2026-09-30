@@ -21,6 +21,40 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.31.0] — 2026-09-30
+
+### Added
+- **The double-Protect soft gate (Will, 2026-09-29), OFF by default and on no arm.** A joint in which both actives click
+  a protect-type move is weighted to 0.001, never removed, unless a stall condition holds on the board. The conditions:
+  Trick Room up and favouring the opponent (their mean `effSpeed` is below mine), a weather or terrain that only the
+  opponent's revealed bodies can set, the opponent's Tailwind, a screen on the opponent's side, and a foe whose engine
+  menu offers a first-turn-only flinch move. A foe's Perish count below mine also counts, as does a foe's poison, burn,
+  Leech Seed, Salt Cure or Curse. So does any other first-turn-only move (reported apart as `firstturn`; it is not on
+  Will's list). A foe that can SET a field effect this turn is not a reason. Protect-type is the gates' own shield
+  predicate, and every entity is derived from the dex. Only my side's joints are weighted. The single-slot Protect and
+  the repeat roll are unchanged. `solver/doduo/double_protect.js`, spec `gates.doubleProtect`; `gates.tiers: false`
+  runs it with no MAG or pair verdicts. Counters: offered, fired, joints weighted, exempt by reason, contested fields,
+  top demoted.
+- `solver/doduo/eval_gates.js --dp`, `solver/doduo/dp_rates.js`, `solver/tests/probe_dp_replay.js` (a live ROTOM decision
+  replayed through gen5 per arm). `solver/tests/test-double-protect.js`: 34 checks, RED under `dpoff`, `dpnoexempt`,
+  `dpanyfield` and `dpsheetfo`.
+- `solver/arena/protect_stats.js` counts `pairs` and `doubles`; `protect_read.js` prints `double_share`.
+- `solver/rotom/world.js` puts the current public state on `ctx.pubNow`. The world lays no Perish, Leech Seed or Salt Cure,
+  and only the gate reads it.
+
+### Notes
+- Release `eaa5becc54eb`, all 20,482 held-out human decisions (`solver/results/2026-09-30-double-protect/`): humans
+  double-Protect on 646 (3.15% [2.92, 3.40]). 571 of them are exempt and 75 are not. **Survival 99.63%
+  [99.54, 99.71].** When a double protect is offered, humans click it at 2.2% [1.7, 2.7] with no exemption. With one
+  reason alone: Fake Out 16.5%, Trick Room 14.8%, Tailwind 13.0%, Perish 50.0% (n 28). Terrain (2.2%), weather (2.9%)
+  and screens (0.7%) sit at the base rate. Humans honour four of Will's reasons, and they do not stall a terrain or
+  a screen.
+- **The case that prompted the rule is exempt by the rule.** At chomp1 game 1 turn 4 the opponent's Grassy Terrain has
+  1 turn left, so the gated search plays the double Protect at 0.85, the same as ungated. With the terrain exemption
+  switched off it plays mega Substitute plus a switch at 0.997. If terrain and screens are dropped, survival falls to
+  99.48% [99.37, 99.57]. Will's call.
+- Phase B is prepared and not run: `solver/results/2026-09-30-double-protect/preregistration.json`.
+
 ## [1.30.1] — 2026-09-29
 
 ### Fixed
