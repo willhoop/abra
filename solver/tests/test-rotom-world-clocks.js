@@ -13,6 +13,8 @@
  *             duration + 1 - 1 and the engine offers it no status move; an Encore locks the engine's menu to the encored
  *             move; a Substitute, a Leech Seed and a confusion are laid on the engine's own fields. Plus the walk on its
  *             own: sleep ticks, the toxic stage, Disable's -1 and Rest's fixed sleep.
+ *   ABILITY   pandywulu g1, turn 8: Espeon holds the Shadow Tag it Skill Swapped, and the engine offers our Incineroar no
+ *             switch (the server refused it: trapped). RED under ROTOM_WORLD_BREAK=noability.
  *   AUDIT     every per-body leaf engine/board_state.js mediBody reads, and every field leaf of readMedi, is either
  *             CARRIED or OWED in world_log.js (a leaf in neither fails by name).
  *   RED       ROTOM_WORLD_BREAK=noclocks (the pre-fix world: no body clocks, no log field) turns PERISH and CLOCKS red.
@@ -85,6 +87,23 @@ const toID = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   ok('CLOCKS', D && D.tox && L.U - D.tox.since === 2, 'toxic stage after two residuals: ' + (D && D.tox && L.U - D.tox.since));
   ok('CLOCKS', D && D.vols.get('disable') && D.vols.get('disable').adj === WL.startAdj('disable').ifNotActed && D.vols.get('disable').arg === 'tackle', 'Disable on a body that had not acted: adj ' + (D && D.vols.get('disable') && D.vols.get('disable').adj) + ' move ' + (D && D.vols.get('disable') && D.vols.get('disable').arg));
   ok('CLOCKS', A && A.slp && A.slp.rest === true && WL.restTime() > 0, 'Rest sleep marked (fixed time ' + WL.restTime() + ')');
+}
+
+/* ---------------- ABILITY (abra/regmc 1.41.0) ----------------
+ * pandywulu g1, turn 8: the server refused our `switch 4` from Incineroar ("trapped"). Espeon had Skill Swapped our
+ * Gengar-Mega's Shadow Tag on turn 6 (`-activate|p2a: Espeon|Skill Swap|Shadow Tag|Defiant|[of] p1a: Gengar`). The
+ * rebuilt world must hold Shadow Tag on Espeon and Defiant on our Gengar, and the engine must offer Incineroar no switch.
+ * RED under ROTOM_WORLD_BREAK=noability (and noclocks). */
+{
+  const w = LR.worldAt(WB, { log: path.join(FX, 'pandywulu-g1.battle.txt'), me: 'p1', bring: [0, 3, 1, 5], cut: '|turn|8', hpOf });
+  const esp = LR.bodyOf(w, 'p2', 'Espeon'), gen = LR.bodyOf(w, 'p1', 'Gengar'), inc = LR.bodyOf(w, 'p1', 'Incineroar');
+  ok('ABILITY', esp && toID(esp.ability) === 'shadowtag', 'Espeon holds ' + (esp && esp.ability) + ' at turn 8 (the log: Skill Swapped Shadow Tag on turn 6)');
+  ok('ABILITY', gen && toID(gen.ability) === 'defiant' && toID(gen._preAb) === 'shadowtag', 'our Gengar-Mega holds ' + (gen && gen.ability) + ', restores ' + (gen && gen._preAb) + ' on a switch (want defiant / shadowtag)');
+  const la = API.legalActions(w.S, w.side);
+  const k = acts(w.S, w.side).indexOf(inc);
+  const sw = k >= 0 ? la.slots[k].options.filter(o => o.kind === 'switch').length : -1;
+  ok('ABILITY', k >= 0 && sw === 0, 'the engine offers our Incineroar ' + sw + ' switch options at turn 8 (the server refused its switch: trapped)');
+  console.log('  ABILITY Espeon ' + (esp && esp.ability) + ' | Gengar ' + (gen && gen.ability) + ' (restores ' + (gen && gen._preAb) + ') | Incineroar switch options ' + sw);
 }
 
 /* ---------------- AUDIT ---------------- */

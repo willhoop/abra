@@ -21,6 +21,25 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.41.0] — 2026-09-30
+
+### Fixed
+- **ROTOM's world now carries an ability changed mid-battle.** In pandywulu g1 turn 8 the server refused our
+  `switch 4` because our Incineroar was trapped. Espeon had Skill Swapped our Gengar-Mega's Shadow Tag on turn 6, and
+  the world still gave Espeon its sheet's Magic Bounce.
+  - Rebuilt from the saved log, the world now gives Espeon Shadow Tag and our Gengar-Mega Defiant (restoring Shadow Tag
+    on a switch).
+  - The engine now offers Incineroar 0 switches. Before the fix it offered 1, the one ROTOM chose.
+- The trap cannot come from the request: Showdown's Shadow Tag traps with `tryTrap(true)`, which the request hides.
+- Read from the log: Skill Swap in both directions (an ally swap names no ability, so the held ones swap), any
+  `-ability` carrying `[from]` (Trace, Role Play, Entrainment, Worry Seed, Simple Beam, Wandering Spirit), Mummy,
+  Gastro Acid (`_abParked`) and the reset a mega forme makes.
+- For my side the request's `ability` and `baseAbility` win (`_preAb`). Neutralizing Gas has no legal Reg M-C species
+  and is out of scope.
+
+### Added
+- `solver/tests/test-rotom-world-clocks.js` ABILITY clause. Red under `ROTOM_WORLD_BREAK=noability`, 3 of 16.
+
 ## [1.40.0] — 2026-09-30
 
 ### Fixed

@@ -53,6 +53,18 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.41.0] — 2026-09-30 — **ROTOM's world carries a changed ability; a Skill-Swapped Shadow Tag now traps in the search as it did on the server**
+- **What changed.** `solver/rotom/world.js` `layBody` lays the log's ability changes (from `solver/rotom/world_log.js`)
+  on the opponent's bodies, with `_preAb`. On mine, the request's `ability` and `baseAbility` win.
+- **Measured.** Replay of pandywulu g1 turn 8 (chomp1 fixture):
+  - Espeon: magicbounce before, shadowtag after.
+  - Our Gengar-Mega: defiant, restores shadowtag.
+  - The engine offers our Incineroar 1 switch before, 0 after. The server refused the switch as trapped.
+  - `test-rotom-world-clocks.js` GREEN 16 of 16, RED 3 of 16 under `ROTOM_WORLD_BREAK=noability`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MODELS: ROTOM's world fidelity.
+
 ## [abra/regmc 1.40.0] — 2026-09-30 — **ROTOM's world carries the Perish count and the other volatile clocks from the log**
 - **What changed.** New `solver/rotom/world_log.js`, a single walk of the public protocol. `solver/rotom/world.js`
   `layBody` lays what it finds: Perish, the duration and presence volatiles, Substitute, Leech Seed, confusion, traps,

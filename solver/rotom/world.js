@@ -136,7 +136,7 @@ function create(API) {
                      stallLaid: 0, stallNoLines: 0 };
 
   Object.assign(COUNTERS, { perishLaid: 0, volLaid: 0, subLaid: 0, seedLaid: 0, confusionLaid: 0, trapLaid: 0, yawnLaid: 0,
-                            slpLaid: 0, toxLaid: 0, lockLaid: 0 });
+                            slpLaid: 0, toxLaid: 0, lockLaid: 0, abilityLaid: 0 });
 
   /* THE BODY'S CLOCKS AND VOLATILES FROM THE LOG (2026-09-30, solver/rotom/world_log.js). Each engine field is the one
    * engine/board_state.js mediBody reads for that volatile, laid at the value the engine holds at a turn boundary.
@@ -148,6 +148,15 @@ function create(API) {
     const age = s => U - s;
     if (b.status === 'slp' && L.slp) { b.slpTurns = L.slp.ticks; if (L.slp.rest && WL.restTime()) b.slpTime = WL.restTime(); COUNTERS.slpLaid++; }
     if (!L.active) return;
+    /* THE ABILITY IT HOLDS NOW (2026-09-30): observed over declared. Mine: the request's `ability` is current and
+     * `baseAbility` is what a switch restores (`_preAb`, which the engine's abRestoreOnLeave reads); without them, the
+     * log. Theirs: the log's changes (Skill Swap both ways, a [from] -ability, Mummy) over the sheet. Gastro Acid parks
+     * it (`_abParked`, the engine's abSuppress). A Skill-Swapped Shadow Tag is what trapped our Incineroar in pandywulu
+     * g1: the server hides that trap from the request, so only this world can know it. */
+    if (reqP && reqP.ability) {
+      if (reqP.baseAbility && toID(reqP.baseAbility) !== toID(reqP.ability)) { b._preAb = toID(reqP.baseAbility); COUNTERS.abilityLaid++; }
+    } else if (L.ability && L.ability !== toID(b.ability)) { b._preAb = toID(b.ability); b.ability = L.ability; COUNTERS.abilityLaid++; }
+    if (L.suppressed && b._abParked == null) { b._abParked = b.ability; b.ability = ''; (b._vol = b._vol || {}).gastroacid = 1; COUNTERS.abilityLaid++; }
     if (b.status === 'tox' && L.tox) { b.toxTurns = Math.max(0, age(L.tox.since)); COUNTERS.toxLaid++; }
     if (L.perish != null) { b._perish = L.perish; COUNTERS.perishLaid++; }
     if (L.sub) {

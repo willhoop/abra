@@ -344,7 +344,7 @@ function curAbility(b, key, sheets) {
 const CARRIED = {
   species: 'sheet + mega from the log', hp: 'request (mine) / public % (theirs)', maxhp: 'request / build', fainted: 'log',
   status: 'request / log', status_counter: 'sleep ticks (|cant|X|slp) and toxic stage (residuals since entry or poisoning), 2026-09-30',
-  item: 'request / log (-enditem, -item)', boosts: 'log', ability: 'request (mine) / sheet + mega (theirs)',
+  item: 'request / log (-enditem, -item)', boosts: 'log', ability: 'request ability/baseAbility (mine); log changes over the sheet (Skill Swap both ways, [from] -ability, Mummy, Gastro Acid park, mega reset), 1.41.0',
   substitute: 'presence from the log; HP laid as a fresh doll (the remaining HP is hidden)', taunt: 'dex duration - residuals + onStart adj',
   encore: 'dex duration - residuals + adj; _encoreMove and the lock', disable: 'dex duration - residuals + adj; _sealed from the line',
   leechseed: '_seededBy {by, per, side, slot}', confusion: 'presence; count = posterior mean over the dex draw given attempts seen',
