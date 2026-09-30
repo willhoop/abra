@@ -91,6 +91,10 @@ This section says only what a division agent needs before it starts.
     ladder baseline for PORYGON2 v2.
   - Unowned: Sucker Punch; ROTOM's world lays no Perish count and no Skill-Swapped ability.
   - `solver/results/2026-09-30-ladder-loss-postmortem/`, `docs/_reports/2026-09-30-ladder-loss-postmortem.md`.
+- **PORYGON2 v1-r2 (deep labels on c1) FAILS gate (a) on the human half (2026-09-30, abra/regmc 1.46.0).** 13,414 deep
+  labels on 4,123 c1 games, with the human share held at v1's. r2 − gen5: human −0.0044 [−0.0086, +0.0002], self-play
+  −0.0131 [−0.0178, −0.0084]. r2 − v1 on humans +0.0033 [+0.00004, +0.0068]. No SPRT was run and gen5 is unchanged.
+  `docs/_reports/2026-09-30-porygon2-deep-labels.md`.
 - **CHOMP v2 is built. Gate (a) FAILS against v1 (2026-09-30, abra/regmc 1.45.0).** `solver/chomp/v2/`: per-set spreads
   (ROTOM's rule with MEDICHAM oracles) and a field block recomputed by MEDICHAM. On TEST, Δlog-loss against v1 is
   −0.0004 [−0.0032, +0.0024], which fails. v1 stays the served preview. `docs/_reports/2026-09-30-chomp-v2.md`.

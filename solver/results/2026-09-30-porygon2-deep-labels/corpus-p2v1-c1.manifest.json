@@ -1,0 +1,205 @@
+{
+ "what": "MEW self-play shards (solver/mew/run.js)",
+ "started": "2026-09-26T18:24:25.979Z",
+ "finished": "2026-09-26T19:41:02.264Z",
+ "engine_release": "eaa5becc54eb",
+ "release_stamp": {
+  "engine_release": "eaa5becc54eb",
+  "engine_release_cut": "2026-09-24T20:12:54.367Z",
+  "engine_release_cuts": 50,
+  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+  "source_digests": {
+   "engine/medicham2-browser.js": "2caee2eeabb0",
+   "engine/board.js": "c85a3b756c98",
+   "engine/rollout_leaf.js": "eacf05ff8d30",
+   "engine/position_features.js": "bb71676d3669",
+   "engine/tags.js": "13cdeb051720",
+   "engine/champions_sim.js": "8094725f52a8",
+   "data/residual-order.json": "eff160ad1c5a",
+   "data/switchin-order.json": "24a007a66b7d",
+   "engine/mc_key.js": "aaa095762671",
+   "engine/lookup.js": "17f49e5aed43",
+   "engine/set_priors.js": "f8a81445ee3a",
+   "engine/smogon_priors.js": "ebd062f756c8",
+   "engine/quality.js": "ebc37c7c9d05",
+   "engine/showdown_path.js": "46646401ede2",
+   "engine/regulation.js": "827f5138ecf5",
+   "data/move-effects.js": "f35ecd91ba86",
+   "data/ability-blocks.json": "86741fd35452",
+   "data/smogon-priors.json": "f2dc78cea6c5",
+   "data/regulations.json": "6c7c3e3dd06c",
+   "data/quality-filter.json": "042524dd1df7",
+   "data/engine-data.js": "bbc417dfae0e",
+   "data/abra-tags.js": "fc30f9a9392e",
+   "data/tags.json": "26ee107ce6a8",
+   "data/policy-weights.json": "626c1d240782",
+   "data/policy-weights-joint.json": "e2aca467ff04",
+   "data/move-priors.json": "e667fe8ab457",
+   "engine/pp.js": "30b12a4ef623",
+   "data/rollout-switch-census.json": "b8a5cee2f0a9",
+   "engine/medicham_api.js": "f0264a11558b",
+   "data/engine-data-regmc.js": "a6ad04e92d4e",
+   "data/tags-regmc.json": "ac1a00fa40ee",
+   "data/move-priors-regmc.json": "eab0c9b023df",
+   "data/move-effects-regmc.js": "8c57407e7641"
+  }
+ },
+ "flags": {
+  "release": "eaa5becc54eb",
+  "league": "solver/porygon2/v1/corpus-league-p2.json",
+  "games": 10000,
+  "seed": 2001,
+  "workers": 3,
+  "cap": 50,
+  "human": null,
+  "team_store": "data\\team-pool-frozen-regmc"
+ },
+ "league": {
+  "current": {
+   "name": "gen5-p2",
+   "spec": {
+    "name": "gen5-p2",
+    "kind": "miltank",
+    "mag": "solver/machamp/models/gen5/mag-gen5.json",
+    "doduo": "solver/machamp/models/gen5/doduo-gen5.json",
+    "pory2": "solver/machamp/models/gen5/porygon2-gen5.json",
+    "budgetMs": 3000,
+    "maxPasses": 2,
+    "k1": 4,
+    "k2": 4,
+    "depth": 0,
+    "reserveSwitch": 1
+   },
+   "digests": {
+    "mag": "65e76caf2423b28b",
+    "doduo": "abb0b88dd573b728",
+    "pory2": "cf8ad3f7bd0d4a33"
+   }
+  },
+  "clone": {
+   "name": "human-clone",
+   "spec": {
+    "name": "human-clone",
+    "kind": "greedy",
+    "mag": "solver/mag/model/mag-v1.json",
+    "doduo": "solver/mag/model/doduo-v1.json"
+   },
+   "digests": {
+    "mag": "c720dd9e0696bc3e",
+    "doduo": "da319ee23b44770a"
+   }
+  }
+ },
+ "league_weights": {
+  "current": 0.6,
+  "previous": 0,
+  "clone": 0.4
+ },
+ "league_file_sha256": "424a70a22990845209e29c57fddd4b615061a16f8b99608755323885745fc50c",
+ "pool": {
+  "source": {
+   "kind": "team-store",
+   "file": "data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+   "file_sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+   "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709"
+  },
+  "file": "data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+  "train_pairs": 10200,
+  "counts": {
+   "scanned": 23473,
+   "bot": 158,
+   "bring_incomplete": 7179,
+   "sheet_not_six": 0,
+   "mixed_split": 5623,
+   "train": 10200,
+   "val": 140,
+   "test": 173
+  }
+ },
+ "counts": {
+  "games": 10000,
+  "errors": 0,
+  "capped": 1,
+  "unbuildable": 0,
+  "decisions": 122309,
+  "fallback_decisions": 0,
+  "rows": 488988,
+  "decisions_unmapped_rows": 5444,
+  "opp": {
+   "current": 5975,
+   "previous": 0,
+   "clone": 4025
+  },
+  "current_score": {
+   "current": [
+    2974,
+    5975
+   ],
+   "previous": [
+    0,
+    0
+   ],
+   "clone": [
+    2629.5,
+    4025
+   ]
+  }
+ },
+ "wall_s": 4596.246,
+ "games_per_hour": 7832.5,
+ "search": {
+  "decisions": 122309,
+  "playouts_mean": 31.94,
+  "unfilled_share": 0,
+  "ms_mean": 104.4
+ },
+ "agent_counters": {
+  "fallbacks": 0,
+  "decisions": 152102,
+  "searched": 122309,
+  "forced": 104
+ },
+ "rollout_counters": {
+  "playouts": 3906508,
+  "playoutTurns": 0,
+  "worlds": 244618,
+  "bodiesSwapped": 178136,
+  "wipes": 594239,
+  "leafHeuristic": 0,
+  "leafPory2": 3312269,
+  "prepared": 244618,
+  "fastClones": 3906508,
+  "leanPlayouts": 3906508,
+  "aborted": 0
+ },
+ "warnings": [],
+ "shards": [
+  {
+   "shard": 0,
+   "pid": 18592,
+   "code": 0,
+   "file": "../../../solver/out/selfplay/eaa5becc54eb/p2v1-c1/shard-0.jsonl.gz",
+   "sha256": "9f867ba04d95cf2d6c2f78dd42e6d925fe681d42677ed39bcdcea4460352d7a9",
+   "games": 3334,
+   "wall_s": 4586.809
+  },
+  {
+   "shard": 1,
+   "pid": 4416,
+   "code": 0,
+   "file": "../../../solver/out/selfplay/eaa5becc54eb/p2v1-c1/shard-1.jsonl.gz",
+   "sha256": "82c2ad29b7e65bce8f6fef656cd25d6e4c371be1f80707eebf71302e6fa4b559",
+   "games": 3333,
+   "wall_s": 4504.174
+  },
+  {
+   "shard": 2,
+   "pid": 23264,
+   "code": 0,
+   "file": "../../../solver/out/selfplay/eaa5becc54eb/p2v1-c1/shard-2.jsonl.gz",
+   "sha256": "f9235d8ef1df462e1a2d0107d2aa502d2ed9a21be187cf608b62b73399f90456",
+   "games": 3333,
+   "wall_s": 4559.393
+  }
+ ]
+}

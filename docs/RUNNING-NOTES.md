@@ -53,6 +53,29 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.46.0] — 2026-09-30 — **PORYGON2 v1-r2 (deep labels on c1): gate (a) FAILS on the human half, no SPRT, not landed**
+- **What changed.**
+  - `solver/porygon2/v1/label.js` gains two flags: `--train-only` labels only train-split games, and
+    `--resume-after <dir>` continues a stopped run.
+  - `train.py` gains `--labelled-only <dirs>`: those directories train and validate only on their labelled rows,
+    and their test rows are not touched.
+  - New `preregistration-r2.json` (committed before labelling; amended twice before any fit), `gen5-p2v1r2.json`,
+    and the unpromoted model `solver/porygon2/model/porygon2-v1r2.json` with its metrics.
+- **Measured.** Release `eaa5becc54eb`. Artifacts: `solver/results/2026-09-30-porygon2-deep-labels/` and
+  `porygon2-v1r2.metrics.json`.
+  - Labels: 13,414 deep labels on 4,123 train games of `p2v1-c1`, from three legs (a machine crash and Will's pause
+    in between). Settings: k 6x6, 8 passes, both seats. 0 duplicates, 0 errors, 0 search fallbacks.
+  - Training mix: human share 0.584, the same as v1's (`--human-weight 1.16`). c1 contributes only its 13,414
+    labelled rows; it does not add r1's 61,000 cheap rows.
+  - Gate (a), r2 − gen5 log-loss: human **−0.0044 [−0.0086, +0.0002]** FAIL (37,829 views, 5,220 games);
+    self-play **−0.0131 [−0.0178, −0.0084]** pass.
+  - On v1's own test rows (report-only), r2 − v1: human +0.0033 [+0.00004, +0.0068], self-play
+    −0.0048 [−0.0101, +0.0006].
+  - No SPRT was run.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published. gen5 stays the champion's value net.
+- **Owed to the next major.** MODELS: PORYGON2 v1-r2 (built, gate (a) failed).
+
 ## [abra/regmc 1.45.0] — 2026-09-30 — **CHOMP v2 (per-set spreads + field effects): gate (a) FAILS against v1, not promoted**
 - **What changed.**
   - New `solver/chomp/v2/`:

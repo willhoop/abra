@@ -21,6 +21,21 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.46.0] — 2026-09-30
+
+### Added
+- **PORYGON2 v1-r2: v1 refit with deep labels on the c1 positions. Gate (a) fails on the human half, so no arena game
+  was played and nothing landed.**
+  - Labels: 13,414 deep labels on 4,123 train games of `p2v1-c1`, using the report's label.js settings.
+  - Training: only the labelled c1 rows are added, and the human share is held at v1's 0.584.
+  - Gate (a), r2 − gen5 log-loss: human −0.0044 [−0.0086, +0.0002] (the upper bound is not below 0, so FAIL);
+    self-play −0.0131 [−0.0178, −0.0084].
+  - r2 is still worse than v1 on human positions: +0.0033 [+0.00004, +0.0068].
+  - The pre-registered SPRT was not run. gen5 is unchanged.
+  - New flags `label.js --train-only`, `label.js --resume-after` and `train.py --labelled-only`.
+  - Results: `solver/results/2026-09-30-porygon2-deep-labels/`. Report:
+    `docs/_reports/2026-09-30-porygon2-deep-labels.md`.
+
 ## [1.45.0] — 2026-09-30
 
 ### Added

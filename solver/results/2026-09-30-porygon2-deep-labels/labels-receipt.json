@@ -1,0 +1,99 @@
+{
+ "what": "PORYGON2 v1-r2 deep labels on p2v1-c1 (label.js, k 6x6, 8 passes, chance 3, exact-depth 2, seed 1, per-game 3, --train-only, 4 workers, gen5 leaf/MAG/DODUO, release eaa5becc54eb)",
+ "legs": {
+  "labels-c1": {
+   "files": {
+    "labels-0.jsonl": {
+     "lines": 2594,
+     "sha256": "cd69dc442c1426b12b2b3ba0b9be385a72d77545989f7815f7aee41485bed653"
+    },
+    "labels-1.jsonl": {
+     "lines": 2623,
+     "sha256": "2afd1d670e86c6ea23d568b8239ab3b1a8a35858adb975b8fb32fa756a738fc9"
+    },
+    "labels-2.jsonl": {
+     "lines": 2639,
+     "sha256": "91ad80b6f07733a72468c3524b9b825a41e485ebeb4b2555c8d2c6d62fddffd0"
+    },
+    "labels-3.jsonl": {
+     "lines": 2578,
+     "sha256": "63d8fa70626906b5eb83cf40aa4850e51a6013b8eb975db84c9620bf1ba21622"
+    }
+   },
+   "labels": 10434,
+   "games": 3207,
+   "kinds": {
+    "deep": 9125,
+    "deep2": 1302,
+    "exact": 7
+   },
+   "label_seconds": 69013,
+   "summary_written": false,
+   "window": "2026-09-29T22:37Z to ~2026-09-30T03:28Z; died with the machine, no summary"
+  },
+  "labels-c1b": {
+   "files": {
+    "labels-0.jsonl": {
+     "lines": 314,
+     "sha256": "44260b9e4247693ef4653df56e4b210ff2834c5e5d834c1ad2a3fb5766d624d3"
+    },
+    "labels-1.jsonl": {
+     "lines": 313,
+     "sha256": "b56bfbddbd3ab990c7939741e10d99c5e7f7040dfab375e3606233120880d8cc"
+    },
+    "labels-2.jsonl": {
+     "lines": 294,
+     "sha256": "61eecad59669451e13fb6c82a0e343a21c2fac46be90e6378f1e0752b6e45d6f"
+    },
+    "labels-3.jsonl": {
+     "lines": 307,
+     "sha256": "bb81e59e9857089f1ed1d83c2679bba8145f166f7f35ddd7c4e559db3c507622"
+    }
+   },
+   "labels": 1228,
+   "games": 374,
+   "kinds": {
+    "deep": 1076,
+    "deep2": 148,
+    "exact": 4
+   },
+   "label_seconds": 20276,
+   "summary_written": false,
+   "window": "05:03Z to 06:31:41Z (--resume-after labels-c1); workers gone at Will pause, no summary"
+  },
+  "labels-c1c": {
+   "files": {
+    "labels-0.jsonl": {
+     "lines": 430,
+     "sha256": "8943e95efa63f7fa7027fee723a26fcdbc65b0b0d0e6cd29a89e8d51d80c3316"
+    },
+    "labels-1.jsonl": {
+     "lines": 447,
+     "sha256": "6a4732e9dea84ae8088c9060aa34b1d8e69f15bb61769ea6999e467a1cfa8e32"
+    },
+    "labels-2.jsonl": {
+     "lines": 435,
+     "sha256": "74b6f9c057ec8b49bc18eebfabeb60905a97aedcd764f0825b0ee2a6fd10190c"
+    },
+    "labels-3.jsonl": {
+     "lines": 440,
+     "sha256": "bdfca8ba32faf6904a1ea8ac04c3b7e998de2eb1fac6b443edf541154ea840e4"
+    }
+   },
+   "labels": 1752,
+   "games": 542,
+   "kinds": {
+    "deep": 1539,
+    "deep2": 209,
+    "exact": 4
+   },
+   "label_seconds": 24094,
+   "summary_written": true,
+   "window": "07:53Z to 09:35Z deadline (--resume-after labels-c1b); summary written, stopped_at_deadline 4/4"
+  }
+ },
+ "total": {
+  "labels": 13414,
+  "games": 4123
+ }
+}

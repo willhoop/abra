@@ -8,6 +8,12 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-30
 
+### PORYGON2 v1-r2: deep labels on c1; gate (a) fails on humans, no SPRT (abra/regmc 1.46.0)
+- 13,414 deep labels (k 6x6, 8 passes) on 4,123 c1 train games. Only those rows are added, and the human share is held
+  at v1's. vs gen5: human −0.0044 [−0.0086, +0.0002], a FAIL by 0.0002. Self-play −0.0131 [−0.0178, −0.0084].
+- Still worse than v1 on human positions: +0.0033 [+0.00004, +0.0068]. Better labels did not fix what r1 broke.
+  Neither refit beats v1 on human positions. `docs/_reports/2026-09-30-porygon2-deep-labels.md`.
+
 ### CHOMP v2: spreads and field effects; gate (a) fails against v1 (abra/regmc 1.45.0)
 - The facts move a lot: a per-set spread changes 12% of speed orders, and the room flips 96% of them. The scorer does
   not get better at predicting outcomes: VAL picked `flat+field`, and TEST Δ −0.0004 [−0.0032, +0.0024] is a FAIL.
