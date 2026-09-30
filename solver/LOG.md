@@ -8,12 +8,23 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-30
 
+### PORYGON2 v2: design pre-registered, datasets built, nothing trained (abra/regmc 1.37.0)
+- The value is over the public state. Each unrevealed field is an UNK token, never a prior. Both ratings are inputs
+  (Maia-2 form), queried at 1600.
+- Training pretrains on bo1, then fine-tunes on bo3 with bo1 replay, at K = 1 position per game per epoch.
+- The auxiliary heads are the KataGo ownership/score analogues. `solver/porygon2/v2/DESIGN.md`.
+- Datasets: bo1 27,116 games / 218,815 positions; bo3 24,940 / 197,905.
+- Both players at 1500 or above: bo1 364, bo3 0.
+- Gate (a) can resolve only the bands below 1200 on bo3: 1,023 test games that v1 never saw.
+- Leak test GREEN 222,895/222,895; RED on 2 breaks. `docs/_reports/2026-09-30-porygon2-v2-design.md`.
+
 ### The double-Protect soft gate: built, off; the prompting case is exempt by its own terrain clause (abra/regmc 1.32.0)
 - Will's rule in `solver/doduo/double_protect.js` (`gates.doubleProtect`, `tiers: false` alone). On 20,482 held-out
   human decisions: double Protect 3.15%, survival 99.63% [99.54, 99.71]. Humans honour Fake Out, Trick Room, Tailwind
   and Perish (13-50% against a 2.2% base) and ignore terrain, weather and screens (0.7-2.9%). chomp1 g1 t4 is exempt by
   the opponent's Grassy Terrain, so the gated search still double-Protects (0.85). With terrain off, it plays mega
   Substitute plus a switch. Phase B is pre-registered, not run. `docs/_reports/2026-09-30-double-protect-gate.md`.
+
 ### Human-regularised search (piKL): built behind `kl`, phase A only (abra/regmc 1.34.0)
 - SLOWKING can solve `x·A·y − λ·KL(x‖τ_me) + λ·KL(y‖τ_opp)` with gen5's DODUO as τ. Flag `kl` (λ), off, on no arm.
 - Held-out humans (579, same tables): top-1 0.216 → 0.268 at λ 0.1 (+0.052 [0.021, 0.083]), above DODUO alone (0.230).

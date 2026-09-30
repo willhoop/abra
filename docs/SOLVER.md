@@ -83,6 +83,13 @@ This section says only what a division agent needs before it starts.
   `--preview` (fixed); an arm now names its own preview. Arms file `solver/rotom/arms/gen5-chomp.json`; proof the
   choice is sent: `solver/tests/test-rotom-chomp-live.js`. Command for Will:
   `docs/_reports/2026-09-30-chomp-ladder-prep.md`.
+- **PORYGON2 v2: designed and its data built, not trained (2026-09-30, abra/regmc 1.37.0).** `solver/porygon2/v2/`.
+  - The net is a value over the public state with UNK tokens and both ratings as inputs, pretrained on bo1 and
+    fine-tuned on bo3.
+  - Datasets: bo1 27,116 games / 218,815 positions; bo3 24,940 / 197,905. Both players at 1500 or above: bo1 364,
+    bo3 0.
+  - Leak test: `solver/tests/test-porygon2-v2-extract.js`.
+  - Gates pre-registered in `preregistration.json`, not run. Account: `docs/_reports/2026-09-30-porygon2-v2-design.md`.
 - **Top-meta ladder rotation prepared, not launched (2026-09-29, abra/regmc 1.31.0).** Will asked for top-rated meta teams
   only. `solver/rotom/build_top_rotation.js` builds `solver/rotom/teams/ladder-rotation-top.json`: floor 1409 (q0.99 of
   rated bo3 sides), sixes used by 2 or more players at the floor, every species on 3% or more of the top teams, and

@@ -1,0 +1,36 @@
+{
+ "what": "PORYGON2 v2 — the value net over the PUBLIC state with per-field UNK tokens and both players' ratings as inputs; pretrained on closed-sheet bo1, fine-tuned on open-sheet bo3. Written 2026-09-29/30 BEFORE any v2 fit and before any v2 game. The design and its citations: solver/porygon2/v2/DESIGN.md.",
+ "status": "PRE-REGISTERED, NOT RUN. No training, no gate, no SPRT has been run.",
+ "data": {
+  "extractor": "solver/porygon2/v2/extract.js (store-only) + solver/porygon2/v2/reveal.js; leak test solver/tests/test-porygon2-v2-extract.js",
+  "bo1": "solver/out/porygon2-v2/bo1/games.jsonl.gz, manifest solver/porygon2/v2/manifest-bo1.json (inputs and output by sha256). A rebuilt dataset is a different dataset: the fit stamps the sha256 it read.",
+  "bo3": "solver/out/porygon2-v2/bo3/games.jsonl.gz, manifest solver/porygon2/v2/manifest-bo3.json",
+  "split": "player split sha256('abra-prior-v0:' + toID(name)) mod 100 (<80 train, <90 val, else test), lifted to the game: test if either player is test, else val if either is val, else train",
+  "positions_per_game": "K = 1 fresh uniform draw per game per epoch (AlphaGo / Expert Iteration). Ablations K = 2 and K = all, chosen only if bo3 validation log-loss prefers them."
+ },
+ "inputs": {
+  "state": "the public state at the |turn|n line (reveal.js x): 12 member tokens, 2 side tokens, 1 field token; UNK embeddings per field kind, distinct from NONE",
+  "facts": "MEDICHAM pair facts through a frozen release (eaa5becc54eb or later, stamped): v1's TFACT aggregates over KNOWN moves only; unknown item -> no item, unknown ability -> 'No Ability', with unk_moves / unk_item / unk_ability per token. NOT solver/arena/teams.js buildBody (it fills an unknown ability with the species' first ability).",
+  "ratings": "mine and the opponent's pre-game rating: 100-point bin embeddings (UNRATED for null) + (r - 1300)/200, injected into every block's attention queries (Maia-2 form)",
+  "query": "in play: my rating input = 1600, the opponent's = their displayed ladder rating"
+ },
+ "architecture": "pre-LN transformer, 17 tokens (12 member + 2 side + 1 field + 2 rating), 2 blocks, d 48, 4 heads, FFN 96; antisymmetric value by chair swap; no positional encoding across member tokens",
+ "targets": {
+  "main_human": "z (1 / 0 / 0.5), first-person",
+  "main_bo3_deep": "y = 0.5 z + 0.5 v_deep where a deep label exists (v1's selfplay_deep rule, solver/porygon2/v1/label.js on the stamped release); bo1: never",
+  "aux": "member survival + end HP (per member token, masked if never seen, masked in forfeits); material (final alive difference, 9-way; final HP-fraction difference, regression; masked in forfeits); next KO side (me / opp / both / none) and delay (0, 1, 2, 3+); turns remaining (0, 1, 2, 3-4, 5+)",
+  "loss_weights": "main 1.0; auxiliary heads together scaled to 10-40% of the main head's gradient norm, measured on the first 200 steps and then frozen"
+ },
+ "schedule": {
+  "A_pretrain": "bo1 TRAIN; all heads; unequal-rating games (|r1 - r2| >= 100) sampled 2x; AdamW lr 1e-3 wd 1e-4 dropout 0.1 batch 512 seed 1; select the epoch with the lowest bo1 VAL log-loss vs z; at most 30 epochs",
+  "B_finetune": "initialise from A; bo3 TRAIN with 25% of each batch replayed from bo1 TRAIN; lr 3e-4; select the epoch with the lowest bo3 VAL log-loss vs z; at most 30 epochs",
+  "C_search_targets": "OWED and optional: bo3 positions with deep labels; self-play only from the strong search; decided after the v1 deep-label refit reports (docs/_reports/2026-09-30-porygon2-deep-labels.md)"
+ },
+ "gates": {
+  "a_heldout": "PASS iff the 95% upper bound (bootstrap over games, 2,000 resamples, seed 1) of log-loss(v2) - log-loss(v1) against the OUTCOME is < 0 on the pooled bo3 TEST games with v1_unseen = true, AND the point estimate is <= 0 in every min-rating band (<1100, 1100-1199, 1200-1299, >=1300) holding at least 200 such games. v1 = the PORYGON2 net inside the champion league file at launch, named by sha256 in the run. Reported beside it: the count-HP logistic; Brier and 10-bin ECE; turns 1-3 separately; the bo1 TEST split by band incl. >=1500 (diagnostic); each auxiliary head's loss; ablations no-pretrain, no-aux, no-rating, K = 2, K = all.",
+  "cost": "before (c): v2's median leaf cost (solver/porygon2/v1/bench.js method, same 300 positions) at most 1.5x v1's",
+  "c_sprt": "only if (a) passes and the cost bar holds: solver/machamp/sprt.js, MILTANK with v2 as the leaf vs MILTANK with v1, both with gen5 MAG + DODUO, k 4x4, 1 reserved switch row, depth 0, 1,000 ms per decision (equal wall-clock), --info honest, TEST team pairs of data/team-pool-frozen-regmc, release eaa5becc54eb or later (stamped), elo0 0, elo1 +20, alpha = beta = 0.05, at most 2,000 games, battle seed 9301. PASS iff H1. Read once, at the bound or the budget; no interim LLR.",
+  "land": "v2 replaces v1 in a league file only if (a) and (c) pass and the parity test (Node vs Python, worst |diff| <= 1e-9, RED on a perturbation first) is green"
+ },
+ "counters": "every fit and the SPRT print: positions read per stage, UNK share of member fields, leaf evaluations served, fallbacks; a zero or a fallback is called out"
+}

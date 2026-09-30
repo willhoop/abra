@@ -53,6 +53,22 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.37.0] — 2026-09-30 — **PORYGON2 v2: design pre-registered and datasets built; nothing trained**
+- **What changed.**
+  - New `solver/porygon2/v2/`: `reveal.js` and `extract.js`, the store-only position extractor; `DESIGN.md`;
+    `preregistration.json`; `manifest-bo1.json` and `manifest-bo3.json`.
+  - New test `solver/tests/test-porygon2-v2-extract.js`.
+  - `solver/PLAN.md`: the PORYGON2 status cell.
+- **Measured.**
+  - bo1: 27,116 games / 218,815 positions. bo3: 24,940 / 197,905 (`solver/porygon2/v2/manifest-*.json`).
+  - Both players at 1500 or above: bo1 364, bo3 0.
+  - bo3 test games v1 never saw: 1,023.
+  - Leak test GREEN 222,895/222,895; RED under both breaks.
+  - bo1 end-of-game reveals against the store's `sets`: moves identical 98.49% of 182,872 members.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MODELS: PORYGON2 v2 (designed, not trained).
+
 ## [abra/regmc 1.35.0] — 2026-09-30 — **ROTOM's ladder spreads fit each set's role (Scarf and Tailwind at the Speed cap, Trick Room at 0)**
 - **What changed.** New `solver/rotom/spreads.js` (a Reg M-C observed spread if a Smogon moveset file for the format exists, else a spread derived from the set's role against the top-meta population) and `solver/rotom/respread.js`. Both ladder rotations (`ladder-rotation.json`, `ladder-rotation-top.json`) are re-spread; the teams are unchanged. Each team records `spreads`, and each file records `spread_rule` and `spread_source`. `ladder.js` puts the spreads in each series row's `team_meta`. Both builders derive spreads the same way. New test `solver/tests/test-rotom-spreads.js`.
 - **Measured.** Before, 60 of 60 sets were 32 HP / 32 attack / 2 Speed. After: the 10 fast-role sets (4 Choice Scarf, 6 Tailwind) are at Speed SP 32; for example Scarf Garchomp's Speed stat goes 124 → 154 (231 with the Scarf), and Scarf Basculegion 110 → 143. The 2 Trick Room setters are at SP 0 (Farigiraf 82 → 80, Indeedee-F 107 → 105). The speed benchmark is 138: the weighted median effective speed of 148 top teams (floor 1409, store `fe78202a8515`, 384 distinct sets) at full investment. The median-bulk step bought bulk on 16 of 60 sets. Observed spreads used: 0 (no Reg M-C file). Counters: 17,281 staged battles, 1,318,100 damage calls, 4 enduring sets. Every team passes `TeamValidator`. Tests: spreads 23/23, RED on the 3 breaks and on the old files. top-rotation 9/9 (REBUILD not checked because the live store moved; it reproduced byte for byte on the pinned store). ladder 142/142.
