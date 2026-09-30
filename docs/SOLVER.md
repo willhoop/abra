@@ -83,6 +83,13 @@ This section says only what a division agent needs before it starts.
   `--preview` (fixed); an arm now names its own preview. Arms file `solver/rotom/arms/gen5-chomp.json`; proof the
   choice is sent: `solver/tests/test-rotom-chomp-live.js`. Command for Will:
   `docs/_reports/2026-09-30-chomp-ladder-prep.md`.
+- **Human-regularised search (piKL), phase A (2026-09-30, abra/regmc 1.32.0).** Spec flag `kl` (lambda; off, on no
+  arm): SLOWKING solves the KL-regularised root game with gen5's DODUO as the anchor (`solveKL`). On 579 held-out human
+  decisions and the same recorded tables, top-1 agreement is 0.216 at lambda 0 and 0.268 at 0.1 (+0.052 [0.021, 0.083]).
+  The worst-case cost on the search's own table is 0.035. The repeat-Protect mass is 0.611 at lambda 0 and 0.243 at 0.03,
+  where it reaches the anchor's own level. chomp1 turn 4's double Protect keeps 0.71 of the mix at 0.03. That is a horizon
+  fault in the table. The 2 s screens at lambda 0.01, 0.03 and 0.1 are pre-registered, not run.
+  `docs/_reports/2026-09-30-human-regularised-search.md`.
 - **CHOMP v0** (`solver/chomp/`, 2026-09-25, release `eaa5becc54eb`) **fails its bar**: its preview loses to
   the human bring (SPRT H0 accepted) and ties random. The PORYGON2 cells carry no bring signal.
   `docs/_reports/2026-09-25-chomp-v0.md`.

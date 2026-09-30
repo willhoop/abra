@@ -6,6 +6,16 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ---
 
+## 2026-09-30
+
+### Human-regularised search (piKL): built behind `kl`, phase A only (abra/regmc 1.32.0)
+- SLOWKING can solve `x·A·y − λ·KL(x‖τ_me) + λ·KL(y‖τ_opp)` with gen5's DODUO as τ. Flag `kl` (λ), off, on no arm.
+- Held-out humans (579, same tables): top-1 0.216 → 0.268 at λ 0.1 (+0.052 [0.021, 0.083]), above DODUO alone (0.230).
+  The worst-case cost on the table is 0.035. The repeat-Protect mass is 0.611 → 0.243 at λ 0.03 (the anchor's floor).
+- chomp1 t4: the double Protect keeps 0.71 at λ 0.03. The table makes it maximin and barely charges for Trick Room, so
+  it is a horizon fault. 2 s screens at λ 0.01, 0.03 and 0.1 are pre-registered, not run.
+  `docs/_reports/2026-09-30-human-regularised-search.md`.
+
 ## 2026-09-29
 
 ### CHOMP ladder run prepared, not launched; `--preview chomp` was dropped by the supervisor (abra/regmc 1.30.0)

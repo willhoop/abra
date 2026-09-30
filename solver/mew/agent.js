@@ -9,7 +9,8 @@
  *   spec = { name, kind: 'miltank', mag, doduo, pory2, budgetMs, k1, k2, depth, reserveSwitch[, gates][, quiesce] }
  *   quiesce (2026-09-27): true | 'all' = every search playout plays one extension turn; 'held' = only after a protect held
  *   (solver/miltank/rollout.js QUIESCENCE); flatEps: a flat table plays the prior's top joint; reserveNoRepeat: the mega row
- *   repeats no Protect when it can (solver/miltank/search.js; docs/_reports/2026-09-27-protect-repeat-fix.md)
+ *   repeats no Protect when it can (solver/miltank/search.js; docs/_reports/2026-09-27-protect-repeat-fix.md); kl (2026-09-30): lambda of the
+ *   human-regularised solve (piKL; solver/miltank/search.js, docs/_reports/2026-09-30-human-regularised-search.md), off when absent
  *        | { name, kind: 'greedy',  mag, doduo[, gates] }   the HUMAN CLONE: DODUO's argmax legal joint, no search
  *   gates (2026-09-25, docs/_reports/2026-09-25-mag-doduo-gates.md): true or { soft, maxSteps, maxMs } — the prior is wrapped
  *   by DODUO v2 (solver/doduo/v2.js): MAG v2's per-slot dead-click gate and DODUO v2's pair gate cut, MAG's soft verdict
@@ -40,7 +41,7 @@ const abs = p => (path.isAbsolute(p) ? p : path.join(ROOT, p));
 const sha = p => crypto.createHash('sha256').update(fs.readFileSync(abs(p))).digest('hex').slice(0, 16);
 
 /* the search options a league spec may carry beyond k, depth and the leaf (solver/miltank/search.js); absent = off */
-const SEARCH_EXTRAS = ['quiesce', 'flatEps', 'reserveNoRepeat', 'chance'];
+const SEARCH_EXTRAS = ['quiesce', 'flatEps', 'reserveNoRepeat', 'chance', 'kl'];
 function searchExtras(spec) {
   const o = {};
   for (const k of SEARCH_EXTRAS) if (spec && spec[k] != null && spec[k] !== false) o[k] = spec[k];
@@ -149,6 +150,16 @@ function create(API, opts) {
             if (searched && rec.stop === 'none') rec.stop = 'hard';
             AD.charge(Date.now() - tIn, searched, rec);
             r.info = Object.assign({}, r.info, { adapt: { stop: searched ? rec.stop : 'forced', hard: rec.plan.hardMs, soft: rec.plan.softMs, credit: rec.plan.creditMs, bank: +AD.bank.toFixed(1) } });
+          }
+          /* the human-regularised solve's counters, per agent (the honest path makes a MILTANK per decision, so its own
+           * COUNTERS do not survive the decision): summed here from each decision's info.kl (solver/miltank/search.js) */
+          if (r.info && r.info.kl) {
+            const K = (COUNTERS.kl = COUNTERS.kl || {})[spec.name] || (COUNTERS.kl[spec.name] = { lambda: r.info.lambda, decisions: 0, changed: 0, missMe: 0, missOpp: 0,
+              klSum: 0, tvSum: 0, worstSum: 0, worstMax: 0, prot: 0, prot0: 0, dbl: 0, dbl0: 0, gapMax: 0 });
+            const q = r.info.kl;
+            K.decisions++; if (q.changed) K.changed++; if (q.missMe) K.missMe++; if (q.missOpp) K.missOpp++;
+            K.klSum += q.kl; K.tvSum += q.tv; K.worstSum += q.worst; if (q.worst > K.worstMax) K.worstMax = q.worst;
+            K.prot += q.prot; K.prot0 += q.prot0; K.dbl += q.dbl; K.dbl0 += q.dbl0; if (q.gap > K.gapMax) K.gapMax = q.gap;
           }
           return r;
         } catch (e) {

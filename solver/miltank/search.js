@@ -25,6 +25,19 @@
  *   flatEps = e: when every played cell is within e of every other, play the ranking prior's top joint (counted flatPrior).
  *   reserveNoRepeat = true: the reserved mega row is the prior's best mega joint that repeats no Protect, when one exists
  *   (counted megaUnbundled when that differs from the plain top). Both off by default; same report.
+ *   kl = lambda (> 0), or { lambda }: HUMAN-REGULARISED SOLVE (piKL, 2026-09-30; docs/_reports/2026-09-30-human-regularised-search.md).
+ *   SLOWKING solves the regularised game  x.A.y - lambda*KL(x||tau_me) + lambda*KL(y||tau_opp)  (solver/slowking/matrix.js
+ *   solveKL) instead of the plain table, where tau is the ranking prior (the scores step 1 already computed: in a league
+ *   agent the generation's DODUO over MAG, gated when the spec gates) renormalised over the candidate rows (columns) and
+ *   mixed with TAU_MIX of uniform so no candidate is unreachable. lambda is in win probability per nat, the ONE knob. A
+ *   side whose prior puts no real mass on its candidates (every joint unmatched, total < PRIOR_MIN) is anchored to the
+ *   uniform mix instead, and COUNTED (klPriorMissingMe / klPriorMissingOpp). kl = 0 or absent: the plain solve, unchanged.
+ *   With kl on, the plain solve is also run on the same table (a few ms) so the counters can say what the prior changed:
+ *   klPickChanged (the same coin samples a different joint), klSum (KL(x||tau_me) summed), klTv (total variation to the
+ *   plain mix, summed), protMass / protMass0 (row mass on joints with a protect-family click, regularised / plain),
+ *   dblMass / dblMass0 (both slots), klWorstLoss (the plain table's worst-case cost of the regularised mix: v* - min_j
+ *   (x.A)_j, summed). DELIBERATE BREAK MILTANK_BREAK=klignored: lambda is read as 0 inside the solve (the flag is on, the
+ *   counters count, the mix is the plain one) - solver/tests/test-miltank-kl.js must go red.
  *   leafModel = a PORYGON2 model file for the pory2 leaf (a self-play generation's net; default v0). record = true puts
  *   the root (rows, cols, both mixes, the mean matrix, the per-cell playout counts) in info.rec.
  *   The leaf defaults to env MILTANK_LEAF, else the heuristic. `pory2` = PORYGON2 v0 (PRE-GATE), solver/porygon2/leaf.js.
@@ -63,12 +76,34 @@ const DEADLINE_BREAK = (typeof process !== 'undefined' && process.env && process
 /* DELIBERATE BREAKS for solver/tests/test-miltank-quiesce.js (env MILTANK_BREAK, shared with rollout.js): `flat` = a flat
  * table is never detected; `megabundle` = the mega reservation ignores reserveNoRepeat */
 const SEARCH_BREAK = (typeof process !== 'undefined' && process.env && process.env.MILTANK_BREAK) || '';
+/* the human-regularised solve (o.kl): the anchor's uniform floor and the least total prior mass that counts as a prior.
+ * Both are guards against a degenerate anchor, declared here and NOT tuned: TAU_MIX keeps every candidate reachable (a
+ * row the prior calls impossible needs an edge of about lambda*ln(m/TAU_MIX) to be played); PRIOR_MIN sits far above the
+ * prior adapter's 1e-15 "unmatched" floor and far below any matched joint's mass. */
+const TAU_MIX = 1e-3, PRIOR_MIN = 1e-9;
+let FAM = null;
+const protFamily = () => FAM || (FAM = require('../arena/protect_stats.js').family());
+function klOf(o) {
+  if (o.kl == null || o.kl === false) return 0;
+  const l = typeof o.kl === 'number' ? o.kl : o.kl.lambda;
+  if (!(l >= 0) || !Number.isFinite(l)) throw new Error('MILTANK: kl lambda must be a finite number >= 0 (got ' + JSON.stringify(o.kl) + ')');
+  return l;
+}
+/* the anchor over k candidates from their raw prior scores: renormalised, floored by TAU_MIX; null when degenerate */
+function anchorOf(raw) {
+  const k = raw.length;
+  let s = 0; for (const v of raw) s += (v > 0 && Number.isFinite(v)) ? v : 0;
+  if (!(s > PRIOR_MIN)) return null;
+  return raw.map(v => (1 - TAU_MIX) * ((v > 0 && Number.isFinite(v)) ? v : 0) / s + TAU_MIX / k);
+}
 
 function create(API, deps) {
   const PA = deps.prior, R = deps.rollout;
   const COUNTERS = { decisions: 0, forced: 0, cells: 0, playouts: 0, unfilled: 0, reservedSwitch: 0, reservedMega: 0, rmIters: 0, overBudget: 0, pory2Decisions: 0,
                      fallbackEmpty: 0, fallbackSparse: 0, deadlineCut: 0, quiesceDecisions: 0, flatPrior: 0, megaUnbundled: 0,
-                     chanceDecisions: 0, chanceOnePass: 0 };
+                     chanceDecisions: 0, chanceOnePass: 0,
+                     klDecisions: 0, klPriorMissingMe: 0, klPriorMissingOpp: 0, klPickChanged: 0, klSum: 0, klTv: 0, klWorstLoss: 0,
+                     protMass: 0, protMass0: 0, dblMass: 0, dblMass0: 0, klGapMax: 0 };
 
   function rank(scores, joints, k, reserveSwitch, wantMega, avoidMega) {
     const idx = scores.map((p, i) => i).sort((a, b) => scores[b] - scores[a] || a - b);
@@ -142,10 +177,13 @@ function create(API, deps) {
     const leafMode = o.leaf || LEAF_ENV || 'heuristic';
     if (leafMode === 'pory2') { job.leafCtx = { mode: 'pory2', sheets: ctx.G.sheets }; if (o.leafModel) job.leafCtx.model = o.leafModel; COUNTERS.pory2Decisions++; }
     else if (leafMode !== 'heuristic') throw new Error('MILTANK: unknown leaf ' + leafMode);
-    return { job, priorTop };
+    /* the prior's raw scores on the kept rows and columns: the anchor of the human-regularised solve (o.kl) and the
+     * record (o.record) read them; the pool never sees them */
+    const tau = { row: rowsI.map(i => sMe[i]), col: colsI.map(i => sOp[i]) };
+    return { job, priorTop, tau };
   }
   /* 3. SOLVE the mean matrix and sample the row mix. */
-  function finishDecision(job, acc, o, t0, budget, coin, extra, priorTop) {
+  function finishDecision(job, acc, o, t0, budget, coin, extra, priorTop, tau) {
     const { rows } = job, m = rows.length, n = job.cols.length;
     const { sum, cnt, passes, playouts } = acc;
     let tot = 0, nf = 0;
@@ -172,8 +210,41 @@ function create(API, deps) {
     const A = sum.map((r, i) => Array.from(r, (v, j) => (cnt[i][j] ? v / cnt[i][j] : (unfilled++, mean))));
     /* the solve is capped by what is left of the budget too (SLOWKING reads its own clock every 64 iterations) */
     const left = DEADLINE_BREAK ? 0 : Math.max(5, t0 + budget - Date.now());
-    const sol = o.solver === 'lp' ? SK.solveLP(A) : SK.solveRM(A, { iters: o.rmIters || 4000, tol: 1e-4, timeMs: left });
-    const pick = SK.sample(sol.x, coin());
+    const lambda = klOf(o);
+    const plain = () => (o.solver === 'lp' ? SK.solveLP(A) : SK.solveRM(A, { iters: o.rmIters || 4000, tol: 1e-4, timeMs: left }));
+    let sol, sol0 = null, klInfo = null;
+    if (lambda > 0) {
+      /* THE HUMAN-REGULARISED SOLVE (see the header): the plain solve first (for the counters only), then the KL solve */
+      sol0 = plain();
+      const tr = tau && anchorOf(tau.row), tc = tau && anchorOf(tau.col);
+      if (!tr) COUNTERS.klPriorMissingMe++;
+      if (!tc) COUNTERS.klPriorMissingOpp++;
+      const lam = SEARCH_BREAK === 'klignored' ? 0 : lambda;
+      const left2 = DEADLINE_BREAK ? 0 : Math.max(5, t0 + budget - Date.now());
+      sol = SK.solveKL(A, { tauRow: tr || new Array(m).fill(1 / m), tauCol: tc || new Array(n).fill(1 / n), lambda: lam,
+                            iters: o.rmIters || 4000, tol: 1e-5, timeMs: left2 });
+      klInfo = { lambda, tauRow: tr, tauCol: tc };
+    } else sol = plain();
+    const u = coin();
+    const pick = SK.sample(sol.x, u);
+    if (sol0) {
+      const fam = protFamily();
+      const isP = x => !!(x && x.kind === 'move' && fam.has(x.move));
+      const pro = rows.map(j => j.some(isP)), dbl = rows.map(j => j.filter(isP).length >= 2);
+      let pm = 0, pm0 = 0, dm = 0, dm0 = 0, tv = 0;
+      for (let i = 0; i < m; i++) { if (pro[i]) { pm += sol.x[i]; pm0 += sol0.x[i]; } if (dbl[i]) { dm += sol.x[i]; dm0 += sol0.x[i]; } tv += Math.abs(sol.x[i] - sol0.x[i]); }
+      tv /= 2;
+      const kl = SK.klDiv(sol.x, klInfo.tauRow || new Array(m).fill(1 / m));
+      let minCol = Infinity; for (let j = 0; j < n; j++) { let s = 0; for (let i = 0; i < m; i++) s += sol.x[i] * A[i][j]; if (s < minCol) minCol = s; }
+      const worst = Math.max(0, sol0.value - minCol);
+      const pick0 = SK.sample(sol0.x, u);
+      COUNTERS.klDecisions++; COUNTERS.klSum += kl; COUNTERS.klTv += tv; COUNTERS.klWorstLoss += worst;
+      COUNTERS.protMass += pm; COUNTERS.protMass0 += pm0; COUNTERS.dblMass += dm; COUNTERS.dblMass0 += dm0;
+      if (pick0 !== pick) COUNTERS.klPickChanged++;
+      if (sol.gap > COUNTERS.klGapMax) COUNTERS.klGapMax = sol.gap;
+      klInfo.out = { missMe: !klInfo.tauRow, missOpp: !klInfo.tauCol, kl: +kl.toFixed(5), tv: +tv.toFixed(4), worst: +worst.toFixed(5), pick0, changed: pick0 !== pick, prot: +pm.toFixed(4), prot0: +pm0.toFixed(4),
+                     dbl: +dm.toFixed(4), dbl0: +dm0.toFixed(4), gap: sol.gap, gapNash: sol.gapNash, value0: sol0.value, iters: sol.iters };
+    }
     /* A FLAT TABLE (o.flatEps): every played cell within flatEps of every other — a game already won or lost inside
      * the horizon. Any mix is an equilibrium of it, so SLOWKING's pick is decided by noise below the leaf's resolution
      * (measured: a lost position put its whole mix on a repeat Protect that delayed the loss by 1e-4). The ranking
@@ -188,10 +259,11 @@ function create(API, deps) {
     COUNTERS.unfilled += unfilled; COUNTERS.rmIters += sol.iters || 0;
     if (ms > budget * 1.5 + 50) COUNTERS.overBudget++;
     const info = Object.assign({ m, n, passes, playouts, unfilled, filled: +filled.toFixed(3), value: sol.value, gap: sol.gap, rm_iters: sol.iters,
-             support: sol.x.filter(v => v > 1e-3).length, pick, ms }, flat ? { flat: true } : {}, extra || {});
+             support: sol.x.filter(v => v > 1e-3).length, pick, ms }, flat ? { flat: true } : {}, klInfo ? { kl: klInfo.out, lambda: klInfo.lambda } : {}, extra || {});
     /* o.record (self-play, solver/mew): the whole root — the candidate joints, both mixes and the mean matrix —
      * so a training target can be read off the search rather than off the one sampled move */
-    if (o.record) info.rec = { rows, cols: job.cols, x: Array.from(sol.x), y: sol.y ? Array.from(sol.y) : null, A, cnt: cnt.map(r => Array.from(r)) };
+    if (o.record) info.rec = { rows, cols: job.cols, x: Array.from(sol.x), y: sol.y ? Array.from(sol.y) : null, A, cnt: cnt.map(r => Array.from(r)),
+                               tauRow: tau ? tau.row : null, tauCol: tau ? tau.col : null, x0: sol0 ? Array.from(sol0.x) : null };
     return { joint: flat ? priorTop : rows[pick], info };
   }
   /* when the cell fill must stop: the budget less a reserve for the solve and the pick */
@@ -211,7 +283,7 @@ function create(API, deps) {
     const fillBy = fillByOf(o, t0, budget);
     /* an in-flight playout is abandoned half-way through the reserve, so the other half is left for the solve */
     if (!DEADLINE_BREAK) d.job.abortAt = fillBy + Math.floor((t0 + budget - fillBy) / 2);
-    return { t0, budget, coin, job: d.job, priorTop: d.priorTop, fillBy };
+    return { t0, budget, coin, job: d.job, priorTop: d.priorTop, tau: d.tau, fillBy };
   }
 
   /* 2. CELLS, in this process: solver/miltank/cells.js, passes 0, 1, 2, … */
@@ -221,7 +293,7 @@ function create(API, deps) {
     if (b.done) return b.done;
     /* o.onPass(vs, job, t0) -> true stops the fill after a complete pass (ROTOM's adaptive clock, solver/rotom/adaptive.js) */
     const acc = C.fillSerial(API, R, b.job, b.fillBy, b.job.chanceOnePass ? 1 : o.maxPasses, o.onPass ? vs => o.onPass(vs, b.job, b.t0) : undefined);
-    return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin, { overrun_ms: acc.overrunMs, max_world_ms: acc.maxWorldMs, max_playout_ms: acc.maxPlayoutMs, adapt_stop: acc.adapted || undefined }, b.priorTop);
+    return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin, { overrun_ms: acc.overrunMs, max_world_ms: acc.maxWorldMs, max_playout_ms: acc.maxPlayoutMs, adapt_stop: acc.adapted || undefined }, b.priorTop, b.tau);
   }
   /* 2'. CELLS across worker processes (o.pool = solver/miltank/pool.js). The SAME passes: with a pass cap
    * the matrix, the value and the pick are identical to decide()'s (solver/tests/test-playout-speed.js). */
@@ -232,10 +304,10 @@ function create(API, deps) {
     if (b.done) return b.done;
     const acc = await o.pool.fill(Object.assign({}, b.job, { deadline: b.fillBy, maxPasses: b.job.chanceOnePass ? 1 : (o.maxPasses || 0) }));
     COUNTERS.pooled = (COUNTERS.pooled || 0) + 1;
-    return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin, { workers: acc.workers, late_workers: acc.late || 0 }, b.priorTop);
+    return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin, { workers: acc.workers, late_workers: acc.late || 0 }, b.priorTop, b.tau);
   }
 
-  return { COUNTERS, decide, decideAsync, rank, collectIdle, BROKEN: DEADLINE_BREAK || (['flat', 'megabundle'].includes(SEARCH_BREAK) ? SEARCH_BREAK : null) };
+  return { COUNTERS, decide, decideAsync, rank, collectIdle, BROKEN: DEADLINE_BREAK || (['flat', 'megabundle', 'klignored'].includes(SEARCH_BREAK) ? SEARCH_BREAK : null) };
 }
 
 /* THE RESERVE: 6% of the budget, clamped to 20-300 ms (60 ms at 1 s, 300 ms at 5 s). It was 3% clamped to 150 ms,
@@ -257,4 +329,4 @@ function collectIdle() {
   } catch (e) { return null; }
 }
 
-module.exports = { create, collectIdle, reserveMsOf };
+module.exports = { create, collectIdle, reserveMsOf, anchorOf, TAU_MIX, PRIOR_MIN };

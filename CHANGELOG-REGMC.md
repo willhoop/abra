@@ -21,6 +21,36 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.32.0] — 2026-09-30
+
+### Added
+- **The human-regularised root solve (piKL), behind the spec flag `kl`, off by default and on no arm.** Will asked for no
+  hand rules (2026-09-29), so the search pays a KL cost for straying from the human prior instead. SLOWKING's new
+  `solveKL` (`solver/slowking/matrix.js`) solves `x·A·y − λ·KL(x‖τ_me) + λ·KL(y‖τ_opp)` by optimistic FTRL. τ is the
+  ranking prior MILTANK already computes (gen5's DODUO over MAG), renormalised on the candidate rows and columns and
+  floored with 1e-3 uniform. λ is the one knob. A side with no prior mass is anchored to uniform and counted. The gap
+  of the regularised game is reported with every solve. The plain solve runs beside it for the counters: pick changed,
+  KL, TV, worst-case cost, and the Protect and double-Protect mass. They appear in `info.kl`, in the agent's
+  `COUNTERS.kl` and in every arena row's `ctr.kl`. ROTOM's `miltank-gen5` takes `kl` from the spec. Its table tap now
+  wraps `solveKL`.
+- New `solver/miltank/eval_kl_human.js` (the λ sweep on held-out human decisions), `solver/tests/probe_kl_replay.js`,
+  `solver/tests/probe_kl_repeat.js` and `solver/tests/test-miltank-kl.js`.
+- Phase B is pre-registered, not run: `solver/results/2026-09-30-human-regularised/preregistration.json`.
+
+### Notes
+- Offline, on 579 held-out human decisions with every λ solved on the same recorded gen5 tables (release `eaa5becc54eb`,
+  16 passes), top-1 agreement with the human joint is 0.216 at λ = 0. It is 0.240 at 0.01, 0.252 at 0.03 and 0.268 at 0.1.
+  At 0.1 the gain is +0.052 [0.021, 0.083], above DODUO's argmax over all legal joints (0.230). The worst-case cost on
+  the search's own table is 0.004 / 0.012 / 0.035.
+- The offered repeat-Protect probe (13 of 40 positions, reproducing 1.23.0's 0.611 at λ 0) has repeat mass 0.243 at
+  λ 0.03. That is the anchor's own 0.23, and it goes no lower.
+- chomp1 game 1 turn 4 keeps its double Protect at 0.85 → 0.71 of the mix at λ 0.03. The argmax changes only at λ 0.1,
+  at 0.10 of that table's worst case. The table makes the double Protect the maximin row and barely charges for the
+  opponent's Trick Room, so this is a horizon fault in the cells and not in the solve.
+- `test-miltank-kl.js` 52/52 GREEN, RED on `klignored` and `klsign`. `test-slowking` 1,559/1,559 and `test-miltank`
+  3,414/3,414 are unchanged. `test-playout-speed` is 1,184/1,184, `test-rotom` 105/105, `test-arena` 15/15 and `test-machamp` 86/86.
+  `docs/_reports/2026-09-30-human-regularised-search.md`.
+
 ## [1.30.1] — 2026-09-29
 
 ### Fixed

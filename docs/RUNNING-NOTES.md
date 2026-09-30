@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.32.0] — 2026-09-30 — **The human-regularised root solve (piKL) is built behind a flag. It moves the search toward the human click, and it does not fix the turn-4 double Protect.**
+- **What changed.** `solver/slowking/matrix.js` `solveKL`. `solver/miltank/search.js` spec option `kl` (λ). The anchor is the ranking prior's scores on the rows and columns. The plain solve runs beside it for the counters. `solver/mew/agent.js` and `play.js` carry the `kl` counters, and `solver/rotom/policy.js` taps `solveKL`. New: `solver/miltank/eval_kl_human.js`, `solver/tests/probe_kl_replay.js`, `probe_kl_repeat.js`, `test-miltank-kl.js`. The flag is off by default and on no arm.
+- **Measured.** Held-out human decisions, n=579, one recorded gen5 table each (16 passes, release `eaa5becc54eb`): top-1 agreement 0.216 (λ 0) → 0.268 (λ 0.1), Δ +0.052 [0.021, 0.083]. The worst-case cost on the table is 0.035 (`solver/results/2026-09-30-human-regularised/human-agreement.json`). The repeat-Protect mass on the 13 offered positions is 0.611 → 0.243 at λ 0.03 (`repeat-protect.json`). chomp1 g1 t4 double-Protect mass is 0.851 → 0.709 at λ 0.03 and 0.386 at λ 0.1 (`replay-chomp1-g1-t4.json`). No game was played. The 2 s screens are pre-registered, not run.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** `docs/MODELS.md` (SLOWKING: the human-regularised solve, if phase B lands it).
+
 ## [abra/regmc 1.30.1] — 2026-09-29 — **`test-game-diff.js` and five more engine tests write per-regulation files under Reg M-C**
 - **What changed.** `engine/regulation.js` `PER_REGULATION_ARTIFACTS` gains `game-diff.json`, `forme-assert.json`, `switch-back-renamed.json`, `tag-walk.json`, `tag-consumption.json` and `unmodelled-clicks.json`. Each writer names its path through `artifactFor`. `test-game-diff.js` and `test-unmodelled-clicks.js` read the tags through `fileFor`, because a bare fs read returned Reg M-B's under Reg M-C. `test-tag-consumed.js` prints `NO BASELINE` when it has none. `tests/test-regulation-artifacts.js` maps the six names.
 - **Measured.** NO FIGURE. `ABRA_REGULATION=regmc node tests/test-game-diff.js` exit 1 (the guard refused `data/game-diff.json` after 5 of 5 games agreed) → exit 0, writes `data/game-diff-regmc.json` (`showdown_commit` `f10d6798`). The plain run exits 0 and writes `data/game-diff.json` (`20ad99ff`). The other five: regmc exit 0, sibling written; plain exit 0.
