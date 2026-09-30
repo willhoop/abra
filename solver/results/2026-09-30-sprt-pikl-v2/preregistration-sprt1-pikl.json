@@ -1,0 +1,31 @@
+{
+ "what": "SPRT 1 of 2 (2026-09-30): the human-regularised root solve (piKL, lambda 0.03) against plain gen5, both on ROTOM's adaptive clock at the ladder target (14 s). Approved by Will 2026-09-30 ('1 2'). Written BEFORE the first game and never revised after one.",
+ "why": "Phase B (docs/_reports/2026-09-30-human-regularised-phase-b.md, abra/regmc 1.48.0): lambda 0.03 passed not-lose at 2 s (0.515 [0.446, 0.583]) and 14 s (0.525 [0.456, 0.593], clock ratio 1.000), Protect fail rate 10.1% vs 16.9%. A screen pass is 'not shown to lose'; this SPRT asks whether it is STRONGER. That report's OWED section names the test but gives no command, so the protocol below is the brief's.",
+ "code": "worktree branch worktree-agent-a53483ec982dfb1a1 at main 5eca2c42 (abra/regmc 1.48.0). main is NOT merged during the run: another agent is changing the arena to play real stat spreads, and this run plays the arena exactly as it is at 5eca2c42.",
+ "engine_release": "eaa5becc54eb (the gate also passes on 97451d5fbf40; eaa5becc54eb is kept for comparability with the phase B screens, which were played on it)",
+ "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc, TEST pairs (solver/mew/pairs.js), pair-seed 1",
+ "information": "honest",
+ "arms": {
+  "x": { "file": "solver/results/2026-09-30-human-regularised/screen-14s-kl03.json", "sha256": "ee0a2133c2b318c49db0e8b3063fa12910ea7485ad765f828536fc870eb863b9", "name": "gen5-kl03-adaptive-14s" },
+  "y": { "file": "solver/results/2026-09-30-human-regularised/screen-14s-off.json", "sha256": "da5e50f43bf101759faf8104068882cf3768bec0501c11af67076317dac7dd8b", "name": "gen5-adaptive-14s" },
+  "both": "the same arms as the 14 s screen: gen5 MAG/DODUO/PORYGON2, k 4x4, depth 0, 1 reserved switch row, budgetMs 5000 cap, adaptive { targetMs 14000, credit0Ms 4667 }. X adds \"kl\": 0.03."
+ },
+ "sprt": { "elo0": 0, "elo1": 20, "alpha": 0.05, "beta": 0.05, "max_games": 2000, "unit": "pair of games on one battle seed, seats swapped", "statistic": "normal-approximation GSPRT on pair scores (solver/machamp/sprt.js)" },
+ "seed": 30001,
+ "seed_note": "NEW: phase B used 29501-29504; 30001 appears nowhere else in solver/ or docs/.",
+ "workers": 3,
+ "cap": 50,
+ "command": "cmd.exe /c tools\\lownode.cmd solver/machamp/sprt.js --release eaa5becc54eb --x solver/results/2026-09-30-human-regularised/screen-14s-kl03.json --y solver/results/2026-09-30-human-regularised/screen-14s-off.json --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 2000 --seed 30001 --workers 3 --cap 50 --info honest --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --out solver/out/sprt-pikl-v2/sprt1-kl03-14s.json",
+ "expected_wall": "the 14 s screen took 8,440 s for 200 games on 4 workers; sprt.js allows at most 3, so up to about 31 h if it runs to 2,000 games.",
+ "reading_rule": {
+  "when": "ONCE, after sprt.js stops (a bound crossed or the game budget spent). sprt.js prints no interim LLR; nothing is read before the stop. A run stopped by anything else (a pause, a crash, a kill) is VOID and is re-run from this file with the same seed.",
+  "verdict": "sprt.js verdict: H1 (X stronger by elo1 accepted), H0 (elo0 accepted), or INCONCLUSIVE (2,000 games, no bound).",
+  "clock": "solver/machamp/sprt_read.js on the result: clock ratio = clock.x_ms.mean / clock.y_ms.mean over the counted games. The comparison is equal-clock only if the ratio is <= 1.10. Above 1.10 an H1 is NOT a strength claim and is reported as VOID-BY-CLOCK.",
+  "capability": "X's KL solve must prove it ran: summed over the workers' last rows, ctr.kl['gen5-kl03-adaptive-14s'].decisions > 0, else VOID. missMe (a decision whose anchor fell back to uniform) is counted and reported; the run is VOID if missMe exceeds 1% of X's KL decisions. (Phase B's missMe = 0 clause was per 200-game screen; at up to 2,000 games a single anchor miss is expected by chance and is not a defect of the solve, so the bound is a share, stated here before any game.)",
+  "errors": "errored pairs are excluded by sprt.js and counted; the run is VOID if they exceed 5% of the pairs used. Agent fallbacks (ctr.fallbacks) and MILTANK prior fallbacks (fallback_decisions) are read and stated.",
+  "also_read_not_bars": "solver/arena/protect_read.js on the counted pairs: Protect share, fail rate, consecutive share, double share per arm. The expected direction, stated before the run: X at or below Y on share and fail rate. The ladder clock rule breaches (sprt_read.js: decisions over the per-turn max, games over the starting bank) are stated. None of these decides the verdict.",
+  "ci_caption": "the Wilson 95% interval at the stop is conditional on a data-dependent stopping time and slightly optimistic."
+ },
+ "on_H1": "report only. Nothing goes onto a ladder arm; that is Will's call even on H1.",
+ "on_H0_or_inconclusive": "report only; the flag stays off and on no arm."
+}
