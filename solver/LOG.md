@@ -8,6 +8,15 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-29
 
+### A top-meta ladder rotation and an arm that names it (abra/regmc 1.31.0)
+- Will saw a Hippowdon on our ladder team. The old rotation was not mid-ladder (1379-1549, the 98.3-100th percentile of
+  rated bo3 sides); it was five ONE-PLAYER sixes, two carrying a species on 0.7% of top teams (Hippowdon, Corviknight).
+- New `solver/rotom/build_top_rotation.js` -> `solver/rotom/teams/ladder-rotation-top.json`: floor 1409 (the 99th
+  percentile of 63,366 rated sides), exact sixes brought by >= 2 players at the floor, every species >= 3% of top teams,
+  family S - E no worse than the top baseline (-0.049). 5 teams, 1478-1596. Arms file `gen5-chomp-top.json` = gen5-chomp
+  plus `"rotation"`; rotom.js reads it and refuses a contradicting `--rotation`. Not launched; the command is Will's.
+  `docs/_reports/2026-09-30-top-meta-rotation.md`.
+
 ### CHOMP ladder run prepared, not launched; `--preview chomp` was dropped by the supervisor (abra/regmc 1.30.0)
 - `run_ladder.js` never forwarded `--preview` to the client, so the documented one-flag launch would have played the
   team's own bring with nothing reporting it. Fixed; an arm may now name its own `preview`, and the new arms file
