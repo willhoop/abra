@@ -53,6 +53,26 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.39.0] — 2026-09-30 — **Ladder loss post-mortem: 26 losses classed by mechanism; the root value is +0.19 too high mid-game**
+- **What changed.** New `solver/results/2026-09-30-ladder-loss-postmortem/`:
+  - `postmortem.js` reads ROTOM's saved ladder games and plays nothing;
+  - `measured.json` is its output;
+  - `classifications.json` holds the hand-read turning point and class of each loss.
+- **Measured.**
+  - The chomp1 search arm lost 26 games without a forfeit (`measured.json`).
+  - Classes (`classifications.json`): VISIBLE_KO 5, SPEED_CONTROL 5, SUCKER_PUNCH 4, OUTSPED 4, SETUP 3,
+    BEHIND_FROM_PREVIEW 3, UNSEEN_ACTION 1, PERISH 1.
+  - Timeouts 0. Chosen-versus-applied mismatches 1, after that game's turning point.
+  - Calibration, chomp1 plus the gen5ab search arm: 668 decisions in 90 games.
+    - Values in [0.5, 0.9) are +0.191 too high, CI [0.062, 0.318].
+    - Turn 1: +0.189 [0.070, 0.275].
+    - Brier 0.184 against 0.234 for a constant.
+    - On games that end without a forfeit, the Brier score is no better than a constant (0.1857 against 0.1852).
+  - The opponent's move ids fell in a searched column on 67% of chomp1 decisions: 66% in losses, 69% in wins.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** MODELS: the live calibration of the gen5 root value, as PORYGON2 v2's ladder baseline.
+
 ## [abra/regmc 1.38.0] — 2026-09-30 — **`data/tags-regmc.json` re-weighted from the full `.gz` store; its receipt names the store it opened; one guard click rate moves**
 - **What changed.**
   - `engine/tag_dex.js` `usage()` records `usage_from` via `quality.js` `storePath()`: the file the read actually

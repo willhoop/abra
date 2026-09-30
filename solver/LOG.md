@@ -8,6 +8,18 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-30
 
+### Ladder loss post-mortem: why ROTOM loses the series it plays out (abra/regmc 1.39.0)
+- The 26 chomp1 losses without a forfeit, by the mechanism at the turning point:
+  - VISIBLE_KO 5, SPEED_CONTROL 5, SUCKER_PUNCH 4, OUTSPED 4;
+  - SETUP 3, BEHIND_FROM_PREVIEW 3, UNSEEN_ACTION 1, PERISH 1.
+  - No timeouts. The one applied mismatch came after its game's turning point.
+- The root value is +0.19 too high in [0.5, 0.9), CI [0.06, 0.32], on 668 ladder decisions in 90 games. It is
+  calibrated below 0.1 and above 0.9.
+- PORYGON2 v2 with depth addresses 13 of the 26. The 1.35.0 spreads address 2 (Scarf Basculegion).
+- Unowned: Sucker Punch into Protect or status (10 of 20 failed in losses). Also unowned: ROTOM's world lays no
+  Perish count and no Skill-Swapped ability.
+- `solver/results/2026-09-30-ladder-loss-postmortem/`, `docs/_reports/2026-09-30-ladder-loss-postmortem.md`.
+
 ### PORYGON2 v2: design pre-registered, datasets built, nothing trained (abra/regmc 1.37.0)
 - The value is over the public state. Each unrevealed field is an UNK token, never a prior. Both ratings are inputs
   (Maia-2 form), queried at 1600.

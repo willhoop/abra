@@ -83,6 +83,14 @@ This section says only what a division agent needs before it starts.
   `--preview` (fixed); an arm now names its own preview. Arms file `solver/rotom/arms/gen5-chomp.json`; proof the
   choice is sent: `solver/tests/test-rotom-chomp-live.js`. Command for Will:
   `docs/_reports/2026-09-30-chomp-ladder-prep.md`.
+- **Why the ladder losses happen (2026-09-30, abra/regmc 1.39.0).** The 26 chomp1 losses without a forfeit, by the
+  mechanism at the turning point:
+  - VISIBLE_KO 5, SPEED_CONTROL 5, SUCKER_PUNCH 4, OUTSPED 4, SETUP 3, BEHIND_FROM_PREVIEW 3, UNSEEN_ACTION 1,
+    PERISH 1.
+  - The live root value is +0.19 too high in [0.5, 0.9), CI [0.06, 0.32], on 668 decisions in 90 games. This is the
+    ladder baseline for PORYGON2 v2.
+  - Unowned: Sucker Punch; ROTOM's world lays no Perish count and no Skill-Swapped ability.
+  - `solver/results/2026-09-30-ladder-loss-postmortem/`, `docs/_reports/2026-09-30-ladder-loss-postmortem.md`.
 - **PORYGON2 v2: designed and its data built, not trained (2026-09-30, abra/regmc 1.37.0).** `solver/porygon2/v2/`.
   - The net is a value over the public state with UNK tokens and both ratings as inputs, pretrained on bo1 and
     fine-tuned on bo3.

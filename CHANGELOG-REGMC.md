@@ -21,6 +21,21 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.39.0] — 2026-09-30
+
+### Added
+- **A post-mortem of the ladder losses.** Every chomp1 game lost without a forfeit (26) has a hand-read turning point
+  and one mechanism class:
+  - VISIBLE_KO 5, SPEED_CONTROL 5, SUCKER_PUNCH 4, OUTSPED 4;
+  - SETUP 3, BEHIND_FROM_PREVIEW 3, UNSEEN_ACTION 1, PERISH 1.
+  - No loss was a timeout or a chosen-versus-applied mismatch.
+- **The root value is +0.19 too high in [0.5, 0.9)**, 95% game-clustered CI [0.06, 0.32]. That is 668 ladder
+  decisions in 90 games from both search-arm runs.
+- **PORYGON2 v2 with depth addresses 13 of the 26.** The 1.35.0 spreads address 2. Sucker Punch (4) and the missing
+  Perish count (1) have no planned fix.
+- Files: `solver/results/2026-09-30-ladder-loss-postmortem/`: `postmortem.js` (read-only, derives `measured.json`)
+  and `classifications.json`. Account: `docs/_reports/2026-09-30-ladder-loss-postmortem.md`.
+
 ## [1.38.0] — 2026-09-30
 
 ### Fixed
