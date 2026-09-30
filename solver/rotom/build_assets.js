@@ -56,10 +56,12 @@ function spreadFor(row) {
   evs[atkStat] = 32;
   return evs;
 }
-function packTeam(rows) {
+/* evsList (optional): one SP vector per row, from solver/rotom/spreads.js — the ladder rotations pass it. Without it
+ * the flat spreadFor above is used (the offline regmc-pool.json still is). */
+function packTeam(rows, evsList) {
   const { Teams } = require(path.join(X.SHOWDOWN_PATH, 'dist', 'sim'));
-  const sets = rows.map(r => ({ name: r.species, species: r.species, item: r.item || '', ability: r.ability || '',
-    moves: r.moves.slice(), nature: r.nature || 'Serious', gender: r.gender && r.gender !== 'N' ? r.gender : '', evs: spreadFor(r),
+  const sets = rows.map((r, i) => ({ name: r.species, species: r.species, item: r.item || '', ability: r.ability || '',
+    moves: r.moves.slice(), nature: r.nature || 'Serious', gender: r.gender && r.gender !== 'N' ? r.gender : '', evs: evsList ? Object.assign({}, evsList[i]) : spreadFor(r),
     ivs: { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 } }));
   return { sets, packed: Teams.pack(sets) };
 }

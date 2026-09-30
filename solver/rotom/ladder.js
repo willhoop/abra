@@ -292,7 +292,10 @@ function create(o) {
       const p = pending();
       S.k = p.k; S.pending = null; searching = false; searchSentAt = 0; matchedAt = 0; save();
       const team = o.rotation.teams.find(t => t.id === p.team);
-      rec = { k: p.k, arm: p.arm, arm_config: o.arms.arms[p.arm], team: p.team, team_meta: { archetype: team.archetype && team.archetype.label, from_game: team.from_game, rating: team.rating },
+      rec = { k: p.k, arm: p.arm, arm_config: o.arms.arms[p.arm], team: p.team, team_meta: { archetype: team.archetype && team.archetype.label, from_game: team.from_game, rating: team.rating,
+                 /* the Stat Points played (solver/rotom/spreads.js, 2026-09-30): hp/atk/def/spa/spd/spe per slot, and where each came from */
+                 spreads: team.spreads ? team.spreads.map(z => ['hp', 'atk', 'def', 'spa', 'spd', 'spe'].map(k => z.evs[k]).join('/')) : null,
+                 spread_source: team.spreads ? [...new Set(team.spreads.map(z => z.source))].join(',') : null },
               started: new Date(now()).toISOString(), counters_before: o.counters() };
       o.bookSet(room, { ladder: rec, team: p.team, policy: rec.arm_config.policy, arm: p.arm });
     }

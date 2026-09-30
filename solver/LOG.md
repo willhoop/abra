@@ -6,6 +6,21 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ---
 
+## 2026-09-30
+
+### ROTOM's ladder spreads fit each set's role (abra/regmc 1.34.0)
+- The top-meta rotation agent found it: the store has no Stat Points, so every rotation gave every set 32 HP / 32 attack /
+  2 Speed. Choice Scarf and Tailwind sets ran 2 Speed; Trick Room setters ran 2 above their minimum.
+- New `solver/rotom/spreads.js`. An observed Reg M-C spread comes first (a Smogon moveset file for the format, due about
+  2026-10-04; none today). Otherwise it derives: Scarf or Tailwind gives Speed 32, Trick Room gives 0, and any other set
+  gets the least SP that outspeeds the top-meta median at full investment (138), else 0. Then the least bulk that
+  survives the median top-meta attacker's best hit (sim getDamage), the rest to the attack stat, and any remainder to
+  bulk. Population: 148 top teams at floor 1409, store `fe78202a8515`. A fixed-point median was tried first; speed creep
+  has no fixed point (114 -> 138, then back), so the benchmark assumes full investment.
+- `respread.js` re-spread both rotations; the teams are unchanged. The spreads ride in the plan digest and in
+  `team_meta`. Test `test-rotom-spreads.js` 23/23 and RED on 3 breaks and on the old files.
+  `docs/_reports/2026-09-30-rotation-spreads.md`.
+
 ## 2026-09-29
 
 ### A top-meta ladder rotation and an arm that names it (abra/regmc 1.31.0)

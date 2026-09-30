@@ -15,7 +15,7 @@
   }
  },
  "rule": "one team per stable archetype in share order; the highest-rated open-sheet bo3 side assigned to it (max cosine to the archetype core) that carries every defining species (in_cluster >= 0.5); one per player; own accounts and bots excluded",
- "spread_rule": "32 HP, 32 in the attack stat its moves use more (dex move category), 2 Spe; nature from the sheet (build_assets.js spreadFor)",
+ "spread_rule": "solver/rotom/spreads.js: OBSERVED Reg M-C spread (Smogon moveset file for gen9championsvgc2026regmcbo3, modal spread for the species with the sheet nature) if one exists, else DERIVED: role from the set (Choice Scarf or Tailwind -> Speed at the cap; Trick Room -> Speed 0; else the least SP that outspeeds the weighted median effective speed of the top-meta population at full Speed investment, or 0); then the least HP/Def/SpD SP that survives the weighted median top-meta attacker's best hit (top roll), or 0; the rest into the used attacking stat; any remainder to the bulk split surviving most. Nature and IVs are the sheet's / the format's.",
  "validator": "Showdown TeamValidator.get(gen9championsvgc2026regmcbo3) on the Reg M-C checkout — every team below passed",
  "refused": 0,
  "refused_samples": [],
@@ -51,7 +51,225 @@
     1,
     3
    ],
-   "packed": "Gengar||Gengarite|CursedBody|ShadowBall,SludgeBomb,Substitute,Protect|Timid|32,,,32,,2|M||||]Incineroar||SitrusBerry|Intimidate|FakeOut,FlareBlitz,Snarl,PartingShot|Impish|32,32,,,,2|M||||]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,GrassyGlide,LowKick,FakeOut|Adamant|32,32,,,,2|M||||]Kingambit||LifeOrb|Defiant|SuckerPunch,KowtowCleave,SwordsDance,Protect|Adamant|32,32,,,,2|F||||]Hippowdon||Leftovers|SandStream|HighHorsepower,StoneEdge,Yawn,Protect|Careful|32,32,,,,2|F||||]Sneasler||WhiteHerb|Unburden|CloseCombat,DireClaw,FakeOut,Protect|Adamant|32,32,,,,2|F||||"
+   "packed": "Gengar||Gengarite|CursedBody|ShadowBall,SludgeBomb,Substitute,Protect|Timid|29,,3,32,2,|M||||]Incineroar||SitrusBerry|Intimidate|FakeOut,FlareBlitz,Snarl,PartingShot|Impish|29,32,,,5,|M||||]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,GrassyGlide,LowKick,FakeOut|Adamant|20,32,1,,13,|M||||]Kingambit||LifeOrb|Defiant|SuckerPunch,KowtowCleave,SwordsDance,Protect|Adamant|32,32,,,2,|F||||]Hippowdon||Leftovers|SandStream|HighHorsepower,StoneEdge,Yawn,Protect|Careful|6,32,,,28,|F||||]Sneasler||WhiteHerb|Unburden|CloseCombat,DireClaw,FakeOut,Protect|Adamant|16,32,17,,1,|F||||",
+   "spreads": [
+    {
+     "species": "Gengar",
+     "item": "Gengarite",
+     "ability": "Cursed Body",
+     "nature": "Timid",
+     "moves": [
+      "Shadow Ball",
+      "Sludge Bomb",
+      "Substitute",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 29,
+      "atk": 0,
+      "def": 3,
+      "spa": 32,
+      "spd": 2,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 0,
+      "effective": 165,
+      "median": 138
+     },
+     "bulk": {
+      "why": "least SP surviving the median attacker",
+      "share_survived": 0.634,
+      "share_at_zero": 0.384,
+      "endures": false
+     }
+    },
+    {
+     "species": "Incineroar",
+     "item": "Sitrus Berry",
+     "ability": "Intimidate",
+     "nature": "Impish",
+     "moves": [
+      "Fake Out",
+      "Flare Blitz",
+      "Snarl",
+      "Parting Shot"
+     ],
+     "evs": {
+      "hp": 29,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 5,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 0,
+      "effective": 80,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.773,
+      "share_at_zero": 0.696,
+      "endures": false
+     }
+    },
+    {
+     "species": "Rillaboom",
+     "item": "Miracle Seed",
+     "ability": "Grassy Surge",
+     "nature": "Adamant",
+     "moves": [
+      "Wood Hammer",
+      "Grassy Glide",
+      "Low Kick",
+      "Fake Out"
+     ],
+     "evs": {
+      "hp": 20,
+      "atk": 32,
+      "def": 1,
+      "spa": 0,
+      "spd": 13,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 0,
+      "effective": 105,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.708,
+      "share_at_zero": 0.533,
+      "endures": false
+     }
+    },
+    {
+     "species": "Kingambit",
+     "item": "Life Orb",
+     "ability": "Defiant",
+     "nature": "Adamant",
+     "moves": [
+      "Sucker Punch",
+      "Kowtow Cleave",
+      "Swords Dance",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 32,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 2,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 0,
+      "effective": 70,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.715,
+      "share_at_zero": 0.577,
+      "endures": false
+     }
+    },
+    {
+     "species": "Hippowdon",
+     "item": "Leftovers",
+     "ability": "Sand Stream",
+     "nature": "Careful",
+     "moves": [
+      "High Horsepower",
+      "Stone Edge",
+      "Yawn",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 6,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 28,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 0,
+      "effective": 67,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.847,
+      "share_at_zero": 0.784,
+      "endures": false
+     }
+    },
+    {
+     "species": "Sneasler",
+     "item": "White Herb",
+     "ability": "Unburden",
+     "nature": "Adamant",
+     "moves": [
+      "Close Combat",
+      "Dire Claw",
+      "Fake Out",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 16,
+      "atk": 32,
+      "def": 17,
+      "spa": 0,
+      "spd": 1,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 0,
+      "effective": 140,
+      "median": 138
+     },
+     "bulk": {
+      "why": "least SP surviving the median attacker",
+      "share_survived": 0.66,
+      "share_at_zero": 0.43,
+      "endures": false
+     }
+    }
+   ]
   },
   {
    "id": "L2",
@@ -84,7 +302,225 @@
     3,
     2
    ],
-   "packed": "Indeedee-F||SitrusBerry|PsychicSurge|TrickRoom,FollowMe,HelpingHand,Psychic|Bold|32,,,32,,2|F||||]Gardevoir||Gardevoirite|Synchronize|HyperVoice,ExpandingForce,Protect,ShadowBall|Modest|32,,,32,,2|F||||]Sneasler||PsychicSeed|Unburden|CloseCombat,DireClaw,RockTomb,Protect|Adamant|32,32,,,,2|F||||]Basculegion||ChoiceScarf|Adaptability|WaveCrash,AquaJet,FlipTurn,LastRespects|Jolly|32,32,,,,2|M||||]Pelipper||FocusSash|Drizzle|WeatherBall,Tailwind,Hurricane,Protect|Modest|32,,,32,,2|M||||]Archaludon||Leftovers|Stamina|DragonPulse,FlashCannon,ElectroShot,Protect|Modest|32,,,32,,2|F||||"
+   "packed": "Indeedee-F||SitrusBerry|PsychicSurge|TrickRoom,FollowMe,HelpingHand,Psychic|Bold|4,,30,32,,|F||||]Gardevoir||Gardevoirite|Synchronize|HyperVoice,ExpandingForce,Protect,ShadowBall|Modest|6,,9,32,,19|F||||]Sneasler||PsychicSeed|Unburden|CloseCombat,DireClaw,RockTomb,Protect|Adamant|16,32,17,,1,|F||||]Basculegion||ChoiceScarf|Adaptability|WaveCrash,AquaJet,FlipTurn,LastRespects|Jolly|,32,2,,,32|M||||]Pelipper||FocusSash|Drizzle|WeatherBall,Tailwind,Hurricane,Protect|Modest|2,,,32,,32|M||||]Archaludon||Leftovers|Stamina|DragonPulse,FlashCannon,ElectroShot,Protect|Modest|8,,,32,26,|F||||",
+   "spreads": [
+    {
+     "species": "Indeedee-F",
+     "item": "Sitrus Berry",
+     "ability": "Psychic Surge",
+     "nature": "Bold",
+     "moves": [
+      "Trick Room",
+      "Follow Me",
+      "Helping Hand",
+      "Psychic"
+     ],
+     "evs": {
+      "hp": 4,
+      "atk": 0,
+      "def": 30,
+      "spa": 32,
+      "spd": 0,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "trickroom",
+     "role_by": "Trick Room",
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 0,
+      "effective": 105,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.822,
+      "share_at_zero": 0.57,
+      "endures": false
+     }
+    },
+    {
+     "species": "Gardevoir",
+     "item": "Gardevoirite",
+     "ability": "Synchronize",
+     "nature": "Modest",
+     "moves": [
+      "Hyper Voice",
+      "Expanding Force",
+      "Protect",
+      "Shadow Ball"
+     ],
+     "evs": {
+      "hp": 6,
+      "atk": 0,
+      "def": 9,
+      "spa": 32,
+      "spd": 0,
+      "spe": 19
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 19,
+      "effective": 139,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.562,
+      "share_at_zero": 0.505,
+      "endures": false
+     }
+    },
+    {
+     "species": "Sneasler",
+     "item": "Psychic Seed",
+     "ability": "Unburden",
+     "nature": "Adamant",
+     "moves": [
+      "Close Combat",
+      "Dire Claw",
+      "Rock Tomb",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 16,
+      "atk": 32,
+      "def": 17,
+      "spa": 0,
+      "spd": 1,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 0,
+      "effective": 140,
+      "median": 138
+     },
+     "bulk": {
+      "why": "least SP surviving the median attacker",
+      "share_survived": 0.66,
+      "share_at_zero": 0.43,
+      "endures": false
+     }
+    },
+    {
+     "species": "Basculegion",
+     "item": "Choice Scarf",
+     "ability": "Adaptability",
+     "nature": "Jolly",
+     "moves": [
+      "Wave Crash",
+      "Aqua Jet",
+      "Flip Turn",
+      "Last Respects"
+     ],
+     "evs": {
+      "hp": 0,
+      "atk": 32,
+      "def": 2,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     },
+     "source": "derived",
+     "role": "fast",
+     "role_by": "Choice Scarf",
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 32,
+      "effective": 214,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.565,
+      "share_at_zero": 0.539,
+      "endures": false
+     }
+    },
+    {
+     "species": "Pelipper",
+     "item": "Focus Sash",
+     "ability": "Drizzle",
+     "nature": "Modest",
+     "moves": [
+      "Weather Ball",
+      "Tailwind",
+      "Hurricane",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     },
+     "source": "derived",
+     "role": "fast",
+     "role_by": "Tailwind",
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 32,
+      "effective": 117,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 1,
+      "share_at_zero": 1,
+      "endures": true
+     }
+    },
+    {
+     "species": "Archaludon",
+     "item": "Leftovers",
+     "ability": "Stamina",
+     "nature": "Modest",
+     "moves": [
+      "Dragon Pulse",
+      "Flash Cannon",
+      "Electro Shot",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 8,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 26,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 0,
+      "effective": 105,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.805,
+      "share_at_zero": 0.67,
+      "endures": false
+     }
+    }
+   ]
   },
   {
    "id": "L3",
@@ -118,7 +554,225 @@
     3,
     2
    ],
-   "packed": "Salamence||Salamencite|Intimidate|DracoMeteor,HyperVoice,Tailwind,Protect|Timid|32,,,32,,2|M||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|32,,,32,,2|F||||]Sneasler||GrassySeed|Unburden|DireClaw,CloseCombat,FakeOut,Protect|Adamant|32,32,,,,2|F||||]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,HighHorsepower,GrassyGlide,FakeOut|Adamant|32,32,,,,2|M||||]Kingambit||ChopleBerry|Defiant|KowtowCleave,IronHead,SuckerPunch,LowKick|Adamant|32,32,,,,2|F||||]Volcarona||Leftovers|FlameBody|Flamethrower,GigaDrain,QuiverDance,Protect|Modest|32,,,32,,2|F||||"
+   "packed": "Salamence||Salamencite|Intimidate|DracoMeteor,HyperVoice,Tailwind,Protect|Timid|2,,,32,,32|M||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|23,,,32,11,|F||||]Sneasler||GrassySeed|Unburden|DireClaw,CloseCombat,FakeOut,Protect|Adamant|16,32,17,,1,|F||||]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,HighHorsepower,GrassyGlide,FakeOut|Adamant|20,32,1,,13,|M||||]Kingambit||ChopleBerry|Defiant|KowtowCleave,IronHead,SuckerPunch,LowKick|Adamant|20,32,,,14,|F||||]Volcarona||Leftovers|FlameBody|Flamethrower,GigaDrain,QuiverDance,Protect|Modest|6,,9,32,,19|F||||",
+   "spreads": [
+    {
+     "species": "Salamence",
+     "item": "Salamencite",
+     "ability": "Intimidate",
+     "nature": "Timid",
+     "moves": [
+      "Draco Meteor",
+      "Hyper Voice",
+      "Tailwind",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     },
+     "source": "derived",
+     "role": "fast",
+     "role_by": "Tailwind",
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 32,
+      "effective": 189,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.731,
+      "share_at_zero": 0.731,
+      "endures": false
+     }
+    },
+    {
+     "species": "Raichu",
+     "item": "Raichunite Y",
+     "ability": "Lightning Rod",
+     "nature": "Timid",
+     "moves": [
+      "Zap Cannon",
+      "Focus Blast",
+      "Fake Out",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 23,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 11,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 0,
+      "effective": 165,
+      "median": 138
+     },
+     "bulk": {
+      "why": "least SP surviving the median attacker",
+      "share_survived": 0.551,
+      "share_at_zero": 0.391,
+      "endures": false
+     }
+    },
+    {
+     "species": "Sneasler",
+     "item": "Grassy Seed",
+     "ability": "Unburden",
+     "nature": "Adamant",
+     "moves": [
+      "Dire Claw",
+      "Close Combat",
+      "Fake Out",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 16,
+      "atk": 32,
+      "def": 17,
+      "spa": 0,
+      "spd": 1,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 0,
+      "effective": 140,
+      "median": 138
+     },
+     "bulk": {
+      "why": "least SP surviving the median attacker",
+      "share_survived": 0.66,
+      "share_at_zero": 0.43,
+      "endures": false
+     }
+    },
+    {
+     "species": "Rillaboom",
+     "item": "Miracle Seed",
+     "ability": "Grassy Surge",
+     "nature": "Adamant",
+     "moves": [
+      "Wood Hammer",
+      "High Horsepower",
+      "Grassy Glide",
+      "Fake Out"
+     ],
+     "evs": {
+      "hp": 20,
+      "atk": 32,
+      "def": 1,
+      "spa": 0,
+      "spd": 13,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 0,
+      "effective": 105,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.708,
+      "share_at_zero": 0.533,
+      "endures": false
+     }
+    },
+    {
+     "species": "Kingambit",
+     "item": "Chople Berry",
+     "ability": "Defiant",
+     "nature": "Adamant",
+     "moves": [
+      "Kowtow Cleave",
+      "Iron Head",
+      "Sucker Punch",
+      "Low Kick"
+     ],
+     "evs": {
+      "hp": 20,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 14,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 0,
+      "effective": 70,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.816,
+      "share_at_zero": 0.634,
+      "endures": false
+     }
+    },
+    {
+     "species": "Volcarona",
+     "item": "Leftovers",
+     "ability": "Flame Body",
+     "nature": "Modest",
+     "moves": [
+      "Flamethrower",
+      "Giga Drain",
+      "Quiver Dance",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 6,
+      "atk": 0,
+      "def": 9,
+      "spa": 32,
+      "spd": 0,
+      "spe": 19
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 19,
+      "effective": 139,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.727,
+      "share_at_zero": 0.679,
+      "endures": false
+     }
+    }
+   ]
   },
   {
    "id": "L4",
@@ -152,7 +806,225 @@
     0,
     1
    ],
-   "packed": "Rillaboom||MiracleSeed|GrassySurge|WoodHammer,GrassyGlide,HighHorsepower,FakeOut|Adamant|32,32,,,,2|M||||]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly|32,32,,,,2|F||||]Dragonite||Dragoninite|InnerFocus|DragonPulse,HeatWave,Tailwind,Protect|Modest|32,,,32,,2|M||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|32,,,32,,2|M||||]Gholdengo||LifeOrb|GoodasGold|MakeItRain,ShadowBall,NastyPlot,Protect|Modest|32,,,32,,2|||||]Garchomp||SitrusBerry|RoughSkin|StompingTantrum,DragonClaw,SwordsDance,Protect|Adamant|32,32,,,,2|M||||"
+   "packed": "Rillaboom||MiracleSeed|GrassySurge|WoodHammer,GrassyGlide,HighHorsepower,FakeOut|Adamant|20,32,1,,13,|M||||]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly|17,32,,,,17|F||||]Dragonite||Dragoninite|InnerFocus|DragonPulse,HeatWave,Tailwind,Protect|Modest|2,,,32,,32|M||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|23,,,32,11,|M||||]Gholdengo||LifeOrb|GoodasGold|MakeItRain,ShadowBall,NastyPlot,Protect|Modest|28,,,32,6,|||||]Garchomp||SitrusBerry|RoughSkin|StompingTantrum,DragonClaw,SwordsDance,Protect|Adamant|14,32,3,,,17|M||||",
+   "spreads": [
+    {
+     "species": "Rillaboom",
+     "item": "Miracle Seed",
+     "ability": "Grassy Surge",
+     "nature": "Adamant",
+     "moves": [
+      "Wood Hammer",
+      "Grassy Glide",
+      "High Horsepower",
+      "Fake Out"
+     ],
+     "evs": {
+      "hp": 20,
+      "atk": 32,
+      "def": 1,
+      "spa": 0,
+      "spd": 13,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 0,
+      "effective": 105,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.708,
+      "share_at_zero": 0.533,
+      "endures": false
+     }
+    },
+    {
+     "species": "Arcanine-Hisui",
+     "item": "Focus Sash",
+     "ability": "Rock Head",
+     "nature": "Jolly",
+     "moves": [
+      "Flare Blitz",
+      "Head Smash",
+      "Extreme Speed",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 17,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 17
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 17,
+      "effective": 139,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 1,
+      "share_at_zero": 1,
+      "endures": true
+     }
+    },
+    {
+     "species": "Dragonite",
+     "item": "Dragoninite",
+     "ability": "Inner Focus",
+     "nature": "Modest",
+     "moves": [
+      "Dragon Pulse",
+      "Heat Wave",
+      "Tailwind",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     },
+     "source": "derived",
+     "role": "fast",
+     "role_by": "Tailwind",
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 32,
+      "effective": 152,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.971,
+      "share_at_zero": 0.971,
+      "endures": false
+     }
+    },
+    {
+     "species": "Raichu",
+     "item": "Raichunite Y",
+     "ability": "Lightning Rod",
+     "nature": "Timid",
+     "moves": [
+      "Zap Cannon",
+      "Focus Blast",
+      "Fake Out",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 23,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 11,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 0,
+      "effective": 165,
+      "median": 138
+     },
+     "bulk": {
+      "why": "least SP surviving the median attacker",
+      "share_survived": 0.551,
+      "share_at_zero": 0.391,
+      "endures": false
+     }
+    },
+    {
+     "species": "Gholdengo",
+     "item": "Life Orb",
+     "ability": "Good as Gold",
+     "nature": "Modest",
+     "moves": [
+      "Make It Rain",
+      "Shadow Ball",
+      "Nasty Plot",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 28,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 6,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 0,
+      "effective": 104,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.717,
+      "share_at_zero": 0.591,
+      "endures": false
+     }
+    },
+    {
+     "species": "Garchomp",
+     "item": "Sitrus Berry",
+     "ability": "Rough Skin",
+     "nature": "Adamant",
+     "moves": [
+      "Stomping Tantrum",
+      "Dragon Claw",
+      "Swords Dance",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 14,
+      "atk": 32,
+      "def": 3,
+      "spa": 0,
+      "spd": 0,
+      "spe": 17
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 17,
+      "effective": 139,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.773,
+      "share_at_zero": 0.734,
+      "endures": false
+     }
+    }
+   ]
   },
   {
    "id": "L5",
@@ -187,7 +1059,255 @@
     1,
     5
    ],
-   "packed": "Corviknight||PsychicSeed|MirrorArmor|BraveBird,PowerTrip,Roost,BulkUp|Impish|32,32,,,,2|F||||]Tyranitar||Tyranitarite|SandStream|RockSlide,KnockOff,LowKick,Protect|Jolly|32,32,,,,2|F||||]Sneasler||WhiteHerb|Unburden|CloseCombat,DireClaw,Coaching,Protect|Adamant|32,32,,,,2|M||||]Indeedee||ChoiceScarf|PsychicSurge|ExpandingForce,MysticalFire,Trick,Protect|Modest|32,,,32,,2|M||||]Salamence||Salamencite|Intimidate|HyperVoice,DracoMeteor,Flamethrower,Protect|Timid|32,,,32,,2|M||||]Excadrill||FocusSash|SandRush|IronHead,HighHorsepower,RockSlide,Protect|Adamant|32,32,,,,2|F||||"
+   "packed": "Corviknight||PsychicSeed|MirrorArmor|BraveBird,PowerTrip,Roost,BulkUp|Impish|22,32,1,,11,|F||||]Tyranitar||Tyranitarite|SandStream|RockSlide,KnockOff,LowKick,Protect|Jolly|26,32,8,,,|F||||]Sneasler||WhiteHerb|Unburden|CloseCombat,DireClaw,Coaching,Protect|Adamant|16,32,17,,1,|M||||]Indeedee||ChoiceScarf|PsychicSurge|ExpandingForce,MysticalFire,Trick,Protect|Modest|14,,,20,,32|M||||]Salamence||Salamencite|Intimidate|HyperVoice,DracoMeteor,Flamethrower,Protect|Timid|7,,,32,27,|M||||]Excadrill||FocusSash|SandRush|IronHead,HighHorsepower,RockSlide,Protect|Adamant|3,32,,,,31|F||||",
+   "spreads": [
+    {
+     "species": "Corviknight",
+     "item": "Psychic Seed",
+     "ability": "Mirror Armor",
+     "nature": "Impish",
+     "moves": [
+      "Brave Bird",
+      "Power Trip",
+      "Roost",
+      "Bulk Up"
+     ],
+     "evs": {
+      "hp": 22,
+      "atk": 32,
+      "def": 1,
+      "spa": 0,
+      "spd": 11,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 0,
+      "effective": 87,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.905,
+      "share_at_zero": 0.755,
+      "endures": false
+     }
+    },
+    {
+     "species": "Tyranitar",
+     "item": "Tyranitarite",
+     "ability": "Sand Stream",
+     "nature": "Jolly",
+     "moves": [
+      "Rock Slide",
+      "Knock Off",
+      "Low Kick",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 26,
+      "atk": 32,
+      "def": 8,
+      "spa": 0,
+      "spd": 0,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 0,
+      "effective": 100,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.62,
+      "share_at_zero": 0.545,
+      "endures": false
+     }
+    },
+    {
+     "species": "Sneasler",
+     "item": "White Herb",
+     "ability": "Unburden",
+     "nature": "Adamant",
+     "moves": [
+      "Close Combat",
+      "Dire Claw",
+      "Coaching",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 16,
+      "atk": 32,
+      "def": 17,
+      "spa": 0,
+      "spd": 1,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 0,
+      "effective": 140,
+      "median": 138
+     },
+     "bulk": {
+      "why": "least SP surviving the median attacker",
+      "share_survived": 0.66,
+      "share_at_zero": 0.43,
+      "endures": false
+     }
+    },
+    {
+     "species": "Indeedee",
+     "item": "Choice Scarf",
+     "ability": "Psychic Surge",
+     "nature": "Modest",
+     "moves": [
+      "Expanding Force",
+      "Mystical Fire",
+      "Trick",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 14,
+      "atk": 0,
+      "def": 0,
+      "spa": 20,
+      "spd": 0,
+      "spe": 32
+     },
+     "source": "derived",
+     "role": "fast",
+     "role_by": "Choice Scarf",
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 32,
+      "effective": 220,
+      "median": 138
+     },
+     "bulk": {
+      "why": "least SP surviving the median attacker",
+      "share_survived": 0.503,
+      "share_at_zero": 0.385,
+      "endures": false
+     }
+    },
+    {
+     "species": "Salamence",
+     "item": "Salamencite",
+     "ability": "Intimidate",
+     "nature": "Timid",
+     "moves": [
+      "Hyper Voice",
+      "Draco Meteor",
+      "Flamethrower",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 7,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 27,
+      "spe": 0
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 0,
+      "effective": 154,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.801,
+      "share_at_zero": 0.731,
+      "endures": false
+     }
+    },
+    {
+     "species": "Excadrill",
+     "item": "Focus Sash",
+     "ability": "Sand Rush",
+     "nature": "Adamant",
+     "moves": [
+      "Iron Head",
+      "High Horsepower",
+      "Rock Slide",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 3,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 31
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 31,
+      "effective": 139,
+      "median": 138
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 1,
+      "share_at_zero": 1,
+      "endures": true
+     }
+    }
+   ]
   }
- ]
+ ],
+ "spread_source": {
+  "store": "solver/out/rotom/store-fe78202a.jsonl.gz",
+  "store_sha256": "fe78202a851545b71a19c507617d2a470020e5b72d07a393f86ae0fedee9bb25",
+  "floor": 1409,
+  "rule": "solver/rotom/spreads.js: OBSERVED Reg M-C spread (Smogon moveset file for gen9championsvgc2026regmcbo3, modal spread for the species with the sheet nature) if one exists, else DERIVED: role from the set (Choice Scarf or Tailwind -> Speed at the cap; Trick Room -> Speed 0; else the least SP that outspeeds the weighted median effective speed of the top-meta population at full Speed investment, or 0); then the least HP/Def/SpD SP that survives the weighted median top-meta attacker's best hit (top roll), or 0; the rest into the used attacking stat; any remainder to the bulk split surviving most. Nature and IVs are the sheet's / the format's.",
+  "observed": "none: no Reg M-C Smogon moveset file for gen9championsvgc2026regmcbo3 under data/smogon-stats/ (the September 2026 files are due about 2026-10-04)",
+  "population": {
+   "teams": 148,
+   "slots": 888,
+   "unique_sets": 384
+  },
+  "speed_equilibrium": {
+   "median_speed": 138,
+   "benchmark": "weighted median effective speed of the top-meta population, every set at the top of its speed options (Trick Room sets at 0), sheet natures, neutral field"
+  },
+  "median_quantile": 0.5,
+  "counters": {
+   "battles": 17281,
+   "damage_calls": 1318100,
+   "no_damage": 2687,
+   "endures": 4,
+   "observed": 0,
+   "derived": 60
+  }
+ },
+ "respread": {
+  "by": "solver/rotom/respread.js",
+  "at": "2026-09-30T01:51:08.056Z",
+  "note": "teams unchanged; Stat Points only"
+ }
 }
