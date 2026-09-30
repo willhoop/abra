@@ -1,0 +1,37 @@
+{
+ "result": "solver\\out\\sprt-pikl-v2\\sprt1-kl03-14s.json",
+ "games": 416,
+ "games_without_counter": 0,
+ "x": "solver/results/2026-09-30-human-regularised/screen-14s-kl03.json",
+ "y": "solver/results/2026-09-30-human-regularised/screen-14s-off.json",
+ "arms": {
+  "x": {
+   "actions": 7158,
+   "protects": 1112,
+   "failed": 109,
+   "consec": 129,
+   "consecFailed": 87,
+   "pairs": 3359,
+   "doubles": 160,
+   "share": 0.1554,
+   "fail_rate": 0.098,
+   "consec_share": 0.116,
+   "double_share": 0.0476,
+   "consec_fail_rate": 0.6744
+  },
+  "y": {
+   "actions": 7092,
+   "protects": 1329,
+   "failed": 210,
+   "consec": 274,
+   "consecFailed": 194,
+   "pairs": 3292,
+   "doubles": 191,
+   "share": 0.1874,
+   "fail_rate": 0.158,
+   "consec_share": 0.2062,
+   "double_share": 0.058,
+   "consec_fail_rate": 0.708
+  }
+ }
+}

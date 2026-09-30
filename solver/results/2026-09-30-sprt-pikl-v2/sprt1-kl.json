@@ -1,0 +1,29 @@
+{
+ "agent_fallbacks": 0,
+ "prior_fallback_decisions": 0,
+ "searched": 7789,
+ "errored_games": 0,
+ "kl": {
+  "gen5-kl03-adaptive-14s": {
+   "lambda": 0.03,
+   "decisions": 3893,
+   "changed": 1464,
+   "missMe": 0,
+   "missOpp": 0,
+   "klSum": 1782.5388000000007,
+   "tvSum": 1324.2919999999995,
+   "worstSum": 47.32241999999998,
+   "worstMax": 0.51953,
+   "prot": 970.5130000000004,
+   "prot0": 1070.8552999999997,
+   "dbl": 153.88969999999998,
+   "dbl0": 162.18760000000003,
+   "gapMax": 0.000029977251265078664,
+   "mean_tv": 0.34017261751862304,
+   "mean_worst": 0.012155771898278957,
+   "changed_share": 0.3760595941433342,
+   "prot_mean": 0.24929694323144114,
+   "prot0_mean": 0.27507200102748514
+  }
+ }
+}
