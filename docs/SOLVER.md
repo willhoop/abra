@@ -83,14 +83,12 @@ This section says only what a division agent needs before it starts.
   `--preview` (fixed); an arm now names its own preview. Arms file `solver/rotom/arms/gen5-chomp.json`; proof the
   choice is sent: `solver/tests/test-rotom-chomp-live.js`. Command for Will:
   `docs/_reports/2026-09-30-chomp-ladder-prep.md`.
-<<<<<<< HEAD
 - **Top-meta ladder rotation prepared, not launched (2026-09-29, abra/regmc 1.31.0).** Will asked for top-rated meta teams
   only. `solver/rotom/build_top_rotation.js` builds `solver/rotom/teams/ladder-rotation-top.json`: floor 1409 (q0.99 of
   rated bo3 sides), sixes used by 2 or more players at the floor, every species on 3% or more of the top teams, and
   S − E no worse than the top baseline. It holds 5 teams, rated 1478 to 1596. The arms file
   `solver/rotom/arms/gen5-chomp-top.json` names the rotation. Command for Will:
   `docs/_reports/2026-09-30-top-meta-rotation.md`.
-=======
 - **Human-regularised search (piKL), phase A (2026-09-30, abra/regmc 1.34.0).** Spec flag `kl` (lambda; off, on no
   arm): SLOWKING solves the KL-regularised root game with gen5's DODUO as the anchor (`solveKL`). On 579 held-out human
   decisions and the same recorded tables, top-1 agreement is 0.216 at lambda 0 and 0.268 at 0.1 (+0.052 [0.021, 0.083]).
@@ -98,7 +96,6 @@ This section says only what a division agent needs before it starts.
   where it reaches the anchor's own level. chomp1 turn 4's double Protect keeps 0.71 of the mix at 0.03. That is a horizon
   fault in the table. The 2 s screens at lambda 0.01, 0.03 and 0.1 are pre-registered, not run.
   `docs/_reports/2026-09-30-human-regularised-search.md`.
->>>>>>> origin/worktree-agent-a2930a277737baf60
 - **CHOMP v0** (`solver/chomp/`, 2026-09-25, release `eaa5becc54eb`) **fails its bar**: its preview loses to
   the human bring (SPRT H0 accepted) and ties random. The PORYGON2 cells carry no bring signal.
   `docs/_reports/2026-09-25-chomp-v0.md`.

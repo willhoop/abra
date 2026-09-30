@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.34.2] — 2026-09-30 — **Conflict markers removed from the SOLVER ledger and the solver log**
+- **What changed.** The coordinator's 1.34.0 merge committed unresolved conflict markers into `docs/SOLVER.md` and `solver/LOG.md`. They are resolved now, keeping both entries. No code.
+- **Measured.** NO FIGURE.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 1.34.1] — 2026-09-30 — **CHANGELOG-REGMC heading fix after the overnight merges**
 - **What changed.** The double-Protect entry's CHANGELOG heading reads 1.32.0 again; the 1.34.0 merge renumber had renamed it. Its notes row already read 1.32.0. No code.
 - **Measured.** NO FIGURE.

@@ -21,6 +21,12 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.34.2] — 2026-09-30
+
+### Fixed
+- **Conflict markers left in `docs/SOLVER.md` and `solver/LOG.md` by the 1.34.0 merge are removed; both sides are kept.**
+  The top-meta rotation's entry and the human-regularised search's entry each survive whole. PATCH: no figure moves.
+
 ## [1.34.1] — 2026-09-30
 
 ### Fixed
