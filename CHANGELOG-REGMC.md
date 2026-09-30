@@ -21,6 +21,29 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.31.0] — 2026-09-30
+
+### Added
+- **The Reg M-C store is counted by rating band on the full `.gz` stores**, not on the 09-21 plain snapshots.
+  I read `data/games.gen9championsvgc2026regmc{,bo3}.jsonl.gz` from the main checkout. The files hold data to
+  2026-09-29 21:02. Clean games under `engine/quality.js` `reasons()`, with the behavioural-bot rule: bo3 **25,238**
+  (lower player ≥ 1300/1400/1500: 715 / 89 / 0) and bo1 **29,537** (lower ≥ 1500: 361, ≥ 1600: 31).
+- **Upload selection bias is measured against the live ladders** (2026-09-30 00:43Z). **80.9%** of the 94 bo3
+  players rated ≥ 1500, and **57.4%** of the 500 bo1 players rated ≥ 1500, have no game in the store. On the
+  snapshot the shares were 85.1% and 67.4%, so a fresher store barely moves them.
+- **bo3 series reconstructed: 17,464** from 37,165 games (same pair, 30-minute window, 3-game or 2-win cap).
+  1 series has a lower player rated ≥ 1500.
+- `data/verification/2026-09-30-high-rated-regmc-counts.json`, with the counting script embedded.
+
+### Notes
+- The OPS snapshot figures (bo3 16,119 clean, bo1 18,890, bo1 reveal 1.43 moves) did not reproduce on the same
+  files. My count gives 16,517, 19,870 and 1.69, and OPS recorded no method. The report says which figures to
+  quote and how.
+- **Four one-team accounts played 1,286–1,729 bo1 games each in under ten days** and reached a rating of 1658.
+  The behavioural-bot rule is what removes them. The rule also flags two live top-ladder accounts, so it has
+  false positives. It was left unchanged.
+- `docs/_reports/2026-09-30-high-rated-regmc-counts.md`.
+
 ## [1.30.1] — 2026-09-29
 
 ### Fixed

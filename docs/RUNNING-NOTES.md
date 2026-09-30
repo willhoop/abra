@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.31.0] — 2026-09-30 — **Reg M-C counted by rating on the full stores; most top-ladder players upload nothing**
+- **What changed.** New count of the full Reg M-C stores (`.gz` passed explicitly; `quality.js` `storePath()` would serve the 09-21 plain snapshot). Streaming read, no simulator. `docs/REGULATION-ROTATION.md` gains a row for the stale-plain-store trap.
+- **Measured.** Clean (quality.js `reasons()` + behavioural bots): bo3 25,238 (lower ≥ 1300/1400/1500 = 715/89/0), bo1 29,537 (lower ≥ 1500/1600 = 361/31). Zero-upload share of live-ladder players ≥ 1500: bo3 80.9% (76 of 94), bo1 57.4% (287 of 500). bo3 series 17,464. The data is in `data/verification/2026-09-30-high-rated-regmc-counts.json`, n = 37,165 bo3 and 59,196 bo1 games to 2026-09-29 21:02, and the comparison baseline is the 09-21 snapshot.
+- **Basis.** unchanged.
+- **Supersedes.** The OPS snapshot counts (bo3 16,119, bo1 18,890 clean; bo1 reveal 1.43 moves) were never published in a living document, and they do not reproduce on their own files. Quote this file's figures instead.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 1.30.1] — 2026-09-29 — **`test-game-diff.js` and five more engine tests write per-regulation files under Reg M-C**
 - **What changed.** `engine/regulation.js` `PER_REGULATION_ARTIFACTS` gains `game-diff.json`, `forme-assert.json`, `switch-back-renamed.json`, `tag-walk.json`, `tag-consumption.json` and `unmodelled-clicks.json`. Each writer names its path through `artifactFor`. `test-game-diff.js` and `test-unmodelled-clicks.js` read the tags through `fileFor`, because a bare fs read returned Reg M-B's under Reg M-C. `test-tag-consumed.js` prints `NO BASELINE` when it has none. `tests/test-regulation-artifacts.js` maps the six names.
 - **Measured.** NO FIGURE. `ABRA_REGULATION=regmc node tests/test-game-diff.js` exit 1 (the guard refused `data/game-diff.json` after 5 of 5 games agreed) → exit 0, writes `data/game-diff-regmc.json` (`showdown_commit` `f10d6798`). The plain run exits 0 and writes `data/game-diff.json` (`20ad99ff`). The other five: regmc exit 0, sibling written; plain exit 0.
