@@ -20,8 +20,18 @@ function isV1(file) {
   return /"arch"\s*:\s*"v1-/.test(buf.subarray(0, n).toString('utf8'));
 }
 
+/* A v2 model file (arch "v2-transformer", solver/porygon2/v2/) is served by solver/porygon2/v2/leaf.js. Only a league spec
+ * that names a v2 file reaches it; no ladder arm does. */
+function isV2(file) {
+  if (!file) return false;
+  const fs = require('fs');
+  const fd = fs.openSync(file, 'r'); const buf = Buffer.alloc(256); const n = fs.readSync(fd, buf, 0, 256, 0); fs.closeSync(fd);
+  return /"arch"\s*:\s*"v2-/.test(buf.subarray(0, n).toString('utf8'));
+}
+
 function create(API, opts) {
   opts = opts || {};
+  if (isV2(opts.model)) return require('./v2/leaf.js').create(API, opts);
   if (isV1(opts.model)) return require('./v1/leaf.js').create(API, opts);
   const PA = require('../miltank/prior_adapter.js').create(API, null);
   const F = require('./features.js').create(API.M);
