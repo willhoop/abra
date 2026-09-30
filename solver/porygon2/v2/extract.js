@@ -110,8 +110,17 @@ function main() {
   const funnel = { store_rows: storeRows, store_bad_json: storeBad, store_duplicate_ids: dupStore, store_games: games.length };
   const qFirst = {}, qAll = {};
   const want = new Map();                        // id -> slim game that passed quality + own
+  /* GAME-SHAPE CODES ARE RECORDED, NOT CHARGED (Will, 2026-09-30): for the VALUE-NET datasets a forfeit, a short game
+   * and a partial bring are real outcomes, so quality.js's forfeit_no_action / short / partial_bring do not exclude a
+   * game here. Each kept row carries its quality reasons in `quality_reasons`, so the rule can be revisited by a filter
+   * rather than a rebuild. Bots, illegal teams and custom-rule games stay excluded. */
+  const GAME_SHAPE = new Set(['forfeit_no_action', 'short', 'partial_bring']);
+  const qShape = {};
   for (const g of games) {
-    const rs = Q.reasons(g, cfg, bots);
+    const all = Q.reasons(g, cfg, bots);
+    const rs = all.filter(r => !GAME_SHAPE.has(r));
+    g.quality_reasons = all;
+    for (const r of all) if (GAME_SHAPE.has(r)) inc(qShape, r);
     const names = [g.p1 && g.p1.name, g.p2 && g.p2.name].filter(Boolean);
     if (names.some(n => OWN.has(X.toID(n)))) rs.push('own_account');
     if (rs.length) { inc(qFirst, rs[0]); for (const r of rs) inc(qAll, r); continue; }
@@ -119,6 +128,7 @@ function main() {
   }
   funnel.quality_clean = games.length - Object.entries(qFirst).filter(([k]) => k !== 'own_account').reduce((a, [, v]) => a + v, 0);
   funnel.after_own_account = want.size;
+  funnel.game_shape_codes_recorded_not_charged = { codes: [...GAME_SHAPE], store_games_carrying: qShape };
   const behaviouralBotAccounts = [...bots].sort();
   if (LIMIT) { const keep = [...want.keys()].slice(0, LIMIT); for (const id of [...want.keys()]) if (!keep.includes(id)) want.delete(id); }
 
@@ -200,7 +210,7 @@ function main() {
       const split = splitOfGame(sg.p1.name, sg.p2.name);
       for (const k in g.counts) inc(counters, k, g.counts[k]);
       const row = { id: r.id, fmt: FMT, date: sg.date, uploadtime: ups, shard: path.basename(f), v1_unseen: v1Shards ? (f !== RAWPLAIN && !v1Shards.has(path.basename(f))) : null, players: { p1: sg.p1.name, p2: sg.p2.name }, rating: { p1: rp1, p2: rp2 },
-        split, band: { min: band(lo), max: band(hi) }, sheets_public: g.game.sheets_public, labels: { z: L.z, end: L.end, turns: L.turns, final: L.final },
+        split, band: { min: band(lo), max: band(hi) }, sheets_public: g.game.sheets_public, quality_reasons: sg.quality_reasons || [], labels: { z: L.z, end: L.end, turns: L.turns, final: L.final },
         positions: g.positions.map((p, k) => ({ n: p.n, x: p.x, y: { turns_left: L.per[k].turns_left, next_ko: L.per[k].next_ko } })) };
       buf.push(JSON.stringify(row));
       if (buf.length >= 500) flush();
@@ -274,7 +284,7 @@ function main() {
     showdown: { path: X.SHOWDOWN_PATH.replace(/\\/g, '/'), commit: X.checkoutCommit(), pinned: X.PINNED_COMMIT },
     code, inputs, quality: { config_version: cfg.version || null, behavioural_bot_accounts: behaviouralBotAccounts.length, behavioural_bot_names: behaviouralBotAccounts,
       excluded_first_reason: qFirst, excluded_any_reason: qAll },
-    filters: { order: ['quality reasons() incl. bot + behavioural_bot', 'own_account', 'no_raw_log', 'wrong_format', 'illusion_possible (preview)', 'parse_error', 'custom_rules', 'illegal_entity', 'pre_ejectbutton_fix', 'no_result', 'no_position'],
+    filters: { order: ['quality reasons() incl. bot + behavioural_bot (game-shape codes forfeit_no_action / short / partial_bring recorded in quality_reasons, not charged)', 'own_account', 'no_raw_log', 'wrong_format', 'illusion_possible (preview)', 'parse_error', 'custom_rules', 'illegal_entity', 'pre_ejectbutton_fix', 'no_result', 'no_position'],
       own_accounts: [...OWN], illusion_species: [...ILLUSION], eject_boundary: '2026-09-14T00:00:00Z',
       split: 'player split sha256("' + SALT + ':" + toID(name)) mod 100 (<80 train, <90 val, else test), lifted to the game: test if either player is test, else val if either is val, else train' },
     funnel: Object.assign(funnel, { raw_rows_read: rawRows, raw_duplicate_ids: rawDup, raw_duplicate_conflicting_logs: rawConflict, excluded_after_quality: excl, kept: tally.games }),

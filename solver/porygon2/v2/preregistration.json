@@ -45,5 +45,12 @@
   "gate_a_bands": "Bands by the lower of the two ratings: <1100, 1100-1199, 1200-1299, >=1300 (merged). Unrated games are in the pooled set and are reported as their own row; they are not one of the four gating bands. A band gates only if it holds >= 200 eligible games.",
   "gate_a_reported": "Brier, 10-bin ECE and a reliability table for v2, v1 and gen5; turns 1-3 separately; the count-HP logistic (fitted on bo3 TRAIN positions against z); each auxiliary head's loss on the eligible positions; the bo1 TEST split by band incl. >=1500 and >=1600 for v2 alone (v1 cannot read a closed sheet); every ablation's pooled delta.",
   "read_once": "solver/porygon2/v2/gate_a.py reads the test split once, for the selected model, and writes solver/porygon2/v2/gate-a.json. It is not re-run to try another model."
+ },
+ "addendum_2026_09_30b": {
+  "when": "2026-09-30, after the first training attempt was killed by a pause (no model saved, gate not read) and BEFORE any training on the data below.",
+  "quality_rule": "Will, 2026-09-30: for the VALUE-NET datasets the game-shape codes of engine/quality.js (forfeit_no_action, short, partial_bring) do NOT exclude a game: forfeits and short games are real outcomes. Each kept row records its quality reasons in `quality_reasons`. Bots, illegal teams, custom-rule games, own accounts, Illusion rooms and the pre-Eject-Button-fix games stay excluded.",
+  "data": "Rebuilt on the same parsed stores (bo1 sha256 341e5953c4c7..., bo3 3e5affee9991...): bo1 41,989 games / 286,770 positions, bo3 36,232 / 251,760 (solver/porygon2/v2/manifest-*.json). The data line of addendum_2026_09_30 is superseded by this one; every other clause of that addendum stands.",
+  "gate_a_eligible": "bo3 TEST games with v1_unseen = true: 1,526 (10,733 positions). By min-rating band: <1100 577, 1100-1199 413, 1200-1299 160, >=1300 82, unrated 294. So the gating bands are <1100 and 1100-1199.",
+  "checkpoint": "train.py writes a checkpoint every epoch and resumes from it; resuming does not change the selection rule."
  }
 }

@@ -101,7 +101,7 @@ async function main() {
     const gIdx = games.length;
     const r1 = g.rating.p1, r2 = g.rating.p2;
     const unequal = r1 != null && r2 != null && Math.abs(r1 - r2) >= 100 ? 1 : 0;
-    games.push({ id: g.id, split: g.split, band_min: g.band.min, rating: g.rating, v1_unseen: g.v1_unseen, end: L.end, n: rows.length });
+    games.push({ id: g.id, split: g.split, band_min: g.band.min, rating: g.rating, v1_unseen: g.v1_unseen, end: L.end, n: rows.length, quality_reasons: g.quality_reasons || [] });
     c.games++; c.by_split[split]++;
     const end = Math.max(0, ENDS.indexOf(L.end)) + (ENDS.includes(L.end) ? 0 : 3);
     const surv = new Int8Array(12), hpend = new Uint16Array(12);

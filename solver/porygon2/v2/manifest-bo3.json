@@ -1,7 +1,7 @@
 {
  "what": "PORYGON2 v2 position dataset, bo3 (gen9championsvgc2026regmcbo3): the public state at the start of every turn, per-field reveal state, both pre-game ratings, outcome and auxiliary labels",
- "built": "2026-09-30T05:01:44.997Z",
- "seconds": 239,
+ "built": "2026-09-30T08:07:03.090Z",
+ "seconds": 369,
  "node": "v24.15.0",
  "argv": [
   "--fmt",
@@ -17,7 +17,7 @@
  },
  "code": {
   "solver/porygon2/v2/reveal.js": "b1cc88db672d8c31aeae740923b61983bd85ffc1969e24de2a587406ad2f3a29",
-  "solver/porygon2/v2/extract.js": "9b665af6c1dd7d744be6a7cef0c71926538965e086c9a4736d5b95d3a7ce0788",
+  "solver/porygon2/v2/extract.js": "502d30983e032072e362ca0ebff796ec5603c4aec6ffe1f75aa4dff61dbbd72a",
   "engine/quality.js": "9b168679e3e91ba7b4ca84841741a3176bda6ef7471831209e10f254100ed351",
   "data/quality-filter.json": "c74b46002e2da1429fc15d7bb9caa918c3195e1cf96a0674a525661194d2aacc",
   "solver/human/dex.js": "765e33ab28deb013e41a6c69cd60c83fd7b0710f46dea42877eff9811f3c3a86"
@@ -1947,18 +1947,12 @@
   "behavioural_bot_accounts": 0,
   "behavioural_bot_names": [],
   "excluded_first_reason": {
-   "partial_bring": 8947,
-   "short": 2313,
    "bot": 220,
-   "forfeit_no_action": 229,
-   "illegal_team": 10,
-   "own_account": 77
+   "illegal_team": 13,
+   "own_account": 106
   },
   "excluded_any_reason": {
-   "partial_bring": 11527,
-   "short": 2561,
    "bot": 220,
-   "forfeit_no_action": 230,
    "illegal_team": 13,
    "custom_ruleset": 13,
    "own_account": 106
@@ -1966,7 +1960,7 @@
  },
  "filters": {
   "order": [
-   "quality reasons() incl. bot + behavioural_bot",
+   "quality reasons() incl. bot + behavioural_bot (game-shape codes forfeit_no_action / short / partial_bring recorded in quality_reasons, not charged)",
    "own_account",
    "no_raw_log",
    "wrong_format",
@@ -1997,266 +1991,290 @@
   "store_bad_json": 0,
   "store_duplicate_ids": 0,
   "store_games": 37526,
-  "quality_clean": 25807,
-  "after_own_account": 25730,
+  "quality_clean": 37293,
+  "after_own_account": 37187,
+  "game_shape_codes_recorded_not_charged": {
+   "codes": [
+    "forfeit_no_action",
+    "short",
+    "partial_bring"
+   ],
+   "store_games_carrying": {
+    "partial_bring": 11527,
+    "short": 2561,
+    "forfeit_no_action": 230
+   }
+  },
   "raw_rows_read": 38253,
-  "raw_duplicate_ids": 465,
+  "raw_duplicate_ids": 723,
   "raw_duplicate_conflicting_logs": 0,
   "excluded_after_quality": {
-   "pre_ejectbutton_fix": 243,
-   "illusion_possible": 190,
-   "no_result": 2
+   "pre_ejectbutton_fix": 327,
+   "no_position": 293,
+   "illusion_possible": 290,
+   "no_result": 45
   },
-  "kept": 25295
+  "kept": 36232
  },
  "parse_errors": {},
  "parse_examples": {},
  "counts": {
-  "games": 25295,
-  "positions": 200620,
+  "games": 36232,
+  "positions": 251760,
   "split": {
    "train": {
-    "games": 16394,
-    "positions": 130372
+    "games": 23488,
+    "positions": 163499
    },
    "val": {
-    "games": 4208,
-    "positions": 33153
+    "games": 5951,
+    "positions": 41244
    },
    "test": {
-    "games": 4693,
-    "positions": 37095
+    "games": 6793,
+    "positions": 47017
    }
   },
   "by_band_min": {
-   "<1100": {
-    "games": 11010,
-    "positions": 86494,
-    "test_games": 2163,
-    "test_positions": 17054
-   },
    "1100-1199": {
-    "games": 6950,
-    "positions": 54946,
-    "test_games": 1286,
-    "test_positions": 10126
+    "games": 9864,
+    "positions": 68561,
+    "test_games": 1858,
+    "test_positions": 12925
+   },
+   "<1100": {
+    "games": 16132,
+    "positions": 109924,
+    "test_games": 3159,
+    "test_positions": 21565
    },
    "unrated": {
-    "games": 4435,
-    "positions": 35832,
-    "test_games": 735,
-    "test_positions": 5893
+    "games": 6116,
+    "positions": 44317,
+    "test_games": 1042,
+    "test_positions": 7455
    },
    "1200-1299": {
-    "games": 2166,
-    "positions": 17558,
-    "test_games": 377,
-    "test_positions": 2955
+    "games": 3069,
+    "positions": 21721,
+    "test_games": 548,
+    "test_positions": 3731
    },
    "1300-1399": {
-    "games": 644,
-    "positions": 5094,
-    "test_games": 117,
-    "test_positions": 943
+    "games": 916,
+    "positions": 6326,
+    "test_games": 167,
+    "test_positions": 1196
    },
    "1400-1499": {
-    "games": 90,
-    "positions": 696,
-    "test_games": 15,
-    "test_positions": 124
+    "games": 134,
+    "positions": 905,
+    "test_games": 19,
+    "test_positions": 145
+   },
+   "1500-1599": {
+    "games": 1,
+    "positions": 6,
+    "test_games": 0,
+    "test_positions": 0
    }
   },
   "by_band_max": {
    "1100-1199": {
-    "games": 9297,
-    "positions": 73487,
-    "test_games": 1741,
-    "test_positions": 13822
+    "games": 13349,
+    "positions": 92292,
+    "test_games": 2526,
+    "test_positions": 17519
    },
    "<1100": {
-    "games": 5368,
-    "positions": 42013,
-    "test_games": 1078,
-    "test_positions": 8382
-   },
-   "1200-1299": {
-    "games": 4117,
-    "positions": 32685,
-    "test_games": 791,
-    "test_positions": 6220
+    "games": 7945,
+    "positions": 53721,
+    "test_games": 1574,
+    "test_positions": 10560
    },
    "unrated": {
-    "games": 4435,
-    "positions": 35832,
-    "test_games": 735,
-    "test_positions": 5893
+    "games": 6116,
+    "positions": 44317,
+    "test_games": 1042,
+    "test_positions": 7455
+   },
+   "1200-1299": {
+    "games": 5870,
+    "positions": 40814,
+    "test_games": 1149,
+    "test_positions": 7984
    },
    "1300-1399": {
-    "games": 1674,
-    "positions": 13376,
-    "test_games": 264,
-    "test_positions": 2080
+    "games": 2370,
+    "positions": 16563,
+    "test_games": 392,
+    "test_positions": 2672
    },
    "1400-1499": {
-    "games": 356,
-    "positions": 2867,
-    "test_games": 79,
-    "test_positions": 659
+    "games": 512,
+    "positions": 3580,
+    "test_games": 102,
+    "test_positions": 777
    },
    ">=1600": {
-    "games": 6,
-    "positions": 42,
-    "test_games": 3,
-    "test_positions": 22
+    "games": 8,
+    "positions": 50,
+    "test_games": 4,
+    "test_positions": 26
    },
    "1500-1599": {
-    "games": 42,
-    "positions": 318,
-    "test_games": 2,
-    "test_positions": 17
+    "games": 62,
+    "positions": 423,
+    "test_games": 4,
+    "test_positions": 24
    }
   },
   "min_at_least": {
    "1300": {
-    "games": 734,
-    "positions": 5790,
-    "test_games": 132
+    "games": 1051,
+    "positions": 7237,
+    "test_games": 186
    },
    "1400": {
-    "games": 90,
-    "positions": 696,
-    "test_games": 15
+    "games": 135,
+    "positions": 911,
+    "test_games": 19
+   },
+   "1500": {
+    "games": 1,
+    "positions": 6,
+    "test_games": 0
    }
   },
   "max_at_least": {
    "1300": {
-    "games": 2078,
-    "positions": 16603,
-    "test_games": 348
+    "games": 2952,
+    "positions": 20616,
+    "test_games": 502
    },
    "1400": {
-    "games": 404,
-    "positions": 3227,
-    "test_games": 84
+    "games": 582,
+    "positions": 4053,
+    "test_games": 110
    },
    "1500": {
-    "games": 48,
-    "positions": 360,
-    "test_games": 5
+    "games": 70,
+    "positions": 473,
+    "test_games": 8
    },
    "1600": {
-    "games": 6,
-    "positions": 42,
-    "test_games": 3
+    "games": 8,
+    "positions": 50,
+    "test_games": 4
    }
   },
-  "both_rated": 20860,
+  "both_rated": 30116,
   "end": {
-   "normal": 18015,
-   "forfeit": 7066,
-   "inactivity": 214
+   "forfeit": 14015,
+   "normal": 21698,
+   "inactivity": 519
   },
   "z": {
-   "0": 12659,
-   "1": 12636
+   "0": 18116,
+   "1": 18116
   },
-  "sheets_public": 25295,
+  "sheets_public": 36232,
   "gate_a_eligible": {
    "all": {
-    "games": 6281,
-    "positions": 51268
+    "games": 8942,
+    "positions": 64010
    },
    "test": {
-    "games": 1048,
-    "positions": 8420
+    "games": 1526,
+    "positions": 10733
    },
    "test_by_band_min": {
     "<1100": {
-     "games": 398,
-     "positions": 3176
+     "games": 577,
+     "positions": 4020
     },
     "1100-1199": {
-     "games": 290,
-     "positions": 2353
+     "games": 413,
+     "positions": 2957
     },
     "unrated": {
-     "games": 201,
-     "positions": 1583
+     "games": 294,
+     "positions": 2041
     },
     "1200-1299": {
-     "games": 107,
-     "positions": 861
-    },
-    "1400-1499": {
-     "games": 9,
-     "positions": 78
+     "games": 160,
+     "positions": 1107
     },
     "1300-1399": {
-     "games": 43,
-     "positions": 369
+     "games": 69,
+     "positions": 509
+    },
+    "1400-1499": {
+     "games": 13,
+     "positions": 99
     }
    }
   }
  },
  "reveal_counters": {
-  "lines": 5092744,
+  "lines": 6578191,
   "ability_refused": 0,
-  "ability_unattributed": 6,
-  "item_reveals": 25760,
+  "ability_unattributed": 13,
+  "item_reveals": 32942,
   "ability_reveals": 0,
   "move_reveals": 0,
-  "skill_swap": 107,
+  "skill_swap": 159,
   "moves_overflow": 0,
   "dex_deduced_ability": 0
  },
  "reveal_at_game_end": {
-  "brought_members": 202360,
-  "moves_known": 809247,
-  "item_orig_known": 202360,
-  "ability_base_known": 202360,
+  "brought_members": 272687,
+  "moves_known": 1090453,
+  "item_orig_known": 272687,
+  "ability_base_known": 272687,
   "ability_by_dex": 0,
   "by_turn": {
    "t1": {
-    "positions": 25295,
-    "members_on_field_so_far": 101180,
-    "moves_known": 404626,
-    "item_orig_known": 101180,
-    "ability_base_known": 101180
+    "positions": 36232,
+    "members_on_field_so_far": 144928,
+    "moves_known": 579574,
+    "item_orig_known": 144928,
+    "ability_base_known": 144928
    },
    "t2": {
-    "positions": 25295,
-    "members_on_field_so_far": 123319,
-    "moves_known": 493167,
-    "item_orig_known": 123319,
-    "ability_base_known": 123319
+    "positions": 35713,
+    "members_on_field_so_far": 173096,
+    "moves_known": 692228,
+    "item_orig_known": 173096,
+    "ability_base_known": 173096
    },
    "t3": {
-    "positions": 25295,
-    "members_on_field_so_far": 151154,
-    "moves_known": 604484,
-    "item_orig_known": 151154,
-    "ability_base_known": 151154
+    "positions": 34617,
+    "members_on_field_so_far": 204758,
+    "moves_known": 818837,
+    "item_orig_known": 204758,
+    "ability_base_known": 204758
    },
    "t4-5": {
-    "positions": 49507,
-    "members_on_field_so_far": 350847,
-    "moves_known": 1403072,
-    "item_orig_known": 350847,
-    "ability_base_known": 350847
+    "positions": 62756,
+    "members_on_field_so_far": 436882,
+    "moves_known": 1747100,
+    "item_orig_known": 436882,
+    "ability_base_known": 436882
    },
    "t6-8": {
-    "positions": 52055,
-    "members_on_field_so_far": 404359,
-    "moves_known": 1617063,
-    "item_orig_known": 404359,
-    "ability_base_known": 404359
+    "positions": 58332,
+    "members_on_field_so_far": 447313,
+    "moves_known": 1788797,
+    "item_orig_known": 447313,
+    "ability_base_known": 447313
    },
    "t9+": {
-    "positions": 23173,
-    "members_on_field_so_far": 184319,
-    "moves_known": 737116,
-    "item_orig_known": 184319,
-    "ability_base_known": 184319
+    "positions": 24110,
+    "members_on_field_so_far": 190825,
+    "moves_known": 763122,
+    "item_orig_known": 190825,
+    "ability_base_known": 190825
    }
   },
   "moves_known_per_brought_member": 3.999,
@@ -2267,10 +2285,10 @@
  "outputs": [
   {
    "path": "solver/out/porygon2-v2/bo3/games.jsonl.gz",
-   "bytes": 30730337,
-   "sha256": "04d559ca1d750fd3ea947cfd46397a895e53201f71e61038ad326e768d45b4c7",
-   "games": 25295,
-   "positions": 200620
+   "bytes": 39797709,
+   "sha256": "8993a422f4df938fb2ed23930d35a722aef33791496618671e8c45900e33f59d",
+   "games": 36232,
+   "positions": 251760
   }
  ]
 }

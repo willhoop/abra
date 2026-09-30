@@ -156,8 +156,29 @@ def train_step(batches):
     return float(main), parts
 
 
-history = []; best = (1e9, None, -1)
-for ep in range(args.epochs):
+history = []; best = (1e9, None, -1); start_ep = 0
+# A CHECKPOINT EVERY EPOCH, so a pause never loses a run (Will, 2026-09-30). A run restarted with the same --out resumes
+# after the last finished epoch: model, optimiser, schedule, both RNGs, the aux weight, the history and the best so far.
+CKPT = os.path.join(args.out, 'ckpt.pt')
+if os.path.exists(CKPT):
+    C = torch.load(CKPT, map_location='cpu', weights_only=False)
+    if C['vocab'] != VOC or C['flags_core'] != {k: v for k, v in vars(args).items() if k not in ('threads',)}:
+        raise SystemExit(f'{CKPT} was written by a different run (flags or vocabulary differ); move it away to start over')
+    model.load_state_dict(C['model']); opt.load_state_dict(C['opt']); sched.load_state_dict(C['sched'])
+    rng.bit_generator.state = C['rng']; torch.set_rng_state(C['torch_rng'])
+    aux_w, gm_hist, ga_hist, step, counters, history = C['aux_w'], C['gm_hist'], C['ga_hist'], C['step'], C['counters'], C['history']
+    best = (C['best'][0], C['best'][1], C['best'][2]); start_ep = C['epoch'] + 1
+    log(f'RESUMED from {CKPT} after epoch {C["epoch"]} (best epoch {best[2]} val {best[0]:.5f})')
+
+
+def save_ckpt(ep):
+    C = {'epoch': ep, 'model': model.state_dict(), 'opt': opt.state_dict(), 'sched': sched.state_dict(), 'rng': rng.bit_generator.state,
+         'torch_rng': torch.get_rng_state(), 'aux_w': aux_w, 'gm_hist': gm_hist, 'ga_hist': ga_hist, 'step': step, 'counters': counters,
+         'history': history, 'best': best, 'vocab': VOC, 'flags_core': {k: v for k, v in vars(args).items() if k not in ('threads',)}}
+    torch.save(C, CKPT + '.tmp'); os.replace(CKPT + '.tmp', CKPT)
+
+
+for ep in range(start_ep, args.epochs):
     t = time.time(); tot = 0.0; nb = 0; parts_tot = {}
     if args.stage == 'A':
         games = np.concatenate([tr1] + [tr1[bo1.g_unequal[tr1]]] * (args.unequal_weight - 1))
@@ -188,6 +209,7 @@ for ep in range(args.epochs):
     history.append(rec)
     log(f'epoch {ep}: train {rec["train_loss"]:.5f} val bo1 {v1l:.5f} bo3 {v3l:.5f} | train-sample {trd:.5f} (train-val {trd - sel:+.5f}) {rec["seconds"]}s')
     if sel < best[0]: best = (sel, {k: v.clone() for k, v in model.state_dict().items()}, ep)
+    save_ckpt(ep)
     if args.patience and ep - best[2] >= args.patience: log(f'no val improvement for {args.patience} epochs: stop'); break
 
 model.load_state_dict(best[1])
