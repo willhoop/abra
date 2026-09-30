@@ -1,7 +1,7 @@
 /* solver/rotom/build_ladder_teams.js — ROTOM's LADDER ROTATION: a few real top Reg M-C teams, one per leading
  * archetype, read out of the meta set library (solver/out/meta, GURU). Nothing here is typed.
  *
- *   tools\lownode.cmd solver/rotom/build_ladder_teams.js [--meta <dir>] [--teams 5] [--out <file>]
+ *   tools\lownode.cmd solver/rotom/build_ladder_teams.js [--meta <dir>] [--teams 5] [--out <file>] [--store <bo3 store>]
  *
  * WHY A ROTATION (SOLVER-PLAN §5 ladder protocol; …humans-and-ladder.md §3.4 step 3): the ladder A/B is read as a
  * per-series residual, and team choice is a far larger effect than any policy change, so both arms play the SAME
@@ -16,8 +16,10 @@
  *      assignment; the defining-species rule is what keeps it honest. Stated, not hidden.
  *   3. The team: the highest-rated open-sheet bo3 side in games.clean.jsonl.gz that belongs to that archetype, one per
  *      player, not one of our own accounts, not a behavioural or named bot, with its full bring seen (br/ld of four).
- *   4. Packing: the same derived spread as build_assets.js (the store has no Stat Points), then Showdown's own
- *      TeamValidator for the bo3 format on the Reg M-C checkout. A refused six is skipped and counted.
+ *   4. Packing: the spread of solver/rotom/spreads.js (2026-09-30; the store has no Stat Points: a Reg M-C observed
+ *      spread if one exists, else derived from the set's role against the top-meta population of the bo3 store given
+ *      by --store), then Showdown's own TeamValidator for the bo3 format on the Reg M-C checkout. A refused six is
+ *      skipped and counted. To re-spread the committed rotation without re-choosing its teams: solver/rotom/respread.js.
  *
  * Output: solver/rotom/teams/ladder-rotation.json — the same team shape as regmc-pool.json (packed, bring = sheet
  * indices, leads first), plus the archetype and the source digests. rotom.js re-validates every team at start-up.
@@ -39,6 +41,7 @@ const MAIN = ROOT.includes(path.sep + '.claude' + path.sep) ? ROOT.split(path.se
 const META = flag('--meta', path.join(MAIN, 'solver', 'out', 'meta'));
 const N = +flag('--teams', 5);
 const OUTF = flag('--out', path.join(__dirname, 'teams', 'ladder-rotation.json'));
+const SP = require('./spreads.js');
 /* our own accounts: the same set the meta extractor excludes (solver/meta/extract.js OWN) */
 const OWN = new Set(['medicham32', 'willhoop', 'mag', 'mag2', 'miltank', 'miltank2']);
 const toID = X.toID;
@@ -86,6 +89,9 @@ function main() {
     }
   }
   cands.sort((a, b) => b.rating - a.rating || (a.game < b.game ? -1 : 1));
+  const TB = require('./build_top_rotation.js');
+  const STORE = flag('--store', TB.STORE_DEFAULT);
+  const { D: SPD, T: SPT } = TB.spreadDeriver(TB.readStore(STORE));
   const teams = [], refused = [], usedP = new Set();
   for (const a of arch) {
     if (teams.length >= N) break;
@@ -93,12 +99,13 @@ function main() {
       if (c.archetype !== a.id || usedP.has(c.player)) continue;
       if (!defining(a).every(sp => c.sixSet.has(sp))) continue;
       const rows = c.sheet.map(rowOf);
-      const { sets, packed } = BA.packTeam(rows);
+      const spreads = SP.teamSpreads(SPD, rows);
+      const { sets, packed } = BA.packTeam(rows, spreads.map(z => z.evs));
       const problems = BA.validate(sets);
       if (problems) { refused.push({ game: c.game, archetype: a.id, problems: problems.slice(0, 3) }); continue; }
       usedP.add(c.player);
       teams.push({ id: 'L' + (teams.length + 1), archetype: { id: a.id, label: a.label, share: a.share, stable: a.stable, cosine: c.cos, defining: defining(a) },
-                   from_game: c.game, date: c.date, rating: c.rating, species: rows.map(r => r.species), bring: c.bring, packed });
+                   from_game: c.game, date: c.date, rating: c.rating, species: rows.map(r => r.species), bring: c.bring, packed, spreads });
       break;
     }
   }
@@ -106,7 +113,8 @@ function main() {
     source: { archetypes: { path: 'solver/out/meta/archetypes.json', sha256: sha(path.join(META, 'archetypes.json')), k: A.k_chosen },
               games: { path: 'solver/out/meta/games.clean.jsonl.gz', sha256: sha(GF), sides_considered: cands.length } },
     rule: 'one team per stable archetype in share order; the highest-rated open-sheet bo3 side assigned to it (max cosine to the archetype core) that carries every defining species (in_cluster >= 0.5); one per player; own accounts and bots excluded',
-    spread_rule: '32 HP, 32 in the attack stat its moves use more (dex move category), 2 Spe; nature from the sheet (build_assets.js spreadFor)',
+    spread_rule: SP.RULE_TEXT,
+    spread_source: Object.assign({ store: path.relative(path.join(__dirname, '..', '..'), STORE).split(path.sep).join('/'), store_sha256: sha(STORE), floor: SPT.FLOOR }, SPD.provenance()),
     validator: 'Showdown TeamValidator.get(' + X.FORMAT + ') on the Reg M-C checkout — every team below passed', refused: refused.length, refused_samples: refused.slice(0, 5), teams };
   fs.mkdirSync(path.dirname(OUTF), { recursive: true });
   fs.writeFileSync(OUTF, JSON.stringify(out, null, 1) + '\n');

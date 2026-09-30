@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.35.0] — 2026-09-30 — **ROTOM's ladder spreads fit each set's role (Scarf and Tailwind at the Speed cap, Trick Room at 0)**
+- **What changed.** New `solver/rotom/spreads.js` (a Reg M-C observed spread if a Smogon moveset file for the format exists, else a spread derived from the set's role against the top-meta population) and `solver/rotom/respread.js`. Both ladder rotations (`ladder-rotation.json`, `ladder-rotation-top.json`) are re-spread; the teams are unchanged. Each team records `spreads`, and each file records `spread_rule` and `spread_source`. `ladder.js` puts the spreads in each series row's `team_meta`. Both builders derive spreads the same way. New test `solver/tests/test-rotom-spreads.js`.
+- **Measured.** Before, 60 of 60 sets were 32 HP / 32 attack / 2 Speed. After: the 10 fast-role sets (4 Choice Scarf, 6 Tailwind) are at Speed SP 32; for example Scarf Garchomp's Speed stat goes 124 → 154 (231 with the Scarf), and Scarf Basculegion 110 → 143. The 2 Trick Room setters are at SP 0 (Farigiraf 82 → 80, Indeedee-F 107 → 105). The speed benchmark is 138: the weighted median effective speed of 148 top teams (floor 1409, store `fe78202a8515`, 384 distinct sets) at full investment. The median-bulk step bought bulk on 16 of 60 sets. Observed spreads used: 0 (no Reg M-C file). Counters: 17,281 staged battles, 1,318,100 damage calls, 4 enduring sets. Every team passes `TeamValidator`. Tests: spreads 23/23, RED on the 3 breaks and on the old files. top-rotation 9/9 (REBUILD not checked because the live store moved; it reproduced byte for byte on the pinned store). ladder 142/142.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published. No series has been played on the new spreads.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 1.34.2] — 2026-09-30 — **Conflict markers removed from the SOLVER ledger and the solver log**
 - **What changed.** The coordinator's 1.34.0 merge committed unresolved conflict markers into `docs/SOLVER.md` and `solver/LOG.md`. They are resolved now, keeping both entries. No code.
 - **Measured.** NO FIGURE.

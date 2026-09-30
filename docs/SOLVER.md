@@ -96,6 +96,12 @@ This section says only what a division agent needs before it starts.
   where it reaches the anchor's own level. chomp1 turn 4's double Protect keeps 0.71 of the mix at 0.03. That is a horizon
   fault in the table. The 2 s screens at lambda 0.01, 0.03 and 0.1 are pre-registered, not run.
   `docs/_reports/2026-09-30-human-regularised-search.md`.
+- **Ladder spreads fit each set's role (2026-09-30, abra/regmc 1.35.0).** `solver/rotom/spreads.js`: a Reg M-C
+  observed spread first (Smogon moveset file, none yet), else derived against the top-meta population. Scarf and
+  Tailwind sets get Speed at the cap, Trick Room sets get 0, and other sets get the least SP that beats the top-meta
+  median at full investment. Then median-hit bulk, then the attack stat. Both rotations are re-spread (teams unchanged)
+  by `solver/rotom/respread.js`; test `solver/tests/test-rotom-spreads.js`.
+  `docs/_reports/2026-09-30-rotation-spreads.md`.
 - **CHOMP v0** (`solver/chomp/`, 2026-09-25, release `eaa5becc54eb`) **fails its bar**: its preview loses to
   the human bring (SPRT H0 accepted) and ties random. The PORYGON2 cells carry no bring signal.
   `docs/_reports/2026-09-25-chomp-v0.md`.

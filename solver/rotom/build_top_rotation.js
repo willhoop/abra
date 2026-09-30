@@ -25,7 +25,8 @@
  *   5. the sheet: the highest-rated side of that family at >= FLOOR whose sheet is COMPLETE (six sets, each an item, an
  *      ability, a nature, four moves), whose bring (four) and leads (two) were seen, every species / item / ability / move
  *      legal in the format (solver/human/dex.js legal()), and that passes Showdown's TeamValidator for the bo3 format.
- *      The spread is build_assets.js spreadFor (the store has no Stat Points), as for every rotation before this one.
+ *      The spread is solver/rotom/spreads.js (2026-09-30): a Reg M-C observed spread if one exists, else derived from the
+ *      set's role against the top-meta population of this same store (the store has no Stat Points).
  * Output: solver/rotom/teams/ladder-rotation-top.json, the same team shape as ladder-rotation.json, plus the rule, the
  * floor and each team's family evidence. rotom.js re-validates every team at start-up; checkRotation() below is what
  * solver/tests/test-rotom-top-rotation.js asserts.
@@ -81,10 +82,9 @@ function sidesOf(games, drop) {
   return out;
 }
 
-function build(opts) {
-  const o = Object.assign({ store: STORE_DEFAULT, meta: path.join(MAIN, 'solver', 'out', 'meta', 'archetypes.json') }, opts || {});
-  const A = JSON.parse(fs.readFileSync(o.meta, 'utf8'));
-  const games = readStore(o.store);
+/* the store's sides at or above the top-meta floor, after the project's HARD quality exclusions (rule 1). Shared with
+ * solver/rotom/spreads.js, whose population is exactly these sides, so a rotation's teams and its spreads read one sample. */
+function topSides(games) {
   /* the project's corpus filter (engine/quality.js reasons), its HARD exclusions only: a bot flag, a behavioural bot
    * (store-derived), an illegal team, a declared corrupt winner or nonstandard ruleset, a detected custom ruleset. Its
    * `short`, `partial_bring` and `forfeit_no_action` are outcome filters; rule 1 above handles outcomes itself. */
@@ -98,6 +98,24 @@ function build(opts) {
   const sides = sidesOf(games, drop);
   const FLOOR = quantile(sides.map(x => x.r), RULE.FLOOR_PCT);
   const top = sides.filter(x => x.r >= FLOOR && x.six);
+  return { drop, dropped, qbots, sides, FLOOR, top };
+}
+
+/* the spread deriver over the top-meta population of a store (solver/rotom/spreads.js) */
+function spreadDeriver(games, opts) {
+  const SP = require('./spreads.js');
+  const T = topSides(games);
+  return { D: new SP.Deriver(SP.population(T.top, rowOf), opts), T };
+}
+
+function build(opts) {
+  const o = Object.assign({ store: STORE_DEFAULT, meta: path.join(MAIN, 'solver', 'out', 'meta', 'archetypes.json') }, opts || {});
+  const A = JSON.parse(fs.readFileSync(o.meta, 'utf8'));
+  const games = readStore(o.store);
+  const SP = require('./spreads.js');
+  /* o.deriver: a ready spread source (the REBUILD test passes the rotation's own recorded spreads, SP.recorded) */
+  const { D: SPD, T } = o.deriver ? { D: o.deriver, T: topSides(games) } : spreadDeriver(games, o.spreads);
+  const { drop, dropped, qbots, sides, FLOOR, top } = T;
   const topDec = top.filter(x => x.decided);
   const baseline = topDec.reduce((a, x) => a + x.S - x.E, 0) / topDec.length;
   const pt = new Map(); for (const x of top) pt.set(x.player + '|' + x.six.slice().sort().join(','), x.six);
@@ -141,10 +159,11 @@ function build(opts) {
         const ids = sheet.map(r => toID(r.species));
         const bring = ld.concat(br.filter(b => !ld.includes(b))).map(b => ids.indexOf(toID(b)));
         if (bring.length !== 4 || bring.some(i => i < 0) || new Set(bring).size !== 4) { refused.push(x.g.id + ': bring not on the sheet'); continue; }
-        const { sets, packed } = BA.packTeam(rows);
+        const spreads = SP.teamSpreads(SPD, rows);
+        const { sets, packed } = BA.packTeam(rows, spreads.map(z => z.evs));
         const problems = BA.validate(sets);
         if (problems) { refused.push(x.g.id + ': TeamValidator ' + problems.slice(0, 2).join('; ')); continue; }
-        pick = { x, rows, bring, packed }; break;
+        pick = { x, rows, bring, packed, spreads }; break;
       }
       if (!pick) why.push('no side with a complete, legal, validating sheet (' + refused.length + ' refused)');
     }
@@ -160,7 +179,7 @@ function build(opts) {
                     : { id: archId, label, source: 'the exact six (no stable GURU archetype holds it); label = the six, most-used at the floor first (three names collided: two sixes share Rillaboom / Kingambit / Sneasler)' },
       from_game: t.g.id, date: t.g.date, rating: t.r, player: t.player,
       family: { players: f.nPlayers, side_games: f.games, win: +f.win.toFixed(3), resid: +f.resid.toFixed(4), species_share_at_floor: Object.fromEntries(f.six.map(sp => [sp, +(spShare[sp] * 100).toFixed(1)])) },
-      six_ids: pick.rows.map(r => toID(X.D.species.get(r.species).id)), species: pick.rows.map(r => r.species), bring: pick.bring, packed: pick.packed });
+      six_ids: pick.rows.map(r => toID(X.D.species.get(r.species).id)), species: pick.rows.map(r => r.species), bring: pick.bring, packed: pick.packed, spreads: pick.spreads });
   }
   const dates = games.map(g => g.date).sort();
   return {
@@ -171,7 +190,8 @@ function build(opts) {
       games_excluded_by_quality_filter: drop.size, excluded_by_reason: dropped, behavioural_bots: [...qbots].sort(),
       rated_sides: sides.length, sides_at_floor: top.length, decided_at_floor: topDec.length, players_at_floor: new Set(top.map(x => x.player)).size,
       player_teams_at_floor: pt.size, baseline_resid_at_floor: +baseline.toFixed(4) }),
-    spread_rule: '32 HP, 32 in the attack stat its moves use more (dex move category), 2 Spe; nature from the sheet (build_assets.js spreadFor)',
+    spread_rule: SP.RULE_TEXT,
+    spread_source: Object.assign({ store: path.relative(ROOT, o.store).split(path.sep).join('/'), store_sha256: sha(o.store), floor: FLOOR }, SPD.provenance()),
     validator: 'Showdown TeamValidator.get(' + X.FORMAT + ') on the Reg M-C checkout — every team below passed',
     families_considered: verdicts, teams };
 }
@@ -228,4 +248,4 @@ function main() {
   for (const t of out.teams) console.log('  ' + t.id + ' ' + t.rating + ' [' + t.archetype.label + '] ' + t.species.join(' / ') + '  (' + t.family.players + ' players, ' + t.family.side_games + ' games, S-E ' + t.family.resid + ')');
 }
 if (require.main === module) main();
-module.exports = { RULE, HARD_EXCLUDE, build, checkRotation, readStore, rowOf, sidesOf, STORE_DEFAULT };
+module.exports = { RULE, HARD_EXCLUDE, build, checkRotation, readStore, rowOf, sidesOf, topSides, spreadDeriver, STORE_DEFAULT };
