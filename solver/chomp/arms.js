@@ -12,6 +12,9 @@
  *            here on the caller's engine, and COUNTED (`chompInline`), so a run can say which it did.
  *   chomp1   CHOMP v1's mix (solver/chomp/v1/chomp1.js: the learned cell scorer + SLOWKING), SAMPLED with the same
  *            per-game, per-side coin; solved inline, once per (pair, side) per process (`chomp1Solves`, `chomp1Cached`).
+ *   chomp2   CHOMP v2's mix (solver/chomp/v2/chomp2.js: v1's solve over the v2 scorer — the facts at a per-set spread and
+ *            under the field each side can set), the same coin, the same caching (`chomp2Solves`, `chomp2Cached`,
+ *            `chomp2Failed`, `chomp2Ms`).
  *
  * Every arm's pick is counted, and so is every fallback: a CHOMP solve that throws falls back to the human bring and
  * bumps `chompFailed` — never silently.
@@ -21,7 +24,8 @@ const O = require('./options.js');
 
 function create(deps) {
   const API = deps.API, M = API.M;
-  const COUNTERS = { picks: {}, chompCached: 0, chompInline: 0, chompFailed: 0, chomp1Solves: 0, chomp1Cached: 0, chomp1Failed: 0, chomp1Ms: 0 };
+  const COUNTERS = { picks: {}, chompCached: 0, chompInline: 0, chompFailed: 0, chomp1Solves: 0, chomp1Cached: 0, chomp1Failed: 0, chomp1Ms: 0,
+    chomp2Solves: 0, chomp2Cached: 0, chomp2Failed: 0, chomp2Ms: 0 };
   let CACHE = null, CH = null, HP = null;
   const cache = () => (CACHE || (CACHE = deps.cacheDir ? require('./tables.js').load(deps.cacheDir) : new Map()));
   const chomp = () => (CH || (CH = require('./chomp.js').create({ API })));
@@ -32,6 +36,9 @@ function create(deps) {
   let CH1 = null;
   const C1 = new Map();
   const chomp1 = () => (CH1 || (CH1 = require('./v1/chomp1.js').create({ API, model: deps.chomp1Model })));
+  let CH2 = null;
+  const C2 = new Map();
+  const chomp2 = () => (CH2 || (CH2 = require('./v2/chomp2.js').create({ API, model: deps.chomp2Model })));
   const bump = a => { COUNTERS.picks[a] = (COUNTERS.picks[a] || 0) + 1; };
 
   function choose(arm, G, side, seed) {
@@ -75,9 +82,20 @@ function create(deps) {
       const i = require('../slowking/matrix.js').sample(r.mix, coin());
       return { order: O.OPTIONS[i].order.slice(), info: { option: i, p: +r.mix[i].toFixed(4), v: +r.value.toFixed(4), vsMix: +r.win[i].vsMix.toFixed(4), support: r.support.length } };
     }
+    if (arm === 'chomp2') {
+      const key = G.id + '|' + side;
+      let r = C2.get(key);
+      if (r) COUNTERS.chomp2Cached++;
+      else {
+        try { r = chomp2().solve({ mine: G.sheets[side], theirs: G.sheets[other] }); COUNTERS.chomp2Solves++; COUNTERS.chomp2Ms += r.ms; C2.set(key, r); }
+        catch (e) { COUNTERS.chomp2Failed++; return { order: G.brought[side].slice(), info: { fallback: 'human', err: String(e.message).slice(0, 200) } }; }
+      }
+      const i = require('../slowking/matrix.js').sample(r.mix, coin());
+      return { order: O.OPTIONS[i].order.slice(), info: { option: i, p: +r.mix[i].toFixed(4), v: +r.value.toFixed(4), vsMix: +r.win[i].vsMix.toFixed(4), support: r.support.length } };
+    }
     throw new Error('chomp/arms: unknown preview arm ' + arm);
   }
-  return { choose, COUNTERS, ARMS: ['human', 'hprior', 'random', 'chomp', 'chomp1'] };
+  return { choose, COUNTERS, ARMS: ['human', 'hprior', 'random', 'chomp', 'chomp1', 'chomp2'] };
 }
 
 module.exports = { create };
