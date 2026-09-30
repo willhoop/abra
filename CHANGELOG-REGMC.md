@@ -21,6 +21,12 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.34.1] — 2026-09-30
+
+### Fixed
+- **The double-Protect gate's CHANGELOG heading reads 1.32.0 again.** Merging the human-regularised branch renumbered its
+  1.32.0 to 1.34.0, and the renumber also caught this older entry's heading. PATCH: no figure moves.
+
 ## [1.34.0] — 2026-09-30
 
 ### Added
@@ -74,7 +80,7 @@ rewritten; what changed and why is stated.
   false positives. It was left unchanged.
 - `docs/_reports/2026-09-30-high-rated-regmc-counts.md`.
 
-## [1.34.0] — 2026-09-30
+## [1.32.0] — 2026-09-30
 
 ### Added
 - **The double-Protect soft gate (Will, 2026-09-29), OFF by default and on no arm.** A joint in which both actives click

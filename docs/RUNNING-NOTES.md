@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.34.1] — 2026-09-30 — **CHANGELOG-REGMC heading fix after the overnight merges**
+- **What changed.** The double-Protect entry's CHANGELOG heading reads 1.32.0 again; the 1.34.0 merge renumber had renamed it. Its notes row already read 1.32.0. No code.
+- **Measured.** NO FIGURE.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 1.34.0] — 2026-09-30 — **The human-regularised root solve (piKL) is built behind a flag. It moves the search toward the human click, and it does not fix the turn-4 double Protect.**
 - **What changed.** `solver/slowking/matrix.js` `solveKL`. `solver/miltank/search.js` spec option `kl` (λ). The anchor is the ranking prior's scores on the rows and columns. The plain solve runs beside it for the counters. `solver/mew/agent.js` and `play.js` carry the `kl` counters, and `solver/rotom/policy.js` taps `solveKL`. New: `solver/miltank/eval_kl_human.js`, `solver/tests/probe_kl_replay.js`, `probe_kl_repeat.js`, `test-miltank-kl.js`. The flag is off by default and on no arm.
 - **Measured.** Held-out human decisions, n=579, one recorded gen5 table each (16 passes, release `eaa5becc54eb`): top-1 agreement 0.216 (λ 0) → 0.268 (λ 0.1), Δ +0.052 [0.021, 0.083]. The worst-case cost on the table is 0.035 (`solver/results/2026-09-30-human-regularised/human-agreement.json`). The repeat-Protect mass on the 13 offered positions is 0.611 → 0.243 at λ 0.03 (`repeat-protect.json`). chomp1 g1 t4 double-Protect mass is 0.851 → 0.709 at λ 0.03 and 0.386 at λ 0.1 (`replay-chomp1-g1-t4.json`). No game was played. The 2 s screens are pre-registered, not run.
