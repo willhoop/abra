@@ -167,7 +167,7 @@ mm = yb1 != 0.5; lgb, yb1, gib = lgb[mm], yb1[mm], gib[mm]
 LLb = NT.ll(lgb, yb1)
 bb = np.array([bo1.games[g][3]['band_min'] for g in gib])
 rat = np.array([[np.nan if bo1.games[g][3]['rating']['p1'] is None else bo1.games[g][3]['rating']['p1'], np.nan if bo1.games[g][3]['rating']['p2'] is None else bo1.games[g][3]['rating']['p2']] for g in gib])
-lo = np.nanmin(np.where(np.isnan(rat), np.inf, rat), 1)
+lo = np.where(np.isnan(rat).any(1), np.nan, np.nanmin(np.nan_to_num(rat, nan=np.inf), 1))   # both rated, else NaN (an unrated game is not >= anything)
 res['bo1_test_v2'] = {'pooled': clustered(LLb, gib, B(2)), 'by_band': {b: clustered(LLb, gib, B(2), bb == b) for b in sorted(set(bb))},
                       'both_at_least_1500': clustered(LLb, gib, B(2), lo >= 1500), 'both_at_least_1600': clustered(LLb, gib, B(2), lo >= 1600),
                       'calibration': calib(1 / (1 + np.exp(-lgb)), yb1)}
@@ -177,9 +177,11 @@ res['ablations'] = {}
 for a in args.ablation:
     name, p = a.split('=', 1)
     ma, cka = load(p)
-    lga, ya, ta, ga, _ = scores(ma, cka, bo3, elig)
+    # a model trained with --no-rating is read with its ratings UNRATED, as it was trained
+    unr = bool(cka['flags'].get('no_rating'))
+    lga, ya, ta, ga, _ = scores(ma, cka, bo3, elig, no_rating=unr)
     lga = lga[m]
-    res['ablations'][name] = {'model': {'path': p.replace('\\', '/'), 'sha256': sha(p)}, 'logloss': clustered(NT.ll(lga, y), gi, B(1)),
+    res['ablations'][name] = {'model': {'path': p.replace('\\', '/'), 'sha256': sha(p)}, 'read_unrated': unr, 'logloss': clustered(NT.ll(lga, y), gi, B(1)),
                               'minus_v1_logloss': clustered(NT.ll(lga, y) - LL1, gi, B(1)), 'minus_v2_logloss': clustered(NT.ll(lga, y) - LL2, gi, B(1))}
 res['seconds'] = round(time.time() - T0)
 json.dump(res, open(args.out, 'w', encoding='utf8'), indent=1)

@@ -18,7 +18,7 @@ const cp = require('child_process');
 const ROOT = path.join(__dirname, '..', '..');
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : d; };
-const MODEL = path.resolve(ROOT, arg('--model', 'solver/porygon2/model/porygon2-v2.json'));
+const MODEL = path.resolve(ROOT, arg('--model', 'solver/porygon2/v2/model/porygon2-v2-k1.json'));
 const FIX = path.resolve(ROOT, arg('--fixture', 'solver/tests/fixtures/porygon2-v2-agreement.json'));
 const sha = p => crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
 let fails = 0, checks = 0;

@@ -21,6 +21,35 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.47.0] — 2026-09-30
+
+### Added
+- **PORYGON2 v2 is trained. Gate (a) was read once and FAILS by a hair, so it does not land and gate (c) is not
+  pre-registered.**
+  - Pooled v2 − v1 log-loss on 1,521 bo3 test games v1 never saw (10,728 positions): **−0.0098 [−0.0202, +0.0002]**.
+    The upper bound is not below 0.
+  - The two gating bands are both ≤ 0: <1100 −0.0165, 1100–1199 −0.0014.
+  - v2 − gen5: −0.0127 [−0.0202, −0.0048]. ECE: v2 0.018, v1 0.017.
+  - `solver/porygon2/v2/gate-a.json`.
+- `solver/porygon2/v2/features.js`, `encode.js`, `net.py`, `train.py`, `gate_a.py`, `score_v1.js`, `export.py`,
+  `infer.js`, `leaf.js`.
+  - The trained model is `solver/porygon2/v2/model/porygon2-v2-k1.json`. It is not landed and no league names it.
+  - New tests `solver/tests/test-porygon2-v2-features.js` (GREEN 70,591/70,591, RED on both breaks) and
+    `test-porygon2-v2.js` (GREEN 32/32, RED on its break).
+- `solver/porygon2/leaf.js` dispatches arch `v2-transformer` to the v2 leaf. No arm names a v2 file.
+
+### Changed
+- `solver/human/build_dataset.js` and `solver/meta/extract.js` call `engine/quality.js` `reasons()` and
+  `behaviouralBots()` instead of a copy of the bot rule. With it, the Reg M-C tempo clause now reaches them.
+  - Game-shape codes (`forfeit_no_action`, `short`, `partial_bring`) are counted, not charged.
+  - `solver/out/human` was not rebuilt.
+- The PORYGON2 v2 datasets record those codes in `quality_reasons` and no longer exclude on them (Will, 2026-09-30).
+  - bo1: 41,989 games / 286,770 positions (was 27,116 / 218,815). bo3: 36,232 / 251,760 (was 24,940 / 197,905).
+- `solver/meta/legality.js` honours `SHOWDOWN_PATH`, so it runs from a worktree.
+
+### Notes
+- Report: `docs/_reports/2026-09-30-porygon2-v2-train.md`.
+
 ## [1.46.0] — 2026-09-30
 
 ### Added
