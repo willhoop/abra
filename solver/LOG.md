@@ -6,6 +6,16 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ---
 
+## 2026-10-01
+
+### The search's uncovered blind spots; four world fields fixed (abra/regmc 1.51.0)
+- Opponent coverage is 57.7% with targets (636 ladder decisions). DODUO ranks the actual joint top-4 in 57.1% and
+  top-8 in 71.1%. 30% of our row slots hold a single move.
+- Sucker Punch failed 17 of 36. The engine is right on all 17. In 9 our rows offered nothing else; in 8 the leaf tied a
+  wasted Sucker Punch with the alternatives. DODUO overrates attacks mildly and halves switches.
+- World fixes: identity (formes and nicknames, 119 of 189 games), Unburden (178 of 668 search worlds), Flash Fire and
+  the added type. `solver/tests/test-rotom-world-fields.js`. `docs/_reports/2026-10-01-search-blind-spots.md`.
+
 ## 2026-09-30
 
 ### Two SPRTs, both H0 (abra/regmc 1.50.0)

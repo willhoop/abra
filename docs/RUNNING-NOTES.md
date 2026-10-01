@@ -53,6 +53,17 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.51.0] — 2026-10-01 — **The search's uncovered blind spots, measured on the ladder logs; four ROTOM world fields fixed (identity, Unburden, Flash Fire, added type)**
+- **What changed.** A read-only analysis of the finished ladder runs (chomp1, gen5ab; the live `chomptop` run excluded), in `solver/results/2026-10-01-search-blind-spots/` (`blind_spots.js`, `doduo_probe.js`, `sp_engine_check.js`). Four world fixes in `solver/rotom/world_log.js` and `world.js`, each with its own break (`noalias`, `noub`, `noff`, `notype`). New test `solver/tests/test-rotom-world-fields.js`: GREEN 17/17, RED under each break, each clause on a real ladder log. `ladder_replay.js` keys formes the same way. No search, gate or arm changed.
+- **Measured.**
+  - Opponent coverage: 57.7% with targets, 63.7% by move id (636 decisions, `measured.json`). The gen5 prior ranks the actual joint top-4 in 57.1% of decisions and top-8 in 71.1% (`doduo.json`). 30.1% of our row slots and 25.9% of their column slots hold one move.
+  - Sucker Punch failed 17 of 36. The engine reproduces 17/17 (`sp_engine.json`). In 9 of the 17 our rows offered only Sucker Punch or a switch. In 8 the table expected no attack (mean 0.25) and still tied it. DODUO's P(attack) at the targets is 0.630 against 0.556 observed; switches 0.047 against 0.102 over all slots.
+  - World: identity 220 of 1,841 switch idents unkeyed in 119 of 189 games. Over 668 search worlds the fix adds 43 Protect counters, 10 Choice locks and 13 sleep counters. Unburden is live in 178 of 668 worlds; 66 of 69 decisive ladder orderings agree with the fix. Flash Fire: 1 game. Added type: 2 games.
+  - `docs/_reports/2026-10-01-search-blind-spots.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing. The post-mortem's 67% / 58% (move ids, no targets) stand as its own measure; 63.7% is the same measure on both runs after the live run was excluded.
+- **Owed to the next major.** `docs/MODELS.md`: ROTOM's world carries the four fields; DODUO's switch and attack calibration on ladder opponents.
+
 ## [abra/regmc 1.50.0] — 2026-09-30 — **Two SPRTs, both H0: piKL λ 0.03 is not stronger than gen5 at 14 s; PORYGON2 v2 as gen5's leaf is not stronger than gen5's own net at equal clock**
 - **What changed.** Will approved both SPRTs (2026-09-30, "1 2"), and they ran back to back. Pre-registrations: `solver/results/2026-09-30-sprt-pikl-v2/preregistration-sprt{1-pikl,2-p2v2}.json`, committed before the first game. Shared settings: release `eaa5becc54eb`, frozen-regmc store, TEST pairs, honest, elo0 0, elo1 20, α = β = 0.05, max 2,000, seeds 30001 and 30002. Both were played on the arena as it stood before 1.49.0 (XATU-random spreads). New: per-model leaf counters (`rollout.js` `leafByModel`/`leafOwn`, `play.js` `ctr.leaf_by_model`/`ctr.leaf_own`), the X spec `solver/porygon2/v2/gen5-p2v2.json`, and `solver/tests/test-porygon2-v2-arena.js` (GREEN 8/8, RED under `MILTANK_BREAK=leaf`). SPRT 2 ran outside v2's pre-registration, by Will's decision, because gate (a) failed.
 - **Measured.**
