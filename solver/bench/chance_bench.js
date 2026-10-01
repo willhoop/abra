@@ -134,5 +134,5 @@ if (REPS >= 2) {
 summary.cost_in_playouts = { median: q(ok.map(r => r.ms_enum / Math.max(1e-3, r.ms_per_playout)), 0.5), p90: q(ok.map(r => r.ms_enum / Math.max(1e-3, r.ms_per_playout)), 0.9) };
 console.log(JSON.stringify(summary, null, 1));
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
-fs.writeFileSync(OUT, JSON.stringify(Object.assign({ at: new Date().toISOString(), flags: { release: RELEASE, games: GAMES, per_game: PER, pairs: PAIRS, n: N, reps: REPS, mass_eps: MASS, dmg: DMG, rep: REP, max_evals: MAXE, seed: SEED, leaf: 'heuristic', depth: 0 } }, E.stamp, { summary, rows }), null, 1));
+fs.writeFileSync(OUT, JSON.stringify(Object.assign({ at: new Date().toISOString(), flags: { release: RELEASE, games: GAMES, per_game: PER, pairs: PAIRS, n: N, reps: REPS, mass_eps: MASS, dmg: DMG, rep: REP, max_evals: MAXE, seed: SEED, leaf: 'heuristic', depth: 0 } }, E.stamp, { spreads: T.defaultSpreads(M).stamp(), summary, rows }), null, 1));
 console.log('wrote ' + OUT);

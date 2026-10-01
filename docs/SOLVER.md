@@ -111,6 +111,11 @@ This section says only what a division agent needs before it starts.
   S − E no worse than the top baseline. It holds 5 teams, rated 1478 to 1596. The arms file
   `solver/rotom/arms/gen5-chomp-top.json` names the rotation. Command for Will:
   `docs/_reports/2026-09-30-top-meta-rotation.md`.
+- **The arena fields real per-set spreads (2026-09-30, abra/regmc Unreleased, proposed 2.0.0).** Default `--spreads
+  role-v1`: the ladder's rule per set (`solver/arena/spread_source.js`, table `solver/arena/spreads/role-v1.json`). The
+  old bodies are `--spreads flat` (omniscient, `arena.js`) and `--spreads xatu-random` (honest). **An arena figure is
+  comparable only with one at the same mode and table sha256**, and every figure above was measured before this change.
+  `docs/_reports/2026-09-30-arena-real-spreads.md`.
 - **piKL phase B (2026-09-30, abra/regmc 1.48.0).** λ 0.03 passes both screens: 2 s 0.515 [0.446, 0.583], 14 s
   0.525 [0.456, 0.593], clock ratios 0.99-1.00. At 14 s the Protect fail rate is 10.1% vs 16.9%. λ 0.1 fails (0.405). λ 0.01
   is VOID by its capability clause (1 uniform-anchor decision). No SPRT; the flag is off.

@@ -26,7 +26,9 @@ function create(API, o) {
     if (rec.info === 'honest') { COUNTERS.honest_refused++; return; }
     COUNTERS.games++;
     const G = { id: rec.id, sheets: rec.sheets, brought: rec.brought };
-    const a = T.buildTeam(M, G, 'p1'), b = T.buildTeam(M, G, 'p2');
+    /* the record's own spread mode (abra/regmc 1.49.0; none recorded = played before it, `flat`), never the default */
+    const sp = { spreads: rec.spreads || 'flat', seed: rec.battle_seed };
+    const a = T.buildTeam(M, G, 'p1', sp), b = T.buildTeam(M, G, 'p2', sp);
     const rng = API.makeRng(rec.battle_seed);
     const S = API.newBattle(a.team, b.team, { rng });
     const ctx = PA.newGame(G);

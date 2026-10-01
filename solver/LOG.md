@@ -8,6 +8,15 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-30
 
+### The arena fields real per-set spreads (abra/regmc Unreleased; proposed 2.0.0)
+- Every arena game (self-play, gates, SPRTs, `arena.js`) now plays `role-v1` by default: the ladder's spread rule per
+  set, from `solver/arena/spreads/role-v1.json` (14,247 sets). It used to play the flat table line (omniscient) or a
+  random XATU spread (honest); both remain as `--spreads flat` and `--spreads xatu-random`.
+- The arena body equals ROTOM's fielded line on every rotation set (60 of 60). `test-arena-spreads.js` GREEN 15/15 and
+  RED on both breaks. Smoke 12 games only; no screen or SPRT.
+- Arena figures from before this change are not comparable with those after it. The re-runs are owed.
+  `docs/_reports/2026-09-30-arena-real-spreads.md`.
+
 ### piKL phase B: λ 0.03 passes 2 s and 14 s; λ 0.1 loses (abra/regmc 1.48.0)
 - 2 s: λ 0.01 0.455 (VOID: 1 uniform-anchor decision of 1,784), λ 0.03 0.515 [0.446, 0.583] PASS, λ 0.1 0.405
   [0.339, 0.474] FAIL. All clock ratios are 0.99-1.01. 14 s, λ 0.03: 0.525 [0.456, 0.593], ratio 1.000.

@@ -160,7 +160,9 @@ function table(file) {
   const J = JSON.parse(fs.readFileSync(file, 'utf8'));
   const C = { hits: 0, misses: 0 };
   return {
-    spreadOf: row => { const z = J.spreads[SPR.setKey(row)]; if (z) C.hits++; else C.misses++; return z || null; },
+    /* a value is CHOMP v2's { evs, source, role, speed_sp } or the arena's "hp/atk/def/spa/spd/spe role" string
+     * (solver/arena/spread_source.js, abra/regmc 1.49.0), so the arena's role-v1 table is readable here unchanged */
+    spreadOf: row => { let z = J.spreads[SPR.setKey(row)]; if (z) C.hits++; else C.misses++; if (typeof z === 'string') z = Object.assign(require('../../arena/spread_source.js').decode(z), { source: 'arena role-v1 table' }); return z || null; },
     provenance: J.provenance, COUNTERS: C, size: Object.keys(J.spreads).length, file,
   };
 }

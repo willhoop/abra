@@ -128,7 +128,7 @@ function load(o) {
         const s1 = splitOf(toID(g.players.p1.name)), s2 = splitOf(toID(g.players.p2.name));
         if (s1 !== s2) { counts.mixed_split++; continue; }
         const G = { id: g.id, date: g.date, sheets: g.sheets, brought, winner: g.winner };
-        if (o.M && (!T.buildTeam(o.M, G, 'p1') || !T.buildTeam(o.M, G, 'p2'))) { counts.unbuildable++; continue; }
+        if (o.M && (!T.buildTeam(o.M, G, 'p1', { spreads: 'flat' }) || !T.buildTeam(o.M, G, 'p2', { spreads: 'flat' }))) { counts.unbuildable++; continue; }
         out[SPLITS[s1]].push(G); counts[SPLITS[s1]]++;
       }
     }

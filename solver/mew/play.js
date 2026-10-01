@@ -4,6 +4,7 @@
  *
  *   node solver/mew/play.js --mode selfplay --release <id> --league <league.json> --games N --seed S
  *                           --shard i --shards n --out <shard.jsonl.gz> [--cap 50] [--human <games.jsonl> | --team-store <dir>]
+ *                           [--spreads role-v1|xatu-random|flat]   default role-v1 (solver/arena/spread_source.js; 1.49.0)
  *   node solver/mew/play.js --mode match    --release <id> --x <spec.json> --y <spec.json> --pairs N --pair-seed S
  *                           --seed S --shard i --shards n --out <shard.jsonl> [--cap 50] [--human <games.jsonl>]
  *
@@ -29,16 +30,17 @@
  *
  * INFORMATION (--info honest | omniscient; 2026-09-26, docs/_reports/2026-09-26-gen5-honest-and-ladder-prep.md).
  *   honest      THE DEFAULT FOR A MATCH, and so for every strength claim (sprt.js, gate.js). The true battle has hidden
- *               spreads: every body on both sides carries a Stat Point spread drawn per team pair from XATU's self-play
- *               generator (solver/xatu/worlds.js truthSpreads, seeded by the battle seed, so both seatings of a pair
- *               play the same truth) under its sheet's nature. Each decision is taken on a PUBLIC VIEW of that battle
+ *               spreads: every body on both sides carries a Stat Point spread under its sheet's nature: since abra/regmc
+ *               1.49.0 the --spreads mode's (default role-v1, the ladder's rule per set; solver/arena/spread_source.js),
+ *               until then one drawn per team pair from XATU's self-play generator (solver/xatu/worlds.js truthSpreads,
+ *               seeded by the battle seed — still available as --spreads xatu-random). Each decision is taken on a PUBLIC VIEW of that battle
  *               (honestView below): the decider's own side exact; the opponent's unrevealed back line replaced by
  *               XATU's MAP back pair, every opponent body at zero SP under its nature, a revealed body's HP laid from
  *               the percentage the Champions client shows. A MILTANK bot's worlds then draw the back pair from XATU's
  *               posterior and every opponent spread from XATU's spread belief (solver/xatu/worlds.js — the SAME
  *               module ROTOM's miltank-gen5 policy uses). The chosen joint is played on the TRUE battle.
- *   omniscient  the pre-2026-09-26 arena, kept as a LABELLED option: no spreads exist (every body the table's flat
- *               line), and the searcher is handed the true battle (its worlds still redraw the unrevealed back line,
+ *   omniscient  the pre-2026-09-26 arena, kept as a LABELLED option: the bodies play the --spreads mode (until 1.49.0
+ *               every body the table's flat line; --spreads flat), and the searcher is handed the true battle (its worlds still redraw the unrevealed back line,
  *               uniformly). Self-play's default, because the MACHAMP loop's recipes were pre-registered on it.
  * The mode is on every match line (`info`) and in the shard summary; the honest counters are in `honest`.
  *
@@ -60,12 +62,20 @@ const ENGINE = require('../arena/engine.js').load(REL_ID);
 const API = ENGINE.API, M = API.M;
 const T = require('../arena/teams.js');
 const PAIRS = require('./pairs.js');
-const AG = require('./agent.js').create(API, { buildBody: T.buildBody });
-const PA0 = require('../miltank/prior_adapter.js').create(API, null);   // the game's history recorder (model-free)
-
 const MODE = flag('--mode', 'selfplay');
 const INFO = flag('--info', MODE === 'match' ? 'honest' : 'omniscient');
 if (!['honest', 'omniscient'].includes(INFO)) { console.error('mew/play: --info must be honest or omniscient'); process.exit(2); }
+/* THE SPREAD MODE (--spreads, solver/arena/spread_source.js; abra/regmc 1.49.0). The TRUE battle's bodies play it on both
+ * sides: role-v1 (the default: the ladder's rule per set) | xatu-random (the pre-1.49.0 honest truth) | flat (the
+ * pre-1.49.0 omniscient body). It is on every match line and self-play record, and its stamp (table sha, the digest of
+ * every spread fielded) is in the shard summary. Under --info omniscient the searcher's redrawn hidden bodies are built
+ * at the same mode (the truth is a public function of the sheet there); under honest they come from XATU's belief. */
+const SS = require('../arena/spread_source.js');
+const SPREADS = flag('--spreads', SS.DEFAULT);
+if (!SS.MODES.includes(SPREADS)) { console.error('mew/play: --spreads must be one of ' + SS.MODES.join(', ')); process.exit(2); }
+const SRC = SS.open(SPREADS, { M });
+const AG = require('./agent.js').create(API, { buildBody: INFO === 'omniscient' ? SRC.bodyBuilder(T.buildBody) : T.buildBody });
+const PA0 = require('../miltank/prior_adapter.js').create(API, null);   // the game's history recorder (model-free)
 /* DELIBERATE BREAK (env MACHAMP_BREAK=seat): in a match, X sits on side A in both games of a pair — the paired
  * seating is gone. solver/tests/test-machamp.js GATE must go red.
  * DELIBERATE BREAK (env MACHAMP_BREAK=fallback): a search fallback is not recorded (the pre-2026-09-25 behaviour).
@@ -98,12 +108,13 @@ const XW = AG.XW;
 const HON = XW.HON;
 
 async function playGame(G, botA, botB, seed, recordFor) {
-  const a = T.buildTeam(M, G, 'p1'), b = T.buildTeam(M, G, 'p2');
+  /* the TRUE spreads at the run's --spreads mode, the same for both seatings of a pair (xatu-random draws from the
+   * battle seed; role-v1 and flat are functions of the sheet) */
+  const d0 = SRC.COUNTERS.bodies_dressed;
+  const spreadsFor = SRC.mode === 'flat' ? null : SRC.spreadsFor(G, seed);
+  const a = T.buildTeam(M, G, 'p1', { spreads: SRC, seed, spreadsFor }), b = T.buildTeam(M, G, 'p2', { spreads: SRC, seed, spreadsFor });
   if (!a || !b) return { unbuildable: true };
-  if (INFO === 'honest') {   // the TRUE spreads, the same for both seatings of a pair (seeded by the battle seed)
-    const truth = XW.truthSpreads(G.sheets, seed);
-    for (const [p, t] of [['p1', a], ['p2', b]]) for (const m of t.team) { XW.applySpread(m, truth[p][m._solverSheet], G.sheets[p][m._solverSheet]); HON.truth_bodies++; }
-  }
+  if (INFO === 'honest') HON.truth_bodies += SRC.COUNTERS.bodies_dressed - d0;
   const rng = API.makeRng(seed);
   const S = API.newBattle(a.team, b.team, { rng });
   const H = INFO === 'honest' ? XW.arenaGame(G, S, PA0) : null;
@@ -196,7 +207,7 @@ async function selfplay() {
     counts.decisions += r.decisions.length; counts.fallback_decisions += r.fallbacks.length;
     for (const d of r.decisions) { counts.rows += d.m; if (d.cells) counts.decisions_unmapped_rows += d.cells.filter(c => !c).length; }
     if (r.vA != null) { const vCur = curA ? r.vA : 1 - r.vA; counts.current_score[oppKey][0] += vCur; counts.current_score[oppKey][1]++; }
-    const rec = { g, id: G.id, release: ENGINE.id, run_seed: SEED, battle_seed: SEED * 1000003 + g, agents: { A: bA.name, B: bB.name }, opp: oppKey, cur_side: curA ? 'A' : 'B',
+    const rec = { g, id: G.id, release: ENGINE.id, spreads: SRC.mode, run_seed: SEED, battle_seed: SEED * 1000003 + g, agents: { A: bA.name, B: bB.name }, opp: oppKey, cur_side: curA ? 'A' : 'B',
       sheets: G.sheets, brought: G.brought, vA: r.vA, capped: r.capped, err: r.err, turns: r.turns, hist: r.hist, decisions: r.decisions, fallbacks: r.fallbacks };
     if (OUT) fs.appendFileSync(OUT, zlib.gzipSync(JSON.stringify(rec) + '\n'));
     if (counts.games % 10 === 0) console.log(`  [shard ${SHARD}] ${counts.games} games  ${counts.decisions} decisions  errors ${counts.errors}  fallbacks ${AG.COUNTERS.fallbacks}  ${((Date.now() - t0) / 1000).toFixed(0)}s`);
@@ -238,13 +249,13 @@ async function match() {
       if (r.unbuildable) { counts.unbuildable++; per.push({ pi, id: G.id, xSide: xIsA ? 'A' : 'B', unbuildable: true }); continue; }
       counts.games++; if (r.err) counts.errors++; if (r.capped) counts.capped++;
       const vX = r.err ? null : (xIsA ? r.vA : 1 - r.vA);
-      per.push({ pi, id: G.id, xSide: xIsA ? 'A' : 'B', seed, info: INFO, vX, turns: r.turns, capped: r.capped, err: r.err, preview: pv || undefined,
+      per.push({ pi, id: G.id, xSide: xIsA ? 'A' : 'B', seed, info: INFO, spreads: SRC.mode, vX, turns: r.turns, capped: r.capped, err: r.err, preview: pv || undefined,
                  ms_x: r.ms[xIsA ? 'A' : 'B'], ms_y: r.ms[xIsA ? 'B' : 'A'], searched_x: r.srch[xIsA ? 'A' : 'B'], searched_y: r.srch[xIsA ? 'B' : 'A'],
                  adapt_x: Object.keys(r.stops[xIsA ? 'A' : 'B']).length ? r.stops[xIsA ? 'A' : 'B'] : undefined, adapt_y: Object.keys(r.stops[xIsA ? 'B' : 'A']).length ? r.stops[xIsA ? 'B' : 'A'] : undefined,
                  mega: r.mega ? { x: r.mega[xIsA ? 'A' : 'B'], y: r.mega[xIsA ? 'B' : 'A'] } : null,
                  clicks: r.clicks ? { x: r.clicks[xIsA ? 'A' : 'B'], y: r.clicks[xIsA ? 'B' : 'A'] } : null,
                  protect: r.protect ? { x: r.protect[xIsA ? 'A' : 'B'], y: r.protect[xIsA ? 'B' : 'A'] } : null,
-                 ctr: Object.assign({ fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0, stall_dropped: AG.COUNTERS.stallDropped || 0, quiet_held: AG.R.COUNTERS.quietHeld || 0, quiesced: AG.R.COUNTERS.quiesced || 0, gates: JSON.parse(JSON.stringify(AG.COUNTERS.gates || {})), kl: AG.COUNTERS.kl ? JSON.parse(JSON.stringify(AG.COUNTERS.kl)) : undefined, leaf_by_model: Object.assign({}, AG.R.COUNTERS.leafByModel || {}), leaf_own: AG.R.leafOwn ? AG.R.leafOwn() : undefined }, RUN,
+                 ctr: Object.assign({ spreads: Object.assign({}, SRC.COUNTERS), fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0, stall_dropped: AG.COUNTERS.stallDropped || 0, quiet_held: AG.R.COUNTERS.quietHeld || 0, quiesced: AG.R.COUNTERS.quiesced || 0, gates: JSON.parse(JSON.stringify(AG.COUNTERS.gates || {})), kl: AG.COUNTERS.kl ? JSON.parse(JSON.stringify(AG.COUNTERS.kl)) : undefined, leaf_by_model: Object.assign({}, AG.R.COUNTERS.leafByModel || {}), leaf_own: AG.R.leafOwn ? AG.R.leafOwn() : undefined }, RUN,
                    INFO === 'honest' ? { hon_views: HON.views, hon_back_xatu: HON.back_xatu, hon_back_error: HON.back_error, xw: Object.assign({}, XW.COUNTERS) } : {}) });
     }
     if (OUT) fs.writeFileSync(OUT, per.map(p => JSON.stringify(p)).join('\n') + '\n');
@@ -256,7 +267,7 @@ async function match() {
 
 (async () => {
   const r = MODE === 'match' ? await match() : await selfplay();
-  const summary = { mode: MODE, info: INFO, honest: INFO === 'honest' ? Object.assign({}, HON, { worlds: XW.COUNTERS }) : null, break: BREAK || null, shard: SHARD, shards: SHARDS, seed: SEED, cap: CAP, engine_release: ENGINE.id, release_stamp: ENGINE.stamp, argv, wall_s: (Date.now() - t0) / 1000,
+  const summary = { mode: MODE, info: INFO, spreads: SRC.stamp(), honest: INFO === 'honest' ? Object.assign({}, HON, { worlds: XW.COUNTERS }) : null, break: BREAK || null, shard: SHARD, shards: SHARDS, seed: SEED, cap: CAP, engine_release: ENGINE.id, release_stamp: ENGINE.stamp, argv, wall_s: (Date.now() - t0) / 1000,
     agent_counters: AG.COUNTERS, rollout: AG.R.COUNTERS, api: API.COUNTERS, preview_arms: PREVIEW_ARMS ? PREVIEW_ARMS.COUNTERS : null,
     mega: { by_agent: Object.fromEntries(Object.entries(MEGA).map(([k, t]) => [k, MR.summary(t)])), human_rate: MR.HUMAN_RATE, floor: MR.floor() },
     search: decStats.length ? { decisions: decStats.length, playouts_mean: decStats.reduce((s, d) => s + d.playouts, 0) / decStats.length,

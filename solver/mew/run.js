@@ -2,6 +2,8 @@
  *
  *   cmd.exe /c tools\lownode.cmd solver\mew\run.js --release <id> --league <league.json> --games N --seed S
  *        --workers 4 --out solver/out/selfplay/<release>/<gen> [--cap 50] [--human <games.jsonl>]
+ *        [--spreads role-v1|xatu-random|flat]   the bodies' Stat Points (solver/arena/spread_source.js); default role-v1
+ *        since abra/regmc 1.49.0 — every generation before it self-played at `flat`
  *
  * Forks --workers shards of solver/mew/play.js (process-level parallelism only; each worker loads its own
  * engine once and plays games g = shard, shard + workers, …). Children inherit BELOWNORMAL from lownode and
@@ -46,10 +48,11 @@ async function main() {
   if (W > 4) throw new Error('mew/run: at most 4 workers on this machine (other agents share it)');
   fs.mkdirSync(out, { recursive: true });
   const human = flag('--human', null), store = flag('--team-store', null);
+  const spreads = flag('--spreads', require('../arena/spread_source.js').DEFAULT);   // solver/arena/spread_source.js (1.49.0)
   const started = new Date().toISOString();
   const { res, wall_s } = await forkShards(path.join(__dirname, 'play.js'), W, i => ['--mode', 'selfplay', '--release', rel, '--league', path.resolve(ROOT, league),
     '--games', String(N), '--seed', String(seed), '--shard', String(i), '--shards', String(W), '--cap', String(cap),
-    '--out', path.join(out, `shard-${i}.jsonl.gz`), ...(human ? ['--human', human] : []), ...(store ? ['--team-store', store] : [])], 'mew');
+    '--out', path.join(out, `shard-${i}.jsonl.gz`), ...(human ? ['--human', human] : []), ...(store ? ['--team-store', store] : []), '--spreads', spreads], 'mew');
   const shards = res.map(r => {
     const f = path.join(out, `shard-${r.shard}.jsonl.gz`);
     let s = null; try { s = JSON.parse(fs.readFileSync(f + '.summary.json', 'utf8')); } catch (e) {}
@@ -74,10 +77,13 @@ async function main() {
   if (agent.fallbacks) warnings.push(`${agent.fallbacks} FALLBACKS to the prior's top legal joint (search threw)`);
   if (counts.errors) warnings.push(`${counts.errors} games ended in an engine/agent error`);
   const first = ok[0] ? ok[0].summary : {};
+  const SPREADS = require('../arena/spread_source.js').mergeStamps(ok.map(s => s.summary.spreads), spreads);
+  warnings.push(...SPREADS.warnings);
   const manifest = {
     what: 'MEW self-play shards (solver/mew/run.js)', started, finished: new Date().toISOString(),
     engine_release: first.engine_release || rel, release_stamp: first.release_stamp || null,
-    flags: { release: rel, league: path.relative(ROOT, path.resolve(ROOT, league)).split(path.sep).join('/'), games: N, seed, workers: W, cap, human, team_store: store },
+    flags: { release: rel, league: path.relative(ROOT, path.resolve(ROOT, league)).split(path.sep).join('/'), games: N, seed, workers: W, cap, human, team_store: store, spreads },
+    spreads: SPREADS,
     league: first.agents || null, league_weights: first.weights || null, league_file_sha256: sha(path.resolve(ROOT, league)),
     pool: first.pool ? { source: first.pool.pool_source, file: first.pool.file, train_pairs: first.pool.train_pairs, counts: first.pool.counts } : null,
     counts, wall_s, games_per_hour: +(counts.games / (wall_s / 3600)).toFixed(1),

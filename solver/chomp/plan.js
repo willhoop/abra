@@ -2,7 +2,7 @@
  * before any table is scored or any game is played.
  *
  *   node solver/chomp/plan.js --release eaa5becc54eb [--out solver/out/chomp/v0/plan.json] [--eval 150] [--pairs 100]
- *        [--refine-pairs 12] [--seed 1]
+ *        [--refine-pairs 12] [--seed 1] [--spreads role-v1|xatu-random|flat]   (the arena's spread mode, recorded; 1.49.0)
  *
  * WRITES plan.json:
  *   eval       held-out sides for (a): one side per game, that side's player in the TEST split (the MAG/DODUO/
@@ -52,6 +52,9 @@ const plan = {
   written: new Date().toISOString(),
   status: 'PRE-REGISTERED — written before any CHOMP table was scored or any arena game played',
   release: RELEASE, engine_stamp: ENGINE.stamp,
+  /* the arena's spread mode for every game this plan pre-registers (solver/arena/spread_source.js, abra/regmc 1.49.0);
+   * solver/arena/arena.js --plan plays it. A plan written before 1.49.0 has no field and re-plays `flat`. */
+  spreads: (() => { const SS = require('../arena/spread_source.js'); const m = flag('--spreads', SS.DEFAULT); if (!SS.MODES.includes(m)) throw new Error('plan: --spreads must be one of ' + SS.MODES.join(', ')); return m; })(),
   dataset: { file: H.file, pool_sha256: H.pool_sha256, scanned: H.scanned, kept: H.games.length, skipped: H.skipped },
   split: { rule: 'sha256("' + D.SALT + ':" + toID(player)) mod 100: <80 train, <90 val, else test (the MAG/DODUO/PORYGON2 split)' },
   models: { porygon2: sha(path.join(ROOT, 'solver', 'porygon2', 'model', 'porygon2-v0.json')), mag: sha(path.join(ROOT, 'solver', 'mag', 'model', 'mag-v1.json')),

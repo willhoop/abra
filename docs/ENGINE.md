@@ -1,3 +1,19 @@
+## FILED BY SOLVER, NOT FIXED: THE MEGA SWAP CANNOT RECOMPUTE A BODY WHOSE SPREAD INVESTS HP, SO 114 OF 3,293 ARENA MEGA SETS LAND ONE POINT OFF. 2026-09-30 (abra/regmc Unreleased, arena real spreads)
+
+- `megaEvolveNow` recomputes the mega's line from `_sp` only when `l50(base, _sp, _nature)` reproduces the body's
+  current `st`, HP included. `l50` has no HP term, and Champions' `statModify` adds SP to HP. So a body whose spread
+  invests HP can never pass the check and always takes the delta path. That path is exact at a neutral nature and can
+  be one point off on a natured stat (the Golurk and Delphox rows of `tests/probe_mega_spread_stat.js`).
+- The solver's spread path (`solver/xatu/worlds.js` `applySpread`) therefore stamps `_nature` and not `_sp`. Since
+  abra/regmc Unreleased the arena fields ROTOM's role-derived spreads (`solver/arena/spread_source.js`, table
+  `solver/arena/spreads/role-v1.json`). Of its 3,293 mega-stone sets, **3,185 invest HP**, and **114** land off the
+  authority's line after mega evolution: Atk 70, Speed 23, SpA 14, SpD 6, Def 1 (arithmetic from the release's own
+  `spreadL50` against `xatu/sd.js` `statValue`; `solver/out/arena/spreads/mega_delta.js`). A Speed point can flip a
+  turn order. The honest arena's `xatu-random` truth and ROTOM's own world already took the same path.
+- **Asked of ENGINE:** let the recompute accept an HP-invested spread (compare the five non-HP stats, or add
+  `sp.hp` to the HP term of the check), with `tests/probe_mega_spread_stat.js` extended to HP-invested bodies. SOLVER then stamps
+  `_sp` in `applySpread`. Not touched here: SOLVER never edits `engine/`.
+
 ## THE REG M-C TAG FILE IS RE-WEIGHTED FROM THE FULL STORE, AND ONE USAGE COUNT IS A SIMULATOR INPUT. 2026-09-30 (abra/regmc 1.38.0)
 
 - `data/tags-regmc.json` was weighted by the stale plain store (205,836 sheet entries). It is now weighted by the
