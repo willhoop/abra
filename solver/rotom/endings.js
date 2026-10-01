@@ -21,6 +21,17 @@
  *                    BETWEEN games (gen5ab k8), which no game log can show.
  * SELF_QUIT (forfeit_me, timeout_me, inactivity, walkaway_me) must be ZERO: rotom.js counts one as an error and the ladder
  * HALTS on it (ladder.js onSelfQuit).
+ *
+ * EARNED FORFEITS (Will, 2026-10-01: "lets count forfeits where we are up in pokemon counts as real wins"; abra/regmc 1.70.0;
+ * account docs/_reports/2026-10-01-earned-forfeits.md). Per GAME, an opponent quit (forfeit_opp or timeout_opp — the battle
+ * timer is the same hand-over as the button) is EARNED when, at the quit line, turn >= 1 and our Pokemon still able to battle
+ * outnumber theirs: left = |teamsize| (the brought four, bench included, sent after preview) minus that side's |faint| lines
+ * so far. Level or behind is UNEARNED. A quit at team preview or turn 0 is UNEARNED (no lead exists). A game without a
+ * |teamsize| for both sides cannot be counted and is UNEARNED (`earned_why: 'no_count'`), never guessed.
+ * Per SERIES (only a series we WON is classed): `clean` (no opponent quit in any game), `earned` (every opponent-quit game
+ * earned), `unearned` (any opponent-quit game unearned, or the series ended walkaway_opp — a walkaway happens between games,
+ * at the next game's preview, so there is no board to be ahead on). A series that ends by forfeit in game 3 is decided by
+ * game 3's own count; games 1 and 2 must also pass if either was an opponent quit. A lost series is never reclassified.
  */
 'use strict';
 
@@ -44,13 +55,15 @@ const side = (by, me) => (toID(by) === toID(me) ? 'me' : 'opp');
 /* a game's protocol lines (array or one string) and our name -> the per-game end fields */
 function gameEnd(lines, me) {
   const L = Array.isArray(lines) ? lines : String(lines || '').split('\n');
-  let turn = 0, quit = null, win = null, tie = false;
+  let turn = 0, quit = null, win = null, tie = false, atQuit = null;
+  const C = boardCounter(me);
   for (const raw of L) {
     const l = String(raw).replace(/\r$/, '');
+    C.line(l);
     if (l.startsWith('|turn|')) { const n = +l.slice(6); if (Number.isFinite(n)) turn = n; continue; }
     if (l.startsWith('|win|')) { win = { name: l.slice(5), raw: l }; continue; }
     if (l === '|tie' || l.startsWith('|tie|')) { tie = true; continue; }
-    const q = quitLine(l); if (q && !win && !tie) quit = q;   // the quit that decided THIS game, never one after its end
+    const q = quitLine(l); if (q && !win && !tie) { quit = q; atQuit = C.snap(turn); }   // the quit that decided THIS game, never one after its end
   }
   let end_reason, end_by = null, end_raw = null;
   if (quit && quit.kind === 'allinactive') { end_reason = 'inactivity'; end_raw = quit.raw; }
@@ -58,8 +71,52 @@ function gameEnd(lines, me) {
   else if (win) { end_reason = 'normal'; end_raw = win.raw; }
   else if (tie) { end_reason = 'tie'; end_raw = '|tie'; }
   else { end_reason = 'unknown'; }
-  return { end_reason, end_by, end_turn: turn, at_preview: turn === 0, end_raw,
+  const out = { end_reason, end_by, end_turn: turn, at_preview: turn === 0, end_raw,
            winner_name: win ? win.name : null, mine: win ? toID(win.name) === toID(me) : null, tie: !win && (tie || end_reason === 'inactivity') };
+  return Object.assign(out, earnedFields(end_reason, atQuit));
+}
+
+/* THE BOARD COUNT at any line: which side is ours (|player|), how many each side brought (the LAST |teamsize|, sent once the
+ * preview picks are in) and how many have fainted (|faint|<side><slot>: …). left = brought - fainted. */
+function boardCounter(me) {
+  const brought = {}, fainted = { p1: 0, p2: 0 };
+  let mine = null;
+  return {
+    line(l) {
+      let m;
+      if ((m = /^\|player\|(p[12])\|([^|]+)/.exec(l))) { if (toID(m[2]) === toID(me)) mine = m[1]; }
+      else if ((m = /^\|teamsize\|(p[12])\|(\d+)/.exec(l))) brought[m[1]] = +m[2];
+      else if ((m = /^\|faint\|(p[12])[a-z]?:/.exec(l))) fainted[m[1]]++;
+    },
+    snap(turn) {
+      const opp = mine === 'p1' ? 'p2' : mine === 'p2' ? 'p1' : null;
+      const has = !!mine && brought[mine] != null && brought[opp] != null;
+      return { turn, side: mine, brought_me: has ? brought[mine] : null, brought_opp: has ? brought[opp] : null,
+               left_me: has ? brought[mine] - fainted[mine] : null, left_opp: has ? brought[opp] - fainted[opp] : null };
+    },
+  };
+}
+
+/* a game's end_reason and the board count at its quit line -> { earned, earned_why, quit_turn, left_me, left_opp }.
+ * earned is null for a game that was not an opponent quit. */
+function earnedFields(end_reason, at) {
+  const f = { quit_turn: at ? at.turn : null, left_me: at ? at.left_me : null, left_opp: at ? at.left_opp : null };
+  if (!OPP_QUIT.has(end_reason) || end_reason === 'walkaway_opp') return Object.assign(f, { earned: null, earned_why: null });
+  if (!at || at.turn < 1) return Object.assign(f, { earned: false, earned_why: 'preview' });
+  if (at.left_me == null || at.left_opp == null) return Object.assign(f, { earned: false, earned_why: 'no_count' });
+  const d = at.left_me - at.left_opp;
+  return Object.assign(f, { earned: d > 0, earned_why: d > 0 ? 'ahead' : d === 0 ? 'level' : 'behind' });
+}
+
+/* THE SERIES CLASS of a series WE WON: 'clean' | 'earned' | 'unearned'; null for a series we did not win. `games` are the
+ * series' games with end_reason and earned (games_end); `end_reason` the series' own. A won opponent-quit game whose earned
+ * is missing (a record written before the field, not re-derived) is 'unearned' — never guessed earned. */
+function seriesWinClass(won, end_reason, games) {
+  if (!won) return null;
+  if (end_reason === 'walkaway_opp') return 'unearned';
+  const Q = (games || []).filter(g => g && OPP_QUIT.has(g.end_reason));
+  if (!Q.length) return OPP_QUIT.has(end_reason) ? 'unearned' : 'clean';   // a quit no game record carries has no count to read
+  return Q.every(g => g.earned === true) ? 'earned' : 'unearned';
 }
 
 /* a series: its games (each { gnum, mine: true|false|null, end_reason, end_turn }, as gameEnd wrote them), the series
@@ -86,6 +143,10 @@ function seriesEnd(games, result, me, opts) {
     /* the series was forfeited while a game we joined was still being played: that game is the decider, mid-game */
     Object.assign(out, { end_reason: q.kind === 'allinactive' ? 'inactivity' : q.kind + '_' + side(q.by, me), end_game: opts.liveGnum,
                          end_turn: opts.liveTurn || 0, at_preview: !opts.liveTurn, end_by: q.by, end_raw: q.raw });
+    /* the live game is the decider and has no end of its own: its board count is read from its lines as they stand */
+    let at = null;
+    if (opts.liveLines) { const C = boardCounter(me); for (const l of opts.liveLines) C.line(String(l).replace(/\r$/, '')); at = C.snap(opts.liveTurn || 0); }
+    out.live_decider = Object.assign({ gnum: opts.liveGnum, end_reason: out.end_reason }, earnedFields(out.end_reason, at));
   } else if (winnerWins >= need || lastQuit) {
     /* the deciding game is the last one: its end is the series' end (a forfeit that ended the series early included) */
     Object.assign(out, { end_reason: last.end_reason, end_by: last.end_by || null, end_raw: last.end_raw || null });
@@ -96,6 +157,10 @@ function seriesEnd(games, result, me, opts) {
                          end_by: q ? q.by : null, end_raw: q ? q.raw : null });
   }
   if (OPP_QUIT.has(out.end_reason)) out.any_forfeit_opp = true;
+  const decided = G.concat(out.live_decider ? [out.live_decider] : []);
+  out.win_class = seriesWinClass(mine === true, out.end_reason, decided);
+  out.quit_games = decided.filter(g => OPP_QUIT.has(g.end_reason)).map(g => ({ gnum: g.gnum, end_reason: g.end_reason, earned: g.earned != null ? g.earned : null,
+    earned_why: g.earned_why || null, quit_turn: g.quit_turn != null ? g.quit_turn : null, left_me: g.left_me != null ? g.left_me : null, left_opp: g.left_opp != null ? g.left_opp : null }));
   return out;
 }
 
@@ -117,13 +182,23 @@ function ladderRecord(rows, opts) {
              residual: { n: res.length, mean: r4(mean(res)), sd: r4(sd(res)) }, rating_after: { n: after.length, mean: after.length ? Math.round(mean(after)) : null, sd: after.length > 1 ? Math.round(sd(after)) : null } };
   };
   const quitWin = r => r.S === 1 && OPP_QUIT.has(r.end_reason);
-  const block = rs => ({ all: one(rs), without_quit_wins: one(rs.filter(r => !quitWin(r))), quit_wins: rs.filter(quitWin).length,
+  /* the class of a won series: the row's own win_class, else derived from its games_end (earned fields), else unearned if
+   * any opponent quit touched it (never guessed earned); `win_class_missing` counts the won rows read that way */
+  const cls = r => r.S !== 1 ? null : (r.win_class || seriesWinClass(true, r.end_reason, r.games_end || []));
+  const anyQuit = r => r.S === 1 && cls(r) !== 'clean';
+  const unearned = r => r.S === 1 && cls(r) === 'unearned';
+  const block = rs => ({ all: one(rs),
+                         earned_counted: one(rs.filter(r => !unearned(r))),
+                         any_forfeit_excluded: one(rs.filter(r => !anyQuit(r))),
+                         win_class: rs.filter(r => r.S === 1).reduce((m, r) => (m[cls(r)] = (m[cls(r)] || 0) + 1, m), {}),
+                         win_class_missing: rs.filter(r => r.S === 1 && !r.win_class).length,
+                         without_quit_wins: one(rs.filter(r => !quitWin(r))), quit_wins: rs.filter(quitWin).length,
                          quit_wins_by: rs.filter(quitWin).reduce((m, r) => (m[r.end_reason] = (m[r.end_reason] || 0) + 1, m), {}),
                          self_quits: rs.filter(r => SELF_QUIT.has(r.end_reason)).length, end_unknown: rs.filter(r => !r.end_reason).length });
   const by_arm = {};
   for (const a of [...new Set(R.map(r => r.arm))].sort()) by_arm[a] = block(R.filter(r => r.arm === a));
-  return { filter: { rated: true, dry_run: !!opts.dryRun }, rule: 'rated === true only; "without_quit_wins" DROPS the series won by an opponent forfeit, timeout or walkaway (it does not score them as losses)',
+  return { filter: { rated: true, dry_run: !!opts.dryRun }, rule: 'rated === true only. HEADLINE "earned_counted" drops a won series classed unearned (an opponent forfeit/timeout game at preview or turn 0, or level or behind on Pokemon left, or a walkaway) and keeps clean and earned wins. "any_forfeit_excluded" drops every won series an opponent quit touched. "without_quit_wins" (legacy, before 1.70.0) drops a won series whose DECIDING end was an opponent quit. A dropped series is never scored as a loss.',
            ...block(R), by_arm, unrated_excluded: unrated };
 }
 
-module.exports = { quitLine, gameEnd, seriesEnd, ladderRecord, GAME_REASONS, SERIES_REASONS, SELF_QUIT, OPP_QUIT, toID };
+module.exports = { quitLine, gameEnd, seriesEnd, ladderRecord, boardCounter, earnedFields, seriesWinClass, GAME_REASONS, SERIES_REASONS, SELF_QUIT, OPP_QUIT, toID };
