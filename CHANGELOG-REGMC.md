@@ -21,6 +21,24 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.60.0] — 2026-10-01
+
+**MINOR: no published figure moves.** It adds four arena results in the role-v1 series. No code changed.
+
+### Notes
+- **The runs.** Will delegated the choice ("u choose"). All four were pre-registered before the first game, on
+  release `eaa5becc54eb`, honest, with `role-v1` true bodies (the new arena series). None can be compared with a
+  pre-1.49.0 arena figure. Details: `docs/_reports/2026-10-01-v2-14s-and-role-v1-baselines.md`.
+  - **PORYGON2 v2 as gen5's leaf vs gen5's own net, 14 s adaptive clock: stopped at the screen; no SPRT.** 200 games,
+    0.495 [0.426, 0.564]. The clock ratio is 1.104 (over 1.10, so VOID by its rule), and the point score is below
+    0.5. v2 served 805,441 leaf calls with 0 errors.
+  - **gen5 vs gen0-r2, a re-run on seed 9001: H0, DEGRADED.** 1,098 games, 0.497 [0.468, 0.527]. The search was
+    starved by machine load for about the first 40%: 24.3% prior fallbacks, 45.5 playouts a decision against 213 at
+    1 s. It does not measure gen5 against its predecessor. A re-run is owed.
+  - **gen5 1 s vs the human clone, a re-run on seed 26001: H1.** 90 games, 0.711 [0.610, 0.795], 0 fallbacks.
+  - **gen5 5 s vs the human clone, a re-run on seed 26005: H1.** 102 games, 0.667 [0.571, 0.751], 0 fallbacks.
+- Nothing is on a ladder arm.
+
 ## [1.59.0] — 2026-10-01
 
 **MINOR: no published figure moves.** It adds standing counters and a read-only analysis; no game was played.

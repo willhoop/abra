@@ -25,6 +25,13 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
   switches 1.06, mega 0.98). Costs: the foe's speed control (−0.22 win; humans −0.03) and switch-ins KO'd that turn
   (15.4% vs 10.0%). Speed control not used when the foe was faster: 50 of 109 absent from the table (coverage), 59
   present but ranked lower. `docs/_reports/2026-10-01-speed-mega-switch.md`.
+### v2 at 14 s stops at its screen; gen5's role-v1 baselines (abra/regmc 1.60.0)
+- **v2 leaf vs gen5's net at 14 s: stopped at the screen.** 0.495, and clock ratio 1.104 makes it VOID. v2's slower
+  leaf takes about 10% more adaptive clock and still does not win. No SPRT.
+- **gen5 vs the human clone under role-v1: H1 at both clocks.** 1 s 0.711 (90 games); 5 s 0.667 (102 games).
+- **gen5 vs gen0-r2: H0, DEGRADED.** 0.497 over 1,098 games. 24% prior fallbacks from machine load. Re-run owed, with
+  a capability bar.
+- `docs/_reports/2026-10-01-v2-14s-and-role-v1-baselines.md`.
 
 ### The search's uncovered blind spots; four world fields fixed (abra/regmc 1.52.0)
 - Opponent coverage is 57.7% with targets (636 ladder decisions). DODUO ranks the actual joint top-4 in 57.1% and

@@ -144,6 +144,14 @@ This section says only what a division agent needs before it starts.
   1.06 [0.92, 1.22], mega 0.98 [0.81, 1.18]. What costs games is the foe's speed control (win −0.22 [−0.39, −0.05];
   humans −0.03) and switch-ins KO'd that turn (15.4% vs 10.0%). Our fours rarely carry Trick Room.
   `docs/_reports/2026-10-01-speed-mega-switch.md`.
+- **v2 at 14 s and the gen5 role-v1 baselines (2026-10-01, abra/regmc 1.60.0).** Every run is honest, on role-v1 true
+  bodies, and on release `eaa5becc54eb`.
+  - v2 as gen5's leaf vs gen5's net, 14 s adaptive: the screen gives 0.495 [0.426, 0.564]. The clock ratio is 1.104,
+    so it is VOID, and there is no SPRT.
+  - gen5 1 s vs the clone: H1, 0.711 (90 games).
+  - gen5 5 s vs the clone: H1, 0.667 (102 games).
+  - gen5 vs gen0-r2: H0 at 0.497 (1,098 games), DEGRADED (24% prior fallbacks, machine load). A re-run is owed.
+  - `docs/_reports/2026-10-01-v2-14s-and-role-v1-baselines.md`.
 - **Two SPRTs, both H0 (2026-09-30, abra/regmc 1.50.0).**
   - piKL λ 0.03 vs gen5 at the 14 s clock: 416 games, 0.469 [0.421, 0.517], clock ratio 0.976. The Protect fail rate
     is 9.8% vs 15.8%, with no strength gain.

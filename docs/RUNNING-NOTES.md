@@ -53,6 +53,18 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.60.0] — 2026-10-01 — **v2 at 14 s stops at its screen (0.495, clock ratio 1.104); gen5 still beats the human clone under role-v1 (1 s 0.711, 5 s 0.667, both H1); gen5 vs gen0-r2 is H0 but DEGRADED by a starved search**
+- **What changed.** Four arena runs, pre-registered before the first game (`solver/results/2026-10-01-v2-14s-rolev1/preregistration.json`, `solver/results/2026-10-01-rolev1-baselines/preregistration.json` plus `addendum-r2c.json`). Common settings: release `eaa5becc54eb`, frozen-regmc store, TEST pairs, honest, `--spreads role-v1`, cap 50. The SPRTs used elo0 0, elo1 20, α = β = 0.05, max 2,000. No code changed. This is the NEW arena series (role-v1), not comparable with any pre-1.49.0 figure.
+- **Measured.**
+  - v2 leaf vs gen5, 14 s adaptive, screen (seed 31001): 0.495 [0.426, 0.564]. The clock ratio is 1.104, so the screen is VOID by its rule; the point is < 0.5; the SPRT was not run.
+  - gen5 vs gen0-r2 (seed 9001): H0, 1,098 games, 0.497 [0.468, 0.527]. It is DEGRADED: prior fallback 24.3% and 45.5 playouts a decision, from machine load.
+  - gen5 1 s vs the clone (seed 26001): H1, 90 games, 0.711 [0.610, 0.795].
+  - gen5 5 s vs the clone (seed 26005): H1, 102 games, 0.667 [0.571, 0.751].
+  - Reads: `solver/results/2026-10-01-*/`. Report: `docs/_reports/2026-10-01-v2-14s-and-role-v1-baselines.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing. The xatu-random originals stay true of their own arena.
+- **Owed to the next major.** `docs/MODELS.md`: gen5's role-v1 baselines, each labelled with its spread mode, when the arena figures are first published.
+
 ## [abra/regmc 1.59.0] — 2026-10-01 — **Speed control, mega and switches are tracked on every ROTOM game and arena row; like with like, the bot matches strong humans on all three**
 - **What changed.** New `solver/arena/tactics.js`: standing per-side counters for speed control (available, used, turn, mattered or wasted, answers), mega (capable, used, turn, slot) and switches (voluntary, forced, pivot, double; into a KO, a resist or immunity). The speed-control set is derived from the format: 34 moves. It is wired into ROTOM's game record and summary (`solver/rotom/rotom.js`), `report.js ladder <dir>` (per arm, won and lost), and every `solver/mew/play.js` match row and summary. New: `solver/tests/test-tactics.js` (GREEN 28/28, RED under `TACTICS_BREAK=blind`) and a live-client check in `test-rotom-endings-live.js` (GREEN 20/20). New read-only analysis: `solver/results/2026-10-01-speed-mega-switch/analyze.js`. No game was played.
 - **Measured.** From `solver/results/2026-10-01-speed-mega-switch/measured.json`.
