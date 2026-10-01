@@ -21,6 +21,36 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.52.0] — 2026-10-01
+
+**MINOR: no published figure moves.** It adds a read-only ladder analysis and four ROTOM world fixes.
+
+### Added
+- `solver/results/2026-10-01-search-blind-spots/`. It measures the search's blind spots on the finished ladder logs.
+  - Opponent coverage is 57.7% with targets and 63.7% by move id, on 636 decisions.
+  - The gen5 prior ranks the actual joint in its top 4 in 57.1% of decisions and its top 8 in 71.1%.
+  - Sucker Punch failed 17 of 36 times. The engine reproduces all 17. The causes are our row narrowing (9) and the
+    one-turn leaf (8).
+- `solver/tests/test-rotom-world-fields.js`: GREEN 17/17. It is RED under `ROTOM_WORLD_BREAK=noalias`, `noub`, `noff`
+  and `notype`, and each clause is checked on a real ladder log.
+
+### Fixed
+- **ROTOM's world did not key a forme or a nicknamed mon** (`world_log.js`, `world.js stallStreaks`).
+  - Before: 220 of 1,841 switch idents were unkeyed, in 119 of 189 games. A switch line then put the incoming body's
+    clocks on the outgoing one.
+  - Now an ident is bound to the row its switch line's species names.
+- **Unburden was not carried.** `-enditem` on a holder lays the engine's `_ubVol`, at the multiplier read from the
+  ability's own condition.
+- **Flash Fire's volatile was not carried.** It now lays `_vol.flashfire`.
+- **An added type (Trick-or-Treat) was not carried.** It now lays the type on the engine's added-type slot.
+- `solver/tests/ladder_replay.js` rebuilt the request with the same identity gap. Rebuilt-world fidelity rises from
+  88.7% to 91.7%.
+
+### Notes
+- No search, gate or ladder arm changed, and no game was played. The world fixes change what the search sees. No
+  series has played on them.
+- Full account: `docs/_reports/2026-10-01-search-blind-spots.md`.
+
 ## [1.51.0] — 2026-10-01
 
 **MINOR: a simulator fix.** No published figure moves yet. The gate re-run on a new release is owed.

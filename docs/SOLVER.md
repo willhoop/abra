@@ -120,6 +120,11 @@ This section says only what a division agent needs before it starts.
   0.525 [0.456, 0.593], clock ratios 0.99-1.00. At 14 s the Protect fail rate is 10.1% vs 16.9%. λ 0.1 fails (0.405). λ 0.01
   is VOID by its capability clause (1 uniform-anchor decision). No SPRT; the flag is off.
   `docs/_reports/2026-09-30-human-regularised-phase-b.md`.
+- **The search's uncovered blind spots; four world fields (2026-10-01, abra/regmc 1.52.0).** Read-only over the finished
+  ladder runs. Opponent coverage 57.7% with targets (636 decisions); the gen5 prior's top 4 holds the actual joint 57.1%,
+  top 8 71.1%. Sucker Punch failed 17 of 36: the engine is right on all 17; 9 had no alternative row, 8 were leaf ties.
+  World fixes: identity (formes, nicknames), Unburden, Flash Fire, added type; `solver/tests/test-rotom-world-fields.js`.
+  No series has played on them. `docs/_reports/2026-10-01-search-blind-spots.md`.
 - **Two SPRTs, both H0 (2026-09-30, abra/regmc 1.50.0).**
   - piKL λ 0.03 vs gen5 at the 14 s clock: 416 games, 0.469 [0.421, 0.517], clock ratio 0.976. The Protect fail rate
     is 9.8% vs 15.8%, with no strength gain.

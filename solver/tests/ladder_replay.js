@@ -13,6 +13,7 @@
 'use strict';
 const fs = require('fs');
 const { parseGame, parseShowteam } = require('../human/parse_game.js');
+const X = require('../human/dex.js');
 
 function build(o) {
   const all = fs.readFileSync(o.log, 'utf8').replace(/\r/g, '').split('\n');
@@ -25,12 +26,24 @@ function build(o) {
   for (const l of lines) { const p = l.split('|'); if (p[1] === 'showteam') sheets[p[2]] = parseShowteam(p.slice(3).join('|')); }
   const me = o.me, mySheet = sheets[me];
   const mon = mySheet.map(r => ({ nick: r.nick, details: r.species + ', L50', cond: null, item: r.item ? r.item.toLowerCase().replace(/[^a-z0-9]/g, '') : '', pos: null }));
-  const byNick = n => mon.find(m => m.nick === n);
+  /* the log names a forme by its base species ("Arcanine" for Arcanine-Hisui) and a nicknamed mon by its nickname; the
+   * live request names it exactly, so the rebuilt one must too: an ident that is no sheet nickname is bound to the row
+   * its switch line's species names (2026-10-01; independent of ROTOM_WORLD_BREAK, since the request never loses it) */
+  const alias = {};
+  const baseOf = s => { const x = X.D.species.get(X.toID(s)); return x && x.exists ? X.toID(x.baseSpecies) : X.toID(s); };
+  const byNick = (n, details) => {
+    const m = mon.find(x => x.nick === n) || alias[n];
+    if (m || !details) return m;
+    const sp = String(details).split(',')[0].trim();
+    let c = mySheet.map((r, k) => k).filter(k => mySheet[k].species === sp);
+    if (c.length !== 1) c = mySheet.map((r, k) => k).filter(k => baseOf(mySheet[k].species) === baseOf(sp));
+    return c.length === 1 ? (alias[n] = mon[c[0]]) : undefined;
+  };
   for (const l of lines) {
     const p = l.split('|'); const c = p[1];
     const id = /^(p[12])([ab]?):\s?(.*)$/.exec(p[2] || '');
     if (!id || id[1] !== me) continue;
-    const m = byNick(id[3]); if (!m) continue;
+    const m = byNick(id[3], c === 'switch' || c === 'drag' ? p[3] : null); if (!m) continue;
     if (c === 'switch' || c === 'drag') { for (const x of mon) if (x.pos === id[2]) x.pos = null; m.pos = id[2]; m.details = p[3]; m.cond = p[4]; }
     else if (c === 'detailschange') m.details = p[3];
     else if (c === '-damage' || c === '-heal' || c === '-sethp') m.cond = p[3];
