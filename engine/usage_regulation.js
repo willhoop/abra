@@ -26,7 +26,10 @@
  * THE FILTER, IN ORDER, EVERY STEP COUNTED:
  *   1. the row's `format` token is this regulation's (engine/durable-ingest.js storeFormatFor, the parser
  *      that stamped the rows);
- *   2. the pool predicate: open team sheets with both sheets present, minus the Eject Button conjunction;
+ *   2. the pool predicate: open team sheets with both sheets present, minus the Eject Button conjunction; and, since
+ *      2026-10-01 (Will), open-sheet bo3 play by engine/quality.js isOpenSheetBo3() — the bo3 format, or a bo1-format
+ *      room under exactly Force Open Team Sheets + Best of = 3. A bo1 game whose sheets were offered and accepted is
+ *      bo1 play and is out;
  *   3. the shared quality filter (data/quality-filter.json through engine/quality.js reasons()), the same
  *      rules Reg M-B's competitive view applies -- bot names, behavioural bots (judged over EVERY row of
  *      this regulation's stores), a forfeit before any action, short games, a partial bring.
@@ -134,7 +137,7 @@ function main() {
   const inFormat = [], competitive = [];
   for (const s of STORES) {
     const f = { collected: s.rows.length, other_format: {}, after_format: 0, excluded_not_open_sheet: 0,
-                excluded_eject_old_rule: 0, after_pool_predicate: 0 };
+                excluded_not_open_sheet_bo3: 0, excluded_eject_old_rule: 0, after_pool_predicate: 0 };
     const stepCounts = Object.fromEntries(Q.FUNNEL_STEPS.map(([label]) => [label, 0]));
     let clean = 0;
     const reasonTally = {};
@@ -142,6 +145,10 @@ function main() {
       if (g.format !== TOKEN) { const k = g.format || '(no format field)'; f.other_format[k] = (f.other_format[k] || 0) + 1; continue; }
       f.after_format++; inFormat.push(g);
       if (!PRED.inScope(g)) { f.excluded_not_open_sheet++; continue; }
+      /* OPEN-SHEET BO3 PLAY ONLY (Will, 2026-10-01): engine/quality.js isOpenSheetBo3(). The pool predicate above admits
+       * any bo1 game whose sheets were shown; the game we play is the bo3 format, or a bo1-format room under exactly Force
+       * Open Team Sheets + Best of = 3. The frozen pool keeps the older scope and is not re-cut. */
+      if (!Q.isOpenSheetBo3(g)) { f.excluded_not_open_sheet_bo3++; continue; }
       if (PRED.oldRule(g)) { f.excluded_eject_old_rule++; continue; }
       f.after_pool_predicate++;
       const rs = Q.reasons(g, cfg, bots);
@@ -307,6 +314,8 @@ function main() {
         plain_file_beside_not_read: s.plainBeside })),
       formatToken: TOKEN,
       predicate: { module: 'engine/regmc_pool_predicate.js', scope: 'openSheet === true AND both sheets present',
+        open_sheet_bo3: 'AND engine/quality.js isOpenSheetBo3(): the bo3 format, or a bo1-format room under exactly Force Open '
+          + 'Team Sheets + Best of = 3 (Will, 2026-10-01). The frozen pool was cut before this clause and is not re-cut.',
         exclusion: 'date < ' + PRED.CUTOFF + ' (UTC) AND an item with id ' + PRED.EJECT_ID + ' is declared on EITHER sheet',
         same_as: REGN.artifactFor(REGN.POOL_DIR) + '/pool-receipt.json predicate' },
       filter: 'data/quality-filter.json',

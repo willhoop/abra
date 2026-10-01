@@ -66,6 +66,20 @@ _stamped 2026-10-01 06:14_
   changed by it.
 - **Instrument note.** `engine/provenance.js --graph` lists no Reg M-C store as an input of any `-regmc` artifact,
   because those paths are built at run time. So a re-parse will not be flagged there on its own.
+## OPEN-SHEET BO3 PLAY IS ONE CLASSIFIER. THE bo1 OTS + Bo3 ROOM COUNTS; EVERY OTHER CUSTOM ROOM, AND OUR OWN ACCOUNTS, ARE OUT. 2026-10-01 (abra/regmc 1.64.0)
+
+Will's decision, and the judgement the 1.36.0 entry below left open.
+
+- **`engine/quality.js` `customRuleRegime()` / `isOpenSheetBo3()`** decide from the room's own rule text whether a game
+  is the bo3 format's game (Force Open Team Sheets + Best of = 3, nothing else). `tests/test-open-sheet-bo3.js` asks
+  Showdown's rule table the same question for every rule string the scan has seen; they agree on all of them.
+- **Every other custom-rule room is excluded**, not only the ones that alter legality.
+- **Our own accounts** are declared once in `data/quality-filter.json` `rules.exclude_own_accounts`; four typed copies
+  in SOLVER's files are gone.
+- The usage model and the open-sheet datasets call it. **The frozen pool is not re-cut.**
+
+Counts by rule and by rating band: `docs/_reports/2026-10-01-custom-ots-bo3.md`. **Owed:** SOLVER re-runs its
+datasets on main; `status.js --write` from main.
 
 ## REG M-C STORE QUALITY: THE STALE PLAIN STORE IS NO LONGER READ, BOTH ID-KEYED RULES JUDGE REG M-C, AND THE BOT RULE NEEDS BOT TEMPO. 2026-09-30 (abra/regmc 1.36.0)
 

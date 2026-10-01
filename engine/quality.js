@@ -367,7 +367,10 @@ function customRuleset() {
       + `NO game is excluded for a custom ruleset. Run: node engine/scan_custom_rulesets.js`);
     _custom = out; return out;
   }
-  for (const id of Object.keys(v.ids || {})) out.ids.add(id);
+  /* A legacy (Reg M-B) verdict carries no `regulation` and its `ids` are excluded as they always were.
+   * A per-regulation verdict is read by the sibling loop below, which classifies every detected room by
+   * its rule text; reading its `ids` here as well would skip that classification. */
+  if (!v.regulation) for (const id of Object.keys(v.ids || {})) out.ids.add(id);
   out.generated = v.generated || null;
   const c = v.counts || {}, u = v.untestable || {};
   out.raw_logs_scanned = c.raw_logs_scanned || 0;
@@ -377,15 +380,125 @@ function customRuleset() {
   /* EVERY REGULATION'S SCAN, unioned — the same reasoning and the same reader as illegalTeams().
    * engine/scan_custom_rulesets.js writes data/custom-ruleset-ids-<id>.json for a non-owner
    * regulation; the legacy fields above stay whichever file this name served. */
+  /* 2026-10-01 (MEASURE, Will's decision): a per-regulation scan is CLASSIFIED HERE, from each room's
+   * rule text, by customRuleRegime() below. Every detected room is excluded EXCEPT one whose rules leave
+   * the game exactly the open-sheet bo3 game. The scan's own split of `ids` and `ids_open_sheet_bo3` is
+   * written by the same function; if the two disagree the artifact is older than the classifier, and the
+   * read-time answer wins and is reported. */
+  out.allowed = new Set();             // custom-rule rooms that ARE open-sheet bo3 play
+  out.rules_of = new Map();            // id -> rule text, every detected room of a per-regulation scan
+  out.by_rule = new Map();             // rule text + format -> { rows, verdict }
   out.verdicts = siblingVerdicts('custom-ruleset-ids', v).map(s => {
-    for (const id of Object.keys(s.v.ids || {})) out.ids.add(id);
+    const strings = (s.v.rule_strings || []).map(r => r.rules);
+    let excluded = 0, allowed = 0, disagree = 0;
+    const maps = [s.v.ids, s.v.ids_open_sheet_bo3, s.v.ids_information_regime_not_excluded];
+    for (const m of maps) for (const [id, ix] of Object.entries(m || {})) {
+      const text = strings[ix];
+      if (text == null) { out.ids.add(id); excluded++; continue; }   // unreadable index: exclude, never admit
+      out.rules_of.set(id, text);
+      const reg = customRuleRegime(formatOfId(id), text);
+      const key = formatOfId(id) + '\u0000' + text;
+      const b = out.by_rule.get(key) || { format: formatOfId(id), rules: text, rows: 0, verdict: reg.verdict };
+      b.rows++; out.by_rule.set(key, b);
+      if (reg.open_sheet_bo3) { out.allowed.add(id); allowed++; if (m === s.v.ids) disagree++; }
+      else { out.ids.add(id); excluded++; if (m !== s.v.ids) disagree++; }
+    }
+    if (disagree) console.error(`quality: ${s.rel} splits ${disagree} room(s) differently from customRuleRegime(); `
+      + `the read-time classification is used. Re-run: node engine/scan_custom_rulesets.js --regulation ${s.v.regulation}`);
     const sc = s.v.counts || {}, su = s.v.untestable || {};
     return { source: s.rel, regulation: s.v.regulation, generated: s.v.generated || null,
-             ids: Object.keys(s.v.ids || {}).length, raw_logs_scanned: sc.raw_logs_scanned || 0,
+             ids: excluded, allowed_open_sheet_bo3: allowed, split_disagreements: disagree,
+             raw_logs_scanned: sc.raw_logs_scanned || 0,
              untestable: su.store_ids_with_no_raw_log || 0, untestable_share: su.share || 0 };
   });
   _custom = out; return out;
 }
+
+/* ============================================================================================
+ * IS THIS GAME OPEN-SHEET BO3 PLAY? — ONE IMPLEMENTATION. Will, 2026-10-01.
+ *
+ * "The game we play" is the Reg M-C bo3 format: Force Open Team Sheets and Best of = 3. A game counts
+ * when it was played in that format, OR in the bo1 format under custom rules that turn it into exactly
+ * that game. Showdown's bo1 format OFFERS open sheets (`Open Team Sheets`, both players must accept) and
+ * plays one game; the bo3 format FORCES them and plays three. Both bases are facts about Showdown's
+ * formats, and tests/test-open-sheet-bo3.js checks this parser against Showdown's own rule table for
+ * every rule string the scan has seen, so the parser cannot drift from the format.
+ *
+ * EVERY OTHER CUSTOM RULE EXCLUDES THE GAME (Will, 2026-10-01: "the only custom rule set allowed is the
+ * open-sheet bo3 one"). Any token that is not an open-sheet or best-of rule changes play — a clause, a
+ * ban, a timer, a mod — and the room is not our game.
+ *
+ * The rule text is Showdown's own `N custom rule(s):` infobox, read out of the raw log. Store rows do
+ * not carry it; engine/scan_custom_rulesets.js reads it into data/custom-ruleset-ids-<reg>.json, and
+ * customRuleset() above maps each id back to its text. Callers that hold the raw log pass the text in
+ * directly.
+ * ============================================================================================ */
+const normRule = s => String(s).toLowerCase().replace(/\s+/g, '');
+/** The Showdown format a game id was played in: `smogtours-<format>-<n>` and `<format>-<n>`. */
+function formatOfId(id) { return String(id || '').replace(/^smogtours-/, '').replace(/-\d+$/, ''); }
+let _bases = null;
+/** format id -> its base regime, READ from data/regulations.json: each `bo3Format` forces sheets and
+ *  plays three, each `showdownFormat` offers sheets and plays one. */
+function formatBases() {
+  if (_bases) return _bases;
+  _bases = new Map();
+  let j = {};
+  try { j = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'regulations.json'), 'utf8')); }
+  catch (e) { console.error(`quality: data/regulations.json would not read (${e.message}); no format has a known base, so no game is open-sheet bo3.`); }
+  const entries = [...Object.values(j.regulations || {}), ...Object.values(j.runtime || {})];
+  for (const e of entries) {
+    if (!e || typeof e !== 'object') continue;
+    if (e.bo3Format) _bases.set(e.bo3Format, { force: true, offer: false, bestOf: 3 });
+    if (e.showdownFormat && !_bases.has(e.showdownFormat)) _bases.set(e.showdownFormat, { force: false, offer: true, bestOf: 1 });
+  }
+  return _bases;
+}
+/** The regime a room plays under: its format's base, with its custom rules applied in order.
+ *  verdict: 'open_sheet_bo3' | 'other_rules' (a rule that changes play) | 'not_bo3' | 'not_open_sheet'
+ *  | 'unknown_format'. `custom` is whether any rule text was given. */
+function customRuleRegime(format, rulesText) {
+  const base = formatBases().get(format);
+  const custom = !!(rulesText && String(rulesText).trim());
+  if (!base) return { format, custom, verdict: 'unknown_format', open_sheet_bo3: false, other: [] };
+  let force = base.force, offer = base.offer, bestOf = base.bestOf;
+  const other = [];
+  for (const raw of custom ? String(rulesText).split(',') : []) {
+    const t = normRule(raw);
+    if (!t) continue;
+    if (t === 'forceopenteamsheets') force = true;
+    else if (t === 'openteamsheets') offer = true;
+    else if (t === '!forceopenteamsheets') force = false;
+    else if (t === '!openteamsheets') offer = false;
+    else if (/^bestof=\d+$/.test(t)) bestOf = +t.split('=')[1];
+    else other.push(t);
+  }
+  const verdict = other.length ? 'other_rules' : !force ? 'not_open_sheet' : bestOf !== 3 ? 'not_bo3' : 'open_sheet_bo3';
+  return { format, custom, force_open_sheets: force, offer_open_sheets: offer, best_of: bestOf, other,
+           verdict, open_sheet_bo3: verdict === 'open_sheet_bo3' };
+}
+/** The custom-rule text a game was played under, or null when its raw log carried no infobox (or was
+ *  never scanned: see customRuleset().untestable). */
+function customRulesOf(id) { const C = customRuleset(); return C.rules_of ? (C.rules_of.get(id) || null) : null; }
+/** IS THIS GAME OPEN-SHEET BO3 PLAY? Every consumer that builds an open-sheet dataset calls this.
+ *  `rulesText` may be passed by a caller holding the raw log; otherwise the scan's text is used. */
+function isOpenSheetBo3(g, rulesText) {
+  const id = g && g.id;
+  const text = rulesText !== undefined ? rulesText : customRulesOf(id);
+  return customRuleRegime(formatOfId(id), text).open_sheet_bo3;
+}
+
+/* OUR OWN ACCOUNTS — a fact about us, declared once in data/quality-filter.json
+ * (rules.exclude_own_accounts.accounts), never typed into a consumer. Matched on Showdown's user id
+ * (lower case, letters and digits only), which is how Showdown itself compares names. */
+let _own = null;
+function ownAccounts() {
+  if (_own) return _own;
+  const r = (config().rules || {}).exclude_own_accounts || {};
+  _own = new Set(Object.keys(r.accounts || {}).map(toID));
+  return _own;
+}
+function toID(s) { return String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]/g, ''); }
+function isOwnAccount(name) { return ownAccounts().has(toID(name)); }
 
 /* Did anything actually happen? One move or one switch is enough. Deliberately NOT a turn count:
  * a game can carry turn objects with no action in them, and the question the forfeit rule asks is
@@ -457,6 +570,10 @@ function reasons(g, cfg, bots) {
    * of the raw log by engine/scan_custom_rulesets.js. */
   const cr = r.exclude_custom_ruleset;
   if (cr && cr.on && customRuleset().ids.has(g.id)) bad.push('custom_ruleset');
+  /* DECLARED — our own accounts (rules.exclude_own_accounts). A game we played is not evidence about
+   * human play, whatever the bot-name pattern and the behavioural rule say about the account. */
+  const oa = r.exclude_own_accounts;
+  if (oa && oa.on && ((g.p1 && isOwnAccount(g.p1.name)) || (g.p2 && isOwnAccount(g.p2.name)))) bad.push('own_account');
   return bad;
 }
 
@@ -518,6 +635,8 @@ const FUNNEL_STEPS = [
    * meaning what it meant. The declared row first, then the detector. */
   ['after_nonstandard_ruleset', 'nonstandard_ruleset'],
   ['after_custom_ruleset', 'custom_ruleset'],
+  /* APPENDED 2026-10-01, for the same reason. */
+  ['after_own_accounts', 'own_account'],
 ];
 function funnel(p) {
   const games = readStore(p), cfg = config();
@@ -574,14 +693,22 @@ function funnel(p) {
     on: CR.on, source: CR.source, generated: CR.generated, verdict_missing: CR.missing,
     ids: CR.ids.size, raw_logs_scanned: CR.raw_logs_scanned, alter_legality: CR.alter_legality,
     untestable: CR.untestable, untestable_share: CR.untestable_share, verdicts: CR.verdicts || [],
+    allowed_open_sheet_bo3: CR.allowed ? CR.allowed.size : 0,
     removed_from_clean: all.filter(rs => rs.length === 1 && rs[0] === 'custom_ruleset').length,
     flagged_anywhere: all.filter(rs => rs.includes('custom_ruleset')).length,
+  };
+  const OA = cfg.rules.exclude_own_accounts || {};
+  out.own_accounts = {
+    on: !!OA.on, accounts: Object.keys(OA.accounts || {}),
+    removed_from_clean: all.filter(rs => rs.length === 1 && rs[0] === 'own_account').length,
+    flagged_anywhere: all.filter(rs => rs.includes('own_account')).length,
   };
   return out;
 }
 
 module.exports = { config, storePath, readStore, reasons, isClean, loadGames, funnel, behaviouralBots, illegalTeams,
-                   customRuleset, FUNNEL_STEPS, STORE, CONFIG, VALIDATION, CUSTOM_RULESET };
+                   customRuleset, customRuleRegime, customRulesOf, isOpenSheetBo3, formatOfId, formatBases,
+                   ownAccounts, isOwnAccount, toID, FUNNEL_STEPS, STORE, CONFIG, VALIDATION, CUSTOM_RULESET };
 
 if (require.main === module) {
   const f = funnel(), t = f.collected;
@@ -595,7 +722,8 @@ if (require.main === module) {
                 ['after_legality', 'after removing teams Showdown rejects (species/item)'],
                 ['after_corrupt_winner', 'after removing DECLARED corrupt-winner rows'],
                 ['after_nonstandard_ruleset', 'after removing DECLARED nonstandard-ruleset rows'],
-                ['after_custom_ruleset', 'after removing games played under a CUSTOM RULESET']];
+                ['after_custom_ruleset', 'after removing games played under a CUSTOM RULESET'],
+                ['after_own_accounts', 'after removing games played by OUR OWN accounts']];
   let prev = t;
   for (const [k, label] of rows) {
     if (!(k in f)) continue;

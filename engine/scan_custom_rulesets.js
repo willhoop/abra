@@ -175,6 +175,17 @@ async function eachLine(file, fn) {
   /* ---- the artifact ------------------------------------------------------------------------ */
   const rules = [...byRule.entries()].sort((a, b) => b[1].rows - a[1].rows)
     .map(([k, v]) => ({ rules: k, rows: v.rows, alters_legality: v.alters_legality, entity_token: v.entity_token }));
+  /* The verdict per (format, rule string), from the one classifier, so the artifact says why each room
+   * is in or out. Counted over the store-joined rooms only. */
+  const verdictTable = new Map();
+  if (!IS_OWNER) for (const [id, r] of hits) {
+    if (!storeIds.has(id)) continue;
+    const reg = Q.customRuleRegime(Q.formatOfId(id), r);
+    const k = reg.format + '|' + r;
+    const e = verdictTable.get(k) || { format: reg.format, rules: r, rows: 0, verdict: reg.verdict,
+      force_open_sheets: reg.force_open_sheets, best_of: reg.best_of, other: reg.other };
+    e.rows++; verdictTable.set(k, e);
+  }
   const ruleIndex = new Map(rules.map((r, i) => [r.rules, i]));
   /* UNDER A NON-OWNER REGULATION ONLY THE LEGALITY-ALTERING ROOMS ARE EXCLUDED — and that is a scope
    * decision already written down, not a new one. docs/REGMC.md "THE M-C POOL CARRIES CUSTOM-RULE
@@ -185,10 +196,16 @@ async function eachLine(file, fn) {
    * and every other infobox room is published under `ids_information_regime_not_excluded` for that
    * judgement. Sheet-regime rooms are already scoped by the pool predicate (openSheet and both sheets).
    * Under Reg M-B every infobox room is excluded, as Will decided on 2026-09-21. */
-  const ids = {}, idsRegime = {};
+  /* SUPERSEDED 2026-10-01 BY WILL'S DECISION. The paragraph above is left as it was written. Under a
+   * non-owner regulation EVERY custom-rule room is now excluded except one whose rules leave the game
+   * exactly the open-sheet bo3 game (Force Open Team Sheets + Best of = 3, nothing else). The split is
+   * made by engine/quality.js customRuleRegime(), the one classifier, from each room's own rule text and
+   * format; quality.js re-classifies at read time and reports any disagreement with this file. The
+   * allowed rooms are published under `ids_open_sheet_bo3`. Under Reg M-B nothing changes. */
+  const ids = {}, idsOpenBo3 = {};
   for (const [id, r] of [...hits.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
-    if (IS_OWNER || LEGALITY.test(r) || ENTITY.test(r)) ids[id] = ruleIndex.get(r);
-    else idsRegime[id] = ruleIndex.get(r);
+    if (IS_OWNER || !Q.customRuleRegime(Q.formatOfId(id), r).open_sheet_bo3) ids[id] = ruleIndex.get(r);
+    else idsOpenBo3[id] = ruleIndex.get(r);
   }
 
   const untestableShare = storeIds.size ? untestable / storeIds.size : 0;
@@ -223,7 +240,7 @@ async function eachLine(file, fn) {
       joined_share: storeIds.size ? +(joined / storeIds.size).toFixed(6) : 0,
       joined_alter_legality_or_pick: joinedLeg,
       ids: Object.keys(ids).length,
-      ...(IS_OWNER ? {} : { ids_information_regime_not_excluded: Object.keys(idsRegime).length }),
+      ...(IS_OWNER ? {} : { ids_open_sheet_bo3: Object.keys(idsOpenBo3).length }),
     },
     untestable: {
       store_ids_with_no_raw_log: untestable,
@@ -239,8 +256,10 @@ async function eachLine(file, fn) {
            + 'question on these bytes.',
     },
     rule_strings: rules,
+    ...(IS_OWNER ? {} : { verdict_by_format_and_rules: [...verdictTable.values()].sort((a, b) => b.rows - a.rows),
+                          classifier: 'engine/quality.js customRuleRegime() — excluded unless the rules leave the game exactly the open-sheet bo3 game (Will, 2026-10-01)' }),
     ids,
-    ...(IS_OWNER ? {} : { ids_information_regime_not_excluded: idsRegime }),
+    ...(IS_OWNER ? {} : { ids_open_sheet_bo3: idsOpenBo3 }),
   };
   const body = JSON.stringify(out, null, 1) + '\n';
   if (OUT) fs.writeFileSync(OUT, body);
@@ -261,8 +280,8 @@ async function eachLine(file, fn) {
   /* PRINTED EVERY RUN. Silence here would let a partial scan read as a complete one. */
   console.log(`  UNTESTABLE           ${untestable.toLocaleString()} store ids have no raw log on disk `
     + `(${pct(untestable, storeIds.size)}) - the count above is a FLOOR, not a census`);
-  if (!IS_OWNER) console.log(`  EXCLUDED (${REGN.ID})       ${Object.keys(ids).length.toLocaleString()} ids whose rules alter legality or pick; `
-    + `${Object.keys(idsRegime).length.toLocaleString()} information-regime rooms published, NOT excluded (docs/REGMC.md: not yet judged)`);
+  if (!IS_OWNER) console.log(`  EXCLUDED (${REGN.ID})       ${Object.keys(ids).length.toLocaleString()} ids whose rules are not the open-sheet bo3 game; `
+    + `${Object.keys(idsOpenBo3).length.toLocaleString()} open-sheet bo3 rooms kept (Will, 2026-10-01)`);
   console.log('\n  top rule strings');
   for (const r of rules.slice(0, 8))
     console.log(`    ${String(r.rows).padStart(6)}  ${r.alters_legality ? 'LEGALITY' : '        '}  ${r.rules.slice(0, 84)}`);
