@@ -307,8 +307,12 @@ def custom_ruleset():
     out['untestable_share'] = u.get('share') or 0
     # EVERY REGULATION'S SCAN, unioned - mirrors customRuleset() in engine/quality.js.
     out['verdicts'] = []
+    # 2026-10-01 (Will): rooms whose rules touch only the sheets and the series length are decided per game by
+    # reasons() (admitted when both sheets were shown). Mirrors `conditional` in engine/quality.js.
+    out['conditional'] = set()
     for rel, s in _sibling_verdicts('custom-ruleset-ids', v):
         out['ids'].update((s.get('ids') or {}).keys())
+        out['conditional'].update((s.get('ids_sheet_rules_only') or {}).keys())
         sc, su = s.get('counts') or {}, s.get('untestable') or {}
         out['verdicts'].append({'source': rel, 'regulation': s.get('regulation'), 'generated': s.get('generated'),
                                 'ids': len(s.get('ids') or {}), 'raw_logs_scanned': sc.get('raw_logs_scanned') or 0,
@@ -368,9 +372,30 @@ def reasons(g, cfg=None, bots=None):
         bad.append('nonstandard_ruleset')
     # DETECTED, NOT DECLARED - see custom_ruleset() above.
     cr = r.get('exclude_custom_ruleset')
-    if cr and cr.get('on') and g.get('id') in custom_ruleset()['ids']:
-        bad.append('custom_ruleset')
+    if cr and cr.get('on'):
+        C = custom_ruleset()
+        if g.get('id') in C['ids'] or (g.get('id') in C.get('conditional', ()) and not both_sheets_shown(g)):
+            bad.append('custom_ruleset')
+    # DECLARED - our own accounts (rules.exclude_own_accounts). Mirrors reasons() in engine/quality.js:
+    # matched on Showdown's user id, lower case letters and digits only.
+    oa = r.get('exclude_own_accounts')
+    if oa and oa.get('on'):
+        own = {_to_id(k) for k in (oa.get('accounts') or {})}
+        if _to_id((g.get('p1') or {}).get('name')) in own or _to_id((g.get('p2') or {}).get('name')) in own:
+            bad.append('own_account')
     return bad
+
+
+def _to_id(s):
+    return re.sub(r'[^a-z0-9]', '', str(s if s is not None else '').lower())
+
+
+def both_sheets_shown(g):
+    """Both players' sheets appear in the stored game. Mirrors bothSheetsShown() in engine/quality.js."""
+    if isinstance(g.get('sheetsShown'), bool):
+        return g['sheetsShown']
+    s = g.get('sheets') or {}
+    return isinstance(s.get('p1'), list) and isinstance(s.get('p2'), list) and bool(s['p1']) and bool(s['p2'])
 
 
 def is_clean(g, cfg=None, bots=None):
@@ -402,6 +427,8 @@ FUNNEL_STEPS = [
     # meaning what it meant. The declared row first, then the detector.
     ('after_nonstandard_ruleset', 'nonstandard_ruleset'),
     ('after_custom_ruleset', 'custom_ruleset'),
+    # APPENDED 2026-10-01, for the same reason.
+    ('after_own_accounts', 'own_account'),
 ]
 
 

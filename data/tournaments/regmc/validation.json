@@ -1,0 +1,1675 @@
+{
+ "generated": "2026-10-01T07:26:03.332Z",
+ "builder": "solver/tournaments/validate.js",
+ "format": "gen9championsvgc2026regmcbo3",
+ "checkout": "pokemon-showdown-mc",
+ "checkout_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+ "store_events": [
+  {
+   "key": "2026-09-12-vr-september-challenge-1",
+   "shard_sha256": "ee32730f66cd3a6c91fa42b8a771a20f53231898dcc9baa7ed6146386417b76e"
+  },
+  {
+   "key": "2026-09-19-baltimore",
+   "shard_sha256": "9222c457116c10afc7363464aece055a92e26641baea6e71a05d4743a52c7948"
+  },
+  {
+   "key": "2026-09-19-vr-september-challenge-2",
+   "shard_sha256": "91164334c6f70782f6c3ec28f2d11a83c3863571fa159e1e28a8511206f5c950"
+  },
+  {
+   "key": "2026-09-26-frankfurt",
+   "shard_sha256": "43a415ac6add49f0b6e9ea86ab2101af8655487d4e42709e4f455df3e393bec3"
+  },
+  {
+   "key": "2026-09-26-brisbane",
+   "shard_sha256": "c6183864b452d17740fc8b3970fe4e01fbb1b0279e30c0f4d46ccf67ef37b5eb"
+  },
+  {
+   "key": "2026-10-01-vr-replica",
+   "shard_sha256": "e9a83566c7db0ff6147c4a0734907f95e16c19e697e69c6b20109e077131aab5"
+  }
+ ],
+ "teams": 539,
+ "legal": 537,
+ "illegal": 2,
+ "illegal_teams": [
+  {
+   "team_id": "2026-09-12-vr-september-challenge-1/masters/15",
+   "problems": [
+    "Aerodactyl can't have Unaware."
+   ]
+  },
+  {
+   "team_id": "2026-09-26-brisbane/masters/66",
+   "problems": [
+    "Salamence can't learn Double Team."
+   ]
+  }
+ ],
+ "by_team": {
+  "2026-09-12-vr-september-challenge-1/masters/1": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/2": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/3": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/4": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/5": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/6": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/7": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/8": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/9": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/10": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/11": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/12": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/13": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/14": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/15": {
+   "ok": false,
+   "problems": [
+    "Aerodactyl can't have Unaware."
+   ]
+  },
+  "2026-09-12-vr-september-challenge-1/masters/16": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/17": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/18": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/19": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/20": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/21": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/22": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/23": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/24": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/25": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/26": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/27": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/28": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/29": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/30": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/31": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/32": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/33": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/34": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/35": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/36": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/37": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/38": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/39": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/40": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/41": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/42": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/43": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/44": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/45": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/46": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/47": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/48": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/49": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/50": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/51": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/52": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/53": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/54": {
+   "ok": true
+  },
+  "2026-09-12-vr-september-challenge-1/masters/55": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/1": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/2": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/3": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/4": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/5": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/6": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/7": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/8": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/9": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/10": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/11": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/12": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/13": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/14": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/15": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/16": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/17": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/18": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/19": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/20": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/21": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/22": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/23": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/24": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/25": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/26": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/27": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/28": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/29": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/30": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/31": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/32": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/33": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/34": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/35": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/36": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/37": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/38": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/39": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/40": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/41": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/42": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/43": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/44": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/45": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/46": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/47": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/48": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/49": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/50": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/51": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/52": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/53": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/54": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/55": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/56": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/57": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/58": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/59": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/60": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/61": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/62": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/63": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/64": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/65": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/66": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/67": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/68": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/69": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/70": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/71": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/72": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/73": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/74": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/75": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/76": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/77": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/78": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/79": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/80": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/81": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/82": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/83": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/84": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/85": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/86": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/87": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/88": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/89": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/90": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/91": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/92": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/93": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/94": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/95": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/96": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/97": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/98": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/99": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/100": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/101": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/102": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/103": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/104": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/105": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/106": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/107": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/108": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/109": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/110": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/111": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/112": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/113": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/114": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/115": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/116": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/117": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/118": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/119": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/120": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/121": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/122": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/123": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/124": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/125": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/126": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/127": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/128": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/129": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/130": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/131": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/132": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/133": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/134": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/135": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/136": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/137": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/138": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/139": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/140": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/141": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/142": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/143": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/144": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/145": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/146": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/147": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/148": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/149": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/150": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/151": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/152": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/153": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/154": {
+   "ok": true
+  },
+  "2026-09-19-baltimore/masters/155": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/1": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/2": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/3": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/4": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/5": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/6": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/7": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/8": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/9": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/10": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/11": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/12": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/13": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/14": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/15": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/16": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/17": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/18": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/19": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/20": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/21": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/22": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/23": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/24": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/25": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/26": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/27": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/28": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/29": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/30": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/31": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/32": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/33": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/34": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/35": {
+   "ok": true
+  },
+  "2026-09-19-vr-september-challenge-2/masters/36": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/1": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/2": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/3": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/4": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/5": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/6": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/7": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/8": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/9": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/10": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/11": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/12": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/13": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/14": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/15": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/16": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/17": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/18": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/19": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/20": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/21": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/22": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/23": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/24": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/25": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/26": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/27": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/28": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/29": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/30": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/31": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/32": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/33": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/34": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/35": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/36": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/37": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/38": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/39": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/40": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/41": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/42": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/43": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/44": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/45": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/46": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/47": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/48": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/49": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/50": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/51": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/52": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/53": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/54": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/55": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/56": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/57": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/58": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/59": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/60": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/61": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/62": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/63": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/64": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/65": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/66": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/67": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/68": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/69": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/70": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/71": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/72": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/73": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/74": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/75": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/76": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/77": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/78": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/79": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/80": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/81": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/82": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/83": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/84": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/85": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/86": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/87": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/88": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/89": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/90": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/91": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/92": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/93": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/94": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/95": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/96": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/97": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/98": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/99": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/100": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/101": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/102": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/103": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/104": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/105": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/106": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/107": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/108": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/109": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/110": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/111": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/112": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/113": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/114": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/115": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/116": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/117": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/118": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/119": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/120": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/121": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/122": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/123": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/124": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/125": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/126": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/127": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/128": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/129": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/130": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/131": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/132": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/133": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/134": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/135": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/136": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/137": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/138": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/139": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/140": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/141": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/142": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/143": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/144": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/145": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/146": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/147": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/148": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/149": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/150": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/151": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/152": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/153": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/154": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/155": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/156": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/157": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/158": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/159": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/160": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/161": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/162": {
+   "ok": true
+  },
+  "2026-09-26-frankfurt/masters/163": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/1": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/2": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/3": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/4": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/5": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/6": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/7": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/8": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/9": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/10": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/11": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/12": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/13": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/14": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/15": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/16": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/17": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/18": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/19": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/20": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/21": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/22": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/23": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/24": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/25": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/26": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/27": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/28": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/29": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/30": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/31": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/32": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/33": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/34": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/35": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/36": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/37": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/38": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/39": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/40": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/41": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/42": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/43": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/44": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/45": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/46": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/47": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/48": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/49": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/50": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/51": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/52": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/53": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/54": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/55": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/56": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/57": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/58": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/59": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/60": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/61": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/62": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/63": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/64": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/65": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/66": {
+   "ok": false,
+   "problems": [
+    "Salamence can't learn Double Team."
+   ]
+  },
+  "2026-09-26-brisbane/masters/67": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/68": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/69": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/70": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/71": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/72": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/73": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/74": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/75": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/76": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/77": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/78": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/79": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/80": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/81": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/82": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/83": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/84": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/85": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/86": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/87": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/88": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/89": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/90": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/91": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/92": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/93": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/94": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/95": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/96": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/97": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/98": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/99": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/100": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/101": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/102": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/103": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/104": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/105": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/106": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/107": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/108": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/109": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/110": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/111": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/112": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/113": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/114": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/115": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/116": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/117": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/118": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/119": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/120": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/121": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/122": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/123": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/124": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/125": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/126": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/127": {
+   "ok": true
+  },
+  "2026-09-26-brisbane/masters/128": {
+   "ok": true
+  },
+  "2026-10-01-vr-replica/replica/qZK7HCqj": {
+   "ok": true
+  },
+  "2026-10-01-vr-replica/replica/cpTuCZeC": {
+   "ok": true
+  }
+ }
+}

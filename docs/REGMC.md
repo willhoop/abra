@@ -40,7 +40,7 @@ not anything became usable. (The release cadence that made that true is measured
 
 | | |
 |---|---|
-| **A LINE** | a version series for one *(project or model, regulation)* pair. It has its own changelog, its own document floor, its own notes rows and its own backlog. |
+| **A LINE** | a version series for one *(project or model, regulation)* pair. It has its own changelog, its own document floor, its own record (since 2026-10-01 the changelog entry's `### Record` section; before, its notes rows) and its own backlog. |
 | **`0.x`** | NOT USABLE YET — SemVer 2.0.0 clause 4. |
 | **`1.0.0`** | usable: a gate certifies it on that regulation, and nothing it publishes is withheld. |
 | **RESET** | a new regulation starts a NEW line at `0.1.0`. It never inherits the old line's number. |
@@ -81,6 +81,8 @@ MEDICHAM ones in `docs/MODELS.md` and read as equally authoritative — one of t
 ### What is refused, so that "closed" cannot decay into a habit
 
 - A changelog entry or a notes row above the `closed=` version its line declares — `tests/test-docs-current.js`.
+- A row written into the frozen `docs/RUNNING-NOTES.md` above its `FROZEN:` version — the same clause
+  (`row_after_freeze`); convert it with `node engine/notes_to_changelog.js --migrate`.
 - A document whose masthead names a line no changelog declares.
 - A `0.x` line whose documents trail its TOP. A line with no major has no deferred pass, so its
   documents are due **every release**; that is stricter than the Reg M-B rule and it relaxes by itself
@@ -409,6 +411,50 @@ on 2026-09-09, and the stores run to 2026-09-21 — so the scan reached about fo
 That is not *"M-C is nearly clean"*; it is *"M-C has barely been asked"*. The scan prints that share on
 every run for exactly this reason. Full account:
 [`docs/_reports/2026-09-21-custom-ruleset-filter.md`](_reports/2026-09-21-custom-ruleset-filter.md).
+
+### WILL'S DECISION, 2026-10-01: THE OPEN-SHEET BO3 CUSTOM ROOM IS OUR GAME, AND NO OTHER CUSTOM ROOM IS
+
+*(abra/regmc 1.64.0. The judgement the two paragraphs above leave open is taken. They are left as written.)*
+
+- **A bo1-format room under the custom rules `Force Open Team Sheets, Best of = 3` IS open-sheet bo3 data,
+  the game we play.** The Eject Button / U-turn date-and-item rule (`engine/regmc_pool_predicate.js`
+  `oldRule`) still applies to it.
+- **Every other custom-rule room is excluded from every analysis and dataset** (Will: *"the only custom rule
+  set allowed is the open-sheet bo3 one"*). That includes bo1 rooms that only force sheets (one game) and bo1
+  rooms that only set `Best of = 3` (sheets offered, not forced).
+- **One classifier decides it:** `engine/quality.js` `customRuleRegime()` / `isOpenSheetBo3()`, from the
+  room's own rule text (the raw log's infobox, carried by `data/custom-ruleset-ids-regmc.json`). It is not an
+  id list, so a later room of the same kind is caught. `tests/test-open-sheet-bo3.js` checks it against
+  Showdown's own rule table for every rule string the scan has seen.
+- **A bo1 game whose sheets were offered and accepted, with no custom rule, is bo1 play and is out of the
+  open-sheet views.** It was in scope under the pool predicate above.
+- **Our own accounts are excluded wherever human play is modelled**, from one declared list:
+  `data/quality-filter.json` `rules.exclude_own_accounts`.
+- **The frozen pool `data/team-pool-frozen-regmc` is NOT re-cut.** Measurements pin it. Its `ots` half was cut
+  under the older scope; what a re-cut would change is in the report.
+
+Counts and the per-rule-string verdicts: [`docs/_reports/2026-10-01-custom-ots-bo3.md`](_reports/2026-10-01-custom-ots-bo3.md).
+
+### WILL'S DECISIONS, 2026-10-01 (SECOND PAIR): TURN PLAY AND SERIES PLAY ARE TWO ANSWERS, AND A CONSENT BO3 ROOM IS BO3
+
+*(abra/regmc 1.66.0. They extend the 1.64.0 decision above, which is left as written; its bullet "a bo1 game whose sheets
+were offered and accepted ... is out of the open-sheet views" now holds for SERIES uses only.)*
+
+- **Decision 1. A bo1 game in which both players accepted open team sheets COUNTS for turn-level models** (value
+  nets, human move/policy and habit models, PORYGON2 datasets, DODUO, GARY), because both sheets were visible and play
+  within a game is the same. **It is EXCLUDED from series-level uses** (bo3 preview, series adaptation, CHOMP's bo3
+  rates, rotation selection by series). Two answers from one classifier: `engine/quality.js` `isOpenSheetTurnPlay(g)`
+  and `isOpenSheetBo3(g)`, both from the room's rule text and the game's stored sheets, never an id list.
+  `isOpenSheetBo3` implies `isOpenSheetTurnPlay`.
+- **Decision 2. A bo1-format room set to `Best of = 3` in which both players accepted the sheets IS open-sheet bo3**
+  (open-sheet bo3 by consent). A `Best of = 3` room with no sheets shown is neither.
+- **A room whose rules touch only the sheets and the series length is decided by its sheets, not excluded by its
+  text.** Any other rule still excludes the room. The `Force Open Team Sheets`-only bo1 room (one game, sheets forced)
+  is turn play; that reading is MEASURE's, stated in the report, and is one line to reverse.
+- **The frozen pool is not re-cut.**
+
+Counts by rating band before and after, and which consumer reads which answer:
+[`docs/_reports/2026-10-01-open-sheet-turn-play.md`](_reports/2026-10-01-open-sheet-turn-play.md).
 
 **One thing found on the way, not fixed here, OPS's:**
 `data/games.gen9championsvgc2026regmc.jsonl` on disk is a stale snapshot of 2026-09-09 while

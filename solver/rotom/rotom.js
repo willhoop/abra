@@ -212,6 +212,7 @@ const RQ = require('./request.js');
 const { Clock } = require('./clock.js');
 const { parseGame, parseShowteam } = require('../human/parse_game.js');
 const MR = require('../arena/mega_rate.js');   // the mega capability counter, same definition as the arena and the human rate
+const TAC = require('../arena/tactics.js');   // speed control, mega and switches per game (abra/regmc 1.55.0): the same reader as the arena and the human comparison
 const APPLIED = require('./applied.js');       // chosen vs applied: did the server DO what we chose (every decision, every game)
 APPLIED.redirectors();                          // warm the format-derived redirect sets now, never on the first turn that needs them
 const XATU = require('../xatu/index.js');
@@ -268,6 +269,8 @@ const ST = { decisions: 0, byKind: {}, ms: { preview: [], move: [], switch: [] }
              /* MEGA, as a RATE on the games where OUR side could mega (solver/arena/mega_rate.js): a capability that cannot
               * prove it ran is assumed broken, and "at least one mega happened" once hid a 56%-vs-85% rate */
              mega: { games: 0, parsed: 0, capable: 0, megas: 0, turn: {}, delay: {}, opp_capable: 0, opp_megas: 0 },
+             /* TACTICS per game (solver/arena/tactics.js): speed control, mega, switches, read from the room log at game end */
+             tactics: { games: 0, errors: 0, speed_used: 0, speed_mattered: 0, speed_avail_games: 0, mega_capable: 0, megas: 0, switch_voluntary: 0, switch_forced: 0, switch_into_ko: 0, switch_into_resist_or_immune: 0 },
              /* CHOSEN VS APPLIED, over every check of every decision (preview, move, target, mega, switch, forced, timer) */
              applied: new APPLIED.Tally(), verifyCost: { runs: 0, decisions: 0, ms: 0, max_ms: 0 } };
 const fb = (k) => { ST.fallbacks[k] = (ST.fallbacks[k] || 0) + 1; };
@@ -952,6 +955,16 @@ function endBattle(B, winnerName) {
     if (mega.mine.capable) { ST.mega.capable++; if (mega.mine.mega) { ST.mega.megas++; ST.mega.turn[mega.mine.mega_turn] = (ST.mega.turn[mega.mine.mega_turn] || 0) + 1; ST.mega.delay[mega.mine.delay] = (ST.mega.delay[mega.mine.delay] || 0) + 1; } }
     if (opp && opp.capable) { ST.mega.opp_capable++; if (opp.mega) ST.mega.opp_megas++; }
   }
+  /* THE TACTICS COUNTERS (solver/arena/tactics.js fromLog over this room's own lines): tracked, never judged here */
+  let tactics = null;
+  try {
+    const tr = TAC.fromLog(B.lines.join('\n'), { me: B.me });
+    tactics = { mine: TAC.compact(tr.mine), opp: TAC.compact(tr.opp) };
+    const K = ST.tactics, m = tr.mine;
+    K.games++; K.speed_used += m.speed.used; K.speed_mattered += m.speed.mattered; if (m.speed.avail_turns) K.speed_avail_games++;
+    if (m.mega.capable_turn != null) { K.mega_capable++; if (m.mega.megaed) K.megas++; }
+    K.switch_voluntary += m.switch.voluntary; K.switch_forced += m.switch.forced; K.switch_into_ko += m.switch.into_ko; K.switch_into_resist_or_immune += m.switch.into_resist_or_immune;
+  } catch (e) { ST.tactics.errors++; event('tactics_error', { room: B.id, err: String(e && e.message || e).slice(0, 200) }); }
   const winner = winnerName == null ? null : (toID(B.names.p1) === toID(winnerName) ? 'p1' : 'p2');
   /* HOW this game ended, from its own lines (endings.js): a forfeit, the battle timer, or normal */
   const END = ENDINGS.gameEnd(B.lines, NAME);
@@ -982,6 +995,8 @@ function endBattle(B, winnerName) {
     result: { winner, winner_name: winnerName, mine: winner != null && winner === B.me, tie: winnerName == null, turns: parsed ? parsed.turns_played : B.turn },
     ...endF,
     mega,
+    /* speed control, mega and switches for both sides (solver/arena/tactics.js; abra/regmc 1.55.0) */
+    tactics,
     /* chosen vs applied for this game: every check of every decision, and each mismatch (solver/rotom/applied.js) */
     applied: B.tally.toJSON(),
     rated: B.rated, rating_before: Object.keys(B.ratingsBefore).length ? B.ratingsBefore : null, rating_after: null,
@@ -1236,6 +1251,7 @@ function writeSummary() {
     applied_cost: Object.assign({}, ST.verifyCost, { ms: +ST.verifyCost.ms.toFixed(2), mean_ms_per_run: ST.verifyCost.runs ? +(ST.verifyCost.ms / ST.verifyCost.runs).toFixed(3) : null,
       where: 'after the choice is sent (setImmediate), on a wait request, or at game end — never inside a decision budget' }),
     end_reasons: ST.endReasons, self_quits: ST.selfQuits,
+    tactics: ST.tactics,
     timer_on_seen: ST.timerOnSeen, games: ST.games, game_records: ST.gameRecords || 0, games_file: GAMES_FILE, replays: SAVER.COUNTERS, world_errors: ST.worldErrors, decisions_without_time_line: ST.noTimerLine,
     preview_sheet_wait_ms: stats(ST.previewSheetWaitMs),
     counters: { policy: P.COUNTERS, world: WB.COUNTERS, prior: PA.COUNTERS, rollout: R.COUNTERS, api: API.COUNTERS },

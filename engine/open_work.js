@@ -152,6 +152,8 @@ console.log('    ' + (c.unregistered == null ? 'NOT MEASURED' : String(c.unregis
  * WILL, 2026-09-06: *"we can update the documents every major release and just keep a running notes
  * page in between change the documentation rules"*. The full living-document set now moves on a MAJOR
  * release; `docs/RUNNING-NOTES.md` moves every change and carries the debt in between.
+ * (2026-10-01: the record is now the open changelog's `### Record` sections, and the notes page is a
+ * frozen archive. Nothing here changed: owedReport() reads both, cut at the declared freeze.)
  *
  * IT PRINTS HERE BECAUSE THAT IS THE ONLY THING THAT MAKES THE DEFERRAL SAFE. A backlog nobody sees
  * is not deferred work, it is abandoned work with a promise attached — which is what fourteen

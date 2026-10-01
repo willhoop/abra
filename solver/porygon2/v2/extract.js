@@ -63,7 +63,17 @@ const STORE = path.join(DATA_ROOT, 'data', 'games.' + FORMAT_ID + '.jsonl.gz');
 const RAWDIR = path.join(DATA_ROOT, 'data', 'raw', 'games.' + FORMAT_ID);
 const RAWPLAIN = path.join(DATA_ROOT, 'data', 'games.' + FORMAT_ID + '.raw-logs.jsonl');
 
-const OWN = new Set(['medicham32', 'willhoop', 'mag', 'mag2', 'miltank', 'miltank2']);   // solver/meta/extract.js OWN
+/* OUR OWN ACCOUNTS are declared once, in data/quality-filter.json rules.exclude_own_accounts, and read through
+ * engine/quality.js (2026-10-01). The typed list that stood here named three accounts no file shows we used. */
+const isOwn = n => Q.isOwnAccount(n);
+/* THE bo3 DATASET IS OPEN-SHEET BO3 PLAY, decided by engine/quality.js isOpenSheetBo3() (Will, 2026-10-01): the bo3
+ * format, and bo1-format rooms whose custom rules are exactly `Force Open Team Sheets` + `Best of = 3`. In bo3 mode the
+ * bo1 store and its raw logs are read too, and only those rooms are taken from them. Each game is judged by the
+ * behavioural-bot set of the store it sits in, as loadGames() does per store. */
+const BO1_ID = REG.showdownFormat;
+const BO1_STORE = path.join(DATA_ROOT, 'data', 'games.' + BO1_ID + '.jsonl.gz');
+const BO1_RAWDIR = path.join(DATA_ROOT, 'data', 'raw', 'games.' + BO1_ID);
+const BO1_RAWPLAIN = path.join(DATA_ROOT, 'data', 'games.' + BO1_ID + '.raw-logs.jsonl');
 const EJECT_BOUNDARY = Date.parse('2026-09-14T00:00:00Z') / 1000;                       // data/team-pool-frozen-regmc
 const SALT = 'abra-prior-v0';
 const BANDS = [[null, 'unrated'], [0, '<1100'], [1100, '1100-1199'], [1200, '1200-1299'], [1300, '1300-1399'], [1400, '1400-1499'], [1500, '1500-1599'], [1600, '>=1600']];
@@ -100,7 +110,7 @@ function main() {
   eachLine(stxt, line => {
     storeRows++;
     let g; try { g = JSON.parse(line); } catch (e) { storeBad++; return; }
-    slim.push({ id: g.id, date: g.date, p1: g.p1, p2: g.p2, winner: g.winner, forfeit: g.forfeit, six: g.six, brought: g.brought,
+    slim.push({ id: g.id, date: g.date, p1: g.p1, p2: g.p2, winner: g.winner, forfeit: g.forfeit, six: g.six, brought: g.brought, sheetsShown: Q.bothSheetsShown(g),
       turns: (g.turns || []).map(t => ({ ev: (t.ev || []).filter(e => e.t === 'm' || e.t === 's').slice(0, 1) })) });
     if (FMT === 'bo1') storeSets.set(g.id, g.sets || {});
   });
@@ -108,6 +118,26 @@ function main() {
   const games = slim.filter(g => { if (seenIds.has(g.id)) { dupStore++; return false; } seenIds.add(g.id); return true; });
   const bots = Q.behaviouralBots(games, cfg);
   const funnel = { store_rows: storeRows, store_bad_json: storeBad, store_duplicate_ids: dupStore, store_games: games.length };
+  /* bo3 mode: the bo1 store's open-sheet bo3 rooms (see BO1_ID above), judged by the bo1 store's bot set */
+  const promoted = new Set(), promotedBo3 = new Set(), botsOf = new Map();
+  if (FMT === 'bo3') {
+    const b1 = fs.readFileSync(BO1_STORE);
+    inputs.push({ role: 'parsed_store_bo1_for_open_sheet_bo3_rooms', path: BO1_STORE.replace(/\\/g, '/'), bytes: b1.length, sha256: sha256(b1), git_blob: blobId(b1), mtime: fs.statSync(BO1_STORE).mtime.toISOString() });
+    const all1 = [], seen1 = new Set();
+    eachLine(zlib.gunzipSync(b1).toString('utf8'), line => {
+      let g; try { g = JSON.parse(line); } catch (e) { return; }
+      if (seen1.has(g.id)) return; seen1.add(g.id);
+      all1.push({ id: g.id, date: g.date, p1: g.p1, p2: g.p2, winner: g.winner, forfeit: g.forfeit, six: g.six, brought: g.brought, sheetsShown: Q.bothSheetsShown(g),
+        turns: (g.turns || []).map(t => ({ ev: (t.ev || []).filter(e => e.t === 'm' || e.t === 's').slice(0, 1) })) });
+    });
+    const bots1 = Q.behaviouralBots(all1, cfg);
+    /* TURN-LEVEL DATA (Will, 2026-10-01, second decision): a value net learns within-game play, so the open-sheet stream
+     * takes every bo1-format game that is open-sheet TURN play (both sheets shown, no rule other than a sheet or best-of
+     * rule), not only the open-sheet bo3 rooms. Each kept row carries `open_sheet_bo3` for a series-level reader. */
+    for (const g of all1) if (Q.isOpenSheetTurnPlay(g) && !seenIds.has(g.id)) { promoted.add(g.id); botsOf.set(g.id, bots1); games.push(g); if (Q.isOpenSheetBo3(g)) promotedBo3.add(g.id); }
+    funnel.bo1_open_sheet_turn_play_rooms = promoted.size;
+    funnel.bo1_open_sheet_bo3_rooms = promotedBo3.size;
+  }
   const qFirst = {}, qAll = {};
   const want = new Map();                        // id -> slim game that passed quality + own
   /* GAME-SHAPE CODES ARE RECORDED, NOT CHARGED (Will, 2026-09-30): for the VALUE-NET datasets a forfeit, a short game
@@ -117,12 +147,12 @@ function main() {
   const GAME_SHAPE = new Set(['forfeit_no_action', 'short', 'partial_bring']);
   const qShape = {};
   for (const g of games) {
-    const all = Q.reasons(g, cfg, bots);
+    const all = Q.reasons(g, cfg, botsOf.get(g.id) || bots);
     const rs = all.filter(r => !GAME_SHAPE.has(r));
     g.quality_reasons = all;
     for (const r of all) if (GAME_SHAPE.has(r)) inc(qShape, r);
     const names = [g.p1 && g.p1.name, g.p2 && g.p2.name].filter(Boolean);
-    if (names.some(n => OWN.has(X.toID(n)))) rs.push('own_account');
+    if (names.some(isOwn) && !rs.includes('own_account')) rs.push('own_account');
     if (rs.length) { inc(qFirst, rs[0]); for (const r of rs) inc(qAll, r); continue; }
     want.set(g.id, g);
   }
@@ -137,6 +167,10 @@ function main() {
   const rawFiles = [];
   if (fs.existsSync(RAWDIR)) for (const f of fs.readdirSync(RAWDIR).filter(f => f.endsWith('.jsonl.gz')).sort()) rawFiles.push(path.join(RAWDIR, f));
   if (fs.existsSync(RAWPLAIN)) rawFiles.push(RAWPLAIN);
+  if (FMT === 'bo3') {   /* the bo1 raw logs, for the promoted rooms only (the `want` join below takes nothing else) */
+    if (fs.existsSync(BO1_RAWDIR)) for (const f of fs.readdirSync(BO1_RAWDIR).filter(f => f.endsWith('.jsonl.gz')).sort()) rawFiles.push(path.join(BO1_RAWDIR, f));
+    if (fs.existsSync(BO1_RAWPLAIN)) rawFiles.push(BO1_RAWPLAIN);
+  }
   /* GATE (a) ELIGIBILITY. PORYGON2 v1 trained on the human dataset (solver/out/human/, main checkout), whose manifest
    * lists every raw shard it read. A bo3 game read from a shard NOT on that list was never seen by v1, so the paired
    * v1-vs-v2 held-out comparison is fair to both only on those games (design §6). Recorded per game as `v1_unseen`. */
@@ -177,7 +211,7 @@ function main() {
       const log = String(r.log || '');
       // header filters
       const tier = (/\|tier\|([^\n]*)/.exec(log) || [])[1] || '';
-      if (!/Reg M-C/.test(tier) || (FMT === 'bo3') !== /\(Bo3\)/.test(tier)) return exclude(r.id, 'wrong_format');
+      if (!/Reg M-C/.test(tier) || (FMT === 'bo3') !== (/\(Bo3\)/.test(tier) || promoted.has(r.id))) return exclude(r.id, 'wrong_format');
       /* Illusion first, from the preview alone: a disguised member's lines are credited to the member it copies, which
        * can surface as a parse error (five members with more than four moves) before any later check would see it. */
       const preview = [...log.matchAll(/\n\|poke\|p[12]\|([^,|\n]+)/g)].map(x => x[1].trim());
@@ -185,7 +219,9 @@ function main() {
       let g;
       try { g = R.extract(log, { mode: FMT }); }
       catch (e) { return exclude(r.id, e.code === 'illusion_replace' ? 'illusion_possible' : 'parse_error', e.code || ('exception:' + String(e.message).slice(0, 60))); }
-      if (g.game.custom_rules) return exclude(r.id, 'custom_rules');
+      /* bo3: a custom-rule room is kept only when its rules leave it open-sheet bo3 play (engine/quality.js). bo1, the
+       * closed-sheet stream: every custom-rule room stays out, the open-sheet bo3 ones included (they are bo3 data). */
+      if (g.game.custom_rules && !(FMT === 'bo3' && Q.isOpenSheetTurnPlay({ id: r.id, sheetsShown: sg.sheetsShown }, g.game.custom_rules))) return exclude(r.id, 'custom_rules');
       const fin = g.final_state;
       const previewSp = ['p1', 'p2'].flatMap(s => fin[s].map(m => m.species));
       if (previewSp.some(sp => ILLUSION.has(X.species(sp).baseSpecies))) return exclude(r.id, 'illusion_possible');
@@ -209,7 +245,7 @@ function main() {
       const lo = rated ? Math.min(rp1, rp2) : null, hi = rated ? Math.max(rp1, rp2) : null;
       const split = splitOfGame(sg.p1.name, sg.p2.name);
       for (const k in g.counts) inc(counters, k, g.counts[k]);
-      const row = { id: r.id, fmt: FMT, date: sg.date, uploadtime: ups, shard: path.basename(f), v1_unseen: v1Shards ? (f !== RAWPLAIN && !v1Shards.has(path.basename(f))) : null, players: { p1: sg.p1.name, p2: sg.p2.name }, rating: { p1: rp1, p2: rp2 },
+      const row = { id: r.id, fmt: FMT, open_sheet_bo3: FMT === 'bo3' && Q.isOpenSheetBo3({ id: r.id, sheetsShown: sg.sheetsShown }, g.game.custom_rules || null), date: sg.date, uploadtime: ups, shard: path.basename(f), v1_unseen: v1Shards ? (f !== RAWPLAIN && !v1Shards.has(path.basename(f))) : null, players: { p1: sg.p1.name, p2: sg.p2.name }, rating: { p1: rp1, p2: rp2 },
         split, band: { min: band(lo), max: band(hi) }, sheets_public: g.game.sheets_public, quality_reasons: sg.quality_reasons || [], labels: { z: L.z, end: L.end, turns: L.turns, final: L.final },
         positions: g.positions.map((p, k) => ({ n: p.n, x: p.x, y: { turns_left: L.per[k].turns_left, next_ko: L.per[k].next_ko } })) };
       buf.push(JSON.stringify(row));
@@ -285,7 +321,9 @@ function main() {
     code, inputs, quality: { config_version: cfg.version || null, behavioural_bot_accounts: behaviouralBotAccounts.length, behavioural_bot_names: behaviouralBotAccounts,
       excluded_first_reason: qFirst, excluded_any_reason: qAll },
     filters: { order: ['quality reasons() incl. bot + behavioural_bot (game-shape codes forfeit_no_action / short / partial_bring recorded in quality_reasons, not charged)', 'own_account', 'no_raw_log', 'wrong_format', 'illusion_possible (preview)', 'parse_error', 'custom_rules', 'illegal_entity', 'pre_ejectbutton_fix', 'no_result', 'no_position'],
-      own_accounts: [...OWN], illusion_species: [...ILLUSION], eject_boundary: '2026-09-14T00:00:00Z',
+      own_accounts: [...Q.ownAccounts()], own_accounts_from: 'data/quality-filter.json rules.exclude_own_accounts',
+      open_sheet_bo3: FMT === 'bo3' ? 'per row: engine/quality.js isOpenSheetBo3() (the bo3 format, bo1-format OTS + Bo3 rooms, bo1-format Best of = 3 rooms where both accepted sheets)' : 'n/a',
+      open_sheet_turn_play: FMT === 'bo3' ? 'the admission rule of this stream: engine/quality.js isOpenSheetTurnPlay(), open-sheet bo3 plus every bo1-format game with both sheets shown and no rule other than a sheet or best-of rule (Will, 2026-10-01)' : 'n/a', illusion_species: [...ILLUSION], eject_boundary: '2026-09-14T00:00:00Z',
       split: 'player split sha256("' + SALT + ':" + toID(name)) mod 100 (<80 train, <90 val, else test), lifted to the game: test if either player is test, else val if either is val, else train' },
     funnel: Object.assign(funnel, { raw_rows_read: rawRows, raw_duplicate_ids: rawDup, raw_duplicate_conflicting_logs: rawConflict, excluded_after_quality: excl, kept: tally.games }),
     parse_errors: parseCodes, parse_examples: parseExamples,

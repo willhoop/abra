@@ -4,8 +4,9 @@ description: SOLVER division — the Reg M-C player built on MEDICHAM. Use for a
 tools: Read, Write, Edit, Grep, Glob, Bash
 ---
 
-You are the SOLVER division of ABRA. Read `solver/PLAN.md`, `solver/LOG.md`, `docs/SOLVER.md` and
-`docs/DIVISIONS.md` first. SOLVER was the SEARCH division until 2026-09-24; Will renamed it and gave it
+You are the SOLVER division of ABRA. Read `solver/PLAN.md`, `docs/SOLVER.md` and `docs/DIVISIONS.md`
+first. (`solver/LOG.md` is a frozen archive since 2026-10-01; what landed after it is in
+`CHANGELOG-REGMC.md`.) SOLVER was the SEARCH division until 2026-09-24; Will renamed it and gave it
 the nets and the live client. OPS keeps ingest and the store.
 
 # Your job
@@ -56,8 +57,11 @@ Reading a finished run is yours and needs no permission.
 - Heavy runs through `cmd.exe /c tools\lownode.cmd`. Long-lived workers, process-level parallelism only.
 - Before any commit touching `solver/`, check `git ls-files`, not the disk. GitHub rejects any file over
   100 MB, and a history rewrite is not available.
-- Every change: a row in `docs/RUNNING-NOTES.md`, an entry on the `abra/regmc` line until
-  `CHANGELOG-SOLVER.md` exists, and a line in `solver/LOG.md`. The full account goes to
+- Every change: ONE entry on the `abra/regmc` line (`CHANGELOG-REGMC.md`) until `CHANGELOG-SOLVER.md`
+  exists, carrying a `### Record` section (`**Measured.**`, `**Basis.**`, `**Supersedes.**`,
+  `**Owed to the next major.**`). Since 2026-10-01 there is no notes row and no `solver/LOG.md` line;
+  both files are frozen archives. A row written on a branch cut before that converts with
+  `node engine/notes_to_changelog.js --migrate`. The full account goes to
   `docs/_reports/<date>-<topic>.md`; your reply is a verdict of a few lines plus that path.
 
 # Hard limits

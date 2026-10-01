@@ -4,8 +4,10 @@
 CHOMP (preview), XATU (belief), MAG and DODUO (candidate narrowing), MILTANK (the search harness),
 SLOWKING (the matrix solver), PORYGON2 (value), GARY and HYPNO (habits and the exploit dial), DUSK
 (endgames), MEW and MACHAMP (self-play and training), WOBBUFFET (exploitability), GURU (meta), DITTO
-(teams), ROTOM (the live client), ALAKAZAM (the assembled agent) and KADABRA (the coach). Narrative log:
-[`solver/LOG.md`](../solver/LOG.md).
+(teams), ROTOM (the live client), ALAKAZAM (the assembled agent) and KADABRA (the coach). Record: one
+entry per change in [`CHANGELOG-REGMC.md`](../CHANGELOG-REGMC.md), with its `### Record` section. The
+narrative log [`solver/LOG.md`](../solver/LOG.md) is frozen as history (2026-10-01, ends at 1.64.0); the
+working detail it used to retell belongs in this ledger.
 
 **Its one number:** where the agent settles on the `gen9championsvgc2026regmcbo3` ladder — the mean
 rating over the last N series ± SD and the per-series residual `S − E`, never the peak
@@ -53,8 +55,8 @@ _stamped 2026-10-01 06:14_
 
 ## THE REG M-C SOLVER — where it stands (2026-09-24)
 
-State is printed, never typed: `solver/PLAN.md` §2 is the registry of what is built, `solver/LOG.md`
-records each landing, and the measured figures live in `docs/MODELS.md` under *The Reg M-C models*.
+State is printed, never typed: `solver/PLAN.md` §2 is the registry of what is built, `CHANGELOG-REGMC.md`
+records each landing (`solver/LOG.md` did until 2026-10-01), and the measured figures live in `docs/MODELS.md` under *The Reg M-C models*.
 This section says only what a division agent needs before it starts.
 
 - **Direction from 2026-10-01 (Will; `solver/PLAN.md` 0.3.0, abra/regmc 1.53.0).** One learned policy+value net
@@ -99,6 +101,11 @@ This section says only what a division agent needs before it starts.
     ladder baseline for PORYGON2 v2.
   - Unowned: Sucker Punch; ROTOM's world lays no Perish count and no Skill-Swapped ability.
   - `solver/results/2026-09-30-ladder-loss-postmortem/`, `docs/_reports/2026-09-30-ladder-loss-postmortem.md`.
+- **PORYGON2 v3, steps A–C (2026-10-01, abra/regmc 1.62.0).** `solver/porygon2/v3/`: the design, a frozen harness
+  (`evalset.js`: 2,778 positions, 1,300 deep-labelled with no value net in the reference; leakage test GREEN) and v2
+  distilled into a student at 0.91× gen5's leaf cost. The four nets are indistinguishable on ranking. ECE: student 0.052,
+  gen5 0.065. The student fails its pre-registered bar, so no screen or SPRT is pre-registered. gen5's raw net is +0.18
+  too high in [0.5, 0.9) on our ladder positions, not on strong human ones. `docs/_reports/2026-10-01-porygon2-v3.md`.
 - **PORYGON2 v1-r2 (deep labels on c1) FAILS gate (a) on the human half (2026-09-30, abra/regmc 1.46.0).** 13,414 deep
   labels on 4,123 c1 games, with the human share held at v1's. r2 − gen5: human −0.0044 [−0.0086, +0.0002], self-play
   −0.0131 [−0.0178, −0.0084]. r2 − v1 on humans +0.0033 [+0.00004, +0.0068]. No SPRT was run and gen5 is unchanged.
@@ -138,6 +145,20 @@ This section says only what a division agent needs before it starts.
   top 8 71.1%. Sucker Punch failed 17 of 36: the engine is right on all 17; 9 had no alternative row, 8 were leaf ties.
   World fixes: identity (formes, nicknames), Unburden, Flash Fire, added type; `solver/tests/test-rotom-world-fields.js`.
   No series has played on them. `docs/_reports/2026-10-01-search-blind-spots.md`.
+- **Speed control, mega and switches tracked; the bot beside humans (2026-10-01, abra/regmc 1.59.0).** Standing per-game
+  counters (`solver/arena/tactics.js`) on every ROTOM game record, in `report.js ladder`, and on every arena match row.
+  Over 126 search-arm ladder games, like with like against 1400+ humans: speed control 0.88 [0.69, 1.12], switch-outs
+  1.06 [0.92, 1.22], mega 0.98 [0.81, 1.18]. What costs games is the foe's speed control (win −0.22 [−0.39, −0.05];
+  humans −0.03) and switch-ins KO'd that turn (15.4% vs 10.0%). Our fours rarely carry Trick Room.
+  `docs/_reports/2026-10-01-speed-mega-switch.md`.
+- **v2 at 14 s and the gen5 role-v1 baselines (2026-10-01, abra/regmc 1.60.0).** Every run is honest, on role-v1 true
+  bodies, and on release `eaa5becc54eb`.
+  - v2 as gen5's leaf vs gen5's net, 14 s adaptive: the screen gives 0.495 [0.426, 0.564]. The clock ratio is 1.104,
+    so it is VOID, and there is no SPRT.
+  - gen5 1 s vs the clone: H1, 0.711 (90 games).
+  - gen5 5 s vs the clone: H1, 0.667 (102 games).
+  - gen5 vs gen0-r2: H0 at 0.497 (1,098 games), DEGRADED (24% prior fallbacks, machine load). A re-run is owed.
+  - `docs/_reports/2026-10-01-v2-14s-and-role-v1-baselines.md`.
 - **Two SPRTs, both H0 (2026-09-30, abra/regmc 1.50.0).**
   - piKL λ 0.03 vs gen5 at the 14 s clock: 416 games, 0.469 [0.421, 0.517], clock ratio 0.976. The Protect fail rate
     is 9.8% vs 15.8%, with no strength gain.
@@ -145,6 +166,13 @@ This section says only what a division agent needs before it starts.
     v2 served 485,334 evaluations with 0 errors and 0.39× gen5's leaf calls. This ran outside v2's
     pre-registration (Will).
   - Both used the pre-1.49.0 arena. Neither is on an arm. `docs/_reports/2026-09-30-sprt-pikl-and-v2.md`.
+- **Tournament store and tournament rotation, prepared and not launched (2026-10-01, abra/regmc 1.61.0).**
+  - Store: `data/tournaments/regmc/`, built by `solver/tournaments/ingest.js` (weekly workflow `tournament-ingest.yml`).
+    It holds 537 Masters teams from 5 open-team-list events, and 2 Replica pastes. 537 of 539 validate.
+  - Rotation: `solver/rotom/teams/ladder-rotation-tour.json`, arm `gen5-chomp-tour.json`. It holds five real
+    top-cut teams, and each series row carries the team's event, placing and paste.
+  - Open team sheets publish no spreads. On the 12 published sets, our derived spread matches on 0, and Speed matches
+    on 1. The command for Will is in `docs/_reports/2026-10-01-tournament-rotation.md`.
 - **Human-regularised search (piKL), phase A (2026-09-30, abra/regmc 1.34.0).** Spec flag `kl` (lambda; off, on no
   arm): SLOWKING solves the KL-regularised root game with gen5's DODUO as the anchor (`solveKL`). On 579 held-out human
   decisions and the same recorded tables, top-1 agreement is 0.216 at lambda 0 and 0.268 at 0.1 (+0.052 [0.021, 0.083]).

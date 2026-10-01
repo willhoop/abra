@@ -96,6 +96,10 @@ const MEGA = {};
 /* THE CLICK RATES per side per game (solver/arena/click_rates.js, 2026-09-26): Protect repeats and damaging clicks into an
  * immune body, read on the true battle before each step; on every match row as clicks.x / clicks.y */
 const CR = require('../arena/click_rates.js').create(API);
+/* THE TACTICS COUNTERS per side per game (solver/arena/tactics.js, abra/regmc 1.55.0): speed control, mega, switches, read on
+ * the true battle before and after each step; on every match row as tactics.x / tactics.y and per agent in the shard summary */
+const TAC = require('../arena/tactics.js');
+const TACT = {};
 const megaT = name => (MEGA[name] || (MEGA[name] = MR.tally()));
 const t0 = Date.now();
 /* running search counters, snapshotted onto every match line: a SPRT kills its workers at the bound and a killed
@@ -162,6 +166,7 @@ async function playGame(G, botA, botB, seed, recordFor) {
   let err = null;
   const ms = { A: [], B: [] }, srch = { A: 0, B: 0 }, stops = { A: {}, B: {} };   // searched decisions and adaptive-clock stops per side
   const clicks = { A: CR.tally(), B: CR.tally() };
+  const tg = TAC.game(API);
   try {
     while (!API.isTerminal(S) && S.turn < CAP) {
       const ch = {};
@@ -203,15 +208,19 @@ async function playGame(G, botA, botB, seed, recordFor) {
       PA0.record(ctx, S, ch.A.joint, ch.B.joint);
       mg.decide(S, 'A', ch.A.joint); mg.decide(S, 'B', ch.B.joint);
       pg.before(S, ch.A.joint, ch.B.joint);
+      tg.before(S, ch.A.joint, ch.B.joint);
       API.stepInPlace(S, ch.A.joint, ch.B.joint, rng);
       pg.after(S);
+      tg.after(S);
       mg.stepped(S);
     }
   } catch (e) { err = String(e && e.stack || e).slice(0, 400); }
   mg.end();
   let vA = null, capped = false;
   if (!err) { if (API.isTerminal(S)) vA = API.winner(S); else { vA = API.horizonScore(S); capped = true; } }
-  return { vA, capped, err, turns: S.turn, hist: ctx.hist, decisions, fallbacks, ms, srch, stops, mega: mg.detail(), clicks, protect: pg.out() };
+  const tactics = tg.out();
+  if (!err) for (const [sd, bot] of [['A', botA], ['B', botB]]) (TACT[bot.name] = TACT[bot.name] || []).push({ t: tactics[sd], won: vA == null ? null : (sd === 'A' ? vA > 0.5 : vA < 0.5) });
+  return { vA, capped, err, turns: S.turn, hist: ctx.hist, decisions, fallbacks, ms, srch, stops, mega: mg.detail(), clicks, protect: pg.out(), tactics };
 }
 
 async function selfplay() {
@@ -246,7 +255,7 @@ async function selfplay() {
     for (const d of r.decisions) { counts.rows += d.m; if (d.cells) counts.decisions_unmapped_rows += d.cells.filter(c => !c).length; }
     if (r.vA != null) { const vCur = curA ? r.vA : 1 - r.vA; counts.current_score[oppKey][0] += vCur; counts.current_score[oppKey][1]++; }
     const rec = { g, id: G.id, release: ENGINE.id, spreads: SRC.mode, run_seed: SEED, battle_seed: SEED * 1000003 + g, agents: { A: bA.name, B: bB.name }, opp: oppKey, cur_side: curA ? 'A' : 'B',
-      sheets: G.sheets, brought: G.brought, vA: r.vA, capped: r.capped, err: r.err, turns: r.turns, hist: r.hist, decisions: r.decisions, fallbacks: r.fallbacks };
+      sheets: G.sheets, brought: G.brought, vA: r.vA, capped: r.capped, err: r.err, turns: r.turns, hist: r.hist, decisions: r.decisions, fallbacks: r.fallbacks, tactics: r.tactics };
     if (OUT) fs.appendFileSync(OUT, zlib.gzipSync(JSON.stringify(rec) + '\n'));
     if (counts.games % 10 === 0) console.log(`  [shard ${SHARD}] ${counts.games} games  ${counts.decisions} decisions  errors ${counts.errors}  fallbacks ${AG.COUNTERS.fallbacks}  ${((Date.now() - t0) / 1000).toFixed(0)}s`);
   }
@@ -293,6 +302,7 @@ async function match() {
                  mega: r.mega ? { x: r.mega[xIsA ? 'A' : 'B'], y: r.mega[xIsA ? 'B' : 'A'] } : null,
                  clicks: r.clicks ? { x: r.clicks[xIsA ? 'A' : 'B'], y: r.clicks[xIsA ? 'B' : 'A'] } : null,
                  protect: r.protect ? { x: r.protect[xIsA ? 'A' : 'B'], y: r.protect[xIsA ? 'B' : 'A'] } : null,
+                 tactics: r.tactics ? { x: r.tactics[xIsA ? 'A' : 'B'], y: r.tactics[xIsA ? 'B' : 'A'] } : null,
                  ctr: Object.assign({ spreads: Object.assign({}, SRC.COUNTERS), fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0, stall_dropped: AG.COUNTERS.stallDropped || 0, quiet_held: AG.R.COUNTERS.quietHeld || 0, quiesced: AG.R.COUNTERS.quiesced || 0, gates: JSON.parse(JSON.stringify(AG.COUNTERS.gates || {})), kl: AG.COUNTERS.kl ? JSON.parse(JSON.stringify(AG.COUNTERS.kl)) : undefined, leaf_by_model: Object.assign({}, AG.R.COUNTERS.leafByModel || {}), leaf_own: AG.R.leafOwn ? AG.R.leafOwn() : undefined, arms: JSON.parse(JSON.stringify(ARMS)) }, RUN,
                    INFO === 'honest' ? { hon_views: HON.views, hon_back_xatu: HON.back_xatu, hon_back_error: HON.back_error, xw: Object.assign({}, XW.COUNTERS) } : {}) });
     }
@@ -308,6 +318,7 @@ async function match() {
   const summary = { mode: MODE, info: INFO, spreads: SRC.stamp(), honest: INFO === 'honest' ? Object.assign({}, HON, { worlds: XW.COUNTERS }) : null, break: BREAK || null, shard: SHARD, shards: SHARDS, seed: SEED, cap: CAP, engine_release: ENGINE.id, release_stamp: ENGINE.stamp, argv, wall_s: (Date.now() - t0) / 1000,
     agent_counters: AG.COUNTERS, arms: ARMS, rollout: AG.R.COUNTERS, api: API.COUNTERS, preview_arms: PREVIEW_ARMS ? PREVIEW_ARMS.COUNTERS : null,
     mega: { by_agent: Object.fromEntries(Object.entries(MEGA).map(([k, t]) => [k, MR.summary(t)])), human_rate: MR.HUMAN_RATE, floor: MR.floor() },
+    tactics: { by_agent: Object.fromEntries(Object.entries(TACT).map(([k, L]) => { const S = TAC.summarize(L); return [k, { games: S.games, won: S.won, rates: S.rates, speed: S.speed, mega: S.mega, switch: S.switch }]; })) },
     search: decStats.length ? { decisions: decStats.length, playouts_mean: decStats.reduce((s, d) => s + d.playouts, 0) / decStats.length,
       playouts_p50: decStats.map(d => d.playouts).sort((a, b) => a - b)[decStats.length >> 1],
       unfilled_share: decStats.reduce((s, d) => s + d.unfilled, 0) / Math.max(1, decStats.reduce((s, d) => s + d.cells, 0)),

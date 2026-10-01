@@ -124,6 +124,53 @@ function observedSpread(row, obs) {
   return { evs: Object.assign({}, hit.evs), pct: hit.pct };
 }
 
+/* ---------------- 0. the TOURNAMENT hook (2026-10-01) ---------------- */
+/* A spread a player actually ran, from the tournament store (data/tournaments/<regulation>/, solver/tournaments/). It is
+ * asked BEFORE the Smogon file: a top-cut player's own set beats a ladder-wide modal spread. The key is the set's
+ * species + item + nature (Will, 2026-10-01): the item fixes the role far better than the species alone (a Choice Scarf
+ * and a Life Orb Garchomp are different Pokemon), and the nature is the pilot's and is never overridden. Among several
+ * published spreads for one key, the best-placed team's wins (placing, then the bigger event, then the team id), so the
+ * pick is deterministic and says whose it is. Only spreads the paste itself classifies as Champions Stat Points
+ * (every set's total <= the format budget) are read, and each is re-checked against the format's total and cap here.
+ * An OPEN TEAM SHEET CARRIES NO SPREADS, so a store of OTS pastes contributes nothing and every set falls through to the
+ * Smogon file and then to the derivation — the provenance block counts how many keys the store could serve. */
+const tourKey = (species, item, nature) => [X.D.species.get(species).id || toID(species), toID(item), toID(X.D.natures.get(nature).name || nature)].join('|');
+function loadTournament(regulation, root) {
+  regulation = regulation || process.env.ABRA_REGULATION || 'regmc';
+  let ST;
+  try { ST = require('../tournaments/store.js'); } catch (e) { return null; }
+  const evs = ST.events(regulation, root);
+  const by = new Map();
+  let teams = 0, withSp = 0, sets = 0, setsSp = 0;
+  for (const e of evs) {
+    const f = path.join(ST.dirs(regulation, root).base, e.shard);
+    for (const t of ST.readShard(f)) {
+      teams++;
+      if (t.spread_kind === 'stat_points') withSp++;
+      for (const s of t.sets || []) {
+        sets++;
+        if (t.spread_kind !== 'stat_points' || !s.evs) continue;
+        const tot = STATS.reduce((a, k) => a + (s.evs[k] || 0), 0);
+        if (tot > SP_TOTAL || STATS.some(k => (s.evs[k] || 0) > SP_CAP)) continue;
+        setsSp++;
+        const k = tourKey(s.species, s.item, s.nature);
+        const list = by.get(k) || []; list.push({ evs: Object.assign(zero(), s.evs), team_id: t.team_id, placing: t.placing, players: e.players || 0, event: e.key });
+        by.set(k, list);
+      }
+    }
+  }
+  for (const list of by.values()) list.sort((a, b) => a.placing - b.placing || b.players - a.players || (a.team_id < b.team_id ? -1 : 1));
+  return { regulation, dir: path.relative(ROOT, ST.dirs(regulation, root).base).split(path.sep).join('/'),
+           events: evs.map(e => ({ key: e.key, shard_sha256: e.shard_sha256 })), teams, teams_with_spreads: withSp, sets, sets_with_spreads: setsSp, keys: by.size, bySet: by };
+}
+function tournamentSpread(row, tour) {
+  if (!tour || !tour.bySet) return null;
+  const list = tour.bySet.get(tourKey(row.species, row.item || '', row.nature));
+  if (!list || !list.length) return null;
+  return { evs: Object.assign({}, list[0].evs), team_id: list[0].team_id, n: list.length };
+}
+const TOURNAMENT_RULE_TEXT = 'solver/rotom/spreads.js tournament hook: before the Smogon file, the Stat Points a player published for the same species + item + nature in the tournament store (data/tournaments/<regulation>/), the best-placed team first; open team sheets carry none.';
+
 /* ---------------- the set, read from the dex ---------------- */
 function role(row) {
   const mv = new Set((row.moves || []).map(toID));
@@ -190,12 +237,17 @@ class Deriver {
   constructor(pop, opts) {
     this.pop = pop; this.opts = opts || {};
     this.obs = this.opts.observed === undefined ? loadObserved() : this.opts.observed;
+    /* the tournament store (0. above); opts.tournament: null turns it off, an object replaces it (the tests). A published
+     * tournament spread IS an observed spread, so a caller that pins the observed hook off (`observed: null`: the arena's
+     * role-v1 table and its play-time derivations) gets the tournament hook off too, and its figures cannot move when the
+     * store gains a paste with spreads. */
+    this.tour = this.opts.tournament !== undefined ? this.opts.tournament : this.opts.observed === null ? null : loadTournament();
     /* unique sets with summed weight */
     const u = new Map();
     for (const s of pop.slots) { const e = u.get(s.key); if (e) e.w += s.w; else u.set(s.key, { row: s.row, w: s.w, key: s.key }); }
     this.uniq = [...u.values()].sort((a, b) => b.w - a.w || (a.key < b.key ? -1 : 1));
     this._spe = new Map(); this._hits = new Map();
-    this.counters = { battles: 0, damage_calls: 0, no_damage: 0, endures: 0, observed: 0, derived: 0 };
+    this.counters = { battles: 0, damage_calls: 0, no_damage: 0, endures: 0, observed: 0, derived: 0, tournament: 0 };
     this.speedEquilibrium();
   }
   /* effective speed at every SP 0..cap, by the sim */
@@ -346,6 +398,8 @@ class Deriver {
              bulk: { why: bulkWhy, share_survived: +fin.share.toFixed(3), share_at_zero: +first.at0.toFixed(3), endures: first.H.endures } };
   }
   spreadFor(row) {
+    const tz = tournamentSpread(row, this.tour);
+    if (tz) { this.counters.tournament++; return { evs: tz.evs, source: 'observed:tournament:' + this.tour.dir + ' ' + tz.team_id + (tz.n > 1 ? ' (best-placed of ' + tz.n + ')' : ''), role: role(row).role }; }
     const o = observedSpread(row, this.obs);
     if (o) { this.counters.observed++; return { evs: o.evs, source: 'observed:' + this.obs.file + ' (' + o.pct + '%)', role: role(row).role }; }
     return this.derive(row);
@@ -353,7 +407,9 @@ class Deriver {
   provenance() {
     return { rule: RULE_TEXT, observed: this.obs ? { file: this.obs.file, sha256: this.obs.sha256 } : 'none: no Reg M-C Smogon moveset file for ' + X.FORMAT + ' under data/smogon-stats/ (the September 2026 files are due about 2026-10-04)',
              population: { teams: this.pop.teams, slots: this.pop.slots.length, unique_sets: this.uniq.length },
-             speed_equilibrium: this.eq, median_quantile: MEDIAN, top_tier_quantile: TOP_TIER, counters: this.counters };
+             speed_equilibrium: this.eq, median_quantile: MEDIAN, top_tier_quantile: TOP_TIER, counters: this.counters,
+             tournament: this.tour ? { rule: TOURNAMENT_RULE_TEXT, dir: this.tour.dir, events: this.tour.events, teams: this.tour.teams, teams_with_spreads: this.tour.teams_with_spreads,
+                                       sets: this.tour.sets, sets_with_spreads: this.tour.sets_with_spreads, keys: this.tour.keys } : 'none: no tournament store read' };
   }
 }
 
@@ -369,4 +425,4 @@ function recorded(rot) {
 /* a whole team: rows -> [{species, ...set, evs, ...why}] (the set is recorded so the spread can be matched to it) */
 function teamSpreads(D, rows) { return rows.map(r => Object.assign({ species: r.species, item: r.item, ability: r.ability, nature: r.nature, moves: r.moves.slice() }, D.spreadFor(r))); }
 
-module.exports = { Deriver, population, teamSpreads, recorded, setKey, role, attackStat, forme, parseMoveset, findObserved, loadObserved, observedSpread, evStr, RULE_TEXT, SP_TOTAL, SP_CAP, MEDIAN, TOP_TIER };
+module.exports = { Deriver, population, teamSpreads, recorded, setKey, role, attackStat, forme, parseMoveset, findObserved, loadObserved, observedSpread, loadTournament, tournamentSpread, tourKey, TOURNAMENT_RULE_TEXT, evStr, RULE_TEXT, SP_TOTAL, SP_CAP, MEDIAN, TOP_TIER };

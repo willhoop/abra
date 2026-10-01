@@ -1,5 +1,17 @@
 # RUNNING NOTES — every change, in the same pass, between major releases
 
+<!-- FROZEN: abra/regmb=7.0.0; abra/regmc=1.64.0; date=2026-10-01 -->
+
+> **FROZEN 2026-10-01 — THIS PAGE IS AN ARCHIVE. DO NOT ADD A ROW HERE.** Will approved merging it
+> into the changelog: from `abra/regmc` 1.65.0 on, a change is recorded ONCE, as its entry in
+> [`CHANGELOG-REGMC.md`](../CHANGELOG-REGMC.md), and the entry carries this page's four fields in a
+> `### Record` section (`**Measured.**`, `**Basis.**`, `**Supersedes.**`, `**Owed to the next major.**`).
+> The rows below are kept exactly as written, newest first, and they are still READ: the backlog, the
+> release-kind clause and the retraction registry count them for every version at or below the freeze
+> line above (`engine/docs_scan.js` `notesEntries()`). A row added here after the freeze fails the gate
+> as `row_after_freeze`; convert it with `node engine/notes_to_changelog.js --migrate`. Everything in
+> the preamble below that says "write a row here" is history.
+
 **This page is the living-docs pass now.** Will, 2026-09-06: *"we can update the documents every
 major release and just keep a running notes page in between change the documentation rules"*.
 
@@ -53,12 +65,81 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
-## [abra/regmc 1.66.0] — 2026-10-01 — **Two arena screens pre-registered (the v3 student as gen5's leaf at 14 s; 8 opponent columns against 4 at 2 s), with per-arm counters and VOID bars**
-- **What changed.** `solver/mew/play.js` counts each arm alone (`ARMS`: playouts, prior fallbacks by kind, rows and columns used, coverage of the opponent's actual joint); `solver/machamp/gate.js` sums it into `arms`; `solver/arena/col_coverage.js`; `solver/miltank/search.js` exposes the columns non-enumerably. Test `solver/tests/test-col-coverage.js` GREEN 13/13, RED on both breaks. Pre-registration `solver/results/2026-10-01-screens/preregistration.json`, reader `read.js`.
-- **Measured.** NO SCREEN FIGURE. Quiet references on `df172ccd2aaf` (gen5 vs itself, 20 games): 323.2 / 364.2 playouts per searched decision at 2 s, 1,272.2 / 1,293.8 at 14 s, 0 fallbacks (`ref-2s.result.json`, `ref-14s.result.json`). The floors are half the lower arm: 161 and 636.
+## [abra/regmc 1.64.0] — 2026-10-01 — **Open-sheet bo3 play is one classifier: the bo1 OTS + Bo3 custom room counts, every other custom room and our own accounts are out**
+- **What changed.** Will's decision. `engine/quality.js` `customRuleRegime()` / `isOpenSheetBo3()` decide, from the room's own rule text, whether a game is the game we play; `rules.exclude_own_accounts` in `data/quality-filter.json` 1.7.0 declares our accounts. The usage model, the human dataset, the PORYGON2 v2 bo3 dataset, the meta extract, the top-meta rotation and CHOMP's reader call it. The frozen pool is not re-cut.
+- **Measured.** Custom-rule rooms: 296 kept as open-sheet bo3, all under `Force Open Team Sheets, Best of = 3` (`data/custom-ruleset-ids-regmc.json`). Usage model usable games ~~27,106~~ (`data/meta-usage-regmc.json`; superseded by the 1.66.0 row). The before and after by rule and by rating band, the Eject Button count, and our accounts' games are in the report: `docs/_reports/2026-10-01-custom-ots-bo3.md`.
+- **Basis.** unchanged. The question is the same; the population is narrowed and the before and after are given in the report.
+- **Supersedes.** Nothing retracted. The 1.36.0 row's "2,388 information-regime rooms published, not excluded" is now decided: all but the open-sheet bo3 rooms are excluded.
+- **Owed to the next major.** `docs/MODELS.md` and the white paper: state the open-sheet population as isOpenSheetBo3().
+
+## [abra/regmc 1.63.0] — 2026-10-01 — **The store's `sets` attributed set facts to the wrong Pokemon by nine causes; the extractor is fixed, the re-parse is owed**
+- **What changed.**
+  - `engine/durable-ingest.js` `extract()` now credits a set fact only to the Pokemon that brought it. Nine causes
+    are fixed, each pinned in `tests/test-parse.js` and each RED with its own fix reverted.
+  - New: `engine/store_sets_check.js` (the check, with `solver/porygon2/v2/reveal.js` as the reference) and
+    `engine/reparse_store.js` (a streaming re-parse from raw shards).
+  - Rows gain `mirrorSets`, additive.
+- **Measured.** These figures are from `docs/_reports/2026-10-01-store-set-attribution/check-bo1.json`: a 1-in-10 bo1
+  sample, 5,950 games, 37,964 non-mirror members, against the reference reveal of the same logs.
+  - Stored `sets`, moves / items / abilities: 99.69% / 98.97% / 97.54%. That is 539 wrong values and 6,616 misses.
+    The largest causes:
+    - Trace 246;
+    - Trick-family 151;
+    - `|cant|` moves 67;
+    - items named only on `-damage` (2,864) and `-heal` (1,707).
+  - A fresh extract agrees on 100% / 100% / 99.93% across all 43,829 members, mirrors included. The 12 that disagree
+    are the reference's error.
+  - Bo3 (`check-bo3.json`, 1-in-5): 26 extra moves and the mirror merge (11,936 of 59,231 members) are both now 0.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published. No living document quotes a `sets`-derived Reg M-C figure. PORYGON2 v2's
+  crosscheck (98.49 / 97.55 / 97.31) stands as what it measured: the stored rows, on its subset.
+- **Owed to the next major.** `docs/ABRA-technical-docs.md` (the store schema: `mirrorSets`, `mirror`), and the
+  re-parse itself (OWED in the report).
+
+## [abra/regmc 1.62.0] — 2026-10-01 — **PORYGON2 v3 steps A–C: the design (six brief premises corrected), a frozen deep-labelled harness, and v2 distilled into a student at 0.91× gen5's cost that fails its pre-registered bar; no game played**
+- **What changed.** New `solver/porygon2/v3/`: `DESIGN.md` (plan, every citation re-read at source), `preregistration.json` (bars written before any net was scored, plus a dated amendment withdrawing the answer-map measurement), `evalset.js` (build / label / score / bench / report), `positions.js` (ROTOM's world builder over finished games; bo1 sets completed from the bo3 open-sheet population), `deep.js` (MILTANK's root, every cell played to the end by gen5's prior, no value net), `student.py` (teacher cache, distillation, export), `infer.js` and `leaf.js` (the student in Node), `model/porygon2-v3-student.json` (229 KB) and its metrics, league spec `gen5-p2v3s.json`, 14 s spec `screen-14s-student.json`. `solver/porygon2/leaf.js` dispatches arch `v3-student`. Tests `solver/tests/test-porygon2-v3-evalset.js` and `test-porygon2-v3-student.js` (+ fixture). Release `eaa5becc54eb`, BelowNormal, no game.
+- **Measured.**
+  - Frozen set (`solver/out/p2v3/evalset/manifest.json`, positions sha256 `c2428b1dbf77…`): 2,778 positions in 383 games (ladder 1,339, bo1 rated ≥ 1500 TEST 831, bo3 rated ≥ 1300 v1-unseen TEST 608); 1,300 deep-labelled (ladder 600, bo1 700): 166,144 playouts to the end, 0 errors, 30 capped; 529 flat.
+  - Ranking (`report-gen5+v1+v2+student.json`), paired vs gen5's net, game-clustered: every CI spans 0. τ-b gen5 0.293, v1 0.287, v2 0.296, student 0.302; student Δτ +0.0051 [−0.0067, +0.0168], Δregret −0.0023 [−0.0055, +0.0007].
+  - Calibration, 2,778 positions: ECE gen5 0.0652, v1 0.0718, v2 0.0577, student 0.0523 (Δ −0.0129 [−0.0247, +0.0060]). Gap on [0.5, 0.9) by source, gen5's raw net: ladder +0.183 [0.100, 0.272], bo1 ≥ 1500 −0.013, bo3 ≥ 1300 +0.059.
+  - Cost (`bench-gen5+v1+v2+student.json`, ratio to gen5 on the same fresh boards): v1 1.22, v2 2.62, student 0.91.
+  - Student: 39,892 parameters, VAL KL 0.0018 to v2, Node = Python to 2.2e-15. Pre-registered rule: ranking FAIL, calibration FAIL (ECE CI upper bound +0.0060 against +0.005), cost PASS, so no screen or SPRT is pre-registered.
+  - Tests GREEN 12/12 and 14/14, RED on their breaks. `docs/_reports/2026-10-01-porygon2-v3.md`.
 - **Basis.** unchanged.
 - **Supersedes.** Nothing.
-- **Owed to the next major.** none until the screens read.
+- **Owed to the next major.** `docs/MODELS.md`: a PORYGON2 v3 row (harness built; the student distilled, failing its bar at 0.91× cost). The white paper's value-net part: the finding that the ladder overconfidence is in the raw net on our positions and not on strong human positions.
+
+## [abra/regmc 1.61.0] — 2026-10-01 — **A tournament store and a tournament rotation; open team sheets carry no spreads, and our derived spreads miss all 12 that are published**
+- **What changed.** New: the tournament store `data/tournaments/regmc/` and `solver/tournaments/` (ingest, validate, summary, archetypes, compare_spreads), the weekly workflow `.github/workflows/tournament-ingest.yml`, the rotation `solver/rotom/teams/ladder-rotation-tour.json` built by `solver/rotom/build_tour_rotation.js`, the arm `solver/rotom/arms/gen5-chomp-tour.json`, and `solver/tests/test-tournaments.js`. `solver/rotom/spreads.js` serves a published spread (same species, item and nature) before it derives. Nothing was played.
+- **Measured.** The store holds 5 events (Baltimore 1,081 Masters, Frankfurt 1,129, Brisbane 327, VR September Challenges #1 and #2) with 537 Masters teams, and 2 Replica Teams pastes (`data/tournaments/regmc/summary.json`). 537 of 539 validate. 0 of 537 tournament pastes publish spreads. On the 12 published Replica sets, the derived spread equals the published one on 0 sets and Speed on 1, with a mean of 58.3 SP different per set (`solver/tournaments/compare_spreads.js`, store `fe78202a`). Hisuian Arcanine (Focus Sash, Jolly), which is in the current rotations, runs Speed 138 against its player's 156. Tests: `test-tournaments.js` GREEN 44/44 (RED 42/44 on the idempotency break); `test-rotom-spreads.js` 31/31; `test-rotom-top-rotation.js` 9/9; `test-rotom-ladder.js` 161/161; `test-arena-spreads.js` 15/15 with 3 NOT CHECKED, named (the role-v1 table predates the rotation: Milotic and Mega Garchomp-Z are 1–7 points off between the table's MEDICHAM oracle and ROTOM's Showdown oracle). `docs/_reports/2026-10-01-tournament-rotation.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** `docs/MODELS.md` (ROTOM: the tournament rotation and store, and the finding that derived spreads miss the published ones).
+
+## [abra/regmc 1.60.0] — 2026-10-01 — **v2 at 14 s stops at its screen (0.495, clock ratio 1.104); gen5 still beats the human clone under role-v1 (1 s 0.711, 5 s 0.667, both H1); gen5 vs gen0-r2 is H0 but DEGRADED by a starved search**
+- **What changed.** Four arena runs, pre-registered before the first game (`solver/results/2026-10-01-v2-14s-rolev1/preregistration.json`, `solver/results/2026-10-01-rolev1-baselines/preregistration.json` plus `addendum-r2c.json`). Common settings: release `eaa5becc54eb`, frozen-regmc store, TEST pairs, honest, `--spreads role-v1`, cap 50. The SPRTs used elo0 0, elo1 20, α = β = 0.05, max 2,000. No code changed. This is the NEW arena series (role-v1), not comparable with any pre-1.49.0 figure.
+- **Measured.**
+  - v2 leaf vs gen5, 14 s adaptive, screen (seed 31001): 0.495 [0.426, 0.564]. The clock ratio is 1.104, so the screen is VOID by its rule; the point is < 0.5; the SPRT was not run.
+  - gen5 vs gen0-r2 (seed 9001): H0, 1,098 games, 0.497 [0.468, 0.527]. It is DEGRADED: prior fallback 24.3% and 45.5 playouts a decision, from machine load.
+  - gen5 1 s vs the clone (seed 26001): H1, 90 games, 0.711 [0.610, 0.795].
+  - gen5 5 s vs the clone (seed 26005): H1, 102 games, 0.667 [0.571, 0.751].
+  - Reads: `solver/results/2026-10-01-*/`. Report: `docs/_reports/2026-10-01-v2-14s-and-role-v1-baselines.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing. The xatu-random originals stay true of their own arena.
+- **Owed to the next major.** `docs/MODELS.md`: gen5's role-v1 baselines, each labelled with its spread mode, when the arena figures are first published.
+
+## [abra/regmc 1.59.0] — 2026-10-01 — **Speed control, mega and switches are tracked on every ROTOM game and arena row; like with like, the bot matches strong humans on all three**
+- **What changed.** New `solver/arena/tactics.js`: standing per-side counters for speed control (available, used, turn, mattered or wasted, answers), mega (capable, used, turn, slot) and switches (voluntary, forced, pivot, double; into a KO, a resist or immunity). The speed-control set is derived from the format: 34 moves. It is wired into ROTOM's game record and summary (`solver/rotom/rotom.js`), `report.js ladder <dir>` (per arm, won and lost), and every `solver/mew/play.js` match row and summary. New: `solver/tests/test-tactics.js` (GREEN 28/28, RED under `TACTICS_BREAK=blind`) and a live-client check in `test-rotom-endings-live.js` (GREEN 20/20). New read-only analysis: `solver/results/2026-10-01-speed-mega-switch/analyze.js`. No game was played.
+- **Measured.** From `solver/results/2026-10-01-speed-mega-switch/measured.json`.
+  - Inputs: 126 search-arm ladder games (gen5ab A 41, chomp1 50, chomptop 35 while live) and 98 prior-arm games, release `eaa5becc54eb`. 27,143 human games (281 raw shards; the bo3 store sha256 `7c15d94eab4a`; `engine/quality.js` `reasons()`): 1400+ 588 sides, 1200–1399 10,073.
+  - Bot vs 1400+ humans: mega when capable 94.1% vs 95.4%; voluntary switches per game 1.65 vs 1.66; speed-control uses per game 0.55 vs 0.71.
+  - Like with like (observed / expected at 1400+): speed control 0.88 [0.69, 1.12], switch-outs 1.06 [0.92, 1.22], mega 0.98 [0.81, 1.18].
+  - Costs. The win rate when the foe used speed control moves −0.22 [−0.39, −0.05]; for 1400+ humans, −0.03. Switch-ins KO'd that turn: 15.4% vs 10.0%.
+  - Table check, 919 decisions: speed control not used while the foe was faster, 109; 50 had no speed-control row in the table, 59 had one ranked lower. A mega not taken was always in the table (27 of 27).
+  - `docs/_reports/2026-10-01-speed-mega-switch.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** `docs/MODELS.md` (ROTOM): the tactics counters and the like-with-like comparison.
 
 ## [abra/regmc 1.58.0] — 2026-10-01 — **Lost the last answer: real, tied to losing, not a separate cause; the live answer map predicts and adds nothing over the search's value**
 - **What changed.** A read-only analysis, with no play and no engine change. `solver/results/2026-10-01-lost-last-answer/`: `answer_map.js` (P(i beats j) from 16 MEDICHAM one-on-ones per pair on the live position, release `eaa5becc54eb`); `maps.js` (every move decision of the saved ladder games, through ROTOM's world rebuilt from the log, with the back line taken from the whole log); `analyze.js`; `maps/` (1,131 positions, 1.4 MB); `results.json`. Test: `solver/tests/test-answer-map.js`, GREEN 6/6, RED under `ANSWER_MAP_BREAK=fullhp`.

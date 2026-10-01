@@ -25,8 +25,54 @@ Showdown ladder.** The engine is the foundation; the search is the point:
    settled rating ± SD over many series, never the peak.
 
 The plan, the model registry and the milestones are [`solver/PLAN.md`](solver/PLAN.md). What has
-landed is [`solver/LOG.md`](solver/LOG.md). The measured numbers are
-[`docs/MODELS.md`](docs/MODELS.md).
+landed is recorded once per change in [`CHANGELOG-REGMC.md`](CHANGELOG-REGMC.md). The measured numbers
+are [`docs/MODELS.md`](docs/MODELS.md) and [the white paper](docs/ABRA-whitepaper.md).
+
+```
+both open sheets ─► CHOMP ─► bring 4, lead 2
+each turn:  XATU (worlds) ─► MEDICHAM legalActions ─► DODUO (prune) ─► MILTANK (playouts)
+            ─► SLOWKING (equilibrium) ─► HYPNO (exploit dial) ─► sample ─► ROTOM ─► ladder
+```
+
+## Every component
+
+*(Folded in from `docs/SUMMARY.md` on 2026-10-01; its last edition is `git show a085dd9f:docs/SUMMARY.md`
+and its Reg M-B edition `git show 1be7343c:docs/SUMMARY.md`. This table says what each part IS. What is
+built is the registry in `solver/PLAN.md` §2, and what is true is what `node engine/status.js` prints.)*
+
+| component | what it is |
+|---|---|
+| **MEDICHAM** | ABRA's doubles simulator, and its solver API `engine/medicham_api.js` (`clone`, `legalActions`, `step`, terminal check, lean playouts) |
+| **CHOMP** | team-preview solver: both open sheets in, a mixed strategy over the bring/lead options out. Rebuilt inside ABRA; the old `../CHOMP` repository is reference only |
+| **XATU** | belief over the opponent's back two and stat spreads |
+| **MAG** | per-slot action scorer — the human policy prior |
+| **DODUO** | joint coordinator — scores both slots as one joint action |
+| **MILTANK** | search harness: candidates, playouts on MEDICHAM, the payoff matrix, the clock |
+| **SLOWKING** | per-turn simultaneous-move solver (regret matching and an exact LP) |
+| **PORYGON2** | value net: state → P(win) |
+| **GARY / HYPNO** | human habits by situation / the capped exploit dial |
+| **MEW / MACHAMP** | self-play factory / training loop |
+| **WOBBUFFET / DUSK** | exploitability best-responder / endgame tables |
+| **GURU** | meta analysis over the store, store-only |
+| **DITTO** | team builder |
+| **ROTOM** | the live ladder client; replaces `engine/mag_bot.js` |
+| **ALAKAZAM / KADABRA** | the assembled agent / the coach |
+| **The store and the ingest** | every Reg M-C game kept raw, collected hourly (OPS) |
+| **The honesty machinery** | `status.js`, `provenance.js`, `quarantine.js`, the documentation gate |
+| **ABRA WORLD** — the site | renders what the artifacts say |
+
+**Store-only** means the model never runs the simulator, so it never waited on the gate. Everything
+that plays games on MEDICHAM did wait, and anything it measured before the gate opened is withheld.
+
+**Where each figure lives** — linked, not restated, so there is one copy to keep true:
+
+- The Reg M-C gate and every reading behind it: [white paper §4.2](docs/ABRA-whitepaper.md#42-the-reading),
+  and live, `node engine/quarantine.js --regulation regmc`.
+- What each solver model measured: [`docs/MODELS.md`](docs/MODELS.md), *The Reg M-C models*.
+- The milestones M0–M8 and how a version is judged: `solver/PLAN.md` §3 and §5;
+  [white paper §2.12–§2.13](docs/ABRA-whitepaper.md#212-how-a-version-is-judged).
+- Why 1.0.0 is a MAJOR: [white paper §5.1](docs/ABRA-whitepaper.md#51-why-this-is-a-major-revision) and the
+  `CHANGELOG-REGMC.md` 1.0.0 entry.
 
 **Reg M-B is retired.** Its record is closed at 7.0.0 in [`CHANGELOG.md`](CHANGELOG.md) and stays as
 history. The Reg M-C line is [`CHANGELOG-REGMC.md`](CHANGELOG-REGMC.md) and
@@ -58,7 +104,7 @@ engine/   MEDICHAM (medicham2-browser.js), its solver API (medicham_api.js), the
 solver/   the Reg M-C player: PLAN.md, LOG.md, one directory per model, tests/, out/ (gitignored)
 data/     the stores, the frozen team pools, the gate artifacts (*-regmc.* for Reg M-C)
 tests/    the engine and documentation gates
-docs/     ORIENTATION, SUMMARY, MODELS, the division ledgers, the white paper, deck and technical docs
+docs/     ORIENTATION, MODELS, the division ledgers, the white paper, deck and technical docs
 ```
 
 ## How the work is divided
@@ -73,4 +119,9 @@ is true), SOLVER (everything under `solver/`), OPS (ingest and the store) and WE
   withheld until it is re-run. No strength claim is made yet.
 - **Open team sheets only.** Nothing here says how the player does when the sheet is hidden.
 - **Illusion is the one declared exclusion** from the simulator's gate.
+- **A zero on the gate is a statement about what was measured** — three lattices, a damage battery and
+  a staged lab, on one release and one frozen pool. It is not a proof of equivalence.
+- **The ladder can resolve only large differences.** Rating noise alone moves an account by tens of
+  points, and a small improvement needs hundreds of series per arm to show (`solver/PLAN.md` §5,
+  derived in `docs/_reports/2026-09-23-solver-research-humans-and-ladder.md`).
 - **The ladder has not been played yet.** The live client is not built.

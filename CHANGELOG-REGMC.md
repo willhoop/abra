@@ -1,6 +1,6 @@
 # Changelog — ABRA on Reg M-C
 
-<!-- LINE: id=abra/regmc; label=ABRA on Champions Reg M-C; format=gen9championsvgc2026regmc -->
+<!-- LINE: id=abra/regmc; label=ABRA on Champions Reg M-C; format=gen9championsvgc2026regmc; docs=major -->
 
 All notable changes to ABRA's **Reg M-C** line are recorded here, newest first.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
@@ -15,13 +15,20 @@ released row, or moves a published figure. A version in this file is not compara
 that one: they answer different questions about different regulations. See
 [`docs/REGMC.md`](docs/REGMC.md) — *The version scheme* — for what a number means and when it resets.
 
-**Rule.** Every change is logged here in the same pass as the code, together with the matching row in
-`docs/RUNNING-NOTES.md` (tagged `## [abra/regmc <version>]`). A prior conclusion is never silently
-rewritten; what changed and why is stated.
+**Rule.** Every change is logged here in the same pass as the code, together with the matching updates
+to the documents it owes. A prior conclusion is never silently rewritten; what changed and why is stated.
+
+**One record per change, from 1.65.0 (2026-10-01).** Each entry carries a `### Record` section with four
+fields — `**Measured.**` (the figure and its artifact, or NO FIGURE), `**Basis.**` (unchanged, or
+CHANGED and what a reader can no longer be told), `**Supersedes.**` (Nothing, or the struck and retracted
+figure), `**Owed to the next major.**` (the living document that must absorb it, or none). These were the
+fields of a `docs/RUNNING-NOTES.md` row; that page is FROZEN as the archive of every row up to 1.64.0 and
+is still read for those versions. `tests/test-docs-current.js` clause 5e fails an entry above 1.64.0
+without all four. A row written in the old shape converts with `node engine/notes_to_changelog.js`.
 
 ---
 
-## [1.66.0] — 2026-10-01
+## [1.67.0] — 2026-10-01
 
 **MINOR: no published figure moves.** Two arena screens are pre-registered before their first game, with the per-arm
 counters they are read by. No screen game has been played when this is written.
@@ -54,6 +61,261 @@ counters they are read by. No screen game has been played when this is written.
 - **Observed, not caused here:** `solver/tests/test-miltank.js` is RED on its SWAP clause on the live tree (an identity body
   swap changes the digest). It reads no code this change touches. It is reported in
   `docs/_reports/2026-10-01-screens-student-8col.md` and left to SOLVER as owed.
+
+### Record
+- **Measured.** NO SCREEN FIGURE (pre-registration). Quiet references on `df172ccd2aaf`, gen5 against itself, 20 games each: 323.2 and 364.2 playouts per searched decision at 2 s, 1,272.2 and 1,293.8 at 14 s, 0 fallbacks (`solver/results/2026-10-01-screens/ref-2s.result.json`, `ref-14s.result.json`). The floors are half the lower arm: 161 and 636.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none until the screens read.
+
+## [1.66.0] — 2026-10-01
+
+### Added
+- `engine/quality.js` `isOpenSheetTurnPlay(g)`, `openSheetRegime(g, rulesText)`, `bothSheetsShown(g)` and
+  `sheetRulesOnly(regime)`: the turn-level answer beside the series answer, from the rule text and the game's stored
+  sheets (Will, 2026-10-01). `isOpenSheetBo3` implies `isOpenSheetTurnPlay`.
+- `tests/test-open-sheet-turn-play.js`: every class on a fixture, and the custom-rule charge on real scanned rooms;
+  GREEN 27/27, RED on two deliberate breaks.
+- `data/custom-ruleset-ids-regmc.json` `ids_sheet_rules_only`: rooms whose rules touch only the sheets and the series
+  length.
+
+### Changed
+- A bo1-format `Best of = 3` room in which both players accepted the sheets is open-sheet bo3 (Will's decision 2):
+  205 rooms, 147 clean, all unrated.
+- A sheet-rules-only room is charged `custom_ruleset` only when its sheets were not shown; any other rule still
+  excludes the room. `engine/quality.py` mirrors it (bo1 1,187 and bo3 15 charged by both).
+- Turn-level datasets take open-sheet turn play (Will's decision 1): `solver/human/build_dataset.js` (every game carries
+  `open_sheet_bo3`) and `solver/porygon2/v2/extract.js --fmt bo3`. Open-sheet turn play on the same stores: 41,935
+  games, 28,713 clean (27,332 under 1.64.0); clean 1500+ 0 → 14.
+- Series-level readers keep open-sheet bo3 only: `solver/chomp/data.js`, `solver/xatu/eval_bring.js`,
+  `solver/rotom/build_assets.js` team candidates, `solver/arena/teams.js`, `solver/mew/pairs.js`, `solver/meta/extract.js`.
+- `data/meta-usage-regmc.json` regenerated: usable 27,479 (store growth included).
+
+### Notes
+- The frozen pool is not re-cut. SOLVER owes the dataset rebuilds on main. Report:
+  `docs/_reports/2026-10-01-open-sheet-turn-play.md`.
+
+### Record
+- **Measured.** On the same stores, open-sheet turn play 39,852 / 27,332 clean → 41,935 / 28,713; clean 1500+ for turn-level models 0 → 14. Open-sheet bo3 39,852 / 27,332 → 40,057 / 27,479 (205 consent rooms, 147 clean, all unrated); clean 1500+ stays 0. Usage model usable 27,479 (`data/meta-usage-regmc.json`). Report: `docs/_reports/2026-10-01-open-sheet-turn-play.md`.
+- **Basis.** unchanged. The same two populations, one widened by a decided rule; before and after are in the report.
+- **Supersedes.** ~~27,106~~ retracted: the 1.64.0 usage model's usable-game count, now 27,479 (store growth included).
+- **Owed to the next major.** `docs/MODELS.md` and the white paper: state the two populations and which model reads which.
+
+## [1.65.0] — 2026-10-01
+
+**The documentation is consolidated: one record per change, in this file. The notes page and the solver log are frozen archives, SUMMARY is folded into the README, and the technical docs link results instead of restating them.** MINOR: no published figure moves. Renumbered from 1.60.0 at the merge with main at 1.64.0; the freeze cut moved to 1.64.0 with it.
+
+### Changed
+- **One record per change (Will approved, 2026-10-01).** From this entry on, a change writes ONE entry here, with a `### Record` section carrying the four fields a `docs/RUNNING-NOTES.md` row carried. The page is FROZEN by a masthead declaration, `<!-- FROZEN: abra/regmb=7.0.0; abra/regmc=1.64.0 -->`, and is still READ for every version at or below it.
+  - `engine/docs_scan.js`: `notesEntries()` now returns the open changelog's entries above the freeze plus the archive's rows at or below it, through one row parser, `parseRows()`. Every clause that read the page reads the same thing from the new source: the backlog and `OWED_CAP`, the closed-line refusal, the release-kind policy (5d), and the retraction, citation and rule-1 scans. The latter read the changelog through `readRecordAware()`, which blanks every line older than the freeze. `recordTargets()` names the file a change must move. The hook's `--note-check` and clause 5b both ask it.
+  - A row written into the frozen page after its freeze is refused as `row_after_freeze` by `closedLineBreaches()`. It fails `--owed`, `--lines` and clause 2.
+  - `tests/test-docs-current.js`: clause 5a requires the archive AND the record. 5b reads git history against the record. The NEW clause 5e fails an entry above the freeze that lacks any of the four Record fields.
+  - `.githooks/pre-commit`: the record gate asks `--staged --note-check`, and its refusal shows the new entry shape.
+- **`solver/LOG.md` is frozen** as history with a pointer. The obligation to write it is removed from `.claude/agents/solver.md`, `solver/PLAN.md`, the start, finish and institutional-memory skills, and `solver/machamp/loop_sprt.js`. An accepted generation now writes one changelog entry with its `### Record`, and no notes row or log line.
+- **`docs/SUMMARY.md` (+ `.pdf`) is folded into `README.md`** and removed (`git rm`). Its last edition is `git show a085dd9f:docs/SUMMARY.md`. README gains the component table, the pipeline sketch, two limits and links to where each figure lives. `engine/sanity_check.py` §5 now checks README for the withdrawn PORY figure, `engine/major_readiness.js` drops SUMMARY from its living set, and `build/build_pdfs.js` derives its set from the files on disk, so SUMMARY simply leaves it.
+- **`docs/HANDOFF-2026-08-01.md` (+ `.pdf`) moved to `docs/archive/`** with `git mv`, beside its siblings, with a provenance header. It is grandfathered in `data/docs-currency-baseline.json` with a reason, and `docs/archive/INDEX.md` is regenerated. No tracked markdown linked it.
+- **`docs/ABRA-technical-docs.md` links results instead of restating them.** §0.3's gate-readings table and §0.1's clause count are replaced by links to the white paper §4 and §4.2, and §3.1 loses its stale Status column. §2.10 and §2.11 now describe the new record. The header stays at 1.0.0, because this is not a fold-in.
+- `CLAUDE.md` (living-docs section, SOLVER, START HERE), `docs/ORIENTATION.md`, `docs/SOLVER.md`, `docs/REGMC.md` and `docs/REGULATION-ROTATION.md` describe the new record in place, with dated notes.
+- The `<!-- LINE: -->` marker of this file gains `docs=major` (Will approved, for the umbrella portfolio check, which now honours it). The freeze cut is at 1.64.0, not 1.50.0: main merged 1.51.0–1.64.0 in the old format (a notes row and an entry each) while this branch was open, so the cut moved over them rather than migrating them, and every one of those rows stays as written. One release id that main's 1.64.0 renumber had rewritten (`1a6550ea5ec6` read as `1.64.0ea5ec6`, 7 places in dated rows of `docs/RUNNING-NOTES.md`) is restored to the bytes it had at `eece3fc8`.
+- `engine/orient.js` reads the `solver/PLAN.md` §2 registry as the first table whose header names `Name` and `Role`. Main's PLAN rewrite put a "what changes" table above the registry, so orient read the wrong header and `tests/test-orient.js` was RED on main itself (`THE MODELS derived 0 models`). It now derives 26 models, and `ORIENT_BREAK=models` still fails.
+
+### Added
+- `engine/notes_to_changelog.js`, the converter. `<file>` prints the `### Record` section of each RUNNING-NOTES-style row, `--entry` prints a whole entry, `--ref <branch>` converts the rows a branch added above the freeze (`--apply` writes them), and `--migrate` moves every post-freeze row out of the frozen page into its version's entry. It never invents a field: a missing one is reported, it exits 2, and clause 5e stays red until a person writes it.
+
+### Record
+- **Measured.** The backlog (`node engine/docs_scan.js --owed`, abra/regmc) reads 63 of 165 before the change (notes page alone), 63 on the frozen tree before this entry, and 64 with it. A synthetic post-freeze row read 64 under the pre-change reader and, after `--migrate`, 64 under the new one. Re-measured at the merge with main at 1.64.0, cut moved to 1.64.0: 75 of 165 under main's reader on main's rows, 76 under the new reader with this entry. Overlap, 5-word shingles: RUNNING-NOTES vs this changelog 3.4% (41% of the page's figures); `solver/LOG.md` vs this changelog 8.6% (70% of its figures); SUMMARY vs README 5.9%, vs the deck 0.7%. Figures lexed in the technical docs (`figuresInText`): 34 before, 16 after. Account: `docs/_reports/2026-10-01-docs-consolidation.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing. No figure is retracted; the technical docs' copies of the gate readings are removed in favour of links to the white paper, which still states them.
+- **Owed to the next major.** The white paper (§2 "The running log is `solver/LOG.md`", §4.3 and §8 sources name the notes page) and `docs/MODELS.md` (one `solver/LOG.md` sentence) still describe the old record. Fold them in at the next document pass. Rebuild the technical-docs PDF there too: it still shows the 1.0.0 text.
+
+## [1.64.0] — 2026-10-01
+
+**MINOR: a published figure moves** (`data/meta-usage-regmc.json`, usable games 27,063 to 27,106 on a newer store).
+The question is unchanged (usage in the game we play); its population is now defined by one classifier, and the
+before and after are stated in the report.
+
+### Changed
+- **Will's decision (2026-10-01): a bo1-format room under `Force Open Team Sheets, Best of = 3` IS open-sheet bo3
+  play.** Every other custom-rule room is excluded from every analysis and dataset. One classifier decides it from
+  the room's own rule text: `engine/quality.js` `customRuleRegime()` and `isOpenSheetBo3()`. The Eject Button rule
+  still applies. The scan (`engine/scan_custom_rulesets.js`) splits `ids` (excluded) from `ids_open_sheet_bo3`
+  (kept) by the same function, and `quality.js` re-classifies at read time and reports any disagreement.
+- **Our own accounts are declared once**, in `data/quality-filter.json` 1.7.0 `rules.exclude_own_accounts`
+  (`medicham32`, `willhoop`, `MAG`, each with its evidence), and `reasons()` charges `own_account` in JS and Python.
+- **Open-sheet consumers routed through the classifier:** `engine/usage_regulation.js` (the usage model),
+  `solver/human/build_dataset.js` (now also reads the bo1 raw shards and keeps only the open-sheet bo3 rooms),
+  `solver/porygon2/v2/extract.js` (its bo3 dataset also reads the bo1 store and raw logs for those rooms),
+  `solver/meta/extract.js`, `solver/rotom/build_top_rotation.js` and `solver/chomp/data.js`. The four typed
+  own-account lists in those files are gone.
+- `data/custom-ruleset-ids-regmc.json` re-scanned on the current stores (0 untestable);
+  `data/store-validation-regmc.json` re-judged on the current stores; `data/meta-usage-regmc.json` regenerated.
+
+### Added
+- `tests/test-open-sheet-bo3.js`: fixtures, and Showdown's own rule table as the oracle for every rule string the
+  scan has seen (33 pairs agree). Shown RED on a deliberate break.
+
+### Notes
+- **The frozen pool `data/team-pool-frozen-regmc` is not re-cut.** Measurements pin it.
+- Counts, the per-rule-string verdicts and what a pool re-cut would change: `docs/_reports/2026-10-01-custom-ots-bo3.md`.
+
+## [1.63.0] — 2026-10-01
+
+**MINOR: a published figure moves under an unchanged basis.** A re-parse, still owed, would change `sets` in 83% of
+sampled bo1 rows and 69% of sampled bo3 rows. The question each `sets` figure answers is unchanged: what each Pokemon
+brought. It is answered better.
+
+### Added
+- `engine/store_sets_check.js`. It compares the parsed store's `sets`, and a fresh `extract()` of the same raw log,
+  against `solver/porygon2/v2/reveal.js` (the reference, reused as is), and classifies every mismatch by cause.
+  Receipts: `docs/_reports/2026-10-01-store-set-attribution/check-bo{1,3}.json`.
+- `engine/reparse_store.js`. It re-derives a parsed `.jsonl.gz` store from its raw shards in a streaming pass. It writes
+  only `<store>.reparsed`, keeps the store's ids and order, carries over unchanged any row with no raw log, and refuses
+  on a lost id. The three older rebuild paths read one plain raw file, which for Reg M-C stopped growing on 2026-09-09.
+- `mirrorSets` on a store row: `{species: {p1, p2}}` for a species on both sides. The merged `sets` entry gains
+  `mirror: true`.
+- `tests/test-parse.js`: nine `CAUSE` cases (42 to 66 checks). Each is RED with its own fix reverted.
+
+### Fixed
+- **`engine/durable-ingest.js` `extract()` attributed set facts to the wrong Pokemon.** On a 1-in-10 bo1 sample
+  (37,964 members), the stored sets held 539 wrong values and 6,616 misses. After the fix a fresh extract agrees with
+  the reference on 100% of moves and items and 99.93% of abilities, and the 12 that disagree are the reference's error.
+  The nine causes:
+  - `|cant|` moves;
+  - called moves and Struggle;
+  - transformed bodies;
+  - Trick-family items;
+  - Traced, Entrained and Skill-Swapped abilities;
+  - Ally Switch;
+  - items and abilities named only on other lines (Life Orb, Leftovers, Rough Skin, Hospitality …);
+  - mirror species.
+
+### Notes
+- **Not re-parsed.** The commands, the order and the growth budget are under OWED in
+  `docs/_reports/2026-10-01-store-set-attribution.md`. The frozen pool `data/team-pool-frozen-regmc/` is not touched.
+- Bo1 item usage counted from `sets` under-counted every self-silent item. On the sample Life Orb was 90 against
+  2,764.
+
+## [1.62.0] — 2026-10-01
+
+**MINOR: no published figure moves.** A design, a frozen evaluation harness, and a distilled student that fails its
+pre-registered bar. No game was played.
+
+### Added
+- **PORYGON2 v3 design** (`solver/porygon2/v3/DESIGN.md`, milestone N4 of `solver/PLAN.md` 0.3.0). Every citation was
+  re-read at its source. Six premises of the brief are corrected:
+  - MuZero's n-step targets are Atari-only.
+  - KataGo's search values are auxiliary heads, not a blend.
+  - Playout-cap randomisation records full-search turns only.
+  - piKL anchors to a human policy.
+  - "λ 0.03 is harmless" is not shown.
+  - Quiescence is built but unmeasured in games.
+- **The frozen v3 harness** (`solver/porygon2/v3/evalset.js`, `positions.js`, `deep.js`).
+  - 2,778 positions in 383 games: ladder 1,339; bo1 TEST games with both players rated 1500 or more, 831; bo3 TEST games
+    v1 never saw, rated 1300 or more, 608. Positions sha256 `c2428b1dbf77…`.
+  - 1,300 positions are labelled by MILTANK's root with every cell played to the end by gen5's prior, with no value net:
+    166,144 playouts.
+  - It reports ranking (τ-b, top-1, regret), calibration by source and band, and the cost per evaluation.
+- **The step-C student** (`student.py`, `infer.js`, `leaf.js`, `model/porygon2-v3-student.json`). It is v2 distilled
+  into a 39,892-parameter set network on v2's own inputs. It is served for arch `v3-student` by `solver/porygon2/leaf.js`,
+  with league spec `gen5-p2v3s.json` and 14 s spec `screen-14s-student.json`. No arm names it.
+- `solver/tests/test-porygon2-v3-evalset.js` (GREEN 12/12): FROZEN, LEAK (0 of 383 games in v2's or v1's training data),
+  ORIENT, CRN, LEAN. RED under `P2V3_TEST_BREAK=leak` and `P2V3_DEEP_BREAK=orient`.
+- `solver/tests/test-porygon2-v3-student.js` (GREEN 14/14): parity 2.2e-15, antisymmetry, order, and the leaf counter on
+  one MILTANK decision. RED under `PORY2V3_INFER_BREAK=pool`.
+
+### Notes
+- **The nets cannot be told apart on ranking.** Every paired CI against gen5's net spans 0.
+- **Calibration.** ECE: gen5 0.0652, v1 0.0718, v2 0.0577, student 0.0523.
+- **Cost against gen5's net, on the same fresh boards:** v1 1.22×, v2 2.62×, student 0.91×.
+- **The student fails its pre-registered rule.**
+  - Ranking: Δτ +0.0051 [−0.0067, +0.0168].
+  - ECE: CI upper bound +0.0060 against a bar of +0.005.
+  - No screen or SPRT is pre-registered. The commands are listed as owed.
+- **The ladder overconfidence is in the raw net.** gen5's net is +0.183 [0.100, 0.272] in [0.5, 0.9) on our ladder
+  positions, and calibrated on strong human positions.
+- **The answer map is an offline auxiliary target only** (the coordinator's instruction, after
+  `docs/_reports/2026-10-01-lost-last-answer.md`). No second implementation is landed.
+- Report: `docs/_reports/2026-10-01-porygon2-v3.md`.
+
+## [1.61.0] — 2026-10-01
+
+**MINOR: no published figure moves.** It adds a tournament store, its weekly ingest, a fifth ladder rotation built from
+real top-cut teams, and a tournament source in the spread hook. Nothing was played.
+
+### Added
+- **The tournament store** `data/tournaments/regmc/` (`solver/tournaments/`): every published team of every Reg M-C
+  open-team-list event, raw paste bytes kept, append-only `events.jsonl` and one write-once shard per event. Seeded with
+  Baltimore, Frankfurt, Brisbane and Victory Road's two September Challenges: 537 Masters teams, plus 2 Replica Teams
+  pastes. 537 of 539 pass the format's TeamValidator; the 2 that do not are kept and flagged (`validation.json`).
+- **Discovery by the regulation tag, weekly.** `solver/tournaments/ingest.js --discover` reads Victory Road's calendar
+  Format column and Limitless VGC's event headers. `.github/workflows/tournament-ingest.yml` runs it on Tuesdays at
+  06:43 UTC in the `ingest` concurrency group and commits `data/tournaments/` only.
+- **The tournament rotation** `solver/rotom/teams/ladder-rotation-tour.json` and the arm
+  `solver/rotom/arms/gen5-chomp-tour.json` (gen5-chomp-top's arm A, byte for byte). Five real top-cut teams, each with
+  its event, placing, player and paste URL in every series row's `team_meta.source`.
+- `solver/tests/test-tournaments.js`: GREEN 44/44, and RED 42/44 under `TOURNAMENT_BREAK=idempotency`.
+
+### Changed
+- `solver/rotom/spreads.js` asks the tournament store first: a published Stat Point spread for the same species, item and
+  nature. The arena's role-v1 path (`observed: null`) turns it off, so no arena figure can move.
+- `solver/rotom/ladder.js` writes `team_meta.source` for a tournament team. Store-built rotations are unchanged.
+- `solver/tests/test-rotom-spreads.js` ROLE and TIER judge derived spreads only. Its REPRODUCE check turns the hook
+  off. `test-arena-spreads.js` PARITY counts a published spread instead of comparing it. For a rotation built after
+  the role-v1 table, a mismatch is reported NOT CHECKED by name. Three tournament-rotation sets get this. `test-rotom-ladder.js`
+  accepts a tournament source instead of a ladder rating.
+
+### Notes
+- **Open team sheets carry no spreads.** None of the 537 tournament pastes publish Stat Points. The only published
+  Reg M-C spreads are 2 Replica Teams pastes (12 sets). Against them, our derived spread matches on 0 of 12 sets, and
+  Speed matches on 1 of 12. `docs/_reports/2026-10-01-tournament-rotation.md`.
+
+## [1.60.0] — 2026-10-01
+
+**MINOR: no published figure moves.** It adds four arena results in the role-v1 series. No code changed.
+
+### Notes
+- **The runs.** Will delegated the choice ("u choose"). All four were pre-registered before the first game, on
+  release `eaa5becc54eb`, honest, with `role-v1` true bodies (the new arena series). None can be compared with a
+  pre-1.49.0 arena figure. Details: `docs/_reports/2026-10-01-v2-14s-and-role-v1-baselines.md`.
+  - **PORYGON2 v2 as gen5's leaf vs gen5's own net, 14 s adaptive clock: stopped at the screen; no SPRT.** 200 games,
+    0.495 [0.426, 0.564]. The clock ratio is 1.104 (over 1.10, so VOID by its rule), and the point score is below
+    0.5. v2 served 805,441 leaf calls with 0 errors.
+  - **gen5 vs gen0-r2, a re-run on seed 9001: H0, DEGRADED.** 1,098 games, 0.497 [0.468, 0.527]. The search was
+    starved by machine load for about the first 40%: 24.3% prior fallbacks, 45.5 playouts a decision against 213 at
+    1 s. It does not measure gen5 against its predecessor. A re-run is owed.
+  - **gen5 1 s vs the human clone, a re-run on seed 26001: H1.** 90 games, 0.711 [0.610, 0.795], 0 fallbacks.
+  - **gen5 5 s vs the human clone, a re-run on seed 26005: H1.** 102 games, 0.667 [0.571, 0.751], 0 fallbacks.
+- Nothing is on a ladder arm.
+
+## [1.59.0] — 2026-10-01
+
+**MINOR: no published figure moves.** It adds standing counters and a read-only analysis; no game was played.
+
+### Added
+- **The tactics counters (`solver/arena/tactics.js`).** Speed control, mega and switches, per side per game, with one
+  definition and two readers: `fromLog()` for a battle log and `game(API)` for the arena's engine state. The
+  speed-control set is derived from `Dex.forFormat` (legal only): 34 moves, plus weather and terrain moves for a side
+  with the matching speed ability. 19 speed abilities feed the estimate. Will (2026-10-01): *"i just want to have that
+  info tracked."*
+- ROTOM writes `tactics: { mine, opp }` into every game record and `tactics` totals into the summary
+  (`solver/rotom/rotom.js`). `node solver/rotom/report.js ladder <dir>` prints the counters beside the record, per arm,
+  for all, won and lost games, read from the run's own room logs (`tacticsOfRun`).
+- Arena: every match row of `solver/mew/play.js` carries `tactics.x` and `tactics.y`, every self-play record carries
+  `tactics`, and the shard summary has `tactics.by_agent`.
+- `solver/tests/test-tactics.js`: GREEN 28/28, and RED under `TACTICS_BREAK=blind`. `test-rotom-endings-live.js` checks
+  that the real client's game records carry `tactics` (GREEN 20/20).
+- `solver/results/2026-10-01-speed-mega-switch/analyze.js` and `measured.json`: the bot against its opponents and the
+  open-sheet humans (27,143 games after `engine/quality.js` `reasons()`).
+
+### Notes
+- Over 126 search-arm ladder games, like with like against 1400+ humans (observed / expected): speed control 0.88
+  [0.69, 1.12], switch-outs 1.06 [0.92, 1.22], mega 0.98 [0.81, 1.18]. The mega rate is 94.1% against 95.4% for
+  1400+ humans.
+- Two things are associated with lost games beyond what humans show:
+  - The foe's speed control: the win rate moves −0.22 [−0.39, −0.05]; for 1400+ humans, −0.03.
+  - A voluntary switch-in KO'd the same turn: 15.4% of switch-ins, against 10.0% for 1400+ humans.
+- Our fours used Trick Room 3 times in 126 games; the opponents used it 31 times.
+- Details: `docs/_reports/2026-10-01-speed-mega-switch.md`.
 
 ## [1.58.0] — 2026-10-01
 

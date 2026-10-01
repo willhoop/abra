@@ -4,7 +4,7 @@
 
 ## Verdict
 
-PENDING: written at pre-registration (abra/regmc 1.66.0), before the first screen game. The results are added after both
+PENDING: written at pre-registration (abra/regmc 1.67.0), before the first screen game. The results are added after both
 screens read, in a later commit.
 
 ## 1. Pre-registration (committed before the first game)

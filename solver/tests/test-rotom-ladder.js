@@ -376,7 +376,10 @@ function mkController(dir, extra) {
       const pr = V.validateTeam(Teams.unpack(t.packed));
       ok('ROTATION', !pr, rf + ' ' + t.id + ' passes TeamValidator: ' + JSON.stringify(pr));
       ok('ROTATION', t.bring.length === 4 && new Set(t.bring).size === 4 && t.bring.every(i => i >= 0 && i < 6), rf + ' ' + t.id + ' bring ' + JSON.stringify(t.bring));
-      ok('ROTATION', t.archetype && t.archetype.label && t.from_game && t.rating > 0, rf + ' ' + t.id + ' carries the team_meta fields (archetype label, from_game, rating)');
+      /* a store-built team names its ladder game and rating; a TOURNAMENT team (build_tour_rotation.js, 2026-10-01) has no
+       * ladder rating and names its event, placing and paste instead (team_meta.source) */
+      ok('ROTATION', t.archetype && t.archetype.label && ((t.from_game && t.rating > 0) || (t.source && t.source.event && t.source.placing > 0 && /^https:\/\//.test(t.source.url || ''))),
+         rf + ' ' + t.id + ' carries the team_meta fields (archetype label, and from_game + rating or a tournament source)');
     }
     ok('ROTATION', new Set(ROT.teams.map(t => t.archetype.id)).size === ROT.teams.length, rf + ' one team per archetype');
   }

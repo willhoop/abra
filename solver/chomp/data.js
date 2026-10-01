@@ -11,7 +11,9 @@
  * The file is the human dataset (solver/human/build_dataset.js). It lives in the MAIN checkout and is READ ONLY;
  * a worktree has no copy. It is hashed whole (pool_sha256) so every artifact can say which file it read.
  *
- * Kept: both sheets six long, no custom rules, both leads known. `option` is set only where the whole four is
+ * Kept: both sheets six long, no custom rules other than the open-sheet bo3 set (engine/quality.js customRuleRegime(),
+ * Will 2026-10-01: a bo1-format room under exactly Force Open Team Sheets + Best of = 3 is the game we play), both
+ * leads known. `option` is set only where the whole four is
  * known (bring_complete), because the back two of a side that never showed them are not in the log.
  */
 'use strict';
@@ -19,6 +21,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const O = require('./options.js');
+const Q = require('../../engine/quality.js');
 
 const DEFAULT_FILE = path.join('C:', 'Users', 'willj', 'Projects', 'Pokemon', 'ABRA', 'solver', 'out', 'human', 'games.jsonl');
 const toID = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -38,7 +41,7 @@ function headers(file) {
   const hash = crypto.createHash('sha256');
   let buf = '', pos = 0, scanned = 0;
   const games = [];
-  const skipped = { custom_rules: 0, sheet_not_six: 0, no_leads: 0 };
+  const skipped = { not_open_sheet_bo3: 0, custom_rules: 0, sheet_not_six: 0, no_leads: 0 };
   try {
     for (;;) {
       const k = fs.readSync(fd, chunk, 0, chunk.length, pos);
@@ -52,7 +55,10 @@ function headers(file) {
         scanned++;
         const cut = line.indexOf(',"turns":');
         const g = JSON.parse(cut > 0 ? line.slice(0, cut) + '}' : line).game;
-        if (g.custom_rules) { skipped.custom_rules++; continue; }
+        /* SERIES-LEVEL: CHOMP is the bo3 preview solver, so it keeps open-sheet bo3 only (Will, 2026-10-01). The human
+         * dataset also holds bo1 turn play, flagged open_sheet_bo3 false; a dataset built before the flag holds none. */
+        if (g.open_sheet_bo3 === false) { skipped.not_open_sheet_bo3++; continue; }
+        if (g.custom_rules && !Q.isOpenSheetBo3(g, g.custom_rules)) { skipped.custom_rules++; continue; }
         if ((g.sheets.p1 || []).length !== 6 || (g.sheets.p2 || []).length !== 6) { skipped.sheet_not_six++; continue; }
         if (!g.leads || (g.leads.p1 || []).length !== 2 || (g.leads.p2 || []).length !== 2) { skipped.no_leads++; continue; }
         const option = {}, split = {}, players = {};

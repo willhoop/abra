@@ -50,7 +50,9 @@ mid-write. A pattern is something that changes how you FIND things — an unwire
 output, a green test can be asking nothing. Rules go in `CLAUDE.md` beside the section they extend;
 patterns go in `memory/` as `reference` files so they arrive without bloating the always-loaded file.
 
-**4. NARRATIVE AND EVIDENCE -> `CHANGELOG.md` + `docs/MEDICHAM-SPRINT-NOTES.md`.**
+**4. NARRATIVE AND EVIDENCE -> the open line's changelog (`CHANGELOG-REGMC.md`), one entry per change
+with its `### Record` section.** *(Since 2026-10-01. Before that it went to `CHANGELOG.md` plus a notes
+page; `docs/RUNNING-NOTES.md` and `solver/LOG.md` are frozen archives now.)*
 What changed, what it measured, what was retracted. This is the archive and it is correct that it is long.
 It is not the handoff and must not be treated as one.
 

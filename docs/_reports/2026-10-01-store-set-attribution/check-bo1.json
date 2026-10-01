@@ -1,0 +1,1773 @@
+{
+ "by": "engine/store_sets_check.js",
+ "generated": "2026-10-01T05:58:23.322Z",
+ "format": "gen9championsvgc2026regmc",
+ "fmt": "bo1",
+ "every": 10,
+ "inputs": {
+  "store": "C:/Users/willj/Projects/Pokemon/ABRA/data/games.gen9championsvgc2026regmc.jsonl.gz",
+  "store_bytes": 47887567,
+  "store_rows": 63048,
+  "raw_files": 282,
+  "raw_dir": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc"
+ },
+ "sampled_store_rows": 6247,
+ "no_raw_log": 0,
+ "reveal_threw": {
+  "bo1_sheets_public(skipped: agrees trivially)": 222,
+  "illusion_replace": 72,
+  "moves_overflow": 1,
+  "move_not_on_sheet": 2
+ },
+ "stored_differs_from_fresh": 4961,
+ "stored_differs_examples": [
+  "gen9championsvgc2026regmc-2678199900",
+  "gen9championsvgc2026regmc-2678199310",
+  "gen9championsvgc2026regmc-2678199030",
+  "gen9championsvgc2026regmc-2678196030",
+  "gen9championsvgc2026regmc-2678192430",
+  "gen9championsvgc2026regmc-2678191190"
+ ],
+ "store": {
+  "games": 5950,
+  "members": 37964,
+  "mirror_members": 5865,
+  "mirror_compared": 0,
+  "member_absent": 0,
+  "moves_equal": 37848,
+  "move_missing": 68,
+  "move_extra": 60,
+  "moves_split_across_keys": 8373,
+  "item_compared": 15689,
+  "item_equal": 15528,
+  "item_wrong": 161,
+  "item_miss": 4615,
+  "ability_compared": 12935,
+  "ability_equal": 12617,
+  "ability_wrong": 318,
+  "ability_miss": 1933,
+  "causes": {
+   "mirror_species_shares_one_key": 5865,
+   "item_miss:item_from:-damage [from] item": 2864,
+   "item_miss:item_from:-heal [from] item": 1707,
+   "ability_miss:ability_from:-damage [from] ability": 346,
+   "ability_miss:ability_from:-heal [from] ability": 340,
+   "ability_wrong:ability_changed_by:ability: Trace": 246,
+   "ability_miss:ability_from:-fail [from] ability": 239,
+   "ability_miss:ability_from:cant": 178,
+   "ability_miss:ability_from:-item [from] ability": 170,
+   "ability_miss:unclassified": 168,
+   "ability_miss:ability_from:-start [from] ability": 154,
+   "item_wrong:item_received:move: Trick": 133,
+   "ability_miss:ability_from:-activate": 130,
+   "ability_miss:ability_from:-status [from] ability": 112,
+   "move_missing:cant_names_move": 67,
+   "ability_miss:ability_from:-immune [from] ability": 41,
+   "move_extra:transform_copied": 25,
+   "item_miss:item_from:-enditem(not credited)": 23,
+   "item_miss:item_from:-activate": 19,
+   "ability_miss:ability_from:-transform [from] ability": 18,
+   "ability_wrong:ability_changed_by:move: Simple Beam": 16,
+   "move_extra:struggle": 16,
+   "ability_wrong:after_skill_swap": 14,
+   "ability_wrong:ability_changed_by:move: Entrainment": 11,
+   "move_extra:called_by:ability: Magic Bounce": 11,
+   "ability_wrong:wrong_member:-ability": 11,
+   "item_wrong:wrong_member:after_ally_switch": 9,
+   "ability_miss:ability_from:move [from] ability": 8,
+   "ability_miss:ability_from:-clearboost [from] ability": 8,
+   "ability_miss:ability_from:-weather [from] ability": 8,
+   "item_wrong:item_received:move: Switcheroo": 7,
+   "move_extra:wrong_member": 7,
+   "ability_miss:ability_from:-enditem [from] ability": 6,
+   "ability_wrong:wrong_member:after_skill_swap": 5,
+   "item_wrong:item_received:ability: Pickpocket": 5,
+   "ability_miss:ability_from:-setboost [from] ability": 4,
+   "ability_wrong:wrong_member:after_ally_switch": 4,
+   "item_wrong:item_received:ability: Magician": 4,
+   "ability_wrong:wrong_member:-fieldstart": 3,
+   "ability_wrong:transform_copied": 3,
+   "ability_wrong:ability_changed_by:move: Worry Seed": 2,
+   "ability_miss:ability_from:-fieldstart [from] ability": 2,
+   "item_wrong:item_received:move: Thief": 2,
+   "item_miss:item_from:-item(not credited)": 2,
+   "item_wrong:wrong_member:-enditem": 1,
+   "ability_wrong:wrong_member:-weather": 1,
+   "ability_miss:ability_from:-curestatus [from] ability": 1,
+   "move_extra:called_by:move: Copycat": 1,
+   "move_missing:forewarn_reveal": 1,
+   "ability_wrong:ability_changed_by:move: Role Play": 1,
+   "ability_wrong:ability_changed_by:ability: Receiver": 1
+  },
+  "examples": {
+   "item_miss:item_from:-damage [from] item": [
+    {
+     "id": "gen9championsvgc2026regmc-2678199900",
+     "side": "p1",
+     "species": "Gholdengo",
+     "reveal": "Life Orb"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678199030",
+     "side": "p1",
+     "species": "Mudsdale",
+     "reveal": "Life Orb"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678192430",
+     "side": "p2",
+     "species": "Rillaboom",
+     "reveal": "Life Orb"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678191190",
+     "side": "p1",
+     "species": "Indeedee-F",
+     "reveal": "Rocky Helmet"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678191190",
+     "side": "p1",
+     "species": "Armarouge",
+     "reveal": "Life Orb"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678191190",
+     "side": "p2",
+     "species": "Rillaboom",
+     "reveal": "Rocky Helmet"
+    }
+   ],
+   "item_miss:item_from:-heal [from] item": [
+    {
+     "id": "gen9championsvgc2026regmc-2678199030",
+     "side": "p2",
+     "species": "Archaludon",
+     "reveal": "Leftovers"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678196030",
+     "side": "p1",
+     "species": "Milotic",
+     "reveal": "Leftovers"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678192430",
+     "side": "p2",
+     "species": "Archaludon",
+     "reveal": "Leftovers"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678191190",
+     "side": "p1",
+     "species": "Primarina",
+     "reveal": "Leftovers"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678167400",
+     "side": "p1",
+     "species": "Archaludon",
+     "reveal": "Leftovers"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678167400",
+     "side": "p2",
+     "species": "Toxapex",
+     "reveal": "Leftovers"
+    }
+   ],
+   "ability_miss:ability_from:-heal [from] ability": [
+    {
+     "id": "gen9championsvgc2026regmc-2678192430",
+     "side": "p1",
+     "species": "Slowking-Galar",
+     "reveal": "Regenerator"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678191190",
+     "side": "p2",
+     "species": "Sinistcha",
+     "reveal": "Hospitality"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678156690",
+     "side": "p2",
+     "species": "Sinistcha",
+     "reveal": "Hospitality"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678082440",
+     "side": "p1",
+     "species": "Pawmot",
+     "reveal": "Volt Absorb"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678055250",
+     "side": "p1",
+     "species": "Sinistcha",
+     "reveal": "Hospitality"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678032200",
+     "side": "p1",
+     "species": "Sinistcha",
+     "reveal": "Hospitality"
+    }
+   ],
+   "ability_miss:ability_from:-damage [from] ability": [
+    {
+     "id": "gen9championsvgc2026regmc-2678184190",
+     "side": "p1",
+     "species": "Garchomp",
+     "reveal": "Rough Skin"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678156690",
+     "side": "p1",
+     "species": "Garchomp",
+     "reveal": "Rough Skin"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678144630",
+     "side": "p1",
+     "species": "Garchomp",
+     "reveal": "Rough Skin"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678111330",
+     "side": "p2",
+     "species": "Garchomp",
+     "reveal": "Rough Skin"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678111630",
+     "side": "p1",
+     "species": "Garchomp",
+     "reveal": "Rough Skin"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678110480",
+     "side": "p2",
+     "species": "Garchomp",
+     "reveal": "Rough Skin"
+    }
+   ],
+   "item_wrong:wrong_member:after_ally_switch": [
+    {
+     "id": "gen9championsvgc2026regmc-2678184190",
+     "side": "p2",
+     "species": "Annihilape",
+     "store": "Colbur Berry",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678455580",
+     "side": "p2",
+     "species": "Sylveon",
+     "store": "Sitrus Berry",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678874830",
+     "side": "p1",
+     "species": "Snorlax",
+     "store": "Sitrus Berry",
+     "reveal": "Leftovers"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2682060440",
+     "side": "p1",
+     "species": "Farigiraf",
+     "store": "Focus Sash",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2682566470",
+     "side": "p1",
+     "species": "Incineroar",
+     "store": "Sitrus Berry",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2685785190",
+     "side": "p2",
+     "species": "Grimmsnarl",
+     "store": "Focus Sash",
+     "reveal": "<UNK>"
+    }
+   ],
+   "item_miss:item_from:-enditem(not credited)": [
+    {
+     "id": "gen9championsvgc2026regmc-2678184190",
+     "side": "p2",
+     "species": "Farigiraf",
+     "reveal": "Colbur Berry"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678455580",
+     "side": "p2",
+     "species": "Farigiraf",
+     "reveal": "Sitrus Berry"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678874830",
+     "side": "p1",
+     "species": "Aromatisse",
+     "reveal": "Sitrus Berry"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679345850",
+     "side": "p1",
+     "species": "Ceruledge",
+     "reveal": "Focus Sash"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680636270",
+     "side": "p2",
+     "species": "Farigiraf",
+     "reveal": "Colbur Berry"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680849890",
+     "side": "p2",
+     "species": "Ceruledge",
+     "reveal": "Focus Sash"
+    }
+   ],
+   "move_missing:cant_names_move": [
+    {
+     "id": "gen9championsvgc2026regmc-2678185870",
+     "side": "p1",
+     "species": "Emboar",
+     "move": "drainpunch"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678130410",
+     "side": "p1",
+     "species": "Farigiraf",
+     "move": "trickroom"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678065040",
+     "side": "p2",
+     "species": "Farigiraf",
+     "move": "imprison"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678352690",
+     "side": "p1",
+     "species": "Indeedee-F",
+     "move": "trickroom"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678366730",
+     "side": "p2",
+     "species": "Farigiraf",
+     "move": "trickroom"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678477020",
+     "side": "p2",
+     "species": "Mimikyu",
+     "move": "trickroom"
+    }
+   ],
+   "ability_miss:ability_from:-setboost [from] ability": [
+    {
+     "id": "gen9championsvgc2026regmc-2678170250",
+     "side": "p1",
+     "species": "Tauros-Paldea-Blaze",
+     "reveal": "Anger Point"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2686585180",
+     "side": "p2",
+     "species": "Crabominable",
+     "reveal": "Anger Point"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2687433810",
+     "side": "p1",
+     "species": "Tauros-Paldea-Aqua",
+     "reveal": "Anger Point"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2687670500",
+     "side": "p1",
+     "species": "Krookodile",
+     "reveal": "Anger Point"
+    }
+   ],
+   "ability_miss:unclassified": [
+    {
+     "id": "gen9championsvgc2026regmc-2678170250",
+     "side": "p2",
+     "species": "Araquanid",
+     "reveal": "Water Bubble"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678162840",
+     "side": "p2",
+     "species": "Dragapult",
+     "reveal": "Clear Body"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678150920",
+     "side": "p2",
+     "species": "Araquanid",
+     "reveal": "Water Bubble"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678085080",
+     "side": "p2",
+     "species": "Charizard",
+     "reveal": "Blaze"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678023920",
+     "side": "p2",
+     "species": "Hatterene",
+     "reveal": "Magic Bounce"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2677974100",
+     "side": "p2",
+     "species": "Kingambit",
+     "reveal": "Defiant"
+    }
+   ],
+   "ability_wrong:ability_changed_by:move: Entrainment": [
+    {
+     "id": "gen9championsvgc2026regmc-2678150920",
+     "side": "p2",
+     "species": "Swampert",
+     "store": "Water Bubble",
+     "reveal": "Torrent"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679504560",
+     "side": "p1",
+     "species": "Sylveon",
+     "store": "No Guard",
+     "reveal": "Pixilate"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679504560",
+     "side": "p2",
+     "species": "Snorlax",
+     "store": "No Guard",
+     "reveal": "Thick Fat"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679830860",
+     "side": "p1",
+     "species": "Snorlax",
+     "store": "No Guard",
+     "reveal": "Thick Fat"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680932410",
+     "side": "p2",
+     "species": "Snorlax",
+     "store": "No Guard",
+     "reveal": "Thick Fat"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2684191140",
+     "side": "p1",
+     "species": "Snorlax",
+     "store": "No Guard",
+     "reveal": "Thick Fat"
+    }
+   ],
+   "ability_miss:ability_from:cant": [
+    {
+     "id": "gen9championsvgc2026regmc-2678150090",
+     "side": "p1",
+     "species": "Tsareena",
+     "reveal": "Queenly Majesty"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678132670",
+     "side": "p2",
+     "species": "Farigiraf",
+     "reveal": "Armor Tail"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678080630",
+     "side": "p1",
+     "species": "Farigiraf",
+     "reveal": "Armor Tail"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678070200",
+     "side": "p1",
+     "species": "Tsareena",
+     "reveal": "Queenly Majesty"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678257960",
+     "side": "p2",
+     "species": "Tsareena",
+     "reveal": "Queenly Majesty"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678296660",
+     "side": "p2",
+     "species": "Farigiraf",
+     "reveal": "Armor Tail"
+    }
+   ],
+   "ability_miss:ability_from:-start [from] ability": [
+    {
+     "id": "gen9championsvgc2026regmc-2678144630",
+     "side": "p1",
+     "species": "Bellibolt",
+     "reveal": "Electromorphosis"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678038870",
+     "side": "p1",
+     "species": "Cinderace",
+     "reveal": "Libero"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678280700",
+     "side": "p2",
+     "species": "Bellibolt",
+     "reveal": "Electromorphosis"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678335860",
+     "side": "p1",
+     "species": "Froslass",
+     "reveal": "Cursed Body"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678332180",
+     "side": "p1",
+     "species": "Bellibolt",
+     "reveal": "Electromorphosis"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678323090",
+     "side": "p1",
+     "species": "Bellibolt",
+     "reveal": "Electromorphosis"
+    }
+   ],
+   "ability_miss:ability_from:-fail [from] ability": [
+    {
+     "id": "gen9championsvgc2026regmc-2678124640",
+     "side": "p2",
+     "species": "Metagross",
+     "reveal": "Clear Body"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678094010",
+     "side": "p2",
+     "species": "Mamoswine",
+     "reveal": "Oblivious"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678093200",
+     "side": "p1",
+     "species": "Mawile",
+     "reveal": "Hyper Cutter"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678077610",
+     "side": "p1",
+     "species": "Mamoswine",
+     "reveal": "Oblivious"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2677963350",
+     "side": "p1",
+     "species": "Dragapult",
+     "reveal": "Clear Body"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678213780",
+     "side": "p1",
+     "species": "Metagross",
+     "reveal": "Clear Body"
+    }
+   ],
+   "ability_miss:ability_from:-status [from] ability": [
+    {
+     "id": "gen9championsvgc2026regmc-2678124640",
+     "side": "p2",
+     "species": "Volcarona",
+     "reveal": "Flame Body"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678031460",
+     "side": "p2",
+     "species": "Volcarona",
+     "reveal": "Flame Body"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2677992380",
+     "side": "p2",
+     "species": "Sneasler",
+     "reveal": "Poison Touch"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678481450",
+     "side": "p1",
+     "species": "Volcarona",
+     "reveal": "Flame Body"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678478490",
+     "side": "p1",
+     "species": "Sneasler",
+     "reveal": "Poison Touch"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678452860",
+     "side": "p1",
+     "species": "Ampharos",
+     "reveal": "Static"
+    }
+   ],
+   "item_wrong:item_received:move: Trick": [
+    {
+     "id": "gen9championsvgc2026regmc-2678110480",
+     "side": "p1",
+     "species": "Grimmsnarl",
+     "store": "Choice Scarf",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678110480",
+     "side": "p2",
+     "species": "Garchomp",
+     "store": "Iron Ball",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678352690",
+     "side": "p1",
+     "species": "Pelipper",
+     "store": "Choice Scarf",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678352690",
+     "side": "p2",
+     "species": "Rotom-Fan",
+     "store": "Focus Sash",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678290450",
+     "side": "p1",
+     "species": "Kleavor",
+     "store": "Choice Scarf",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678290450",
+     "side": "p2",
+     "species": "Espathra",
+     "store": "Quick Claw",
+     "reveal": "<UNK>"
+    }
+   ],
+   "ability_wrong:ability_changed_by:ability: Trace": [
+    {
+     "id": "gen9championsvgc2026regmc-2678077610",
+     "side": "p1",
+     "species": "Gardevoir",
+     "store": "Intimidate",
+     "reveal": "Trace"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678037600",
+     "side": "p2",
+     "species": "Gardevoir",
+     "store": "Grassy Surge",
+     "reveal": "Trace"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678023920",
+     "side": "p1",
+     "species": "Gardevoir",
+     "store": "Magic Bounce",
+     "reveal": "Trace"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2677974100",
+     "side": "p1",
+     "species": "Gardevoir",
+     "store": "Defiant",
+     "reveal": "Trace"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678281870",
+     "side": "p1",
+     "species": "Gardevoir",
+     "store": "Grassy Surge",
+     "reveal": "Trace"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678462800",
+     "side": "p2",
+     "species": "Gardevoir",
+     "store": "Rough Skin",
+     "reveal": "Trace"
+    }
+   ],
+   "ability_miss:ability_from:-item [from] ability": [
+    {
+     "id": "gen9championsvgc2026regmc-2678039910",
+     "side": "p2",
+     "species": "Typhlosion-Hisui",
+     "reveal": "Frisk"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678266380",
+     "side": "p2",
+     "species": "Typhlosion-Hisui",
+     "reveal": "Frisk"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678226620",
+     "side": "p2",
+     "species": "Typhlosion-Hisui",
+     "reveal": "Frisk"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678351730",
+     "side": "p1",
+     "species": "Wigglytuff",
+     "reveal": "Frisk"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678307620",
+     "side": "p1",
+     "species": "Typhlosion-Hisui",
+     "reveal": "Frisk"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678597720",
+     "side": "p1",
+     "species": "Typhlosion-Hisui",
+     "reveal": "Frisk"
+    }
+   ],
+   "ability_wrong:ability_changed_by:move: Simple Beam": [
+    {
+     "id": "gen9championsvgc2026regmc-2678010960",
+     "side": "p2",
+     "species": "Vaporeon",
+     "store": "Simple",
+     "reveal": "Water Absorb"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678359390",
+     "side": "p1",
+     "species": "Swalot",
+     "store": "Simple",
+     "reveal": "Liquid Ooze"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678509770",
+     "side": "p2",
+     "species": "Toxapex",
+     "store": "Simple",
+     "reveal": "Regenerator"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679314830",
+     "side": "p1",
+     "species": "Sinistcha",
+     "store": "Simple",
+     "reveal": "Hospitality"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680342590",
+     "side": "p2",
+     "species": "Indeedee-F",
+     "store": "Simple",
+     "reveal": "Psychic Surge"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680770890",
+     "side": "p2",
+     "species": "Falinks",
+     "store": "Simple",
+     "reveal": "Defiant"
+    }
+   ],
+   "move_extra:called_by:ability: Magic Bounce": [
+    {
+     "id": "gen9championsvgc2026regmc-2677963350",
+     "side": "p1",
+     "species": "Clefable",
+     "move": "disable"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678373330",
+     "side": "p1",
+     "species": "Hatterene",
+     "move": "partingshot"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678370610",
+     "side": "p1",
+     "species": "Hatterene",
+     "move": "leechseed"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679908020",
+     "side": "p1",
+     "species": "Hatterene",
+     "move": "encore"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679975150",
+     "side": "p2",
+     "species": "Sableye",
+     "move": "sleeppowder"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679970920",
+     "side": "p2",
+     "species": "Hatterene",
+     "move": "sleeppowder"
+    }
+   ],
+   "ability_miss:ability_from:-immune [from] ability": [
+    {
+     "id": "gen9championsvgc2026regmc-2678226620",
+     "side": "p1",
+     "species": "Armarouge",
+     "reveal": "Flash Fire"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678700570",
+     "side": "p2",
+     "species": "Armarouge",
+     "reveal": "Flash Fire"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679131530",
+     "side": "p1",
+     "species": "Chesnaught",
+     "reveal": "Bulletproof"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679902200",
+     "side": "p1",
+     "species": "Armarouge",
+     "reveal": "Flash Fire"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680195120",
+     "side": "p2",
+     "species": "Armarouge",
+     "reveal": "Flash Fire"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680353010",
+     "side": "p1",
+     "species": "Armarouge",
+     "reveal": "Flash Fire"
+    }
+   ],
+   "move_extra:struggle": [
+    {
+     "id": "gen9championsvgc2026regmc-2678352690",
+     "side": "p1",
+     "species": "Indeedee-F",
+     "move": "struggle"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679395070",
+     "side": "p2",
+     "species": "Sneasler",
+     "move": "struggle"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679288670",
+     "side": "p1",
+     "species": "Baxcalibur",
+     "move": "struggle"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679668050",
+     "side": "p2",
+     "species": "Kleavor",
+     "move": "struggle"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679735050",
+     "side": "p1",
+     "species": "Dragonite",
+     "move": "struggle"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679958270",
+     "side": "p1",
+     "species": "Pawmot",
+     "move": "struggle"
+    }
+   ],
+   "ability_miss:ability_from:-activate": [
+    {
+     "id": "gen9championsvgc2026regmc-2678383100",
+     "side": "p2",
+     "species": "Glimmora",
+     "reveal": "Toxic Debris"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678456880",
+     "side": "p1",
+     "species": "Farigiraf",
+     "reveal": "Cud Chew"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678531660",
+     "side": "p2",
+     "species": "Noivern",
+     "reveal": "Telepathy"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678881320",
+     "side": "p1",
+     "species": "Glimmora",
+     "reveal": "Toxic Debris"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678865540",
+     "side": "p1",
+     "species": "Glimmora",
+     "reveal": "Toxic Debris"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679036680",
+     "side": "p1",
+     "species": "Kingambit",
+     "reveal": "Supreme Overlord"
+    }
+   ],
+   "ability_miss:ability_from:move [from] ability": [
+    {
+     "id": "gen9championsvgc2026regmc-2678373330",
+     "side": "p1",
+     "species": "Hatterene",
+     "reveal": "Magic Bounce"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678370610",
+     "side": "p1",
+     "species": "Hatterene",
+     "reveal": "Magic Bounce"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679908020",
+     "side": "p1",
+     "species": "Hatterene",
+     "reveal": "Magic Bounce"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679970920",
+     "side": "p2",
+     "species": "Hatterene",
+     "reveal": "Magic Bounce"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680642640",
+     "side": "p2",
+     "species": "Hatterene",
+     "reveal": "Magic Bounce"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2681417080",
+     "side": "p1",
+     "species": "Hatterene",
+     "reveal": "Magic Bounce"
+    }
+   ],
+   "item_miss:item_from:-activate": [
+    {
+     "id": "gen9championsvgc2026regmc-2678760400",
+     "side": "p1",
+     "species": "Farigiraf",
+     "reveal": "Quick Claw"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678915540",
+     "side": "p2",
+     "species": "Machamp",
+     "reveal": "Quick Claw"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679068120",
+     "side": "p2",
+     "species": "Emolga",
+     "reveal": "Quick Claw"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680302900",
+     "side": "p1",
+     "species": "Emolga",
+     "reveal": "Quick Claw"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680613870",
+     "side": "p1",
+     "species": "Ceruledge",
+     "reveal": "Quick Claw"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2681363020",
+     "side": "p1",
+     "species": "Emolga",
+     "reveal": "Quick Claw"
+    }
+   ],
+   "ability_wrong:after_skill_swap": [
+    {
+     "id": "gen9championsvgc2026regmc-2678742300",
+     "side": "p1",
+     "species": "Meowstic",
+     "store": "Intimidate",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680496250",
+     "side": "p2",
+     "species": "Archaludon",
+     "store": "Intimidate",
+     "reveal": "Stamina"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680446740",
+     "side": "p1",
+     "species": "Farigiraf",
+     "store": "Intimidate",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2682096390",
+     "side": "p2",
+     "species": "Sylveon",
+     "store": "Psychic Surge",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2683227870",
+     "side": "p1",
+     "species": "Reuniclus",
+     "store": "Intimidate",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2684016960",
+     "side": "p1",
+     "species": "Indeedee",
+     "store": "Intimidate",
+     "reveal": "Psychic Surge"
+    }
+   ],
+   "ability_wrong:wrong_member:after_skill_swap": [
+    {
+     "id": "gen9championsvgc2026regmc-2678742300",
+     "side": "p1",
+     "species": "Cinderace",
+     "store": "Intimidate",
+     "reveal": "Libero"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2685917060",
+     "side": "p2",
+     "species": "Indeedee-F",
+     "store": "Intimidate",
+     "reveal": "Psychic Surge"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2689084060",
+     "side": "p2",
+     "species": "Malamar",
+     "store": "Intimidate",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2689441830",
+     "side": "p2",
+     "species": "Archaludon",
+     "store": "Intimidate",
+     "reveal": "Stamina"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2690118890",
+     "side": "p1",
+     "species": "Whimsicott",
+     "store": "Intimidate",
+     "reveal": "<UNK>"
+    }
+   ],
+   "ability_wrong:wrong_member:after_ally_switch": [
+    {
+     "id": "gen9championsvgc2026regmc-2678874830",
+     "side": "p1",
+     "species": "Aromatisse",
+     "store": "No Guard",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680120000",
+     "side": "p1",
+     "species": "Ceruledge",
+     "store": "Defiant",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2685792240",
+     "side": "p1",
+     "species": "Arboliva",
+     "store": "Intimidate",
+     "reveal": "Seed Sower"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2687309420",
+     "side": "p1",
+     "species": "Alakazam",
+     "store": "Speed Boost",
+     "reveal": "<UNK>"
+    }
+   ],
+   "move_extra:transform_copied": [
+    {
+     "id": "gen9championsvgc2026regmc-2679024360",
+     "side": "p1",
+     "species": "Ditto",
+     "move": "aurasphere"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680186440",
+     "side": "p2",
+     "species": "Ditto",
+     "move": "playrough"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680770890",
+     "side": "p1",
+     "species": "Ditto",
+     "move": "rockslide"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680770890",
+     "side": "p1",
+     "species": "Ditto",
+     "move": "bodypress"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2681026140",
+     "side": "p1",
+     "species": "Ditto",
+     "move": "direclaw"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2681070160",
+     "side": "p1",
+     "species": "Ditto",
+     "move": "leechlife"
+    }
+   ],
+   "ability_miss:ability_from:-transform [from] ability": [
+    {
+     "id": "gen9championsvgc2026regmc-2679024360",
+     "side": "p1",
+     "species": "Ditto",
+     "reveal": "Imposter"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679735360",
+     "side": "p1",
+     "species": "Ditto",
+     "reveal": "Imposter"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680392740",
+     "side": "p2",
+     "species": "Ditto",
+     "reveal": "Imposter"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680770890",
+     "side": "p1",
+     "species": "Ditto",
+     "reveal": "Imposter"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2681026140",
+     "side": "p1",
+     "species": "Ditto",
+     "reveal": "Imposter"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2681070160",
+     "side": "p1",
+     "species": "Ditto",
+     "reveal": "Imposter"
+    }
+   ],
+   "ability_miss:ability_from:-clearboost [from] ability": [
+    {
+     "id": "gen9championsvgc2026regmc-2679017330",
+     "side": "p1",
+     "species": "Slowking-Galar",
+     "reveal": "Curious Medicine"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2683040820",
+     "side": "p2",
+     "species": "Slowking-Galar",
+     "reveal": "Curious Medicine"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2683613310",
+     "side": "p1",
+     "species": "Slowking-Galar",
+     "reveal": "Curious Medicine"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2683875710",
+     "side": "p1",
+     "species": "Slowking-Galar",
+     "reveal": "Curious Medicine"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2684240960",
+     "side": "p2",
+     "species": "Slowking-Galar",
+     "reveal": "Curious Medicine"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2688462130",
+     "side": "p2",
+     "species": "Slowking-Galar",
+     "reveal": "Curious Medicine"
+    }
+   ],
+   "item_wrong:item_received:move: Switcheroo": [
+    {
+     "id": "gen9championsvgc2026regmc-2679014840",
+     "side": "p1",
+     "species": "Incineroar",
+     "store": "Rocky Helmet",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679014840",
+     "side": "p1",
+     "species": "Corviknight",
+     "store": "Choice Scarf",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679014840",
+     "side": "p2",
+     "species": "Persian",
+     "store": "Rocky Helmet",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680789680",
+     "side": "p1",
+     "species": "Noivern",
+     "store": "Sitrus Berry",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680789680",
+     "side": "p2",
+     "species": "Incineroar",
+     "store": "Choice Scarf",
+     "reveal": "Sitrus Berry"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2681719590",
+     "side": "p1",
+     "species": "Malamar",
+     "store": "Choice Scarf",
+     "reveal": "<UNK>"
+    }
+   ],
+   "item_wrong:wrong_member:-enditem": [
+    {
+     "id": "gen9championsvgc2026regmc-2679014840",
+     "side": "p2",
+     "species": "Gliscor",
+     "store": "Sitrus Berry",
+     "reveal": "<UNK>"
+    }
+   ],
+   "ability_wrong:ability_changed_by:move: Worry Seed": [
+    {
+     "id": "gen9championsvgc2026regmc-2679253620",
+     "side": "p1",
+     "species": "Torkoal",
+     "store": "Insomnia",
+     "reveal": "Drought"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2687291580",
+     "side": "p2",
+     "species": "Scizor",
+     "store": "Insomnia",
+     "reveal": "Technician"
+    }
+   ],
+   "ability_wrong:wrong_member:-ability": [
+    {
+     "id": "gen9championsvgc2026regmc-2679330430",
+     "side": "p1",
+     "species": "Gardevoir",
+     "store": "Intimidate",
+     "reveal": "Trace"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680446740",
+     "side": "p2",
+     "species": "Indeedee-F",
+     "store": "Intimidate",
+     "reveal": "Psychic Surge"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680622860",
+     "side": "p2",
+     "species": "Medicham",
+     "store": "Intimidate",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680649630",
+     "side": "p1",
+     "species": "Clefable",
+     "store": "Intimidate",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2681164360",
+     "side": "p2",
+     "species": "Clefable",
+     "store": "Intimidate",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2684014300",
+     "side": "p1",
+     "species": "Farigiraf",
+     "store": "Simple",
+     "reveal": "Armor Tail"
+    }
+   ],
+   "ability_wrong:wrong_member:-weather": [
+    {
+     "id": "gen9championsvgc2026regmc-2679702560",
+     "side": "p1",
+     "species": "Sableye",
+     "store": "Drought",
+     "reveal": "<UNK>"
+    }
+   ],
+   "ability_miss:ability_from:-weather [from] ability": [
+    {
+     "id": "gen9championsvgc2026regmc-2679770650",
+     "side": "p2",
+     "species": "Pelipper",
+     "reveal": "Drizzle"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2683707600",
+     "side": "p1",
+     "species": "Torkoal",
+     "reveal": "Drought"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2684495790",
+     "side": "p1",
+     "species": "Tyranitar",
+     "reveal": "Sand Stream"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2684653390",
+     "side": "p2",
+     "species": "Torkoal",
+     "reveal": "Drought"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2684977010",
+     "side": "p2",
+     "species": "Politoed",
+     "reveal": "Drizzle"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2686305710",
+     "side": "p2",
+     "species": "Pelipper",
+     "reveal": "Drizzle"
+    }
+   ],
+   "ability_miss:ability_from:-fieldstart [from] ability": [
+    {
+     "id": "gen9championsvgc2026regmc-2679944020",
+     "side": "p1",
+     "species": "Rillaboom",
+     "reveal": "Grassy Surge"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2690293780",
+     "side": "p2",
+     "species": "Indeedee-F",
+     "reveal": "Psychic Surge"
+    }
+   ],
+   "ability_wrong:wrong_member:-fieldstart": [
+    {
+     "id": "gen9championsvgc2026regmc-2680077230",
+     "side": "p1",
+     "species": "Gardevoir",
+     "store": "Psychic Surge",
+     "reveal": "Trace"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2686733220",
+     "side": "p2",
+     "species": "Gardevoir",
+     "store": "Psychic Surge",
+     "reveal": "Trace"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2688130380",
+     "side": "p1",
+     "species": "Clefable",
+     "store": "Psychic Surge",
+     "reveal": "<UNK>"
+    }
+   ],
+   "item_wrong:item_received:ability: Magician": [
+    {
+     "id": "gen9championsvgc2026regmc-2680043440",
+     "side": "p1",
+     "species": "Delphox",
+     "store": "Mystic Water",
+     "reveal": "Psychic Seed"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2688626660",
+     "side": "p1",
+     "species": "Delphox",
+     "store": "Choice Scarf",
+     "reveal": "Psychic Seed"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2688747370",
+     "side": "p1",
+     "species": "Delphox",
+     "store": "Miracle Seed",
+     "reveal": "Psychic Seed"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2689236080",
+     "side": "p1",
+     "species": "Delphox",
+     "store": "Leftovers",
+     "reveal": "Psychic Seed"
+    }
+   ],
+   "ability_wrong:transform_copied": [
+    {
+     "id": "gen9championsvgc2026regmc-2680186440",
+     "side": "p2",
+     "species": "Ditto",
+     "store": "Mold Breaker",
+     "reveal": "Imposter"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2684292580",
+     "side": "p2",
+     "species": "Ditto",
+     "store": "Intimidate",
+     "reveal": "Imposter"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2685150770",
+     "side": "p1",
+     "species": "Ditto",
+     "store": "Eelevate",
+     "reveal": "Imposter"
+    }
+   ],
+   "ability_miss:ability_from:-enditem [from] ability": [
+    {
+     "id": "gen9championsvgc2026regmc-2680214880",
+     "side": "p1",
+     "species": "Weavile",
+     "reveal": "Pickpocket"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2683110830",
+     "side": "p2",
+     "species": "Tinkaton",
+     "reveal": "Pickpocket"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2683329900",
+     "side": "p1",
+     "species": "Weavile",
+     "reveal": "Pickpocket"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2683412830",
+     "side": "p1",
+     "species": "Weavile",
+     "reveal": "Pickpocket"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2686883300",
+     "side": "p1",
+     "species": "Weavile",
+     "reveal": "Pickpocket"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2688698680",
+     "side": "p1",
+     "species": "Tinkaton",
+     "reveal": "Pickpocket"
+    }
+   ],
+   "move_extra:wrong_member": [
+    {
+     "id": "gen9championsvgc2026regmc-2680770890",
+     "side": "p1",
+     "species": "Ditto",
+     "move": "protect"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2681789600",
+     "side": "p2",
+     "species": "Ditto",
+     "move": "irondefense"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2681789600",
+     "side": "p2",
+     "species": "Ditto",
+     "move": "bodypress"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2683721140",
+     "side": "p1",
+     "species": "Ditto",
+     "move": "suckerpunch"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2685150770",
+     "side": "p1",
+     "species": "Ditto",
+     "move": "protect"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2686251310",
+     "side": "p2",
+     "species": "Lucario",
+     "move": "strengthsap"
+    }
+   ],
+   "item_wrong:item_received:move: Thief": [
+    {
+     "id": "gen9championsvgc2026regmc-2681243230",
+     "side": "p1",
+     "species": "Weavile",
+     "store": "Leftovers",
+     "reveal": "King's Rock"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2684781260",
+     "side": "p2",
+     "species": "Sneasler",
+     "store": "Mental Herb",
+     "reveal": "Psychic Seed"
+    }
+   ],
+   "item_miss:item_from:-item(not credited)": [
+    {
+     "id": "gen9championsvgc2026regmc-2682618750",
+     "side": "p1",
+     "species": "Primarina",
+     "reveal": "Leftovers"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2687453810",
+     "side": "p1",
+     "species": "Gholdengo",
+     "reveal": "Life Orb"
+    }
+   ],
+   "item_wrong:item_received:ability: Pickpocket": [
+    {
+     "id": "gen9championsvgc2026regmc-2683110830",
+     "side": "p2",
+     "species": "Tinkaton",
+     "store": "Focus Sash",
+     "reveal": "Air Balloon"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2683329900",
+     "side": "p1",
+     "species": "Weavile",
+     "store": "Miracle Seed",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2683412830",
+     "side": "p1",
+     "species": "Weavile",
+     "store": "Sitrus Berry",
+     "reveal": "Focus Sash"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2686883300",
+     "side": "p1",
+     "species": "Weavile",
+     "store": "Chople Berry",
+     "reveal": "Focus Sash"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2688698680",
+     "side": "p1",
+     "species": "Tinkaton",
+     "store": "Mystic Water",
+     "reveal": "Air Balloon"
+    }
+   ],
+   "ability_miss:ability_from:-curestatus [from] ability": [
+    {
+     "id": "gen9championsvgc2026regmc-2683978620",
+     "side": "p2",
+     "species": "Roserade",
+     "reveal": "Natural Cure"
+    }
+   ],
+   "move_extra:called_by:move: Copycat": [
+    {
+     "id": "gen9championsvgc2026regmc-2685358340",
+     "side": "p1",
+     "species": "Umbreon",
+     "move": "trickroom"
+    }
+   ],
+   "move_missing:forewarn_reveal": [
+    {
+     "id": "gen9championsvgc2026regmc-2686393020",
+     "side": "p2",
+     "species": "Indeedee-F",
+     "move": "psychic"
+    }
+   ],
+   "ability_wrong:ability_changed_by:move: Role Play": [
+    {
+     "id": "gen9championsvgc2026regmc-2686660020",
+     "side": "p1",
+     "species": "Mr. Rime",
+     "store": "No Guard",
+     "reveal": "Screen Cleaner"
+    }
+   ],
+   "ability_wrong:ability_changed_by:ability: Receiver": [
+    {
+     "id": "gen9championsvgc2026regmc-2688807360",
+     "side": "p1",
+     "species": "Passimian",
+     "store": "Huge Power",
+     "reveal": "Receiver"
+    }
+   ]
+  },
+  "rates": {
+   "moves_equal": 0.9969,
+   "item_equal": 0.9897,
+   "ability_equal": 0.9754
+  }
+ },
+ "fresh": {
+  "games": 5950,
+  "members": 43829,
+  "mirror_members": 5865,
+  "mirror_compared": 5865,
+  "member_absent": 0,
+  "moves_equal": 43829,
+  "move_missing": 0,
+  "move_extra": 0,
+  "moves_split_across_keys": 9300,
+  "item_compared": 23212,
+  "item_equal": 23212,
+  "item_wrong": 0,
+  "item_miss": 0,
+  "ability_compared": 17709,
+  "ability_equal": 17697,
+  "ability_wrong": 12,
+  "ability_miss": 0,
+  "causes": {
+   "ability_wrong:unclassified": 12
+  },
+  "examples": {
+   "ability_wrong:unclassified": [
+    {
+     "id": "gen9championsvgc2026regmc-2678249700",
+     "side": "p1",
+     "species": "Sinistcha",
+     "store": "Hospitality",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678359390",
+     "side": "p1",
+     "species": "Sinistcha",
+     "store": "Hospitality",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678583040",
+     "side": "p1",
+     "species": "Sinistcha-Masterpiece",
+     "store": "Hospitality",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2678889990",
+     "side": "p2",
+     "species": "Sinistcha",
+     "store": "Hospitality",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2679830860",
+     "side": "p1",
+     "species": "Sinistcha",
+     "store": "Hospitality",
+     "reveal": "<UNK>"
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2680622860",
+     "side": "p2",
+     "species": "Sinistcha",
+     "store": "Hospitality",
+     "reveal": "<UNK>"
+    }
+   ]
+  },
+  "rates": {
+   "moves_equal": 1,
+   "item_equal": 1,
+   "ability_equal": 0.9993
+  }
+ }
+}

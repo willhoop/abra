@@ -1,0 +1,870 @@
+{
+ "generated": "2026-10-01T07:26:14.163Z",
+ "builder": "solver/tournaments/summary.js",
+ "regulation": "regmc",
+ "store": "data/tournaments/regmc",
+ "events": [
+  {
+   "key": "2026-09-12-vr-september-challenge-1",
+   "name": "Victory Road September Challenge #1 (2026)",
+   "tier": "community",
+   "region": null,
+   "country": "Online",
+   "start": "2026-09-12",
+   "players": 392,
+   "teams": 55,
+   "teams_with_spreads": 0,
+   "top_cut_listed": 55,
+   "sources": [
+    "victoryroad"
+   ]
+  },
+  {
+   "key": "2026-09-19-baltimore",
+   "name": "2027 Baltimore Regional Championships",
+   "tier": "regional",
+   "region": "North America",
+   "country": "United States",
+   "start": "2026-09-19",
+   "players": 1081,
+   "teams": 155,
+   "teams_with_spreads": 0,
+   "top_cut_listed": 155,
+   "sources": [
+    "victoryroad",
+    "limitless"
+   ]
+  },
+  {
+   "key": "2026-09-19-vr-september-challenge-2",
+   "name": "Victory Road September Challenge #2 (2026)",
+   "tier": "community",
+   "region": null,
+   "country": "Online",
+   "start": "2026-09-19",
+   "players": 253,
+   "teams": 36,
+   "teams_with_spreads": 0,
+   "top_cut_listed": 36,
+   "sources": [
+    "victoryroad"
+   ]
+  },
+  {
+   "key": "2026-09-26-frankfurt",
+   "name": "2027 Frankfurt Regional Championships",
+   "tier": "regional",
+   "region": "Europe",
+   "country": "Germany",
+   "start": "2026-09-26",
+   "players": 1129,
+   "teams": 163,
+   "teams_with_spreads": 0,
+   "top_cut_listed": 163,
+   "sources": [
+    "victoryroad",
+    "limitless"
+   ]
+  },
+  {
+   "key": "2026-09-26-brisbane",
+   "name": "2027 Brisbane Regional Championships",
+   "tier": "regional",
+   "region": "Oceania",
+   "country": "Australia",
+   "start": "2026-09-26",
+   "players": 327,
+   "teams": 128,
+   "teams_with_spreads": 0,
+   "top_cut_listed": 128,
+   "sources": [
+    "victoryroad",
+    "limitless"
+   ]
+  },
+  {
+   "key": "2026-10-01-vr-replica",
+   "name": "Victory Road Replica Teams (Regulation Set M-C), new on 2026-10-01",
+   "tier": "community",
+   "region": null,
+   "country": null,
+   "start": "2026-10-01",
+   "players": null,
+   "teams": 2,
+   "teams_with_spreads": 2,
+   "sources": [
+    "victoryroad_replica"
+   ]
+  }
+ ],
+ "totals": {
+  "events": 6,
+  "teams": 539,
+  "masters_teams": 537,
+  "by_tier": {
+   "community": 3,
+   "regional": 3
+  },
+  "by_site": {
+   "victoryroad": 537,
+   "victoryroad-replica": 2
+  },
+  "validation": {
+   "checked": 539,
+   "legal": 537,
+   "illegal": 2,
+   "checkout_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+   "stale": false
+  }
+ },
+ "spread_coverage": {
+  "teams_with_spreads": 2,
+  "teams": 539,
+  "sets_with_spreads": 12,
+  "sets": 3234,
+  "note": "an open team sheet carries no spreads; a team has spreads only when its paste published them"
+ },
+ "archetypes": {
+  "rule": "solver/tournaments/archetypes.js: leader clustering at >= 4 shared species, team weight = tier x log-size x 1/sqrt(placing); legal Masters teams",
+  "clusters": 102,
+  "top": [
+   {
+    "label": "Floette-Mega + Salamence-Mega / Rillaboom, Sneasler",
+    "weight": 8.792,
+    "teams": 59,
+    "leader": "2026-09-26-brisbane/masters/2",
+    "leader_player": "Haruki Sato",
+    "core": [
+     [
+      "rillaboom",
+      0.935
+     ],
+     [
+      "sneasler",
+      0.931
+     ],
+     [
+      "kingambit",
+      0.8
+     ],
+     [
+      "salamence",
+      0.738
+     ],
+     [
+      "floetteeternal",
+      0.576
+     ],
+     [
+      "incineroar",
+      0.392
+     ],
+     [
+      "basculegion",
+      0.342
+     ],
+     [
+      "arcaninehisui",
+      0.259
+     ]
+    ]
+   },
+   {
+    "label": "Raichu-Mega-Y + Staraptor-Mega / Rillaboom, Gholdengo",
+    "weight": 7.074,
+    "teams": 51,
+    "leader": "2026-09-19-baltimore/masters/5",
+    "leader_player": "Lorenzo Arce",
+    "core": [
+     [
+      "raichu",
+      1
+     ],
+     [
+      "rillaboom",
+      1
+     ],
+     [
+      "gholdengo",
+      0.986
+     ],
+     [
+      "staraptor",
+      0.89
+     ],
+     [
+      "arcaninehisui",
+      0.694
+     ],
+     [
+      "sylveon",
+      0.464
+     ],
+     [
+      "milotic",
+      0.411
+     ],
+     [
+      "ceruledge",
+      0.279
+     ]
+    ]
+   },
+   {
+    "label": "Garchomp-Mega-Z + Raichu-Mega-Y / Rillaboom, Incineroar",
+    "weight": 5.745,
+    "teams": 42,
+    "leader": "2026-09-26-frankfurt/masters/1",
+    "leader_player": "Eric Rios",
+    "core": [
+     [
+      "rillaboom",
+      1
+     ],
+     [
+      "incineroar",
+      0.887
+     ],
+     [
+      "raichu",
+      0.864
+     ],
+     [
+      "gholdengo",
+      0.801
+     ],
+     [
+      "garchomp",
+      0.557
+     ],
+     [
+      "volcarona",
+      0.487
+     ],
+     [
+      "floetteeternal",
+      0.362
+     ],
+     [
+      "sneasler",
+      0.347
+     ]
+    ]
+   },
+   {
+    "label": "Gengar-Mega / Rillaboom, Incineroar",
+    "weight": 4.061,
+    "teams": 29,
+    "leader": "2026-09-19-baltimore/masters/3",
+    "leader_player": "Brady Smith",
+    "core": [
+     [
+      "gengar",
+      1
+     ],
+     [
+      "rillaboom",
+      1
+     ],
+     [
+      "incineroar",
+      0.969
+     ],
+     [
+      "politoed",
+      0.937
+     ],
+     [
+      "archaludon",
+      0.753
+     ],
+     [
+      "kommoo",
+      0.226
+     ],
+     [
+      "golisopod",
+      0.185
+     ],
+     [
+      "vivillonhighplains",
+      0.16
+     ]
+    ]
+   },
+   {
+    "label": "Froslass-Mega + Raichu-Mega-Y / Rillaboom, Arcanine-Hisui",
+    "weight": 3.444,
+    "teams": 25,
+    "leader": "2026-09-19-baltimore/masters/6",
+    "leader_player": "Esa Ishaque",
+    "core": [
+     [
+      "rillaboom",
+      0.97
+     ],
+     [
+      "arcaninehisui",
+      0.921
+     ],
+     [
+      "raichu",
+      0.89
+     ],
+     [
+      "sneasler",
+      0.887
+     ],
+     [
+      "kingambit",
+      0.726
+     ],
+     [
+      "froslass",
+      0.644
+     ],
+     [
+      "salamence",
+      0.356
+     ],
+     [
+      "gholdengo",
+      0.303
+     ]
+    ]
+   },
+   {
+    "label": "Charizard-Mega-Y + Garchomp-Mega-Z / Archaludon, Pelipper",
+    "weight": 2.967,
+    "teams": 15,
+    "leader": "2026-09-26-brisbane/masters/1",
+    "leader_player": "Kiran Singh",
+    "core": [
+     [
+      "archaludon",
+      1
+     ],
+     [
+      "charizard",
+      1
+     ],
+     [
+      "pelipper",
+      1
+     ],
+     [
+      "venusaur",
+      0.919
+     ],
+     [
+      "grimmsnarl",
+      0.88
+     ],
+     [
+      "garchomp",
+      0.51
+     ],
+     [
+      "swampert",
+      0.379
+     ],
+     [
+      "annihilape",
+      0.12
+     ]
+    ]
+   },
+   {
+    "label": "Salamence-Mega + Tyranitar-Mega / Excadrill, Sneasler",
+    "weight": 2.949,
+    "teams": 18,
+    "leader": "2026-09-19-baltimore/masters/1",
+    "leader_player": "Joseph Ugarte",
+    "core": [
+     [
+      "tyranitar",
+      1
+     ],
+     [
+      "salamence",
+      0.971
+     ],
+     [
+      "excadrill",
+      0.97
+     ],
+     [
+      "sneasler",
+      0.969
+     ],
+     [
+      "indeedee",
+      0.937
+     ],
+     [
+      "corviknight",
+      0.778
+     ],
+     [
+      "gholdengo",
+      0.125
+     ],
+     [
+      "sinistcha",
+      0.061
+     ]
+    ]
+   },
+   {
+    "label": "Dragonite-Mega + Floette-Mega / Incineroar, Sneasler",
+    "weight": 2.59,
+    "teams": 14,
+    "leader": "2026-09-26-frankfurt/masters/4",
+    "leader_player": "Eden Batchelor",
+    "core": [
+     [
+      "incineroar",
+      1
+     ],
+     [
+      "sneasler",
+      0.965
+     ],
+     [
+      "rillaboom",
+      0.945
+     ],
+     [
+      "floetteeternal",
+      0.878
+     ],
+     [
+      "gholdengo",
+      0.856
+     ],
+     [
+      "dragonite",
+      0.781
+     ],
+     [
+      "garchomp",
+      0.093
+     ],
+     [
+      "blastoise",
+      0.073
+     ]
+    ]
+   },
+   {
+    "label": "Aerodactyl-Mega + Charizard-Mega-Y / Farigiraf, Kingambit",
+    "weight": 2.487,
+    "teams": 20,
+    "leader": "2026-09-19-baltimore/masters/11",
+    "leader_player": "Michael Spinetta-McCarthy",
+    "core": [
+     [
+      "charizard",
+      1
+     ],
+     [
+      "farigiraf",
+      1
+     ],
+     [
+      "kingambit",
+      1
+     ],
+     [
+      "sylveon",
+      1
+     ],
+     [
+      "garchomp",
+      0.939
+     ],
+     [
+      "aerodactyl",
+      0.831
+     ],
+     [
+      "whimsicott",
+      0.132
+     ],
+     [
+      "raichu",
+      0.037
+     ]
+    ]
+   },
+   {
+    "label": "Golisopod-Mega + Charizard-Mega-Y / Archaludon, Farigiraf",
+    "weight": 1.993,
+    "teams": 14,
+    "leader": "2026-09-19-baltimore/masters/2",
+    "leader_player": "Aditya Subramanian",
+    "core": [
+     [
+      "archaludon",
+      1
+     ],
+     [
+      "farigiraf",
+      1
+     ],
+     [
+      "golisopod",
+      1
+     ],
+     [
+      "politoed",
+      0.956
+     ],
+     [
+      "grimmsnarl",
+      0.794
+     ],
+     [
+      "charizard",
+      0.758
+     ],
+     [
+      "garchomp",
+      0.156
+     ],
+     [
+      "rillaboom",
+      0.114
+     ]
+    ]
+   },
+   {
+    "label": "Raichu-Mega-Y + Delphox-Mega / Kingambit, Incineroar",
+    "weight": 1.862,
+    "teams": 13,
+    "leader": "2026-09-26-frankfurt/masters/10",
+    "leader_player": "Davide Cognetta",
+    "core": [
+     [
+      "delphox",
+      1
+     ],
+     [
+      "kingambit",
+      1
+     ],
+     [
+      "incineroar",
+      0.95
+     ],
+     [
+      "sinistcha",
+      0.95
+     ],
+     [
+      "floetteeternal",
+      0.778
+     ],
+     [
+      "sneasler",
+      0.652
+     ],
+     [
+      "kommoo",
+      0.222
+     ],
+     [
+      "raichu",
+      0.222
+     ]
+    ]
+   },
+   {
+    "label": "Gengar-Mega + Staraptor-Mega / Indeedee-F, Milotic",
+    "weight": 1.563,
+    "teams": 11,
+    "leader": "2026-09-19-baltimore/masters/9",
+    "leader_player": "Dorian Kang",
+    "core": [
+     [
+      "indeedeef",
+      1
+     ],
+     [
+      "milotic",
+      1
+     ],
+     [
+      "staraptor",
+      1
+     ],
+     [
+      "dragapult",
+      0.923
+     ],
+     [
+      "armarouge",
+      0.907
+     ],
+     [
+      "gengar",
+      0.446
+     ],
+     [
+      "golisopod",
+      0.372
+     ],
+     [
+      "whimsicott",
+      0.182
+     ]
+    ]
+   },
+   {
+    "label": "Raichu-Mega-Y + Golisopod-Mega / Pelipper, Archaludon",
+    "weight": 1.528,
+    "teams": 12,
+    "leader": "2026-09-26-frankfurt/masters/11",
+    "leader_player": "Finn Seipold",
+    "core": [
+     [
+      "golisopod",
+      1
+     ],
+     [
+      "pelipper",
+      1
+     ],
+     [
+      "archaludon",
+      0.913
+     ],
+     [
+      "farigiraf",
+      0.872
+     ],
+     [
+      "raichu",
+      0.662
+     ],
+     [
+      "garchomp",
+      0.324
+     ],
+     [
+      "rillaboom",
+      0.323
+     ],
+     [
+      "kingambit",
+      0.295
+     ]
+    ]
+   },
+   {
+    "label": "Charizard-Mega-Y / Garchomp, Incineroar",
+    "weight": 1.376,
+    "teams": 9,
+    "leader": "2026-09-26-frankfurt/masters/6",
+    "leader_player": "Juan Manuel Odriozola",
+    "core": [
+     [
+      "charizard",
+      1
+     ],
+     [
+      "garchomp",
+      1
+     ],
+     [
+      "incineroar",
+      1
+     ],
+     [
+      "venusaur",
+      0.839
+     ],
+     [
+      "sylveon",
+      0.718
+     ],
+     [
+      "toxapex",
+      0.649
+     ],
+     [
+      "aegislash",
+      0.166
+     ],
+     [
+      "rillaboom",
+      0.161
+     ]
+    ]
+   },
+   {
+    "label": "Charizard-Mega-Y + Meowstic-F-Mega / Kingambit, Meowstic-F",
+    "weight": 1.158,
+    "teams": 5,
+    "leader": "2026-09-26-frankfurt/masters/3",
+    "leader_player": "Yvar Vlieger",
+    "core": [
+     [
+      "charizard",
+      1
+     ],
+     [
+      "kingambit",
+      1
+     ],
+     [
+      "meowsticf",
+      1
+     ],
+     [
+      "sneasler",
+      1
+     ],
+     [
+      "indeedee",
+      0.93
+     ],
+     [
+      "kommoo",
+      0.93
+     ],
+     [
+      "garchomp",
+      0.07
+     ],
+     [
+      "indeedeef",
+      0.07
+     ]
+    ]
+   }
+  ]
+ },
+ "species_teams": [
+  [
+   "Rillaboom",
+   302
+  ],
+  [
+   "Sneasler",
+   209
+  ],
+  [
+   "Incineroar",
+   183
+  ],
+  [
+   "Kingambit",
+   173
+  ],
+  [
+   "Gholdengo",
+   163
+  ],
+  [
+   "Raichu",
+   148
+  ],
+  [
+   "Salamence",
+   144
+  ],
+  [
+   "Arcanine-Hisui",
+   108
+  ],
+  [
+   "Garchomp",
+   100
+  ],
+  [
+   "Archaludon",
+   91
+  ],
+  [
+   "Floette-Eternal",
+   87
+  ],
+  [
+   "Charizard",
+   83
+  ],
+  [
+   "Farigiraf",
+   77
+  ],
+  [
+   "Staraptor",
+   75
+  ],
+  [
+   "Basculegion",
+   73
+  ],
+  [
+   "Sylveon",
+   71
+  ],
+  [
+   "Indeedee-F",
+   70
+  ],
+  [
+   "Milotic",
+   64
+  ],
+  [
+   "Pelipper",
+   54
+  ],
+  [
+   "Golisopod",
+   52
+  ],
+  [
+   "Gengar",
+   48
+  ],
+  [
+   "Volcarona",
+   46
+  ],
+  [
+   "Politoed",
+   44
+  ],
+  [
+   "Froslass",
+   35
+  ],
+  [
+   "Indeedee",
+   34
+  ],
+  [
+   "Tyranitar",
+   34
+  ],
+  [
+   "Delphox",
+   33
+  ],
+  [
+   "Kommo-o",
+   32
+  ],
+  [
+   "Glimmora",
+   31
+  ],
+  [
+   "Armarouge",
+   30
+  ]
+ ]
+}

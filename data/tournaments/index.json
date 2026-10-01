@@ -1,0 +1,37 @@
+{
+ "_note": "Every tournament event page the discovery (solver/tournaments/ingest.js) has classified, so a page is read once. A past event's regulation does not change.",
+ "pages": {
+  "limitless:437": {
+   "url": "https://limitlessvgc.com/tournaments/437",
+   "name": "World Championships 2026",
+   "start": "2026-08-27",
+   "players": 395,
+   "regulation_label": "M-B",
+   "classified": "2026-10-01"
+  },
+  "limitless:441": {
+   "url": "https://limitlessvgc.com/tournaments/441",
+   "name": "Regional Baltimore, MD",
+   "start": "2026-09-19",
+   "players": 1081,
+   "regulation_label": "M-C",
+   "classified": "2026-10-01"
+  },
+  "limitless:442": {
+   "url": "https://limitlessvgc.com/tournaments/442",
+   "name": "Regional Brisbane",
+   "start": "2026-09-26",
+   "players": 327,
+   "regulation_label": "M-C",
+   "classified": "2026-10-01"
+  },
+  "limitless:443": {
+   "url": "https://limitlessvgc.com/tournaments/443",
+   "name": "Regional Frankfurt",
+   "start": "2026-09-26",
+   "players": 1129,
+   "regulation_label": "M-C",
+   "classified": "2026-10-01"
+  }
+ }
+}

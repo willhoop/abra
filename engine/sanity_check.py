@@ -84,7 +84,7 @@ if pj: ok(len(pj.get("weights",[]))==6 and len(pj.get("mean",[]))==5, "pory.js h
 
 print("== 5. cross-consistency (three places agree) ==")
 wp = open(D("docs","ABRA-whitepaper.md"), encoding="utf-8").read()
-sm = open(D("docs","SUMMARY.md"), encoding="utf-8").read()
+sm = open(D("README.md"), encoding="utf-8").read()   # docs/SUMMARY.md was folded into README.md on 2026-10-01
 if pory:
     # THE CHECK COMPARED THE DOCS AGAINST A TYPED LITERAL, so it certified agreement on a number the
     # code had stopped producing — and would have FAILED if somebody corrected the docs. `pory` is
@@ -106,7 +106,7 @@ if pory:
         # have to change them all." A check demanding a withdrawn figure be published enforces the
         # opposite of the policy, so it now asserts ABSENCE. It flips back by itself the day PORY is
         # re-run and its section republished: restore the `in` test and delete this block.
-        _where = [n for n, d in (("white paper", wp), ("summary", sm)) if _ps in d]
+        _where = [n for n, d in (("white paper", wp), ("README (was SUMMARY)", sm)) if _ps in d]
         ok(not _where,
            f"PORY log-loss {_ps} (data/pory-eval.json) is WITHDRAWN and appears in no living document"
            + (f" -- still in: {', '.join(_where)}" if _where else ""))

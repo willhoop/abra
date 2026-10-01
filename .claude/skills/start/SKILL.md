@@ -210,15 +210,19 @@ And a passing clause says nothing about what it does not sample: the damage diff
   sample, not a budget — an unexplained 777-versus-961 cost a full pool-pin audit, and the answer was
   a flag nobody had written down.
 
-### EVERY COMMIT RECORDS A ROW IN `docs/RUNNING-NOTES.md` — AND A ROW IS THE WHOLE OUTPUT
+### EVERY COMMIT RECORDS ONE CHANGELOG ENTRY — AND THE ENTRY IS THE WHOLE OUTPUT
 
-The full living-document set — white paper, deck, technical docs, `SUMMARY.md`, `MODELS.md`, the PDFs
-— now folds in on a **MAJOR release only**. In between, **one row per change is the correct output; do
-not bump a living document.** `.githooks/pre-commit` blocks any commit touching `engine/`, `tests/`,
-`web/`, `build/`, a live document or the CHANGELOG that does not also stage the notes page, and
-`tests/test-docs-current.js` clause 5b re-checks it against committed history, so `--no-verify` does
-not launder it. **Put the row obligation in every brief** — an agent that returns without one leaves a
-commit the hook will refuse.
+*(2026-10-01: Will approved merging the notes page into the changelog. `docs/RUNNING-NOTES.md` and
+`solver/LOG.md` are FROZEN archives; nothing new is written to either.)*
+
+The full living-document set — white paper, deck, technical docs, `MODELS.md`, the PDFs — folds in on a
+**MAJOR release only**. In between, **one `CHANGELOG-REGMC.md` entry per change is the correct output,
+carrying a `### Record` section** (`**Measured.**`, `**Basis.**`, `**Supersedes.**`, `**Owed to the
+next major.**`); do not bump a living document. `.githooks/pre-commit` blocks any commit touching
+`engine/`, `tests/`, `web/`, `build/` or a live document that does not also stage the open changelog,
+`tests/test-docs-current.js` clause 5b re-checks it against committed history, and clause 5e fails an
+entry without its four Record fields. **Put the entry obligation in every brief.** A branch cut before
+the freeze that still wrote a notes row: `node engine/notes_to_changelog.js --migrate` after merging it.
 
 ## 5. ROUTE IT. THE COORDINATOR PRINTS THE STATE AND THEN HANDS OUT BRIEFS.
 
@@ -288,7 +292,9 @@ each took the "next" `abra/regmc` version from the same main, so every merge con
 documents (CHANGELOG-REGMC, ENGINE, REGMC, REGULATION-ROTATION, RUNNING-NOTES) and one renumber
 orphaned a figure the docs gate caught (a rotation row still named the old version). Brief each
 parallel agent to **merge main and renumber before returning**. At merge, grep every renumbered
-version's old string in all five files, not just the conflict hunks.
+version's old string in all the files it touched, not just the conflict hunks. *(Since 2026-10-01 the
+notes page is frozen, so a new change conflicts in one record, not two; a branch that still wrote a
+notes row is converted with `node engine/notes_to_changelog.js --migrate`.)*
 
 **AN AGENT KILLED BY A NETWORK DROP IS RESUMED, NOT RE-DISPATCHED — AND ITS WORKTREE MAY NOT BE WHERE
 YOU LOOK.** Three drops on 2026-09-23 (API 500, ENOTFOUND, ECONNRESET). `SendMessage` to the agent id

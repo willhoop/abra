@@ -1,0 +1,2688 @@
+{
+ "generated": "2026-10-01T07:53:46.221Z",
+ "format": "gen9championsvgc2026regmcbo3",
+ "checkout": "pokemon-showdown-mc",
+ "builder": "solver/rotom/build_tour_rotation.js",
+ "source": {
+  "tournament_store": "data/tournaments/regmc",
+  "events": [
+   {
+    "key": "2026-09-12-vr-september-challenge-1",
+    "name": "Victory Road September Challenge #1 (2026)",
+    "tier": "community",
+    "players": 392,
+    "teams": 55,
+    "shard_sha256": "ee32730f66cd3a6c91fa42b8a771a20f53231898dcc9baa7ed6146386417b76e",
+    "sources": {
+     "victoryroad": {
+      "url": "https://victoryroad.pro/vr-sep26/",
+      "calendar": "https://victoryroad.pro/2027-season-calendar/",
+      "winner": "Michael Kelsch"
+     }
+    }
+   },
+   {
+    "key": "2026-09-19-baltimore",
+    "name": "2027 Baltimore Regional Championships",
+    "tier": "regional",
+    "players": 1081,
+    "teams": 155,
+    "shard_sha256": "9222c457116c10afc7363464aece055a92e26641baea6e71a05d4743a52c7948",
+    "sources": {
+     "victoryroad": {
+      "url": "https://victoryroad.pro/2027-baltimore/",
+      "calendar": "https://victoryroad.pro/2027-season-calendar/",
+      "winner": "Joseph Ugarte"
+     },
+     "limitless": {
+      "id": 441,
+      "url": "https://limitlessvgc.com/tournaments/441",
+      "players": 1081
+     }
+    }
+   },
+   {
+    "key": "2026-09-19-vr-september-challenge-2",
+    "name": "Victory Road September Challenge #2 (2026)",
+    "tier": "community",
+    "players": 253,
+    "teams": 36,
+    "shard_sha256": "91164334c6f70782f6c3ec28f2d11a83c3863571fa159e1e28a8511206f5c950",
+    "sources": {
+     "victoryroad": {
+      "url": "https://victoryroad.pro/vr-sep26-2/",
+      "calendar": "https://victoryroad.pro/2027-season-calendar/",
+      "winner": "Théotime Massaut"
+     }
+    }
+   },
+   {
+    "key": "2026-09-26-frankfurt",
+    "name": "2027 Frankfurt Regional Championships",
+    "tier": "regional",
+    "players": 1129,
+    "teams": 163,
+    "shard_sha256": "43a415ac6add49f0b6e9ea86ab2101af8655487d4e42709e4f455df3e393bec3",
+    "sources": {
+     "victoryroad": {
+      "url": "https://victoryroad.pro/2027-frankfurt/",
+      "calendar": "https://victoryroad.pro/2027-season-calendar/",
+      "winner": "Eric Rios"
+     },
+     "limitless": {
+      "id": 443,
+      "url": "https://limitlessvgc.com/tournaments/443",
+      "players": 1129
+     }
+    }
+   },
+   {
+    "key": "2026-09-26-brisbane",
+    "name": "2027 Brisbane Regional Championships",
+    "tier": "regional",
+    "players": 327,
+    "teams": 128,
+    "shard_sha256": "c6183864b452d17740fc8b3970fe4e01fbb1b0279e30c0f4d46ccf67ef37b5eb",
+    "sources": {
+     "victoryroad": {
+      "url": "https://victoryroad.pro/2027-brisbane/",
+      "calendar": "https://victoryroad.pro/2027-season-calendar/",
+      "winner": "Kiran Singh"
+     },
+     "limitless": {
+      "id": 442,
+      "url": "https://limitlessvgc.com/tournaments/442",
+      "players": 327
+     }
+    }
+   },
+   {
+    "key": "2026-10-01-vr-replica",
+    "name": "Victory Road Replica Teams (Regulation Set M-C), new on 2026-10-01",
+    "tier": "community",
+    "players": null,
+    "teams": 2,
+    "shard_sha256": "e9a83566c7db0ff6147c4a0734907f95e16c19e697e69c6b20109e077131aab5",
+    "sources": {
+     "victoryroad_replica": {
+      "url": "https://victoryroad.pro/champions-replica/"
+     }
+    }
+   }
+  ],
+  "validation": "data/tournaments/regmc/validation.json"
+ },
+ "rule": {
+  "MIN_TEAMS": 3,
+  "MAX_TEAMS": 5,
+  "MEGA_CAP": 2,
+  "SHARE": 4,
+  "TIER_W": {
+   "worlds": 4,
+   "international": 2,
+   "national": 1.5,
+   "regional": 1,
+   "special": 1,
+   "community": 0.5,
+   "online": 0.5
+  },
+  "size": "log10(max(players,10))/3",
+  "place": "1/sqrt(placing)",
+  "division": "masters",
+  "pool_teams": 533,
+  "masters_teams": 537,
+  "illegal_masters": [
+   "2026-09-12-vr-september-challenge-1/masters/15",
+   "2026-09-26-brisbane/masters/66"
+  ],
+  "unresolved": [
+   "2026-09-19-baltimore/masters/61",
+   "2026-09-19-baltimore/masters/104"
+  ],
+  "clusters": 101,
+  "text": "pool = legal Masters teams of the tournament store; weight = TIER_W[tier] x log10(max(players,10))/3 x 1/sqrt(placing); leader clustering at >= 4 shared species; clusters in descending weight, each played as its leader (its heaviest team) with the real published sheet, skipping a cluster that would put a mega forme on more than 2 picked teams, up to 5 teams (the cap was set after reading the first cluster table; see the builder header)."
+ },
+ "clusters_considered": [
+  {
+   "rank": 1,
+   "label": "Floette-Mega + Salamence-Mega / Rillaboom, Sneasler",
+   "weight": 8.7918,
+   "teams": 59,
+   "leader": "2026-09-26-brisbane/masters/2",
+   "leader_player": "Haruki Sato",
+   "leader_url": "https://www.vrpastes.com/VmT8Luin",
+   "megas": [
+    "Floette-Mega",
+    "Salamence-Mega"
+   ],
+   "picked": true,
+   "uncapped_pick": true,
+   "why": "picked"
+  },
+  {
+   "rank": 2,
+   "label": "Raichu-Mega-Y + Staraptor-Mega / Rillaboom, Gholdengo",
+   "weight": 7.0737,
+   "teams": 51,
+   "leader": "2026-09-19-baltimore/masters/5",
+   "leader_player": "Lorenzo Arce",
+   "leader_url": "https://www.vrpastes.com/aoqdn5MB",
+   "megas": [
+    "Raichu-Mega-Y",
+    "Staraptor-Mega"
+   ],
+   "picked": true,
+   "uncapped_pick": true,
+   "why": "picked"
+  },
+  {
+   "rank": 3,
+   "label": "Garchomp-Mega-Z + Raichu-Mega-Y / Rillaboom, Incineroar",
+   "weight": 5.7454,
+   "teams": 42,
+   "leader": "2026-09-26-frankfurt/masters/1",
+   "leader_player": "Eric Rios",
+   "leader_url": "https://www.vrpastes.com/ID2hPw5c",
+   "megas": [
+    "Garchomp-Mega-Z",
+    "Raichu-Mega-Y"
+   ],
+   "picked": true,
+   "uncapped_pick": true,
+   "why": "picked"
+  },
+  {
+   "rank": 4,
+   "label": "Gengar-Mega / Rillaboom, Incineroar",
+   "weight": 4.0614,
+   "teams": 29,
+   "leader": "2026-09-19-baltimore/masters/3",
+   "leader_player": "Brady Smith",
+   "leader_url": "https://www.vrpastes.com/hIpy3Ear",
+   "megas": [
+    "Gengar-Mega"
+   ],
+   "picked": true,
+   "uncapped_pick": true,
+   "why": "picked"
+  },
+  {
+   "rank": 5,
+   "label": "Froslass-Mega + Raichu-Mega-Y / Rillaboom, Arcanine-Hisui",
+   "weight": 3.4445,
+   "teams": 25,
+   "leader": "2026-09-19-baltimore/masters/6",
+   "leader_player": "Esa Ishaque",
+   "leader_url": "https://www.vrpastes.com/9BvLhIQm",
+   "megas": [
+    "Froslass-Mega",
+    "Raichu-Mega-Y"
+   ],
+   "picked": false,
+   "uncapped_pick": true,
+   "why": "skipped: Raichu-Mega-Y already on 2 picked teams"
+  },
+  {
+   "rank": 6,
+   "label": "Charizard-Mega-Y + Garchomp-Mega-Z / Archaludon, Pelipper",
+   "weight": 2.967,
+   "teams": 15,
+   "leader": "2026-09-26-brisbane/masters/1",
+   "leader_player": "Kiran Singh",
+   "leader_url": "https://www.vrpastes.com/4OR2JHdH",
+   "megas": [
+    "Charizard-Mega-Y",
+    "Garchomp-Mega-Z"
+   ],
+   "picked": true,
+   "uncapped_pick": false,
+   "why": "picked"
+  },
+  {
+   "rank": 7,
+   "label": "Salamence-Mega + Tyranitar-Mega / Excadrill, Sneasler",
+   "weight": 2.9494,
+   "teams": 18,
+   "leader": "2026-09-19-baltimore/masters/1",
+   "leader_player": "Joseph Ugarte",
+   "leader_url": "https://www.vrpastes.com/QGsL7HXz",
+   "megas": [
+    "Salamence-Mega",
+    "Tyranitar-Mega"
+   ],
+   "picked": false,
+   "uncapped_pick": false,
+   "why": "not reached"
+  },
+  {
+   "rank": 8,
+   "label": "Dragonite-Mega + Floette-Mega / Incineroar, Sneasler",
+   "weight": 2.5897,
+   "teams": 14,
+   "leader": "2026-09-26-frankfurt/masters/4",
+   "leader_player": "Eden Batchelor",
+   "leader_url": "https://www.vrpastes.com/Nju1SM1s",
+   "megas": [
+    "Dragonite-Mega",
+    "Floette-Mega"
+   ],
+   "picked": false,
+   "uncapped_pick": false,
+   "why": "not reached"
+  },
+  {
+   "rank": 9,
+   "label": "Aerodactyl-Mega + Charizard-Mega-Y / Farigiraf, Kingambit",
+   "weight": 2.3571,
+   "teams": 19,
+   "leader": "2026-09-19-baltimore/masters/11",
+   "leader_player": "Michael Spinetta-McCarthy",
+   "leader_url": "https://www.vrpastes.com/tFCBZUnY",
+   "megas": [
+    "Aerodactyl-Mega",
+    "Charizard-Mega-Y"
+   ],
+   "picked": false,
+   "uncapped_pick": false,
+   "why": "not reached"
+  },
+  {
+   "rank": 10,
+   "label": "Golisopod-Mega + Charizard-Mega-Y / Archaludon, Farigiraf",
+   "weight": 1.9928,
+   "teams": 14,
+   "leader": "2026-09-19-baltimore/masters/2",
+   "leader_player": "Aditya Subramanian",
+   "leader_url": "https://www.vrpastes.com/TJhI1weX",
+   "megas": [
+    "Golisopod-Mega",
+    "Charizard-Mega-Y"
+   ],
+   "picked": false,
+   "uncapped_pick": false,
+   "why": "not reached"
+  },
+  {
+   "rank": 11,
+   "label": "Raichu-Mega-Y + Delphox-Mega / Kingambit, Incineroar",
+   "weight": 1.8624,
+   "teams": 13,
+   "leader": "2026-09-26-frankfurt/masters/10",
+   "leader_player": "Davide Cognetta",
+   "leader_url": "https://www.vrpastes.com/wHsmnqK4",
+   "megas": [
+    "Raichu-Mega-Y",
+    "Delphox-Mega"
+   ],
+   "picked": false,
+   "uncapped_pick": false,
+   "why": "not reached"
+  },
+  {
+   "rank": 12,
+   "label": "Gengar-Mega + Staraptor-Mega / Indeedee-F, Milotic",
+   "weight": 1.5627,
+   "teams": 11,
+   "leader": "2026-09-19-baltimore/masters/9",
+   "leader_player": "Dorian Kang",
+   "leader_url": "https://www.vrpastes.com/J1TytDXf",
+   "megas": [
+    "Gengar-Mega",
+    "Staraptor-Mega"
+   ],
+   "picked": false,
+   "uncapped_pick": false,
+   "why": "not reached"
+  }
+ ],
+ "spread_rule": "solver/rotom/spreads.js: OBSERVED Reg M-C spread (Smogon moveset file for gen9championsvgc2026regmcbo3, modal spread for the species with the sheet nature) if one exists, else DERIVED: role from the set (Choice Scarf or Tailwind -> Speed at the cap; Trick Room -> Speed 0; else, with the top-meta population's effective speeds at full Speed investment as the tiers: the cap when the set's cap speed reaches the weighted 0.75 quantile of those tiers, otherwise the least SP that strictly outspeeds the heaviest tier between its speed at 0 SP and its speed at the cap, or 0 if there is none); then the least HP/Def/SpD SP that survives the weighted median top-meta attacker's best hit (top roll), or 0; the rest into the used attacking stat; any remainder to the bulk split surviving most. Nature and IVs are the sheet's / the format's.",
+ "spread_source": {
+  "store": "solver/out/rotom/store-fe78202a.jsonl.gz",
+  "store_sha256": "fe78202a851545b71a19c507617d2a470020e5b72d07a393f86ae0fedee9bb25",
+  "floor": 1410,
+  "rule": "solver/rotom/spreads.js: OBSERVED Reg M-C spread (Smogon moveset file for gen9championsvgc2026regmcbo3, modal spread for the species with the sheet nature) if one exists, else DERIVED: role from the set (Choice Scarf or Tailwind -> Speed at the cap; Trick Room -> Speed 0; else, with the top-meta population's effective speeds at full Speed investment as the tiers: the cap when the set's cap speed reaches the weighted 0.75 quantile of those tiers, otherwise the least SP that strictly outspeeds the heaviest tier between its speed at 0 SP and its speed at the cap, or 0 if there is none); then the least HP/Def/SpD SP that survives the weighted median top-meta attacker's best hit (top roll), or 0; the rest into the used attacking stat; any remainder to the bulk split surviving most. Nature and IVs are the sheet's / the format's.",
+  "observed": "none: no Reg M-C Smogon moveset file for gen9championsvgc2026regmcbo3 under data/smogon-stats/ (the September 2026 files are due about 2026-10-04)",
+  "population": {
+   "teams": 150,
+   "slots": 900,
+   "unique_sets": 389
+  },
+  "speed_equilibrium": {
+   "median_speed": 138,
+   "top_speed": 172,
+   "top_quantile": 0.75,
+   "tiers": [
+    [
+     44,
+     0.006667
+    ],
+    [
+     45,
+     0.006667
+    ],
+    [
+     60,
+     0.006667
+    ],
+    [
+     64,
+     0.04
+    ],
+    [
+     72,
+     0.093333
+    ],
+    [
+     80,
+     0.1
+    ],
+    [
+     81,
+     0.006667
+    ],
+    [
+     82,
+     0.013333
+    ],
+    [
+     84,
+     0.006667
+    ],
+    [
+     85,
+     0.013333
+    ],
+    [
+     90,
+     0.02
+    ],
+    [
+     91,
+     0.033333
+    ],
+    [
+     92,
+     0.046667
+    ],
+    [
+     94,
+     0.026667
+    ],
+    [
+     95,
+     0.02
+    ],
+    [
+     99,
+     0.006667
+    ],
+    [
+     100,
+     0.06
+    ],
+    [
+     102,
+     0.353333
+    ],
+    [
+     105,
+     0.06
+    ],
+    [
+     108,
+     0.006667
+    ],
+    [
+     112,
+     0.58
+    ],
+    [
+     114,
+     0.006667
+    ],
+    [
+     117,
+     0.093333
+    ],
+    [
+     119,
+     0.006667
+    ],
+    [
+     122,
+     0.126667
+    ],
+    [
+     123,
+     0.04
+    ],
+    [
+     124,
+     0.006667
+    ],
+    [
+     126,
+     0.02
+    ],
+    [
+     127,
+     0.04
+    ],
+    [
+     128,
+     0.013333
+    ],
+    [
+     130,
+     0.086667
+    ],
+    [
+     132,
+     0.046667
+    ],
+    [
+     133,
+     0.046667
+    ],
+    [
+     135,
+     0.04
+    ],
+    [
+     136,
+     0.153333
+    ],
+    [
+     137,
+     0.753333
+    ],
+    [
+     138,
+     0.013333
+    ],
+    [
+     139,
+     0.026667
+    ],
+    [
+     140,
+     0.033333
+    ],
+    [
+     142,
+     0.02
+    ],
+    [
+     143,
+     0.006667
+    ],
+    [
+     144,
+     0.006667
+    ],
+    [
+     145,
+     0.02
+    ],
+    [
+     146,
+     0.006667
+    ],
+    [
+     149,
+     0.093333
+    ],
+    [
+     150,
+     0.006667
+    ],
+    [
+     152,
+     0.333333
+    ],
+    [
+     153,
+     0.02
+    ],
+    [
+     154,
+     0.12
+    ],
+    [
+     156,
+     0.166667
+    ],
+    [
+     161,
+     0.026667
+    ],
+    [
+     162,
+     0.02
+    ],
+    [
+     167,
+     0.146667
+    ],
+    [
+     168,
+     0.02
+    ],
+    [
+     169,
+     0.093333
+    ],
+    [
+     172,
+     0.433333
+    ],
+    [
+     178,
+     0.08
+    ],
+    [
+     182,
+     0.04
+    ],
+    [
+     184,
+     0.06
+    ],
+    [
+     189,
+     0.373333
+    ],
+    [
+     193,
+     0.013333
+    ],
+    [
+     194,
+     0.013333
+    ],
+    [
+     195,
+     0.026667
+    ],
+    [
+     200,
+     0.253333
+    ],
+    [
+     203,
+     0.16
+    ],
+    [
+     204,
+     0.066667
+    ],
+    [
+     213,
+     0.033333
+    ],
+    [
+     214,
+     0.06
+    ],
+    [
+     220,
+     0.013333
+    ],
+    [
+     222,
+     0.046667
+    ],
+    [
+     223,
+     0.04
+    ],
+    [
+     225,
+     0.013333
+    ],
+    [
+     231,
+     0.06
+    ],
+    [
+     234,
+     0.026667
+    ],
+    [
+     241,
+     0.013333
+    ],
+    [
+     253,
+     0.006667
+    ]
+   ],
+   "benchmark": "weighted effective speeds of the top-meta population, every set at the top of its speed options (Trick Room sets at 0), sheet natures, neutral field: the median (bulk and the record), the top-tier quantile, and the tiers (speed -> weight)"
+  },
+  "median_quantile": 0.5,
+  "top_tier_quantile": 0.75,
+  "counters": {
+   "battles": 10120,
+   "damage_calls": 765524,
+   "no_damage": 1343,
+   "endures": 3,
+   "observed": 0,
+   "derived": 28,
+   "tournament": 2
+  },
+  "tournament": {
+   "rule": "solver/rotom/spreads.js tournament hook: before the Smogon file, the Stat Points a player published for the same species + item + nature in the tournament store (data/tournaments/<regulation>/), the best-placed team first; open team sheets carry none.",
+   "dir": "data/tournaments/regmc",
+   "events": [
+    {
+     "key": "2026-09-12-vr-september-challenge-1",
+     "shard_sha256": "ee32730f66cd3a6c91fa42b8a771a20f53231898dcc9baa7ed6146386417b76e"
+    },
+    {
+     "key": "2026-09-19-baltimore",
+     "shard_sha256": "9222c457116c10afc7363464aece055a92e26641baea6e71a05d4743a52c7948"
+    },
+    {
+     "key": "2026-09-19-vr-september-challenge-2",
+     "shard_sha256": "91164334c6f70782f6c3ec28f2d11a83c3863571fa159e1e28a8511206f5c950"
+    },
+    {
+     "key": "2026-09-26-frankfurt",
+     "shard_sha256": "43a415ac6add49f0b6e9ea86ab2101af8655487d4e42709e4f455df3e393bec3"
+    },
+    {
+     "key": "2026-09-26-brisbane",
+     "shard_sha256": "c6183864b452d17740fc8b3970fe4e01fbb1b0279e30c0f4d46ccf67ef37b5eb"
+    },
+    {
+     "key": "2026-10-01-vr-replica",
+     "shard_sha256": "e9a83566c7db0ff6147c4a0734907f95e16c19e697e69c6b20109e077131aab5"
+    }
+   ],
+   "teams": 539,
+   "teams_with_spreads": 2,
+   "sets": 3234,
+   "sets_with_spreads": 12,
+   "keys": 12
+  }
+ },
+ "validator": "Showdown TeamValidator.get(gen9championsvgc2026regmcbo3) on the Reg M-C checkout — every team below passed",
+ "teams": [
+  {
+   "id": "U1",
+   "archetype": {
+    "id": "tour:basculegion,floetteeternal,kingambit,rillaboom,salamence,sneasler",
+    "label": "Floette-Mega + Salamence-Mega / Rillaboom, Sneasler",
+    "source": "solver/tournaments/archetypes.js cluster 1 of 101 by summed weight"
+   },
+   "from_game": null,
+   "rating": null,
+   "player": "Haruki Sato",
+   "source": {
+    "event": "2026-09-26-brisbane",
+    "event_name": "2027 Brisbane Regional Championships",
+    "tier": "regional",
+    "region": "Oceania",
+    "country": "Australia",
+    "date": "2026-09-26",
+    "players": 327,
+    "placing": 2,
+    "record": "9-2",
+    "player": "Haruki Sato",
+    "handle": "Newcon",
+    "url": "https://www.vrpastes.com/VmT8Luin",
+    "page": "https://victoryroad.pro/2027-brisbane/",
+    "site": "victoryroad",
+    "team_id": "2026-09-26-brisbane/masters/2",
+    "spreads_published": false
+   },
+   "tournament": {
+    "weight": 0.5927,
+    "cluster_weight": 8.7918,
+    "cluster_teams": 59,
+    "cluster_members": [
+     {
+      "team_id": "2026-09-26-brisbane/masters/2",
+      "placing": 2,
+      "event": "2026-09-26-brisbane",
+      "w": 0.5927
+     },
+     {
+      "team_id": "2026-09-26-brisbane/masters/3",
+      "placing": 3,
+      "event": "2026-09-26-brisbane",
+      "w": 0.4839
+     },
+     {
+      "team_id": "2026-09-26-brisbane/masters/5",
+      "placing": 5,
+      "event": "2026-09-26-brisbane",
+      "w": 0.3748
+     },
+     {
+      "team_id": "2026-09-19-baltimore/masters/8",
+      "placing": 8,
+      "event": "2026-09-19-baltimore",
+      "w": 0.3575
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/9",
+      "placing": 9,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.3392
+     },
+     {
+      "team_id": "2026-09-26-brisbane/masters/7",
+      "placing": 7,
+      "event": "2026-09-26-brisbane",
+      "w": 0.3168
+     },
+     {
+      "team_id": "2026-09-12-vr-september-challenge-1/masters/2",
+      "placing": 2,
+      "event": "2026-09-12-vr-september-challenge-1",
+      "w": 0.3056
+     },
+     {
+      "team_id": "2026-09-19-vr-september-challenge-2/masters/2",
+      "placing": 2,
+      "event": "2026-09-19-vr-september-challenge-2",
+      "w": 0.2832
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/19",
+      "placing": 19,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.2334
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/21",
+      "placing": 21,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.2221
+     },
+     {
+      "team_id": "2026-09-19-baltimore/masters/23",
+      "placing": 23,
+      "event": "2026-09-19-baltimore",
+      "w": 0.2109
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/24",
+      "placing": 24,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.2077
+     }
+    ],
+    "core": [
+     [
+      "rillaboom",
+      0.935
+     ],
+     [
+      "sneasler",
+      0.931
+     ],
+     [
+      "kingambit",
+      0.8
+     ],
+     [
+      "salamence",
+      0.738
+     ],
+     [
+      "floetteeternal",
+      0.576
+     ],
+     [
+      "incineroar",
+      0.392
+     ],
+     [
+      "basculegion",
+      0.342
+     ],
+     [
+      "arcaninehisui",
+      0.259
+     ]
+    ]
+   },
+   "six_ids": [
+    "floetteeternal",
+    "kingambit",
+    "basculegion",
+    "rillaboom",
+    "salamence",
+    "sneasler"
+   ],
+   "species": [
+    "Floette-Eternal",
+    "Kingambit",
+    "Basculegion",
+    "Rillaboom",
+    "Salamence",
+    "Sneasler"
+   ],
+   "bring": [
+    4,
+    5,
+    1,
+    3
+   ],
+   "bring_source": "solver/chomp/human_prior.js modal option (the fallback when CHOMP throws or answers illegally; a tournament list records no bring)",
+   "packed": "Floette-Eternal||Floettite|FlowerVeil|Moonblast,Protect,CalmMind,DazzlingGleam|Modest|16,,2,32,,16|||||]Kingambit||ChopleBerry|Defiant|SuckerPunch,Protect,KowtowCleave,IronHead|Adamant|32,25,2,,6,1|||||]Basculegion||ColburBerry|Adaptability|LastRespects,AquaJet,Protect,WaveCrash|Adamant|4,32,,,15,15|||||]Rillaboom||MiracleSeed|GrassySurge|GrassyGlide,FakeOut,WoodHammer,HighHorsepower|Adamant|2,32,,,24,8|||||]Salamence||Salamencite|Intimidate|Flamethrower,Protect,Tailwind,HyperVoice|Modest|2,,,32,,32|||||]Sneasler||FocusSash|PoisonTouch|Protect,DireClaw,FakeOut,CloseCombat|Jolly|2,32,,,,32|||||",
+   "spreads": [
+    {
+     "species": "Floette-Eternal",
+     "item": "Floettite",
+     "ability": "Flower Veil",
+     "nature": "Modest",
+     "moves": [
+      "Moonblast",
+      "Protect",
+      "Calm Mind",
+      "Dazzling Gleam"
+     ],
+     "evs": {
+      "hp": 16,
+      "atk": 0,
+      "def": 2,
+      "spa": 32,
+      "spd": 0,
+      "spe": 16
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 16,
+      "effective": 138,
+      "at_cap": 154,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 137"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.701,
+      "share_at_zero": 0.642,
+      "endures": false
+     }
+    },
+    {
+     "species": "Kingambit",
+     "item": "Chople Berry",
+     "ability": "Defiant",
+     "nature": "Adamant",
+     "moves": [
+      "Sucker Punch",
+      "Protect",
+      "Kowtow Cleave",
+      "Iron Head"
+     ],
+     "evs": {
+      "hp": 32,
+      "atk": 25,
+      "def": 2,
+      "spa": 0,
+      "spd": 6,
+      "spe": 1
+     },
+     "source": "observed:tournament:data/tournaments/regmc 2026-10-01-vr-replica/replica/cpTuCZeC",
+     "role": "other"
+    },
+    {
+     "species": "Basculegion",
+     "item": "Colbur Berry",
+     "ability": "Adaptability",
+     "nature": "Adamant",
+     "moves": [
+      "Last Respects",
+      "Aqua Jet",
+      "Protect",
+      "Wave Crash"
+     ],
+     "evs": {
+      "hp": 4,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 15,
+      "spe": 15
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 15,
+      "effective": 113,
+      "at_cap": 130,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 112"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.741,
+      "share_at_zero": 0.656,
+      "endures": false
+     }
+    },
+    {
+     "species": "Rillaboom",
+     "item": "Miracle Seed",
+     "ability": "Grassy Surge",
+     "nature": "Adamant",
+     "moves": [
+      "Grassy Glide",
+      "Fake Out",
+      "Wood Hammer",
+      "High Horsepower"
+     ],
+     "evs": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 24,
+      "spe": 8
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 8,
+      "effective": 113,
+      "at_cap": 137,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 112"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.646,
+      "share_at_zero": 0.532,
+      "endures": false
+     }
+    },
+    {
+     "species": "Salamence",
+     "item": "Salamencite",
+     "ability": "Intimidate",
+     "nature": "Modest",
+     "moves": [
+      "Flamethrower",
+      "Protect",
+      "Tailwind",
+      "Hyper Voice"
+     ],
+     "evs": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     },
+     "source": "derived",
+     "role": "fast",
+     "role_by": "Tailwind",
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 32,
+      "effective": 172,
+      "at_cap": 172,
+      "median": 138,
+      "top_tier": 172,
+      "why": "fast role: the cap"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.731,
+      "share_at_zero": 0.731,
+      "endures": false
+     }
+    },
+    {
+     "species": "Sneasler",
+     "item": "Focus Sash",
+     "ability": "Poison Touch",
+     "nature": "Jolly",
+     "moves": [
+      "Protect",
+      "Dire Claw",
+      "Fake Out",
+      "Close Combat"
+     ],
+     "evs": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 0,
+      "spe": 32
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 32,
+      "effective": 189,
+      "at_cap": 189,
+      "median": 138,
+      "top_tier": 172,
+      "why": "top speed tier: the cap"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 1,
+      "share_at_zero": 1,
+      "endures": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "U2",
+   "archetype": {
+    "id": "tour:ceruledge,gholdengo,milotic,raichu,rillaboom,staraptor",
+    "label": "Raichu-Mega-Y + Staraptor-Mega / Rillaboom, Gholdengo",
+    "source": "solver/tournaments/archetypes.js cluster 2 of 101 by summed weight"
+   },
+   "from_game": null,
+   "rating": null,
+   "player": "Lorenzo Arce",
+   "source": {
+    "event": "2026-09-19-baltimore",
+    "event_name": "2027 Baltimore Regional Championships",
+    "tier": "regional",
+    "region": "North America",
+    "country": "United States",
+    "date": "2026-09-19",
+    "players": 1081,
+    "placing": 5,
+    "record": "12-1",
+    "player": "Lorenzo Arce",
+    "handle": "Lorenzo",
+    "url": "https://www.vrpastes.com/aoqdn5MB",
+    "page": "https://victoryroad.pro/2027-baltimore/",
+    "site": "victoryroad",
+    "team_id": "2026-09-19-baltimore/masters/5",
+    "spreads_published": false
+   },
+   "tournament": {
+    "weight": 0.4523,
+    "cluster_weight": 7.0737,
+    "cluster_teams": 51,
+    "cluster_members": [
+     {
+      "team_id": "2026-09-19-baltimore/masters/5",
+      "placing": 5,
+      "event": "2026-09-19-baltimore",
+      "w": 0.4523
+     },
+     {
+      "team_id": "2026-09-12-vr-september-challenge-1/masters/1",
+      "placing": 1,
+      "event": "2026-09-12-vr-september-challenge-1",
+      "w": 0.4322
+     },
+     {
+      "team_id": "2026-09-19-baltimore/masters/7",
+      "placing": 7,
+      "event": "2026-09-19-baltimore",
+      "w": 0.3822
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/13",
+      "placing": 13,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.2822
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/16",
+      "placing": 16,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.2544
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/25",
+      "placing": 25,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.2035
+     },
+     {
+      "team_id": "2026-09-26-brisbane/masters/19",
+      "placing": 19,
+      "event": "2026-09-26-brisbane",
+      "w": 0.1923
+     },
+     {
+      "team_id": "2026-09-26-brisbane/masters/20",
+      "placing": 20,
+      "event": "2026-09-26-brisbane",
+      "w": 0.1874
+     },
+     {
+      "team_id": "2026-09-19-vr-september-challenge-2/masters/5",
+      "placing": 5,
+      "event": "2026-09-19-vr-september-challenge-2",
+      "w": 0.1791
+     },
+     {
+      "team_id": "2026-09-26-brisbane/masters/23",
+      "placing": 23,
+      "event": "2026-09-26-brisbane",
+      "w": 0.1748
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/43",
+      "placing": 43,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.1552
+     },
+     {
+      "team_id": "2026-09-19-baltimore/masters/47",
+      "placing": 47,
+      "event": "2026-09-19-baltimore",
+      "w": 0.1475
+     }
+    ],
+    "core": [
+     [
+      "raichu",
+      1
+     ],
+     [
+      "rillaboom",
+      1
+     ],
+     [
+      "gholdengo",
+      0.986
+     ],
+     [
+      "staraptor",
+      0.89
+     ],
+     [
+      "arcaninehisui",
+      0.694
+     ],
+     [
+      "sylveon",
+      0.464
+     ],
+     [
+      "milotic",
+      0.411
+     ],
+     [
+      "ceruledge",
+      0.279
+     ]
+    ]
+   },
+   "six_ids": [
+    "milotic",
+    "raichu",
+    "ceruledge",
+    "staraptor",
+    "gholdengo",
+    "rillaboom"
+   ],
+   "species": [
+    "Milotic",
+    "Raichu",
+    "Ceruledge",
+    "Staraptor",
+    "Gholdengo",
+    "Rillaboom"
+   ],
+   "bring": [
+    1,
+    4,
+    2,
+    5
+   ],
+   "bring_source": "solver/chomp/human_prior.js modal option (the fallback when CHOMP throws or answers illegally; a tournament list records no bring)",
+   "packed": "Milotic||SitrusBerry|Competitive|Coil,Hypnosis,IceBeam,MuddyWater|Calm|21,,1,32,,12|||||]Raichu||RaichuniteY|LightningRod|ZapCannon,Protect,FakeOut,FocusBlast|Timid|22,,2,10,,32|||||]Ceruledge||GrassySeed|FlashFire|Protect,BitterBlade,SwordsDance,ShadowSneak|Adamant|10,32,16,,,8|||||]Staraptor||Staraptite|Intimidate|BraveBird,Tailwind,Protect,CloseCombat|Jolly|,32,,,2,32|||||]Gholdengo||LifeOrb|GoodasGold|ShadowBall,NastyPlot,MakeItRain,Protect|Modest|3,,,32,22,9|||||]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,FakeOut,HighHorsepower,GrassyGlide|Adamant|2,32,,,24,8|||||",
+   "spreads": [
+    {
+     "species": "Milotic",
+     "item": "Sitrus Berry",
+     "ability": "Competitive",
+     "nature": "Calm",
+     "moves": [
+      "Coil",
+      "Hypnosis",
+      "Ice Beam",
+      "Muddy Water"
+     ],
+     "evs": {
+      "hp": 21,
+      "atk": 0,
+      "def": 1,
+      "spa": 32,
+      "spd": 0,
+      "spe": 12
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 12,
+      "effective": 113,
+      "at_cap": 133,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 112"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.871,
+      "share_at_zero": 0.85,
+      "endures": false
+     }
+    },
+    {
+     "species": "Raichu",
+     "item": "Raichunite Y",
+     "ability": "Lightning Rod",
+     "nature": "Timid",
+     "moves": [
+      "Zap Cannon",
+      "Protect",
+      "Fake Out",
+      "Focus Blast"
+     ],
+     "evs": {
+      "hp": 22,
+      "atk": 0,
+      "def": 2,
+      "spa": 10,
+      "spd": 0,
+      "spe": 32
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 32,
+      "effective": 200,
+      "at_cap": 200,
+      "median": 138,
+      "top_tier": 172,
+      "why": "top speed tier: the cap"
+     },
+     "bulk": {
+      "why": "least SP surviving the median attacker",
+      "share_survived": 0.501,
+      "share_at_zero": 0.387,
+      "endures": false
+     }
+    },
+    {
+     "species": "Ceruledge",
+     "item": "Grassy Seed",
+     "ability": "Flash Fire",
+     "nature": "Adamant",
+     "moves": [
+      "Protect",
+      "Bitter Blade",
+      "Swords Dance",
+      "Shadow Sneak"
+     ],
+     "evs": {
+      "hp": 10,
+      "atk": 32,
+      "def": 16,
+      "spa": 0,
+      "spd": 0,
+      "spe": 8
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 8,
+      "effective": 113,
+      "at_cap": 137,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 112"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.69,
+      "share_at_zero": 0.58,
+      "endures": false
+     }
+    },
+    {
+     "species": "Staraptor",
+     "item": "Staraptite",
+     "ability": "Intimidate",
+     "nature": "Jolly",
+     "moves": [
+      "Brave Bird",
+      "Tailwind",
+      "Protect",
+      "Close Combat"
+     ],
+     "evs": {
+      "hp": 0,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 2,
+      "spe": 32
+     },
+     "source": "derived",
+     "role": "fast",
+     "role_by": "Tailwind",
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 32,
+      "effective": 178,
+      "at_cap": 178,
+      "median": 138,
+      "top_tier": 172,
+      "why": "fast role: the cap"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.671,
+      "share_at_zero": 0.654,
+      "endures": false
+     }
+    },
+    {
+     "species": "Gholdengo",
+     "item": "Life Orb",
+     "ability": "Good as Gold",
+     "nature": "Modest",
+     "moves": [
+      "Shadow Ball",
+      "Nasty Plot",
+      "Make It Rain",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 3,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 22,
+      "spe": 9
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 9,
+      "effective": 113,
+      "at_cap": 136,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 112"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.683,
+      "share_at_zero": 0.589,
+      "endures": false
+     }
+    },
+    {
+     "species": "Rillaboom",
+     "item": "Miracle Seed",
+     "ability": "Grassy Surge",
+     "nature": "Adamant",
+     "moves": [
+      "Wood Hammer",
+      "Fake Out",
+      "High Horsepower",
+      "Grassy Glide"
+     ],
+     "evs": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 24,
+      "spe": 8
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 8,
+      "effective": 113,
+      "at_cap": 137,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 112"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.646,
+      "share_at_zero": 0.532,
+      "endures": false
+     }
+    }
+   ]
+  },
+  {
+   "id": "U3",
+   "archetype": {
+    "id": "tour:garchomp,gholdengo,incineroar,raichu,rillaboom,volcarona",
+    "label": "Garchomp-Mega-Z + Raichu-Mega-Y / Rillaboom, Incineroar",
+    "source": "solver/tournaments/archetypes.js cluster 3 of 101 by summed weight"
+   },
+   "from_game": null,
+   "rating": null,
+   "player": "Eric Rios",
+   "source": {
+    "event": "2026-09-26-frankfurt",
+    "event_name": "2027 Frankfurt Regional Championships",
+    "tier": "regional",
+    "region": "Europe",
+    "country": "Germany",
+    "date": "2026-09-26",
+    "players": 1129,
+    "placing": 1,
+    "record": "13-0",
+    "player": "Eric Rios",
+    "handle": "Riopaser",
+    "url": "https://www.vrpastes.com/ID2hPw5c",
+    "page": "https://victoryroad.pro/2027-frankfurt/",
+    "site": "victoryroad",
+    "team_id": "2026-09-26-frankfurt/masters/1",
+    "spreads_published": false
+   },
+   "tournament": {
+    "weight": 1.0176,
+    "cluster_weight": 5.7454,
+    "cluster_teams": 42,
+    "cluster_members": [
+     {
+      "team_id": "2026-09-26-frankfurt/masters/1",
+      "placing": 1,
+      "event": "2026-09-26-frankfurt",
+      "w": 1.0176
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/22",
+      "placing": 22,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.2169
+     },
+     {
+      "team_id": "2026-09-19-baltimore/masters/32",
+      "placing": 32,
+      "event": "2026-09-19-baltimore",
+      "w": 0.1788
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/33",
+      "placing": 33,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.1771
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/34",
+      "placing": 34,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.1745
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/41",
+      "placing": 41,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.1589
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/45",
+      "placing": 45,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.1517
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/48",
+      "placing": 48,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.1469
+     },
+     {
+      "team_id": "2026-09-19-baltimore/masters/51",
+      "placing": 51,
+      "event": "2026-09-19-baltimore",
+      "w": 0.1416
+     },
+     {
+      "team_id": "2026-09-19-baltimore/masters/52",
+      "placing": 52,
+      "event": "2026-09-19-baltimore",
+      "w": 0.1402
+     },
+     {
+      "team_id": "2026-09-12-vr-september-challenge-1/masters/10",
+      "placing": 10,
+      "event": "2026-09-12-vr-september-challenge-1",
+      "w": 0.1367
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/57",
+      "placing": 57,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.1348
+     }
+    ],
+    "core": [
+     [
+      "rillaboom",
+      1
+     ],
+     [
+      "incineroar",
+      0.887
+     ],
+     [
+      "raichu",
+      0.864
+     ],
+     [
+      "gholdengo",
+      0.801
+     ],
+     [
+      "garchomp",
+      0.557
+     ],
+     [
+      "volcarona",
+      0.487
+     ],
+     [
+      "floetteeternal",
+      0.362
+     ],
+     [
+      "sneasler",
+      0.347
+     ]
+    ]
+   },
+   "six_ids": [
+    "gholdengo",
+    "volcarona",
+    "garchomp",
+    "incineroar",
+    "rillaboom",
+    "raichu"
+   ],
+   "species": [
+    "Gholdengo",
+    "Volcarona",
+    "Garchomp",
+    "Incineroar",
+    "Rillaboom",
+    "Raichu"
+   ],
+   "bring": [
+    1,
+    5,
+    3,
+    4
+   ],
+   "bring_source": "solver/chomp/human_prior.js modal option (the fallback when CHOMP throws or answers illegally; a tournament list records no bring)",
+   "packed": "Gholdengo||LifeOrb|GoodasGold|Protect,ShadowBall,NastyPlot,MakeItRain|Modest|3,,,32,22,9|||||]Volcarona||RockyHelmet|FlameBody|Overheat,StruggleBug,RagePowder,Tailwind|Timid|2,,,32,,32|||||]Garchomp||GarchompiteZ|RoughSkin|DragonPulse,EarthPower,PowerGem,Protect|Modest|2,,,32,,32|||||]Incineroar||SitrusBerry|Intimidate|PartingShot,FakeOut,FlareBlitz,DarkestLariat|Impish|7,32,4,,,23|||||]Rillaboom||MiracleSeed|GrassySurge|GrassyGlide,WoodHammer,FakeOut,Uturn|Adamant|2,32,,,24,8|||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|22,,2,10,,32|||||",
+   "spreads": [
+    {
+     "species": "Gholdengo",
+     "item": "Life Orb",
+     "ability": "Good as Gold",
+     "nature": "Modest",
+     "moves": [
+      "Protect",
+      "Shadow Ball",
+      "Nasty Plot",
+      "Make It Rain"
+     ],
+     "evs": {
+      "hp": 3,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 22,
+      "spe": 9
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 9,
+      "effective": 113,
+      "at_cap": 136,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 112"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.683,
+      "share_at_zero": 0.589,
+      "endures": false
+     }
+    },
+    {
+     "species": "Volcarona",
+     "item": "Rocky Helmet",
+     "ability": "Flame Body",
+     "nature": "Timid",
+     "moves": [
+      "Overheat",
+      "Struggle Bug",
+      "Rage Powder",
+      "Tailwind"
+     ],
+     "evs": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     },
+     "source": "derived",
+     "role": "fast",
+     "role_by": "Tailwind",
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 32,
+      "effective": 167,
+      "at_cap": 167,
+      "median": 138,
+      "top_tier": 172,
+      "why": "fast role: the cap"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.68,
+      "share_at_zero": 0.677,
+      "endures": false
+     }
+    },
+    {
+     "species": "Garchomp",
+     "item": "Garchompite Z",
+     "ability": "Rough Skin",
+     "nature": "Modest",
+     "moves": [
+      "Dragon Pulse",
+      "Earth Power",
+      "Power Gem",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 32,
+      "effective": 203,
+      "at_cap": 203,
+      "median": 138,
+      "top_tier": 172,
+      "why": "top speed tier: the cap"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.78,
+      "share_at_zero": 0.78,
+      "endures": false
+     }
+    },
+    {
+     "species": "Incineroar",
+     "item": "Sitrus Berry",
+     "ability": "Intimidate",
+     "nature": "Impish",
+     "moves": [
+      "Parting Shot",
+      "Fake Out",
+      "Flare Blitz",
+      "Darkest Lariat"
+     ],
+     "evs": {
+      "hp": 7,
+      "atk": 32,
+      "def": 4,
+      "spa": 0,
+      "spd": 0,
+      "spe": 23
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 23,
+      "effective": 103,
+      "at_cap": 112,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 102"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.714,
+      "share_at_zero": 0.693,
+      "endures": false
+     }
+    },
+    {
+     "species": "Rillaboom",
+     "item": "Miracle Seed",
+     "ability": "Grassy Surge",
+     "nature": "Adamant",
+     "moves": [
+      "Grassy Glide",
+      "Wood Hammer",
+      "Fake Out",
+      "U-turn"
+     ],
+     "evs": {
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
+      "spa": 0,
+      "spd": 24,
+      "spe": 8
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 8,
+      "effective": 113,
+      "at_cap": 137,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 112"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.646,
+      "share_at_zero": 0.532,
+      "endures": false
+     }
+    },
+    {
+     "species": "Raichu",
+     "item": "Raichunite Y",
+     "ability": "Lightning Rod",
+     "nature": "Timid",
+     "moves": [
+      "Zap Cannon",
+      "Focus Blast",
+      "Fake Out",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 22,
+      "atk": 0,
+      "def": 2,
+      "spa": 10,
+      "spd": 0,
+      "spe": 32
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 32,
+      "effective": 200,
+      "at_cap": 200,
+      "median": 138,
+      "top_tier": 172,
+      "why": "top speed tier: the cap"
+     },
+     "bulk": {
+      "why": "least SP surviving the median attacker",
+      "share_survived": 0.501,
+      "share_at_zero": 0.387,
+      "endures": false
+     }
+    }
+   ]
+  },
+  {
+   "id": "U4",
+   "archetype": {
+    "id": "tour:archaludon,gengar,incineroar,politoed,rillaboom,vivillonhighplains",
+    "label": "Gengar-Mega / Rillaboom, Incineroar",
+    "source": "solver/tournaments/archetypes.js cluster 4 of 101 by summed weight"
+   },
+   "from_game": null,
+   "rating": null,
+   "player": "Brady Smith",
+   "source": {
+    "event": "2026-09-19-baltimore",
+    "event_name": "2027 Baltimore Regional Championships",
+    "tier": "regional",
+    "region": "North America",
+    "country": "United States",
+    "date": "2026-09-19",
+    "players": 1081,
+    "placing": 3,
+    "record": "11-2",
+    "player": "Brady Smith",
+    "handle": "bsmiffy",
+    "url": "https://www.vrpastes.com/hIpy3Ear",
+    "page": "https://victoryroad.pro/2027-baltimore/",
+    "site": "victoryroad",
+    "team_id": "2026-09-19-baltimore/masters/3",
+    "spreads_published": false
+   },
+   "tournament": {
+    "weight": 0.5839,
+    "cluster_weight": 4.0614,
+    "cluster_teams": 29,
+    "cluster_members": [
+     {
+      "team_id": "2026-09-19-baltimore/masters/3",
+      "placing": 3,
+      "event": "2026-09-19-baltimore",
+      "w": 0.5839
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/5",
+      "placing": 5,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.4551
+     },
+     {
+      "team_id": "2026-09-19-baltimore/masters/10",
+      "placing": 10,
+      "event": "2026-09-19-baltimore",
+      "w": 0.3198
+     },
+     {
+      "team_id": "2026-09-26-brisbane/masters/13",
+      "placing": 13,
+      "event": "2026-09-26-brisbane",
+      "w": 0.2325
+     },
+     {
+      "team_id": "2026-09-12-vr-september-challenge-1/masters/5",
+      "placing": 5,
+      "event": "2026-09-12-vr-september-challenge-1",
+      "w": 0.1933
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/28",
+      "placing": 28,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.1923
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/39",
+      "placing": 39,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.1629
+     },
+     {
+      "team_id": "2026-09-19-baltimore/masters/49",
+      "placing": 49,
+      "event": "2026-09-19-baltimore",
+      "w": 0.1445
+     },
+     {
+      "team_id": "2026-09-19-baltimore/masters/65",
+      "placing": 65,
+      "event": "2026-09-19-baltimore",
+      "w": 0.1254
+     },
+     {
+      "team_id": "2026-09-19-baltimore/masters/73",
+      "placing": 73,
+      "event": "2026-09-19-baltimore",
+      "w": 0.1184
+     },
+     {
+      "team_id": "2026-09-26-brisbane/masters/58",
+      "placing": 58,
+      "event": "2026-09-26-brisbane",
+      "w": 0.1101
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/111",
+      "placing": 111,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.0966
+     }
+    ],
+    "core": [
+     [
+      "gengar",
+      1
+     ],
+     [
+      "rillaboom",
+      1
+     ],
+     [
+      "incineroar",
+      0.969
+     ],
+     [
+      "politoed",
+      0.937
+     ],
+     [
+      "archaludon",
+      0.753
+     ],
+     [
+      "kommoo",
+      0.226
+     ],
+     [
+      "golisopod",
+      0.185
+     ],
+     [
+      "vivillonhighplains",
+      0.16
+     ]
+    ]
+   },
+   "six_ids": [
+    "archaludon",
+    "incineroar",
+    "politoed",
+    "vivillonhighplains",
+    "rillaboom",
+    "gengar"
+   ],
+   "species": [
+    "Archaludon",
+    "Incineroar",
+    "Politoed",
+    "Vivillon-High Plains",
+    "Rillaboom",
+    "Gengar"
+   ],
+   "bring": [
+    0,
+    5,
+    2,
+    4
+   ],
+   "bring_source": "solver/chomp/human_prior.js modal option (the fallback when CHOMP throws or answers illegally; a tournament list records no bring)",
+   "packed": "Archaludon||Leftovers|Stamina|DragonPulse,FlashCannon,ElectroShot,Protect|Bold|13,,1,32,12,8|||||]Incineroar||PasshoBerry|Intimidate|FakeOut,PartingShot,DarkestLariat,Protect|Sassy|21,32,1,,2,10|||||]Politoed||SitrusBerry|Drizzle|PerishSong,WeatherBall,Encore,Protect|Calm|8,,3,32,,23|||||]Vivillon-High Plains||FocusSash|CompoundEyes|SleepPowder,RagePowder,Hurricane,Protect|Timid|17,,,32,,17|||||]Rillaboom||EjectButton|GrassySurge|FakeOut,GrassyGlide,Uturn,Protect|Careful|20,32,1,,5,8|||||]Gengar||Gengarite|CursedBody|ShadowBall,SludgeBomb,PerishSong,Protect|Modest|30,,13,,16,7|||||",
+   "spreads": [
+    {
+     "species": "Archaludon",
+     "item": "Leftovers",
+     "ability": "Stamina",
+     "nature": "Bold",
+     "moves": [
+      "Dragon Pulse",
+      "Flash Cannon",
+      "Electro Shot",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 13,
+      "atk": 0,
+      "def": 1,
+      "spa": 32,
+      "spd": 12,
+      "spe": 8
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 8,
+      "effective": 113,
+      "at_cap": 137,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 112"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.798,
+      "share_at_zero": 0.683,
+      "endures": false
+     }
+    },
+    {
+     "species": "Incineroar",
+     "item": "Passho Berry",
+     "ability": "Intimidate",
+     "nature": "Sassy",
+     "moves": [
+      "Fake Out",
+      "Parting Shot",
+      "Darkest Lariat",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 21,
+      "atk": 32,
+      "def": 1,
+      "spa": 0,
+      "spd": 2,
+      "spe": 10
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 10,
+      "effective": 81,
+      "at_cap": 100,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 80"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.779,
+      "share_at_zero": 0.699,
+      "endures": false
+     }
+    },
+    {
+     "species": "Politoed",
+     "item": "Sitrus Berry",
+     "ability": "Drizzle",
+     "nature": "Calm",
+     "moves": [
+      "Perish Song",
+      "Weather Ball",
+      "Encore",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 8,
+      "atk": 0,
+      "def": 3,
+      "spa": 32,
+      "spd": 0,
+      "spe": 23
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 23,
+      "effective": 113,
+      "at_cap": 122,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 112"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.812,
+      "share_at_zero": 0.701,
+      "endures": false
+     }
+    },
+    {
+     "species": "Vivillon-High Plains",
+     "item": "Focus Sash",
+     "ability": "Compound Eyes",
+     "nature": "Timid",
+     "moves": [
+      "Sleep Powder",
+      "Rage Powder",
+      "Hurricane",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 17,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 17
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 17,
+      "effective": 138,
+      "at_cap": 155,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 137"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 1,
+      "share_at_zero": 1,
+      "endures": true
+     }
+    },
+    {
+     "species": "Rillaboom",
+     "item": "Eject Button",
+     "ability": "Grassy Surge",
+     "nature": "Careful",
+     "moves": [
+      "Fake Out",
+      "Grassy Glide",
+      "U-turn",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 20,
+      "atk": 32,
+      "def": 1,
+      "spa": 0,
+      "spd": 5,
+      "spe": 8
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 8,
+      "effective": 113,
+      "at_cap": 137,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 112"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.714,
+      "share_at_zero": 0.562,
+      "endures": false
+     }
+    },
+    {
+     "species": "Gengar",
+     "item": "Gengarite",
+     "ability": "Cursed Body",
+     "nature": "Modest",
+     "moves": [
+      "Shadow Ball",
+      "Sludge Bomb",
+      "Perish Song",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 30,
+      "atk": 0,
+      "def": 13,
+      "spa": 0,
+      "spd": 16,
+      "spe": 7
+     },
+     "source": "observed:tournament:data/tournaments/regmc 2026-10-01-vr-replica/replica/qZK7HCqj",
+     "role": "other"
+    }
+   ]
+  },
+  {
+   "id": "U5",
+   "archetype": {
+    "id": "tour:archaludon,charizard,garchomp,grimmsnarl,pelipper,venusaur",
+    "label": "Charizard-Mega-Y + Garchomp-Mega-Z / Archaludon, Pelipper",
+    "source": "solver/tournaments/archetypes.js cluster 6 of 101 by summed weight"
+   },
+   "from_game": null,
+   "rating": null,
+   "player": "Kiran Singh",
+   "source": {
+    "event": "2026-09-26-brisbane",
+    "event_name": "2027 Brisbane Regional Championships",
+    "tier": "regional",
+    "region": "Oceania",
+    "country": "Australia",
+    "date": "2026-09-26",
+    "players": 327,
+    "placing": 1,
+    "record": "10-1",
+    "player": "Kiran Singh",
+    "handle": "Mev Lad",
+    "url": "https://www.vrpastes.com/4OR2JHdH",
+    "page": "https://victoryroad.pro/2027-brisbane/",
+    "site": "victoryroad",
+    "team_id": "2026-09-26-brisbane/masters/1",
+    "spreads_published": false
+   },
+   "tournament": {
+    "weight": 0.8382,
+    "cluster_weight": 2.967,
+    "cluster_teams": 15,
+    "cluster_members": [
+     {
+      "team_id": "2026-09-26-brisbane/masters/1",
+      "placing": 1,
+      "event": "2026-09-26-brisbane",
+      "w": 0.8382
+     },
+     {
+      "team_id": "2026-09-26-brisbane/masters/8",
+      "placing": 8,
+      "event": "2026-09-26-brisbane",
+      "w": 0.2963
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/23",
+      "placing": 23,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.2122
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/32",
+      "placing": 32,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.1799
+     },
+     {
+      "team_id": "2026-09-19-baltimore/masters/34",
+      "placing": 34,
+      "event": "2026-09-19-baltimore",
+      "w": 0.1734
+     },
+     {
+      "team_id": "2026-09-26-brisbane/masters/25",
+      "placing": 25,
+      "event": "2026-09-26-brisbane",
+      "w": 0.1676
+     },
+     {
+      "team_id": "2026-09-19-baltimore/masters/44",
+      "placing": 44,
+      "event": "2026-09-19-baltimore",
+      "w": 0.1525
+     },
+     {
+      "team_id": "2026-09-19-baltimore/masters/48",
+      "placing": 48,
+      "event": "2026-09-19-baltimore",
+      "w": 0.146
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/66",
+      "placing": 66,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.1253
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/72",
+      "placing": 72,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.1199
+     },
+     {
+      "team_id": "2026-09-12-vr-september-challenge-1/masters/13",
+      "placing": 13,
+      "event": "2026-09-12-vr-september-challenge-1",
+      "w": 0.1199
+     },
+     {
+      "team_id": "2026-09-26-frankfurt/masters/74",
+      "placing": 74,
+      "event": "2026-09-26-frankfurt",
+      "w": 0.1183
+     }
+    ],
+    "core": [
+     [
+      "archaludon",
+      1
+     ],
+     [
+      "charizard",
+      1
+     ],
+     [
+      "pelipper",
+      1
+     ],
+     [
+      "venusaur",
+      0.919
+     ],
+     [
+      "grimmsnarl",
+      0.88
+     ],
+     [
+      "garchomp",
+      0.51
+     ],
+     [
+      "swampert",
+      0.379
+     ],
+     [
+      "annihilape",
+      0.12
+     ]
+    ]
+   },
+   "six_ids": [
+    "archaludon",
+    "pelipper",
+    "grimmsnarl",
+    "charizard",
+    "garchomp",
+    "venusaur"
+   ],
+   "species": [
+    "Archaludon",
+    "Pelipper",
+    "Grimmsnarl",
+    "Charizard",
+    "Garchomp",
+    "Venusaur"
+   ],
+   "bring": [
+    2,
+    3,
+    0,
+    1
+   ],
+   "bring_source": "solver/chomp/human_prior.js modal option (the fallback when CHOMP throws or answers illegally; a tournament list records no bring)",
+   "packed": "Archaludon||Leftovers|Stamina|ElectroShot,FlashCannon,DragonPulse,Protect|Calm|10,,1,32,15,8|||||]Pelipper||SitrusBerry|Drizzle|Hurricane,WeatherBall,Tailwind,WideGuard|Bold|2,,,32,,32|||||]Grimmsnarl||LightClay|Prankster|SpiritBreak,LightScreen,Reflect,PartingShot|Sassy|7,32,17,,,10|||||]Charizard||CharizarditeY|Blaze|HeatWave,WeatherBall,Hurricane,Protect|Timid|20,,8,32,,6|||||]Garchomp||GarchompiteZ|RoughSkin|DracoMeteor,EarthPower,PowerGem,Protect|Modest|2,,,32,,32|||||]Venusaur||FocusSash|Chlorophyll|LeafStorm,SludgeBomb,SleepPowder,Protect|Modest|21,,,32,,13|||||",
+   "spreads": [
+    {
+     "species": "Archaludon",
+     "item": "Leftovers",
+     "ability": "Stamina",
+     "nature": "Calm",
+     "moves": [
+      "Electro Shot",
+      "Flash Cannon",
+      "Dragon Pulse",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 10,
+      "atk": 0,
+      "def": 1,
+      "spa": 32,
+      "spd": 15,
+      "spe": 8
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 8,
+      "effective": 113,
+      "at_cap": 137,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 112"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.809,
+      "share_at_zero": 0.72,
+      "endures": false
+     }
+    },
+    {
+     "species": "Pelipper",
+     "item": "Sitrus Berry",
+     "ability": "Drizzle",
+     "nature": "Bold",
+     "moves": [
+      "Hurricane",
+      "Weather Ball",
+      "Tailwind",
+      "Wide Guard"
+     ],
+     "evs": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     },
+     "source": "derived",
+     "role": "fast",
+     "role_by": "Tailwind",
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 32,
+      "effective": 117,
+      "at_cap": 117,
+      "median": 138,
+      "top_tier": 172,
+      "why": "fast role: the cap"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.582,
+      "share_at_zero": 0.572,
+      "endures": false
+     }
+    },
+    {
+     "species": "Grimmsnarl",
+     "item": "Light Clay",
+     "ability": "Prankster",
+     "nature": "Sassy",
+     "moves": [
+      "Spirit Break",
+      "Light Screen",
+      "Reflect",
+      "Parting Shot"
+     ],
+     "evs": {
+      "hp": 7,
+      "atk": 32,
+      "def": 17,
+      "spa": 0,
+      "spd": 0,
+      "spe": 10
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "atk",
+     "speed": {
+      "sp": 10,
+      "effective": 81,
+      "at_cap": 100,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 80"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.614,
+      "share_at_zero": 0.503,
+      "endures": false
+     }
+    },
+    {
+     "species": "Charizard",
+     "item": "Charizardite Y",
+     "ability": "Blaze",
+     "nature": "Timid",
+     "moves": [
+      "Heat Wave",
+      "Weather Ball",
+      "Hurricane",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 20,
+      "atk": 0,
+      "def": 8,
+      "spa": 32,
+      "spd": 0,
+      "spe": 6
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 6,
+      "effective": 138,
+      "at_cap": 167,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 137"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.759,
+      "share_at_zero": 0.692,
+      "endures": false
+     }
+    },
+    {
+     "species": "Garchomp",
+     "item": "Garchompite Z",
+     "ability": "Rough Skin",
+     "nature": "Modest",
+     "moves": [
+      "Draco Meteor",
+      "Earth Power",
+      "Power Gem",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 2,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 32
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 32,
+      "effective": 203,
+      "at_cap": 203,
+      "median": 138,
+      "top_tier": 172,
+      "why": "top speed tier: the cap"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 0.78,
+      "share_at_zero": 0.78,
+      "endures": false
+     }
+    },
+    {
+     "species": "Venusaur",
+     "item": "Focus Sash",
+     "ability": "Chlorophyll",
+     "nature": "Modest",
+     "moves": [
+      "Leaf Storm",
+      "Sludge Bomb",
+      "Sleep Powder",
+      "Protect"
+     ],
+     "evs": {
+      "hp": 21,
+      "atk": 0,
+      "def": 0,
+      "spa": 32,
+      "spd": 0,
+      "spe": 13
+     },
+     "source": "derived",
+     "role": "other",
+     "role_by": null,
+     "conflict": null,
+     "attack_stat": "spa",
+     "speed": {
+      "sp": 13,
+      "effective": 113,
+      "at_cap": 132,
+      "median": 138,
+      "top_tier": 172,
+      "why": "outspeeds the heaviest flippable tier 112"
+     },
+     "bulk": {
+      "why": "survives the median attacker at 0 SP",
+      "share_survived": 1,
+      "share_at_zero": 1,
+      "endures": true
+     }
+    }
+   ]
+  }
+ ]
+}

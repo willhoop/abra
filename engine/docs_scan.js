@@ -304,8 +304,11 @@ function readerReport() {
  * CRLF documents it actually found rather than a bare green line. */
 function crlfProof() {
   const raw = '## [9.9.9] — 2026-01-01 — a synthetic row\r\n- **Basis.** unchanged\r\n';
-  const before = notesEntries({ read: () => raw }) || [];
-  const after = notesEntries({ read: () => stripCR(raw) }) || [];
+  /* THE ROW PARSER ITSELF, since 2026-10-01: notesEntries() now reads the archive AND the open
+   * changelogs, so an injected reader would hand it the synthetic page once per file. parseRows() is
+   * the one parser both sources go through, so this still pins the shipping read path. */
+  const before = parseRows(raw);
+  const after = parseRows(stripCR(raw));
   const cases = [
     { id: 'crlf-page-is-invisible-without-the-strip', why: 'The defect. A CR is a JavaScript line '
       + 'terminator, so the heading pattern cannot reach its own end anchor past one.',
@@ -2885,6 +2888,62 @@ function uniqueOwners(exactScale) {
  * a number so large it says nothing, which is the same as not printing it. */
 const NOTES_LOG = 'docs/RUNNING-NOTES.md';
 
+/* ---- ONE RECORD PER CHANGE: THE NOTES PAGE IS FROZEN AND THE CHANGELOG CARRIES ITS FIELDS -------
+ *
+ * WILL, 2026-10-01, approved consolidating the documentation. Every change wrote the same story twice
+ * — a `CHANGELOG-REGMC.md` entry and a `docs/RUNNING-NOTES.md` row — and every parallel-agent merge
+ * conflicted in both. Measured before the change: the two files share 3.4% of their 5-word shingles
+ * and 41% of the notes page's figures, so they were two retellings, not one text twice.
+ *
+ * WHAT MOVED IS THE SOURCE, NOT THE RULE. Every consumer below still asks `notesEntries()`, and every
+ * clause it feeds — the backlog and its cap, the closed-line refusal, the release-kind policy (5d),
+ * the citation and retraction rules — reads exactly what it read before. The rows now come from two
+ * places, cut at a DECLARED version per line:
+ *
+ *   the archive     `docs/RUNNING-NOTES.md`, every row AT OR BELOW its line's freeze version. Frozen,
+ *                   never edited to agree with today, and still read: it is the only place the
+ *                   historical rows declare their basis and their supersessions.
+ *   the changelog   each line's own changelog, every entry ABOVE that version (and `[Unreleased]`).
+ *                   The entry carries the old row's fields in a `### Record` section.
+ *
+ * THE FREEZE IS DECLARED IN THE PAGE'S MASTHEAD — `<!-- FROZEN: abra/regmb=7.0.0; abra/regmc=1.64.0 -->`
+ * — and NOT derived from the page's newest row. Derived, a row merged in from an in-flight branch
+ * would silently move the cut and take the changelog's fields for those versions out of the record.
+ * Declared, the same row is a BREACH (`row_after_freeze`, in `closedLineBreaches()`), and the fix is
+ * `node engine/notes_to_changelog.js --migrate`.
+ *
+ * WITH NO MARKER THE PAGE IS THE WHOLE RECORD, exactly as before, so this cannot be half-applied.
+ * DELETING THE PAGE STILL FAILS the gate (`missing`): the archive is the only statement of what the
+ * historical rows declared, and a gate that lost it would stop checking them while reporting green. */
+const FROZEN_DECL = /<!--\s*FROZEN:\s*([^>]*?)-->/i;
+function notesFreeze({ read = readDoc } = {}) {
+  if (!exists(NOTES_LOG)) return { frozen: false, at: new Map(), date: null };
+  const head = read(NOTES_LOG).split('\n').slice(0, HEADER_LINES).join('\n');
+  const m = head.match(FROZEN_DECL);
+  const at = new Map();
+  let date = null;
+  if (m) for (const part of m[1].split(';')) {
+    const p = part.split('=');
+    if (p.length < 2) continue;
+    const k = p[0].trim(), v = p.slice(1).join('=').trim();
+    if (k.toLowerCase() === 'date') date = v; else if (k) at.set(k, v);
+  }
+  return { frozen: !!m, at, date };
+}
+/** True when a row sits above its line's freeze version (an `[Unreleased]` row always does). */
+function afterFreeze(e, fr) {
+  if (!fr || !fr.frozen) return false;
+  if (e.unreleased || !e.version) return true;
+  const at = fr.at.get(e.line_id);
+  return !at || cmpVersion(e.version, at) > 0;
+}
+/** The open lines' changelogs: where a change is recorded once the page is frozen. */
+function recordChangelogs() {
+  return [...versionLines().values()].filter(l => !l.closed && !l.unreadable).map(l => l.changelog);
+}
+/** The file(s) a recordable change must move: the open changelogs after the freeze, the page before. */
+function recordTargets() { return notesFreeze().frozen ? recordChangelogs() : [NOTES_LOG]; }
+
 /* THE CAP IS A POLICY NUMBER AND IS THE ONE HAND-TYPED VALUE HERE, SO IT IS ARGUED RATHER THAN
  * ASSERTED. Measured on CHANGELOG.md, 2026-09-06: 266 releases in the 27 days since 5.0.0 (2026-08-10),
  * ~10/day median and 42 on the busiest day. CLAUDE.md records what unbounded drift already cost —
@@ -2947,9 +3006,13 @@ const OWED_WARN = Math.floor(OWED_CAP / 2);
  * shape of every failure this repository keeps paying for. The shape is matched, not the name. */
 const RECORDABLE = /^(?:engine|tests|web|build)\/|^docs\/|^(?:CHANGELOG(?:-[A-Za-z0-9]+)?|README|CLAUDE)\.md$/;
 const NOT_RECORDABLE = /^docs\/(?:_reports|_inbox|_outbox|archive)\//;
+/* AFTER THE FREEZE THE EXCLUSION FOLLOWS THE RECORD. The open changelog is the thing a change moves,
+ * so it is excluded for the same reason the page was; the frozen page stops being excluded, because
+ * editing history is a change somebody has to record. */
 function recordableChanges(paths) {
+  const own = new Set(recordTargets());
   return [...new Set(paths.map(p => String(p).replace(/\\/g, '/').trim()).filter(Boolean))]
-    .filter(p => p !== NOTES_LOG)
+    .filter(p => !own.has(p))
     .filter(p => RECORDABLE.test(p) && !NOT_RECORDABLE.test(p))
     .sort();
 }
@@ -3029,6 +3092,26 @@ function closedLineBreaches({ entries: injEntries } = {}) {
       });
     }
   }
+  /* A FROZEN PAGE IS FROZEN, AND THE MACHINE SAYS SO — 2026-10-01. A row written into the archive
+   * after its freeze is a row the record does not read: its fields would sit beside a changelog entry
+   * that is the record for that version. It is refused here, so it fails every caller that refuses a
+   * closed-line breach (`--owed`, `--lines`, tests/test-docs-current.js clause 2). Injected rows are
+   * the demonstration path and are judged as archive rows. */
+  const fr = notesFreeze();
+  if (fr.frozen) {
+    const rows = injEntries || (exists(NOTES_LOG) ? parseRows(readDoc(NOTES_LOG), { file: NOTES_LOG }) : []);
+    for (const e of rows) {
+      if ((e.file && e.file !== NOTES_LOG) || !afterFreeze(e, fr)) continue;
+      const target = lineChangelog(e.line_id) || 'the open line\'s changelog';
+      out.push({
+        kind: 'row_after_freeze', line: e.line_id, version: e.version || 'Unreleased', file: NOTES_LOG, row: e.line,
+        why: `${NOTES_LOG}:${e.line} records ${e.version || 'an [Unreleased] row'} on ${e.line_id}, above the `
+           + `${fr.at.get(e.line_id) || '(no freeze version)'} the page is FROZEN at. The record for it is `
+           + `${target}: run \`node engine/notes_to_changelog.js --migrate\`, which moves the row's fields `
+           + 'into that version\'s `### Record` section and takes the row out of the archive.',
+      });
+    }
+  }
   return out;
 }
 
@@ -3052,10 +3135,45 @@ function versionPins() {
   return JSON.parse(rawText(f)).version_pins || {};
 }
 
-/** `## [5.267.0] — 2026-09-06 — title` rows in the notes page, newest first as written. */
+/**
+ * Every recorded change, newest first: the open changelogs' entries above the freeze, then the frozen
+ * archive's rows at or below it. Before a freeze is declared, the notes page alone, as it always was.
+ * Each entry carries `file` (where it was read) so a violation names the file a reader must open.
+ */
 function notesEntries({ read = readDoc } = {}) {
   if (!exists(NOTES_LOG)) return null;
-  const lines = read(NOTES_LOG).split('\n');
+  const fr = notesFreeze({ read });
+  const archive = parseRows(read(NOTES_LOG), { file: NOTES_LOG });
+  if (!fr.frozen) return archive;
+  const out = [];
+  for (const f of recordChangelogs()) {
+    if (!exists(f)) continue;
+    const id = [...versionLines().values()].find(l => l.changelog === f).id;
+    for (const e of parseRows(read(f), { file: f, lineId: id })) if (afterFreeze(e, fr)) out.push(e);
+  }
+  for (const e of archive) if (!afterFreeze(e, fr)) out.push(e);
+  return out;
+}
+
+/* THE RECORD FIELDS A CHANGELOG ENTRY MUST CARRY AFTER THE FREEZE. The notes row's template had four
+ * declared bullets; the entry that replaces it carries the same four, or the merge would have
+ * silently dropped the judgement (Basis), the retraction (Supersedes), the evidence (Measured) or the
+ * debt (Owed) that the row used to state. Archive rows are not judged: they predate this and the page
+ * forbids editing them. Returns one gap per entry with what it lacks. */
+const RECORD_FIELDS = ['Measured', 'Basis', 'Supersedes', 'Owed to the next major'];
+function recordFieldGaps({ entries } = {}) {
+  const out = [];
+  for (const e of (entries || notesEntries() || [])) {
+    if (!e.file || e.file === NOTES_LOG) continue;
+    const missing = RECORD_FIELDS.filter(k => !e.fields || !e.fields[k]);
+    if (missing.length) out.push({ file: e.file, line: e.line, version: e.version || 'Unreleased', missing });
+  }
+  return out;
+}
+
+/** The rows of one file. `lineId` set = a changelog, whose entries are all on that line. */
+function parseRows(text, { file = NOTES_LOG, lineId = null } = {}) {
+  const lines = String(text).split('\n');
   const out = [];
   /* A FENCED BLOCK IS THE TEMPLATE, NOT A ROW. The page carries a copy-this-shape example inside
    * ```, and counting it would mean the backlog reports a release that never happened — the same
@@ -3075,11 +3193,11 @@ function notesEntries({ read = readDoc } = {}) {
      * CRLF bug produced and the cap exists to refuse. */
     const m = lines[i].match(/^##\s*\[(?:([A-Za-z][A-Za-z0-9/_-]*)\s+)?(Unreleased|\d+\.\d+(?:\.\d+)?)\]\s*—?\s*(\d{4}-\d{2}-\d{2})?\s*—?\s*(.*)$/i);
     if (m) out.push({
-      line_id: m[1] && versionLines().has(m[1]) ? m[1] : mainLineId(),
-      line_declared: m[1] || null,
+      line_id: lineId || (m[1] && versionLines().has(m[1]) ? m[1] : mainLineId()),
+      line_declared: lineId || m[1] || null,
       version: /^unreleased$/i.test(m[2]) ? null : m[2],
       unreleased: /^unreleased$/i.test(m[2]),
-      date: m[3] || null, title: m[4].trim(), line: i + 1,
+      date: m[3] || null, title: m[4].trim(), line: i + 1, file,
     });
   }
   /* THE BODY OF A ROW IS EVERYTHING UP TO THE NEXT ROW, so the two declared fields below are read
@@ -3088,11 +3206,41 @@ function notesEntries({ read = readDoc } = {}) {
   for (let k = 0; k < out.length; k++) {
     const from = out[k].line, to = k + 1 < out.length ? out[k + 1].line - 1 : lines.length;
     const body = lines.slice(from, to).join('\n');
+    out[k].end = to;
     out[k].basis = basisOf(body);
     out[k].supersedes = supersedesOf(body);
+    out[k].fields = {};
+    for (const f of RECORD_FIELDS) {
+      out[k].fields[f] = new RegExp('^\\s*[-*]?\\s*\\*\\*' + f.replace(/ /g, '\\s+') + '\\.?\\*\\*', 'mi').test(body);
+    }
+    /* A KEEP-A-CHANGELOG HEADING CARRIES NO TITLE (`## [1.51.0] — 2026-10-01`), so the entry's first
+     * line of prose stands in for it wherever the backlog prints a title. */
+    if (!out[k].title) {
+      const first = lines.slice(from, to).map(s => s.trim()).find(s => s && !/^#/.test(s) && !/^<!--/.test(s));
+      out[k].title = first ? first.replace(/^[-*]\s+/, '').trim() : '';
+    }
   }
   return out;
 }
+
+/* A RECORD CHANGELOG SEEN AS ITS POST-FREEZE ENTRIES ONLY, every other line blanked so line numbers
+ * still point at the file. This is how the citation and retraction rules hold the new entries to the
+ * notes page's rigour without judging 4,000 lines of history that were never held to it. */
+function recordView(rel) {
+  const text = readDoc(rel);
+  const fr = notesFreeze();
+  if (!fr.frozen || !recordChangelogs().includes(String(rel).replace(/\\/g, '/'))) return text;
+  const l = [...versionLines().values()].find(x => x.changelog === rel);
+  const lines = text.split('\n');
+  const keep = new Array(lines.length).fill(false);
+  for (const e of parseRows(text, { file: rel, lineId: l.id })) {
+    if (!afterFreeze(e, fr)) continue;
+    for (let i = e.line - 1; i < e.end; i++) keep[i] = true;
+  }
+  return lines.map((s, i) => (keep[i] ? s : '')).join('\n');
+}
+/** readDoc, except that a record changelog reads as its post-freeze entries. */
+function readRecordAware(rel) { return recordChangelogs().includes(String(rel).replace(/\\/g, '/')) ? recordView(rel) : readDoc(rel); }
 
 /* ---- THE TWO DECLARED FIELDS A ROW CARRIES, AND WHY THEY ARE DECLARED ------------------------
  *
@@ -3242,13 +3390,13 @@ function majorPolicy({ entries: injEntries, versions: injVersions, line: injLine
     checked++;
     const isMajor = /^\d+\.0\.0$/.test(e.version);
     if (e.basis.changed && !isMajor) violations.push({
-      kind: 'basis_change_not_major', version: e.version, line: e.line,
+      kind: 'basis_change_not_major', version: e.version, line: e.line, file: e.file || NOTES_LOG,
       why: `the row declares the basis CHANGED and released as ${e.version}. A basis change is a `
          + 'MAJOR: the old figures cannot be linked to the new ones, so the documents have to be '
          + 'rewritten rather than restamped. Release it as X.0.0 and fold the full set in.',
     });
     if (isMajor && !e.basis.changed) violations.push({
-      kind: 'major_without_basis', version: e.version, line: e.line,
+      kind: 'major_without_basis', version: e.version, line: e.line, file: e.file || NOTES_LOG,
       why: `${e.version} is a MAJOR and its row does not declare what basis changed. State it — `
          + '`**Basis.** CHANGED — <what a reader can no longer be told>` — or release it as a MINOR.',
     });
@@ -3261,7 +3409,7 @@ function majorPolicy({ entries: injEntries, versions: injVersions, line: injLine
     const row = byVersion.get(top);
     if (!row) unmatched.push(top + ' (top, PATCH bump)');
     else if (row.supersedes.retracts || (row.supersedes.stated && !row.supersedes.nothing)) violations.push({
-      kind: 'patch_moved_a_figure', version: top, line: row.line,
+      kind: 'patch_moved_a_figure', version: top, line: row.line, file: row.file || NOTES_LOG,
       why: `${top} is a PATCH bump and its row supersedes a figure: "${row.supersedes.text}". A `
          + 'PATCH here means NO published figure moved. If one did, it is a MINOR.',
     });
@@ -3353,7 +3501,7 @@ function owedReport() {
   for (const id of lineIds()) out.push(owedReportForLine(id));
   const breaches = closedLineBreaches();
   if (breaches.length) {
-    out.push('  A CLOSED VERSION LINE HAS AN ENTRY ABOVE ITS CLOSE VERSION — ' + breaches.length + ':');
+    out.push('  AN ENTRY SITS ABOVE A CUT (a closed line\'s close version, or the frozen notes page\'s freeze) — ' + breaches.length + ':');
     for (const b of breaches.slice(0, 6)) out.push(`    ${b.line}  ${b.version}  ${b.file}\n      ${b.why}`);
   }
   return out.join('\n');
@@ -3367,13 +3515,19 @@ function owedReportForLine(lineId) {
     + `  [${l ? l.changelog : '?'}]${l && l.closed ? '  CLOSED AT ' + l.closed : ''}`);
   if (o.missing) {
     L.push(`  DOCUMENTATION DEBT — ${o.notes} IS ABSENT.`);
-    L.push('    The full living-doc set moves on a major release and the notes page carries every');
-    L.push('    change in between. Without it nothing records what the next major owes. Recreate it.');
+    L.push('    It is the frozen archive of every recorded change up to its freeze (the record since is the');
+    L.push('    open changelog). Without it the backlog and the release-kind clause cannot read history.');
+    L.push('    Restore it from git; deleting it ends nothing.');
     return L.join('\n');
   }
   const at = o.documented_at ? `${o.documented_at.version} (lowest unpinned header: ${o.documented_at.doc})` : 'NOT DERIVED';
-  L.push(`  DOCUMENTATION DEBT — ${o.owed.length} of ${o.cap} notes entries owed to the next major`
+  L.push(`  DOCUMENTATION DEBT — ${o.owed.length} of ${o.cap} recorded changes owed to the next major`
     + (o.over ? '   *** OVER CAP ***' : o.warning ? '   (past half the cap)' : ''));
+  const fr = notesFreeze();
+  L.push(fr.frozen
+    ? `    recorded in ${l && !l.closed ? l.changelog + ' (### Record) above ' : 'the archive at or below '}`
+      + `${fr.at.get(o.line) || '(no freeze version)'}; the archive ${NOTES_LOG} is FROZEN`
+    : `    recorded in ${NOTES_LOG}`);
   L.push(`    documents last folded at ${at}`);
   L.push(`    changelog top ${o.top}; last major ${o.lastMajor ? o.lastMajor.version + (o.lastMajor.date ? ' — ' + o.lastMajor.date : '') : 'NONE — this line is 0.x, so its documents are due EVERY release'}`);
   if (o.documents_behind_last_major) {
@@ -3389,7 +3543,7 @@ function owedReportForLine(lineId) {
   for (const e of o.owed.slice(0, 12)) L.push(`      ${String(e.version || 'Unreleased').padEnd(10)} `
     + `${(e.date || '?').padEnd(10)}  ${basisMark(e)}${e.title.slice(0, 74)}`);
   if (o.owed.length > 12) L.push(`      ... and ${o.owed.length - 12} more (node engine/docs_scan.js --owed)`);
-  if (!o.owed.length) L.push('    nothing owed — the documents are level with the notes page.');
+  if (!o.owed.length) L.push('    nothing owed — the documents are level with the record.');
   /* WHAT THE CAP ACTUALLY FORCES, SAID WHERE IT IS COUNTED. Going over it owes a DOCUMENT PASS, not
    * a major: the backlog empties when the document headers move, at any version. A major is a
    * different obligation with a different trigger, and conflating the two invites a version bumped
@@ -3406,6 +3560,8 @@ module.exports = {
   owedReportForLine, CHANGELOG_FILE,
   NOTES_LOG, OWED_CAP, OWED_WARN, cmpVersion, lastMajor, versionPins, recordableChanges,
   notesEntries, documentedAt, owedToNextMajor, owedReport,
+  notesFreeze, afterFreeze, recordChangelogs, recordTargets, recordFieldGaps, RECORD_FIELDS, parseRows,
+  recordView, readRecordAware,
   changelogVersions, bumpKind, basisOf, supersedesOf, majorPolicy,
   majorPolicyProof, MAJOR_POLICY_CASES, stripCR, crlfProof,
   quarantinedFigures, quarantineKey,
@@ -3436,10 +3592,14 @@ if (require.main === module) {
   if (process.argv.includes('--note-check')) {
     const paths = process.argv.slice(process.argv.indexOf('--note-check') + 1);
     const need = recordableChanges(paths);
-    const recorded = paths.some(p => String(p).replace(/\\/g, '/').trim() === NOTES_LOG);
+    /* THE RECORD IS WHATEVER recordTargets() SAYS: the open changelog(s) once the notes page is
+     * frozen, the page before. One function decides it for the hook and for clause 5b alike. */
+    const targets = recordTargets();
+    const recorded = paths.some(p => targets.includes(String(p).replace(/\\/g, '/').trim()));
+    const named = targets.join(' or ');
     if (!need.length) { console.log('note-check: nothing recordable in this change set'); process.exit(0); }
-    if (recorded) { console.log(`note-check: ${need.length} recordable path(s), and ${NOTES_LOG} moves with them`); process.exit(0); }
-    console.log(`note-check: ${need.length} recordable path(s) and NOTHING recorded in ${NOTES_LOG}`);
+    if (recorded) { console.log(`note-check: ${need.length} recordable path(s), and ${named} moves with them`); process.exit(0); }
+    console.log(`note-check: ${need.length} recordable path(s) and NOTHING recorded in ${named}`);
     for (const p of need.slice(0, 10)) console.log('    ' + p);
     if (need.length > 10) console.log(`    ... and ${need.length - 10} more`);
     process.exit(1);
@@ -3474,7 +3634,7 @@ if (require.main === module) {
   const docs = liveDocs();
   const living = livingDocs();
   const versioned = living.map(d => ({ doc: d, v: versionHeader(readDoc(d)) }));
-  const reg = retractionRegistry([...docs, ...archiveDocs()]);
+  const reg = retractionRegistry([...docs, ...archiveDocs(), ...recordChangelogs()], { read: readRecordAware });
   const census = untraceableCensus(living);
   const report = {
     changelog_top: changelogTop(),
