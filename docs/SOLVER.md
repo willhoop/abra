@@ -27,20 +27,22 @@ resolves here.)*
 
 ```
 SOLVER (was SEARCH) — the retired Reg M-B rollout rows; the Reg M-C solver is solver/PLAN.md
-  R1 leaf accuracy: WITHHELD — engine/provenance.js calls data/rollout-r1-explore1.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    pinned to engine release 3932186b59ef — engine/medicham2-browser.js matches the frozen copy; live is bf5efb8fafee now (a PRE-CHANGE measurement of that release, not corruption)
-    (+20 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/rollout_r1_artifact.js
-  R2 leaf cost: WITHHELD — engine/provenance.js calls data/rollout-cost.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    it becomes quotable again when this is re-run: node engine/rollout_r2.js
-  R3 divergence: WITHHELD — engine/provenance.js calls data/rollout-r3.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    it becomes quotable again when this is re-run: node engine/rollout_r3.js
-  R4 does it win: WITHHELD — engine/provenance.js calls data/rollout-r4.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    it becomes quotable again when this is re-run: node engine/rollout_r4.js
+  R1 leaf accuracy: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-r1-explore1.json is downstream of MEDICHAM: engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played
+    MEDICHAM is not correct — 1 of 10 gate clauses fail (no open, known engine defect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r1_artifact.js
+  R2 leaf cost: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-cost.json is downstream of MEDICHAM: its generator engine/rollout_r2.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 1 of 10 gate clauses fail (no open, known engine defect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r2.js
+  R3 divergence: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-r3.json is downstream of MEDICHAM: its generator engine/rollout_r3.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 1 of 10 gate clauses fail (no open, known engine defect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r3.js
+  R4 does it win: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
+    MEDICHAM is not correct — 1 of 10 gate clauses fail (no open, known engine defect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
   runs vs engine (newest engine source: engine/medicham2-browser.js 2026-10-01 02:00):
     PRE-CHANGE games.r4c-shipped2.jsonl  2026-08-14 22:28
     PRE-CHANGE games.r4c-shipped.jsonl  2026-08-14 17:21
@@ -49,7 +51,7 @@ SOLVER (was SEARCH) — the retired Reg M-B rollout rows; the Reg M-C solver is 
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
 ```
 
-_stamped 2026-10-01 06:14_
+_stamped 2026-10-01 15:50_
 
 <!-- /GENERATED -->
 

@@ -28,6 +28,18 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.70.1] — 2026-10-01
+
+### Changed
+- The division ledgers and `data/provenance-stamp.json` were restamped by `node engine/status.js --write` in the main
+  checkout, after 1.70.0 (the Reg M-C store re-parse). PATCH: no published figure moves.
+
+### Record
+- **Measured.** NO FIGURE.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none.
+
 ## [1.70.0] — 2026-10-01
 
 **MINOR: the two Reg M-C stores are re-parsed with 1.63.0's fixed set-attribution extractor.** Before this, the stored
