@@ -1,0 +1,182 @@
+|title|ekohc vs. medicham32
+|j|☆ekohc
+|j|☆medicham32
+|html|<table width="100%"><tr><td align="left">ekohc</td><td align="right">medicham32</tr><tr><td align="left"><i class="fa fa-circle"></i> <i class="fa fa-circle-o"></i> </td><td align="right"><i class="fa fa-circle-o"></i> <i class="fa fa-circle-o"></i> </tr></table>
+|uhtml|bestof|<h2><strong>Game 2</strong> of <a href="/game-bestof3-gen9championsvgc2026regmcbo3-2688066420">a best-of-3</a></h2>
+|t:|1790403024
+|gametype|doubles
+|player|p1|ekohc|cynthia-gen4|1045
+|player|p2|medicham32|101|1025
+|gen|9
+|tier|[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)
+|rated|
+|rule|Species Clause: Limit one of each Pokémon
+|rule|Item Clause: Limit 1 of each item
+|clearpoke
+|poke|p1|Kingambit, L50, M|
+|poke|p1|Clefable, L50, M|
+|poke|p1|Gourgeist-Small, L50, F|
+|poke|p1|Tyranitar, L50, M|
+|poke|p1|Gyarados, L50, M|
+|poke|p1|Excadrill, L50, F|
+|poke|p2|Gengar, L50, M|
+|poke|p2|Incineroar, L50, M|
+|poke|p2|Rillaboom, L50, M|
+|poke|p2|Kingambit, L50, F|
+|poke|p2|Hippowdon, L50, F|
+|poke|p2|Sneasler, L50, F|
+|teampreview|4
+|showteam|p1|Kingambit||BlackGlasses|Defiant|SwordsDance,Protect,SuckerPunch,KowtowCleave|Adamant||M|||50|]Clefable||LifeOrb|MagicGuard|Moonblast,FollowMe,ShadowBall,Protect|Modest||M|||50|]Gourgeist-Small||ChoiceScarf|Frisk|Poltergeist,PowerWhip,TrickorTreat,WillOWisp|Jolly||F|||50|]Tyranitar||Tyranitarite|SandStream|DragonDance,RockSlide,KnockOff,Protect|Jolly||M|||50|]Gyarados||Gyaradosite|Intimidate|Waterfall,Protect,DragonDance,Crunch|Jolly||M|||50|]Excadrill||FocusSash|SandRush|HighHorsepower,RockSlide,IronHead,Protect|Adamant||F|||50|
+|showteam|p2|Gengar||Gengarite|CursedBody|ShadowBall,SludgeBomb,Substitute,Protect|Timid||M|||50|]Incineroar||SitrusBerry|Intimidate|FakeOut,FlareBlitz,Snarl,PartingShot|Impish||M|||50|]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,GrassyGlide,LowKick,FakeOut|Adamant||M|||50|]Kingambit||LifeOrb|Defiant|SuckerPunch,KowtowCleave,SwordsDance,Protect|Adamant||F|||50|]Hippowdon||Leftovers|SandStream|HighHorsepower,StoneEdge,Yawn,Protect|Careful||F|||50|]Sneasler||WhiteHerb|Unburden|CloseCombat,DireClaw,FakeOut,Protect|Adamant||F|||50|
+|j| chuybreton8
+|
+|t:|1790403093
+|teamsize|p1|4
+|teamsize|p2|4
+|start
+|switch|p1a: Kingambit|Kingambit, L50, M|100/100
+|switch|p1b: Gourgeist|Gourgeist-Small, L50, F|100/100
+|switch|p2a: Hippowdon|Hippowdon, L50, F|215/215
+|switch|p2b: Gengar|Gengar, L50, M|167/167
+|-item|p2a: Hippowdon|Leftovers|[from] ability: Frisk|[of] p1b: Gourgeist
+|-item|p2b: Gengar|Gengarite|[from] ability: Frisk|[of] p1b: Gourgeist
+|-weather|Sandstorm|[from] ability: Sand Stream|[of] p2a: Hippowdon
+|turn|1
+|
+|t:|1790403121
+|switch|p2b: Kingambit|Kingambit, L50, F|207/207
+|move|p1b: Gourgeist|Trick-or-Treat|p2a: Hippowdon
+|-start|p2a: Hippowdon|typeadd|Ghost|[from] move: Trick-or-Treat
+|move|p1a: Kingambit|Kowtow Cleave|p2a: Hippowdon
+|-supereffective|p2a: Hippowdon|1
+|-damage|p2a: Hippowdon|41/215
+|move|p2a: Hippowdon|High Horsepower|p1a: Kingambit
+|-supereffective|p1a: Kingambit|1
+|-damage|p1a: Kingambit|35/100
+|
+|-weather|Sandstorm|[upkeep]
+|-damage|p1b: Gourgeist|93/100|[from] Sandstorm
+|-heal|p2a: Hippowdon|54/215|[from] item: Leftovers
+|upkeep
+|turn|2
+|
+|t:|1790403146
+|switch|p1b: Tyranitar|Tyranitar, L50, M|100/100
+|move|p2b: Kingambit|Kowtow Cleave|p1b: Tyranitar
+|-resisted|p1b: Tyranitar|1
+|-damage|p1b: Tyranitar|69/100
+|-damage|p2b: Kingambit|187/207|[from] item: Life Orb
+|move|p1a: Kingambit|Kowtow Cleave|p2a: Hippowdon
+|-supereffective|p2a: Hippowdon|1
+|-damage|p2a: Hippowdon|0 fnt
+|faint|p2a: Hippowdon
+|
+|-weather|Sandstorm|[upkeep]
+|upkeep
+|
+|t:|1790403151
+|switch|p2a: Incineroar|Incineroar, L50, M|202/202
+|-ability|p2a: Incineroar|Intimidate|boost
+|-unboost|p1a: Kingambit|atk|1
+|-ability|p1a: Kingambit|Defiant|boost
+|-boost|p1a: Kingambit|atk|2
+|-unboost|p1b: Tyranitar|atk|1
+|turn|3
+|
+|t:|1790403205
+|move|p1b: Tyranitar|Protect|p1b: Tyranitar
+|-singleturn|p1b: Tyranitar|Protect
+|move|p1a: Kingambit|Protect|p1a: Kingambit
+|-singleturn|p1a: Kingambit|Protect
+|move|p2a: Incineroar|Flare Blitz|p1a: Kingambit
+|-activate|p1a: Kingambit|move: Protect
+|move|p2b: Kingambit|Swords Dance|p2b: Kingambit
+|-boost|p2b: Kingambit|atk|2
+|
+|-weather|Sandstorm|[upkeep]
+|-damage|p2a: Incineroar|190/202|[from] Sandstorm
+|upkeep
+|turn|4
+|l| chuybreton8
+|
+|t:|1790403254
+|switch|p1a: Gourgeist|Gourgeist-Small, L50, F|93/100
+|-item|p2a: Incineroar|Sitrus Berry|[from] ability: Frisk|[of] p1a: Gourgeist
+|-item|p2b: Kingambit|Life Orb|[from] ability: Frisk|[of] p1a: Gourgeist
+|move|p1b: Tyranitar|Rock Slide|p2a: Incineroar|[spread] p2a,p2b
+|-supereffective|p2a: Incineroar|1
+|-resisted|p2b: Kingambit|1
+|-damage|p2a: Incineroar|118/202
+|-damage|p2b: Kingambit|172/207
+|cant|p2a: Incineroar|flinch
+|move|p2b: Kingambit|Swords Dance|p2b: Kingambit
+|-boost|p2b: Kingambit|atk|2
+|
+|-weather|Sandstorm|[upkeep]
+|-damage|p1a: Gourgeist|87/100|[from] Sandstorm
+|-damage|p2a: Incineroar|106/202|[from] Sandstorm
+|upkeep
+|turn|5
+|
+|t:|1790403308
+|move|p2b: Kingambit|Sucker Punch||[still]
+|-fail|p2b: Kingambit
+|move|p1a: Gourgeist|Will-O-Wisp|p2b: Kingambit|[miss]
+|-miss|p1a: Gourgeist|p2b: Kingambit
+|move|p1b: Tyranitar|Dragon Dance|p1b: Tyranitar
+|-boost|p1b: Tyranitar|atk|1
+|-boost|p1b: Tyranitar|spe|1
+|move|p2a: Incineroar|Flare Blitz|p1a: Gourgeist
+|-supereffective|p1a: Gourgeist|1
+|-damage|p1a: Gourgeist|0 fnt
+|faint|p1a: Gourgeist
+|-damage|p2a: Incineroar|64/202|[from] Recoil
+|-enditem|p2a: Incineroar|Sitrus Berry|[eat]
+|-heal|p2a: Incineroar|114/202|[from] item: Sitrus Berry
+|
+|-weather|none
+|upkeep
+|
+|t:|1790403337
+|switch|p1a: Gyarados|Gyarados, L50, M|100/100
+|-ability|p1a: Gyarados|Intimidate|boost
+|-unboost|p2a: Incineroar|atk|1
+|-unboost|p2b: Kingambit|atk|1
+|-ability|p2b: Kingambit|Defiant|boost
+|-boost|p2b: Kingambit|atk|2
+|turn|6
+|
+|t:|1790403354
+|switch|p2a: Gengar|Gengar, L50, M|167/167
+|detailschange|p1a: Gyarados|Gyarados-Mega, L50, M
+|-mega|p1a: Gyarados|Gyarados|Gyaradosite
+|-ability|p1a: Gyarados|Mold Breaker
+|move|p2b: Kingambit|Protect|p2b: Kingambit
+|-singleturn|p2b: Kingambit|Protect
+|move|p1b: Tyranitar|Dragon Dance|p1b: Tyranitar
+|-boost|p1b: Tyranitar|atk|1
+|-boost|p1b: Tyranitar|spe|1
+|move|p1a: Gyarados|Dragon Dance|p1a: Gyarados
+|-boost|p1a: Gyarados|atk|1
+|-boost|p1a: Gyarados|spe|1
+|
+|upkeep
+|turn|7
+|
+|t:|1790403395
+|switch|p2a: Incineroar|Incineroar, L50, M|114/202
+|-ability|p2a: Incineroar|Intimidate|boost
+|-unboost|p1a: Gyarados|atk|1
+|-unboost|p1b: Tyranitar|atk|1
+|move|p1a: Gyarados|Protect|p1a: Gyarados
+|-singleturn|p1a: Gyarados|Protect
+|move|p2b: Kingambit|Sucker Punch|p1b: Tyranitar
+|-resisted|p1b: Tyranitar|1
+|-damage|p1b: Tyranitar|0 fnt
+|faint|p1b: Tyranitar
+|-damage|p2b: Kingambit|152/207|[from] item: Life Orb
+|
+|upkeep
+|-message|ekohc forfeited.
+|
+|win|medicham32

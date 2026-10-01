@@ -1,0 +1,184 @@
+|title|pandywulu vs. medicham32
+|j|☆pandywulu
+|j|☆medicham32
+|html|<table width="100%"><tr><td align="left">pandywulu</td><td align="right">medicham32</tr><tr><td align="left"><i class="fa fa-circle"></i> <i class="fa fa-circle-o"></i> </td><td align="right"><i class="fa fa-circle-o"></i> <i class="fa fa-circle-o"></i> </tr></table>
+|uhtml|bestof|<h2><strong>Game 2</strong> of <a href="/game-bestof3-gen9championsvgc2026regmcbo3-2688049676">a best-of-3</a></h2>
+|t:|1790399190
+|gametype|doubles
+|player|p1|pandywulu|101|1097
+|player|p2|medicham32|101|1082
+|gen|9
+|tier|[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)
+|rated|
+|rule|Species Clause: Limit one of each Pokémon
+|rule|Item Clause: Limit 1 of each item
+|clearpoke
+|poke|p1|Lucario, L50, F|
+|poke|p1|Indeedee-F, L50, F|
+|poke|p1|Manectric, L50, M|
+|poke|p1|Tsareena, L50, F|
+|poke|p1|Gliscor, L50, F|
+|poke|p1|Armarouge, L50, F|
+|poke|p2|Salamence, L50, M|
+|poke|p2|Raichu, L50, F|
+|poke|p2|Sneasler, L50, F|
+|poke|p2|Rillaboom, L50, M|
+|poke|p2|Kingambit, L50, F|
+|poke|p2|Volcarona, L50, F|
+|teampreview|4
+|showteam|p1|Lucario||Lucarionite|InnerFocus|Detect,BoneRush,MeteorMash,IcePunch|Jolly||F|||50|]Indeedee-F||RockyHelmet|PsychicSurge|HyperVoice,Imprison,TrickRoom,FollowMe|Bold||F|||50|]Manectric||Manectite|LightningRod|Thunderbolt,Flamethrower,EerieImpulse,Protect|Timid||M|||50|]Tsareena||ChoiceScarf|QueenlyMajesty|PowerWhip,LowKick,TripleAxel,KnockOff|Jolly||F|||50|]Gliscor||PsychicSeed|HyperCutter|Acrobatics,Tailwind,HighHorsepower,Protect|Adamant||F|||50|]Armarouge||FocusSash|FlashFire|ArmorCannon,ExpandingForce,WideGuard,Protect|Modest||F|||50|
+|showteam|p2|Salamence||Salamencite|Intimidate|DracoMeteor,HyperVoice,Tailwind,Protect|Timid||M|||50|]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid||F|||50|]Sneasler||GrassySeed|Unburden|DireClaw,CloseCombat,FakeOut,Protect|Adamant||F|||50|]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,HighHorsepower,GrassyGlide,FakeOut|Adamant||M|||50|]Kingambit||ChopleBerry|Defiant|KowtowCleave,IronHead,SuckerPunch,LowKick|Adamant||F|||50|]Volcarona||Leftovers|FlameBody|Flamethrower,GigaDrain,QuiverDance,Protect|Modest||F|||50|
+|
+|t:|1790399255
+|teamsize|p1|4
+|teamsize|p2|4
+|start
+|switch|p1a: Tsareena|Tsareena, L50, F|100/100
+|switch|p1b: Lucario|Lucario, L50, F|100/100
+|switch|p2a: Raichu|Raichu, L50, F|167/167
+|switch|p2b: Volcarona|Volcarona, L50, F|192/192
+|turn|1
+|
+|t:|1790399306
+|switch|p1b: Manectric|Manectric, L50, M|100/100
+|switch|p2a: Rillaboom|Rillaboom, L50, M|207/207
+|-fieldstart|move: Grassy Terrain|[from] ability: Grassy Surge|[of] p2a: Rillaboom
+|move|p1a: Tsareena|Triple Axel|p2a: Rillaboom
+|-supereffective|p2a: Rillaboom|1
+|-damage|p2a: Rillaboom|179/207
+|-supereffective|p2a: Rillaboom|1
+|-crit|p2a: Rillaboom
+|-damage|p2a: Rillaboom|101/207
+|-hitcount|p2a: Rillaboom|2
+|move|p2b: Volcarona|Quiver Dance|p2b: Volcarona
+|-boost|p2b: Volcarona|spa|1
+|-boost|p2b: Volcarona|spd|1
+|-boost|p2b: Volcarona|spe|1
+|
+|-heal|p2a: Rillaboom|113/207|[from] Grassy Terrain
+|upkeep
+|turn|2
+|
+|t:|1790399327
+|detailschange|p1b: Manectric|Manectric-Mega, L50, M
+|-mega|p1b: Manectric|Manectric|Manectite
+|-ability|p1b: Manectric|Intimidate|boost
+|-unboost|p2a: Rillaboom|atk|1
+|-unboost|p2b: Volcarona|atk|1
+|move|p2a: Rillaboom|Fake Out||[still]
+|cant|p1a: Tsareena|ability: Queenly Majesty|Fake Out|[of] p2a: Rillaboom
+|move|p1b: Manectric|Eerie Impulse|p2b: Volcarona
+|-unboost|p2b: Volcarona|spa|2
+|move|p1a: Tsareena|Triple Axel|p2a: Rillaboom
+|-supereffective|p2a: Rillaboom|1
+|-damage|p2a: Rillaboom|85/207
+|-supereffective|p2a: Rillaboom|1
+|-damage|p2a: Rillaboom|31/207
+|-supereffective|p2a: Rillaboom|1
+|-damage|p2a: Rillaboom|0 fnt
+|faint|p2a: Rillaboom
+|-hitcount|p2: Rillaboom|3
+|move|p2b: Volcarona|Flamethrower|p1a: Tsareena
+|-supereffective|p1a: Tsareena|1
+|-damage|p1a: Tsareena|8/100
+|
+|-heal|p1a: Tsareena|14/100|[from] Grassy Terrain
+|upkeep
+|
+|t:|1790399331
+|switch|p2a: Sneasler|Sneasler, L50, F|187/187
+|-enditem|p2a: Sneasler|Grassy Seed
+|-boost|p2a: Sneasler|def|1|[from] item: Grassy Seed
+|turn|3
+|
+|t:|1790399376
+|switch|p1a: Armarouge|Armarouge, L50, F|100/100
+|move|p1b: Manectric|Protect|p1b: Manectric
+|-singleturn|p1b: Manectric|Protect
+|move|p2a: Sneasler|Fake Out|p1b: Manectric
+|-activate|p1b: Manectric|move: Protect
+|move|p2b: Volcarona|Flamethrower|p1a: Armarouge
+|-start|p1a: Armarouge|ability: Flash Fire
+|
+|upkeep
+|turn|4
+|
+|t:|1790399407
+|switch|p2a: Raichu|Raichu, L50, F|167/167
+|switch|p1b: Tsareena|Tsareena, L50, F|14/100
+|move|p2b: Volcarona|Quiver Dance|p2b: Volcarona
+|-boost|p2b: Volcarona|spa|1
+|-boost|p2b: Volcarona|spd|1
+|-boost|p2b: Volcarona|spe|1
+|move|p1a: Armarouge|Expanding Force|p2a: Raichu
+|-damage|p2a: Raichu|65/167
+|
+|-heal|p1b: Tsareena|20/100y|[from] Grassy Terrain
+|-heal|p2a: Raichu|75/167|[from] Grassy Terrain
+|upkeep
+|turn|5
+|
+|t:|1790399451
+|switch|p2a: Sneasler|Sneasler, L50, F|187/187
+|move|p2b: Volcarona|Quiver Dance|p2b: Volcarona
+|-boost|p2b: Volcarona|spa|1
+|-boost|p2b: Volcarona|spd|1
+|-boost|p2b: Volcarona|spe|1
+|move|p1b: Tsareena|Knock Off|p2b: Volcarona
+|-damage|p2b: Volcarona|111/192
+|-enditem|p2b: Volcarona|Leftovers|[from] move: Knock Off|[of] p1b: Tsareena
+|move|p1a: Armarouge|Armor Cannon|p2a: Sneasler
+|-damage|p2a: Sneasler|0 fnt
+|-unboost|p1a: Armarouge|def|1
+|-unboost|p1a: Armarouge|spd|1
+|faint|p2a: Sneasler
+|
+|-heal|p2b: Volcarona|123/192|[from] Grassy Terrain
+|-heal|p1b: Tsareena|26/100|[from] Grassy Terrain
+|-fieldend|move: Grassy Terrain
+|upkeep
+|
+|t:|1790399451
+|switch|p2a: Raichu|Raichu, L50, F|75/167
+|turn|6
+|
+|t:|1790399479
+|detailschange|p2a: Raichu|Raichu-Mega-Y, L50, F
+|-mega|p2a: Raichu|Raichu|Raichunite Y
+|move|p2b: Volcarona|Quiver Dance|p2b: Volcarona
+|-boost|p2b: Volcarona|spa|1
+|-boost|p2b: Volcarona|spd|1
+|-boost|p2b: Volcarona|spe|1
+|move|p1b: Tsareena|Knock Off|p2b: Volcarona
+|-crit|p2b: Volcarona
+|-damage|p2b: Volcarona|38/192
+|move|p2a: Raichu|Zap Cannon|p1b: Tsareena
+|-resisted|p1b: Tsareena|1
+|-damage|p1b: Tsareena|0 fnt
+|faint|p1b: Tsareena
+|move|p1a: Armarouge|Armor Cannon|p2a: Raichu
+|-damage|p2a: Raichu|0 fnt
+|-unboost|p1a: Armarouge|def|1
+|-unboost|p1a: Armarouge|spd|1
+|faint|p2a: Raichu
+|
+|upkeep
+|
+|t:|1790399499
+|switch|p1b: Manectric|Manectric-Mega, L50, M|100/100
+|-ability|p1b: Manectric|Intimidate|boost
+|-unboost|p2b: Volcarona|atk|1
+|turn|7
+|
+|t:|1790399511
+|move|p2b: Volcarona|Flamethrower|p1a: Armarouge
+|-immune|p1a: Armarouge|[from] ability: Flash Fire
+|move|p1b: Manectric|Thunderbolt|p2b: Volcarona
+|-damage|p2b: Volcarona|11/192
+|move|p1a: Armarouge|Armor Cannon|p2b: Volcarona
+|-damage|p2b: Volcarona|0 fnt
+|-unboost|p1a: Armarouge|def|1
+|-unboost|p1a: Armarouge|spd|1
+|faint|p2b: Volcarona
+|
+|win|pandywulu

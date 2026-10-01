@@ -6,6 +6,36 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ---
 
+## 2026-10-01
+
+### The search's uncovered blind spots; four world fields fixed (abra/regmc 1.52.0)
+- Opponent coverage is 57.7% with targets (636 ladder decisions). DODUO ranks the actual joint top-4 in 57.1% and
+  top-8 in 71.1%. 30% of our row slots hold a single move.
+- Sucker Punch failed 17 of 36. The engine is right on all 17. In 9 our rows offered nothing else; in 8 the leaf tied a
+  wasted Sucker Punch with the alternatives. DODUO overrates attacks mildly and halves switches.
+- World fixes: identity (formes and nicknames, 119 of 189 games), Unburden (178 of 668 search worlds), Flash Fire and
+  the added type. `solver/tests/test-rotom-world-fields.js`. `docs/_reports/2026-10-01-search-blind-spots.md`.
+### The plan revised to Will's 2026-10-01 decisions (abra/regmc 1.53.0; `solver/PLAN.md` 0.3.0)
+- One policy+value net (PORYGON2 v3) by self-play, searched several turns deep on MEDICHAM. It subsumes the roles of
+  MAG, DODUO, GARY and XATU's action likelihood; MEDICHAM, ROTOM, SLOWKING's solve, DUSK, CHOMP and DITTO stay. The
+  pipeline plays until the net wins its SPRT.
+- HYPNO best-responds to the population by rating band, with in-series updates; equilibrium where the gate fails. The
+  ε 0.5 default is superseded (dated update in the HYPNO row and in ADR-003).
+- The ladder is the scoreboard; up to 20 series a day under standing approval. Milestones N0–N9 (§3.0) replace M0–M8,
+  which stay as history. N3 is a MEDICHAM speed pass (ENGINE), placed before any cloud spend.
+- Compute (§6a): ~45 CPU worker-hours and ~0.25 GPU-hours a generation [EST]; ~15 h a generation on this machine.
+  Likely first net (30 generations): $69 on AWS c7a, $75 Hetzner, $13 on one Vast.ai listing, plus $3–10 of GPU, at
+  prices fetched 2026-10-01. No code, no games, no spend. `docs/_reports/2026-10-01-plan-revision.md`.
+### DUSK designed, not built: on-the-fly endgame solver, not tables (abra/regmc 1.54.0)
+- Endgames (both sides ≤ 2 alive) are reached in 44.0% of all bo3 games (62.9% of clean, fully revealed ones) and 46.6%
+  of ours; about 2 decisions remain. Material: 2v2 59%, 2v1 38%, 1v1 3%; 2v1 is won by the side ahead 88.8%.
+- Tables cannot pay: a key that fixes the value repeats ≤ 1.0% of the time chronologically (17% for the bare species
+  pair), and a median 7,755 spread worlds are still open at our E2 decisions.
+- Cost to us is small: 35 of 108 losses went through an E2 entered even, but against humans from the same material and HP our
+  conversion is −3.7 wins over 88 [−10.8, +3.6]. The lever is the clock (420 s bank at entry) and the 4×4 menu.
+- Design: backward induction with an LP matrix game per node, chance.js enumeration, double oracle, a certified band.
+  `solver/dusk/DESIGN.md`, `docs/_reports/2026-10-01-dusk-design.md`. Smogon fold-in and the chomptop run are OWED.
+
 ## 2026-09-30
 
 ### Two SPRTs, both H0 (abra/regmc 1.50.0)
