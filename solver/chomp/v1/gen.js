@@ -30,7 +30,7 @@ const B = makeBots(API, {});
 const bot = B.greedy('doduo', PA);
 
 const SHARD = +flag('--shard', 0), SHARDS = +flag('--shards', 1), CAP = +flag('--cap', 40);
-/* THE SPREAD MODE (solver/arena/spread_source.js, 2026-09-30): --spreads, default role-v1. The games of one mode go in
+/* THE SPREAD MODE (solver/arena/spread_source.js, 2026-09-30): --spreads, default spread_source.DEFAULT (observed-v1 since 1.73.0). The games of one mode go in
  * their own directory (flat keeps the original `gen/`), because a restart RESUMES from the finished jobs on disk and
  * must never finish a flat run at role-v1 or the reverse. Every line records its mode; a mixed file throws. */
 const SS = require('../../arena/spread_source.js');

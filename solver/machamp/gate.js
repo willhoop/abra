@@ -4,8 +4,8 @@
  *   cmd.exe /c tools\lownode.cmd solver\machamp\gate.js --release <id> --x <spec.json> --y <spec.json>
  *        --pairs 100 --pair-seed S --seed S --workers 4 --out <result.json> [--cap 50] [--rule beats|notlose]
  *        [--info honest|omniscient]   default HONEST (solver/mew/play.js); recorded in flags.info (2026-09-26)
- *        [--spreads role-v1|xatu-random|flat]   the TRUE bodies' Stat Points (solver/arena/spread_source.js); default
- *        role-v1 since abra/regmc 1.49.0; recorded in flags.spreads and the `spreads` block. A gate before 1.49.0 played
+ *        [--spreads observed-v1|role-v1|xatu-random|flat]   the TRUE bodies' Stat Points (solver/arena/spread_source.js); default
+ *        observed-v1 since abra/regmc 1.73.0, role-v1 1.49.0-1.72.0 (not comparable); recorded in flags.spreads and the `spreads` block. A gate before 1.49.0 played
  *        xatu-random (honest) or flat (omniscient).
  *
  * 100 pairs = 200 games: each TEST pair (solver/mew/pairs.js — both players held out of every net's training data)

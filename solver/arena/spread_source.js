@@ -3,7 +3,7 @@
  * docs/_reports/2026-09-30-arena-real-spreads.md.)
  *
  *   const SS = require('./solver/arena/spread_source.js');
- *   const src = SS.open(mode, { M })     mode: 'role-v1' (DEFAULT) | 'xatu-random' | 'flat'
+ *   const src = SS.open(mode, { M })     mode: 'observed-v1' (DEFAULT since 1.73.0) | 'role-v1' | 'xatu-random' | 'flat'
  *   src.spreadsFor(G, seed)              -> { p1: [evs|null x6], p2: [...] }  one per SHEET row (seed: xatu-random only)
  *   src.dress(team, rows, evsBySheet)    lays each body's spread on it (the body's `_solverSheet` picks the row)
  *   src.bodyBuilder(buildBody[, { view }])  THE FRESH-BODY BUILDER: a buildBody whose body is laid by the same two functions
@@ -32,6 +32,16 @@
  *                and COUNTED (`derived_at_play`); a set that cannot be derived stays flat and is COUNTED (`flat_fallback`).
  *                The table refuses to open if solver/rotom/spreads.js's rule text has changed since it was built: a new
  *                rule is a new version (role-v2), never a silent mix.
+ *   observed-v1  (abra/regmc 1.72.0) role-v1 with the OBSERVED hooks folded in, the ladder's spreads since 1.72.0:
+ *                solver/arena/spreads/observed-v1.json (solver/arena/build_observed_spreads.js): a rotation set at its
+ *                recorded spread, else the tournament hook, else Smogon's Reg M-C moveset chain, else role-v1's entry. A
+ *                set the table has never seen is asked the Smogon chain AT PLAY TIME (the pinned files; counted
+ *                `observed_at_play`), else derived as role-v1 does (`derived_at_play`); the tournament hook is not asked
+ *                at play time (the store moves). The table refuses to open if the rule text, a pinned Smogon file or the
+ *                role-v1 base has moved. THE DEFAULT SINCE abra/regmc 1.73.0 (Will, 2026-10-01): practice, SPRTs and the
+ *                gate field what the ladder fields on every rotation set. A NEW ARENA SERIES starts there: a figure at
+ *                role-v1 (1.49.0 - 1.72.0) and one at observed-v1 are not comparable; re-run an old one with
+ *                --spreads role-v1.
  *   xatu-random  the pre-1.49.0 HONEST match truth, byte for byte: solver/xatu/worlds.js truthSpreads(sheets, seed).
  *                For re-running a figure measured before this change with --info honest.
  *   flat         the pre-1.49.0 omniscient / arena.js body: the engine table's line (buildMon), no spread, no nature.
@@ -50,8 +60,12 @@ const ROOT = path.join(__dirname, '..', '..');
 const DIR = path.join(__dirname, 'spreads');
 const TABLE_FILE = path.join(DIR, 'role-v1.json');
 const POP_FILE = path.join(DIR, 'population-role-v1.json');
-const MODES = ['role-v1', 'xatu-random', 'flat'];
-const DEFAULT = 'role-v1';
+const OBS_TABLE_FILE = path.join(DIR, 'observed-v1.json');
+const TABLES = { 'role-v1': TABLE_FILE, 'observed-v1': OBS_TABLE_FILE };   // the table-backed modes
+const MODES = ['role-v1', 'observed-v1', 'xatu-random', 'flat'];
+/* THE DEFAULT (1.73.0, Will's call): observed-v1. DELIBERATE BREAK (env SPREADS_SOURCE_BREAK=default): the default
+ * reverts to role-v1 — solver/tests/test-arena-spreads.js RULE and RECORD must go red. */
+const DEFAULT = ((process.env && process.env.SPREADS_SOURCE_BREAK) || '') === 'default' ? 'role-v1' : 'observed-v1';
 const STATS = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
 const sha = b => crypto.createHash('sha256').update(b).digest('hex');
 /* DELIBERATE BREAK (env SPREADS_SOURCE_BREAK=scarf): a role-v1 body holding Choice Scarf loses its Speed SP to HP (the
@@ -89,16 +103,29 @@ function make(mode, M) {
   const SPR = require('../rotom/spreads.js');
   const XW = require('../xatu/worlds.js');
   const W = XW.create({ M }, { R: null });   // applySpread only (it reads M.spreadL50 and the dex)
-  const COUNTERS = { games: 0, bodies_dressed: 0, table_hits: 0, derived_at_play: 0, flat_fallback: 0, bodies_flat: 0, fresh_dressed: 0, fresh_flat: 0, fresh_public: 0 };
+  const COUNTERS = { games: 0, bodies_dressed: 0, table_hits: 0, derived_at_play: 0, observed_at_play: 0, flat_fallback: 0, bodies_flat: 0, fresh_dressed: 0, fresh_flat: 0, fresh_public: 0 };
   const realised = new Map();               // setKey -> "hp/.../spe" actually fielded (role-v1), for the digest
-  let J = null, tableSha = null, MD = null;
-  if (mode === 'role-v1') {
-    if (!fs.existsSync(TABLE_FILE)) throw new Error('spread_source: role-v1 table missing (' + path.relative(ROOT, TABLE_FILE) + '); build it with solver/arena/build_spreads.js');
-    const buf = fs.readFileSync(TABLE_FILE);
+  let J = null, tableSha = null, MD = null, OBS = null;
+  const TF = TABLES[mode];
+  if (TF) {
+    if (!fs.existsSync(TF)) throw new Error('spread_source: ' + mode + ' table missing (' + path.relative(ROOT, TF) + '); build it with ' + (mode === 'role-v1' ? 'solver/arena/build_spreads.js' : 'solver/arena/build_observed_spreads.js'));
+    const buf = fs.readFileSync(TF);
     tableSha = sha(buf);
     J = JSON.parse(buf.toString('utf8'));
     if (J.provenance.rule !== SPR.RULE_TEXT)
-      throw new Error('spread_source: solver/rotom/spreads.js\'s rule has changed since role-v1 was built; a new rule is a new spread version (rebuild as role-v2), never a silent mix');
+      throw new Error('spread_source: solver/rotom/spreads.js\'s rule has changed since ' + mode + ' was built; a new rule is a new spread version, never a silent mix');
+    if (mode === 'observed-v1') {
+      /* the observed inputs are pinned: the role-v1 base, the observed rule, every Smogon file of the chain */
+      if (J.provenance.base.sha256 !== sha(fs.readFileSync(TABLE_FILE))) throw new Error('spread_source: role-v1 has moved since observed-v1 was built; rebuild it as a new version');
+      if (J.provenance.observed.rule !== SPR.OBSERVED_RULE_TEXT) throw new Error('spread_source: the observed hook\'s rule has changed since observed-v1 was built; a new rule is a new version');
+      for (const f of J.provenance.observed.files) {
+        const fp = path.join(ROOT, f.file);
+        if (!fs.existsSync(fp) || sha(fs.readFileSync(fp)) !== f.sha256) throw new Error('spread_source: observed-v1 pins ' + f.file + ' at ' + f.sha256.slice(0, 12) + ' and it is missing or has moved');
+      }
+      const lv = J.provenance.observed.files.map(f => SPR.loadObserved(path.join(ROOT, f.file)).chain[0]);
+      J.provenance.observed.files.forEach((f, k) => Object.assign(lv[k], { format: f.format, cutoff: f.cutoff }));
+      OBS = { file: lv[0].file, sha256: lv[0].sha256, chain: lv };
+    }
   }
   function derive(row) {
     if (!MD) {
@@ -115,8 +142,12 @@ function make(mode, M) {
     let v = J.spreads[k];
     if (v) COUNTERS.table_hits++;
     else {
-      try { v = derive(row); COUNTERS.derived_at_play++; J.spreads[k] = v; }
-      catch (e) { COUNTERS.flat_fallback++; return null; }
+      const o = OBS ? SPR.observedSpread(row, OBS) : null;
+      if (o) { v = encode(o.evs, SPR.role(row).role); COUNTERS.observed_at_play++; J.spreads[k] = v; }
+      else {
+        try { v = derive(row); COUNTERS.derived_at_play++; J.spreads[k] = v; }
+        catch (e) { COUNTERS.flat_fallback++; return null; }
+      }
     }
     const d = decode(v);
     if (BREAK === 'scarf' && X.toID(row.item) === 'choicescarf') { d.evs.hp += d.evs.spe; d.evs.spe = 0; }
@@ -161,7 +192,7 @@ function make(mode, M) {
       if (b && W.applySpread(b, XW.ZERO, row)) COUNTERS.fresh_public++;
       return b;
     };
-    if (mode !== 'role-v1' || FRESH_BREAK === 'flat') return (Mx, row, opts) => { const b = buildBody(Mx, row, opts); if (b) COUNTERS.fresh_flat++; return b; };
+    if (!TABLES[mode] || FRESH_BREAK === 'flat') return (Mx, row, opts) => { const b = buildBody(Mx, row, opts); if (b) COUNTERS.fresh_flat++; return b; };
     return (Mx, row, opts) => {
       const b = buildBody(Mx, row, opts);
       if (b) lay(b, row, rowSpread(row), 'fresh_dressed', 'fresh_flat');
@@ -174,12 +205,14 @@ function make(mode, M) {
     if (mode === 'flat') return Object.assign(base, { what: 'the engine table\'s flat per-species line (buildMon), no spread, no nature — the pre-1.49.0 omniscient / arena.js body' });
     if (mode === 'xatu-random') return Object.assign(base, { what: 'solver/xatu/worlds.js truthSpreads(sheets, battle seed) — the pre-1.49.0 honest match truth' });
     const keys = [...realised.keys()].sort();
-    return Object.assign(base, { what: 'solver/rotom/spreads.js\'s rule (the ladder\'s), per set, from the role-v1 table',
-      table: { file: path.relative(ROOT, TABLE_FILE).split(path.sep).join('/'), sha256: tableSha, sets: Object.keys(J.spreads).length - COUNTERS.derived_at_play,
+    return Object.assign(base, { what: mode === 'role-v1' ? 'solver/rotom/spreads.js\'s rule (the ladder\'s until 1.72.0), per set, from the role-v1 table'
+                                     : 'the ladder\'s spreads since 1.72.0, per set, from the observed-v1 table: a rotation set\'s recorded spread, else the tournament hook, else Smogon\'s Reg M-C moveset chain, else role-v1',
+      table: Object.assign({ file: path.relative(ROOT, TF).split(path.sep).join('/'), sha256: tableSha, sets: Object.keys(J.spreads).length - COUNTERS.derived_at_play - COUNTERS.observed_at_play,
                release: J.provenance.release, rule_sha256: J.provenance.rule_sha256, population_sha256: J.provenance.population_sha256, store_sha256: J.provenance.store_sha256 },
+               mode === 'observed-v1' ? { base_sha256: J.provenance.base.sha256, observed_files: J.provenance.observed.files.map(f => f.file + '@' + f.sha256.slice(0, 12)) } : {}),
       fielded: { sets: keys.length, sha256: sha(keys.map(k => k + '=' + realised.get(k)).join('\n')) } });
   }
-  return { mode, spreadsFor, dress, layOne, bodyBuilder, stamp, rowSpread: mode === 'role-v1' ? rowSpread : () => null, COUNTERS, BROKEN: BREAK || FRESH_BREAK || null };
+  return { mode, spreadsFor, dress, layOne, bodyBuilder, stamp, rowSpread: TABLES[mode] ? rowSpread : () => null, COUNTERS, BROKEN: BREAK || FRESH_BREAK || null };
 }
 
 /* the shards' stamps -> one artifact block: the mode (MIXED if they disagree), the table, the counters summed, each
@@ -192,12 +225,14 @@ function mergeStamps(stamps, wanted) {
   const warnings = [];
   if (modes.length > 1) warnings.push('SPREADS: shards played different spread modes ' + modes.join(', '));
   if (wanted && modes.length && !modes.every(m => m === wanted)) warnings.push('SPREADS: asked for ' + wanted + ', shards report ' + modes.join(', '));
-  if (modes.includes('role-v1') && counters.flat_fallback) warnings.push('SPREADS: ' + counters.flat_fallback + ' role-v1 rows could not be derived and played the FLAT line');
-  if (modes.includes('role-v1') && counters.derived_at_play) warnings.push('SPREADS: ' + counters.derived_at_play + ' sets were not in the role-v1 table and were derived at play time (same rule, same population)');
-  if (modes.includes('role-v1') && !counters.bodies_dressed) warnings.push('SPREADS: role-v1 asked for and 0 bodies were dressed');
+  const tm = modes.filter(m => TABLES[m]);
+  if (tm.length && counters.flat_fallback) warnings.push('SPREADS: ' + counters.flat_fallback + ' ' + tm.join('/') + ' rows could not be derived and played the FLAT line');
+  if (tm.length && counters.derived_at_play) warnings.push('SPREADS: ' + counters.derived_at_play + ' sets were not in the ' + tm.join('/') + ' table and were derived at play time (same rule, same population)');
+  if (tm.length && counters.observed_at_play) warnings.push('SPREADS: ' + counters.observed_at_play + ' sets were not in the ' + tm.join('/') + ' table and took the pinned Smogon chain at play time');
+  if (tm.length && !counters.bodies_dressed) warnings.push('SPREADS: ' + tm.join('/') + ' asked for and 0 bodies were dressed');
   const t = ok.find(s => s.table);
   return { spreads: modes.length === 1 ? modes[0] : (modes.length ? 'MIXED' : null), table: t ? t.table : null, what: ok[0] ? ok[0].what : null,
            counters, fielded_by_shard: ok.map(s => s.fielded || null), warnings };
 }
 
-module.exports = { open, mergeStamps, MODES, DEFAULT, TABLE_FILE, POP_FILE, encode, decode, population };
+module.exports = { open, mergeStamps, MODES, DEFAULT, TABLES, TABLE_FILE, OBS_TABLE_FILE, POP_FILE, encode, decode, population };

@@ -192,7 +192,15 @@ function endSeries(s, winner) {
   if (s.endedAt) return;
   s.endedAt = Date.now(); s.winner = winner;
   H.live.delete(s.bat); H.live.delete(s.bo);
-  room(s.bo, ['|win|' + (winner || OPP)]);
+  /* THIS SERVER PLAYS ONE GAME OF THE BEST-OF-3. A game-1 winner is short of the two games a series needs, so the series
+   * can only end here with the LOSER leaving. Until 1.72.0 a game-1 loss for us ended the series `|win|<opponent>`,
+   * which solver/rotom/endings.js correctly reads as OUR walkaway (a self-quit, which halts the ladder) — so the test
+   * passed only while our seeded game 1 happened to be a win, and went red when the rotation's spreads changed the
+   * game. The scripted opponent now leaves the series after game 1 whatever its result, which is the only one-game end
+   * a real bo3 has that is not ours. */
+  if (winner !== ME) { room(s.bo, ['||' + OPP + ' forfeited.', '|win|' + ME]); winner = ME; }
+  else room(s.bo, ['|win|' + ME]);
+  s.winner = winner;
   const meWon = winner === ME;
   room(s.bat, ["|raw|" + OPP + "'s rating: 1000 &rarr; <strong>" + (meWon ? 985 : 1015) + "</strong><br />", "|raw|" + ME + "'s rating: 1031 &rarr; <strong>" + (meWon ? 1046 : 1016) + "</strong><br />"]);
   updatesearch(null);

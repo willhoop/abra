@@ -2,7 +2,7 @@
  * before any table is scored or any game is played.
  *
  *   node solver/chomp/plan.js --release eaa5becc54eb [--out solver/out/chomp/v0/plan.json] [--eval 150] [--pairs 100]
- *        [--refine-pairs 12] [--seed 1] [--spreads role-v1|xatu-random|flat]   (the arena's spread mode, recorded; 1.49.0)
+ *        [--refine-pairs 12] [--seed 1] [--spreads observed-v1|role-v1|xatu-random|flat]   (the arena's spread mode, recorded; 1.49.0)
  *
  * WRITES plan.json:
  *   eval       held-out sides for (a): one side per game, that side's player in the TEST split (the MAG/DODUO/

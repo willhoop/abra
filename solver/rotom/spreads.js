@@ -12,10 +12,11 @@
  *
  * SOURCE ORDER (the hook). spreadFor() asks, in order:
  *   1. OBSERVED — a Reg M-C spread table for this format, if one exists: Smogon's monthly moveset file
- *      data/smogon-stats/<YYYY-MM>/moveset/<format>-<cutoff>.txt (the September 2026 files are due about 2026-10-04).
- *      The most-used spread listed for the species WITH THE SHEET'S NATURE is taken (the nature is the pilot's and is
- *      never overridden). loadObserved() finds the newest month and the highest cutoff; Reg M-B files never match the
- *      format name and are never read. TODAY THERE IS NONE, so every set falls to 2.
+ *      data/smogon-stats/<YYYY-MM>/moveset/<format>-<cutoff>.txt. The most-used spread listed for the set's BATTLE forme
+ *      WITH THE SHEET'S NATURE is taken (the nature is the pilot's and is never overridden), asked down a chain: the bo3
+ *      file at the highest cutoff first, then the lower cutoffs, then the bo1 files, each level only if the spread's
+ *      weighted count clears OBS_MIN_WEIGHT (OBSERVED_RULE_TEXT below). Reg M-B files never match the format name and are
+ *      never read. The September 2026 files landed 2026-10-01 (abra/regmc 1.72.0).
  *   2. DERIVED from the set's own role against the top-meta population (below).
  *
  * THE POPULATION. The distinct (player, six) teams at or above the top-meta floor (the q0.99 rating quantile of rated
@@ -66,62 +67,125 @@ const RULE_TEXT = 'solver/rotom/spreads.js: OBSERVED Reg M-C spread (Smogon move
 const evStr = e => STATS.map(s => e[s]).join('/');
 
 /* ---------------- 1. the OBSERVED hook ---------------- */
-/* Smogon moveset text -> { speciesId: [{nature, evs, pct}] }. Each species block is a boxed title line followed by
- * sections; the "Spreads" section lists "Nature:hp/atk/def/spa/spd/spe pct%". */
-function parseMoveset(text) {
+/* Smogon moveset text -> { speciesId: { name, raw, avg_weight, abilities, items, spreads: [{nature, evs, pct}], moves } }.
+ * Each species block is a boxed title line followed by sections; the "Spreads" section lists
+ * "Nature:hp/atk/def/spa/spd/spe pct%". The numbers ARE Champions Stat Points: measured over the eight September 2026
+ * Reg M-C files (2026-10-01), no listed spread has a stat above 32 or a total above 66 (the format's cap and evLimit),
+ * so nothing is converted. A mega is its own block under its mega forme ("Salamence-Mega", items: its stone 100%). */
+const SECTIONS = /^(Abilities|Items|Spreads|Moves|Teammates|Checks and Counters|Tera Types)$/;
+function parseMovesetFull(text) {
   const out = {};
   const lines = text.split(/\r?\n/).map(l => l.replace(/^\s*\|\s?/, '').replace(/\s*\|\s*$/, '').trim());
   const raw = text.split(/\r?\n/);
-  let species = null, inSpreads = false;
+  let cur = null, sec = null;
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i];
-    if (/^\+-+\+$/.test(raw[i].trim())) { inSpreads = false; continue; }
+    if (/^\+-+\+$/.test(raw[i].trim())) { sec = null; continue; }
     const prevSep = i > 0 && /^\+-+\+$/.test(raw[i - 1].trim()), nextSep = i + 1 < raw.length && /^\+-+\+$/.test(raw[i + 1].trim());
-    if (prevSep && nextSep && l && !/^(Raw count|Abilities|Items|Spreads|Moves|Teammates|Checks)/.test(l)) {
-      const sp = X.D.species.get(l); species = sp.exists ? sp.id : toID(l); out[species] = out[species] || []; continue;
+    if (prevSep && nextSep && l && !/^(Raw count|Avg\. weight|Viability|Abilities|Items|Spreads|Moves|Teammates|Checks)/.test(l)) {
+      const sp = X.D.species.get(l); const id = sp.exists ? sp.id : toID(l);
+      cur = out[id] = out[id] || { name: l, raw: null, avg_weight: null, abilities: [], items: [], spreads: [], moves: [] }; continue;
     }
-    if (l === 'Spreads') { inSpreads = true; continue; }
-    if (/^(Abilities|Items|Moves|Teammates|Checks and Counters|Tera Types)$/.test(l)) { inSpreads = false; continue; }
-    if (inSpreads && species) {
-      const m = /^([A-Za-z]+):(\d+)\/(\d+)\/(\d+)\/(\d+)\/(\d+)\/(\d+)\s+([\d.]+)%$/.exec(l);
-      if (m) out[species].push({ nature: m[1], evs: { hp: +m[2], atk: +m[3], def: +m[4], spa: +m[5], spd: +m[6], spe: +m[7] }, pct: +m[8] });
+    if (!cur) continue;
+    let m;
+    if ((m = /^Raw count:\s*(\d+)/.exec(l))) { cur.raw = +m[1]; continue; }
+    if ((m = /^Avg\. weight:\s*([\d.eE+-]+)/.exec(l))) { cur.avg_weight = +m[1]; continue; }
+    if (SECTIONS.test(l)) { sec = l; continue; }
+    if (sec === 'Spreads') {
+      if ((m = /^([A-Za-z]+):(\d+)\/(\d+)\/(\d+)\/(\d+)\/(\d+)\/(\d+)\s+([\d.]+)%$/.exec(l))) cur.spreads.push({ nature: m[1], evs: { hp: +m[2], atk: +m[3], def: +m[4], spa: +m[5], spd: +m[6], spe: +m[7] }, pct: +m[8] });
+    } else if (sec === 'Items' || sec === 'Abilities' || sec === 'Moves') {
+      if ((m = /^(.+?)\s+([\d.]+)%$/.exec(l)) && m[1] !== 'Other') cur[sec.toLowerCase()].push({ name: m[1], pct: +m[2] });
     }
   }
   return out;
 }
-/* the newest Reg M-C moveset file for this format (bo3 preferred), highest cutoff; null if none exists. */
-function findObserved(dir) {
+/* the spreads only, { speciesId: [{nature, evs, pct}] } (the 1.35.0 shape every caller reads) */
+function parseMoveset(text) {
+  const F = parseMovesetFull(text), out = {};
+  for (const [id, e] of Object.entries(F)) out[id] = e.spreads;
+  return out;
+}
+/* THE CHAIN (2026-10-01, abra/regmc 1.72.0). The newest month holding any Reg M-C moveset file, in the order a set asks:
+ * the bo3 (open sheet) file at each cutoff, highest first, then the bo1 file the same way. Reg M-B files never match. */
+function findObservedChain(dir) {
   dir = dir || path.join(ROOT, 'data', 'smogon-stats');
-  if (!fs.existsSync(dir)) return null;
+  if (!fs.existsSync(dir)) return [];
+  const fmts = [X.FORMAT, X.SINGLES_FORMAT].filter(Boolean);
   const months = fs.readdirSync(dir).filter(m => /^\d{4}-\d{2}$/.test(m)).sort().reverse();
   for (const m of months) {
     const md = path.join(dir, m, 'moveset');
     if (!fs.existsSync(md)) continue;
-    const files = fs.readdirSync(md).map(f => ({ f, m: new RegExp('^' + X.FORMAT + '-(\\d+)\\.txt$').exec(f) })).filter(x => x.m)
-      .sort((a, b) => +b.m[1] - +a.m[1]);
-    if (files.length) return path.join(md, files[0].f);
+    const have = fs.readdirSync(md);
+    const chain = [];
+    for (const fmt of fmts) {
+      const re = new RegExp('^' + fmt + '-(\\d+)\\.txt$');
+      for (const x of have.map(f => ({ f, m: re.exec(f) })).filter(x => x.m).sort((a, b) => +b.m[1] - +a.m[1]))
+        chain.push({ file: path.join(md, x.f), month: m, format: fmt, cutoff: +x.m[1] });
+    }
+    if (chain.length) return chain;
   }
-  return null;
+  return [];
+}
+/* the newest Reg M-C moveset file for this format (bo3 preferred), highest cutoff; null if none exists. */
+function findObserved(dir) {
+  const c = findObservedChain(dir).filter(x => x.format === X.FORMAT);
+  return c.length ? c[0].file : null;
+}
+const relRoot = f => path.relative(ROOT, f).split(path.sep).join('/');
+function level(f, meta) {
+  const buf = fs.readFileSync(f);
+  const full = parseMovesetFull(buf.toString('utf8'));
+  const bySpecies = {}; for (const [id, e] of Object.entries(full)) bySpecies[id] = e.spreads;
+  return Object.assign({ file: relRoot(f), sha256: crypto.createHash('sha256').update(buf).digest('hex'), bySpecies, full }, meta || {});
 }
 let _obs;
+/* loadObserved()      the whole chain (findObservedChain), cached: { file, sha256 (the first level), files, chain, bySpecies }
+ * loadObserved(file)  that one file as a one-level chain (DUSK's fold-in, a test) */
 function loadObserved(file) {
   if (file === undefined && _obs !== undefined) return _obs;
-  const f = file === undefined ? findObserved() : file;
-  const v = f ? { file: path.relative(ROOT, f).split(path.sep).join('/'), sha256: crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex'), bySpecies: parseMoveset(fs.readFileSync(f, 'utf8')) } : null;
-  if (file === undefined) _obs = v;
+  let v = null;
+  if (file === undefined) {
+    const chain = findObservedChain().map(c => level(c.file, { month: c.month, format: c.format, cutoff: c.cutoff }));
+    if (chain.length) v = { file: chain[0].file, sha256: chain[0].sha256, files: chain.map(c => ({ file: c.file, sha256: c.sha256, format: c.format, cutoff: c.cutoff })), chain, bySpecies: chain[0].bySpecies };
+    _obs = v;
+  } else if (file) {
+    const L = level(file);
+    v = { file: L.file, sha256: L.sha256, files: [{ file: L.file, sha256: L.sha256 }], chain: [L], bySpecies: L.bySpecies };
+  }
   return v;
 }
-/* the observed spread for a sheet row, or null: the highest-share listed spread for its species with the sheet nature,
- * refused if it breaks the format's total or cap. */
+/* ENOUGH USAGE, pre-registered 2026-10-01 before any coverage was read: a listed spread is taken from a level only if
+ * its WEIGHTED count there — Raw count x Avg. weight x share — is at least OBS_MIN_WEIGHT (the file's own percentages are
+ * over that weighted count, so this is how many rating-weighted team appearances carried the spread). A level whose
+ * block gives no Raw count / Avg. weight (a synthetic fixture) is not gated. */
+const OBS_MIN_WEIGHT = 25;
+const OBSERVED_RULE_TEXT = 'solver/rotom/spreads.js observed hook (abra/regmc 1.72.0): the newest month\'s Reg M-C Smogon moveset files, asked in order bo3 (' + X.FORMAT + ') at cutoff 1760, 1630, 1500, 0, then bo1 (' + X.SINGLES_FORMAT + ') the same way; at each, the block of the set\'s BATTLE forme (species + its own mega stone -> the mega forme), the highest-share listed spread with the sheet\'s nature, taken if its weighted count (Raw count x Avg. weight x share) is >= ' + OBS_MIN_WEIGHT + ' and it is within the format\'s total and cap (a Choice Scarf set: only a spread with Speed at the cap; a Trick Room set: only Speed 0); else the next level; else derived. Smogon publishes spreads and items as separate marginals, so beyond the mega stone (the forme) and Choice Scarf (the Speed constraint) the item cannot key the spread.';
+/* the observed spread for a sheet row, or null. */
 function observedSpread(row, obs) {
   if (!obs) return null;
-  const list = obs.bySpecies[X.D.species.get(row.species).id] || [];
+  const id = X.D.species.get(forme(row).species).id;
   const nat = X.D.natures.get(row.nature).name;
-  const hit = list.filter(x => X.D.natures.get(x.nature).name === nat).sort((a, b) => b.pct - a.pct)[0];
-  if (!hit) return null;
-  const tot = STATS.reduce((a, s) => a + hit.evs[s], 0);
-  if (tot > SP_TOTAL || STATS.some(s => hit.evs[s] > SP_CAP)) return null;
-  return { evs: Object.assign({}, hit.evs), pct: hit.pct };
+  const levels = obs.chain || [{ file: obs.file, bySpecies: obs.bySpecies }];
+  /* THE ITEM, where the data can carry it. Smogon's spreads are per forme and do not say which item they ran with, so a
+   * Choice Scarf set would otherwise take the modal spread of the species' other items (measured 2026-10-01: Choice
+   * Scarf Gholdengo, Modest, was handed a 10 Speed SP spread). A set holding Choice Scarf takes only a listed spread with
+   * Speed at the cap; a Trick Room set (no speed-up on the sheet) only one with Speed 0. Decided before the rotations were
+   * re-spread. Deliberate break: env SPREADS_BREAK=itemblind turns it off (test-rotom-spreads HOOK must go red). */
+  const r = role(row), scarf = toID(row.item) === 'choicescarf' && r.role === 'fast';
+  const fits = x => SPREADS_BREAK === 'itemblind' ? true : scarf ? x.evs.spe === SP_CAP : r.role === 'trickroom' ? x.evs.spe === 0 : true;
+  for (let k = 0; k < levels.length; k++) {
+    const L = levels[k];
+    const list = (L.bySpecies && L.bySpecies[id]) || [];
+    const hit = list.filter(x => X.D.natures.get(x.nature).name === nat && fits(x)).sort((a, b) => b.pct - a.pct)[0];
+    if (!hit) continue;
+    const tot = STATS.reduce((a, s) => a + hit.evs[s], 0);
+    if (tot > SP_TOTAL || STATS.some(s => hit.evs[s] > SP_CAP)) continue;
+    const e = L.full && L.full[id];
+    const w = e && e.raw != null && e.avg_weight != null ? e.raw * e.avg_weight * hit.pct / 100 : null;
+    if (w != null && w < OBS_MIN_WEIGHT) continue;
+    return { evs: Object.assign({}, hit.evs), pct: hit.pct, file: L.file, level: k, format: L.format || null, cutoff: L.cutoff == null ? null : L.cutoff, weight: w == null ? null : +w.toFixed(1), forme: id };
+  }
+  return null;
 }
 
 /* ---------------- 0. the TOURNAMENT hook (2026-10-01) ---------------- */
@@ -401,11 +465,11 @@ class Deriver {
     const tz = tournamentSpread(row, this.tour);
     if (tz) { this.counters.tournament++; return { evs: tz.evs, source: 'observed:tournament:' + this.tour.dir + ' ' + tz.team_id + (tz.n > 1 ? ' (best-placed of ' + tz.n + ')' : ''), role: role(row).role }; }
     const o = observedSpread(row, this.obs);
-    if (o) { this.counters.observed++; return { evs: o.evs, source: 'observed:' + this.obs.file + ' (' + o.pct + '%)', role: role(row).role }; }
+    if (o) { this.counters.observed++; return { evs: o.evs, source: 'observed:' + o.file + ' (' + o.pct + '%' + (o.weight != null ? ', weight ' + o.weight : '') + ')', role: role(row).role }; }
     return this.derive(row);
   }
   provenance() {
-    return { rule: RULE_TEXT, observed: this.obs ? { file: this.obs.file, sha256: this.obs.sha256 } : 'none: no Reg M-C Smogon moveset file for ' + X.FORMAT + ' under data/smogon-stats/ (the September 2026 files are due about 2026-10-04)',
+    return { rule: RULE_TEXT, observed: this.obs ? { file: this.obs.file, sha256: this.obs.sha256, rule: OBSERVED_RULE_TEXT, min_weight: OBS_MIN_WEIGHT, files: this.obs.files || [{ file: this.obs.file, sha256: this.obs.sha256 }] } : 'none: no Reg M-C Smogon moveset file for ' + X.FORMAT + ' under data/smogon-stats/',
              population: { teams: this.pop.teams, slots: this.pop.slots.length, unique_sets: this.uniq.length },
              speed_equilibrium: this.eq, median_quantile: MEDIAN, top_tier_quantile: TOP_TIER, counters: this.counters,
              tournament: this.tour ? { rule: TOURNAMENT_RULE_TEXT, dir: this.tour.dir, events: this.tour.events, teams: this.tour.teams, teams_with_spreads: this.tour.teams_with_spreads,
@@ -425,4 +489,4 @@ function recorded(rot) {
 /* a whole team: rows -> [{species, ...set, evs, ...why}] (the set is recorded so the spread can be matched to it) */
 function teamSpreads(D, rows) { return rows.map(r => Object.assign({ species: r.species, item: r.item, ability: r.ability, nature: r.nature, moves: r.moves.slice() }, D.spreadFor(r))); }
 
-module.exports = { Deriver, population, teamSpreads, recorded, setKey, role, attackStat, forme, parseMoveset, findObserved, loadObserved, observedSpread, loadTournament, tournamentSpread, tourKey, TOURNAMENT_RULE_TEXT, evStr, RULE_TEXT, SP_TOTAL, SP_CAP, MEDIAN, TOP_TIER };
+module.exports = { Deriver, population, teamSpreads, recorded, setKey, role, attackStat, forme, parseMoveset, parseMovesetFull, findObserved, findObservedChain, loadObserved, observedSpread, OBS_MIN_WEIGHT, OBSERVED_RULE_TEXT, loadTournament, tournamentSpread, tourKey, TOURNAMENT_RULE_TEXT, evStr, RULE_TEXT, SP_TOTAL, SP_CAP, MEDIAN, TOP_TIER };

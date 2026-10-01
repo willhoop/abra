@@ -31,6 +31,12 @@ const ROOT = path.join(__dirname, '..', '..', '..');
 const ENGINE = require('../../arena/engine.js').load(flag('--release'));
 const SPR = require('../../rotom/spreads.js');
 const S2 = require('./spreads.js');
+/* THE SPREAD RULE IS PINNED (abra/regmc 1.73.0). CHOMP v2's table is the DERIVED rule (solver/rotom/spreads.js RULE_TEXT)
+ * and nothing else: the observed hooks (the Smogon moveset chain, folded in at 1.72.0, and the tournament hook) are OFF
+ * here, so a rebuild cannot silently move the table when a month of Smogon stats or a tournament paste lands. A table
+ * built on observed spreads is a NEW CHOMP v2 version, chosen on purpose. Every Deriver this builder makes takes HOOKS. */
+const HOOKS = { observed: null, tournament: null };
+const HOOKS_NOTE = 'pinned off (abra/regmc 1.73.0): the derived rule only; no Smogon chain, no tournament hook';
 
 const OUT = path.join(ROOT, 'solver', 'out', 'chomp', 'v2');
 fs.mkdirSync(OUT, { recursive: true });
@@ -86,7 +92,7 @@ if (flag('--worker') != null) {
   const K = +flag('--worker'), N = +flag('--workers');
   const plan = JSON.parse(fs.readFileSync(planFile, 'utf8'));
   const { pop } = savedPopulation();
-  const MD = lean(() => S2.make(ENGINE.API, pop));
+  const MD = lean(() => S2.make(ENGINE.API, pop, HOOKS));
   const mine = plan.sets.filter(r => (crypto.createHash('sha256').update(MD.defKey(r)).digest().readUInt32BE(0) % N) === K);
   console.log('worker ' + K + '/' + N + ': ' + mine.length + ' of ' + plan.sets.length + ' sets; speed benchmark ' + MD.eq.median_speed);
   const spreads = {};
@@ -115,7 +121,7 @@ if (flag('--merge') != null) {
   const { P, pop } = savedPopulation();
   let agreement = null;
   if (+flag('--agree', 0) > 0) {
-    const MD = S2.make(ENGINE.API, pop), SD = new SPR.Deriver(pop);
+    const MD = S2.make(ENGINE.API, pop, HOOKS), SD = new SPR.Deriver(pop, HOOKS);
     const pick = plan.agree.slice(0, +flag('--agree'));
     agreement = Object.assign({ showdown_speed_benchmark: SD.eq.median_speed, medicham_speed_benchmark: MD.eq.median_speed }, S2.agreement(SD, MD, pick));
     /* and the table itself against the Showdown oracle on the same sets */
@@ -123,7 +129,7 @@ if (flag('--merge') != null) {
     console.log('agreement: ' + JSON.stringify({ n: agreement.n, identical: agreement.identical, speed_identical: agreement.speed_identical, table_vs_showdown_identical: agreement.table_vs_showdown_identical }));
   }
   const provenance = { release: ENGINE.id, stamp: ENGINE.stamp, rule: SPR.RULE_TEXT, oracles: 'MEDICHAM (solver/chomp/v2/spreads.js MediDeriver)',
-    observed: SPR.loadObserved() ? SPR.loadObserved().file : 'none: no Reg M-C Smogon moveset file for this format under data/smogon-stats/',
+    observed: HOOKS_NOTE,
     store: P.store, store_sha256: P.store_sha256, floor: P.floor, population: { teams: P.teams, slots: P.slots.length },
     population_file: 'solver/chomp/v2/model/population.json', population_sha256: sha(fs.readFileSync(popFile)),
     human: plan.human, corpus: plan.corpus, sets: n, roles, parts, agreement };
@@ -135,7 +141,7 @@ if (flag('--merge') != null) {
 /* ---- one process ---- */
 if (!store) throw new Error('build_spreads: --team-store is required');
 const P0 = S2.populationOf(path.join(store, 'games.bo3.jsonl'));
-const MD = S2.make(ENGINE.API, P0.pop);
+const MD = S2.make(ENGINE.API, P0.pop, HOOKS);
 console.log('population: floor ' + P0.floor + ', ' + JSON.stringify(MD.provenance().population) + ', speed benchmark ' + MD.eq.median_speed + ' (' + (Date.now() - t0) + ' ms)');
 const PAIRS = require('../../mew/pairs.js');
 const P = PAIRS.load({ teamStore: store });
@@ -151,7 +157,7 @@ for (const [key, r] of sets) {
 }
 let agreement = null;
 if (+flag('--agree', 0) > 0) {
-  const SD = new SPR.Deriver(P0.pop);
+  const SD = new SPR.Deriver(P0.pop, HOOKS);
   agreement = Object.assign({ showdown_speed_benchmark: SD.eq.median_speed, medicham_speed_benchmark: MD.eq.median_speed }, S2.agreement(SD, MD, testPick(P, +flag('--agree'))));
   console.log('agreement: ' + JSON.stringify({ n: agreement.n, identical: agreement.identical, speed_identical: agreement.speed_identical }));
 }

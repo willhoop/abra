@@ -3,9 +3,9 @@
  *
  *   cmd.exe /c tools\lownode.cmd solver\machamp\sprt.js --release <id> --x <spec.json> --y <spec.json>
  *        --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 2000 --seed S --workers 3
- *        --team-store <dir> --out <result.json> [--info honest|omniscient] [--spreads role-v1|xatu-random|flat]
+ *        --team-store <dir> --out <result.json> [--info honest|omniscient] [--spreads observed-v1|role-v1|xatu-random|flat]
  *
- * SPREADS (abra/regmc 1.49.0). --spreads (default role-v1: the ladder's rule per set, solver/arena/spread_source.js) is
+ * SPREADS (abra/regmc 1.49.0). --spreads (default observed-v1 since 1.73.0, role-v1 1.49.0-1.72.0: the ladder's spreads per set, solver/arena/spread_source.js) is
  * the TRUE bodies' Stat Points on both sides; it is in `preregistered.spreads`, on every match line and in `spreads`.
  * Every SPRT before 1.49.0 played xatu-random (honest) or flat (omniscient) and is not comparable with a role-v1 one.
  *
@@ -54,8 +54,9 @@ function spreadsBlock(o, ENGINE, counted) {
   const counters = {}; for (const c of Object.values(last)) for (const [k, v] of Object.entries(c)) counters[k] = (counters[k] || 0) + v;
   const warnings = [];
   if (modes.length !== 1 || modes[0] !== o.spreads) warnings.push('SPREADS: asked for ' + o.spreads + ', the counted lines say ' + modes.join(', '));
-  if (o.spreads === 'role-v1' && counters.flat_fallback) warnings.push('SPREADS: ' + counters.flat_fallback + ' role-v1 rows played the FLAT line');
-  if (o.spreads === 'role-v1' && counters.derived_at_play) warnings.push('SPREADS: ' + counters.derived_at_play + ' sets derived at play time');
+  if (SS.TABLES[o.spreads] && counters.flat_fallback) warnings.push('SPREADS: ' + counters.flat_fallback + ' ' + o.spreads + ' rows played the FLAT line');
+  if (SS.TABLES[o.spreads] && counters.derived_at_play) warnings.push('SPREADS: ' + counters.derived_at_play + ' sets derived at play time');
+  if (SS.TABLES[o.spreads] && counters.observed_at_play) warnings.push('SPREADS: ' + counters.observed_at_play + ' sets took the pinned Smogon chain at play time');
   return { spreads: o.spreads, lines_say: modes, table: st.table || null, what: st.what, counters_last_snapshot: counters, warnings };
 }
 const sOf = elo => 1 / (1 + Math.pow(10, -elo / 400));

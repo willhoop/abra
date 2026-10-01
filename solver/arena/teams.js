@@ -74,8 +74,8 @@ function buildBody(M, p, opts) {
 }
 
 /* THE SPREAD (2026-09-30, abra/regmc 1.49.0; solver/arena/spread_source.js). A team is built at the arena's spread
- * mode, and the DEFAULT is `role-v1` — the ladder's rule, per set — no longer the table's flat line:
- *   opts.spreads  a source from spread_source.open(), or a mode name ('role-v1' | 'xatu-random' | 'flat'); absent = the
+ * mode, and the DEFAULT is `observed-v1` since abra/regmc 1.73.0 (`role-v1` 1.49.0-1.72.0) — the ladder's spreads, per set:
+ *   opts.spreads  a source from spread_source.open(), or a mode name ('observed-v1' | 'role-v1' | 'xatu-random' | 'flat'); absent = the
  *                 process default (spread_source.DEFAULT, or env ARENA_SPREADS)
  *   opts.seed     the battle seed (xatu-random draws per team pair from it; the other modes ignore it)
  *   opts.spreadsFor  the { p1, p2 } spreads already drawn for this game (so both sides share one draw)
