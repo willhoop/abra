@@ -2,16 +2,91 @@
 
 > **FROZEN 2026-10-01 — HISTORY, NOT A LOG ANYONE WRITES TO.** This was the third retelling of solver
 > work, beside `CHANGELOG-REGMC.md` and `docs/RUNNING-NOTES.md`; measured on 2026-10-01, 70% of the
-> figures in it already stood in the changelog and 73% in the notes page. From abra/regmc 1.51.0 on,
+> figures in it already stood in the changelog and 73% in the notes page. From abra/regmc 1.65.0 on,
 > a solver change is recorded ONCE, as its `CHANGELOG-REGMC.md` entry with a `### Record` section;
 > the working detail lives in `docs/SOLVER.md` and the full account in `docs/_reports/`. The entries
-> below are kept exactly as written and end at abra/regmc 1.50.0.
+> below are kept exactly as written and end with the lines written up to abra/regmc 1.64.0.
 
 Running log of the new solver stack (everything except MEDICHAM, rebuilt from scratch for Reg M-C,
 open team sheets). Newest first. Each entry: what landed, the verdict, where the detail lives.
 Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ---
+
+## 2026-10-01
+
+### Lost the last answer: real, tied to losing, not a separate cause (abra/regmc 1.58.0)
+- The live answer map: P(i beats j) from MEDICHAM one-on-ones on the live position, at 1,131 positions in 158 ladder
+  games.
+- A contested last-answer faint is in 31 of 90 losses and 9 of 68 wins. At the same search value it costs no more than
+  any other faint: −0.092 [−0.225, +0.059].
+- It is the turning point in 6 of the 26 post-mortem losses.
+- The map predicts the result (we lost 0.829 of games once a threat had fewer than 0.5 answers left). It adds nothing
+  over the root value, so it is not a live value-net input. `docs/_reports/2026-10-01-lost-last-answer.md`.
+### Speed control, mega and switches: tracked on every game; the bot beside humans (abra/regmc 1.59.0)
+- New standing counters `solver/arena/tactics.js` (one log reader, one engine reader; the speed-control set derived
+  from the format, 34 moves). On every ROTOM game record (`tactics`), printed by `report.js ladder <dir>` per arm and
+  won/lost, and on every arena match row (`tactics.x/.y`). `solver/tests/test-tactics.js` GREEN 28/28, RED under
+  `TACTICS_BREAK=blind`.
+- 126 search-arm games vs 27,143 human games: like with like the bot matches 1400+ humans on all three (speed 0.88,
+  switches 1.06, mega 0.98). Costs: the foe's speed control (−0.22 win; humans −0.03) and switch-ins KO'd that turn
+  (15.4% vs 10.0%). Speed control not used when the foe was faster: 50 of 109 absent from the table (coverage), 59
+  present but ranked lower. `docs/_reports/2026-10-01-speed-mega-switch.md`.
+### v2 at 14 s stops at its screen; gen5's role-v1 baselines (abra/regmc 1.60.0)
+- **v2 leaf vs gen5's net at 14 s: stopped at the screen.** 0.495, and clock ratio 1.104 makes it VOID. v2's slower
+  leaf takes about 10% more adaptive clock and still does not win. No SPRT.
+- **gen5 vs the human clone under role-v1: H1 at both clocks.** 1 s 0.711 (90 games); 5 s 0.667 (102 games).
+- **gen5 vs gen0-r2: H0, DEGRADED.** 0.497 over 1,098 games. 24% prior fallbacks from machine load. Re-run owed, with
+  a capability bar.
+- `docs/_reports/2026-10-01-v2-14s-and-role-v1-baselines.md`.
+### A tournament store and a tournament rotation (abra/regmc 1.61.0)
+- Store: `data/tournaments/regmc/`. It holds 537 Masters teams from Baltimore, Frankfurt, Brisbane and VR's two
+  September Challenges, and 2 Replica Teams pastes. The raw paste is kept with each team. 537 of 539 validate.
+  Discovery is by the regulation tag. A weekly workflow is on this branch, not on main.
+- Rotation: `ladder-rotation-tour.json`, arm `gen5-chomp-tour.json`. Five real top-cut teams, each with its source.
+  Not launched.
+- Spreads: open team sheets publish none (0 of 537). On the 12 published Replica sets, our derived spread matches on 0
+  and Speed matches on 1. `docs/_reports/2026-10-01-tournament-rotation.md`.
+### PORYGON2 v3 steps A–C: design, frozen harness, distilled student (abra/regmc 1.62.0)
+- `solver/porygon2/v3/DESIGN.md`. Six premises of the brief are corrected at their sources: MuZero, KataGo's blending
+  and playout caps, the piKL anchor, "λ 0.03 harmless", and quiescence "fixes".
+- Frozen set: 2,778 positions (ladder, bo1 rated 1500 or more, bo3 rated 1300 or more), 1,300 labelled by MILTANK's root
+  with cells played to the end by gen5's prior.
+- Ranking: gen5, v1, v2 and the student are indistinguishable; every CI spans 0. ECE: student 0.052, v2 0.058, gen5
+  0.065, v1 0.072.
+- Cost against gen5: student 0.91×, v2 2.62×.
+- gen5's raw net is +0.183 too high in [0.5, 0.9) on our ladder positions and calibrated on strong human positions.
+- The student (v2 distilled, 39,892 parameters) fails its pre-registered bar: the ranking CI spans 0, and the ECE CI
+  upper bound is +0.006 against +0.005. No screen or SPRT is pre-registered.
+- Answer map: an offline auxiliary target only, by the coordinator's instruction. `docs/_reports/2026-10-01-porygon2-v3.md`.
+
+### The search's uncovered blind spots; four world fields fixed (abra/regmc 1.52.0)
+- Opponent coverage is 57.7% with targets (636 ladder decisions). DODUO ranks the actual joint top-4 in 57.1% and
+  top-8 in 71.1%. 30% of our row slots hold a single move.
+- Sucker Punch failed 17 of 36. The engine is right on all 17. In 9 our rows offered nothing else; in 8 the leaf tied a
+  wasted Sucker Punch with the alternatives. DODUO overrates attacks mildly and halves switches.
+- World fixes: identity (formes and nicknames, 119 of 189 games), Unburden (178 of 668 search worlds), Flash Fire and
+  the added type. `solver/tests/test-rotom-world-fields.js`. `docs/_reports/2026-10-01-search-blind-spots.md`.
+### The plan revised to Will's 2026-10-01 decisions (abra/regmc 1.53.0; `solver/PLAN.md` 0.3.0)
+- One policy+value net (PORYGON2 v3) by self-play, searched several turns deep on MEDICHAM. It subsumes the roles of
+  MAG, DODUO, GARY and XATU's action likelihood; MEDICHAM, ROTOM, SLOWKING's solve, DUSK, CHOMP and DITTO stay. The
+  pipeline plays until the net wins its SPRT.
+- HYPNO best-responds to the population by rating band, with in-series updates; equilibrium where the gate fails. The
+  ε 0.5 default is superseded (dated update in the HYPNO row and in ADR-003).
+- The ladder is the scoreboard; up to 20 series a day under standing approval. Milestones N0–N9 (§3.0) replace M0–M8,
+  which stay as history. N3 is a MEDICHAM speed pass (ENGINE), placed before any cloud spend.
+- Compute (§6a): ~45 CPU worker-hours and ~0.25 GPU-hours a generation [EST]; ~15 h a generation on this machine.
+  Likely first net (30 generations): $69 on AWS c7a, $75 Hetzner, $13 on one Vast.ai listing, plus $3–10 of GPU, at
+  prices fetched 2026-10-01. No code, no games, no spend. `docs/_reports/2026-10-01-plan-revision.md`.
+### DUSK designed, not built: on-the-fly endgame solver, not tables (abra/regmc 1.54.0)
+- Endgames (both sides ≤ 2 alive) are reached in 44.0% of all bo3 games (62.9% of clean, fully revealed ones) and 46.6%
+  of ours; about 2 decisions remain. Material: 2v2 59%, 2v1 38%, 1v1 3%; 2v1 is won by the side ahead 88.8%.
+- Tables cannot pay: a key that fixes the value repeats ≤ 1.0% of the time chronologically (17% for the bare species
+  pair), and a median 7,755 spread worlds are still open at our E2 decisions.
+- Cost to us is small: 35 of 108 losses went through an E2 entered even, but against humans from the same material and HP our
+  conversion is −3.7 wins over 88 [−10.8, +3.6]. The lever is the clock (420 s bank at entry) and the 4×4 menu.
+- Design: backward induction with an LP matrix game per node, chance.js enumeration, double oracle, a certified band.
+  `solver/dusk/DESIGN.md`, `docs/_reports/2026-10-01-dusk-design.md`. Smogon fold-in and the chomptop run are OWED.
 
 ## 2026-09-30
 

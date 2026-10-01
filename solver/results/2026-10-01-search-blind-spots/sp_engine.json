@@ -1,0 +1,678 @@
+{
+ "generated_by": "solver/results/2026-10-01-search-blind-spots/sp_engine_check.js",
+ "release": "eaa5becc54eb",
+ "summary": {
+  "staged": 29,
+  "not_staged": 7,
+  "server_failed_engine_hurt_any_seed": [],
+  "server_failed_engine_clean": 17,
+  "server_landed_engine_hurt": 12
+ },
+ "rows": [
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690111302",
+   "turn": 3,
+   "failed_on_server": false,
+   "target_action": "rockslide",
+   "target_class": "attack",
+   "control": [
+    "swordsdance",
+    "protect"
+   ],
+   "staged": true,
+   "ours": [
+    "suckerpunch 2",
+    "protect"
+   ],
+   "theirs": [
+    "ragepowder",
+    "rockslide"
+   ],
+   "seeds": 6,
+   "target_hurt": 1
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690113485",
+   "turn": 3,
+   "failed_on_server": false,
+   "target_action": "none",
+   "target_class": "unknown",
+   "staged": false,
+   "why": "the target action is not in the rebuilt menu (none)"
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690113485",
+   "turn": 6,
+   "failed_on_server": false,
+   "target_action": "rockslide",
+   "target_class": "attack",
+   "control": [
+    "protect",
+    "swordsdance"
+   ],
+   "staged": true,
+   "ours": [
+    "protect",
+    "suckerpunch 2"
+   ],
+   "theirs": [
+    "moonblast 1",
+    "rockslide"
+   ],
+   "seeds": 6,
+   "target_hurt": 6
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690115224",
+   "turn": 3,
+   "failed_on_server": true,
+   "target_action": "switch",
+   "target_class": "switch",
+   "control": [
+    "swordsdance",
+    "protect"
+   ],
+   "staged": true,
+   "ours": [
+    "suckerpunch 2",
+    "protect"
+   ],
+   "theirs": [
+    "ironhead 1",
+    "switch"
+   ],
+   "seeds": 6,
+   "target_hurt": 0
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690115224",
+   "turn": 5,
+   "failed_on_server": false,
+   "target_action": "overheat",
+   "target_class": "attack",
+   "control": [
+    "swordsdance",
+    "flareblitz"
+   ],
+   "staged": true,
+   "ours": [
+    "suckerpunch 2",
+    "flareblitz 1"
+   ],
+   "theirs": [
+    "ironhead 1",
+    "overheat 1"
+   ],
+   "seeds": 6,
+   "target_hurt": 6
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690120749",
+   "turn": 2,
+   "failed_on_server": false,
+   "target_action": "discharge",
+   "target_class": "attack",
+   "control": [
+    "protect",
+    "swordsdance"
+   ],
+   "staged": true,
+   "ours": [
+    "protect",
+    "suckerpunch 2"
+   ],
+   "theirs": [
+    "dragonpulse 1",
+    "discharge"
+   ],
+   "seeds": 6,
+   "target_hurt": 6
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690133981",
+   "turn": 2,
+   "failed_on_server": false,
+   "target_action": "none",
+   "target_class": "unknown",
+   "staged": false,
+   "why": "the target action is not in the rebuilt menu (none)"
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690133981",
+   "turn": 3,
+   "failed_on_server": true,
+   "target_action": "helpinghand",
+   "target_class": "status",
+   "control": null,
+   "staged": true,
+   "ours": [
+    "protect",
+    "suckerpunch 1"
+   ],
+   "theirs": [
+    "helpinghand -2",
+    "scald 1"
+   ],
+   "seeds": 6,
+   "target_hurt": 0
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690133981",
+   "turn": 4,
+   "failed_on_server": true,
+   "target_action": "helpinghand",
+   "target_class": "status",
+   "control": null,
+   "staged": true,
+   "ours": [
+    "protect",
+    "suckerpunch 1"
+   ],
+   "theirs": [
+    "helpinghand -2",
+    "scald 1"
+   ],
+   "seeds": 6,
+   "target_hurt": 0
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690136906",
+   "turn": 2,
+   "failed_on_server": false,
+   "target_action": "none",
+   "target_class": "unknown",
+   "staged": false,
+   "why": "the target action is not in the rebuilt menu (none)"
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690137512-hnu56nou8rto5eo17quxe9bve6ih34ypw",
+   "turn": 5,
+   "failed_on_server": true,
+   "target_action": "extremespeed",
+   "target_class": "attack",
+   "control": null,
+   "staged": true,
+   "ours": [
+    "suckerpunch 1",
+    "protect"
+   ],
+   "theirs": [
+    "extremespeed 1",
+    "zapcannon 1"
+   ],
+   "seeds": 6,
+   "target_hurt": 0
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690137512-hnu56nou8rto5eo17quxe9bve6ih34ypw",
+   "turn": 6,
+   "failed_on_server": true,
+   "target_action": "protect",
+   "target_class": "protect",
+   "control": null,
+   "staged": true,
+   "ours": [
+    "suckerpunch 2",
+    "protect"
+   ],
+   "theirs": [
+    "flareblitz 1",
+    "protect"
+   ],
+   "seeds": 6,
+   "target_hurt": 0
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690138516-ol05sba9c38m92ic0h5wt1810eomapepw",
+   "turn": 5,
+   "failed_on_server": true,
+   "target_action": "protect",
+   "target_class": "protect",
+   "control": null,
+   "staged": true,
+   "ours": [
+    "protect",
+    "suckerpunch 1"
+   ],
+   "theirs": [
+    "protect",
+    "zapcannon 1"
+   ],
+   "seeds": 6,
+   "target_hurt": 0
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690138516-ol05sba9c38m92ic0h5wt1810eomapepw",
+   "turn": 6,
+   "failed_on_server": false,
+   "target_action": "earthpower",
+   "target_class": "attack",
+   "control": null,
+   "staged": true,
+   "ours": [
+    "protect",
+    "suckerpunch 1"
+   ],
+   "theirs": [
+    "earthpower 1",
+    "zapcannon 1"
+   ],
+   "seeds": 6,
+   "target_hurt": 6
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690146981-p1kcd17hr43vi1q4fp9uct8q36yqbygpw",
+   "turn": 2,
+   "failed_on_server": false,
+   "target_action": "heatwave",
+   "target_class": "attack",
+   "control": null,
+   "staged": true,
+   "ours": [
+    "protect",
+    "suckerpunch 1"
+   ],
+   "theirs": [
+    "heatwave",
+    "clangingscales"
+   ],
+   "seeds": 6,
+   "target_hurt": 6
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690151595",
+   "turn": 2,
+   "failed_on_server": true,
+   "target_action": "switch",
+   "target_class": "switch",
+   "control": [
+    "swordsdance",
+    "protect"
+   ],
+   "staged": true,
+   "ours": [
+    "suckerpunch 2",
+    "protect"
+   ],
+   "theirs": [
+    "heatwave",
+    "switch"
+   ],
+   "seeds": 6,
+   "target_hurt": 0
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690151595",
+   "turn": 5,
+   "failed_on_server": true,
+   "target_action": "protect",
+   "target_class": "protect",
+   "control": [
+    "swordsdance",
+    "flareblitz"
+   ],
+   "staged": true,
+   "ours": [
+    "suckerpunch 2",
+    "flareblitz 1"
+   ],
+   "theirs": [
+    "heatwave",
+    "protect"
+   ],
+   "seeds": 6,
+   "target_hurt": 0
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690153326",
+   "turn": 3,
+   "failed_on_server": false,
+   "target_action": "none",
+   "target_class": "unknown",
+   "staged": false,
+   "why": "the target action is not in the rebuilt menu (none)"
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690153326",
+   "turn": 6,
+   "failed_on_server": true,
+   "target_action": "ragepowder",
+   "target_class": "status",
+   "control": [
+    "flareblitz",
+    "swordsdance"
+   ],
+   "staged": true,
+   "ours": [
+    "flareblitz 2",
+    "suckerpunch 1"
+   ],
+   "theirs": [
+    "ragepowder",
+    "heatwave"
+   ],
+   "seeds": 6,
+   "target_hurt": 0
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690156746-fo3175ocrtqccorctoq86eyujesnwe8pw",
+   "turn": 9,
+   "failed_on_server": false,
+   "target_action": "aurasphere",
+   "target_class": "attack",
+   "control": null,
+   "staged": true,
+   "ours": [
+    "protect",
+    "suckerpunch 1"
+   ],
+   "theirs": [
+    "aurasphere 1",
+    "flareblitz 1"
+   ],
+   "seeds": 6,
+   "target_hurt": 6
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690157657-j0lwxbefp3tsdfy40broshgl3r5le9ypw",
+   "turn": 2,
+   "failed_on_server": true,
+   "target_action": "protect",
+   "target_class": "protect",
+   "control": null,
+   "staged": true,
+   "ours": [
+    "protect",
+    "suckerpunch 1"
+   ],
+   "theirs": [
+    "protect",
+    "flareblitz 1"
+   ],
+   "seeds": 6,
+   "target_hurt": 0
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690157657-j0lwxbefp3tsdfy40broshgl3r5le9ypw",
+   "turn": 3,
+   "failed_on_server": false,
+   "target_action": "aurasphere",
+   "target_class": "attack",
+   "control": null,
+   "staged": true,
+   "ours": [
+    "protect",
+    "suckerpunch 1"
+   ],
+   "theirs": [
+    "aurasphere 1",
+    "fakeout 1"
+   ],
+   "seeds": 6,
+   "target_hurt": 6
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690160794-p5fwujortfioowp2fe0jngpou8wcgdxpw",
+   "turn": 1,
+   "failed_on_server": false,
+   "target_action": "zapcannon",
+   "target_class": "attack",
+   "control": null,
+   "staged": true,
+   "ours": [
+    "protect",
+    "suckerpunch 2"
+   ],
+   "theirs": [
+    "rockslide",
+    "zapcannon 1"
+   ],
+   "seeds": 6,
+   "target_hurt": 6
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690160794-p5fwujortfioowp2fe0jngpou8wcgdxpw",
+   "turn": 6,
+   "failed_on_server": false,
+   "target_action": "closecombat",
+   "target_class": "attack",
+   "control": null,
+   "staged": true,
+   "ours": [
+    "suckerpunch 2",
+    "protect"
+   ],
+   "theirs": [
+    "flareblitz 1",
+    "closecombat 1"
+   ],
+   "seeds": 6,
+   "target_hurt": 6
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690163131",
+   "turn": 6,
+   "failed_on_server": false,
+   "target_action": "aurasphere",
+   "target_class": "attack",
+   "control": [
+    "protect",
+    "swordsdance"
+   ],
+   "staged": true,
+   "ours": [
+    "protect",
+    "suckerpunch 2"
+   ],
+   "theirs": [
+    "expandingforce 1",
+    "aurasphere 1"
+   ],
+   "seeds": 6,
+   "target_hurt": 6
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690165379",
+   "turn": 4,
+   "failed_on_server": true,
+   "target_action": "skillswap",
+   "target_class": "status",
+   "control": [
+    "flareblitz",
+    "swordsdance"
+   ],
+   "staged": true,
+   "ours": [
+    "flareblitz 2",
+    "suckerpunch 1"
+   ],
+   "theirs": [
+    "skillswap 1",
+    "knockoff 1"
+   ],
+   "seeds": 6,
+   "target_hurt": 0
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2690167362",
+   "turn": 5,
+   "failed_on_server": true,
+   "target_action": "willowisp",
+   "target_class": "status",
+   "control": [
+    "flareblitz",
+    "swordsdance"
+   ],
+   "staged": true,
+   "ours": [
+    "flareblitz 1",
+    "suckerpunch 2"
+   ],
+   "theirs": [
+    "aurasphere 1",
+    "willowisp 1"
+   ],
+   "seeds": 6,
+   "target_hurt": 0
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2688043522-0i4ff6htnd415mx8h4jyt1p9pgji79xpw",
+   "turn": 8,
+   "failed_on_server": false,
+   "target_action": "none",
+   "target_class": "unknown",
+   "staged": false,
+   "why": "the target action is not in the rebuilt menu (none)"
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2688044516-h0bp9ymk9jwnl728ok48sctqqoi35twpw",
+   "turn": 7,
+   "failed_on_server": false,
+   "target_action": "closecombat",
+   "target_class": "attack",
+   "control": [
+    "protect",
+    "swordsdance"
+   ],
+   "staged": true,
+   "ours": [
+    "protect",
+    "suckerpunch 1"
+   ],
+   "theirs": [
+    "closecombat 1",
+    "muddywater"
+   ],
+   "seeds": 6,
+   "target_hurt": 6
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2688066421",
+   "turn": 4,
+   "failed_on_server": false,
+   "target_action": "none",
+   "target_class": "unknown",
+   "staged": false,
+   "why": "the target action is not in the rebuilt menu (none)"
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2688067676",
+   "turn": 5,
+   "failed_on_server": true,
+   "target_action": "dragondance",
+   "target_class": "status",
+   "control": [
+    "flareblitz",
+    "swordsdance"
+   ],
+   "staged": true,
+   "ours": [
+    "flareblitz 1",
+    "suckerpunch 2"
+   ],
+   "theirs": [
+    "poltergeist 1",
+    "dragondance"
+   ],
+   "seeds": 6,
+   "target_hurt": 0
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2688067676",
+   "turn": 7,
+   "failed_on_server": false,
+   "target_action": "none",
+   "target_class": "unknown",
+   "staged": false,
+   "why": "the target action is not in the rebuilt menu (none)"
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2688069174",
+   "turn": 3,
+   "failed_on_server": true,
+   "target_action": "willowisp",
+   "target_class": "status",
+   "control": [
+    "protect",
+    "swordsdance"
+   ],
+   "staged": true,
+   "ours": [
+    "protect",
+    "suckerpunch 2"
+   ],
+   "theirs": [
+    "dragondance",
+    "willowisp 1"
+   ],
+   "seeds": 6,
+   "target_hurt": 0
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2688069174",
+   "turn": 4,
+   "failed_on_server": true,
+   "target_action": "switch",
+   "target_class": "switch",
+   "control": [
+    "protect",
+    "swordsdance"
+   ],
+   "staged": true,
+   "ours": [
+    "protect",
+    "suckerpunch 2"
+   ],
+   "theirs": [
+    "dragondance",
+    "switch"
+   ],
+   "seeds": 6,
+   "target_hurt": 0
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2688069174",
+   "turn": 11,
+   "failed_on_server": true,
+   "target_action": "trickortreat",
+   "target_class": "status",
+   "control": [
+    "swordsdance",
+    "protect"
+   ],
+   "staged": true,
+   "ours": [
+    "suckerpunch 1",
+    "protect"
+   ],
+   "theirs": [
+    "trickortreat 1",
+    "dragondance"
+   ],
+   "seeds": 6,
+   "target_hurt": 0
+  },
+  {
+   "room": "battle-gen9championsvgc2026regmcbo3-2688078494",
+   "turn": 4,
+   "failed_on_server": true,
+   "target_action": "swordsdance",
+   "target_class": "status",
+   "control": [
+    "swordsdance",
+    "protect"
+   ],
+   "staged": true,
+   "ours": [
+    "suckerpunch 1",
+    "protect"
+   ],
+   "theirs": [
+    "swordsdance",
+    "discharge"
+   ],
+   "seeds": 6,
+   "target_hurt": 0
+  }
+ ]
+}

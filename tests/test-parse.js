@@ -185,5 +185,115 @@ chk(PRE.some(e => e.t === 'w' && e.field === 'Sandstorm'), 'PRE-TURN  a lead\'s 
 chk(PRE.filter(e => e.t === 's').length === 4, 'PRE-TURN  all four lead switch-ins are there');
 chk(PRE.some(e => e.t === 'b' && e.s === 'p2a' && e.b.atk === -1), 'PRE-TURN  the Intimidate drop survives');
 
+/* ============================================================================================
+ * abra/regmc 1.52.0 — WHOSE SET A LINE REVEALS. One pinned case per cause that
+ * engine/store_sets_check.js found, measured against solver/porygon2/v2/reveal.js on a 1-in-10
+ * sample of the Reg M-C bo1 store (docs/_reports/2026-10-01-store-set-attribution.md). The line
+ * that carries each cause is copied from a real Reg M-C replay (the report names it); the lines
+ * around it are hand-written in the same protocol shapes. Each case was shown RED with its own fix
+ * reverted and GREEN with it in place (the report lists the break and what went red).
+ * ========================================================================================= */
+const mk = (p1, p2, body) => ['|player|p1|alpha||1500', '|player|p2|beta||1500',
+  ...p1.map(s => `|poke|p1|${s}, L50|`), ...p2.map(s => `|poke|p2|${s}, L50|`),
+  '|teampreview|4', '|start', ...body, '|win|alpha'].join('\n');
+const sw = (slot, nick, sp) => `|switch|${slot}: ${nick}|${sp || nick}, L50|100/100`;
+const S = (log) => extract('t', 1784521471, log);
+const mv = (r, k) => ((r.sets[k] || {}).moves || []);
+
+// CAUSE 1 — `|cant|` names the refused move, and an ability that refused it
+{ const r = S(mk(['Emboar', 'Incineroar', 'Gengar', 'Clefable'], ['Farigiraf', 'Gengar', 'Garchomp', 'Lucario'], [
+    sw('p1a', 'Super', 'Emboar'), sw('p1b', 'Incineroar'), sw('p2a', 'Farigiraf'), sw('p2b', 'Garchomp'), '|turn|1',
+    '|cant|p1a: Super|move: Heal Block|Drain Punch',
+    '|cant|p2a: Farigiraf|ability: Armor Tail|Fake Out|[of] p1b: Incineroar']));
+  chk(mv(r, 'emboar').includes('Drain Punch'), 'CAUSE 1  a move named in |cant| is the mover\'s move');
+  chk(mv(r, 'incineroar').includes('Fake Out') && !mv(r, 'farigiraf').includes('Fake Out'), 'CAUSE 1  a refused move is the [of] USER\'s, not the holder\'s');
+  chk(r.sets.farigiraf.ability === 'Armor Tail', 'CAUSE 1  the ability that refused it is the holder\'s'); }
+
+// CAUSE 2 — a called move (Magic Bounce) and Struggle are not moves of the set
+{ const r = S(mk(['Clefable', 'Gengar', 'Garchomp', 'Lucario'], ['Gengar', 'Incineroar', 'Farigiraf', 'Garchomp'], [
+    sw('p1a', 'Clefable'), sw('p2b', 'Gengar'), '|turn|1',
+    '|move|p2b: Gengar|Disable|p1a: Clefable',
+    '|move|p1a: Clefable|Disable|p2b: Gengar|[from] ability: Magic Bounce',
+    '|move|p1a: Clefable|Moonblast|p2b: Gengar', '|move|p2b: Gengar|Struggle|p1a: Clefable']));
+  chk(!mv(r, 'clefable').includes('Disable') && mv(r, 'clefable').includes('Moonblast'), 'CAUSE 2  a bounced move is not the bouncer\'s');
+  chk(r.sets.clefable.ability === 'Magic Bounce', 'CAUSE 8  a bounce names the bouncer\'s ability');
+  chk(!mv(r, 'gengar').includes('Struggle'), 'CAUSE 2  Struggle is no move of any set'); }
+
+// CAUSE 3 — a transformed body plays its copy's moves
+{ const r = S(mk(['Ditto', 'Farigiraf', 'Garchomp', 'Gengar'], ['Lucario', 'Incineroar', 'Farigiraf', 'Garchomp'], [
+    sw('p1b', 'Ditto'), sw('p2a', 'Lucario'), '|-transform|p1b: Ditto|p2a: Lucario|[from] ability: Imposter', '|turn|1',
+    '|move|p1b: Ditto|Aura Sphere|p2a: Lucario']));
+  chk(!mv(r, 'ditto').includes('Aura Sphere'), 'CAUSE 3  a transformed body\'s move is not its own');
+  chk(r.sets.ditto.ability === 'Imposter', 'CAUSE 8  a transform names Imposter as the Ditto\'s'); }
+
+// CAUSE 4 — an item handed over by Trick is not the item brought
+{ const r = S(mk(['Grimmsnarl', 'Gengar', 'Garchomp', 'Lucario'], ['Garchomp', 'Incineroar', 'Farigiraf', 'Gengar'], [
+    sw('p1b', 'Grimmsnarl'), sw('p2a', 'Garchomp'), '|turn|1',
+    '|move|p1b: Grimmsnarl|Trick|p2a: Garchomp', '|-activate|p1b: Grimmsnarl|move: Trick|[of] p2a: Garchomp',
+    '|-item|p2a: Garchomp|Iron Ball|[from] move: Trick', '|-item|p1b: Grimmsnarl|Choice Scarf|[from] move: Trick',
+    '|-enditem|p1b: Grimmsnarl|Choice Scarf|[from] move: Knock Off|[of] p2a: Garchomp']));
+  chk(r.sets.grimmsnarl.item === null && r.sets.garchomp.item === null, 'CAUSE 4  a Tricked item is credited to neither receiver'); }
+
+// CAUSE 5 — a replaced ability (Trace, Entrainment, Skill Swap) is not the body's own
+{ const r = S(mk(['Gardevoir', 'Meowstic', 'Garchomp', 'Swampert'], ['Incineroar', 'Salamence', 'Araquanid', 'Lucario'], [
+    sw('p2a', 'Incineroar'), sw('p2b', 'Salamence'), sw('p1a', 'Gardevoir'), sw('p1b', 'Meowstic'),
+    '|-ability|p1a: Gardevoir|Intimidate|Trace|[from] ability: Trace|[of] p2a: Incineroar',
+    '|-ability|p1a: Gardevoir|Intimidate|boost', '|turn|1',
+    '|move|p1b: Meowstic|Skill Swap|p2b: Salamence',
+    '|-activate|p1b: Meowstic|Skill Swap|Intimidate|Prankster|[of] p2b: Salamence',
+    '|-ability|p1b: Meowstic|Intimidate|boost',
+    sw('p1b', 'Swampert'), sw('p2b', 'Araquanid'),
+    '|move|p2b: Araquanid|Entrainment|p1b: Swampert',
+    '|-ability|p1b: Swampert|Water Bubble|Swift Swim|[from] move: Entrainment|[of] p2b: Araquanid']));
+  chk(r.sets.gardevoir.ability === 'Trace', 'CAUSE 5  a tracer\'s own ability is Trace, not the copy');
+  chk(r.sets.incineroar.ability === 'Intimidate', 'CAUSE 5  the traced ability is the [of] body\'s');
+  chk(r.sets.meowstic.ability === null, 'CAUSE 5  an ability received by Skill Swap is not the receiver\'s');
+  chk(r.sets.swampert.ability === 'Swift Swim' && r.sets.araquanid.ability === 'Water Bubble', 'CAUSE 5  Entrainment: OLD is the target\'s, NEW the user\'s'); }
+
+// CAUSE 6 — Ally Switch moves both bodies; a slot-keyed line follows them
+{ const r = S(mk(['Garchomp', 'Incineroar', 'Gengar', 'Lucario'], ['Farigiraf', 'Annihilape', 'Gengar', 'Garchomp'], [
+    sw('p1a', 'Garchomp'), sw('p1b', 'Incineroar'), sw('p2a', 'Farigiraf'), sw('p2b', 'Annihilape'), '|turn|1',
+    '|move|p2a: Farigiraf|Ally Switch|p2a: Farigiraf', '|swap|p2a: Farigiraf|1|[from] move: Ally Switch',
+    '|move|p1a: Garchomp|Dragon Claw|p2b: Farigiraf', '|-damage|p2b: Farigiraf|60/100',
+    '|-enditem|p2b: Farigiraf|Colbur Berry|[eat]']));
+  chk(r.sets.farigiraf.item === 'Colbur Berry' && r.sets.annihilape.item === null, 'CAUSE 6  an item after Ally Switch is the mover\'s');
+  const dc = (r.turns[0].ev || []).find(e => e.t === 'm' && e.mv === 'Dragon Claw') || {};
+  chk(dc.tgt === 'farigiraf', 'CAUSE 6  a move after Ally Switch targets the body now in the slot'); }
+
+// CAUSE 7 — an item that only shows itself on another line (Life Orb, Leftovers)
+{ const r = S(mk(['Gholdengo', 'Garchomp', 'Gengar', 'Lucario'], ['Incineroar', 'Farigiraf', 'Gengar', 'Garchomp'], [
+    sw('p1b', 'Gholdengo'), sw('p2a', 'Incineroar'), '|turn|1',
+    '|-damage|p1b: Gholdengo|90/100|[from] item: Life Orb', '|-heal|p2a: Incineroar|56/100|[from] item: Leftovers']));
+  chk(r.sets.gholdengo.item === 'Life Orb', 'CAUSE 7  Life Orb named by its recoil');
+  chk(r.sets.incineroar.item === 'Leftovers', 'CAUSE 7  Leftovers named by its heal'); }
+
+// CAUSE 8 — an ability that only shows itself on another line, and whose it is
+{ const r = S(mk(['Garchomp', 'Pawmot', 'Sinistcha', 'Runerigus'], ['Incineroar', 'Gholdengo', 'Gengar', 'Lucario'], [
+    sw('p1a', 'RuneriGoat', 'Runerigus'), sw('p1b', 'Garchomp'), sw('p2a', 'Incineroar'), sw('p2b', 'Golden Gate', 'Gholdengo'), '|turn|1',
+    '|-damage|p2a: Incineroar|87/100|[from] ability: Rough Skin|[of] p1b: Garchomp',
+    sw('p1b', 'Sinistcha'), '|-heal|p1a: RuneriGoat|41/100|[from] ability: Hospitality|[of] p1b: Sinistcha',
+    sw('p1b', 'Pawmot'), '|move|p2b: Golden Gate|Thunderbolt|p1b: Pawmot',
+    '|-heal|p1b: Pawmot|74/100|[from] ability: Volt Absorb|[of] p2b: Golden Gate']));
+  chk(r.sets.garchomp.ability === 'Rough Skin' && r.sets.incineroar.ability === null, 'CAUSE 8  Rough Skin is the [of] body\'s');
+  chk(r.sets.sinistcha.ability === 'Hospitality' && r.sets.runerigus.ability === null, 'CAUSE 8  Hospitality is the ally source\'s');
+  chk(r.sets.pawmot.ability === 'Volt Absorb' && r.sets.gholdengo.ability === null, 'CAUSE 8  an absorb heal is the healed body\'s'); }
+
+// CAUSE 9 — a species on both sides is two Pokemon
+{ const r = S(mk(['Incineroar', 'Garchomp', 'Gengar', 'Lucario'], ['Incineroar', 'Farigiraf', 'Gengar', 'Garchomp'], [
+    sw('p1a', 'Incineroar'), sw('p2a', 'Incineroar'), '|turn|1',
+    '|move|p1a: Incineroar|Fake Out|p2a: Incineroar', '|move|p2a: Incineroar|Parting Shot|p1a: Incineroar',
+    '|-enditem|p1a: Incineroar|Sitrus Berry|[eat]']));
+  const ms = (r.mirrorSets || {}).incineroar || {};
+  chk(r.sets.incineroar.mirror === true, 'CAUSE 9  a mirrored entry says it is one');
+  chk(ms.p1 && ms.p2 && ms.p1.moves.join() === 'Fake Out' && ms.p2.moves.join() === 'Parting Shot', 'CAUSE 9  each side keeps its own moves');
+  chk(ms.p1 && ms.p2 && ms.p1.item === 'Sitrus Berry' && ms.p2.item === null, 'CAUSE 9  each side keeps its own item');
+  const sheet = (mons) => mons.map(([sp, mvs]) => `${sp}||Sitrus Berry|Intimidate|${mvs}|Adamant||M|||50|`).join(']');
+  const b = S(mk(['Incineroar', 'Garchomp', 'Gengar', 'Lucario'], ['Incineroar', 'Farigiraf', 'Gengar', 'Garchomp'], [
+    '|showteam|p1|' + sheet([['Incineroar', 'FakeOut,KnockOff,PartingShot,FlareBlitz']]),
+    '|showteam|p2|' + sheet([['Incineroar', 'FakeOut,Protect,Taunt,FlareBlitz']])]));
+  const bm = (b.mirrorSets || {}).incineroar || {};
+  chk(bm.p1 && bm.p2 && bm.p1.moves.length === 4 && bm.p2.moves.length === 4 && bm.p2.moves.indexOf('KnockOff') < 0,
+    'CAUSE 9  two open sheets of one species stay two sets of four'); }
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

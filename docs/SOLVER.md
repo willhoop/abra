@@ -6,7 +6,7 @@ SLOWKING (the matrix solver), PORYGON2 (value), GARY and HYPNO (habits and the e
 (endgames), MEW and MACHAMP (self-play and training), WOBBUFFET (exploitability), GURU (meta), DITTO
 (teams), ROTOM (the live client), ALAKAZAM (the assembled agent) and KADABRA (the coach). Record: one
 entry per change in [`CHANGELOG-REGMC.md`](../CHANGELOG-REGMC.md), with its `### Record` section. The
-narrative log [`solver/LOG.md`](../solver/LOG.md) is frozen as history (2026-10-01, ends at 1.50.0); the
+narrative log [`solver/LOG.md`](../solver/LOG.md) is frozen as history (2026-10-01, ends at 1.64.0); the
 working detail it used to retell belongs in this ledger.
 
 **Its one number:** where the agent settles on the `gen9championsvgc2026regmcbo3` ladder — the mean
@@ -29,7 +29,7 @@ resolves here.)*
 SOLVER (was SEARCH) — the retired Reg M-B rollout rows; the Reg M-C solver is solver/PLAN.md
   R1 leaf accuracy: WITHHELD — engine/provenance.js calls data/rollout-r1-explore1.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    pinned to engine release 3932186b59ef — engine/medicham2-browser.js matches the frozen copy; live is 33219d25bdf1 now (a PRE-CHANGE measurement of that release, not corruption)
+    pinned to engine release 3932186b59ef — engine/medicham2-browser.js matches the frozen copy; live is bf5efb8fafee now (a PRE-CHANGE measurement of that release, not corruption)
     (+20 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/rollout_r1_artifact.js
   R2 leaf cost: WITHHELD — engine/provenance.js calls data/rollout-cost.json UNSAFE.
@@ -41,7 +41,7 @@ SOLVER (was SEARCH) — the retired Reg M-B rollout rows; the Reg M-C solver is 
   R4 does it win: WITHHELD — engine/provenance.js calls data/rollout-r4.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     it becomes quotable again when this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-09-26 10:30):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-10-01 02:00):
     PRE-CHANGE games.r4c-shipped2.jsonl  2026-08-14 22:28
     PRE-CHANGE games.r4c-shipped.jsonl  2026-08-14 17:21
     PRE-CHANGE games.r4b-search.jsonl  2026-08-14 13:02
@@ -49,7 +49,7 @@ SOLVER (was SEARCH) — the retired Reg M-B rollout rows; the Reg M-C solver is 
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
 ```
 
-_stamped 2026-09-30 08:46_
+_stamped 2026-10-01 06:14_
 
 <!-- /GENERATED -->
 
@@ -59,6 +59,14 @@ State is printed, never typed: `solver/PLAN.md` §2 is the registry of what is b
 records each landing (`solver/LOG.md` did until 2026-10-01), and the measured figures live in `docs/MODELS.md` under *The Reg M-C models*.
 This section says only what a division agent needs before it starts.
 
+- **Direction from 2026-10-01 (Will; `solver/PLAN.md` 0.3.0, abra/regmc 1.53.0).** One learned policy+value net
+  (PORYGON2 v3) trained by self-play and searched several turns deep, on MEDICHAM; the pipeline keeps playing until the
+  net wins its SPRT. Local and small first, built to scale out; a MEDICHAM speed pass (ENGINE) before any cloud spend.
+  HYPNO best-responds to the population by rating band, equilibrium where the habit gate fails. **The ladder is the
+  scoreboard** (residual `S − E` without forfeit wins); the arena is a sanity check. Standing approval: up to 20 series
+  a day with the auto-stops, launched by the coordinator; SOLVER prepares the command. Milestones N0–N9 in
+  `solver/PLAN.md` §3.0; compute and prices in §6a. Account: `docs/_reports/2026-10-01-plan-revision.md`. The
+  "May not launch a ladder series" line above still binds SOLVER itself.
 - **Engine.** The Reg M-C MEDICHAM gate is OPEN, 10 of 10, on release `eaa5becc54eb`
   (`docs/_reports/2026-09-24-regmc-gate-final.md`). The solver API (`engine/medicham_api.js`) is merged:
   `clone`, `legalActions`, `step`, the terminal check and lean playouts. The mid-turn-choice callback
@@ -93,6 +101,11 @@ This section says only what a division agent needs before it starts.
     ladder baseline for PORYGON2 v2.
   - Unowned: Sucker Punch; ROTOM's world lays no Perish count and no Skill-Swapped ability.
   - `solver/results/2026-09-30-ladder-loss-postmortem/`, `docs/_reports/2026-09-30-ladder-loss-postmortem.md`.
+- **PORYGON2 v3, steps A–C (2026-10-01, abra/regmc 1.62.0).** `solver/porygon2/v3/`: the design, a frozen harness
+  (`evalset.js`: 2,778 positions, 1,300 deep-labelled with no value net in the reference; leakage test GREEN) and v2
+  distilled into a student at 0.91× gen5's leaf cost. The four nets are indistinguishable on ranking. ECE: student 0.052,
+  gen5 0.065. The student fails its pre-registered bar, so no screen or SPRT is pre-registered. gen5's raw net is +0.18
+  too high in [0.5, 0.9) on our ladder positions, not on strong human ones. `docs/_reports/2026-10-01-porygon2-v3.md`.
 - **PORYGON2 v1-r2 (deep labels on c1) FAILS gate (a) on the human half (2026-09-30, abra/regmc 1.46.0).** 13,414 deep
   labels on 4,123 c1 games, with the human share held at v1's. r2 − gen5: human −0.0044 [−0.0086, +0.0002], self-play
   −0.0131 [−0.0178, −0.0084]. r2 − v1 on humans +0.0033 [+0.00004, +0.0068]. No SPRT was run and gen5 is unchanged.
@@ -122,6 +135,30 @@ This section says only what a division agent needs before it starts.
   0.525 [0.456, 0.593], clock ratios 0.99-1.00. At 14 s the Protect fail rate is 10.1% vs 16.9%. λ 0.1 fails (0.405). λ 0.01
   is VOID by its capability clause (1 uniform-anchor decision). No SPRT; the flag is off.
   `docs/_reports/2026-09-30-human-regularised-phase-b.md`.
+- **Lost the last answer (2026-10-01, abra/regmc 1.58.0).** The live answer map is MEDICHAM one-on-ones on the
+  rebuilt position, 1,131 ladder positions. A contested last-answer faint is in 31 of 90 losses and 9 of 68 wins. At
+  equal value it costs no more than any other faint (−0.092 [−0.225, +0.059]), and it is the turning point in 6 of 26.
+  The map adds nothing over the root value (log-loss −0.0045 [−0.0187, +0.0063]), so it is not a live net input.
+  `docs/_reports/2026-10-01-lost-last-answer.md`.
+- **The search's uncovered blind spots; four world fields (2026-10-01, abra/regmc 1.52.0).** Read-only over the finished
+  ladder runs. Opponent coverage 57.7% with targets (636 decisions); the gen5 prior's top 4 holds the actual joint 57.1%,
+  top 8 71.1%. Sucker Punch failed 17 of 36: the engine is right on all 17; 9 had no alternative row, 8 were leaf ties.
+  World fixes: identity (formes, nicknames), Unburden, Flash Fire, added type; `solver/tests/test-rotom-world-fields.js`.
+  No series has played on them. `docs/_reports/2026-10-01-search-blind-spots.md`.
+- **Speed control, mega and switches tracked; the bot beside humans (2026-10-01, abra/regmc 1.59.0).** Standing per-game
+  counters (`solver/arena/tactics.js`) on every ROTOM game record, in `report.js ladder`, and on every arena match row.
+  Over 126 search-arm ladder games, like with like against 1400+ humans: speed control 0.88 [0.69, 1.12], switch-outs
+  1.06 [0.92, 1.22], mega 0.98 [0.81, 1.18]. What costs games is the foe's speed control (win −0.22 [−0.39, −0.05];
+  humans −0.03) and switch-ins KO'd that turn (15.4% vs 10.0%). Our fours rarely carry Trick Room.
+  `docs/_reports/2026-10-01-speed-mega-switch.md`.
+- **v2 at 14 s and the gen5 role-v1 baselines (2026-10-01, abra/regmc 1.60.0).** Every run is honest, on role-v1 true
+  bodies, and on release `eaa5becc54eb`.
+  - v2 as gen5's leaf vs gen5's net, 14 s adaptive: the screen gives 0.495 [0.426, 0.564]. The clock ratio is 1.104,
+    so it is VOID, and there is no SPRT.
+  - gen5 1 s vs the clone: H1, 0.711 (90 games).
+  - gen5 5 s vs the clone: H1, 0.667 (102 games).
+  - gen5 vs gen0-r2: H0 at 0.497 (1,098 games), DEGRADED (24% prior fallbacks, machine load). A re-run is owed.
+  - `docs/_reports/2026-10-01-v2-14s-and-role-v1-baselines.md`.
 - **Two SPRTs, both H0 (2026-09-30, abra/regmc 1.50.0).**
   - piKL λ 0.03 vs gen5 at the 14 s clock: 416 games, 0.469 [0.421, 0.517], clock ratio 0.976. The Protect fail rate
     is 9.8% vs 15.8%, with no strength gain.
@@ -129,6 +166,13 @@ This section says only what a division agent needs before it starts.
     v2 served 485,334 evaluations with 0 errors and 0.39× gen5's leaf calls. This ran outside v2's
     pre-registration (Will).
   - Both used the pre-1.49.0 arena. Neither is on an arm. `docs/_reports/2026-09-30-sprt-pikl-and-v2.md`.
+- **Tournament store and tournament rotation, prepared and not launched (2026-10-01, abra/regmc 1.61.0).**
+  - Store: `data/tournaments/regmc/`, built by `solver/tournaments/ingest.js` (weekly workflow `tournament-ingest.yml`).
+    It holds 537 Masters teams from 5 open-team-list events, and 2 Replica pastes. 537 of 539 validate.
+  - Rotation: `solver/rotom/teams/ladder-rotation-tour.json`, arm `gen5-chomp-tour.json`. It holds five real
+    top-cut teams, and each series row carries the team's event, placing and paste.
+  - Open team sheets publish no spreads. On the 12 published sets, our derived spread matches on 0, and Speed matches
+    on 1. The command for Will is in `docs/_reports/2026-10-01-tournament-rotation.md`.
 - **Human-regularised search (piKL), phase A (2026-09-30, abra/regmc 1.34.0).** Spec flag `kl` (lambda; off, on no
   arm): SLOWKING solves the KL-regularised root game with gen5's DODUO as the anchor (`solveKL`). On 579 held-out human
   decisions and the same recorded tables, top-1 agreement is 0.216 at lambda 0 and 0.268 at 0.1 (+0.052 [0.021, 0.083]).

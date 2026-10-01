@@ -11,7 +11,7 @@ Explanation.*
 flag to give with it, and how to read the result. It does not argue for a design. The argument is in
 [the white paper](ABRA-whitepaper.md). The record of each change is in
 [the Reg M-C changelog](../CHANGELOG-REGMC.md). [The running notes](RUNNING-NOTES.md) are the frozen
-record of the changes up to 1.50.0.
+record of the changes up to 1.64.0.
 
 **This document does not restate a result.** A result has one home: the white paper, or the artifact
 that the white paper cites. This document links to it. *(Changed 2026-10-01. The 1.0.0 edition copied

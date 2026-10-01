@@ -1,0 +1,2254 @@
+{
+ "generated_by": "solver/results/2026-10-01-search-blind-spots/blind_spots.js",
+ "root": "solver/out/rotom (main checkout)",
+ "runs": {
+  "aa1-2026-09-25T21-00-29-440Z": {
+   "games": 22,
+   "move_decisions": 151,
+   "tabled": 0
+  },
+  "aa2-2026-09-25T23-54-09-059Z": {
+   "games": 41,
+   "move_decisions": 305,
+   "tabled": 0
+  },
+  "chomp1-2026-09-29T23-13-11-521Z": {
+   "games": 50,
+   "move_decisions": 370,
+   "tabled": 370
+  },
+  "gen5ab-2026-09-26T04-06-53-848Z": {
+   "games": 76,
+   "move_decisions": 511,
+   "tabled": 298
+  }
+ },
+ "coverage": {
+  "decisions_with_table_and_observed_opponent": 636,
+  "decisions_opponent_unobserved": 32,
+  "moves": {
+   "hit": 405,
+   "rate": 0.637
+  },
+  "targets": {
+   "hit": 367,
+   "rate": 0.577
+  },
+  "per_slot": {
+   "hit": 405,
+   "rate": 0.637
+  },
+  "by_turn": {
+   "1": {
+    "n": 88,
+    "moves": 0.568,
+    "targets": 0.511
+   },
+   "2": {
+    "n": 88,
+    "moves": 0.614,
+    "targets": 0.534
+   },
+   "3": {
+    "n": 83,
+    "moves": 0.627,
+    "targets": 0.554
+   },
+   "4": {
+    "n": 76,
+    "moves": 0.645,
+    "targets": 0.579
+   },
+   "5+": {
+    "n": 301,
+    "moves": 0.664,
+    "targets": 0.615
+   }
+  },
+  "by_result_targets": {
+   "won": {
+    "hit": 120,
+    "n": 222,
+    "rate": 0.541
+   },
+   "lost": {
+    "hit": 247,
+    "n": 414,
+    "rate": 0.597
+   }
+  },
+  "miss_targets_by_cause": {
+   "switch": 37,
+   "protect": 35,
+   "attack": 71,
+   "combination": 36,
+   "target": 38,
+   "status": 30,
+   "both:attack+status": 5,
+   "both:status+switch": 2,
+   "both:protect+switch": 4,
+   "both:protect+protect": 3,
+   "both:attack+switch": 4,
+   "both:attack+protect": 1,
+   "both:attack+attack": 2,
+   "both:status+status": 1
+  },
+  "miss_moves_by_cause": {
+   "switch": 37,
+   "protect": 35,
+   "attack": 71,
+   "combination": 36,
+   "status": 30,
+   "both:attack+status": 5,
+   "both:status+switch": 2,
+   "both:protect+switch": 4,
+   "both:protect+protect": 3,
+   "both:attack+switch": 4,
+   "both:attack+protect": 1,
+   "both:attack+attack": 2,
+   "both:status+status": 1
+  },
+  "slots_missed_by_class": {
+   "switch": 47,
+   "protect": 46,
+   "attack": 85,
+   "status": 39
+  },
+  "mega_flag_disagrees_on_matched_column": 12,
+  "slot_collapse": {
+   "our_rows": {
+    "slots": 1168,
+    "one_move_only": 352,
+    "rate": 0.301
+   },
+   "their_cols": {
+    "slots": 1232,
+    "one_move_only": 319,
+    "rate": 0.259
+   }
+  },
+  "control_our_choice_in_rows": {
+   "hit": 668,
+   "n": 668
+  },
+  "control_our_move_index_mapping": {
+   "agree": 928,
+   "checked": 929
+  }
+ },
+ "sucker_punch": {
+  "decisions_choosing_sp": 36,
+  "executed": 36,
+  "all": {
+   "n": 36,
+   "failed": 17,
+   "mean_p_attack_table": 0.536,
+   "actual_target_attacked": 13,
+   "table_had_non_attack_col": 26,
+   "actual_target_action_in_table": 27,
+   "actual_joint_in_table": 17,
+   "rows_offered_sp_user_only_sp_or_switch": 20
+  },
+  "failed": {
+   "n": 17,
+   "failed": 17,
+   "mean_p_attack_table": 0.432,
+   "actual_target_attacked": 1,
+   "table_had_non_attack_col": 14,
+   "actual_target_action_in_table": 10,
+   "actual_joint_in_table": 5,
+   "rows_offered_sp_user_only_sp_or_switch": 9
+  },
+  "succeeded": {
+   "n": 19,
+   "failed": 0,
+   "mean_p_attack_table": 0.63,
+   "actual_target_attacked": 12,
+   "table_had_non_attack_col": 12,
+   "actual_target_action_in_table": 17,
+   "actual_joint_in_table": 12,
+   "rows_offered_sp_user_only_sp_or_switch": 11
+  },
+  "in_lost_games": {
+   "n": 24,
+   "failed": 11,
+   "mean_p_attack_table": 0.622,
+   "actual_target_attacked": 10,
+   "table_had_non_attack_col": 17,
+   "actual_target_action_in_table": 19,
+   "actual_joint_in_table": 14,
+   "rows_offered_sp_user_only_sp_or_switch": 14
+  },
+  "in_won_games": {
+   "n": 12,
+   "failed": 6,
+   "mean_p_attack_table": 0.365,
+   "actual_target_attacked": 3,
+   "table_had_non_attack_col": 9,
+   "actual_target_action_in_table": 8,
+   "actual_joint_in_table": 3,
+   "rows_offered_sp_user_only_sp_or_switch": 6
+  },
+  "failed_by_target_action": {
+   "switch:switch": 3,
+   "status:helpinghand": 2,
+   "attack:extremespeed": 1,
+   "protect:protect": 4,
+   "status:ragepowder": 1,
+   "status:skillswap": 1,
+   "status:willowisp": 2,
+   "status:dragondance": 1,
+   "status:trickortreat": 1,
+   "status:swordsdance": 1
+  },
+  "succeeded_by_target_action": {
+   "attack:rockslide": 2,
+   "unknown:none": 7,
+   "attack:overheat": 1,
+   "attack:discharge": 1,
+   "attack:earthpower": 1,
+   "attack:heatwave": 1,
+   "attack:aurasphere": 3,
+   "attack:zapcannon": 1,
+   "attack:closecombat": 2
+  },
+  "failed_with_actual_column_in_table_cells": [
+   {
+    "room": "battle-gen9championsvgc2026regmcbo3-2690115224",
+    "turn": 3,
+    "target": "switch",
+    "chosen": 0.62,
+    "best_other_row": 0.468,
+    "p_attack": 1,
+    "value": 0.212
+   },
+   {
+    "room": "battle-gen9championsvgc2026regmcbo3-2690133981",
+    "turn": 4,
+    "target": "helpinghand",
+    "chosen": 0.77,
+    "best_other_row": 0.804,
+    "p_attack": 1,
+    "value": 0.78
+   },
+   {
+    "room": "battle-gen9championsvgc2026regmcbo3-2690137512-hnu56nou8rto5eo17quxe9bve6ih34ypw",
+    "turn": 6,
+    "target": "protect",
+    "chosen": 0.439,
+    "best_other_row": null,
+    "p_attack": 0.606,
+    "value": 0.476
+   },
+   {
+    "room": "battle-gen9championsvgc2026regmcbo3-2690153326",
+    "turn": 6,
+    "target": "ragepowder",
+    "chosen": 0.257,
+    "best_other_row": 0.236,
+    "p_attack": 0,
+    "value": 0.257
+   },
+   {
+    "room": "battle-gen9championsvgc2026regmcbo3-2688069174",
+    "turn": 4,
+    "target": "switch",
+    "chosen": 0.439,
+    "best_other_row": 0.494,
+    "p_attack": 0,
+    "value": 0.412
+   }
+  ],
+  "rows": [
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690111302",
+    "game": 1,
+    "turn": 3,
+    "won": false,
+    "forfeit": false,
+    "slot": "a",
+    "target_slot": "b",
+    "executed": true,
+    "failed": false,
+    "target_actual": "rockslide",
+    "target_class": "attack",
+    "cols": [
+     "overheat 1, switch 2",
+     "ragepowder, closecombat 1",
+     "overheat 1, closecombat 1",
+     "protect, closecombat 1"
+    ],
+    "col_target_class": [
+     "switch",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     0,
+     1,
+     0,
+     0
+    ],
+    "p_target_attacks_table": 1,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": false,
+    "row_mix": [
+     0,
+     0.005,
+     0.995,
+     0
+    ],
+    "value": 0.499,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690113485",
+    "game": 2,
+    "turn": 3,
+    "won": true,
+    "forfeit": true,
+    "slot": "b",
+    "target_slot": "b",
+    "executed": true,
+    "failed": false,
+    "target_actual": "none",
+    "target_class": "unknown",
+    "cols": [
+     "protect, switch 2",
+     "protect, overheat 2",
+     "moonblast 2, overheat 2",
+     "calmmind, overheat 2"
+    ],
+    "col_target_class": [
+     "switch",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     0.975,
+     0,
+     0.025,
+     0
+    ],
+    "p_target_attacks_table": 0.025,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0.446,
+     0.001,
+     0.553,
+     0
+    ],
+    "value": 0.584,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "switch",
+     "suckerpunch",
+     "suckerpunch",
+     "protect"
+    ],
+    "sp_slot_rows_only_sp_or_switch": false
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690113485",
+    "game": 2,
+    "turn": 6,
+    "won": true,
+    "forfeit": true,
+    "slot": "b",
+    "target_slot": "b",
+    "executed": true,
+    "failed": false,
+    "target_actual": "rockslide",
+    "target_class": "attack",
+    "cols": [
+     "dazzlinggleam, closecombat 2",
+     "dazzlinggleam, closecombat 1",
+     "protect, closecombat 2",
+     "protect, closecombat 1"
+    ],
+    "col_target_class": [
+     "attack",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     0.609,
+     0.391,
+     0,
+     0
+    ],
+    "p_target_attacks_table": 1,
+    "table_has_non_attack_target_col": false,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": false,
+    "row_mix": [
+     0.86,
+     0,
+     0,
+     0.14
+    ],
+    "value": 0.743,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690115224",
+    "game": 3,
+    "turn": 3,
+    "won": false,
+    "forfeit": false,
+    "slot": "a",
+    "target_slot": "b",
+    "executed": true,
+    "failed": true,
+    "target_actual": "switch",
+    "target_class": "switch",
+    "cols": [
+     "protect, switch 2",
+     "suckerpunch 2, closecombat 1",
+     "protect, closecombat 1",
+     "kowtowcleave 2, closecombat 1"
+    ],
+    "col_target_class": [
+     "switch",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     0,
+     0.619,
+     0.006,
+     0.375
+    ],
+    "p_target_attacks_table": 1,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": true,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0.942,
+     0,
+     0,
+     0.058
+    ],
+    "value": 0.212,
+    "cell": {
+     "chosen": 0.62,
+     "best_other_row": 0.468,
+     "sp_rows": 3
+    },
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "suckerpunch",
+     "switch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690115224",
+    "game": 3,
+    "turn": 5,
+    "won": false,
+    "forfeit": false,
+    "slot": "a",
+    "target_slot": "b",
+    "executed": true,
+    "failed": false,
+    "target_actual": "overheat",
+    "target_class": "attack",
+    "cols": [
+     "switch 2, overheat 1",
+     "protect, overheat 1",
+     "suckerpunch 1, overheat 1",
+     "suckerpunch 2, overheat 1"
+    ],
+    "col_target_class": [
+     "attack",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     0,
+     1,
+     0,
+     0
+    ],
+    "p_target_attacks_table": 1,
+    "table_has_non_attack_target_col": false,
+    "actual_joint_in_table": true,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "value": 0.851,
+    "cell": {
+     "chosen": 0.851,
+     "best_other_row": 0.423,
+     "sp_rows": 2
+    },
+    "sp_slot_row_actions": [
+     "switch",
+     "suckerpunch",
+     "kowtowcleave",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": false
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690120749",
+    "game": 3,
+    "turn": 2,
+    "won": false,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "b",
+    "executed": true,
+    "failed": false,
+    "target_actual": "discharge",
+    "target_class": "attack",
+    "cols": [
+     "earthpower 1, discharge",
+     "earthpower 2, discharge",
+     "protect, discharge",
+     "dragonpulse 1, discharge"
+    ],
+    "col_target_class": [
+     "attack",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "p_target_attacks_table": 1,
+    "table_has_non_attack_target_col": false,
+    "actual_joint_in_table": true,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0,
+     0,
+     0.573,
+     0.427
+    ],
+    "value": 0.429,
+    "cell": {
+     "chosen": 0.724,
+     "best_other_row": 0.729,
+     "sp_rows": 3
+    },
+    "sp_slot_row_actions": [
+     "switch",
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690133981",
+    "game": 1,
+    "turn": 2,
+    "won": false,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "b",
+    "executed": true,
+    "failed": false,
+    "target_actual": "none",
+    "target_class": "unknown",
+    "cols": [
+     "fakeout 1 mega, switch 2",
+     "fakeout 1 mega, bulkup",
+     "fakeout 1 mega, bitterblade 2",
+     "fakeout 1, bulkup"
+    ],
+    "col_target_class": [
+     "switch",
+     "status",
+     "attack",
+     "status"
+    ],
+    "col_mix": [
+     0.004,
+     0.735,
+     0.26,
+     0
+    ],
+    "p_target_attacks_table": 0.26,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": true,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0.376,
+     0.624,
+     0,
+     0
+    ],
+    "value": 0.695,
+    "cell": {
+     "chosen": 0.607,
+     "best_other_row": 0.863,
+     "sp_rows": 3
+    },
+    "sp_slot_row_actions": [
+     "switch",
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690133981",
+    "game": 1,
+    "turn": 3,
+    "won": false,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "a",
+    "executed": true,
+    "failed": true,
+    "target_actual": "helpinghand",
+    "target_class": "status",
+    "cols": [
+     "thunder 1, switch 3",
+     "focusblast 1 mega, scald 2",
+     "helpinghand -2 mega, scald 2",
+     "focusblast 2 mega, scald 1"
+    ],
+    "col_target_class": [
+     "attack",
+     "attack",
+     "status",
+     "attack"
+    ],
+    "col_mix": [
+     0.733,
+     0,
+     0.261,
+     0.006
+    ],
+    "p_target_attacks_table": 0.739,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0,
+     0.707,
+     0.293,
+     0
+    ],
+    "value": 0.947,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch",
+     "switch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690133981",
+    "game": 1,
+    "turn": 4,
+    "won": false,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "a",
+    "executed": true,
+    "failed": true,
+    "target_actual": "helpinghand",
+    "target_class": "status",
+    "cols": [
+     "thunder 1, switch 3",
+     "focusblast 2 mega, scald 1",
+     "focusblast 1 mega, scald 2",
+     "helpinghand -2, scald 2"
+    ],
+    "col_target_class": [
+     "attack",
+     "attack",
+     "attack",
+     "status"
+    ],
+    "col_mix": [
+     0,
+     0.133,
+     0.867,
+     0
+    ],
+    "p_target_attacks_table": 1,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": true,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0.547,
+     0,
+     0.453,
+     0
+    ],
+    "value": 0.78,
+    "cell": {
+     "chosen": 0.77,
+     "best_other_row": 0.804,
+     "sp_rows": 3
+    },
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "suckerpunch",
+     "switch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690136906",
+    "game": 3,
+    "turn": 2,
+    "won": true,
+    "forfeit": true,
+    "slot": "b",
+    "target_slot": "a",
+    "executed": true,
+    "failed": false,
+    "target_actual": "none",
+    "target_class": "unknown",
+    "cols": [
+     "earthpower 2, protect",
+     "earthpower 1, protect",
+     "earthpower 2, lifedew",
+     "earthpower 2, scald 1"
+    ],
+    "col_target_class": [
+     "attack",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     0.002,
+     0.03,
+     0,
+     0.968
+    ],
+    "p_target_attacks_table": 1,
+    "table_has_non_attack_target_col": false,
+    "actual_joint_in_table": true,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0,
+     0.023,
+     0.977,
+     0
+    ],
+    "value": 0.994,
+    "cell": {
+     "chosen": 0.996,
+     "best_other_row": 0.975,
+     "sp_rows": 3
+    },
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch",
+     "switch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690137512-hnu56nou8rto5eo17quxe9bve6ih34ypw",
+    "game": 1,
+    "turn": 5,
+    "won": false,
+    "forfeit": false,
+    "slot": "a",
+    "target_slot": "a",
+    "executed": true,
+    "failed": true,
+    "target_actual": "extremespeed",
+    "target_class": "attack",
+    "cols": [
+     "flareblitz 1, switch 3",
+     "protect, protect",
+     "flareblitz 1, protect",
+     "flareblitz 2, protect"
+    ],
+    "col_target_class": [
+     "attack",
+     "protect",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     0,
+     1,
+     0,
+     0
+    ],
+    "p_target_attacks_table": 0,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": false,
+    "row_mix": [
+     0,
+     0.36,
+     0.64,
+     0
+    ],
+    "value": 0.425,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "switch",
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690137512-hnu56nou8rto5eo17quxe9bve6ih34ypw",
+    "game": 1,
+    "turn": 6,
+    "won": false,
+    "forfeit": false,
+    "slot": "a",
+    "target_slot": "b",
+    "executed": true,
+    "failed": true,
+    "target_actual": "protect",
+    "target_class": "protect",
+    "cols": [
+     "flareblitz 1, earthpower 2",
+     "flareblitz 2, earthpower 1",
+     "protect, protect",
+     "flareblitz 1, protect"
+    ],
+    "col_target_class": [
+     "attack",
+     "attack",
+     "protect",
+     "protect"
+    ],
+    "col_mix": [
+     0,
+     0.606,
+     0,
+     0.394
+    ],
+    "p_target_attacks_table": 0.606,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": true,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0.756,
+     0,
+     0.244,
+     0
+    ],
+    "value": 0.476,
+    "cell": {
+     "chosen": 0.439,
+     "best_other_row": null,
+     "sp_rows": 4
+    },
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690138516-ol05sba9c38m92ic0h5wt1810eomapepw",
+    "game": 2,
+    "turn": 5,
+    "won": false,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "a",
+    "executed": true,
+    "failed": true,
+    "target_actual": "protect",
+    "target_class": "protect",
+    "cols": [
+     "switch 3, fakeout 1 mega",
+     "earthpower 1 mega, fakeout 2",
+     "earthpower 2 mega, fakeout 1",
+     "earthpower 2, fakeout 1 mega"
+    ],
+    "col_target_class": [
+     "switch",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "p_target_attacks_table": 0,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": false,
+    "row_mix": [
+     0.163,
+     0.837,
+     0,
+     0
+    ],
+    "value": 0.145,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690138516-ol05sba9c38m92ic0h5wt1810eomapepw",
+    "game": 2,
+    "turn": 6,
+    "won": false,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "a",
+    "executed": true,
+    "failed": false,
+    "target_actual": "earthpower",
+    "target_class": "attack",
+    "cols": [
+     "earthpower 1 mega, switch 3",
+     "earthpower 1, focusblast 2 mega",
+     "earthpower 2 mega, switch 3",
+     "earthpower 2, zapcannon 1 mega"
+    ],
+    "col_target_class": [
+     "attack",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     0,
+     0.181,
+     0.607,
+     0.213
+    ],
+    "p_target_attacks_table": 1,
+    "table_has_non_attack_target_col": false,
+    "actual_joint_in_table": true,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0.257,
+     0.301,
+     0,
+     0.442
+    ],
+    "value": 0.17,
+    "cell": {
+     "chosen": 0.073,
+     "best_other_row": null,
+     "sp_rows": 4
+    },
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690146981-p1kcd17hr43vi1q4fp9uct8q36yqbygpw",
+    "game": 1,
+    "turn": 2,
+    "won": false,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "a",
+    "executed": true,
+    "failed": false,
+    "target_actual": "heatwave",
+    "target_class": "attack",
+    "cols": [
+     "heatwave, switch 3",
+     "heatwave, aurasphere 2",
+     "heatwave, clangingscales",
+     "protect, aurasphere 2"
+    ],
+    "col_target_class": [
+     "attack",
+     "attack",
+     "attack",
+     "protect"
+    ],
+    "col_mix": [
+     0,
+     1,
+     0,
+     0
+    ],
+    "p_target_attacks_table": 1,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": true,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0,
+     1,
+     0,
+     0
+    ],
+    "value": 0.272,
+    "cell": {
+     "chosen": 0.39,
+     "best_other_row": null,
+     "sp_rows": 4
+    },
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690151595",
+    "game": 1,
+    "turn": 2,
+    "won": false,
+    "forfeit": false,
+    "slot": "a",
+    "target_slot": "b",
+    "executed": true,
+    "failed": true,
+    "target_actual": "switch",
+    "target_class": "switch",
+    "cols": [
+     "quiverdance, switch 2",
+     "quiverdance, earthpower 1",
+     "heatwave, earthpower 1",
+     "quiverdance, earthpower 2"
+    ],
+    "col_target_class": [
+     "switch",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "p_target_attacks_table": 0,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0.35,
+     0.65,
+     0,
+     0
+    ],
+    "value": 0.721,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "protect",
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": false
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690151595",
+    "game": 1,
+    "turn": 5,
+    "won": false,
+    "forfeit": false,
+    "slot": "a",
+    "target_slot": "b",
+    "executed": true,
+    "failed": true,
+    "target_actual": "protect",
+    "target_class": "protect",
+    "cols": [
+     "switch 3, earthpower 1",
+     "quiverdance, earthpower 1",
+     "heatwave, earthpower 1",
+     "heatwave, earthpower 2"
+    ],
+    "col_target_class": [
+     "attack",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     0,
+     0,
+     0.683,
+     0.317
+    ],
+    "p_target_attacks_table": 1,
+    "table_has_non_attack_target_col": false,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": false,
+    "row_mix": [
+     0,
+     0,
+     1,
+     0
+    ],
+    "value": 0.869,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690153326",
+    "game": 2,
+    "turn": 3,
+    "won": false,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "a",
+    "executed": true,
+    "failed": false,
+    "target_actual": "none",
+    "target_class": "unknown",
+    "cols": [
+     "dragonpulse 1, switch 2",
+     "earthpower 2, heatwave",
+     "earthpower 2, quiverdance",
+     "earthpower 1, quiverdance"
+    ],
+    "col_target_class": [
+     "attack",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     0,
+     1,
+     0,
+     0
+    ],
+    "p_target_attacks_table": 1,
+    "table_has_non_attack_target_col": false,
+    "actual_joint_in_table": true,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     1,
+     0,
+     0,
+     0
+    ],
+    "value": 0.637,
+    "cell": {
+     "chosen": 0.766,
+     "best_other_row": 0.74,
+     "sp_rows": 1
+    },
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "kowtowcleave",
+     "kowtowcleave",
+     "swordsdance"
+    ],
+    "sp_slot_rows_only_sp_or_switch": false
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690153326",
+    "game": 2,
+    "turn": 6,
+    "won": false,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "a",
+    "executed": true,
+    "failed": true,
+    "target_actual": "ragepowder",
+    "target_class": "status",
+    "cols": [
+     "ragepowder, switch 3",
+     "ragepowder, heatwave",
+     "protect, heatwave",
+     "lifedew, heatwave"
+    ],
+    "col_target_class": [
+     "status",
+     "status",
+     "protect",
+     "status"
+    ],
+    "col_mix": [
+     0,
+     1,
+     0,
+     0
+    ],
+    "p_target_attacks_table": 0,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": true,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0,
+     0,
+     0.001,
+     0.998
+    ],
+    "value": 0.257,
+    "cell": {
+     "chosen": 0.257,
+     "best_other_row": 0.236,
+     "sp_rows": 2
+    },
+    "sp_slot_row_actions": [
+     "kowtowcleave",
+     "kowtowcleave",
+     "suckerpunch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": false
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690156746-fo3175ocrtqccorctoq86eyujesnwe8pw",
+    "game": 1,
+    "turn": 9,
+    "won": false,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "a",
+    "executed": true,
+    "failed": false,
+    "target_actual": "aurasphere",
+    "target_class": "attack",
+    "cols": [
+     "aurasphere 2, switch 3",
+     "protect, switch 3",
+     "clangingscales, switch 3",
+     "aurasphere 2, partingshot 1"
+    ],
+    "col_target_class": [
+     "attack",
+     "protect",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "p_target_attacks_table": 1,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0,
+     1,
+     0,
+     0
+    ],
+    "value": 0.281,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "lowkick",
+     "suckerpunch",
+     "suckerpunch",
+     "ironhead"
+    ],
+    "sp_slot_rows_only_sp_or_switch": false
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690157657-j0lwxbefp3tsdfy40broshgl3r5le9ypw",
+    "game": 2,
+    "turn": 2,
+    "won": false,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "a",
+    "executed": true,
+    "failed": true,
+    "target_actual": "protect",
+    "target_class": "protect",
+    "cols": [
+     "protect, switch 2",
+     "clangingscales, flareblitz 2",
+     "aurasphere 2, flareblitz 2",
+     "protect, flareblitz 2"
+    ],
+    "col_target_class": [
+     "protect",
+     "attack",
+     "attack",
+     "protect"
+    ],
+    "col_mix": [
+     0,
+     1,
+     0,
+     0
+    ],
+    "p_target_attacks_table": 1,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0,
+     0,
+     0.001,
+     0.999
+    ],
+    "value": 0.343,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "switch",
+     "lowkick",
+     "suckerpunch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": false
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690157657-j0lwxbefp3tsdfy40broshgl3r5le9ypw",
+    "game": 2,
+    "turn": 3,
+    "won": false,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "a",
+    "executed": true,
+    "failed": false,
+    "target_actual": "aurasphere",
+    "target_class": "attack",
+    "cols": [
+     "aurasphere 2, switch 2",
+     "clangoroussoul, fakeout 2",
+     "clangoroussoul, fakeout 1",
+     "aurasphere 2, fakeout 1"
+    ],
+    "col_target_class": [
+     "attack",
+     "status",
+     "status",
+     "attack"
+    ],
+    "col_mix": [
+     0,
+     0.202,
+     0.798,
+     0
+    ],
+    "p_target_attacks_table": 0,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": true,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0.079,
+     0,
+     0.921,
+     0
+    ],
+    "value": 0.254,
+    "cell": {
+     "chosen": 0.318,
+     "best_other_row": 0.348,
+     "sp_rows": 2
+    },
+    "sp_slot_row_actions": [
+     "switch",
+     "suckerpunch",
+     "suckerpunch",
+     "switch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690160794-p5fwujortfioowp2fe0jngpou8wcgdxpw",
+    "game": 2,
+    "turn": 1,
+    "won": true,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "b",
+    "executed": true,
+    "failed": false,
+    "target_actual": "zapcannon",
+    "target_class": "attack",
+    "cols": [
+     "rockslide, switch 2",
+     "closecombat 2, zapcannon 1 mega",
+     "closecombat 2, focusblast 2 mega",
+     "closecombat 2, zapcannon 2 mega"
+    ],
+    "col_target_class": [
+     "switch",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     0,
+     1,
+     0,
+     0
+    ],
+    "p_target_attacks_table": 1,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0,
+     0,
+     1,
+     0
+    ],
+    "value": 0.622,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "switch",
+     "switch",
+     "suckerpunch",
+     "switch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690160794-p5fwujortfioowp2fe0jngpou8wcgdxpw",
+    "game": 2,
+    "turn": 6,
+    "won": true,
+    "forfeit": false,
+    "slot": "a",
+    "target_slot": "b",
+    "executed": true,
+    "failed": false,
+    "target_actual": "closecombat",
+    "target_class": "attack",
+    "cols": [
+     "switch 3, protect",
+     "flareblitz 1, protect",
+     "switch 3, closecombat 1",
+     "flareblitz 2, closecombat 1"
+    ],
+    "col_target_class": [
+     "protect",
+     "protect",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     0,
+     0.64,
+     0,
+     0.36
+    ],
+    "p_target_attacks_table": 0.36,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": true,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0,
+     0.712,
+     0,
+     0.288
+    ],
+    "value": 0.172,
+    "cell": {
+     "chosen": 0.145,
+     "best_other_row": 0.13,
+     "sp_rows": 2
+    },
+    "sp_slot_row_actions": [
+     "switch",
+     "suckerpunch",
+     "switch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690163131",
+    "game": 1,
+    "turn": 6,
+    "won": false,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "b",
+    "executed": true,
+    "failed": false,
+    "target_actual": "aurasphere",
+    "target_class": "attack",
+    "cols": [
+     "expandingforce 1, aurasphere 2",
+     "weatherball 1, aurasphere 2",
+     "skillswap 1, aurasphere 2",
+     "skillswap -2, aurasphere 2"
+    ],
+    "col_target_class": [
+     "attack",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     0.942,
+     0,
+     0.058,
+     0
+    ],
+    "p_target_attacks_table": 1,
+    "table_has_non_attack_target_col": false,
+    "actual_joint_in_table": true,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0.456,
+     0,
+     0.544,
+     0
+    ],
+    "value": 0.456,
+    "cell": {
+     "chosen": 0.621,
+     "best_other_row": 0.26,
+     "sp_rows": 3
+    },
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch",
+     "kowtowcleave"
+    ],
+    "sp_slot_rows_only_sp_or_switch": false
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690165379",
+    "game": 2,
+    "turn": 4,
+    "won": true,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "a",
+    "executed": true,
+    "failed": true,
+    "target_actual": "skillswap",
+    "target_class": "status",
+    "cols": [
+     "expandingforce 1, switch 2",
+     "protect, partingshot 2",
+     "skillswap 1, partingshot 2",
+     "weatherball 2, partingshot 2"
+    ],
+    "col_target_class": [
+     "attack",
+     "protect",
+     "status",
+     "attack"
+    ],
+    "col_mix": [
+     0,
+     1,
+     0,
+     0
+    ],
+    "p_target_attacks_table": 0,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0,
+     0,
+     0.001,
+     0.999
+    ],
+    "value": 0.962,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "switch",
+     "protect",
+     "protect",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": false
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2690167362",
+    "game": 3,
+    "turn": 5,
+    "won": true,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "b",
+    "executed": true,
+    "failed": true,
+    "target_actual": "willowisp",
+    "target_class": "status",
+    "cols": [
+     "switch 2, dragoncheer -1",
+     "detect, dragoncheer -1",
+     "aurasphere 2, dragoncheer -1",
+     "switch 3, dragoncheer -1"
+    ],
+    "col_target_class": [
+     "status",
+     "status",
+     "status",
+     "status"
+    ],
+    "col_mix": [
+     0,
+     0,
+     1,
+     0
+    ],
+    "p_target_attacks_table": 0,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": false,
+    "row_mix": [
+     0,
+     0,
+     0.998,
+     0.001
+    ],
+    "value": 0.855,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2688043522-0i4ff6htnd415mx8h4jyt1p9pgji79xpw",
+    "game": 1,
+    "turn": 8,
+    "won": false,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "b",
+    "executed": true,
+    "failed": false,
+    "target_actual": "none",
+    "target_class": "unknown",
+    "cols": [
+     "closecombat 2, muddywater",
+     "closecombat 2, recover",
+     "tailwind, muddywater",
+     "closecombat 2, hypnosis 1"
+    ],
+    "col_target_class": [
+     "attack",
+     "status",
+     "attack",
+     "status"
+    ],
+    "col_mix": [
+     0.138,
+     0.862,
+     0,
+     0
+    ],
+    "p_target_attacks_table": 0.138,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": true,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0,
+     0.094,
+     0.906,
+     0
+    ],
+    "value": 0.107,
+    "cell": {
+     "chosen": 0.427,
+     "best_other_row": 0.033,
+     "sp_rows": 2
+    },
+    "sp_slot_row_actions": [
+     "switch",
+     "suckerpunch",
+     "suckerpunch",
+     "kowtowcleave"
+    ],
+    "sp_slot_rows_only_sp_or_switch": false
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2688044516-h0bp9ymk9jwnl728ok48sctqqoi35twpw",
+    "game": 2,
+    "turn": 7,
+    "won": false,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "a",
+    "executed": true,
+    "failed": false,
+    "target_actual": "closecombat",
+    "target_class": "attack",
+    "cols": [
+     "closecombat 2 mega, muddywater",
+     "tailwind mega, muddywater",
+     "closecombat 2 mega, recover",
+     "bravebird 1 mega, muddywater"
+    ],
+    "col_target_class": [
+     "attack",
+     "status",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     0,
+     0.822,
+     0.178,
+     0
+    ],
+    "p_target_attacks_table": 0.178,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": true,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0,
+     0.685,
+     0,
+     0.315
+    ],
+    "value": 0.049,
+    "cell": {
+     "chosen": 0.01,
+     "best_other_row": 0.08,
+     "sp_rows": 2
+    },
+    "sp_slot_row_actions": [
+     "protect",
+     "protect",
+     "suckerpunch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": false
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2688066421",
+    "game": 1,
+    "turn": 4,
+    "won": false,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "b",
+    "executed": true,
+    "failed": false,
+    "target_actual": "none",
+    "target_class": "unknown",
+    "cols": [
+     "protect, switch 2",
+     "protect, switch 3",
+     "kowtowcleave 1, switch 2",
+     "kowtowcleave 1, highhorsepower 2"
+    ],
+    "col_target_class": [
+     "switch",
+     "switch",
+     "switch",
+     "attack"
+    ],
+    "col_mix": [
+     0,
+     0.953,
+     0.047,
+     0
+    ],
+    "p_target_attacks_table": 0,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0.385,
+     0.385,
+     0.074,
+     0.156
+    ],
+    "value": 0.212,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "protect",
+     "suckerpunch",
+     "protect",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": false
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2688067676",
+    "game": 2,
+    "turn": 5,
+    "won": true,
+    "forfeit": true,
+    "slot": "b",
+    "target_slot": "b",
+    "executed": true,
+    "failed": true,
+    "target_actual": "dragondance",
+    "target_class": "status",
+    "cols": [
+     "trickortreat 2, switch 2",
+     "trickortreat 2, rockslide mega",
+     "trickortreat 2, dragondance",
+     "trickortreat 2, rockslide"
+    ],
+    "col_target_class": [
+     "switch",
+     "attack",
+     "status",
+     "attack"
+    ],
+    "col_mix": [
+     0,
+     0,
+     1,
+     0
+    ],
+    "p_target_attacks_table": 0,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "value": 0.787,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "kowtowcleave",
+     "protect",
+     "kowtowcleave",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": false
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2688067676",
+    "game": 2,
+    "turn": 7,
+    "won": true,
+    "forfeit": true,
+    "slot": "b",
+    "target_slot": "b",
+    "executed": true,
+    "failed": false,
+    "target_actual": "none",
+    "target_class": "unknown",
+    "cols": [
+     "crunch 1, switch 2",
+     "crunch 1, dragondance",
+     "dragondance, protect",
+     "dragondance, dragondance"
+    ],
+    "col_target_class": [
+     "switch",
+     "status",
+     "protect",
+     "status"
+    ],
+    "col_mix": [
+     0,
+     0.028,
+     0,
+     0.972
+    ],
+    "p_target_attacks_table": 0,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0.966,
+     0,
+     0,
+     0.034
+    ],
+    "value": 0.762,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2688069174",
+    "game": 3,
+    "turn": 3,
+    "won": true,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "b",
+    "executed": true,
+    "failed": true,
+    "target_actual": "willowisp",
+    "target_class": "status",
+    "cols": [
+     "dragondance, switch 2",
+     "rockslide, switch 2",
+     "protect, switch 2",
+     "knockoff 1, switch 2"
+    ],
+    "col_target_class": [
+     "switch",
+     "switch",
+     "switch",
+     "switch"
+    ],
+    "col_mix": [
+     0,
+     0,
+     1,
+     0
+    ],
+    "p_target_attacks_table": 0,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": false,
+    "row_mix": [
+     0,
+     1,
+     0,
+     0
+    ],
+    "value": 0.634,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch",
+     "kowtowcleave"
+    ],
+    "sp_slot_rows_only_sp_or_switch": false
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2688069174",
+    "game": 3,
+    "turn": 4,
+    "won": true,
+    "forfeit": false,
+    "slot": "b",
+    "target_slot": "b",
+    "executed": true,
+    "failed": true,
+    "target_actual": "switch",
+    "target_class": "switch",
+    "cols": [
+     "protect, switch 2",
+     "dragondance, switch 2",
+     "rockslide, switch 2",
+     "knockoff 1, switch 2"
+    ],
+    "col_target_class": [
+     "switch",
+     "switch",
+     "switch",
+     "switch"
+    ],
+    "col_mix": [
+     0,
+     0.625,
+     0,
+     0.375
+    ],
+    "p_target_attacks_table": 0,
+    "table_has_non_attack_target_col": true,
+    "actual_joint_in_table": true,
+    "actual_target_action_in_table": true,
+    "row_mix": [
+     0,
+     0.599,
+     0.401,
+     0
+    ],
+    "value": 0.412,
+    "cell": {
+     "chosen": 0.439,
+     "best_other_row": 0.494,
+     "sp_rows": 2
+    },
+    "sp_slot_row_actions": [
+     "protect",
+     "suckerpunch",
+     "protect",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": false
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2688069174",
+    "game": 3,
+    "turn": 11,
+    "won": true,
+    "forfeit": false,
+    "slot": "a",
+    "target_slot": "a",
+    "executed": true,
+    "failed": true,
+    "target_actual": "trickortreat",
+    "target_class": "status",
+    "cols": [
+     "powerwhip 2, knockoff 1",
+     "powerwhip 2, dragondance",
+     "powerwhip 2, knockoff 2",
+     "powerwhip 2, protect"
+    ],
+    "col_target_class": [
+     "attack",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     0.149,
+     0.846,
+     0.005,
+     0
+    ],
+    "p_target_attacks_table": 1,
+    "table_has_non_attack_target_col": false,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": false,
+    "row_mix": [
+     0,
+     0,
+     0.263,
+     0.737
+    ],
+    "value": 0.049,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "suckerpunch",
+     "kowtowcleave",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": false
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "room": "battle-gen9championsvgc2026regmcbo3-2688078494",
+    "game": 1,
+    "turn": 4,
+    "won": false,
+    "forfeit": false,
+    "slot": "a",
+    "target_slot": "a",
+    "executed": true,
+    "failed": true,
+    "target_actual": "swordsdance",
+    "target_class": "status",
+    "cols": [
+     "earthquake, lightscreen",
+     "earthquake, hydropump 1",
+     "earthquake, hydropump 2",
+     "earthquake, willowisp 1"
+    ],
+    "col_target_class": [
+     "attack",
+     "attack",
+     "attack",
+     "attack"
+    ],
+    "col_mix": [
+     0,
+     0,
+     0,
+     1
+    ],
+    "p_target_attacks_table": 1,
+    "table_has_non_attack_target_col": false,
+    "actual_joint_in_table": false,
+    "actual_target_action_in_table": false,
+    "row_mix": [
+     0,
+     0,
+     1,
+     0
+    ],
+    "value": 0.12,
+    "cell": null,
+    "sp_slot_row_actions": [
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch",
+     "suckerpunch"
+    ],
+    "sp_slot_rows_only_sp_or_switch": true
+   }
+  ]
+ },
+ "world_fields": {
+  "last_item": {
+   "events": 304,
+   "games": 160,
+   "live_at_our_move_decisions": 0
+  },
+  "unburden": {
+   "events": 123,
+   "games": 109,
+   "live_at_our_move_decisions": 350
+  },
+  "ate_berry": {
+   "events": 56,
+   "games": 49,
+   "live_at_our_move_decisions": 0
+  },
+  "charging_any": {
+   "events": 8,
+   "games": 5,
+   "live_at_our_move_decisions": 0
+  },
+  "wish": {
+   "events": 1,
+   "games": 1,
+   "live_at_our_move_decisions": 1
+  },
+  "flashfire": {
+   "events": 1,
+   "games": 1,
+   "live_at_our_move_decisions": 4
+  },
+  "types": {
+   "events": 2,
+   "games": 2,
+   "live_at_our_move_decisions": 1
+  },
+  "attract": {
+   "events": 1,
+   "games": 1,
+   "live_at_our_move_decisions": 0
+  }
+ },
+ "identity": {
+  "idents": 1841,
+  "byNick": 1621,
+  "byAlias": 220,
+  "unmatched": 0,
+  "games_with_alias": 119,
+  "games": 189,
+  "names": {
+   "Indeedee -> Indeedee-F": 94,
+   "The drizzler -> Pelipper": 1,
+   "Convergent weavile -> Sneasler": 2,
+   "Wolfe -> Toxapex": 2,
+   "Hello there -> Whimsicott": 1,
+   "Arcanine -> Arcanine-Hisui": 46,
+   "Floette -> Floette-Eternal": 10,
+   "Rotom -> Rotom-Wash": 2,
+   "Typhlosion -> Typhlosion-Hisui": 5,
+   "Cheap Trick -> Sneasler": 2,
+   "Guns N Roses -> Floette-Eternal": 1,
+   "Gorythmic -> Rillaboom": 1,
+   "777 -> Garchomp": 3,
+   "Cold Brew -> Primarina": 1,
+   "Panda -> Arcanine": 2,
+   "DDee -> Lycanroc-Dusk": 2,
+   "John Dogs -> Scovillain": 2,
+   "Cisco -> Sneasler": 2,
+   "Kids -> Kingambit": 2,
+   "SlycedBread -> Basculegion": 1,
+   "Maushold -> Maushold-Four": 1,
+   "Persian -> Persian-Alola": 6,
+   "My Ex -> Farigiraf": 3,
+   "Me Pi-Ka -> Raichu": 3,
+   "Sylv <3 -> Sylveon": 3,
+   "Turtle -> Torkoal": 1,
+   "Rapty -> Staraptor": 2,
+   "Ms. Lippy -> Pelipper": 3,
+   "Gourgeist -> Gourgeist-Small": 6,
+   "Samurott -> Samurott-Hisui": 5,
+   "Feesh -> Garchomp": 2,
+   "Ugly electronic -> Rotom-Wash": 2,
+   "Columbine -> Floette-Eternal": 1
+  }
+ }
+}

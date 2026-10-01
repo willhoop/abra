@@ -2906,7 +2906,7 @@ const NOTES_LOG = 'docs/RUNNING-NOTES.md';
  *   the changelog   each line's own changelog, every entry ABOVE that version (and `[Unreleased]`).
  *                   The entry carries the old row's fields in a `### Record` section.
  *
- * THE FREEZE IS DECLARED IN THE PAGE'S MASTHEAD — `<!-- FROZEN: abra/regmb=7.0.0; abra/regmc=1.50.0 -->`
+ * THE FREEZE IS DECLARED IN THE PAGE'S MASTHEAD — `<!-- FROZEN: abra/regmb=7.0.0; abra/regmc=1.64.0 -->`
  * — and NOT derived from the page's newest row. Derived, a row merged in from an in-flight branch
  * would silently move the cut and take the changelog's fields for those versions out of the record.
  * Declared, the same row is a BREACH (`row_after_freeze`, in `closedLineBreaches()`), and the fix is

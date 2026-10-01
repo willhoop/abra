@@ -1,7 +1,8 @@
 {
- "version": "1.6.0",
- "updated": "2026-09-21",
+ "version": "1.7.0",
+ "updated": "2026-10-01",
  "changelog": {
+  "1.7.0": "2026-10-01 (MEASURE). Two changes, both Will's. (1) exclude_custom_ruleset, for a per-regulation scan, now excludes EVERY custom-rule room except one whose rules leave the game exactly the open-sheet bo3 game (Force Open Team Sheets + Best of = 3, nothing else). It is classified at read time from the room's rule text by engine/quality.js customRuleRegime(), and tests/test-open-sheet-bo3.js checks that parser against Showdown's own rule table. The 283 bo1-format rooms under `Force Open Team Sheets, Best of = 3` are open-sheet bo3 play, and every open-sheet consumer reads them as such through Q.isOpenSheetBo3(). Reg M-B's legacy verdict is unchanged. (2) exclude_own_accounts added: a DECLARED list of our accounts, each with its evidence. medicham32 (ROTOM) played 115 bo3 games in the store. docs/_reports/2026-10-01-custom-ots-bo3.md",
   "1.6.0": "exclude_custom_ruleset added 2026-09-21, and exclude_nonstandard_ruleset given the reader it never had. Will: 'yes clean the store filter it all out'. A DETECTOR, not a declaration: engine/scan_custom_rulesets.js streams data/games.ladder.raw-logs.jsonl and reads the `N custom rule(s):` infobox Showdown itself emits, writing the id set to data/custom-ruleset-ids.json. 6,978 raw logs carry it, 6,952 distinct ids, all 6,952 present in the store = 7.37% of 94,360. 129 alter legality or the pick count; the other 6,823 set a different information regime, overwhelmingly `Best of = 3` - bo3 tournament games misfiled in the bo1 ladder store. THE 1,176 IN docs/_reports/2026-09-21-six-bring-game.md IS SUPERSEDED: that scan's regex required the plural `custom rules:` and missed every one-rule room; its per-string joined counts (691 / 170 / 101 / 56) reproduce here exactly, and the residue is 5,768 single-rule rows plus one 8-row string. Measured on data/games.ladder.jsonl of 2026-09-21 (94,360 games): the clean ladder corpus moves 33,539 -> 28,454 (-5,085, -15.16%). Contamination is 2.06x DENSER in the clean corpus than in the store (15.16% vs 7.37%), the same enrichment exclude_illegal_teams found and for the same reason - bots do not play custom-rules rooms. NO PUBLISHED Reg M-B FIGURE IS AFFECTED: data/team-pool-frozen is bo3 + ots, and those two stores share ZERO ids with the ladder store. IT IS A FLOOR: 17,527 rows (18.57%) have no local raw log and were never asked.",
   "1.4.0": "exclude_corrupt_winner added (ROADMAP #558). A DECLARATION, not a detector: two named ladder games whose stored `winner` is neither player, because the pre-2026-08-28 fetch split a multi-byte character across two HTTP chunks and left U+FFFD in the `|win|` line only. Both replays re-fetch clean with the winner a player (receipts under the rule). The rows are not repaired because build/compress-stores.js cannot express a correction (docs/_reports/2026-09-10-corrupted-winners.md). Will, 2026-09-11: 'exclude now, fix later'. Measured on the live store of 2026-09-11 (92,594 ladder games): gen9championsvgc2026regmb-2662690089 passed every other rule and gen9championsvgc2026regmb-2672145722 was already excluded by require_full_bring, so the clean ladder corpus moves 32,193 -> 32,192 (-1). No bo3 or ots game is affected: neither id is in those stores.",
   "1.3.0": "exclude_illegal_teams added. Games whose revealed team is rejected by Showdown's own TeamValidator with a SPECIES-level or ITEM-level reason are excluded. Keyed on data/store-validation.json, which marks and does not delete. MOVE-level rejections are deliberately NOT keyed: a learnset contradiction is the Illusion signature (engine/illusion.js), so keying on it would throw away the Zoroark corpus. Measured on the verdict of 2026-08-27T05:14:06Z over 67,384 ladder games: 77 games carry a species or item reason, 49 of them survived the other five rules, so the clean ladder corpus moves 18,908 -> 18,859 (-0.259%). Contamination is 2.27x DENSER in the clean corpus than in the raw store, because bots do not play custom-rules rooms. 65 species lose all clean support (335 -> 270) - they were never in this regulation.",
@@ -202,6 +203,30 @@
     "bo3_and_ots": "zero hits in data/games.bo3.jsonl (33,332 ids) and data/games.ots.jsonl (4,167). For bo3 that is STRUCTURAL - its ids are namespaced `...regmbbo3-` - and for ots there is no local raw-log file to scan, so neither zero is a clean bill of health."
    },
    "known_limitation": "THREE. (1) IT IS A FLOOR, NOT A CENSUS. The infobox lives in the RAW log and 17,527 store rows (18.57%) have no local raw log, so they were never asked the question. engine/quality.js and engine/quality.py both carry that share out to funnel() and PRINT it, because a filter that cannot see part of its population must say how much or 'we cleaned the corpus' quietly becomes 'we cleaned the part we could read'. (2) LADDER ONLY. The scan reads data/games.ladder.raw-logs.jsonl. data/games.bo3.jsonl uses a different format-id namespace (`...regmbbo3-`) so this rule is a structural no-op there, and data/games.ots.jsonl has NO local raw-log file at all - measured: zero of its 4,167 ids are in the derived set, but that zero is a fact about coverage, not a clean bill of health. (3) THE LEGALITY SPLIT IS A REPORTED BREAKDOWN AND IS ITSELF A LOWER BOUND. `alter_legality_or_pick` is the 2026-09-21 investigation's classifier, kept unchanged so the two runs compare; it misses `+golisopod`, `+electrium z` and the `- Garchomp, - Kingambit, ...` restricted-event ban lists, which the scan's wider `entity_token` classifier catches. The UNION is 149 raw-log rows. Nothing turns on the split - both kinds are excluded either way."
+  },
+  "exclude_own_accounts": {
+   "on": true,
+   "reason": "own_account",
+   "test": "either player's Showdown user id (lower case, letters and digits) is a key of `accounts`",
+   "rationale": "A game we played is not evidence about human play. Will, 2026-10-01: exclude our own accounts everywhere human play is modelled. The bot-name pattern (engine/durable-ingest.js isBot) does not match these names and the behavioural rule does not flag them, so without this declaration our own games enter the human corpus.",
+   "accounts": {
+    "medicham32": {
+     "what": "ROTOM, the live client, on the public ladder",
+     "evidence": "solver/rotom/LADDER.md (every launch command passes --name medicham32); CLAUDE.md \"account medicham32\"",
+     "in_store_2026_10_01": "115 bo3 games, 2026-09-25 21:05 to 2026-09-30 01:44; 0 bo1"
+    },
+    "willhoop": {
+     "what": "Will's own Showdown account",
+     "evidence": "../CLAUDE.md \"My username is willhoop\"",
+     "in_store_2026_10_01": "8 bo1 games; 0 bo3"
+    },
+    "MAG": {
+     "what": "engine/mag_bot.js, the retired live bot",
+     "evidence": "engine/mag_bot.js line 61, NAME default 'MAG'",
+     "in_store_2026_10_01": "0 games"
+    }
+   },
+   "not_declared": "solver/meta/extract.js and solver/human/build_dataset.js also typed mag2, miltank and miltank2. No file shows any of them as a login we used, and none has a game in either Reg M-C store, so they are not declared: a name in this list removes a stranger who happens to hold it."
   }
  },
  "provenance": {

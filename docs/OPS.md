@@ -22,9 +22,25 @@ OPS — the live bot and the store
   data/games.ots.jsonl         last written 2026-09-20 22:33  <- FROZEN external import, complete; date is an import, not a heartbeat
 ```
 
-_stamped 2026-09-30 08:46_
+_stamped 2026-10-01 06:14_
 
 <!-- /GENERATED -->
+
+## THE INGEST'S `sets` CREDITED SET FACTS TO THE WRONG POKEMON BY NINE CAUSES. FIXED IN `extract()`, RE-PARSE OWED. 2026-10-01 (abra/regmc 1.63.0, MEASURE)
+
+`engine/durable-ingest.js` `extract()` is changed. New rows from the collector get the fixed `sets` once this merges.
+Rows already stored keep the old ones until the owed re-parse.
+
+- **Schema, additive only.** `mirrorSets` is added for a species on both sides, and its merged `sets` entry gains
+  `mirror: true`.
+- **`turns` changes after an Ally Switch.** The `mon`/`tgt` fields are now correct, because the slot map follows
+  `|swap|`.
+- **The re-parse tool is `engine/reparse_store.js`.** It streams the raw shards. The old `MODE=reparse` reads only the
+  plain `.raw-logs.jsonl`, which for Reg M-C stopped on 2026-09-09.
+- **The swap.** It races this collector's hourly commit of the same `.gz` blobs, so it is done between two collector
+  runs.
+
+The commands are in `docs/_reports/2026-10-01-store-set-attribution.md`, under OWED.
 
 ## THE RAW SHARD WRITER IS CAPPED, TWO STORE ROWS CARRY A SPLIT CHARACTER IN THEIR `|win|` LINE, AND THE HOURLY COLLECTOR HAS NOT YET RUN ON CI. 2026-09-09, CHANGELOG 5.277.0
 

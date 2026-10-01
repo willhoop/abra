@@ -1,0 +1,233 @@
+|title|Yeet_pheesh vs. medicham32
+|j|☆Yeet_pheesh
+|j|☆medicham32
+|html|<table width="100%"><tr><td align="left">Yeet_pheesh</td><td align="right">medicham32</tr><tr><td align="left"><i class="fa fa-circle-o"></i> <i class="fa fa-circle-o"></i> </td><td align="right"><i class="fa fa-circle-o"></i> <i class="fa fa-circle"></i> </tr></table>
+|uhtml|bestof|<h2><strong>Game 2</strong> of <a href="/game-bestof3-gen9championsvgc2026regmcbo3-2690108495-76gujitm9atb9oqgoab136456ggbmuwpw">a best-of-3</a></h2>
+|t:|1790723800
+|gametype|doubles
+|player|p1|Yeet_pheesh|hilbert|1123
+|player|p2|medicham32|101|1121
+|gen|9
+|tier|[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)
+|rated|
+|rule|Species Clause: Limit one of each Pokémon
+|rule|Item Clause: Limit 1 of each item
+|clearpoke
+|poke|p1|Gengar, L50, M, shiny|
+|poke|p1|Incineroar, L50, F, shiny|
+|poke|p1|Kommo-o, L50, M|
+|poke|p1|Kingambit, L50, M, shiny|
+|poke|p1|Floette-Eternal, L50, F|
+|poke|p1|Sneasler, L50, M|
+|poke|p2|Rillaboom, L50, M|
+|poke|p2|Arcanine-Hisui, L50, F|
+|poke|p2|Dragonite, L50, M|
+|poke|p2|Raichu, L50, M|
+|poke|p2|Gholdengo, L50|
+|poke|p2|Garchomp, L50, M|
+|teampreview|4
+|showteam|p1|Gengar||Gengarite|CursedBody|Disable,ShadowBall,PerishSong,Protect|Modest||M|||50|]Incineroar||PasshoBerry|Intimidate|FakeOut,FlareBlitz,PartingShot,Protect|Relaxed||F|||50|]Kommo-o||Leftovers|Soundproof|ClangingScales,AuraSphere,Protect,ClangorousSoul|Modest||M|||50|]Kingambit||BlackGlasses|Defiant|KowtowCleave,SwordsDance,SuckerPunch,Protect|Adamant||M|||50|]Floette-Eternal||Floettite|FlowerVeil|LightofRuin,Moonblast,DazzlingGleam,Protect|Timid||F|||50|]Sneasler||WhiteHerb|Unburden|FakeOut,DireClaw,CloseCombat,Protect|Adamant||M|||50|
+|showteam|p2|Rillaboom||MiracleSeed|GrassySurge|WoodHammer,GrassyGlide,HighHorsepower,FakeOut|Adamant||M|||50|]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly||F|||50|]Dragonite||Dragoninite|InnerFocus|DragonPulse,HeatWave,Tailwind,Protect|Modest||M|||50|]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid||M|||50|]Gholdengo||LifeOrb|GoodasGold|MakeItRain,ShadowBall,NastyPlot,Protect|Modest|||||50|]Garchomp||SitrusBerry|RoughSkin|StompingTantrum,DragonClaw,SwordsDance,Protect|Adamant||M|||50|
+|
+|t:|1790723815
+|teamsize|p1|4
+|teamsize|p2|4
+|start
+|switch|p1a: Kingambit|Kingambit, L50, M, shiny|100/100
+|switch|p1b: Sneasler|Sneasler, L50, M|100/100
+|switch|p2a: Rillaboom|Rillaboom, L50, M|207/207
+|switch|p2b: Arcanine|Arcanine-Hisui, L50, F|202/202
+|-fieldstart|move: Grassy Terrain|[from] ability: Grassy Surge|[of] p2a: Rillaboom
+|turn|1
+|
+|t:|1790723828
+|move|p1b: Sneasler|Fake Out|p2a: Rillaboom
+|-damage|p2a: Rillaboom|176/207
+|cant|p2a: Rillaboom|flinch
+|move|p2b: Arcanine|Flare Blitz|p1a: Kingambit
+|-supereffective|p1a: Kingambit|1
+|-damage|p1a: Kingambit|15/100
+|move|p1a: Kingambit|Swords Dance|p1a: Kingambit
+|-boost|p1a: Kingambit|atk|2
+|
+|-heal|p2a: Rillaboom|188/207|[from] Grassy Terrain
+|-heal|p1a: Kingambit|21/100|[from] Grassy Terrain
+|upkeep
+|turn|2
+|
+|t:|1790723847
+|move|p2b: Arcanine|Protect|p2b: Arcanine
+|-singleturn|p2b: Arcanine|Protect
+|move|p1a: Kingambit|Sucker Punch|p2a: Rillaboom
+|-damage|p2a: Rillaboom|4/207
+|move|p1b: Sneasler|Close Combat|p2b: Arcanine
+|-activate|p2b: Arcanine|move: Protect
+|move|p2a: Rillaboom|High Horsepower|p1b: Sneasler|[miss]
+|-miss|p2a: Rillaboom|p1b: Sneasler
+|
+|-heal|p2a: Rillaboom|16/207|[from] Grassy Terrain
+|-heal|p1a: Kingambit|27/100|[from] Grassy Terrain
+|upkeep
+|turn|3
+|
+|t:|1790723860
+|move|p1a: Kingambit|Protect|p1a: Kingambit
+|-singleturn|p1a: Kingambit|Protect
+|move|p1b: Sneasler|Close Combat|p2b: Arcanine
+|-supereffective|p2b: Arcanine|1
+|-enditem|p2b: Arcanine|Focus Sash
+|-damage|p2b: Arcanine|1/202
+|-unboost|p1b: Sneasler|def|1
+|-unboost|p1b: Sneasler|spd|1
+|-enditem|p1b: Sneasler|White Herb
+|-clearnegativeboost|p1b: Sneasler|[silent]
+|move|p2b: Arcanine|Flare Blitz|p1a: Kingambit
+|-activate|p1a: Kingambit|move: Protect
+|move|p2a: Rillaboom|High Horsepower|p1b: Sneasler
+|-supereffective|p1b: Sneasler|1
+|-damage|p1b: Sneasler|0 fnt
+|faint|p1b: Sneasler
+|
+|-heal|p2b: Arcanine|13/202|[from] Grassy Terrain
+|-heal|p2a: Rillaboom|28/207|[from] Grassy Terrain
+|-heal|p1a: Kingambit|33/100|[from] Grassy Terrain
+|upkeep
+|
+|t:|1790723862
+|switch|p1b: Incineroar|Incineroar, L50, F, shiny|100/100
+|-ability|p1b: Incineroar|Intimidate|boost
+|-unboost|p2a: Rillaboom|atk|1
+|-unboost|p2b: Arcanine|atk|1
+|turn|4
+|
+|t:|1790723909
+|switch|p2a: Dragonite|Dragonite, L50, M|198/198
+|move|p2b: Arcanine|Protect|p2b: Arcanine
+|-singleturn|p2b: Arcanine|Protect
+|move|p1b: Incineroar|Fake Out|p2b: Arcanine
+|-activate|p2b: Arcanine|move: Protect
+|move|p1a: Kingambit|Kowtow Cleave|p2a: Dragonite
+|-damage|p2a: Dragonite|0 fnt
+|faint|p2a: Dragonite
+|
+|-heal|p2b: Arcanine|25/202|[from] Grassy Terrain
+|-heal|p1a: Kingambit|39/100|[from] Grassy Terrain
+|upkeep
+|
+|t:|1790723914
+|switch|p2a: Gholdengo|Gholdengo, L50|194/194
+|turn|5
+|
+|t:|1790723923
+|switch|p2b: Rillaboom|Rillaboom, L50, M|28/207
+|move|p1a: Kingambit|Protect|p1a: Kingambit
+|-singleturn|p1a: Kingambit|Protect
+|move|p2a: Gholdengo|Nasty Plot|p2a: Gholdengo
+|-boost|p2a: Gholdengo|spa|2
+|move|p1b: Incineroar|Flare Blitz|p2b: Rillaboom
+|-supereffective|p2b: Rillaboom|1
+|-damage|p2b: Rillaboom|0 fnt
+|faint|p2b: Rillaboom
+|-damage|p1b: Incineroar|95/100|[from] Recoil
+|
+|-heal|p1b: Incineroar|100/100|[from] Grassy Terrain
+|-heal|p1a: Kingambit|44/100|[from] Grassy Terrain
+|-fieldend|move: Grassy Terrain
+|upkeep
+|
+|t:|1790723923
+|switch|p2b: Arcanine|Arcanine-Hisui, L50, F|25/202
+|turn|6
+|
+|t:|1790723940
+|move|p2b: Arcanine|Protect|p2b: Arcanine
+|-singleturn|p2b: Arcanine|Protect
+|move|p2a: Gholdengo|Protect|p2a: Gholdengo
+|-singleturn|p2a: Gholdengo|Protect
+|move|p1a: Kingambit|Sucker Punch||[still]
+|-fail|p1a: Kingambit
+|move|p1b: Incineroar|Flare Blitz|p2b: Arcanine
+|-activate|p2b: Arcanine|move: Protect
+|
+|upkeep
+|turn|7
+|
+|t:|1790723962
+|move|p2b: Arcanine|Protect||[still]
+|-fail|p2b: Arcanine
+|move|p1a: Kingambit|Protect|p1a: Kingambit
+|-singleturn|p1a: Kingambit|Protect
+|move|p2a: Gholdengo|Nasty Plot|p2a: Gholdengo
+|-boost|p2a: Gholdengo|spa|2
+|move|p1b: Incineroar|Flare Blitz|p2b: Arcanine
+|-resisted|p2b: Arcanine|2
+|-damage|p2b: Arcanine|1/202
+|-damage|p1b: Incineroar|96/100|[from] Recoil
+|
+|upkeep
+|turn|8
+|
+|t:|1790723970
+|move|p2b: Arcanine|Protect|p2b: Arcanine
+|-singleturn|p2b: Arcanine|Protect
+|move|p2a: Gholdengo|Protect|p2a: Gholdengo
+|-singleturn|p2a: Gholdengo|Protect
+|move|p1a: Kingambit|Sucker Punch||[still]
+|-fail|p1a: Kingambit
+|move|p1b: Incineroar|Flare Blitz|p2b: Arcanine
+|-activate|p2b: Arcanine|move: Protect
+|
+|upkeep
+|turn|9
+|
+|t:|1790723984
+|move|p2b: Arcanine|Protect|p2b: Arcanine
+|-singleturn|p2b: Arcanine|Protect
+|move|p1a: Kingambit|Sucker Punch||[still]
+|-fail|p1a: Kingambit
+|move|p2a: Gholdengo|Make It Rain|p1a: Kingambit|[spread] p1a,p1b
+|-resisted|p1a: Kingambit|1
+|-resisted|p1b: Incineroar|1
+|-damage|p1a: Kingambit|0 fnt
+|-damage|p1b: Incineroar|4/100
+|-unboost|p2a: Gholdengo|spa|2
+|faint|p1a: Kingambit
+|-damage|p2a: Gholdengo|175/194|[from] item: Life Orb
+|move|p1b: Incineroar|Flare Blitz|p2a: Gholdengo
+|-supereffective|p2a: Gholdengo|1
+|-damage|p2a: Gholdengo|5/194
+|-damage|p1b: Incineroar|0 fnt|[from] Recoil
+|faint|p1b: Incineroar
+|
+|upkeep
+|
+|t:|1790723987
+|switch|p1b: Gengar|Gengar, L50, M, shiny|100/100
+|turn|10
+|
+|t:|1790724000
+|detailschange|p1b: Gengar|Gengar-Mega, L50, M, shiny
+|-mega|p1b: Gengar|Gengar|Gengarite
+|move|p2b: Arcanine|Protect||[still]
+|-fail|p2b: Arcanine
+|move|p2a: Gholdengo|Protect|p2a: Gholdengo
+|-singleturn|p2a: Gholdengo|Protect
+|move|p1b: Gengar|Shadow Ball|p2a: Gholdengo
+|-activate|p2a: Gholdengo|move: Protect
+|
+|upkeep
+|turn|11
+|
+|t:|1790724006
+|move|p2a: Gholdengo|Protect|p2a: Gholdengo
+|-singleturn|p2a: Gholdengo|Protect
+|move|p1b: Gengar|Shadow Ball|p2a: Gholdengo
+|-activate|p2a: Gholdengo|move: Protect
+|move|p2b: Arcanine|Flare Blitz|p1b: Gengar
+|-damage|p1b: Gengar|33/100
+|
+|upkeep
+|turn|12
+|-message|Yeet_pheesh forfeited.
+|
+|win|medicham32

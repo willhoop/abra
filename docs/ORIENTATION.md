@@ -212,7 +212,7 @@ tests and is the only publisher.
 | `REGULATION-ROTATION.md` | What has to change when a regulation rotates |
 | `ABRA-whitepaper.md`, `ABRA-deck-plain-english.md`, `ABRA-technical-docs.md` | Technical, plain-English, and ASD-STE100 editions |
 | `DIVISIONS.md`, `{ENGINE,MEASURE,SOLVER,OPS,WEB}.md` | Who owns what, and each division's working ledger |
-| `RUNNING-NOTES.md` | One row per change between majors, up to abra/regmc 1.50.0 (frozen archive since 2026-10-01) |
+| `RUNNING-NOTES.md` | One row per change between majors, up to abra/regmc 1.64.0 (frozen archive since 2026-10-01) |
 | `CHANGELOG-REGMC.md` / `CHANGELOG.md` | The Reg M-C line, one entry per change with its `### Record` section / the closed Reg M-B record |
 
 State is printed, never typed:

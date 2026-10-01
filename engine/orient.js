@@ -273,8 +273,18 @@ head(5, 'THE MODELS — the QUESTION each answers, never its result  [source: so
   if (md == null) fail('THE MODELS', 'solver/PLAN.md is unreadable');
   else {
     const body = mdSection(md, /Model registry/i);
-    const rows = (body || '').split('\n').filter(l => /^\s*\|/.test(l));
     const cells = l => l.trim().replace(/^\|/, '').replace(/\|\s*$/, '').split('|').map(c => c.trim());
+    /* THE REGISTRY IS THE FIRST TABLE WHOSE HEADER NAMES `Name` AND `Role` — 2026-10-01. §2 gained a
+     * "what changes" table above the registry, and taking the first table of the section read its header
+     * and reported no `Name`/`Role` cells. Tables are split on their breaks so one table's rows never
+     * borrow another's header; if none qualifies, the first table is kept so the failure still names it. */
+    const tables = [];
+    let cur = null;
+    for (const l of (body || '').split('\n')) {
+      if (/^\s*\|/.test(l)) { if (!cur) tables.push(cur = []); cur.push(l); } else cur = null;
+    }
+    const isReg = t => { const h = cells(t[0]).map(c => c.replace(/\*\*/g, '').toLowerCase()); return h.includes('name') && h.includes('role'); };
+    const rows = tables.find(isReg) || tables[0] || [];
     const hdr = rows.length ? cells(rows[0]).map(c => c.replace(/\*\*/g, '').toLowerCase()) : [];
     const iName = hdr.indexOf('name'), iRole = hdr.indexOf('role');
     const named = [], unclassified = [];
