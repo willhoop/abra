@@ -20,8 +20,8 @@ the account of one change.
 - **Step 5 done.** The technical docs link the white paper for the gate readings and drop the stale
   Status column. Lexed figures fell from 34 to 16. The header stays at 1.0.0, so the backlog floor did
   not move.
-- **Every moved gate was shown RED on a deliberate break and green after restore.** 5b is the exception:
-  it was proved through its commit-time twin and a constructed history, see §5.
+- **Every moved gate was shown RED on a deliberate break and green after restore**, 5b included. 5b was
+  shown on a constructed, unreachable commit after the real one, see §5b.
 - **The umbrella check was already failing before this change, and it still fails.**
   `check_projects.py` reports ABRA `changelog=7.0.0 file=1.0.0 MISMATCH`, because it reads the closed
   Reg M-B `CHANGELOG.md` against the Reg M-C white paper. This change touches neither file. The brief
@@ -178,7 +178,24 @@ decision uses, and that decision is shown red above. The post-commit demonstrati
 
 ### 5b — post-commit demonstration
 
-SEE BELOW (filled in after the commit).
+This was done after commit `5b47e879` without `--no-verify` and without a branch commit. The steps:
+
+1. A dangling commit `c07e2d00` was built with plumbing: `hash-object -w` of a copy of
+   `engine/open_work.js` with one added comment line, then `read-tree` / `update-index --cacheinfo` /
+   `write-tree` into a temporary index, then `commit-tree -p 5b47e879`.
+2. HEAD was pointed at it with `update-ref --no-deref`. The index and the working tree were not touched.
+3. `node tests/test-docs-current.js` ran.
+4. HEAD was restored with `symbolic-ref HEAD refs/heads/worktree-agent-a63299b1fc159afcf`. HEAD read
+   `5b47e879` afterwards and the tree was clean.
+
+The result was **FAIL**: `no commit has moved code or a document since the record (CHANGELOG-REGMC.md)
+last moved (5b47e879) — 1 commit(s) recorded nothing: c07e2d00 ... engine/open_work.js`
+(40 passed, 1 failed). The commit is unreachable, was never pushed, and will be garbage-collected.
+
+**Note on the hook in worktrees:** `core.hooksPath` is the MAIN checkout's `.githooks`, so a commit
+from a worktree runs main's copy of the hook until this branch merges. Main's copy still prints
+"running-notes gate", but it delegates the decision to `engine/docs_scan.js --note-check`, which is
+this branch's code. That is why this commit passed it correctly.
 
 ## 6. Converter — for the coordinator merging in-flight branches
 
@@ -214,7 +231,7 @@ frozen page) and keep the branch's row text aside in a file. Then run
 ## OWED, NOT RUN
 
 ```bash
-# 1. The 5b red demonstration after the commit (see §5b): a constructed commit, not --no-verify.
+# 1. (done) The 5b red demonstration, §5b.
 # 2. Fold-in owed to the next document pass (white paper §2 / §4.3 / §8 sources, MODELS line 284 still
 #    name solver/LOG.md and the notes page as the record):
 node engine/docs_scan.js --owed
