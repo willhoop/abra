@@ -1,0 +1,40 @@
+{
+ "what": "The full SPRT of the PORYGON2 v3 fast student as gen5's leaf against gen5's own net, at ROTOM's 14 s adaptive ladder clock. Will approved it 2026-10-01 after the not-lose screen passed: 0.520 [0.451, 0.588], 104-96, clock ratio 1.003, 0 fallbacks (abra/regmc 1.67.0 / 1.68.0, docs/_reports/2026-10-01-screens-student-8col.md). Written BEFORE the first SPRT game, committed and pushed, and never revised after one. Read ONCE, at sprt.js's stopping point (a bound, or the game budget), by read.js. Nothing goes onto a ladder arm whatever it reads: that is Will's call.",
+ "written_at_utc": "2026-10-01T19:30Z",
+ "code_base": "main at dc2ed04e (abra/regmc 1.69.0) or later. 1.69.0 is the search-body fix: every search body is built the way the battle's are, and _sp (HP included) is stamped, so this SPRT tests the CORRECTED search on both arms. The screen (1.68.0) ran on the pre-1.69.0 search bodies; the two are not the same environment, which is one more reason this SPRT is the result and the screen only licensed it. 1.69.0 touched solver/ only, not the frozen release.",
+ "engine_release": "df172ccd2aaf",
+ "why_this_release": "The newest release that passed the Reg M-C gate (OPEN 10/10, abra/regmc 1.57.0), and the release the screen played. Both arms play it in one run, so nothing is compared across releases.",
+ "arms": {
+  "x": "solver/porygon2/v3/screen-14s-student.json, name gen5-p2v3s-adaptive-14s: gen5 MAG and DODUO, the v3 student solver/porygon2/v3/model/porygon2-v3-student.json as the leaf, k 4x4, depth 0, 1 reserved switch row, budgetMs 5000 cap, adaptive { targetMs 14000, credit0Ms 4667 }",
+  "y": "solver/results/2026-09-30-human-regularised/screen-14s-off.json, name gen5-adaptive-14s: identical except the leaf is gen5's net solver/machamp/models/gen5/porygon2-gen5.json",
+  "equal_wall_clock": "both arms run ROTOM's adaptive 14 s clock (target 14,000 ms, credit0 4,667 ms); the clock-ratio bar below checks that equal wall-clock held"
+ },
+ "sprt": {
+  "elo0": 0,
+  "elo1": 20,
+  "alpha": 0.05,
+  "beta": 0.05,
+  "max_games": 2000,
+  "unit": "a pair of games on one battle seed with seats swapped (solver/mew/play.js --mode match --cycle), cycling the 100 TEST pairs of the frozen pool, --pair-seed 1 (fixed inside sprt.js)",
+  "statistic": "sprt.js: the normal-approximation GSPRT on pair scores (Fishtest). Accept H1 at LLR >= ln(0.95/0.05) = 2.944; H0 at LLR <= ln(0.05/0.95) = -2.944. The coordinator walks pairs in index order and prints no interim LLR. No bound by 1,000 pairs = INCONCLUSIVE.",
+  "seed": 34101,
+  "seed_note": "NEW: not used by any prior run in CHANGELOG-REGMC.md, solver/results or docs/_reports (checked by grep before this file was written; 31001, 31002, 32001 and 33001 are taken)."
+ },
+ "flags": "--release df172ccd2aaf --x solver/porygon2/v3/screen-14s-student.json --y solver/results/2026-09-30-human-regularised/screen-14s-off.json --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 2000 --seed 34101 --workers 3 --cap 50 --info honest --spreads role-v1 --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --out solver/out/student-sprt/sprt-student-14s.json",
+ "command": "ABRA_REGULATION=regmc; cmd.exe /c tools\\lownode.cmd solver/machamp/sprt.js <flags above> (launched by solver/results/2026-10-01-student-sprt/launch.js, which passes an argument vector to cmd.exe, never a typed string)",
+ "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc (absolute: a worktree has no games.bo3.jsonl)",
+ "workers": "3 (sprt.js refuses more), BelowNormal through tools/lownode.cmd",
+ "bars": {
+  "max_fallback_share": 0.05,
+  "playouts_floor": 636,
+  "max_clock_ratio": 1.10,
+  "max_errored_pair_share": 0.01,
+  "text": "VOID, whatever the LLR, if ANY bar fails. Per arm, from ctr.arms (solver/mew/play.js ARMS) on the LAST COUNTED line of each shard (pi <= the stopping index; each shard's counters are cumulative and a shard plays its pairs in order), summed over shards: (1) prior-fallback share = fallback decisions / non-forced decisions <= 0.05; (2) playouts per searched decision >= 636. Over the counted games: (3) clock ratio = mean decision ms of X / mean of Y (ms_x, ms_y on each counted line) <= 1.10; (4) errored pairs <= 1% of pairs used. (5) Capability: X's leaf served the student, ctr.leaf_by_model['porygon2-v3-student.json'] > 0 with ctr.leaf_own errors 0, and Y's leaf served gen5's net, ctr.leaf_by_model['porygon2-gen5.json'] > 0. (6) The result's spreads.warnings is empty (role-v1 bodies played, no flat fallback). (7) The run was not paused or interrupted: every worker exit is 0 or the coordinator's own kill at the bound, the coordinator ran to its own stop, and NO run_ladder.js or rotom.js process was seen by the guard (guard.js, sampling every 60 s) at any time between launch and stop. A run stopped for the ladder is VOID and is not read for a verdict.",
+  "floor_source": "The 14 s floor is the screen's: 0.5 x 1,272.2, the lower arm of a quiet 20-game gen5-vs-gen5 reference on this release at this clock (solver/results/2026-10-01-screens/ref-14s.result.json, preregistration floors.ref_14s). The screen's arms ran 1,833.9 and 1,938.6. Pre-1.69.0 bodies; the 1.69.0 2 s screen ran 397.8 / 394.8 against 2 s screens of 403.9 / 382.4 before it, so the body fix did not move the cost."
+ },
+ "reported_not_bars": "Per arm: playouts per searched decision, cells, columns, coverage, fallback kinds, decision ms p50 / p99; ctr.form_stats (megas recomputed from _sp, the 1.69.0 receipt); the games played past the stop (reported, not counted); wall time.",
+ "expected_direction": "None stated as a prediction. The screen read 0.520 [0.451, 0.588]; the student played 0.946x gen5's playouts per decision at equal clock. elo1 = 20 is a score of about 0.529.",
+ "machine": "The ladder has priority (Will, 2026-10-01: it runs nonstop in back-to-back batches). The SPRT starts only when the coordinator says the machine is free or no run_ladder.js / rotom.js process has been seen for 30 continuous minutes, and no engine/reparse_store.js is running. If a ladder run starts during the SPRT, guard.js stops this run's own processes by pid (identified by this run's unique out path on their command line) and the run is VOID.",
+ "on_h1": "H1 licenses nothing on the ladder by itself: putting the student on a ladder arm is Will's call.",
+ "read": "node solver/results/2026-10-01-student-sprt/read.js --result solver/out/student-sprt/sprt-student-14s.json --guard solver/out/student-sprt/guard.log --out solver/results/2026-10-01-student-sprt/sprt-student-14s.read.json"
+}
