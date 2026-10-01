@@ -1,0 +1,37 @@
+{
+ "result": "solver\\out\\sprt-pikl-v2\\sprt2-p2v2-vs-gen5.json",
+ "games": 612,
+ "games_without_counter": 0,
+ "x": "solver/porygon2/v2/gen5-p2v2.json",
+ "y": "solver/machamp/league/gen5.json",
+ "arms": {
+  "x": {
+   "actions": 10716,
+   "protects": 1979,
+   "failed": 311,
+   "consec": 396,
+   "consecFailed": 283,
+   "pairs": 4947,
+   "doubles": 249,
+   "share": 0.1847,
+   "fail_rate": 0.1572,
+   "consec_share": 0.2001,
+   "double_share": 0.0503,
+   "consec_fail_rate": 0.7146
+  },
+  "y": {
+   "actions": 10787,
+   "protects": 2027,
+   "failed": 302,
+   "consec": 386,
+   "consecFailed": 283,
+   "pairs": 5022,
+   "doubles": 288,
+   "share": 0.1879,
+   "fail_rate": 0.149,
+   "consec_share": 0.1904,
+   "double_share": 0.0573,
+   "consec_fail_rate": 0.7332
+  }
+ }
+}

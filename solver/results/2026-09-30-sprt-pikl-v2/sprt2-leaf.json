@@ -1,0 +1,20 @@
+{
+ "caption": "summed over each worker last shard line: every game the workers played, incl. games past the stop",
+ "agent_fallbacks": 0,
+ "prior_fallback_decisions": 6,
+ "searched": 11759,
+ "playouts": 2509803,
+ "errored_games": 0,
+ "leaf_by_model": {
+  "porygon2-v2-k1.json": 485334,
+  "porygon2-gen5.json": 1253403
+ },
+ "leaf_own": {
+  "porygon2-v2-k1.json": {
+   "evals": 485334,
+   "errors": 0,
+   "fallbacks": 0
+  }
+ },
+ "v2_to_gen5_leaf_call_ratio": 0.3872130511894419
+}
