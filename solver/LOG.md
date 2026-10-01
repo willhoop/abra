@@ -26,6 +26,15 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 - Compute (§6a): ~45 CPU worker-hours and ~0.25 GPU-hours a generation [EST]; ~15 h a generation on this machine.
   Likely first net (30 generations): $69 on AWS c7a, $75 Hetzner, $13 on one Vast.ai listing, plus $3–10 of GPU, at
   prices fetched 2026-10-01. No code, no games, no spend. `docs/_reports/2026-10-01-plan-revision.md`.
+### DUSK designed, not built: on-the-fly endgame solver, not tables (abra/regmc 1.54.0)
+- Endgames (both sides ≤ 2 alive) are reached in 44.0% of all bo3 games (62.9% of clean, fully revealed ones) and 46.6%
+  of ours; about 2 decisions remain. Material: 2v2 59%, 2v1 38%, 1v1 3%; 2v1 is won by the side ahead 88.8%.
+- Tables cannot pay: a key that fixes the value repeats ≤ 1.0% of the time chronologically (17% for the bare species
+  pair), and a median 7,755 spread worlds are still open at our E2 decisions.
+- Cost to us is small: 35 of 108 losses went through an E2 entered even, but against humans from the same material and HP our
+  conversion is −3.7 wins over 88 [−10.8, +3.6]. The lever is the clock (420 s bank at entry) and the 4×4 menu.
+- Design: backward induction with an LP matrix game per node, chance.js enumeration, double oracle, a certified band.
+  `solver/dusk/DESIGN.md`, `docs/_reports/2026-10-01-dusk-design.md`. Smogon fold-in and the chomptop run are OWED.
 
 ## 2026-09-30
 
