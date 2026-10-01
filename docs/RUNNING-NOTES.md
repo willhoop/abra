@@ -53,6 +53,18 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.55.0] — 2026-10-01 — **v2 at 14 s stops at its screen (0.495, clock ratio 1.104); gen5 still beats the human clone under role-v1 (1 s 0.711, 5 s 0.667, both H1); gen5 vs gen0-r2 is H0 but DEGRADED by a starved search**
+- **What changed.** Four arena runs, pre-registered before the first game (`solver/results/2026-10-01-v2-14s-rolev1/preregistration.json`, `solver/results/2026-10-01-rolev1-baselines/preregistration.json` plus `addendum-r2c.json`). Common settings: release `eaa5becc54eb`, frozen-regmc store, TEST pairs, honest, `--spreads role-v1`, cap 50. The SPRTs used elo0 0, elo1 20, α = β = 0.05, max 2,000. No code changed. This is the NEW arena series (role-v1), not comparable with any pre-1.49.0 figure.
+- **Measured.**
+  - v2 leaf vs gen5, 14 s adaptive, screen (seed 31001): 0.495 [0.426, 0.564]. The clock ratio is 1.104, so the screen is VOID by its rule; the point is < 0.5; the SPRT was not run.
+  - gen5 vs gen0-r2 (seed 9001): H0, 1,098 games, 0.497 [0.468, 0.527]. It is DEGRADED: prior fallback 24.3% and 45.5 playouts a decision, from machine load.
+  - gen5 1 s vs the clone (seed 26001): H1, 90 games, 0.711 [0.610, 0.795].
+  - gen5 5 s vs the clone (seed 26005): H1, 102 games, 0.667 [0.571, 0.751].
+  - Reads: `solver/results/2026-10-01-*/`. Report: `docs/_reports/2026-10-01-v2-14s-and-role-v1-baselines.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing. The xatu-random originals stay true of their own arena.
+- **Owed to the next major.** `docs/MODELS.md`: gen5's role-v1 baselines, each labelled with its spread mode, when the arena figures are first published.
+
 ## [abra/regmc 1.54.0] — 2026-10-01 — **DUSK designed, not built: an on-the-fly endgame solver with a certified band, not tables; endgames are common and cost us little directly**
 - **What changed.** `solver/dusk/DESIGN.md` (the design), four measurement scripts (`measure_endgames.js`, `lib.js`, `measure_ladder.js`, `combine.js`), the Smogon hook `smogon_foldin.js`, the tracked summary `solver/dusk/endgames-summary.json`, and `solver/tests/test-dusk-measure.js` (GREEN 42/42; RED under both `DUSK_BREAK` breaks). The `solver/PLAN.md` DUSK row now says what DUSK is. No engine loaded, no game played.
 - **Measured.** Store-only, every `engine/quality.js` `reasons()` code charged (`endgames-summary.json` `meta`): bo3 26,945 clean games, E2 (both sides ≤ 2 alive) reached 62.9% [62.3, 63.5]; every real game (sensitivity arm, 38,534) 44.0%; bo1 64.3% / 42.4%. About 2 decisions remain (mean 2.19). E2 material: 2v2 59.0%, 2v1 38.1%, 1v1 2.9%; 2v1 won by the side ahead 88.8% [88.0, 89.6]; 2v2 won by the HP leader 64.1%. Chronological table hit rate: species pair 17.0%, + sets 1.0%, + HP quarters 0.8%. Sheet-bound 2v2 joint menu median 6,000 cells. Ours (`meta.ladder`, aa1 + aa2 + gen5ab + chomp1, release `eaa5becc54eb`): E2 in 88 of 189 games; 35 of 108 losses passed through an E2 entered even, none from ahead; conversion vs humans from the same material and HP lead −3.7 wins [−10.8, +3.6] over 88; bank at E2 entry median 419.9 s; XATU worlds at E2 decisions median 7,755. `docs/_reports/2026-10-01-dusk-design.md`.
