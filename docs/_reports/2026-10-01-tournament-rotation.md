@@ -1,4 +1,4 @@
-# Tournament store and tournament rotation — 2026-10-01 (abra/regmc 1.56.0)
+# Tournament store and tournament rotation — 2026-10-01 (abra/regmc 1.61.0)
 
 **SOLVER. Branch `worktree-agent-a6ce4f60d7028c12d`. Nothing was played. Nothing was launched.**
 

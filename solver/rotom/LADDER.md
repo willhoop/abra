@@ -65,7 +65,7 @@ Do not pool its residuals with chomp1's: the rotation is part of the arm (`docs/
 node solver\rotom\run_ladder.js --public --name medicham32 --release eaa5becc54eb --arms solver\rotom\arms\gen5-chomp-top.json --ladder-seed medicham32-chomptop-2026-09-30 --sets 20 --tag chomptop --priority normal --max-hours 4
 ```
 
-The same run on the TOURNAMENT rotation (added 2026-10-01, abra/regmc 1.56.0): five real top-cut teams from the Reg M-C
+The same run on the TOURNAMENT rotation (added 2026-10-01, abra/regmc 1.61.0): five real top-cut teams from the Reg M-C
 tournament store, each with its event, placing and paste URL in every row's `team_meta.source`. Do not pool its residuals
 with chomp1's or chomptop's (`docs/_reports/2026-10-01-tournament-rotation.md`):
 

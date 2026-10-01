@@ -140,7 +140,7 @@ This section says only what a division agent needs before it starts.
     v2 served 485,334 evaluations with 0 errors and 0.39× gen5's leaf calls. This ran outside v2's
     pre-registration (Will).
   - Both used the pre-1.49.0 arena. Neither is on an arm. `docs/_reports/2026-09-30-sprt-pikl-and-v2.md`.
-- **Tournament store and tournament rotation, prepared and not launched (2026-10-01, abra/regmc 1.56.0).**
+- **Tournament store and tournament rotation, prepared and not launched (2026-10-01, abra/regmc 1.61.0).**
   - Store: `data/tournaments/regmc/`, built by `solver/tournaments/ingest.js` (weekly workflow `tournament-ingest.yml`).
     It holds 537 Masters teams from 5 open-team-list events, and 2 Replica pastes. 537 of 539 validate.
   - Rotation: `solver/rotom/teams/ladder-rotation-tour.json`, arm `gen5-chomp-tour.json`. It holds five real

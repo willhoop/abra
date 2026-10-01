@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.56.0] — 2026-10-01
+## [1.61.0] — 2026-10-01
 
 **MINOR: no published figure moves.** It adds a tournament store, its weekly ingest, a fifth ladder rotation built from
 real top-cut teams, and a tournament source in the spread hook. Nothing was played.
