@@ -1,4 +1,4 @@
-# The solver plan revised to Will's 2026-10-01 decisions (abra/regmc 1.51.0; `solver/PLAN.md` 0.3.0)
+# The solver plan revised to Will's 2026-10-01 decisions (abra/regmc 1.53.0; `solver/PLAN.md` 0.3.0)
 
 2026-10-01. SOLVER. Documents only: no code, no games, no spend. Prices were read from the providers' public pages and
 their data endpoints, with no account.

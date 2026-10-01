@@ -8,7 +8,7 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-10-01
 
-### The plan revised to Will's 2026-10-01 decisions (abra/regmc 1.51.0; `solver/PLAN.md` 0.3.0)
+### The plan revised to Will's 2026-10-01 decisions (abra/regmc 1.53.0; `solver/PLAN.md` 0.3.0)
 - One policy+value net (PORYGON2 v3) by self-play, searched several turns deep on MEDICHAM. It subsumes the roles of
   MAG, DODUO, GARY and XATU's action likelihood; MEDICHAM, ROTOM, SLOWKING's solve, DUSK, CHOMP and DITTO stay. The
   pipeline plays until the net wins its SPRT.

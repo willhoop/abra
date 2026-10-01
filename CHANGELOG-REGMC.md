@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.51.0] — 2026-10-01
+## [1.53.0] — 2026-10-01
 
 **MINOR: no published figure moves.** It revises the solver plan to Will's decisions of 2026-10-01. No code, no games,
 no spend.
