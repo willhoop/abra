@@ -38,6 +38,11 @@ const RAWDIR = path.join(ROOT, 'data', 'raw', 'games.' + X.FORMAT);
  * shards are read too, and a bo1 row is kept at read time only when its own infobox makes it that game; every other
  * bo1 row is dropped before it is held in memory and is not counted here (it is not part of this stream). A bo1 room is
  * judged by the behavioural-bot set of the bo1 store it sits in, as loadGames() judges each store. */
+/* 2026-10-01, Will's second decision: this is a TURN-LEVEL dataset (MAG, DODUO, the human prior, GARY, MILTANK's human
+ * KL), so it takes OPEN-SHEET TURN PLAY, engine/quality.js isOpenSheetTurnPlay(): the bo3 format, plus every bo1-format
+ * game in which both sheets were shown (offered and accepted, or forced) under no rule other than a sheet or best-of
+ * rule. Every kept game carries `open_sheet_bo3` (isOpenSheetBo3) so a SERIES-LEVEL reader (CHOMP, XATU's bring model,
+ * the arena's sheet pool, ROTOM's team candidates) keeps only the series games. */
 const BO1_FORMAT = X.SINGLES_FORMAT;               // misnamed in dex.js: the bo1 DOUBLES format id, read from regulations.json
 const RAWDIR_BO1 = path.join(ROOT, 'data', 'raw', 'games.' + BO1_FORMAT);
 const CUSTOM_BOX = /<strong>\s*(\d+)\s+custom rules?:<\/strong>\s*<\/summary>\s*([^<]*)/i;
@@ -82,11 +87,12 @@ function readShards() {
         if (!line.trim()) continue;
         if (bo1) {
           bo1Read++;
-          /* a bo1 row enters this stream only as open-sheet bo3 play; the classifier reads its own infobox */
+          /* a bo1 row enters this stream only as open-sheet turn play; the classifier reads its own infobox and whether
+           * both sheets were shown (both `|showteam|` lines; in the bo1 format they appear only when both accept) */
           const m = CUSTOM_BOX.exec(line);
-          if (!m) continue;
           const id = (/^\{"id":"([^"]+)"/.exec(line) || [])[1];
-          if (!id || !Q.isOpenSheetBo3({ id }, m[2].replace(/\\n/g, ' ').trim())) continue;
+          const sheetsShown = line.includes('|showteam|p1|') && line.includes('|showteam|p2|');
+          if (!id || !Q.isOpenSheetTurnPlay({ id, sheetsShown }, m ? m[2].replace(/\\n/g, ' ').trim() : null)) continue;
           bo1Kept++;
         }
         try { rows.push(Object.assign(JSON.parse(line), { _shard: f, _bo1: bo1 })); n++; }
@@ -167,7 +173,7 @@ function main() {
   const stats = { games_kept: 0, turns: 0, side_turn_decisions: 0, slot_actions: 0, by_kind: {}, hidden_reasons: {}, locked_reasons: {},
     joint_fully_observed: 0, joint_with_hidden: 0, target_uncertain: 0, targeted_moves: 0, mega_actions: 0,
     midturn_switch_choices: 0, midturn_by_reason: {}, forced_replacements: 0, aux_moves: 0, target_filled_from_anim: 0,
-    midturn_switch_unattributed: 0, terminal_turns: 0, rated: 0, unrated: 0, end: {}, with_series: 0,
+    midturn_switch_unattributed: 0, terminal_turns: 0, open_sheet_bo3: 0, open_sheet_turn_play_only: 0, open_sheet_bo3_by_consent: 0, rated: 0, unrated: 0, end: {}, with_series: 0,
     extract_crosscheck: { games: 0, leads_agree: 0, brought_agree: 0, disagree_examples: [] } };
   const accountsKept = new Set();
   for (const r of uniq) {
@@ -175,10 +181,11 @@ function main() {
     const id = r.id;
     const fmtOk = r._bo1 ? id.startsWith(BO1_FORMAT + '-') && (!h.tier || /Reg M-C/.test(h.tier))
                          : id.startsWith(X.FORMAT + '-') && (!h.tier || /Reg M-C \(Bo3\)/.test(h.tier));
-    if (!fmtOk || !Q.isOpenSheetBo3({ id }, h.custom || null)) addEx(id, 'wrong_format', h.tier);
+    const regime = Q.openSheetRegime({ id, sheetsShown: !!(h.sheets.p1 && h.sheets.p2) }, h.custom || null);
+    if (!fmtOk || !regime.turn_play) addEx(id, 'wrong_format', h.tier);
     if (!h.sheets.p1 || !h.sheets.p2) addEx(id, 'no_open_sheet');
-    /* every custom rule set except the open-sheet bo3 one excludes the room (Will, 2026-10-01) */
-    if (h.custom && !Q.customRuleRegime(Q.formatOfId(id), h.custom).open_sheet_bo3) addEx(id, 'custom_rules', h.custom);
+    /* a custom rule other than a sheet or best-of rule excludes the room (Will, 2026-10-01) */
+    if (h.custom && !Q.sheetRulesOnly(regime)) addEx(id, 'custom_rules', h.custom);
     const names = [h.p1, h.p2].filter(Boolean);
     if (names.some(isOwn)) addEx(id, 'own_account', names.filter(isOwn).join(','));
     let ex = null;
@@ -215,6 +222,11 @@ function main() {
 
     // ---- kept
     const { game: g, turns, counts } = parsed;
+    /* the series answer, for series-level readers (see BO1_FORMAT above) */
+    g.open_sheet_bo3 = regime.bo3;
+    g.open_sheet_bo3_by_consent = regime.bo3_by_consent;
+    regime.bo3 ? stats.open_sheet_bo3++ : stats.open_sheet_turn_play_only++;
+    if (regime.bo3_by_consent) stats.open_sheet_bo3_by_consent++;
     stats.games_kept++; stats.turns += turns.length;
     stats.aux_moves += counts.aux_moves; stats.target_filled_from_anim += counts.target_filled_from_anim;
     stats.midturn_switch_unattributed += counts.midturn_switch_unattributed;
@@ -274,7 +286,8 @@ function main() {
     format: X.FORMAT,
     source: { kind: 'raw-log shards (tracked, written by the next-regulation collector)', dir: rel(RAWDIR), dir_bo1: rel(RAWDIR_BO1), shards: inputs.length,
               rows: allRows.length, rows_used: rows.length, limit: LIMIT || null, bo1_stream: bo1Stream, inputs },
-    open_sheet_bo3: 'engine/quality.js isOpenSheetBo3(): the bo3 format plus bo1-format rooms under exactly Force Open Team Sheets + Best of = 3 (Will, 2026-10-01)',
+    open_sheet_bo3: 'engine/quality.js isOpenSheetBo3(), carried per game as game.open_sheet_bo3: the bo3 format, bo1-format rooms under exactly Force Open Team Sheets + Best of = 3, and bo1-format Best of = 3 rooms where both players accepted the sheets (Will, 2026-10-01)',
+    open_sheet_turn_play: 'engine/quality.js isOpenSheetTurnPlay(), the admission rule of this dataset: open-sheet bo3 plus every bo1-format game with both sheets shown under no rule other than a sheet or best-of rule (Will, 2026-10-01). Series-level readers keep game.open_sheet_bo3 only.',
     showdown: { path: X.SHOWDOWN_PATH, head_commit: X.checkoutCommit(), pinned_commit_in_regulations_json: X.PINNED_COMMIT },
     filters: {
       order: REASON_ORDER,

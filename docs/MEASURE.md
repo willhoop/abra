@@ -42,6 +42,20 @@ _stamped 2026-10-01 06:14_
 
 <!-- /GENERATED -->
 
+## TURN PLAY AND SERIES PLAY ARE TWO OPEN-SHEET ANSWERS; A CONSENT BEST-OF-3 ROOM IS BO3. 2026-10-01 (abra/regmc 1.66.0)
+
+Will's two decisions after 1.64.0.
+
+- **`isOpenSheetTurnPlay(g)`** (turn-level models) and **`isOpenSheetBo3(g)`** (series-level uses), one classifier
+  (`openSheetRegime()`), from the rule text and the game's stored sheets. The bo1 game with both sheets shown is turn
+  play; the bo1 `Best of = 3` room with both sheets shown is bo3 by consent.
+- **The custom-rule charge asks the game**: a sheet-rules-only room is out only when its sheets were not shown. JS and
+  Python charge the same games on both Reg M-C stores.
+- Clean open-sheet games rated 1500+: turn-level 0 → 14; series still 0.
+
+Counts by band and the consumer routing: `docs/_reports/2026-10-01-open-sheet-turn-play.md`. **Owed:** SOLVER rebuilds
+its datasets on main; `status.js --write` from main.
+
 ## THE STORE'S `sets` CREDITED SET FACTS TO THE WRONG POKEMON BY NINE CAUSES. THE EXTRACTOR IS FIXED; THE RE-PARSE IS OWED. 2026-10-01 (abra/regmc 1.63.0)
 
 - **The check.** `engine/store_sets_check.js` compares the stored `sets`, and a fresh `extract()` of the same raw log,

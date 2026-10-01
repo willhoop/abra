@@ -138,7 +138,7 @@ function scan(file) {
   const chunk = Buffer.alloc(1 << 22);
   let buf = '', pos = 0, scanned = 0;
   const eligible = [];
-  const skipped = { bring_incomplete: 0, custom_rules: 0, sheet_not_six: 0, unbuildable: 0 };
+  const skipped = { bring_incomplete: 0, not_open_sheet_bo3: 0, custom_rules: 0, sheet_not_six: 0, unbuildable: 0 };
   try {
     for (;;) {
       const k = fs.readSync(fd, chunk, 0, chunk.length, pos);
@@ -153,6 +153,9 @@ function scan(file) {
         const cut = line.indexOf(',"turns":');
         const g = JSON.parse(cut > 0 ? line.slice(0, cut) + '}' : line).game;
         if (!g.bring_complete || !g.bring_complete.p1 || !g.bring_complete.p2) { skipped.bring_incomplete++; continue; }
+        /* the sheet pool is series play: the human dataset's bo1 turn-play games (open_sheet_bo3 false, Will 2026-10-01)
+         * are not in it, so the pool is the one it was before they were admitted */
+        if (g.open_sheet_bo3 === false) { skipped.not_open_sheet_bo3++; continue; }
         if (g.custom_rules) { skipped.custom_rules++; continue; }
         if ((g.sheets.p1 || []).length !== 6 || (g.sheets.p2 || []).length !== 6) { skipped.sheet_not_six++; continue; }
         const brought = {};

@@ -54,7 +54,11 @@ if (seen) {
   ok(!C.ids.has(seen[0]), `scanned room ${seen[0]} is not excluded as a custom ruleset`);
 }
 const excludedBo1 = [...(C.rules_of || new Map())].find(([id, t]) => Q.formatOfId(id) === BO1 && R(BO1, t).verdict === 'not_open_sheet');
-if (excludedBo1) ok(C.ids.has(excludedBo1[0]) && !Q.isOpenSheetBo3({ id: excludedBo1[0] }), `scanned room ${excludedBo1[0]} (${excludedBo1[1]}) is excluded`);
+/* 2026-10-01, Will's second decision: a sheets-offered room is no longer excluded by its text. It is decided by its
+ * sheets (tests/test-open-sheet-turn-play.js); with no sheets shown it is neither class and is charged custom_ruleset. */
+if (excludedBo1) ok(C.conditional.has(excludedBo1[0]) && !Q.isOpenSheetBo3({ id: excludedBo1[0], sheets: null })
+  && Q.reasons({ id: excludedBo1[0], sheets: null, p1: {}, p2: {}, turns: [], brought: {} }, Q.config(), null).includes('custom_ruleset'),
+  `scanned room ${excludedBo1[0]} (${excludedBo1[1]}) with no sheets shown is excluded`);
 
 /* own accounts: declared in the config, read by reasons() */
 const own = Object.keys(((Q.config().rules || {}).exclude_own_accounts || {}).accounts || {});

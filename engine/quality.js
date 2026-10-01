@@ -386,12 +386,19 @@ function customRuleset() {
    * written by the same function; if the two disagree the artifact is older than the classifier, and the
    * read-time answer wins and is reported. */
   out.allowed = new Set();             // custom-rule rooms that ARE open-sheet bo3 play
+  /* 2026-10-01 (Will, second decision): a room whose rules touch ONLY the sheets and the series length (`Force Open
+   * Team Sheets` alone, `Best of = 3` alone, ...) is not excluded by its rule text. Whether it is our game depends on the
+   * game itself: if both sheets were shown it is open-sheet TURN play (and, at best of three, open-sheet bo3 by consent);
+   * if not, it is closed-sheet play under a custom rule and stays out. reasons() asks the game. */
+  out.conditional = new Set();         // custom-rule rooms decided by whether the game showed both sheets
   out.rules_of = new Map();            // id -> rule text, every detected room of a per-regulation scan
   out.by_rule = new Map();             // rule text + format -> { rows, verdict }
   out.verdicts = siblingVerdicts('custom-ruleset-ids', v).map(s => {
     const strings = (s.v.rule_strings || []).map(r => r.rules);
-    let excluded = 0, allowed = 0, disagree = 0;
-    const maps = [s.v.ids, s.v.ids_open_sheet_bo3, s.v.ids_information_regime_not_excluded];
+    let excluded = 0, allowed = 0, conditional = 0, disagree = 0;
+    const maps = [s.v.ids, s.v.ids_open_sheet_bo3, s.v.ids_sheet_rules_only, s.v.ids_information_regime_not_excluded];
+    /* where the scan SHOULD have put each class; an older scan put the sheet-rules-only rooms in `ids` */
+    const expect = { bo3: s.v.ids_open_sheet_bo3, cond: s.v.ids_sheet_rules_only, out: s.v.ids };
     for (const m of maps) for (const [id, ix] of Object.entries(m || {})) {
       const text = strings[ix];
       if (text == null) { out.ids.add(id); excluded++; continue; }   // unreadable index: exclude, never admit
@@ -400,14 +407,17 @@ function customRuleset() {
       const key = formatOfId(id) + '\u0000' + text;
       const b = out.by_rule.get(key) || { format: formatOfId(id), rules: text, rows: 0, verdict: reg.verdict };
       b.rows++; out.by_rule.set(key, b);
-      if (reg.open_sheet_bo3) { out.allowed.add(id); allowed++; if (m === s.v.ids) disagree++; }
-      else { out.ids.add(id); excluded++; if (m !== s.v.ids) disagree++; }
+      const cls = reg.open_sheet_bo3 ? 'bo3' : sheetRulesOnly(reg) ? 'cond' : 'out';
+      if (m !== expect[cls]) disagree++;
+      if (cls === 'bo3') { out.allowed.add(id); allowed++; }
+      else if (cls === 'cond') { out.conditional.add(id); conditional++; }
+      else { out.ids.add(id); excluded++; }
     }
     if (disagree) console.error(`quality: ${s.rel} splits ${disagree} room(s) differently from customRuleRegime(); `
       + `the read-time classification is used. Re-run: node engine/scan_custom_rulesets.js --regulation ${s.v.regulation}`);
     const sc = s.v.counts || {}, su = s.v.untestable || {};
     return { source: s.rel, regulation: s.v.regulation, generated: s.v.generated || null,
-             ids: excluded, allowed_open_sheet_bo3: allowed, split_disagreements: disagree,
+             ids: excluded, allowed_open_sheet_bo3: allowed, sheet_rules_only: conditional, split_disagreements: disagree,
              raw_logs_scanned: sc.raw_logs_scanned || 0,
              untestable: su.store_ids_with_no_raw_log || 0, untestable_share: su.share || 0 };
   });
@@ -479,13 +489,48 @@ function customRuleRegime(format, rulesText) {
 /** The custom-rule text a game was played under, or null when its raw log carried no infobox (or was
  *  never scanned: see customRuleset().untestable). */
 function customRulesOf(id) { const C = customRuleset(); return C.rules_of ? (C.rules_of.get(id) || null) : null; }
-/** IS THIS GAME OPEN-SHEET BO3 PLAY? Every consumer that builds an open-sheet dataset calls this.
- *  `rulesText` may be passed by a caller holding the raw log; otherwise the scan's text is used. */
-function isOpenSheetBo3(g, rulesText) {
+/** Rules that touch only the sheets and the series length: no clause, ban, mod or timer. */
+function sheetRulesOnly(reg) { return !!reg && reg.verdict !== 'unknown_format' && !(reg.other || []).length; }
+/** Did BOTH players' sheets appear in the game? Store rows carry `sheets.{p1,p2}` (the `|showteam|` lines); a caller
+ *  holding only a raw log passes `sheetsShown: true|false` instead. In the bo1 format the sheets are OFFERED and appear
+ *  only when both players accept, so this is the stored record of "both players accepted open team sheets". */
+function bothSheetsShown(g) {
+  if (!g) return false;
+  if (typeof g.sheetsShown === 'boolean') return g.sheetsShown;
+  const s = g.sheets;
+  return !!(s && Array.isArray(s.p1) && Array.isArray(s.p2) && s.p1.length && s.p2.length);
+}
+/* ============================================================================================
+ * TWO ANSWERS, ONE CLASSIFIER. Will, 2026-10-01 (second pair of decisions, after abra/regmc 1.64.0).
+ *
+ *   isOpenSheetTurnPlay(g)  WITHIN-GAME play with both sheets visible. For TURN-LEVEL models: value nets, human
+ *                           move/policy/habit models, PORYGON2 datasets, DODUO, GARY. Admits the bo3 format, and any
+ *                           bo1-format game in which both sheets were shown, whether offered and accepted or forced,
+ *                           whatever the series length, provided no rule other than a sheet or best-of rule applies.
+ *   isOpenSheetBo3(g)       SERIES play with both sheets visible. For SERIES-LEVEL uses: bo3 preview and series
+ *                           adaptation, CHOMP's bo3 rates, rotation selection by series. Admits the bo3 format, the
+ *                           bo1 room under exactly Force Open Team Sheets + Best of = 3 (1.64.0), and the bo1 room set
+ *                           to Best of = 3 in which both players ACCEPTED the offered sheets (open-sheet bo3 by consent).
+ *
+ * isOpenSheetBo3(g) implies isOpenSheetTurnPlay(g). Both are derived from the room's rule text and the stored sheets,
+ * never from an id list. A caller holding only an id and no sheets gets the rule-text answer: a consent room needs the
+ * sheets to be admitted, so pass `sheets` or `sheetsShown`.
+ * ============================================================================================ */
+function openSheetRegime(g, rulesText) {
   const id = g && g.id;
   const text = rulesText !== undefined ? rulesText : customRulesOf(id);
-  return customRuleRegime(formatOfId(id), text).open_sheet_bo3;
+  const reg = customRuleRegime(formatOfId(id), text);
+  const shown = bothSheetsShown(g);
+  const seen = sheetRulesOnly(reg) && (reg.force_open_sheets || (reg.offer_open_sheets && shown));
+  const bo3 = reg.open_sheet_bo3 || (seen && reg.best_of === 3);
+  return Object.assign({}, reg, { sheets_shown: shown, turn_play: !!(seen || bo3), bo3: !!bo3,
+                                  bo3_by_consent: !!(bo3 && !reg.open_sheet_bo3) });
 }
+/** IS THIS GAME OPEN-SHEET BO3 (SERIES) PLAY? `rulesText` may be passed by a caller holding the raw log; otherwise
+ *  the scan's text is used. */
+function isOpenSheetBo3(g, rulesText) { return openSheetRegime(g, rulesText).bo3; }
+/** IS THIS GAME OPEN-SHEET TURN PLAY? The superset of isOpenSheetBo3 for turn-level models. */
+function isOpenSheetTurnPlay(g, rulesText) { return openSheetRegime(g, rulesText).turn_play; }
 
 /* OUR OWN ACCOUNTS — a fact about us, declared once in data/quality-filter.json
  * (rules.exclude_own_accounts.accounts), never typed into a consumer. Matched on Showdown's user id
@@ -569,7 +614,11 @@ function reasons(g, cfg, bots) {
   /* DETECTED, NOT DECLARED — see customRuleset() above. Showdown's own custom-rule infobox, read out
    * of the raw log by engine/scan_custom_rulesets.js. */
   const cr = r.exclude_custom_ruleset;
-  if (cr && cr.on && customRuleset().ids.has(g.id)) bad.push('custom_ruleset');
+  if (cr && cr.on) {
+    const C = customRuleset();
+    /* a sheet-rules-only room is out only when the game did not show both sheets (Will, 2026-10-01) */
+    if (C.ids.has(g.id) || (C.conditional && C.conditional.has(g.id) && !bothSheetsShown(g))) bad.push('custom_ruleset');
+  }
   /* DECLARED — our own accounts (rules.exclude_own_accounts). A game we played is not evidence about
    * human play, whatever the bot-name pattern and the behavioural rule say about the account. */
   const oa = r.exclude_own_accounts;
@@ -694,6 +743,7 @@ function funnel(p) {
     ids: CR.ids.size, raw_logs_scanned: CR.raw_logs_scanned, alter_legality: CR.alter_legality,
     untestable: CR.untestable, untestable_share: CR.untestable_share, verdicts: CR.verdicts || [],
     allowed_open_sheet_bo3: CR.allowed ? CR.allowed.size : 0,
+    sheet_rules_only: CR.conditional ? CR.conditional.size : 0,
     removed_from_clean: all.filter(rs => rs.length === 1 && rs[0] === 'custom_ruleset').length,
     flagged_anywhere: all.filter(rs => rs.includes('custom_ruleset')).length,
   };
@@ -707,7 +757,8 @@ function funnel(p) {
 }
 
 module.exports = { config, storePath, readStore, reasons, isClean, loadGames, funnel, behaviouralBots, illegalTeams,
-                   customRuleset, customRuleRegime, customRulesOf, isOpenSheetBo3, formatOfId, formatBases,
+                   customRuleset, customRuleRegime, customRulesOf, isOpenSheetBo3, isOpenSheetTurnPlay, openSheetRegime,
+                   bothSheetsShown, sheetRulesOnly, formatOfId, formatBases,
                    ownAccounts, isOwnAccount, toID, FUNNEL_STEPS, STORE, CONFIG, VALIDATION, CUSTOM_RULESET };
 
 if (require.main === module) {

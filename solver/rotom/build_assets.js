@@ -103,7 +103,9 @@ async function main() {
       }
       /* team candidate */
       const pl = g.players && g.players[side];
-      if (g.bring_complete && g.bring_complete[side] && (g.sheets[side] || []).length === 6 && pl && pl.rating && g.leads && g.leads[side] && g.leads[side].length === 2) {
+      /* a ladder team candidate is series play: open-sheet bo3 only (Will, 2026-10-01); the clock table above is
+       * within-game and counts every game of the human dataset */
+      if (g.open_sheet_bo3 !== false && g.bring_complete && g.bring_complete[side] && (g.sheets[side] || []).length === 6 && pl && pl.rating && g.leads && g.leads[side] && g.leads[side].length === 2) {
         const leads = g.leads[side];
         const bring = leads.concat((g.brought_seen[side] || []).filter(i => !leads.includes(i)));
         if (bring.length === 4) cands.push({ rating: pl.rating, player: toID(pl.name), game: g.id, date: g.date, sheet: g.sheets[side], bring });

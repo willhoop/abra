@@ -35,6 +35,9 @@ async function extract(humanDir) {
   for await (const line of rl) {
     if (!line) continue;
     const { game: G, turns } = JSON.parse(line);
+    /* the bring is a PREVIEW decision, a series-level use: open-sheet bo3 only (Will, 2026-10-01). The human dataset's
+     * bo1 turn-play games carry open_sheet_bo3 false; a dataset built before the flag holds none. */
+    if (G.open_sheet_bo3 === false) continue;
     const seenAt = { p1: Array(6).fill(null), p2: Array(6).fill(null) };
     for (const t of turns) for (const s of ['p1', 'p2']) for (const m of t.state.sides[s].mons) if (m.seen && seenAt[s][m.i] == null) seenAt[s][m.i] = t.n;
     const after = (turns.length ? turns[turns.length - 1].n : 0) + 1;

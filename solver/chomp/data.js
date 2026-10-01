@@ -41,7 +41,7 @@ function headers(file) {
   const hash = crypto.createHash('sha256');
   let buf = '', pos = 0, scanned = 0;
   const games = [];
-  const skipped = { custom_rules: 0, sheet_not_six: 0, no_leads: 0 };
+  const skipped = { not_open_sheet_bo3: 0, custom_rules: 0, sheet_not_six: 0, no_leads: 0 };
   try {
     for (;;) {
       const k = fs.readSync(fd, chunk, 0, chunk.length, pos);
@@ -55,7 +55,10 @@ function headers(file) {
         scanned++;
         const cut = line.indexOf(',"turns":');
         const g = JSON.parse(cut > 0 ? line.slice(0, cut) + '}' : line).game;
-        if (g.custom_rules && !Q.customRuleRegime(Q.formatOfId(g.id), g.custom_rules).open_sheet_bo3) { skipped.custom_rules++; continue; }
+        /* SERIES-LEVEL: CHOMP is the bo3 preview solver, so it keeps open-sheet bo3 only (Will, 2026-10-01). The human
+         * dataset also holds bo1 turn play, flagged open_sheet_bo3 false; a dataset built before the flag holds none. */
+        if (g.open_sheet_bo3 === false) { skipped.not_open_sheet_bo3++; continue; }
+        if (g.custom_rules && !Q.isOpenSheetBo3(g, g.custom_rules)) { skipped.custom_rules++; continue; }
         if ((g.sheets.p1 || []).length !== 6 || (g.sheets.p2 || []).length !== 6) { skipped.sheet_not_six++; continue; }
         if (!g.leads || (g.leads.p1 || []).length !== 2 || (g.leads.p2 || []).length !== 2) { skipped.no_leads++; continue; }
         const option = {}, split = {}, players = {};
