@@ -21,6 +21,29 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.51.0] — 2026-10-01
+
+**MINOR: no published figure moves.** A design and its measurements; nothing is built and no game was played.
+
+### Added
+- **DUSK, designed (`solver/dusk/DESIGN.md`).** The endgame solver is on-the-fly with a per-game memo, not a table: a
+  depth-limited simultaneous-move backward induction with an LP matrix game at each node, chance from
+  `solver/miltank/chance.js`, double oracle for the 2v2 menu, and a certified P(win) band (leaves refilled with 0 and
+  1). Handoff at E2 (both sides ≤ 2 alive); verification ladder V-D1 to V-D5; the must-beat SPRT drafted, not run.
+- `solver/dusk/measure_endgames.js` + `lib.js`: Reg M-C endgames from the bo3 and bo1 stores (store-only;
+  `engine/quality.js` `reasons()`; `--keep-game-shape` sensitivity arm).
+- `solver/dusk/measure_ladder.js`: medicham32's ladder games through an endgame (read-only over `solver/out/rotom`).
+- `solver/dusk/combine.js` → `solver/dusk/endgames-summary.json` (tracked, ~150 KB), with the conversion-vs-humans test.
+- `solver/dusk/smogon_foldin.js`: the Smogon hook (spread concentration for the endgame species); prints NOT PUBLISHED
+  until the September Reg M-C files exist.
+- `solver/tests/test-dusk-measure.js`: GREEN 42/42; RED under `DUSK_BREAK=alive` and `DUSK_BREAK=colour`.
+
+### Notes
+- E2 is reached in 44.0% of all bo3 games, 62.9% of clean fully revealed ones (26,945), and 46.6% of ours (88 of 189).
+  A table key that fixes the value repeats ≤ 1.0% of the time (chronological split); the species pair repeats 17%.
+- Our endgame conversion against humans from the same material and HP lead: −3.7 wins over 88 E2 games, 95% CI
+  [−10.8, +3.6]. The `chomptop` run was live and is excluded. Details: `docs/_reports/2026-10-01-dusk-design.md`.
+
 ## [1.50.0] — 2026-09-30
 
 **MINOR: no published figure moves.** It adds two SPRT results and a per-model leaf counter.
