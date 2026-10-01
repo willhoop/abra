@@ -115,7 +115,8 @@ async function run(o) {
   const PV = (o.previewX || o.previewY) ? require('../chomp/arms.js').create({ API, cacheDir: PLAN ? path.dirname(o.plan) : null, human: o.human || (PLAN && PLAN.dataset.file) }) : null;
   if (L.refused) throw new Error(L.refused);
   if (L.games.length < N / 2) throw new Error('only ' + L.games.length + ' buildable team pairs');
-  const pool = o.workers > 0 && (o.x === 'miltank' || o.y === 'miltank') ? await require('../miltank/pool.js').create({ workers: o.workers }) : null;
+  /* the workers build their fresh bodies the way R above does (MILTANK_BODIES, read by solver/miltank/pool_worker.js) */
+  const pool = o.workers > 0 && (o.x === 'miltank' || o.y === 'miltank') ? await require('../miltank/pool.js').create({ workers: o.workers, env: { MILTANK_BODIES: 'truth:' + SPREADS } }) : null;
   const B = makeBots(API, { prior: PA, miltank: MT });
   const mk = (name, seed, extra) => name === 'random' ? B.random(seed) : name === 'prior' ? B.prior()
     : name === 'doduo' ? B.greedy('doduo', PA_DODUO()) : name === 'mag' ? B.greedy('mag', PA_MAG())

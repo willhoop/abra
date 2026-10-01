@@ -88,8 +88,18 @@ function create(API, opts) {
     for (const m of [...S.sfA.team, ...S.sfB.team]) if (m) { m.tookProtectTurns = 0; m._stallFresh = false; }
     COUNTERS.stallDropped = (COUNTERS.stallDropped || 0) + 1;
   }
+  /* spec.bodies === 'pre-1.69' (abra/regmc 1.69.0, the not-lose screen's Y arm; docs/_reports/2026-10-01-rollout-body-spreads.md):
+   * the honest searcher as it was before its bodies carried their Stat Points. Since 1.69.0 every body the honest search
+   * plays — its own (the true battle's, cloned into the view), and every opponent body the view and each world lay from
+   * the public line or XATU's belief — carries `_sp` (HP included), so a mega or forme change inside a playout recomputes
+   * the line from the set. This arm deletes `_sp` from the view and from every world it draws, so a playout's mega takes
+   * the engine's delta path again. The stat lines themselves are the same in both arms: under honest information every
+   * opponent body is re-laid by the belief, and the decider's own are the true battle's. Only on the honest view. */
+  const PRE169 = { views: 0, worlds: 0, bodies: 0 };
+  function stripSp(S) { for (const m of [...S.sfA.team, ...S.sfB.team]) if (m && m._sp) { delete m._sp; PRE169.bodies++; } }
   function load(spec) {
     if (!spec || !spec.name || !spec.kind) throw new Error('mew/agent: a spec needs name and kind');
+    if (spec.bodies != null && spec.bodies !== 'pre-1.69') throw new Error('mew/agent: spec.bodies must be pre-1.69 or absent, not ' + spec.bodies);
     const key = JSON.stringify(spec);
     if (LOADED.has(key)) return LOADED.get(key);
     const prior = MAGI.load({ mag: abs(spec.mag), doduo: abs(spec.doduo) });
@@ -135,6 +145,10 @@ function create(API, opts) {
       return { name: spec.name, kind: 'miltank', PA, MT, choose(S, side, ctx, hb) {
         COUNTERS.decisions++;
         if (spec.view_drops_stall) dropStall(S, hb);
+        if (spec.bodies === 'pre-1.69') {
+          if (!hb) throw new Error('mew/agent: bodies pre-1.69 needs the honest view (--info honest); it would edit the true battle');
+          stripSp(S); PRE169.views++; COUNTERS.pre169 = PRE169;
+        }
         const tIn = Date.now();
         let oo = o, rec = null;
         if (AD) {
@@ -145,7 +159,9 @@ function create(API, opts) {
           rec.plan = pl;
         }
         try {
-          const r = (hb ? MTmod.create(API, { prior: PA, rollout: XW.rollout(hb) }) : MT).decide(S, side, ctx, oo);
+          let RH = hb ? XW.rollout(hb) : null;
+          if (RH && spec.bodies === 'pre-1.69') { const R0 = RH; RH = Object.assign({}, R0, { sampleWorld(...a) { const W = R0.sampleWorld(...a); stripSp(W); PRE169.worlds++; return W; } }); }
+          const r = (hb ? MTmod.create(API, { prior: PA, rollout: RH }) : MT).decide(S, side, ctx, oo);
           if (hb) COUNTERS.honest = (COUNTERS.honest || 0) + 1;
           if (r.info && r.info.forced) COUNTERS.forced++; else COUNTERS.searched++;
           if (AD) {

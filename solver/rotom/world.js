@@ -10,6 +10,8 @@
  *     oppGuess sheet indices to fill the opponent's unrevealed back line (XATU's MAP back pair), or null
  *     lines    the room's public protocol lines so far (ROTOM's B.lines), for the consecutive-Protect counter; absent =
  *              no counter laid, and COUNTERS.stallNoLines says so
+ *     myPacked OUR team as we sent it (/utm: Showdown's packed format, Stat Points included), for our bodies' spreads;
+ *              absent = our bodies carry the request's line without the spread behind it (COUNTERS.mineNoSpread)
  *   -> { S, side: 'A'|'B', ctx, posOfTeam(teamIdx) -> request position (1-based), notes: [...] }
  *
  * THE SOLVER'S OWN WORLD BUILDERS. Bodies come from solver/arena/teams.js `buildBody` (the arena's builder: the
@@ -31,6 +33,13 @@
  *   the consecutive-Protect counter (2026-09-26, docs/_reports/2026-09-26-protect-overuse.md): with `lines` (the room's
  *          public protocol so far) every body's `tookProtectTurns` is laid from the log — see stallStreaks below. Before
  *          this the world carried none, so a SECOND Protect looked as safe as the first to every playout.
+ *   THE BODIES' SPREADS (abra/regmc 1.69.0, docs/_reports/2026-10-01-rollout-body-spreads.md). Mine: the spread we SENT
+ *          (myPacked), laid by solver/xatu/worlds.js applySpread — the line the arena fields, `_nature` and `_sp` (HP
+ *          included) stamped so a mega or a forme change in a playout recomputes the line as Showdown does — and then
+ *          CHECKED against the request's exact line: equal -> kept (mineSpreadMatched); unequal -> `_sp` dropped and
+ *          counted (mineSpreadMismatch), the request's line still laid. Theirs: PUBLIC (zero SP under the sheet's
+ *          nature; solver/arena/teams.js bodyBuilder view 'public'): an open sheet does not carry the opponent's spread,
+ *          so no body here pretends to know it; a policy with XATU's spread belief re-spreads every world.
  *   NOT laid on: PP, sleep/toxic counters, the other volatiles (Substitute, Taunt, Encore, confusion, Leech Seed, Perish),
  *          Choice locks on the opponent, stat-changing items already used, turns-out beyond "came in this turn".
  *   The request, not this world, decides legality; a world gap can make the SEARCH worse, never a choice invalid.
@@ -39,6 +48,7 @@
 const X = require('../human/dex.js');
 const T = require('../arena/teams.js');
 const WL = require('./world_log.js');
+const SPR = require('./spreads.js');
 const toID = X.toID;
 
 const WEATHER_OF = { raindance: 'rain', sunnyday: 'sun', sandstorm: 'sand', snowscape: 'snow', snow: 'snow', hail: 'snow' };   // vocabulary (prior_adapter.js WEATHER, inverted)
@@ -137,7 +147,23 @@ function stallStreaks(lines, sheets) {
 function create(API) {
   const M = API.M;
   const COUNTERS = { built: 0, failed: 0, megaApplied: 0, megaFailed: 0, mineUnmatched: 0, oppGuessUsed: 0, oppFilledBlind: 0,
-                     stallLaid: 0, stallNoLines: 0 };
+                     stallLaid: 0, stallNoLines: 0, mineSpreadMatched: 0, mineSpreadMismatch: 0, mineNoSpread: 0, theirsPublic: 0 };
+  /* the one stat-line function (solver/xatu/worlds.js applySpread) and the one fresh-body builder (public view) */
+  const XWS = require('../xatu/worlds.js').create(API, { R: null });
+  let PUB = null;
+  const publicBody = row => { PUB = PUB || T.bodyBuilder(M, { view: 'public' }); return PUB(M, row); };
+  /* our packed team -> setKey -> Stat Points (cached on the packed string) */
+  let packedKey = null, packedMap = null;
+  function ourSpreads(packed) {
+    if (!packed) return null;
+    if (packed !== packedKey) {
+      const { Teams } = require(require('path').join(X.SHOWDOWN_PATH, 'dist', 'sim'));
+      packedMap = new Map();
+      for (const s of Teams.unpack(packed) || []) packedMap.set(SPR.setKey(s), s.evs || null);
+      packedKey = packed;
+    }
+    return packedMap;
+  }
 
   Object.assign(COUNTERS, { perishLaid: 0, volLaid: 0, subLaid: 0, seedLaid: 0, confusionLaid: 0, trapLaid: 0, yawnLaid: 0,
                             slpLaid: 0, toxLaid: 0, lockLaid: 0, abilityLaid: 0, hazardLaid: 0, fieldLaid: 0, fieldFromLog: 0,
@@ -282,6 +308,7 @@ function create(API) {
 
     /* ---- my four, in request order (actives first) ---- */
     const reqMons = (req.side && req.side.pokemon) || [];
+    const mySp = ourSpreads(o.myPacked);
     const mine = [];
     for (let j = 0; j < reqMons.length; j++) {
       const s = mySheetIndex(sheets[me], reqMons[j]);
@@ -289,6 +316,8 @@ function create(API) {
       const b = T.buildBody(M, sheets[me][s]);
       if (!b) throw new Error('world: could not build my ' + sheets[me][s].species);
       b._solverSheet = s;
+      const ev = mySp ? mySp.get(SPR.setKey(sheets[me][s])) : null;
+      if (ev) XWS.applySpread(b, ev, sheets[me][s]);
       mine.push({ b, p: reqMons[j], s });
     }
 
@@ -314,7 +343,7 @@ function create(API) {
     const guess = (o.oppGuess || []).filter(i => !order.includes(i));
     for (const i of guess) if (order.length < 4) { order.push(i); COUNTERS.oppGuessUsed++; }
     for (let i = 0; order.length < 4 && i < 6; i++) if (!order.includes(i)) { order.push(i); COUNTERS.oppFilledBlind++; }
-    const theirs = order.slice(0, 4).map(s => { const b = T.buildBody(M, sheets[opp][s]); if (!b) throw new Error('world: could not build their ' + sheets[opp][s].species); b._solverSheet = s; return { b, s, pub: os.mons[s] }; });
+    const theirs = order.slice(0, 4).map(s => { const b = publicBody(sheets[opp][s]); if (!b) throw new Error('world: could not build their ' + sheets[opp][s].species); b._solverSheet = s; COUNTERS.theirsPublic++; return { b, s, pub: os.mons[s] }; });
 
     const teamMe = mine.map(x => x.b), teamOp = theirs.map(x => x.b);
     /* an active slot the opponent has not refilled keeps its fainted body, so the slots stay aligned */
@@ -334,6 +363,15 @@ function create(API) {
       const m = x.b, p = x.p, c = parseCond(p.condition);
       if (p.stats) m.st = { hp: c.max || m.st.hp, at: p.stats.atk, df: p.stats.def, sa: p.stats.spa, sd: p.stats.spd, sp: p.stats.spe };
       else if (c.max) m.st = Object.assign({}, m.st, { hp: c.max });
+      /* the spread we sent must reproduce the line the server reports, at the body's CURRENT forme, or it is not kept */
+      if (m._sp) {
+        const probe = { name: m.name, st: null, curHP: 1 };
+        const ev = mySp.get(SPR.setKey(sheets[me][x.s]));
+        XWS.applySpread(probe, ev, sheets[me][x.s]);
+        const same = probe.st && ['hp', 'at', 'df', 'sa', 'sd', 'sp'].every(k => probe.st[k] === m.st[k]);
+        if (same) COUNTERS.mineSpreadMatched++;
+        else { delete m._sp; COUNTERS.mineSpreadMismatch++; }
+      } else COUNTERS.mineNoSpread++;
       if (c.fnt) { m.curHP = 0; m.fainted = true; } else m.curHP = Math.max(1, Math.min(m.st.hp, c.hp));
       m.status = c.status || '';
       if (m.status === 'slp') m.slp = m.slp || 1;
@@ -507,7 +545,9 @@ function create(API) {
     return { S, side, ctx, posOfTeam, posOfSheet, mine, theirs, notes };
   }
 
-  return { COUNTERS, build, duration, parseCond };
+  /* the Stat Points our packed team gives one sheet row (what build lays on my body), or null */
+  const ourSpreadOf = (packed, row) => { const m = ourSpreads(packed); return (m && m.get(SPR.setKey(row))) || null; };
+  return { COUNTERS, build, duration, parseCond, ourSpreadOf, applySpread: XWS.applySpread };
 }
 
 module.exports = { create, duration, parseCond, stallStreaks };

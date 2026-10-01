@@ -1,0 +1,318 @@
+{
+ "at": "2026-10-01T17:59:17.551Z",
+ "release": "df172ccd2aaf",
+ "release_stamp": {
+  "engine_release": "df172ccd2aaf",
+  "engine_release_cut": "2026-10-01T09:21:44.066Z",
+  "engine_release_cuts": 21,
+  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+  "source_digests": {
+   "engine/medicham2-browser.js": "bf5efb8fafee",
+   "engine/board.js": "c85a3b756c98",
+   "engine/rollout_leaf.js": "eacf05ff8d30",
+   "engine/position_features.js": "bb71676d3669",
+   "engine/tags.js": "13cdeb051720",
+   "engine/champions_sim.js": "8094725f52a8",
+   "data/residual-order.json": "eff160ad1c5a",
+   "data/switchin-order.json": "24a007a66b7d",
+   "engine/mc_key.js": "aaa095762671",
+   "engine/lookup.js": "17f49e5aed43",
+   "engine/set_priors.js": "f8a81445ee3a",
+   "engine/smogon_priors.js": "ebd062f756c8",
+   "engine/quality.js": "9b168679e3e9",
+   "engine/showdown_path.js": "46646401ede2",
+   "engine/regulation.js": "c00dcf435c9d",
+   "data/move-effects.js": "f35ecd91ba86",
+   "data/ability-blocks.json": "86741fd35452",
+   "data/smogon-priors.json": "f2dc78cea6c5",
+   "data/regulations.json": "6c7c3e3dd06c",
+   "data/quality-filter.json": "c74b46002e2d",
+   "data/engine-data.js": "bbc417dfae0e",
+   "data/abra-tags.js": "fc30f9a9392e",
+   "data/tags.json": "26ee107ce6a8",
+   "data/policy-weights.json": "626c1d240782",
+   "data/policy-weights-joint.json": "e2aca467ff04",
+   "data/move-priors.json": "e667fe8ab457",
+   "engine/pp.js": "30b12a4ef623",
+   "data/rollout-switch-census.json": "b8a5cee2f0a9",
+   "engine/medicham_api.js": "f0264a11558b",
+   "data/engine-data-regmc.js": "a6ad04e92d4e",
+   "data/tags-regmc.json": "87cbb3889809",
+   "data/move-priors-regmc.json": "eab0c9b023df",
+   "data/move-effects-regmc.js": "8c57407e7641"
+  }
+ },
+ "pairs": 100,
+ "pair_seed": 1,
+ "ids_sha256": "d0197de47a82c273",
+ "pool": {
+  "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+  "file_sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+  "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709"
+ },
+ "honest_worlds": 800,
+ "paths": {
+  "truth": {
+   "rows": 1200,
+   "changed": 1200,
+   "spe_changed": 1160,
+   "max": {
+    "hp": 32,
+    "at": 78,
+    "df": 36,
+    "sa": 80,
+    "sd": 42,
+    "sp": 43
+   },
+   "with_sp": 1200,
+   "mean_abs": {
+    "hp": 8.572,
+    "at": 13.71,
+    "df": 3.593,
+    "sa": 13.057,
+    "sd": 7.402,
+    "sp": 11.072
+   },
+   "share_changed": 1
+  },
+  "public": {
+   "rows": 1200,
+   "changed": 1200,
+   "spe_changed": 1047,
+   "max": {
+    "hp": 0,
+    "at": 78,
+    "df": 37,
+    "sa": 80,
+    "sd": 42,
+    "sp": 42
+   },
+   "with_sp": 1200,
+   "mean_abs": {
+    "hp": 0,
+    "at": 27.953,
+    "df": 2.868,
+    "sa": 27.314,
+    "sd": 3.916,
+    "sp": 21.656
+   },
+   "share_changed": 1
+  },
+  "honest": {
+   "rows": 3200,
+   "changed": 0,
+   "spe_changed": 0,
+   "max": {
+    "hp": 0,
+    "at": 0,
+    "df": 0,
+    "sa": 0,
+    "sd": 0,
+    "sp": 0
+   },
+   "with_sp": 3200,
+   "mean_abs": {
+    "hp": 0,
+    "at": 0,
+    "df": 0,
+    "sa": 0,
+    "sd": 0,
+    "sp": 0
+   },
+   "share_changed": 0
+  },
+  "mega": {
+   "rows": 215,
+   "changed": 6,
+   "spe_changed": 3,
+   "max": {
+    "hp": 0,
+    "at": 1,
+    "df": 0,
+    "sa": 0,
+    "sd": 0,
+    "sp": 1
+   },
+   "with_sp": 215,
+   "mean_abs": {
+    "hp": 0,
+    "at": 0.014,
+    "df": 0,
+    "sa": 0,
+    "sd": 0,
+    "sp": 0.014
+   },
+   "share_changed": 0.0279
+  }
+ },
+ "mega_examples": [
+  {
+   "species": "Golurk",
+   "nature": "Brave",
+   "delta": {
+    "hp": 171,
+    "at": 231,
+    "df": 137,
+    "sa": 90,
+    "sd": 125,
+    "sp": 81
+   },
+   "recompute": {
+    "hp": 171,
+    "at": 232,
+    "df": 137,
+    "sa": 90,
+    "sd": 125,
+    "sp": 81
+   }
+  },
+  {
+   "species": "Golurk",
+   "nature": "Brave",
+   "delta": {
+    "hp": 171,
+    "at": 231,
+    "df": 137,
+    "sa": 90,
+    "sd": 125,
+    "sp": 81
+   },
+   "recompute": {
+    "hp": 171,
+    "at": 232,
+    "df": 137,
+    "sa": 90,
+    "sd": 125,
+    "sp": 81
+   }
+  },
+  {
+   "species": "Golurk",
+   "nature": "Brave",
+   "delta": {
+    "hp": 171,
+    "at": 231,
+    "df": 137,
+    "sa": 90,
+    "sd": 125,
+    "sp": 81
+   },
+   "recompute": {
+    "hp": 171,
+    "at": 232,
+    "df": 137,
+    "sa": 90,
+    "sd": 125,
+    "sp": 81
+   }
+  },
+  {
+   "species": "Glimmora",
+   "nature": "Timid",
+   "delta": {
+    "hp": 187,
+    "at": 99,
+    "df": 125,
+    "sa": 202,
+    "sd": 116,
+    "sp": 139
+   },
+   "recompute": {
+    "hp": 187,
+    "at": 99,
+    "df": 125,
+    "sa": 202,
+    "sd": 116,
+    "sp": 138
+   }
+  },
+  {
+   "species": "Glimmora",
+   "nature": "Timid",
+   "delta": {
+    "hp": 187,
+    "at": 99,
+    "df": 125,
+    "sa": 202,
+    "sd": 116,
+    "sp": 139
+   },
+   "recompute": {
+    "hp": 187,
+    "at": 99,
+    "df": 125,
+    "sa": 202,
+    "sd": 116,
+    "sp": 138
+   }
+  },
+  {
+   "species": "Glimmora",
+   "nature": "Timid",
+   "delta": {
+    "hp": 187,
+    "at": 99,
+    "df": 125,
+    "sa": 202,
+    "sd": 116,
+    "sp": 139
+   },
+   "recompute": {
+    "hp": 187,
+    "at": 99,
+    "df": 125,
+    "sa": 202,
+    "sd": 116,
+    "sp": 138
+   }
+  }
+ ],
+ "spreads": {
+  "spreads": "role-v1",
+  "modes": [
+   "role-v1",
+   "xatu-random",
+   "flat"
+  ],
+  "default": "role-v1",
+  "counters": {
+   "games": 1060,
+   "bodies_dressed": 4240,
+   "table_hits": 13920,
+   "derived_at_play": 0,
+   "flat_fallback": 0,
+   "bodies_flat": 0,
+   "fresh_dressed": 1200,
+   "fresh_flat": 0,
+   "fresh_public": 1499
+  },
+  "what": "solver/rotom/spreads.js's rule (the ladder's), per set, from the role-v1 table",
+  "table": {
+   "file": "solver/arena/spreads/role-v1.json",
+   "sha256": "145edf083369524e5540fa14284deb56bb2b7310e8010de89ed7f8f9017eec17",
+   "sets": 14247,
+   "release": "eaa5becc54eb",
+   "rule_sha256": "56c261b6fcfa1153a52ccf56aecc481c6ad65ac80dc58cdff5cb468af8136525",
+   "population_sha256": "2cbe773158956ab578bf8abbb9f322fdbbe653b28ce2c3755a050a737fafda5f",
+   "store_sha256": "fe78202a851545b71a19c507617d2a470020e5b72d07a393f86ae0fedee9bb25"
+  },
+  "fielded": {
+   "sets": 398,
+   "sha256": "7ecc06bd2d7848b70ba1d0813330e488af19a5e8839a937c715164f27f0cee3d"
+  }
+ },
+ "xatu_new": {
+  "worlds": 800,
+  "backXatu": 0,
+  "backUniform": 800,
+  "backNone": 0,
+  "bodiesFilled": 1600,
+  "spreadsSampled": 3200,
+  "spreadsApplied": 3200,
+  "spreadMissingBase": 0,
+  "views": 0,
+  "hpLaid": 0,
+  "hiddenReplaced": 0,
+  "spreadsPublicZero": 0
+ }
+}

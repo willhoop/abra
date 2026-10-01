@@ -6,8 +6,17 @@
  *   const src = SS.open(mode, { M })     mode: 'role-v1' (DEFAULT) | 'xatu-random' | 'flat'
  *   src.spreadsFor(G, seed)              -> { p1: [evs|null x6], p2: [...] }  one per SHEET row (seed: xatu-random only)
  *   src.dress(team, rows, evsBySheet)    lays each body's spread on it (the body's `_solverSheet` picks the row)
- *   src.bodyBuilder(buildBody)           a buildBody that returns the body already at its role-v1 spread (for a searcher
- *                                        that redraws hidden bodies; identity for the other modes)
+ *   src.bodyBuilder(buildBody[, { view }])  THE FRESH-BODY BUILDER: a buildBody whose body is laid by the same two functions
+ *                                        that lay a team body (rowSpread -> applySpread), for a searcher that redraws
+ *                                        hidden bodies or builds a world (solver/miltank/rollout.js body, ROTOM's world):
+ *                                          view 'truth' (default)  the body at this mode's spread: role-v1 = exactly the
+ *                                                                  team body buildTeam fields; flat / xatu-random = the
+ *                                                                  table line (xatu-random's truth is per battle seed and
+ *                                                                  a fresh body has none; an honest searcher re-spreads it)
+ *                                          view 'public'           zero SP under the sheet's nature — what an honest
+ *                                                                  player knows of an OPPONENT body before its belief
+ *                                                                  draws a spread (solver/xatu/worlds.js publicOpp)
+ *                                        Counted apart from the team's: fresh_dressed / fresh_flat / fresh_public.
  *   src.stamp()                          the artifact block: mode, table file + sha256, rule sha, population sha, the
  *                                        digest of every spread actually fielded, counters
  *
@@ -49,6 +58,9 @@ const sha = b => crypto.createHash('sha256').update(b).digest('hex');
  * 1.34.0 arena Speed); =stamp: the artifact block reports 'flat' whatever was fielded. solver/tests/test-arena-spreads.js
  * PARITY / RECORD must go red. */
 const BREAK = (process.env && process.env.SPREADS_SOURCE_BREAK) || '';
+/* DELIBERATE BREAK (env SPREAD_FRESH_BREAK=flat): bodyBuilder's 'truth' body is the table's flat line again (the pre-1.69.0
+ * rollout body). solver/tests/test-body-parity.js FRESH and solver/tests/test-miltank.js SWAP must go red. */
+const FRESH_BREAK = (process.env && process.env.SPREAD_FRESH_BREAK) || '';
 
 const encode = (evs, role) => STATS.map(s => evs[s] | 0).join('/') + ' ' + (role || 'other');
 function decode(v) { const [e, role] = String(v).split(' '); const a = e.split('/').map(Number); const evs = {}; STATS.forEach((s, i) => { evs[s] = a[i]; }); return { evs, role }; }
@@ -77,7 +89,7 @@ function make(mode, M) {
   const SPR = require('../rotom/spreads.js');
   const XW = require('../xatu/worlds.js');
   const W = XW.create({ M }, { R: null });   // applySpread only (it reads M.spreadL50 and the dex)
-  const COUNTERS = { games: 0, bodies_dressed: 0, table_hits: 0, derived_at_play: 0, flat_fallback: 0, bodies_flat: 0 };
+  const COUNTERS = { games: 0, bodies_dressed: 0, table_hits: 0, derived_at_play: 0, flat_fallback: 0, bodies_flat: 0, fresh_dressed: 0, fresh_flat: 0, fresh_public: 0 };
   const realised = new Map();               // setKey -> "hp/.../spe" actually fielded (role-v1), for the digest
   let J = null, tableSha = null, MD = null;
   if (mode === 'role-v1') {
@@ -122,22 +134,37 @@ function make(mode, M) {
     for (const p of ['p1', 'p2']) out[p] = (G.sheets[p] || []).map(rowSpread);
     return out;
   }
+  /* ONE BODY, ONE LINE: every body this source lays — a team body (dress) or a fresh one (bodyBuilder) — goes through
+   * here, so the two cannot drift again (they did: abra/regmc 1.49.0 dressed the team and left the rollout's fresh body
+   * on the table line; solver/tests/test-miltank.js SWAP went red). `sp` null = the body keeps the table line. */
+  function lay(m, row, sp, dressed, flat) {
+    if (!sp) { COUNTERS[flat]++; return false; }
+    if (W.applySpread(m, sp, row)) { COUNTERS[dressed]++; return true; }
+    COUNTERS[flat]++; return false;
+  }
+  /* one team body, before it carries `_solverSheet` (solver/arena/teams.js buildTeam): the same call, in the same order,
+   * as bodyBuilder's fresh body, so the two are the same object graph key for key (the battle digest reads key order) */
+  function layOne(m, row, sp) { return lay(m, row, sp, 'bodies_dressed', 'bodies_flat'); }
   function dress(team, rows, evsBySheet) {
     let n = 0;
     for (const m of team) {
-      const s = m._solverSheet, sp = evsBySheet ? evsBySheet[s] : null;
-      if (!sp) { COUNTERS.bodies_flat++; continue; }
-      if (W.applySpread(m, sp, rows[s])) { n++; COUNTERS.bodies_dressed++; }
+      const s = m._solverSheet;
+      if (lay(m, rows[s], evsBySheet ? evsBySheet[s] : null, 'bodies_dressed', 'bodies_flat')) n++;
     }
     return n;
   }
-  function bodyBuilder(buildBody) {
-    if (mode !== 'role-v1') return buildBody;
+  function bodyBuilder(buildBody, o) {
+    const view = (o && o.view) || 'truth';
+    if (view !== 'truth' && view !== 'public') throw new Error('spread_source.bodyBuilder: view must be truth or public, not ' + view);
+    if (view === 'public') return (Mx, row, opts) => {
+      const b = buildBody(Mx, row, opts);
+      if (b && W.applySpread(b, XW.ZERO, row)) COUNTERS.fresh_public++;
+      return b;
+    };
+    if (mode !== 'role-v1' || FRESH_BREAK === 'flat') return (Mx, row, opts) => { const b = buildBody(Mx, row, opts); if (b) COUNTERS.fresh_flat++; return b; };
     return (Mx, row, opts) => {
       const b = buildBody(Mx, row, opts);
-      if (!b) return b;
-      const sp = rowSpread(row);
-      if (sp) { W.applySpread(b, sp, row); COUNTERS.bodies_dressed++; } else COUNTERS.bodies_flat++;
+      if (b) lay(b, row, rowSpread(row), 'fresh_dressed', 'fresh_flat');
       return b;
     };
   }
@@ -152,7 +179,7 @@ function make(mode, M) {
                release: J.provenance.release, rule_sha256: J.provenance.rule_sha256, population_sha256: J.provenance.population_sha256, store_sha256: J.provenance.store_sha256 },
       fielded: { sets: keys.length, sha256: sha(keys.map(k => k + '=' + realised.get(k)).join('\n')) } });
   }
-  return { mode, spreadsFor, dress, bodyBuilder, stamp, rowSpread: mode === 'role-v1' ? rowSpread : () => null, COUNTERS, BROKEN: BREAK || null };
+  return { mode, spreadsFor, dress, layOne, bodyBuilder, stamp, rowSpread: mode === 'role-v1' ? rowSpread : () => null, COUNTERS, BROKEN: BREAK || FRESH_BREAK || null };
 }
 
 /* the shards' stamps -> one artifact block: the mode (MIXED if they disagree), the table, the counters summed, each

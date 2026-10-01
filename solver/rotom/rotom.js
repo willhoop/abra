@@ -168,12 +168,13 @@ if (LADDER_MODE) {
 }
 /* OUR GAMES STAY OUT OF THE HUMAN DATA. The hourly ingest stores every public replay of the format, ours
  * included (engine/durable-ingest.js has no name filter); the human dataset and the meta drop them by account
- * name. So on a public server the account MUST be on both own-account lists, read from the files themselves. */
+ * name. So on a public server the account MUST be on the own-account list. Since abra/regmc 1.65.0 both readers (the human
+ * dataset and the meta) take ONE list, data/quality-filter.json rules.exclude_own_accounts through engine/quality.js
+ * ownAccounts(); this check read each file's old `const OWN = new Set([...])` until 1.69.0, found none, and refused every
+ * public start (solver/tests/test-rotom-ladder.js STARTUP went red). */
 if (!LOCK.isLocal(SERVER)) {
-  const own = f => { const m = /const OWN = new Set\(\[([^\]]*)\]\)/.exec(fs.readFileSync(path.join(ROOT, f), 'utf8')); return m ? m[1].split(',').map(x => toID(x)) : []; };
-  for (const f of ['solver/human/build_dataset.js', 'solver/meta/extract.js']) {
-    if (!own(f).includes(toID(NAME))) { console.error('refusing: ' + NAME + ' is not on the own-account list in ' + f + ' — its games would enter the human data'); process.exit(2); }
-  }
+  const QF = require(path.join(ROOT, 'engine', 'quality.js'));
+  if (!QF.isOwnAccount(NAME)) { console.error('refusing: ' + NAME + ' is not on the own-account list (data/quality-filter.json rules.exclude_own_accounts, read by solver/human/build_dataset.js and solver/meta/extract.js) — its games would enter the human data'); process.exit(2); }
 }
 let LOCKH;
 try { LOCKH = LOCK.acquire(SERVER, NAME, say); }
@@ -203,7 +204,9 @@ const API = ENGINE.API;
 const T = require('../arena/teams.js');
 const MAGD = require('../mag/infer.js').load();
 const PA = require('../miltank/prior_adapter.js').create(API, MAGD);
-const R = require('../miltank/rollout.js').create(API, { buildBody: T.buildBody });
+/* the searcher's fresh bodies are the OPPONENT's (a world redraws only their unrevealed back line): PUBLIC — zero SP under
+ * the sheet's nature, the same body world.js lays at the root (abra/regmc 1.69.0; the table's flat line before) */
+const R = require('../miltank/rollout.js').create(API, { buildBody: T.bodyBuilder(API.M, { view: 'public' }) });
 const SEARCH_MOD = require('../miltank/search.js');
 const TABLES = JSON.parse(fs.readFileSync(path.join(__dirname, 'tables.json'), 'utf8'));
 const WB = require('./world.js').create(API);
@@ -1162,7 +1165,8 @@ function decide(B) {
         const row = parseRow(B, kind);
         const bt = xatuBack(B, opp);
         const guess = bt && bt.length ? bt.reduce((a, b) => (b.p > a.p ? b : a)).pair : null;
-        world = WB.build({ row, sheets: B.sheets, me: B.me, req, oppGuess: guess, lines: B.lines });
+        const myTeam = B.bestof && seriesTeam.get(B.bestof);
+        world = WB.build({ row, sheets: B.sheets, me: B.me, req, oppGuess: guess, lines: B.lines, myPacked: myTeam && myTeam.packed || null });
         world.xatuBack = bt;
         rec.world = { ok: true, turn: row.turns.length, notes: world.notes, xatu: bt ? bt.map(x => [x.pair.join('+'), +x.p.toFixed(3)]) : null };
       } catch (e) { ST.worldErrors++; rec.world = { ok: false, err: String(e && e.message || e).slice(0, 200) }; }

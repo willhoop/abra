@@ -17,7 +17,12 @@ require('../arena/env.js');
 /* the parent's engine: a frozen release when the arena was given --release (SOLVER_RELEASE), else the live tree */
 const API = require('../arena/engine.js').load(process.env.SOLVER_RELEASE || null).API;
 const T = require('../arena/teams.js');
-const R = require('./rollout.js').create(API, { buildBody: T.buildBody });
+/* THE FRESH-BODY BUILDER (abra/regmc 1.69.0): env MILTANK_BODIES = '<view>:<spread mode>' set by the parent (solver/arena/arena.js
+ * passes 'truth:<its --spreads>', so a worker's world bodies are the parent's). Unset = the table's flat line, for the
+ * benches that compare the pool against an in-process R built on bare buildBody; `bodies` in every 'done' says which. */
+const BODIES = process.env.MILTANK_BODIES || 'flat';
+const R = require('./rollout.js').create(API, { buildBody: BODIES === 'flat' ? T.buildBody
+  : T.bodyBuilder(API.M, { view: BODIES.split(':')[0], spreads: BODIES.split(':')[1] || undefined }) });
 const C = require('./cells.js');
 const BREAK = process.env.MILTANK_POOL_BREAK || '';
 const threadCpu = () => { const u = process.threadCpuUsage ? process.threadCpuUsage() : process.cpuUsage(); return u.user + u.system; };
@@ -66,7 +71,7 @@ function runFill(id, job) {
         const late = Date.now() >= deadline && (played > 0 || !DEADLINE_BREAK);
         if (capped || late || stopped || cancelled.has(id)) {
           cancelled.delete(id);
-          process.send({ id, type: 'done', counters, stopped: stopped || late });
+          process.send({ id, type: 'done', counters, stopped: stopped || late, bodies: BODIES });
           return;
         }
         run = C.passRunner(API, R, job, p);

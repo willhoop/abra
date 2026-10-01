@@ -35,7 +35,8 @@ const T = require('../arena/teams.js');
 const F = require('../prior/features.js');
 const prior = require('../prior/infer.js').load();
 const PA = require('../miltank/prior_adapter.js').create(API, prior);
-const R = require('../miltank/rollout.js').create(API, { buildBody: T.buildBody });
+/* the rollout's fresh bodies are built the way buildTeam builds the team (abra/regmc 1.69.0): the omniscient searcher's truth */
+const R = require('../miltank/rollout.js').create(API, { buildBody: T.bodyBuilder(M, { view: 'truth' }) });
 const MT = require('../miltank/search.js').create(API, { prior: PA, rollout: R });
 
 let fails = 0, checks = 0;

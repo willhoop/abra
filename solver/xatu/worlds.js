@@ -47,10 +47,18 @@
  * DELIBERATE BREAK (env HONEST_BREAK=peek): arenaView hands back the TRUE battle and no belief — the omniscient arena
  * wearing the honest label. solver/tests/test-honest-info.js VIEW must go red.
  *
- * MEGA. `_nature` is stamped (the engine's mega swap applies it to both anchors); `_sp` is NOT, because the engine's
- * spread recompute is gated on reproducing the current line WITHOUT an HP term and would refuse an HP-invested body.
- * The swap's delta path then carries the spread onto the mega forme (engine counter megaStatDeltaFallback) — the
- * same path every arena body built by teams.js has always taken.
+ * MEGA. `_nature` is stamped (the engine's mega swap applies it to both anchors); `_sp` was NOT until abra/regmc 1.69.0,
+ * because the engine's spread recompute was gated on reproducing the current line WITHOUT an HP term and refused an
+ * HP-invested body, so the swap's delta path carried the spread onto the mega forme (engine counter
+ * megaStatDeltaFallback) and landed one point off on about one line in ten. Release df172ccd2aaf (abra/regmc 1.51.0) checks
+ * with `setLineL50` (l50 plus the HP SP), so `_sp` is now stamped here, HP INCLUDED, in the engine's own keys
+ * (hp/at/df/sa/sd/sp), and a mega or a forme change recomputes the whole line from the set as Showdown's setSpecies does
+ * (MEDSEEN.megaStatFromSpread / formeSwapStatFromSpread count it). Every body whose line is laid here carries it: the
+ * arena's team bodies, the searcher's fresh bodies (solver/arena/spread_source.js bodyBuilder), and every opponent body a
+ * world re-spreads from XATU's belief. docs/_reports/2026-10-01-rollout-body-spreads.md.
+ *
+ * DELIBERATE BREAK (env SPREAD_SP_BREAK=1): `_sp` is not stamped (the pre-1.69.0 body). solver/tests/test-body-parity.js
+ * MEGA must go red.
  */
 'use strict';
 const X = require('../human/dex.js');
@@ -59,6 +67,7 @@ const STATS = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
 const ZERO = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
 const live = m => !!(m && !m.fainted && m.curHP > 0);
 const BREAK = (typeof process !== 'undefined' && process.env && process.env.HONEST_BREAK) || '';
+const SP_BREAK = !!(typeof process !== 'undefined' && process.env && process.env.SPREAD_SP_BREAK);
 
 /* the displayed percentage of the other side's HP, Champions (see the header) */
 function pctOf(hp, max) { if (!(hp > 0)) return 0; return Math.floor(100 * hp / max) || 1; }
@@ -76,7 +85,7 @@ function create(API, deps) {
   const R = deps.R;
   if (typeof M.spreadL50 !== 'function') throw new Error('xatu/worlds: this engine release has no spreadL50 export');
   const COUNTERS = { worlds: 0, backXatu: 0, backUniform: 0, backNone: 0, bodiesFilled: 0, spreadsSampled: 0, spreadsApplied: 0, spreadMissingBase: 0,
-                     views: 0, hpLaid: 0, hiddenReplaced: 0 };
+                     views: 0, hpLaid: 0, hiddenReplaced: 0, spreadsPublicZero: 0 };
 
   const baseStats = name => { const sp = X.D.species.get(toID(name)); return sp && sp.exists ? sp.baseStats : null; };
   /* row = the body's sheet row (species, nature). Max HP is the SHEET species' line: Showdown fixes it when the mon is
@@ -93,6 +102,8 @@ function create(API, deps) {
     const frac = m.st && m.st.hp > 0 ? m.curHP / m.st.hp : 1;
     m.st = st;
     if (nature) m._nature = nature; else delete m._nature;
+    if (SP_BREAK) delete m._sp;
+    else m._sp = { hp: sp.hp || 0, at: sp.atk || 0, df: sp.def || 0, sa: sp.spa || 0, sd: sp.spd || 0, sp: sp.spe || 0 };
     if (m.fainted || m.curHP <= 0) m.curHP = 0;
     else m.curHP = Math.max(1, Math.min(st.hp, Math.round(frac * st.hp)));
     COUNTERS.spreadsApplied++;
@@ -163,6 +174,15 @@ function create(API, deps) {
           const sp = hb.spreads.sample(hb.oppP, m._solverSheet, coin);
           COUNTERS.spreadsSampled++;
           applySpread(m, sp, belief.sheet[m._solverSheet]);
+        }
+      } else {
+        /* NO SPREAD BELIEF: the opponent's bodies stay PUBLIC — zero SP under the sheet's nature, as the root view lays
+         * them — whatever spread the rollout's body builder dressed a fresh body at (a role-v1 body is the arena's TRUTH
+         * under --spreads role-v1, and handing it to an honest search would leak it). Counted. */
+        for (const m of sf.team) {
+          if (!m || m._solverSheet == null) continue;
+          applySpread(m, ZERO, belief.sheet[m._solverSheet]);
+          COUNTERS.spreadsPublicZero++;
         }
       }
       return W;

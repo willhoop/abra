@@ -74,7 +74,10 @@ const SS = require('../arena/spread_source.js');
 const SPREADS = flag('--spreads', SS.DEFAULT);
 if (!SS.MODES.includes(SPREADS)) { console.error('mew/play: --spreads must be one of ' + SS.MODES.join(', ')); process.exit(2); }
 const SRC = SS.open(SPREADS, { M });
-const AG = require('./agent.js').create(API, { buildBody: INFO === 'omniscient' ? SRC.bodyBuilder(T.buildBody) : T.buildBody });
+/* THE SEARCHER'S FRESH BODIES (abra/regmc 1.69.0, docs/_reports/2026-10-01-rollout-body-spreads.md): omniscient = the truth
+ * at this mode (the body buildTeam fields); honest = PUBLIC (zero SP under the sheet's nature), which XATU's spread belief
+ * then re-spreads in every world (solver/xatu/worlds.js). Until 1.69.0 the honest rollout built the table's flat line. */
+const AG = require('./agent.js').create(API, { buildBody: SRC.bodyBuilder(T.buildBody, { view: INFO === 'omniscient' ? 'truth' : 'public' }) });
 const PA0 = require('../miltank/prior_adapter.js').create(API, null);   // the game's history recorder (model-free)
 /* DELIBERATE BREAK (env MACHAMP_BREAK=seat): in a match, X sits on side A in both games of a pair — the paired
  * seating is gone. solver/tests/test-machamp.js GATE must go red.
@@ -116,6 +119,12 @@ const RUN = { searched: 0, playouts: 0, cells: 0, unfilled: 0, zero_playouts: 0,
  * action matches anything. `cov_nf` repeats it on the decisions where the opponent's own choice was not forced. On every
  * match line as ctr.arms. */
 const ARMS = {};
+/* THE MEGA / FORME STAT RECEIPTS (abra/regmc 1.69.0): did a forme change recompute the line from the body's `_sp` (the
+ * authority's way) or carry the delta? Process counters of the engine, so they count the TRUE battles and any full-mode
+ * playout; lean playouts keep no process counters. A zero `mega_from_spread` on a role-v1 run means `_sp` never arrived. */
+const formStats = () => { const s = M.MEDSEEN || {}, f = M.MEDFAILS || {};
+  return { mega_from_spread: s.megaStatFromSpread || 0, mega_delta: f.megaStatDeltaFallback || 0, mega_stale: f.megaStatSpreadStale || 0,
+           forme_from_spread: s.formeSwapStatFromSpread || 0, forme_delta: f.formeSwapStatDelta || 0, forme_stale: f.formeSwapSpreadStale || 0 }; };
 function armOf(name) {
   return ARMS[name] || (ARMS[name] = { decisions: 0, forced: 0, searched: 0, playouts: 0, zero_playouts: 0, cells: 0, rows_sum: 0, cols_sum: 0, cols_hist: {},
     fallback: { empty: 0, sparse: 0, low_bank: 0, threw: 0, other: 0 }, fallback_decisions: 0, ms_sum: 0,
@@ -303,7 +312,7 @@ async function match() {
                  clicks: r.clicks ? { x: r.clicks[xIsA ? 'A' : 'B'], y: r.clicks[xIsA ? 'B' : 'A'] } : null,
                  protect: r.protect ? { x: r.protect[xIsA ? 'A' : 'B'], y: r.protect[xIsA ? 'B' : 'A'] } : null,
                  tactics: r.tactics ? { x: r.tactics[xIsA ? 'A' : 'B'], y: r.tactics[xIsA ? 'B' : 'A'] } : null,
-                 ctr: Object.assign({ spreads: Object.assign({}, SRC.COUNTERS), fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0, stall_dropped: AG.COUNTERS.stallDropped || 0, quiet_held: AG.R.COUNTERS.quietHeld || 0, quiesced: AG.R.COUNTERS.quiesced || 0, gates: JSON.parse(JSON.stringify(AG.COUNTERS.gates || {})), kl: AG.COUNTERS.kl ? JSON.parse(JSON.stringify(AG.COUNTERS.kl)) : undefined, leaf_by_model: Object.assign({}, AG.R.COUNTERS.leafByModel || {}), leaf_own: AG.R.leafOwn ? AG.R.leafOwn() : undefined, arms: JSON.parse(JSON.stringify(ARMS)) }, RUN,
+                 ctr: Object.assign({ spreads: Object.assign({}, SRC.COUNTERS), fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0, stall_dropped: AG.COUNTERS.stallDropped || 0, quiet_held: AG.R.COUNTERS.quietHeld || 0, quiesced: AG.R.COUNTERS.quiesced || 0, gates: JSON.parse(JSON.stringify(AG.COUNTERS.gates || {})), kl: AG.COUNTERS.kl ? JSON.parse(JSON.stringify(AG.COUNTERS.kl)) : undefined, leaf_by_model: Object.assign({}, AG.R.COUNTERS.leafByModel || {}), leaf_own: AG.R.leafOwn ? AG.R.leafOwn() : undefined, arms: JSON.parse(JSON.stringify(ARMS)), pre169: AG.COUNTERS.pre169 ? Object.assign({}, AG.COUNTERS.pre169) : undefined, form_stats: formStats() }, RUN,
                    INFO === 'honest' ? { hon_views: HON.views, hon_back_xatu: HON.back_xatu, hon_back_error: HON.back_error, xw: Object.assign({}, XW.COUNTERS) } : {}) });
     }
     if (OUT) fs.writeFileSync(OUT, per.map(p => JSON.stringify(p)).join('\n') + '\n');

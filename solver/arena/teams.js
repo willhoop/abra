@@ -84,19 +84,22 @@ function buildBody(M, p, opts) {
 function buildTeam(M, G, side, opts) {
   opts = opts || {};
   const team = [], sheetOf = [];
+  const SS = require('./spread_source.js');
+  const src = opts.spreads && typeof opts.spreads === 'object' ? opts.spreads : opts.spreads ? SS.open(opts.spreads, { M }) : defaultSpreads(M);
   for (const s of G.brought[side]) {
     const b = buildBody(M, G.sheets[side][s]);
     if (!b) return null;
-    b._solverSheet = s;   // STABLE identity: the engine reorders `sf.team` on a switch, as Showdown does
     team.push(b); sheetOf.push(s);
   }
   if (team.length !== 4) return null;
-  const SS = require('./spread_source.js');
-  const src = opts.spreads && typeof opts.spreads === 'object' ? opts.spreads : opts.spreads ? SS.open(opts.spreads, { M }) : defaultSpreads(M);
-  if (src.mode !== 'flat') {
-    const sp = opts.spreadsFor || src.spreadsFor(G, opts.seed);
-    src.dress(team, G.sheets[side], sp[side]);
-  }
+  /* THE SPREAD IS LAID BEFORE `_solverSheet`, by spread_source layOne — the call bodyBuilder makes for a FRESH body, in the
+   * same order (abra/regmc 1.69.0), so a team body and the rollout's fresh body of one row are the same object key for key */
+  const sp = src.mode !== 'flat' ? (opts.spreadsFor || src.spreadsFor(G, opts.seed))[side] : null;
+  team.forEach((b, k) => {
+    const s = sheetOf[k];
+    if (sp) src.layOne(b, G.sheets[side][s], sp[s]);
+    b._solverSheet = s;   // STABLE identity: the engine reorders `sf.team` on a switch, as Showdown does
+  });
   return { team, sheetOf, spreads: src.mode };
 }
 
@@ -175,4 +178,16 @@ function scan(file) {
  * that records what it fielded: `spreads: T.defaultSpreads(M).stamp()` */
 function defaultSpreads(M) { const SS = require('./spread_source.js'); return SS.open(process.env.ARENA_SPREADS || SS.DEFAULT, { M }); }
 
-module.exports = { loadGames, buildTeam, buildBody, defaultSpreads, DEFAULT_FILE, toID, COUNTERS };
+/* THE FRESH-BODY BUILDER for a searcher or a world (abra/regmc 1.69.0; docs/_reports/2026-10-01-rollout-body-spreads.md):
+ * solver/arena/spread_source.js bodyBuilder over buildBody. view 'truth' = the body buildTeam fields at that spread mode
+ * (opts.spreads, else the process default); view 'public' = zero SP under the sheet's nature (an honest player's
+ * opponent before its spread belief). Every rollout on the play path takes one of these, never bare buildBody, whose
+ * body is the table's flat line with no nature. */
+function bodyBuilder(M, opts) {
+  opts = opts || {};
+  const SS = require('./spread_source.js');
+  const src = opts.spreads && typeof opts.spreads === 'object' ? opts.spreads : opts.spreads ? SS.open(opts.spreads, { M }) : defaultSpreads(M);
+  return src.bodyBuilder(buildBody, { view: opts.view || 'truth' });
+}
+
+module.exports = { loadGames, buildTeam, buildBody, bodyBuilder, defaultSpreads, DEFAULT_FILE, toID, COUNTERS };

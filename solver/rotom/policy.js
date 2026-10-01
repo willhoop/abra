@@ -307,6 +307,7 @@ function create(deps) {
   /* CHOMP-lite v0 (PRE-GATE, a stand-in until CHOMP exists): every one of the 90 bring/lead options scored by random
    * playouts in MEDICHAM against the opponent's options — sampled from their previous game in this series with the
    * store's carry-over rates (tables.json bo3, by their previous result), uniform otherwise — with successive halving. */
+  const PV_BUILD = {};
   function previewSearch(d, human) {
     const t0 = Date.now(), deadline = t0 + d.budgetMs;
     const mySheet = d.sheets[d.me], opSheet = d.sheets[d.me === 'p1' ? 'p2' : 'p1'];
@@ -326,7 +327,10 @@ function create(deps) {
       return theirOpts[Math.floor(d.coin() * theirOpts.length)];
     };
     const cache = new Map();
-    const body = (sheet, s, tag) => { const k = tag + s; if (!cache.has(k)) cache.set(k, T.buildBody(M, sheet[s])); const b = cache.get(k); if (!b) return null; const c = structuredClone(b); c._solverSheet = s; return c; };
+    /* mine at the truth builder (the spread the arena and the ladder rotations field, role-v1), theirs PUBLIC (zero SP under the
+     * sheet's nature): the same two builders the turn search uses (abra/regmc 1.69.0) */
+    PV_BUILD.m = PV_BUILD.m || T.bodyBuilder(M, { view: 'truth' }); PV_BUILD.o = PV_BUILD.o || T.bodyBuilder(M, { view: 'public' });
+    const body = (sheet, s, tag) => { const k = tag + s; if (!cache.has(k)) cache.set(k, PV_BUILD[tag](M, sheet[s])); const b = cache.get(k); if (!b) return null; const c = structuredClone(b); c._solverSheet = s; return c; };
     const A = d.me === 'p1';
     const play = (myOrder, opOrder, seed) => {
       const tm = myOrder.map(s => body(mySheet, s, 'm')), to = opOrder.map(s => body(opSheet, s, 'o'));
