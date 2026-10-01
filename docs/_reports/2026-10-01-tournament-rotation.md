@@ -240,6 +240,9 @@ tournament list records no bring.
   - The original bytes are lost. I restored a launcher that accepts both forms: when the first argument is not a `.js`
     file, it is the log, and output is appended to it.
   - If that agent restarts its run through `low.js`, check that its log behaves as it expects.
+  - **The same thing happened to `<scratchpad>/resolve.js`.** I wrote my conflict resolver over an existing file of
+    that name. Its original content is lost, and I do not know who uses it. The scratchpad is shared across sessions,
+    so a generic file name there is not safe.
 - **A redundant build ran to completion.** Its output is `solver/out/tournaments/ladder-rotation-tour.v2.json`, on the
   live store. It is unused and gitignored.
 - **I could not use `tools\lownode.cmd`.** The worktree sandbox refuses `cmd.exe`. Heavy runs went through the
