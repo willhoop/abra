@@ -28,7 +28,7 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
-## [1.70.0] — 2026-10-01
+## [1.75.0] — 2026-10-01
 
 **MINOR: an opponent forfeit while we are ahead on Pokémon is a real win.** Will, 2026-10-01: *"lets count forfeits where
 we are up in pokemon counts as real wins."* The ladder record now has three readings. The new headline is **earned forfeits

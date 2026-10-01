@@ -1,4 +1,4 @@
-# Earned forfeits: an opponent quit while we are ahead on Pokémon is a real win (abra/regmc 1.70.0)
+# Earned forfeits: an opponent quit while we are ahead on Pokémon is a real win (abra/regmc 1.75.0)
 
 2026-10-01. SOLVER. Will: *"lets count forfeits where we are up in pokemon counts as real wins."*
 Read-only on every run directory. No games were played.
@@ -170,5 +170,5 @@ unearned. This matches the instrument.
 - `docs/MODELS.md` (ROTOM) and the white paper's ladder headline definition owe the fold-in at the next
   major. `docs/SOLVER.md` needs a restamp by `node engine/status.js --write` from the main checkout after
   the merge.
-- The version is 1.70.0 because that is the next free number on origin/main at the time of writing. If
-  another branch takes 1.70.0 first, the coordinator renumbers this one at merge.
+- The version is 1.75.0 because that is the next free number on origin/main at the time of writing. If
+  another branch takes 1.75.0 first, the coordinator renumbers this one at merge.
