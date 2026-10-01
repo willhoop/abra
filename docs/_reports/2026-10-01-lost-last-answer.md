@@ -1,4 +1,4 @@
-# Lost the last answer: does ROTOM lose by giving away its only answer to a live threat? (abra/regmc 1.51.0)
+# Lost the last answer: does ROTOM lose by giving away its only answer to a live threat? (abra/regmc 1.55.0)
 
 2026-10-01. SOLVER. Read-only over ROTOM's saved ladder games. No game was played. Every position was rebuilt from its
 saved log with ROTOM's own world builder and staged on MEDICHAM release `eaa5becc54eb`, at BelowNormal priority.

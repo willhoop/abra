@@ -1,0 +1,8029 @@
+{
+ "what": "DUSK measurements, combined (solver/dusk/combine.js). Store-only meta + read-only ladder; no game played.",
+ "generated": "2026-10-01T05:46:39.434Z",
+ "sources": [
+  {
+   "file": "solver/out/dusk/endgames-bo3.json",
+   "sha256": "a2747197fcddee6ed812860e08ffeab3f1a21764f370b1e703edf4c80a907c72"
+  },
+  {
+   "file": "solver/out/dusk/endgames-bo1.json",
+   "sha256": "6ac3241da9e6887bd709e10452512159a4c629a3c337ceff1ad65c4d18aacab0"
+  },
+  {
+   "file": "solver/out/dusk/endgames-bo3-allshape.json",
+   "sha256": "9941f6760173a05611d84f83a33ea493cdb1b1e5dfcbd7f0da7c81588d9e3d01"
+  },
+  {
+   "file": "solver/out/dusk/endgames-bo1-allshape.json",
+   "sha256": "43fab033d505778b2ce6ba5d91b252fe7c47306f024cf801def7f20d1a8d4488"
+  },
+  {
+   "file": "solver/out/dusk/positions-bo3.jsonl.gz",
+   "sha256": "2569945e9d60383ad82e4d9c5709e784365a36cc79c982d5836fd786fea2ca25"
+  },
+  {
+   "file": "solver/out/dusk/ladder.json",
+   "sha256": "2b1a12c4e22f8919cdbd6535448b5c389e8b84301c2c40ea0e7e5c9202974a8b"
+  }
+ ],
+ "meta": {
+  "bo3": {
+   "generated": "2026-10-01T04:57:21.176Z",
+   "fmt": "bo3",
+   "game_shape_codes": "charged (every reasons() code excludes)",
+   "funnel": {
+    "store_rows": 39541,
+    "store_bad_json": 0,
+    "store_duplicate_ids": 0,
+    "store_games": 39541,
+    "excluded_by_first_reason": {
+     "partial_bring": 9417,
+     "short": 2421,
+     "bot": 228,
+     "forfeit_no_action": 237,
+     "illegal_team": 10,
+     "own_account": 82
+    },
+    "after_quality_and_own": 27146,
+    "excluded_after_quality": {
+     "illusion_possible": 198,
+     "no_result": 2,
+     "parse_error": 1
+    },
+    "parse_codes": {
+     "no_open_sheet": 1
+    },
+    "no_raw_log": 0,
+    "kept": 26945
+   },
+   "games": 26945,
+   "games_by_band": {
+    "<1100": 11602,
+    "1100-1199": 7379,
+    "unrated": 4798,
+    "1200-1299": 2361,
+    "1300-1399": 710,
+    "1400-1499": 95
+   },
+   "reach": {
+    "E2": {
+     "k": 16951,
+     "n": 26945,
+     "p": 0.6291,
+     "lo": 0.6233,
+     "hi": 0.6348,
+     "among_normal_ends": {
+      "k": 14132,
+      "n": 19191,
+      "p": 0.7364,
+      "lo": 0.7301,
+      "hi": 0.7426
+     },
+     "by_band": {
+      "<1100": {
+       "k": 7384,
+       "n": 11602,
+       "p": 0.6364
+      },
+      "1100-1199": {
+       "k": 4592,
+       "n": 7379,
+       "p": 0.6223
+      },
+      "unrated": {
+       "k": 3037,
+       "n": 4798,
+       "p": 0.633
+      },
+      "1200-1299": {
+       "k": 1430,
+       "n": 2361,
+       "p": 0.6057
+      },
+      "1300-1399": {
+       "k": 458,
+       "n": 710,
+       "p": 0.6451
+      },
+      "1400-1499": {
+       "k": 50,
+       "n": 95,
+       "p": 0.5263
+      }
+     },
+     "entry_turn": {
+      "n": 16951,
+      "mean": 7.046,
+      "p10": 5,
+      "p25": 5,
+      "p50": 7,
+      "p75": 8,
+      "p90": 10,
+      "p99": 14,
+      "max": 27
+     },
+     "decisions_left_normal_end": {
+      "n": 14132,
+      "mean": 2.185,
+      "p10": 1,
+      "p25": 1,
+      "p50": 2,
+      "p75": 3,
+      "p90": 4,
+      "p99": 7,
+      "max": 49
+     },
+     "decisions_left_hist_normal_end": {
+      "1": 4893,
+      "2": 5138,
+      "3": 2401,
+      "4": 972,
+      "5": 370,
+      "6": 181,
+      "7": 63,
+      "8": 45,
+      "9": 12,
+      "10": 21,
+      "11": 8,
+      "12": 11,
+      "13": 2,
+      "14": 5,
+      "15": 3,
+      "16": 1,
+      "19": 2,
+      "25": 1,
+      "34": 1,
+      "38": 1,
+      "49": 1
+     },
+     "end_after_entry": {
+      "normal": 14132,
+      "forfeit": 2737,
+      "inactivity": 82
+     }
+    },
+    "E4": {
+     "k": 21669,
+     "n": 26945,
+     "p": 0.8042,
+     "lo": 0.7994,
+     "hi": 0.8089,
+     "among_normal_ends": {
+      "k": 17154,
+      "n": 19191,
+      "p": 0.8939,
+      "lo": 0.8894,
+      "hi": 0.8981
+     },
+     "by_band": {
+      "<1100": {
+       "k": 9426,
+       "n": 11602,
+       "p": 0.8124
+      },
+      "1100-1199": {
+       "k": 5841,
+       "n": 7379,
+       "p": 0.7916
+      },
+      "unrated": {
+       "k": 3945,
+       "n": 4798,
+       "p": 0.8222
+      },
+      "1200-1299": {
+       "k": 1843,
+       "n": 2361,
+       "p": 0.7806
+      },
+      "1300-1399": {
+       "k": 553,
+       "n": 710,
+       "p": 0.7789
+      },
+      "1400-1499": {
+       "k": 61,
+       "n": 95,
+       "p": 0.6421
+      }
+     },
+     "entry_turn": {
+      "n": 21669,
+      "mean": 7.069,
+      "p10": 5,
+      "p25": 6,
+      "p50": 7,
+      "p75": 8,
+      "p90": 10,
+      "p99": 14,
+      "max": 26
+     },
+     "decisions_left_normal_end": {
+      "n": 17154,
+      "mean": 2.158,
+      "p10": 1,
+      "p25": 1,
+      "p50": 2,
+      "p75": 3,
+      "p90": 4,
+      "p99": 7,
+      "max": 49
+     },
+     "decisions_left_hist_normal_end": {
+      "1": 6363,
+      "2": 5861,
+      "3": 2887,
+      "4": 1154,
+      "5": 451,
+      "6": 213,
+      "7": 84,
+      "8": 51,
+      "9": 19,
+      "10": 23,
+      "11": 13,
+      "12": 12,
+      "13": 4,
+      "14": 5,
+      "15": 5,
+      "16": 2,
+      "19": 2,
+      "21": 1,
+      "25": 1,
+      "38": 2,
+      "49": 1
+     },
+     "end_after_entry": {
+      "normal": 17154,
+      "forfeit": 4400,
+      "inactivity": 115
+     }
+    },
+    "E1": {
+     "k": 4227,
+     "n": 26945,
+     "p": 0.1569,
+     "lo": 0.1526,
+     "hi": 0.1613,
+     "among_normal_ends": {
+      "k": 3827,
+      "n": 19191,
+      "p": 0.1994,
+      "lo": 0.1938,
+      "hi": 0.2051
+     },
+     "by_band": {
+      "<1100": {
+       "k": 1790,
+       "n": 11602,
+       "p": 0.1543
+      },
+      "1100-1199": {
+       "k": 1191,
+       "n": 7379,
+       "p": 0.1614
+      },
+      "unrated": {
+       "k": 747,
+       "n": 4798,
+       "p": 0.1557
+      },
+      "1200-1299": {
+       "k": 368,
+       "n": 2361,
+       "p": 0.1559
+      },
+      "1300-1399": {
+       "k": 113,
+       "n": 710,
+       "p": 0.1592
+      },
+      "1400-1499": {
+       "k": 18,
+       "n": 95,
+       "p": 0.1895
+      }
+     },
+     "entry_turn": {
+      "n": 4227,
+      "mean": 8.556,
+      "p10": 6,
+      "p25": 7,
+      "p50": 8,
+      "p75": 10,
+      "p90": 12,
+      "p99": 16,
+      "max": 27
+     },
+     "decisions_left_normal_end": {
+      "n": 3827,
+      "mean": 1.784,
+      "p10": 1,
+      "p25": 1,
+      "p50": 1,
+      "p75": 2,
+      "p90": 3,
+      "p99": 7,
+      "max": 47
+     },
+     "decisions_left_hist_normal_end": {
+      "1": 2221,
+      "2": 999,
+      "3": 309,
+      "4": 153,
+      "5": 65,
+      "6": 29,
+      "7": 14,
+      "8": 10,
+      "9": 7,
+      "10": 5,
+      "11": 3,
+      "12": 2,
+      "13": 2,
+      "14": 2,
+      "17": 2,
+      "20": 1,
+      "32": 1,
+      "36": 1,
+      "47": 1
+     },
+     "end_after_entry": {
+      "normal": 3827,
+      "forfeit": 383,
+      "inactivity": 17
+     }
+    }
+   },
+   "outcome": {
+    "E2": {
+     "material": {
+      "2v1": {
+       "n": 6455,
+       "share": 0.3808,
+       "ahead_on_mons_wins": {
+        "k": 5733,
+        "n": 6455,
+        "p": 0.8881,
+        "lo": 0.8802,
+        "hi": 0.8956
+       },
+       "ahead_on_mons_then_hp_wins": {
+        "k": 5733,
+        "n": 6455,
+        "p": 0.8881,
+        "lo": 0.8802,
+        "hi": 0.8956
+       },
+       "by_band_mons_then_hp": {
+        "<1100": {
+         "k": 2542,
+         "n": 2855,
+         "p": 0.8904,
+         "lo": 0.8784,
+         "hi": 0.9013
+        },
+        "1100-1199": {
+         "k": 1505,
+         "n": 1701,
+         "p": 0.8848,
+         "lo": 0.8687,
+         "hi": 0.8991
+        },
+        "unrated": {
+         "k": 1062,
+         "n": 1187,
+         "p": 0.8947,
+         "lo": 0.8759,
+         "hi": 0.9109
+        },
+        "1200-1299": {
+         "k": 477,
+         "n": 538,
+         "p": 0.8866,
+         "lo": 0.857,
+         "hi": 0.9107
+        },
+        "1300-1399": {
+         "k": 133,
+         "n": 155,
+         "p": 0.8581,
+         "lo": 0.7944,
+         "hi": 0.9044
+        },
+        "1400-1499": {
+         "k": 14,
+         "n": 19,
+         "p": 0.7368,
+         "lo": 0.5121,
+         "hi": 0.8819
+        }
+       },
+       "ended_by_forfeit": {
+        "k": 916,
+        "n": 6455,
+        "p": 0.1419,
+        "lo": 0.1336,
+        "hi": 0.1506
+       },
+       "decisions_left_normal_end": {
+        "n": 5511,
+        "mean": 1.758,
+        "p10": 1,
+        "p25": 1,
+        "p50": 1,
+        "p75": 2,
+        "p90": 3,
+        "p99": 6,
+        "max": 34
+       }
+      },
+      "2v2": {
+       "n": 9997,
+       "hp_leader_wins_by_lead": {
+        "0": {
+         "k": 0,
+         "n": 464
+        },
+        "26-50": {
+         "k": 1529,
+         "n": 2547,
+         "p": 0.6003,
+         "lo": 0.5812,
+         "hi": 0.6192
+        },
+        "1-25": {
+         "k": 1521,
+         "n": 2766,
+         "p": 0.5499,
+         "lo": 0.5313,
+         "hi": 0.5684
+        },
+        "51-100": {
+         "k": 2226,
+         "n": 3237,
+         "p": 0.6877,
+         "lo": 0.6715,
+         "hi": 0.7034
+        },
+        ">100": {
+         "k": 838,
+         "n": 983,
+         "p": 0.8525,
+         "lo": 0.829,
+         "hi": 0.8733
+        }
+       },
+       "share": 0.5898,
+       "ahead_on_mons_wins": null,
+       "ahead_on_mons_then_hp_wins": {
+        "k": 6114,
+        "n": 9533,
+        "p": 0.6414,
+        "lo": 0.6317,
+        "hi": 0.6509
+       },
+       "by_band_mons_then_hp": {
+        "<1100": {
+         "k": 2654,
+         "n": 4129,
+         "p": 0.6428,
+         "lo": 0.628,
+         "hi": 0.6572
+        },
+        "1100-1199": {
+         "k": 1664,
+         "n": 2598,
+         "p": 0.6405,
+         "lo": 0.6218,
+         "hi": 0.6587
+        },
+        "unrated": {
+         "k": 1107,
+         "n": 1697,
+         "p": 0.6523,
+         "lo": 0.6293,
+         "hi": 0.6746
+        },
+        "1200-1299": {
+         "k": 502,
+         "n": 807,
+         "p": 0.6221,
+         "lo": 0.5881,
+         "hi": 0.6549
+        },
+        "1300-1399": {
+         "k": 170,
+         "n": 274,
+         "p": 0.6204,
+         "lo": 0.5617,
+         "hi": 0.6759
+        },
+        "1400-1499": {
+         "k": 17,
+         "n": 28,
+         "p": 0.6071,
+         "lo": 0.4241,
+         "hi": 0.7643
+        }
+       },
+       "ended_by_forfeit": {
+        "k": 1779,
+        "n": 9997,
+        "p": 0.178,
+        "lo": 0.1706,
+        "hi": 0.1856
+       },
+       "decisions_left_normal_end": {
+        "n": 8165,
+        "mean": 2.495,
+        "p10": 1,
+        "p25": 2,
+        "p50": 2,
+        "p75": 3,
+        "p90": 4,
+        "p99": 7,
+        "max": 49
+       }
+      },
+      "1v1": {
+       "n": 499,
+       "hp_leader_wins_by_lead": {
+        "0": {
+         "k": 0,
+         "n": 66
+        },
+        "51-100": {
+         "k": 158,
+         "n": 182,
+         "p": 0.8681,
+         "lo": 0.8113,
+         "hi": 0.9098
+        },
+        "1-25": {
+         "k": 75,
+         "n": 133,
+         "p": 0.5639,
+         "lo": 0.479,
+         "hi": 0.6452
+        },
+        "26-50": {
+         "k": 77,
+         "n": 118,
+         "p": 0.6525,
+         "lo": 0.563,
+         "hi": 0.7324
+        }
+       },
+       "share": 0.0294,
+       "ahead_on_mons_wins": null,
+       "ahead_on_mons_then_hp_wins": {
+        "k": 310,
+        "n": 433,
+        "p": 0.7159,
+        "lo": 0.6717,
+        "hi": 0.7564
+       },
+       "by_band_mons_then_hp": {
+        "<1100": {
+         "k": 122,
+         "n": 174,
+         "p": 0.7011,
+         "lo": 0.6294,
+         "hi": 0.7642
+        },
+        "1100-1199": {
+         "k": 93,
+         "n": 132,
+         "p": 0.7045,
+         "lo": 0.6218,
+         "hi": 0.7757
+        },
+        "unrated": {
+         "k": 59,
+         "n": 71,
+         "p": 0.831,
+         "lo": 0.7274,
+         "hi": 0.9006
+        },
+        "1200-1299": {
+         "k": 29,
+         "n": 45,
+         "p": 0.6444,
+         "lo": 0.4984,
+         "hi": 0.7678
+        },
+        "1300-1399": {
+         "k": 6,
+         "n": 10,
+         "p": 0.6,
+         "lo": 0.3127,
+         "hi": 0.8318
+        },
+        "1400-1499": {
+         "k": 1,
+         "n": 1,
+         "p": 1,
+         "lo": 0.2065,
+         "hi": 1
+        }
+       },
+       "ended_by_forfeit": {
+        "k": 42,
+        "n": 499,
+        "p": 0.0842,
+        "lo": 0.0629,
+        "hi": 0.1118
+       },
+       "decisions_left_normal_end": {
+        "n": 456,
+        "mean": 1.783,
+        "p10": 1,
+        "p25": 1,
+        "p50": 1,
+        "p75": 2,
+        "p90": 3,
+        "p99": 6,
+        "max": 7
+       }
+      }
+     }
+    },
+    "E4": {
+     "material": {
+      "2v1": {
+       "n": 5162,
+       "share": 0.2382,
+       "ahead_on_mons_wins": {
+        "k": 4585,
+        "n": 5162,
+        "p": 0.8882,
+        "lo": 0.8793,
+        "hi": 0.8965
+       },
+       "ahead_on_mons_then_hp_wins": {
+        "k": 4585,
+        "n": 5162,
+        "p": 0.8882,
+        "lo": 0.8793,
+        "hi": 0.8965
+       },
+       "by_band_mons_then_hp": {
+        "<1100": {
+         "k": 2029,
+         "n": 2277,
+         "p": 0.8911,
+         "lo": 0.8776,
+         "hi": 0.9032
+        },
+        "1100-1199": {
+         "k": 1206,
+         "n": 1367,
+         "p": 0.8822,
+         "lo": 0.8641,
+         "hi": 0.8983
+        },
+        "unrated": {
+         "k": 832,
+         "n": 930,
+         "p": 0.8946,
+         "lo": 0.8732,
+         "hi": 0.9128
+        },
+        "1200-1299": {
+         "k": 391,
+         "n": 439,
+         "p": 0.8907,
+         "lo": 0.858,
+         "hi": 0.9165
+        },
+        "1300-1399": {
+         "k": 114,
+         "n": 132,
+         "p": 0.8636,
+         "lo": 0.7947,
+         "hi": 0.912
+        },
+        "1400-1499": {
+         "k": 13,
+         "n": 17,
+         "p": 0.7647,
+         "lo": 0.5274,
+         "hi": 0.9045
+        }
+       },
+       "ended_by_forfeit": {
+        "k": 785,
+        "n": 5162,
+        "p": 0.1521,
+        "lo": 0.1425,
+        "hi": 0.1621
+       },
+       "decisions_left_normal_end": {
+        "n": 4359,
+        "mean": 1.735,
+        "p10": 1,
+        "p25": 1,
+        "p50": 1,
+        "p75": 2,
+        "p90": 3,
+        "p99": 6,
+        "max": 19
+       }
+      },
+      "3v1": {
+       "n": 6109,
+       "share": 0.2819,
+       "ahead_on_mons_wins": {
+        "k": 5927,
+        "n": 6109,
+        "p": 0.9702,
+        "lo": 0.9656,
+        "hi": 0.9742
+       },
+       "ahead_on_mons_then_hp_wins": {
+        "k": 5927,
+        "n": 6109,
+        "p": 0.9702,
+        "lo": 0.9656,
+        "hi": 0.9742
+       },
+       "by_band_mons_then_hp": {
+        "<1100": {
+         "k": 2584,
+         "n": 2662,
+         "p": 0.9707,
+         "lo": 0.9636,
+         "hi": 0.9765
+        },
+        "1100-1199": {
+         "k": 1566,
+         "n": 1616,
+         "p": 0.9691,
+         "lo": 0.9594,
+         "hi": 0.9765
+        },
+        "unrated": {
+         "k": 1143,
+         "n": 1174,
+         "p": 0.9736,
+         "lo": 0.9628,
+         "hi": 0.9813
+        },
+        "1200-1299": {
+         "k": 506,
+         "n": 523,
+         "p": 0.9675,
+         "lo": 0.9486,
+         "hi": 0.9796
+        },
+        "1300-1399": {
+         "k": 115,
+         "n": 120,
+         "p": 0.9583,
+         "lo": 0.9062,
+         "hi": 0.9821
+        },
+        "1400-1499": {
+         "k": 13,
+         "n": 14,
+         "p": 0.9286,
+         "lo": 0.6853,
+         "hi": 0.9873
+        }
+       },
+       "ended_by_forfeit": {
+        "k": 1808,
+        "n": 6109,
+        "p": 0.296,
+        "lo": 0.2846,
+        "hi": 0.3075
+       },
+       "decisions_left_normal_end": {
+        "n": 4258,
+        "mean": 1.974,
+        "p10": 1,
+        "p25": 1,
+        "p50": 1,
+        "p75": 2,
+        "p90": 4,
+        "p99": 7,
+        "max": 38
+       }
+      },
+      "2v2": {
+       "n": 9997,
+       "hp_leader_wins_by_lead": {
+        "0": {
+         "k": 0,
+         "n": 464
+        },
+        "26-50": {
+         "k": 1529,
+         "n": 2547,
+         "p": 0.6003,
+         "lo": 0.5812,
+         "hi": 0.6192
+        },
+        "1-25": {
+         "k": 1521,
+         "n": 2766,
+         "p": 0.5499,
+         "lo": 0.5313,
+         "hi": 0.5684
+        },
+        "51-100": {
+         "k": 2226,
+         "n": 3237,
+         "p": 0.6877,
+         "lo": 0.6715,
+         "hi": 0.7034
+        },
+        ">100": {
+         "k": 838,
+         "n": 983,
+         "p": 0.8525,
+         "lo": 0.829,
+         "hi": 0.8733
+        }
+       },
+       "share": 0.4614,
+       "ahead_on_mons_wins": null,
+       "ahead_on_mons_then_hp_wins": {
+        "k": 6114,
+        "n": 9533,
+        "p": 0.6414,
+        "lo": 0.6317,
+        "hi": 0.6509
+       },
+       "by_band_mons_then_hp": {
+        "<1100": {
+         "k": 2654,
+         "n": 4129,
+         "p": 0.6428,
+         "lo": 0.628,
+         "hi": 0.6572
+        },
+        "1100-1199": {
+         "k": 1664,
+         "n": 2598,
+         "p": 0.6405,
+         "lo": 0.6218,
+         "hi": 0.6587
+        },
+        "unrated": {
+         "k": 1107,
+         "n": 1697,
+         "p": 0.6523,
+         "lo": 0.6293,
+         "hi": 0.6746
+        },
+        "1200-1299": {
+         "k": 502,
+         "n": 807,
+         "p": 0.6221,
+         "lo": 0.5881,
+         "hi": 0.6549
+        },
+        "1300-1399": {
+         "k": 170,
+         "n": 274,
+         "p": 0.6204,
+         "lo": 0.5617,
+         "hi": 0.6759
+        },
+        "1400-1499": {
+         "k": 17,
+         "n": 28,
+         "p": 0.6071,
+         "lo": 0.4241,
+         "hi": 0.7643
+        }
+       },
+       "ended_by_forfeit": {
+        "k": 1779,
+        "n": 9997,
+        "p": 0.178,
+        "lo": 0.1706,
+        "hi": 0.1856
+       },
+       "decisions_left_normal_end": {
+        "n": 8165,
+        "mean": 2.495,
+        "p10": 1,
+        "p25": 2,
+        "p50": 2,
+        "p75": 3,
+        "p90": 4,
+        "p99": 7,
+        "max": 49
+       }
+      },
+      "1v1": {
+       "n": 401,
+       "hp_leader_wins_by_lead": {
+        "0": {
+         "k": 0,
+         "n": 58
+        },
+        "51-100": {
+         "k": 114,
+         "n": 133,
+         "p": 0.8571,
+         "lo": 0.7876,
+         "hi": 0.9066
+        },
+        "26-50": {
+         "k": 66,
+         "n": 100,
+         "p": 0.66,
+         "lo": 0.5628,
+         "hi": 0.7454
+        },
+        "1-25": {
+         "k": 62,
+         "n": 110,
+         "p": 0.5636,
+         "lo": 0.4704,
+         "hi": 0.6526
+        }
+       },
+       "share": 0.0185,
+       "ahead_on_mons_wins": null,
+       "ahead_on_mons_then_hp_wins": {
+        "k": 242,
+        "n": 343,
+        "p": 0.7055,
+        "lo": 0.6552,
+        "hi": 0.7513
+       },
+       "by_band_mons_then_hp": {
+        "<1100": {
+         "k": 94,
+         "n": 135,
+         "p": 0.6963,
+         "lo": 0.6142,
+         "hi": 0.7675
+        },
+        "1100-1199": {
+         "k": 71,
+         "n": 103,
+         "p": 0.6893,
+         "lo": 0.5945,
+         "hi": 0.7705
+        },
+        "unrated": {
+         "k": 53,
+         "n": 63,
+         "p": 0.8413,
+         "lo": 0.7319,
+         "hi": 0.9114
+        },
+        "1200-1299": {
+         "k": 20,
+         "n": 34,
+         "p": 0.5882,
+         "lo": 0.4222,
+         "hi": 0.7363
+        },
+        "1300-1399": {
+         "k": 4,
+         "n": 8,
+         "p": 0.5,
+         "lo": 0.2152,
+         "hi": 0.7848
+        }
+       },
+       "ended_by_forfeit": {
+        "k": 28,
+        "n": 401,
+        "p": 0.0698,
+        "lo": 0.0487,
+        "hi": 0.0991
+       },
+       "decisions_left_normal_end": {
+        "n": 372,
+        "mean": 1.817,
+        "p10": 1,
+        "p25": 1,
+        "p50": 1,
+        "p75": 2,
+        "p90": 3,
+        "p99": 6,
+        "max": 7
+       }
+      }
+     }
+    }
+   },
+   "state": {
+    "E2": {
+     "endgames": 16951,
+     "members": 60351,
+     "hp_tenths": {
+      "90-100": 26300,
+      "80-90": 3917,
+      "20-30": 3709,
+      "70-80": 3682,
+      "0-10": 3910,
+      "40-50": 3770,
+      "30-40": 3791,
+      "10-20": 3647,
+      "50-60": 3856,
+      "60-70": 3769
+     },
+     "hp_mean": 69.07,
+     "hp_full_share": 0.3949,
+     "status": {
+      "none": 58063,
+      "slp": 309,
+      "brn": 633,
+      "par": 904,
+      "psn": 286,
+      "tox": 123,
+      "frz": 33
+     },
+     "members_with_any_stage": {
+      "k": 16204,
+      "n": 60351,
+      "p": 0.2685,
+      "lo": 0.265,
+      "hi": 0.272
+     },
+     "stages": {
+      "atk down": 8010,
+      "def down": 1275,
+      "spd down": 1374,
+      "atk up": 2070,
+      "spa up": 2825,
+      "def up": 3321,
+      "spa down": 2058,
+      "spd up": 2247,
+      "spe up": 753,
+      "accuracy up": 335,
+      "accuracy down": 155,
+      "spe down": 470,
+      "evasion up": 1,
+      "evasion down": 1
+     },
+     "volatiles": [
+      [
+       "perish",
+       562
+      ],
+      [
+       "Throat Chop",
+       136
+      ],
+      [
+       "Encore",
+       99
+      ],
+      [
+       "typechange",
+       86
+      ],
+      [
+       "Flash Fire",
+       42
+      ],
+      [
+       "confusion",
+       37
+      ],
+      [
+       "Imprison",
+       36
+      ],
+      [
+       "Taunt",
+       30
+      ],
+      [
+       "Disable",
+       28
+      ],
+      [
+       "Yawn",
+       21
+      ],
+      [
+       "Substitute",
+       11
+      ],
+      [
+       "Leech Seed",
+       11
+      ],
+      [
+       "fallen2",
+       9
+      ],
+      [
+       "Heal Block",
+       8
+      ],
+      [
+       "Salt Cure",
+       8
+      ],
+      [
+       "transform",
+       6
+      ],
+      [
+       "Focus Energy",
+       5
+      ],
+      [
+       "stockpile1",
+       5
+      ],
+      [
+       "fallen1",
+       4
+      ],
+      [
+       "No Retreat",
+       4
+      ],
+      [
+       "stockpile2",
+       4
+      ],
+      [
+       "fallen3",
+       3
+      ],
+      [
+       "stockpile3",
+       3
+      ],
+      [
+       "Dragon Cheer",
+       3
+      ],
+      [
+       "Future Sight",
+       2
+      ]
+     ],
+     "mega_still_available": {
+      "p1_or_p2": {
+       "k": 4773,
+       "n": 16951,
+       "p": 0.2816,
+       "lo": 0.2749,
+       "hi": 0.2884
+      }
+     },
+     "field": {
+      "any_field_or_side_condition": {
+       "k": 14090,
+       "n": 16951,
+       "p": 0.8312,
+       "lo": 0.8255,
+       "hi": 0.8368
+      },
+      "weather": {
+       "RainDance": 2286,
+       "none": 10357,
+       "Sandstorm": 1559,
+       "SunnyDay": 1952,
+       "Snowscape": 797
+      },
+      "terrain": {
+       "none": 7105,
+       "Grassy Terrain": 6570,
+       "Psychic Terrain": 3208,
+       "Electric Terrain": 64,
+       "Misty Terrain": 4
+      },
+      "trick_room": {
+       "k": 1748,
+       "n": 16951,
+       "p": 0.1031,
+       "lo": 0.0986,
+       "hi": 0.1078
+      },
+      "trick_room_age": {
+       "1": 182,
+       "2": 393,
+       "3": 507,
+       "4": 666
+      },
+      "trick_room_duration_from_dex": 5,
+      "tailwind_either": {
+       "k": 2288,
+       "n": 16951,
+       "p": 0.135,
+       "lo": 0.1299,
+       "hi": 0.1402
+      },
+      "tailwind_both": 131,
+      "tailwind_age": {
+       "1": 545,
+       "2": 853,
+       "3": 1021
+      },
+      "tailwind_duration_from_dex": 4,
+      "screens_either": {
+       "k": 1057,
+       "n": 16951,
+       "p": 0.0624,
+       "lo": 0.0588,
+       "hi": 0.0661
+      },
+      "screen_durations_from_dex": {
+       "Reflect": 5,
+       "Light Screen": 5,
+       "Aurora Veil": 5
+      },
+      "side_conditions": {
+       "Tailwind": 2419,
+       "Aurora Veil": 293,
+       "Light Screen": 579,
+       "Reflect": 443,
+       "Stealth Rock": 114,
+       "Toxic Spikes": 202,
+       "Spikes": 18,
+       "Sticky Web": 1,
+       "Safeguard": 2
+      },
+      "pseudo": {
+       "Trick Room": 1748,
+       "Gravity": 6
+      }
+     },
+     "species_top15_endgames_containing": [
+      [
+       "Rillaboom",
+       4583,
+       0.2704
+      ],
+      [
+       "Sneasler",
+       3571,
+       0.2107
+      ],
+      [
+       "Incineroar",
+       3151,
+       0.1859
+      ],
+      [
+       "Gholdengo",
+       2833,
+       0.1671
+      ],
+      [
+       "Kingambit",
+       2599,
+       0.1533
+      ],
+      [
+       "Arcanine-Hisui",
+       2415,
+       0.1425
+      ],
+      [
+       "Basculegion",
+       2368,
+       0.1397
+      ],
+      [
+       "Salamence-Mega",
+       2098,
+       0.1238
+      ],
+      [
+       "Archaludon",
+       1344,
+       0.0793
+      ],
+      [
+       "Sylveon",
+       1319,
+       0.0778
+      ],
+      [
+       "Golisopod-Mega",
+       1259,
+       0.0743
+      ],
+      [
+       "Milotic",
+       1257,
+       0.0742
+      ],
+      [
+       "Charizard-Mega-Y",
+       1251,
+       0.0738
+      ],
+      [
+       "Farigiraf",
+       1238,
+       0.073
+      ],
+      [
+       "Raichu-Mega-Y",
+       1184,
+       0.0698
+      ]
+     ],
+     "matchups_top10": [
+      [
+       "Rillaboom,Sneasler vs Sneasler",
+       10
+      ],
+      [
+       "Arcanine-Hisui vs Gholdengo",
+       10
+      ],
+      [
+       "Basculegion vs Incineroar,Rillaboom",
+       9
+      ],
+      [
+       "Salamence-Mega,Sneasler vs Sneasler",
+       9
+      ],
+      [
+       "Arcanine-Hisui,Rillaboom vs Kingambit",
+       9
+      ],
+      [
+       "Incineroar vs Incineroar,Rillaboom",
+       9
+      ],
+      [
+       "Incineroar vs Salamence-Mega",
+       8
+      ],
+      [
+       "Archaludon,Pelipper vs Kingambit",
+       8
+      ],
+      [
+       "Archaludon vs Rillaboom,Sneasler",
+       8
+      ],
+      [
+       "Incineroar,Rillaboom vs Rillaboom",
+       8
+      ]
+     ]
+    },
+    "E4": {
+     "endgames": 21669,
+     "members": 79987,
+     "hp_tenths": {
+      "90-100": 33067,
+      "80-90": 5431,
+      "20-30": 5081,
+      "70-80": 5059,
+      "0-10": 5343,
+      "60-70": 5307,
+      "30-40": 5220,
+      "10-20": 5049,
+      "50-60": 5280,
+      "40-50": 5150
+     },
+     "hp_mean": 67.91,
+     "hp_full_share": 0.3713,
+     "status": {
+      "none": 76803,
+      "slp": 421,
+      "brn": 921,
+      "par": 1243,
+      "psn": 370,
+      "tox": 180,
+      "frz": 49
+     },
+     "members_with_any_stage": {
+      "k": 21513,
+      "n": 79987,
+      "p": 0.269,
+      "lo": 0.2659,
+      "hi": 0.272
+     },
+     "stages": {
+      "atk down": 10415,
+      "def down": 1771,
+      "spd down": 1901,
+      "atk up": 2749,
+      "spa up": 3991,
+      "def up": 4533,
+      "spa down": 2993,
+      "spd up": 2991,
+      "spe up": 1049,
+      "accuracy up": 454,
+      "accuracy down": 210,
+      "spe down": 674,
+      "evasion up": 4,
+      "evasion down": 1
+     },
+     "volatiles": [
+      [
+       "perish",
+       668
+      ],
+      [
+       "Throat Chop",
+       199
+      ],
+      [
+       "Encore",
+       128
+      ],
+      [
+       "typechange",
+       101
+      ],
+      [
+       "Flash Fire",
+       61
+      ],
+      [
+       "confusion",
+       54
+      ],
+      [
+       "Imprison",
+       46
+      ],
+      [
+       "Disable",
+       42
+      ],
+      [
+       "Taunt",
+       40
+      ],
+      [
+       "Yawn",
+       24
+      ],
+      [
+       "Leech Seed",
+       19
+      ],
+      [
+       "Substitute",
+       15
+      ],
+      [
+       "fallen2",
+       10
+      ],
+      [
+       "transform",
+       8
+      ],
+      [
+       "Heal Block",
+       7
+      ],
+      [
+       "Focus Energy",
+       6
+      ],
+      [
+       "stockpile1",
+       6
+      ],
+      [
+       "Salt Cure",
+       6
+      ],
+      [
+       "fallen1",
+       5
+      ],
+      [
+       "stockpile2",
+       5
+      ],
+      [
+       "fallen3",
+       4
+      ],
+      [
+       "No Retreat",
+       4
+      ],
+      [
+       "stockpile3",
+       3
+      ],
+      [
+       "Dragon Cheer",
+       3
+      ],
+      [
+       "Future Sight",
+       2
+      ]
+     ],
+     "mega_still_available": {
+      "p1_or_p2": {
+       "k": 6006,
+       "n": 21669,
+       "p": 0.2772,
+       "lo": 0.2713,
+       "hi": 0.2832
+      }
+     },
+     "field": {
+      "any_field_or_side_condition": {
+       "k": 17855,
+       "n": 21669,
+       "p": 0.824,
+       "lo": 0.8189,
+       "hi": 0.829
+      },
+      "weather": {
+       "RainDance": 2943,
+       "none": 13346,
+       "Sandstorm": 1936,
+       "SunnyDay": 2428,
+       "Snowscape": 1016
+      },
+      "terrain": {
+       "none": 9333,
+       "Grassy Terrain": 8204,
+       "Psychic Terrain": 4040,
+       "Electric Terrain": 85,
+       "Misty Terrain": 7
+      },
+      "trick_room": {
+       "k": 2260,
+       "n": 21669,
+       "p": 0.1043,
+       "lo": 0.1003,
+       "hi": 0.1084
+      },
+      "trick_room_age": {
+       "1": 231,
+       "2": 516,
+       "3": 646,
+       "4": 867
+      },
+      "trick_room_duration_from_dex": 5,
+      "tailwind_either": {
+       "k": 2890,
+       "n": 21669,
+       "p": 0.1334,
+       "lo": 0.1289,
+       "hi": 0.138
+      },
+      "tailwind_both": 158,
+      "tailwind_age": {
+       "1": 709,
+       "2": 1071,
+       "3": 1268
+      },
+      "tailwind_duration_from_dex": 4,
+      "screens_either": {
+       "k": 1467,
+       "n": 21669,
+       "p": 0.0677,
+       "lo": 0.0644,
+       "hi": 0.0711
+      },
+      "screen_durations_from_dex": {
+       "Reflect": 5,
+       "Light Screen": 5,
+       "Aurora Veil": 5
+      },
+      "side_conditions": {
+       "Tailwind": 3048,
+       "Aurora Veil": 390,
+       "Light Screen": 818,
+       "Reflect": 619,
+       "Stealth Rock": 129,
+       "Toxic Spikes": 257,
+       "Spikes": 24,
+       "Sticky Web": 2,
+       "Safeguard": 2
+      },
+      "pseudo": {
+       "Trick Room": 2260,
+       "Gravity": 7
+      }
+     },
+     "species_top15_endgames_containing": [
+      [
+       "Rillaboom",
+       6351,
+       0.2931
+      ],
+      [
+       "Sneasler",
+       4676,
+       0.2158
+      ],
+      [
+       "Incineroar",
+       4552,
+       0.2101
+      ],
+      [
+       "Gholdengo",
+       3690,
+       0.1703
+      ],
+      [
+       "Kingambit",
+       3341,
+       0.1542
+      ],
+      [
+       "Arcanine-Hisui",
+       3027,
+       0.1397
+      ],
+      [
+       "Basculegion",
+       2938,
+       0.1356
+      ],
+      [
+       "Salamence-Mega",
+       2803,
+       0.1294
+      ],
+      [
+       "Archaludon",
+       1922,
+       0.0887
+      ],
+      [
+       "Farigiraf",
+       1731,
+       0.0799
+      ],
+      [
+       "Golisopod-Mega",
+       1675,
+       0.0773
+      ],
+      [
+       "Raichu-Mega-Y",
+       1674,
+       0.0773
+      ],
+      [
+       "Milotic",
+       1664,
+       0.0768
+      ],
+      [
+       "Sylveon",
+       1653,
+       0.0763
+      ],
+      [
+       "Charizard-Mega-Y",
+       1637,
+       0.0755
+      ]
+     ],
+     "matchups_top10": [
+      [
+       "Salamence-Mega,Sneasler vs Sneasler",
+       9
+      ],
+      [
+       "Basculegion vs Incineroar,Rillaboom",
+       8
+      ],
+      [
+       "Rillaboom,Sneasler vs Sneasler",
+       8
+      ],
+      [
+       "Archaludon vs Gholdengo,Rillaboom",
+       8
+      ],
+      [
+       "Incineroar,Rillaboom vs Rillaboom",
+       8
+      ],
+      [
+       "Floette-Mega,Incineroar,Rillaboom vs Incineroar",
+       8
+      ],
+      [
+       "Arcanine-Hisui,Rillaboom vs Kingambit",
+       8
+      ],
+      [
+       "Arcanine-Hisui,Gholdengo vs Gholdengo",
+       8
+      ],
+      [
+       "Arcanine-Hisui,Salamence-Mega vs Golisopod-Mega",
+       7
+      ],
+      [
+       "Basculegion,Sneasler vs Rillaboom,Sneasler",
+       7
+      ]
+     ]
+    }
+   },
+   "distinct": {
+    "E2": {
+     "K0": {
+      "endgames": 16951,
+      "distinct": 14724,
+      "singletons": 13222,
+      "singleton_share_of_endgames": 0.78,
+      "top10_share": 0.0052,
+      "top100_share": 0.0314,
+      "top1000_share": 0.1608,
+      "keys_for_50pct": 6249,
+      "keys_for_80pct": 11334
+     },
+     "K0set": {
+      "endgames": 16951,
+      "distinct": 16774,
+      "singletons": 16619,
+      "singleton_share_of_endgames": 0.9804,
+      "top10_share": 0.0024,
+      "top100_share": 0.0131,
+      "top1000_share": 0.0694,
+      "keys_for_50pct": 8299,
+      "keys_for_80pct": 13384
+     },
+     "K1q": {
+      "endgames": 16951,
+      "distinct": 16814,
+      "singletons": 16689,
+      "singleton_share_of_endgames": 0.9845,
+      "top10_share": 0.0019,
+      "top100_share": 0.0125,
+      "top1000_share": 0.0671,
+      "keys_for_50pct": 8339,
+      "keys_for_80pct": 13424
+     },
+     "K1d": {
+      "endgames": 16951,
+      "distinct": 16911,
+      "singletons": 16874,
+      "singleton_share_of_endgames": 0.9955,
+      "top10_share": 0.0014,
+      "top100_share": 0.0083,
+      "top1000_share": 0.0614,
+      "keys_for_50pct": 8436,
+      "keys_for_80pct": 13521
+     },
+     "K2": {
+      "endgames": 16951,
+      "distinct": 16942,
+      "singletons": 16934,
+      "singleton_share_of_endgames": 0.999,
+      "top10_share": 0.0011,
+      "top100_share": 0.0064,
+      "top1000_share": 0.0595,
+      "keys_for_50pct": 8467,
+      "keys_for_80pct": 13552
+     },
+     "K3": {
+      "endgames": 16951,
+      "distinct": 16946,
+      "singletons": 16942,
+      "singleton_share_of_endgames": 0.9995,
+      "top10_share": 0.0009,
+      "top100_share": 0.0062,
+      "top1000_share": 0.0593,
+      "keys_for_50pct": 8471,
+      "keys_for_80pct": 13556
+     },
+     "K3set": {
+      "endgames": 16951,
+      "distinct": 16951,
+      "singletons": 16951,
+      "singleton_share_of_endgames": 1,
+      "top10_share": 0.0006,
+      "top100_share": 0.0059,
+      "top1000_share": 0.059,
+      "keys_for_50pct": 8476,
+      "keys_for_80pct": 13561
+     }
+    },
+    "E4": {
+     "K0": {
+      "endgames": 21669,
+      "distinct": 19222,
+      "singletons": 17500,
+      "singleton_share_of_endgames": 0.8076,
+      "top10_share": 0.0036,
+      "top100_share": 0.0236,
+      "top1000_share": 0.1258,
+      "keys_for_50pct": 8388,
+      "keys_for_80pct": 14889
+     },
+     "K0set": {
+      "endgames": 21669,
+      "distinct": 21479,
+      "singletons": 21303,
+      "singleton_share_of_endgames": 0.9831,
+      "top10_share": 0.0016,
+      "top100_share": 0.0099,
+      "top1000_share": 0.0549,
+      "keys_for_50pct": 10645,
+      "keys_for_80pct": 17146
+     },
+     "K1q": {
+      "endgames": 21669,
+      "distinct": 21536,
+      "singletons": 21410,
+      "singleton_share_of_endgames": 0.988,
+      "top10_share": 0.0012,
+      "top100_share": 0.0096,
+      "top1000_share": 0.0523,
+      "keys_for_50pct": 10702,
+      "keys_for_80pct": 17203
+     },
+     "K1d": {
+      "endgames": 21669,
+      "distinct": 21631,
+      "singletons": 21595,
+      "singleton_share_of_endgames": 0.9966,
+      "top10_share": 0.001,
+      "top100_share": 0.0064,
+      "top1000_share": 0.0479,
+      "keys_for_50pct": 10797,
+      "keys_for_80pct": 17298
+     },
+     "K2": {
+      "endgames": 21669,
+      "distinct": 21663,
+      "singletons": 21658,
+      "singleton_share_of_endgames": 0.9995,
+      "top10_share": 0.0007,
+      "top100_share": 0.0049,
+      "top1000_share": 0.0464,
+      "keys_for_50pct": 10829,
+      "keys_for_80pct": 17330
+     },
+     "K3": {
+      "endgames": 21669,
+      "distinct": 21666,
+      "singletons": 21664,
+      "singleton_share_of_endgames": 0.9998,
+      "top10_share": 0.0006,
+      "top100_share": 0.0048,
+      "top1000_share": 0.0463,
+      "keys_for_50pct": 10832,
+      "keys_for_80pct": 17333
+     },
+     "K3set": {
+      "endgames": 21669,
+      "distinct": 21669,
+      "singletons": 21669,
+      "singleton_share_of_endgames": 1,
+      "top10_share": 0.0005,
+      "top100_share": 0.0046,
+      "top1000_share": 0.0461,
+      "keys_for_50pct": 10835,
+      "keys_for_80pct": 17336
+     }
+    }
+   },
+   "table_hit_rate": {
+    "E2": {
+     "K0": {
+      "train": 13560,
+      "test": 3391,
+      "hit": 577,
+      "rate": 0.1702
+     },
+     "K0set": {
+      "train": 13560,
+      "test": 3391,
+      "hit": 35,
+      "rate": 0.0103
+     },
+     "K1q": {
+      "train": 13560,
+      "test": 3391,
+      "hit": 28,
+      "rate": 0.0083
+     },
+     "K1d": {
+      "train": 13560,
+      "test": 3391,
+      "hit": 9,
+      "rate": 0.0027
+     },
+     "K2": {
+      "train": 13560,
+      "test": 3391,
+      "hit": 2,
+      "rate": 0.0006
+     },
+     "K3": {
+      "train": 13560,
+      "test": 3391,
+      "hit": 2,
+      "rate": 0.0006
+     },
+     "K3set": {
+      "train": 13560,
+      "test": 3391,
+      "hit": 0,
+      "rate": 0
+     }
+    },
+    "E4": {
+     "K0": {
+      "train": 17335,
+      "test": 4334,
+      "hit": 648,
+      "rate": 0.1495
+     },
+     "K0set": {
+      "train": 17335,
+      "test": 4334,
+      "hit": 35,
+      "rate": 0.0081
+     },
+     "K1q": {
+      "train": 17335,
+      "test": 4334,
+      "hit": 30,
+      "rate": 0.0069
+     },
+     "K1d": {
+      "train": 17335,
+      "test": 4334,
+      "hit": 6,
+      "rate": 0.0014
+     },
+     "K2": {
+      "train": 17335,
+      "test": 4334,
+      "hit": 0,
+      "rate": 0
+     },
+     "K3": {
+      "train": 17335,
+      "test": 4334,
+      "hit": 0,
+      "rate": 0
+     },
+     "K3set": {
+      "train": 17335,
+      "test": 4334,
+      "hit": 0,
+      "rate": 0
+     }
+    }
+   },
+   "actions": {
+    "E2": {
+     "measured_on": 16951,
+     "of": 16951,
+     "per_side": {
+      "n": 33902,
+      "mean": 59.569,
+      "p10": 6,
+      "p25": 30,
+      "p50": 60,
+      "p75": 80,
+      "p90": 120,
+      "p99": 192,
+      "max": 300
+     },
+     "joint_matrix_cells": {
+      "n": 16951,
+      "mean": 4299.33,
+      "p10": 210,
+      "p25": 288,
+      "p50": 3600,
+      "p75": 6912,
+      "p90": 9600,
+      "p99": 19200,
+      "max": 57600
+     },
+     "by_material": {
+      "2v1": {
+       "per_side": {
+        "n": 12910,
+        "mean": 25.545,
+        "p10": 5,
+        "p25": 6,
+        "p50": 20,
+        "p75": 42,
+        "p90": 56,
+        "p99": 84,
+        "max": 128
+       },
+       "joint_matrix_cells": {
+        "n": 6455,
+        "mean": 293.141,
+        "p10": 180,
+        "p25": 210,
+        "p50": 280,
+        "p75": 336,
+        "p90": 432,
+        "p99": 672,
+        "max": 1372
+       }
+      },
+      "2v2": {
+       "per_side": {
+        "n": 19994,
+        "mean": 84.303,
+        "p10": 48,
+        "p25": 60,
+        "p50": 80,
+        "p75": 100,
+        "p90": 120,
+        "p99": 200,
+        "max": 300
+       },
+       "joint_matrix_cells": {
+        "n": 9997,
+        "mean": 7099.828,
+        "p10": 3072,
+        "p25": 4320,
+        "p50": 6000,
+        "p75": 8640,
+        "p90": 12000,
+        "p99": 23040,
+        "max": 57600
+       }
+      },
+      "1v1": {
+       "per_side": {
+        "n": 998,
+        "mean": 4.188,
+        "p10": 4,
+        "p25": 4,
+        "p50": 4,
+        "p75": 4,
+        "p90": 4,
+        "p99": 8,
+        "max": 8
+       },
+       "joint_matrix_cells": {
+        "n": 499,
+        "mean": 17.507,
+        "p10": 16,
+        "p25": 16,
+        "p50": 16,
+        "p75": 16,
+        "p90": 16,
+        "p99": 32,
+        "max": 32
+       }
+      }
+     },
+     "rule": "sheet upper bound per side: per active, sum over its known moves of the target choices (normal/any: live foes + live ally; adjacentFoe: live foes; adjacentAlly: 1; adjacentAllyOrSelf: 1 + ally; else 1), x2 where it can still mega; the joint is the product, less both-mega pairs. No switches exist in E2. Choice lock, Encore, Taunt, Disable, PP and Protect repeats are NOT applied (engine legalActions is the authority)."
+    },
+    "E4": {
+     "measured_on": 21669,
+     "of": 21669,
+     "per_side": {
+      "n": 43338,
+      "mean": 51.911,
+      "p10": 6,
+      "p25": 8,
+      "p50": 48,
+      "p75": 80,
+      "p90": 100,
+      "p99": 192,
+      "max": 300
+     },
+     "joint_matrix_cells": {
+      "n": 21669,
+      "mean": 3424.155,
+      "p10": 196,
+      "p25": 250,
+      "p50": 448,
+      "p75": 5760,
+      "p90": 9600,
+      "p99": 19200,
+      "max": 57600
+     },
+     "by_material": {
+      "2v1": {
+       "per_side": {
+        "n": 10324,
+        "mean": 25.534,
+        "p10": 5,
+        "p25": 6,
+        "p50": 20,
+        "p75": 42,
+        "p90": 56,
+        "p99": 84,
+        "max": 128
+       },
+       "joint_matrix_cells": {
+        "n": 5162,
+        "mean": 295.389,
+        "p10": 180,
+        "p25": 210,
+        "p50": 280,
+        "p75": 336,
+        "p90": 448,
+        "p99": 686,
+        "max": 1372
+       }
+      },
+      "3v1": {
+       "per_side": {
+        "n": 12218,
+        "mean": 24.321,
+        "p10": 5,
+        "p25": 6,
+        "p50": 16,
+        "p75": 40,
+        "p90": 49,
+        "p99": 80,
+        "max": 128
+       },
+       "joint_matrix_cells": {
+        "n": 6109,
+        "mean": 276.5,
+        "p10": 175,
+        "p25": 210,
+        "p50": 252,
+        "p75": 320,
+        "p90": 392,
+        "p99": 672,
+        "max": 1152
+       }
+      },
+      "2v2": {
+       "per_side": {
+        "n": 19994,
+        "mean": 84.303,
+        "p10": 48,
+        "p25": 60,
+        "p50": 80,
+        "p75": 100,
+        "p90": 120,
+        "p99": 200,
+        "max": 300
+       },
+       "joint_matrix_cells": {
+        "n": 9997,
+        "mean": 7099.828,
+        "p10": 3072,
+        "p25": 4320,
+        "p50": 6000,
+        "p75": 8640,
+        "p90": 12000,
+        "p99": 23040,
+        "max": 57600
+       }
+      },
+      "1v1": {
+       "per_side": {
+        "n": 802,
+        "mean": 4.209,
+        "p10": 4,
+        "p25": 4,
+        "p50": 4,
+        "p75": 4,
+        "p90": 4,
+        "p99": 8,
+        "max": 8
+       },
+       "joint_matrix_cells": {
+        "n": 401,
+        "mean": 17.676,
+        "p10": 16,
+        "p25": 16,
+        "p50": 16,
+        "p75": 16,
+        "p90": 32,
+        "p99": 32,
+        "max": 32
+       }
+      }
+     },
+     "rule": "sheet upper bound per side: per active, sum over its known moves of the target choices (normal/any: live foes + live ally; adjacentFoe: live foes; adjacentAlly: 1; adjacentAllyOrSelf: 1 + ally; else 1), x2 where it can still mega; the joint is the product, less both-mega pairs. No switches exist in E2. Choice lock, Encore, Taunt, Disable, PP and Protect repeats are NOT applied (engine legalActions is the authority)."
+    }
+   },
+   "code": [
+    {
+     "path": "solver/dusk/measure_endgames.js",
+     "sha256": "81d52cc8a18203773d7a0122b8bfa343474f510fc2969fe5dd5152bfebdae8e1"
+    },
+    {
+     "path": "solver/dusk/lib.js",
+     "sha256": "a64d139f60ba776e41e3020ea89f5fd36c3f23e7a307c299fb8c2db1831e4823"
+    },
+    {
+     "path": "solver/porygon2/v2/reveal.js",
+     "sha256": "b1cc88db672d8c31aeae740923b61983bd85ffc1969e24de2a587406ad2f3a29"
+    },
+    {
+     "path": "engine/quality.js",
+     "sha256": "9b168679e3e91ba7b4ca84841741a3176bda6ef7471831209e10f254100ed351"
+    }
+   ],
+   "inputs": [
+    {
+     "role": "parsed_store",
+     "path": "<root>/data/games.gen9championsvgc2026regmcbo3.jsonl.gz",
+     "bytes": 39997125,
+     "sha256": "7c15d94eab4aea2f1992236ddd776199bc19dcbec420e9e4e568222a7e6ca29d",
+     "mtime": "2026-10-01T04:08:07.322Z"
+    }
+   ]
+  },
+  "bo1": {
+   "generated": "2026-10-01T04:59:33.098Z",
+   "fmt": "bo1",
+   "game_shape_codes": "charged (every reasons() code excludes)",
+   "funnel": {
+    "store_rows": 63048,
+    "store_bad_json": 0,
+    "store_duplicate_ids": 0,
+    "store_games": 63048,
+    "excluded_by_first_reason": {
+     "partial_bring": 12629,
+     "short": 3667,
+     "forfeit_no_action": 269,
+     "bot": 6637,
+     "own_account": 6,
+     "behavioural_bot": 8194,
+     "illegal_team": 20,
+     "custom_ruleset": 10
+    },
+    "after_quality_and_own": 31616,
+    "excluded_after_quality": {
+     "illusion_possible": 742,
+     "custom_rules": 1748,
+     "no_result": 7
+    },
+    "parse_codes": {},
+    "no_raw_log": 0,
+    "kept": 29119
+   },
+   "games": 29119,
+   "games_by_band": {
+    "1100-1199": 7254,
+    "<1100": 10395,
+    "1300-1399": 3080,
+    "unrated": 2491,
+    "1200-1299": 4255,
+    "1400-1499": 1215,
+    ">=1500": 429
+   },
+   "reach": {
+    "E2": {
+     "k": 18733,
+     "n": 29119,
+     "p": 0.6433,
+     "lo": 0.6378,
+     "hi": 0.6488,
+     "among_normal_ends": {
+      "k": 15073,
+      "n": 19920,
+      "p": 0.7567,
+      "lo": 0.7507,
+      "hi": 0.7626
+     },
+     "by_band": {
+      "1100-1199": {
+       "k": 4698,
+       "n": 7254,
+       "p": 0.6476
+      },
+      "<1100": {
+       "k": 6737,
+       "n": 10395,
+       "p": 0.6481
+      },
+      "1300-1399": {
+       "k": 1921,
+       "n": 3080,
+       "p": 0.6237
+      },
+      "unrated": {
+       "k": 1634,
+       "n": 2491,
+       "p": 0.656
+      },
+      "1200-1299": {
+       "k": 2755,
+       "n": 4255,
+       "p": 0.6475
+      },
+      "1400-1499": {
+       "k": 736,
+       "n": 1215,
+       "p": 0.6058
+      },
+      ">=1500": {
+       "k": 252,
+       "n": 429,
+       "p": 0.5874
+      }
+     },
+     "entry_turn": {
+      "n": 18733,
+      "mean": 7.025,
+      "p10": 4,
+      "p25": 5,
+      "p50": 7,
+      "p75": 8,
+      "p90": 10,
+      "p99": 14,
+      "max": 30
+     },
+     "decisions_left_normal_end": {
+      "n": 15073,
+      "mean": 2.388,
+      "p10": 1,
+      "p25": 1,
+      "p50": 2,
+      "p75": 3,
+      "p90": 4,
+      "p99": 10,
+      "max": 52
+     },
+     "decisions_left_hist_normal_end": {
+      "1": 5036,
+      "2": 5277,
+      "3": 2496,
+      "4": 1190,
+      "5": 447,
+      "6": 224,
+      "7": 118,
+      "8": 76,
+      "9": 55,
+      "10": 31,
+      "11": 17,
+      "12": 14,
+      "13": 14,
+      "14": 6,
+      "15": 9,
+      "16": 12,
+      "17": 6,
+      "18": 6,
+      "19": 5,
+      "20": 3,
+      "21": 2,
+      "22": 2,
+      "24": 3,
+      "25": 1,
+      "27": 2,
+      "30": 1,
+      "31": 3,
+      "32": 1,
+      "33": 2,
+      "34": 2,
+      "35": 2,
+      "36": 1,
+      "37": 1,
+      "39": 1,
+      "41": 1,
+      "42": 1,
+      "43": 2,
+      "48": 1,
+      "52": 2
+     },
+     "end_after_entry": {
+      "normal": 15073,
+      "forfeit": 3509,
+      "inactivity": 151
+     }
+    },
+    "E4": {
+     "k": 23648,
+     "n": 29119,
+     "p": 0.8121,
+     "lo": 0.8076,
+     "hi": 0.8166,
+     "among_normal_ends": {
+      "k": 17937,
+      "n": 19920,
+      "p": 0.9005,
+      "lo": 0.8962,
+      "hi": 0.9045
+     },
+     "by_band": {
+      "1100-1199": {
+       "k": 5927,
+       "n": 7254,
+       "p": 0.8171
+      },
+      "<1100": {
+       "k": 8534,
+       "n": 10395,
+       "p": 0.821
+      },
+      "1300-1399": {
+       "k": 2406,
+       "n": 3080,
+       "p": 0.7812
+      },
+      "unrated": {
+       "k": 2050,
+       "n": 2491,
+       "p": 0.823
+      },
+      "1200-1299": {
+       "k": 3454,
+       "n": 4255,
+       "p": 0.8118
+      },
+      "1400-1499": {
+       "k": 950,
+       "n": 1215,
+       "p": 0.7819
+      },
+      ">=1500": {
+       "k": 327,
+       "n": 429,
+       "p": 0.7622
+      }
+     },
+     "entry_turn": {
+      "n": 23648,
+      "mean": 7.013,
+      "p10": 5,
+      "p25": 5,
+      "p50": 7,
+      "p75": 8,
+      "p90": 10,
+      "p99": 14,
+      "max": 30
+     },
+     "decisions_left_normal_end": {
+      "n": 17937,
+      "mean": 2.375,
+      "p10": 1,
+      "p25": 1,
+      "p50": 2,
+      "p75": 3,
+      "p90": 4,
+      "p99": 10,
+      "max": 52
+     },
+     "decisions_left_hist_normal_end": {
+      "1": 6228,
+      "2": 6022,
+      "3": 2979,
+      "4": 1418,
+      "5": 545,
+      "6": 269,
+      "7": 134,
+      "8": 92,
+      "9": 63,
+      "10": 41,
+      "11": 16,
+      "12": 21,
+      "13": 18,
+      "14": 9,
+      "15": 13,
+      "16": 12,
+      "17": 7,
+      "18": 6,
+      "19": 6,
+      "20": 3,
+      "21": 4,
+      "22": 3,
+      "23": 1,
+      "24": 2,
+      "25": 1,
+      "26": 1,
+      "27": 1,
+      "30": 1,
+      "31": 2,
+      "33": 1,
+      "34": 3,
+      "35": 2,
+      "36": 2,
+      "37": 1,
+      "38": 1,
+      "39": 1,
+      "41": 1,
+      "42": 1,
+      "43": 1,
+      "44": 1,
+      "48": 1,
+      "50": 1,
+      "52": 2
+     },
+     "end_after_entry": {
+      "normal": 17937,
+      "forfeit": 5513,
+      "inactivity": 198
+     }
+    },
+    "E1": {
+     "k": 5361,
+     "n": 29119,
+     "p": 0.1841,
+     "lo": 0.1797,
+     "hi": 0.1886,
+     "among_normal_ends": {
+      "k": 4723,
+      "n": 19920,
+      "p": 0.2371,
+      "lo": 0.2312,
+      "hi": 0.2431
+     },
+     "by_band": {
+      "1100-1199": {
+       "k": 1354,
+       "n": 7254,
+       "p": 0.1867
+      },
+      "<1100": {
+       "k": 2024,
+       "n": 10395,
+       "p": 0.1947
+      },
+      "1300-1399": {
+       "k": 525,
+       "n": 3080,
+       "p": 0.1705
+      },
+      "unrated": {
+       "k": 442,
+       "n": 2491,
+       "p": 0.1774
+      },
+      "1200-1299": {
+       "k": 748,
+       "n": 4255,
+       "p": 0.1758
+      },
+      "1400-1499": {
+       "k": 191,
+       "n": 1215,
+       "p": 0.1572
+      },
+      ">=1500": {
+       "k": 77,
+       "n": 429,
+       "p": 0.1795
+      }
+     },
+     "entry_turn": {
+      "n": 5361,
+      "mean": 8.717,
+      "p10": 6,
+      "p25": 7,
+      "p50": 8,
+      "p75": 10,
+      "p90": 12,
+      "p99": 19,
+      "max": 45
+     },
+     "decisions_left_normal_end": {
+      "n": 4723,
+      "mean": 2.074,
+      "p10": 1,
+      "p25": 1,
+      "p50": 1,
+      "p75": 2,
+      "p90": 4,
+      "p99": 13,
+      "max": 50
+     },
+     "decisions_left_hist_normal_end": {
+      "1": 2670,
+      "2": 1173,
+      "3": 395,
+      "4": 190,
+      "5": 82,
+      "6": 53,
+      "7": 33,
+      "8": 21,
+      "9": 27,
+      "10": 11,
+      "11": 12,
+      "12": 6,
+      "13": 6,
+      "14": 5,
+      "15": 5,
+      "16": 4,
+      "17": 2,
+      "18": 2,
+      "19": 1,
+      "20": 1,
+      "21": 1,
+      "22": 1,
+      "23": 2,
+      "25": 2,
+      "26": 3,
+      "28": 2,
+      "30": 2,
+      "31": 1,
+      "32": 1,
+      "33": 2,
+      "36": 1,
+      "38": 2,
+      "41": 1,
+      "44": 1,
+      "45": 1,
+      "50": 1
+     },
+     "end_after_entry": {
+      "forfeit": 609,
+      "normal": 4723,
+      "inactivity": 29
+     }
+    }
+   },
+   "outcome": {
+    "E2": {
+     "material": {
+      "2v2": {
+       "n": 11135,
+       "hp_leader_wins_by_lead": {
+        "0": {
+         "k": 0,
+         "n": 579
+        },
+        "1-25": {
+         "k": 1700,
+         "n": 3191,
+         "p": 0.5327,
+         "lo": 0.5154,
+         "hi": 0.55
+        },
+        "51-100": {
+         "k": 2477,
+         "n": 3655,
+         "p": 0.6777,
+         "lo": 0.6624,
+         "hi": 0.6927
+        },
+        "26-50": {
+         "k": 1595,
+         "n": 2670,
+         "p": 0.5974,
+         "lo": 0.5786,
+         "hi": 0.6158
+        },
+        ">100": {
+         "k": 820,
+         "n": 1040,
+         "p": 0.7885,
+         "lo": 0.7626,
+         "hi": 0.8122
+        }
+       },
+       "share": 0.5944,
+       "ahead_on_mons_wins": null,
+       "ahead_on_mons_then_hp_wins": {
+        "k": 6592,
+        "n": 10556,
+        "p": 0.6245,
+        "lo": 0.6152,
+        "hi": 0.6337
+       },
+       "by_band_mons_then_hp": {
+        "1100-1199": {
+         "k": 1608,
+         "n": 2603,
+         "p": 0.6177,
+         "lo": 0.5989,
+         "hi": 0.6362
+        },
+        "<1100": {
+         "k": 2337,
+         "n": 3747,
+         "p": 0.6237,
+         "lo": 0.6081,
+         "hi": 0.6391
+        },
+        "1300-1399": {
+         "k": 694,
+         "n": 1126,
+         "p": 0.6163,
+         "lo": 0.5876,
+         "hi": 0.6443
+        },
+        "unrated": {
+         "k": 607,
+         "n": 931,
+         "p": 0.652,
+         "lo": 0.6208,
+         "hi": 0.6819
+        },
+        "1200-1299": {
+         "k": 973,
+         "n": 1563,
+         "p": 0.6225,
+         "lo": 0.5982,
+         "hi": 0.6462
+        },
+        "1400-1499": {
+         "k": 280,
+         "n": 434,
+         "p": 0.6452,
+         "lo": 0.5991,
+         "hi": 0.6887
+        },
+        ">=1500": {
+         "k": 93,
+         "n": 152,
+         "p": 0.6118,
+         "lo": 0.5325,
+         "hi": 0.6856
+        }
+       },
+       "ended_by_forfeit": {
+        "k": 2314,
+        "n": 11135,
+        "p": 0.2078,
+        "lo": 0.2004,
+        "hi": 0.2154
+       },
+       "decisions_left_normal_end": {
+        "n": 8715,
+        "mean": 2.715,
+        "p10": 1,
+        "p25": 2,
+        "p50": 2,
+        "p75": 3,
+        "p90": 4,
+        "p99": 10,
+        "max": 52
+       }
+      },
+      "2v1": {
+       "n": 6966,
+       "share": 0.3719,
+       "ahead_on_mons_wins": {
+        "k": 5848,
+        "n": 6966,
+        "p": 0.8395,
+        "lo": 0.8307,
+        "hi": 0.8479
+       },
+       "ahead_on_mons_then_hp_wins": {
+        "k": 5848,
+        "n": 6966,
+        "p": 0.8395,
+        "lo": 0.8307,
+        "hi": 0.8479
+       },
+       "by_band_mons_then_hp": {
+        "1100-1199": {
+         "k": 1467,
+         "n": 1750,
+         "p": 0.8383,
+         "lo": 0.8203,
+         "hi": 0.8548
+        },
+        "<1100": {
+         "k": 2133,
+         "n": 2566,
+         "p": 0.8313,
+         "lo": 0.8163,
+         "hi": 0.8452
+        },
+        "1300-1399": {
+         "k": 583,
+         "n": 692,
+         "p": 0.8425,
+         "lo": 0.8135,
+         "hi": 0.8677
+        },
+        "unrated": {
+         "k": 532,
+         "n": 611,
+         "p": 0.8707,
+         "lo": 0.8418,
+         "hi": 0.895
+        },
+        "1200-1299": {
+         "k": 853,
+         "n": 1020,
+         "p": 0.8363,
+         "lo": 0.8123,
+         "hi": 0.8577
+        },
+        "1400-1499": {
+         "k": 214,
+         "n": 247,
+         "p": 0.8664,
+         "lo": 0.8183,
+         "hi": 0.9033
+        },
+        ">=1500": {
+         "k": 66,
+         "n": 80,
+         "p": 0.825,
+         "lo": 0.7274,
+         "hi": 0.8928
+        }
+       },
+       "ended_by_forfeit": {
+        "k": 1168,
+        "n": 6966,
+        "p": 0.1677,
+        "lo": 0.1591,
+        "hi": 0.1766
+       },
+       "decisions_left_normal_end": {
+        "n": 5754,
+        "mean": 1.943,
+        "p10": 1,
+        "p25": 1,
+        "p50": 1,
+        "p75": 2,
+        "p90": 3,
+        "p99": 9,
+        "max": 52
+       }
+      },
+      "1v1": {
+       "n": 632,
+       "hp_leader_wins_by_lead": {
+        "0": {
+         "k": 0,
+         "n": 110
+        },
+        "26-50": {
+         "k": 96,
+         "n": 145,
+         "p": 0.6621,
+         "lo": 0.5818,
+         "hi": 0.734
+        },
+        "51-100": {
+         "k": 167,
+         "n": 224,
+         "p": 0.7455,
+         "lo": 0.6847,
+         "hi": 0.7981
+        },
+        "1-25": {
+         "k": 89,
+         "n": 153,
+         "p": 0.5817,
+         "lo": 0.5025,
+         "hi": 0.6569
+        }
+       },
+       "share": 0.0337,
+       "ahead_on_mons_wins": null,
+       "ahead_on_mons_then_hp_wins": {
+        "k": 352,
+        "n": 522,
+        "p": 0.6743,
+        "lo": 0.633,
+        "hi": 0.7131
+       },
+       "by_band_mons_then_hp": {
+        "1100-1199": {
+         "k": 96,
+         "n": 140,
+         "p": 0.6857,
+         "lo": 0.6047,
+         "hi": 0.7568
+        },
+        "<1100": {
+         "k": 126,
+         "n": 193,
+         "p": 0.6528,
+         "lo": 0.5833,
+         "hi": 0.7164
+        },
+        "1300-1399": {
+         "k": 33,
+         "n": 43,
+         "p": 0.7674,
+         "lo": 0.6226,
+         "hi": 0.8685
+        },
+        "unrated": {
+         "k": 26,
+         "n": 38,
+         "p": 0.6842,
+         "lo": 0.5254,
+         "hi": 0.8092
+        },
+        "1200-1299": {
+         "k": 50,
+         "n": 77,
+         "p": 0.6494,
+         "lo": 0.538,
+         "hi": 0.7465
+        },
+        "1400-1499": {
+         "k": 16,
+         "n": 22,
+         "p": 0.7273,
+         "lo": 0.5185,
+         "hi": 0.8685
+        },
+        ">=1500": {
+         "k": 5,
+         "n": 9,
+         "p": 0.5556,
+         "lo": 0.2666,
+         "hi": 0.8112
+        }
+       },
+       "ended_by_forfeit": {
+        "k": 27,
+        "n": 632,
+        "p": 0.0427,
+        "lo": 0.0295,
+        "hi": 0.0614
+       },
+       "decisions_left_normal_end": {
+        "n": 604,
+        "mean": 1.914,
+        "p10": 1,
+        "p25": 1,
+        "p50": 2,
+        "p75": 2,
+        "p90": 3,
+        "p99": 8,
+        "max": 21
+       }
+      }
+     }
+    },
+    "E4": {
+     "material": {
+      "2v2": {
+       "n": 11134,
+       "hp_leader_wins_by_lead": {
+        "0": {
+         "k": 0,
+         "n": 579
+        },
+        "1-25": {
+         "k": 1700,
+         "n": 3191,
+         "p": 0.5327,
+         "lo": 0.5154,
+         "hi": 0.55
+        },
+        "51-100": {
+         "k": 2477,
+         "n": 3654,
+         "p": 0.6779,
+         "lo": 0.6626,
+         "hi": 0.6928
+        },
+        "26-50": {
+         "k": 1595,
+         "n": 2670,
+         "p": 0.5974,
+         "lo": 0.5786,
+         "hi": 0.6158
+        },
+        ">100": {
+         "k": 820,
+         "n": 1040,
+         "p": 0.7885,
+         "lo": 0.7626,
+         "hi": 0.8122
+        }
+       },
+       "share": 0.4708,
+       "ahead_on_mons_wins": null,
+       "ahead_on_mons_then_hp_wins": {
+        "k": 6592,
+        "n": 10555,
+        "p": 0.6245,
+        "lo": 0.6153,
+        "hi": 0.6337
+       },
+       "by_band_mons_then_hp": {
+        "1100-1199": {
+         "k": 1608,
+         "n": 2603,
+         "p": 0.6177,
+         "lo": 0.5989,
+         "hi": 0.6362
+        },
+        "<1100": {
+         "k": 2337,
+         "n": 3746,
+         "p": 0.6239,
+         "lo": 0.6082,
+         "hi": 0.6392
+        },
+        "1300-1399": {
+         "k": 694,
+         "n": 1126,
+         "p": 0.6163,
+         "lo": 0.5876,
+         "hi": 0.6443
+        },
+        "unrated": {
+         "k": 607,
+         "n": 931,
+         "p": 0.652,
+         "lo": 0.6208,
+         "hi": 0.6819
+        },
+        "1200-1299": {
+         "k": 973,
+         "n": 1563,
+         "p": 0.6225,
+         "lo": 0.5982,
+         "hi": 0.6462
+        },
+        "1400-1499": {
+         "k": 280,
+         "n": 434,
+         "p": 0.6452,
+         "lo": 0.5991,
+         "hi": 0.6887
+        },
+        ">=1500": {
+         "k": 93,
+         "n": 152,
+         "p": 0.6118,
+         "lo": 0.5325,
+         "hi": 0.6856
+        }
+       },
+       "ended_by_forfeit": {
+        "k": 2314,
+        "n": 11134,
+        "p": 0.2078,
+        "lo": 0.2004,
+        "hi": 0.2155
+       },
+       "decisions_left_normal_end": {
+        "n": 8714,
+        "mean": 2.715,
+        "p10": 1,
+        "p25": 2,
+        "p50": 2,
+        "p75": 3,
+        "p90": 4,
+        "p99": 10,
+        "max": 52
+       }
+      },
+      "2v1": {
+       "n": 5373,
+       "share": 0.2272,
+       "ahead_on_mons_wins": {
+        "k": 4588,
+        "n": 5373,
+        "p": 0.8539,
+        "lo": 0.8442,
+        "hi": 0.8631
+       },
+       "ahead_on_mons_then_hp_wins": {
+        "k": 4588,
+        "n": 5373,
+        "p": 0.8539,
+        "lo": 0.8442,
+        "hi": 0.8631
+       },
+       "by_band_mons_then_hp": {
+        "1100-1199": {
+         "k": 1161,
+         "n": 1356,
+         "p": 0.8562,
+         "lo": 0.8365,
+         "hi": 0.8739
+        },
+        "<1100": {
+         "k": 1655,
+         "n": 1955,
+         "p": 0.8465,
+         "lo": 0.8299,
+         "hi": 0.8618
+        },
+        "1300-1399": {
+         "k": 469,
+         "n": 551,
+         "p": 0.8512,
+         "lo": 0.819,
+         "hi": 0.8785
+        },
+        "unrated": {
+         "k": 393,
+         "n": 453,
+         "p": 0.8675,
+         "lo": 0.8332,
+         "hi": 0.8957
+        },
+        "1200-1299": {
+         "k": 677,
+         "n": 791,
+         "p": 0.8559,
+         "lo": 0.8297,
+         "hi": 0.8786
+        },
+        "1400-1499": {
+         "k": 180,
+         "n": 202,
+         "p": 0.8911,
+         "lo": 0.8406,
+         "hi": 0.927
+        },
+        ">=1500": {
+         "k": 53,
+         "n": 65,
+         "p": 0.8154,
+         "lo": 0.7045,
+         "hi": 0.8911
+        }
+       },
+       "ended_by_forfeit": {
+        "k": 945,
+        "n": 5373,
+        "p": 0.1759,
+        "lo": 0.1659,
+        "hi": 0.1863
+       },
+       "decisions_left_normal_end": {
+        "n": 4399,
+        "mean": 1.874,
+        "p10": 1,
+        "p25": 1,
+        "p50": 1,
+        "p75": 2,
+        "p90": 3,
+        "p99": 8,
+        "max": 52
+       }
+      },
+      "3v1": {
+       "n": 6670,
+       "share": 0.2821,
+       "ahead_on_mons_wins": {
+        "k": 6253,
+        "n": 6670,
+        "p": 0.9375,
+        "lo": 0.9314,
+        "hi": 0.943
+       },
+       "ahead_on_mons_then_hp_wins": {
+        "k": 6253,
+        "n": 6670,
+        "p": 0.9375,
+        "lo": 0.9314,
+        "hi": 0.943
+       },
+       "by_band_mons_then_hp": {
+        "1100-1199": {
+         "k": 1554,
+         "n": 1663,
+         "p": 0.9345,
+         "lo": 0.9215,
+         "hi": 0.9454
+        },
+        "<1100": {
+         "k": 2309,
+         "n": 2474,
+         "p": 0.9333,
+         "lo": 0.9228,
+         "hi": 0.9425
+        },
+        "1300-1399": {
+         "k": 605,
+         "n": 639,
+         "p": 0.9468,
+         "lo": 0.9266,
+         "hi": 0.9617
+        },
+        "unrated": {
+         "k": 557,
+         "n": 586,
+         "p": 0.9505,
+         "lo": 0.9298,
+         "hi": 0.9653
+        },
+        "1200-1299": {
+         "k": 885,
+         "n": 944,
+         "p": 0.9375,
+         "lo": 0.9202,
+         "hi": 0.9512
+        },
+        "1400-1499": {
+         "k": 254,
+         "n": 270,
+         "p": 0.9407,
+         "lo": 0.9059,
+         "hi": 0.9632
+        },
+        ">=1500": {
+         "k": 89,
+         "n": 94,
+         "p": 0.9468,
+         "lo": 0.8815,
+         "hi": 0.9771
+        }
+       },
+       "ended_by_forfeit": {
+        "k": 2230,
+        "n": 6670,
+        "p": 0.3343,
+        "lo": 0.3231,
+        "hi": 0.3457
+       },
+       "decisions_left_normal_end": {
+        "n": 4378,
+        "mean": 2.248,
+        "p10": 1,
+        "p25": 1,
+        "p50": 2,
+        "p75": 3,
+        "p90": 4,
+        "p99": 10,
+        "max": 50
+       }
+      },
+      "1v1": {
+       "n": 471,
+       "hp_leader_wins_by_lead": {
+        "0": {
+         "k": 0,
+         "n": 90
+        },
+        "51-100": {
+         "k": 110,
+         "n": 153,
+         "p": 0.719,
+         "lo": 0.643,
+         "hi": 0.7841
+        },
+        "1-25": {
+         "k": 67,
+         "n": 123,
+         "p": 0.5447,
+         "lo": 0.4567,
+         "hi": 0.63
+        },
+        "26-50": {
+         "k": 72,
+         "n": 105,
+         "p": 0.6857,
+         "lo": 0.5917,
+         "hi": 0.7666
+        }
+       },
+       "share": 0.0199,
+       "ahead_on_mons_wins": null,
+       "ahead_on_mons_then_hp_wins": {
+        "k": 249,
+        "n": 381,
+        "p": 0.6535,
+        "lo": 0.6044,
+        "hi": 0.6996
+       },
+       "by_band_mons_then_hp": {
+        "1100-1199": {
+         "k": 71,
+         "n": 108,
+         "p": 0.6574,
+         "lo": 0.5639,
+         "hi": 0.7401
+        },
+        "<1100": {
+         "k": 87,
+         "n": 135,
+         "p": 0.6444,
+         "lo": 0.5607,
+         "hi": 0.7202
+        },
+        "1300-1399": {
+         "k": 23,
+         "n": 32,
+         "p": 0.7188,
+         "lo": 0.5463,
+         "hi": 0.8444
+        },
+        "unrated": {
+         "k": 19,
+         "n": 27,
+         "p": 0.7037,
+         "lo": 0.5152,
+         "hi": 0.8415
+        },
+        "1200-1299": {
+         "k": 39,
+         "n": 63,
+         "p": 0.619,
+         "lo": 0.4956,
+         "hi": 0.7288
+        },
+        "1400-1499": {
+         "k": 6,
+         "n": 11,
+         "p": 0.5455,
+         "lo": 0.2801,
+         "hi": 0.7873
+        },
+        ">=1500": {
+         "k": 4,
+         "n": 5,
+         "p": 0.8,
+         "lo": 0.3755,
+         "hi": 0.9638
+        }
+       },
+       "ended_by_forfeit": {
+        "k": 24,
+        "n": 471,
+        "p": 0.051,
+        "lo": 0.0345,
+        "hi": 0.0747
+       },
+       "decisions_left_normal_end": {
+        "n": 446,
+        "mean": 1.926,
+        "p10": 1,
+        "p25": 1,
+        "p50": 2,
+        "p75": 2,
+        "p90": 3,
+        "p99": 8,
+        "max": 11
+       }
+      }
+     }
+    }
+   },
+   "state": {
+    "E2": {
+     "endgames": 18733,
+     "members": 66702,
+     "hp_tenths": {
+      "90-100": 29891,
+      "70-80": 3940,
+      "20-30": 3961,
+      "10-20": 3942,
+      "80-90": 4321,
+      "50-60": 3945,
+      "60-70": 4077,
+      "30-40": 4003,
+      "40-50": 4166,
+      "0-10": 4456
+     },
+     "hp_mean": 69.65,
+     "hp_full_share": 0.4116,
+     "status": {
+      "none": 63979,
+      "brn": 988,
+      "tox": 185,
+      "slp": 322,
+      "par": 783,
+      "psn": 396,
+      "frz": 49
+     },
+     "members_with_any_stage": {
+      "k": 17400,
+      "n": 66702,
+      "p": 0.2609,
+      "lo": 0.2575,
+      "hi": 0.2642
+     },
+     "stages": {
+      "atk up": 2930,
+      "def up": 3922,
+      "accuracy up": 341,
+      "spa up": 2886,
+      "spd up": 2399,
+      "atk down": 7744,
+      "spa down": 2038,
+      "spe down": 680,
+      "spe up": 1084,
+      "def down": 1460,
+      "spd down": 1535,
+      "accuracy down": 200,
+      "evasion up": 87,
+      "evasion down": 10
+     },
+     "volatiles": [
+      [
+       "perish",
+       512
+      ],
+      [
+       "typechange",
+       246
+      ],
+      [
+       "Encore",
+       150
+      ],
+      [
+       "Throat Chop",
+       114
+      ],
+      [
+       "stockpile1",
+       82
+      ],
+      [
+       "confusion",
+       74
+      ],
+      [
+       "stockpile2",
+       74
+      ],
+      [
+       "Imprison",
+       70
+      ],
+      [
+       "Flash Fire",
+       70
+      ],
+      [
+       "Taunt",
+       69
+      ],
+      [
+       "stockpile3",
+       62
+      ],
+      [
+       "Disable",
+       57
+      ],
+      [
+       "Substitute",
+       52
+      ],
+      [
+       "Dragon Cheer",
+       52
+      ],
+      [
+       "transform",
+       47
+      ],
+      [
+       "fallen2",
+       41
+      ],
+      [
+       "Focus Energy",
+       39
+      ],
+      [
+       "Leech Seed",
+       39
+      ],
+      [
+       "Yawn",
+       33
+      ],
+      [
+       "Heal Block",
+       20
+      ],
+      [
+       "fallen1",
+       14
+      ],
+      [
+       "Charge",
+       13
+      ],
+      [
+       "No Retreat",
+       12
+      ],
+      [
+       "Salt Cure",
+       10
+      ],
+      [
+       "Curse",
+       7
+      ]
+     ],
+     "mega_still_available": {
+      "p1_or_p2": {
+       "k": 5683,
+       "n": 18733,
+       "p": 0.3034,
+       "lo": 0.2968,
+       "hi": 0.31
+      }
+     },
+     "field": {
+      "any_field_or_side_condition": {
+       "k": 15506,
+       "n": 18733,
+       "p": 0.8277,
+       "lo": 0.8223,
+       "hi": 0.8331
+      },
+      "weather": {
+       "SunnyDay": 2117,
+       "RainDance": 3179,
+       "none": 10612,
+       "Sandstorm": 1569,
+       "Snowscape": 1256
+      },
+      "terrain": {
+       "Psychic Terrain": 3893,
+       "Grassy Terrain": 5634,
+       "none": 8752,
+       "Electric Terrain": 430,
+       "Misty Terrain": 24
+      },
+      "trick_room": {
+       "k": 2398,
+       "n": 18733,
+       "p": 0.128,
+       "lo": 0.1233,
+       "hi": 0.1329
+      },
+      "trick_room_age": {
+       "1": 251,
+       "2": 507,
+       "3": 737,
+       "4": 903
+      },
+      "trick_room_duration_from_dex": 5,
+      "tailwind_either": {
+       "k": 2336,
+       "n": 18733,
+       "p": 0.1247,
+       "lo": 0.12,
+       "hi": 0.1295
+      },
+      "tailwind_both": 116,
+      "tailwind_age": {
+       "1": 563,
+       "2": 866,
+       "3": 1023
+      },
+      "tailwind_duration_from_dex": 4,
+      "screens_either": {
+       "k": 1696,
+       "n": 18733,
+       "p": 0.0905,
+       "lo": 0.0865,
+       "hi": 0.0947
+      },
+      "screen_durations_from_dex": {
+       "Reflect": 5,
+       "Light Screen": 5,
+       "Aurora Veil": 5
+      },
+      "side_conditions": {
+       "Tailwind": 2452,
+       "Light Screen": 835,
+       "Reflect": 697,
+       "Aurora Veil": 539,
+       "Toxic Spikes": 300,
+       "Stealth Rock": 211,
+       "Spikes": 68,
+       "Sticky Web": 18,
+       "Safeguard": 1
+      },
+      "pseudo": {
+       "Trick Room": 2398,
+       "Gravity": 57,
+       "Wonder Room": 5
+      }
+     },
+     "species_top15_endgames_containing": [
+      [
+       "Rillaboom",
+       3990,
+       0.213
+      ],
+      [
+       "Sneasler",
+       3110,
+       0.166
+      ],
+      [
+       "Incineroar",
+       2923,
+       0.156
+      ],
+      [
+       "Basculegion",
+       2439,
+       0.1302
+      ],
+      [
+       "Golisopod-Mega",
+       2369,
+       0.1265
+      ],
+      [
+       "Kingambit",
+       2111,
+       0.1127
+      ],
+      [
+       "Gholdengo",
+       2013,
+       0.1075
+      ],
+      [
+       "Salamence-Mega",
+       1835,
+       0.098
+      ],
+      [
+       "Archaludon",
+       1670,
+       0.0891
+      ],
+      [
+       "Pelipper",
+       1470,
+       0.0785
+      ],
+      [
+       "Arcanine-Hisui",
+       1465,
+       0.0782
+      ],
+      [
+       "Indeedee-F",
+       1421,
+       0.0759
+      ],
+      [
+       "Farigiraf",
+       1301,
+       0.0694
+      ],
+      [
+       "Milotic",
+       1286,
+       0.0686
+      ],
+      [
+       "Garchomp",
+       1129,
+       0.0603
+      ]
+     ],
+     "matchups_top10": [
+      [
+       "Golisopod-Mega vs Rillaboom,Sneasler",
+       8
+      ],
+      [
+       "Archaludon vs Incineroar,Rillaboom",
+       7
+      ],
+      [
+       "Archaludon vs Rillaboom,Sneasler",
+       7
+      ],
+      [
+       "Basculegion vs Gholdengo",
+       7
+      ],
+      [
+       "Archaludon,Golisopod-Mega vs Rillaboom",
+       6
+      ],
+      [
+       "Basculegion vs Rillaboom",
+       6
+      ],
+      [
+       "Gholdengo,Rillaboom vs Golisopod-Mega",
+       5
+      ],
+      [
+       "Golisopod-Mega vs Incineroar,Rillaboom",
+       5
+      ],
+      [
+       "Archaludon,Golisopod-Mega vs Basculegion,Rillaboom",
+       5
+      ],
+      [
+       "Arcanine-Hisui vs Incineroar,Rillaboom",
+       5
+      ]
+     ]
+    },
+    "E4": {
+     "endgames": 23648,
+     "members": 87298,
+     "hp_tenths": {
+      "90-100": 37111,
+      "70-80": 5371,
+      "20-30": 5402,
+      "10-20": 5393,
+      "80-90": 5885,
+      "50-60": 5383,
+      "60-70": 5535,
+      "0-10": 6086,
+      "30-40": 5441,
+      "40-50": 5691
+     },
+     "hp_mean": 68.36,
+     "hp_full_share": 0.3875,
+     "status": {
+      "none": 83588,
+      "brn": 1355,
+      "par": 1025,
+      "tox": 245,
+      "psn": 532,
+      "slp": 477,
+      "frz": 76
+     },
+     "members_with_any_stage": {
+      "k": 22762,
+      "n": 87298,
+      "p": 0.2607,
+      "lo": 0.2578,
+      "hi": 0.2637
+     },
+     "stages": {
+      "atk up": 3866,
+      "def up": 5155,
+      "accuracy up": 466,
+      "spa up": 3956,
+      "spd up": 3076,
+      "atk down": 9887,
+      "spa down": 2838,
+      "spe up": 1475,
+      "spe down": 885,
+      "spd down": 2082,
+      "def down": 1968,
+      "accuracy down": 277,
+      "evasion up": 102,
+      "evasion down": 14
+     },
+     "volatiles": [
+      [
+       "perish",
+       629
+      ],
+      [
+       "typechange",
+       314
+      ],
+      [
+       "Encore",
+       218
+      ],
+      [
+       "Throat Chop",
+       160
+      ],
+      [
+       "confusion",
+       105
+      ],
+      [
+       "stockpile1",
+       97
+      ],
+      [
+       "Imprison",
+       94
+      ],
+      [
+       "Taunt",
+       93
+      ],
+      [
+       "Flash Fire",
+       90
+      ],
+      [
+       "stockpile2",
+       88
+      ],
+      [
+       "Disable",
+       80
+      ],
+      [
+       "Dragon Cheer",
+       72
+      ],
+      [
+       "stockpile3",
+       71
+      ],
+      [
+       "Substitute",
+       69
+      ],
+      [
+       "Leech Seed",
+       61
+      ],
+      [
+       "transform",
+       61
+      ],
+      [
+       "Focus Energy",
+       53
+      ],
+      [
+       "Yawn",
+       43
+      ],
+      [
+       "fallen2",
+       42
+      ],
+      [
+       "Heal Block",
+       22
+      ],
+      [
+       "fallen1",
+       22
+      ],
+      [
+       "Charge",
+       21
+      ],
+      [
+       "No Retreat",
+       13
+      ],
+      [
+       "Salt Cure",
+       12
+      ],
+      [
+       "Curse",
+       9
+      ]
+     ],
+     "mega_still_available": {
+      "p1_or_p2": {
+       "k": 7185,
+       "n": 23648,
+       "p": 0.3038,
+       "lo": 0.298,
+       "hi": 0.3097
+      }
+     },
+     "field": {
+      "any_field_or_side_condition": {
+       "k": 19537,
+       "n": 23648,
+       "p": 0.8262,
+       "lo": 0.8213,
+       "hi": 0.8309
+      },
+      "weather": {
+       "SunnyDay": 2622,
+       "RainDance": 4048,
+       "none": 13440,
+       "Sandstorm": 1971,
+       "Snowscape": 1567
+      },
+      "terrain": {
+       "Psychic Terrain": 4837,
+       "Grassy Terrain": 6989,
+       "none": 11258,
+       "Electric Terrain": 534,
+       "Misty Terrain": 30
+      },
+      "trick_room": {
+       "k": 3055,
+       "n": 23648,
+       "p": 0.1292,
+       "lo": 0.125,
+       "hi": 0.1335
+      },
+      "trick_room_age": {
+       "1": 296,
+       "2": 642,
+       "3": 936,
+       "4": 1181
+      },
+      "trick_room_duration_from_dex": 5,
+      "tailwind_either": {
+       "k": 2992,
+       "n": 23648,
+       "p": 0.1265,
+       "lo": 0.1223,
+       "hi": 0.1308
+      },
+      "tailwind_both": 142,
+      "tailwind_age": {
+       "1": 741,
+       "2": 1104,
+       "3": 1289
+      },
+      "tailwind_duration_from_dex": 4,
+      "screens_either": {
+       "k": 2249,
+       "n": 23648,
+       "p": 0.0951,
+       "lo": 0.0914,
+       "hi": 0.0989
+      },
+      "screen_durations_from_dex": {
+       "Reflect": 5,
+       "Light Screen": 5,
+       "Aurora Veil": 5
+      },
+      "side_conditions": {
+       "Tailwind": 3134,
+       "Reflect": 963,
+       "Light Screen": 1118,
+       "Aurora Veil": 697,
+       "Toxic Spikes": 356,
+       "Stealth Rock": 265,
+       "Spikes": 86,
+       "Sticky Web": 21,
+       "Safeguard": 1
+      },
+      "pseudo": {
+       "Trick Room": 3055,
+       "Gravity": 75,
+       "Magic Room": 1,
+       "Wonder Room": 5
+      }
+     },
+     "species_top15_endgames_containing": [
+      [
+       "Rillaboom",
+       5483,
+       0.2319
+      ],
+      [
+       "Incineroar",
+       4146,
+       0.1753
+      ],
+      [
+       "Sneasler",
+       4050,
+       0.1713
+      ],
+      [
+       "Golisopod-Mega",
+       3096,
+       0.1309
+      ],
+      [
+       "Basculegion",
+       2946,
+       0.1246
+      ],
+      [
+       "Kingambit",
+       2673,
+       0.113
+      ],
+      [
+       "Gholdengo",
+       2566,
+       0.1085
+      ],
+      [
+       "Salamence-Mega",
+       2418,
+       0.1022
+      ],
+      [
+       "Archaludon",
+       2274,
+       0.0962
+      ],
+      [
+       "Pelipper",
+       2084,
+       0.0881
+      ],
+      [
+       "Indeedee-F",
+       2046,
+       0.0865
+      ],
+      [
+       "Farigiraf",
+       1850,
+       0.0782
+      ],
+      [
+       "Arcanine-Hisui",
+       1841,
+       0.0779
+      ],
+      [
+       "Milotic",
+       1692,
+       0.0715
+      ],
+      [
+       "Garchomp",
+       1402,
+       0.0593
+      ]
+     ],
+     "matchups_top10": [
+      [
+       "Gholdengo,Rillaboom vs Golisopod-Mega",
+       6
+      ],
+      [
+       "Golisopod-Mega vs Incineroar,Rillaboom,Sneasler",
+       6
+      ],
+      [
+       "Basculegion vs Rillaboom",
+       6
+      ],
+      [
+       "Golisopod-Mega vs Rillaboom,Sneasler",
+       6
+      ],
+      [
+       "Golisopod-Mega vs Incineroar,Rillaboom",
+       5
+      ],
+      [
+       "Archaludon,Golisopod-Mega vs Basculegion,Rillaboom",
+       5
+      ],
+      [
+       "Basculegion vs Basculegion,Sneasler",
+       5
+      ],
+      [
+       "Gholdengo,Rillaboom vs Sneasler",
+       5
+      ],
+      [
+       "Golisopod-Mega vs Golisopod-Mega,Incineroar",
+       5
+      ],
+      [
+       "Incineroar vs Kingambit",
+       5
+      ]
+     ]
+    }
+   },
+   "distinct": {
+    "E2": {
+     "K0": {
+      "endgames": 18733,
+      "distinct": 17695,
+      "singletons": 16883,
+      "singleton_share_of_endgames": 0.9012,
+      "top10_share": 0.0033,
+      "top100_share": 0.02,
+      "top1000_share": 0.1088,
+      "keys_for_50pct": 8329,
+      "keys_for_80pct": 13949
+     },
+     "K0set": {
+      "endgames": 18733,
+      "distinct": 18730,
+      "singletons": 18727,
+      "singleton_share_of_endgames": 0.9997,
+      "top10_share": 0.0007,
+      "top100_share": 0.0055,
+      "top1000_share": 0.0535,
+      "keys_for_50pct": 9364,
+      "keys_for_80pct": 14984
+     },
+     "K1q": {
+      "endgames": 18733,
+      "distinct": 18658,
+      "singletons": 18586,
+      "singleton_share_of_endgames": 0.9922,
+      "top10_share": 0.0012,
+      "top100_share": 0.0093,
+      "top1000_share": 0.0574,
+      "keys_for_50pct": 9292,
+      "keys_for_80pct": 14912
+     },
+     "K1d": {
+      "endgames": 18733,
+      "distinct": 18709,
+      "singletons": 18686,
+      "singleton_share_of_endgames": 0.9975,
+      "top10_share": 0.0011,
+      "top100_share": 0.0066,
+      "top1000_share": 0.0547,
+      "keys_for_50pct": 9343,
+      "keys_for_80pct": 14963
+     },
+     "K2": {
+      "endgames": 18733,
+      "distinct": 18724,
+      "singletons": 18715,
+      "singleton_share_of_endgames": 0.999,
+      "top10_share": 0.001,
+      "top100_share": 0.0058,
+      "top1000_share": 0.0539,
+      "keys_for_50pct": 9358,
+      "keys_for_80pct": 14978
+     },
+     "K3": {
+      "endgames": 18733,
+      "distinct": 18733,
+      "singletons": 18733,
+      "singleton_share_of_endgames": 1,
+      "top10_share": 0.0005,
+      "top100_share": 0.0053,
+      "top1000_share": 0.0534,
+      "keys_for_50pct": 9367,
+      "keys_for_80pct": 14987
+     },
+     "K3set": {
+      "endgames": 18733,
+      "distinct": 18733,
+      "singletons": 18733,
+      "singleton_share_of_endgames": 1,
+      "top10_share": 0.0005,
+      "top100_share": 0.0053,
+      "top1000_share": 0.0534,
+      "keys_for_50pct": 9367,
+      "keys_for_80pct": 14987
+     }
+    },
+    "E4": {
+     "K0": {
+      "endgames": 23648,
+      "distinct": 22536,
+      "singletons": 21647,
+      "singleton_share_of_endgames": 0.9154,
+      "top10_share": 0.0023,
+      "top100_share": 0.0154,
+      "top1000_share": 0.0893,
+      "keys_for_50pct": 10712,
+      "keys_for_80pct": 17807
+     },
+     "K0set": {
+      "endgames": 23648,
+      "distinct": 23647,
+      "singletons": 23646,
+      "singleton_share_of_endgames": 0.9999,
+      "top10_share": 0.0005,
+      "top100_share": 0.0043,
+      "top1000_share": 0.0423,
+      "keys_for_50pct": 11823,
+      "keys_for_80pct": 18918
+     },
+     "K1q": {
+      "endgames": 23648,
+      "distinct": 23584,
+      "singletons": 23521,
+      "singleton_share_of_endgames": 0.9946,
+      "top10_share": 0.0009,
+      "top100_share": 0.0069,
+      "top1000_share": 0.045,
+      "keys_for_50pct": 11760,
+      "keys_for_80pct": 18855
+     },
+     "K1d": {
+      "endgames": 23648,
+      "distinct": 23631,
+      "singletons": 23614,
+      "singleton_share_of_endgames": 0.9986,
+      "top10_share": 0.0008,
+      "top100_share": 0.0049,
+      "top1000_share": 0.043,
+      "keys_for_50pct": 11807,
+      "keys_for_80pct": 18902
+     },
+     "K2": {
+      "endgames": 23648,
+      "distinct": 23641,
+      "singletons": 23634,
+      "singleton_share_of_endgames": 0.9994,
+      "top10_share": 0.0007,
+      "top100_share": 0.0045,
+      "top1000_share": 0.0426,
+      "keys_for_50pct": 11817,
+      "keys_for_80pct": 18912
+     },
+     "K3": {
+      "endgames": 23648,
+      "distinct": 23648,
+      "singletons": 23648,
+      "singleton_share_of_endgames": 1,
+      "top10_share": 0.0004,
+      "top100_share": 0.0042,
+      "top1000_share": 0.0423,
+      "keys_for_50pct": 11824,
+      "keys_for_80pct": 18919
+     },
+     "K3set": {
+      "endgames": 23648,
+      "distinct": 23648,
+      "singletons": 23648,
+      "singleton_share_of_endgames": 1,
+      "top10_share": 0.0004,
+      "top100_share": 0.0042,
+      "top1000_share": 0.0423,
+      "keys_for_50pct": 11824,
+      "keys_for_80pct": 18919
+     }
+    }
+   },
+   "table_hit_rate": {
+    "E2": {
+     "K0": {
+      "train": 14986,
+      "test": 3747,
+      "hit": 270,
+      "rate": 0.0721
+     },
+     "K0set": {
+      "train": 14986,
+      "test": 3747,
+      "hit": 0,
+      "rate": 0
+     },
+     "K1q": {
+      "train": 14986,
+      "test": 3747,
+      "hit": 23,
+      "rate": 0.0061
+     },
+     "K1d": {
+      "train": 14986,
+      "test": 3747,
+      "hit": 6,
+      "rate": 0.0016
+     },
+     "K2": {
+      "train": 14986,
+      "test": 3747,
+      "hit": 3,
+      "rate": 0.0008
+     },
+     "K3": {
+      "train": 14986,
+      "test": 3747,
+      "hit": 0,
+      "rate": 0
+     },
+     "K3set": {
+      "train": 14986,
+      "test": 3747,
+      "hit": 0,
+      "rate": 0
+     }
+    },
+    "E4": {
+     "K0": {
+      "train": 18918,
+      "test": 4730,
+      "hit": 278,
+      "rate": 0.0588
+     },
+     "K0set": {
+      "train": 18918,
+      "test": 4730,
+      "hit": 0,
+      "rate": 0
+     },
+     "K1q": {
+      "train": 18918,
+      "test": 4730,
+      "hit": 19,
+      "rate": 0.004
+     },
+     "K1d": {
+      "train": 18918,
+      "test": 4730,
+      "hit": 3,
+      "rate": 0.0006
+     },
+     "K2": {
+      "train": 18918,
+      "test": 4730,
+      "hit": 2,
+      "rate": 0.0004
+     },
+     "K3": {
+      "train": 18918,
+      "test": 4730,
+      "hit": 0,
+      "rate": 0
+     },
+     "K3set": {
+      "train": 18918,
+      "test": 4730,
+      "hit": 0,
+      "rate": 0
+     }
+    }
+   },
+   "actions": {
+    "E2": {
+     "measured_on": 8381,
+     "of": 18733,
+     "per_side": {
+      "n": 16762,
+      "mean": 15.32,
+      "p10": 2,
+      "p25": 4,
+      "p50": 9,
+      "p75": 20,
+      "p90": 36,
+      "p99": 96,
+      "max": 300
+     },
+     "joint_matrix_cells": {
+      "n": 8381,
+      "mean": 413.116,
+      "p10": 8,
+      "p25": 24,
+      "p50": 72,
+      "p75": 252,
+      "p90": 735,
+      "p99": 7680,
+      "max": 40000
+     },
+     "by_material": {
+      "2v2": {
+       "per_side": {
+        "n": 8944,
+        "mean": 22.308,
+        "p10": 4,
+        "p25": 8,
+        "p50": 16,
+        "p75": 28,
+        "p90": 48,
+        "p99": 120,
+        "max": 300
+       },
+       "joint_matrix_cells": {
+        "n": 4472,
+        "mean": 735.593,
+        "p10": 35,
+        "p25": 80,
+        "p50": 216,
+        "p75": 560,
+        "p90": 1350,
+        "p99": 9600,
+        "max": 40000
+       }
+      },
+      "2v1": {
+       "per_side": {
+        "n": 7152,
+        "mean": 7.817,
+        "p10": 2,
+        "p25": 3,
+        "p50": 5,
+        "p75": 9,
+        "p90": 18,
+        "p99": 42,
+        "max": 128
+       },
+       "joint_matrix_cells": {
+        "n": 3576,
+        "mean": 47.875,
+        "p10": 8,
+        "p25": 12,
+        "p50": 27,
+        "p75": 54,
+        "p90": 100,
+        "p99": 336,
+        "max": 896
+       }
+      },
+      "1v1": {
+       "per_side": {
+        "n": 666,
+        "mean": 2.062,
+        "p10": 1,
+        "p25": 1,
+        "p50": 2,
+        "p75": 3,
+        "p90": 3,
+        "p99": 4,
+        "max": 8
+       },
+       "joint_matrix_cells": {
+        "n": 333,
+        "mean": 4.664,
+        "p10": 1,
+        "p25": 2,
+        "p50": 3,
+        "p75": 6,
+        "p90": 9,
+        "p99": 32,
+        "max": 64
+       }
+      }
+     },
+     "rule": "sheet upper bound per side: per active, sum over its known moves of the target choices (normal/any: live foes + live ally; adjacentFoe: live foes; adjacentAlly: 1; adjacentAllyOrSelf: 1 + ally; else 1), x2 where it can still mega; the joint is the product, less both-mega pairs. No switches exist in E2. Choice lock, Encore, Taunt, Disable, PP and Protect repeats are NOT applied (engine legalActions is the authority)."
+    },
+    "E4": {
+     "measured_on": 12288,
+     "of": 23648,
+     "per_side": {
+      "n": 24576,
+      "mean": 12.995,
+      "p10": 2,
+      "p25": 3,
+      "p50": 6,
+      "p75": 16,
+      "p90": 30,
+      "p99": 80,
+      "max": 300
+     },
+     "joint_matrix_cells": {
+      "n": 12288,
+      "mean": 296.351,
+      "p10": 8,
+      "p25": 18,
+      "p50": 48,
+      "p75": 144,
+      "p90": 504,
+      "p99": 6000,
+      "max": 40000
+     },
+     "by_material": {
+      "2v2": {
+       "per_side": {
+        "n": 8942,
+        "mean": 22.309,
+        "p10": 4,
+        "p25": 8,
+        "p50": 16,
+        "p75": 28,
+        "p90": 48,
+        "p99": 120,
+        "max": 300
+       },
+       "joint_matrix_cells": {
+        "n": 4471,
+        "mean": 735.693,
+        "p10": 35,
+        "p25": 80,
+        "p50": 216,
+        "p75": 560,
+        "p90": 1350,
+        "p99": 9600,
+        "max": 40000
+       }
+      },
+      "2v1": {
+       "per_side": {
+        "n": 5250,
+        "mean": 7.663,
+        "p10": 2,
+        "p25": 3,
+        "p50": 4,
+        "p75": 8,
+        "p90": 16,
+        "p99": 42,
+        "max": 128
+       },
+       "joint_matrix_cells": {
+        "n": 2625,
+        "mean": 45.994,
+        "p10": 8,
+        "p25": 12,
+        "p50": 24,
+        "p75": 48,
+        "p90": 96,
+        "p99": 336,
+        "max": 896
+       }
+      },
+      "3v1": {
+       "per_side": {
+        "n": 9898,
+        "mean": 7.946,
+        "p10": 2,
+        "p25": 3,
+        "p50": 5,
+        "p75": 10,
+        "p90": 20,
+        "p99": 42,
+        "max": 98
+       },
+       "joint_matrix_cells": {
+        "n": 4949,
+        "mean": 46.558,
+        "p10": 8,
+        "p25": 12,
+        "p50": 30,
+        "p75": 56,
+        "p90": 100,
+        "p99": 320,
+        "max": 672
+       }
+      },
+      "1v1": {
+       "per_side": {
+        "n": 486,
+        "mean": 2.06,
+        "p10": 1,
+        "p25": 1,
+        "p50": 2,
+        "p75": 3,
+        "p90": 3,
+        "p99": 8,
+        "max": 8
+       },
+       "joint_matrix_cells": {
+        "n": 243,
+        "mean": 4.675,
+        "p10": 1,
+        "p25": 2,
+        "p50": 3,
+        "p75": 6,
+        "p90": 8,
+        "p99": 32,
+        "max": 64
+       }
+      }
+     },
+     "rule": "sheet upper bound per side: per active, sum over its known moves of the target choices (normal/any: live foes + live ally; adjacentFoe: live foes; adjacentAlly: 1; adjacentAllyOrSelf: 1 + ally; else 1), x2 where it can still mega; the joint is the product, less both-mega pairs. No switches exist in E2. Choice lock, Encore, Taunt, Disable, PP and Protect repeats are NOT applied (engine legalActions is the authority)."
+    }
+   },
+   "code": [
+    {
+     "path": "solver/dusk/measure_endgames.js",
+     "sha256": "81d52cc8a18203773d7a0122b8bfa343474f510fc2969fe5dd5152bfebdae8e1"
+    },
+    {
+     "path": "solver/dusk/lib.js",
+     "sha256": "a64d139f60ba776e41e3020ea89f5fd36c3f23e7a307c299fb8c2db1831e4823"
+    },
+    {
+     "path": "solver/porygon2/v2/reveal.js",
+     "sha256": "b1cc88db672d8c31aeae740923b61983bd85ffc1969e24de2a587406ad2f3a29"
+    },
+    {
+     "path": "engine/quality.js",
+     "sha256": "9b168679e3e91ba7b4ca84841741a3176bda6ef7471831209e10f254100ed351"
+    }
+   ],
+   "inputs": [
+    {
+     "role": "parsed_store",
+     "path": "<root>/data/games.gen9championsvgc2026regmc.jsonl.gz",
+     "bytes": 47887567,
+     "sha256": "8a50cf620f066f076c06ea2c7bb3d3bf760151668d2a740f7cba9f3f03d87fb4",
+     "mtime": "2026-10-01T04:08:03.997Z"
+    }
+   ]
+  },
+  "bo3_allshape": {
+   "funnel": {
+    "store_rows": 39541,
+    "store_bad_json": 0,
+    "store_duplicate_ids": 0,
+    "store_games": 39541,
+    "excluded_by_first_reason": {
+     "bot": 228,
+     "illegal_team": 13,
+     "own_account": 115
+    },
+    "after_quality_and_own": 39185,
+    "excluded_after_quality": {
+     "no_position": 300,
+     "illusion_possible": 301,
+     "no_result": 48,
+     "parse_error": 2
+    },
+    "parse_codes": {
+     "no_open_sheet": 2
+    },
+    "no_raw_log": 0,
+    "kept": 38534
+   },
+   "games": 38534,
+   "reach": {
+    "E2": {
+     "k": 16959,
+     "n": 38534,
+     "p": 0.4401,
+     "lo": 0.4352,
+     "hi": 0.4451,
+     "among_normal_ends": {
+      "k": 14132,
+      "n": 23078,
+      "p": 0.6124,
+      "lo": 0.6061,
+      "hi": 0.6186
+     },
+     "by_band": {
+      "1100-1199": {
+       "k": 4595,
+       "n": 10451,
+       "p": 0.4397
+      },
+      "<1100": {
+       "k": 7385,
+       "n": 16991,
+       "p": 0.4346
+      },
+      "unrated": {
+       "k": 3038,
+       "n": 6609,
+       "p": 0.4597
+      },
+      "1200-1299": {
+       "k": 1433,
+       "n": 3338,
+       "p": 0.4293
+      },
+      "1300-1399": {
+       "k": 458,
+       "n": 1003,
+       "p": 0.4566
+      },
+      "1400-1499": {
+       "k": 50,
+       "n": 141,
+       "p": 0.3546
+      },
+      ">=1500": {
+       "k": 0,
+       "n": 1,
+       "p": 0
+      }
+     },
+     "entry_turn": {
+      "n": 16959,
+      "mean": 7.044,
+      "p10": 5,
+      "p25": 5,
+      "p50": 7,
+      "p75": 8,
+      "p90": 10,
+      "p99": 14,
+      "max": 27
+     },
+     "decisions_left_normal_end": {
+      "n": 14132,
+      "mean": 2.185,
+      "p10": 1,
+      "p25": 1,
+      "p50": 2,
+      "p75": 3,
+      "p90": 4,
+      "p99": 7,
+      "max": 49
+     },
+     "decisions_left_hist_normal_end": {
+      "1": 4893,
+      "2": 5138,
+      "3": 2401,
+      "4": 972,
+      "5": 370,
+      "6": 181,
+      "7": 63,
+      "8": 45,
+      "9": 12,
+      "10": 21,
+      "11": 8,
+      "12": 11,
+      "13": 2,
+      "14": 5,
+      "15": 3,
+      "16": 1,
+      "19": 2,
+      "25": 1,
+      "34": 1,
+      "38": 1,
+      "49": 1
+     },
+     "end_after_entry": {
+      "normal": 14132,
+      "forfeit": 2745,
+      "inactivity": 82
+     }
+    },
+    "E4": {
+     "k": 24234,
+     "n": 38534,
+     "p": 0.6289,
+     "lo": 0.6241,
+     "hi": 0.6337,
+     "among_normal_ends": {
+      "k": 18822,
+      "n": 23078,
+      "p": 0.8156,
+      "lo": 0.8105,
+      "hi": 0.8205
+     },
+     "by_band": {
+      "1100-1199": {
+       "k": 6515,
+       "n": 10451,
+       "p": 0.6234
+      },
+      "<1100": {
+       "k": 10569,
+       "n": 16991,
+       "p": 0.622
+      },
+      "unrated": {
+       "k": 4475,
+       "n": 6609,
+       "p": 0.6771
+      },
+      "1200-1299": {
+       "k": 2011,
+       "n": 3338,
+       "p": 0.6025
+      },
+      "1300-1399": {
+       "k": 590,
+       "n": 1003,
+       "p": 0.5882
+      },
+      "1400-1499": {
+       "k": 74,
+       "n": 141,
+       "p": 0.5248
+      },
+      ">=1500": {
+       "k": 0,
+       "n": 1,
+       "p": 0
+      }
+     },
+     "entry_turn": {
+      "n": 24234,
+      "mean": 6.944,
+      "p10": 5,
+      "p25": 5,
+      "p50": 7,
+      "p75": 8,
+      "p90": 10,
+      "p99": 13,
+      "max": 26
+     },
+     "decisions_left_normal_end": {
+      "n": 18822,
+      "mean": 2.078,
+      "p10": 1,
+      "p25": 1,
+      "p50": 2,
+      "p75": 3,
+      "p90": 4,
+      "p99": 7,
+      "max": 49
+     },
+     "decisions_left_hist_normal_end": {
+      "1": 7677,
+      "2": 6157,
+      "3": 2929,
+      "4": 1166,
+      "5": 453,
+      "6": 215,
+      "7": 84,
+      "8": 51,
+      "9": 19,
+      "10": 23,
+      "11": 13,
+      "12": 12,
+      "13": 4,
+      "14": 5,
+      "15": 5,
+      "16": 2,
+      "19": 2,
+      "21": 1,
+      "25": 1,
+      "38": 2,
+      "49": 1
+     },
+     "end_after_entry": {
+      "forfeit": 5279,
+      "normal": 18822,
+      "inactivity": 133
+     }
+    },
+    "E1": {
+     "k": 4227,
+     "n": 38534,
+     "p": 0.1097,
+     "lo": 0.1066,
+     "hi": 0.1129,
+     "among_normal_ends": {
+      "k": 3827,
+      "n": 23078,
+      "p": 0.1658,
+      "lo": 0.1611,
+      "hi": 0.1707
+     },
+     "by_band": {
+      "1100-1199": {
+       "k": 1191,
+       "n": 10451,
+       "p": 0.114
+      },
+      "<1100": {
+       "k": 1790,
+       "n": 16991,
+       "p": 0.1053
+      },
+      "unrated": {
+       "k": 747,
+       "n": 6609,
+       "p": 0.113
+      },
+      "1200-1299": {
+       "k": 368,
+       "n": 3338,
+       "p": 0.1102
+      },
+      "1300-1399": {
+       "k": 113,
+       "n": 1003,
+       "p": 0.1127
+      },
+      "1400-1499": {
+       "k": 18,
+       "n": 141,
+       "p": 0.1277
+      },
+      ">=1500": {
+       "k": 0,
+       "n": 1,
+       "p": 0
+      }
+     },
+     "entry_turn": {
+      "n": 4227,
+      "mean": 8.556,
+      "p10": 6,
+      "p25": 7,
+      "p50": 8,
+      "p75": 10,
+      "p90": 12,
+      "p99": 16,
+      "max": 27
+     },
+     "decisions_left_normal_end": {
+      "n": 3827,
+      "mean": 1.784,
+      "p10": 1,
+      "p25": 1,
+      "p50": 1,
+      "p75": 2,
+      "p90": 3,
+      "p99": 7,
+      "max": 47
+     },
+     "decisions_left_hist_normal_end": {
+      "1": 2221,
+      "2": 999,
+      "3": 309,
+      "4": 153,
+      "5": 65,
+      "6": 29,
+      "7": 14,
+      "8": 10,
+      "9": 7,
+      "10": 5,
+      "11": 3,
+      "12": 2,
+      "13": 2,
+      "14": 2,
+      "17": 2,
+      "20": 1,
+      "32": 1,
+      "36": 1,
+      "47": 1
+     },
+     "end_after_entry": {
+      "normal": 3827,
+      "forfeit": 383,
+      "inactivity": 17
+     }
+    }
+   },
+   "outcome_E2": {
+    "material": {
+     "2v1": {
+      "n": 6457,
+      "share": 0.3807,
+      "ahead_on_mons_wins": {
+       "k": 5735,
+       "n": 6457,
+       "p": 0.8882,
+       "lo": 0.8803,
+       "hi": 0.8956
+      },
+      "ahead_on_mons_then_hp_wins": {
+       "k": 5735,
+       "n": 6457,
+       "p": 0.8882,
+       "lo": 0.8803,
+       "hi": 0.8956
+      },
+      "by_band_mons_then_hp": {
+       "1100-1199": {
+        "k": 1507,
+        "n": 1703,
+        "p": 0.8849,
+        "lo": 0.8689,
+        "hi": 0.8992
+       },
+       "<1100": {
+        "k": 2542,
+        "n": 2855,
+        "p": 0.8904,
+        "lo": 0.8784,
+        "hi": 0.9013
+       },
+       "unrated": {
+        "k": 1062,
+        "n": 1187,
+        "p": 0.8947,
+        "lo": 0.8759,
+        "hi": 0.9109
+       },
+       "1200-1299": {
+        "k": 477,
+        "n": 538,
+        "p": 0.8866,
+        "lo": 0.857,
+        "hi": 0.9107
+       },
+       "1300-1399": {
+        "k": 133,
+        "n": 155,
+        "p": 0.8581,
+        "lo": 0.7944,
+        "hi": 0.9044
+       },
+       "1400-1499": {
+        "k": 14,
+        "n": 19,
+        "p": 0.7368,
+        "lo": 0.5121,
+        "hi": 0.8819
+       }
+      },
+      "ended_by_forfeit": {
+       "k": 918,
+       "n": 6457,
+       "p": 0.1422,
+       "lo": 0.1339,
+       "hi": 0.1509
+      },
+      "decisions_left_normal_end": {
+       "n": 5511,
+       "mean": 1.758,
+       "p10": 1,
+       "p25": 1,
+       "p50": 1,
+       "p75": 2,
+       "p90": 3,
+       "p99": 6,
+       "max": 34
+      }
+     },
+     "2v2": {
+      "n": 10003,
+      "hp_leader_wins_by_lead": {
+       "0": {
+        "k": 0,
+        "n": 464
+       },
+       "26-50": {
+        "k": 1530,
+        "n": 2548,
+        "p": 0.6005,
+        "lo": 0.5813,
+        "hi": 0.6193
+       },
+       "1-25": {
+        "k": 1521,
+        "n": 2767,
+        "p": 0.5497,
+        "lo": 0.5311,
+        "hi": 0.5681
+       },
+       "51-100": {
+        "k": 2228,
+        "n": 3239,
+        "p": 0.6879,
+        "lo": 0.6717,
+        "hi": 0.7036
+       },
+       ">100": {
+        "k": 840,
+        "n": 985,
+        "p": 0.8528,
+        "lo": 0.8293,
+        "hi": 0.8735
+       }
+      },
+      "share": 0.5898,
+      "ahead_on_mons_wins": null,
+      "ahead_on_mons_then_hp_wins": {
+       "k": 6119,
+       "n": 9539,
+       "p": 0.6415,
+       "lo": 0.6318,
+       "hi": 0.651
+      },
+      "by_band_mons_then_hp": {
+       "1100-1199": {
+        "k": 1665,
+        "n": 2599,
+        "p": 0.6406,
+        "lo": 0.622,
+        "hi": 0.6589
+       },
+       "<1100": {
+        "k": 2655,
+        "n": 4130,
+        "p": 0.6429,
+        "lo": 0.6281,
+        "hi": 0.6573
+       },
+       "unrated": {
+        "k": 1107,
+        "n": 1698,
+        "p": 0.6519,
+        "lo": 0.629,
+        "hi": 0.6742
+       },
+       "1200-1299": {
+        "k": 505,
+        "n": 810,
+        "p": 0.6235,
+        "lo": 0.5896,
+        "hi": 0.6562
+       },
+       "1300-1399": {
+        "k": 170,
+        "n": 274,
+        "p": 0.6204,
+        "lo": 0.5617,
+        "hi": 0.6759
+       },
+       "1400-1499": {
+        "k": 17,
+        "n": 28,
+        "p": 0.6071,
+        "lo": 0.4241,
+        "hi": 0.7643
+       }
+      },
+      "ended_by_forfeit": {
+       "k": 1785,
+       "n": 10003,
+       "p": 0.1784,
+       "lo": 0.1711,
+       "hi": 0.1861
+      },
+      "decisions_left_normal_end": {
+       "n": 8165,
+       "mean": 2.495,
+       "p10": 1,
+       "p25": 2,
+       "p50": 2,
+       "p75": 3,
+       "p90": 4,
+       "p99": 7,
+       "max": 49
+      }
+     },
+     "1v1": {
+      "n": 499,
+      "hp_leader_wins_by_lead": {
+       "0": {
+        "k": 0,
+        "n": 66
+       },
+       "51-100": {
+        "k": 158,
+        "n": 182,
+        "p": 0.8681,
+        "lo": 0.8113,
+        "hi": 0.9098
+       },
+       "1-25": {
+        "k": 75,
+        "n": 133,
+        "p": 0.5639,
+        "lo": 0.479,
+        "hi": 0.6452
+       },
+       "26-50": {
+        "k": 77,
+        "n": 118,
+        "p": 0.6525,
+        "lo": 0.563,
+        "hi": 0.7324
+       }
+      },
+      "share": 0.0294,
+      "ahead_on_mons_wins": null,
+      "ahead_on_mons_then_hp_wins": {
+       "k": 310,
+       "n": 433,
+       "p": 0.7159,
+       "lo": 0.6717,
+       "hi": 0.7564
+      },
+      "by_band_mons_then_hp": {
+       "1100-1199": {
+        "k": 93,
+        "n": 132,
+        "p": 0.7045,
+        "lo": 0.6218,
+        "hi": 0.7757
+       },
+       "<1100": {
+        "k": 122,
+        "n": 174,
+        "p": 0.7011,
+        "lo": 0.6294,
+        "hi": 0.7642
+       },
+       "unrated": {
+        "k": 59,
+        "n": 71,
+        "p": 0.831,
+        "lo": 0.7274,
+        "hi": 0.9006
+       },
+       "1200-1299": {
+        "k": 29,
+        "n": 45,
+        "p": 0.6444,
+        "lo": 0.4984,
+        "hi": 0.7678
+       },
+       "1300-1399": {
+        "k": 6,
+        "n": 10,
+        "p": 0.6,
+        "lo": 0.3127,
+        "hi": 0.8318
+       },
+       "1400-1499": {
+        "k": 1,
+        "n": 1,
+        "p": 1,
+        "lo": 0.2065,
+        "hi": 1
+       }
+      },
+      "ended_by_forfeit": {
+       "k": 42,
+       "n": 499,
+       "p": 0.0842,
+       "lo": 0.0629,
+       "hi": 0.1118
+      },
+      "decisions_left_normal_end": {
+       "n": 456,
+       "mean": 1.783,
+       "p10": 1,
+       "p25": 1,
+       "p50": 1,
+       "p75": 2,
+       "p90": 3,
+       "p99": 6,
+       "max": 7
+      }
+     }
+    }
+   }
+  },
+  "bo1_allshape": {
+   "funnel": {
+    "store_rows": 63048,
+    "store_bad_json": 0,
+    "store_duplicate_ids": 0,
+    "store_games": 63048,
+    "excluded_by_first_reason": {
+     "bot": 6637,
+     "own_account": 8,
+     "behavioural_bot": 8194,
+     "illegal_team": 35,
+     "custom_ruleset": 40
+    },
+    "after_quality_and_own": 48134,
+    "excluded_after_quality": {
+     "illusion_possible": 1184,
+     "custom_rules": 2425,
+     "no_position": 228,
+     "no_result": 51
+    },
+    "parse_codes": {},
+    "no_raw_log": 0,
+    "kept": 44246
+   },
+   "games": 44246,
+   "reach": {
+    "E2": {
+     "k": 18743,
+     "n": 44246,
+     "p": 0.4236,
+     "lo": 0.419,
+     "hi": 0.4282,
+     "among_normal_ends": {
+      "k": 15074,
+      "n": 24109,
+      "p": 0.6252,
+      "lo": 0.6191,
+      "hi": 0.6313
+     },
+     "by_band": {
+      "<1100": {
+       "k": 6741,
+       "n": 16454,
+       "p": 0.4097
+      },
+      "1200-1299": {
+       "k": 2755,
+       "n": 6312,
+       "p": 0.4365
+      },
+      "1100-1199": {
+       "k": 4702,
+       "n": 11021,
+       "p": 0.4266
+      },
+      "1300-1399": {
+       "k": 1921,
+       "n": 4494,
+       "p": 0.4275
+      },
+      "unrated": {
+       "k": 1635,
+       "n": 3537,
+       "p": 0.4623
+      },
+      "1400-1499": {
+       "k": 737,
+       "n": 1807,
+       "p": 0.4079
+      },
+      ">=1500": {
+       "k": 252,
+       "n": 621,
+       "p": 0.4058
+      }
+     },
+     "entry_turn": {
+      "n": 18743,
+      "mean": 7.023,
+      "p10": 4,
+      "p25": 5,
+      "p50": 7,
+      "p75": 8,
+      "p90": 10,
+      "p99": 14,
+      "max": 30
+     },
+     "decisions_left_normal_end": {
+      "n": 15074,
+      "mean": 2.388,
+      "p10": 1,
+      "p25": 1,
+      "p50": 2,
+      "p75": 3,
+      "p90": 4,
+      "p99": 10,
+      "max": 52
+     },
+     "decisions_left_hist_normal_end": {
+      "1": 5037,
+      "2": 5277,
+      "3": 2496,
+      "4": 1190,
+      "5": 447,
+      "6": 224,
+      "7": 118,
+      "8": 76,
+      "9": 55,
+      "10": 31,
+      "11": 17,
+      "12": 14,
+      "13": 14,
+      "14": 6,
+      "15": 9,
+      "16": 12,
+      "17": 6,
+      "18": 6,
+      "19": 5,
+      "20": 3,
+      "21": 2,
+      "22": 2,
+      "24": 3,
+      "25": 1,
+      "27": 2,
+      "30": 1,
+      "31": 3,
+      "32": 1,
+      "33": 2,
+      "34": 2,
+      "35": 2,
+      "36": 1,
+      "37": 1,
+      "39": 1,
+      "41": 1,
+      "42": 1,
+      "43": 2,
+      "48": 1,
+      "52": 2
+     },
+     "end_after_entry": {
+      "normal": 15074,
+      "forfeit": 3517,
+      "inactivity": 152
+     }
+    },
+    "E4": {
+     "k": 26537,
+     "n": 44246,
+     "p": 0.5998,
+     "lo": 0.5952,
+     "hi": 0.6043,
+     "among_normal_ends": {
+      "k": 19683,
+      "n": 24109,
+      "p": 0.8164,
+      "lo": 0.8115,
+      "hi": 0.8213
+     },
+     "by_band": {
+      "<1100": {
+       "k": 9681,
+       "n": 16454,
+       "p": 0.5884
+      },
+      "1200-1299": {
+       "k": 3842,
+       "n": 6312,
+       "p": 0.6087
+      },
+      "1100-1199": {
+       "k": 6693,
+       "n": 11021,
+       "p": 0.6073
+      },
+      "1300-1399": {
+       "k": 2655,
+       "n": 4494,
+       "p": 0.5908
+      },
+      "unrated": {
+       "k": 2272,
+       "n": 3537,
+       "p": 0.6424
+      },
+      "1400-1499": {
+       "k": 1039,
+       "n": 1807,
+       "p": 0.575
+      },
+      ">=1500": {
+       "k": 355,
+       "n": 621,
+       "p": 0.5717
+      }
+     },
+     "entry_turn": {
+      "n": 26537,
+      "mean": 6.888,
+      "p10": 4,
+      "p25": 5,
+      "p50": 6,
+      "p75": 8,
+      "p90": 10,
+      "p99": 14,
+      "max": 30
+     },
+     "decisions_left_normal_end": {
+      "n": 19683,
+      "mean": 2.278,
+      "p10": 1,
+      "p25": 1,
+      "p50": 2,
+      "p75": 3,
+      "p90": 4,
+      "p99": 9,
+      "max": 52
+     },
+     "decisions_left_hist_normal_end": {
+      "1": 7594,
+      "2": 6329,
+      "3": 3030,
+      "4": 1434,
+      "5": 550,
+      "6": 270,
+      "7": 134,
+      "8": 92,
+      "9": 63,
+      "10": 41,
+      "11": 16,
+      "12": 21,
+      "13": 18,
+      "14": 9,
+      "15": 13,
+      "16": 12,
+      "17": 7,
+      "18": 6,
+      "19": 6,
+      "20": 3,
+      "21": 4,
+      "22": 3,
+      "23": 1,
+      "24": 2,
+      "25": 1,
+      "26": 1,
+      "27": 1,
+      "30": 1,
+      "31": 2,
+      "33": 1,
+      "34": 3,
+      "35": 2,
+      "36": 2,
+      "37": 1,
+      "38": 1,
+      "39": 1,
+      "41": 1,
+      "42": 1,
+      "43": 1,
+      "44": 1,
+      "48": 1,
+      "50": 1,
+      "52": 2
+     },
+     "end_after_entry": {
+      "normal": 19683,
+      "forfeit": 6634,
+      "inactivity": 220
+     }
+    },
+    "E1": {
+     "k": 5361,
+     "n": 44246,
+     "p": 0.1212,
+     "lo": 0.1182,
+     "hi": 0.1242,
+     "among_normal_ends": {
+      "k": 4723,
+      "n": 24109,
+      "p": 0.1959,
+      "lo": 0.1909,
+      "hi": 0.201
+     },
+     "by_band": {
+      "<1100": {
+       "k": 2024,
+       "n": 16454,
+       "p": 0.123
+      },
+      "1200-1299": {
+       "k": 748,
+       "n": 6312,
+       "p": 0.1185
+      },
+      "1100-1199": {
+       "k": 1354,
+       "n": 11021,
+       "p": 0.1229
+      },
+      "1300-1399": {
+       "k": 525,
+       "n": 4494,
+       "p": 0.1168
+      },
+      "unrated": {
+       "k": 442,
+       "n": 3537,
+       "p": 0.125
+      },
+      "1400-1499": {
+       "k": 191,
+       "n": 1807,
+       "p": 0.1057
+      },
+      ">=1500": {
+       "k": 77,
+       "n": 621,
+       "p": 0.124
+      }
+     },
+     "entry_turn": {
+      "n": 5361,
+      "mean": 8.717,
+      "p10": 6,
+      "p25": 7,
+      "p50": 8,
+      "p75": 10,
+      "p90": 12,
+      "p99": 19,
+      "max": 45
+     },
+     "decisions_left_normal_end": {
+      "n": 4723,
+      "mean": 2.074,
+      "p10": 1,
+      "p25": 1,
+      "p50": 1,
+      "p75": 2,
+      "p90": 4,
+      "p99": 13,
+      "max": 50
+     },
+     "decisions_left_hist_normal_end": {
+      "1": 2670,
+      "2": 1173,
+      "3": 395,
+      "4": 190,
+      "5": 82,
+      "6": 53,
+      "7": 33,
+      "8": 21,
+      "9": 27,
+      "10": 11,
+      "11": 12,
+      "12": 6,
+      "13": 6,
+      "14": 5,
+      "15": 5,
+      "16": 4,
+      "17": 2,
+      "18": 2,
+      "19": 1,
+      "20": 1,
+      "21": 1,
+      "22": 1,
+      "23": 2,
+      "25": 2,
+      "26": 3,
+      "28": 2,
+      "30": 2,
+      "31": 1,
+      "32": 1,
+      "33": 2,
+      "36": 1,
+      "38": 2,
+      "41": 1,
+      "44": 1,
+      "45": 1,
+      "50": 1
+     },
+     "end_after_entry": {
+      "forfeit": 609,
+      "normal": 4723,
+      "inactivity": 29
+     }
+    }
+   },
+   "outcome_E2": {
+    "material": {
+     "2v2": {
+      "n": 11140,
+      "hp_leader_wins_by_lead": {
+       "0": {
+        "k": 0,
+        "n": 583
+       },
+       "1-25": {
+        "k": 1700,
+        "n": 3191,
+        "p": 0.5327,
+        "lo": 0.5154,
+        "hi": 0.55
+       },
+       "51-100": {
+        "k": 2478,
+        "n": 3656,
+        "p": 0.6778,
+        "lo": 0.6625,
+        "hi": 0.6927
+       },
+       "26-50": {
+        "k": 1595,
+        "n": 2670,
+        "p": 0.5974,
+        "lo": 0.5786,
+        "hi": 0.6158
+       },
+       ">100": {
+        "k": 820,
+        "n": 1040,
+        "p": 0.7885,
+        "lo": 0.7626,
+        "hi": 0.8122
+       }
+      },
+      "share": 0.5944,
+      "ahead_on_mons_wins": null,
+      "ahead_on_mons_then_hp_wins": {
+       "k": 6593,
+       "n": 10557,
+       "p": 0.6245,
+       "lo": 0.6152,
+       "hi": 0.6337
+      },
+      "by_band_mons_then_hp": {
+       "<1100": {
+        "k": 2337,
+        "n": 3747,
+        "p": 0.6237,
+        "lo": 0.6081,
+        "hi": 0.6391
+       },
+       "1200-1299": {
+        "k": 973,
+        "n": 1563,
+        "p": 0.6225,
+        "lo": 0.5982,
+        "hi": 0.6462
+       },
+       "1100-1199": {
+        "k": 1608,
+        "n": 2603,
+        "p": 0.6177,
+        "lo": 0.5989,
+        "hi": 0.6362
+       },
+       "1300-1399": {
+        "k": 694,
+        "n": 1126,
+        "p": 0.6163,
+        "lo": 0.5876,
+        "hi": 0.6443
+       },
+       "unrated": {
+        "k": 608,
+        "n": 932,
+        "p": 0.6524,
+        "lo": 0.6212,
+        "hi": 0.6823
+       },
+       "1400-1499": {
+        "k": 280,
+        "n": 434,
+        "p": 0.6452,
+        "lo": 0.5991,
+        "hi": 0.6887
+       },
+       ">=1500": {
+        "k": 93,
+        "n": 152,
+        "p": 0.6118,
+        "lo": 0.5325,
+        "hi": 0.6856
+       }
+      },
+      "ended_by_forfeit": {
+       "k": 2317,
+       "n": 11140,
+       "p": 0.208,
+       "lo": 0.2006,
+       "hi": 0.2156
+      },
+      "decisions_left_normal_end": {
+       "n": 8716,
+       "mean": 2.715,
+       "p10": 1,
+       "p25": 2,
+       "p50": 2,
+       "p75": 3,
+       "p90": 4,
+       "p99": 10,
+       "max": 52
+      }
+     },
+     "2v1": {
+      "n": 6971,
+      "share": 0.3719,
+      "ahead_on_mons_wins": {
+       "k": 5853,
+       "n": 6971,
+       "p": 0.8396,
+       "lo": 0.8308,
+       "hi": 0.848
+      },
+      "ahead_on_mons_then_hp_wins": {
+       "k": 5853,
+       "n": 6971,
+       "p": 0.8396,
+       "lo": 0.8308,
+       "hi": 0.848
+      },
+      "by_band_mons_then_hp": {
+       "<1100": {
+        "k": 2136,
+        "n": 2569,
+        "p": 0.8315,
+        "lo": 0.8165,
+        "hi": 0.8454
+       },
+       "1200-1299": {
+        "k": 853,
+        "n": 1020,
+        "p": 0.8363,
+        "lo": 0.8123,
+        "hi": 0.8577
+       },
+       "1100-1199": {
+        "k": 1468,
+        "n": 1751,
+        "p": 0.8384,
+        "lo": 0.8204,
+        "hi": 0.8549
+       },
+       "1300-1399": {
+        "k": 583,
+        "n": 692,
+        "p": 0.8425,
+        "lo": 0.8135,
+        "hi": 0.8677
+       },
+       "unrated": {
+        "k": 532,
+        "n": 611,
+        "p": 0.8707,
+        "lo": 0.8418,
+        "hi": 0.895
+       },
+       "1400-1499": {
+        "k": 215,
+        "n": 248,
+        "p": 0.8669,
+        "lo": 0.819,
+        "hi": 0.9037
+       },
+       ">=1500": {
+        "k": 66,
+        "n": 80,
+        "p": 0.825,
+        "lo": 0.7274,
+        "hi": 0.8928
+       }
+      },
+      "ended_by_forfeit": {
+       "k": 1173,
+       "n": 6971,
+       "p": 0.1683,
+       "lo": 0.1597,
+       "hi": 0.1772
+      },
+      "decisions_left_normal_end": {
+       "n": 5754,
+       "mean": 1.943,
+       "p10": 1,
+       "p25": 1,
+       "p50": 1,
+       "p75": 2,
+       "p90": 3,
+       "p99": 9,
+       "max": 52
+      }
+     },
+     "1v1": {
+      "n": 632,
+      "hp_leader_wins_by_lead": {
+       "0": {
+        "k": 0,
+        "n": 110
+       },
+       "26-50": {
+        "k": 96,
+        "n": 145,
+        "p": 0.6621,
+        "lo": 0.5818,
+        "hi": 0.734
+       },
+       "51-100": {
+        "k": 167,
+        "n": 224,
+        "p": 0.7455,
+        "lo": 0.6847,
+        "hi": 0.7981
+       },
+       "1-25": {
+        "k": 89,
+        "n": 153,
+        "p": 0.5817,
+        "lo": 0.5025,
+        "hi": 0.6569
+       }
+      },
+      "share": 0.0337,
+      "ahead_on_mons_wins": null,
+      "ahead_on_mons_then_hp_wins": {
+       "k": 352,
+       "n": 522,
+       "p": 0.6743,
+       "lo": 0.633,
+       "hi": 0.7131
+      },
+      "by_band_mons_then_hp": {
+       "<1100": {
+        "k": 126,
+        "n": 193,
+        "p": 0.6528,
+        "lo": 0.5833,
+        "hi": 0.7164
+       },
+       "1200-1299": {
+        "k": 50,
+        "n": 77,
+        "p": 0.6494,
+        "lo": 0.538,
+        "hi": 0.7465
+       },
+       "1100-1199": {
+        "k": 96,
+        "n": 140,
+        "p": 0.6857,
+        "lo": 0.6047,
+        "hi": 0.7568
+       },
+       "1300-1399": {
+        "k": 33,
+        "n": 43,
+        "p": 0.7674,
+        "lo": 0.6226,
+        "hi": 0.8685
+       },
+       "unrated": {
+        "k": 26,
+        "n": 38,
+        "p": 0.6842,
+        "lo": 0.5254,
+        "hi": 0.8092
+       },
+       "1400-1499": {
+        "k": 16,
+        "n": 22,
+        "p": 0.7273,
+        "lo": 0.5185,
+        "hi": 0.8685
+       },
+       ">=1500": {
+        "k": 5,
+        "n": 9,
+        "p": 0.5556,
+        "lo": 0.2666,
+        "hi": 0.8112
+       }
+      },
+      "ended_by_forfeit": {
+       "k": 27,
+       "n": 632,
+       "p": 0.0427,
+       "lo": 0.0295,
+       "hi": 0.0614
+      },
+      "decisions_left_normal_end": {
+       "n": 604,
+       "mean": 1.914,
+       "p10": 1,
+       "p25": 1,
+       "p50": 2,
+       "p75": 2,
+       "p90": 3,
+       "p99": 8,
+       "max": 21
+      }
+     }
+    }
+   }
+  }
+ },
+ "human_bo3_win_rate_2v2_by_hp_lead_at_entry": {
+  "0": {
+   "n": 928,
+   "win": 0.5
+  },
+  "25..49": {
+   "n": 2554,
+   "win": 0.5995
+  },
+  "-49..-25": {
+   "n": 2554,
+   "win": 0.4005
+  },
+  "1..24": {
+   "n": 2672,
+   "win": 0.552
+  },
+  "-24..-1": {
+   "n": 2672,
+   "win": 0.448
+  },
+  "<=-100": {
+   "n": 1007,
+   "win": 0.15
+  },
+  ">=100": {
+   "n": 1007,
+   "win": 0.85
+  },
+  "-99..-50": {
+   "n": 3300,
+   "win": 0.3176
+  },
+  "50..99": {
+   "n": 3300,
+   "win": 0.6824
+  }
+ },
+ "ladder": {
+  "generated": "2026-10-01T05:14:48.945Z",
+  "runs": [
+   "aa1-2026-09-25T21-00-29-440Z",
+   "aa2-2026-09-25T23-54-09-059Z",
+   "chomp1-2026-09-29T23-13-11-521Z",
+   "gen5ab-2026-09-26T04-06-53-848Z"
+  ],
+  "skipped": {},
+  "summary": {
+   "all": {
+    "games": 189,
+    "won": 81,
+    "lost": 108,
+    "lost_by_our_forfeit": 0,
+    "won_by_their_forfeit": 31,
+    "e2": {
+     "reached": {
+      "k": 88,
+      "n": 189,
+      "p": 0.4656,
+      "lo": 0.3959,
+      "hi": 0.5367
+     },
+     "by_lead": {
+      "ahead": {
+       "n": 15,
+       "won": 15,
+       "lost": 0,
+       "win_rate": {
+        "k": 15,
+        "n": 15,
+        "p": 1,
+        "lo": 0.7961,
+        "hi": 1
+       }
+      },
+      "even": {
+       "n": 56,
+       "won": 21,
+       "lost": 35,
+       "win_rate": {
+        "k": 21,
+        "n": 56,
+        "p": 0.375,
+        "lo": 0.2601,
+        "hi": 0.5059
+       }
+      },
+      "behind": {
+       "n": 17,
+       "won": 1,
+       "lost": 16,
+       "win_rate": {
+        "k": 1,
+        "n": 17,
+        "p": 0.0588,
+        "lo": 0.0105,
+        "hi": 0.2698
+       }
+      },
+      "even_split_by_hp": {
+       "hp_ahead": {
+        "n": 24,
+        "lost": 12
+       },
+       "hp_behind": {
+        "n": 29,
+        "lost": 21
+       }
+      }
+     },
+     "losses_through_endgame": 51,
+     "losses_from_ahead_or_even": 35,
+     "share_of_all_losses_from_ahead_or_even": {
+      "k": 35,
+      "n": 108,
+      "p": 0.3241,
+      "lo": 0.2432,
+      "hi": 0.4171
+     },
+     "share_of_non_forfeit_losses_from_ahead_or_even": {
+      "k": 35,
+      "n": 108,
+      "p": 0.3241,
+      "lo": 0.2432,
+      "hi": 0.4171
+     },
+     "entry_material": {
+      "1v2": 17,
+      "2v2": 55,
+      "2v1": 15,
+      "1v1": 1
+     },
+     "decisions_in_endgame": {
+      "n": 88,
+      "mean": 2.239,
+      "p50": 2,
+      "p90": 4,
+      "max": 6
+     },
+     "searched_cells": {
+      "n": 89,
+      "mean": 15.91,
+      "p50": 16,
+      "p90": 16,
+      "max": 16
+     },
+     "playouts": {
+      "n": 89,
+      "mean": 1528.933,
+      "p10": 155,
+      "p50": 517,
+      "p90": 4039,
+      "max": 7134
+     },
+     "playouts_per_wall_second": {
+      "n": 89,
+      "mean": 324.427,
+      "p10": 32,
+      "p50": 109,
+      "p90": 859,
+      "max": 1517
+     },
+     "decision_ms": {
+      "n": 197,
+      "mean": 2178.716,
+      "p50": 123,
+      "p90": 4774,
+      "max": 5176
+     },
+     "sheet_bound_joint_cells_at_entry": {
+      "n": 88,
+      "mean": 5018.852,
+      "p50": 4800,
+      "p90": 9600,
+      "max": 19200
+     },
+     "sheet_bound_actions_ours_at_entry": {
+      "n": 88,
+      "mean": 66.102,
+      "p50": 64,
+      "p90": 120,
+      "max": 160
+     },
+     "opp_action_in_searched_columns": {
+      "k": 59,
+      "n": 79,
+      "p": 0.7468,
+      "lo": 0.6411,
+      "hi": 0.8297
+     },
+     "value_calibration": {
+      "0": {
+       "decisions": 43,
+       "games": 25,
+       "mean_value": 0.032,
+       "win_rate": 0.093
+      },
+      "0.1": {
+       "decisions": 11,
+       "games": 9,
+       "mean_value": 0.161,
+       "win_rate": 0.273
+      },
+      "0.2": {
+       "decisions": 4,
+       "games": 4,
+       "mean_value": 0.236,
+       "win_rate": 0.5
+      },
+      "0.3": {
+       "decisions": 4,
+       "games": 4,
+       "mean_value": 0.333,
+       "win_rate": 0.5
+      },
+      "0.4": {
+       "decisions": 1,
+       "games": 1,
+       "mean_value": 0.452,
+       "win_rate": 1
+      },
+      "0.5": {
+       "decisions": 1,
+       "games": 1,
+       "mean_value": 0.524,
+       "win_rate": 0
+      },
+      "0.6": {
+       "decisions": 5,
+       "games": 4,
+       "mean_value": 0.68,
+       "win_rate": 0.8
+      },
+      "0.7": {
+       "decisions": 2,
+       "games": 1,
+       "mean_value": 0.734,
+       "win_rate": 1
+      },
+      "0.8": {
+       "decisions": 4,
+       "games": 3,
+       "mean_value": 0.834,
+       "win_rate": 0.75
+      },
+      "0.9": {
+       "decisions": 14,
+       "games": 12,
+       "mean_value": 0.97,
+       "win_rate": 0.929
+      }
+     },
+     "brier": 0.1324
+    },
+    "e4": {
+     "reached": {
+      "k": 130,
+      "n": 189,
+      "p": 0.6878,
+      "lo": 0.6186,
+      "hi": 0.7496
+     },
+     "by_lead": {
+      "ahead": {
+       "n": 29,
+       "won": 28,
+       "lost": 1,
+       "win_rate": {
+        "k": 28,
+        "n": 29,
+        "p": 0.9655,
+        "lo": 0.8282,
+        "hi": 0.9939
+       }
+      },
+      "even": {
+       "n": 55,
+       "won": 21,
+       "lost": 34,
+       "win_rate": {
+        "k": 21,
+        "n": 55,
+        "p": 0.3818,
+        "lo": 0.2652,
+        "hi": 0.5139
+       }
+      },
+      "behind": {
+       "n": 46,
+       "won": 1,
+       "lost": 45,
+       "win_rate": {
+        "k": 1,
+        "n": 46,
+        "p": 0.0217,
+        "lo": 0.0038,
+        "hi": 0.1134
+       }
+      },
+      "even_split_by_hp": {
+       "hp_ahead": {
+        "n": 24,
+        "lost": 12
+       },
+       "hp_behind": {
+        "n": 28,
+        "lost": 20
+       }
+      }
+     },
+     "losses_through_endgame": 80,
+     "losses_from_ahead_or_even": 35,
+     "share_of_all_losses_from_ahead_or_even": {
+      "k": 35,
+      "n": 108,
+      "p": 0.3241,
+      "lo": 0.2432,
+      "hi": 0.4171
+     },
+     "share_of_non_forfeit_losses_from_ahead_or_even": {
+      "k": 35,
+      "n": 108,
+      "p": 0.3241,
+      "lo": 0.2432,
+      "hi": 0.4171
+     },
+     "entry_material": {
+      "1v3": 34,
+      "2v2": 55,
+      "2v1": 10,
+      "1v2": 12,
+      "3v1": 19
+     },
+     "decisions_in_endgame": {
+      "n": 130,
+      "mean": 2.208,
+      "p50": 2,
+      "p90": 4,
+      "max": 7
+     },
+     "searched_cells": {
+      "n": 140,
+      "mean": 15.943,
+      "p50": 16,
+      "p90": 16,
+      "max": 16
+     },
+     "playouts": {
+      "n": 140,
+      "mean": 1448.636,
+      "p10": 200,
+      "p50": 539,
+      "p90": 3960,
+      "max": 7134
+     },
+     "playouts_per_wall_second": {
+      "n": 140,
+      "mean": 307.336,
+      "p10": 41,
+      "p50": 114,
+      "p90": 842,
+      "max": 1517
+     },
+     "decision_ms": {
+      "n": 287,
+      "mean": 2345.077,
+      "p50": 153,
+      "p90": 4770,
+      "max": 5176
+     },
+     "sheet_bound_joint_cells_at_entry": {
+      "n": 130,
+      "mean": 3491.531,
+      "p50": 384,
+      "p90": 9600,
+      "max": 19200
+     },
+     "sheet_bound_actions_ours_at_entry": {
+      "n": 130,
+      "mean": 51.108,
+      "p50": 49,
+      "p90": 120,
+      "max": 160
+     },
+     "opp_action_in_searched_columns": {
+      "k": 93,
+      "n": 124,
+      "p": 0.75,
+      "lo": 0.6671,
+      "hi": 0.8179
+     },
+     "value_calibration": {
+      "0": {
+       "decisions": 78,
+       "games": 40,
+       "mean_value": 0.023,
+       "win_rate": 0.051
+      },
+      "0.1": {
+       "decisions": 12,
+       "games": 10,
+       "mean_value": 0.16,
+       "win_rate": 0.333
+      },
+      "0.2": {
+       "decisions": 4,
+       "games": 4,
+       "mean_value": 0.236,
+       "win_rate": 0.5
+      },
+      "0.3": {
+       "decisions": 5,
+       "games": 5,
+       "mean_value": 0.327,
+       "win_rate": 0.6
+      },
+      "0.4": {
+       "decisions": 1,
+       "games": 1,
+       "mean_value": 0.452,
+       "win_rate": 1
+      },
+      "0.5": {
+       "decisions": 1,
+       "games": 1,
+       "mean_value": 0.524,
+       "win_rate": 0
+      },
+      "0.6": {
+       "decisions": 6,
+       "games": 5,
+       "mean_value": 0.681,
+       "win_rate": 0.667
+      },
+      "0.7": {
+       "decisions": 4,
+       "games": 2,
+       "mean_value": 0.746,
+       "win_rate": 0.5
+      },
+      "0.8": {
+       "decisions": 4,
+       "games": 3,
+       "mean_value": 0.834,
+       "win_rate": 0.75
+      },
+      "0.9": {
+       "decisions": 25,
+       "games": 18,
+       "mean_value": 0.978,
+       "win_rate": 0.96
+      }
+     },
+     "brier": 0.1045
+    }
+   },
+   "search_arm": {
+    "games": 91,
+    "won": 40,
+    "lost": 51,
+    "lost_by_our_forfeit": 0,
+    "won_by_their_forfeit": 20,
+    "e2": {
+     "reached": {
+      "k": 38,
+      "n": 91,
+      "p": 0.4176,
+      "lo": 0.3216,
+      "hi": 0.5202
+     },
+     "by_lead": {
+      "ahead": {
+       "n": 6,
+       "won": 6,
+       "lost": 0,
+       "win_rate": {
+        "k": 6,
+        "n": 6,
+        "p": 1,
+        "lo": 0.6097,
+        "hi": 1
+       }
+      },
+      "even": {
+       "n": 21,
+       "won": 7,
+       "lost": 14,
+       "win_rate": {
+        "k": 7,
+        "n": 21,
+        "p": 0.3333,
+        "lo": 0.1719,
+        "hi": 0.5463
+       }
+      },
+      "behind": {
+       "n": 11,
+       "won": 1,
+       "lost": 10,
+       "win_rate": {
+        "k": 1,
+        "n": 11,
+        "p": 0.0909,
+        "lo": 0.0162,
+        "hi": 0.3774
+       }
+      },
+      "even_split_by_hp": {
+       "hp_ahead": {
+        "n": 9,
+        "lost": 4
+       },
+       "hp_behind": {
+        "n": 12,
+        "lost": 10
+       }
+      }
+     },
+     "losses_through_endgame": 24,
+     "losses_from_ahead_or_even": 14,
+     "share_of_all_losses_from_ahead_or_even": {
+      "k": 14,
+      "n": 51,
+      "p": 0.2745,
+      "lo": 0.1711,
+      "hi": 0.4095
+     },
+     "share_of_non_forfeit_losses_from_ahead_or_even": {
+      "k": 14,
+      "n": 51,
+      "p": 0.2745,
+      "lo": 0.1711,
+      "hi": 0.4095
+     },
+     "entry_material": {
+      "2v2": 20,
+      "2v1": 6,
+      "1v2": 11,
+      "1v1": 1
+     },
+     "decisions_in_endgame": {
+      "n": 38,
+      "mean": 2.342,
+      "p50": 2,
+      "p90": 4,
+      "max": 6
+     },
+     "searched_cells": {
+      "n": 89,
+      "mean": 15.91,
+      "p50": 16,
+      "p90": 16,
+      "max": 16
+     },
+     "playouts": {
+      "n": 89,
+      "mean": 1528.933,
+      "p10": 155,
+      "p50": 517,
+      "p90": 4039,
+      "max": 7134
+     },
+     "playouts_per_wall_second": {
+      "n": 89,
+      "mean": 324.427,
+      "p10": 32,
+      "p50": 109,
+      "p90": 859,
+      "max": 1517
+     },
+     "decision_ms": {
+      "n": 89,
+      "mean": 4749.989,
+      "p50": 4729,
+      "p90": 4820,
+      "max": 5176
+     },
+     "sheet_bound_joint_cells_at_entry": {
+      "n": 38,
+      "mean": 4981.763,
+      "p50": 4096,
+      "p90": 12288,
+      "max": 19200
+     },
+     "sheet_bound_actions_ours_at_entry": {
+      "n": 38,
+      "mean": 57,
+      "p50": 64,
+      "p90": 120,
+      "max": 120
+     },
+     "opp_action_in_searched_columns": {
+      "k": 59,
+      "n": 79,
+      "p": 0.7468,
+      "lo": 0.6411,
+      "hi": 0.8297
+     },
+     "value_calibration": {
+      "0": {
+       "decisions": 43,
+       "games": 25,
+       "mean_value": 0.032,
+       "win_rate": 0.093
+      },
+      "0.1": {
+       "decisions": 11,
+       "games": 9,
+       "mean_value": 0.161,
+       "win_rate": 0.273
+      },
+      "0.2": {
+       "decisions": 4,
+       "games": 4,
+       "mean_value": 0.236,
+       "win_rate": 0.5
+      },
+      "0.3": {
+       "decisions": 4,
+       "games": 4,
+       "mean_value": 0.333,
+       "win_rate": 0.5
+      },
+      "0.4": {
+       "decisions": 1,
+       "games": 1,
+       "mean_value": 0.452,
+       "win_rate": 1
+      },
+      "0.5": {
+       "decisions": 1,
+       "games": 1,
+       "mean_value": 0.524,
+       "win_rate": 0
+      },
+      "0.6": {
+       "decisions": 5,
+       "games": 4,
+       "mean_value": 0.68,
+       "win_rate": 0.8
+      },
+      "0.7": {
+       "decisions": 2,
+       "games": 1,
+       "mean_value": 0.734,
+       "win_rate": 1
+      },
+      "0.8": {
+       "decisions": 4,
+       "games": 3,
+       "mean_value": 0.834,
+       "win_rate": 0.75
+      },
+      "0.9": {
+       "decisions": 14,
+       "games": 12,
+       "mean_value": 0.97,
+       "win_rate": 0.929
+      }
+     },
+     "brier": 0.1324
+    },
+    "e4": {
+     "reached": {
+      "k": 60,
+      "n": 91,
+      "p": 0.6593,
+      "lo": 0.5573,
+      "hi": 0.7485
+     },
+     "by_lead": {
+      "ahead": {
+       "n": 13,
+       "won": 12,
+       "lost": 1,
+       "win_rate": {
+        "k": 12,
+        "n": 13,
+        "p": 0.9231,
+        "lo": 0.6669,
+        "hi": 0.9863
+       }
+      },
+      "even": {
+       "n": 20,
+       "won": 7,
+       "lost": 13,
+       "win_rate": {
+        "k": 7,
+        "n": 20,
+        "p": 0.35,
+        "lo": 0.1812,
+        "hi": 0.5671
+       }
+      },
+      "behind": {
+       "n": 27,
+       "won": 1,
+       "lost": 26,
+       "win_rate": {
+        "k": 1,
+        "n": 27,
+        "p": 0.037,
+        "lo": 0.0066,
+        "hi": 0.1828
+       }
+      },
+      "even_split_by_hp": {
+       "hp_ahead": {
+        "n": 9,
+        "lost": 4
+       },
+       "hp_behind": {
+        "n": 11,
+        "lost": 9
+       }
+      }
+     },
+     "losses_through_endgame": 40,
+     "losses_from_ahead_or_even": 14,
+     "share_of_all_losses_from_ahead_or_even": {
+      "k": 14,
+      "n": 51,
+      "p": 0.2745,
+      "lo": 0.1711,
+      "hi": 0.4095
+     },
+     "share_of_non_forfeit_losses_from_ahead_or_even": {
+      "k": 14,
+      "n": 51,
+      "p": 0.2745,
+      "lo": 0.1711,
+      "hi": 0.4095
+     },
+     "entry_material": {
+      "2v2": 20,
+      "2v1": 3,
+      "1v3": 18,
+      "3v1": 10,
+      "1v2": 9
+     },
+     "decisions_in_endgame": {
+      "n": 60,
+      "mean": 2.35,
+      "p50": 2,
+      "p90": 5,
+      "max": 7
+     },
+     "searched_cells": {
+      "n": 140,
+      "mean": 15.943,
+      "p50": 16,
+      "p90": 16,
+      "max": 16
+     },
+     "playouts": {
+      "n": 140,
+      "mean": 1448.636,
+      "p10": 200,
+      "p50": 539,
+      "p90": 3960,
+      "max": 7134
+     },
+     "playouts_per_wall_second": {
+      "n": 140,
+      "mean": 307.336,
+      "p10": 41,
+      "p50": 114,
+      "p90": 842,
+      "max": 1517
+     },
+     "decision_ms": {
+      "n": 141,
+      "mean": 4711.716,
+      "p50": 4729,
+      "p90": 4807,
+      "max": 5176
+     },
+     "sheet_bound_joint_cells_at_entry": {
+      "n": 60,
+      "mean": 3264.95,
+      "p50": 343,
+      "p90": 9600,
+      "max": 19200
+     },
+     "sheet_bound_actions_ours_at_entry": {
+      "n": 60,
+      "mean": 43.4,
+      "p50": 42,
+      "p90": 100,
+      "max": 120
+     },
+     "opp_action_in_searched_columns": {
+      "k": 93,
+      "n": 124,
+      "p": 0.75,
+      "lo": 0.6671,
+      "hi": 0.8179
+     },
+     "value_calibration": {
+      "0": {
+       "decisions": 78,
+       "games": 40,
+       "mean_value": 0.023,
+       "win_rate": 0.051
+      },
+      "0.1": {
+       "decisions": 12,
+       "games": 10,
+       "mean_value": 0.16,
+       "win_rate": 0.333
+      },
+      "0.2": {
+       "decisions": 4,
+       "games": 4,
+       "mean_value": 0.236,
+       "win_rate": 0.5
+      },
+      "0.3": {
+       "decisions": 5,
+       "games": 5,
+       "mean_value": 0.327,
+       "win_rate": 0.6
+      },
+      "0.4": {
+       "decisions": 1,
+       "games": 1,
+       "mean_value": 0.452,
+       "win_rate": 1
+      },
+      "0.5": {
+       "decisions": 1,
+       "games": 1,
+       "mean_value": 0.524,
+       "win_rate": 0
+      },
+      "0.6": {
+       "decisions": 6,
+       "games": 5,
+       "mean_value": 0.681,
+       "win_rate": 0.667
+      },
+      "0.7": {
+       "decisions": 4,
+       "games": 2,
+       "mean_value": 0.746,
+       "win_rate": 0.5
+      },
+      "0.8": {
+       "decisions": 4,
+       "games": 3,
+       "mean_value": 0.834,
+       "win_rate": 0.75
+      },
+      "0.9": {
+       "decisions": 25,
+       "games": 18,
+       "mean_value": 0.978,
+       "win_rate": 0.96
+      }
+     },
+     "brier": 0.1045
+    }
+   },
+   "prior_arm": {
+    "games": 98,
+    "won": 41,
+    "lost": 57,
+    "lost_by_our_forfeit": 0,
+    "won_by_their_forfeit": 11,
+    "e2": {
+     "reached": {
+      "k": 50,
+      "n": 98,
+      "p": 0.5102,
+      "lo": 0.4127,
+      "hi": 0.6069
+     },
+     "by_lead": {
+      "ahead": {
+       "n": 9,
+       "won": 9,
+       "lost": 0,
+       "win_rate": {
+        "k": 9,
+        "n": 9,
+        "p": 1,
+        "lo": 0.7008,
+        "hi": 1
+       }
+      },
+      "even": {
+       "n": 35,
+       "won": 14,
+       "lost": 21,
+       "win_rate": {
+        "k": 14,
+        "n": 35,
+        "p": 0.4,
+        "lo": 0.2555,
+        "hi": 0.5643
+       }
+      },
+      "behind": {
+       "n": 6,
+       "won": 0,
+       "lost": 6,
+       "win_rate": {
+        "k": 0,
+        "n": 6,
+        "p": 0,
+        "lo": 0,
+        "hi": 0.3903
+       }
+      },
+      "even_split_by_hp": {
+       "hp_ahead": {
+        "n": 15,
+        "lost": 8
+       },
+       "hp_behind": {
+        "n": 17,
+        "lost": 11
+       }
+      }
+     },
+     "losses_through_endgame": 27,
+     "losses_from_ahead_or_even": 21,
+     "share_of_all_losses_from_ahead_or_even": {
+      "k": 21,
+      "n": 57,
+      "p": 0.3684,
+      "lo": 0.2552,
+      "hi": 0.4982
+     },
+     "share_of_non_forfeit_losses_from_ahead_or_even": {
+      "k": 21,
+      "n": 57,
+      "p": 0.3684,
+      "lo": 0.2552,
+      "hi": 0.4982
+     },
+     "entry_material": {
+      "1v2": 6,
+      "2v2": 35,
+      "2v1": 9
+     },
+     "decisions_in_endgame": {
+      "n": 50,
+      "mean": 2.16,
+      "p50": 2,
+      "p90": 4,
+      "max": 6
+     },
+     "searched_cells": null,
+     "playouts": null,
+     "playouts_per_wall_second": null,
+     "decision_ms": {
+      "n": 108,
+      "mean": 59.796,
+      "p50": 52,
+      "p90": 120,
+      "max": 185
+     },
+     "sheet_bound_joint_cells_at_entry": {
+      "n": 50,
+      "mean": 5047.04,
+      "p50": 5120,
+      "p90": 9600,
+      "max": 14400
+     },
+     "sheet_bound_actions_ours_at_entry": {
+      "n": 50,
+      "mean": 73.02,
+      "p50": 72,
+      "p90": 120,
+      "max": 160
+     },
+     "opp_action_in_searched_columns": null,
+     "value_calibration": {},
+     "brier": null
+    },
+    "e4": {
+     "reached": {
+      "k": 70,
+      "n": 98,
+      "p": 0.7143,
+      "lo": 0.6181,
+      "hi": 0.7943
+     },
+     "by_lead": {
+      "ahead": {
+       "n": 16,
+       "won": 16,
+       "lost": 0,
+       "win_rate": {
+        "k": 16,
+        "n": 16,
+        "p": 1,
+        "lo": 0.8064,
+        "hi": 1
+       }
+      },
+      "even": {
+       "n": 35,
+       "won": 14,
+       "lost": 21,
+       "win_rate": {
+        "k": 14,
+        "n": 35,
+        "p": 0.4,
+        "lo": 0.2555,
+        "hi": 0.5643
+       }
+      },
+      "behind": {
+       "n": 19,
+       "won": 0,
+       "lost": 19,
+       "win_rate": {
+        "k": 0,
+        "n": 19,
+        "p": 0,
+        "lo": 0,
+        "hi": 0.1682
+       }
+      },
+      "even_split_by_hp": {
+       "hp_ahead": {
+        "n": 15,
+        "lost": 8
+       },
+       "hp_behind": {
+        "n": 17,
+        "lost": 11
+       }
+      }
+     },
+     "losses_through_endgame": 40,
+     "losses_from_ahead_or_even": 21,
+     "share_of_all_losses_from_ahead_or_even": {
+      "k": 21,
+      "n": 57,
+      "p": 0.3684,
+      "lo": 0.2552,
+      "hi": 0.4982
+     },
+     "share_of_non_forfeit_losses_from_ahead_or_even": {
+      "k": 21,
+      "n": 57,
+      "p": 0.3684,
+      "lo": 0.2552,
+      "hi": 0.4982
+     },
+     "entry_material": {
+      "1v3": 16,
+      "2v2": 35,
+      "2v1": 7,
+      "1v2": 3,
+      "3v1": 9
+     },
+     "decisions_in_endgame": {
+      "n": 70,
+      "mean": 2.086,
+      "p50": 2,
+      "p90": 4,
+      "max": 6
+     },
+     "searched_cells": null,
+     "playouts": null,
+     "playouts_per_wall_second": null,
+     "decision_ms": {
+      "n": 146,
+      "mean": 59.486,
+      "p50": 57,
+      "p90": 120,
+      "max": 185
+     },
+     "sheet_bound_joint_cells_at_entry": {
+      "n": 70,
+      "mean": 3685.743,
+      "p50": 3840,
+      "p90": 9600,
+      "max": 14400
+     },
+     "sheet_bound_actions_ours_at_entry": {
+      "n": 70,
+      "mean": 57.714,
+      "p50": 60,
+      "p90": 120,
+      "max": 160
+     },
+     "opp_action_in_searched_columns": null,
+     "value_calibration": {},
+     "brier": null
+    }
+   }
+  },
+  "losses_from_ahead_or_even_e2": [
+   {
+    "run": "aa1-2026-09-25T21-00-29-440Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2687877149",
+    "policy": "prior",
+    "entry": {
+     "n": 7,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 54,
+     "hp_theirs": 129
+    },
+    "end_turn": 7,
+    "values": [
+     null
+    ],
+    "searched": [
+     null
+    ],
+    "covered": [
+     null
+    ]
+   },
+   {
+    "run": "aa1-2026-09-25T21-00-29-440Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2687892903",
+    "policy": "prior",
+    "entry": {
+     "n": 6,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 135,
+     "hp_theirs": 193
+    },
+    "end_turn": 8,
+    "values": [
+     null,
+     null,
+     null
+    ],
+    "searched": [
+     null,
+     null,
+     null
+    ],
+    "covered": [
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "run": "aa1-2026-09-25T21-00-29-440Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2687933420",
+    "policy": "prior",
+    "entry": {
+     "n": 5,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 194,
+     "hp_theirs": 122
+    },
+    "end_turn": 7,
+    "values": [
+     null,
+     null,
+     null
+    ],
+    "searched": [
+     null,
+     null,
+     null
+    ],
+    "covered": [
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "run": "aa1-2026-09-25T21-00-29-440Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2687934854",
+    "policy": "prior",
+    "entry": {
+     "n": 6,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 174,
+     "hp_theirs": 187
+    },
+    "end_turn": 7,
+    "values": [
+     null,
+     null
+    ],
+    "searched": [
+     null,
+     null
+    ],
+    "covered": [
+     null,
+     null
+    ]
+   },
+   {
+    "run": "aa2-2026-09-25T23-54-09-059Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2687947945-t8gsllvl17cdibw535cw8orb0p7ciq9pw",
+    "policy": "prior",
+    "entry": {
+     "n": 10,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 87,
+     "hp_theirs": 199
+    },
+    "end_turn": 11,
+    "values": [
+     null,
+     null
+    ],
+    "searched": [
+     null,
+     null
+    ],
+    "covered": [
+     null,
+     null
+    ]
+   },
+   {
+    "run": "aa2-2026-09-25T23-54-09-059Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2687955386-2wfhx1w5n6x8n1cl4g1sqoqvyaqocl0pw",
+    "policy": "prior",
+    "entry": {
+     "n": 6,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 101,
+     "hp_theirs": 195
+    },
+    "end_turn": 7,
+    "values": [
+     null,
+     null
+    ],
+    "searched": [
+     null,
+     null
+    ],
+    "covered": [
+     null,
+     null
+    ]
+   },
+   {
+    "run": "aa2-2026-09-25T23-54-09-059Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2687957332-btelncap9kpon36wp4757sbnh2xnm50pw",
+    "policy": "prior",
+    "entry": {
+     "n": 7,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 37,
+     "hp_theirs": 183
+    },
+    "end_turn": 7,
+    "values": [
+     null
+    ],
+    "searched": [
+     null
+    ],
+    "covered": [
+     null
+    ]
+   },
+   {
+    "run": "aa2-2026-09-25T23-54-09-059Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2687967212",
+    "policy": "prior",
+    "entry": {
+     "n": 7,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 154,
+     "hp_theirs": 131
+    },
+    "end_turn": 10,
+    "values": [
+     null,
+     null,
+     null,
+     null
+    ],
+    "searched": [
+     null,
+     null,
+     null,
+     null
+    ],
+    "covered": [
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "run": "aa2-2026-09-25T23-54-09-059Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2687971290",
+    "policy": "prior",
+    "entry": {
+     "n": 5,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 200,
+     "hp_theirs": 196
+    },
+    "end_turn": 7,
+    "values": [
+     null,
+     null,
+     null
+    ],
+    "searched": [
+     null,
+     null,
+     null
+    ],
+    "covered": [
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "run": "aa2-2026-09-25T23-54-09-059Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2687979268",
+    "policy": "prior",
+    "entry": {
+     "n": 5,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 125,
+     "hp_theirs": 115
+    },
+    "end_turn": 8,
+    "values": [
+     null,
+     null,
+     null,
+     null
+    ],
+    "searched": [
+     null,
+     null,
+     null,
+     null
+    ],
+    "covered": [
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "run": "aa2-2026-09-25T23-54-09-059Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2687980681-qy0wh4drn2l28w7rppgi46vstvyg5xspw",
+    "policy": "prior",
+    "entry": {
+     "n": 5,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 160,
+     "hp_theirs": 200
+    },
+    "end_turn": 8,
+    "values": [
+     null,
+     null,
+     null,
+     null
+    ],
+    "searched": [
+     null,
+     null,
+     null,
+     null
+    ],
+    "covered": [
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "run": "aa2-2026-09-25T23-54-09-059Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2687982532-auminivr5dcs3kc5duw2c83l72qxujepw",
+    "policy": "prior",
+    "entry": {
+     "n": 5,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 200,
+     "hp_theirs": 200
+    },
+    "end_turn": 6,
+    "values": [
+     null,
+     null
+    ],
+    "searched": [
+     null,
+     null
+    ],
+    "covered": [
+     null,
+     null
+    ]
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690121468-je1ca9h7t1ieywx0ohi326o4gihs7lfpw",
+    "policy": "miltank-gen5",
+    "entry": {
+     "n": 6,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 109,
+     "hp_theirs": 190
+    },
+    "end_turn": 7,
+    "values": [
+     0.277,
+     0.036
+    ],
+    "searched": [
+     "4x4",
+     "4x4"
+    ],
+    "covered": [
+     true,
+     true
+    ]
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690128111",
+    "policy": "miltank-gen5",
+    "entry": {
+     "n": 6,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 106,
+     "hp_theirs": 188
+    },
+    "end_turn": 7,
+    "values": [
+     0.868,
+     0.002
+    ],
+    "searched": [
+     "4x4",
+     "3x4"
+    ],
+    "covered": [
+     false,
+     true
+    ]
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690133981",
+    "policy": "miltank-gen5",
+    "entry": {
+     "n": 8,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 129,
+     "hp_theirs": 128
+    },
+    "end_turn": 13,
+    "values": [
+     0.072,
+     0.699,
+     0.016,
+     0.005,
+     0.006,
+     0.001
+    ],
+    "searched": [
+     "4x4",
+     "4x4",
+     "4x4",
+     "4x4",
+     "4x4",
+     "4x4"
+    ],
+    "covered": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ]
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690137512-hnu56nou8rto5eo17quxe9bve6ih34ypw",
+    "policy": "miltank-gen5",
+    "entry": {
+     "n": 7,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 200,
+     "hp_theirs": 161
+    },
+    "end_turn": 9,
+    "values": [
+     0.524,
+     0.057,
+     0.003
+    ],
+    "searched": [
+     "4x4",
+     "4x4",
+     "4x4"
+    ],
+    "covered": [
+     true,
+     false,
+     true
+    ]
+   },
+   {
+    "run": "chomp1-2026-09-29T23-13-11-521Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690142835-aish3b3iqj0k97iwvdygorbefgl9n6wpw",
+    "policy": "miltank-gen5",
+    "entry": {
+     "n": 5,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 100,
+     "hp_theirs": 110
+    },
+    "end_turn": 6,
+    "values": [
+     0.011,
+     0.009
+    ],
+    "searched": [
+     "4x4",
+     "4x4"
+    ],
+    "covered": [
+     true,
+     true
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688034647-1upmjfgat1tl819pbyndjxp55i1v8pypw",
+    "policy": "prior",
+    "entry": {
+     "n": 5,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 46,
+     "hp_theirs": 168
+    },
+    "end_turn": 7,
+    "values": [
+     null,
+     null,
+     null
+    ],
+    "searched": [
+     null,
+     null,
+     null
+    ],
+    "covered": [
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688035918",
+    "policy": "miltank-gen5",
+    "entry": {
+     "n": 6,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 82,
+     "hp_theirs": 78
+    },
+    "end_turn": 10,
+    "values": [
+     0.026,
+     0.012,
+     0.013,
+     0.183,
+     0.062
+    ],
+    "searched": [
+     "4x4",
+     "4x4",
+     "4x4",
+     "4x4",
+     "4x4"
+    ],
+    "covered": [
+     true,
+     false,
+     false,
+     false,
+     false
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688037293",
+    "policy": "miltank-gen5",
+    "entry": {
+     "n": 6,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 200,
+     "hp_theirs": 139
+    },
+    "end_turn": 8,
+    "values": [
+     0.194,
+     0.99,
+     0.042
+    ],
+    "searched": [
+     "4x4",
+     "4x4",
+     "4x4"
+    ],
+    "covered": [
+     true,
+     true,
+     false
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688042008",
+    "policy": "miltank-gen5",
+    "entry": {
+     "n": 8,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 94,
+     "hp_theirs": 200
+    },
+    "end_turn": 9,
+    "values": [
+     0.211,
+     0.07
+    ],
+    "searched": [
+     "4x4",
+     "4x4"
+    ],
+    "covered": [
+     true,
+     true
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688042743",
+    "policy": "miltank-gen5",
+    "entry": {
+     "n": 4,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 103,
+     "hp_theirs": 200
+    },
+    "end_turn": 5,
+    "values": [
+     0.339,
+     0.008
+    ],
+    "searched": [
+     "4x4",
+     "4x4"
+    ],
+    "covered": [
+     false,
+     true
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688046314",
+    "policy": "prior",
+    "entry": {
+     "n": 6,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 107,
+     "hp_theirs": 200
+    },
+    "end_turn": 6,
+    "values": [
+     null
+    ],
+    "searched": [
+     null
+    ],
+    "covered": [
+     null
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688049677",
+    "policy": "miltank-gen5",
+    "entry": {
+     "n": 11,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 43,
+     "hp_theirs": 198
+    },
+    "end_turn": 11,
+    "values": [
+     0.064
+    ],
+    "searched": [
+     "4x4"
+    ],
+    "covered": [
+     true
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688061408",
+    "policy": "prior",
+    "entry": {
+     "n": 5,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 194,
+     "hp_theirs": 161
+    },
+    "end_turn": 7,
+    "values": [
+     null,
+     null,
+     null
+    ],
+    "searched": [
+     null,
+     null,
+     null
+    ],
+    "covered": [
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688062067",
+    "policy": "prior",
+    "entry": {
+     "n": 6,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 140,
+     "hp_theirs": 131
+    },
+    "end_turn": 7,
+    "values": [
+     null,
+     null
+    ],
+    "searched": [
+     null,
+     null
+    ],
+    "covered": [
+     null,
+     null
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688062651",
+    "policy": "prior",
+    "entry": {
+     "n": 5,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 200,
+     "hp_theirs": 184
+    },
+    "end_turn": 7,
+    "values": [
+     null,
+     null,
+     null
+    ],
+    "searched": [
+     null,
+     null,
+     null
+    ],
+    "covered": [
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688063201",
+    "policy": "miltank-gen5",
+    "entry": {
+     "n": 5,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 45,
+     "hp_theirs": 117
+    },
+    "end_turn": 5,
+    "values": [
+     0.337
+    ],
+    "searched": [
+     "4x4"
+    ],
+    "covered": [
+     true
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688066421",
+    "policy": "miltank-gen5",
+    "entry": {
+     "n": 7,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 188,
+     "hp_theirs": 200
+    },
+    "end_turn": 9,
+    "values": [
+     0.127,
+     0.081,
+     0
+    ],
+    "searched": [
+     "4x4",
+     "4x4",
+     "4x4"
+    ],
+    "covered": [
+     true,
+     false,
+     true
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688072061",
+    "policy": "miltank-gen5",
+    "entry": {
+     "n": 9,
+     "ours": 1,
+     "theirs": 1,
+     "hp_ours": 28,
+     "hp_theirs": 56
+    },
+    "end_turn": 11,
+    "values": [
+     0.045,
+     0.053,
+     0.053
+    ],
+    "searched": [
+     "4x4",
+     "4x4",
+     "4x4"
+    ],
+    "covered": [
+     false,
+     false,
+     false
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688077444",
+    "policy": "prior",
+    "entry": {
+     "n": 4,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 200,
+     "hp_theirs": 200
+    },
+    "end_turn": 5,
+    "values": [
+     null,
+     null
+    ],
+    "searched": [
+     null,
+     null
+    ],
+    "covered": [
+     null,
+     null
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688078114",
+    "policy": "prior",
+    "entry": {
+     "n": 4,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 188,
+     "hp_theirs": 200
+    },
+    "end_turn": 5,
+    "values": [
+     null,
+     null
+    ],
+    "searched": [
+     null,
+     null
+    ],
+    "covered": [
+     null,
+     null
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688078494",
+    "policy": "miltank-gen5",
+    "entry": {
+     "n": 6,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 149,
+     "hp_theirs": 200
+    },
+    "end_turn": 7,
+    "values": [
+     0.169,
+     0.023
+    ],
+    "searched": [
+     "4x4",
+     "4x4"
+    ],
+    "covered": [
+     true,
+     true
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688081489",
+    "policy": "prior",
+    "entry": {
+     "n": 5,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 177,
+     "hp_theirs": 183
+    },
+    "end_turn": 5,
+    "values": [
+     null
+    ],
+    "searched": [
+     null
+    ],
+    "covered": [
+     null
+    ]
+   },
+   {
+    "run": "gen5ab-2026-09-26T04-06-53-848Z",
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688088244-8j5asd96knefwr3mq7pwfbj2cu7p7ynpw",
+    "policy": "prior",
+    "entry": {
+     "n": 4,
+     "ours": 2,
+     "theirs": 2,
+     "hp_ours": 200,
+     "hp_theirs": 142
+    },
+    "end_turn": 7,
+    "values": [
+     null,
+     null,
+     null,
+     null
+    ],
+    "searched": [
+     null,
+     null,
+     null,
+     null
+    ],
+    "covered": [
+     null,
+     null,
+     null,
+     null
+    ]
+   }
+  ],
+  "search_arm_value_at_e2_entry_in_losses_from_even_or_ahead": [
+   0.277,
+   0.868,
+   0.072,
+   0.524,
+   0.011,
+   0.026,
+   0.194,
+   0.211,
+   0.339,
+   0.064,
+   0.337,
+   0.127,
+   0.045,
+   0.169
+  ]
+ },
+ "conversion_vs_humans": {
+  "humans_all_bands": {
+   "all": {
+    "games": 88,
+    "actual_wins": 37,
+    "expected_wins": 40.66,
+    "actual_minus_expected": -3.66,
+    "ci95": [
+     -10.78,
+     3.59
+    ],
+    "per_game": -0.0416
+   },
+   "search_arm": {
+    "games": 38,
+    "actual_wins": 14,
+    "expected_wins": 15.41,
+    "actual_minus_expected": -1.41,
+    "ci95": [
+     -5.84,
+     3.23
+    ],
+    "per_game": -0.0372
+   },
+   "prior_arm": {
+    "games": 50,
+    "actual_wins": 23,
+    "expected_wins": 25.25,
+    "actual_minus_expected": -2.25,
+    "ci95": [
+     -7.58,
+     3.14
+    ],
+    "per_game": -0.0449
+   }
+  },
+  "humans_both_rated_ge1100": {
+   "all": {
+    "games": 88,
+    "actual_wins": 37,
+    "expected_wins": 40.54,
+    "actual_minus_expected": -3.54,
+    "ci95": [
+     -10.67,
+     3.76
+    ],
+    "per_game": -0.0402
+   },
+   "search_arm": {
+    "games": 38,
+    "actual_wins": 14,
+    "expected_wins": 15.39,
+    "actual_minus_expected": -1.39,
+    "ci95": [
+     -5.79,
+     3.23
+    ],
+    "per_game": -0.0365
+   },
+   "prior_arm": {
+    "games": 50,
+    "actual_wins": 23,
+    "expected_wins": 25.15,
+    "actual_minus_expected": -2.15,
+    "ci95": [
+     -7.53,
+     3.25
+    ],
+    "per_game": -0.0431
+   }
+  }
+ }
+}

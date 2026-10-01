@@ -57,6 +57,14 @@ State is printed, never typed: `solver/PLAN.md` §2 is the registry of what is b
 records each landing, and the measured figures live in `docs/MODELS.md` under *The Reg M-C models*.
 This section says only what a division agent needs before it starts.
 
+- **Direction from 2026-10-01 (Will; `solver/PLAN.md` 0.3.0, abra/regmc 1.53.0).** One learned policy+value net
+  (PORYGON2 v3) trained by self-play and searched several turns deep, on MEDICHAM; the pipeline keeps playing until the
+  net wins its SPRT. Local and small first, built to scale out; a MEDICHAM speed pass (ENGINE) before any cloud spend.
+  HYPNO best-responds to the population by rating band, equilibrium where the habit gate fails. **The ladder is the
+  scoreboard** (residual `S − E` without forfeit wins); the arena is a sanity check. Standing approval: up to 20 series
+  a day with the auto-stops, launched by the coordinator; SOLVER prepares the command. Milestones N0–N9 in
+  `solver/PLAN.md` §3.0; compute and prices in §6a. Account: `docs/_reports/2026-10-01-plan-revision.md`. The
+  "May not launch a ladder series" line above still binds SOLVER itself.
 - **Engine.** The Reg M-C MEDICHAM gate is OPEN, 10 of 10, on release `eaa5becc54eb`
   (`docs/_reports/2026-09-24-regmc-gate-final.md`). The solver API (`engine/medicham_api.js`) is merged:
   `clone`, `legalActions`, `step`, the terminal check and lean playouts. The mid-turn-choice callback
@@ -120,11 +128,16 @@ This section says only what a division agent needs before it starts.
   0.525 [0.456, 0.593], clock ratios 0.99-1.00. At 14 s the Protect fail rate is 10.1% vs 16.9%. λ 0.1 fails (0.405). λ 0.01
   is VOID by its capability clause (1 uniform-anchor decision). No SPRT; the flag is off.
   `docs/_reports/2026-09-30-human-regularised-phase-b.md`.
-- **Lost the last answer (2026-10-01, abra/regmc 1.51.0).** The live answer map is MEDICHAM one-on-ones on the
+- **Lost the last answer (2026-10-01, abra/regmc 1.55.0).** The live answer map is MEDICHAM one-on-ones on the
   rebuilt position, 1,131 ladder positions. A contested last-answer faint is in 31 of 90 losses and 9 of 68 wins. At
   equal value it costs no more than any other faint (−0.092 [−0.225, +0.059]), and it is the turning point in 6 of 26.
   The map adds nothing over the root value (log-loss −0.0045 [−0.0187, +0.0063]), so it is not a live net input.
   `docs/_reports/2026-10-01-lost-last-answer.md`.
+- **The search's uncovered blind spots; four world fields (2026-10-01, abra/regmc 1.52.0).** Read-only over the finished
+  ladder runs. Opponent coverage 57.7% with targets (636 decisions); the gen5 prior's top 4 holds the actual joint 57.1%,
+  top 8 71.1%. Sucker Punch failed 17 of 36: the engine is right on all 17; 9 had no alternative row, 8 were leaf ties.
+  World fixes: identity (formes, nicknames), Unburden, Flash Fire, added type; `solver/tests/test-rotom-world-fields.js`.
+  No series has played on them. `docs/_reports/2026-10-01-search-blind-spots.md`.
 - **Two SPRTs, both H0 (2026-09-30, abra/regmc 1.50.0).**
   - piKL λ 0.03 vs gen5 at the 14 s clock: 416 games, 0.469 [0.421, 0.517], clock ratio 0.976. The Protect fail rate
     is 9.8% vs 15.8%, with no strength gain.

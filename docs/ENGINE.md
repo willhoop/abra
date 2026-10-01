@@ -1,18 +1,29 @@
-## FILED BY SOLVER, NOT FIXED: THE MEGA SWAP CANNOT RECOMPUTE A BODY WHOSE SPREAD INVESTS HP, SO 114 OF 3,293 ARENA MEGA SETS LAND ONE POINT OFF. 2026-09-30 (abra/regmc Unreleased, arena real spreads)
+## A FORME CHANGE RECOMPUTES THE LINE FROM THE SET, HP SP INCLUDED, ON BOTH ROADS. THE MEGA ROAD COULD NOT SEE AN HP-INVESTED SPREAD; THE MID-BATTLE ROAD NEVER RECOMPUTED AT ALL. 2026-10-01 (abra/regmc 1.51.0)
 
-- `megaEvolveNow` recomputes the mega's line from `_sp` only when `l50(base, _sp, _nature)` reproduces the body's
-  current `st`, HP included. `l50` has no HP term, and Champions' `statModify` adds SP to HP. So a body whose spread
-  invests HP can never pass the check and always takes the delta path. That path is exact at a neutral nature and can
-  be one point off on a natured stat (the Golurk and Delphox rows of `tests/probe_mega_spread_stat.js`).
-- The solver's spread path (`solver/xatu/worlds.js` `applySpread`) therefore stamps `_nature` and not `_sp`. Since
-  abra/regmc Unreleased the arena fields ROTOM's role-derived spreads (`solver/arena/spread_source.js`, table
-  `solver/arena/spreads/role-v1.json`). Of its 3,293 mega-stone sets, **3,185 invest HP**, and **114** land off the
-  authority's line after mega evolution: Atk 70, Speed 23, SpA 14, SpD 6, Def 1 (arithmetic from the release's own
-  `spreadL50` against `xatu/sd.js` `statValue`; `solver/out/arena/spreads/mega_delta.js`). A Speed point can flip a
-  turn order. The honest arena's `xatu-random` truth and ROTOM's own world already took the same path.
-- **Asked of ENGINE:** let the recompute accept an HP-invested spread (compare the five non-HP stats, or add
-  `sp.hp` to the HP term of the check), with `tests/probe_mega_spread_stat.js` extended to HP-invested bodies. SOLVER then stamps
-  `_sp` in `applySpread`. Not touched here: SOLVER never edits `engine/`.
+- **Filed by SOLVER on 2026-09-30** (abra/regmc 1.49.0): 114 of the role-v1 table's 3,293 mega sets landed one point
+  off the authority after mega evolution, 23 on Speed. **Fixed. The filed item leaves this list; the probe carries it.**
+- **Cause, road 1 (`megaEvolveNow`).** The recompute from `(megaBs, _sp, _nature)` was gated on `l50(baseBs, _sp,
+  _nature)` reproducing the body's line, HP included. `l50` has no HP term; Champions' `statModify` returns
+  `stat + evs + 75` for HP. So an HP-invested body never passed, counted `megaStatSpreadStale`, and took the delta
+  (three truncations of the nature multiply where the authority makes one).
+- **The class, road 2 (`formeSwap`: Zero to Hero, Stance Change, their reverts).** It always carried the delta, spread
+  or no spread. Legal members whose stats move, derived from the Reg M-C dex: Aegislash -> Blade and Palafin -> Hero.
+  Aegislash is exact by arithmetic (its anchors are multiples of 10); Palafin-Hero is off whenever the fractions do not
+  cancel (Defence: whenever (2 + S) mod 10 >= 5). This hit natured bodies with NO HP too, so it reached the whole-game
+  differential's bodies, not only the arena's.
+- **Fix.** `setLineL50(bs, sp, nature)` = `l50` plus the HP SP (a plain addition: `l50`'s HP is `b + 75`). Road 1
+  checks and recomputes with it (max HP too: `updateMaxHp` runs on the permanent change). Road 2 now recomputes the
+  five battle stats from `_sp`, gated the same way; HP keeps the delta, which is exact and leaves a temporary change's
+  max HP alone, as the authority does. Receipts: `MEDSEEN.formeSwapStatFromSpread`, `MEDFAILS.formeSwapStatDelta`,
+  `MEDFAILS.formeSwapSpreadStale`. `l50` and `spreadL50` are unchanged for every other caller.
+- **Probe: `tests/probe_forme_spread_hp.js`** (`ABRA_REGULATION=regmc`). One real Showdown mega as a witness that the
+  oracle (`statModify`) is the line a mega lands on, HP SP included. RED before the fix: MEGA-HP 318 of 3,132, SWAP
+  572 of 2,640; control MEGA-0HP 0 of 3,132. GREEN after: 0 / 0 / 0. `MEDI_MEGA_SPREAD_HP_BLIND=1` puts back exactly
+  the 318 and nothing else; `MEDI_FORME_SWAP_STAT_DELTA=1` puts back exactly the 572 and nothing else.
+- **Owed by SOLVER, not done here:** `solver/xatu/worlds.js` `applySpread` stamps `_nature` and not `_sp`, so the
+  arena and ROTOM's world still take the delta until it stamps `_sp` (engine keys plus `hp`). Its comment that a forme
+  change never recomputes max HP is true for a temporary change only; a mega runs `updateMaxHp`.
+- Full account: `docs/_reports/2026-10-01-mega-hp-spread.md`.
 
 ## THE REG M-C TAG FILE IS RE-WEIGHTED FROM THE FULL STORE, AND ONE USAGE COUNT IS A SIMULATOR INPUT. 2026-09-30 (abra/regmc 1.38.0)
 
@@ -2306,6 +2317,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 | `probe_trace_list.js` | do the two engines build the same Trace `possibleTargets` — MEMBERS and ORDER, read on both sides at the moment of the draw, over pinned-pool boards paired so a mirror-Trace board is common | whether either engine plays the game right; and any draw on a turn `Battle#getRandomTarget` touched, which is ROADMAP #478's address bucket and is REFUSED by name rather than absorbed |
 | `probe_fractional_priority_draw.js` | does Quick Claw's die get taken on the actions the authority runs the event for — SWITCH, a priority move, a normal move, and the same board with the item stripped | the claw's EFFECT, which is still gated on the move's printed priority where the authority gates on the relay var (ROADMAP #498); and Mycelium Might's early return, counted and never staged |
 | `test-mechanics.js` | is ONE mechanic live | tag x tag; and whether a LIVE verdict rests on a probe that asserts rather than proves |
+| `probe_forme_spread_hp.js` | does a forme change land on the line the authority recomputes from the SET, HP SP included, on BOTH roads: every stone x every biting nature x HP-invested spreads (and their 0-HP control) through `megaEvolveNow`, and every legal `formeSwap` member whose stats move (Palafin, Aegislash) swept over S 0..32 | a stone-holder that switches in and megas later; a body whose `_sp` was never stamped (counted, not asserted) |
 | `probe_mega_spread_stat.js` | does a MEGA EVOLUTION land on the stat line `setSpecies` recomputes from the set — all 75 stageable stones x both lead slots, driven through the real `megaEvolveNow` | anything that is not a forme change; and a stone-holder that never LEADS, because only a lead can be told to evolve, so the SP ladder's slot-2 and slot-3 spreads are not swept |
 | `test-engine-diff.js` | is ONE HIT's damage right | every turn counter — and the INTERIOR of the damage roll, by construction: it compares index 0 against `d.max` and index 15 against `d.min`, the two points where an index and a span coincide (ROADMAP #304) |
 | `test-damage-roll-support.js` | can the battle loop emit the authority's damage VALUES, and the same one for the same die — nine staged hits, support and per-index pairing, endpoints asserted first as the control | anything multi-hit (declared out of scope: the authority draws a randomizer per hit and this engine spends one index across a summed range), and whether the FORMULA under the band is right — `test-damage-stages.js` owns that |
