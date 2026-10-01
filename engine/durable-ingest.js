@@ -203,7 +203,9 @@ function storeFormatFor(a,who){
 
 function extract(id, uploadtime, text){
   const P={p1:{},p2:{}}, poke={p1:[],p2:[]}, brought={p1:new Set(),p2:new Set()}, lead={p1:[],p2:[]};
-  const sets={};           // species -> {moves:Set, item, ability}
+  // side -> species -> {moves:Set, item, ability}. PER SIDE since abra/regmc 1.52.0: a species on both
+  // sides is two Pokemon, and one shared entry merged their sets (see `mirror` at the end).
+  const SS={p1:{},p2:{}}, order=[];
   const nick={};           // 'p1a'+nickname -> species     (for move/reveal attribution)
   const slotSp={};         // 'p1a' -> species currently active
   const hp={};
@@ -219,10 +221,72 @@ function extract(id, uploadtime, text){
   const preTurn=[];
   let cur={n:0,ev:[]}, lastMove=null, winner=null, forfeit=false;
   const sheets={p1:null,p2:null};   // open team sheets, when the format declares them
-  const touch=sp=>sets[sp]=sets[sp]||{moves:new Set(),item:null,ability:null};
+  const touch=(slot,sp)=>{ const d=SS[slot.slice(0,2)]; if(!d[sp]){ d[sp]={moves:new Set(),item:null,ability:null}; if(!order.includes(sp)) order.push(sp); } return d[sp]; };
   const flush=()=>{ if(!cur||!cur.ev.length) return;
     if(cur.n===0) preTurn.push(...cur.ev); else turns.push(cur); };
-  for(const l of text.split('\n')){ let m;
+  /* ---- WHOSE SET A LINE REVEALS (abra/regmc 1.52.0, engine/store_sets_check.js) ------------------
+     `sets` is what each Pokemon BROUGHT. A line can name a body that is not, right now, showing its
+     own set: it may be transformed, its ability may have been replaced, its item may have been handed
+     to it. Measured against solver/porygon2/v2/reveal.js on a 1-in-10 sample of the Reg M-C bo1 store
+     (5,950 games, 37,964 members) — see docs/_reports/2026-10-01-store-set-attribution.md. Per BODY
+     ON A SLOT (cleared on switch, carried by Ally Switch): `xf` transformed, `chg` ability replaced.
+     Per Pokemon: `itemGot` holds an item it did not bring. `who()` resolves a line's identity by
+     NICKNAME first, as |move| always has, so a slot that is stale cannot misattribute. */
+  const xf={}, chg={}, itemGot={};
+  const who=(slot,nickname)=>slot?(nick[slot.slice(0,2)+nickname]||slotSp[slot]||null):null;
+  const ownAb=(slot)=>!xf[slot]&&!chg[slot];
+  const giveAb=(slot,sp,a)=>{ if(sp&&a&&ownAb(slot)){ const r=touch(slot,sp); r.ability=r.ability||a; } };
+  const giveItem=(slot,sp,it)=>{ if(sp&&it&&!itemGot[slot.slice(0,2)+sp]){ const r=touch(slot,sp); r.item=r.item||it; } };
+  const identRe=/^(p[12][ab]): ([^|]*)$/;
+  let prevLine='', thisLine='';
+  for(const l of text.split('\n')){ let m; prevLine=thisLine; thisLine=l;
+    /* ---- AN ITEM OR ABILITY NAMED ON SOME OTHER LINE --------------------------------------------
+       Most items never get an -item or -enditem line: a Life Orb shows itself only as `-damage|X|..|
+       [from] item: Life Orb`, Leftovers only as `-heal|X|..|[from] item: Leftovers`. The store read
+       neither, so on the sample 2,864 + 1,707 brought items were known to the log and null in `sets`,
+       and item usage counted the items that announce themselves and not the ones that do not.
+       Abilities the same: Rough Skin on -damage, Water Absorb on -heal, Clear Body on -fail, Levitate on
+       -immune, Armor Tail on cant, Imposter on -transform, `-activate|X|ability: A`.
+       WHOSE IS IT, with no dex to ask (this file runs in CI, where there is no Showdown checkout): the
+       body named in `[of]` when the line has one, else the body the line names. Derived, not typed:
+       read against the Reg M-C dex over the bo1 sample and every bo3 game, where exactly one of the two
+       bodies can hold the ability it is the [of] body on 100,109 of 100,173 lines that carry an [of]
+       (99.94%), and the named body on 4,780 of 4,821 that do not (99.15%) (docs/_reports/2026-10-01-
+       store-set-attribution.md §3). Pickpocket and Magician are the exception: the holder is the line's
+       own body (data/abilities.ts:2491, 3254). An item names its holder in [of] only on -damage (an item
+       that hurts the attacker). -item, -enditem and -ability carry their own rules and are skipped. */
+    if(l.charCodeAt(0)===124 && l.indexOf('[from]')>0 || /^\|-activate\|p[12][ab]: [^|]*\|(ability|item): /.test(l)){
+      const p=l.split('|'), cmd=p[1], fo=fromOf(l);
+      const x=identRe.exec((p[2]||'').trim()), y=/\[of\]\s*(p[12][ab]): ([^|]*)/.exec(l);
+      const X_=x?[x[1],who(x[1],x[2])]:null, Y_=y?[y[1],who(y[1],y[2].trim())]:null;
+      const act=cmd==='-activate'&&!/^\[from\]/.test(p[3]||'')?(p[3]||''):'';
+      // the item: `[from] item: I` (holder [of] on -damage only), or `-activate|X|item: I`
+      if(!/^(-item|-enditem|-ability|cant|move)$/.test(cmd)){
+        const it=fo.from&&/^item: /.test(fo.from)?fo.from.slice(6).trim():/^item: /.test(act)?act.slice(6).trim():null;
+        const h=it?((cmd==='-damage'&&Y_&&!/^item: /.test(act))?Y_:X_):null;
+        if(h) giveItem(h[0], h[1], it);
+      }
+      // the ability: `-activate|X|ability: A` is X's own; `[from] ability: A` is the [of] body's when
+      // the line has one (bar Pickpocket and Magician), else X's
+      if(/^ability: /.test(act) && X_){
+        const a=act.slice(9).trim(); giveAb(X_[0], X_[1], a);
+        /* Forewarn names the foe's strongest move: `-activate|X|ability: Forewarn|MOVE|[of] Y` */
+        if(a==='Forewarn' && Y_ && Y_[1] && p[4] && !p[4].startsWith('[') && !xf[Y_[0]]){ touch(Y_[0],Y_[1]).moves.add(p[4].trim()); }
+      }
+      else if(fo.from && /^ability: /.test(fo.from) && !/^(-ability|-enditem|cant)$/.test(cmd)){
+        /* -heal is the one command where the [of] body is not reliably the holder: Showdown writes the
+           heal's SOURCE there (sim/battle.ts:2295), which is the holder for an ability that heals an ALLY
+           (Hospitality, data/abilities.ts:1878) and the ATTACKER for one that heals its holder when hit
+           (Volt Absorb, Dry Skin, Earth Eater: data/abilities.ts:1101, 1136, 5343). The side tells them
+           apart without a dex: an absorb heal answers the [of] body's move on the line before it (or
+           comes from a foe), while Hospitality follows a switch-in. */
+        const a=fo.from.slice(9).trim();
+        const absorbs=cmd==='-heal'&&X_&&Y_&&(X_[0].slice(0,2)!==Y_[0].slice(0,2)||prevLine.startsWith('|move|'+Y_[0]+':'));
+        const ofIsHolder=Y_&&cmd!=='move'&&!/^(Pickpocket|Magician)$/.test(a)&&!absorbs;
+        const h=ofIsHolder?Y_:X_;
+        if(h) giveAb(h[0], h[1], a);
+      }
+    }
     if(m=l.match(/^\|player\|(p[12])\|([^|]*)\|[^|]*\|(\d*)/)){ P[m[1]]={name:m[2],rating:+m[3]||null,bot:isBot(m[2])}; }
     else if(m=l.match(/^\|poke\|(p[12])\|([^,|]+)/)){ poke[m[1]].push(norm(m[2])); }
     else if(m=l.match(/^\|turn\|(\d+)/)){ flush(); cur={n:+m[1],ev:[]}; }
@@ -249,8 +313,9 @@ function extract(id, uploadtime, text){
       /* Stat stages belong to the POKEMON, not the slot, so anything switching in starts clean.
          Getting this wrong would leave an Intimidate drop on the mon that replaced its victim. */
       boosts[slot]={};
+      xf[slot]=false; chg[slot]=false;   // a transform and a replaced ability leave with the body
       if(!copied) nick[side+m[2]]=sp;
-      touch(sp);
+      touch(slot,sp);
       if(!copied){
         // `brought` and `lead` must speak the same language as `six`, which comes from team preview
         // and therefore always names the BASE forme. A mega that switches back in is logged as
@@ -264,7 +329,15 @@ function extract(id, uploadtime, text){
     }
     else if(m=l.match(/^\|move\|(p[12][ab]): ([^|]*)\|([^|]+)(?:\|(p[12][ab]):)?/)){
       const slot=m[1], side=slot.slice(0,2), sp=nick[side+m[2]]||slotSp[slot];
-      if(sp){ touch(sp); sets[sp].moves.add(m[3].trim()); }
+      /* A MOVE THIS BODY USED IS NOT ALWAYS A MOVE IT BROUGHT. `[from] ability: Magic Bounce`, `[from]
+         move: Copycat` and the like are a CALLED move: the bouncer never carried Spore. Only an own line,
+         a lock (`[from]lockedmove`), a Round partner and a Sleep Talk call (always one of its own moves)
+         are its set — the same rule solver/porygon2/v2/reveal.js applies. Struggle is no move of any set.
+         A TRANSFORMED body uses its copy's moves. Measured: 11 Magic Bounce, 1 Copycat, 16 Struggle,
+         25 transform-copied moves on the sample. */
+      const calledBy=fromOf(l).from;
+      const own=!calledBy || /^(lockedmove|move: Round|move: Sleep Talk)$/.test(calledBy);
+      if(sp && own && !xf[slot] && m[3].trim()!=='Struggle'){ touch(slot,sp).moves.add(m[3].trim()); }
       lastMove={slot,sp,mv:m[3].trim(),tgt:m[4]||null,dmg:0};
       const evm={t:'m',s:slot,mon:sp,mv:m[3].trim(),tgt:m[4]?slotSp[m[4]]:null,dmg:0};
       /* `|move|p2a: Charizard|Heat Wave|p1b: Incineroar|[spread] p1a,p1b` — the target field names
@@ -289,6 +362,16 @@ function extract(id, uploadtime, text){
     else if(m=l.match(/^\|cant\|(p[12][ab]): ([^|]*)\|([^|]*)(?:\|([^|]*))?/)){
       if(cur) cur.ev.push({t:'c',s:m[1],mon:slotSp[m[1]]||null,why:(m[3]||'').trim(),
         mv:m[4]?m[4].trim():null});
+      /* THE REFUSED MOVE IS STILL A MOVE OF THE SET. `|cant|X|move: Heal Block|Drain Punch` names X's
+         chosen move; `|cant|HOLDER|ability: Armor Tail|MOVE|[of] USER` names the USER's move and the
+         HOLDER's ability (pokemon-showdown-mc data/abilities.ts:225, 874, 3726). Neither reached
+         `sets`: 67 moves missing on the sample (cause `cant_names_move`). */
+      if(m[4] && !m[4].startsWith('[')){
+        const of=/\[of\]\s*(p[12][ab]): ([^|]*)/.exec(l);
+        const ms=of?of[1]:m[1], sp=of?who(of[1],of[2].trim()):who(m[1],m[2]);
+        if(sp && !xf[ms] && m[4].trim()!=='Struggle'){ touch(ms,sp).moves.add(m[4].trim()); }
+      }
+      if(/^ability: /.test(m[3]||'')) giveAb(m[1], who(m[1],m[2]), m[3].slice(9).trim());
     }
     /* `|-hitcount|p2a: X|3` — how many times a multi-hit move landed, stated outright and never
        read. The differential skipped 630 multi-hit rows as incomparable while the count was on the
@@ -407,7 +490,28 @@ function extract(id, uploadtime, text){
       const fo=fromOf(m[4]);
       if(cur) cur.ev.push({t:'hp',s:slot,mon:slotSp[slot],hp:nw,from:fo.from,of:fo.of});
     }
-    else if(m=l.match(/^\|-item\|(p[12][ab]): ([^|]*)\|([^|]+)/)){ const sp=slotSp[m[1]]; if(sp){touch(sp);sets[sp].item=m[3].trim();} }
+    /* ALLY SWITCH MOVES TWO BODIES AND THIS NEVER NOTICED. `|swap|p1a: X|1|[from] move: Ally Switch` is
+       written BEFORE the swap, naming X at its old position and the index it moves to (pokemon-showdown-mc
+       sim/battle.ts:1588-1600). `slotSp` kept the old mapping, so every later line keyed by slot — an
+       item, an ability, a weather setter, and the `mon` on every turn event — named the partner: 9 items
+       and 4 abilities credited to the wrong member on the sample. Everything a slot carries swaps. */
+    else if(m=l.match(/^\|swap\|(p[12][ab]): [^|]*\|(\d)/)){
+      const a=m[1], b=a.slice(0,2)+'ab'[+m[2]];
+      if(b!==a && /[ab]$/.test(b)) for(const o of [slotSp,hp,boosts,xf,chg]){ const t=o[a]; o[a]=o[b]; o[b]=t; }
+    }
+    /* `|-transform|p1a: Ditto|p2a: X` (pokemon-showdown-mc sim/pokemon.ts:1344): from here until it
+       leaves the field the body plays X's moves and X's ability, so neither is credited to it. */
+    else if(m=l.match(/^\|-transform\|(p[12][ab]): /)){ xf[m[1]]=true; }
+    /* AN ITEM HANDED OVER IS NOT THE ITEM BROUGHT. `-item|X|I|[from] move: Trick` (and Switcheroo,
+       Thief, Covet, Bestow, Pickpocket, Magician — pokemon-showdown-mc data/moves.ts:1257, 3123, 18675,
+       19325, 19896; data/abilities.ts:2491, 3254) shows X RECEIVING I, and this credited I as X's own:
+       133 Trick, 7 Switcheroo, 5 Pickpocket, 4 Magician, 2 Thief on the sample. From then on X holds
+       something it did not bring, so no later line about its item is its own either (`itemGot`).
+       Otherwise the FIRST item seen is the brought one, as for -enditem: a Harvest or Recycle restores
+       it, and a Pickup is not it. */
+    else if(m=l.match(/^\|-item\|(p[12][ab]): ([^|]*)\|([^|]+)/)){ const sp=slotSp[m[1]];
+      if(/\[from\]\s*(move: (Trick|Switcheroo|Thief|Covet|Bestow)|ability: (Pickpocket|Magician))/.test(l)){ if(sp) itemGot[m[1].slice(0,2)+sp]=true; }
+      else giveItem(m[1], sp, m[3].trim()); }
     /* ---- AN ITEM LEAVING IS AN EVENT, NOT ONLY A REVEAL -----------------------------------------
        This line was read for ONE purpose — to infer what item the body had been holding — and the
        fact that it left, on this turn, was thrown away. So "the Focus Sash triggered here" was gone,
@@ -420,11 +524,33 @@ function extract(id, uploadtime, text){
        consumption, so a consumer that counts events without reading it will double-count. */
     else if(m=l.match(/^\|-enditem\|(p[12][ab]): ([^|]*)\|([^|]+)(.*)/)){
       const slot=m[1], sp=slotSp[slot], item=m[3].trim(), tail=m[4]||'';
-      if(sp){touch(sp);sets[sp].item=sets[sp].item||item;}
+      giveItem(slot, sp, item);
       const fo=fromOf(tail), why=(tail.match(/\[(eat|weaken|silent)\]/)||[])[1]||null;
       if(cur) cur.ev.push({t:'ei',s:slot,mon:sp||null,item,why,from:fo.from,of:fo.of});
     }
-    else if(m=l.match(/^\|-ability\|(p[12][ab]): ([^|]*)\|([^|]+)/)){ const sp=slotSp[m[1]]; if(sp){touch(sp);sets[sp].ability=m[3].trim();} }
+    /* A REPLACED ABILITY IS NOT THE BODY'S OWN. Showdown writes every replacement as
+       `-ability|X|NEW|OLD|[from] <effect>|[of] SOURCE` (pokemon-showdown-mc sim/pokemon.ts:1934-1936):
+       Trace, Entrainment, Role Play, Simple Beam, Worry Seed, Receiver. This credited NEW to X — Gardevoir
+       recorded with the Intimidate it Traced (246 on the sample), a Swampert with the Water Bubble it was
+       Entrained with — and every later announcement of the copy (`-ability|X|Intimidate|boost`) did the
+       same. Now: OLD is X's own ability; for a copy (Trace, Role Play, Entrainment, Doodle) NEW is
+       SOURCE's own; X's ability is replaced until it leaves the field (`chg`). The one `[from]` that is
+       NOT a replacement is the weather refusal `[from] <weather>|[fail]` (sim/field.ts:61), where the
+       ability named is the holder's own. Skill Swap is `-activate` and is handled there. */
+    else if(m=l.match(/^\|-ability\|(p[12][ab]): ([^|]*)\|([^|]+)/)){ const sp=slotSp[m[1]];
+      const p=l.split('|'), fo=fromOf(l);
+      if(fo.from && !p.includes('[fail]')){
+        const old=p[4]&&!p[4].startsWith('[')?p[4].trim():null;
+        giveAb(m[1], sp, old);
+        if(/^(ability: Trace|move: (Role Play|Entrainment|Doodle))$/.test(fo.from)){
+          const of=/\[of\]\s*(p[12][ab]): ([^|]*)/.exec(l); if(of) giveAb(of[1], slotSp[of[1]], m[3].trim()); }
+        chg[m[1]]=true;
+      }
+      else if(sp && ownAb(m[1])){ touch(m[1],sp).ability=m[3].trim(); } }
+    /* `-activate|SOURCE|Skill Swap|A|B|[of] TARGET` (sim/battle.ts:1326-1331): both bodies now carry the
+       other's ability until they leave the field. 14 + 5 wrong abilities on the sample came after one. */
+    else if(m=l.match(/^\|-activate\|(p[12][ab]): [^|]*\|(?:move: )?Skill Swap\|/)){
+      chg[m[1]]=true; const of=/\[of\]\s*(p[12][ab])/.exec(l); if(of) chg[of[1]]=true; }
     /* ---- MEGA EVOLUTION -------------------------------------------------------------
        Showdown announces a mega with |detailschange| (and |-mega|). Without this the slot
        still points at the BASE species, so the mega's stats, typing and - critically - its
@@ -433,8 +559,8 @@ function extract(id, uploadtime, text){
        Raichu-Mega-Y (Electric Surge) even though they play completely differently. */
     else if(m=l.match(/^\|(?:detailschange|-formechange)\|(p[12][ab]): ([^|]*)\|([^,|]+)/)){
       const slot=m[1], side=slot.slice(0,2), was=slotSp[slot], sp=norm(m[3]);
-      nick[side+m[2]]=sp; slotSp[slot]=sp; touch(sp);
-      if(was && was!==sp){ sets[sp].from=was; }
+      nick[side+m[2]]=sp; slotSp[slot]=sp; touch(slot,sp);
+      if(was && was!==sp){ touch(slot,sp).from=was; }
       // NOTE: deliberately NOT added to `brought`. A mega is the SAME Pokemon in a new forme, not an
       // extra one brought. Adding it counted Charizard and Charizard-Mega-Y as two of the four, which
       // pushed `brought` to 5-6 in ~4,700 games and silently disqualified them from CHOMP-EV
@@ -442,21 +568,21 @@ function extract(id, uploadtime, text){
       if(cur) cur.ev.push({t:'mega',s:slot,mon:sp,from:was||null});
     }
     else if(m=l.match(/^\|-mega\|(p[12][ab]): ([^|]*)\|([^|]+)\|([^|]+)/)){
-      const slot=m[1]; const sp=slotSp[slot]; if(sp){ touch(sp); sets[sp].item=sets[sp].item||m[4].trim(); }
+      const slot=m[1]; const sp=slotSp[slot]; if(sp){ const r=touch(slot,sp); r.item=r.item||m[4].trim(); }
     }
     /* ---- WEATHER / TERRAIN, and WHO switched it on ------------------------------------
        These lines carry "[from] ability: X|[of] pNa: Species", which is often the only place
        a setter ability is ever stated (Drought, Drizzle, Electric Surge...). Parsing them
        recovers the ability AND tells us which side owns the weather. */
     else if(m=l.match(/^\|-weather\|([^|]+)\|\[from\] ability: ([^|]+)\|\[of\] (p[12][ab])/)){
-      const sp=slotSp[m[3]]; if(sp){ touch(sp); sets[sp].ability=sets[sp].ability||m[2].trim(); }
+      const sp=slotSp[m[3]]; giveAb(m[3], sp, m[2].trim());
       if(cur) cur.ev.push({t:'w',s:m[3],mon:sp||null,field:m[1].trim(),by:m[2].trim()});
     }
     else if(m=l.match(/^\|-weather\|([^|]+)/)){
       const w=m[1].trim(); if(cur && w && w!=='none' && !/upkeep/i.test(l)) cur.ev.push({t:'w',field:w});
     }
     else if(m=l.match(/^\|-fieldstart\|move: ([^|]+)\|\[from\] ability: ([^|]+)\|\[of\] (p[12][ab])/)){
-      const sp=slotSp[m[3]]; if(sp){ touch(sp); sets[sp].ability=sets[sp].ability||m[2].trim(); }
+      const sp=slotSp[m[3]]; giveAb(m[3], sp, m[2].trim());
       if(cur) cur.ev.push({t:'fs',s:m[3],mon:sp||null,field:m[1].trim(),by:m[2].trim()});
     }
     else if(m=l.match(/^\|-fieldstart\|move: ([^|]+)/)){
@@ -494,7 +620,8 @@ function extract(id, uploadtime, text){
     else if(/\|-message\|.*forfeited/i.test(l)) forfeit=true;
   }
   flush();
-  const setsOut={}; for(const k in sets) setsOut[k]={moves:[...sets[k].moves],item:sets[k].item,ability:sets[k].ability};
+  const bySide={p1:{},p2:{}};
+  for(const side of ['p1','p2']) for(const k in SS[side]){ const r=SS[side][k]; bySide[side][k]={moves:[...r.moves],item:r.item,ability:r.ability}; }
   /* MERGE THE DECLARED SHEETS. `sheets` was captured above and then never used: setsOut was built
    * only from what play REVEALED, so an open-team-sheet game came out exactly as blind as a
    * closed-sheet one. Measured on the 4,167-game OTS archive before this fix: 1.50 of 4 moves,
@@ -512,9 +639,12 @@ function extract(id, uploadtime, text){
   for(const side of ['p1','p2']){
     for(const e of (sheets[side]||[])){
       if(!e.species) continue;
-      const prev=setsOut[e.species]||{moves:[],item:null,ability:null};
+      // each sheet merges into ITS OWN side. Into one shared entry, p2's sheet absorbed p1's moves in a
+      // mirror and up to eight moves came out (abra/regmc 1.52.0).
+      const prev=bySide[side][e.species]||{moves:[],item:null,ability:null};
       const merged=new Set([...(e.moves||[]), ...(prev.moves||[])]);
-      setsOut[e.species]={
+      if(!order.includes(e.species)) order.push(e.species);
+      bySide[side][e.species]={
         moves:[...merged],
         item:e.item||prev.item||null,
         ability:e.ability||prev.ability||null,
@@ -522,6 +652,27 @@ function extract(id, uploadtime, text){
         declared:true,          // from |showteam|, not inferred from play
       };
     }
+  }
+  /* ---- A SPECIES ON BOTH SIDES IS TWO POKEMON -----------------------------------------------------
+     `sets` is keyed by species, so in a mirror the two sides' sets were ONE entry: both sides' moves
+     unioned and one side's item and ability winning by line order. 5,865 of 43,829 brought members on
+     the bo1 sample and 11,936 of 59,231 on the bo3 sample (docs/_reports/2026-10-01-store-set-
+     attribution.md). Changing what `sets` is keyed by would break every reader, so it is ADDED to:
+     a mirrored entry carries `mirror: true` (its moves are still the union, its item and ability
+     p1's, else p2's) and `mirrorSets[species]` holds each side's own set. A consumer that counts
+     sets per Pokemon reads mirrorSets for a mirrored species; nothing else changes. */
+  const setsOut={}, mirrorSets={};
+  // mirrored by BASE forme, so a mega key that only one side reached still says whose it is
+  const baseOn=side=>new Set(Object.keys(bySide[side]).map(baseForme));
+  const b1=baseOn('p1'), b2=baseOn('p2');
+  for(const k of order){
+    const a=bySide.p1[k], b=bySide.p2[k];
+    if(b1.has(baseForme(k)) && b2.has(baseForme(k))) mirrorSets[k]={p1:a||null,p2:b||null};
+    if(a&&b){
+      const o={moves:[...new Set([...a.moves,...b.moves])], item:a.item||b.item||null, ability:a.ability||b.ability||null};
+      if(a.declared||b.declared){ o.nature=a.nature||b.nature||null; o.declared=true; }
+      o.mirror=true; setsOut[k]=o;
+    } else if(a||b) setsOut[k]=a||b;
   }
   // information regime + format tags (bo3 is open team sheet; players may also agree to it)
   const tier=(text.match(/^\|tier\|(.+)$/m)||[])[1]||null;
@@ -532,7 +683,7 @@ function extract(id, uploadtime, text){
     format:fmt, openSheet,
     p1:P.p1, p2:P.p2, winner:winner||null, forfeit, sheets,
     six:{p1:[...new Set(poke.p1)],p2:[...new Set(poke.p2)]},
-    brought:{p1:[...brought.p1],p2:[...brought.p2]}, lead, sets:setsOut, preTurn, turns };
+    brought:{p1:[...brought.p1],p2:[...brought.p2]}, lead, sets:setsOut, ...(Object.keys(mirrorSets).length?{mirrorSets}:{}), preTurn, turns };
 }
 async function pool(items,fn,c){const out=[];let i=0;await Promise.all(Array.from({length:c},async()=>{while(i<items.length){const k=i++;out[k]=await fn(items[k]);}}));return out;}
 
@@ -837,4 +988,4 @@ async function main(){
 if(require.main===module) main();
 /* archiveThenStore is EXPORTED so a second ingest path cannot quietly grow its own ordering. Any
  * caller that has fetched logs writes them through this and inherits both halves of the invariant. */
-module.exports={extract,archiveThenStore,formatToken,activeStoreFormat,storeFormatFor};
+module.exports={extract,archiveThenStore,formatToken,activeStoreFormat,storeFormatFor,baseForme};

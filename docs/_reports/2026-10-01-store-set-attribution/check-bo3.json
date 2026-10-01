@@ -1,0 +1,204 @@
+{
+ "by": "engine/store_sets_check.js",
+ "generated": "2026-10-01T05:59:38.994Z",
+ "format": "gen9championsvgc2026regmcbo3",
+ "fmt": "bo3",
+ "every": 5,
+ "inputs": {
+  "store": "C:/Users/willj/Projects/Pokemon/ABRA/data/games.gen9championsvgc2026regmcbo3.jsonl.gz",
+  "store_bytes": 39997125,
+  "store_rows": 39541,
+  "raw_files": 282,
+  "raw_dir": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmcbo3"
+ },
+ "sampled_store_rows": 7951,
+ "no_raw_log": 0,
+ "reveal_threw": {
+  "illusion_replace": 8,
+  "move_not_on_sheet": 24
+ },
+ "stored_differs_from_fresh": 5481,
+ "stored_differs_examples": [
+  "gen9championsvgc2026regmcbo3-2678206495",
+  "gen9championsvgc2026regmcbo3-2678197685",
+  "gen9championsvgc2026regmcbo3-2678193865",
+  "gen9championsvgc2026regmcbo3-2678191100",
+  "gen9championsvgc2026regmcbo3-2678194975",
+  "gen9championsvgc2026regmcbo3-2678175440"
+ ],
+ "store": {
+  "games": 7919,
+  "members": 47295,
+  "mirror_members": 11936,
+  "mirror_compared": 0,
+  "member_absent": 0,
+  "moves_equal": 47272,
+  "move_missing": 0,
+  "move_extra": 26,
+  "moves_split_across_keys": 11038,
+  "item_compared": 47242,
+  "item_equal": 47242,
+  "item_wrong": 0,
+  "item_miss": 0,
+  "ability_compared": 47295,
+  "ability_equal": 47295,
+  "ability_wrong": 0,
+  "ability_miss": 0,
+  "causes": {
+   "mirror_species_shares_one_key": 11936,
+   "move_extra:called_by:ability: Magic Bounce": 11,
+   "move_extra:struggle": 9,
+   "move_extra:transform_copied": 4,
+   "move_extra:wrong_member": 2
+  },
+  "examples": {
+   "move_extra:struggle": [
+    {
+     "id": "gen9championsvgc2026regmcbo3-2678341520",
+     "side": "p2",
+     "species": "Indeedee",
+     "move": "struggle"
+    },
+    {
+     "id": "gen9championsvgc2026regmcbo3-2678566955",
+     "side": "p1",
+     "species": "Kingambit",
+     "move": "struggle"
+    },
+    {
+     "id": "gen9championsvgc2026regmcbo3-2678904140",
+     "side": "p2",
+     "species": "Kingambit",
+     "move": "struggle"
+    },
+    {
+     "id": "gen9championsvgc2026regmcbo3-2679058655",
+     "side": "p1",
+     "species": "Incineroar",
+     "move": "struggle"
+    },
+    {
+     "id": "gen9championsvgc2026regmcbo3-2681678470",
+     "side": "p2",
+     "species": "Scovillain",
+     "move": "struggle"
+    },
+    {
+     "id": "gen9championsvgc2026regmcbo3-2685204350",
+     "side": "p1",
+     "species": "Sneasler",
+     "move": "struggle"
+    }
+   ],
+   "move_extra:called_by:ability: Magic Bounce": [
+    {
+     "id": "gen9championsvgc2026regmcbo3-2678307725",
+     "side": "p2",
+     "species": "Hatterene",
+     "move": "willowisp"
+    },
+    {
+     "id": "gen9championsvgc2026regmcbo3-2679048465",
+     "side": "p1",
+     "species": "Hatterene",
+     "move": "partingshot"
+    },
+    {
+     "id": "gen9championsvgc2026regmcbo3-2679228265",
+     "side": "p2",
+     "species": "Hatterene",
+     "move": "partingshot"
+    },
+    {
+     "id": "gen9championsvgc2026regmcbo3-2680300135",
+     "side": "p1",
+     "species": "Hatterene",
+     "move": "taunt"
+    },
+    {
+     "id": "gen9championsvgc2026regmcbo3-2681392075",
+     "side": "p2",
+     "species": "Hatterene",
+     "move": "hypnosis"
+    },
+    {
+     "id": "gen9championsvgc2026regmcbo3-2682212885",
+     "side": "p2",
+     "species": "Hatterene",
+     "move": "partingshot"
+    }
+   ],
+   "move_extra:wrong_member": [
+    {
+     "id": "gen9championsvgc2026regmcbo3-2678391510",
+     "side": "p2",
+     "species": "Ditto",
+     "move": "rockslide"
+    },
+    {
+     "id": "gen9championsvgc2026regmcbo3-2686052525",
+     "side": "p1",
+     "species": "Ditto",
+     "move": "protect"
+    }
+   ],
+   "move_extra:transform_copied": [
+    {
+     "id": "gen9championsvgc2026regmcbo3-2678391510",
+     "side": "p2",
+     "species": "Ditto",
+     "move": "dragonclaw"
+    },
+    {
+     "id": "gen9championsvgc2026regmcbo3-2679435145",
+     "side": "p2",
+     "species": "Ditto",
+     "move": "fakeout"
+    },
+    {
+     "id": "gen9championsvgc2026regmcbo3-2686052525",
+     "side": "p1",
+     "species": "Ditto",
+     "move": "trickroom"
+    },
+    {
+     "id": "gen9championsvgc2026regmcbo3-2686052525",
+     "side": "p1",
+     "species": "Ditto",
+     "move": "thunderbolt"
+    }
+   ]
+  },
+  "rates": {
+   "moves_equal": 0.9995,
+   "item_equal": 1,
+   "ability_equal": 1
+  }
+ },
+ "fresh": {
+  "games": 7919,
+  "members": 59231,
+  "mirror_members": 11936,
+  "mirror_compared": 11936,
+  "member_absent": 0,
+  "moves_equal": 59231,
+  "move_missing": 0,
+  "move_extra": 0,
+  "moves_split_across_keys": 12800,
+  "item_compared": 59171,
+  "item_equal": 59171,
+  "item_wrong": 0,
+  "item_miss": 0,
+  "ability_compared": 59231,
+  "ability_equal": 59231,
+  "ability_wrong": 0,
+  "ability_miss": 0,
+  "causes": {},
+  "examples": {},
+  "rates": {
+   "moves_equal": 1,
+   "item_equal": 1,
+   "ability_equal": 1
+  }
+ }
+}

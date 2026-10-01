@@ -53,6 +53,30 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.63.0] — 2026-10-01 — **The store's `sets` attributed set facts to the wrong Pokemon by nine causes; the extractor is fixed, the re-parse is owed**
+- **What changed.**
+  - `engine/durable-ingest.js` `extract()` now credits a set fact only to the Pokemon that brought it. Nine causes
+    are fixed, each pinned in `tests/test-parse.js` and each RED with its own fix reverted.
+  - New: `engine/store_sets_check.js` (the check, with `solver/porygon2/v2/reveal.js` as the reference) and
+    `engine/reparse_store.js` (a streaming re-parse from raw shards).
+  - Rows gain `mirrorSets`, additive.
+- **Measured.** These figures are from `docs/_reports/2026-10-01-store-set-attribution/check-bo1.json`: a 1-in-10 bo1
+  sample, 5,950 games, 37,964 non-mirror members, against the reference reveal of the same logs.
+  - Stored `sets`, moves / items / abilities: 99.69% / 98.97% / 97.54%. That is 539 wrong values and 6,616 misses.
+    The largest causes:
+    - Trace 246;
+    - Trick-family 151;
+    - `|cant|` moves 67;
+    - items named only on `-damage` (2,864) and `-heal` (1,707).
+  - A fresh extract agrees on 100% / 100% / 99.93% across all 43,829 members, mirrors included. The 12 that disagree
+    are the reference's error.
+  - Bo3 (`check-bo3.json`, 1-in-5): 26 extra moves and the mirror merge (11,936 of 59,231 members) are both now 0.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published. No living document quotes a `sets`-derived Reg M-C figure. PORYGON2 v2's
+  crosscheck (98.49 / 97.55 / 97.31) stands as what it measured: the stored rows, on its subset.
+- **Owed to the next major.** `docs/ABRA-technical-docs.md` (the store schema: `mirrorSets`, `mirror`), and the
+  re-parse itself (OWED in the report).
+
 ## [abra/regmc 1.62.0] — 2026-10-01 — **PORYGON2 v3 steps A–C: the design (six brief premises corrected), a frozen deep-labelled harness, and v2 distilled into a student at 0.91× gen5's cost that fails its pre-registered bar; no game played**
 - **What changed.** New `solver/porygon2/v3/`: `DESIGN.md` (plan, every citation re-read at source), `preregistration.json` (bars written before any net was scored, plus a dated amendment withdrawing the answer-map measurement), `evalset.js` (build / label / score / bench / report), `positions.js` (ROTOM's world builder over finished games; bo1 sets completed from the bo3 open-sheet population), `deep.js` (MILTANK's root, every cell played to the end by gen5's prior, no value net), `student.py` (teacher cache, distillation, export), `infer.js` and `leaf.js` (the student in Node), `model/porygon2-v3-student.json` (229 KB) and its metrics, league spec `gen5-p2v3s.json`, 14 s spec `screen-14s-student.json`. `solver/porygon2/leaf.js` dispatches arch `v3-student`. Tests `solver/tests/test-porygon2-v3-evalset.js` and `test-porygon2-v3-student.js` (+ fixture). Release `eaa5becc54eb`, BelowNormal, no game.
 - **Measured.**
