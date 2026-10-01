@@ -21,6 +21,43 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.53.0] — 2026-10-01
+
+**MINOR: no published figure moves.** It revises the solver plan to Will's decisions of 2026-10-01. No code, no games,
+no spend.
+
+### Changed
+- **`solver/PLAN.md` 0.3.0.** One learned policy+value net (PORYGON2 v3), trained by self-play (Expert Iteration) and
+  searched several turns deep by a public-belief search on MEDICHAM, with DUSK at endgames. The current pipeline keeps
+  playing until the net wins its SPRT.
+  - §1.0: the new direction; the 0.2.0 summary stays as history.
+  - §2.0: what the net subsumes (the roles of MAG, DODUO, GARY and XATU's action likelihood) and what stays
+    (MEDICHAM, ROTOM, SLOWKING's solve, DUSK, CHOMP, DITTO). A row for PORYGON2 v3, aligned with the v3 work on
+    another branch. A dated note leads each changed row.
+  - §2 HYPNO: a dated update. HYPNO best-responds to the population by rating band, updates within the series, and
+    falls back to equilibrium where the habit gate fails. The ε 0.5 default is superseded.
+  - §3.0: milestones N0–N9 in dependency order, each with an exit test. N3 is a MEDICHAM speed pass owned by ENGINE,
+    placed before any cloud spend. M0–M8 stay as history.
+  - §4, §5: the standing ladder approval (up to 20 series a day, auto-stops). The ladder is the scoreboard and the arena
+    a sanity check.
+  - §6a: a compute estimate and a cost table at prices fetched 2026-10-01. §9: Will's answers and Q11–Q13.
+- **`docs/ADR-003-exploitability-is-the-headline.md`:** a dated update. On Reg M-C the headline is the ladder rating,
+  exploitability is a diagnostic, and "greedy" (exploitative) play against the population is the default. The 2026-08-07
+  decision is not rewritten.
+
+### Added
+- `solver/results/2026-10-01-plan-revision/prices.json`: the price receipt (URLs, data sources and fetch times).
+
+### Notes
+- Compute [EST]: a generation is about 45 CPU worker-hours (about 15 h on this machine) and about 0.25 GPU-hours. A
+  first useful net needs 10, 30 or 100 generations (low, likely, high). At the likely 30: AWS c7a.16xlarge $69,
+  Hetzner CCX63 $75, one Vast.ai 96-core listing $13; GPU $2.55 (RunPod RTX 4090 community) to $9.68 (Lambda A10).
+  A 2× or 4× engine scales the CPU side by 0.60 or 0.40.
+- Owed to the next major: the white paper §2.8 (HYPNO and GARY) and the pipeline, milestone and registry passages in
+  the white paper, deck, technical docs, `SUMMARY.md` and `MODELS.md`. `CLAUDE.md`'s pipeline paragraph still names
+  the capped dial; that file is Will's to change.
+- Report: `docs/_reports/2026-10-01-plan-revision.md`.
+
 ## [1.52.0] — 2026-10-01
 
 **MINOR: no published figure moves.** It adds a read-only ladder analysis and four ROTOM world fixes.
