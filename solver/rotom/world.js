@@ -122,9 +122,13 @@ function stallStreaks(lines, sheets) {
     if (cmd === 'cant') { pending.delete(identKey(p[2])); continue; }
   }
   if (upkeep) close();
+  /* a forme or a nicknamed mon is keyed by the species its switch line prints (world_log.aliases, 2026-10-01): by the
+   * nickname alone an Indeedee-F or Arcanine-Hisui streak was dropped, and its second Protect looked as safe as the first */
+  const AL = WL.aliases(lines, sheets);
   for (const [k, n] of streak) {
     const [side, nick] = [k.slice(0, 2), k.slice(3)];
-    const i = ((sheets && sheets[side]) || []).findIndex(r => r && r.nick === nick);
+    let i = ((sheets && sheets[side]) || []).findIndex(r => r && r.nick === nick);
+    if (i < 0 && AL.has(side + ':' + nick)) i = AL.get(side + ':' + nick);
     if (i >= 0 && n > 0) out.set(side + ':' + i, n);
   }
   return out;
@@ -136,7 +140,8 @@ function create(API) {
                      stallLaid: 0, stallNoLines: 0 };
 
   Object.assign(COUNTERS, { perishLaid: 0, volLaid: 0, subLaid: 0, seedLaid: 0, confusionLaid: 0, trapLaid: 0, yawnLaid: 0,
-                            slpLaid: 0, toxLaid: 0, lockLaid: 0, abilityLaid: 0, hazardLaid: 0, fieldLaid: 0, fieldFromLog: 0 });
+                            slpLaid: 0, toxLaid: 0, lockLaid: 0, abilityLaid: 0, hazardLaid: 0, fieldLaid: 0, fieldFromLog: 0,
+                            ubLaid: 0, flashFireLaid: 0, typeAddLaid: 0 });
 
   /* THE BODY'S CLOCKS AND VOLATILES FROM THE LOG (2026-09-30, solver/rotom/world_log.js). Each engine field is the one
    * engine/board_state.js mediBody reads for that volatile, laid at the value the engine holds at a turn boundary.
@@ -159,6 +164,17 @@ function create(API) {
     if (L.suppressed && b._abParked == null) { b._abParked = b.ability; b.ability = ''; (b._vol = b._vol || {}).gastroacid = 1; COUNTERS.abilityLaid++; }
     if (b.status === 'tox' && L.tox) { b.toxTurns = Math.max(0, age(L.tox.since)); COUNTERS.toxLaid++; }
     if (L.perish != null) { b._perish = L.perish; COUNTERS.perishLaid++; }
+    /* 2026-10-01 (docs/_reports/2026-10-01-search-blind-spots.md). Unburden's volatile (`_ubVol`, the engine's state for it:
+     * effSpeed doubles while it stands and the hand is empty); the protocol never announces it, so before this every
+     * Sneasler that had eaten its seed or used its herb ran at base Speed in the search. Flash Fire's absorbed-Fire
+     * volatile (`_vol.flashfire`). An added type (Trick-or-Treat) on the engine's added-type slot (`types._added`). */
+    if (L.ub) { b._ubVol = L.ub; COUNTERS.ubLaid++; }
+    if (L.flashfire) { (b._vol = b._vol || {}).flashfire = 1; COUNTERS.flashFireLaid++; }
+    if (L.typeAdd) {
+      const base = (b.types || []).filter(t => t !== (b.types && b.types._added));
+      const ts = base.includes(L.typeAdd) ? base.slice() : base.concat(L.typeAdd);
+      ts._added = L.typeAdd; b.types = ts; COUNTERS.typeAddLaid++;
+    }
     if (L.sub) {
       const sb = M.moveTagParam('substitute', 'substitute') || {};
       const rd = sb.rounds === 'ceil' ? Math.ceil : sb.rounds === 'round' ? Math.round : Math.floor;
