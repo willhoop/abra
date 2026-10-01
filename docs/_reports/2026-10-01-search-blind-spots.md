@@ -1,4 +1,4 @@
-# The search's blind spots that no planned fix covers (abra/regmc 1.51.0)
+# The search's blind spots that no planned fix covers (abra/regmc 1.52.0)
 
 2026-10-01. SOLVER. Read-only over the finished ladder runs in the main checkout's `solver/out/rotom/`. No game was played
 and no ladder was touched. Engine: release `eaa5becc54eb`. Gen5 prior digests: MAG `65e76caf2423b28b`, DODUO

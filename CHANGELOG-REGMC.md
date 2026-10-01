@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.51.0] — 2026-10-01
+## [1.52.0] — 2026-10-01
 
 **MINOR: no published figure moves.** It adds a read-only ladder analysis and four ROTOM world fixes.
 

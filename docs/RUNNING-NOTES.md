@@ -53,7 +53,7 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
-## [abra/regmc 1.51.0] — 2026-10-01 — **The search's uncovered blind spots, measured on the ladder logs; four ROTOM world fields fixed (identity, Unburden, Flash Fire, added type)**
+## [abra/regmc 1.52.0] — 2026-10-01 — **The search's uncovered blind spots, measured on the ladder logs; four ROTOM world fields fixed (identity, Unburden, Flash Fire, added type)**
 - **What changed.** A read-only analysis of the finished ladder runs (chomp1, gen5ab; the live `chomptop` run excluded), in `solver/results/2026-10-01-search-blind-spots/` (`blind_spots.js`, `doduo_probe.js`, `sp_engine_check.js`). Four world fixes in `solver/rotom/world_log.js` and `world.js`, each with its own break (`noalias`, `noub`, `noff`, `notype`). New test `solver/tests/test-rotom-world-fields.js`: GREEN 17/17, RED under each break, each clause on a real ladder log. `ladder_replay.js` keys formes the same way. No search, gate or arm changed.
 - **Measured.**
   - Opponent coverage: 57.7% with targets, 63.7% by move id (636 decisions, `measured.json`). The gen5 prior ranks the actual joint top-4 in 57.1% of decisions and top-8 in 71.1% (`doduo.json`). 30.1% of our row slots and 25.9% of their column slots hold one move.
