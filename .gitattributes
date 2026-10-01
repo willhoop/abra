@@ -120,6 +120,13 @@ data/rollout-switch-census.json  text eol=lf
 # It changes no release id, because release.json is not rewritten. Diff still works (-text is not
 # `binary`, which is `-text -diff`). NOT a merge attribute; see the top of this file.
 data/releases/**                 -text
+#
+# 2026-10-01 (abra/regmc 1.72.0): Smogon's monthly files are pinned BY SHA256 in
+# solver/arena/spreads/observed-v1.json and in every ladder rotation's spread_source, and
+# solver/arena/spread_source.js refuses to open observed-v1 if one has moved. They are stored as the
+# exact bytes Smogon served (LF); `-text` keeps a CRLF checkout from rewriting them, for the reason above.
+# Reg M-C files only: the retired Reg M-B months are left exactly as they were tracked.
+data/smogon-stats/*/*/gen9championsvgc2026regmc*.txt  -text
 
 # ── THE THIRD OCCURRENCE, AND THIS ONE REACHED COMPARABILITY. 2026-09-08, MEASURE. ───────────────
 #

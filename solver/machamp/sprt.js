@@ -54,8 +54,9 @@ function spreadsBlock(o, ENGINE, counted) {
   const counters = {}; for (const c of Object.values(last)) for (const [k, v] of Object.entries(c)) counters[k] = (counters[k] || 0) + v;
   const warnings = [];
   if (modes.length !== 1 || modes[0] !== o.spreads) warnings.push('SPREADS: asked for ' + o.spreads + ', the counted lines say ' + modes.join(', '));
-  if (o.spreads === 'role-v1' && counters.flat_fallback) warnings.push('SPREADS: ' + counters.flat_fallback + ' role-v1 rows played the FLAT line');
-  if (o.spreads === 'role-v1' && counters.derived_at_play) warnings.push('SPREADS: ' + counters.derived_at_play + ' sets derived at play time');
+  if (SS.TABLES[o.spreads] && counters.flat_fallback) warnings.push('SPREADS: ' + counters.flat_fallback + ' ' + o.spreads + ' rows played the FLAT line');
+  if (SS.TABLES[o.spreads] && counters.derived_at_play) warnings.push('SPREADS: ' + counters.derived_at_play + ' sets derived at play time');
+  if (SS.TABLES[o.spreads] && counters.observed_at_play) warnings.push('SPREADS: ' + counters.observed_at_play + ' sets took the pinned Smogon chain at play time');
   return { spreads: o.spreads, lines_say: modes, table: st.table || null, what: st.what, counters_last_snapshot: counters, warnings };
 }
 const sOf = elo => 1 / (1 + Math.pow(10, -elo / 400));

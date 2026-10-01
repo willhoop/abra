@@ -10,7 +10,7 @@
  *        [--plan <solver/out/chomp/.../plan.json>]  play exactly the plan's pre-registered team pairs, and read CHOMP's
  *        solved tables from beside it; the plan's SPRT is evaluated ONCE at the end and written into the artifact
  *        [--blind]   progress lines print the game count only — no interim score (never read an interim SPRT)
- *        [--spreads role-v1|xatu-random|flat]   the bodies' Stat Points (solver/arena/spread_source.js). Default role-v1
+ *        [--spreads role-v1|observed-v1|xatu-random|flat]   the bodies' Stat Points (solver/arena/spread_source.js). Default role-v1
  *        (the ladder's rule per set) since abra/regmc 1.49.0; every arena figure before it played `flat`. A --plan's own
  *        `spreads` is used when the flag is absent (a pre-1.49.0 plan has none, so it re-plays flat).
  *

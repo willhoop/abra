@@ -279,7 +279,7 @@
     0,
     1
    ],
-   "packed": "Kingambit||FocusSash|Defiant|KowtowCleave,SuckerPunch,IronHead,LowKick|Adamant|23,32,,,,11|M||||]Garchomp||LifeOrb|RoughSkin|DragonClaw,StompingTantrum,Earthquake,Protect|Jolly|6,32,,,24,4|M||||]Charizard||CharizarditeY|Blaze|HeatWave,SolarBeam,WeatherBall,Protect|Modest|15,,,32,1,18|M||||]Sylveon||FairyFeather|Pixilate|HyperVoice,HyperBeam,QuickAttack,Protect|Modest|3,,8,32,,23|M||||]Farigiraf||SitrusBerry|ArmorTail|TrickRoom,Psychic,Thunderbolt,Protect|Bold|20,,10,32,4,|M||||]Aerodactyl||Aerodactylite|Unnerve|RockSlide,DualWingbeat,Tailwind,Protect|Jolly|2,32,,,,32|M||||",
+   "packed": "Kingambit||FocusSash|Defiant|KowtowCleave,SuckerPunch,IronHead,LowKick|Adamant|32,32,,,1,1|M||||]Garchomp||LifeOrb|RoughSkin|DragonClaw,StompingTantrum,Earthquake,Protect|Jolly|2,32,,,,32|M||||]Charizard||CharizarditeY|Blaze|HeatWave,SolarBeam,WeatherBall,Protect|Modest|28,,13,1,,24|M||||]Sylveon||FairyFeather|Pixilate|HyperVoice,HyperBeam,QuickAttack,Protect|Modest|7,,22,20,,17|M||||]Farigiraf||SitrusBerry|ArmorTail|TrickRoom,Psychic,Thunderbolt,Protect|Bold|27,,20,,19,|M||||]Aerodactyl||Aerodactylite|Unnerve|RockSlide,DualWingbeat,Tailwind,Protect|Jolly|16,13,,,5,32|M||||",
    "spreads": [
     {
      "species": "Kingambit",
@@ -293,32 +293,15 @@
       "Low Kick"
      ],
      "evs": {
-      "hp": 23,
+      "hp": 32,
       "atk": 32,
       "def": 0,
       "spa": 0,
-      "spd": 0,
-      "spe": 11
+      "spd": 1,
+      "spe": 1
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "atk",
-     "speed": {
-      "sp": 11,
-      "effective": 81,
-      "at_cap": 102,
-      "median": 138,
-      "top_tier": 172,
-      "why": "outspeeds the heaviest flippable tier 80"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 1,
-      "share_at_zero": 1,
-      "endures": true
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (11.469%, weight 276.3)",
+     "role": "other"
     },
     {
      "species": "Garchomp",
@@ -332,32 +315,15 @@
       "Protect"
      ],
      "evs": {
-      "hp": 6,
+      "hp": 2,
       "atk": 32,
       "def": 0,
       "spa": 0,
-      "spd": 24,
-      "spe": 4
+      "spd": 0,
+      "spe": 32
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "atk",
-     "speed": {
-      "sp": 4,
-      "effective": 138,
-      "at_cap": 169,
-      "median": 138,
-      "top_tier": 172,
-      "why": "outspeeds the heaviest flippable tier 137"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.8,
-      "share_at_zero": 0.734,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (24.678%, weight 234.4)",
+     "role": "other"
     },
     {
      "species": "Charizard",
@@ -371,32 +337,15 @@
       "Protect"
      ],
      "evs": {
-      "hp": 15,
+      "hp": 28,
       "atk": 0,
-      "def": 0,
-      "spa": 32,
-      "spd": 1,
-      "spe": 18
+      "def": 13,
+      "spa": 1,
+      "spd": 0,
+      "spe": 24
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "spa",
-     "speed": {
-      "sp": 18,
-      "effective": 138,
-      "at_cap": 152,
-      "median": 138,
-      "top_tier": 172,
-      "why": "outspeeds the heaviest flippable tier 137"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.749,
-      "share_at_zero": 0.692,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (11.884%, weight 176.6)",
+     "role": "other"
     },
     {
      "species": "Sylveon",
@@ -410,32 +359,15 @@
       "Protect"
      ],
      "evs": {
-      "hp": 3,
+      "hp": 7,
       "atk": 0,
-      "def": 8,
-      "spa": 32,
+      "def": 22,
+      "spa": 20,
       "spd": 0,
-      "spe": 23
+      "spe": 17
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "spa",
-     "speed": {
-      "sp": 23,
-      "effective": 103,
-      "at_cap": 112,
-      "median": 138,
-      "top_tier": 172,
-      "why": "outspeeds the heaviest flippable tier 102"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.672,
-      "share_at_zero": 0.606,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (4.649%, weight 47.3)",
+     "role": "other"
     },
     {
      "species": "Farigiraf",
@@ -449,32 +381,15 @@
       "Protect"
      ],
      "evs": {
-      "hp": 20,
+      "hp": 27,
       "atk": 0,
-      "def": 10,
-      "spa": 32,
-      "spd": 4,
+      "def": 20,
+      "spa": 0,
+      "spd": 19,
       "spe": 0
      },
-     "source": "derived",
-     "role": "trickroom",
-     "role_by": "Trick Room",
-     "conflict": null,
-     "attack_stat": "spa",
-     "speed": {
-      "sp": 0,
-      "effective": 80,
-      "at_cap": 112,
-      "median": 138,
-      "top_tier": 172,
-      "why": "Trick Room: 0"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.902,
-      "share_at_zero": 0.82,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (9.45%, weight 84.3)",
+     "role": "trickroom"
     },
     {
      "species": "Aerodactyl",
@@ -488,32 +403,15 @@
       "Protect"
      ],
      "evs": {
-      "hp": 2,
-      "atk": 32,
+      "hp": 16,
+      "atk": 13,
       "def": 0,
       "spa": 0,
-      "spd": 0,
+      "spd": 5,
       "spe": 32
      },
-     "source": "derived",
-     "role": "fast",
-     "role_by": "Tailwind",
-     "conflict": null,
-     "attack_stat": "atk",
-     "speed": {
-      "sp": 32,
-      "effective": 222,
-      "at_cap": 222,
-      "median": 138,
-      "top_tier": 172,
-      "why": "fast role: the cap"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.588,
-      "share_at_zero": 0.579,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (20.294%, weight 60)",
+     "role": "fast"
     }
    ]
   },
@@ -572,7 +470,7 @@
     4,
     2
    ],
-   "packed": "Salamence||Salamencite|Intimidate|HyperVoice,DracoMeteor,Tailwind,Protect|Timid|2,,,32,,32|M||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|22,,2,10,,32|F||||]Sneasler||GrassySeed|Unburden|DireClaw,CloseCombat,FakeOut,Protect|Adamant|3,25,5,,1,32|F||||]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,FakeOut,GrassyGlide,HighHorsepower|Adamant|2,32,,,24,8|M||||]Gholdengo||LifeOrb|GoodasGold|MakeItRain,ShadowBall,NastyPlot,Protect|Timid|4,,8,32,,22|||||]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly|18,32,,,,16|M||||",
+   "packed": "Salamence||Salamencite|Intimidate|HyperVoice,DracoMeteor,Tailwind,Protect|Timid|2,,,32,,32|M||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|32,,11,,,23|F||||]Sneasler||GrassySeed|Unburden|DireClaw,CloseCombat,FakeOut,Protect|Adamant|16,20,,,,30|F||||]Rillaboom||MiracleSeed|GrassySurge|WoodHammer,FakeOut,GrassyGlide,HighHorsepower|Adamant|17,31,,,10,8|M||||]Gholdengo||LifeOrb|GoodasGold|MakeItRain,ShadowBall,NastyPlot,Protect|Timid|17,,,17,,32|||||]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly|2,32,,,,32|M||||",
    "spreads": [
     {
      "species": "Salamence",
@@ -593,25 +491,8 @@
       "spd": 0,
       "spe": 32
      },
-     "source": "derived",
-     "role": "fast",
-     "role_by": "Tailwind",
-     "conflict": null,
-     "attack_stat": "spa",
-     "speed": {
-      "sp": 32,
-      "effective": 189,
-      "at_cap": 189,
-      "median": 138,
-      "top_tier": 172,
-      "why": "fast role: the cap"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.731,
-      "share_at_zero": 0.731,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (28.007%, weight 488.5)",
+     "role": "fast"
     },
     {
      "species": "Raichu",
@@ -625,32 +506,15 @@
       "Protect"
      ],
      "evs": {
-      "hp": 22,
+      "hp": 32,
       "atk": 0,
-      "def": 2,
-      "spa": 10,
+      "def": 11,
+      "spa": 0,
       "spd": 0,
-      "spe": 32
+      "spe": 23
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "spa",
-     "speed": {
-      "sp": 32,
-      "effective": 200,
-      "at_cap": 200,
-      "median": 138,
-      "top_tier": 172,
-      "why": "top speed tier: the cap"
-     },
-     "bulk": {
-      "why": "least SP surviving the median attacker",
-      "share_survived": 0.501,
-      "share_at_zero": 0.387,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (18.76%, weight 257.8)",
+     "role": "other"
     },
     {
      "species": "Sneasler",
@@ -664,32 +528,15 @@
       "Protect"
      ],
      "evs": {
-      "hp": 3,
-      "atk": 25,
-      "def": 5,
+      "hp": 16,
+      "atk": 20,
+      "def": 0,
       "spa": 0,
-      "spd": 1,
-      "spe": 32
+      "spd": 0,
+      "spe": 30
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "atk",
-     "speed": {
-      "sp": 32,
-      "effective": 172,
-      "at_cap": 172,
-      "median": 138,
-      "top_tier": 172,
-      "why": "top speed tier: the cap"
-     },
-     "bulk": {
-      "why": "least SP surviving the median attacker",
-      "share_survived": 0.507,
-      "share_at_zero": 0.432,
-      "endures": false
-     }
+     "source": "observed:tournament:data/tournaments/regmc 2026-10-01-vr-replica/replica/cpTuCZeC",
+     "role": "other"
     },
     {
      "species": "Rillaboom",
@@ -703,32 +550,15 @@
       "High Horsepower"
      ],
      "evs": {
-      "hp": 2,
-      "atk": 32,
+      "hp": 17,
+      "atk": 31,
       "def": 0,
       "spa": 0,
-      "spd": 24,
+      "spd": 10,
       "spe": 8
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "atk",
-     "speed": {
-      "sp": 8,
-      "effective": 113,
-      "at_cap": 137,
-      "median": 138,
-      "top_tier": 172,
-      "why": "outspeeds the heaviest flippable tier 112"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.646,
-      "share_at_zero": 0.532,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (2.557%, weight 97.8)",
+     "role": "other"
     },
     {
      "species": "Gholdengo",
@@ -742,32 +572,15 @@
       "Protect"
      ],
      "evs": {
-      "hp": 4,
+      "hp": 17,
       "atk": 0,
-      "def": 8,
-      "spa": 32,
+      "def": 0,
+      "spa": 17,
       "spd": 0,
-      "spe": 22
+      "spe": 32
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "spa",
-     "speed": {
-      "sp": 22,
-      "effective": 138,
-      "at_cap": 149,
-      "median": 138,
-      "top_tier": 172,
-      "why": "outspeeds the heaviest flippable tier 137"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.618,
-      "share_at_zero": 0.589,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (9.696%, weight 163.7)",
+     "role": "other"
     },
     {
      "species": "Arcanine-Hisui",
@@ -781,32 +594,15 @@
       "Protect"
      ],
      "evs": {
-      "hp": 18,
+      "hp": 2,
       "atk": 32,
       "def": 0,
       "spa": 0,
       "spd": 0,
-      "spe": 16
+      "spe": 32
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "atk",
-     "speed": {
-      "sp": 16,
-      "effective": 138,
-      "at_cap": 156,
-      "median": 138,
-      "top_tier": 172,
-      "why": "outspeeds the heaviest flippable tier 137"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 1,
-      "share_at_zero": 1,
-      "endures": true
-     }
+     "source": "observed:tournament:data/tournaments/regmc 2026-10-01-vr-replica/replica/cpTuCZeC",
+     "role": "other"
     }
    ]
   },
@@ -864,7 +660,7 @@
     1,
     0
    ],
-   "packed": "Incineroar||SitrusBerry|Intimidate|FlareBlitz,ThroatChop,PartingShot,FakeOut|Careful|7,32,4,,,23|F||||]Rillaboom||MiracleSeed|GrassySurge|FakeOut,WoodHammer,GrassyGlide,HighHorsepower|Adamant|2,32,,,24,8|M||||]Sneasler||GrassySeed|Unburden|CloseCombat,RockSlide,SwordsDance,Protect|Adamant|3,25,5,,1,32|F||||]Floette-Eternal||Floettite|FlowerVeil|DazzlingGleam,DrainingKiss,CalmMind,Protect|Modest|16,,2,32,,16|F||||]Gholdengo||ChoiceScarf|GoodasGold|MakeItRain,ShadowBall,PowerGem,Trick|Modest|1,,1,32,,32|||||]Dragonite||Dragoninite|InnerFocus|DragonPulse,HeatWave,Tailwind,Protect|Modest|2,,,32,,32|M||||",
+   "packed": "Incineroar||SitrusBerry|Intimidate|FlareBlitz,ThroatChop,PartingShot,FakeOut|Careful|32,,14,,20,|F||||]Rillaboom||MiracleSeed|GrassySurge|FakeOut,WoodHammer,GrassyGlide,HighHorsepower|Adamant|17,31,,,10,8|M||||]Sneasler||GrassySeed|Unburden|CloseCombat,RockSlide,SwordsDance,Protect|Adamant|16,20,,,,30|F||||]Floette-Eternal||Floettite|FlowerVeil|DazzlingGleam,DrainingKiss,CalmMind,Protect|Modest|10,,25,16,,15|F||||]Gholdengo||ChoiceScarf|GoodasGold|MakeItRain,ShadowBall,PowerGem,Trick|Modest|2,,,32,,32|||||]Dragonite||Dragoninite|InnerFocus|DragonPulse,HeatWave,Tailwind,Protect|Modest|2,,,32,,32|M||||",
    "spreads": [
     {
      "species": "Incineroar",
@@ -878,32 +674,15 @@
       "Fake Out"
      ],
      "evs": {
-      "hp": 7,
-      "atk": 32,
-      "def": 4,
+      "hp": 32,
+      "atk": 0,
+      "def": 14,
       "spa": 0,
-      "spd": 0,
-      "spe": 23
+      "spd": 20,
+      "spe": 0
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "atk",
-     "speed": {
-      "sp": 23,
-      "effective": 103,
-      "at_cap": 112,
-      "median": 138,
-      "top_tier": 172,
-      "why": "outspeeds the heaviest flippable tier 102"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.704,
-      "share_at_zero": 0.681,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (2.76%, weight 80.9)",
+     "role": "other"
     },
     {
      "species": "Rillaboom",
@@ -917,32 +696,15 @@
       "High Horsepower"
      ],
      "evs": {
-      "hp": 2,
-      "atk": 32,
+      "hp": 17,
+      "atk": 31,
       "def": 0,
       "spa": 0,
-      "spd": 24,
+      "spd": 10,
       "spe": 8
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "atk",
-     "speed": {
-      "sp": 8,
-      "effective": 113,
-      "at_cap": 137,
-      "median": 138,
-      "top_tier": 172,
-      "why": "outspeeds the heaviest flippable tier 112"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.646,
-      "share_at_zero": 0.532,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (2.557%, weight 97.8)",
+     "role": "other"
     },
     {
      "species": "Sneasler",
@@ -956,32 +718,15 @@
       "Protect"
      ],
      "evs": {
-      "hp": 3,
-      "atk": 25,
-      "def": 5,
+      "hp": 16,
+      "atk": 20,
+      "def": 0,
       "spa": 0,
-      "spd": 1,
-      "spe": 32
+      "spd": 0,
+      "spe": 30
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "atk",
-     "speed": {
-      "sp": 32,
-      "effective": 172,
-      "at_cap": 172,
-      "median": 138,
-      "top_tier": 172,
-      "why": "top speed tier: the cap"
-     },
-     "bulk": {
-      "why": "least SP surviving the median attacker",
-      "share_survived": 0.507,
-      "share_at_zero": 0.432,
-      "endures": false
-     }
+     "source": "observed:tournament:data/tournaments/regmc 2026-10-01-vr-replica/replica/cpTuCZeC",
+     "role": "other"
     },
     {
      "species": "Floette-Eternal",
@@ -995,32 +740,15 @@
       "Protect"
      ],
      "evs": {
-      "hp": 16,
+      "hp": 10,
       "atk": 0,
-      "def": 2,
-      "spa": 32,
+      "def": 25,
+      "spa": 16,
       "spd": 0,
-      "spe": 16
+      "spe": 15
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "spa",
-     "speed": {
-      "sp": 16,
-      "effective": 138,
-      "at_cap": 154,
-      "median": 138,
-      "top_tier": 172,
-      "why": "outspeeds the heaviest flippable tier 137"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.701,
-      "share_at_zero": 0.642,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (5.766%, weight 76.3)",
+     "role": "other"
     },
     {
      "species": "Gholdengo",
@@ -1034,32 +762,15 @@
       "Trick"
      ],
      "evs": {
-      "hp": 1,
+      "hp": 2,
       "atk": 0,
-      "def": 1,
+      "def": 0,
       "spa": 32,
       "spd": 0,
       "spe": 32
      },
-     "source": "derived",
-     "role": "fast",
-     "role_by": "Choice Scarf",
-     "conflict": null,
-     "attack_stat": "spa",
-     "speed": {
-      "sp": 32,
-      "effective": 204,
-      "at_cap": 204,
-      "median": 138,
-      "top_tier": 172,
-      "why": "fast role: the cap"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.598,
-      "share_at_zero": 0.589,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (3.084%, weight 52.1)",
+     "role": "fast"
     },
     {
      "species": "Dragonite",
@@ -1080,25 +791,8 @@
       "spd": 0,
       "spe": 32
      },
-     "source": "derived",
-     "role": "fast",
-     "role_by": "Tailwind",
-     "conflict": null,
-     "attack_stat": "spa",
-     "speed": {
-      "sp": 32,
-      "effective": 152,
-      "at_cap": 152,
-      "median": 138,
-      "top_tier": 172,
-      "why": "fast role: the cap"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.97,
-      "share_at_zero": 0.97,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (50.082%, weight 164)",
+     "role": "fast"
     }
    ]
   },
@@ -1149,7 +843,7 @@
     3,
     5
    ],
-   "packed": "Rillaboom||MiracleSeed|GrassySurge|WoodHammer,FakeOut,HighHorsepower,GrassyGlide|Adamant|2,32,,,24,8|M||||]Kingambit||LifeOrb|Defiant|SwordsDance,SuckerPunch,KowtowCleave,Protect|Adamant|23,32,,,,11|F||||]Sneasler||GrassySeed|Unburden|DireClaw,CloseCombat,RockSlide,Protect|Adamant|3,25,5,,1,32|F||||]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly|18,32,,,,16|M||||]Froslass||Froslassite|CursedBody|Blizzard,ShadowBall,AuroraVeil,Protect|Timid|14,,1,9,10,32|F||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|22,,2,10,,32|F||||",
+   "packed": "Rillaboom||MiracleSeed|GrassySurge|WoodHammer,FakeOut,HighHorsepower,GrassyGlide|Adamant|17,31,,,10,8|M||||]Kingambit||LifeOrb|Defiant|SwordsDance,SuckerPunch,KowtowCleave,Protect|Adamant|32,32,,,1,1|F||||]Sneasler||GrassySeed|Unburden|DireClaw,CloseCombat,RockSlide,Protect|Adamant|16,20,,,,30|F||||]Arcanine-Hisui||FocusSash|RockHead|FlareBlitz,HeadSmash,ExtremeSpeed,Protect|Jolly|2,32,,,,32|M||||]Froslass||Froslassite|CursedBody|Blizzard,ShadowBall,AuroraVeil,Protect|Timid|8,,23,3,,32|F||||]Raichu||RaichuniteY|LightningRod|ZapCannon,FocusBlast,FakeOut,Protect|Timid|32,,11,,,23|F||||",
    "spreads": [
     {
      "species": "Rillaboom",
@@ -1163,32 +857,15 @@
       "Grassy Glide"
      ],
      "evs": {
-      "hp": 2,
-      "atk": 32,
+      "hp": 17,
+      "atk": 31,
       "def": 0,
       "spa": 0,
-      "spd": 24,
+      "spd": 10,
       "spe": 8
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "atk",
-     "speed": {
-      "sp": 8,
-      "effective": 113,
-      "at_cap": 137,
-      "median": 138,
-      "top_tier": 172,
-      "why": "outspeeds the heaviest flippable tier 112"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.646,
-      "share_at_zero": 0.532,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (2.557%, weight 97.8)",
+     "role": "other"
     },
     {
      "species": "Kingambit",
@@ -1202,32 +879,15 @@
       "Protect"
      ],
      "evs": {
-      "hp": 23,
+      "hp": 32,
       "atk": 32,
       "def": 0,
       "spa": 0,
-      "spd": 0,
-      "spe": 11
+      "spd": 1,
+      "spe": 1
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "atk",
-     "speed": {
-      "sp": 11,
-      "effective": 81,
-      "at_cap": 102,
-      "median": 138,
-      "top_tier": 172,
-      "why": "outspeeds the heaviest flippable tier 80"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.684,
-      "share_at_zero": 0.572,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (11.469%, weight 276.3)",
+     "role": "other"
     },
     {
      "species": "Sneasler",
@@ -1241,32 +901,15 @@
       "Protect"
      ],
      "evs": {
-      "hp": 3,
-      "atk": 25,
-      "def": 5,
+      "hp": 16,
+      "atk": 20,
+      "def": 0,
       "spa": 0,
-      "spd": 1,
-      "spe": 32
+      "spd": 0,
+      "spe": 30
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "atk",
-     "speed": {
-      "sp": 32,
-      "effective": 172,
-      "at_cap": 172,
-      "median": 138,
-      "top_tier": 172,
-      "why": "top speed tier: the cap"
-     },
-     "bulk": {
-      "why": "least SP surviving the median attacker",
-      "share_survived": 0.507,
-      "share_at_zero": 0.432,
-      "endures": false
-     }
+     "source": "observed:tournament:data/tournaments/regmc 2026-10-01-vr-replica/replica/cpTuCZeC",
+     "role": "other"
     },
     {
      "species": "Arcanine-Hisui",
@@ -1280,32 +923,15 @@
       "Protect"
      ],
      "evs": {
-      "hp": 18,
+      "hp": 2,
       "atk": 32,
       "def": 0,
       "spa": 0,
       "spd": 0,
-      "spe": 16
+      "spe": 32
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "atk",
-     "speed": {
-      "sp": 16,
-      "effective": 138,
-      "at_cap": 156,
-      "median": 138,
-      "top_tier": 172,
-      "why": "outspeeds the heaviest flippable tier 137"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 1,
-      "share_at_zero": 1,
-      "endures": true
-     }
+     "source": "observed:tournament:data/tournaments/regmc 2026-10-01-vr-replica/replica/cpTuCZeC",
+     "role": "other"
     },
     {
      "species": "Froslass",
@@ -1319,32 +945,15 @@
       "Protect"
      ],
      "evs": {
-      "hp": 14,
+      "hp": 8,
       "atk": 0,
-      "def": 1,
-      "spa": 9,
-      "spd": 10,
+      "def": 23,
+      "spa": 3,
+      "spd": 0,
       "spe": 32
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "spa",
-     "speed": {
-      "sp": 32,
-      "effective": 189,
-      "at_cap": 189,
-      "median": 138,
-      "top_tier": 172,
-      "why": "top speed tier: the cap"
-     },
-     "bulk": {
-      "why": "least SP surviving the median attacker",
-      "share_survived": 0.506,
-      "share_at_zero": 0.392,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (10.929%, weight 45.7)",
+     "role": "other"
     },
     {
      "species": "Raichu",
@@ -1358,32 +967,15 @@
       "Protect"
      ],
      "evs": {
-      "hp": 22,
+      "hp": 32,
       "atk": 0,
-      "def": 2,
-      "spa": 10,
+      "def": 11,
+      "spa": 0,
       "spd": 0,
-      "spe": 32
+      "spe": 23
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "spa",
-     "speed": {
-      "sp": 32,
-      "effective": 200,
-      "at_cap": 200,
-      "median": 138,
-      "top_tier": 172,
-      "why": "top speed tier: the cap"
-     },
-     "bulk": {
-      "why": "least SP surviving the median attacker",
-      "share_survived": 0.501,
-      "share_at_zero": 0.387,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (18.76%, weight 257.8)",
+     "role": "other"
     }
    ]
   },
@@ -1434,7 +1026,7 @@
     1,
     5
    ],
-   "packed": "Froslass||Froslassite|CursedBody|Blizzard,ShadowBall,AuroraVeil,Protect|Timid|14,,1,9,10,32|F||||]Rillaboom||OccaBerry|GrassySurge|GrassyGlide,WoodHammer,HighHorsepower,FakeOut|Adamant|20,32,1,,5,8|M||||]Volcarona||GrassySeed|FlameBody|Protect,HeatWave,GigaDrain,QuiverDance|Modest|1,,15,32,,18|F||||]Kingambit||LifeOrb|Defiant|Protect,KowtowCleave,SuckerPunch,SwordsDance|Adamant|23,32,,,,11|F||||]Garchomp||ChoiceScarf|RoughSkin|DragonClaw,StompingTantrum,RockSlide,RockTomb|Adamant|2,32,,,,32|F||||]Sneasler||WhiteHerb|Unburden|Protect,CloseCombat,DireClaw,FakeOut|Adamant|3,25,5,,1,32|F||||",
+   "packed": "Froslass||Froslassite|CursedBody|Blizzard,ShadowBall,AuroraVeil,Protect|Timid|8,,23,3,,32|F||||]Rillaboom||OccaBerry|GrassySurge|GrassyGlide,WoodHammer,HighHorsepower,FakeOut|Adamant|17,31,,,10,8|M||||]Volcarona||GrassySeed|FlameBody|Protect,HeatWave,GigaDrain,QuiverDance|Modest|32,,11,5,1,17|F||||]Kingambit||LifeOrb|Defiant|Protect,KowtowCleave,SuckerPunch,SwordsDance|Adamant|32,32,,,1,1|F||||]Garchomp||ChoiceScarf|RoughSkin|DragonClaw,StompingTantrum,RockSlide,RockTomb|Adamant|2,32,,,,32|F||||]Sneasler||WhiteHerb|Unburden|Protect,CloseCombat,DireClaw,FakeOut|Adamant|2,32,,,,32|F||||",
    "spreads": [
     {
      "species": "Froslass",
@@ -1448,32 +1040,15 @@
       "Protect"
      ],
      "evs": {
-      "hp": 14,
+      "hp": 8,
       "atk": 0,
-      "def": 1,
-      "spa": 9,
-      "spd": 10,
+      "def": 23,
+      "spa": 3,
+      "spd": 0,
       "spe": 32
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "spa",
-     "speed": {
-      "sp": 32,
-      "effective": 189,
-      "at_cap": 189,
-      "median": 138,
-      "top_tier": 172,
-      "why": "top speed tier: the cap"
-     },
-     "bulk": {
-      "why": "least SP surviving the median attacker",
-      "share_survived": 0.506,
-      "share_at_zero": 0.392,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (10.929%, weight 45.7)",
+     "role": "other"
     },
     {
      "species": "Rillaboom",
@@ -1487,32 +1062,15 @@
       "Fake Out"
      ],
      "evs": {
-      "hp": 20,
-      "atk": 32,
-      "def": 1,
+      "hp": 17,
+      "atk": 31,
+      "def": 0,
       "spa": 0,
-      "spd": 5,
+      "spd": 10,
       "spe": 8
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "atk",
-     "speed": {
-      "sp": 8,
-      "effective": 113,
-      "at_cap": 137,
-      "median": 138,
-      "top_tier": 172,
-      "why": "outspeeds the heaviest flippable tier 112"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.798,
-      "share_at_zero": 0.683,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (2.557%, weight 97.8)",
+     "role": "other"
     },
     {
      "species": "Volcarona",
@@ -1526,32 +1084,15 @@
       "Quiver Dance"
      ],
      "evs": {
-      "hp": 1,
+      "hp": 32,
       "atk": 0,
-      "def": 15,
-      "spa": 32,
-      "spd": 0,
-      "spe": 18
+      "def": 11,
+      "spa": 5,
+      "spd": 1,
+      "spe": 17
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "spa",
-     "speed": {
-      "sp": 18,
-      "effective": 138,
-      "at_cap": 152,
-      "median": 138,
-      "top_tier": 172,
-      "why": "outspeeds the heaviest flippable tier 137"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.732,
-      "share_at_zero": 0.677,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (4.988%, weight 35.6)",
+     "role": "other"
     },
     {
      "species": "Kingambit",
@@ -1565,32 +1106,15 @@
       "Swords Dance"
      ],
      "evs": {
-      "hp": 23,
+      "hp": 32,
       "atk": 32,
       "def": 0,
       "spa": 0,
-      "spd": 0,
-      "spe": 11
+      "spd": 1,
+      "spe": 1
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "atk",
-     "speed": {
-      "sp": 11,
-      "effective": 81,
-      "at_cap": 102,
-      "median": 138,
-      "top_tier": 172,
-      "why": "outspeeds the heaviest flippable tier 80"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.684,
-      "share_at_zero": 0.572,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (11.469%, weight 276.3)",
+     "role": "other"
     },
     {
      "species": "Garchomp",
@@ -1611,25 +1135,8 @@
       "spd": 0,
       "spe": 32
      },
-     "source": "derived",
-     "role": "fast",
-     "role_by": "Choice Scarf",
-     "conflict": null,
-     "attack_stat": "atk",
-     "speed": {
-      "sp": 32,
-      "effective": 231,
-      "at_cap": 231,
-      "median": 138,
-      "top_tier": 172,
-      "why": "fast role: the cap"
-     },
-     "bulk": {
-      "why": "survives the median attacker at 0 SP",
-      "share_survived": 0.734,
-      "share_at_zero": 0.734,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (11.581%, weight 110)",
+     "role": "fast"
     },
     {
      "species": "Sneasler",
@@ -1643,32 +1150,15 @@
       "Fake Out"
      ],
      "evs": {
-      "hp": 3,
-      "atk": 25,
-      "def": 5,
+      "hp": 2,
+      "atk": 32,
+      "def": 0,
       "spa": 0,
-      "spd": 1,
+      "spd": 0,
       "spe": 32
      },
-     "source": "derived",
-     "role": "other",
-     "role_by": null,
-     "conflict": null,
-     "attack_stat": "atk",
-     "speed": {
-      "sp": 32,
-      "effective": 172,
-      "at_cap": 172,
-      "median": 138,
-      "top_tier": 172,
-      "why": "top speed tier: the cap"
-     },
-     "bulk": {
-      "why": "least SP surviving the median attacker",
-      "share_survived": 0.507,
-      "share_at_zero": 0.432,
-      "endures": false
-     }
+     "source": "observed:data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt (21.641%, weight 657)",
+     "role": "other"
     }
    ]
   }
@@ -1678,7 +1168,62 @@
   "store_sha256": "fe78202a851545b71a19c507617d2a470020e5b72d07a393f86ae0fedee9bb25",
   "floor": 1410,
   "rule": "solver/rotom/spreads.js: OBSERVED Reg M-C spread (Smogon moveset file for gen9championsvgc2026regmcbo3, modal spread for the species with the sheet nature) if one exists, else DERIVED: role from the set (Choice Scarf or Tailwind -> Speed at the cap; Trick Room -> Speed 0; else, with the top-meta population's effective speeds at full Speed investment as the tiers: the cap when the set's cap speed reaches the weighted 0.75 quantile of those tiers, otherwise the least SP that strictly outspeeds the heaviest tier between its speed at 0 SP and its speed at the cap, or 0 if there is none); then the least HP/Def/SpD SP that survives the weighted median top-meta attacker's best hit (top roll), or 0; the rest into the used attacking stat; any remainder to the bulk split surviving most. Nature and IVs are the sheet's / the format's.",
-  "observed": "none: no Reg M-C Smogon moveset file for gen9championsvgc2026regmcbo3 under data/smogon-stats/ (the September 2026 files are due about 2026-10-04)",
+  "observed": {
+   "file": "data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt",
+   "sha256": "abe80efb48951057c4c51fadc3890e7a25b108b35d0e2efee9f2e9a1003fbd1e",
+   "rule": "solver/rotom/spreads.js observed hook (abra/regmc 1.72.0): the newest month's Reg M-C Smogon moveset files, asked in order bo3 (gen9championsvgc2026regmcbo3) at cutoff 1760, 1630, 1500, 0, then bo1 (gen9championsvgc2026regmc) the same way; at each, the block of the set's BATTLE forme (species + its own mega stone -> the mega forme), the highest-share listed spread with the sheet's nature, taken if its weighted count (Raw count x Avg. weight x share) is >= 25 and it is within the format's total and cap (a Choice Scarf set: only a spread with Speed at the cap; a Trick Room set: only Speed 0); else the next level; else derived. Smogon publishes spreads and items as separate marginals, so beyond the mega stone (the forme) and Choice Scarf (the Speed constraint) the item cannot key the spread.",
+   "min_weight": 25,
+   "files": [
+    {
+     "file": "data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1760.txt",
+     "sha256": "abe80efb48951057c4c51fadc3890e7a25b108b35d0e2efee9f2e9a1003fbd1e",
+     "format": "gen9championsvgc2026regmcbo3",
+     "cutoff": 1760
+    },
+    {
+     "file": "data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1630.txt",
+     "sha256": "a9b6a1dafe655ac3be81c9bf30b4a401d454736aadea635c11b0f7692c24a3fc",
+     "format": "gen9championsvgc2026regmcbo3",
+     "cutoff": 1630
+    },
+    {
+     "file": "data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-1500.txt",
+     "sha256": "04d60c0895de3e62e30e87bee52453dff7c89886af94c396a836e4d2f702a846",
+     "format": "gen9championsvgc2026regmcbo3",
+     "cutoff": 1500
+    },
+    {
+     "file": "data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmcbo3-0.txt",
+     "sha256": "70e9d02ceda9d8f451f799708784b32aa6b5bbd6e94bccd2b1c092a8d2fd323d",
+     "format": "gen9championsvgc2026regmcbo3",
+     "cutoff": 0
+    },
+    {
+     "file": "data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmc-1760.txt",
+     "sha256": "07da5c81457abed14abac8ae6c8cf097f3500b2aa3844b733ad4b71c8ba84ad8",
+     "format": "gen9championsvgc2026regmc",
+     "cutoff": 1760
+    },
+    {
+     "file": "data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmc-1630.txt",
+     "sha256": "b652c466862d13cd8076e4f41e491bd761ca48393db8c974955cb4dd384627f2",
+     "format": "gen9championsvgc2026regmc",
+     "cutoff": 1630
+    },
+    {
+     "file": "data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmc-1500.txt",
+     "sha256": "88df776eda2bd08a242d2ec108a6d6c51725cea7247530be6a95e735c86983c1",
+     "format": "gen9championsvgc2026regmc",
+     "cutoff": 1500
+    },
+    {
+     "file": "data/smogon-stats/2026-09/moveset/gen9championsvgc2026regmc-0.txt",
+     "sha256": "41312ac13ad3e27d5239422cd62900a5e33214fac692ed1752aacc49e5fd2027",
+     "format": "gen9championsvgc2026regmc",
+     "cutoff": 0
+    }
+   ]
+  },
   "population": {
    "teams": 150,
    "slots": 900,
@@ -1999,17 +1544,57 @@
   "median_quantile": 0.5,
   "top_tier_quantile": 0.75,
   "counters": {
+   "tournament": 5,
+   "observed": 25,
+   "recorded_derived": 0
+  },
+  "derivation_counters": {
    "battles": 17506,
    "damage_calls": 1336272,
    "no_damage": 2709,
    "endures": 4,
    "observed": 0,
    "derived": 60
+  },
+  "tournament": {
+   "rule": "solver/rotom/spreads.js tournament hook: before the Smogon file, the Stat Points a player published for the same species + item + nature in the tournament store (data/tournaments/<regulation>/), the best-placed team first; open team sheets carry none.",
+   "dir": "data/tournaments/regmc",
+   "events": [
+    {
+     "key": "2026-09-12-vr-september-challenge-1",
+     "shard_sha256": "ee32730f66cd3a6c91fa42b8a771a20f53231898dcc9baa7ed6146386417b76e"
+    },
+    {
+     "key": "2026-09-19-baltimore",
+     "shard_sha256": "9222c457116c10afc7363464aece055a92e26641baea6e71a05d4743a52c7948"
+    },
+    {
+     "key": "2026-09-19-vr-september-challenge-2",
+     "shard_sha256": "91164334c6f70782f6c3ec28f2d11a83c3863571fa159e1e28a8511206f5c950"
+    },
+    {
+     "key": "2026-09-26-frankfurt",
+     "shard_sha256": "43a415ac6add49f0b6e9ea86ab2101af8655487d4e42709e4f455df3e393bec3"
+    },
+    {
+     "key": "2026-09-26-brisbane",
+     "shard_sha256": "c6183864b452d17740fc8b3970fe4e01fbb1b0279e30c0f4d46ccf67ef37b5eb"
+    },
+    {
+     "key": "2026-10-01-vr-replica",
+     "shard_sha256": "e9a83566c7db0ff6147c4a0734907f95e16c19e697e69c6b20109e077131aab5"
+    }
+   ],
+   "teams": 539,
+   "teams_with_spreads": 2,
+   "sets": 3234,
+   "sets_with_spreads": 12,
+   "keys": 12
   }
  },
  "respread": {
   "by": "solver/rotom/respread.js",
-  "at": "2026-09-30T08:30:23.522Z",
-  "note": "teams unchanged; Stat Points only"
+  "at": "2026-10-01T20:14:13.719Z",
+  "note": "teams unchanged; Stat Points only; --observed-only: the tournament hook and the Smogon chain where they serve a set, the recorded derived spread elsewhere"
  }
 }

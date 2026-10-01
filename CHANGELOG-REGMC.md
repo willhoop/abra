@@ -28,6 +28,61 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.72.0] — 2026-10-01
+
+**MINOR. Smogon's September 2026 Reg M-C stats are archived and folded into the spread hook, and the three ladder
+rotations are re-spread from them.** The teams are unchanged; only the Stat Points move. A new arena table,
+`observed-v1`, is built beside `role-v1`. The arena default is not switched.
+
+### Added
+- **`data/smogon-stats/2026-09/`**: the usage and moveset files for `gen9championsvgc2026regmcbo3` and
+  `gen9championsvgc2026regmc` at 0/1500/1630/1760. There are 16 files, 5.4 MB, fetched 2026-10-01T20:05Z from
+  `smogon.com/stats/2026-09/` by `engine/fetch_smogon_stats.js`. They are tracked.
+- **`solver/rotom/spreads.js` observed chain.** The hook asks the bo3 file at 1760, 1630, 1500 and 0, then the bo1 file
+  at the same cutoffs. At each it reads the set's battle forme (a mega stone keys the mega block) and the sheet nature,
+  under three rules:
+  - it needs a weighted count of at least 25 (`OBS_MIN_WEIGHT`);
+  - a Choice Scarf set takes only a spread with Speed at the cap;
+  - a Trick Room set takes only Speed 0.
+
+  New exports: `parseMovesetFull`, `findObservedChain`, `OBSERVED_RULE_TEXT`. The derivation's `RULE_TEXT` is
+  unchanged.
+- **`solver/rotom/respread.js --observed-only`.** It folds the tournament hook and the Smogon chain into a rotation, and
+  every other set keeps its recorded spread byte for byte.
+- **`solver/arena/build_observed_spreads.js`** builds **`solver/arena/spreads/observed-v1.json`** (2.6 MB, tracked). The
+  `spread_source.js` mode `observed-v1` refuses to open if role-v1, the observed rule or a pinned Smogon file has moved.
+- **`solver/rotom/observed_compare.js`** compares derived and observed spreads per set. **`solver/meta/smogon_month.js`**
+  compares bo3 with bo1 for one month.
+
+### Changed
+- **`solver/rotom/teams/ladder-rotation{,-top,-tour}.json`** are re-spread with `--observed-only`, with the same teams.
+  - 75 of 90 sets changed spread, and 49 changed Speed stat.
+  - 78 sets are served by Smogon, 10 by the tournament hook, and 2 stay derived.
+  - Every team passes the bo3 TeamValidator.
+- `solver/machamp/sprt.js` and `spread_source.mergeStamps` warn on any table mode, not only role-v1.
+- `.gitattributes`: `data/smogon-stats/*/*/gen9championsvgc2026regmc*.txt -text`. The files are pinned by sha256, so a
+  CRLF checkout must not rewrite them. The Reg M-B months are untouched.
+
+### Fixed
+- **`solver/tests/test-rotom-throttle.js` fake server.** It played game 1 of a bo3 and ended the series
+  `|win|<game-1 winner>`. A game-1 loss for us therefore read as OUR walkaway, which halts the ladder, and the test was
+  green only while the seeded game 1 was a win. The new spreads lost it: RED 16/19, against HEAD rotation GREEN 33/33.
+  The scripted opponent now leaves the series after game 1. Result: GREEN 33/33.
+
+### Record
+- **Measured.** No figure is published. The encoding was checked: 12,932 listed spreads, max stat 32, max total 66,
+  so the files are Stat Points. Distance from derived to observed, from `solver/out/rotom/observed-compare.json`:
+  - top-meta rotation: L1 32.3 SP mean, Speed stat differs on 14 of 30;
+  - tournament store: L1 43.3 on 804 of 869 sets, Speed differs on 441;
+  - Hisuian Arcanine (Focus Sash, Jolly) moves from 138 to 156.
+
+  Choice Scarf per team at 1500+ is bo3 22.0% and bo1 28.7%, both lower bounds (`solver/out/meta/smogon-2026-09.json`).
+  Account: `docs/_reports/2026-10-01-smogon-sept.md`.
+- **Basis.** unchanged. Ladder series played after this merge field the observed spreads. Restart on a new `--out`,
+  because the plan check does not compare the rotation's sha256.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** `docs/MODELS.md` (ROTOM: the spread source order) and the white paper's spread section.
+
 ## [1.70.1] — 2026-10-01
 
 ### Changed

@@ -13,13 +13,18 @@
  *            at the rotation's RECORDED Stat Points and the sheet's nature, all six stats, HP included. Every Choice
  *            Scarf set's arena Speed is the maximum over SP 0..32 and every Trick Room set's the minimum; at least one of
  *            each, or the clause asks nothing. And `flat` still builds the pre-1.49.0 body (the table line, no nature).
+ *   OBSERVED (abra/regmc 1.72.0) the observed-v1 table: every entry within the total and the cap, built by the current
+ *            rule and the current observed rule over the Smogon files it pins (each on disk at its sha256), on the current
+ *            role-v1 as its base; it is NOT the default; and for EVERY set ROTOM plays — the Smogon- and tournament-observed
+ *            ones included — the body the arena builds at --spreads observed-v1 carries exactly ROTOM's line (all six
+ *            stats at the recorded Stat Points and the sheet nature). At least one Smogon-observed set, or it asks nothing.
  *   RECORD   a 1-pair match through solver/mew/play.js (two greedy human-clone agents, --cap 3): with no --spreads every
  *            line says role-v1, the summary's stamp names the table file at its sha256 and a fielded digest, and all 16
  *            bodies were dressed; with --spreads flat every line says flat and 0 bodies were dressed; with
  *            --spreads xatu-random 16 bodies were dressed and the lines say so.
  *
  * RED, unless --no-red: SPREADS_SOURCE_BREAK=scarf (a Choice Scarf set's Speed SP moved to HP — the 1.34.0 arena Speed)
- * must turn PARITY red; SPREADS_SOURCE_BREAK=stamp (the artifact block says `flat` whatever was fielded) must turn
+ * must turn PARITY red, and OBSERVED red (the break applies to every table mode); SPREADS_SOURCE_BREAK=stamp (the artifact block says `flat` whatever was fielded) must turn
  * RECORD red.
  */
 'use strict';
@@ -61,7 +66,7 @@ if (want('RULE')) {
   for (const v of vals) { const e = SS.decode(v).evs; const tot = STATS.reduce((a, s) => a + e[s], 0); if (tot > SD.SP_TOTAL || STATS.some(s => e[s] > SD.SP_CAP || e[s] < 0)) bad++; }
   ok('RULE', vals.length > 1000 && bad === 0, `every table spread is within the format's total ${SD.SP_TOTAL} and cap ${SD.SP_CAP} (${bad} of ${vals.length} outside)`);
   ok('RULE', J.provenance.rule === SPR.RULE_TEXT, 'the table was built by solver/rotom/spreads.js\'s current rule');
-  ok('RULE', SS.DEFAULT === 'role-v1' && ['flat', 'xatu-random', 'role-v1'].every(m => SS.MODES.includes(m)), 'default role-v1; flat and xatu-random kept');
+  ok('RULE', SS.DEFAULT === 'role-v1' && ['flat', 'xatu-random', 'role-v1', 'observed-v1'].every(m => SS.MODES.includes(m)), 'default role-v1; observed-v1, flat and xatu-random available');
   console.log(`  RULE: ${vals.length} table sets, SP total ${SD.SP_TOTAL}, cap ${SD.SP_CAP}`);
 }
 
@@ -84,12 +89,22 @@ if (want('PARITY')) {
       got.team.forEach((b, k) => {
         const s = got.sheetOf[k], z = t.spreads[s], row = rows[s];
         if (brought[0] === 2 && s < 4) return;   // each row once
+        /* every set's ROLE-V1 body, whatever the ladder plays for it (1.72.0: most rotation sets now play an observed
+         * spread on the ladder, and role-v1 must still put Choice Scarf and Trick Room sets at the top / bottom) */
+        const have = {}; for (const st of STATS) have[st] = b.st[KEY[st]];
+        const spe = []; for (let v = 0; v <= SD.SP_CAP; v++) spe.push(SD.statValue(row.species, row.nature, 'spe', v));
+        const role = SPR.role(row);
+        if (X.toID(row.item) === 'choicescarf' && role.role === 'fast') { scarf++; if (have.spe === Math.max(...spe)) scarfMax++; else if (diffs.length < 8) diffs.push('Scarf ' + row.species + ' arena Speed ' + have.spe + ' max ' + Math.max(...spe)); }
+        if (role.role === 'trickroom') { tr++; if (have.spe === Math.min(...spe)) trMin++; else if (diffs.length < 8) diffs.push('Trick Room ' + row.species + ' arena Speed ' + have.spe + ' min ' + Math.min(...spe)); }
+        const fb = flat.team[k]; flatN++;
+        const line = M.buildMon(fb.name, {}); if (line && JSON.stringify(fb.st) === JSON.stringify(line.st) && !fb._nature) flatOk++;
         /* a PUBLISHED tournament spread (solver/rotom/spreads.js hook 0, the tournament rotation, 2026-10-01): role-v1 pins
          * the observed hooks off by design (solver/arena/build_spreads.js header: "an observed table is a new version"), so
-         * the arena fields the derived spread for it. Counted and printed, never compared — and never silently. */
-        if (/^observed:tournament:/.test(z.source || '')) { observedTour++; if (observedList.length < 8) observedList.push(f + ' ' + t.id + ' ' + row.species); return; }
+         * the arena fields the derived spread for it. Counted and printed, never compared — and never silently.
+         * 1.72.0: the same holds for a set ROTOM plays at a Smogon-observed spread; observed-v1 is the version that fields
+         * it, and OBSERVED below checks its parity. */
+        if (/^observed:/.test(z.source || '')) { observedTour++; if (observedList.length < 8) observedList.push(f + ' ' + t.id + ' ' + row.species); return; }
         const want = {}; for (const st of STATS) want[st] = SD.statValue(row.species, row.nature, st, z.evs[st]);
-        const have = {}; for (const st of STATS) have[st] = b.st[KEY[st]];
         const same = STATS.every(st => want[st] === have[st]);
         /* A ROTATION THE role-v1 TABLE PREDATES (2026-10-01: the tournament rotation was built after the table). The table
          * holds MEDICHAM-oracle spreads, ROTOM derives with Showdown's oracles, and the two disagree by a point on a few
@@ -100,12 +115,6 @@ if (want('PARITY')) {
         if (!same && !covered(J)) { offTable++; offTableDiff.push(f + ' ' + t.id + ' ' + row.species + ' want ' + STATS.map(x => want[x]).join('/') + ' arena ' + STATS.map(x => have[x]).join('/') + (SPR.setKey(row) in TABLE.spreads ? ' (table entry)' : ' (derived at play time)')); return; }
         sets++;
         if (same) lineSame++; else if (diffs.length < 8) diffs.push(f + ' ' + t.id + ' ' + row.species + ' want ' + STATS.map(x => want[x]).join('/') + ' arena ' + STATS.map(x => have[x]).join('/'));
-        const spe = []; for (let v = 0; v <= SD.SP_CAP; v++) spe.push(SD.statValue(row.species, row.nature, 'spe', v));
-        const role = SPR.role(row);
-        if (X.toID(row.item) === 'choicescarf' && role.role === 'fast') { scarf++; if (have.spe === Math.max(...spe)) scarfMax++; else if (diffs.length < 8) diffs.push('Scarf ' + row.species + ' arena Speed ' + have.spe + ' max ' + Math.max(...spe)); }
-        if (role.role === 'trickroom') { tr++; if (have.spe === Math.min(...spe)) trMin++; else if (diffs.length < 8) diffs.push('Trick Room ' + row.species + ' arena Speed ' + have.spe + ' min ' + Math.min(...spe)); }
-        const fb = flat.team[k]; flatN++;
-        const line = M.buildMon(fb.name, {}); if (line && JSON.stringify(fb.st) === JSON.stringify(line.st) && !fb._nature) flatOk++;
       });
     }
   }
@@ -115,8 +124,50 @@ if (want('PARITY')) {
   ok('PARITY', flatN > 0 && flatOk === flatN, `--spreads flat still builds the pre-1.49.0 body: the table line, no nature (${flatOk} of ${flatN})`);
   for (const d of diffs) console.log('    ' + d);
   console.log(`  PARITY: ${sets} rotation sets, line identical ${lineSame}; Scarf ${scarfMax}/${scarf} at max Speed; Trick Room ${trMin}/${tr} at min`);
-  if (observedTour) console.log(`  PARITY: ${observedTour} set(s) play a PUBLISHED tournament spread on the ladder and the role-v1 derived one in the arena (by design, not compared): ${observedList.join('; ')}`);
+  if (observedTour) console.log(`  PARITY: ${observedTour} set(s) play an OBSERVED spread (tournament or Smogon) on the ladder and the role-v1 derived one in the arena at the default (by design, not compared here; OBSERVED checks them at observed-v1): ${observedList.slice(0, 4).join('; ')}${observedList.length > 4 ? '; ...' : ''}`);
   for (const d of offTableDiff) { notChecked++; console.log('  NOT CHECKED [PARITY] the role-v1 table (built ' + TABLE.provenance.built + ') predates this rotation and its line differs from ROTOM\'s (cover the rotation in a new table version): ' + d); }
+}
+
+/* ---------------- OBSERVED (observed-v1) ---------------- */
+if (want('OBSERVED')) {
+  const sha = f => require('crypto').createHash('sha256').update(fs.readFileSync(f)).digest('hex');
+  if (!fs.existsSync(SS.OBS_TABLE_FILE)) ok('OBSERVED', false, 'no observed-v1 table at ' + SS.OBS_TABLE_FILE);
+  else {
+    const J = JSON.parse(fs.readFileSync(SS.OBS_TABLE_FILE, 'utf8'));
+    let bad = 0; const vals = Object.values(J.spreads);
+    for (const v of vals) { const e = SS.decode(v).evs; const tot = STATS.reduce((a, s) => a + e[s], 0); if (tot > SD.SP_TOTAL || STATS.some(s => e[s] > SD.SP_CAP || e[s] < 0)) bad++; }
+    ok('OBSERVED', vals.length > 1000 && bad === 0, `every observed-v1 spread is within the total and the cap (${bad} of ${vals.length} outside)`);
+    ok('OBSERVED', J.provenance.version === 'observed-v1' && J.provenance.rule === SPR.RULE_TEXT && J.provenance.observed.rule === SPR.OBSERVED_RULE_TEXT && J.provenance.base.sha256 === sha(SS.TABLE_FILE),
+      'observed-v1 was built by the current rule and observed rule on the current role-v1');
+    const pinned = J.provenance.observed.files.filter(f => fs.existsSync(path.join(ROOT, f.file)) && sha(path.join(ROOT, f.file)) === f.sha256).length;
+    ok('OBSERVED', J.provenance.observed.files.length > 0 && pinned === J.provenance.observed.files.length, `every Smogon file observed-v1 pins is on disk at its sha256 (${pinned} of ${J.provenance.observed.files.length})`);
+    ok('OBSERVED', SS.DEFAULT !== 'observed-v1', 'observed-v1 is not the arena default (switching it is Will\'s call)');
+    const dir = path.join(ROOT, 'solver', 'rotom', 'teams');
+    const rots = fs.readdirSync(dir).filter(f => /^ladder-rotation.*\.json$/.test(f)).map(f => [f, JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'))])
+      .filter(([, R]) => Array.isArray(R.teams) && R.teams.every(t => Array.isArray(t.spreads)));
+    let n = 0, same = 0, smogon = 0, smogonSame = 0; const diffs = [];
+    for (const [f, R] of rots) for (const t of R.teams) {
+      const rows = t.spreads.map(z => ({ species: z.species, item: z.item, ability: z.ability, nature: z.nature, moves: z.moves.slice() }));
+      for (const brought of [[0, 1, 2, 3], [2, 3, 4, 5]]) {
+        const G = { id: 'parity-obs', sheets: { p1: rows, p2: rows }, brought: { p1: brought, p2: brought } };
+        const got = T.buildTeam(M, G, 'p1', { spreads: 'observed-v1' });
+        if (!got) { ok('OBSERVED', false, f + ' ' + t.id + ': the arena could not build the team at observed-v1'); continue; }
+        got.team.forEach((b, k) => {
+          const s = got.sheetOf[k], z = t.spreads[s], row = rows[s];
+          if (brought[0] === 2 && s < 4) return;
+          const want = STATS.map(st => SD.statValue(row.species, row.nature, st, z.evs[st])).join('/');
+          const have = STATS.map(st => b.st[KEY[st]]).join('/');
+          const isSm = /^observed:data\//.test(z.source || '');
+          n++; if (isSm) smogon++;
+          if (want === have) { same++; if (isSm) smogonSame++; } else if (diffs.length < 8) diffs.push(f + ' ' + t.id + ' ' + row.species + ' want ' + want + ' arena ' + have);
+        });
+      }
+    }
+    ok('OBSERVED', n > 0 && same === n, `at observed-v1 the arena body equals ROTOM's fielded line on every rotation set (${same} of ${n})`);
+    ok('OBSERVED', smogon > 0 && smogonSame === smogon, `... including every Smogon-observed set (${smogonSame} of ${smogon}; need >= 1 or the clause asks nothing)`);
+    for (const d of diffs) console.log('    ' + d);
+    console.log(`  OBSERVED: ${vals.length} table sets ${JSON.stringify(J.provenance.sources)}; rotation parity ${same}/${n} (Smogon-observed ${smogonSame}/${smogon})`);
+  }
 }
 
 /* ---------------- RECORD ---------------- */
@@ -156,7 +207,7 @@ if (want('RECORD')) {
 /* ---------------- RED ---------------- */
 let blind = false;
 if (!NO_RED && !ONLY) {
-  for (const [brk, clause] of [['scarf', 'PARITY'], ['stamp', 'RECORD']]) {
+  for (const [brk, clause] of [['scarf', 'PARITY'], ['stamp', 'RECORD'], ['scarf', 'OBSERVED']]) {
     const r = cp.spawnSync(process.execPath, [__filename, '--no-red', '--only', clause, '--release', REL], { cwd: ROOT, encoding: 'utf8', env: Object.assign({}, process.env, { SPREADS_SOURCE_BREAK: brk }), maxBuffer: 1 << 26 });
     const red = r.status === 1 && new RegExp('FAIL \\[' + clause + '\\]').test(r.stdout);
     console.log(`  RED SPREADS_SOURCE_BREAK=${brk}: ${red ? clause + ' went red, as it must' : 'STAYED GREEN (exit ' + r.status + ') — the test is blind'}`);
