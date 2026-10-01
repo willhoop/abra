@@ -28,6 +28,38 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.68.0] — 2026-10-01
+
+**MINOR: no published figure moves.** The two screens pre-registered in 1.67.0 are read, once each, at 200 games. Both
+PASS the not-lose rule with every capability bar met. Neither goes on a ladder arm.
+
+### Added
+- `solver/results/2026-10-01-screens/screen1-student-14s.{result,read}.json` and `screen2-k2x8-2s.{result,read}.json`:
+  each gate result and its single read by `read.js`.
+
+### Notes
+- **Screen 1, the PORYGON2 v3 student as gen5's leaf against gen5's own net, 14 s adaptive clock: PASS.** X scored
+  0.520 [0.451, 0.588] (104–96). Pairs: X took both games in 21, split 62 and lost both in 17. The clock ratio was 1.003.
+  Neither arm fell back to the prior (0 of 1,586 decisions each). Playouts per searched decision were 1,833.9 (X) and
+  1,938.6 (Y), against a floor of 636. The student served 2,571,854 leaf evaluations with 0 errors; gen5's net served
+  2,666,382. **The student bought 0.95× gen5's playouts at equal clock, not the 1.1× its 0.91× offline cost implied.**
+- **Screen 2, 8 opponent columns against 4 in gen5's search, 2 s adaptive clock: PASS, by the upper bound only.** X
+  scored 0.460 [0.392, 0.529] (92–108). Pairs: 15 both, 62 split, 23 lost both. The clock ratio was 1.024, with 0
+  fallbacks in each arm. Playouts per searched decision were 403.9 (X) and 382.4 (Y), against a floor of 161. X used 8
+  columns in 1,553 of 1,607 decisions (7.92 on average) and Y used 3.99. Per cell that is 12.8 playouts against 24.0.
+- **Coverage of the opponent's actual joint in these arena games** (move ids and targets): **X 0.877 (1,410 of 1,607),
+  Y 0.841 (1,356 of 1,612)**. By move id alone it was 0.904 and 0.875. The arena opponent is the same prior-driven
+  search, so these figures are far above the 57.7% measured against humans on the ladder (1.52.0) and do not replace it.
+- **Reading.** A not-lose screen licenses an SPRT, and it is not a strength claim. The student's point estimate leans
+  the right way. The 8-column arm's point estimate leans the wrong way: it covered 3.6 points more of the opponent's
+  play and paid half the playouts per cell. Neither SPRT is pre-registered, and both need Will's OK.
+
+### Record
+- **Measured.** Screen 1 (student leaf, 14 s): 0.520 [0.451, 0.588], 200 games, clock ratio 1.003, 0 fallbacks, 1,833.9 / 1,938.6 playouts per decision, 2,571,854 student evaluations and 0 errors (`solver/results/2026-10-01-screens/screen1-student-14s.read.json`). Screen 2 (k2 8 against 4, 2 s): 0.460 [0.392, 0.529], 200 games, clock ratio 1.024, 0 fallbacks, 403.9 / 382.4 playouts per decision, arena coverage 0.877 against 0.841 (`screen2-k2x8-2s.read.json`). Release `df172ccd2aaf`. Report: `docs/_reports/2026-10-01-screens-student-8col.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** `docs/MODELS.md`, PORYGON2 and MILTANK rows: one line each, saying which screen passed and that no SPRT has run.
+
 ## [1.67.0] — 2026-10-01
 
 **MINOR: no published figure moves.** Two arena screens are pre-registered before their first game, with the per-arm

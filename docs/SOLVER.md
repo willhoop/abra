@@ -101,6 +101,12 @@ This section says only what a division agent needs before it starts.
     ladder baseline for PORYGON2 v2.
   - Unowned: Sucker Punch; ROTOM's world lays no Perish count and no Skill-Swapped ability.
   - `solver/results/2026-09-30-ladder-loss-postmortem/`, `docs/_reports/2026-09-30-ladder-loss-postmortem.md`.
+- **Two not-lose screens, both PASS, neither on a ladder arm (2026-10-01, abra/regmc 1.67.0 pre-registered, 1.68.0
+  read).** Release `df172ccd2aaf`, 200 games each, every capability bar met (0 fallbacks, playouts above the floor, clock
+  ratio ≤ 1.03). The v3 student as gen5's leaf at 14 s: 0.520 [0.451, 0.588]; it played 0.95× gen5's playouts. 8
+  opponent columns against 4 at 2 s: 0.460 [0.392, 0.529], a lean the wrong way; arena coverage 0.877 against 0.841 at
+  half the playouts per cell. Match arms are now counted apart (`solver/mew/play.js` `ARMS`).
+  `docs/_reports/2026-10-01-screens-student-8col.md`.
 - **PORYGON2 v3, steps A–C (2026-10-01, abra/regmc 1.62.0).** `solver/porygon2/v3/`: the design, a frozen harness
   (`evalset.js`: 2,778 positions, 1,300 deep-labelled with no value net in the reference; leakage test GREEN) and v2
   distilled into a student at 0.91× gen5's leaf cost. The four nets are indistinguishable on ranking. ECE: student 0.052,

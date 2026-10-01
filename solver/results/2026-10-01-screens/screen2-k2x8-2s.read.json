@@ -1,0 +1,230 @@
+{
+ "screen": "cols8",
+ "result": "solver/out/screens/screen2-k2x8-2s.json",
+ "read_at": "2026-10-01T17:35:44.706Z",
+ "preregistration_sha": "a7cc68f76899c25a",
+ "engine_release": "df172ccd2aaf",
+ "flags": {
+  "release": "df172ccd2aaf",
+  "x": "solver/results/2026-10-01-screens/screen2-k2x8-2s.json",
+  "y": "solver/results/2026-09-30-human-regularised/screen-2s-off.json",
+  "pairs": 100,
+  "games": 200,
+  "pair_seed": 1,
+  "seed": 32001,
+  "workers": 4,
+  "cap": 50,
+  "rule": "notlose",
+  "human": null,
+  "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+  "info": "honest",
+  "spreads": "role-v1"
+ },
+ "x": "gen5-k2x8-adaptive-2s",
+ "y": "gen5-adaptive-2s",
+ "score": {
+  "W": 92,
+  "D": 0,
+  "L": 108,
+  "errors": 0,
+  "capped": 0,
+  "unbuildable": 0,
+  "played": 200,
+  "score_x": 0.46,
+  "ci95_x": [
+   0.3923293114096125,
+   0.5291783690638533
+  ]
+ },
+ "paired": {
+  "team_pairs": 100,
+  "both": 15,
+  "split": 62,
+  "lost": 23,
+  "incomplete": 0
+ },
+ "rule": "notlose: Wilson 95% upper bound of X score >= 0.5",
+ "clock_ratio": 1.0244,
+ "decision_ms": {
+  "x": {
+   "n": 1613,
+   "mean": 1793.7,
+   "p50": 1698,
+   "p99": 3770,
+   "max": 3791
+  },
+  "y": {
+   "n": 1613,
+   "mean": 1751,
+   "p50": 1751,
+   "p99": 3771,
+   "max": 3780
+  }
+ },
+ "bars": [
+  {
+   "name": "games scored",
+   "pass": true,
+   "value": 200,
+   "limit": ">= 190"
+  },
+  {
+   "name": "x prior-fallback share",
+   "pass": true,
+   "value": 0,
+   "limit": "<= 0.05"
+  },
+  {
+   "name": "x playouts per searched decision",
+   "pass": true,
+   "value": 403.9,
+   "limit": ">= 161"
+  },
+  {
+   "name": "y prior-fallback share",
+   "pass": true,
+   "value": 0,
+   "limit": "<= 0.05"
+  },
+  {
+   "name": "y playouts per searched decision",
+   "pass": true,
+   "value": 382.4,
+   "limit": ">= 161"
+  },
+  {
+   "name": "clock ratio x/y",
+   "pass": true,
+   "value": 1.0244,
+   "limit": "<= 1.1"
+  },
+  {
+   "name": "x used more than 4 columns",
+   "pass": true,
+   "value": {
+    "1": 1,
+    "3": 5,
+    "4": 1,
+    "5": 1,
+    "6": 37,
+    "7": 9,
+    "8": 1553
+   },
+   "limit": "max in (4, 8]"
+  },
+  {
+   "name": "y never more than 4 columns",
+   "pass": true,
+   "value": {
+    "1": 6,
+    "3": 6,
+    "4": 1600
+   },
+   "limit": "max <= 4"
+  }
+ ],
+ "capability_ok": true,
+ "verdict": "PASS",
+ "arms": {
+  "x": {
+   "decisions": 1613,
+   "forced": 6,
+   "searched": 1607,
+   "playouts": 649057,
+   "zero_playouts": 0,
+   "cells": 50888,
+   "rows_sum": 6422,
+   "cols_sum": 12734,
+   "cols_hist": {
+    "1": 1,
+    "3": 5,
+    "4": 1,
+    "5": 1,
+    "6": 37,
+    "7": 9,
+    "8": 1553
+   },
+   "fallback": {
+    "empty": 0,
+    "sparse": 0,
+    "low_bank": 0,
+    "threw": 0,
+    "other": 0
+   },
+   "fallback_decisions": 0,
+   "ms_sum": 2890078,
+   "cov": {
+    "n": 1607,
+    "target": 1410,
+    "move": 1453
+   },
+   "cov_nf": {
+    "n": 1606,
+    "target": 1409,
+    "move": 1452
+   },
+   "derived": {
+    "non_forced": 1607,
+    "playouts_per_searched": 403.9,
+    "fallback_share": 0,
+    "cols_mean": 7.92,
+    "rows_mean": 4,
+    "coverage_target": 0.8774,
+    "coverage_move": 0.9042,
+    "coverage_target_nf": 0.8773,
+    "coverage_move_nf": 0.9041
+   }
+  },
+  "y": {
+   "decisions": 1613,
+   "forced": 1,
+   "searched": 1612,
+   "playouts": 616393,
+   "zero_playouts": 0,
+   "cells": 25676,
+   "rows_sum": 6443,
+   "cols_sum": 6424,
+   "cols_hist": {
+    "1": 6,
+    "3": 6,
+    "4": 1600
+   },
+   "fallback": {
+    "empty": 0,
+    "sparse": 0,
+    "low_bank": 0,
+    "threw": 0,
+    "other": 0
+   },
+   "fallback_decisions": 0,
+   "ms_sum": 2821408,
+   "cov": {
+    "n": 1612,
+    "target": 1356,
+    "move": 1410
+   },
+   "cov_nf": {
+    "n": 1606,
+    "target": 1350,
+    "move": 1404
+   },
+   "derived": {
+    "non_forced": 1612,
+    "playouts_per_searched": 382.4,
+    "fallback_share": 0,
+    "cols_mean": 3.99,
+    "rows_mean": 4,
+    "coverage_target": 0.8412,
+    "coverage_move": 0.8747,
+    "coverage_target_nf": 0.8406,
+    "coverage_move_nf": 0.8742
+   }
+  }
+ },
+ "leaf_by_model": {
+  "porygon2-gen5.json": 999919
+ },
+ "leaf_own": {},
+ "warnings": [],
+ "wall_s": 1478.643
+}
