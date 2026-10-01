@@ -1736,6 +1736,10 @@ let MEDSEEN = { spendClearedAddedType: 0, addedTypeReplaced: 0, addedTypeCopied:
    * bodies were built with a spread means `_sp` never reached the body and every mega in that run
    * silently took the old delta -- which is a one-point stat error on any stat the nature moves. */
   megaStatFromSpread: 0,
+  /* 2026-10-01 -- the MID-BATTLE road (`formeSwap`: Zero to Hero, Stance Change and their reverts) recomputed
+   * the five battle stats from the body's own spread, as `setSpecies` does. Before today that road ALWAYS
+   * carried the delta. A zero on a run whose bodies carry `_sp` and change forme means the recompute is dead. */
+  formeSwapStatFromSpread: 0,
   /* ROADMAP #92 -- CONFUSION, which did not exist in this engine at all until this pass, so every
    * one of these was structurally zero and there was nothing to notice. Each is a different event and
    * a zero on each says a different thing:
@@ -5115,6 +5119,11 @@ let MEDFAILS = { oozeNoName: 0, oozeUnderHealBlockUnmodelled: 0, reviveSwitchOut
    * throw that away. */
   megaStatDeltaFallback: 0, megaStatDeltaFallbackFirst: '',
   megaStatSpreadStale: 0, megaStatSpreadStaleFirst: '',
+  /* 2026-10-01 -- the same two receipts on `formeSwap`, the mid-battle road. `formeSwapStatDelta`: the body
+   * carries no `_sp` (a `buildMon` body; exact when it is also neutral). `formeSwapSpreadStale`: it carries
+   * one and its line is not the one that spread builds, so the delta is kept rather than discarding a rewrite. */
+  formeSwapStatDelta: 0, formeSwapStatDeltaFirst: '',
+  formeSwapSpreadStale: 0, formeSwapSpreadStaleFirst: '',
   /* WIRE 124 -- a move whose accuracy NEITHER data/move-effects.js NOR the ACC_FIX correction list
    * knows. It falls back to 100, which is indistinguishable from a never-miss move, and that
    * indistinguishability is the whole bug this wire fixed: for 78 moves the fallback WAS the answer.
@@ -10990,6 +10999,21 @@ if (MEGA_TRACE_LATE) MEDFAILS.megaTraceLate = 1;
 const MEGA_STAT_DELTA = (typeof process !== 'undefined' && process.env
   && process.env.MEDI_MEGA_STAT_DELTA === '1');
 if (MEGA_STAT_DELTA) MEDFAILS.megaStatDelta = 1;
+/* 2026-10-01 -- TWO KNOBS FOR ONE FACT ON TWO ROADS: a forme change recomputes the line from the SET, HP SP
+ * included (Champions' `statModify` returns `stat + evs + 75` for HP; `setSpecies` -> `spreadModify`, and
+ * `updateMaxHp` on a permanent change). See `setLineL50` and tests/probe_forme_spread_hp.js.
+ *   MEDI_MEGA_SPREAD_HP_BLIND=1   `megaEvolveNow` checks the body against `l50`, which has no HP term, so a body
+ *                                 that invests HP never passes and takes the delta -- the defect SOLVER filed
+ *                                 on 2026-09-30 (114 of the role-v1 table's 3,293 mega sets one point off).
+ *   MEDI_FORME_SWAP_STAT_DELTA=1  `formeSwap` carries the delta between two natured anchors, as it always did
+ *                                 until today, and lands one point off on Palafin-Hero under a nature.
+ * Each stamps MEDFAILS so a run under it can never be read as a clean one. */
+const MEGA_SPREAD_HP_BLIND = (typeof process !== 'undefined' && process.env
+  && process.env.MEDI_MEGA_SPREAD_HP_BLIND === '1');
+if (MEGA_SPREAD_HP_BLIND) MEDFAILS.megaSpreadHpBlind = 1;
+const FORME_SWAP_STAT_DELTA = (typeof process !== 'undefined' && process.env
+  && process.env.MEDI_FORME_SWAP_STAT_DELTA === '1');
+if (FORME_SWAP_STAT_DELTA) MEDFAILS.formeSwapStatDeltaKnob = 1;
 /* ---- 2026-09-11 -- MAGNET RISE GETS ITS CLOCK: THE `expiryClock` READER ---------------------------
  *
  * `magnetrise.condition` (data/moves.ts:10875-10887, no Champions override) is `duration: 5`,
@@ -12848,6 +12872,13 @@ function natureL50(bs,nature){ return l50(bs,null,nature); }
  * no HP term, so a spread that invests in HP diverges by exactly the investment. The caller is told
  * not to; this is where it would have to change if that ever stops being true. */
 function spreadL50(bs,sp,nature){ return l50(bs,sp||null,nature); }
+/* 2026-10-01 -- THE WHOLE LINE A SET BUILDS, HP SP INCLUDED: the question `setSpecies` asks on a forme change.
+ * `l50` (and so `spreadL50`) has no HP term and says so above; Champions' `statModify` else-branch returns
+ * `stat + evs + 75` for HP (data/mods/champions/scripts.ts, both checkouts), and `l50`'s own HP is
+ * `floor((2b+31)/2) + 60 = b + 75`, so the HP SP is a plain addition with no nature and no truncation. Used ONLY
+ * by the two forme-change roads, which compare it against the body's current line before trusting it; every
+ * other caller of `l50`/`spreadL50` keeps its numbers (solver/xatu/worlds.js adds `sp.hp` itself). */
+function setLineL50(bs,sp,nature){ const o=l50(bs,sp||null,nature); o.hp+=(sp&&+sp.hp)||0; return o; }
 /* ONE DOORWAY INTO MC.mons FROM THIS FILE, and it is a ratchet rather than a preference.
  * tests/test-mc-key.js bans a computed index into the species table because four separate callers
  * wrote their own and two of them were silently broken for 8.17% of the metagame. This file is
@@ -27235,10 +27266,16 @@ function megaEvolveNow(S,m,auto){
      * and COUNTED, because a fallback nobody counts is the silent default this project keeps paying
      * for. `megaStatFromSpread` is the other half: a zero there means the stamp never arrived. */
     let st=null;
+    /* 2026-10-01 -- AND THE CHECK MUST ASK THE HP QUESTION THE AUTHORITY ASKS. It read `l50(baseBs, _sp,
+     * _nature)`, whose HP has no SP term, so a body whose spread invests HP could NEVER reproduce its own
+     * line, always counted `megaStatSpreadStale`, and always took the delta -- three truncations of the
+     * nature multiply where `statModify` makes one. SOLVER measured it on 2026-09-30: 3,185 of the role-v1
+     * table's 3,293 mega sets invest HP and 114 landed one point off, 23 on Speed. `setLineL50` adds the HP
+     * SP; the recompute takes it too, which is `updateMaxHp` on the permanent change (sim/pokemon.ts). */
     if(!MEGA_STAT_DELTA&&m._sp){
-      const chk=l50(baseRow.bs,m._sp,m._nature);
+      const chk=MEGA_SPREAD_HP_BLIND?l50(baseRow.bs,m._sp,m._nature):setLineL50(baseRow.bs,m._sp,m._nature);
       const same=['hp','at','df','sa','sd','sp'].every(k=>chk[k]===m.st[k]);
-      if(same){ st=l50(megRow.bs,m._sp,m._nature); MEDSEEN.megaStatFromSpread++; }
+      if(same){ st=MEGA_SPREAD_HP_BLIND?l50(megRow.bs,m._sp,m._nature):setLineL50(megRow.bs,m._sp,m._nature); MEDSEEN.megaStatFromSpread++; }
       else{
         MEDFAILS.megaStatSpreadStale++;
         if(!MEDFAILS.megaStatSpreadStaleFirst)MEDFAILS.megaStatSpreadStaleFirst=String(m.name||'?');
@@ -27644,6 +27681,31 @@ function formeSwap(mon,becomes,why){
       const _ob=l50(_old.bs,null,mon._nature), _nb=l50(_new.bs,null,mon._nature);
       _st={hp:_nb.hp+(mon.st.hp-_ob.hp), at:_nb.at+(mon.st.at-_ob.at), df:_nb.df+(mon.st.df-_ob.df),
            sa:_nb.sa+(mon.st.sa-_ob.sa), sd:_nb.sd+(mon.st.sd-_ob.sd), sp:_nb.sp+(mon.st.sp-_ob.sp)};
+      /* 2026-10-01 -- THE DELTA ABOVE IS THE MEGA ROAD'S 2026-08-27 DEFECT, LEFT ON THIS ROAD. Natured anchors
+       * make it algebraically exact and it is not arithmetically: `tr(mul*(Bn+20)) + tr(mul*(Bo+S+20)) -
+       * tr(mul*(Bo+20))` truncates three times where `setSpecies` -> `spreadModify` truncates once, so a
+       * natured, invested Palafin lands one point off as Palafin-Hero on Def, SpA or SpD whenever the
+       * fractions do not cancel (Defence: whenever (2 + S) mod 10 >= 5). tests/probe_forme_spread_hp.js
+       * measured 572 of 2,640 lines off, HP or no HP. So the five battle stats are RECOMPUTED from the body's
+       * own spread, gated exactly as the mega road is on that spread reproducing the line the body stands
+       * with. HP keeps the delta, which is exact (HP has no nature) and which leaves a TEMPORARY change's
+       * max HP alone as the authority does (Stance Change; `updateMaxHp` runs only when `isPermanent`). */
+      if(!FORME_SWAP_STAT_DELTA){
+        if(mon._sp){
+          const _chk=setLineL50(_old.bs,mon._sp,mon._nature);
+          if(['hp','at','df','sa','sd','sp'].every(k=>_chk[k]===mon.st[k])){
+            const _rc=setLineL50(_new.bs,mon._sp,mon._nature);
+            _st={hp:_st.hp, at:_rc.at, df:_rc.df, sa:_rc.sa, sd:_rc.sd, sp:_rc.sp};
+            MEDSEEN.formeSwapStatFromSpread++;
+          } else {
+            MEDFAILS.formeSwapSpreadStale++;
+            if(!MEDFAILS.formeSwapSpreadStaleFirst)MEDFAILS.formeSwapSpreadStaleFirst=mon.name+' -> '+key;
+          }
+        } else {
+          MEDFAILS.formeSwapStatDelta++;
+          if(!MEDFAILS.formeSwapStatDeltaFirst)MEDFAILS.formeSwapStatDeltaFirst=mon.name+' -> '+key;
+        }
+      }
     } else {
       MEDFAILS.formeSwapNoBaseStats++;
       if(!MEDFAILS.formeSwapNoBaseStatsFirst)MEDFAILS.formeSwapNoBaseStatsFirst=mon.name+' -> '+key;

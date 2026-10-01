@@ -40,6 +40,20 @@
  *
  * DELIBERATE BREAKS (env ROTOM_WORLD_BREAK): `noclocks` -> no body clocks and no field (the pre-fix world, which carried
  * none of it); `noability` -> no ability changes. solver/tests/test-rotom-world-clocks.js must go red under each.
+ *
+ * 2026-10-01 (docs/_reports/2026-10-01-search-blind-spots.md; solver/tests/test-rotom-world-fields.js, red under each break):
+ *   IDENTITY   a log ident names a sheet row by the sheet's nickname, else by the SPECIES its switch line prints: a regional
+ *              or gendered forme prints its base name ("Arcanine" for Arcanine-Hisui, "Indeedee" for Indeedee-F) and a
+ *              nicknamed mon its nickname. Before, only the exact nickname matched: 220 of 1,841 switch idents on the ladder
+ *              logs (119 of 189 games) were unkeyed, and a switch line fell back to the slot's OLD occupant, so the
+ *              incoming body's clocks went to the body it replaced. Break `noalias`.
+ *   UNBURDEN   `ub`: the Speed multiplier of an item-loss ability (Unburden; read off the ability's own condition), granted
+ *              when the body loses an item while it holds that ability (every `-enditem`: eaten, used, knocked off) and
+ *              ended by an ability change or leaving the field — the engine's `_ubVol`. The protocol never announces it.
+ *              123 item losses on an Unburden holder in 109 of 189 games; live at 350 of our move decisions. Break `noub`.
+ *   FLASH FIRE `flashfire`: the absorbed-Fire volatile (`-start|X|ability: Flash Fire`), the engine's `_vol.flashfire`. Break `noff`.
+ *   TYPE ADD   `typeAdd`: an added type (`-start|X|typeadd|T`, Trick-or-Treat), on the engine's added-type slot; it leaves
+ *              with the body. Break `notype`.
  */
 'use strict';
 const X = require('../human/dex.js');
@@ -123,34 +137,85 @@ function confusionRange() {
   return (CONF = rec ? [rec[0], rec[1] - 1] : null);
 }
 
+/* AN ITEM-LOSS SPEED ABILITY (Unburden), read from the dex: an ability that grants itself a condition when it loses its
+ * item (onAfterUseItem / onTakeItem) whose onModifySpe chain-modifies Speed. The multiplier is asked of that handler. */
+const ILS = new Map();
+function itemLossSpeed(abilityId) {
+  const id = toID(abilityId);
+  if (ILS.has(id)) return ILS.get(id);
+  const a = X.D.abilities.get(id);
+  let mult = null;
+  if (a && a.exists && (a.onAfterUseItem || a.onTakeItem) && a.condition && typeof a.condition.onModifySpe === 'function') {
+    try { a.condition.onModifySpe.call({ chainModify: x => { mult = Array.isArray(x) ? x[0] / x[1] : x; return 0; } }, 100, { item: '', ignoringAbility: () => false }); }
+    catch (e) { /* not this shape */ }
+  }
+  const v = mult > 1 ? mult : null;
+  ILS.set(id, v);
+  return v;
+}
+/* the sheet row a switch line names by the species it prints: exact species, then base species; unique or -1 */
+function rowBySpecies(sheet, details) {
+  const sp = String(details || '').split(',')[0].trim(); if (!sp) return -1;
+  const base = s => { const x = X.D.species.get(toID(s)); return x && x.exists ? toID(x.baseSpecies) : toID(s); };
+  const rows = (sheet || []).map((r, k) => k).filter(k => sheet[k]);
+  let c = rows.filter(k => sheet[k].species === sp);
+  if (c.length !== 1) c = rows.filter(k => base(sheet[k].species) === base(sp));
+  return c.length === 1 ? c[0] : -1;
+}
+/* every ident the log uses that is not a sheet nickname -> its sheet row, from the switch lines: Map('p1:<nick>' -> row) */
+function aliases(lines, sheets) {
+  const out = new Map();
+  if (BREAK === 'noalias') return out;
+  for (const raw of lines || []) {
+    const p = String(raw).split('|');
+    if (p[1] !== 'switch' && p[1] !== 'drag') continue;
+    const k = identKey(p[2]); if (!k) continue;
+    const sh = (sheets && sheets[k.side]) || [];
+    if (sh.findIndex(r => r && r.nick === k.nick) >= 0 || out.has(k.side + ':' + k.nick)) continue;
+    const r = rowBySpecies(sh, p[3]);
+    if (r >= 0) out.set(k.side + ':' + k.nick, r);
+  }
+  return out;
+}
+
 const identKey = id => { const m = /^(p[12])([ab]?):\s?(.*)$/.exec(String(id || '').trim()); return m ? { side: m[1], pos: m[2] || null, nick: m[3] } : null; };
 
 function walk(lines, sheets) {
   const out = { U: 0, bodies: new Map(), field: { weather: null, terrain: null, pseudo: new Map(), sides: { p1: new Map(), p2: new Map() } }, counters: { unmatched: 0 } };
   if (BREAK === 'noclocks') { out.broken = 'noclocks'; return out; }
-  const rowOf = (side, nick) => ((sheets && sheets[side]) || []).findIndex(r => r && r.nick === nick);
+  const AL = aliases(lines, sheets);
+  const rowOf = (side, nick) => {
+    const i = ((sheets && sheets[side]) || []).findIndex(r => r && r.nick === nick);
+    return i >= 0 ? i : AL.has(side + ':' + nick) ? AL.get(side + ':' + nick) : -1;
+  };
   const posOcc = { p1a: null, p1b: null, p2a: null, p2b: null };
   const B = key => {
     if (!out.bodies.has(key)) {
       const [side, row] = key.split(':');
       const r = sheets && sheets[side] && sheets[side][+row];
       out.bodies.set(key, { perish: null, vols: new Map(), sub: false, seed: null, confusion: null, trapPartial: null, trapHard: null, yawn: null,
+                            ub: null, flashfire: false, typeAdd: null,
                             slp: null, tox: null, ability: null, suppressed: false, item: r ? (r.item || '') : '', active: false,
                             lastMove: null, movedSinceEntry: false, lastMoveSinceEntry: null, entryU: 0 });
     }
     return out.bodies.get(key);
   };
-  const keyOf = ident => {
+  const keyOf = (ident, onSwitch) => {
     const k = identKey(ident); if (!k) return null;
     let row = rowOf(k.side, k.nick);
-    if (row < 0 && k.pos) { const occ = posOcc[k.side + k.pos]; if (occ) return occ; }
+    /* the slot's occupant stands in for an unmatched ident on any line but a switch: on a switch line the occupant is the
+     * body LEAVING, and that fallback laid an incoming forme's clocks on the body it replaced (`noalias` restores it) */
+    if (row < 0 && k.pos && (!onSwitch || BREAK === 'noalias')) { const occ = posOcc[k.side + k.pos]; if (occ) return occ; }
     if (row < 0) { out.counters.unmatched++; return null; }
     return k.side + ':' + row;
   };
   const clearVol = b => {
     b.perish = null; b.vols = new Map(); b.sub = false; b.seed = null; b.confusion = null; b.trapPartial = null; b.trapHard = null; b.yawn = null;
     b.ability = null; b.suppressed = false; b.lastMove = null; b.movedSinceEntry = false; b.lastMoveSinceEntry = null;
+    b.ub = null; b.flashfire = false; b.typeAdd = null;
   };
+  /* an ability's End (a change, a suppression, a mega forme) removes the volatiles it granted: Unburden's, Flash Fire's */
+  const abilityEnds = b => { b.ub = null; b.flashfire = false; };
   let acted = new Set(), lastMove = null, pendingPass = {};
   for (const raw of lines || []) {
     const l = String(raw);
@@ -175,7 +240,7 @@ function walk(lines, sheets) {
           clearVol(ob); ob.active = false;
         }
         delete pendingPass[pos];
-        const key = keyOf(p[2]); posOcc[pos] = key;
+        const key = keyOf(p[2], true); posOcc[pos] = key;
         if (!key) break;
         const b = B(key); clearVol(b); b.active = true; b.entryU = out.U;
         if (b.tox) b.tox.since = out.U;
@@ -191,7 +256,7 @@ function walk(lines, sheets) {
       case 'faint': { const key = keyOf(p[2]); if (key) { const b = B(key); clearVol(b); b.active = false; b.slp = null; b.tox = null; } break; }
       case 'detailschange': {
         /* a mega forme's ability overwrites whatever the body held (formeChange -> setAbility(isFromFormeChange)) */
-        if (/-Mega/.test(p[3] || '')) { const key = keyOf(p[2]); if (key) { const b = B(key); b.ability = null; b.megaAbility = true; } }
+        if (/-Mega/.test(p[3] || '')) { const key = keyOf(p[2]); if (key) { const b = B(key); b.ability = null; b.megaAbility = true; abilityEnds(b); } }
         break;
       }
       case 'move': {
@@ -241,7 +306,9 @@ function walk(lines, sheets) {
           break;
         }
         if (id === 'yawn') { b.yawn = { start: out.U }; break; }
-        if (/^fallen\d$/.test(id) || id === 'typechange' || id === 'typeadd' || id === 'dynamax') break;   // not a clock here (see the report)
+        if (id === 'typeadd') { if (BREAK !== 'notype' && p[4]) b.typeAdd = strip(p[4]); break; }
+        if (id === 'flashfire' && /^ability:/.test(p[3] || '')) { if (BREAK !== 'noff') b.flashfire = true; break; }
+        if (/^fallen\d$/.test(id) || id === 'typechange' || id === 'dynamax') break;   // not a clock here (see the report)
         const adj = startAdj(id);
         const e = { start: out.U, adj: acted.has(key) ? adj.ifActed : adj.ifNotActed };
         if (id === 'disable') e.arg = toID(p[4]);
@@ -260,6 +327,7 @@ function walk(lines, sheets) {
         else if (id === 'yawn') b.yawn = null;
         else if (p.includes('[partiallytrapped]') || isPartialTrap(id)) b.trapPartial = null;
         else if (/^stockpile/.test(id)) b.vols.delete('stockpile');
+        else if (id === 'flashfire') b.flashfire = false;
         else b.vols.delete(id);
         break;
       }
@@ -277,11 +345,12 @@ function walk(lines, sheets) {
           const bs = B(src), bt = B(tgt);
           if (a || c) { bs.ability = toID(a); bt.ability = toID(c); }
           else { const sa = curAbility(bs, src, sheets), ta = curAbility(bt, tgt, sheets); bs.ability = ta; bt.ability = sa; }
+          abilityEnds(bs); abilityEnds(bt);
           break;
         }
         /* Mummy: -activate|HOLDER|ability: Mummy|CHANGED|[ability] Old — CHANGED now holds the holder's ability */
         if (/^ability:/.test(p[3] || '') && p[4] && identKey(p[4]) && BREAK !== 'noability') {
-          const ch = keyOf(p[4]); if (ch) B(ch).ability = id;
+          const ch = keyOf(p[4]); if (ch) { const bc = B(ch); bc.ability = id; abilityEnds(bc); }
         }
         break;
       }
@@ -290,12 +359,19 @@ function walk(lines, sheets) {
          * announcement of what it already holds */
         if (!from || BREAK === 'noability') break;
         const key = keyOf(p[2]); if (!key) break;
-        B(key).ability = toID(p[3]);
+        const bA = B(key); bA.ability = toID(p[3]); abilityEnds(bA);
         break;
       }
-      case '-endability': { const key = keyOf(p[2]); if (key && BREAK !== 'noability') B(key).suppressed = true; break; }
+      case '-endability': { const key = keyOf(p[2]); if (key && BREAK !== 'noability') { const bE = B(key); bE.suppressed = true; abilityEnds(bE); } break; }
       case '-item': { const key = keyOf(p[2]); if (key) B(key).item = strip(p[3]); break; }
-      case '-enditem': { const key = keyOf(p[2]); if (key) B(key).item = ''; break; }
+      case '-enditem': {
+        const key = keyOf(p[2]); if (!key) break;
+        const b = B(key); b.item = '';
+        /* an item lost while the body holds an item-loss speed ability grants that ability's volatile: eatItem, useItem
+         * and takeItem all raise it, so every `-enditem` does (a regained item stops the doubling, not the volatile) */
+        if (b.active && !b.suppressed && BREAK !== 'noub') { const m = itemLossSpeed(curAbility(b, key, sheets)); if (m) b.ub = m; }
+        break;
+      }
       case '-weather': {
         const w = p[2];
         if (!w || w === 'none') { out.field.weather = null; break; }
@@ -354,16 +430,20 @@ const CARRIED = {
   attract: '_vol (presence; _attractedBy is not laid)', destinybond: '_vol', choicelock: 'choice item held + a move since entry',
   throatchop: '_noSound (duration)', lockon: '_vol', minimize: '_vol', noretreat: '_vol', dragoncheer: '_vol', gastroacid: 'with the ability',
   powertrick: '_vol', smackdown: '_vol', stockpile: '_vol layers', stall: 'stallStreaks (1.20.0)',
+  unburden: '_ubVol: the item-loss Speed multiplier off the ability\'s own condition, granted on an -enditem while the holder has it, ended by an ability change or leaving (2026-10-01)',
+  flashfire: '_vol.flashfire from -start|X|ability: Flash Fire, until it leaves or the ability ends (2026-10-01)',
+  types: 'an added type (-start|X|typeadd|T, Trick-or-Treat) on the engine\'s added-type slot (2026-10-01); a typechange is not laid (0 on the ladder logs)',
   weather: 'the log', weather_turns: 'residuals since set, setter item (1.43.0; turn arithmetic before, one short for a lead)', terrain: 'the log', terrain_turns: 'same',
   trickroom_turns: 'same', gravity_turns: 'same', magicroom_turns: 'same', wonderroom_turns: 'same', fairylock_turns: 'same', tailwind: 'same', screens: 'sf.sc, same', hazards: 'sf.hz layers (sf.sc until 1.42.0, which the engine never read for a hazard)',
 };
 const OWED = {
-  types: 'type changes (Soak-like, typeadd/typechange) are not laid; the body keeps its sheet types',
-  last_item: 'not laid', ate_berry: 'not laid (Belch / Cud Chew read it)', charging: 'a two-turn move in progress is not laid',
-  uproar: 'not laid (engine _mtLock)', mustrecharge: 'not laid (engine _recharge)', flashfire: 'the Flash Fire boost is not laid',
-  lockedmove: 'a rampage lock is not laid (engine _mtLock)', allyswitch: 'the Ally Switch ladder is not laid', metronome: 'the Metronome item ladder is not laid',
-  unburden: 'the Unburden boost is not laid', party: 'bench rows carry no volatiles (correct: they leave with the body)',
+  last_item: 'not laid (304 -enditem on the ladder logs; no brought sheet carries a move or ability that reads it)',
+  ate_berry: 'not laid (Belch / Cud Chew read it; 56 berries eaten on the ladder logs, no reader on any brought sheet)',
+  charging: 'a two-turn move in progress is not laid (8 charges on the ladder logs, every one fired in the same turn)',
+  uproar: 'not laid (engine _mtLock; 0 on the ladder logs)', mustrecharge: 'not laid (engine _recharge; 0 on the ladder logs)',
+  lockedmove: 'a rampage lock is not laid (engine _mtLock; 0 on the ladder logs)', allyswitch: 'the Ally Switch ladder is not laid (0)', metronome: 'the Metronome item ladder is not laid (0)',
+  party: 'bench rows carry no volatiles (correct: they leave with the body)',
   pp: 'one PP per move seen (the count beyond one is hidden)', slots: 'Wish / Healing Wish slot conditions are not laid',
 };
 
-module.exports = { CARRIED, OWED, walk, durationOf, startAdj, hazards, isPartialTrap, restTime, confusionRange, cond, curAbility, volatileIds };
+module.exports = { CARRIED, OWED, walk, aliases, rowBySpecies, itemLossSpeed, durationOf, startAdj, hazards, isPartialTrap, restTime, confusionRange, cond, curAbility, volatileIds };

@@ -21,6 +21,120 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.54.0] — 2026-10-01
+
+**MINOR: no published figure moves.** A design and its measurements; nothing is built and no game was played.
+
+### Added
+- **DUSK, designed (`solver/dusk/DESIGN.md`).** The endgame solver is on-the-fly with a per-game memo, not a table: a
+  depth-limited simultaneous-move backward induction with an LP matrix game at each node, chance from
+  `solver/miltank/chance.js`, double oracle for the 2v2 menu, and a certified P(win) band (leaves refilled with 0 and
+  1). Handoff at E2 (both sides ≤ 2 alive); verification ladder V-D1 to V-D5; the must-beat SPRT drafted, not run.
+- `solver/dusk/measure_endgames.js` + `lib.js`: Reg M-C endgames from the bo3 and bo1 stores (store-only;
+  `engine/quality.js` `reasons()`; `--keep-game-shape` sensitivity arm).
+- `solver/dusk/measure_ladder.js`: medicham32's ladder games through an endgame (read-only over `solver/out/rotom`).
+- `solver/dusk/combine.js` → `solver/dusk/endgames-summary.json` (tracked, ~150 KB), with the conversion-vs-humans test.
+- `solver/dusk/smogon_foldin.js`: the Smogon hook (spread concentration for the endgame species); prints NOT PUBLISHED
+  until the September Reg M-C files exist.
+- `solver/tests/test-dusk-measure.js`: GREEN 42/42; RED under `DUSK_BREAK=alive` and `DUSK_BREAK=colour`.
+
+### Notes
+- E2 is reached in 44.0% of all bo3 games, 62.9% of clean fully revealed ones (26,945), and 46.6% of ours (88 of 189).
+  A table key that fixes the value repeats ≤ 1.0% of the time (chronological split); the species pair repeats 17%.
+- Our endgame conversion against humans from the same material and HP lead: −3.7 wins over 88 E2 games, 95% CI
+  [−10.8, +3.6]. The `chomptop` run was live and is excluded. Details: `docs/_reports/2026-10-01-dusk-design.md`.
+
+## [1.53.0] — 2026-10-01
+
+**MINOR: no published figure moves.** It revises the solver plan to Will's decisions of 2026-10-01. No code, no games,
+no spend.
+
+### Changed
+- **`solver/PLAN.md` 0.3.0.** One learned policy+value net (PORYGON2 v3), trained by self-play (Expert Iteration) and
+  searched several turns deep by a public-belief search on MEDICHAM, with DUSK at endgames. The current pipeline keeps
+  playing until the net wins its SPRT.
+  - §1.0: the new direction; the 0.2.0 summary stays as history.
+  - §2.0: what the net subsumes (the roles of MAG, DODUO, GARY and XATU's action likelihood) and what stays
+    (MEDICHAM, ROTOM, SLOWKING's solve, DUSK, CHOMP, DITTO). A row for PORYGON2 v3, aligned with the v3 work on
+    another branch. A dated note leads each changed row.
+  - §2 HYPNO: a dated update. HYPNO best-responds to the population by rating band, updates within the series, and
+    falls back to equilibrium where the habit gate fails. The ε 0.5 default is superseded.
+  - §3.0: milestones N0–N9 in dependency order, each with an exit test. N3 is a MEDICHAM speed pass owned by ENGINE,
+    placed before any cloud spend. M0–M8 stay as history.
+  - §4, §5: the standing ladder approval (up to 20 series a day, auto-stops). The ladder is the scoreboard and the arena
+    a sanity check.
+  - §6a: a compute estimate and a cost table at prices fetched 2026-10-01. §9: Will's answers and Q11–Q13.
+- **`docs/ADR-003-exploitability-is-the-headline.md`:** a dated update. On Reg M-C the headline is the ladder rating,
+  exploitability is a diagnostic, and "greedy" (exploitative) play against the population is the default. The 2026-08-07
+  decision is not rewritten.
+
+### Added
+- `solver/results/2026-10-01-plan-revision/prices.json`: the price receipt (URLs, data sources and fetch times).
+
+### Notes
+- Compute [EST]: a generation is about 45 CPU worker-hours (about 15 h on this machine) and about 0.25 GPU-hours. A
+  first useful net needs 10, 30 or 100 generations (low, likely, high). At the likely 30: AWS c7a.16xlarge $69,
+  Hetzner CCX63 $75, one Vast.ai 96-core listing $13; GPU $2.55 (RunPod RTX 4090 community) to $9.68 (Lambda A10).
+  A 2× or 4× engine scales the CPU side by 0.60 or 0.40.
+- Owed to the next major: the white paper §2.8 (HYPNO and GARY) and the pipeline, milestone and registry passages in
+  the white paper, deck, technical docs, `SUMMARY.md` and `MODELS.md`. `CLAUDE.md`'s pipeline paragraph still names
+  the capped dial; that file is Will's to change.
+- Report: `docs/_reports/2026-10-01-plan-revision.md`.
+
+## [1.52.0] — 2026-10-01
+
+**MINOR: no published figure moves.** It adds a read-only ladder analysis and four ROTOM world fixes.
+
+### Added
+- `solver/results/2026-10-01-search-blind-spots/`. It measures the search's blind spots on the finished ladder logs.
+  - Opponent coverage is 57.7% with targets and 63.7% by move id, on 636 decisions.
+  - The gen5 prior ranks the actual joint in its top 4 in 57.1% of decisions and its top 8 in 71.1%.
+  - Sucker Punch failed 17 of 36 times. The engine reproduces all 17. The causes are our row narrowing (9) and the
+    one-turn leaf (8).
+- `solver/tests/test-rotom-world-fields.js`: GREEN 17/17. It is RED under `ROTOM_WORLD_BREAK=noalias`, `noub`, `noff`
+  and `notype`, and each clause is checked on a real ladder log.
+
+### Fixed
+- **ROTOM's world did not key a forme or a nicknamed mon** (`world_log.js`, `world.js stallStreaks`).
+  - Before: 220 of 1,841 switch idents were unkeyed, in 119 of 189 games. A switch line then put the incoming body's
+    clocks on the outgoing one.
+  - Now an ident is bound to the row its switch line's species names.
+- **Unburden was not carried.** `-enditem` on a holder lays the engine's `_ubVol`, at the multiplier read from the
+  ability's own condition.
+- **Flash Fire's volatile was not carried.** It now lays `_vol.flashfire`.
+- **An added type (Trick-or-Treat) was not carried.** It now lays the type on the engine's added-type slot.
+- `solver/tests/ladder_replay.js` rebuilt the request with the same identity gap. Rebuilt-world fidelity rises from
+  88.7% to 91.7%.
+
+### Notes
+- No search, gate or ladder arm changed, and no game was played. The world fixes change what the search sees. No
+  series has played on them.
+- Full account: `docs/_reports/2026-10-01-search-blind-spots.md`.
+
+## [1.51.0] — 2026-10-01
+
+**MINOR: a simulator fix.** No published figure moves yet. The gate re-run on a new release is owed.
+
+### Fixed
+- **A mega evolution recomputes an HP-invested spread (filed by SOLVER, 1.49.0).** `megaEvolveNow` gated its recompute
+  on `l50`, which has no HP term, while Champions' `statModify` adds the SP to HP. So every HP-invested body took the
+  additive delta. That delta truncates the nature multiply three times where the authority truncates once. 318 of
+  3,132 staged lines were one point off, Speed among them. Now `setLineL50` (`l50` plus the HP SP) is used for the
+  check and for the recompute.
+- **The mid-battle forme road recomputes too (the class check).** `formeSwap` had never recomputed. A natured,
+  invested Palafin-Hero was one point off on Def, SpA or SpD with or without HP: 572 of 2,640 staged lines. It now
+  recomputes the five battle stats from `_sp`, gated as the mega road is. HP keeps the exact delta. Aegislash is exact
+  by arithmetic. No other legal forme change moves a stat.
+
+### Added
+- `tests/probe_forme_spread_hp.js`: RED before the fix and GREEN after. `MEDI_MEGA_SPREAD_HP_BLIND=1` and
+  `MEDI_FORME_SWAP_STAT_DELTA=1` each restore one road. Receipts: `MEDSEEN.formeSwapStatFromSpread`,
+  `MEDFAILS.formeSwapStatDelta`, `MEDFAILS.formeSwapSpreadStale`.
+
+### Notes
+- Census unmoved at 1027 live / 0 missing. Details: `docs/_reports/2026-10-01-mega-hp-spread.md`.
+- The arena takes the fix only once SOLVER stamps `_sp` in `solver/xatu/worlds.js` `applySpread`.
+
 ## [1.50.0] — 2026-09-30
 
 **MINOR: no published figure moves.** It adds two SPRT results and a per-model leaf counter.
