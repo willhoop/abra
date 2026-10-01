@@ -119,7 +119,42 @@ function ladderReport(dir, o) {
     }
   }
   const rec = ENDINGS.ladderRecord(rows, { rated: true, dryRun: !!o.dryRun });
-  return Object.assign({ dir, sources, rows: rows.length }, rec);
+  let tactics = null;
+  try { tactics = tacticsOfRun(dir); } catch (e) { tactics = { error: String(e && e.message || e) }; }
+  return Object.assign({ dir, sources, rows: rows.length }, rec, { tactics });
+}
+
+/* THE TACTICS COUNTERS of a run (solver/arena/tactics.js; abra/regmc 1.55.0): speed control, mega and switches, ours and
+ * the opponents', per arm and split by won and lost. Read from the run's OWN saved room logs (games/<client>/*.log), so
+ * a run played before the game record carried `tactics` is counted the same way as one after. A log with no |win| or
+ * |tie| (a game still in progress, or a crash) is counted as unfinished and left out. Counts, not judgements. */
+function tacticsOfRun(dir) {
+  const TAC = require('../arena/tactics.js');
+  const gdir = path.join(dir, 'games');
+  const out = { logs: 0, finished: 0, unfinished: 0, by_arm: {} };
+  if (!fs.existsSync(gdir)) return out;
+  const per = {};
+  for (const client of fs.readdirSync(gdir)) {
+    const armOf = {};
+    for (const d of readJsonl(path.join(dir, 'decisions-' + client + '.jsonl'))) if (d.room && !armOf[d.room]) armOf[d.room] = d.arm || '?';
+    for (const f of fs.readdirSync(path.join(gdir, client)).filter(f => f.endsWith('.log'))) {
+      out.logs++;
+      const text = fs.readFileSync(path.join(gdir, client, f), 'utf8');
+      if (!/\n\|(win|tie)(\||\n|$)/.test(text)) { out.unfinished++; continue; }
+      out.finished++;
+      const me = new RegExp('\\|player\\|p1\\|' + client.replace(/[^a-z0-9]/gi, '') + '\\|', 'i').test(text) ? 'p1' : 'p2';
+      const r = TAC.fromLog(text, { me });
+      const arm = armOf[f.slice(0, -4)] || '?';
+      (per[arm] = per[arm] || []).push({ mine: r.mine, opp: r.opp, won: r.winner === me, tie: r.tie });
+    }
+  }
+  for (const [arm, L] of Object.entries(per)) {
+    const S = (list, k, w) => TAC.summarize(list.map(x => ({ t: x[k], won: w(x) })));
+    out.by_arm[arm] = { games: L.length,
+      ours: { all: S(L, 'mine', x => x.won), won: S(L.filter(x => x.won), 'mine', () => true), lost: S(L.filter(x => !x.won && !x.tie), 'mine', () => false) },
+      opponents: { all: S(L, 'opp', x => !x.won && !x.tie) } };
+  }
+  return out;
 }
 
 /* ================= OUR GAMES: the per-game ledger rotom.js writes (default solver/out/rotom/games.jsonl) =================
@@ -240,6 +275,19 @@ if (require.main === module) {
     for (const [a, b] of Object.entries(r.by_arm)) line('arm ' + a, b);
     console.log('unrated, excluded: ' + (r.unrated_excluded.length ? JSON.stringify(r.unrated_excluded) : 'none'));
     if (r.self_quits) console.log('!!! OUR OWN FORFEIT / TIMEOUT / WALKAWAY: ' + r.self_quits + ' — must be 0');
+    /* the tactics counters beside the record (solver/arena/tactics.js): tracked, not judged */
+    const TAC = require('../arena/tactics.js');
+    const tx = r.tactics;
+    if (!tx || tx.error) console.log('tactics: NOT COUNTED' + (tx && tx.error ? ' — ' + tx.error : ''));
+    else {
+      console.log(`tactics: ${tx.finished} finished games read from the run's own room logs (${tx.unfinished} unfinished left out)`);
+      for (const [arm, b] of Object.entries(tx.by_arm)) {
+        for (const l of TAC.lines(b.ours.all, 'arm ' + arm + ' ours')) console.log(l);
+        for (const l of TAC.lines(b.ours.won, 'arm ' + arm + ' ours, games WON')) console.log(l);
+        for (const l of TAC.lines(b.ours.lost, 'arm ' + arm + ' ours, games LOST')) console.log(l);
+        for (const l of TAC.lines(b.opponents.all, 'arm ' + arm + ' opponents')) console.log(l);
+      }
+    }
   } else if (argv[0] === 'games') {
     const file = argv[1] && !argv[1].startsWith('--') ? argv[1] : path.join(__dirname, '..', 'out', 'rotom', 'games.jsonl');
     const r = gamesReport(file, { client: fl('client'), includeLocal: argv.includes('--include-local'), root: fl('root') || undefined });   // --root: where battle_log paths resolve (default this checkout)
@@ -267,4 +315,4 @@ if (require.main === module) {
     console.log(JSON.stringify(head, null, 1));
   }
 }
-module.exports = { aggregate, stats, gamesReport, ladderReport, wilson };
+module.exports = { aggregate, stats, gamesReport, ladderReport, tacticsOfRun, wilson };

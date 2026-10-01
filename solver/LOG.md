@@ -16,6 +16,15 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 - It is the turning point in 6 of the 26 post-mortem losses.
 - The map predicts the result (we lost 0.829 of games once a threat had fewer than 0.5 answers left). It adds nothing
   over the root value, so it is not a live value-net input. `docs/_reports/2026-10-01-lost-last-answer.md`.
+### Speed control, mega and switches: tracked on every game; the bot beside humans (abra/regmc 1.59.0)
+- New standing counters `solver/arena/tactics.js` (one log reader, one engine reader; the speed-control set derived
+  from the format, 34 moves). On every ROTOM game record (`tactics`), printed by `report.js ladder <dir>` per arm and
+  won/lost, and on every arena match row (`tactics.x/.y`). `solver/tests/test-tactics.js` GREEN 28/28, RED under
+  `TACTICS_BREAK=blind`.
+- 126 search-arm games vs 27,143 human games: like with like the bot matches 1400+ humans on all three (speed 0.88,
+  switches 1.06, mega 0.98). Costs: the foe's speed control (−0.22 win; humans −0.03) and switch-ins KO'd that turn
+  (15.4% vs 10.0%). Speed control not used when the foe was faster: 50 of 109 absent from the table (coverage), 59
+  present but ranked lower. `docs/_reports/2026-10-01-speed-mega-switch.md`.
 
 ### The search's uncovered blind spots; four world fields fixed (abra/regmc 1.52.0)
 - Opponent coverage is 57.7% with targets (636 ladder decisions). DODUO ranks the actual joint top-4 in 57.1% and
