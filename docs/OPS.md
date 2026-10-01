@@ -26,7 +26,7 @@ _stamped 2026-09-30 08:46_
 
 <!-- /GENERATED -->
 
-## THE INGEST'S `sets` CREDITED SET FACTS TO THE WRONG POKEMON BY NINE CAUSES. FIXED IN `extract()`, RE-PARSE OWED. 2026-10-01 (abra/regmc 1.52.0, MEASURE)
+## THE INGEST'S `sets` CREDITED SET FACTS TO THE WRONG POKEMON BY NINE CAUSES. FIXED IN `extract()`, RE-PARSE OWED. 2026-10-01 (abra/regmc 1.63.0, MEASURE)
 
 `engine/durable-ingest.js` `extract()` is changed. New rows from the collector get the fixed `sets` once this merges.
 Rows already stored keep the old ones until the owed re-parse.

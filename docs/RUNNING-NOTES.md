@@ -53,7 +53,7 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
-## [abra/regmc 1.52.0] — 2026-10-01 — **The store's `sets` attributed set facts to the wrong Pokemon by nine causes; the extractor is fixed, the re-parse is owed**
+## [abra/regmc 1.63.0] — 2026-10-01 — **The store's `sets` attributed set facts to the wrong Pokemon by nine causes; the extractor is fixed, the re-parse is owed**
 - **What changed.**
   - `engine/durable-ingest.js` `extract()` now credits a set fact only to the Pokemon that brought it. Nine causes
     are fixed, each pinned in `tests/test-parse.js` and each RED with its own fix reverted.

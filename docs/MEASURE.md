@@ -42,7 +42,7 @@ _stamped 2026-09-30 08:46_
 
 <!-- /GENERATED -->
 
-## THE STORE'S `sets` CREDITED SET FACTS TO THE WRONG POKEMON BY NINE CAUSES. THE EXTRACTOR IS FIXED; THE RE-PARSE IS OWED. 2026-10-01 (abra/regmc 1.52.0)
+## THE STORE'S `sets` CREDITED SET FACTS TO THE WRONG POKEMON BY NINE CAUSES. THE EXTRACTOR IS FIXED; THE RE-PARSE IS OWED. 2026-10-01 (abra/regmc 1.63.0)
 
 - **The check.** `engine/store_sets_check.js` compares the stored `sets`, and a fresh `extract()` of the same raw log,
   against `solver/porygon2/v2/reveal.js`. It reuses that file and is not a third parser. It classifies every mismatch

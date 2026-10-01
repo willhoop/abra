@@ -1,6 +1,6 @@
 # The parsed store's `sets`: nine attribution causes, fixed in the extractor, re-parse owed
 
-2026-10-01, MEASURE, abra/regmc 1.52.0. Store-only work: no game was played and no simulator was read. The main
+2026-10-01, MEASURE, abra/regmc 1.63.0. Store-only work: no game was played and no simulator was read. The main
 checkout's stores were read in place and not changed. The receipts are in `2026-10-01-store-set-attribution/`
 (`check-bo1.json`, `check-bo3.json`).
 

@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.52.0] — 2026-10-01
+## [1.63.0] — 2026-10-01
 
 **MINOR: a published figure moves under an unchanged basis.** A re-parse, still owed, would change `sets` in 83% of
 sampled bo1 rows and 69% of sampled bo3 rows. The question each `sets` figure answers is unchanged: what each Pokemon
