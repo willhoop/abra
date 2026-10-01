@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.56.0] — 2026-10-01
+## [1.62.0] — 2026-10-01
 
 **MINOR: no published figure moves.** A design, a frozen evaluation harness, and a distilled student that fails its
 pre-registered bar. No game was played.

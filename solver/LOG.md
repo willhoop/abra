@@ -8,7 +8,7 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-10-01
 
-### PORYGON2 v3 steps A–C: design, frozen harness, distilled student (abra/regmc 1.56.0)
+### PORYGON2 v3 steps A–C: design, frozen harness, distilled student (abra/regmc 1.62.0)
 - `solver/porygon2/v3/DESIGN.md`. Six premises of the brief are corrected at their sources: MuZero, KataGo's blending
   and playout caps, the piKL anchor, "λ 0.03 harmless", and quiescence "fixes".
 - Frozen set: 2,778 positions (ladder, bo1 rated 1500 or more, bo3 rated 1300 or more), 1,300 labelled by MILTANK's root

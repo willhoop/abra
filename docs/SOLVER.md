@@ -99,7 +99,7 @@ This section says only what a division agent needs before it starts.
     ladder baseline for PORYGON2 v2.
   - Unowned: Sucker Punch; ROTOM's world lays no Perish count and no Skill-Swapped ability.
   - `solver/results/2026-09-30-ladder-loss-postmortem/`, `docs/_reports/2026-09-30-ladder-loss-postmortem.md`.
-- **PORYGON2 v3, steps A–C (2026-10-01, abra/regmc 1.56.0).** `solver/porygon2/v3/`: the design, a frozen harness
+- **PORYGON2 v3, steps A–C (2026-10-01, abra/regmc 1.62.0).** `solver/porygon2/v3/`: the design, a frozen harness
   (`evalset.js`: 2,778 positions, 1,300 deep-labelled with no value net in the reference; leakage test GREEN) and v2
   distilled into a student at 0.91× gen5's leaf cost. The four nets are indistinguishable on ranking. ECE: student 0.052,
   gen5 0.065. The student fails its pre-registered bar, so no screen or SPRT is pre-registered. gen5's raw net is +0.18
