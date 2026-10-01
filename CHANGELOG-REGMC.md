@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.55.0] — 2026-10-01
+## [1.58.0] — 2026-10-01
 
 **MINOR: no published figure moves.** It adds a read-only analysis, its tooling and a test.
 

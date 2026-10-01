@@ -8,7 +8,7 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-10-01
 
-### Lost the last answer: real, tied to losing, not a separate cause (abra/regmc 1.55.0)
+### Lost the last answer: real, tied to losing, not a separate cause (abra/regmc 1.58.0)
 - The live answer map: P(i beats j) from MEDICHAM one-on-ones on the live position, at 1,131 positions in 158 ladder
   games.
 - A contested last-answer faint is in 31 of 90 losses and 9 of 68 wins. At the same search value it costs no more than
