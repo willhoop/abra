@@ -21,6 +21,36 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.65.0] — 2026-10-01
+
+**MINOR: a published figure moves** (`data/meta-usage-regmc.json`, usable games 27,063 to 27,106 on a newer store).
+The question is unchanged (usage in the game we play); its population is now defined by one classifier, and the
+before and after are stated in the report.
+
+### Changed
+- **Will's decision (2026-10-01): a bo1-format room under `Force Open Team Sheets, Best of = 3` IS open-sheet bo3
+  play.** Every other custom-rule room is excluded from every analysis and dataset. One classifier decides it from
+  the room's own rule text: `engine/quality.js` `customRuleRegime()` and `isOpenSheetBo3()`. The Eject Button rule
+  still applies. The scan (`engine/scan_custom_rulesets.js`) splits `ids` (excluded) from `ids_open_sheet_bo3`
+  (kept) by the same function, and `quality.js` re-classifies at read time and reports any disagreement.
+- **Our own accounts are declared once**, in `data/quality-filter.json` 1.7.0 `rules.exclude_own_accounts`
+  (`medicham32`, `willhoop`, `MAG`, each with its evidence), and `reasons()` charges `own_account` in JS and Python.
+- **Open-sheet consumers routed through the classifier:** `engine/usage_regulation.js` (the usage model),
+  `solver/human/build_dataset.js` (now also reads the bo1 raw shards and keeps only the open-sheet bo3 rooms),
+  `solver/porygon2/v2/extract.js` (its bo3 dataset also reads the bo1 store and raw logs for those rooms),
+  `solver/meta/extract.js`, `solver/rotom/build_top_rotation.js` and `solver/chomp/data.js`. The four typed
+  own-account lists in those files are gone.
+- `data/custom-ruleset-ids-regmc.json` re-scanned on the current stores (0 untestable);
+  `data/store-validation-regmc.json` re-judged on the current stores; `data/meta-usage-regmc.json` regenerated.
+
+### Added
+- `tests/test-open-sheet-bo3.js`: fixtures, and Showdown's own rule table as the oracle for every rule string the
+  scan has seen (33 pairs agree). Shown RED on a deliberate break.
+
+### Notes
+- **The frozen pool `data/team-pool-frozen-regmc` is not re-cut.** Measurements pin it.
+- Counts, the per-rule-string verdicts and what a pool re-cut would change: `docs/_reports/2026-10-01-custom-ots-bo3.md`.
+
 ## [1.50.0] — 2026-09-30
 
 **MINOR: no published figure moves.** It adds two SPRT results and a per-model leaf counter.

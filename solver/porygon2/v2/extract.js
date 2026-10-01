@@ -63,7 +63,17 @@ const STORE = path.join(DATA_ROOT, 'data', 'games.' + FORMAT_ID + '.jsonl.gz');
 const RAWDIR = path.join(DATA_ROOT, 'data', 'raw', 'games.' + FORMAT_ID);
 const RAWPLAIN = path.join(DATA_ROOT, 'data', 'games.' + FORMAT_ID + '.raw-logs.jsonl');
 
-const OWN = new Set(['medicham32', 'willhoop', 'mag', 'mag2', 'miltank', 'miltank2']);   // solver/meta/extract.js OWN
+/* OUR OWN ACCOUNTS are declared once, in data/quality-filter.json rules.exclude_own_accounts, and read through
+ * engine/quality.js (2026-10-01). The typed list that stood here named three accounts no file shows we used. */
+const isOwn = n => Q.isOwnAccount(n);
+/* THE bo3 DATASET IS OPEN-SHEET BO3 PLAY, decided by engine/quality.js isOpenSheetBo3() (Will, 2026-10-01): the bo3
+ * format, and bo1-format rooms whose custom rules are exactly `Force Open Team Sheets` + `Best of = 3`. In bo3 mode the
+ * bo1 store and its raw logs are read too, and only those rooms are taken from them. Each game is judged by the
+ * behavioural-bot set of the store it sits in, as loadGames() does per store. */
+const BO1_ID = REG.showdownFormat;
+const BO1_STORE = path.join(DATA_ROOT, 'data', 'games.' + BO1_ID + '.jsonl.gz');
+const BO1_RAWDIR = path.join(DATA_ROOT, 'data', 'raw', 'games.' + BO1_ID);
+const BO1_RAWPLAIN = path.join(DATA_ROOT, 'data', 'games.' + BO1_ID + '.raw-logs.jsonl');
 const EJECT_BOUNDARY = Date.parse('2026-09-14T00:00:00Z') / 1000;                       // data/team-pool-frozen-regmc
 const SALT = 'abra-prior-v0';
 const BANDS = [[null, 'unrated'], [0, '<1100'], [1100, '1100-1199'], [1200, '1200-1299'], [1300, '1300-1399'], [1400, '1400-1499'], [1500, '1500-1599'], [1600, '>=1600']];
@@ -108,6 +118,22 @@ function main() {
   const games = slim.filter(g => { if (seenIds.has(g.id)) { dupStore++; return false; } seenIds.add(g.id); return true; });
   const bots = Q.behaviouralBots(games, cfg);
   const funnel = { store_rows: storeRows, store_bad_json: storeBad, store_duplicate_ids: dupStore, store_games: games.length };
+  /* bo3 mode: the bo1 store's open-sheet bo3 rooms (see BO1_ID above), judged by the bo1 store's bot set */
+  const promoted = new Set(), botsOf = new Map();
+  if (FMT === 'bo3') {
+    const b1 = fs.readFileSync(BO1_STORE);
+    inputs.push({ role: 'parsed_store_bo1_for_open_sheet_bo3_rooms', path: BO1_STORE.replace(/\\/g, '/'), bytes: b1.length, sha256: sha256(b1), git_blob: blobId(b1), mtime: fs.statSync(BO1_STORE).mtime.toISOString() });
+    const all1 = [], seen1 = new Set();
+    eachLine(zlib.gunzipSync(b1).toString('utf8'), line => {
+      let g; try { g = JSON.parse(line); } catch (e) { return; }
+      if (seen1.has(g.id)) return; seen1.add(g.id);
+      all1.push({ id: g.id, date: g.date, p1: g.p1, p2: g.p2, winner: g.winner, forfeit: g.forfeit, six: g.six, brought: g.brought,
+        turns: (g.turns || []).map(t => ({ ev: (t.ev || []).filter(e => e.t === 'm' || e.t === 's').slice(0, 1) })) });
+    });
+    const bots1 = Q.behaviouralBots(all1, cfg);
+    for (const g of all1) if (Q.isOpenSheetBo3(g) && !seenIds.has(g.id)) { promoted.add(g.id); botsOf.set(g.id, bots1); games.push(g); }
+    funnel.bo1_open_sheet_bo3_rooms = promoted.size;
+  }
   const qFirst = {}, qAll = {};
   const want = new Map();                        // id -> slim game that passed quality + own
   /* GAME-SHAPE CODES ARE RECORDED, NOT CHARGED (Will, 2026-09-30): for the VALUE-NET datasets a forfeit, a short game
@@ -117,12 +143,12 @@ function main() {
   const GAME_SHAPE = new Set(['forfeit_no_action', 'short', 'partial_bring']);
   const qShape = {};
   for (const g of games) {
-    const all = Q.reasons(g, cfg, bots);
+    const all = Q.reasons(g, cfg, botsOf.get(g.id) || bots);
     const rs = all.filter(r => !GAME_SHAPE.has(r));
     g.quality_reasons = all;
     for (const r of all) if (GAME_SHAPE.has(r)) inc(qShape, r);
     const names = [g.p1 && g.p1.name, g.p2 && g.p2.name].filter(Boolean);
-    if (names.some(n => OWN.has(X.toID(n)))) rs.push('own_account');
+    if (names.some(isOwn) && !rs.includes('own_account')) rs.push('own_account');
     if (rs.length) { inc(qFirst, rs[0]); for (const r of rs) inc(qAll, r); continue; }
     want.set(g.id, g);
   }
@@ -137,6 +163,10 @@ function main() {
   const rawFiles = [];
   if (fs.existsSync(RAWDIR)) for (const f of fs.readdirSync(RAWDIR).filter(f => f.endsWith('.jsonl.gz')).sort()) rawFiles.push(path.join(RAWDIR, f));
   if (fs.existsSync(RAWPLAIN)) rawFiles.push(RAWPLAIN);
+  if (FMT === 'bo3') {   /* the bo1 raw logs, for the promoted rooms only (the `want` join below takes nothing else) */
+    if (fs.existsSync(BO1_RAWDIR)) for (const f of fs.readdirSync(BO1_RAWDIR).filter(f => f.endsWith('.jsonl.gz')).sort()) rawFiles.push(path.join(BO1_RAWDIR, f));
+    if (fs.existsSync(BO1_RAWPLAIN)) rawFiles.push(BO1_RAWPLAIN);
+  }
   /* GATE (a) ELIGIBILITY. PORYGON2 v1 trained on the human dataset (solver/out/human/, main checkout), whose manifest
    * lists every raw shard it read. A bo3 game read from a shard NOT on that list was never seen by v1, so the paired
    * v1-vs-v2 held-out comparison is fair to both only on those games (design §6). Recorded per game as `v1_unseen`. */
@@ -177,7 +207,7 @@ function main() {
       const log = String(r.log || '');
       // header filters
       const tier = (/\|tier\|([^\n]*)/.exec(log) || [])[1] || '';
-      if (!/Reg M-C/.test(tier) || (FMT === 'bo3') !== /\(Bo3\)/.test(tier)) return exclude(r.id, 'wrong_format');
+      if (!/Reg M-C/.test(tier) || (FMT === 'bo3') !== (/\(Bo3\)/.test(tier) || promoted.has(r.id))) return exclude(r.id, 'wrong_format');
       /* Illusion first, from the preview alone: a disguised member's lines are credited to the member it copies, which
        * can surface as a parse error (five members with more than four moves) before any later check would see it. */
       const preview = [...log.matchAll(/\n\|poke\|p[12]\|([^,|\n]+)/g)].map(x => x[1].trim());
@@ -185,7 +215,9 @@ function main() {
       let g;
       try { g = R.extract(log, { mode: FMT }); }
       catch (e) { return exclude(r.id, e.code === 'illusion_replace' ? 'illusion_possible' : 'parse_error', e.code || ('exception:' + String(e.message).slice(0, 60))); }
-      if (g.game.custom_rules) return exclude(r.id, 'custom_rules');
+      /* bo3: a custom-rule room is kept only when its rules leave it open-sheet bo3 play (engine/quality.js). bo1, the
+       * closed-sheet stream: every custom-rule room stays out, the open-sheet bo3 ones included (they are bo3 data). */
+      if (g.game.custom_rules && !(FMT === 'bo3' && Q.customRuleRegime(Q.formatOfId(r.id), g.game.custom_rules).open_sheet_bo3)) return exclude(r.id, 'custom_rules');
       const fin = g.final_state;
       const previewSp = ['p1', 'p2'].flatMap(s => fin[s].map(m => m.species));
       if (previewSp.some(sp => ILLUSION.has(X.species(sp).baseSpecies))) return exclude(r.id, 'illusion_possible');
@@ -285,7 +317,8 @@ function main() {
     code, inputs, quality: { config_version: cfg.version || null, behavioural_bot_accounts: behaviouralBotAccounts.length, behavioural_bot_names: behaviouralBotAccounts,
       excluded_first_reason: qFirst, excluded_any_reason: qAll },
     filters: { order: ['quality reasons() incl. bot + behavioural_bot (game-shape codes forfeit_no_action / short / partial_bring recorded in quality_reasons, not charged)', 'own_account', 'no_raw_log', 'wrong_format', 'illusion_possible (preview)', 'parse_error', 'custom_rules', 'illegal_entity', 'pre_ejectbutton_fix', 'no_result', 'no_position'],
-      own_accounts: [...OWN], illusion_species: [...ILLUSION], eject_boundary: '2026-09-14T00:00:00Z',
+      own_accounts: [...Q.ownAccounts()], own_accounts_from: 'data/quality-filter.json rules.exclude_own_accounts',
+      open_sheet_bo3: FMT === 'bo3' ? 'engine/quality.js isOpenSheetBo3(): the bo3 format plus bo1-format rooms under exactly Force Open Team Sheets + Best of = 3 (Will, 2026-10-01)' : 'n/a', illusion_species: [...ILLUSION], eject_boundary: '2026-09-14T00:00:00Z',
       split: 'player split sha256("' + SALT + ':" + toID(name)) mod 100 (<80 train, <90 val, else test), lifted to the game: test if either player is test, else val if either is val, else train' },
     funnel: Object.assign(funnel, { raw_rows_read: rawRows, raw_duplicate_ids: rawDup, raw_duplicate_conflicting_logs: rawConflict, excluded_after_quality: excl, kept: tally.games }),
     parse_errors: parseCodes, parse_examples: parseExamples,

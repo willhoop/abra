@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.65.0] — 2026-10-01 — **Open-sheet bo3 play is one classifier: the bo1 OTS + Bo3 custom room counts, every other custom room and our own accounts are out**
+- **What changed.** Will's decision. `engine/quality.js` `customRuleRegime()` / `isOpenSheetBo3()` decide, from the room's own rule text, whether a game is the game we play; `rules.exclude_own_accounts` in `data/quality-filter.json` 1.7.0 declares our accounts. The usage model, the human dataset, the PORYGON2 v2 bo3 dataset, the meta extract, the top-meta rotation and CHOMP's reader call it. The frozen pool is not re-cut.
+- **Measured.** Custom-rule rooms: 296 kept as open-sheet bo3, all under `Force Open Team Sheets, Best of = 3` (`data/custom-ruleset-ids-regmc.json`). Usage model usable games 27,106 (`data/meta-usage-regmc.json`). The before and after by rule and by rating band, the Eject Button count, and our accounts' games are in the report: `docs/_reports/2026-10-01-custom-ots-bo3.md`.
+- **Basis.** unchanged. The question is the same; the population is narrowed and the before and after are given in the report.
+- **Supersedes.** Nothing retracted. The 1.36.0 row's "2,388 information-regime rooms published, not excluded" is now decided: all but the open-sheet bo3 rooms are excluded.
+- **Owed to the next major.** `docs/MODELS.md` and the white paper: state the open-sheet population as isOpenSheetBo3().
+
 ## [abra/regmc 1.50.0] — 2026-09-30 — **Two SPRTs, both H0: piKL λ 0.03 is not stronger than gen5 at 14 s; PORYGON2 v2 as gen5's leaf is not stronger than gen5's own net at equal clock**
 - **What changed.** Will approved both SPRTs (2026-09-30, "1 2"), and they ran back to back. Pre-registrations: `solver/results/2026-09-30-sprt-pikl-v2/preregistration-sprt{1-pikl,2-p2v2}.json`, committed before the first game. Shared settings: release `eaa5becc54eb`, frozen-regmc store, TEST pairs, honest, elo0 0, elo1 20, α = β = 0.05, max 2,000, seeds 30001 and 30002. Both were played on the arena as it stood before 1.49.0 (XATU-random spreads). New: per-model leaf counters (`rollout.js` `leafByModel`/`leafOwn`, `play.js` `ctr.leaf_by_model`/`ctr.leaf_own`), the X spec `solver/porygon2/v2/gen5-p2v2.json`, and `solver/tests/test-porygon2-v2-arena.js` (GREEN 8/8, RED under `MILTANK_BREAK=leaf`). SPRT 2 ran outside v2's pre-registration, by Will's decision, because gate (a) failed.
 - **Measured.**

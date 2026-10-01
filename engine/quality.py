@@ -370,7 +370,18 @@ def reasons(g, cfg=None, bots=None):
     cr = r.get('exclude_custom_ruleset')
     if cr and cr.get('on') and g.get('id') in custom_ruleset()['ids']:
         bad.append('custom_ruleset')
+    # DECLARED - our own accounts (rules.exclude_own_accounts). Mirrors reasons() in engine/quality.js:
+    # matched on Showdown's user id, lower case letters and digits only.
+    oa = r.get('exclude_own_accounts')
+    if oa and oa.get('on'):
+        own = {_to_id(k) for k in (oa.get('accounts') or {})}
+        if _to_id((g.get('p1') or {}).get('name')) in own or _to_id((g.get('p2') or {}).get('name')) in own:
+            bad.append('own_account')
     return bad
+
+
+def _to_id(s):
+    return re.sub(r'[^a-z0-9]', '', str(s if s is not None else '').lower())
 
 
 def is_clean(g, cfg=None, bots=None):
@@ -402,6 +413,8 @@ FUNNEL_STEPS = [
     # meaning what it meant. The declared row first, then the detector.
     ('after_nonstandard_ruleset', 'nonstandard_ruleset'),
     ('after_custom_ruleset', 'custom_ruleset'),
+    # APPENDED 2026-10-01, for the same reason.
+    ('after_own_accounts', 'own_account'),
 ]
 
 
