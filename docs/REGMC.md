@@ -412,7 +412,7 @@ every run for exactly this reason. Full account:
 
 ### WILL'S DECISION, 2026-10-01: THE OPEN-SHEET BO3 CUSTOM ROOM IS OUR GAME, AND NO OTHER CUSTOM ROOM IS
 
-*(abra/regmc 1.65.0. The judgement the two paragraphs above leave open is taken. They are left as written.)*
+*(abra/regmc 1.64.0. The judgement the two paragraphs above leave open is taken. They are left as written.)*
 
 - **A bo1-format room under the custom rules `Force Open Team Sheets, Best of = 3` IS open-sheet bo3 data,
   the game we play.** The Eject Button / U-turn date-and-item rule (`engine/regmc_pool_predicate.js`

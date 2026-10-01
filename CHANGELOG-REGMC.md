@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.65.0] — 2026-10-01
+## [1.64.0] — 2026-10-01
 
 **MINOR: a published figure moves** (`data/meta-usage-regmc.json`, usable games 27,063 to 27,106 on a newer store).
 The question is unchanged (usage in the game we play); its population is now defined by one classifier, and the
