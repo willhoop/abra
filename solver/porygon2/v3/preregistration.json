@@ -1,0 +1,37 @@
+{
+ "what": "PORYGON2 v3 harness bars and the step-C student's pass rule, written BEFORE any net was scored on the frozen evaluation set (solver/porygon2/v3/DESIGN.md §1)",
+ "written": "2026-10-01T05:30Z",
+ "evalset": "solver/out/p2v3/evalset (solver/porygon2/v3/evalset.js build, release eaa5becc54eb); its sha256 is in its manifest and in every report",
+ "reference": {
+  "what": "MILTANK's root (gen5 MAG+DODUO ranking, k1 = k2 = 4, one reserved switch row, the mega reservation) on honest worlds, each cell filled by games played to the END by gen5's prior argmax on both sides; no value net in it (solver/porygon2/v3/deep.js)",
+  "flags": { "k": 4, "r": 8, "cap": 30 },
+  "noise_ceiling": "the reference against itself, even vs odd playouts, reported beside every ranking figure"
+ },
+ "metrics": {
+  "ranking": ["Kendall tau-b of the net's row values against the deep row values, both under the deep column mix (SLOWKING LP on the deep matrix)", "top-1: the net's best row is the deep best row", "regret: deep best row value minus the deep value of the net's own LP row mix (win-probability points)", "cell tau-b over all k x k cells"],
+  "calibration": ["log-loss, Brier, ECE (10 equal-width bins) against the game result, by source and by min-rating band", "gap[0.5,0.9): mean value minus win rate over positions valued in [0.5, 0.9) (the ladder postmortem's +0.19 window), game-clustered bootstrap CI"],
+  "cost": "microseconds per leaf evaluation (encode + forward), every net interleaved round-robin on the same successor boards in one process (evalset.js bench); the ratio to gen5's net is the figure, the absolute is load-dependent"
+ },
+ "intervals": "paired against gen5's net, bootstrap over games, 2,000 resamples (ECE and |gap| 400), seed 7, 95%",
+ "student_pass_rule": {
+  "net": "the step-C student (solver/porygon2/v3/student.py, distilled from PORYGON2 v2 k1)",
+  "baseline": "gen5's net, solver/machamp/models/gen5/porygon2-gen5.json",
+  "pass_iff_all": [
+   "ranking: paired delta tau-b > 0 with the 95% CI lower bound > 0, OR paired delta regret < 0 with the CI upper bound < 0; and the point estimate of delta top-1 is >= 0",
+   "calibration: paired delta ECE <= 0 (point) with the CI upper bound < +0.005, and |gap[0.5,0.9)| no larger than gen5's (point)",
+   "cost: median leaf cost ratio to gen5 <= 1.00 in the same bench run"
+  ],
+  "on_pass": "pre-register (not run) the 14 s not-lose screen (200 games, the same 100 TEST pairs, pair seed 1, role-v1) and then an SPRT; on fail, neither is pre-registered",
+  "read": "once, from the first complete report over the labelled set; no re-scoring to chase the bar"
+ },
+ "answer_map": {
+  "what": "Will's live answer map (2026-10-01), solver/porygon2/v3/answer_map.js: P(i beats j) for every live pair from MEDICHAM's facts on the current board, aggregated per side",
+  "cost": "median microseconds per evaluation on the same boards as the bench, cold memo and warm (successors of one root)",
+  "effect": "information beyond a net, measured without training on the evaluation set: a logistic recalibration of the net's logit fitted on bo3 VAL positions (not in the set) WITH the 12 answer-map aggregates, against the same recalibration WITHOUT them (the control), both applied to the frozen set; reported as delta log-loss, ECE, gap and ranking metrics with paired CIs. No bar: it decides whether the map goes into the v3 teacher's inputs, not into any arm"
+ },
+ "amendment_2026-10-01T07:35Z": {
+  "what": "The answer_map measurement above is WITHDRAWN before it ran; no net had been scored on the set. Nothing else in this file changes.",
+  "why": "The coordinator relayed another agent's result (branch worktree-agent-a720967c64f3016c7, docs/_reports/2026-10-01-lost-last-answer.md, abra/regmc 1.55.0): the exact MEDICHAM-duel answer map strongly predicts outcomes (a threat with fewer than 0.5 answers left: 82.9% loss rate) but adds nothing to the search's own root value in a held-out comparison (log-loss -0.0045 [-0.0187, +0.0063]) and costs about 3 s of CPU per position. The instruction: not a live net input, not in the fast student; use it as an OFFLINE label or auxiliary target, through that agent's answer_map.js, and do not land a second implementation.",
+  "consequence": "solver/porygon2/v3/answer_map.js (the fact-based prototype) is not landed, and evalset.js carries no answer-map path. The answer map enters v3 only as an auxiliary training target computed offline (DESIGN.md §4.3)."
+ }
+}
