@@ -1,0 +1,59 @@
+{
+ "format": "gen9championsvgc2026regmcbo3",
+ "sampled_store_rows": 4055,
+ "unreadable": {
+  "store_rows": 0,
+  "raw_rows": 0
+ },
+ "reveal_threw": {
+  "illusion_replace": 6,
+  "move_not_on_sheet": 13
+ },
+ "stored_differs_from_fresh": 0,
+ "store": {
+  "games": 4036,
+  "members": 24179,
+  "rates": {
+   "moves_equal": 1,
+   "item_equal": 1,
+   "ability_equal": 1
+  },
+  "wrong": {
+   "item": 0,
+   "ability": 0,
+   "move_extra": 0
+  },
+  "miss": {
+   "item": 0,
+   "ability": 0,
+   "move": 0
+  },
+  "mirror_members": 5996,
+  "mirror_compared": 0,
+  "causes": {
+   "mirror_species_shares_one_key": 5996
+  }
+ },
+ "fresh": {
+  "games": 4036,
+  "members": 30175,
+  "rates": {
+   "moves_equal": 1,
+   "item_equal": 1,
+   "ability_equal": 1
+  },
+  "wrong": {
+   "item": 0,
+   "ability": 0,
+   "move_extra": 0
+  },
+  "miss": {
+   "item": 0,
+   "ability": 0,
+   "move": 0
+  },
+  "mirror_members": 5996,
+  "mirror_compared": 5996,
+  "causes": {}
+ }
+}

@@ -64,6 +64,13 @@ const SK = 'porygon2-v3-student.json', GK = 'porygon2-gen5.json';
 bar('x leaf served the student', (leafByModel[SK] || 0) > 0 && leafOwn[SK] && leafOwn[SK].errors === 0, { calls: leafByModel[SK] || 0, own: leafOwn[SK] || null }, '> 0 calls, 0 errors');
 bar('y leaf served gen5', (leafByModel[GK] || 0) > 0, { calls: leafByModel[GK] || 0 }, '> 0 calls');
 bar('spreads warnings empty', R.spreads && Array.isArray(R.spreads.warnings) && R.spreads.warnings.length === 0, R.spreads && R.spreads.warnings, '[]');
+/* addendum 1 (before the first game): the registered spread mode is the last addendum's, and the run must have played it */
+const ADD = (PR.addenda || []).filter(a => a.effective_flags).pop();
+const regFlags = (ADD ? ADD.effective_flags : PR.flags).split(/\s+/);
+const regMode = regFlags[regFlags.indexOf('--spreads') + 1];
+const lines = (R.spreads && R.spreads.lines_say) || [];
+bar('played the registered spread mode', R.flags && R.flags.spreads === regMode && lines.length === 1 && lines[0] === regMode,
+  { flags: R.flags && R.flags.spreads, lines_say: lines }, regMode);
 /* (7) not paused, not interrupted: the coordinator reached its own stop; a worker exit is 0, or null / a signal from
  * the coordinator's own kill at the bound; the guard saw no ladder process at any sample */
 const stoppedOwn = R.stop_pair_index != null || R.pairs_used + R.excluded_errored_pairs >= Math.floor(R.flags.maxGames / 2);

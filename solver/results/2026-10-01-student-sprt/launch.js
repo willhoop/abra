@@ -52,7 +52,15 @@ async function main() {
   } else log({ kind: 'wait', now: true, ladder: sample().ladder });
   const s0 = sample();
   if (s0.ladder.length) { log({ kind: 'abort', why: 'ladder present at launch', ladder: s0.ladder }); return 2; }
-  const flags = PR.flags.split(/\s+/).filter(Boolean);
+  /* the LAST addendum's effective flags govern (addendum 1: --spreads observed-v1); the tree must carry the mode */
+  const add = (PR.addenda || []).filter(a => a.effective_flags).pop();
+  const flagStr = add ? add.effective_flags : PR.flags;
+  const flags = flagStr.split(/\s+/).filter(Boolean);
+  const mode = flags[flags.indexOf('--spreads') + 1];
+  if (!require(path.join(ROOT, 'solver', 'arena', 'spread_source.js')).MODES.includes(mode)) { log({ kind: 'abort', why: 'this tree does not carry spread mode ' + mode + ': rebase on the main that does' }); return 3; }
+  const head = cp.execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+  const dirty = cp.execFileSync('git', ['status', '--porcelain', '--untracked-files=no'], { cwd: ROOT, encoding: 'utf8' }).trim();
+  log({ kind: 'base', head, dirty_tracked: dirty ? dirty.split('\n').length : 0, addendum: add ? add.n : 0, spreads: mode });
   const env = Object.assign({}, process.env, { ABRA_REGULATION: 'regmc' });
   const out = fs.openSync(path.join(OUTDIR, 'sprt.stdout.log'), 'a');
   const ch = cp.spawn('cmd.exe', ['/c', 'tools\\lownode.cmd', 'solver/machamp/sprt.js', ...flags], { cwd: ROOT, env, stdio: ['ignore', out, out], windowsHide: true });

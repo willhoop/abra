@@ -1,0 +1,64 @@
+{
+ "format": "gen9championsvgc2026regmc",
+ "sampled_store_rows": 6418,
+ "unreadable": {
+  "store_rows": 0,
+  "raw_rows": 0
+ },
+ "reveal_threw": {
+  "bo1_sheets_public(skipped: agrees trivially)": 225,
+  "illusion_replace": 73,
+  "moves_overflow": 1,
+  "move_not_on_sheet": 2
+ },
+ "stored_differs_from_fresh": 0,
+ "store": {
+  "games": 6117,
+  "members": 39065,
+  "rates": {
+   "moves_equal": 1,
+   "item_equal": 1,
+   "ability_equal": 0.9992
+  },
+  "wrong": {
+   "item": 0,
+   "ability": 12,
+   "move_extra": 0
+  },
+  "miss": {
+   "item": 0,
+   "ability": 0,
+   "move": 0
+  },
+  "mirror_members": 6004,
+  "mirror_compared": 0,
+  "causes": {
+   "mirror_species_shares_one_key": 6004,
+   "ability_wrong:unclassified": 12
+  }
+ },
+ "fresh": {
+  "games": 6117,
+  "members": 45069,
+  "rates": {
+   "moves_equal": 1,
+   "item_equal": 1,
+   "ability_equal": 0.9993
+  },
+  "wrong": {
+   "item": 0,
+   "ability": 12,
+   "move_extra": 0
+  },
+  "miss": {
+   "item": 0,
+   "ability": 0,
+   "move": 0
+  },
+  "mirror_members": 6004,
+  "mirror_compared": 6004,
+  "causes": {
+   "ability_wrong:unclassified": 12
+  }
+ }
+}

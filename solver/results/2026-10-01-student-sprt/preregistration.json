@@ -36,5 +36,20 @@
  "expected_direction": "None stated as a prediction. The screen read 0.520 [0.451, 0.588]; the student played 0.946x gen5's playouts per decision at equal clock. elo1 = 20 is a score of about 0.529.",
  "machine": "The ladder has priority (Will, 2026-10-01: it runs nonstop in back-to-back batches). The SPRT starts only when the coordinator says the machine is free or no run_ladder.js / rotom.js process has been seen for 30 continuous minutes, and no engine/reparse_store.js is running. If a ladder run starts during the SPRT, guard.js stops this run's own processes by pid (identified by this run's unique out path on their command line) and the run is VOID.",
  "on_h1": "H1 licenses nothing on the ladder by itself: putting the student on a ladder arm is Will's call.",
- "read": "node solver/results/2026-10-01-student-sprt/read.js --result solver/out/student-sprt/sprt-student-14s.json --guard solver/out/student-sprt/guard.log --out solver/results/2026-10-01-student-sprt/sprt-student-14s.read.json"
+ "read": "node solver/results/2026-10-01-student-sprt/read.js --result solver/out/student-sprt/sprt-student-14s.json --guard solver/out/student-sprt/guard.log --out solver/results/2026-10-01-student-sprt/sprt-student-14s.read.json",
+ "addenda": [
+  {
+   "n": 1,
+   "written_at_utc": "2026-10-01T20:05Z",
+   "before_first_game": true,
+   "changes": {
+    "spreads": "role-v1 -> observed-v1",
+    "code_base": "main at the merge commit that carries observed-v1 (abra/regmc 1.73.0 or later, from branch worktree-agent-a603c160de3f04de2; the mode was added in its 1.72.0). The exact commit is the worktree HEAD that launch.js writes into the guard log at launch, and launch.js refuses to start on a tree whose solver/arena/spread_source.js does not list observed-v1."
+   },
+   "effective_flags": "--release df172ccd2aaf --x solver/porygon2/v3/screen-14s-student.json --y solver/results/2026-09-30-human-regularised/screen-14s-off.json --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 2000 --seed 34101 --workers 3 --cap 50 --info honest --spreads observed-v1 --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --out solver/out/student-sprt/sprt-student-14s.json",
+   "why": "Will switched the arena default to the real Smogon spreads, observed-v1: role-v1 with the observed hooks from Smogon's September 2026 Reg M-C stats folded in, the spreads the ladder itself plays (solver/arena/spread_source.js). An SPRT that decides whether a leaf is fit for the ladder should play the ladder's bodies. No game of this SPRT had been played when this addendum was written, so nothing is chosen after seeing data.",
+   "unchanged": "Everything else stays as registered above: the arms, release df172ccd2aaf, the 14 s adaptive clock, elo0 0, elo1 20, alpha = beta = 0.05, max 2,000 games, seed 34101, --info honest, the frozen team store, --cap 50, 3 workers, and every VOID bar, the 636 playouts floor included. The floor came from a role-v1 reference at half its lower arm; a spread change alters body stats, not the cost of a playout, so the floor is kept, not re-measured.",
+   "reader": "Under bar (6), read.js also checks that the run played the registered spread mode: flags.spreads and spreads.lines_say both equal observed-v1."
+  }
+ ]
 }
