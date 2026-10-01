@@ -1,4 +1,4 @@
-# DUSK, the endgame solver: design and measurement (abra/regmc 1.51.0)
+# DUSK, the endgame solver: design and measurement (abra/regmc 1.54.0)
 
 2026-10-01. SOLVER. Design plus store-only and read-only measurement. **No game was played, no engine was loaded, no
 ladder or arena run was started.** The design is `solver/dusk/DESIGN.md`; this file is the full account.

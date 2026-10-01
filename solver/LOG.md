@@ -8,7 +8,7 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-10-01
 
-### DUSK designed, not built: on-the-fly endgame solver, not tables (abra/regmc 1.51.0)
+### DUSK designed, not built: on-the-fly endgame solver, not tables (abra/regmc 1.54.0)
 - Endgames (both sides ≤ 2 alive) are reached in 44.0% of all bo3 games (62.9% of clean, fully revealed ones) and 46.6%
   of ours; about 2 decisions remain. Material: 2v2 59%, 2v1 38%, 1v1 3%; 2v1 is won by the side ahead 88.8%.
 - Tables cannot pay: a key that fixes the value repeats ≤ 1.0% of the time chronologically (17% for the bare species

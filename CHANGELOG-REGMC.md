@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.51.0] — 2026-10-01
+## [1.54.0] — 2026-10-01
 
 **MINOR: no published figure moves.** A design and its measurements; nothing is built and no game was played.
 
