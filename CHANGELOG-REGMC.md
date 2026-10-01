@@ -28,6 +28,50 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.69.0] — 2026-10-01
+
+**MINOR: the searcher's bodies are built the way the battle's are.** `solver/tests/test-miltank.js` SWAP was red on main:
+the arena's team body carried the sheet's nature and its role-v1 spread (1.49.0), and the rollout's fresh body (a hidden
+body a world redraws) was still the table's flat line with no nature. And no body carried `_sp`, so 1.51.0's engine fix
+(a mega or forme change recomputes an HP-invested line from the set) never reached the arena or ROTOM. Now there is one
+fresh-body builder, `_sp` is stamped with HP, and a not-lose screen passes.
+
+### Fixed
+- **One builder for every search body.** `solver/arena/spread_source.js` `bodyBuilder(buildBody, { view })` lays a fresh
+  body through the same two calls as a team body (`rowSpread`, then `solver/xatu/worlds.js` `applySpread`), and
+  `buildTeam` now lays the spread before `_solverSheet`, so the two are the same object key for key. `T.bodyBuilder(M,
+  { view })` is the door. View `truth` is the omniscient searcher's (test-miltank, self-play `--info omniscient`,
+  `solver/arena/arena.js` and its pool workers through `MILTANK_BODIES`). View `public` is zero SP under the sheet's
+  nature, for an opponent body under honest information (the honest arena, ROTOM's rollout and world, ROTOM's
+  preview search for their side).
+- **`applySpread` stamps `_sp`, HP included**, in the engine's keys. Every arena and ROTOM body now takes the engine's
+  recompute on a mega or a forme change. On the screen's true battles: 367 megas recomputed from `_sp`, 0 deltas.
+- **What each side gets under honest information.** Mine: the true body (the arena), or in ROTOM the spread we SENT,
+  read from our packed team, laid, and checked against the request's exact line. If the check fails, `_sp` is
+  dropped and counted. Theirs: the public body at the root; in each world, XATU's spread belief re-lays every opponent
+  body. Without a belief the bodies are re-laid at zero SP and counted (`spreadsPublicZero`), so a role-v1 body can
+  never leak the arena's true spread.
+- **ROTOM refused every public start.** Its own-account check still read `const OWN = new Set([...])` from two files
+  that, since 1.65.0, read the one list in `data/quality-filter.json`. It now asks `engine/quality.js`
+  `isOwnAccount`. `solver/tests/test-rotom-ladder.js` STARTUP was red on main; it is green.
+
+### Added
+- `solver/tests/test-body-parity.js`, GREEN 7/7 on `df172ccd2aaf`. It covers all 90 rotation sets. FRESH: the fresh
+  body equals the team body (six stats, nature, `_sp`, key for key, and through `rollout.body`). OWN: our side equals
+  ROTOM's fielded line, with `_sp` carrying the HP. PUBLIC: the line is zero SP plus nature. MEGA: 25 HP-invested mega
+  sets recompute to the authority's line. RED under `SPREAD_FRESH_BREAK=flat` (FRESH, and test-miltank SWAP) and
+  `SPREAD_SP_BREAK=1` (MEGA).
+- Spec option `bodies: "pre-1.69"` (`solver/mew/agent.js`, honest view only): strips `_sp` from the view and each world.
+  This is the screen's Y arm. Match lines now carry `ctr.pre169` and `ctr.form_stats`.
+- `solver/results/2026-10-01-body-spreads/`: `measure.js` and its output, the pre-registration (commit `4b71937d`,
+  pushed before the first game), `read.js`, both specs, and the result and its single read.
+
+### Record
+- **Measured.** Body changes on the screen's 100 test pairs (`solver/results/2026-10-01-body-spreads/measure.json`, 1,200 sheet rows). Omniscient fresh bodies: 1,200 of 1,200 lines changed, Speed on 1,160, mean |Δ| HP 8.6 / Atk 13.7 / Def 3.6 / SpA 13.1 / SpD 7.4 / Spe 11.1, max 80. Public bodies (ROTOM's world and no-belief rollout) against the flat line: 1,200 of 1,200, Speed on 1,047, HP unchanged. Honest world bodies after XATU's belief: 0 of 3,200 changed. Mega bodies, delta against recompute: 6 of 215 one point apart (Atk or Spe). Not-lose screen, 2 s, bodies 1.69 against pre-1.69, release `df172ccd2aaf`: **PASS, 0.505 [0.436, 0.574]** (101–99, 200 games). Pairs 17 / 67 / 16. Clock ratio 1.006. Fallbacks 0 and 1 (sparse). Playouts per decision 397.8 and 394.8, floor 161 (`screen-bodies169-2s.read.json`). Tests GREEN: test-miltank 3734/3734 with its reds, test-body-parity 7/7, test-arena-spreads 15/15 (3 NOT CHECKED, as before), test-honest-info 1954/1954, test-rotom 105/105, test-rotom-ladder 161/161, test-machamp 109/109. Report: `docs/_reports/2026-10-01-rollout-body-spreads.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published. Every omniscient or self-play figure measured before 1.69.0 had fresh bodies at the flat line, and arena true-battle megas took the delta. Those figures stand as figures of that environment; none is in a living document.
+- **Owed to the next major.** `docs/MODELS.md` (MILTANK, ROTOM): fresh bodies follow the team's builder; the opponent is public plus XATU's belief. `docs/SOLVER.md`: the restamp by `node engine/status.js --write` from the main checkout after the merge.
+
 ## [1.68.0] — 2026-10-01
 
 **MINOR: no published figure moves.** The two screens pre-registered in 1.67.0 are read, once each, at 200 games. Both
