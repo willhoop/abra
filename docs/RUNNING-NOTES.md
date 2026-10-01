@@ -53,6 +53,30 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.52.0] — 2026-10-01 — **The store's `sets` attributed set facts to the wrong Pokemon by nine causes; the extractor is fixed, the re-parse is owed**
+- **What changed.**
+  - `engine/durable-ingest.js` `extract()` now credits a set fact only to the Pokemon that brought it. Nine causes
+    are fixed, each pinned in `tests/test-parse.js` and each RED with its own fix reverted.
+  - New: `engine/store_sets_check.js` (the check, with `solver/porygon2/v2/reveal.js` as the reference) and
+    `engine/reparse_store.js` (a streaming re-parse from raw shards).
+  - Rows gain `mirrorSets`, additive.
+- **Measured.** These figures are from `docs/_reports/2026-10-01-store-set-attribution/check-bo1.json`: a 1-in-10 bo1
+  sample, 5,950 games, 37,964 non-mirror members, against the reference reveal of the same logs.
+  - Stored `sets`, moves / items / abilities: 99.69% / 98.97% / 97.54%. That is 539 wrong values and 6,616 misses.
+    The largest causes:
+    - Trace 246;
+    - Trick-family 151;
+    - `|cant|` moves 67;
+    - items named only on `-damage` (2,864) and `-heal` (1,707).
+  - A fresh extract agrees on 100% / 100% / 99.93% across all 43,829 members, mirrors included. The 12 that disagree
+    are the reference's error.
+  - Bo3 (`check-bo3.json`, 1-in-5): 26 extra moves and the mirror merge (11,936 of 59,231 members) are both now 0.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published. No living document quotes a `sets`-derived Reg M-C figure. PORYGON2 v2's
+  crosscheck (98.49 / 97.55 / 97.31) stands as what it measured: the stored rows, on its subset.
+- **Owed to the next major.** `docs/ABRA-technical-docs.md` (the store schema: `mirrorSets`, `mirror`), and the
+  re-parse itself (OWED in the report).
+
 ## [abra/regmc 1.50.0] — 2026-09-30 — **Two SPRTs, both H0: piKL λ 0.03 is not stronger than gen5 at 14 s; PORYGON2 v2 as gen5's leaf is not stronger than gen5's own net at equal clock**
 - **What changed.** Will approved both SPRTs (2026-09-30, "1 2"), and they ran back to back. Pre-registrations: `solver/results/2026-09-30-sprt-pikl-v2/preregistration-sprt{1-pikl,2-p2v2}.json`, committed before the first game. Shared settings: release `eaa5becc54eb`, frozen-regmc store, TEST pairs, honest, elo0 0, elo1 20, α = β = 0.05, max 2,000, seeds 30001 and 30002. Both were played on the arena as it stood before 1.49.0 (XATU-random spreads). New: per-model leaf counters (`rollout.js` `leafByModel`/`leafOwn`, `play.js` `ctr.leaf_by_model`/`ctr.leaf_own`), the X spec `solver/porygon2/v2/gen5-p2v2.json`, and `solver/tests/test-porygon2-v2-arena.js` (GREEN 8/8, RED under `MILTANK_BREAK=leaf`). SPRT 2 ran outside v2's pre-registration, by Will's decision, because gate (a) failed.
 - **Measured.**

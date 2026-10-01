@@ -26,6 +26,22 @@ _stamped 2026-09-30 08:46_
 
 <!-- /GENERATED -->
 
+## THE INGEST'S `sets` CREDITED SET FACTS TO THE WRONG POKEMON BY NINE CAUSES. FIXED IN `extract()`, RE-PARSE OWED. 2026-10-01 (abra/regmc 1.52.0, MEASURE)
+
+`engine/durable-ingest.js` `extract()` is changed. New rows from the collector get the fixed `sets` once this merges.
+Rows already stored keep the old ones until the owed re-parse.
+
+- **Schema, additive only.** `mirrorSets` is added for a species on both sides, and its merged `sets` entry gains
+  `mirror: true`.
+- **`turns` changes after an Ally Switch.** The `mon`/`tgt` fields are now correct, because the slot map follows
+  `|swap|`.
+- **The re-parse tool is `engine/reparse_store.js`.** It streams the raw shards. The old `MODE=reparse` reads only the
+  plain `.raw-logs.jsonl`, which for Reg M-C stopped on 2026-09-09.
+- **The swap.** It races this collector's hourly commit of the same `.gz` blobs, so it is done between two collector
+  runs.
+
+The commands are in `docs/_reports/2026-10-01-store-set-attribution.md`, under OWED.
+
 ## THE RAW SHARD WRITER IS CAPPED, TWO STORE ROWS CARRY A SPLIT CHARACTER IN THEIR `|win|` LINE, AND THE HOURLY COLLECTOR HAS NOT YET RUN ON CI. 2026-09-09, CHANGELOG 5.277.0
 
 **THE CAP (#556, closed by MEASURE).** `build/compress-stores.js --raw` now shards at `SHARD_BYTES` (32 MiB of source) like the parsed writer; the one uncapped write, `data/raw/games.ladder/20260909T2052-00.jsonl.gz` at 58,753,177 B (56.03 MiB, 76,741 logs, commit `71771f0b`), stays — under the 100 MB wall, over the 50 MB warning, permanent. Budget at 176 games/h: one ~135 KB shard per hourly run, 24 a day, in one directory per store; that is a tree-object cost, not a per-file wall. Account: `docs/_reports/2026-09-09-raw-shard-cap.md`.

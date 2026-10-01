@@ -21,6 +21,43 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.52.0] — 2026-10-01
+
+**MINOR: a published figure moves under an unchanged basis.** A re-parse, still owed, would change `sets` in 83% of
+sampled bo1 rows and 69% of sampled bo3 rows. The question each `sets` figure answers is unchanged: what each Pokemon
+brought. It is answered better.
+
+### Added
+- `engine/store_sets_check.js`. It compares the parsed store's `sets`, and a fresh `extract()` of the same raw log,
+  against `solver/porygon2/v2/reveal.js` (the reference, reused as is), and classifies every mismatch by cause.
+  Receipts: `docs/_reports/2026-10-01-store-set-attribution/check-bo{1,3}.json`.
+- `engine/reparse_store.js`. It re-derives a parsed `.jsonl.gz` store from its raw shards in a streaming pass. It writes
+  only `<store>.reparsed`, keeps the store's ids and order, carries over unchanged any row with no raw log, and refuses
+  on a lost id. The three older rebuild paths read one plain raw file, which for Reg M-C stopped growing on 2026-09-09.
+- `mirrorSets` on a store row: `{species: {p1, p2}}` for a species on both sides. The merged `sets` entry gains
+  `mirror: true`.
+- `tests/test-parse.js`: nine `CAUSE` cases (42 to 66 checks). Each is RED with its own fix reverted.
+
+### Fixed
+- **`engine/durable-ingest.js` `extract()` attributed set facts to the wrong Pokemon.** On a 1-in-10 bo1 sample
+  (37,964 members), the stored sets held 539 wrong values and 6,616 misses. After the fix a fresh extract agrees with
+  the reference on 100% of moves and items and 99.93% of abilities, and the 12 that disagree are the reference's error.
+  The nine causes:
+  - `|cant|` moves;
+  - called moves and Struggle;
+  - transformed bodies;
+  - Trick-family items;
+  - Traced, Entrained and Skill-Swapped abilities;
+  - Ally Switch;
+  - items and abilities named only on other lines (Life Orb, Leftovers, Rough Skin, Hospitality …);
+  - mirror species.
+
+### Notes
+- **Not re-parsed.** The commands, the order and the growth budget are under OWED in
+  `docs/_reports/2026-10-01-store-set-attribution.md`. The frozen pool `data/team-pool-frozen-regmc/` is not touched.
+- Bo1 item usage counted from `sets` under-counted every self-silent item. On the sample Life Orb was 90 against
+  2,764.
+
 ## [1.50.0] — 2026-09-30
 
 **MINOR: no published figure moves.** It adds two SPRT results and a per-model leaf counter.
