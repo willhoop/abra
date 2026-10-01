@@ -53,6 +53,21 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.51.0] — 2026-10-01 — **Lost the last answer: real, tied to losing, not a separate cause; the live answer map predicts and adds nothing over the search's value**
+- **What changed.** A read-only analysis, with no play and no engine change. `solver/results/2026-10-01-lost-last-answer/`: `answer_map.js` (P(i beats j) from 16 MEDICHAM one-on-ones per pair on the live position, release `eaa5becc54eb`); `maps.js` (every move decision of the saved ladder games, through ROTOM's world rebuilt from the log, with the back line taken from the whole log); `analyze.js`; `maps/` (1,131 positions, 1.4 MB); `results.json`. Test: `solver/tests/test-answer-map.js`, GREEN 6/6, RED under `ANSWER_MAP_BREAK=fullhp`.
+- **Measured** (`results.json`).
+  - Coverage: 158 games (chomp1 49, gen5ab 41 search and 33 prior, chomptop 35), 1,131 positions, 0 build failures.
+  - A contested last-answer faint is in 31 of 90 losses and 9 of 68 wins.
+  - Its residual against other faints at the same value is −0.092 [−0.225, +0.059]. The value then falls 0.108 more [−0.214, −0.006].
+  - It is the turning point in 6 of 26 post-mortem losses: OUTSPED 2, UNSEEN_ACTION, SPEED_CONTROL, BEHIND_FROM_PREVIEW and SUCKER_PUNCH 1 each.
+  - In 33 events with a table, a preserving row was searched and not chosen in 18, and absent in 14.
+  - A threat with fewer than 0.5 answers left: we lost 0.829.
+  - Leave-one-game-out log-loss, value vs value + map: −0.0045 [−0.0187, +0.0063].
+  - Report: `docs/_reports/2026-10-01-lost-last-answer.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** `docs/MODELS.md` (ROTOM's ladder record): one line, saying the last-answer hypothesis was tested and is not a separate cause.
+
 ## [abra/regmc 1.50.0] — 2026-09-30 — **Two SPRTs, both H0: piKL λ 0.03 is not stronger than gen5 at 14 s; PORYGON2 v2 as gen5's leaf is not stronger than gen5's own net at equal clock**
 - **What changed.** Will approved both SPRTs (2026-09-30, "1 2"), and they ran back to back. Pre-registrations: `solver/results/2026-09-30-sprt-pikl-v2/preregistration-sprt{1-pikl,2-p2v2}.json`, committed before the first game. Shared settings: release `eaa5becc54eb`, frozen-regmc store, TEST pairs, honest, elo0 0, elo1 20, α = β = 0.05, max 2,000, seeds 30001 and 30002. Both were played on the arena as it stood before 1.49.0 (XATU-random spreads). New: per-model leaf counters (`rollout.js` `leafByModel`/`leafOwn`, `play.js` `ctr.leaf_by_model`/`ctr.leaf_own`), the X spec `solver/porygon2/v2/gen5-p2v2.json`, and `solver/tests/test-porygon2-v2-arena.js` (GREEN 8/8, RED under `MILTANK_BREAK=leaf`). SPRT 2 ran outside v2's pre-registration, by Will's decision, because gate (a) failed.
 - **Measured.**

@@ -1,0 +1,21 @@
+{
+ "started": "2026-10-01T05:51:32.836Z",
+ "release": "eaa5becc54eb",
+ "root": "C:/Users/willj/Projects/Pokemon/ABRA/solver/out/rotom",
+ "runs": [
+  "chomp1-2026-09-29T23-13-11-521Z",
+  "gen5ab-2026-09-26T04-06-53-848Z",
+  "chomptop-2026-10-01T04-18-07-546Z"
+ ],
+ "n_duels_per_pair": 16,
+ "duel_cap_turns": 10,
+ "pick_memo": true,
+ "prune": false,
+ "workers": 8,
+ "argv": [
+  "--workers",
+  "8"
+ ],
+ "games_listed": 158,
+ "regulation": "regmc"
+}

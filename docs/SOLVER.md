@@ -120,6 +120,11 @@ This section says only what a division agent needs before it starts.
   0.525 [0.456, 0.593], clock ratios 0.99-1.00. At 14 s the Protect fail rate is 10.1% vs 16.9%. λ 0.1 fails (0.405). λ 0.01
   is VOID by its capability clause (1 uniform-anchor decision). No SPRT; the flag is off.
   `docs/_reports/2026-09-30-human-regularised-phase-b.md`.
+- **Lost the last answer (2026-10-01, abra/regmc 1.51.0).** The live answer map is MEDICHAM one-on-ones on the
+  rebuilt position, 1,131 ladder positions. A contested last-answer faint is in 31 of 90 losses and 9 of 68 wins. At
+  equal value it costs no more than any other faint (−0.092 [−0.225, +0.059]), and it is the turning point in 6 of 26.
+  The map adds nothing over the root value (log-loss −0.0045 [−0.0187, +0.0063]), so it is not a live net input.
+  `docs/_reports/2026-10-01-lost-last-answer.md`.
 - **Two SPRTs, both H0 (2026-09-30, abra/regmc 1.50.0).**
   - piKL λ 0.03 vs gen5 at the 14 s clock: 416 games, 0.469 [0.421, 0.517], clock ratio 0.976. The Protect fail rate
     is 9.8% vs 15.8%, with no strength gain.

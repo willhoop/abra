@@ -1,0 +1,5456 @@
+{
+ "generated_by": "solver/results/2026-10-01-lost-last-answer/analyze.js",
+ "maps": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\.claude\\worktrees\\agent-a720967c64f3016c7\\solver\\results\\2026-10-01-lost-last-answer\\maps",
+ "root": "C:/Users/willj/Projects/Pokemon/ABRA/solver/out/rotom",
+ "release": "eaa5becc54eb",
+ "thresholds": {
+  "near_last": 1.2,
+  "is_answer": 0.5,
+  "unanswered": 0.5
+ },
+ "meta": [
+  {
+   "file": "maps-meta-2026-10-01T07-02-49-439Z.json",
+   "started": "2026-10-01T07:03:06.190Z",
+   "release": "eaa5becc54eb",
+   "root": "C:/Users/willj/Projects/Pokemon/ABRA/solver/out/rotom",
+   "runs": [
+    "chomp1-2026-09-29T23-13-11-521Z",
+    "gen5ab-2026-09-26T04-06-53-848Z",
+    "chomptop-2026-10-01T04-18-07-546Z"
+   ],
+   "n_duels_per_pair": 16,
+   "duel_cap_turns": 10,
+   "pick_memo": true,
+   "prune": false,
+   "workers": 3,
+   "argv": [
+    "--workers",
+    "3"
+   ],
+   "games_listed": 161,
+   "regulation": "regmc"
+  },
+  {
+   "file": "maps-meta-pass1.json",
+   "started": "2026-10-01T05:51:32.836Z",
+   "release": "eaa5becc54eb",
+   "root": "C:/Users/willj/Projects/Pokemon/ABRA/solver/out/rotom",
+   "runs": [
+    "chomp1-2026-09-29T23-13-11-521Z",
+    "gen5ab-2026-09-26T04-06-53-848Z",
+    "chomptop-2026-10-01T04-18-07-546Z"
+   ],
+   "n_duels_per_pair": 16,
+   "duel_cap_turns": 10,
+   "pick_memo": true,
+   "prune": false,
+   "workers": 8,
+   "argv": [
+    "--workers",
+    "8"
+   ],
+   "games_listed": 158,
+   "regulation": "regmc"
+  }
+ ],
+ "coverage": {
+  "chomp1:miltank-gen5": {
+   "games": 49,
+   "decisions": 369,
+   "won": 23,
+   "lost_no_ff": 26,
+   "won_no_ff": 11,
+   "build_errors": 0
+  },
+  "chomptop:miltank-gen5": {
+   "games": 35,
+   "decisions": 251,
+   "won": 17,
+   "lost_no_ff": 18,
+   "won_no_ff": 7,
+   "build_errors": 0
+  },
+  "gen5ab:prior": {
+   "games": 33,
+   "decisions": 211,
+   "won": 12,
+   "lost_no_ff": 21,
+   "won_no_ff": 8,
+   "build_errors": 0
+  },
+  "gen5ab:miltank-gen5": {
+   "games": 41,
+   "decisions": 300,
+   "won": 16,
+   "lost_no_ff": 25,
+   "won_no_ff": 9,
+   "build_errors": 0
+  }
+ },
+ "counters": {
+  "C.games": 164,
+  "C.decisions": 1131,
+  "C.built": 1131,
+  "C.buildFailed": 0,
+  "C.skippedNoPreview": 0,
+  "C.skippedDone": 155,
+  "AM.memoHits": 217886,
+  "AM.duels": 183648,
+  "AM.steps": 271930,
+  "AM.probes": 278649,
+  "AM.capped": 220,
+  "AM.draws": 0,
+  "AM.noMove": 0,
+  "AM.maps": 1131,
+  "world.built": 1131,
+  "world.failed": 0,
+  "world.megaApplied": 1447,
+  "world.megaFailed": 0,
+  "world.mineUnmatched": 0,
+  "world.oppGuessUsed": 655,
+  "world.oppFilledBlind": 346,
+  "world.stallLaid": 501,
+  "world.stallNoLines": 0,
+  "world.perishLaid": 49,
+  "world.volLaid": 17,
+  "world.subLaid": 12,
+  "world.seedLaid": 0,
+  "world.confusionLaid": 0,
+  "world.trapLaid": 0,
+  "world.yawnLaid": 2,
+  "world.slpLaid": 16,
+  "world.toxLaid": 0,
+  "world.lockLaid": 124,
+  "world.abilityLaid": 46,
+  "world.hazardLaid": 16,
+  "world.fieldLaid": 1327,
+  "world.fieldFromLog": 1131
+ },
+ "all": {
+  "frequency": {
+   "all_lost_no_forfeit": {
+    "games": 90,
+    "with_event": 50,
+    "with_strict": 50
+   },
+   "all_won_no_forfeit": {
+    "games": 35,
+    "with_event": 6,
+    "with_strict": 6
+   },
+   "all_won_by_forfeit": {
+    "games": 33,
+    "with_event": 3,
+    "with_strict": 3
+   },
+   "all_lost_by_forfeit": {
+    "games": 0,
+    "with_event": 0,
+    "with_strict": 0
+   },
+   "search_lost_no_forfeit": {
+    "games": 69,
+    "with_event": 42,
+    "with_strict": 42
+   },
+   "search_won_no_forfeit": {
+    "games": 27,
+    "with_event": 4,
+    "with_strict": 4
+   }
+  },
+  "win_rate_after": {
+   "games_with_event": {
+    "n": 59,
+    "won": 9,
+    "rate": 0.153
+   },
+   "games_without_event": {
+    "n": 99,
+    "won": 59,
+    "rate": 0.596
+   },
+   "games_with_strict": {
+    "n": 59,
+    "won": 9,
+    "rate": 0.153
+   }
+  },
+  "faint_control": {
+   "last_answer_faints": {
+    "faints": 79,
+    "games": 59,
+    "win_rate": 0.114,
+    "mean_value_before": 0.281,
+    "mean_value_next": 0.244,
+    "residual_won_minus_value": -0.191
+   },
+   "strict_last_answer_faints": {
+    "faints": 79,
+    "games": 59,
+    "win_rate": 0.114,
+    "mean_value_before": 0.281,
+    "mean_value_next": 0.244,
+    "residual_won_minus_value": -0.191
+   },
+   "other_faints": {
+    "faints": 335,
+    "games": 133,
+    "win_rate": 0.212,
+    "mean_value_before": 0.388,
+    "mean_value_next": 0.343,
+    "residual_won_minus_value": -0.177
+   },
+   "all_faints": {
+    "faints": 414,
+    "games": 135,
+    "win_rate": 0.193,
+    "mean_value_before": 0.365,
+    "mean_value_next": 0.327,
+    "residual_won_minus_value": -0.18
+   }
+  },
+  "alternatives": {
+   "events": 79,
+   "with_table": 66,
+   "active_at_decision": 76,
+   "switched_in_that_turn": 4,
+   "legal_switch": 37,
+   "legal_stall": 59,
+   "neither_legal": 4,
+   "chosen_was_preserving": 7,
+   "preserving_row_in_table": 26,
+   "preserving_row_rated_higher": 11,
+   "no_preserving_row_in_table": 33,
+   "mean_gap_chosen_minus_best_preserving": 0.063
+  },
+  "postmortem_losses": [
+   {
+    "n": 1,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690111302",
+    "class": "VISIBLE_KO",
+    "also": [
+     "SETUP"
+    ],
+    "tp_turn": 3,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 7,
+      "mon": "incineroar",
+      "to": "kingambit (A 0.75, P 0.75)",
+      "strict": true
+     },
+     {
+      "turn": 12,
+      "mon": "gengar-mega",
+      "to": "sneasler (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 2,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690115224",
+    "class": "VISIBLE_KO",
+    "also": [],
+    "tp_turn": 5,
+    "mapped": true,
+    "events": [],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 3,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690116810",
+    "class": "UNSEEN_ACTION",
+    "also": [],
+    "tp_turn": 8,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 8,
+      "mon": "indeedee",
+      "to": "garchomp (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": true,
+    "strict_at_turning_point": true,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 4,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690118545",
+    "class": "VISIBLE_KO",
+    "also": [],
+    "tp_turn": 2,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 8,
+      "mon": "tyranitar-mega",
+      "to": "mimikyu (A 0.75, P 0.75)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 5,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690119994",
+    "class": "VISIBLE_KO",
+    "also": [],
+    "tp_turn": 3,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 5,
+      "mon": "sneasler",
+      "to": "torkoal (A 0.9375, P 0.75)",
+      "strict": true
+     },
+     {
+      "turn": 7,
+      "mon": "kingambit",
+      "to": "torkoal (A 1, P 1); farigiraf (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 6,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690120749",
+    "class": "SPEED_CONTROL",
+    "also": [],
+    "tp_turn": 3,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 7,
+      "mon": "sneasler",
+      "to": "farigiraf (A 0.875, P 0.875)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 7,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690121468-je1ca9h7t1ieywx0ohi326o4gihs7lfpw",
+    "class": "SPEED_CONTROL",
+    "also": [
+     "double Protect"
+    ],
+    "tp_turn": 4,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 3,
+      "mon": "kingambit",
+      "to": "farigiraf (A 1.125, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": true,
+    "strict_at_turning_point": true,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 8,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690124113",
+    "class": "SPEED_CONTROL",
+    "also": [
+     "SETUP",
+     "double Protect"
+    ],
+    "tp_turn": 2,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 6,
+      "mon": "sneasler",
+      "to": "farigiraf (A 0.75, P 0.75)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 9,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690128111",
+    "class": "OUTSPED",
+    "also": [
+     "UNSEEN_ACTION"
+    ],
+    "tp_turn": 6,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 7,
+      "mon": "indeedee",
+      "to": "sneasler (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": true,
+    "strict_at_turning_point": true,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 10,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690132190-r4atre079140vjncw3sx9nnurpigng8pw",
+    "class": "BEHIND_FROM_PREVIEW",
+    "also": [],
+    "tp_turn": 1,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 5,
+      "mon": "sneasler",
+      "to": "charizard-mega-y (A 1, P 1)",
+      "strict": true
+     },
+     {
+      "turn": 10,
+      "mon": "archaludon",
+      "to": "incineroar (A 1, P 1); venusaur (A 0.875, P 0.875)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 11,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690133981",
+    "class": "SUCKER_PUNCH",
+    "also": [],
+    "tp_turn": 3,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 9,
+      "mon": "raichu-mega-y",
+      "to": "staraptor-mega (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 12,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690137512-hnu56nou8rto5eo17quxe9bve6ih34ypw",
+    "class": "SUCKER_PUNCH",
+    "also": [
+     "VISIBLE_KO"
+    ],
+    "tp_turn": 6,
+    "mapped": true,
+    "events": [],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 13,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690138516-ol05sba9c38m92ic0h5wt1810eomapepw",
+    "class": "VISIBLE_KO",
+    "also": [
+     "SUCKER_PUNCH"
+    ],
+    "tp_turn": 4,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 6,
+      "mon": "kingambit",
+      "to": "gholdengo (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 14,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690142835-aish3b3iqj0k97iwvdygorbefgl9n6wpw",
+    "class": "BEHIND_FROM_PREVIEW",
+    "also": [],
+    "tp_turn": 1,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 6,
+      "mon": "salamence-mega",
+      "to": "kingambit (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 15,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690144606-f9qmh4eh8tn7uf9m5d4psf2ifajbjclpw",
+    "class": "SPEED_CONTROL",
+    "also": [
+     "double Protect"
+    ],
+    "tp_turn": 6,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 10,
+      "mon": "excadrill",
+      "to": "farigiraf (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 16,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690146981-p1kcd17hr43vi1q4fp9uct8q36yqbygpw",
+    "class": "BEHIND_FROM_PREVIEW",
+    "also": [],
+    "tp_turn": 1,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 2,
+      "mon": "salamence-mega",
+      "to": "kommoo (A 1.125, P 0.875)",
+      "strict": true
+     },
+     {
+      "turn": 4,
+      "mon": "sneasler",
+      "to": "kommoo (A 1.0625, P 0.9375)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": true,
+    "strict_at_turning_point": true,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 17,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690148012-3vtgmssb54kxtsrasjaem728vgp9bqjpw",
+    "class": "SPEED_CONTROL",
+    "also": [],
+    "tp_turn": 3,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 6,
+      "mon": "sneasler",
+      "to": "kommoo (A 1, P 1)",
+      "strict": true
+     },
+     {
+      "turn": 7,
+      "mon": "salamence-mega",
+      "to": "pyroar (A 0.875, P 0.875); kommoo (A 0.875, P 0.875)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 18,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690149705",
+    "class": "SETUP",
+    "also": [
+     "double Protect",
+     "VISIBLE_KO"
+    ],
+    "tp_turn": 1,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 3,
+      "mon": "sneasler",
+      "to": "sneasler (A 0.5625, P 0.5625)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 19,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690150445",
+    "class": "SETUP",
+    "also": [
+     "UNSEEN_ACTION"
+    ],
+    "tp_turn": 4,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 9,
+      "mon": "archaludon",
+      "to": "incineroar (A 1, P 1); kingambit (A 0.75, P 0.75)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 20,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690151595",
+    "class": "SUCKER_PUNCH",
+    "also": [],
+    "tp_turn": 5,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 7,
+      "mon": "gengar-mega",
+      "to": "gholdengo (A 1.0625, P 1)",
+      "strict": true
+     },
+     {
+      "turn": 11,
+      "mon": "sneasler",
+      "to": "volcarona (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 21,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690153326",
+    "class": "SUCKER_PUNCH",
+    "also": [
+     "SETUP"
+    ],
+    "tp_turn": 6,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 6,
+      "mon": "kingambit",
+      "to": "volcarona (A 1.1875, P 1)",
+      "strict": true
+     },
+     {
+      "turn": 8,
+      "mon": "gengar-mega",
+      "to": "gholdengo (A 1, P 1)",
+      "strict": true
+     },
+     {
+      "turn": 9,
+      "mon": "sneasler",
+      "to": "sinistcha (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": true,
+    "strict_at_turning_point": true,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 22,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690154483-dpuuw8l7j3wu1kjy9ambegncf9jk8glpw",
+    "class": "OUTSPED",
+    "also": [],
+    "tp_turn": 4,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 4,
+      "mon": "basculegion",
+      "to": "sylveon (A 1, P 1)",
+      "strict": true
+     },
+     {
+      "turn": 4,
+      "mon": "archaludon",
+      "to": "indeedee (A 0.9375, P 0.9375)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": true,
+    "strict_at_turning_point": true,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 23,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690155966-opk22cxudmmmpffuartn88fs8q2bh54pw",
+    "class": "OUTSPED",
+    "also": [],
+    "tp_turn": 2,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 4,
+      "mon": "gardevoir-mega",
+      "to": "salamence (A 1.125, P 1)",
+      "strict": true
+     },
+     {
+      "turn": 7,
+      "mon": "archaludon",
+      "to": "salamence-mega (A 0.75, P 0.75); indeedee (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 24,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690156746-fo3175ocrtqccorctoq86eyujesnwe8pw",
+    "class": "PERISH",
+    "also": [],
+    "tp_turn": 4,
+    "mapped": true,
+    "events": [],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 25,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690157657-j0lwxbefp3tsdfy40broshgl3r5le9ypw",
+    "class": "SETUP",
+    "also": [
+     "SUCKER_PUNCH"
+    ],
+    "tp_turn": 1,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 3,
+      "mon": "kingambit",
+      "to": "gengar (A 1.1875, P 1)",
+      "strict": true
+     },
+     {
+      "turn": 9,
+      "mon": "volcarona",
+      "to": "rillaboom (A 1, P 1); gengar-mega (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 26,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690163131",
+    "class": "OUTSPED",
+    "also": [
+     "SETUP",
+     "double Protect"
+    ],
+    "tp_turn": 11,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 11,
+      "mon": "gengar-mega",
+      "to": "espeon (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": true,
+    "strict_at_turning_point": true,
+    "before_tp": false,
+    "after_tp": false
+   }
+  ],
+  "postmortem_summary": {
+   "mapped": 26,
+   "any_event": 23,
+   "at_turning_point": 7,
+   "strict_at_turning_point": 7,
+   "only_after_tp": 16,
+   "by_class": {
+    "VISIBLE_KO": {
+     "n": 5,
+     "at_tp": 0,
+     "strict_at_tp": 0,
+     "any": 4
+    },
+    "UNSEEN_ACTION": {
+     "n": 1,
+     "at_tp": 1,
+     "strict_at_tp": 1,
+     "any": 1
+    },
+    "SPEED_CONTROL": {
+     "n": 5,
+     "at_tp": 1,
+     "strict_at_tp": 1,
+     "any": 5
+    },
+    "OUTSPED": {
+     "n": 4,
+     "at_tp": 3,
+     "strict_at_tp": 3,
+     "any": 4
+    },
+    "BEHIND_FROM_PREVIEW": {
+     "n": 3,
+     "at_tp": 1,
+     "strict_at_tp": 1,
+     "any": 3
+    },
+    "SUCKER_PUNCH": {
+     "n": 4,
+     "at_tp": 1,
+     "strict_at_tp": 1,
+     "any": 3
+    },
+    "SETUP": {
+     "n": 3,
+     "at_tp": 0,
+     "strict_at_tp": 0,
+     "any": 3
+    },
+    "PERISH": {
+     "n": 1,
+     "at_tp": 0,
+     "strict_at_tp": 0,
+     "any": 0
+    }
+   }
+  },
+  "per_faint": {
+   "lost": {
+    "faints": 334,
+    "last_answer": 70,
+    "share": 0.21
+   },
+   "won": {
+    "faints": 58,
+    "last_answer": 6,
+    "share": 0.103
+   }
+  }
+ },
+ "faint_contrast": {
+  "all": {
+   "residual": {
+    "diff": -0.013,
+    "ci95": [
+     -0.104,
+     0.074
+    ],
+    "n_a": 66,
+    "n_b": 247,
+    "games": 103,
+    "B": 2000,
+    "seed": 23
+   },
+   "value_change": {
+    "diff": -0.104,
+    "ci95": [
+     -0.211,
+     -0.012
+    ],
+    "n_a": 38,
+    "n_b": 195,
+    "games": 103,
+    "B": 2000,
+    "seed": 23
+   }
+  },
+  "contested": {
+   "residual": {
+    "diff": -0.092,
+    "ci95": [
+     -0.225,
+     0.059
+    ],
+    "n_a": 33,
+    "n_b": 167,
+    "games": 99,
+    "B": 2000,
+    "seed": 23
+   },
+   "value_change": {
+    "diff": -0.108,
+    "ci95": [
+     -0.214,
+     -0.006
+    ],
+    "n_a": 32,
+    "n_b": 157,
+    "games": 99,
+    "B": 2000,
+    "seed": 23
+   }
+  }
+ },
+ "contested": {
+  "frequency": {
+   "all_lost_no_forfeit": {
+    "games": 90,
+    "with_event": 31,
+    "with_strict": 31
+   },
+   "all_won_no_forfeit": {
+    "games": 35,
+    "with_event": 6,
+    "with_strict": 6
+   },
+   "all_won_by_forfeit": {
+    "games": 33,
+    "with_event": 3,
+    "with_strict": 3
+   },
+   "all_lost_by_forfeit": {
+    "games": 0,
+    "with_event": 0,
+    "with_strict": 0
+   },
+   "search_lost_no_forfeit": {
+    "games": 69,
+    "with_event": 25,
+    "with_strict": 25
+   },
+   "search_won_no_forfeit": {
+    "games": 27,
+    "with_event": 4,
+    "with_strict": 4
+   }
+  },
+  "win_rate_after": {
+   "games_with_event": {
+    "n": 40,
+    "won": 9,
+    "rate": 0.225
+   },
+   "games_without_event": {
+    "n": 118,
+    "won": 59,
+    "rate": 0.5
+   },
+   "games_with_strict": {
+    "n": 40,
+    "won": 9,
+    "rate": 0.225
+   }
+  },
+  "faint_control": {
+   "last_answer_faints": {
+    "faints": 42,
+    "games": 40,
+    "win_rate": 0.214,
+    "mean_value_before": 0.531,
+    "mean_value_next": 0.29,
+    "residual_won_minus_value": -0.349
+   },
+   "strict_last_answer_faints": {
+    "faints": 42,
+    "games": 40,
+    "win_rate": 0.214,
+    "mean_value_before": 0.531,
+    "mean_value_next": 0.29,
+    "residual_won_minus_value": -0.349
+   },
+   "other_faints": {
+    "faints": 250,
+    "games": 126,
+    "win_rate": 0.272,
+    "mean_value_before": 0.55,
+    "mean_value_next": 0.413,
+    "residual_won_minus_value": -0.257
+   },
+   "all_faints": {
+    "faints": 292,
+    "games": 131,
+    "win_rate": 0.264,
+    "mean_value_before": 0.547,
+    "mean_value_next": 0.392,
+    "residual_won_minus_value": -0.272
+   }
+  },
+  "alternatives": {
+   "events": 42,
+   "with_table": 33,
+   "active_at_decision": 39,
+   "switched_in_that_turn": 4,
+   "legal_switch": 31,
+   "legal_stall": 27,
+   "neither_legal": 1,
+   "chosen_was_preserving": 1,
+   "preserving_row_in_table": 18,
+   "preserving_row_rated_higher": 7,
+   "no_preserving_row_in_table": 14,
+   "mean_gap_chosen_minus_best_preserving": 0.09
+  },
+  "postmortem_losses": [
+   {
+    "n": 1,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690111302",
+    "class": "VISIBLE_KO",
+    "also": [
+     "SETUP"
+    ],
+    "tp_turn": 3,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 7,
+      "mon": "incineroar",
+      "to": "kingambit (A 0.75, P 0.75)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 2,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690115224",
+    "class": "VISIBLE_KO",
+    "also": [],
+    "tp_turn": 5,
+    "mapped": true,
+    "events": [],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 3,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690116810",
+    "class": "UNSEEN_ACTION",
+    "also": [],
+    "tp_turn": 8,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 8,
+      "mon": "indeedee",
+      "to": "garchomp (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": true,
+    "strict_at_turning_point": true,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 4,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690118545",
+    "class": "VISIBLE_KO",
+    "also": [],
+    "tp_turn": 2,
+    "mapped": true,
+    "events": [],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 5,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690119994",
+    "class": "VISIBLE_KO",
+    "also": [],
+    "tp_turn": 3,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 5,
+      "mon": "sneasler",
+      "to": "torkoal (A 0.9375, P 0.75)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 6,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690120749",
+    "class": "SPEED_CONTROL",
+    "also": [],
+    "tp_turn": 3,
+    "mapped": true,
+    "events": [],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 7,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690121468-je1ca9h7t1ieywx0ohi326o4gihs7lfpw",
+    "class": "SPEED_CONTROL",
+    "also": [
+     "double Protect"
+    ],
+    "tp_turn": 4,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 3,
+      "mon": "kingambit",
+      "to": "farigiraf (A 1.125, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": true,
+    "strict_at_turning_point": true,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 8,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690124113",
+    "class": "SPEED_CONTROL",
+    "also": [
+     "SETUP",
+     "double Protect"
+    ],
+    "tp_turn": 2,
+    "mapped": true,
+    "events": [],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 9,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690128111",
+    "class": "OUTSPED",
+    "also": [
+     "UNSEEN_ACTION"
+    ],
+    "tp_turn": 6,
+    "mapped": true,
+    "events": [],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 10,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690132190-r4atre079140vjncw3sx9nnurpigng8pw",
+    "class": "BEHIND_FROM_PREVIEW",
+    "also": [],
+    "tp_turn": 1,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 5,
+      "mon": "sneasler",
+      "to": "charizard-mega-y (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 11,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690133981",
+    "class": "SUCKER_PUNCH",
+    "also": [],
+    "tp_turn": 3,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 9,
+      "mon": "raichu-mega-y",
+      "to": "staraptor-mega (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 12,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690137512-hnu56nou8rto5eo17quxe9bve6ih34ypw",
+    "class": "SUCKER_PUNCH",
+    "also": [
+     "VISIBLE_KO"
+    ],
+    "tp_turn": 6,
+    "mapped": true,
+    "events": [],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 13,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690138516-ol05sba9c38m92ic0h5wt1810eomapepw",
+    "class": "VISIBLE_KO",
+    "also": [
+     "SUCKER_PUNCH"
+    ],
+    "tp_turn": 4,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 6,
+      "mon": "kingambit",
+      "to": "gholdengo (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 14,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690142835-aish3b3iqj0k97iwvdygorbefgl9n6wpw",
+    "class": "BEHIND_FROM_PREVIEW",
+    "also": [],
+    "tp_turn": 1,
+    "mapped": true,
+    "events": [],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 15,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690144606-f9qmh4eh8tn7uf9m5d4psf2ifajbjclpw",
+    "class": "SPEED_CONTROL",
+    "also": [
+     "double Protect"
+    ],
+    "tp_turn": 6,
+    "mapped": true,
+    "events": [],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 16,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690146981-p1kcd17hr43vi1q4fp9uct8q36yqbygpw",
+    "class": "BEHIND_FROM_PREVIEW",
+    "also": [],
+    "tp_turn": 1,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 2,
+      "mon": "salamence-mega",
+      "to": "kommoo (A 1.125, P 0.875)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": true,
+    "strict_at_turning_point": true,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 17,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690148012-3vtgmssb54kxtsrasjaem728vgp9bqjpw",
+    "class": "SPEED_CONTROL",
+    "also": [],
+    "tp_turn": 3,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 6,
+      "mon": "sneasler",
+      "to": "kommoo (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 18,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690149705",
+    "class": "SETUP",
+    "also": [
+     "double Protect",
+     "VISIBLE_KO"
+    ],
+    "tp_turn": 1,
+    "mapped": true,
+    "events": [],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 19,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690150445",
+    "class": "SETUP",
+    "also": [
+     "UNSEEN_ACTION"
+    ],
+    "tp_turn": 4,
+    "mapped": true,
+    "events": [],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 20,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690151595",
+    "class": "SUCKER_PUNCH",
+    "also": [],
+    "tp_turn": 5,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 7,
+      "mon": "gengar-mega",
+      "to": "gholdengo (A 1.0625, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 21,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690153326",
+    "class": "SUCKER_PUNCH",
+    "also": [
+     "SETUP"
+    ],
+    "tp_turn": 6,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 6,
+      "mon": "kingambit",
+      "to": "volcarona (A 1.1875, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": true,
+    "strict_at_turning_point": true,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 22,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690154483-dpuuw8l7j3wu1kjy9ambegncf9jk8glpw",
+    "class": "OUTSPED",
+    "also": [],
+    "tp_turn": 4,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 4,
+      "mon": "basculegion",
+      "to": "sylveon (A 1, P 1)",
+      "strict": true
+     },
+     {
+      "turn": 4,
+      "mon": "archaludon",
+      "to": "indeedee (A 0.9375, P 0.9375)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": true,
+    "strict_at_turning_point": true,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 23,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690155966-opk22cxudmmmpffuartn88fs8q2bh54pw",
+    "class": "OUTSPED",
+    "also": [],
+    "tp_turn": 2,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 4,
+      "mon": "gardevoir-mega",
+      "to": "salamence (A 1.125, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 24,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690156746-fo3175ocrtqccorctoq86eyujesnwe8pw",
+    "class": "PERISH",
+    "also": [],
+    "tp_turn": 4,
+    "mapped": true,
+    "events": [],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": false
+   },
+   {
+    "n": 25,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690157657-j0lwxbefp3tsdfy40broshgl3r5le9ypw",
+    "class": "SETUP",
+    "also": [
+     "SUCKER_PUNCH"
+    ],
+    "tp_turn": 1,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 3,
+      "mon": "kingambit",
+      "to": "gengar (A 1.1875, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": false,
+    "strict_at_turning_point": false,
+    "before_tp": false,
+    "after_tp": true
+   },
+   {
+    "n": 26,
+    "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690163131",
+    "class": "OUTSPED",
+    "also": [
+     "SETUP",
+     "double Protect"
+    ],
+    "tp_turn": 11,
+    "mapped": true,
+    "events": [
+     {
+      "turn": 11,
+      "mon": "gengar-mega",
+      "to": "espeon (A 1, P 1)",
+      "strict": true
+     }
+    ],
+    "at_turning_point": true,
+    "strict_at_turning_point": true,
+    "before_tp": false,
+    "after_tp": false
+   }
+  ],
+  "postmortem_summary": {
+   "mapped": 26,
+   "any_event": 15,
+   "at_turning_point": 6,
+   "strict_at_turning_point": 6,
+   "only_after_tp": 9,
+   "by_class": {
+    "VISIBLE_KO": {
+     "n": 5,
+     "at_tp": 0,
+     "strict_at_tp": 0,
+     "any": 3
+    },
+    "UNSEEN_ACTION": {
+     "n": 1,
+     "at_tp": 1,
+     "strict_at_tp": 1,
+     "any": 1
+    },
+    "SPEED_CONTROL": {
+     "n": 5,
+     "at_tp": 1,
+     "strict_at_tp": 1,
+     "any": 2
+    },
+    "OUTSPED": {
+     "n": 4,
+     "at_tp": 2,
+     "strict_at_tp": 2,
+     "any": 3
+    },
+    "BEHIND_FROM_PREVIEW": {
+     "n": 3,
+     "at_tp": 1,
+     "strict_at_tp": 1,
+     "any": 2
+    },
+    "SUCKER_PUNCH": {
+     "n": 4,
+     "at_tp": 1,
+     "strict_at_tp": 1,
+     "any": 3
+    },
+    "SETUP": {
+     "n": 3,
+     "at_tp": 0,
+     "strict_at_tp": 0,
+     "any": 1
+    },
+    "PERISH": {
+     "n": 1,
+     "at_tp": 0,
+     "strict_at_tp": 0,
+     "any": 0
+    }
+   }
+  },
+  "per_faint": {
+   "lost": {
+    "faints": 215,
+    "last_answer": 33,
+    "share": 0.153
+   },
+   "won": {
+    "faints": 55,
+    "last_answer": 6,
+    "share": 0.109
+   }
+  }
+ },
+ "threat_buckets": [
+  {
+   "lo": 0,
+   "hi": 0.5,
+   "threat_decisions": 422,
+   "games": 96,
+   "we_lost": 0.829,
+   "threat_survived_game": 0.794,
+   "no_forfeit": {
+    "n": 406,
+    "we_lost": 0.862,
+    "threat_survived_game": 0.8
+   }
+  },
+  {
+   "lo": 0.5,
+   "hi": 1.2,
+   "threat_decisions": 693,
+   "games": 130,
+   "we_lost": 0.664,
+   "threat_survived_game": 0.618,
+   "no_forfeit": {
+    "n": 611,
+    "we_lost": 0.753,
+    "threat_survived_game": 0.615
+   }
+  },
+  {
+   "lo": 1.2,
+   "hi": 2,
+   "threat_decisions": 429,
+   "games": 126,
+   "we_lost": 0.62,
+   "threat_survived_game": 0.497,
+   "no_forfeit": {
+    "n": 378,
+    "we_lost": 0.704,
+    "threat_survived_game": 0.489
+   }
+  },
+  {
+   "lo": 2,
+   "hi": 99,
+   "threat_decisions": 1271,
+   "games": 146,
+   "we_lost": 0.557,
+   "threat_survived_game": 0.412,
+   "no_forfeit": {
+    "n": 1026,
+    "we_lost": 0.69,
+    "threat_survived_game": 0.388
+   }
+  }
+ ],
+ "position": {
+  "any_unanswered_threat": {
+   "decisions": 349,
+   "games": 96,
+   "win": 0.181
+  },
+  "no_unanswered_threat": {
+   "decisions": 725,
+   "games": 149,
+   "win": 0.468
+  },
+  "any_unanswered_threat_no_ff": {
+   "decisions": 334,
+   "games": 87,
+   "win": 0.144
+  },
+  "no_unanswered_threat_no_ff": {
+   "decisions": 595,
+   "games": 118,
+   "win": 0.351
+  }
+ },
+ "within_value_bins": [
+  {
+   "lo": 0,
+   "hi": 0.3,
+   "with_unanswered": {
+    "n": 170,
+    "mean_value": 0.079,
+    "win": 0.065
+   },
+   "without": {
+    "n": 113,
+    "mean_value": 0.111,
+    "win": 0.159
+   }
+  },
+  {
+   "lo": 0.3,
+   "hi": 0.5,
+   "with_unanswered": {
+    "n": 38,
+    "mean_value": 0.388,
+    "win": 0.237
+   },
+   "without": {
+    "n": 92,
+    "mean_value": 0.41,
+    "win": 0.152
+   }
+  },
+  {
+   "lo": 0.5,
+   "hi": 0.7,
+   "with_unanswered": {
+    "n": 33,
+    "mean_value": 0.618,
+    "win": 0.424
+   },
+   "without": {
+    "n": 131,
+    "mean_value": 0.619,
+    "win": 0.466
+   }
+  },
+  {
+   "lo": 0.7,
+   "hi": 0.9,
+   "with_unanswered": {
+    "n": 24,
+    "mean_value": 0.805,
+    "win": 0.292
+   },
+   "without": {
+    "n": 147,
+    "mean_value": 0.803,
+    "win": 0.578
+   }
+  },
+  {
+   "lo": 0.9,
+   "hi": 1.01,
+   "with_unanswered": {
+    "n": 9,
+    "mean_value": 0.942,
+    "win": 0.778
+   },
+   "without": {
+    "n": 106,
+    "mean_value": 0.965,
+    "win": 0.868
+   }
+  }
+ ],
+ "mid_band": {
+  "win_with_minus_without": {
+   "diff": -0.157,
+   "ci95": [
+    -0.356,
+    0.052
+   ],
+   "n_a": 57,
+   "n_b": 278,
+   "games": 112,
+   "B": 2000,
+   "seed": 23
+  },
+  "overconfidence_with_minus_without": {
+   "diff": 0.137,
+   "ci95": [
+    -0.069,
+    0.346
+   ],
+   "n_a": 57,
+   "n_b": 278,
+   "games": 112,
+   "B": 2000,
+   "seed": 23
+  },
+  "overconfidence_with": 0.328,
+  "overconfidence_without": 0.191
+ },
+ "predictive_search_arm": {
+  "decisions": 863,
+  "games": 119,
+  "models": {
+   "value": {
+    "logloss": 0.515,
+    "auc": 0.807
+   },
+   "value_plus_map": {
+    "logloss": 0.519,
+    "auc": 0.8
+   },
+   "material": {
+    "logloss": 0.599,
+    "auc": 0.544
+   },
+   "map_only": {
+    "logloss": 0.621,
+    "auc": 0.657
+   },
+   "material_plus_map": {
+    "logloss": 0.583,
+    "auc": 0.713
+   }
+  },
+  "value_minus_value_plus_map": {
+   "diff": -0.0045,
+   "ci95": [
+    -0.0187,
+    0.0063
+   ],
+   "games": 119,
+   "B": 2000,
+   "seed": 11
+  },
+  "material_minus_material_plus_map": {
+   "diff": 0.0165,
+   "ci95": [
+    -0.0118,
+    0.0484
+   ],
+   "games": 119,
+   "B": 2000,
+   "seed": 11
+  },
+  "raw_auc": {
+   "value": 0.822,
+   "minA": 0.694,
+   "neg_nUnans": 0.633
+  }
+ },
+ "predictive_search_arm_no_forfeit": {
+  "decisions": 749,
+  "games": 92,
+  "models": {
+   "value": {
+    "logloss": 0.47,
+    "auc": 0.798
+   },
+   "value_plus_map": {
+    "logloss": 0.474,
+    "auc": 0.785
+   }
+  },
+  "value_minus_value_plus_map": {
+   "diff": -0.0034,
+   "ci95": [
+    -0.0185,
+    0.009
+   ],
+   "games": 92,
+   "B": 2000,
+   "seed": 11
+  }
+ },
+ "predictive_all_decisions": {
+  "decisions": 1074,
+  "games": 152,
+  "models": {
+   "material": {
+    "logloss": 0.605,
+    "auc": 0.535
+   },
+   "material_plus_map": {
+    "logloss": 0.582,
+    "auc": 0.724
+   }
+  },
+  "material_minus_material_plus_map": {
+   "diff": 0.023,
+   "ci95": [
+    -0.0052,
+    0.0465
+   ],
+   "games": 152,
+   "B": 2000,
+   "seed": 11
+  }
+ },
+ "events": [
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690118545",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690118545",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 8,
+   "mon": "tyranitar-mega",
+   "mon_hp": 0.213,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.0006,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "mimikyu",
+     "threat_hp": 0.554,
+     "P": 0.75,
+     "answers": 0.75,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "pass, move 4",
+    "chosen_row_mean": 0.001,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.0006
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690109794-r5wdxyctf0mekl2l6yphq35fi0lirrppw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690109794-r5wdxyctf0mekl2l6yphq35fi0lirrppw",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": true,
+   "forfeit": true,
+   "turn": 4,
+   "mon": "dragonite",
+   "mon_hp": 1,
+   "our_live": 4,
+   "contested": true,
+   "value": 0.5776,
+   "value_next": 0.1534,
+   "active": false,
+   "switched_in": true,
+   "last_answer_to": [
+    {
+     "threat": "gengar",
+     "threat_hp": 1,
+     "P": 0.5,
+     "answers": 0.625,
+     "without": 0.125,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": null,
+    "legal_stall": null,
+    "table_rows": 4,
+    "chosen_row": "switch 3, move 4",
+    "chosen_row_mean": 0.505,
+    "chosen_mix": 0.44,
+    "preserving_rows_in_table": 3,
+    "best_preserving_row": "move 3 1, move 4",
+    "best_preserving_kind": "no-switch-in",
+    "best_preserving_row_mean": 0.683,
+    "best_preserving_mix": 0.56,
+    "chosen_was_preserving": false,
+    "table_value": 0.5776
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690113485",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690113485",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": true,
+   "forfeit": true,
+   "turn": 6,
+   "mon": "kingambit",
+   "mon_hp": 0.343,
+   "our_live": 4,
+   "contested": true,
+   "value": 0.7427,
+   "value_next": 0.932,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "sneasler",
+     "threat_hp": 1,
+     "P": 0.5625,
+     "answers": 0.625,
+     "without": 0.063,
+     "strict": true,
+     "threat_fainted_turn": 7
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "switch 4, move 1 2",
+    "chosen_row_mean": 0.791,
+    "chosen_mix": 0.86,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.7427
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690111302",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690111302",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 7,
+   "mon": "incineroar",
+   "mon_hp": 0.812,
+   "our_live": 3,
+   "contested": true,
+   "value": 0.4261,
+   "value_next": 0.3006,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "kingambit",
+     "threat_hp": 1,
+     "P": 0.75,
+     "answers": 0.75,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [],
+    "table_rows": 4,
+    "chosen_row": "move 2 2, move 2 1",
+    "chosen_row_mean": 0.481,
+    "chosen_mix": 0.665,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "switch 3, move 2 2",
+    "best_preserving_kind": "switch",
+    "best_preserving_row_mean": 0.553,
+    "best_preserving_mix": 0.237,
+    "chosen_was_preserving": false,
+    "table_value": 0.4261
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690111302",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690111302",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 12,
+   "mon": "gengar-mega",
+   "mon_hp": 0.754,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.0035,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "sneasler",
+     "threat_hp": 0.142,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 4, pass",
+    "chosen_row_mean": 0.005,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "move 4, pass",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.005,
+    "best_preserving_mix": 1,
+    "chosen_was_preserving": true,
+    "table_value": 0.0035
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690125424",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690125424",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": true,
+   "forfeit": false,
+   "turn": 6,
+   "mon": "archaludon",
+   "mon_hp": 0.985,
+   "our_live": 4,
+   "contested": true,
+   "value": 0.8648,
+   "value_next": 0.5488,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "rillaboom",
+     "threat_hp": 0.834,
+     "P": 0.9375,
+     "answers": 0.9375,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": 8
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 4, move 1 2",
+    "chosen_row_mean": 0.889,
+    "chosen_mix": 0.999,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "move 4, switch 3",
+    "best_preserving_kind": "switch",
+    "best_preserving_row_mean": 0.844,
+    "best_preserving_mix": 0,
+    "chosen_was_preserving": false,
+    "table_value": 0.8648
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690120749",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690120749",
+   "gnum": 3,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 7,
+   "mon": "sneasler",
+   "mon_hp": 1,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.0057,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "farigiraf",
+     "threat_hp": 0.954,
+     "P": 0.875,
+     "answers": 0.875,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "pass, move 4",
+    "chosen_row_mean": 0.007,
+    "chosen_mix": 0.999,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.0057
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690119994",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690119994",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 5,
+   "mon": "sneasler",
+   "mon_hp": 1,
+   "our_live": 3,
+   "contested": true,
+   "value": 0.2414,
+   "value_next": 0.0163,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "torkoal",
+     "threat_hp": 1,
+     "P": 0.75,
+     "answers": 0.9375,
+     "without": 0.188,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 1 2, move 2 1",
+    "chosen_row_mean": 0.336,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "move 1 2, switch 3",
+    "best_preserving_kind": "switch",
+    "best_preserving_row_mean": 0.094,
+    "best_preserving_mix": 0,
+    "chosen_was_preserving": false,
+    "table_value": 0.2414
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690119994",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690119994",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 7,
+   "mon": "kingambit",
+   "mon_hp": 0.836,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.0051,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "torkoal",
+     "threat_hp": 0.4,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    },
+    {
+     "threat": "farigiraf",
+     "threat_hp": 0.544,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "pass, move 4",
+    "chosen_row_mean": 0.011,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.0051
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690116810",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690116810",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 8,
+   "mon": "indeedee",
+   "mon_hp": 1,
+   "our_live": 3,
+   "contested": true,
+   "value": 0.7525,
+   "value_next": 0.1895,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "garchomp",
+     "threat_hp": 0.962,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [],
+    "table_rows": 4,
+    "chosen_row": "move 1 1, move 1 2",
+    "chosen_row_mean": 0.806,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.7525
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690121468-je1ca9h7t1ieywx0ohi326o4gihs7lfpw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690121468-je1ca9h7t1ieywx0ohi326o4gihs7lfpw",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 3,
+   "mon": "kingambit",
+   "mon_hp": 1,
+   "our_live": 4,
+   "contested": true,
+   "value": 0.7701,
+   "value_next": 0.8246,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "farigiraf",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1.125,
+     "without": 0.125,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 2 1, move 1 2",
+    "chosen_row_mean": 0.818,
+    "chosen_mix": 0.833,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "switch 4, move 1 2",
+    "best_preserving_kind": "switch",
+    "best_preserving_row_mean": 0.756,
+    "best_preserving_mix": 0.167,
+    "chosen_was_preserving": false,
+    "table_value": 0.7701
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690128111",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690128111",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 7,
+   "mon": "indeedee",
+   "mon_hp": 0.551,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.0024,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "sneasler",
+     "threat_hp": 0.942,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [],
+    "table_rows": 3,
+    "chosen_row": "pass, move 1 1",
+    "chosen_row_mean": 0.072,
+    "chosen_mix": 0.992,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.0024
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690133981",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690133981",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 9,
+   "mon": "raichu-mega-y",
+   "mon_hp": 0.365,
+   "our_live": 2,
+   "contested": true,
+   "value": 0.6995,
+   "value_next": 0.0158,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "staraptor-mega",
+     "threat_hp": 0.813,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 1 1, move 1 1",
+    "chosen_row_mean": 0.91,
+    "chosen_mix": 0.506,
+    "preserving_rows_in_table": 2,
+    "best_preserving_row": "move 4, move 1 1",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.702,
+    "best_preserving_mix": 0,
+    "chosen_was_preserving": false,
+    "table_value": 0.6995
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690124113",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690124113",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 6,
+   "mon": "sneasler",
+   "mon_hp": 0.84,
+   "our_live": 1,
+   "contested": false,
+   "value": 0,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "farigiraf",
+     "threat_hp": 0.631,
+     "P": 0.75,
+     "answers": 0.75,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 1 2, pass",
+    "chosen_row_mean": 0.01,
+    "chosen_mix": 0.996,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690132190-r4atre079140vjncw3sx9nnurpigng8pw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690132190-r4atre079140vjncw3sx9nnurpigng8pw",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 5,
+   "mon": "sneasler",
+   "mon_hp": 1,
+   "our_live": 2,
+   "contested": true,
+   "value": 0.4016,
+   "value_next": 0.0518,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "charizard-mega-y",
+     "threat_hp": 0.013,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 1 1, move 1 1",
+    "chosen_row_mean": 0.482,
+    "chosen_mix": 0.999,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.4016
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690132190-r4atre079140vjncw3sx9nnurpigng8pw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690132190-r4atre079140vjncw3sx9nnurpigng8pw",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 10,
+   "mon": "archaludon",
+   "mon_hp": 0.315,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.0069,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "incineroar",
+     "threat_hp": 0.235,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    },
+    {
+     "threat": "venusaur",
+     "threat_hp": 1,
+     "P": 0.875,
+     "answers": 0.875,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 4, pass",
+    "chosen_row_mean": 0.016,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "move 4, pass",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.016,
+    "best_preserving_mix": 1,
+    "chosen_was_preserving": true,
+    "table_value": 0.0069
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690138516-ol05sba9c38m92ic0h5wt1810eomapepw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690138516-ol05sba9c38m92ic0h5wt1810eomapepw",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 6,
+   "mon": "kingambit",
+   "mon_hp": 0.357,
+   "our_live": 2,
+   "contested": true,
+   "value": 0.1703,
+   "value_next": 0.015,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "gholdengo",
+     "threat_hp": 0.123,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [],
+    "table_rows": 4,
+    "chosen_row": "move 1 2, move 3 1",
+    "chosen_row_mean": 0.177,
+    "chosen_mix": 0.442,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.1703
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690146981-p1kcd17hr43vi1q4fp9uct8q36yqbygpw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690146981-p1kcd17hr43vi1q4fp9uct8q36yqbygpw",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 2,
+   "mon": "salamence-mega",
+   "mon_hp": 0.005,
+   "our_live": 4,
+   "contested": true,
+   "value": 0.2722,
+   "value_next": 0.1568,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "kommoo",
+     "threat_hp": 1,
+     "P": 0.875,
+     "answers": 1.125,
+     "without": 0.25,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 1 2, move 3 1",
+    "chosen_row_mean": 0.437,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 2,
+    "best_preserving_row": "move 4, move 3 1",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.18,
+    "best_preserving_mix": 0,
+    "chosen_was_preserving": false,
+    "table_value": 0.2722
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690146981-p1kcd17hr43vi1q4fp9uct8q36yqbygpw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690146981-p1kcd17hr43vi1q4fp9uct8q36yqbygpw",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 4,
+   "mon": "sneasler",
+   "mon_hp": 1,
+   "our_live": 2,
+   "contested": false,
+   "value": 0.1008,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "kommoo",
+     "threat_hp": 1,
+     "P": 0.9375,
+     "answers": 1.0625,
+     "without": 0.125,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 2 2, move 2 1",
+    "chosen_row_mean": 0.174,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "move 4, move 2 1",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.165,
+    "best_preserving_mix": 0,
+    "chosen_was_preserving": false,
+    "table_value": 0.1008
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690144606-f9qmh4eh8tn7uf9m5d4psf2ifajbjclpw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690144606-f9qmh4eh8tn7uf9m5d4psf2ifajbjclpw",
+   "gnum": 3,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 10,
+   "mon": "excadrill",
+   "mon_hp": 0.576,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.034,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "farigiraf",
+     "threat_hp": 0.241,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 4, pass",
+    "chosen_row_mean": 0.057,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "move 4, pass",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.057,
+    "best_preserving_mix": 1,
+    "chosen_was_preserving": true,
+    "table_value": 0.034
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690142835-aish3b3iqj0k97iwvdygorbefgl9n6wpw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690142835-aish3b3iqj0k97iwvdygorbefgl9n6wpw",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 6,
+   "mon": "salamence-mega",
+   "mon_hp": 1,
+   "our_live": 2,
+   "contested": false,
+   "value": 0.0088,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "kingambit",
+     "threat_hp": 0.103,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 4, move 3 2",
+    "chosen_row_mean": 0.009,
+    "chosen_mix": 0.863,
+    "preserving_rows_in_table": 2,
+    "best_preserving_row": "move 4, move 4",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.009,
+    "best_preserving_mix": 0,
+    "chosen_was_preserving": false,
+    "table_value": 0.0088
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690155966-opk22cxudmmmpffuartn88fs8q2bh54pw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690155966-opk22cxudmmmpffuartn88fs8q2bh54pw",
+   "gnum": 3,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 4,
+   "mon": "gardevoir-mega",
+   "mon_hp": 0.789,
+   "our_live": 3,
+   "contested": true,
+   "value": 0.1664,
+   "value_next": 0.1215,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "salamence",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1.125,
+     "without": 0.125,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 1, move 3 2",
+    "chosen_row_mean": 0.418,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 3,
+    "best_preserving_row": "switch 4, move 3 1",
+    "best_preserving_kind": "switch",
+    "best_preserving_row_mean": 0.194,
+    "best_preserving_mix": 0,
+    "chosen_was_preserving": false,
+    "table_value": 0.1664
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690155966-opk22cxudmmmpffuartn88fs8q2bh54pw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690155966-opk22cxudmmmpffuartn88fs8q2bh54pw",
+   "gnum": 3,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 7,
+   "mon": "archaludon",
+   "mon_hp": 0.914,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.1378,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "salamence-mega",
+     "threat_hp": 1,
+     "P": 0.75,
+     "answers": 0.75,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    },
+    {
+     "threat": "indeedee",
+     "threat_hp": 0.185,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "pass, move 1 1",
+    "chosen_row_mean": 0.456,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.1378
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690148012-3vtgmssb54kxtsrasjaem728vgp9bqjpw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690148012-3vtgmssb54kxtsrasjaem728vgp9bqjpw",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 6,
+   "mon": "sneasler",
+   "mon_hp": 1,
+   "our_live": 3,
+   "contested": true,
+   "value": 0.2991,
+   "value_next": 0.0388,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "kommoo",
+     "threat_hp": 0.98,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 3 1, move 2 2",
+    "chosen_row_mean": 0.58,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "switch 3, move 4",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.383,
+    "best_preserving_mix": 0,
+    "chosen_was_preserving": false,
+    "table_value": 0.2991
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690148012-3vtgmssb54kxtsrasjaem728vgp9bqjpw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690148012-3vtgmssb54kxtsrasjaem728vgp9bqjpw",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 7,
+   "mon": "salamence-mega",
+   "mon_hp": 1,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.0388,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "pyroar",
+     "threat_hp": 1,
+     "P": 0.875,
+     "answers": 0.875,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    },
+    {
+     "threat": "kommoo",
+     "threat_hp": 0.94,
+     "P": 0.875,
+     "answers": 0.875,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 3, pass",
+    "chosen_row_mean": 0.041,
+    "chosen_mix": 0.112,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "move 4, pass",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.053,
+    "best_preserving_mix": 0,
+    "chosen_was_preserving": false,
+    "table_value": 0.0388
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690154483-dpuuw8l7j3wu1kjy9ambegncf9jk8glpw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690154483-dpuuw8l7j3wu1kjy9ambegncf9jk8glpw",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 4,
+   "mon": "basculegion",
+   "mon_hp": 0.441,
+   "our_live": 3,
+   "contested": true,
+   "value": 0.426,
+   "value_next": 0.0116,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "sylveon",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [],
+    "table_rows": 4,
+    "chosen_row": "move 4 2, move 3 2",
+    "chosen_row_mean": 0.491,
+    "chosen_mix": 0.982,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "switch 4, move 2 2",
+    "best_preserving_kind": "switch",
+    "best_preserving_row_mean": 0.543,
+    "best_preserving_mix": 0,
+    "chosen_was_preserving": false,
+    "table_value": 0.426
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690154483-dpuuw8l7j3wu1kjy9ambegncf9jk8glpw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690154483-dpuuw8l7j3wu1kjy9ambegncf9jk8glpw",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 4,
+   "mon": "archaludon",
+   "mon_hp": 0.711,
+   "our_live": 3,
+   "contested": true,
+   "value": 0.426,
+   "value_next": 0.0116,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "indeedee",
+     "threat_hp": 0.015,
+     "P": 0.9375,
+     "answers": 0.9375,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 4 2, move 3 2",
+    "chosen_row_mean": 0.491,
+    "chosen_mix": 0.982,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.426
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690149705",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690149705",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 3,
+   "mon": "sneasler",
+   "mon_hp": 1,
+   "our_live": 3,
+   "contested": false,
+   "value": 0.0563,
+   "value_next": 0.0029,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "sneasler",
+     "threat_hp": 1,
+     "P": 0.5625,
+     "answers": 0.5625,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 3 1, move 1 2",
+    "chosen_row_mean": 0.058,
+    "chosen_mix": 0.946,
+    "preserving_rows_in_table": 2,
+    "best_preserving_row": "move 4, move 4 1",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.143,
+    "best_preserving_mix": 0.054,
+    "chosen_was_preserving": false,
+    "table_value": 0.0563
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690151595",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690151595",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 7,
+   "mon": "gengar-mega",
+   "mon_hp": 1,
+   "our_live": 3,
+   "contested": true,
+   "value": 0.164,
+   "value_next": 0.0045,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "gholdengo",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1.0625,
+     "without": 0.063,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 1 2, switch 4",
+    "chosen_row_mean": 0.506,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.164
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690151595",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690151595",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 11,
+   "mon": "sneasler",
+   "mon_hp": 0.369,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.0082,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "volcarona",
+     "threat_hp": 0.275,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "pass, move 4",
+    "chosen_row_mean": 0.019,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.0082
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690150445",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690150445",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 9,
+   "mon": "archaludon",
+   "mon_hp": 1,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.0015,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "incineroar",
+     "threat_hp": 0.635,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    },
+    {
+     "threat": "kingambit",
+     "threat_hp": 0.903,
+     "P": 0.75,
+     "answers": 0.75,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "pass, move 4",
+    "chosen_row_mean": 0.002,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.0015
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690153326",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690153326",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 6,
+   "mon": "kingambit",
+   "mon_hp": 0.903,
+   "our_live": 4,
+   "contested": true,
+   "value": 0.2571,
+   "value_next": 0.3459,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "volcarona",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1.1875,
+     "without": 0.188,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 4 2, move 1 1",
+    "chosen_row_mean": 0.484,
+    "chosen_mix": 0.998,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.2571
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690153326",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690153326",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 8,
+   "mon": "gengar-mega",
+   "mon_hp": 1,
+   "our_live": 3,
+   "contested": false,
+   "value": 0.0909,
+   "value_next": 0.0019,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "gholdengo",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": 9
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 4, move 1 1",
+    "chosen_row_mean": 0.212,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "switch 4, move 4",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.083,
+    "best_preserving_mix": 0,
+    "chosen_was_preserving": false,
+    "table_value": 0.0909
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690153326",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690153326",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 9,
+   "mon": "sneasler",
+   "mon_hp": 0.123,
+   "our_live": 2,
+   "contested": false,
+   "value": 0.0019,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "sinistcha",
+     "threat_hp": 0.226,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 2 2, move 1 2",
+    "chosen_row_mean": 0.013,
+    "chosen_mix": 0.999,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "move 4, move 3",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.015,
+    "best_preserving_mix": 0.001,
+    "chosen_was_preserving": false,
+    "table_value": 0.0019
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690157657-j0lwxbefp3tsdfy40broshgl3r5le9ypw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690157657-j0lwxbefp3tsdfy40broshgl3r5le9ypw",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 3,
+   "mon": "kingambit",
+   "mon_hp": 1,
+   "our_live": 4,
+   "contested": true,
+   "value": 0.2544,
+   "value_next": 0.2698,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "gengar",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1.1875,
+     "without": 0.188,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [],
+    "table_rows": 4,
+    "chosen_row": "switch 4, move 3 1",
+    "chosen_row_mean": 0.275,
+    "chosen_mix": 0.921,
+    "preserving_rows_in_table": 2,
+    "best_preserving_row": "move 1 1, switch 4",
+    "best_preserving_kind": "switch",
+    "best_preserving_row_mean": 0.332,
+    "best_preserving_mix": 0.079,
+    "chosen_was_preserving": false,
+    "table_value": 0.2544
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690157657-j0lwxbefp3tsdfy40broshgl3r5le9ypw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690157657-j0lwxbefp3tsdfy40broshgl3r5le9ypw",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 9,
+   "mon": "volcarona",
+   "mon_hp": 0.49,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.0017,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "rillaboom",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    },
+    {
+     "threat": "gengar-mega",
+     "threat_hp": 0.163,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 4, pass",
+    "chosen_row_mean": 0.004,
+    "chosen_mix": 0.999,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "move 4, pass",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.004,
+    "best_preserving_mix": 0.999,
+    "chosen_was_preserving": true,
+    "table_value": 0.0017
+   }
+  },
+  {
+   "run": "chomp1-2026-09-29T23-13-11-521Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690163131",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690163131",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 11,
+   "mon": "gengar-mega",
+   "mon_hp": 0.754,
+   "our_live": 2,
+   "contested": true,
+   "value": 0.7252,
+   "value_next": 0.0508,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "espeon",
+     "threat_hp": 0.2,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 2 1, move 1 2",
+    "chosen_row_mean": 0.764,
+    "chosen_mix": 0.461,
+    "preserving_rows_in_table": 2,
+    "best_preserving_row": "move 4, move 4",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.639,
+    "best_preserving_mix": 0,
+    "chosen_was_preserving": false,
+    "table_value": 0.7252
+   }
+  },
+  {
+   "run": "chomptop-2026-10-01T04-18-07-546Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690831801-p016acq17jreplith4siljepbk6keb2pw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690831801-p016acq17jreplith4siljepbk6keb2pw",
+   "gnum": 3,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 1,
+   "mon": "gholdengo",
+   "mon_hp": 1,
+   "our_live": 4,
+   "contested": true,
+   "value": 0.4693,
+   "value_next": 0.5399,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "metagross",
+     "threat_hp": 1,
+     "P": 0.75,
+     "answers": 1,
+     "without": 0.25,
+     "strict": true,
+     "threat_fainted_turn": null
+    },
+    {
+     "threat": "basculegion",
+     "threat_hp": 1,
+     "P": 0.9375,
+     "answers": 1,
+     "without": 0.063,
+     "strict": true,
+     "threat_fainted_turn": 5
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [],
+    "table_rows": 4,
+    "chosen_row": "switch 3, move 1",
+    "chosen_row_mean": 0.482,
+    "chosen_mix": 0.325,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.4693
+   }
+  },
+  {
+   "run": "chomptop-2026-10-01T04-18-07-546Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690830687-rhmy6avgrll3xpgspth403bltuxi52lpw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690830687-rhmy6avgrll3xpgspth403bltuxi52lpw",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 9,
+   "mon": "incineroar",
+   "mon_hp": 0.678,
+   "our_live": 4,
+   "contested": true,
+   "value": 0.635,
+   "value_next": 0.7175,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "kingambit",
+     "threat_hp": 0.103,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": 12
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [],
+    "table_rows": 4,
+    "chosen_row": "move 1 2, switch 3",
+    "chosen_row_mean": 0.796,
+    "chosen_mix": 0.658,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.635
+   }
+  },
+  {
+   "run": "chomptop-2026-10-01T04-18-07-546Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690850985",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690850985",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 3,
+   "mon": "froslass",
+   "mon_hp": 1,
+   "our_live": 4,
+   "contested": true,
+   "value": 0.7244,
+   "value_next": 0.0499,
+   "active": false,
+   "switched_in": true,
+   "last_answer_to": [
+    {
+     "threat": "armarouge",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1.1875,
+     "without": 0.188,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": null,
+    "legal_stall": null,
+    "table_rows": 4,
+    "chosen_row": "switch 3, move 2 1",
+    "chosen_row_mean": 0.528,
+    "chosen_mix": 0.052,
+    "preserving_rows_in_table": 2,
+    "best_preserving_row": "move 2 2, move 1",
+    "best_preserving_kind": "no-switch-in",
+    "best_preserving_row_mean": 0.753,
+    "best_preserving_mix": 0.948,
+    "chosen_was_preserving": false,
+    "table_value": 0.7244
+   }
+  },
+  {
+   "run": "chomptop-2026-10-01T04-18-07-546Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690850985",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690850985",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 6,
+   "mon": "sneasler",
+   "mon_hp": 1,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.0064,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "armarouge",
+     "threat_hp": 0.225,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    },
+    {
+     "threat": "gardevoir-mega",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "pass, move 1",
+    "chosen_row_mean": 0.011,
+    "chosen_mix": 0.994,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.0064
+   }
+  },
+  {
+   "run": "chomptop-2026-10-01T04-18-07-546Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690846024",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690846024",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": true,
+   "forfeit": false,
+   "turn": 7,
+   "mon": "froslass-mega",
+   "mon_hp": 0.667,
+   "our_live": 4,
+   "contested": true,
+   "value": 0.935,
+   "value_next": 0.9701,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "armarouge",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1.1875,
+     "without": 0.188,
+     "strict": true,
+     "threat_fainted_turn": 8
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 1, move 2 2",
+    "chosen_row_mean": 0.935,
+    "chosen_mix": 0.532,
+    "preserving_rows_in_table": 2,
+    "best_preserving_row": "move 2 2, switch 4",
+    "best_preserving_kind": "switch",
+    "best_preserving_row_mean": 0.943,
+    "best_preserving_mix": 0.142,
+    "chosen_was_preserving": false,
+    "table_value": 0.935
+   }
+  },
+  {
+   "run": "chomptop-2026-10-01T04-18-07-546Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690851955-fhi08s2hxjfu39e1tmgu9srcj9c4px2pw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690851955-fhi08s2hxjfu39e1tmgu9srcj9c4px2pw",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 11,
+   "mon": "dragonite-mega",
+   "mon_hp": 0.952,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.0801,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "rillaboom",
+     "threat_hp": 0.474,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "pass, move 1 1",
+    "chosen_row_mean": 0.262,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.0801
+   }
+  },
+  {
+   "run": "chomptop-2026-10-01T04-18-07-546Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690850353",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690850353",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 8,
+   "mon": "sneasler",
+   "mon_hp": 1,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.014,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "gardevoir-mega",
+     "threat_hp": 0.832,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "pass, move 1",
+    "chosen_row_mean": 0.03,
+    "chosen_mix": 0.983,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.014
+   }
+  },
+  {
+   "run": "chomptop-2026-10-01T04-18-07-546Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690849904",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690849904",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 3,
+   "mon": "sneasler",
+   "mon_hp": 1,
+   "our_live": 3,
+   "contested": true,
+   "value": 0.5112,
+   "value_next": 0.1653,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "primarina",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1.0625,
+     "without": 0.063,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 4, move 4 2",
+    "chosen_row_mean": 0.588,
+    "chosen_mix": 0.916,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.5112
+   }
+  },
+  {
+   "run": "chomptop-2026-10-01T04-18-07-546Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690849904",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690849904",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 7,
+   "mon": "volcarona",
+   "mon_hp": 0.342,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.019,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "primarina",
+     "threat_hp": 0.555,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 3 2, pass",
+    "chosen_row_mean": 0.055,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "move 1, pass",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.007,
+    "best_preserving_mix": 0,
+    "chosen_was_preserving": false,
+    "table_value": 0.019
+   }
+  },
+  {
+   "run": "chomptop-2026-10-01T04-18-07-546Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690854740",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690854740",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 5,
+   "mon": "froslass-mega",
+   "mon_hp": 0.182,
+   "our_live": 4,
+   "contested": true,
+   "value": 0.464,
+   "value_next": 0.1453,
+   "active": true,
+   "switched_in": true,
+   "last_answer_to": [
+    {
+     "threat": "staraptor-mega",
+     "threat_hp": 1,
+     "P": 0.9375,
+     "answers": 1,
+     "without": 0.063,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 4, switch 4",
+    "chosen_row_mean": 0.457,
+    "chosen_mix": 0.754,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "move 4, switch 4",
+    "best_preserving_kind": "switch",
+    "best_preserving_row_mean": 0.457,
+    "best_preserving_mix": 0.754,
+    "chosen_was_preserving": true,
+    "table_value": 0.464
+   }
+  },
+  {
+   "run": "chomptop-2026-10-01T04-18-07-546Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2690848976",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2690848976",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 3,
+   "mon": "volcarona",
+   "mon_hp": 1,
+   "our_live": 4,
+   "contested": true,
+   "value": 0.9271,
+   "value_next": 0.9236,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "golisopod",
+     "threat_hp": 1,
+     "P": 0.875,
+     "answers": 0.875,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 1, move 2",
+    "chosen_row_mean": 0.932,
+    "chosen_mix": 0.741,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "move 1, move 1",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.912,
+    "best_preserving_mix": 0,
+    "chosen_was_preserving": false,
+    "table_value": 0.9271
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688035295-c3kacha2xtj77mie00keudqef5vs0dnpw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688035295-c3kacha2xtj77mie00keudqef5vs0dnpw",
+   "gnum": 3,
+   "policy": "prior",
+   "won": false,
+   "forfeit": false,
+   "turn": 2,
+   "mon": "sneasler",
+   "mon_hp": 1,
+   "our_live": 4,
+   "contested": true,
+   "value": null,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "primarina",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1.0625,
+     "without": 0.063,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ]
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688037293",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688037293",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 1,
+   "mon": "indeedee",
+   "mon_hp": 1,
+   "our_live": 4,
+   "contested": true,
+   "value": 0.561,
+   "value_next": 0.3541,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "staraptor",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 1 2, move 2 2",
+    "chosen_row_mean": 0.601,
+    "chosen_mix": 0.371,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.561
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688037293",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688037293",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 7,
+   "mon": "excadrill",
+   "mon_hp": 1,
+   "our_live": 2,
+   "contested": true,
+   "value": 0.9899,
+   "value_next": 0.0417,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "staraptor-mega",
+     "threat_hp": 0.044,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 2 1, move 3",
+    "chosen_row_mean": 0.995,
+    "chosen_mix": 0.459,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.9899
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688034647-1upmjfgat1tl819pbyndjxp55i1v8pypw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688034647-1upmjfgat1tl819pbyndjxp55i1v8pypw",
+   "gnum": 2,
+   "policy": "prior",
+   "won": false,
+   "forfeit": false,
+   "turn": 7,
+   "mon": "tyranitar-mega",
+   "mon_hp": 0.217,
+   "our_live": 1,
+   "contested": false,
+   "value": null,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "primarina",
+     "threat_hp": 0.394,
+     "P": 0.875,
+     "answers": 0.875,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ]
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688055688",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688055688",
+   "gnum": 1,
+   "policy": "prior",
+   "won": true,
+   "forfeit": false,
+   "turn": 4,
+   "mon": "rillaboom",
+   "mon_hp": 1,
+   "our_live": 3,
+   "contested": true,
+   "value": null,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "kingambit",
+     "threat_hp": 1,
+     "P": 0.625,
+     "answers": 0.75,
+     "without": 0.125,
+     "strict": true,
+     "threat_fainted_turn": 7
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": []
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688040218",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688040218",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": true,
+   "forfeit": false,
+   "turn": 4,
+   "mon": "raichu-mega-y",
+   "mon_hp": 0.186,
+   "our_live": 3,
+   "contested": true,
+   "value": 0.2894,
+   "value_next": 0.3119,
+   "active": false,
+   "switched_in": true,
+   "last_answer_to": [
+    {
+     "threat": "charizard-mega-y",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1.125,
+     "without": 0.125,
+     "strict": true,
+     "threat_fainted_turn": 13
+    }
+   ],
+   "alt": {
+    "legal_switch": null,
+    "legal_stall": null,
+    "table_rows": 4,
+    "chosen_row": "switch 3, move 2 1",
+    "chosen_row_mean": 0.499,
+    "chosen_mix": 0.999,
+    "preserving_rows_in_table": 3,
+    "best_preserving_row": "move 1 1, move 2 1",
+    "best_preserving_kind": "no-switch-in",
+    "best_preserving_row_mean": 0.653,
+    "best_preserving_mix": 0.001,
+    "chosen_was_preserving": false,
+    "table_value": 0.2894
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688052883",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688052883",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": true,
+   "forfeit": false,
+   "turn": 4,
+   "mon": "sneasler",
+   "mon_hp": 1,
+   "our_live": 4,
+   "contested": true,
+   "value": 0.8479,
+   "value_next": 0.9499,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "archaludon",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": 6
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 1, move 2 2",
+    "chosen_row_mean": 0.868,
+    "chosen_mix": 0.35,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.8479
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688057160",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688057160",
+   "gnum": 1,
+   "policy": "prior",
+   "won": false,
+   "forfeit": false,
+   "turn": 6,
+   "mon": "tyranitar",
+   "mon_hp": 1,
+   "our_live": 3,
+   "contested": true,
+   "value": null,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "corviknight",
+     "threat_hp": 0.815,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ]
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688057160",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688057160",
+   "gnum": 1,
+   "policy": "prior",
+   "won": false,
+   "forfeit": false,
+   "turn": 7,
+   "mon": "indeedee",
+   "mon_hp": 0.581,
+   "our_live": 1,
+   "contested": false,
+   "value": null,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "sneasler",
+     "threat_hp": 0.632,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    },
+    {
+     "threat": "salamence",
+     "threat_hp": 0.241,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ]
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688056353",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688056353",
+   "gnum": 2,
+   "policy": "prior",
+   "won": true,
+   "forfeit": true,
+   "turn": 3,
+   "mon": "rillaboom",
+   "mon_hp": 1,
+   "our_live": 3,
+   "contested": true,
+   "value": null,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "kingambit",
+     "threat_hp": 1,
+     "P": 0.6875,
+     "answers": 0.6875,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": []
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688051443",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688051443",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 7,
+   "mon": "volcarona",
+   "mon_hp": 0.198,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.0631,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "armarouge",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    },
+    {
+     "threat": "manectric-mega",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    },
+    {
+     "threat": "lucario",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "pass, move 1 1",
+    "chosen_row_mean": 0.029,
+    "chosen_mix": 0.622,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.0631
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688063939",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688063939",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 4,
+   "mon": "basculegion",
+   "mon_hp": 0.811,
+   "our_live": 2,
+   "contested": false,
+   "value": 0.0223,
+   "value_next": 0,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "hatterene",
+     "threat_hp": 0.902,
+     "P": 1,
+     "answers": 1.0625,
+     "without": 0.063,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [],
+    "table_rows": 4,
+    "chosen_row": "move 4 2, move 4 1",
+    "chosen_row_mean": 0.05,
+    "chosen_mix": 0.963,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.0223
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688066421",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688066421",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 8,
+   "mon": "hippowdon",
+   "mon_hp": 0.944,
+   "our_live": 2,
+   "contested": false,
+   "value": 0.0812,
+   "value_next": 0.0002,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "tyranitar-mega",
+     "threat_hp": 1,
+     "P": 0.6875,
+     "answers": 0.6875,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 2 1, move 1 2",
+    "chosen_row_mean": 0.084,
+    "chosen_mix": 0.827,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "move 2 1, move 4",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.167,
+    "best_preserving_mix": 0.169,
+    "chosen_was_preserving": false,
+    "table_value": 0.0812
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688058529",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688058529",
+   "gnum": 2,
+   "policy": "prior",
+   "won": false,
+   "forfeit": false,
+   "turn": 4,
+   "mon": "excadrill",
+   "mon_hp": 0.083,
+   "our_live": 2,
+   "contested": true,
+   "value": null,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "tyranitar-mega",
+     "threat_hp": 0.303,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ]
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688058529",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688058529",
+   "gnum": 2,
+   "policy": "prior",
+   "won": false,
+   "forfeit": false,
+   "turn": 5,
+   "mon": "indeedee",
+   "mon_hp": 0.491,
+   "our_live": 1,
+   "contested": false,
+   "value": null,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "corviknight",
+     "threat_hp": 0.225,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": []
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688065673",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688065673",
+   "gnum": 2,
+   "policy": "prior",
+   "won": false,
+   "forfeit": false,
+   "turn": 5,
+   "mon": "excadrill",
+   "mon_hp": 0.005,
+   "our_live": 1,
+   "contested": false,
+   "value": null,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "staraptor-mega",
+     "threat_hp": 0.263,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ]
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688063201",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688063201",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 5,
+   "mon": "basculegion",
+   "mon_hp": 0.326,
+   "our_live": 3,
+   "contested": true,
+   "value": 0.3375,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "golisopod",
+     "threat_hp": 0.173,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [],
+    "table_rows": 4,
+    "chosen_row": "move 3, move 4 1",
+    "chosen_row_mean": 0.337,
+    "chosen_mix": 0.5,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.3375
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688053815",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688053815",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 4,
+   "mon": "sneasler",
+   "mon_hp": 0.663,
+   "our_live": 4,
+   "contested": true,
+   "value": 0.3936,
+   "value_next": 0.0341,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "archaludon",
+     "threat_hp": 1,
+     "P": 0.875,
+     "answers": 0.9375,
+     "without": 0.063,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 3, move 1 1",
+    "chosen_row_mean": 0.434,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 3,
+    "best_preserving_row": "move 3, move 4",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.233,
+    "best_preserving_mix": 0,
+    "chosen_was_preserving": false,
+    "table_value": 0.3936
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688053815",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688053815",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 6,
+   "mon": "basculegion",
+   "mon_hp": 0.145,
+   "our_live": 3,
+   "contested": false,
+   "value": 0.0363,
+   "value_next": 0.0088,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "golisopod-mega",
+     "threat_hp": 0.2,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [],
+    "table_rows": 4,
+    "chosen_row": "move 1, move 4 2",
+    "chosen_row_mean": 0.067,
+    "chosen_mix": 0.692,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.0363
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688073594",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688073594",
+   "gnum": 3,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 6,
+   "mon": "sneasler",
+   "mon_hp": 1,
+   "our_live": 2,
+   "contested": false,
+   "value": 0.0816,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "sneasler",
+     "threat_hp": 0.723,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 4, move 4",
+    "chosen_row_mean": 0.092,
+    "chosen_mix": 0.998,
+    "preserving_rows_in_table": 2,
+    "best_preserving_row": "move 4, move 1 1",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.099,
+    "best_preserving_mix": 0.001,
+    "chosen_was_preserving": true,
+    "table_value": 0.0816
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688073594",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688073594",
+   "gnum": 3,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 6,
+   "mon": "raichu-mega-y",
+   "mon_hp": 1,
+   "our_live": 2,
+   "contested": false,
+   "value": 0.0816,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "salamence-mega",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 4, move 4",
+    "chosen_row_mean": 0.092,
+    "chosen_mix": 0.998,
+    "preserving_rows_in_table": 2,
+    "best_preserving_row": "move 4, move 4",
+    "best_preserving_kind": "protect",
+    "best_preserving_row_mean": 0.092,
+    "best_preserving_mix": 0.998,
+    "chosen_was_preserving": true,
+    "table_value": 0.0816
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688087178",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688087178",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 8,
+   "mon": "sneasler",
+   "mon_hp": 1,
+   "our_live": 2,
+   "contested": false,
+   "value": 0.0753,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "incineroar",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 2 1, pass",
+    "chosen_row_mean": 0.173,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.0753
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688064436",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688064436",
+   "gnum": 1,
+   "policy": "prior",
+   "won": false,
+   "forfeit": false,
+   "turn": 4,
+   "mon": "sneasler",
+   "mon_hp": 1,
+   "our_live": 4,
+   "contested": true,
+   "value": null,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "rillaboom",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ]
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688077444",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688077444",
+   "gnum": 1,
+   "policy": "prior",
+   "won": false,
+   "forfeit": false,
+   "turn": 4,
+   "mon": "excadrill",
+   "mon_hp": 1,
+   "our_live": 2,
+   "contested": true,
+   "value": null,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "politoed",
+     "threat_hp": 1,
+     "P": 0.875,
+     "answers": 1.1875,
+     "without": 0.313,
+     "strict": true,
+     "threat_fainted_turn": null
+    },
+    {
+     "threat": "archaludon",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ]
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688076136",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688076136",
+   "gnum": 3,
+   "policy": "prior",
+   "won": false,
+   "forfeit": false,
+   "turn": 7,
+   "mon": "raichu-mega-y",
+   "mon_hp": 0.24,
+   "our_live": 2,
+   "contested": true,
+   "value": null,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "salamence-mega",
+     "threat_hp": 0.312,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    },
+    {
+     "threat": "indeedee",
+     "threat_hp": 0.104,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ]
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688085055-khs9a6yqu8io807soq62b5t9eqhemk0pw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688085055-khs9a6yqu8io807soq62b5t9eqhemk0pw",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 6,
+   "mon": "rillaboom",
+   "mon_hp": 0.391,
+   "our_live": 2,
+   "contested": false,
+   "value": 0.0011,
+   "value_next": 0.0011,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "blastoise-mega",
+     "threat_hp": 1,
+     "P": 0.75,
+     "answers": 0.75,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [],
+    "table_rows": 4,
+    "chosen_row": "move 3 1, move 4",
+    "chosen_row_mean": 0.044,
+    "chosen_mix": 0.966,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.0011
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688085055-khs9a6yqu8io807soq62b5t9eqhemk0pw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688085055-khs9a6yqu8io807soq62b5t9eqhemk0pw",
+   "gnum": 2,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 7,
+   "mon": "sneasler",
+   "mon_hp": 1,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.0011,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "incineroar",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "pass, move 4",
+    "chosen_row_mean": 0.002,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.0011
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688086568",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688086568",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 6,
+   "mon": "sneasler",
+   "mon_hp": 0.893,
+   "our_live": 2,
+   "contested": false,
+   "value": 0.0001,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "incineroar",
+     "threat_hp": 0.771,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    },
+    {
+     "threat": "primarina",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "move 2 1, pass",
+    "chosen_row_mean": 0.022,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.0001
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688084478-hshglmw1l03an9d3rk9nskjrrg193lnpw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688084478-hshglmw1l03an9d3rk9nskjrrg193lnpw",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 5,
+   "mon": "rillaboom",
+   "mon_hp": 0.304,
+   "our_live": 3,
+   "contested": true,
+   "value": 0.7871,
+   "value_next": 0.0066,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "blastoise-mega",
+     "threat_hp": 0.935,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": [],
+    "table_rows": 4,
+    "chosen_row": "move 3 1, move 3 2 mega",
+    "chosen_row_mean": 0.87,
+    "chosen_mix": 0.869,
+    "preserving_rows_in_table": 1,
+    "best_preserving_row": "switch 4, move 1 1 mega",
+    "best_preserving_kind": "switch",
+    "best_preserving_row_mean": 0.076,
+    "best_preserving_mix": 0,
+    "chosen_was_preserving": false,
+    "table_value": 0.7871
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688084478-hshglmw1l03an9d3rk9nskjrrg193lnpw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688084478-hshglmw1l03an9d3rk9nskjrrg193lnpw",
+   "gnum": 1,
+   "policy": "miltank-gen5",
+   "won": false,
+   "forfeit": false,
+   "turn": 10,
+   "mon": "sneasler",
+   "mon_hp": 1,
+   "our_live": 1,
+   "contested": false,
+   "value": 0.001,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "lopunny",
+     "threat_hp": 0.921,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    },
+    {
+     "threat": "incineroar",
+     "threat_hp": 1,
+     "P": 1,
+     "answers": 1,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": null
+    }
+   ],
+   "alt": {
+    "legal_switch": false,
+    "legal_stall": [
+     "protect"
+    ],
+    "table_rows": 4,
+    "chosen_row": "pass, move 4",
+    "chosen_row_mean": 0.001,
+    "chosen_mix": 1,
+    "preserving_rows_in_table": 0,
+    "best_preserving_row": null,
+    "best_preserving_kind": null,
+    "best_preserving_row_mean": null,
+    "best_preserving_mix": null,
+    "chosen_was_preserving": false,
+    "table_value": 0.001
+   }
+  },
+  {
+   "run": "gen5ab-2026-09-26T04-06-53-848Z",
+   "room": "battle-gen9championsvgc2026regmcbo3-2688090269-581yh4cbxy821gea6ws8ptqwbxjv9mmpw",
+   "replay": "https://replay.pokemonshowdown.com/gen9championsvgc2026regmcbo3-2688090269-581yh4cbxy821gea6ws8ptqwbxjv9mmpw",
+   "gnum": 2,
+   "policy": "prior",
+   "won": true,
+   "forfeit": false,
+   "turn": 3,
+   "mon": "rillaboom",
+   "mon_hp": 0.391,
+   "our_live": 4,
+   "contested": true,
+   "value": null,
+   "value_next": null,
+   "active": true,
+   "switched_in": false,
+   "last_answer_to": [
+    {
+     "threat": "excadrill",
+     "threat_hp": 1,
+     "P": 0.5625,
+     "answers": 0.5625,
+     "without": 0,
+     "strict": true,
+     "threat_fainted_turn": 7
+    }
+   ],
+   "alt": {
+    "legal_switch": true,
+    "legal_stall": []
+   }
+  }
+ ],
+ "faints": 414
+}
