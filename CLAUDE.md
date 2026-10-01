@@ -45,6 +45,7 @@ That output is the current state of the project. Every figure in it is read out 
 there are fourteen of them, each was typed by hand at the end of a session, and each was stale within
 a day. The 2026-08-04 handoff says "172 tags, 118 unprobed" against a `tags.json` holding 176 unique
 tags with 123 unprobed. Nobody mistyped anything; prose cannot track a corpus. They are history now.
+*(2026-10-01: all of them now sit in `docs/archive/`, the last one moved by `git mv`.)*
 
 **AND NEVER TYPE A LIST OF WHAT IS OPEN. PRINT IT.**
 
@@ -109,7 +110,8 @@ do not invent a home for it.
 renamed SOLVER and takes on the nets and the live client. OPS keeps ingest and the store.)*
 
 - **Owns `solver/`**, and every model in `solver/PLAN.md` §2 except MEDICHAM. Agent
-  `.claude/agents/solver.md`; ledger `docs/SOLVER.md`; narrative log `solver/LOG.md`; the plan
+  `.claude/agents/solver.md`; ledger `docs/SOLVER.md`; narrative log `solver/LOG.md` (FROZEN
+  2026-10-01 — a change is recorded once, in `CHANGELOG-REGMC.md`); the plan
   `solver/PLAN.md`. State is still printed, never typed: the plan's registry says what is built, and
   `node engine/status.js` says what is true.
 - **The graph is `MEDICHAM (frozen release) ──► SOLVER ──► ladder`, and it is one-way.** SOLVER never
@@ -604,7 +606,7 @@ what failure looks like, and the checklist for adding a mechanic — is [docs/TA
 - `engine/medicham_api.js` — the solver's door into MEDICHAM: `clone`, `legalActions`, `step`, the
   terminal check, lean playouts.
 - `solver/` — the Reg M-C player: `PLAN.md` (the model registry and milestones), `LOG.md` (the
-  narrative), one directory per model, `tests/`, and `out/` (gitignored). `node engine/where.js
+  narrative up to 2026-10-01, frozen), one directory per model, `tests/`, and `out/` (gitignored). `node engine/where.js
   <thing>` answers which file owns a fact.
 
 ## The CHOMP loop
@@ -844,6 +846,18 @@ evidence chain. Do not propose it; reduce what goes IN instead.
 **CHANGED 2026-09-06 BY WILL:** *"we can update the documents every major release and just keep a
 running notes page in between change the documentation rules"*.
 
+**CHANGED 2026-10-01, WILL APPROVED: ONE RECORD PER CHANGE.** The notes row and the changelog entry
+were two retellings of one change, and every parallel merge conflicted in both. A change now writes ONE
+entry in the open line's changelog (`CHANGELOG-REGMC.md`) with a `### Record` section carrying the
+row's four fields — `**Measured.**`, `**Basis.**`, `**Supersedes.**`, `**Owed to the next major.**`.
+`docs/RUNNING-NOTES.md` is FROZEN at its masthead's `<!-- FROZEN: ... -->` versions and still read for
+everything at or below them; a row written there afterwards fails as `row_after_freeze`, and
+`node engine/notes_to_changelog.js --migrate` moves it. `solver/LOG.md` is frozen too. `docs/SUMMARY.md`
+was folded into `README.md`, and the technical docs link to the white paper instead of restating
+results. The gates, the backlog count (63 before and after) and the cap are unchanged; clause 5e is new
+and fails an entry without its four fields. Account: `docs/_reports/2026-10-01-docs-consolidation.md`.
+Where the bullets below say "notes row", read "the changelog entry's `### Record`".
+
 ### Every change — same pass, no exceptions
 - **`docs/RUNNING-NOTES.md`** — one row: what changed, the figure and the artifact it came from, any
   figure this supersedes, and which living document owes the fold-in. **Same rigour as the white
@@ -859,7 +873,8 @@ running notes page in between change the documentation rules"*.
 - `docs/ABRA-whitepaper.md` (+ `.pdf`) — technical, with math + cited sources + honest results/CIs.
 - `docs/ABRA-deck-plain-english.md` (+ `.pdf`) — plain-English; links the white paper on the last slide.
 - `docs/ABRA-technical-docs.md` (+ `.pdf`) — ASD-STE100 Simplified Technical English, by Diátaxis.
-- `docs/SUMMARY.md` (+ `.pdf`) — whole-project + per-component summary table.
+- ~~`docs/SUMMARY.md` (+ `.pdf`) — whole-project + per-component summary table.~~ Folded into
+  `README.md` on 2026-10-01; README carries the component table and links the figures.
 - `docs/MODELS.md` — the per-model living ledger.
 
 A major release is a CHANGELOG entry of the form `X.0.0`; nothing is typed to declare one. Rebuild the

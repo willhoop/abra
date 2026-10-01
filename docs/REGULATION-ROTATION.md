@@ -252,8 +252,10 @@ node engine/open_work.js
 ### 13. The documents — JUDGEMENT
 
 The ban list in the umbrella `CLAUDE.md` is a *mechanism, not a list* and must be re-asked of the new
-format. The white paper, the deck, the technical documentation, `docs/SUMMARY.md` and `docs/MODELS.md`
-are rewritten at the major, from the running-notes rows. `regulation_touchpoints.js --class prose`
+format. The white paper, the deck, the technical documentation, `README.md` and `docs/MODELS.md`
+are rewritten at the major, from the record (the changelog entries' `### Record` sections; before
+2026-10-01, the running-notes rows, and `docs/SUMMARY.md` was a sixth document until it was folded into
+the README). `regulation_touchpoints.js --class prose`
 prints which documents still name the old regulation.
 
 ---

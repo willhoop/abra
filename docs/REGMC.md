@@ -40,7 +40,7 @@ not anything became usable. (The release cadence that made that true is measured
 
 | | |
 |---|---|
-| **A LINE** | a version series for one *(project or model, regulation)* pair. It has its own changelog, its own document floor, its own notes rows and its own backlog. |
+| **A LINE** | a version series for one *(project or model, regulation)* pair. It has its own changelog, its own document floor, its own record (since 2026-10-01 the changelog entry's `### Record` section; before, its notes rows) and its own backlog. |
 | **`0.x`** | NOT USABLE YET — SemVer 2.0.0 clause 4. |
 | **`1.0.0`** | usable: a gate certifies it on that regulation, and nothing it publishes is withheld. |
 | **RESET** | a new regulation starts a NEW line at `0.1.0`. It never inherits the old line's number. |
@@ -81,6 +81,8 @@ MEDICHAM ones in `docs/MODELS.md` and read as equally authoritative — one of t
 ### What is refused, so that "closed" cannot decay into a habit
 
 - A changelog entry or a notes row above the `closed=` version its line declares — `tests/test-docs-current.js`.
+- A row written into the frozen `docs/RUNNING-NOTES.md` above its `FROZEN:` version — the same clause
+  (`row_after_freeze`); convert it with `node engine/notes_to_changelog.js --migrate`.
 - A document whose masthead names a line no changelog declares.
 - A `0.x` line whose documents trail its TOP. A line with no major has no deferred pass, so its
   documents are due **every release**; that is stricter than the Reg M-B rule and it relaxes by itself

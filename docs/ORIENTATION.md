@@ -30,8 +30,9 @@ Showdown ladder** (`gen9championsvgc2026regmcbo3`, account `medicham32`, cleared
    residual `S − E`. Never the peak.
 
 The plan is [`solver/PLAN.md`](../solver/PLAN.md): the model registry (§2), the milestones M0–M8 (§3),
-the live client (§4), the evaluation harness (§5). What has landed is
-[`solver/LOG.md`](../solver/LOG.md). Every model earns its place by beating a named baseline on a
+the live client (§4), the evaluation harness (§5). What has landed is recorded in
+[`CHANGELOG-REGMC.md`](../CHANGELOG-REGMC.md) (the narrative up to 2026-10-01 is the frozen
+[`solver/LOG.md`](../solver/LOG.md)). Every model earns its place by beating a named baseline on a
 test fixed before the run, or by failing honestly.
 
 **Reg M-B is retired** (Will, 2026-09-24). Its record is closed at 7.0.0 in `CHANGELOG.md` and stays
@@ -204,15 +205,15 @@ tests and is the only publisher.
 | Document | Purpose |
 |---|---|
 | `solver/PLAN.md` | The plan: model registry, milestones, live client, evaluation |
-| `solver/LOG.md` | What landed, newest first |
-| `SUMMARY.md` | Whole-project summary, one table per component |
+| `solver/LOG.md` | What landed up to 2026-10-01, newest first (frozen; since then, `CHANGELOG-REGMC.md`) |
+| `../README.md` | Whole-project summary and every component (`docs/SUMMARY.md` was folded into it on 2026-10-01) |
 | `MODELS.md` | Per-model ledger; Reg M-C models first, Reg M-B entries archived below |
 | `REGMC.md` | The Reg M-C line: the gate, the version scheme |
 | `REGULATION-ROTATION.md` | What has to change when a regulation rotates |
 | `ABRA-whitepaper.md`, `ABRA-deck-plain-english.md`, `ABRA-technical-docs.md` | Technical, plain-English, and ASD-STE100 editions |
 | `DIVISIONS.md`, `{ENGINE,MEASURE,SOLVER,OPS,WEB}.md` | Who owns what, and each division's working ledger |
-| `RUNNING-NOTES.md` | One row per change between majors |
-| `CHANGELOG-REGMC.md` / `CHANGELOG.md` | The Reg M-C line / the closed Reg M-B record |
+| `RUNNING-NOTES.md` | One row per change between majors, up to abra/regmc 1.50.0 (frozen archive since 2026-10-01) |
+| `CHANGELOG-REGMC.md` / `CHANGELOG.md` | The Reg M-C line, one entry per change with its `### Record` section / the closed Reg M-B record |
 
 State is printed, never typed:
 

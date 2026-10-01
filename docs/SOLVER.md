@@ -4,8 +4,10 @@
 CHOMP (preview), XATU (belief), MAG and DODUO (candidate narrowing), MILTANK (the search harness),
 SLOWKING (the matrix solver), PORYGON2 (value), GARY and HYPNO (habits and the exploit dial), DUSK
 (endgames), MEW and MACHAMP (self-play and training), WOBBUFFET (exploitability), GURU (meta), DITTO
-(teams), ROTOM (the live client), ALAKAZAM (the assembled agent) and KADABRA (the coach). Narrative log:
-[`solver/LOG.md`](../solver/LOG.md).
+(teams), ROTOM (the live client), ALAKAZAM (the assembled agent) and KADABRA (the coach). Record: one
+entry per change in [`CHANGELOG-REGMC.md`](../CHANGELOG-REGMC.md), with its `### Record` section. The
+narrative log [`solver/LOG.md`](../solver/LOG.md) is frozen as history (2026-10-01, ends at 1.50.0); the
+working detail it used to retell belongs in this ledger.
 
 **Its one number:** where the agent settles on the `gen9championsvgc2026regmcbo3` ladder — the mean
 rating over the last N series ± SD and the per-series residual `S − E`, never the peak
@@ -53,8 +55,8 @@ _stamped 2026-09-30 08:46_
 
 ## THE REG M-C SOLVER — where it stands (2026-09-24)
 
-State is printed, never typed: `solver/PLAN.md` §2 is the registry of what is built, `solver/LOG.md`
-records each landing, and the measured figures live in `docs/MODELS.md` under *The Reg M-C models*.
+State is printed, never typed: `solver/PLAN.md` §2 is the registry of what is built, `CHANGELOG-REGMC.md`
+records each landing (`solver/LOG.md` did until 2026-10-01), and the measured figures live in `docs/MODELS.md` under *The Reg M-C models*.
 This section says only what a division agent needs before it starts.
 
 - **Engine.** The Reg M-C MEDICHAM gate is OPEN, 10 of 10, on release `eaa5becc54eb`

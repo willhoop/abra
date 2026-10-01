@@ -1,5 +1,17 @@
 # RUNNING NOTES — every change, in the same pass, between major releases
 
+<!-- FROZEN: abra/regmb=7.0.0; abra/regmc=1.50.0; date=2026-10-01 -->
+
+> **FROZEN 2026-10-01 — THIS PAGE IS AN ARCHIVE. DO NOT ADD A ROW HERE.** Will approved merging it
+> into the changelog: from `abra/regmc` 1.51.0 on, a change is recorded ONCE, as its entry in
+> [`CHANGELOG-REGMC.md`](../CHANGELOG-REGMC.md), and the entry carries this page's four fields in a
+> `### Record` section (`**Measured.**`, `**Basis.**`, `**Supersedes.**`, `**Owed to the next major.**`).
+> The rows below are kept exactly as written, newest first, and they are still READ: the backlog, the
+> release-kind clause and the retraction registry count them for every version at or below the freeze
+> line above (`engine/docs_scan.js` `notesEntries()`). A row added here after the freeze fails the gate
+> as `row_after_freeze`; convert it with `node engine/notes_to_changelog.js --migrate`. Everything in
+> the preamble below that says "write a row here" is history.
+
 **This page is the living-docs pass now.** Will, 2026-09-06: *"we can update the documents every
 major release and just keep a running notes page in between change the documentation rules"*.
 

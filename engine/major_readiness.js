@@ -40,7 +40,7 @@ const QU = require(path.join(__dirname, 'quarantine.js'));
  * rather than rewritten. Counting their figures as major workload overstates it, which is exactly the
  * mistake this file was written after. */
 const LIVING_SET = ['docs/ABRA-whitepaper.md', 'docs/ABRA-deck-plain-english.md',
-  'docs/ABRA-technical-docs.md', 'docs/SUMMARY.md', 'docs/MODELS.md'];
+  'docs/ABRA-technical-docs.md', 'docs/MODELS.md'];   // docs/SUMMARY.md folded into README.md, 2026-10-01
 
 /* A GENERATOR THIS CANNOT READ IS A HOLE IN THE DERIVATION, AND IT IS NAMED RATHER THAN GUESSED.
  * The blocked-ness of such a row is UNKNOWN, not false, and treating unknown as false is how a paused

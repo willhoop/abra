@@ -52,9 +52,12 @@ found cheaply later.
   alone is a write-only commit.
 - **Stage precisely.** Never `git add -A` while any agent is alive; it sweeps their in-progress files
   into your commit.
-- Each landing needs its CHANGELOG entry, its version bump, and — while the MEDICHAM sprint is active —
-  a row in `docs/MEDICHAM-SPRINT-NOTES.md`, or the pre-commit hook will refuse it. **Read what the hook
-  says rather than retrying**; it names the failing clause.
+- Each landing needs ONE `CHANGELOG-REGMC.md` entry and its version bump, and the entry carries a
+  `### Record` section (`**Measured.**`, `**Basis.**`, `**Supersedes.**`, `**Owed to the next major.**`),
+  or the pre-commit hook will refuse it. Since 2026-10-01 there is no notes row: `docs/RUNNING-NOTES.md`
+  and `solver/LOG.md` are frozen archives. A merged branch that still wrote a notes row converts with
+  `node engine/notes_to_changelog.js --migrate`. **Read what the hook says rather than retrying**; it
+  names the failing clause.
 - **Never pass `--no-verify`.** If the gate is wrong, fix the gate and say so.
 - Write CHANGELOG entries and sprint notes with a **script file, not an inline shell string**.
   Backticks in a double-quoted bash string get command-substituted and will eat the code identifiers out
@@ -143,7 +146,7 @@ read.**
 | how to RUN or ROUTE the work — pins, batching, concurrency, briefs | `.claude/skills/start/SKILL.md` §5 |
 | an operating rule with teeth | `CLAUDE.md`, and only if it is a RULE rather than a state |
 | what Will decided, and why | `CLAUDE.md` if it changes what a gate MEANS; `memory/` if it is a preference |
-| what happened | `CHANGELOG.md` + `docs/MEDICHAM-SPRINT-NOTES.md` |
+| what happened | the open line's changelog (`CHANGELOG-REGMC.md`), one entry with its `### Record` section |
 | a defect | `docs/ROADMAP.md`, via the register |
 
 **§8 IS THE ONE THAT PAYS BACK FASTEST, SO BE GREEDY ABOUT IT.** Every hour this project loses to

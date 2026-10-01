@@ -242,39 +242,56 @@ fi
 # both decide one fact will disagree eventually and the disagreement will be invisible, so this
 # shells out rather than carrying a second regex -- the same reason status.js shells out to
 # provenance.js. Cost is one node start.
-NOTES="docs/RUNNING-NOTES.md"
+# -- 2026-10-01: THE RECORD IS THE OPEN LINE'S CHANGELOG, AND THE NOTES PAGE IS FROZEN -------------
+#
+# Will approved merging docs/RUNNING-NOTES.md into CHANGELOG-REGMC.md: every change wrote the same story
+# twice and every parallel-agent merge conflicted in both. The page is frozen at the version its masthead
+# declares (<!-- FROZEN: ... -->) and stays as the archive; a change is now recorded ONCE, as its
+# changelog entry, which carries the row's four fields in a `### Record` section.
+#
+# THIS CLAUSE DID NOT MOVE. It still asks engine/docs_scan.js --note-check, which now asks
+# recordTargets() which file is the record -- the open changelog(s) after the freeze, the page before.
+# --staged makes it read the freeze from the tree this commit writes, not from the working tree.
 if command -v node >/dev/null 2>&1; then
   # SAY THAT IT RAN. A gate that passes in silence is indistinguishable from a gate that skipped.
-  echo "pre-commit: running-notes gate -- every change records a row in $NOTES"
-  if ! NOTE_OUT=$(node engine/docs_scan.js --note-check $STAGED 2>&1); then
+  echo "pre-commit: record gate -- every change moves the open changelog (one entry, with its ### Record)"
+  if ! NOTE_OUT=$(node engine/docs_scan.js --staged --note-check $STAGED 2>&1); then
     echo ""
     echo "  BLOCKED: this commit changes something a reader reads and records nothing."
     echo ""
     echo "$NOTE_OUT" | sed 's/^/    /'
-    cat <<MSG
+    cat <<'MSG'
 
   ------------------------------------------------------------------
   WHAT THIS MEANS, PLAINLY. The living-document pass -- white paper,
-  deck, technical docs, SUMMARY, MODELS, PDFs -- is DEFERRED to the
-  next major release. It is not waived. $NOTES is
-  where the debt is recorded, and this commit adds to the debt without
-  writing it down.
+  deck, technical docs, MODELS, PDFs -- is DEFERRED to the next major
+  release. It is not waived. The open line's changelog is where the
+  debt is recorded, and this commit adds to the debt without writing
+  it down.
 
-  HOW TO FIX IT: add a row to the top of $NOTES.
+  HOW TO FIX IT: add the entry to the top of CHANGELOG-REGMC.md.
 
-    ## [<the version this lands as>] - <date> - one line naming what moved
-    - **What changed.** ...
-    - **Measured.** <figure> - \`data/<artifact>.json\`, n=<sample>.  Or: NO FIGURE.
-    - **Supersedes.** ~~<old figure>~~ retracted - and DELETED from the doc that stated it.
+    ## [<the version this lands as>] - <date>
+
+    **One line naming what moved.**
+
+    ### Changed            (Added / Fixed / Removed as they apply)
+    - ...
+
+    ### Record
+    - **Measured.** <figure> - `data/<artifact>.json`, n=<sample>.  Or: NO FIGURE.
+    - **Basis.** unchanged.  Or: CHANGED - <what a reader can no longer be told>.
+    - **Supersedes.** Nothing.  Or: ~~<old figure>~~ retracted - and DELETED from the doc.
     - **Owed to the next major.** which living document must absorb this, or none.
 
-  A row before the release that carries it goes under [Unreleased]; the
-  publish pass renames that heading to the version.
+  docs/RUNNING-NOTES.md is FROZEN. Do not add a row there. A row from a
+  branch cut before the freeze converts with:
+    node engine/notes_to_changelog.js --migrate
 
   WHAT IS OWED SO FAR:   node engine/docs_scan.js --owed
 
-  DELETING THE NOTES PAGE DOES NOT END THIS. It is not the MEDICHAM
-  sprint marker; the docs-currency gate fails on a missing page.
+  DELETING THE FROZEN PAGE DOES NOT END THIS. It is the archive the
+  backlog and the release-kind clause still read; the gate fails without it.
 
   DO NOT PASS --no-verify. If this gate is wrong, fix the gate.
   ------------------------------------------------------------------
@@ -282,7 +299,7 @@ MSG
     exit 1
   fi
 else
-  echo "pre-commit: node not on PATH -- running-notes gate SKIPPED (this is a hole, not a pass)"
+  echo "pre-commit: node not on PATH -- record gate SKIPPED (this is a hole, not a pass)"
 fi
 
 echo "pre-commit: living-docs gate (~2s)"
@@ -394,11 +411,11 @@ if [ "$FAILED" -ne 0 ]; then
   cat <<'MSG'
 
   ------------------------------------------------------------------
-  The living-docs rule, as Will restated it on 2026-09-06: a change moves
-  docs/RUNNING-NOTES.md, the division ledger and CHANGELOG.md IN THE SAME
-  PASS. The white paper, the deck, the technical docs, SUMMARY, MODELS and
-  the PDFs move on a MAJOR release -- an X.0.0 entry -- folded in from the
-  rows of the notes page. Not later, not "next commit".
+  The living-docs rule (Will, 2026-09-06; record merged 2026-10-01): a
+  change moves its CHANGELOG-REGMC.md entry, with its ### Record section,
+  and the division ledger IN THE SAME PASS. The white paper, the deck, the
+  technical docs, MODELS and the PDFs move on a MAJOR release -- an X.0.0
+  entry -- folded in from the record. Not later, not "next commit".
 
   Usually one of:
     - a document still trails the last X.0.0 release (the major pass was skipped)

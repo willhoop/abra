@@ -45,8 +45,10 @@
  * document is now measured against the LAST MAJOR RELEASE rather than the CHANGELOG top, and a
  * fourth rule carries what that stops measuring:
  *
- *   5. docs/RUNNING-NOTES.md exists, moved in the same commit as any code or document that moved,
- *      and the backlog it owes the next major is under a declared cap. See notesRule().
+ *   5. the RECORD moved in the same commit as any code or document that moved, and the backlog it
+ *      owes the next major is under a declared cap. See notesRule(). Since 2026-10-01 the record is
+ *      the open line's changelog, each entry carrying a `### Record` section; docs/RUNNING-NOTES.md
+ *      is the frozen archive of the rows written before that, and must still exist.
  *
  * The measured reason for the trade is in CLAUDE.md and is about push size, not about documents.
  * The reason rule 5 is a GATE and not a note is that "we will do the documents at the next major" is
@@ -216,9 +218,14 @@ const RETRACTED = [
 
 /** The documents rule 1 applies to: every live document, plus every archived one that has NOT
  *  declared itself superseded. Moving a file into docs/archive/ used to remove it from this scan. */
+/* THE RECORD'S NEW ENTRIES ARE SCANNED AS THE NOTES PAGE WAS — 2026-10-01. The open changelog carries
+ * the record now, so its entries above the freeze are held to rules 1, 1b and 3b(a) exactly as the
+ * notes rows were. They are read through S.readRecordAware, which blanks every older line, so history
+ * the page never held to these rules is not judged by them now. */
 function scannedDocs() {
   const arch = S.archiveState().filter(a => !(a.superseded && a.replacementExists)).map(a => a.doc);
-  return [...S.liveDocs(), ...arch];
+  const record = S.notesFreeze().frozen ? S.recordChangelogs().filter(f => S.exists(f)) : [];
+  return [...S.liveDocs(), ...arch, ...record];
 }
 
 function scanDocs() {
@@ -234,7 +241,7 @@ function scanDocs() {
       /* Check a WINDOW, not the line. A properly-written retraction usually quotes the old figure on
        * one line and marks it withdrawn on another — matching line-by-line flagged exactly that and
        * would have punished the correct behaviour. */
-      const lines = S.readDoc(rel).split('\n');
+      const lines = S.readRecordAware(rel).split('\n');
       for (let i = 0; i < lines.length; i++) {
         if (!r.bad.test(lines[i])) continue;
         const ctx = lines.slice(Math.max(0, i - 4), i + 3).join(' ');
@@ -312,7 +319,7 @@ function nonTransitivityIsSupported() {
   };
   const hits = [];
   for (const rel of scannedDocs()) {
-    const lines = S.readDoc(rel).split('\n');
+    const lines = S.readRecordAware(rel).split('\n');
     for (let i = 0; i < lines.length; i++) {
       const m = ASSERTS.exec(lines[i]);
       if (!m) continue;
@@ -450,14 +457,18 @@ function versionRule(base, next) {
    * somebody kept typing on a series that was finished. The fix is NEVER to renumber history; it is
    * to move the entry to the line that is actually open. */
   const breaches = S.closedLineBreaches();
+  const frz = S.notesFreeze();
   ok(breaches.length === 0, `no changelog entry or notes row sits above the version its line is `
-    + `declared CLOSED at (${lineIds.filter(id => S.lineOf(id).closed).map(id => id + ' @ ' + S.lineOf(id).closed).join(', ') || 'no line is closed'})`
+    + `declared CLOSED at, and no row was written into the notes page after its freeze (`
+    + (frz.frozen ? 'frozen at ' + [...frz.at].map(([k, v]) => `${k} ${v}`).join(', ') : 'not frozen') + '; '
+    + `${lineIds.filter(id => S.lineOf(id).closed).map(id => id + ' @ ' + S.lineOf(id).closed).join(', ') || 'no line is closed'})`
     + (breaches.length ? `:\n         ` + breaches.map(b => `${b.kind}  ${b.line} ${b.version}  ${b.file}\n           ${b.why}`).join('\n         ') : ''));
 
   if (stale.length) {
     console.log(`         A MAJOR RELEASE IS THE FULL PASS. These trail their line's floor, so the pass that was`);
     console.log('         due at that release did not happen for them. Fold in the rows of');
-    console.log('         docs/RUNNING-NOTES.md, rebuild the PDF, and bump the header.');
+    console.log('         the record (the changelog\'s ### Record sections and the frozen docs/RUNNING-NOTES.md),');
+    console.log('         rebuild the PDF, and bump the header.');
     console.log('         Bumping the header alone is NOT the fix — the content has to be brought current,');
     console.log('         or the version becomes another asserted number.');
   }
@@ -569,7 +580,10 @@ function figureRules(base, next) {
    * was exempted from the same clause on 2026-08-15. The rigour is not lost: rule 1, rule 1b, 3b(a)
    * and 3b(b) all scan it, and 3b(b) is the STRONGEST of the three ("the document told you where to
    * check and the file says something else"). What is given up is the weakest, a pressure gauge. */
-  const livingPlusNotes = [...living, S.NOTES_LOG].filter(d => S.exists(d));
+  /* AND THE RECORD'S NEW ENTRIES, read through S.readRecordAware (2026-10-01): the changelog carries
+   * the notes fields now, so its entries above the freeze inherit the notes page's citation rule. */
+  const livingPlusNotes = [...living, S.NOTES_LOG, ...(S.notesFreeze().frozen ? S.recordChangelogs() : [])]
+    .filter(d => S.exists(d));
 
   console.log('\n== 3b(a). a figure another document retracts is not restated as fact ==');
   /* THE MATCHING RULE CARRIES ITS OWN RED DEMONSTRATION — ROADMAP #370. This clause decides that two
@@ -587,8 +601,8 @@ function figureRules(base, next) {
     (brokenProof.length ? '\n         BROKEN:\n         ' + brokenProof.map(p =>
       `${p.id}: retracting "${p.retracts}" and stating "${p.states}" must ${p.expected ? 'CATCH' : 'REFUSE'}` +
       ` and did ${p.caught ? 'catch' : 'not'}\n           ${p.why}`).join('\n         ') : ''));
-  const reg = S.retractionRegistry(scannedDocs());
-  const viol = S.retractionViolations(scannedDocs(), reg);
+  const reg = S.retractionRegistry(scannedDocs(), { read: S.readRecordAware });
+  const viol = S.retractionViolations(scannedDocs(), reg, { read: S.readRecordAware });
   console.log(`         derived registry: ${[...reg.values()].filter(e => e.strength === 'strong').length} figures ` +
     `retracted in writing (${[...reg.values()].filter(e => e.strength === 'strong').map(e => e.value + (e.pct ? '%' : '')).join(', ')})`);
   const vkey = h => `${h.doc}|${h.figure}|${h.retracted}`;
@@ -623,7 +637,7 @@ function figureRules(base, next) {
     `the browser bundles under data/ parse as artifacts by wrapper shape (${bproof.length - bBroken.length}/${bproof.length} shapes hold)` +
     (bBroken.length ? '\n         BROKEN:\n         ' + bBroken.map(p => `${p.id}: expected ${JSON.stringify(p.expected)} got ${JSON.stringify(p.got)}`).join('\n         ') : ''));
 
-  const mism = S.citationMismatches(livingPlusNotes);
+  const mism = S.citationMismatches(livingPlusNotes, { read: S.readRecordAware });
   const mkey = h => `${h.doc}|${h.figure}|${h.cites.join(',')}`;
   const mseen = new Map(mism.map(h => [mkey(h), h]));
   const rm = ratchet('figures a cited artifact does not contain', [...mseen.keys()], known.citation_mismatches || [],
@@ -844,16 +858,36 @@ function figureRules(base, next) {
  * gate red for the whole of every session, which is how a gate gets routed around. The commit is the
  * moment the omission becomes permanent, which is the same argument .githooks/pre-commit makes about
  * the silent-catch ratchet. */
+/* THE RECORD MOVED, 2026-10-01 — ONE ENTRY PER CHANGE. Will approved merging the notes page into the
+ * open line's changelog: the changelog entry carries the row's fields in a `### Record` section, and
+ * docs/RUNNING-NOTES.md is frozen as the archive of the rows written before (S.notesFreeze()). Each
+ * sub-clause below asks the same question of the new source:
+ *   5a  the archive exists AND every record target exists. Deleting either ends nothing; it fails.
+ *   5b  no commit moved code or a document since the RECORD (S.recordTargets()) last moved.
+ *   5c  the backlog, counted over S.notesEntries() — the changelog above the freeze plus the archive
+ *       at or below it — is under the cap. Same count, same cap, same floor.
+ *   5d  unchanged, over the same entries.
+ *   5e  NEW: every changelog entry above the freeze carries the four Record fields the notes row
+ *       carried (Measured, Basis, Supersedes, Owed to the next major), or the merge would have dropped
+ *       the very declarations 5c and 5d read. */
 function notesRule() {
-  console.log('\n== 5. the running notes page moved with the code, and the backlog is bounded ==');
+  console.log('\n== 5. the record moved with the code, and the backlog is bounded ==');
   const NOTES = S.NOTES_LOG;
   const exists = S.exists(NOTES);
-  ok(exists, `${NOTES} exists — every change records a row here in the same pass`);
+  ok(exists, `${NOTES} exists — the archive of every row written before the freeze, and the only `
+    + 'place those rows declare their basis and their supersessions');
   if (!exists) {
-    console.log('         The full living-document set moves on a MAJOR release and this page carries');
-    console.log('         every change in between. Without it, nothing says what the next major owes.');
+    console.log('         The full living-document set moves on a MAJOR release and the record carries');
+    console.log('         every change in between. Without the archive, nothing says what the history declared.');
     return;
   }
+  const TARGETS = S.recordTargets();
+  const missingTargets = TARGETS.filter(t => !S.exists(t));
+  ok(TARGETS.length > 0 && missingTargets.length === 0,
+    `the record exists: ${TARGETS.join(', ') || 'NO RECORD TARGET — no open version line'}`
+    + (S.notesFreeze().frozen ? ` (the notes page is frozen at ${[...S.notesFreeze().at].map(([k, v]) => k + ' ' + v).join(', ')})` : '')
+    + (missingTargets.length ? ` — missing: ${missingTargets.join(', ')}` : ''));
+  const RECORD = TARGETS.length ? TARGETS : [NOTES];
 
   /* GIT IS ASKED DIRECTLY, AND A FAILURE TO ASK IS A FAILURE. A clause that cannot run must not
    * report green: "a capability that cannot prove it ran is assumed broken" is this repository's own
@@ -862,7 +896,7 @@ function notesRule() {
     .execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   let lastNoteCommit = null, since = [], gitErr = null;
   try {
-    lastNoteCommit = git(['log', '-1', '--format=%H', '--', NOTES]).trim();
+    lastNoteCommit = git(['log', '-1', '--format=%H', '--', ...RECORD]).trim();
     if (lastNoteCommit) {
       /* THE BOT'S ORIENTATION RE-DERIVE IS A GENERATOR RUN, NOT A CHANGE. `.github/workflows/ingest.yml`
        * runs `build/sync_orientation.js` and commits `docs/ORIENTATION.md` as abra-bot, which CLAUDE.md
@@ -889,10 +923,10 @@ function notesRule() {
   if (!gitErr && !lastNoteCommit) {
     /* BOOTSTRAP, NAMED AS SUCH. An untracked notes page has no history to compare against; that is a
      * first write, not a clean bill, and it stops being true the moment it is committed. */
-    ok(true, `${NOTES} is not committed yet — BOOTSTRAP, nothing to compare (this clause arms itself on the first commit)`);
+    ok(true, `${RECORD.join(', ')} is not committed yet — BOOTSTRAP, nothing to compare (this clause arms itself on the first commit)`);
   } else if (!gitErr) {
     ok(since.length === 0,
-      `no commit has moved code or a document since ${NOTES} last did (${lastNoteCommit.slice(0, 8)})` +
+      `no commit has moved code or a document since the record (${RECORD.join(', ')}) last moved (${lastNoteCommit.slice(0, 8)})` +
       (since.length ? ` — ${since.length} commit(s) recorded nothing:\n         ` +
         since.slice(0, 8).map(c => `${c.head}\n           ` + c.need.slice(0, 6).join(', ')).join('\n         ') : ''));
     if (since.length) {
@@ -973,7 +1007,7 @@ function notesRule() {
       + pols.map(p => `${p.line}: ${p.checked} of ${p.entries} row(s) matched a release, top `
                     + `${p.top} is a ${p.top_bump || 'first'} bump`).join('; ') + ')');
     for (const v of viol) {
-      console.log(`         ${v.kind}  ${v.line_id} ${v.version}  ${S.NOTES_LOG}:${v.line}`);
+      console.log(`         ${v.kind}  ${v.line_id} ${v.version}  ${v.file || S.NOTES_LOG}:${v.line}`);
       console.log('           ' + v.why);
     }
     for (const p of pols) if (p.unmatched.length) {
@@ -982,6 +1016,23 @@ function notesRule() {
       console.log('           A row written ahead of its release is normal. It becomes checkable on');
       console.log('           the commit that publishes the version, and is counted as nothing until then.');
     }
+  }
+
+  /* ---- 5e. A CHANGELOG ENTRY THAT REPLACED A NOTES ROW CARRIES THE ROW'S FIELDS — 2026-10-01 -----
+   * Before the merge the hook demanded a ROW and the template gave the row four declared bullets.
+   * After it, the hook demands that the changelog MOVED, which a one-line entry satisfies. Without
+   * this clause the merge would have weakened the record to whatever the entry happened to say. */
+  const gaps = S.recordFieldGaps();
+  const frozenNow = S.notesFreeze().frozen;
+  const counted = (S.notesEntries() || []).filter(e => e.file && e.file !== S.NOTES_LOG).length;
+  ok(gaps.length === 0,
+    `every changelog entry above the freeze carries its Record fields (${S.RECORD_FIELDS.join(', ')}) — `
+    + (frozenNow ? `${counted - gaps.length} of ${counted} entr${counted === 1 ? 'y' : 'ies'} complete` : 'not frozen, the notes page is still the record')
+    + (gaps.length ? ':\n         ' + gaps.slice(0, 8).map(g => `${g.file}:${g.line} [${g.version}] lacks ${g.missing.join(', ')}`).join('\n         ') : ''));
+  if (gaps.length) {
+    console.log('         Add a `### Record` section to the entry. To convert a RUNNING-NOTES-style row:');
+    console.log('           node engine/notes_to_changelog.js <row-file>          (prints the section)');
+    console.log('           node engine/notes_to_changelog.js --migrate           (moves rows out of the frozen page)');
   }
 }
 

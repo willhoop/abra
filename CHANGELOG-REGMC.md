@@ -15,11 +15,43 @@ released row, or moves a published figure. A version in this file is not compara
 that one: they answer different questions about different regulations. See
 [`docs/REGMC.md`](docs/REGMC.md) — *The version scheme* — for what a number means and when it resets.
 
-**Rule.** Every change is logged here in the same pass as the code, together with the matching row in
-`docs/RUNNING-NOTES.md` (tagged `## [abra/regmc <version>]`). A prior conclusion is never silently
-rewritten; what changed and why is stated.
+**Rule.** Every change is logged here in the same pass as the code, together with the matching updates
+to the documents it owes. A prior conclusion is never silently rewritten; what changed and why is stated.
+
+**One record per change, from 1.51.0 (2026-10-01).** Each entry carries a `### Record` section with four
+fields — `**Measured.**` (the figure and its artifact, or NO FIGURE), `**Basis.**` (unchanged, or
+CHANGED and what a reader can no longer be told), `**Supersedes.**` (Nothing, or the struck and retracted
+figure), `**Owed to the next major.**` (the living document that must absorb it, or none). These were the
+fields of a `docs/RUNNING-NOTES.md` row; that page is FROZEN as the archive of every row up to 1.50.0 and
+is still read for those versions. `tests/test-docs-current.js` clause 5e fails an entry above 1.50.0
+without all four. A row written in the old shape converts with `node engine/notes_to_changelog.js`.
 
 ---
+
+## [1.60.0] — 2026-10-01
+
+**The documentation is consolidated: one record per change, in this file. The notes page and the solver log are frozen archives, SUMMARY is folded into the README, and the technical docs link results instead of restating them.** MINOR: no published figure moves. 1.51.0–1.59.x are left free for the branches in flight.
+
+### Changed
+- **One record per change (Will approved, 2026-10-01).** From this entry on, a change writes ONE entry here, with a `### Record` section carrying the four fields a `docs/RUNNING-NOTES.md` row carried. The page is FROZEN by a masthead declaration, `<!-- FROZEN: abra/regmb=7.0.0; abra/regmc=1.50.0 -->`, and is still READ for every version at or below it.
+  - `engine/docs_scan.js`: `notesEntries()` now returns the open changelog's entries above the freeze plus the archive's rows at or below it, through one row parser, `parseRows()`. Every clause that read the page reads the same thing from the new source: the backlog and `OWED_CAP`, the closed-line refusal, the release-kind policy (5d), and the retraction, citation and rule-1 scans. The latter read the changelog through `readRecordAware()`, which blanks every line older than the freeze. `recordTargets()` names the file a change must move. The hook's `--note-check` and clause 5b both ask it.
+  - A row written into the frozen page after its freeze is refused as `row_after_freeze` by `closedLineBreaches()`. It fails `--owed`, `--lines` and clause 2.
+  - `tests/test-docs-current.js`: clause 5a requires the archive AND the record. 5b reads git history against the record. The NEW clause 5e fails an entry above the freeze that lacks any of the four Record fields.
+  - `.githooks/pre-commit`: the record gate asks `--staged --note-check`, and its refusal shows the new entry shape.
+- **`solver/LOG.md` is frozen** as history with a pointer. The obligation to write it is removed from `.claude/agents/solver.md`, `solver/PLAN.md`, the start, finish and institutional-memory skills, and `solver/machamp/loop_sprt.js`. An accepted generation now writes one changelog entry with its `### Record`, and no notes row or log line.
+- **`docs/SUMMARY.md` (+ `.pdf`) is folded into `README.md`** and removed (`git rm`). Its last edition is `git show a085dd9f:docs/SUMMARY.md`. README gains the component table, the pipeline sketch, two limits and links to where each figure lives. `engine/sanity_check.py` §5 now checks README for the withdrawn PORY figure, `engine/major_readiness.js` drops SUMMARY from its living set, and `build/build_pdfs.js` derives its set from the files on disk, so SUMMARY simply leaves it.
+- **`docs/HANDOFF-2026-08-01.md` (+ `.pdf`) moved to `docs/archive/`** with `git mv`, beside its siblings, with a provenance header. It is grandfathered in `data/docs-currency-baseline.json` with a reason, and `docs/archive/INDEX.md` is regenerated. No tracked markdown linked it.
+- **`docs/ABRA-technical-docs.md` links results instead of restating them.** §0.3's gate-readings table and §0.1's clause count are replaced by links to the white paper §4 and §4.2, and §3.1 loses its stale Status column. §2.10 and §2.11 now describe the new record. The header stays at 1.0.0, because this is not a fold-in.
+- `CLAUDE.md` (living-docs section, SOLVER, START HERE), `docs/ORIENTATION.md`, `docs/SOLVER.md`, `docs/REGMC.md` and `docs/REGULATION-ROTATION.md` describe the new record in place, with dated notes.
+
+### Added
+- `engine/notes_to_changelog.js`, the converter. `<file>` prints the `### Record` section of each RUNNING-NOTES-style row, `--entry` prints a whole entry, `--ref <branch>` converts the rows a branch added above the freeze (`--apply` writes them), and `--migrate` moves every post-freeze row out of the frozen page into its version's entry. It never invents a field: a missing one is reported, it exits 2, and clause 5e stays red until a person writes it.
+
+### Record
+- **Measured.** The backlog (`node engine/docs_scan.js --owed`, abra/regmc) reads 63 of 165 before the change (notes page alone), 63 on the frozen tree before this entry, and 64 with it. A synthetic post-freeze row read 64 under the pre-change reader and, after `--migrate`, 64 under the new one. Overlap, 5-word shingles: RUNNING-NOTES vs this changelog 3.4% (41% of the page's figures); `solver/LOG.md` vs this changelog 8.6% (70% of its figures); SUMMARY vs README 5.9%, vs the deck 0.7%. Figures lexed in the technical docs (`figuresInText`): 34 before, 16 after. Account: `docs/_reports/2026-10-01-docs-consolidation.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing. No figure is retracted; the technical docs' copies of the gate readings are removed in favour of links to the white paper, which still states them.
+- **Owed to the next major.** The white paper (§2 "The running log is `solver/LOG.md`", §4.3 and §8 sources name the notes page) and `docs/MODELS.md` (one `solver/LOG.md` sentence) still describe the old record. Fold them in at the next document pass. Rebuild the technical-docs PDF there too: it still shows the 1.0.0 text.
 
 ## [1.50.0] — 2026-09-30
 

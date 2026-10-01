@@ -142,11 +142,12 @@ const RESIDUAL = {
     + 'engine/register_reality.js and engine/seed_source_audit.js; a row is appended or closed most '
     + 'sessions. Its PDF cost 4,092,583 packed bytes at the most recent bump.',
   'RUNNING-NOTES.md':
-    'the notes log. Append-only by design — .githooks/pre-commit blocks a commit that does not add a '
-    + 'row — so its PDF would be rebuilt every session and grow forever, which is what docs/ENGINE.pdf '
-    + 'became at 108.4 MB across ten rebuilds. It has no version header BECAUSE no single version '
-    + 'describes a log (data/docs-currency-baseline.json states that), which is the same fact that '
-    + 'makes it not a deliverable.',
+    'the notes log, FROZEN since 2026-10-01 as the archive of every row up to abra/regmc 1.50.0 (the record '
+    + 'is now the open changelog\'s ### Record sections). While it was live it was append-only by design '
+    + '— .githooks/pre-commit blocked a commit that did not add a row — so its PDF would have been rebuilt '
+    + 'every session and grown forever, which is what docs/ENGINE.pdf became at 108.4 MB across ten '
+    + 'rebuilds. It has no version header BECAUSE no single version describes a log '
+    + '(data/docs-currency-baseline.json states that), which is the same fact that makes it not a deliverable.',
 };
 
 /* Every PDF this build excludes must actually be OUT of git, or the exclusion buys nothing. Asked

@@ -16,8 +16,10 @@
  *   6. ACCEPT iff all three pass: gen<n> becomes C, the old C becomes P.
  *   7. --publish: fetch, merge origin/main (append-only conflicts in the three logs resolved ours-then-theirs; any
  *      other conflict aborts the merge and skips the push), write the rows, commit, push HEAD:main. Never force.
- *      Accepted: models + spec + CHANGELOG-REGMC + RUNNING-NOTES + one solver/LOG.md line + the report section, as a
- *      MINOR above main's top. Rejected: the one solver/LOG.md line and the report section only.
+ *      Accepted: models + spec + one CHANGELOG-REGMC entry (with its ### Record section) + the report section, as a
+ *      MINOR above main's top. Rejected: the report section only. (Until 2026-10-01 this also wrote a
+ *      docs/RUNNING-NOTES.md row and a solver/LOG.md line; both files are frozen archives now and the changelog
+ *      entry is the one record.)
  * STOP when two generations in a row fail the SPRT, when solver/out/machamp/STOP exists, or on an error. Resumable.
  *
  * --recipe warm (solver/machamp/preregistration-warm.json, from generation 8). gen6 and gen7 failed because every
@@ -149,13 +151,13 @@ function publish(v, S) {
     if (st) throw new Error('refusing to publish over uncommitted tracked changes:\n' + st);
     mergeMain();
   }
-  const files = ['solver/LOG.md', rel(REPORT)];
+  const files = [rel(REPORT)];
   const n = v.gen, g = v.G_beats_previous_SPRT, c = v.G_not_lose_clone, p = v.G_pory2_human;
   const ci = x => '[' + x.map(z => z.toFixed(3)).join(', ') + ']';
   const line = `${WARM ? '(warm) ' : ''}gen${n}: ${v.accepted ? '**ACCEPTED**' : 'rejected'} — SPRT ${g.verdict.split(' ')[0]} after ${g.games_used} games, ` +
     `${g.result.score_x.toFixed(3)} ${ci(g.result.ci95_x)} vs ${path.basename(v.champion_before, '.json')}; clone ${c.score.toFixed(3)}; ` +
     `PORYGON2 human Δ ${p.diff.toFixed(4)} ${p.pass ? 'PASS' : 'FAIL'}. \`solver/machamp/models/gen${n}/gates.json\``;
-  logLine(line);
+  log('generation line:', line);   // solver/LOG.md is a frozen archive since 2026-10-01; the line goes to the run log
   const sec = `\n## gen${n} — ${v.accepted ? 'ACCEPTED' : 'rejected'} (${new Date().toISOString()})\n\n` +
     `- Self-play: \`${v.selfplay.dir}\`, ${v.selfplay.games} games, ${v.selfplay.games_per_hour} games/hour, ${(100 * v.selfplay.unfilled).toFixed(2)}% cells empty.\n` +
     `- Pool: ${v.pool.dirs} self-play directories, ${v.pool.doduo_decisions} DODUO decisions, ${v.pool.pory2_positions} PORYGON2 positions (all with a deep value: ${v.pool.pory2_with_deep}).\n` +
@@ -172,12 +174,10 @@ function publish(v, S) {
     const t = topVersion(); const ver = `${t[0]}.${t[1] + 1}.0`;
     insertBefore('CHANGELOG-REGMC.md', /^## \[/m, `## [${ver}] — ${today()}\n\n### Added\n- **MACHAMP gen${n} accepted** (\`solver/machamp/models/gen${n}/\`, \`league/gen${n}.json\`), the unattended loop under \`${PREREG}\`${WARM ? ' (warm start from the champion, smaller learning rate, champion self-play weighted 3, fallback decisions in the DODUO targets)' : ''}.\n\n### Notes\n` +
       `- SPRT vs ${path.basename(v.champion_before, '.json')} (elo0 0, elo1 +20, α = β = 0.05): H1 after ${g.games_used} games; ${g.result.score_x.toFixed(3)} ${ci(g.result.ci95_x)}. Human clone ${c.score.toFixed(3)} ${ci(c.ci95)}; PORYGON2 human Δ ${p.diff.toFixed(4)} ${ci(p.ci95)}.\n` +
-      `- Source: \`solver/machamp/models/gen${n}/gates.json\`. Account: \`${rel(REPORT)}\`.\n- **Basis.** unchanged.\n\n`);
-    insertBefore('docs/RUNNING-NOTES.md', /^## \[abra\/regmc /m, `## [abra/regmc ${ver}] — ${today()} — **MACHAMP gen${n} accepted by SPRT (H1 after ${g.games_used} games, ${g.result.score_x.toFixed(3)} ${ci(g.result.ci95_x)})**\n` +
-      `- **What changed.** \`solver/machamp/models/gen${n}/\`, \`solver/machamp/league/gen${n}.json\`; the champion is now gen${n}.\n` +
+      `- Source: \`solver/machamp/models/gen${n}/gates.json\`. Account: \`${rel(REPORT)}\`.\n\n### Record\n` +
       `- **Measured.** SPRT vs ${path.basename(v.champion_before, '.json')} H1, ${g.games_used} games, ${g.result.score_x.toFixed(3)} ${ci(g.result.ci95_x)}; clone ${c.score.toFixed(3)}; PORYGON2 human Δ ${p.diff.toFixed(4)} — \`solver/machamp/models/gen${n}/gates.json\`.\n` +
       `- **Basis.** unchanged.\n- **Supersedes.** Nothing.\n- **Owed to the next major.** MEW and MACHAMP in \`docs/MODELS.md\`.\n\n`);
-    files.push('CHANGELOG-REGMC.md', 'docs/RUNNING-NOTES.md', `solver/machamp/models/gen${n}`, `solver/machamp/league/gen${n}.json`);
+    files.push('CHANGELOG-REGMC.md', `solver/machamp/models/gen${n}`, `solver/machamp/league/gen${n}.json`);
     msg += ` (abra/regmc ${ver})`;
   }
   if (DRY) { log('dry publish: would commit', files.join(' '), '|', msg); return; }

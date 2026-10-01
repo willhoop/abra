@@ -4,7 +4,8 @@
 
 Every figure below cites the file it came from. No figure from a quarantined or withdrawn model is
 used. Estimates are marked **[EST]**. Figures reported by another group and not reproduced here are
-marked **[REPORTED]**. The running log is `solver/LOG.md`.
+marked **[REPORTED]**. What landed is recorded once, as its entry in `CHANGELOG-REGMC.md`; `solver/LOG.md`
+is the frozen narrative up to 2026-10-01 (abra/regmc 1.50.0) and gains no new lines.
 
 ---
 
@@ -147,7 +148,7 @@ These change `docs/DIVISIONS.md` and `CLAUDE.md`, so none of them is applied.
 | **Old divisions** | SEARCH (`miltank.js`) and the MAG seam are superseded when their replacements land. OPS keeps the store and ingest, and hands the live bot to SOLVER. **Will decides** (§9 Q2) |
 | **Ledger** | `docs/SOLVER.md`, stamped by `status.js --write` like the other five. No PDF |
 | **Version line** | `abra/solver`, with `CHANGELOG-SOLVER.md`, mirroring `abra/regmc` / `CHANGELOG-REGMC.md` (`docs/REGMC.md:4`). 0.x until ALAKAZAM clears M4, then 1.0.0 |
-| **Running notes** | One row per change in `docs/RUNNING-NOTES.md`, as for any other change. `solver/LOG.md` becomes the division's narrative log |
+| **Running notes** | One entry per change in `CHANGELOG-REGMC.md`, with its `### Record` section, as for any other change (since 2026-10-01; `docs/RUNNING-NOTES.md` and `solver/LOG.md` are frozen archives). The working detail goes in `docs/SOLVER.md` and `docs/_reports/` |
 | **Quarantine** | Every SOLVER figure that reads MEDICHAM waits for the Reg M-C gate. The store-only pieces (the human dataset, MAG v0, GURU v0) do not |
 | **White paper story** | A new part, "From simulator to player": the Reg M-B models were retired rather than repaired; the rebuild runs on a verified simulator; every model has a pre-registered test and a named baseline; the headline is a settled ladder rating ± SD with the series count, never a peak |
 

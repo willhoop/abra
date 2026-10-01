@@ -1,5 +1,12 @@
 # Solver log
 
+> **FROZEN 2026-10-01 — HISTORY, NOT A LOG ANYONE WRITES TO.** This was the third retelling of solver
+> work, beside `CHANGELOG-REGMC.md` and `docs/RUNNING-NOTES.md`; measured on 2026-10-01, 70% of the
+> figures in it already stood in the changelog and 73% in the notes page. From abra/regmc 1.51.0 on,
+> a solver change is recorded ONCE, as its `CHANGELOG-REGMC.md` entry with a `### Record` section;
+> the working detail lives in `docs/SOLVER.md` and the full account in `docs/_reports/`. The entries
+> below are kept exactly as written and end at abra/regmc 1.50.0.
+
 Running log of the new solver stack (everything except MEDICHAM, rebuilt from scratch for Reg M-C,
 open team sheets). Newest first. Each entry: what landed, the verdict, where the detail lives.
 Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG

@@ -10,7 +10,12 @@ Explanation.*
 **This is the document that you follow to run this system.** It tells you which command to give, which
 flag to give with it, and how to read the result. It does not argue for a design. The argument is in
 [the white paper](ABRA-whitepaper.md). The record of each change is in
-[the running notes](RUNNING-NOTES.md) and in [the Reg M-C changelog](../CHANGELOG-REGMC.md).
+[the Reg M-C changelog](../CHANGELOG-REGMC.md). [The running notes](RUNNING-NOTES.md) are the frozen
+record of the changes up to 1.50.0.
+
+**This document does not restate a result.** A result has one home: the white paper, or the artifact
+that the white paper cites. This document links to it. *(Changed 2026-10-01. The 1.0.0 edition copied
+the gate readings into §0.3; read that edition with `git show a085dd9f:docs/ABRA-technical-docs.md`.)*
 
 **WHAT CHANGED IN 1.0.0.** This document now describes Reg M-C. Reg M-B is retired. Its 7.0.0 edition
 of this document is the record for Reg M-B. Read it with `git show bfbf9cf9:docs/ABRA-technical-docs.md`.
@@ -42,8 +47,8 @@ Run this command. Read the first line of the output.
 tools\lownode.cmd engine\quarantine.js --regulation regmc
 ```
 
-On release `eaa5becc54eb` the output reports `GATE: OPEN`. All ten gating clauses pass. The full
-account is `docs/_reports/2026-09-24-regmc-gate-final.md`.
+The first line says `GATE: OPEN` or names the clause that fails. The result for this release, and the
+account of it, are in [the white paper §4](ABRA-whitepaper.md#4-the-foundation-medicham-certified-on-reg-m-c-abraregmc-100).
 
 ### 0.2 The pins of this measurement
 
@@ -58,18 +63,11 @@ account is `docs/_reports/2026-09-24-regmc-gate-final.md`.
 
 ### 0.3 The readings
 
-| Clause | Reading |
-|---|---|
-| Damage differential | 0 disagreements of 6000, seed 20260804 (`data/engine-diff-regmc.json`) |
-| Roster, items | 166 of 166 boards match (`data/roster.items-regmc.json`) |
-| Roster, abilities | 210 boards match of 214 in scope (`data/roster.abilities-regmc.json`) |
-| Roster, moves | 510 boards match of 511 in scope (`data/roster.moves-regmc.json`) |
-| Whole game, lattice 1200 | 955 games, no board parts (`data/game-differential-regmc.json`) |
-| Whole game, lattice 1600 | 1266 games, no board parts (`data/game-differential.g1600-regmc.json`) |
-| Whole game, lattice 1900 | 1497 games, no board parts (`data/game-differential.g1900-regmc.json`) |
-| Narration | zero undeclared on each lattice; the baseline is 0 of 955 (`data/whole-game-baseline-regmc.json`) |
-| Staged mechanics | 4867 games; none threw (`data/all-mechanics-fire-regmc.json`) |
-| Census | 1024 rows live (`e1d04b89:data/mechanics-census-regmc.json:live`, pin `123aa264f88d`; recorded in abra/regmc 0.125.0) |
+Do not copy a reading into this document. Read each one where it lives:
+
+- The readings of the gate, clause by clause: [the white paper §4.2](ABRA-whitepaper.md#42-the-reading).
+- Each clause's artifact: §3.4 of this document. The artifact is the source. A document only cites it.
+- The readings now, on the tree you have: run the command in §0.1.
 
 ### 0.4 The limits of the verdict
 
@@ -273,9 +271,13 @@ Arm the hook one time for each clone: `git config core.hooksPath .githooks`.
 
 For each change, in the same commit:
 
-1. Write one row in `docs/RUNNING-NOTES.md`, headed `## [abra/regmc <version>]`. State what changed,
-   the figure, the artifact, what it supersedes, and `**Basis.** unchanged` or `**Basis.** CHANGED`.
-2. Write the entry in `CHANGELOG-REGMC.md`. Increase the version.
+1. Write ONE entry in `CHANGELOG-REGMC.md`. Increase the version. Give the entry a `### Record`
+   section with four lines: `**Measured.**` (the figure and its artifact, or NO FIGURE), `**Basis.**`
+   (`unchanged`, or `CHANGED` and what a reader can no longer be told), `**Supersedes.**` (`Nothing`, or
+   the struck figure and the word retracted), and `**Owed to the next major.**`.
+2. Do not write a row in `docs/RUNNING-NOTES.md`. That page is frozen. To convert a row in the old
+   shape, run `node engine/notes_to_changelog.js <file>`. After you merge a branch that wrote a row
+   there, run `node engine/notes_to_changelog.js --migrate`.
 3. Update the ledger of your division, then run `node engine/status.js --write` from the main checkout.
    Do not run it from a worktree.
 
@@ -288,7 +290,8 @@ node engine/docs_scan.js --owed
 ```
 
 A major release is a change of basis. It is not a way to empty the backlog. Above the cap the build
-fails. Fold the rows into the documents at any version.
+fails. Fold the record into the documents at any version. The backlog counts the changelog entries
+above the freeze and the frozen rows of `docs/RUNNING-NOTES.md` at or below it.
 
 ### 2.12 Add a figure to a living document
 
@@ -306,25 +309,27 @@ fails. Fold the rows into the documents at any version.
 
 ### 3.1 The solver models
 
-| Model | Job | Code | Status |
-|---|---|---|---|
-| MEDICHAM | the simulator and its API | `engine/medicham2-browser.js`, `engine/medicham_api.js` | certified on Reg M-C |
-| MAG | score each slot's options (the human prior) | `solver/mag/` | v1, offline |
-| DODUO | score the pair as one joint action | `solver/mag/` | v1, offline |
-| XATU | belief over the back two and the spreads | `solver/xatu/` | v1, offline |
-| SLOWKING | solve the matrix game each turn | `solver/slowking/` | v1 |
-| MILTANK | fill the matrix: candidates, shared dice, clock (halving and XATU worlds planned, not in v1) | `solver/miltank/` | v1; strength withheld |
-| GURU | descriptive meta | `solver/meta/` | v0 |
-| arena | offline bot against bot | `solver/arena/` | built; reads the live tree |
-| PORYGON2 | value network | — | not built |
-| MEW, MACHAMP | self-play and the training loop | — | not built |
-| GARY, HYPNO | human habit and the capped exploit dial | — | not built |
-| WOBBUFFET, DUSK | the exploiter and the endgame tables | — | not built |
-| CHOMP | team-preview solver | `solver/chomp/` (planned) | not built |
-| ROTOM | the live client | — | not built |
-| ALAKAZAM | the assembled agent | — | not built |
+| Model | Job | Code |
+|---|---|---|
+| MEDICHAM | the simulator and its API | `engine/medicham2-browser.js`, `engine/medicham_api.js` |
+| MAG | score each slot's options (the human prior) | `solver/mag/` |
+| DODUO | score the pair as one joint action | `solver/mag/` |
+| XATU | belief over the back two and the spreads | `solver/xatu/` |
+| SLOWKING | solve the matrix game each turn | `solver/slowking/` |
+| MILTANK | fill the matrix: candidates, shared dice, clock | `solver/miltank/` |
+| GURU | descriptive meta | `solver/meta/` |
+| arena | offline bot against bot | `solver/arena/` |
+| PORYGON2 | value network | `solver/porygon2/` |
+| MEW, MACHAMP | self-play and the training loop | `solver/mew/`, `solver/machamp/` |
+| GARY, HYPNO | human habit and the capped exploit dial | `solver/PLAN.md` §2 |
+| WOBBUFFET, DUSK | the exploiter and the endgame tables | `solver/PLAN.md` §2 |
+| CHOMP | team-preview solver | `solver/chomp/` |
+| ROTOM | the live client | `solver/rotom/` |
+| ALAKAZAM | the assembled agent | `solver/PLAN.md` §2 |
 
-The plan is `solver/PLAN.md`. The log is `solver/LOG.md`.
+**The status of a model is not in this table.** The registry in `solver/PLAN.md` §2 says what is built.
+`docs/MODELS.md` and the white paper §3 say what each model measured. The plan is `solver/PLAN.md`. The
+record of each change is `CHANGELOG-REGMC.md`.
 
 ### 3.2 The clock
 
