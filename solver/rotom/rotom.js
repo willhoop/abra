@@ -746,8 +746,10 @@ function settleSeriesEnd(room) {
   const S = BOOK.get(room); if (!S || !S.result) return null;
   const bo = bestofs.get(room);
   const live = [...battles.values()].filter(B => B.bestof === room && !B.ended && B.gnum != null).sort((a, b) => b.gnum - a.gnum)[0] || null;
-  const end = ENDINGS.seriesEnd(S.games, S.result, NAME, { quitLines: bo && bo.quitLines, liveGnum: live ? live.gnum : null, liveTurn: live ? live.turn : 0 });
-  end.games_end = S.games.map(g => ({ gnum: g.gnum, room: g.room, mine: g.mine != null ? g.mine : (g.winner == null ? null : g.winner === g.me), end_reason: g.end_reason || null, end_turn: g.end_turn != null ? g.end_turn : null, at_preview: g.at_preview != null ? g.at_preview : null }));
+  const end = ENDINGS.seriesEnd(S.games, S.result, NAME, { quitLines: bo && bo.quitLines, liveGnum: live ? live.gnum : null, liveTurn: live ? live.turn : 0, liveLines: live ? live.lines : null });
+  const nn = v => (v != null ? v : null);
+  end.games_end = S.games.map(g => ({ gnum: g.gnum, room: g.room, mine: g.mine != null ? g.mine : (g.winner == null ? null : g.winner === g.me), end_reason: g.end_reason || null, end_turn: nn(g.end_turn), at_preview: nn(g.at_preview),
+                                      earned: nn(g.earned), earned_why: nn(g.earned_why), quit_turn: nn(g.quit_turn), left_me: nn(g.left_me), left_opp: nn(g.left_opp) }));
   S.end = end; BOOK.save(S);
   if (end.end_reason === 'walkaway_me' && !S.selfQuitCounted) {
     S.selfQuitCounted = true; BOOK.save(S);
@@ -971,7 +973,9 @@ function endBattle(B, winnerName) {
   const winner = winnerName == null ? null : (toID(B.names.p1) === toID(winnerName) ? 'p1' : 'p2');
   /* HOW this game ended, from its own lines (endings.js): a forfeit, the battle timer, or normal */
   const END = ENDINGS.gameEnd(B.lines, NAME);
-  const endF = { end_reason: END.end_reason, end_by: END.end_by, end_turn: END.end_turn, at_preview: END.at_preview, end_raw: END.end_raw };
+  /* earned / earned_why / left_me / left_opp / quit_turn: an opponent quit while we were ahead on Pokemon left (endings.js) */
+  const endF = { end_reason: END.end_reason, end_by: END.end_by, end_turn: END.end_turn, at_preview: END.at_preview, end_raw: END.end_raw,
+                 earned: END.earned, earned_why: END.earned_why, quit_turn: END.quit_turn, left_me: END.left_me, left_opp: END.left_opp };
   ST.endReasons[END.end_reason] = (ST.endReasons[END.end_reason] || 0) + 1;
   if (ENDINGS.SELF_QUIT.has(END.end_reason)) selfQuit({ level: 'game', room: B.id, bestof: B.bestof, gnum: B.gnum, end_reason: END.end_reason, end_turn: END.end_turn, end_raw: END.end_raw });
   const brought = {};

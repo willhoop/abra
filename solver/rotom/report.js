@@ -5,6 +5,8 @@
  *   node solver/rotom/report.js games [games.jsonl] [--client <name>] [--include-local] [--json <file>]
  *   node solver/rotom/report.js ladder <run dir> [--json <file>]      the ladder record: RATED series only, with and without
  *                                                                     the series the opponent handed us (forfeit/timeout/walkaway)
+ *                                                                     — since 1.70.0 three ways: EARNED FORFEITS COUNTED (the
+ *                                                                     headline; endings.js), all, and all forfeits excluded
  *
  * EVERY RECORD AND EVERY MEAN IS OVER RATED SERIES ONLY (endings.js ladderRecord requires `{ rated: true }`): gen5ab k30 was
  * unrated (no rating lines, S 1) and was counted as a win by any figure that did not filter. An unrated series is listed,
@@ -117,6 +119,14 @@ function ladderReport(dir, o) {
       const name = f.slice('ladder-series-'.length, -'.jsonl'.length);
       rows.push(...((derived.clients[name] || {}).rows || R)); sources.push({ file: f, ends: 'derived now from the run logs' });
     }
+  }
+  /* EARNED FORFEITS (1.70.0): a row written before win_class existed is classed from the run's own game logs, read-only */
+  let classed = 0;
+  if (rows.some(r => !('win_class' in r))) {
+    const C = require('./backfill_ends.js').classifyRun(dir);
+    const by = new Map(); for (const c of Object.values(C.clients)) for (const r of c.rows) by.set(r.series, r);
+    for (const r of rows) if (!('win_class' in r) && by.has(r.series)) { const d = by.get(r.series); Object.assign(r, { win_class: d.win_class, quit_games: d.quit_games, games_end: d.games_end, win_class_source: d.win_class_source }); classed++; }
+    sources.push({ file: 'games/<client>/<room>.log', ends: 'win_class derived now for ' + classed + ' rows' });
   }
   const rec = ENDINGS.ladderRecord(rows, { rated: true, dryRun: !!o.dryRun });
   let tactics = null;
@@ -269,7 +279,9 @@ if (require.main === module) {
   if (argv[0] === 'ladder') {
     const r = ladderReport(path.resolve(argv[1]), { dryRun: argv.includes('--dry-run') });
     if (fl('json')) fs.writeFileSync(fl('json'), JSON.stringify(r, null, 1));
-    const line = (lab, b) => console.log(`${lab.padEnd(12)} all ${b.all.record} (mean S ${b.all.mean_S}, S−E ${b.all.residual.mean} ± ${b.all.residual.sd} sd, n ${b.all.series})   without quit wins ${b.without_quit_wins.record} (mean S ${b.without_quit_wins.mean_S}, S−E ${b.without_quit_wins.residual.mean} ± ${b.without_quit_wins.residual.sd} sd)   quit wins ${b.quit_wins} ${JSON.stringify(b.quit_wins_by)}   SELF QUITS ${b.self_quits}${b.end_unknown ? '   end unknown ' + b.end_unknown : ''}`);
+    const rr = x => `${x.record} (mean S ${x.mean_S}, S−E ${x.residual.mean} ± ${x.residual.sd} sd, n ${x.series})`;
+    const line = (lab, b) => console.log(`${lab.padEnd(12)} EARNED FORFEITS COUNTED ${rr(b.earned_counted)}   all ${rr(b.all)}   all forfeits excluded ${rr(b.any_forfeit_excluded)}   won series by class ${JSON.stringify(b.win_class)}`
+      + `\n${''.padEnd(12)} legacy all ${b.all.record} (mean S ${b.all.mean_S}, S−E ${b.all.residual.mean} ± ${b.all.residual.sd} sd, n ${b.all.series})   without quit wins ${b.without_quit_wins.record} (mean S ${b.without_quit_wins.mean_S}, S−E ${b.without_quit_wins.residual.mean} ± ${b.without_quit_wins.residual.sd} sd)   quit wins ${b.quit_wins} ${JSON.stringify(b.quit_wins_by)}   SELF QUITS ${b.self_quits}${b.end_unknown ? '   end unknown ' + b.end_unknown : ''}`);
     console.log(`${r.rows} series rows — ${r.dir} (${r.sources.map(s => s.file + ': ' + s.ends).join('; ')})   RATED ONLY`);
     line('total', r);
     for (const [a, b] of Object.entries(r.by_arm)) line('arm ' + a, b);

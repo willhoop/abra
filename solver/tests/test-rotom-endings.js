@@ -50,7 +50,7 @@ function load(rel, edits) {
   return m.exports;
 }
 const BREAKS = {
-  quit: ['solver/rotom/endings.js', [['const q = quitLine(l); if (q && !win && !tie) quit = q;', '']]],
+  quit: ['solver/rotom/endings.js', [['const q = quitLine(l); if (q && !win && !tie) { quit = q; atQuit = C.snap(turn); }', '']]],
   allnormal: ['solver/rotom/endings.js', [["else if (quit && (win || tie)) { end_reason = quit.kind + '_' + side(quit.by, me);", "else if (quit && (win || tie)) { end_reason = 'normal';"]]],
   walkaway: ['solver/rotom/endings.js', [['} else if (winnerWins >= need || lastQuit) {', '} else if (last) {']]],
   rated: ['solver/rotom/endings.js', [["if (!opts || opts.rated !== true) throw", 'if (false) throw'], ['r && r.rated === true && !r.dry_run', 'r && !r.dry_run']]],

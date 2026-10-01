@@ -151,12 +151,13 @@ function mk(o) {
   ok(/play\.pokemonshowdown\.com/.test(inert.stdout), 'preload is inert without ROTOM_LOGIN_MOCK');
 
   /* ---------------- HYGIENE ---------------- */
+  /* since abra/regmc 1.65.0 the list is declared ONCE, data/quality-filter.json rules.exclude_own_accounts, read through
+   * engine/quality.js isOwnAccount; both consumers must ask it (the old per-file `const OWN = new Set([...])` is gone) */
+  const QY = require(path.join(ROOT, 'engine', 'quality.js'));
   for (const f of ['solver/human/build_dataset.js', 'solver/meta/extract.js']) {
     const src = fs.readFileSync(path.join(ROOT, f), 'utf8');
-    const m = /const OWN = new Set\(\[([^\]]*)\]\)/.exec(src);
-    const own = m ? m[1].split(',').map(x => x.replace(/['"\s]/g, '').toLowerCase()) : [];
-    ok(own.includes('medicham32'), f + ': medicham32 is on the own-account list');
-    ok(/names\.some\(n => OWN\.has\(.*\)\)\s*\{?\s*(addEx\(id, 'own_account'|hits\.push\('own_account'\))/.test(src), f + ': the list excludes a game as own_account');
+    ok(QY.isOwnAccount('medicham32') && /require\([^)]*engine\/quality(\.js)?['"]\)/.test(src) && /isOwnAccount/.test(src), f + ': medicham32 is on the own-account list (engine/quality.js isOwnAccount, which this file reads)');
+    ok(/names\.some\((isOwn|n => Q\.isOwnAccount\(n\))\)\)\s*\{?\s*(addEx\(id, 'own_account'|hits\.push\('own_account'\))/.test(src), f + ': the list excludes a game as own_account');
   }
   {
     const src = fs.readFileSync(path.join(ROOT, 'engine', 'durable-ingest.js'), 'utf8');

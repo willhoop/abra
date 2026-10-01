@@ -28,6 +28,59 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.70.0] — 2026-10-01
+
+**MINOR: an opponent forfeit while we are ahead on Pokémon is a real win.** Will, 2026-10-01: *"lets count forfeits where
+we are up in pokemon counts as real wins."* The ladder record now has three readings. The new headline is **earned forfeits
+counted**. The other two are all, and all forfeits excluded (the old way). The class is decided per game, rolled up to the
+series, and written by ROTOM at the end of each game.
+
+### Added
+- **The board count at the quit.** `solver/rotom/endings.js` `gameEnd` counts each side's Pokémon left: the last
+  `|teamsize|` (the brought four, bench included) minus that side's `|faint|` lines. The count is read at the quit line.
+  An opponent forfeit or timeout is `earned` when turn ≥ 1 and we have more left. It is unearned when the count is level,
+  when we are behind, or at preview or turn 0 (no lead exists). If the count is missing, the game is `no_count`: unearned,
+  never guessed.
+- **The series class**, `seriesWinClass` / `seriesEnd.win_class`, for a series we won:
+  - `clean`: no opponent quit in any game.
+  - `earned`: every opponent-quit game was earned.
+  - `unearned`: any opponent-quit game was unearned, or the opponent walked away between games.
+  A series that ends by forfeit in game 3 is classed by game 3's own count, plus any earlier quit game. A series forfeit
+  that lands mid-game is classed from the live game's lines. A lost series is never reclassified.
+- **`ladderRecord` gives three readings**: `earned_counted` (the headline), `any_forfeit_excluded`, and `all`. The legacy
+  `without_quit_wins` is kept unchanged. `report.js ladder` prints all three, with mean S and `S − E` for each.
+- **Written at write time.** `rotom.js` adds `earned`, `earned_why`, `quit_turn`, `left_me` and `left_opp` to each game's
+  end fields and to `games_end`. `ladder.js` writes `win_class` and `quit_games` on every series row.
+- **Back-fill, read-only.** `backfill_ends.js` `classifyRun` and `--earned` class a past run from its own game logs and
+  write nothing. `report.js ladder` uses them for rows written before 1.70.0.
+- `solver/tests/test-rotom-earned-forfeits.js`, GREEN 32/32. It classes an earned forfeit, an unearned one (level and
+  behind), a preview forfeit and a turn-0 forfeit correctly. Six deliberate breaks each go RED.
+
+### Fixed
+- `solver/tests/test-rotom-replays.js` HYGIENE was RED 37/41 on main. It still regex-read `const OWN = new Set([...])` in
+  `solver/human/build_dataset.js` and `solver/meta/extract.js`, which have asked `engine/quality.js` `isOwnAccount` since
+  1.65.0. It now asks `isOwnAccount` and checks that both files call it. GREEN 41/41, and RED when the exclusion line is
+  removed.
+- `solver/tests/test-rotom-endings.js`: the `quit` break anchor now matches the moved line. GREEN 59/59.
+
+### Record
+- **Measured.** Four past ladder runs, rated series only, re-read from their own logs with `node solver/rotom/report.js
+  ladder <run>`. Each run is given as all / **earned forfeits counted** / all forfeits excluded:
+  - gen5ab: 15-21 / **10-21** / 4-21.
+  - chomp1: 10-10 / **9-10** / 5-10.
+  - chomptop: 9-8 / **7-8** / 3-8.
+  - chomptopfix: 12-8 / **12-8** / 6-8.
+
+  Of the 45 opponent-quit games, 37 were earned and 8 were not. The 8 are: 3 at preview, 3 level, and 2 where the opponent
+  quit while they were AHEAD. The gen5ab walkaway (k8) is also unearned. chomptour was live and was not read. Tests: GREEN
+  test-rotom-earned-forfeits 32/32, test-rotom-endings 59/59, test-rotom-ladder 161/161, test-rotom-replays 41/41. Report:
+  `docs/_reports/2026-10-01-earned-forfeits.md`.
+- **Basis.** unchanged. `all` and the legacy `without_quit_wins` read exactly as before. The headline is a new field over
+  the same rated rows, and no figure in a living document uses it.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** `docs/MODELS.md` (ROTOM): the headline is earned forfeits counted, with the rule. White
+  paper: the ladder headline's definition. `docs/SOLVER.md`: the restamp.
+
 ## [1.69.0] — 2026-10-01
 
 **MINOR: the searcher's bodies are built the way the battle's are.** `solver/tests/test-miltank.js` SWAP was red on main:

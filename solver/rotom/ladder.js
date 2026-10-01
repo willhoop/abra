@@ -372,7 +372,9 @@ function create(o) {
     /* HOW the series ended (rotom.js settleSeriesEnd -> endings.js seriesEnd); a test harness may pass it on the result */
     let end = null; try { end = o.seriesEnd ? o.seriesEnd(bestof) : (res.end || null); } catch (e) { end = null; }
     const endF = end ? { end_reason: end.end_reason, end_game: end.end_game, end_turn: end.end_turn, at_preview: end.at_preview, games_won: end.games_won, games_lost: end.games_lost,
-                         any_forfeit_opp: end.any_forfeit_opp, walkaway: end.walkaway, end_by: end.end_by, end_raw: end.end_raw, games_end: end.games_end || null }
+                         any_forfeit_opp: end.any_forfeit_opp, walkaway: end.walkaway, end_by: end.end_by, end_raw: end.end_raw, games_end: end.games_end || null,
+                         /* clean / earned / unearned for a won series, and each opponent-quit game's board count (endings.js) */
+                         win_class: end.win_class !== undefined ? end.win_class : null, quit_games: end.quit_games || null }
                      : { end_reason: null };
     const row = { client: o.name, k: r.k, series: bestof, arm: r.arm, arm_config: r.arm_config, team: r.team, team_meta: r.team_meta, opponent: oppName,
       rated: !!(rm && ro), rating_me: rm || null, rating_opp: ro || null, S: Sc, E: E == null ? null : +E.toFixed(4), residual: E == null ? null : +(Sc - E).toFixed(4),

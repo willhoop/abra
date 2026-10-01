@@ -2,6 +2,8 @@
  * from the files the run left behind, for runs recorded before rotom.js wrote the fields itself (abra/regmc 1.15.0).
  *
  *   node solver/rotom/backfill_ends.js <run dir> [<run dir> ...] [--force]
+ *   node solver/rotom/backfill_ends.js <run dir> [...] --earned     READ-ONLY: the earned-forfeit class of every won series
+ *                                                                   and the board count of every opponent-quit game (1.70.0)
  *
  * READS (never modifies): <run>/ladder-series-<name>.jsonl, <run>/series/<name>/*.json (the series book: each game's room,
  * gnum, side and winner), <run>/games/<name>/<room>.log (our own copy of each game's protocol lines).
@@ -38,6 +40,7 @@ function deriveRun(dir) {
       if (!fs.existsSync(lf)) return Object.assign(base, { end_reason: null, log_missing: true });
       const ge = E.gameEnd(fs.readFileSync(lf, 'utf8').split('\n'), name);
       return Object.assign(base, { end_reason: ge.end_reason, end_by: ge.end_by, end_turn: ge.end_turn, at_preview: ge.at_preview, end_raw: ge.end_raw,
+                                   earned: ge.earned, earned_why: ge.earned_why, quit_turn: ge.quit_turn, left_me: ge.left_me, left_opp: ge.left_opp,
                                    log_winner_mine: ge.mine, log: path.relative(dir, lf).split(path.sep).join('/') });
     };
     for (const [id, s] of books) for (const g of (s.games || [])) games.push(gameFor(id, g));
@@ -47,17 +50,41 @@ function deriveRun(dir) {
       const room = lf.slice(0, -4); if (seen.has(room)) continue;
       const ge = E.gameEnd(fs.readFileSync(path.join(logDir, lf), 'utf8').split('\n'), name);
       games.push({ series: null, k: null, gnum: null, room, mine: ge.mine, end_reason: ge.end_reason, end_by: ge.end_by, end_turn: ge.end_turn, at_preview: ge.at_preview, end_raw: ge.end_raw,
+                   earned: ge.earned, earned_why: ge.earned_why, quit_turn: ge.quit_turn, left_me: ge.left_me, left_opp: ge.left_opp,
                    log_winner_mine: ge.mine, log: 'games/' + name + '/' + lf, not_in_series_book: true });
     }
     const ends = rows.map(r => {
       const G = games.filter(g => g.series === r.series);
       const se = E.seriesEnd(G, r.result, name, {});
       return Object.assign({}, r, { end_reason: se.end_reason, end_game: se.end_game, end_turn: se.end_turn, at_preview: se.at_preview, games_won: se.games_won, games_lost: se.games_lost,
-        any_forfeit_opp: se.any_forfeit_opp, walkaway: se.walkaway, end_by: se.end_by, end_raw: se.end_raw,
-        games_end: G.sort((a, b) => a.gnum - b.gnum).map(g => ({ gnum: g.gnum, room: g.room, mine: g.mine, end_reason: g.end_reason, end_turn: g.end_turn != null ? g.end_turn : null, at_preview: g.at_preview != null ? g.at_preview : null })),
+        any_forfeit_opp: se.any_forfeit_opp, walkaway: se.walkaway, end_by: se.end_by, end_raw: se.end_raw, win_class: se.win_class, quit_games: se.quit_games,
+        games_end: G.sort((a, b) => a.gnum - b.gnum).map(g => ({ gnum: g.gnum, room: g.room, mine: g.mine, end_reason: g.end_reason, end_turn: g.end_turn != null ? g.end_turn : null, at_preview: g.at_preview != null ? g.at_preview : null,
+                                                                 earned: g.earned != null ? g.earned : null, earned_why: g.earned_why || null, quit_turn: g.quit_turn != null ? g.quit_turn : null,
+                                                                 left_me: g.left_me != null ? g.left_me : null, left_opp: g.left_opp != null ? g.left_opp : null })),
         ends_backfilled: { by: 'solver/rotom/backfill_ends.js', rule: 'endings.js gameEnd over games/' + name + '/<room>.log; seriesEnd over the series book games and the row result (no series-room lines were kept, so end_by of a walkaway is null)' } });
     });
     out.clients[name] = { rows: ends, games, rowFile: path.join(dir, 'ladder-series-' + name + '.ends.jsonl'), gameFile: path.join(dir, 'games-ends-' + name + '.jsonl') };
+  }
+  return out;
+}
+
+/* EARNED FORFEITS for ANY run, READ-ONLY (abra/regmc 1.70.0): every series row as the run wrote it, with win_class, quit_games
+ * and games_end (each game's earned / left_me / left_opp) re-derived from the run's own game logs. A row whose written
+ * end_reason disagrees with the log-derived one keeps what it wrote and is listed in `disagree`. Nothing is written. */
+function classifyRun(dir) {
+  const D = deriveRun(dir); const out = { dir, clients: {} };
+  for (const [name, c] of Object.entries(D.clients)) {
+    const written = readJsonl(path.join(dir, 'ladder-series-' + name + '.jsonl'));
+    const byS = new Map(c.rows.map(r => [r.series, r]));
+    const disagree = [];
+    const rows = written.map(r => {
+      const d = byS.get(r.series); if (!d) return Object.assign({}, r, { win_class_source: 'no derivation' });
+      if (r.end_reason && r.end_reason !== d.end_reason) disagree.push({ k: r.k, written: r.end_reason, derived: d.end_reason });
+      const reason = r.end_reason || d.end_reason;
+      return Object.assign({}, r, { end_reason: reason, games_end: d.games_end, win_class: E.seriesWinClass(r.S === 1, reason, d.games_end), quit_games: d.quit_games,
+                                    win_class_source: 'derived from games/' + name + '/<room>.log (backfill_ends.js classifyRun)' });
+    });
+    out.clients[name] = { rows, disagree };
   }
   return out;
 }
@@ -75,6 +102,14 @@ if (require.main === module) {
   const argv = process.argv.slice(2);
   const dirs = argv.filter(a => !a.startsWith('--'));
   if (!dirs.length) { console.error('usage: node solver/rotom/backfill_ends.js <run dir> [...] [--force]'); process.exit(2); }
+  if (argv.includes('--earned')) {
+    /* READ-ONLY: each won series' class and each opponent-quit game's board count; writes nothing */
+    for (const d of dirs) for (const [n, c] of Object.entries(classifyRun(path.resolve(d)).clients)) {
+      console.log(path.basename(d) + ' ' + n + ': ' + JSON.stringify(c.rows.filter(r => r.S === 1).reduce((m, r) => (m[r.win_class] = (m[r.win_class] || 0) + 1, m), {})) + (c.disagree.length ? '  written/derived end_reason disagree: ' + JSON.stringify(c.disagree) : ''));
+      for (const r of c.rows) for (const q of r.quit_games || []) console.log(`  k${r.k} S ${r.S} ${r.rated ? 'rated' : 'UNRATED'} g${q.gnum} ${q.end_reason} t${q.quit_turn} left ${q.left_me}-${q.left_opp} -> ${q.earned ? 'EARNED' : 'unearned'} (${q.earned_why})  series ${r.win_class || '-'}`);
+    }
+    process.exit(0);
+  }
   for (const d of dirs) {
     const { D, wrote } = writeRun(path.resolve(d), argv.includes('--force'));
     for (const [n, c] of Object.entries(D.clients)) {
@@ -85,4 +120,4 @@ if (require.main === module) {
     for (const f of wrote) console.log('  wrote ' + f);
   }
 }
-module.exports = { deriveRun, writeRun };
+module.exports = { deriveRun, writeRun, classifyRun };
