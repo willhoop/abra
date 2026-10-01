@@ -163,6 +163,29 @@ function create(deps) {
     } });
   }
 
+  /* ---- HYPNO's in-series memory (2026-10-01): one solver/hypno/series.js per bo3, fed at each game's end ---- */
+  const HY_SERIES = new Map();
+  COUNTERS.hypno = { decisions: 0, games: 0, observed: 0, disabled: 0, series: 0 };
+  function observeGame(o) {
+    const cfg = o.hypno || (G5 ? G5.spec.hypno : null);   // the arm's config, else the loaded gen5 spec's
+    if (!cfg || !o.bestof) return null;
+    const c = cfg === true ? {} : cfg;
+    const G = require('../hypno/live.js').gary(c.model);
+    const IS = G.M.in_series;
+    if (!IS || !IS.enabled) { COUNTERS.hypno.disabled++; return { enabled: false }; }
+    let SR = HY_SERIES.get(o.bestof);
+    if (!SR) {
+      if (HY_SERIES.size > 200) HY_SERIES.delete(HY_SERIES.keys().next().value);
+      SR = require('../hypno/series.js').create({ sigma: IS.sigma, gamma: IS.gamma, enabled: true, w0: G.M.mixture_w0 });
+      HY_SERIES.set(o.bestof, SR); COUNTERS.hypno.series++;
+    }
+    const S_ = require('../gary/situation.js');
+    const band = c.band || (o.oppRating != null ? S_.bandOfRating(o.oppRating, true) : 'unrated');
+    const r = require('../hypno/series_live.js').observeGame(SR, G, o.row, o.opp, o.gnum, band);
+    COUNTERS.hypno.games++; COUNTERS.hypno.observed += r.observed;
+    return Object.assign({ enabled: true, band }, r);
+  }
+
   /* ---- miltank-gen5: the honest-arena searcher (see the header) ---- */
   let G5 = null;
   function gen5() {
@@ -219,7 +242,13 @@ function create(deps) {
     COUNTERS.gen5.decisions++;
     TAP.on = true; TAP.job = null; TAP.A = null; TAP.sol = null;
     let r;
-    try { r = MT.decide(w.S, w.side, w.ctx, gen5Opts(d.budgetMs, d.coin, Object.assign({}, d.onPass ? { onPass: d.onPass } : {}, d.record ? { record: true } : {}))); }   // d.onPass: the adaptive clock's early stop (solver/rotom/adaptive.js); d.record (2026-09-30, replay probes): the root in r.info.rec
+    /* HYPNO (spec.hypno, 2026-10-01): the opponent's band from the rating their |player| line carried; without one the search
+     * plays the 'unrated' band and counts it (hypnoBandMissing) */
+    const hyCfg = d.hypno || g.spec.hypno;
+    const hy = hyCfg ? { hypno: Object.assign({}, hyCfg === true ? {} : hyCfg, d.oppRating != null ? { oppRating: d.oppRating } : {},
+                                              d.bestof && HY_SERIES.has(d.bestof) ? { series: HY_SERIES.get(d.bestof), gn: d.gnum || 1 } : {}) } : {};
+    if (hyCfg) COUNTERS.hypno.decisions++;
+    try { r = MT.decide(w.S, w.side, w.ctx, gen5Opts(d.budgetMs, d.coin, Object.assign({}, d.onPass ? { onPass: d.onPass } : {}, d.record ? { record: true } : {}, hy))); }   // d.onPass: the adaptive clock's early stop (solver/rotom/adaptive.js); d.record (2026-09-30, replay probes): the root in r.info.rec
     finally { TAP.on = false; }
     if (r.info && r.info.forced) COUNTERS.gen5.forced++; else COUNTERS.gen5.searched++;
     COUNTERS.gen5.fallbackEmpty += MT.COUNTERS.fallbackEmpty; COUNTERS.gen5.fallbackSparse += MT.COUNTERS.fallbackSparse;
@@ -389,7 +418,7 @@ function create(deps) {
       vsMix: +r.win[op.i].vsMix.toFixed(4), support: r.support.length, cells: r.counters.cells, ms: r.ms } };
   }
 
-  return { COUNTERS, move, forceSwitch, preview, previewSearch, previewChomp, randomChoice, filteredLegal, allOptions, gen5, warmGen5,
+  return { COUNTERS, move, forceSwitch, preview, previewSearch, previewChomp, randomChoice, filteredLegal, allOptions, gen5, warmGen5, observeGame, HY_SERIES,
            POLICIES: ['random', 'prior', 'miltank', 'miltank-gen5'], SEARCH: ['miltank', 'miltank-gen5'] };
 }
 

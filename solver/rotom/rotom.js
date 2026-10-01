@@ -976,6 +976,15 @@ function endBattle(B, winnerName) {
   if (ENDINGS.SELF_QUIT.has(END.end_reason)) selfQuit({ level: 'game', room: B.id, bestof: B.bestof, gnum: B.gnum, end_reason: END.end_reason, end_turn: END.end_turn, end_raw: END.end_raw });
   const brought = {};
   if (parsed) for (const s of ['p1', 'p2']) { const L = parsed.leads[s] || []; brought[s] = L.concat((parsed.brought_seen[s] || []).filter(i => !L.includes(i))); }
+  /* HYPNO's in-series memory (2026-10-01, solver/hypno/series_live.js): the opponent's decisions of this game, for games 2-3
+   * of the series; a no-op unless this series' arm (or the gen5 spec) carries `hypno` and GARY's in-series test passed */
+  if (B.bestof && parsedAll && B.me) {
+    const oppS = B.me === 'p1' ? 'p2' : 'p1', ARMe = LADDER ? LADDER.armOf(B.bestof) : null;
+    try {
+      const r = P.observeGame({ bestof: B.bestof, gnum: B.gnum || 1, row: parsedAll, opp: oppS, oppRating: B.ratingsBefore ? B.ratingsBefore[oppS] : null, hypno: ARMe && ARMe.hypno ? ARMe.hypno : null });
+      if (r) event('hypno_series', Object.assign({ room: B.id, bestof: B.bestof, gnum: B.gnum }, r));
+    } catch (e) { event('hypno_series_error', { room: B.id, err: String(e && e.message || e).slice(0, 200) }); }
+  }
   if (B.bestof && parsed) {
     BOOK.recordGame(B.bestof, { room: B.id, gnum: B.gnum, me: B.me, leads: parsed.leads, brought, winner, players: B.names,
                                 turns: parsed.turns_played, clockUsed: +(B.clockUsed / 1000).toFixed(1), bankLeft: B.clock.last ? B.clock.last.bank : null,
@@ -1172,6 +1181,8 @@ function decide(B) {
       } catch (e) { ST.worldErrors++; rec.world = { ok: false, err: String(e && e.message || e).slice(0, 200) }; }
     }
     const d = () => ({ req, world, coin, budgetMs: Math.max(0, bud.ms - (Date.now() - t0)), xatuBack: world && world.xatuBack,
+                       oppRating: B.ratingsBefore && B.ratingsBefore[opp] != null ? B.ratingsBefore[opp] : null,   // HYPNO's band (2026-10-01): the |player| line's rating
+                       bestof: B.bestof, gnum: B.gnum, hypno: ARM && ARM.hypno ? ARM.hypno : null,                  // HYPNO's series memory and the arm's own config
                        onPass: adRec && kind === 'move' ? B.adapt.stopper(adRec.plan, adRec) : undefined });
     const run = (name) => () => (kind === 'switch' ? P.forceSwitch(name, d()) : P.move(name, d()));
     tryPolicy(first, run(first));

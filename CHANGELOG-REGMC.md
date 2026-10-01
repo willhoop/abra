@@ -28,6 +28,44 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.71.0] — 2026-10-01
+
+**MINOR: GARY v1 (the population habit model, PLAN N1) and HYPNO v1 (the population best response, N2) are built.**
+GARY is store-only and gated per (situation bucket × rating band). HYPNO is wired into the search behind spec `hypno`,
+OFF by default and on no arm. No game was played for a measurement.
+
+### Added
+- `solver/gary/`: `situation.js` (8 buckets, 6 bands, 14 joint-action classes), `cells.js`, `extract.js`, `fit.js`
+  (DODUO v1 tilted at four L2-penalised levels, Newton, λ by player CV), `gate.js` (the τ\* clause, the per-cell
+  verdicts, w0), `eval_series.js` (the in-series update test), `roots.js`, `infer.js` (a drop-in prior), the
+  pre-registration (written before the first fit), and `model/gary-v1.json` with its fit, gate, series and offline
+  metrics (~90 KB).
+- `solver/hypno/`: `hypno.js` (`respond`: the cell gate, a coverage guard, the SE gate, the pure best response or the
+  ε-safe segment), `series.js` (the per-opponent deviation and the w posterior), `series_live.js`, `live.js`,
+  `eval_offline.js` (the check on the recorded roots, with a selection-bias correction).
+- `solver/miltank/search.js` spec extra `hypno` with counters (`hypnoDecisions`, `hypnoPlayed`, one per refusal,
+  `hypnoPickChanged`, `hypnoMass`, `hypnoWorst`/`Max`, `hypnoGainPred`, `hypnoBandMissing`, `hypnoCells`,
+  `hypnoTrustedCells`); `solver/mew/agent.js` sums them per agent and `solver/mew/play.js` writes `ctr.hypno`.
+- ROTOM: the opponent's `|player|` rating reaches the search as the band; an arm may carry `"hypno"`; at each game's end
+  `solver/rotom/policy.js` `observeGame` feeds that bo3's series memory.
+- `solver/tests/test-gary.js` GREEN 78,432/78,432 and `solver/tests/test-hypno.js` GREEN 461/461, each RED on its
+  breaks (`GARY_BREAK` material / focus / doduo / gradsign; `HYPNO_BREAK` nogate / argmin / seriesleak / deltaoff;
+  `MILTANK_BREAK=hypnoignored`). Fixture `solver/tests/fixtures/gary-games.jsonl` (12 games, 274 KB).
+- `solver/results/2026-10-01-gary-hypno/`: the recorded roots (a byte-identical copy of 1.34.0's), the 2 s not-lose
+  screen's two specs, its pre-registration and `read.js`. **The screen is NOT RUN.**
+
+### Notes
+- The human dataset was rebuilt after the 1.70.0 re-parse: 41,138 games (39,412 open-sheet bo3, 1,726 bo1 turn play),
+  sha256 `b36bd0fe…`, untracked in `solver/out/`.
+- The N1 row's "DODUO v1 (held-out top-1 0.230)" is gen5's self-play DODUO; DODUO v1's top-1 on this EVAL is 0.252.
+- Full account: `docs/_reports/2026-10-01-gary-hypno.md`.
+
+### Record
+- **Measured.** GARY v1 on 37,576 TEST-player decisions: log-loss 2.7148 vs DODUO v1 2.7359, Δ −0.0211 [−0.0238, −0.0184]; global tilt alone −0.0190, band/bucket levels −0.0020 [−0.0029, −0.0013]; 27 of 48 cells pass, τ\* clause passes in all (GARY −2.665 vs τ\* −6.459 mean log-p, 579 roots); in-series update −0.00184 [−0.00260, −0.00109] on 2,774 series, enabled; w0 0.931 (`solver/gary/model/gary-v1.{fit,gate,series}-metrics.json`). HYPNO v1 on the 579 roots: 131 deviations, predicted +0.0126, realised +0.0059 [+0.0002, +0.0119], debiased +0.0013 [−0.0048, +0.0073], against equilibrium −0.0032 [−0.0059, −0.0012] (`gary-v1.hypno-offline.json`). Report: `docs/_reports/2026-10-01-gary-hypno.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published.
+- **Owed to the next major.** `docs/MODELS.md` and the white paper: GARY v1 and HYPNO v1 rows, the τ\* clause never binding, most of GARY being a DODUO recalibration, and HYPNO's gain not shown offline.
+
 ## [1.70.1] — 2026-10-01
 
 ### Changed

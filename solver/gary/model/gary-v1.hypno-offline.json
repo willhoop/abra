@@ -1,0 +1,296 @@
+{
+ "generator": "solver/hypno/eval_offline.js",
+ "model": "solver/gary/model/gary-v1.json",
+ "roots": "solver/results/2026-10-01-gary-hypno/roots-human-s1",
+ "human": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\.claude\\worktrees\\agent-a9ced8b9b38e24076\\solver\\out\\human-20261001\\games.jsonl",
+ "counts": {
+  "usable": 579,
+  "used": 579,
+  "no_game": 0,
+  "key_mismatch": 0,
+  "not_exact": 0,
+  "unmapped_rows": 5
+ },
+ "w0": 0.9308,
+ "variants": {
+  "hypno": {
+   "reasons": {
+    "belowSE": 269,
+    "played": 131,
+    "noGain": 57,
+    "untrusted": 97,
+    "coverage": 25
+   },
+   "deviated": 131,
+   "of": 579,
+   "deviated_covered": 68,
+   "covered": 308,
+   "predicted_gain_mean": 0.01257,
+   "realised_gain_covered": {
+    "mean": 0.00595,
+    "ci": [
+     0.00022,
+     0.01188
+    ],
+    "n": 308,
+    "games": 298
+   },
+   "vs_equilibrium_opponent": {
+    "mean": -0.00315,
+    "ci": [
+     -0.00594,
+     -0.0012
+    ]
+   },
+   "worst_case_mean": 0.0122,
+   "worst_case_max": 0.62423,
+   "tv_mean": 0.089,
+   "selection_bias": {
+    "draws": 200,
+    "mean_bias": 0.00468,
+    "realised_debiased": {
+     "mean": 0.00127,
+     "ci": [
+      -0.00484,
+      0.0073
+     ]
+    }
+   }
+  },
+  "hypno_w1": {
+   "reasons": {
+    "belowSE": 262,
+    "played": 138,
+    "noGain": 57,
+    "untrusted": 97,
+    "coverage": 25
+   },
+   "deviated": 138,
+   "of": 579,
+   "deviated_covered": 69,
+   "covered": 308,
+   "predicted_gain_mean": 0.0144,
+   "realised_gain_covered": {
+    "mean": 0.00627,
+    "ci": [
+     0.00053,
+     0.01233
+    ],
+    "n": 308,
+    "games": 298
+   },
+   "vs_equilibrium_opponent": {
+    "mean": -0.00372,
+    "ci": [
+     -0.00653,
+     -0.00166
+    ]
+   },
+   "worst_case_mean": 0.01362,
+   "worst_case_max": 0.62423,
+   "tv_mean": 0.097,
+   "selection_bias": {
+    "draws": 200,
+    "mean_bias": 0.0048,
+    "realised_debiased": {
+     "mean": 0.00147,
+     "ci": [
+      -0.00468,
+      0.00764
+     ]
+    }
+   }
+  },
+  "gary_raw_br": {
+   "reasons": {
+    "played": 496,
+    "noGain": 83
+   },
+   "deviated": 496,
+   "of": 579,
+   "deviated_covered": 253,
+   "covered": 308,
+   "predicted_gain_mean": 0.02531,
+   "realised_gain_covered": {
+    "mean": 0.01365,
+    "ci": [
+     0.00565,
+     0.02238
+    ],
+    "n": 308,
+    "games": 298
+   },
+   "vs_equilibrium_opponent": {
+    "mean": -0.00957,
+    "ci": [
+     -0.01345,
+     -0.00634
+    ]
+   },
+   "worst_case_mean": 0.03357,
+   "worst_case_max": 0.62423,
+   "tv_mean": 0.3759,
+   "selection_bias": {
+    "draws": 200,
+    "mean_bias": 0.00875,
+    "realised_debiased": {
+     "mean": 0.0049,
+     "ci": [
+      -0.00334,
+      0.01361
+     ]
+    }
+   }
+  },
+  "doduo_v1": {
+   "reasons": {
+    "belowSE": 321,
+    "played": 156,
+    "noGain": 79,
+    "coverage": 23
+   },
+   "deviated": 156,
+   "of": 579,
+   "deviated_covered": 82,
+   "covered": 308,
+   "predicted_gain_mean": 0.01765,
+   "realised_gain_covered": {
+    "mean": 0.00727,
+    "ci": [
+     0.00176,
+     0.01349
+    ],
+    "n": 308,
+    "games": 298
+   },
+   "vs_equilibrium_opponent": {
+    "mean": -0.00356,
+    "ci": [
+     -0.00625,
+     -0.00153
+    ]
+   },
+   "worst_case_mean": 0.01346,
+   "worst_case_max": 0.62423,
+   "tv_mean": 0.1083,
+   "selection_bias": {
+    "draws": 200,
+    "mean_bias": 0.00624,
+    "realised_debiased": {
+     "mean": 0.00103,
+     "ci": [
+      -0.00497,
+      0.00747
+     ]
+    }
+   }
+  },
+  "doduo_v1_raw_br": {
+   "reasons": {
+    "played": 496,
+    "noGain": 83
+   },
+   "deviated": 496,
+   "of": 579,
+   "deviated_covered": 253,
+   "covered": 308,
+   "predicted_gain_mean": 0.02613,
+   "realised_gain_covered": {
+    "mean": 0.01332,
+    "ci": [
+     0.00555,
+     0.02188
+    ],
+    "n": 308,
+    "games": 298
+   },
+   "vs_equilibrium_opponent": {
+    "mean": -0.00867,
+    "ci": [
+     -0.01239,
+     -0.00559
+    ]
+   },
+   "worst_case_mean": 0.03228,
+   "worst_case_max": 0.62423,
+   "tv_mean": 0.3716,
+   "selection_bias": {
+    "draws": 200,
+    "mean_bias": 0.00867,
+    "realised_debiased": {
+     "mean": 0.00464,
+     "ci": [
+      -0.00327,
+      0.01353
+     ]
+    }
+   }
+  },
+  "hypno_eps01": {
+   "reasons": {
+    "belowSE": 269,
+    "played": 131,
+    "noGain": 57,
+    "untrusted": 97,
+    "coverage": 25
+   },
+   "deviated": 131,
+   "of": 579,
+   "deviated_covered": 68,
+   "covered": 308,
+   "predicted_gain_mean": 0.00436,
+   "realised_gain_covered": {
+    "mean": 0.00404,
+    "ci": [
+     0.00148,
+     0.0074
+    ],
+    "n": 308,
+    "games": 298
+   },
+   "vs_equilibrium_opponent": {
+    "mean": -0.00022,
+    "ci": [
+     -0.00033,
+     -0.00012
+    ]
+   },
+   "worst_case_mean": 0.00133,
+   "worst_case_max": 0.01,
+   "tv_mean": 0.0329,
+   "selection_bias": {
+    "draws": 200,
+    "mean_bias": 0.00144,
+    "realised_debiased": {
+     "mean": 0.00261,
+     "ci": [
+      0.00001,
+      0.00603
+     ]
+    }
+   }
+  }
+ },
+ "prediction": {
+  "n": 579,
+  "all_cells": {
+   "gary_beats_tau": 427,
+   "gary_beats_doduo_v1": 273,
+   "mean_log": {
+    "gary": -2.6654,
+    "doduo_v1": -2.6864,
+    "tau": -6.4593
+   }
+  },
+  "table_rows_covered": {
+   "n": 308,
+   "gary_beats_tau": 174,
+   "gary_beats_doduo_v1": 128,
+   "mean_log": {
+    "gary": -1.1854,
+    "doduo_v1": -1.1878,
+    "tau": -4.0387
+   }
+  }
+ }
+}

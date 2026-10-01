@@ -1,0 +1,35 @@
+{
+ "release": "eaa5becc54eb",
+ "flags": {
+  "n": 600,
+  "seed": 1,
+  "workers": 2,
+  "passes": 16,
+  "human": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\solver\\out\\human\\games.jsonl",
+  "eligible_estimate": 20501
+ },
+ "dataset_sha256": "9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8",
+ "counts": {
+  "games": 26888,
+  "test_games": 5220,
+  "eligible_games": 3627,
+  "eligible": 20501,
+  "picked": 580,
+  "K": 35
+ },
+ "argv": [
+  "--release",
+  "eaa5becc54eb",
+  "--n",
+  "600",
+  "--seed",
+  "1",
+  "--workers",
+  "2",
+  "--passes",
+  "16",
+  "--out",
+  "solver/out/pikl/human-s1",
+  "--reuse"
+ ]
+}
