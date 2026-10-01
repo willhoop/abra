@@ -1,0 +1,38 @@
+{
+ "what": "GARY v1 (the population habit model, solver/PLAN.md section 3 N1) and HYPNO v1's offline check (N2). Written BEFORE the first fit on the re-parsed store's rebuilt dataset, committed with the code, never revised after a read. Every rule below is applied once by solver/gary/fit.js, solver/gary/gate.js, solver/gary/eval_series.js and solver/hypno/eval_offline.js. Store-only: no simulator, no game. The recorded roots HYPNO is checked on are a FINISHED run's (abra/regmc 1.34.0), read, never re-run.",
+ "date": "2026-10-01",
+ "data": {
+  "dataset": "solver/human/build_dataset.js rebuilt AFTER the store re-parse with the fixed parser lands on main (engine/reparse_store.js, abra/regmc 1.52.0 store-set fix): open-sheet turn play (engine/quality.js isOpenSheetTurnPlay, abra/regmc 1.66.0), our own accounts excluded (data/quality-filter.json rules.exclude_own_accounts via engine/quality.js isOwnAccount). Its path and sha256 are stamped in the extract manifest and the model.",
+  "rows": "solver/gary/extract.js: one row per side-turn decision whose joint is fully observed (solver/prior/features.js jointStatus 'exact') with >= 2 valid DODUO v1 cells. End-of-turn faint replacements are not rows.",
+  "split": "sha256('abra-prior-v0:' + toID(player)) mod 100: train < 80 <= val < 90 <= test (every solver net's split).",
+  "roles": "SKIPPED: a train player's decision in a game of DODUO v1's training dataset (sha256 9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8). EVAL: every TEST player's decision. FIT: every other row. GARY fits FIT only; every gate reads EVAL only.",
+  "known_leak": "DODUO v1 chose its epoch on the VAL players' 2026-09-23 decisions; those are FIT rows here. They are never EVAL rows, so the gate is clean of it."
+ },
+ "model": {
+  "form": "s_k = (1 + a) * lp_k + theta . bits_k over DODUO v1's valid joint cells; p = softmax(s). lp = DODUO v1 log-probability; bits = solver/gary/situation.js CLASS_NAMES (14 joint classes). (a, theta) = global + bucket + band + cell, each level L2-penalised toward 0.",
+  "buckets": ["lead", "single", "even", "even_sc", "ahead", "ahead_sc", "behind", "behind_sc"],
+  "bucket_rule": "lead = turn 1; single = fewer than two occupied slots on the deciding side; else material (deciding side's mons left minus the opponent's: > 0 ahead, < 0 behind, 0 even) plus _sc when Trick Room or either side's Tailwind is up.",
+  "bands": ["lt1100", "1100", "1200", "1300plus", "unrated", "bo1"],
+  "band_rule": "the deciding player's rating at game start on the bo3 ladder: < 1100, 1100-1199, 1200-1299, >= 1300; unrated = challenge game or no rating; bo1 = a bo1-format game (a different ladder's rating).",
+  "penalty": "lambda0 = 0.01 on the global level (a guard); ONE lambda for the bucket, band and cell levels, chosen from {3, 10, 30, 100, 300, 1000} by 5-fold cross-validation over PLAYERS on FIT rows (fold = sha256('gary-cv:' + player) mod 5), minimum mean held-out log-loss.",
+  "fit": "Newton's method on the exact Hessian with a backtracking line search, until the objective falls by < 1e-5 or 25 iterations."
+ },
+ "gate": {
+  "unit": "the CELL = (bucket, band). HYPNO consumes a cell's verdict: p = 1 (best-respond to GARY) or p = 0 (play equilibrium).",
+  "doduo_clause": "On EVAL rows of the cell: d = mean[-log p_GARY(human joint) + log p_DODUO(human joint)]; 95% CI by bootstrap over GAMES (2,000 resamples, seed 1). PASS iff the CI's upper bound < 0.",
+  "tau_clause": "On the recorded roots (solver/results/2026-10-01-gary-hypno/roots-human-s1/, a byte-identical copy of solver/out/pikl/human-s1 on branch worktree-agent-a2930a277737baf60, decisions-0/1.jsonl sha256 b4123d1f... / 99a6f1bc...: 580 TEST-player decisions, gen5 search at 16 passes, release eaa5becc54eb): tau*(human joint) = the plain solve's row mix x at the human's row, 0 when the human's joint is not a row; both log-probabilities floored at 1e-4 (the 1.34.0 convention). d = mean[-log p_GARY + log max(tau*, 1e-4)], 95% CI by bootstrap over games (2,000, seed 1). The cell's own roots if it holds >= 20; else its bucket's roots pooled over bands if >= 20; else all roots. PASS iff the CI's upper bound < 0. GARY is evaluated at the root's own band.",
+  "verdict": "p = 1 iff BOTH clauses PASS; else p = 0, listed. Per-cell 95% CIs; no multiplicity correction is applied to the verdict (a false pass costs only a best response to a model that is no worse than DODUO's); the count that would survive Bonferroni over the 48 cells is reported beside it."
+ },
+ "in_series": {
+  "what": "Games 2 and 3 of a bo3: a per-opponent deviation delta (same 15 dims as (a, theta)) on top of the population cell's parameters, MAP under a N(0, sigma^2 I) prior from the opponent's decisions in earlier games of the series, each weighted gamma^(games back - 1). delta = 0 is the population model.",
+  "selection": "sigma from {0.05, 0.1, 0.2, 0.4, 0.8} and gamma from {0.5, 1.0} by the mean log-loss change on games >= 2 of FIT series (series id + player).",
+  "test": "On EVAL series: d = mean over games >= 2 decisions of [-log p_updated + log p_population], 95% CI by bootstrap over SERIES (2,000, seed 1). The update is ENABLED in HYPNO iff the upper bound < 0; else HYPNO uses the population cell only and says so.",
+  "mixture_weight": "HYPNO also carries the research's two-hypothesis weight w = P(follows GARY | evidence) against 'plays like the search's equilibrium column mix'. w0 = the maximum-likelihood mixture weight of GARY and tau* on the recorded roots (one number); w is updated from an opponent decision only where the search's table held their joint. No offline test exists for the w update (it needs the live search's tables at every opponent decision); it is unit-tested and its counters are reported."
+ },
+ "hypno_offline": {
+  "tables": "the same recorded roots, re-oriented: WE are the column side of each root (our win = 1 - A^T), the human is the opponent, GARY predicts the human's joint over the human's candidate rows (renormalised over them).",
+  "policy": "solver/hypno/hypno.js respond() as shipped, default options: cell gate p = 1, GARY mass on the table's opponent joints >= 0.25 of its total (coverage guard), predicted gain of the best response over sigma* > 1 x its standard error from the per-cell playout counts (variance bound A(1-A)/n); else sigma*.",
+  "metrics": "(1) prediction: per root, log p(human joint) under GARY (all cells), DODUO v1 (all cells) and tau* (floor 1e-4), and how often GARY's p beats each; (2) the predicted gain x_BR A h - x* A h on the table, mean over decisions; (3) the REALISED gain against the actual human: (x_BR - x*) A e_human on the roots whose human joint is a table row, game-clustered 95% CI; (4) the worst-case cost max_j (x* A - x_BR A)_j: how much a best-responding opponent could take. Reported for HYPNO with GARY, and for the same rule with DODUO v1 as the model.",
+  "no_bar": "The offline check carries no pass/fail bar: 308 covered decisions cannot settle a gain of a few points. It reports. The ladder A/B (PLAN N2) is the test that counts."
+ }
+}

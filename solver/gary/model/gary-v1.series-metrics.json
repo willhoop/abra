@@ -1,0 +1,100 @@
+{
+ "generator": "solver/gary/eval_series.js",
+ "model": "solver/gary/model/gary-v1.json",
+ "grid": [
+  {
+   "sigma": 0.05,
+   "gamma": 0.5,
+   "n": 68350,
+   "mean": -0.00070605689736662
+  },
+  {
+   "sigma": 0.05,
+   "gamma": 1,
+   "n": 68350,
+   "mean": -0.0007682188022581389
+  },
+  {
+   "sigma": 0.1,
+   "gamma": 0.5,
+   "n": 68350,
+   "mean": -0.001997539032577158
+  },
+  {
+   "sigma": 0.1,
+   "gamma": 1,
+   "n": 68350,
+   "mean": -0.0021127295802932456
+  },
+  {
+   "sigma": 0.2,
+   "gamma": 0.5,
+   "n": 68350,
+   "mean": -0.0012864380407240563
+  },
+  {
+   "sigma": 0.2,
+   "gamma": 1,
+   "n": 68350,
+   "mean": -0.0012027513499571227
+  },
+  {
+   "sigma": 0.4,
+   "gamma": 0.5,
+   "n": 68350,
+   "mean": 0.015404040338058034
+  },
+  {
+   "sigma": 0.4,
+   "gamma": 1,
+   "n": 68350,
+   "mean": 0.01612841619871477
+  },
+  {
+   "sigma": 0.8,
+   "gamma": 0.5,
+   "n": 68350,
+   "mean": 0.20018022979097017
+  },
+  {
+   "sigma": 0.8,
+   "gamma": 1,
+   "n": 68350,
+   "mean": 0.20574961014222753
+  }
+ ],
+ "chosen": {
+  "sigma": 0.1,
+  "gamma": 1,
+  "fit_mean": -0.00211
+ },
+ "eval": {
+  "n": 18532,
+  "series": 2774,
+  "mean": -0.00184,
+  "ci": [
+   -0.0026,
+   -0.00109
+  ],
+  "by_game": {
+   "2": {
+    "n": 12587,
+    "mean": -0.0015,
+    "ci": [
+     -0.00227,
+     -0.0007
+    ]
+   },
+   "3": {
+    "n": 5945,
+    "mean": -0.00257,
+    "ci": [
+     -0.00422,
+     -0.00094
+    ]
+   }
+  }
+ },
+ "enabled": true,
+ "rule": "ENABLED iff the EVAL CI upper bound < 0 (and the FIT mean at the chosen point < 0); solver/gary/preregistration.json in_series"
+}

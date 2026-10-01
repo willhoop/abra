@@ -38,6 +38,17 @@
  *   dblMass / dblMass0 (both slots), klWorstLoss (the plain table's worst-case cost of the regularised mix: v* - min_j
  *   (x.A)_j, summed). DELIBERATE BREAK MILTANK_BREAK=klignored: lambda is read as 0 inside the solve (the flag is on, the
  *   counters count, the mix is the plain one) - solver/tests/test-miltank-kl.js must go red.
+ *   hypno = true | { model, band, oppRating, kSE, minCover, eps, w, series, gn }: THE POPULATION BEST RESPONSE (HYPNO v1,
+ *   2026-10-01, solver/hypno/live.js, docs/_reports/2026-10-01-gary-hypno.md). At candidate time GARY (the population habit
+ *   model at the opponent's rating band, solver/gary/infer.js) scores every legal opponent joint through the prior adapter;
+ *   after the solve (plain or KL), solver/hypno/hypno.js respond() replaces the row mix by the best response to GARY's
+ *   column mass when the GARY cell passed its held-out gate, GARY's mass on the columns is enough to price, and the
+ *   predicted gain beats its own standard error; else the solve's mix plays. The SAME coin samples both, so "the pick
+ *   changed" is paired. Off by default. Counters: hypnoDecisions, hypnoPlayed and one per refusal (hypnoUntrusted,
+ *   hypnoCoverage, hypnoBelowSE, hypnoNoGain), hypnoPickChanged, hypnoMass (TV to the solve's mix, summed), hypnoWorst
+ *   (worst-case cost on the table, summed) and hypnoWorstMax, hypnoGainPred (summed), hypnoBandMissing, hypnoCells
+ *   ({ cell: decisions }) and hypnoTrustedCells. DELIBERATE BREAK MILTANK_BREAK=hypnoignored: the response is computed
+ *   and counted but the solve's mix plays - solver/tests/test-hypno.js must go red.
  *   leafModel = a PORYGON2 model file for the pory2 leaf (a self-play generation's net; default v0). record = true puts
  *   the root (rows, cols, both mixes, the mean matrix, the per-cell playout counts) in info.rec.
  *   The leaf defaults to env MILTANK_LEAF, else the heuristic. `pory2` = PORYGON2 v0 (PRE-GATE), solver/porygon2/leaf.js.
@@ -103,7 +114,12 @@ function create(API, deps) {
                      fallbackEmpty: 0, fallbackSparse: 0, deadlineCut: 0, quiesceDecisions: 0, flatPrior: 0, megaUnbundled: 0,
                      chanceDecisions: 0, chanceOnePass: 0,
                      klDecisions: 0, klPriorMissingMe: 0, klPriorMissingOpp: 0, klPickChanged: 0, klSum: 0, klTv: 0, klWorstLoss: 0,
-                     protMass: 0, protMass0: 0, dblMass: 0, dblMass0: 0, klGapMax: 0 };
+                     protMass: 0, protMass0: 0, dblMass: 0, dblMass0: 0, klGapMax: 0,
+                     hypnoDecisions: 0, hypnoPlayed: 0, hypnoUntrusted: 0, hypnoCoverage: 0, hypnoBelowSE: 0, hypnoNoGain: 0, hypnoPickChanged: 0,
+                     hypnoMass: 0, hypnoWorst: 0, hypnoWorstMax: 0, hypnoGainPred: 0, hypnoBandMissing: 0, hypnoNoDecision: 0, hypnoCells: {}, hypnoTrustedCells: {} };
+  /* HYPNO (o.hypno): one solver/hypno/live.js per spec object, built on first use */
+  const HYPNO = new Map();
+  const hypnoOf = h => { const k = h === true ? 'true' : h; if (!HYPNO.has(k)) { if (HYPNO.size > 64) HYPNO.clear(); HYPNO.set(k, require('../hypno/live.js').create(API, h)); } return HYPNO.get(k); };   // a spec object per decision (ROTOM's per-opponent rating) must not grow the map
 
   function rank(scores, joints, k, reserveSwitch, wantMega, avoidMega) {
     const idx = scores.map((p, i) => i).sort((a, b) => scores[b] - scores[a] || a - b);
@@ -180,6 +196,15 @@ function create(API, deps) {
     /* the prior's raw scores on the kept rows and columns: the anchor of the human-regularised solve (o.kl) and the
      * record (o.record) read them; the pool never sees them */
     const tau = { row: rowsI.map(i => sMe[i]), col: colsI.map(i => sOp[i]) };
+    /* HYPNO (o.hypno): GARY's mass on every legal opponent joint, kept on the columns; the response is made after the solve */
+    if (o.hypno) {
+      const HL = hypnoOf(o.hypno);
+      const sc = HL.score(ctx, S, opp, side, laOp, colsI);
+      sc.HL = HL;
+      tau.hypno = sc;
+      if (sc.bandMissing) COUNTERS.hypnoBandMissing++;
+      if (sc.noDecision) COUNTERS.hypnoNoDecision++;
+    }
     return { job, priorTop, tau };
   }
   /* 3. SOLVE the mean matrix and sample the row mix. */
@@ -226,7 +251,25 @@ function create(API, deps) {
       klInfo = { lambda, tauRow: tr, tauCol: tc };
     } else sol = plain();
     const u = coin();
-    const pick = SK.sample(sol.x, u);
+    let pick = SK.sample(sol.x, u);
+    /* HYPNO: the population best response, or the solve's mix when any of its gates says no (solver/hypno/hypno.js) */
+    let hyInfo = null;
+    if (tau && tau.hypno) {
+      const sc = tau.hypno, hr = sc.HL.respond(A, cnt, sol, sc);
+      COUNTERS.hypnoDecisions++;
+      const R0 = { played: 'hypnoPlayed', untrusted: 'hypnoUntrusted', coverage: 'hypnoCoverage', belowSE: 'hypnoBelowSE', noGain: 'hypnoNoGain' }[hr.reason];
+      if (R0) COUNTERS[R0]++;
+      if (sc.cell) { COUNTERS.hypnoCells[sc.cell] = (COUNTERS.hypnoCells[sc.cell] || 0) + 1; if (sc.trusted) COUNTERS.hypnoTrustedCells[sc.cell] = (COUNTERS.hypnoTrustedCells[sc.cell] || 0) + 1; }
+      const pick0 = pick;
+      if (hr.reason === 'played') {
+        COUNTERS.hypnoMass += hr.tv; COUNTERS.hypnoWorst += hr.worst; COUNTERS.hypnoGainPred += hr.gainPlayed;
+        if (hr.worst > COUNTERS.hypnoWorstMax) COUNTERS.hypnoWorstMax = hr.worst;
+        if (SEARCH_BREAK !== 'hypnoignored') pick = SK.sample(hr.x, u);
+        if (pick !== pick0) COUNTERS.hypnoPickChanged++;
+      }
+      hyInfo = { cell: sc.cell, band: sc.band, trusted: sc.trusted, reason: hr.reason, gain: +hr.gainPred.toFixed(5), se: +hr.se.toFixed(5), worst: +hr.worst.toFixed(5),
+                 tv: +hr.tv.toFixed(4), w: +sc.w.toFixed(4), cover: +hr.cover.toFixed(4), pick0, changed: pick !== pick0, x: hr.reason === 'played' ? hr.x.map(v => +v.toFixed(4)) : undefined };
+    }
     if (sol0) {
       const fam = protFamily();
       const isP = x => !!(x && x.kind === 'move' && fam.has(x.move));
@@ -259,11 +302,12 @@ function create(API, deps) {
     COUNTERS.unfilled += unfilled; COUNTERS.rmIters += sol.iters || 0;
     if (ms > budget * 1.5 + 50) COUNTERS.overBudget++;
     const info = Object.assign({ m, n, passes, playouts, unfilled, filled: +filled.toFixed(3), value: sol.value, gap: sol.gap, rm_iters: sol.iters,
-             support: sol.x.filter(v => v > 1e-3).length, pick, ms }, flat ? { flat: true } : {}, klInfo ? { kl: klInfo.out, lambda: klInfo.lambda } : {}, extra || {});
+             support: sol.x.filter(v => v > 1e-3).length, pick, ms }, flat ? { flat: true } : {}, klInfo ? { kl: klInfo.out, lambda: klInfo.lambda } : {}, hyInfo ? { hypno: hyInfo } : {}, extra || {});
     /* o.record (self-play, solver/mew): the whole root — the candidate joints, both mixes and the mean matrix —
      * so a training target can be read off the search rather than off the one sampled move */
     if (o.record) info.rec = { rows, cols: job.cols, x: Array.from(sol.x), y: sol.y ? Array.from(sol.y) : null, A, cnt: cnt.map(r => Array.from(r)),
-                               tauRow: tau ? tau.row : null, tauCol: tau ? tau.col : null, x0: sol0 ? Array.from(sol0.x) : null };
+                               tauRow: tau ? tau.row : null, tauCol: tau ? tau.col : null, x0: sol0 ? Array.from(sol0.x) : null,
+                               hCols: tau && tau.hypno ? tau.hypno.hCols : null };
     return { joint: flat ? priorTop : rows[pick], info: withCols(info, job.cols) };
   }
   /* when the cell fill must stop: the budget less a reserve for the solve and the pick */
@@ -307,7 +351,7 @@ function create(API, deps) {
     return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin, { workers: acc.workers, late_workers: acc.late || 0 }, b.priorTop, b.tau);
   }
 
-  return { COUNTERS, decide, decideAsync, rank, collectIdle, BROKEN: DEADLINE_BREAK || (['flat', 'megabundle', 'klignored'].includes(SEARCH_BREAK) ? SEARCH_BREAK : null) };
+  return { COUNTERS, decide, decideAsync, rank, collectIdle, BROKEN: DEADLINE_BREAK || (['flat', 'megabundle', 'klignored', 'hypnoignored'].includes(SEARCH_BREAK) ? SEARCH_BREAK : null) };
 }
 
 /* THE RESERVE: 6% of the budget, clamped to 20-300 ms (60 ms at 1 s, 300 ms at 5 s). It was 3% clamped to 150 ms,

@@ -69,6 +69,14 @@ This section says only what a division agent needs before it starts.
   a day with the auto-stops, launched by the coordinator; SOLVER prepares the command. Milestones N0–N9 in
   `solver/PLAN.md` §3.0; compute and prices in §6a. Account: `docs/_reports/2026-10-01-plan-revision.md`. The
   "May not launch a ladder series" line above still binds SOLVER itself.
+- **GARY v1 and HYPNO v1 (N1, N2; 2026-10-01, abra/regmc 1.71.0).** `solver/gary/` (store-only): DODUO v1 tilted per
+  (situation bucket × rating band), fitted on the dataset rebuilt after the 1.70.0 re-parse. Held-out (TEST players)
+  log-loss Δ −0.0211 [−0.0238, −0.0184] against DODUO v1, most of it a recalibration of DODUO; **27 of 48 cells pass**
+  the gate, the rest play equilibrium. In-series update ENABLED (−0.0018 on games 2–3). `solver/hypno/`: the population
+  best response in SLOWKING's solve (spec `hypno`, OFF, counted), ROTOM carries the band and the series memory. On the
+  579 recorded roots its realised gain is +0.13 [−0.48, +0.73] points after the selection bias: **no gain shown**; −0.32
+  against equilibrium. The 2 s not-lose screen is pre-registered and NOT RUN (command in the report's *OWED, NOT RUN*).
+  `docs/_reports/2026-10-01-gary-hypno.md`.
 - **Engine.** The Reg M-C MEDICHAM gate is OPEN, 10 of 10, on release `eaa5becc54eb`
   (`docs/_reports/2026-09-24-regmc-gate-final.md`). The solver API (`engine/medicham_api.js`) is merged:
   `clone`, `legalActions`, `step`, the terminal check and lean playouts. The mid-turn-choice callback

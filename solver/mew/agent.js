@@ -43,7 +43,7 @@ const abs = p => (path.isAbsolute(p) ? p : path.join(ROOT, p));
 const sha = p => crypto.createHash('sha256').update(fs.readFileSync(abs(p))).digest('hex').slice(0, 16);
 
 /* the search options a league spec may carry beyond k, depth and the leaf (solver/miltank/search.js); absent = off */
-const SEARCH_EXTRAS = ['quiesce', 'flatEps', 'reserveNoRepeat', 'chance', 'kl'];
+const SEARCH_EXTRAS = ['quiesce', 'flatEps', 'reserveNoRepeat', 'chance', 'kl', 'hypno'];   // hypno: the population best response (2026-10-01, solver/hypno/live.js), off unless a spec names it
 function searchExtras(spec) {
   const o = {};
   for (const k of SEARCH_EXTRAS) if (spec && spec[k] != null && spec[k] !== false) o[k] = spec[k];
@@ -181,6 +181,15 @@ function create(API, opts) {
             K.decisions++; if (q.changed) K.changed++; if (q.missMe) K.missMe++; if (q.missOpp) K.missOpp++;
             K.klSum += q.kl; K.tvSum += q.tv; K.worstSum += q.worst; if (q.worst > K.worstMax) K.worstMax = q.worst;
             K.prot += q.prot; K.prot0 += q.prot0; K.dbl += q.dbl; K.dbl0 += q.dbl0; if (q.gap > K.gapMax) K.gapMax = q.gap;
+          }
+          /* HYPNO's counters, per agent, from each decision's info.hypno (solver/miltank/search.js; 2026-10-01) */
+          if (r.info && r.info.hypno) {
+            const Hc = (COUNTERS.hypno = COUNTERS.hypno || {})[spec.name] || (COUNTERS.hypno[spec.name] = { decisions: 0, played: 0, untrusted: 0, coverage: 0, belowSE: 0, noGain: 0,
+              changed: 0, tvSum: 0, worstSum: 0, worstMax: 0, gainSum: 0, cells: {}, trustedCells: {} });
+            const q = r.info.hypno;
+            Hc.decisions++; Hc[q.reason] = (Hc[q.reason] || 0) + 1; if (q.changed) Hc.changed++;
+            if (q.cell) { Hc.cells[q.cell] = (Hc.cells[q.cell] || 0) + 1; if (q.trusted) Hc.trustedCells[q.cell] = (Hc.trustedCells[q.cell] || 0) + 1; }
+            if (q.reason === 'played') { Hc.tvSum += q.tv; Hc.worstSum += q.worst; if (q.worst > Hc.worstMax) Hc.worstMax = q.worst; Hc.gainSum += q.gain; }
           }
           return r;
         } catch (e) {

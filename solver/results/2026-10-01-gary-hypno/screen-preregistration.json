@@ -1,0 +1,27 @@
+{
+ "what": "A not-lose SCREEN of HYPNO v1 (the population best response, abra/regmc 1.71.0) against the same agent at equilibrium. X = gen5 at the 2 s adaptive clock with spec `hypno` (GARY v1, band 1200, the shipped gates); Y = the same spec without it. Written BEFORE the first screen game and NOT RUN by the agent that wrote it (game runs are queued: a ladder batch and an SPRT own the machine). Read ONCE, at 200 games, by read.js. No SPRT. Nothing goes on a ladder arm whatever it reads.",
+ "question": "The PLAN's N2 offline sanity asks for 'its loss against an equilibrium opponent'. The arena opponent is gen5's own search, an equilibrium-seeking player that is NOT the human population GARY models, so this screen measures what HYPNO's deviations cost when the population model is wrong about the opponent. It cannot show a gain; the gain is a ladder question (PLAN N2: the per-series A/B).",
+ "engine_release": "df172ccd2aaf",
+ "why_this_release": "The newest gate-passing release (OPEN 10/10, abra/regmc 1.57.0), the one the 1.67.0-1.69.0 screens and their 2 s quiet reference played.",
+ "gary_model": { "file": "solver/gary/model/gary-v1.json", "sha256": "66e2e51faa9d1fc929e74ddef78f459bd0139a9d6ee7974885b4962a6a7eb445" },
+ "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc (absolute); the 100 TEST pairs, --pair-seed 1",
+ "flags": "--pairs 100 --pair-seed 1 --seed 34001 --workers 4 --cap 50 --rule notlose --info honest --spreads role-v1 --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+ "games": 200,
+ "x": "solver/results/2026-10-01-gary-hypno/screen-2s-hypno.json (gen5-adaptive-2s-hypno: gen5 MAG/DODUO/PORYGON2, k 4x4, depth 0, 1 reserved switch row, budgetMs 5000 cap, adaptive { targetMs 2000, credit0Ms 667 }, hypno { model gary-v1, band 1200 })",
+ "y": "solver/results/2026-10-01-gary-hypno/screen-2s-plain.json (gen5-adaptive-2s: the same spec without hypno)",
+ "what_differs": "Only the row mix at a root: after the solve, X replaces sigma* by the best response to GARY's mass on the table's columns where GARY's (bucket, band 1200) cell passed its held-out gate, GARY covers >= 0.25 of its mass on the columns and the predicted gain beats one standard error; else X plays sigma*. Same table, same coin. The arena has no rating and no series memory, so X plays the game-1 policy at band 1200 in every game: medicham32's last recorded ladder series (solver/out/rotom/chomptopfix-2026-10-01T07-18-26-877Z, series 19-20) sat at 1269-1292, and a rated bo3 is matched near the player's own rating. At band 1200 the cells that pass are even, even_sc, behind and behind_sc; lead, single, ahead and ahead_sc play sigma*.",
+ "command": "cmd.exe /c tools\\lownode.cmd solver/machamp/gate.js --release df172ccd2aaf --x solver/results/2026-10-01-gary-hypno/screen-2s-hypno.json --y solver/results/2026-10-01-gary-hypno/screen-2s-plain.json --pairs 100 --pair-seed 1 --seed 34001 --workers 4 --cap 50 --rule notlose --info honest --spreads role-v1 --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --out solver/out/screens/screen-hypno-2s.json",
+ "read_command": "node solver/results/2026-10-01-gary-hypno/read.js --result solver/out/screens/screen-hypno-2s.json --out solver/results/2026-10-01-gary-hypno/screen-hypno-2s.read.json",
+ "rule": "gate.js notlose, read ONCE at 200 games: PASS iff the Wilson 95% UPPER bound of X's score is >= 0.5 (X is not shown to lose); FAIL otherwise. VOID, whatever the score, if ANY capability bar fails. A PASS is a not-lose screen, not a strength claim.",
+ "bars": {
+  "max_fallback_share": 0.05,
+  "playouts_floor": 161,
+  "max_clock_ratio": 1.10,
+  "min_scored": 190,
+  "text": "Per arm (solver/mew/play.js ARMS, summed by gate.js `arms`): (1) prior-fallback share <= 0.05; (2) playouts per searched decision >= 161; (3) clock ratio decision_ms.x.mean / decision_ms.y.mean <= 1.10; (4) >= 190 of 200 games scored. Capability, summed over the last line of every shard (ctr.hypno, solver/mew/agent.js): (5) X's HYPNO ran: decisions > 0; (6) X's HYPNO played a best response: played > 0; (7) Y never ran it: decisions = 0. Reported, not bars: the share of X's decisions that played, were untrusted, below SE or short of coverage, the worst-case cost and the cells used."
+ },
+ "floor_source": "solver/results/2026-10-01-screens/ref-2s.result.json: the quiet 2 s reference on this release (gen5 against itself, 20 games): 364.2 and 323.2 playouts per searched decision; floor 0.5 x 323.2 = 161, as the 1.67.0 and 1.69.0 screens.",
+ "expected_direction": "Slightly BELOW 0.5. Offline, on 579 held-out human positions, HYPNO deviated on 131 and cost -0.0032 win probability per decision against the table's own equilibrium column mix (solver/gary/model/gary-v1.hypno-offline.json, vs_equilibrium_opponent). If that carried to the arena at ~8 searched decisions a game the score would sit near 0.47-0.48, inside a 200-game not-lose screen's reach. A FAIL says the deviations cost real games against a non-population opponent and HYPNO stays off every arm.",
+ "on_pass": "Nothing further on its own: a PASS licenses the ladder A/B that PLAN N2 names (per-series seeded, BR vs equilibrium, residual S - E), which needs Will's OK and its own pre-registration. On FAIL: report it plainly; HYPNO stays off by default.",
+ "machine": "Will's PC, quiet. tools/lownode.cmd (BelowNormal), 4 workers. No other game run beside it."
+}

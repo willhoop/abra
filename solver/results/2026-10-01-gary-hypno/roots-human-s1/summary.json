@@ -1,0 +1,246 @@
+{
+ "what": "gen5 search, human-regularised solve (piKL) at each lambda, on the SAME recorded tables of held-out human Reg M-C decisions (solver/miltank/eval_kl_human.js)",
+ "dir": "solver/out/pikl/human-s1",
+ "decisions": 580,
+ "evaluated": 579,
+ "forced": 0,
+ "fallback": 0,
+ "unmatched": 1,
+ "errors": 0,
+ "coverage": {
+  "human_joint_among_rows": 308,
+  "of": 579,
+  "rate": 0.531951640759931
+ },
+ "doduo_all_legal": {
+  "top1": 0.229706390328152,
+  "mean_log_p": -2.741636724544407,
+  "mean_p": 0.14884168784239216
+ },
+ "human_protect_rate": 0.2694300518134715,
+ "human_double_protect_rate": 0.04835924006908463,
+ "offered_double": 83,
+ "human_double_when_offered_rows": 20,
+ "floor": 0.0001,
+ "grid": [
+  0,
+  0.001,
+  0.003,
+  0.01,
+  0.03,
+  0.1,
+  0.3,
+  "inf"
+ ],
+ "table": [
+  {
+   "lambda": 0,
+   "top1": 0.2158894645941278,
+   "p_human": 0.21474308638360548,
+   "loglik_floor1e4": -6.459311641505885,
+   "d_top1_vs_0": null,
+   "d_loglik_vs_0": null,
+   "protect_mass": 0.30832430809781314,
+   "double_protect_mass": 0.0623964287690941,
+   "tv_to_plain": 0,
+   "worst_case_loss_mean": 0.000030145000771981942,
+   "worst_case_loss_max": 0.00009837364871774501
+  },
+  {
+   "lambda": 0.001,
+   "top1": 0.22279792746113988,
+   "p_human": 0.21725888024664053,
+   "loglik_floor1e4": -6.308867876549341,
+   "d_top1_vs_0": [
+    0.006908462867012077,
+    -0.0069084628670120895,
+    0.02072538860103627
+   ],
+   "d_loglik_vs_0": [
+    0.15044376495654443,
+    0.05795589362918142,
+    0.25473913849247476
+   ],
+   "protect_mass": 0.30626366769032115,
+   "double_protect_mass": 0.06290868832262374,
+   "tv_to_plain": 0.06420950978085398,
+   "worst_case_loss_mean": 0.0005433961967013513,
+   "worst_case_loss_max": 0.042241644504603604
+  },
+  {
+   "lambda": 0.003,
+   "top1": 0.22625215889464595,
+   "p_human": 0.21957976360219977,
+   "loglik_floor1e4": -6.113533873642234,
+   "d_top1_vs_0": [
+    0.010362694300518144,
+    -0.0069084628670120895,
+    0.027633851468048358
+   ],
+   "d_loglik_vs_0": [
+    0.3457777678636509,
+    0.23120210443616052,
+    0.47211025695177117
+   ],
+   "protect_mass": 0.304509601923302,
+   "double_protect_mass": 0.06358881354614718,
+   "tv_to_plain": 0.09323364696023599,
+   "worst_case_loss_mean": 0.0012160574976029267,
+   "worst_case_loss_max": 0.015564426571110457
+  },
+  {
+   "lambda": 0.01,
+   "top1": 0.24006908462867013,
+   "p_human": 0.2261793549508977,
+   "loglik_floor1e4": -5.735529299611919,
+   "d_top1_vs_0": [
+    0.024179620034542326,
+    0.0051813471502590676,
+    0.04317789291882556
+   ],
+   "d_loglik_vs_0": [
+    0.7237823418939664,
+    0.564795151771487,
+    0.8931338108069632
+   ],
+   "protect_mass": 0.3023049853018872,
+   "double_protect_mass": 0.06424685808688783,
+   "tv_to_plain": 0.16664263204226967,
+   "worst_case_loss_mean": 0.0041726833021124435,
+   "worst_case_loss_max": 0.05722688369924911
+  },
+  {
+   "lambda": 0.03,
+   "top1": 0.25215889464594127,
+   "p_human": 0.23280258416030103,
+   "loglik_floor1e4": -5.288985640251425,
+   "d_top1_vs_0": [
+    0.03626943005181346,
+    0.010362694300518135,
+    0.06044905008635579
+   ],
+   "d_loglik_vs_0": [
+    1.1703260012544607,
+    0.973388665211581,
+    1.3868328656998787
+   ],
+   "protect_mass": 0.2945452747725565,
+   "double_protect_mass": 0.06280769768709454,
+   "tv_to_plain": 0.2725181186604565,
+   "worst_case_loss_mean": 0.012159679960103835,
+   "worst_case_loss_max": 0.15365767556504828
+  },
+  {
+   "lambda": 0.1,
+   "top1": 0.26770293609671847,
+   "p_human": 0.2249671046372509,
+   "loglik_floor1e4": -4.965511047095927,
+   "d_top1_vs_0": [
+    0.05181347150259066,
+    0.02072538860103627,
+    0.08290155440414508
+   ],
+   "d_loglik_vs_0": [
+    1.493800594409958,
+    1.2448271858401327,
+    1.740795927918944
+   ],
+   "protect_mass": 0.2803416151708544,
+   "double_protect_mass": 0.05693215298210667,
+   "tv_to_plain": 0.43187666015072207,
+   "worst_case_loss_mean": 0.0352469485992252,
+   "worst_case_loss_max": 0.27382621257063067
+  },
+  {
+   "lambda": 0.3,
+   "top1": 0.25734024179620035,
+   "p_human": 0.2085006846159884,
+   "loglik_floor1e4": -4.922713561364113,
+   "d_top1_vs_0": [
+    0.04145077720207255,
+    0.0051813471502590676,
+    0.07599309153713299
+   ],
+   "d_loglik_vs_0": [
+    1.536598080141772,
+    1.2710617548322316,
+    1.799476105983398
+   ],
+   "protect_mass": 0.27236674537473665,
+   "double_protect_mass": 0.05325565865912468,
+   "tv_to_plain": 0.5348993286790077,
+   "worst_case_loss_mean": 0.0621839266079239,
+   "worst_case_loss_max": 0.3672692773365098
+  },
+  {
+   "lambda": "inf (the anchor)",
+   "top1": 0.229706390328152,
+   "p_human": 0.19094058278104106,
+   "loglik_floor1e4": -4.951320843535712,
+   "d_top1_vs_0": [
+    0.013816925734024182,
+    -0.025906735751295335,
+    0.0535405872193437
+   ],
+   "d_loglik_vs_0": [
+    1.507990797970173,
+    1.234353446196301,
+    1.7807068070740943
+   ],
+   "protect_mass": 0.2695898498297573,
+   "double_protect_mass": 0.05177706779852458,
+   "tv_to_plain": 0.6012699081435142,
+   "worst_case_loss_mean": 0.08775493961209964,
+   "worst_case_loss_max": 0.535107233281825
+  }
+ ],
+ "playouts_mean": 256,
+ "unfilled": 0,
+ "captions": {
+  "top1": "the argmax of the played mix is the human joint (0 when the human joint is not among the rows)",
+  "p_human": "the played mix's probability on the human joint: the chance a SAMPLED move agrees (the search samples, never argmaxes)",
+  "loglik_floor1e4": "mean log of that probability, floored at 1e-4 (a pure plain solve and an uncovered human joint both give log 1e-4)",
+  "worst_case_loss": "the plain table's value v* minus the worst column's payoff against the regularised mix: what the regularisation can cost against a best-responding opponent, on the search's own table"
+ },
+ "release": "eaa5becc54eb",
+ "gen5": {
+  "mag": "65e76caf2423b28b",
+  "doduo": "abb0b88dd573b728",
+  "pory2": "cf8ad3f7bd0d4a33"
+ },
+ "selection": {
+  "release": "eaa5becc54eb",
+  "flags": {
+   "n": 600,
+   "seed": 1,
+   "workers": 2,
+   "passes": 16,
+   "human": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\solver\\out\\human\\games.jsonl",
+   "eligible_estimate": 20501
+  },
+  "dataset_sha256": "9d07c522200de0723790cca734d441a001359f1cfe43a314dd141feaccf2b4c8",
+  "counts": {
+   "games": 26888,
+   "test_games": 5220,
+   "eligible_games": 3627,
+   "eligible": 20501,
+   "picked": 580,
+   "K": 35
+  },
+  "argv": [
+   "--release",
+   "eaa5becc54eb",
+   "--n",
+   "600",
+   "--seed",
+   "1",
+   "--workers",
+   "2",
+   "--passes",
+   "16",
+   "--out",
+   "solver/out/pikl/human-s1",
+   "--reuse"
+  ]
+ }
+}
