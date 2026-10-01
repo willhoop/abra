@@ -204,7 +204,7 @@ function create(API, deps) {
       COUNTERS.unfilled += m * n - nf;
       const ms = Date.now() - t0;
       if (ms > budget * 1.5 + 50) COUNTERS.overBudget++;
-      return { joint: priorTop, info: Object.assign({ m, n, passes, playouts, unfilled: m * n - nf, filled: +filled.toFixed(3), empty_rows: emptyRows, fallback: kind, ms }, extra || {}) };
+      return { joint: priorTop, info: withCols(Object.assign({ m, n, passes, playouts, unfilled: m * n - nf, filled: +filled.toFixed(3), empty_rows: emptyRows, fallback: kind, ms }, extra || {}), job.cols) };
     }
     let unfilled = 0;
     const A = sum.map((r, i) => Array.from(r, (v, j) => (cnt[i][j] ? v / cnt[i][j] : (unfilled++, mean))));
@@ -264,7 +264,7 @@ function create(API, deps) {
      * so a training target can be read off the search rather than off the one sampled move */
     if (o.record) info.rec = { rows, cols: job.cols, x: Array.from(sol.x), y: sol.y ? Array.from(sol.y) : null, A, cnt: cnt.map(r => Array.from(r)),
                                tauRow: tau ? tau.row : null, tauCol: tau ? tau.col : null, x0: sol0 ? Array.from(sol0.x) : null };
-    return { joint: flat ? priorTop : rows[pick], info };
+    return { joint: flat ? priorTop : rows[pick], info: withCols(info, job.cols) };
   }
   /* when the cell fill must stop: the budget less a reserve for the solve and the pick */
   function fillByOf(o, t0, budget) {
@@ -313,6 +313,11 @@ function create(API, deps) {
 /* THE RESERVE: 6% of the budget, clamped to 20-300 ms (60 ms at 1 s, 300 ms at 5 s). It was 3% clamped to 150 ms,
  * and the serial path's 5 s arm then passed by 74 ms: one 663 ms playout straddled the abort line, which falls halfway
  * through the reserve, and one engine step cannot be cut short (docs/_reports/2026-09-25-miltank-deadline.md). */
+/* THE COLUMNS THE TABLE HELD (2026-10-01, the 8-column screen): info._cols is the candidate opponent joints, NON-ENUMERABLE so
+ * no log or artifact that serialises `info` changes. solver/mew/play.js reads it to count the column count actually used
+ * and whether the opponent's actual joint was among the columns (coverage, docs/_reports/2026-10-01-search-blind-spots.md). */
+function withCols(info, cols) { Object.defineProperty(info, '_cols', { value: cols, enumerable: false }); return info; }
+
 function reserveMsOf(budget) { return Math.max(20, Math.min(300, Math.round(budget * 0.06))); }
 
 /* A FULL GC OFF THE CLOCK. A decision allocates a world copy per playout, and a major collection that lands INSIDE a

@@ -8,6 +8,12 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-10-01
 
+### Two screens pre-registered: the v3 student at 14 s, 8 opponent columns at 2 s (abra/regmc 1.66.0)
+- Will approved two not-lose screens on `df172ccd2aaf`, 200 games each, read once. Each VOIDs on a starved arm: prior
+  fallbacks over 5%, playouts under half a quiet reference (161 at 2 s, 636 at 14 s), or a clock ratio over 1.10.
+- Arena matches now count each arm alone (`ARMS`), including the columns used and whether they held the opponent's joint.
+  `solver/results/2026-10-01-screens/preregistration.json`; report `docs/_reports/2026-10-01-screens-student-8col.md`.
+
 ### Lost the last answer: real, tied to losing, not a separate cause (abra/regmc 1.58.0)
 - The live answer map: P(i beats j) from MEDICHAM one-on-ones on the live position, at 1,131 positions in 158 ladder
   games.

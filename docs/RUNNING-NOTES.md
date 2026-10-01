@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.66.0] — 2026-10-01 — **Two arena screens pre-registered (the v3 student as gen5's leaf at 14 s; 8 opponent columns against 4 at 2 s), with per-arm counters and VOID bars**
+- **What changed.** `solver/mew/play.js` counts each arm alone (`ARMS`: playouts, prior fallbacks by kind, rows and columns used, coverage of the opponent's actual joint); `solver/machamp/gate.js` sums it into `arms`; `solver/arena/col_coverage.js`; `solver/miltank/search.js` exposes the columns non-enumerably. Test `solver/tests/test-col-coverage.js` GREEN 13/13, RED on both breaks. Pre-registration `solver/results/2026-10-01-screens/preregistration.json`, reader `read.js`.
+- **Measured.** NO SCREEN FIGURE. Quiet references on `df172ccd2aaf` (gen5 vs itself, 20 games): 323.2 / 364.2 playouts per searched decision at 2 s, 1,272.2 / 1,293.8 at 14 s, 0 fallbacks (`ref-2s.result.json`, `ref-14s.result.json`). The floors are half the lower arm: 161 and 636.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none until the screens read.
+
 ## [abra/regmc 1.58.0] — 2026-10-01 — **Lost the last answer: real, tied to losing, not a separate cause; the live answer map predicts and adds nothing over the search's value**
 - **What changed.** A read-only analysis, with no play and no engine change. `solver/results/2026-10-01-lost-last-answer/`: `answer_map.js` (P(i beats j) from 16 MEDICHAM one-on-ones per pair on the live position, release `eaa5becc54eb`); `maps.js` (every move decision of the saved ladder games, through ROTOM's world rebuilt from the log, with the back line taken from the whole log); `analyze.js`; `maps/` (1,131 positions, 1.4 MB); `results.json`. Test: `solver/tests/test-answer-map.js`, GREEN 6/6, RED under `ANSWER_MAP_BREAK=fullhp`.
 - **Measured** (`results.json`).

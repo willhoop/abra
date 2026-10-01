@@ -152,7 +152,9 @@ function create(API, opts) {
             const searched = !(r.info && r.info.forced);
             if (searched && rec.stop === 'none') rec.stop = 'hard';
             AD.charge(Date.now() - tIn, searched, rec);
+            const cols = r.info && r.info._cols;   // search.js's non-enumerable column list survives the copy (2026-10-01)
             r.info = Object.assign({}, r.info, { adapt: { stop: searched ? rec.stop : 'forced', hard: rec.plan.hardMs, soft: rec.plan.softMs, credit: rec.plan.creditMs, bank: +AD.bank.toFixed(1) } });
+            if (cols && process.env.MEW_BREAK !== 'dropcols') Object.defineProperty(r.info, '_cols', { value: cols, enumerable: false });   // break: solver/tests/test-col-coverage.js LIVE
           }
           /* the human-regularised solve's counters, per agent (the honest path makes a MILTANK per decision, so its own
            * COUNTERS do not survive the decision): summed here from each decision's info.kl (solver/miltank/search.js) */

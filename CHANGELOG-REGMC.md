@@ -21,6 +21,40 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.66.0] — 2026-10-01
+
+**MINOR: no published figure moves.** Two arena screens are pre-registered before their first game, with the per-arm
+counters they are read by. No screen game has been played when this is written.
+
+### Added
+- **Per-arm counters in a match** (`solver/mew/play.js` `ARMS`, summed by `solver/machamp/gate.js` into `arms`). The old
+  `RUN` counters pooled both agents of a shard, so a starved arm could hide behind a healthy one. Each arm now has its own
+  decisions, playouts, prior fallbacks by kind, rows and columns actually used (`cols_hist`), and the coverage of the
+  opponent's actual joint by its columns.
+- `solver/arena/col_coverage.js`: the coverage rule (move id and target, or a switch to the same body; and move ids only).
+  `solver/miltank/search.js` hands the columns out as a non-enumerable `info._cols`, so no serialised log changes.
+- `solver/tests/test-col-coverage.js`: GREEN 13/13. RED under `COLCOV_BREAK=notarget` (UNIT) and `MEW_BREAK=dropcols`
+  (LIVE).
+- The PORYGON2 v3 student's leaf files (`solver/porygon2/v3/leaf.js`, `infer.js`, the model and the 14 s screen spec),
+  byte-identical to branch `worktree-agent-aadbc255e960b0c50` (abra/regmc 1.56.0 there), so the screen can play it.
+- `solver/results/2026-10-01-screens/`: `preregistration.json`, `read.js` (applies the rule once), the 8-column spec and
+  two quiet reference runs.
+
+### Notes
+- **Screen 1:** the v3 student as gen5's leaf against gen5's own net, 14 s adaptive clock, seed 31001. Will overrides the
+  student's failed pass rule. **Screen 2:** gen5 with 8 opponent columns against 4, 2 s adaptive clock, seed 32001.
+- Both screens: release `df172ccd2aaf`, honest, role-v1, the frozen Reg M-C team store, 100 TEST pairs, pair seed 1, 200
+  games, notlose, read once.
+- **VOID bars, per arm:** prior fallbacks at most 5% of non-forced decisions, playouts per searched decision at least
+  half a quiet reference (161 at 2 s, 636 at 14 s), clock ratio at most 1.10, and at least 190 games scored. Each screen
+  also has its own capability clause.
+- References (gen5 against itself, 20 games each, release `df172ccd2aaf`): 323.2 and 364.2 playouts per decision at 2 s,
+  1,272.2 and 1,293.8 at 14 s, 0 fallbacks. Columns held the opponent's joint 0.80–0.85 of the time in the arena, against
+  57.7% on the ladder (1.52.0): the arena opponent is the same search.
+- **Observed, not caused here:** `solver/tests/test-miltank.js` is RED on its SWAP clause on the live tree (an identity body
+  swap changes the digest). It reads no code this change touches. It is reported in
+  `docs/_reports/2026-10-01-screens-student-8col.md` and left to SOLVER as owed.
+
 ## [1.58.0] — 2026-10-01
 
 **MINOR: no published figure moves.** It adds a read-only analysis, its tooling and a test.

@@ -95,6 +95,19 @@ async function main() {
   const expected = 2 * NP;
   if (m.n + m.res.errors + m.res.unbuildable !== expected) warnings.push(`expected ${expected} games, merged ${m.n} scored + ${m.res.errors} errored + ${m.res.unbuildable} unbuildable`);
   const ms = key => { const a = [].concat(...per.map(p => p[key] || [])).sort((p, q) => p - q); return a.length ? { n: a.length, mean: +(a.reduce((p, q) => p + q, 0) / a.length).toFixed(1), p50: a[a.length >> 1], p99: a[Math.floor(0.99 * (a.length - 1))], max: a[a.length - 1] } : null; };
+  /* PER-ARM COUNTERS (solver/mew/play.js ARMS, 2026-10-01): summed over the shards, so each arm's playouts per searched
+   * decision, prior-fallback share, columns used and opponent coverage are read for THAT arm, never pooled with the other */
+  const arms = {};
+  const addInto = (dst, src) => { for (const [k, v] of Object.entries(src)) { if (v && typeof v === 'object') addInto(dst[k] || (dst[k] = {}), v); else dst[k] = (dst[k] || 0) + v; } };
+  for (const s of sums.filter(Boolean)) for (const [name, a] of Object.entries(s.arms || {})) addInto(arms[name] || (arms[name] = {}), a);
+  for (const a of Object.values(arms)) {
+    const nf = a.decisions - a.forced;
+    a.derived = { non_forced: nf, playouts_per_searched: a.searched ? +(a.playouts / a.searched).toFixed(1) : null,
+      fallback_share: nf ? +(a.fallback_decisions / nf).toFixed(4) : null, cols_mean: a.searched ? +(a.cols_sum / a.searched).toFixed(2) : null,
+      rows_mean: a.searched ? +(a.rows_sum / a.searched).toFixed(2) : null,
+      coverage_target: a.cov && a.cov.n ? +(a.cov.target / a.cov.n).toFixed(4) : null, coverage_move: a.cov && a.cov.n ? +(a.cov.move / a.cov.n).toFixed(4) : null,
+      coverage_target_nf: a.cov_nf && a.cov_nf.n ? +(a.cov_nf.target / a.cov_nf.n).toFixed(4) : null, coverage_move_nf: a.cov_nf && a.cov_nf.n ? +(a.cov_nf.move / a.cov_nf.n).toFixed(4) : null };
+  }
   const result = {
     what: 'MACHAMP gate (solver/machamp/gate.js)', started, finished: new Date().toISOString(),
     engine_release: first.engine_release || rel, release_stamp: first.release_stamp || null,
@@ -104,7 +117,7 @@ async function main() {
     result: { ...m.res, played: m.n, score_x: m.score, ci95_x: m.ci95 }, paired: { team_pairs: NP, ...m.pairs },
     rule: { name: rule, text: rule === 'beats' ? 'PASS iff Wilson 95% lower bound of X score > 0.5' : 'PASS iff Wilson 95% upper bound of X score >= 0.5' },
     pass: m.n > 0 && !exits.some(e => e.code !== 0) && RULES[rule](m.ci95),
-    decision_ms: { x: ms('ms_x'), y: ms('ms_y') },
+    decision_ms: { x: ms('ms_x'), y: ms('ms_y') }, arms,
     search: sums.filter(Boolean).map(s => s.search), rollout_leafPory2: leaf, rollout_quiesced: quiesced, fallbacks: fb, warnings, wall_s,
     shards: exits.map(e => ({ shard: e.shard, pid: e.pid, code: e.code })),
     per_game_sha256: crypto.createHash('sha256').update(JSON.stringify(per.map(p => [p.pi, p.xSide, p.vX]))).digest('hex').slice(0, 16),

@@ -1,0 +1,50 @@
+{
+ "what": "Two not-lose SCREENS, back to back, on one frozen release (Will, 2026-10-01: 'play games, I'm not using my PC'). Screen 1: the PORYGON2 v3 fast student as gen5's leaf against gen5's own net at ROTOM's 14 s adaptive clock (Will OVERRIDES the student's failed pre-registered pass rule, docs/_reports/2026-10-01-porygon2-v3.md). Screen 2: 8 opponent columns against 4 in gen5's MILTANK/SLOWKING at the 2 s adaptive clock (docs/_reports/2026-10-01-search-blind-spots.md §5 recommendation 2). Written BEFORE the first screen game, committed, and never revised after one. Each is read ONCE, at 200 games, by read.js. No SPRT. Neither goes onto a ladder arm whatever it reads.",
+ "engine_release": "df172ccd2aaf",
+ "why_this_release": "The newest release that passed the Reg M-C gate (OPEN 10/10, abra/regmc 1.57.0). Both arms of a screen play the same release inside one run, so nothing is compared across runs or releases and eaa5becc54eb's comparability is not needed. The only frozen file that differs from 97451d5fbf40 is engine/medicham2-browser.js (a forme change recomputes the stat line, HP Stat Points included).",
+ "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc (absolute: a worktree has no games.bo3.jsonl); the 100 TEST pairs, --pair-seed 1",
+ "flags_both": "--pairs 100 --pair-seed 1 --workers 4 --cap 50 --rule notlose --info honest --spreads role-v1 --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+ "games_per_screen": 200,
+ "rule": "gate.js notlose, read ONCE at 200 games: PASS iff the Wilson 95% UPPER bound of X's score is >= 0.5 (X is not shown to lose); FAIL otherwise. VOID, whatever the score, if ANY capability bar below fails. A PASS is a not-lose screen, not a strength claim.",
+ "bars": {
+  "max_fallback_share": 0.05,
+  "max_clock_ratio": 1.10,
+  "min_scored": 190,
+  "text": "Per arm (solver/mew/play.js ARMS, summed by gate.js `arms`): (1) prior-fallback share = decisions that played the prior's top joint instead of a solved table (MILTANK's empty or sparse table, the adaptive clock's low bank, a thrown search) / non-forced decisions <= 0.05; (2) playouts per searched decision >= the screen's floor; (3) the clock ratio decision_ms.x.mean / decision_ms.y.mean <= 1.10; (4) at least 190 of the 200 games scored. Plus each screen's own capability clause. Any failure = VOID (memory cpu-starvation-voids-game-tests: a starved run is never read as a result)."
+ },
+ "floors": {
+  "rule": "floor = 0.5 x the LOWER arm's playouts per searched decision in a quiet reference run on this release, at the same clock, gen5 against itself (two copies of the Y spec under different names), run on this machine with no other job of this agent's (two foreign node processes of 2.2-2.8 GB, not this agent's, pids 6092 and 15900, were seen just after the 14 s reference ended, so the references may be slightly low, which only lowers the floors), 10 TEST pairs (20 games), read before this file was written. The starved run that prompted the bars ran at 45 of a quiet 213 (21%); 0.5 sits well above that and well below the arms' own spread.",
+  "ref_2s": "ref-2s.result.json (solver/out/screens/ref-2s.json): gen5-adaptive-2s-refA 364.2 and refB 323.2 playouts per searched decision, 0 fallbacks, 151 non-forced decisions each, decision ms 1644 / 1631, 20 games, 151 s, release df172ccd2aaf, seed 30901. Floor 0.5 x 323.2 = 161.",
+  "ref_14s": "ref-14s.result.json (solver/out/screens/ref-14s.json): gen5-adaptive-14s-refA 1293.8 and refB 1272.2 playouts per searched decision, 0 fallbacks, 164 / 162 non-forced decisions, decision ms 8159 / 7973, 20 games, 750 s, release df172ccd2aaf, seed 30902. Floor 0.5 x 1272.2 = 636. For scale: the 1.48.0 screens on eaa5becc54eb (2026-09-30) pooled 394-430 at 2 s and 2,052 at 14 s over 200 games; both floors sit below half of those too."
+ },
+ "screens": {
+  "student": {
+   "order": 1,
+   "x": "solver/porygon2/v3/screen-14s-student.json (gen5 MAG/DODUO, the v3 student porygon2-v3-student.json as the leaf; k 4x4, depth 0, 1 reserved switch row, budgetMs 5000 cap, adaptive { targetMs 14000, credit0Ms 4667 }), name gen5-p2v3s-adaptive-14s",
+   "y": "solver/results/2026-09-30-human-regularised/screen-14s-off.json (plain gen5 at the same clock; the 1.48.0 screen's Y), name gen5-adaptive-14s",
+   "seed": 31001,
+   "out": "solver/out/screens/screen1-student-14s.json",
+   "command": "cmd.exe /c tools\\lownode.cmd solver/machamp/gate.js --release df172ccd2aaf --x solver/porygon2/v3/screen-14s-student.json --y solver/results/2026-09-30-human-regularised/screen-14s-off.json --pairs 100 --pair-seed 1 --seed 31001 --workers 4 --cap 50 --rule notlose --info honest --spreads role-v1 --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --out solver/out/screens/screen1-student-14s.json",
+   "playouts_floor": 636,
+   "x_leaf_file": "porygon2-v3-student.json",
+   "y_leaf_file": "porygon2-gen5.json",
+   "capability": "X's leaf served the student: ctr.leaf_by_model['porygon2-v3-student.json'] > 0 and ctr.leaf_own['porygon2-v3-student.json'].errors = 0, summed over the last line of every shard; Y's leaf served gen5's net (ctr.leaf_by_model['porygon2-gen5.json'] > 0).",
+   "expected_direction": "none stated: offline the student was the best of four on every point estimate with CIs spanning 0, and 0.91x gen5's cost, so at equal clock it buys about 1.1x the leaves."
+  },
+  "cols8": {
+   "order": 2,
+   "x": "solver/results/2026-10-01-screens/screen2-k2x8-2s.json (screen-2s-off.json with k2 8; name gen5-k2x8-adaptive-2s)",
+   "y": "solver/results/2026-09-30-human-regularised/screen-2s-off.json (gen5, k 4x4; name gen5-adaptive-2s)",
+   "both": "gen5 MAG/DODUO/PORYGON2, k1 4, depth 0, 1 reserved switch row (rows and columns), budgetMs 5000 cap, adaptive { targetMs 2000, credit0Ms 667 }: equal wall-clock is the adaptive clock's mean, and the clock-ratio bar checks it.",
+   "spec_option": "k2 already exists as a spec option (solver/miltank/search.js, solver/mew/agent.js); its value in every existing spec is 4, so nothing new is switched on by default. Added: solver/mew/play.js ARMS counts the columns actually used per decision (cols_hist) and the coverage of the opponent's actual joint (solver/arena/col_coverage.js), per arm.",
+   "seed": 32001,
+   "out": "solver/out/screens/screen2-k2x8-2s.json",
+   "command": "cmd.exe /c tools\\lownode.cmd solver/machamp/gate.js --release df172ccd2aaf --x solver/results/2026-10-01-screens/screen2-k2x8-2s.json --y solver/results/2026-09-30-human-regularised/screen-2s-off.json --pairs 100 --pair-seed 1 --seed 32001 --workers 4 --cap 50 --rule notlose --info honest --spreads role-v1 --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --out solver/out/screens/screen2-k2x8-2s.json",
+   "playouts_floor": 161,
+   "capability": "X used more than 4 columns on some decision and never more than 8 (cols_hist), Y never more than 4.",
+   "reported_not_bars": "Per arm: coverage of the opponent's actual joint by the columns (target: move ids and targets, a switch to the same body; move: ids only), the mean columns and rows used, playouts per searched decision and per cell. Expected direction, stated now: X's coverage above Y's. In the arena the opponent is the same prior-driven search, so its coverage is far above the 57.7% measured against humans on the ladder (the quiet 2 s reference read 0.80 and 0.83 at 4 columns); the arena figure is not the ladder figure."
+  }
+ },
+ "on_pass": "A PASS licenses an SPRT at equal wall-clock against gen5, which needs its own pre-registration and Will's OK. Nothing goes on a ladder arm.",
+ "machine": "Will's PC, otherwise quiet ('play games, I'm not using my PC'); this agent owns the game slot. tools/lownode.cmd (BelowNormal), 4 workers. No test, training or other game run is started by this agent while a screen plays."
+}

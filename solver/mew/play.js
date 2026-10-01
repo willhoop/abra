@@ -103,6 +103,43 @@ const t0 = Date.now();
 let PREVIEW_ARMS = null;   // the match's preview arms (solver/chomp/arms.js), when a spec asks for one
 const RUN = { searched: 0, playouts: 0, cells: 0, unfilled: 0, zero_playouts: 0, fallback_decisions: 0 };
 
+/* PER-ARM COUNTERS (2026-10-01, docs/_reports/2026-10-01-screens-student-8col.md). RUN above sums BOTH agents of a shard,
+ * so a starved arm could hide behind a healthy one. ARMS[agent name] counts that agent alone: its decisions, searched
+ * decisions, playouts, rows and COLUMNS actually used (cols_hist: the count of decisions by column count), every kind
+ * of prior fallback (MILTANK's too-empty table: empty / sparse; the adaptive clock's low bank; the search threw), and the
+ * COVERAGE of the opponent's actual joint by the columns (search.js info._cols): `target` = each slot's move id and
+ * target, or a switch to the same body (ident); `move` = move ids only, any switch matching a switch. A slot with no
+ * action matches anything. `cov_nf` repeats it on the decisions where the opponent's own choice was not forced. On every
+ * match line as ctr.arms. */
+const ARMS = {};
+function armOf(name) {
+  return ARMS[name] || (ARMS[name] = { decisions: 0, forced: 0, searched: 0, playouts: 0, zero_playouts: 0, cells: 0, rows_sum: 0, cols_sum: 0, cols_hist: {},
+    fallback: { empty: 0, sparse: 0, low_bank: 0, threw: 0, other: 0 }, fallback_decisions: 0, ms_sum: 0,
+    cov: { n: 0, target: 0, move: 0 }, cov_nf: { n: 0, target: 0, move: 0 } });
+}
+const CC = require('../arena/col_coverage.js');
+function armCount(side, bot, mine, theirs) {
+  const a = armOf(bot.name), info = (mine && mine.info) || {};
+  a.decisions++;
+  if (info.forced) { a.forced++; return; }
+  if (info.fallback) {
+    a.fallback_decisions++;
+    const k = info.fallback === true ? 'threw' : (info.fallback in a.fallback ? info.fallback : 'other');
+    a.fallback[k]++;
+  }
+  if (info.playouts != null) {
+    a.searched++; a.playouts += info.playouts; if (!info.playouts) a.zero_playouts++;
+    a.cells += (info.m || 0) * (info.n || 0); a.rows_sum += info.m || 0; a.cols_sum += info.n || 0;
+    a.cols_hist[info.n] = (a.cols_hist[info.n] || 0) + 1; a.ms_sum += info.ms || 0;
+  }
+  const cols = info._cols;
+  if (cols && theirs && theirs.joint) {
+    const t = CC.jointHit(cols, theirs.joint, 'target'), m = CC.jointHit(cols, theirs.joint, 'move');
+    a.cov.n++; if (t) a.cov.target++; if (m) a.cov.move++;
+    if (!(theirs.info && theirs.info.forced)) { a.cov_nf.n++; if (t) a.cov_nf.target++; if (m) a.cov_nf.move++; }
+  }
+}
+
 /* ---- HONEST INFORMATION (see the header): solver/xatu/worlds.js arenaGame / arenaView ---- */
 const XW = AG.XW;
 const HON = XW.HON;
@@ -161,6 +198,7 @@ async function playGame(G, botA, botB, seed, recordFor) {
             playouts: info.playouts == null ? null : info.playouts, unfilled: 0, ms: info.ms == null ? null : info.ms, agent: bot.name });
         }
       }
+      armCount('A', botA, ch.A, ch.B); armCount('B', botB, ch.B, ch.A);
       CR.add(clicks.A, S, 'A', ch.A.joint); CR.add(clicks.B, S, 'B', ch.B.joint);
       PA0.record(ctx, S, ch.A.joint, ch.B.joint);
       mg.decide(S, 'A', ch.A.joint); mg.decide(S, 'B', ch.B.joint);
@@ -255,7 +293,7 @@ async function match() {
                  mega: r.mega ? { x: r.mega[xIsA ? 'A' : 'B'], y: r.mega[xIsA ? 'B' : 'A'] } : null,
                  clicks: r.clicks ? { x: r.clicks[xIsA ? 'A' : 'B'], y: r.clicks[xIsA ? 'B' : 'A'] } : null,
                  protect: r.protect ? { x: r.protect[xIsA ? 'A' : 'B'], y: r.protect[xIsA ? 'B' : 'A'] } : null,
-                 ctr: Object.assign({ spreads: Object.assign({}, SRC.COUNTERS), fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0, stall_dropped: AG.COUNTERS.stallDropped || 0, quiet_held: AG.R.COUNTERS.quietHeld || 0, quiesced: AG.R.COUNTERS.quiesced || 0, gates: JSON.parse(JSON.stringify(AG.COUNTERS.gates || {})), kl: AG.COUNTERS.kl ? JSON.parse(JSON.stringify(AG.COUNTERS.kl)) : undefined, leaf_by_model: Object.assign({}, AG.R.COUNTERS.leafByModel || {}), leaf_own: AG.R.leafOwn ? AG.R.leafOwn() : undefined }, RUN,
+                 ctr: Object.assign({ spreads: Object.assign({}, SRC.COUNTERS), fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0, stall_dropped: AG.COUNTERS.stallDropped || 0, quiet_held: AG.R.COUNTERS.quietHeld || 0, quiesced: AG.R.COUNTERS.quiesced || 0, gates: JSON.parse(JSON.stringify(AG.COUNTERS.gates || {})), kl: AG.COUNTERS.kl ? JSON.parse(JSON.stringify(AG.COUNTERS.kl)) : undefined, leaf_by_model: Object.assign({}, AG.R.COUNTERS.leafByModel || {}), leaf_own: AG.R.leafOwn ? AG.R.leafOwn() : undefined, arms: JSON.parse(JSON.stringify(ARMS)) }, RUN,
                    INFO === 'honest' ? { hon_views: HON.views, hon_back_xatu: HON.back_xatu, hon_back_error: HON.back_error, xw: Object.assign({}, XW.COUNTERS) } : {}) });
     }
     if (OUT) fs.writeFileSync(OUT, per.map(p => JSON.stringify(p)).join('\n') + '\n');
@@ -268,7 +306,7 @@ async function match() {
 (async () => {
   const r = MODE === 'match' ? await match() : await selfplay();
   const summary = { mode: MODE, info: INFO, spreads: SRC.stamp(), honest: INFO === 'honest' ? Object.assign({}, HON, { worlds: XW.COUNTERS }) : null, break: BREAK || null, shard: SHARD, shards: SHARDS, seed: SEED, cap: CAP, engine_release: ENGINE.id, release_stamp: ENGINE.stamp, argv, wall_s: (Date.now() - t0) / 1000,
-    agent_counters: AG.COUNTERS, rollout: AG.R.COUNTERS, api: API.COUNTERS, preview_arms: PREVIEW_ARMS ? PREVIEW_ARMS.COUNTERS : null,
+    agent_counters: AG.COUNTERS, arms: ARMS, rollout: AG.R.COUNTERS, api: API.COUNTERS, preview_arms: PREVIEW_ARMS ? PREVIEW_ARMS.COUNTERS : null,
     mega: { by_agent: Object.fromEntries(Object.entries(MEGA).map(([k, t]) => [k, MR.summary(t)])), human_rate: MR.HUMAN_RATE, floor: MR.floor() },
     search: decStats.length ? { decisions: decStats.length, playouts_mean: decStats.reduce((s, d) => s + d.playouts, 0) / decStats.length,
       playouts_p50: decStats.map(d => d.playouts).sort((a, b) => a - b)[decStats.length >> 1],

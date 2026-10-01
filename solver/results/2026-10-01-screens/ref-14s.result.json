@@ -1,0 +1,363 @@
+{
+ "what": "MACHAMP gate (solver/machamp/gate.js)",
+ "started": "2026-10-01T14:44:52.870Z",
+ "finished": "2026-10-01T14:57:22.074Z",
+ "engine_release": "df172ccd2aaf",
+ "release_stamp": {
+  "engine_release": "df172ccd2aaf",
+  "engine_release_cut": "2026-10-01T09:21:44.066Z",
+  "engine_release_cuts": 21,
+  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+  "source_digests": {
+   "engine/medicham2-browser.js": "bf5efb8fafee",
+   "engine/board.js": "c85a3b756c98",
+   "engine/rollout_leaf.js": "eacf05ff8d30",
+   "engine/position_features.js": "bb71676d3669",
+   "engine/tags.js": "13cdeb051720",
+   "engine/champions_sim.js": "8094725f52a8",
+   "data/residual-order.json": "eff160ad1c5a",
+   "data/switchin-order.json": "24a007a66b7d",
+   "engine/mc_key.js": "aaa095762671",
+   "engine/lookup.js": "17f49e5aed43",
+   "engine/set_priors.js": "f8a81445ee3a",
+   "engine/smogon_priors.js": "ebd062f756c8",
+   "engine/quality.js": "9b168679e3e9",
+   "engine/showdown_path.js": "46646401ede2",
+   "engine/regulation.js": "c00dcf435c9d",
+   "data/move-effects.js": "f35ecd91ba86",
+   "data/ability-blocks.json": "86741fd35452",
+   "data/smogon-priors.json": "f2dc78cea6c5",
+   "data/regulations.json": "6c7c3e3dd06c",
+   "data/quality-filter.json": "c74b46002e2d",
+   "data/engine-data.js": "bbc417dfae0e",
+   "data/abra-tags.js": "fc30f9a9392e",
+   "data/tags.json": "26ee107ce6a8",
+   "data/policy-weights.json": "626c1d240782",
+   "data/policy-weights-joint.json": "e2aca467ff04",
+   "data/move-priors.json": "e667fe8ab457",
+   "engine/pp.js": "30b12a4ef623",
+   "data/rollout-switch-census.json": "b8a5cee2f0a9",
+   "engine/medicham_api.js": "f0264a11558b",
+   "data/engine-data-regmc.js": "a6ad04e92d4e",
+   "data/tags-regmc.json": "87cbb3889809",
+   "data/move-priors-regmc.json": "eab0c9b023df",
+   "data/move-effects-regmc.js": "8c57407e7641"
+  }
+ },
+ "flags": {
+  "release": "df172ccd2aaf",
+  "x": "solver/results/2026-10-01-screens/ref-14s-a.json",
+  "y": "solver/results/2026-10-01-screens/ref-14s-b.json",
+  "pairs": 10,
+  "games": 20,
+  "pair_seed": 1,
+  "seed": 30902,
+  "workers": 4,
+  "cap": 50,
+  "rule": "notlose",
+  "human": null,
+  "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+  "info": "honest",
+  "spreads": "role-v1"
+ },
+ "spreads": {
+  "spreads": "role-v1",
+  "table": {
+   "file": "solver/arena/spreads/role-v1.json",
+   "sha256": "145edf083369524e5540fa14284deb56bb2b7310e8010de89ed7f8f9017eec17",
+   "sets": 14247,
+   "release": "eaa5becc54eb",
+   "rule_sha256": "56c261b6fcfa1153a52ccf56aecc481c6ad65ac80dc58cdff5cb468af8136525",
+   "population_sha256": "2cbe773158956ab578bf8abbb9f322fdbbe653b28ce2c3755a050a737fafda5f",
+   "store_sha256": "fe78202a851545b71a19c507617d2a470020e5b72d07a393f86ae0fedee9bb25"
+  },
+  "what": "solver/rotom/spreads.js's rule (the ladder's), per set, from the role-v1 table",
+  "counters": {
+   "games": 20,
+   "bodies_dressed": 160,
+   "table_hits": 240,
+   "derived_at_play": 0,
+   "flat_fallback": 0,
+   "bodies_flat": 0
+  },
+  "fielded_by_shard": [
+   {
+    "sets": 34,
+    "sha256": "fa2ba677afd58e447aa89b78d5e2c00478329b9a1bd15286a75582c667ca4c9a"
+   },
+   {
+    "sets": 36,
+    "sha256": "8b6fab71208b95ec9ba608a0783475606f535d3b6af65c1a9fe775b91b0bd031"
+   },
+   {
+    "sets": 23,
+    "sha256": "0591601987305370d7092601b8fe5e765c44f8548037b20dd5638f2693d8ed48"
+   },
+   {
+    "sets": 23,
+    "sha256": "4ad47de5b313075d0dd0e40092d90f906013e319ce11b0e75a455d89c96368df"
+   }
+  ],
+  "warnings": []
+ },
+ "x": {
+  "name": "gen5-adaptive-14s-refA",
+  "spec": {
+   "name": "gen5-adaptive-14s-refA",
+   "kind": "miltank",
+   "mag": "solver/machamp/models/gen5/mag-gen5.json",
+   "doduo": "solver/machamp/models/gen5/doduo-gen5.json",
+   "pory2": "solver/machamp/models/gen5/porygon2-gen5.json",
+   "budgetMs": 5000,
+   "k1": 4,
+   "k2": 4,
+   "depth": 0,
+   "reserveSwitch": 1,
+   "adaptive": {
+    "targetMs": 14000,
+    "credit0Ms": 4667
+   }
+  },
+  "digests": {
+   "mag": "65e76caf2423b28b",
+   "doduo": "abb0b88dd573b728",
+   "pory2": "cf8ad3f7bd0d4a33"
+  }
+ },
+ "y": {
+  "name": "gen5-adaptive-14s-refB",
+  "spec": {
+   "name": "gen5-adaptive-14s-refB",
+   "kind": "miltank",
+   "mag": "solver/machamp/models/gen5/mag-gen5.json",
+   "doduo": "solver/machamp/models/gen5/doduo-gen5.json",
+   "pory2": "solver/machamp/models/gen5/porygon2-gen5.json",
+   "budgetMs": 5000,
+   "k1": 4,
+   "k2": 4,
+   "depth": 0,
+   "reserveSwitch": 1,
+   "adaptive": {
+    "targetMs": 14000,
+    "credit0Ms": 4667
+   }
+  },
+  "digests": {
+   "mag": "65e76caf2423b28b",
+   "doduo": "abb0b88dd573b728",
+   "pory2": "cf8ad3f7bd0d4a33"
+  }
+ },
+ "pool": {
+  "pool_source": {
+   "kind": "team-store",
+   "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+   "file_sha256": "a68263bb568d461a73d8e71cdf88f618c0e07c7074e06ba183c3dac0f29105b3",
+   "pool_digest": "792daded918f5e331979f97b3b00c6ba8df9aa0318ebd1fec9c3ce85b7784709"
+  },
+  "file": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\team-pool-frozen-regmc\\games.bo3.jsonl",
+  "test_pairs": 173,
+  "picked": 10,
+  "ids_sha256": "d0082bbef7848b52",
+  "counts": {
+   "scanned": 23473,
+   "bot": 158,
+   "bring_incomplete": 7179,
+   "sheet_not_six": 0,
+   "mixed_split": 5623,
+   "train": 10200,
+   "val": 140,
+   "test": 173
+  }
+ },
+ "result": {
+  "W": 9,
+  "D": 0,
+  "L": 11,
+  "errors": 0,
+  "capped": 0,
+  "unbuildable": 0,
+  "played": 20,
+  "score_x": 0.45,
+  "ci95_x": [
+   0.25819502085709295,
+   0.6579179916924003
+  ]
+ },
+ "paired": {
+  "team_pairs": 10,
+  "both": 1,
+  "split": 7,
+  "lost": 2,
+  "incomplete": 0
+ },
+ "rule": {
+  "name": "notlose",
+  "text": "PASS iff Wilson 95% upper bound of X score >= 0.5"
+ },
+ "pass": true,
+ "decision_ms": {
+  "x": {
+   "n": 164,
+   "mean": 8158.8,
+   "p50": 2235,
+   "p99": 27716,
+   "max": 27719
+  },
+  "y": {
+   "n": 164,
+   "mean": 7972.5,
+   "p50": 2470,
+   "p99": 27727,
+   "max": 27982
+  }
+ },
+ "arms": {
+  "gen5-adaptive-14s-refA": {
+   "decisions": 164,
+   "forced": 0,
+   "searched": 164,
+   "playouts": 212186,
+   "zero_playouts": 0,
+   "cells": 2596,
+   "rows_sum": 655,
+   "cols_sum": 650,
+   "cols_hist": {
+    "1": 2,
+    "4": 162
+   },
+   "fallback": {
+    "empty": 0,
+    "sparse": 0,
+    "low_bank": 0,
+    "threw": 0,
+    "other": 0
+   },
+   "fallback_decisions": 0,
+   "ms_sum": 1337575,
+   "cov": {
+    "n": 164,
+    "target": 137,
+    "move": 142
+   },
+   "cov_nf": {
+    "n": 162,
+    "target": 135,
+    "move": 140
+   },
+   "derived": {
+    "non_forced": 164,
+    "playouts_per_searched": 1293.8,
+    "fallback_share": 0,
+    "cols_mean": 3.96,
+    "rows_mean": 3.99,
+    "coverage_target": 0.8354,
+    "coverage_move": 0.8659,
+    "coverage_target_nf": 0.8333,
+    "coverage_move_nf": 0.8642
+   }
+  },
+  "gen5-adaptive-14s-refB": {
+   "decisions": 164,
+   "forced": 2,
+   "searched": 162,
+   "playouts": 206093,
+   "zero_playouts": 0,
+   "cells": 2588,
+   "rows_sum": 648,
+   "cols_sum": 647,
+   "cols_hist": {
+    "3": 1,
+    "4": 161
+   },
+   "fallback": {
+    "empty": 0,
+    "sparse": 0,
+    "low_bank": 0,
+    "threw": 0,
+    "other": 0
+   },
+   "fallback_decisions": 0,
+   "ms_sum": 1306925,
+   "cov": {
+    "n": 162,
+    "target": 138,
+    "move": 144
+   },
+   "cov_nf": {
+    "n": 162,
+    "target": 138,
+    "move": 144
+   },
+   "derived": {
+    "non_forced": 162,
+    "playouts_per_searched": 1272.2,
+    "fallback_share": 0,
+    "cols_mean": 3.99,
+    "rows_mean": 4,
+    "coverage_target": 0.8519,
+    "coverage_move": 0.8889,
+    "coverage_target_nf": 0.8519,
+    "coverage_move_nf": 0.8889
+   }
+  }
+ },
+ "search": [
+  {
+   "decisions": 94,
+   "playouts_mean": 971.7659574468086,
+   "playouts_p50": 192,
+   "unfilled_share": 0,
+   "ms_mean": 6071.021276595745
+  },
+  {
+   "decisions": 88,
+   "playouts_mean": 1236.4431818181818,
+   "playouts_p50": 416,
+   "unfilled_share": 0,
+   "ms_mean": 8286.227272727272
+  },
+  {
+   "decisions": 76,
+   "playouts_mean": 1570.0394736842106,
+   "playouts_p50": 624,
+   "unfilled_share": 0,
+   "ms_mean": 8958.328947368422
+  },
+  {
+   "decisions": 68,
+   "playouts_mean": 1452.985294117647,
+   "playouts_p50": 288,
+   "unfilled_share": 0,
+   "ms_mean": 9761.808823529413
+  }
+ ],
+ "rollout_leafPory2": 377036,
+ "rollout_quiesced": 0,
+ "fallbacks": 0,
+ "warnings": [],
+ "wall_s": 749.117,
+ "shards": [
+  {
+   "shard": 0,
+   "pid": 19608,
+   "code": 0
+  },
+  {
+   "shard": 1,
+   "pid": 18840,
+   "code": 0
+  },
+  {
+   "shard": 2,
+   "pid": 23184,
+   "code": 0
+  },
+  {
+   "shard": 3,
+   "pid": 25012,
+   "code": 0
+  }
+ ],
+ "per_game_sha256": "26490b49b9de11c1"
+}
