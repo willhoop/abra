@@ -1,0 +1,18 @@
+{
+ "store": "data/games.gen9championsvgc2026regmcbo3.jsonl.gz",
+ "rows_read": 40452,
+ "unique_ids": 40452,
+ "duplicate_ids_in_store": 0,
+ "raw_files": 286,
+ "rows_emitted": 40452,
+ "rows_changed": 27609,
+ "fields_changed": {
+  "sets": 27577,
+  "mirrorSets": 26820,
+  "turns": 76
+ },
+ "carried_no_raw_log": 0,
+ "carried_extractor_refused": 0,
+ "lost_ids": 0,
+ "wrote": "data/games.gen9championsvgc2026regmcbo3.jsonl.gz.reparsed"
+}

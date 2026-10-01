@@ -28,6 +28,54 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.70.0] — 2026-10-01
+
+**MINOR: the two Reg M-C stores are re-parsed with 1.63.0's fixed set-attribution extractor.** Before this, the stored
+`sets` were the old parser's output. Now they equal a fresh extract on every sampled row. Usage moves by nothing.
+
+### Changed
+- **`data/games.gen9championsvgc2026regmc.jsonl.gz`**: re-parsed by `engine/reparse_store.js`. 52,631 of 64,797 rows
+  changed, `lost_ids` 0.
+- **`data/games.gen9championsvgc2026regmcbo3.jsonl.gz`**: re-parsed the same way. 27,609 of 40,452 rows changed,
+  `lost_ids` 0.
+- Both stores were swapped in and reconciled. The plain files hold 0 ids that are absent from the `.gz`, so no
+  old-parser row came back.
+- The `turns` field changed only in rows with an Ally Switch: 816 bo1 rows and 76 bo3 rows. This is cause 6, the
+  `|swap|` slot map.
+- **Growth budget:** about 92.5 MB of new blobs (50.1 MB + 42.4 MB). The largest tracked file is 50.1 MB, under the
+  100 MB wall.
+- **`data/store-validation-regmc.json`** was regenerated first, and **`data/meta-usage-regmc.json`** was restamped
+  after it.
+- The frozen pool `data/team-pool-frozen-regmc/` was not touched.
+
+### Fixed
+- 1.66.0's usable-game figure cited the usage model by its live path. The restamp grew that file to 55,724
+  sampled teams, so the docs gate failed on the citation. The citation is now pinned to the blob that held the
+  figure, `ae73f682:data/meta-usage-regmc.json`. The figure itself is unchanged.
+
+### Record
+- **Measured.** `engine/store_sets_check.js` after the swap, with `--every 10` and the Reg M-C checkout:
+  - `stored_differs_from_fresh` is 0 on bo1 (6,418 rows) and 0 on bo3 (4,055 rows).
+  - Stored bo1 agrees at moves 100% / items 100% / abilities 99.92% over 39,065 members, with 0 misses and 12 wrong
+    values (the reference's Hospitality rows).
+  - Stored bo3 agrees at 100% / 100% / 100% over 24,179 members.
+  - `store-validation-regmc` REVEALED: bo1 2,331 of 62,649 (3.7207%) → 2,226 of 64,392 (3.457%), with move flags
+    722 → 588 and ability flags 10 → 0. bo3 1,018 of 39,541 → 1,036 of 40,452. Store growth is included; the
+    movement is attributed by id in the report.
+  - `meta-usage-regmc`, built from the pre- and the post-re-parse store bytes, is identical apart from its stamps. It
+    moved only by store growth: 54,958 → 55,724 sampled teams.
+  - Receipts: `docs/_reports/2026-10-01-store-reparse/`. Report: `docs/_reports/2026-10-01-store-reparse.md`.
+- **Basis.** unchanged.
+- **Supersedes.** The stored-row agreement in 1.63.0, bo1 moves / items / abilities ~~99.69% / 98.97% / 97.54%~~
+  retracted as a description of the store. It is now 100% / 100% / 99.92%. 1.63.0's figure stands only as a
+  measurement of the pre-re-parse store.
+- **Owed to the next major.**
+  - `docs/MODELS.md` and the white paper's data section: the store `sets` are now the fixed parser's, with
+    `mirrorSets` per side.
+  - SOLVER: the PORYGON2 v2 and `solver/meta` extracts. They were held back because the live ladder run reads
+    `solver/out/meta/bo3.json`.
+  - `engine/usage_regulation.js` / `analyze.js` need a 4 GB heap declaration. At the default heap the restamp exits 134.
+
 ## [1.69.0] — 2026-10-01
 
 **MINOR: the searcher's bodies are built the way the battle's are.** `solver/tests/test-miltank.js` SWAP was red on main:
@@ -165,14 +213,14 @@ counters they are read by. No screen game has been played when this is written.
   games, 28,713 clean (27,332 under 1.64.0); clean 1500+ 0 → 14.
 - Series-level readers keep open-sheet bo3 only: `solver/chomp/data.js`, `solver/xatu/eval_bring.js`,
   `solver/rotom/build_assets.js` team candidates, `solver/arena/teams.js`, `solver/mew/pairs.js`, `solver/meta/extract.js`.
-- `data/meta-usage-regmc.json` regenerated: usable 27,479 (store growth included).
+- `ae73f682:data/meta-usage-regmc.json` regenerated: usable 27,479 (store growth included).
 
 ### Notes
 - The frozen pool is not re-cut. SOLVER owes the dataset rebuilds on main. Report:
   `docs/_reports/2026-10-01-open-sheet-turn-play.md`.
 
 ### Record
-- **Measured.** On the same stores, open-sheet turn play 39,852 / 27,332 clean → 41,935 / 28,713; clean 1500+ for turn-level models 0 → 14. Open-sheet bo3 39,852 / 27,332 → 40,057 / 27,479 (205 consent rooms, 147 clean, all unrated); clean 1500+ stays 0. Usage model usable 27,479 (`data/meta-usage-regmc.json`). Report: `docs/_reports/2026-10-01-open-sheet-turn-play.md`.
+- **Measured.** On the same stores, open-sheet turn play 39,852 / 27,332 clean → 41,935 / 28,713; clean 1500+ for turn-level models 0 → 14. Open-sheet bo3 39,852 / 27,332 → 40,057 / 27,479 (205 consent rooms, 147 clean, all unrated); clean 1500+ stays 0. Usage model usable 27,479 (`ae73f682:data/meta-usage-regmc.json`). Report: `docs/_reports/2026-10-01-open-sheet-turn-play.md`.
 - **Basis.** unchanged. The same two populations, one widened by a decided rule; before and after are in the report.
 - **Supersedes.** ~~27,106~~ retracted: the 1.64.0 usage model's usable-game count, now 27,479 (store growth included).
 - **Owed to the next major.** `docs/MODELS.md` and the white paper: state the two populations and which model reads which.

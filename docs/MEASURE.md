@@ -42,6 +42,18 @@ _stamped 2026-10-01 06:14_
 
 <!-- /GENERATED -->
 
+## THE REG M-C STORES ARE RE-PARSED. STORED `sets` NOW EQUAL A FRESH EXTRACT ON EVERY SAMPLED ROW. 2026-10-01 (abra/regmc 1.70.0)
+
+- **Rows changed:** bo1 52,631 of 64,797 and bo3 27,609 of 40,452, with `lost_ids` 0 on both
+  (`engine/reparse_store.js`). The 816 + 76 rows whose `turns` changed all have an Ally Switch (cause 6).
+- **Check after the swap:** `stored_differs_from_fresh` is 0 on both 1-in-10 samples. The stored bo1 sets agree at
+  100% / 100% / 99.92% (moves / items / abilities), and the 12 that disagree are the reference's Hospitality rows.
+  bo3 agrees at 100% on all three.
+- **Downstream:** `store-validation-regmc` moved (bo1 move flags 722 → 588, ability flags → 0). `meta-usage-regmc`
+  is byte-identical apart from its stamps when it is built from the store before and after the re-parse. The SOLVER
+  extracts were held back because the live ladder run reads `solver/out/meta/bo3.json`.
+- **Account and OWED:** `docs/_reports/2026-10-01-store-reparse.md`.
+
 ## TURN PLAY AND SERIES PLAY ARE TWO OPEN-SHEET ANSWERS; A CONSENT BEST-OF-3 ROOM IS BO3. 2026-10-01 (abra/regmc 1.66.0)
 
 Will's two decisions after 1.64.0.

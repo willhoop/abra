@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-01T06:59:12.546Z",
+  "generated": "2026-10-01T19:28:11.631Z",
   "by": "engine/validate_store.js",
   "format": "gen9championsvgc2026regmc",
   "regulation": "regmc",
@@ -16,9 +16,9 @@
     "item_declared_pattern": "'s item .+ does not exist in Gen \\d",
     "by_store": {
       "games.gen9championsvgc2026regmcbo3.jsonl": {
-        "revealed": 15,
+        "revealed": 23,
         "declared": 11,
-        "union": 15
+        "union": 23
       },
       "games.gen9championsvgc2026regmc.jsonl": {
         "revealed": 43,
@@ -84,44 +84,52 @@
       "gen9championsvgc2026regmcbo3-2689344884",
       "gen9championsvgc2026regmcbo3-2689350586",
       "gen9championsvgc2026regmcbo3-2690752097",
-      "gen9championsvgc2026regmcbo3-2690754933"
+      "gen9championsvgc2026regmcbo3-2690754933",
+      "gen9championsvgc2026regmcbo3-2691064831",
+      "gen9championsvgc2026regmcbo3-2691067266",
+      "gen9championsvgc2026regmcbo3-2691068868",
+      "gen9championsvgc2026regmcbo3-2691078195",
+      "gen9championsvgc2026regmcbo3-2691084517",
+      "gen9championsvgc2026regmcbo3-2691086544",
+      "gen9championsvgc2026regmcbo3-2691097986",
+      "gen9championsvgc2026regmcbo3-2691100074"
     ]
   },
   "source_digests": {
     "engine/validate_store.js": "4cf51be2aa68",
-    "data/games.gen9championsvgc2026regmcbo3.jsonl.gz": "7c15d94eab4a",
-    "data/games.gen9championsvgc2026regmc.jsonl.gz": "8a50cf620f06",
+    "data/games.gen9championsvgc2026regmcbo3.jsonl.gz": "4643efce7a42",
+    "data/games.gen9championsvgc2026regmc.jsonl.gz": "7397a137a7ac",
     "note": "Content, not mtime. A checkout moves an mtime without moving code."
   },
   "judged": {
-    "games": 39541,
-    "revealed_sets": 491589,
-    "distinct": 182829,
-    "seconds": 439.6,
+    "games": 40452,
+    "revealed_sets": 502906,
+    "distinct": 195041,
+    "seconds": 155.6,
     "unreadable_lines": 0,
-    "games_with_revealed_sets": 39541,
+    "games_with_revealed_sets": 40452,
     "games_with_no_revealed_set": 0,
     "distinct_note": "distinct is the set-level cache across ALL stores and both rulers, so it is larger than a ladder-only run would report."
   },
-  "flagged_games": 1018,
+  "flagged_games": 1036,
   "by_reason": {
-    "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)": 917,
+    "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)": 926,
     "Kangaskhan has multiple copies of Fake Out.": 44,
-    "alakazammega's ability Aura Guard does not exist in Gen 9.": 2,
+    "Sneasler has multiple copies of Dire Claw.": 1,
+    "Sneasler has multiple copies of Close Combat.": 2,
     "Sableye has multiple copies of Will-O-Wisp.": 2,
     "Basculegion has multiple copies of Last Respects.": 2,
     "Basculegion has multiple copies of Wave Crash.": 1,
     "(It's 19 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)": 2,
     "Typhlosion has multiple copies of Shadow Ball.": 1,
+    "Kingambit has multiple copies of Kowtow Cleave.": 1,
     "Kangaskhan has multiple copies of Last Resort.": 1,
     "Farfetch’d has multiple copies of Sky Attack.": 1,
     "Kingambit has multiple copies of Swords Dance.": 2,
     "Armarouge has multiple copies of Armor Cannon.": 1,
     "Sylveon has multiple copies of Hyper Voice.": 2,
-    "clefablemega (Clefable-Mega) can't learn Will-O-Wisp.": 1,
     "Lucario has multiple copies of Final Gambit.": 2,
     "raichumegay (Raichu-Mega-Y) can't learn Flamethrower.": 1,
-    "Sneasler has multiple copies of Close Combat.": 1,
     "Skeledirge has multiple copies of Torch Song.": 2,
     "golisopodmega (Golisopod-Mega) can't learn Bitter Malice.": 1,
     "Garchomp has multiple copies of Rock Tomb.": 1,
@@ -167,7 +175,6 @@
     "kartana (Kartana) does not exist in Gen 9.": 2,
     "kartana (Kartana)'s move Psycho Cut can't be transferred from Gen 8 to 9.": 2,
     "absolmegaz (Absol-Mega-Z) can't learn Hyper Voice.": 1,
-    "clefablemega (Clefable-Mega) can't learn Hypnosis.": 1,
     "Sneasler has multiple copies of Fake Out.": 1,
     "Kangaskhan has multiple copies of Brick Break.": 2,
     "girafarig (Girafarig) does not exist in Gen 9.": 1,
@@ -186,7 +193,7 @@
     "ogerponhearthflame's move Ivy Cudgel does not exist in Gen 9.": 3,
     "fluttermane's item Booster Energy does not exist in Gen 9.": 3,
     "ursaluna (Ursaluna) does not exist in Gen 9.": 8,
-    "ursaluna's item Flame Orb does not exist in Gen 9.": 5,
+    "ursaluna's item Flame Orb does not exist in Gen 9.": 8,
     "dracovish (Dracovish) does not exist in Gen 9.": 3,
     "dracovish's move Fishious Rend does not exist in Gen 9.": 2,
     "dracovish (Dracovish)'s move Fishious Rend can't be transferred from Gen 8 to 9.": 2,
@@ -207,41 +214,51 @@
     "(It will revert to its Teal forme if you remove the item or give it a different item.)": 1,
     "illumise (Illumise) does not exist in Gen 9.": 1,
     "dracovish (Dracovish)'s move Protect can't be transferred from Gen 8 to 9.": 1,
-    "glimmoramega (Glimmora-Mega) can't learn Parting Shot.": 1,
     "Azumarill has multiple copies of Belly Drum.": 1,
-    "clefablemega (Clefable-Mega) can't learn Parting Shot.": 1,
     "cherrim (Cherrim) does not exist in Gen 9.": 1,
     "cherrimsunshine (Cherrim) does not exist in Gen 9.": 1,
-    "cherrimsunshine (Cherrim-Sunshine)'s move Solar Blade can't be transferred from Gen 8 to 9.": 1
+    "cherrimsunshine (Cherrim-Sunshine)'s move Solar Blade can't be transferred from Gen 8 to 9.": 1,
+    "bruxish (Bruxish) does not exist in Gen 9.": 4,
+    "sableye (Sableye) can't learn Parting Shot.": 4,
+    "hariyama (Hariyama) does not exist in Gen 9.": 2,
+    "gougingfire (Gouging Fire) does not exist in Gen 9.": 5,
+    "gougingfire's item Booster Energy does not exist in Gen 9.": 5,
+    "tapukoko (Tapu Koko) does not exist in Gen 9.": 4,
+    "tapukoko (Tapu Koko)'s move Brave Bird can't be transferred from Gen 8 to 9.": 1,
+    "ironbundle (Iron Bundle) does not exist in Gen 9.": 4,
+    "tapukoko (Tapu Koko)'s move U-turn can't be transferred from Gen 8 to 9.": 1,
+    "tapukoko (Tapu Koko)'s move Protect can't be transferred from Gen 8 to 9.": 1,
+    "Torterra has multiple copies of Headlong Rush.": 2,
+    "charizardmegay (Charizard-Mega-Y) can't learn Bitter Malice.": 1,
+    "charizardmegay (Charizard-Mega-Y) can't learn Icy Wind.": 1
   },
   "split": {
     "note": "by_class_games counts a game once per class it shows, so it oversums the headline; combos partitions the flagged games exactly. SCOPE: data/games.ladder.jsonl under the REVEALED ruler. The other two stores and the DECLARED ruler are under `stores`.",
     "by_class_games": {
-      "other": 917,
-      "move": 103,
-      "ability": 2,
-      "species": 15,
-      "item": 14
+      "other": 926,
+      "move": 112,
+      "species": 23,
+      "item": 20
     },
     "by_class_sets": {
-      "other": 919,
-      "move": 134,
-      "ability": 2,
-      "species": 80,
-      "item": 38
+      "other": 928,
+      "move": 144,
+      "species": 99,
+      "item": 46
     },
     "combos": {
-      "other": 913,
-      "move": 84,
-      "ability": 2,
+      "other": 922,
+      "move": 87,
       "move+other": 4,
-      "item+move+species": 14,
-      "move+species": 1
+      "item+move+species": 19,
+      "item+species": 1,
+      "move+species": 2,
+      "species": 1
     },
-    "species_keyed_filter_would_remove": 15,
-    "move_only_games": 84,
-    "move_only_with_illusion_carrier_same_side": 5,
-    "move_only_with_no_illusion_carrier_in_game": 79,
+    "species_keyed_filter_would_remove": 23,
+    "move_only_games": 87,
+    "move_only_with_illusion_carrier_same_side": 7,
+    "move_only_with_no_illusion_carrier_in_game": 80,
     "illusion_carriers_derived": [
       "zoroark",
       "zoroarkhisui"
@@ -273,7 +290,12 @@
       "spewpa": 3,
       "illumise": 1,
       "cherrim": 1,
-      "cherrimsunshine": 1
+      "cherrimsunshine": 1,
+      "bruxish": 4,
+      "hariyama": 2,
+      "gougingfire": 5,
+      "tapukoko": 4,
+      "ironbundle": 4
     },
     "species_flagged_ids": [
       "gen9championsvgc2026regmcbo3-2686130004",
@@ -290,7 +312,15 @@
       "gen9championsvgc2026regmcbo3-2689350586",
       "gen9championsvgc2026regmcbo3-2689344884",
       "gen9championsvgc2026regmcbo3-2690754933",
-      "gen9championsvgc2026regmcbo3-2690752097"
+      "gen9championsvgc2026regmcbo3-2690752097",
+      "gen9championsvgc2026regmcbo3-2691100074",
+      "gen9championsvgc2026regmcbo3-2691097986",
+      "gen9championsvgc2026regmcbo3-2691086544",
+      "gen9championsvgc2026regmcbo3-2691084517",
+      "gen9championsvgc2026regmcbo3-2691078195",
+      "gen9championsvgc2026regmcbo3-2691067266",
+      "gen9championsvgc2026regmcbo3-2691068868",
+      "gen9championsvgc2026regmcbo3-2691064831"
     ],
     "item_flagged_ids": [
       "gen9championsvgc2026regmcbo3-2686130004",
@@ -306,7 +336,13 @@
       "gen9championsvgc2026regmcbo3-2688491273",
       "gen9championsvgc2026regmcbo3-2689350586",
       "gen9championsvgc2026regmcbo3-2689344884",
-      "gen9championsvgc2026regmcbo3-2690754933"
+      "gen9championsvgc2026regmcbo3-2690754933",
+      "gen9championsvgc2026regmcbo3-2690752097",
+      "gen9championsvgc2026regmcbo3-2691100074",
+      "gen9championsvgc2026regmcbo3-2691097986",
+      "gen9championsvgc2026regmcbo3-2691086544",
+      "gen9championsvgc2026regmcbo3-2691084517",
+      "gen9championsvgc2026regmcbo3-2691078195"
     ],
     "species_or_declared_item_flagged_ids": [
       "gen9championsvgc2026regmcbo3-2686130004",
@@ -323,7 +359,15 @@
       "gen9championsvgc2026regmcbo3-2689350586",
       "gen9championsvgc2026regmcbo3-2689344884",
       "gen9championsvgc2026regmcbo3-2690754933",
-      "gen9championsvgc2026regmcbo3-2690752097"
+      "gen9championsvgc2026regmcbo3-2690752097",
+      "gen9championsvgc2026regmcbo3-2691100074",
+      "gen9championsvgc2026regmcbo3-2691097986",
+      "gen9championsvgc2026regmcbo3-2691086544",
+      "gen9championsvgc2026regmcbo3-2691084517",
+      "gen9championsvgc2026regmcbo3-2691078195",
+      "gen9championsvgc2026regmcbo3-2691067266",
+      "gen9championsvgc2026regmcbo3-2691068868",
+      "gen9championsvgc2026regmcbo3-2691064831"
     ],
     "item_declared_pattern": "'s item .+ does not exist in Gen \\d"
   },
@@ -569,13 +613,23 @@
       ]
     },
     {
-      "id": "gen9championsvgc2026regmcbo3-2678290560",
-      "date": "2026-09-09 21:03",
+      "id": "gen9championsvgc2026regmcbo3-2678336611",
+      "date": "2026-09-09 22:43",
       "classes": [
-        "ability"
+        "move"
       ],
       "reasons": [
-        "alakazammega's ability Aura Guard does not exist in Gen 9."
+        "Sneasler has multiple copies of Dire Claw."
+      ]
+    },
+    {
+      "id": "gen9championsvgc2026regmcbo3-2678332170",
+      "date": "2026-09-09 22:43",
+      "classes": [
+        "move"
+      ],
+      "reasons": [
+        "Sneasler has multiple copies of Close Combat."
       ]
     },
     {
@@ -1306,6 +1360,16 @@
       ],
       "reasons": [
         "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+      ]
+    },
+    {
+      "id": "gen9championsvgc2026regmcbo3-2679149555",
+      "date": "2026-09-11 05:32",
+      "classes": [
+        "move"
+      ],
+      "reasons": [
+        "Kingambit has multiple copies of Kowtow Cleave."
       ]
     },
     {
@@ -3629,16 +3693,6 @@
       ]
     },
     {
-      "id": "gen9championsvgc2026regmcbo3-2681396478",
-      "date": "2026-09-15 00:56",
-      "classes": [
-        "ability"
-      ],
-      "reasons": [
-        "alakazammega's ability Aura Guard does not exist in Gen 9."
-      ]
-    },
-    {
       "id": "gen9championsvgc2026regmcbo3-2681377056",
       "date": "2026-09-15 00:06",
       "classes": [
@@ -4038,16 +4092,6 @@
       ],
       "reasons": [
         "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
-      ]
-    },
-    {
-      "id": "gen9championsvgc2026regmcbo3-2681813263",
-      "date": "2026-09-15 17:44",
-      "classes": [
-        "move"
-      ],
-      "reasons": [
-        "clefablemega (Clefable-Mega) can't learn Will-O-Wisp."
       ]
     },
     {
@@ -5344,41 +5388,40 @@
   "stores": {
     "games.gen9championsvgc2026regmcbo3.jsonl": {
       "what": "regmc bo3 ladder, Force Open Team Sheets — the target population",
-      "seconds": 229,
+      "seconds": 30.5,
       "revealed": {
-        "lines": 39541,
-        "judged_games": 39541,
+        "lines": 40452,
+        "judged_games": 40452,
         "no_ruler_input": 0,
         "unreadable_lines": 0,
-        "sets_judged": 491589,
-        "flagged_games": 1018,
-        "flagged_rate_pct": 2.5745,
+        "sets_judged": 502906,
+        "flagged_games": 1036,
+        "flagged_rate_pct": 2.5611,
         "by_class_games": {
-          "other": 917,
-          "move": 103,
-          "ability": 2,
-          "species": 15,
-          "item": 14
+          "other": 926,
+          "move": 112,
+          "species": 23,
+          "item": 20
         },
         "by_class_sets": {
-          "other": 919,
-          "move": 134,
-          "ability": 2,
-          "species": 80,
-          "item": 38
+          "other": 928,
+          "move": 144,
+          "species": 99,
+          "item": 46
         },
         "combos": {
-          "other": 913,
-          "move": 84,
-          "ability": 2,
+          "other": 922,
+          "move": 87,
           "move+other": 4,
-          "item+move+species": 14,
-          "move+species": 1
+          "item+move+species": 19,
+          "item+species": 1,
+          "move+species": 2,
+          "species": 1
         },
-        "move_only_games": 84,
-        "move_only_with_illusion_carrier_same_side": 5,
-        "move_only_with_no_illusion_carrier_in_game": 79,
-        "item_complaints_declared": 36,
+        "move_only_games": 87,
+        "move_only_with_illusion_carrier_same_side": 7,
+        "move_only_with_no_illusion_carrier_in_game": 80,
+        "item_complaints_declared": 44,
         "item_complaints_forme_requirement": 2,
         "species_offenders": {
           "exeggutor": 2,
@@ -5407,7 +5450,12 @@
           "spewpa": 3,
           "illumise": 1,
           "cherrim": 1,
-          "cherrimsunshine": 1
+          "cherrimsunshine": 1,
+          "bruxish": 4,
+          "hariyama": 2,
+          "gougingfire": 5,
+          "tapukoko": 4,
+          "ironbundle": 4
         },
         "species_flagged_ids": [
           "gen9championsvgc2026regmcbo3-2686130004",
@@ -5424,7 +5472,15 @@
           "gen9championsvgc2026regmcbo3-2689350586",
           "gen9championsvgc2026regmcbo3-2689344884",
           "gen9championsvgc2026regmcbo3-2690754933",
-          "gen9championsvgc2026regmcbo3-2690752097"
+          "gen9championsvgc2026regmcbo3-2690752097",
+          "gen9championsvgc2026regmcbo3-2691100074",
+          "gen9championsvgc2026regmcbo3-2691097986",
+          "gen9championsvgc2026regmcbo3-2691086544",
+          "gen9championsvgc2026regmcbo3-2691084517",
+          "gen9championsvgc2026regmcbo3-2691078195",
+          "gen9championsvgc2026regmcbo3-2691067266",
+          "gen9championsvgc2026regmcbo3-2691068868",
+          "gen9championsvgc2026regmcbo3-2691064831"
         ],
         "item_flagged_ids": [
           "gen9championsvgc2026regmcbo3-2686130004",
@@ -5440,7 +5496,13 @@
           "gen9championsvgc2026regmcbo3-2688491273",
           "gen9championsvgc2026regmcbo3-2689350586",
           "gen9championsvgc2026regmcbo3-2689344884",
-          "gen9championsvgc2026regmcbo3-2690754933"
+          "gen9championsvgc2026regmcbo3-2690754933",
+          "gen9championsvgc2026regmcbo3-2690752097",
+          "gen9championsvgc2026regmcbo3-2691100074",
+          "gen9championsvgc2026regmcbo3-2691097986",
+          "gen9championsvgc2026regmcbo3-2691086544",
+          "gen9championsvgc2026regmcbo3-2691084517",
+          "gen9championsvgc2026regmcbo3-2691078195"
         ],
         "species_or_declared_item_flagged_ids": [
           "gen9championsvgc2026regmcbo3-2686130004",
@@ -5457,26 +5519,34 @@
           "gen9championsvgc2026regmcbo3-2689350586",
           "gen9championsvgc2026regmcbo3-2689344884",
           "gen9championsvgc2026regmcbo3-2690754933",
-          "gen9championsvgc2026regmcbo3-2690752097"
+          "gen9championsvgc2026regmcbo3-2690752097",
+          "gen9championsvgc2026regmcbo3-2691100074",
+          "gen9championsvgc2026regmcbo3-2691097986",
+          "gen9championsvgc2026regmcbo3-2691086544",
+          "gen9championsvgc2026regmcbo3-2691084517",
+          "gen9championsvgc2026regmcbo3-2691078195",
+          "gen9championsvgc2026regmcbo3-2691067266",
+          "gen9championsvgc2026regmcbo3-2691068868",
+          "gen9championsvgc2026regmcbo3-2691064831"
         ],
         "by_reason": {
-          "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)": 917,
+          "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)": 926,
           "Kangaskhan has multiple copies of Fake Out.": 44,
-          "alakazammega's ability Aura Guard does not exist in Gen 9.": 2,
+          "Sneasler has multiple copies of Dire Claw.": 1,
+          "Sneasler has multiple copies of Close Combat.": 2,
           "Sableye has multiple copies of Will-O-Wisp.": 2,
           "Basculegion has multiple copies of Last Respects.": 2,
           "Basculegion has multiple copies of Wave Crash.": 1,
           "(It's 19 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)": 2,
           "Typhlosion has multiple copies of Shadow Ball.": 1,
+          "Kingambit has multiple copies of Kowtow Cleave.": 1,
           "Kangaskhan has multiple copies of Last Resort.": 1,
           "Farfetch’d has multiple copies of Sky Attack.": 1,
           "Kingambit has multiple copies of Swords Dance.": 2,
           "Armarouge has multiple copies of Armor Cannon.": 1,
           "Sylveon has multiple copies of Hyper Voice.": 2,
-          "clefablemega (Clefable-Mega) can't learn Will-O-Wisp.": 1,
           "Lucario has multiple copies of Final Gambit.": 2,
           "raichumegay (Raichu-Mega-Y) can't learn Flamethrower.": 1,
-          "Sneasler has multiple copies of Close Combat.": 1,
           "Skeledirge has multiple copies of Torch Song.": 2,
           "golisopodmega (Golisopod-Mega) can't learn Bitter Malice.": 1,
           "Garchomp has multiple copies of Rock Tomb.": 1,
@@ -5522,7 +5592,6 @@
           "kartana (Kartana) does not exist in Gen 9.": 2,
           "kartana (Kartana)'s move Psycho Cut can't be transferred from Gen 8 to 9.": 2,
           "absolmegaz (Absol-Mega-Z) can't learn Hyper Voice.": 1,
-          "clefablemega (Clefable-Mega) can't learn Hypnosis.": 1,
           "Sneasler has multiple copies of Fake Out.": 1,
           "Kangaskhan has multiple copies of Brick Break.": 2,
           "girafarig (Girafarig) does not exist in Gen 9.": 1,
@@ -5541,7 +5610,7 @@
           "ogerponhearthflame's move Ivy Cudgel does not exist in Gen 9.": 3,
           "fluttermane's item Booster Energy does not exist in Gen 9.": 3,
           "ursaluna (Ursaluna) does not exist in Gen 9.": 8,
-          "ursaluna's item Flame Orb does not exist in Gen 9.": 5,
+          "ursaluna's item Flame Orb does not exist in Gen 9.": 8,
           "dracovish (Dracovish) does not exist in Gen 9.": 3,
           "dracovish's move Fishious Rend does not exist in Gen 9.": 2,
           "dracovish (Dracovish)'s move Fishious Rend can't be transferred from Gen 8 to 9.": 2,
@@ -5562,12 +5631,23 @@
           "(It will revert to its Teal forme if you remove the item or give it a different item.)": 1,
           "illumise (Illumise) does not exist in Gen 9.": 1,
           "dracovish (Dracovish)'s move Protect can't be transferred from Gen 8 to 9.": 1,
-          "glimmoramega (Glimmora-Mega) can't learn Parting Shot.": 1,
           "Azumarill has multiple copies of Belly Drum.": 1,
-          "clefablemega (Clefable-Mega) can't learn Parting Shot.": 1,
           "cherrim (Cherrim) does not exist in Gen 9.": 1,
           "cherrimsunshine (Cherrim) does not exist in Gen 9.": 1,
-          "cherrimsunshine (Cherrim-Sunshine)'s move Solar Blade can't be transferred from Gen 8 to 9.": 1
+          "cherrimsunshine (Cherrim-Sunshine)'s move Solar Blade can't be transferred from Gen 8 to 9.": 1,
+          "bruxish (Bruxish) does not exist in Gen 9.": 4,
+          "sableye (Sableye) can't learn Parting Shot.": 4,
+          "hariyama (Hariyama) does not exist in Gen 9.": 2,
+          "gougingfire (Gouging Fire) does not exist in Gen 9.": 5,
+          "gougingfire's item Booster Energy does not exist in Gen 9.": 5,
+          "tapukoko (Tapu Koko) does not exist in Gen 9.": 4,
+          "tapukoko (Tapu Koko)'s move Brave Bird can't be transferred from Gen 8 to 9.": 1,
+          "ironbundle (Iron Bundle) does not exist in Gen 9.": 4,
+          "tapukoko (Tapu Koko)'s move U-turn can't be transferred from Gen 8 to 9.": 1,
+          "tapukoko (Tapu Koko)'s move Protect can't be transferred from Gen 8 to 9.": 1,
+          "Torterra has multiple copies of Headlong Rush.": 2,
+          "charizardmegay (Charizard-Mega-Y) can't learn Bitter Malice.": 1,
+          "charizardmegay (Charizard-Mega-Y) can't learn Icy Wind.": 1
         },
         "examples": [
           {
@@ -5811,13 +5891,23 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmcbo3-2678290560",
-            "date": "2026-09-09 21:03",
+            "id": "gen9championsvgc2026regmcbo3-2678336611",
+            "date": "2026-09-09 22:43",
             "classes": [
-              "ability"
+              "move"
             ],
             "reasons": [
-              "alakazammega's ability Aura Guard does not exist in Gen 9."
+              "Sneasler has multiple copies of Dire Claw."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmcbo3-2678332170",
+            "date": "2026-09-09 22:43",
+            "classes": [
+              "move"
+            ],
+            "reasons": [
+              "Sneasler has multiple copies of Close Combat."
             ]
           },
           {
@@ -6548,6 +6638,16 @@
             ],
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmcbo3-2679149555",
+            "date": "2026-09-11 05:32",
+            "classes": [
+              "move"
+            ],
+            "reasons": [
+              "Kingambit has multiple copies of Kowtow Cleave."
             ]
           },
           {
@@ -8871,16 +8971,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmcbo3-2681396478",
-            "date": "2026-09-15 00:56",
-            "classes": [
-              "ability"
-            ],
-            "reasons": [
-              "alakazammega's ability Aura Guard does not exist in Gen 9."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmcbo3-2681377056",
             "date": "2026-09-15 00:06",
             "classes": [
@@ -9280,16 +9370,6 @@
             ],
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmcbo3-2681813263",
-            "date": "2026-09-15 17:44",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "clefablemega (Clefable-Mega) can't learn Will-O-Wisp."
             ]
           },
           {
@@ -10579,27 +10659,27 @@
         ]
       },
       "declared": {
-        "lines": 39541,
-        "judged_games": 39537,
-        "no_ruler_input": 4,
+        "lines": 40452,
+        "judged_games": 40440,
+        "no_ruler_input": 12,
         "unreadable_lines": 0,
-        "sets_judged": 474444,
-        "flagged_games": 928,
-        "flagged_rate_pct": 2.3472,
+        "sets_judged": 485280,
+        "flagged_games": 937,
+        "flagged_rate_pct": 2.317,
         "by_class_games": {
-          "other": 917,
+          "other": 926,
           "species": 11,
           "item": 11,
           "move": 11
         },
         "by_class_sets": {
-          "other": 926,
+          "other": 935,
           "species": 60,
           "item": 36,
           "move": 35
         },
         "combos": {
-          "other": 917,
+          "other": 926,
           "item+move+species": 11
         },
         "move_only_games": 0,
@@ -10672,7 +10752,7 @@
           "gen9championsvgc2026regmcbo3-2688491273"
         ],
         "by_reason": {
-          "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)": 924,
+          "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)": 933,
           "(It's 19 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)": 2,
           "deoxysattack (Deoxys-Attack) is tagged Mythical, which is banned by Flat Rules.": 4,
           "indeedeef's item Safety Goggles does not exist in Gen 9.": 2,
@@ -15737,44 +15817,40 @@
     },
     "games.gen9championsvgc2026regmc.jsonl": {
       "what": "regmc bo1 ladder; Open Team Sheets is OPTIONAL here, so only a slice declares",
-      "seconds": 210.5,
+      "seconds": 125.1,
       "revealed": {
-        "lines": 63048,
-        "judged_games": 62649,
-        "no_ruler_input": 399,
+        "lines": 64797,
+        "judged_games": 64392,
+        "no_ruler_input": 405,
         "unreadable_lines": 0,
-        "sets_judged": 558709,
-        "flagged_games": 2331,
-        "flagged_rate_pct": 3.7207,
+        "sets_judged": 574254,
+        "flagged_games": 2226,
+        "flagged_rate_pct": 3.457,
         "by_class_games": {
-          "move": 722,
-          "other": 1605,
-          "ability": 10,
-          "item": 14,
+          "move": 588,
+          "other": 1639,
+          "item": 15,
           "species": 43
         },
         "by_class_sets": {
-          "move": 772,
-          "other": 1607,
-          "ability": 10,
-          "item": 23,
+          "move": 633,
+          "other": 1643,
+          "item": 24,
           "species": 107
         },
         "combos": {
-          "move": 673,
-          "other": 1591,
-          "move+other": 14,
-          "ability": 9,
-          "item+move+species": 11,
+          "move": 544,
+          "other": 1629,
+          "move+other": 10,
+          "item+move+species": 12,
           "item+species": 3,
-          "move+species": 23,
-          "species": 6,
-          "ability+move": 1
+          "move+species": 22,
+          "species": 6
         },
-        "move_only_games": 673,
-        "move_only_with_illusion_carrier_same_side": 529,
-        "move_only_with_no_illusion_carrier_in_game": 141,
-        "item_complaints_declared": 9,
+        "move_only_games": 544,
+        "move_only_with_illusion_carrier_same_side": 538,
+        "move_only_with_no_illusion_carrier_in_game": 3,
+        "item_complaints_declared": 10,
         "item_complaints_forme_requirement": 14,
         "species_offenders": {
           "ogerponcornerstone": 5,
@@ -15875,6 +15951,7 @@
           "gen9championsvgc2026regmc-2686120432",
           "gen9championsvgc2026regmc-2688784011",
           "gen9championsvgc2026regmc-2688782319",
+          "gen9championsvgc2026regmc-2689301267",
           "gen9championsvgc2026regmc-2689298213",
           "gen9championsvgc2026regmc-2690232160",
           "gen9championsvgc2026regmc-2690751099",
@@ -15928,45 +16005,35 @@
         "by_reason": {
           "lucario (Lucario) can't learn Hyper Voice.": 5,
           "lucariomegaz (Lucario-Mega-Z) can't learn Hyper Voice.": 1,
-          "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)": 1585,
+          "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)": 1620,
           "volcarona (Volcarona) can't learn Icy Wind.": 1,
-          "hatterene (Hatterene) can't learn Parting Shot.": 45,
           "dragonite (Dragonite) can't learn Bitter Malice.": 2,
           "slowbro (Slowbro) can't learn Taunt.": 1,
           "sneasler (Sneasler) can't learn Icy Wind.": 5,
-          "clefablemega (Clefable-Mega) can't learn Disable.": 1,
           "garchomp (Garchomp) can't learn Sludge Bomb.": 1,
           "kingambit (Kingambit) can't learn Hyper Voice.": 7,
           "vaporeon (Vaporeon) can't learn Poltergeist.": 1,
           "archaludon (Archaludon) can't learn Flamethrower.": 1,
           "pyroar (Pyroar) can't learn Shadow Ball.": 2,
           "absol (Absol) can't learn Hyper Voice.": 3,
-          "(It's 19 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)": 22,
+          "(It's 19 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)": 23,
           "maushold (Maushold) can't learn Focus Blast.": 1,
           "salamence (Salamence) can't learn Nasty Plot.": 2,
-          "hatterene (Hatterene) can't learn Leech Seed.": 2,
           "armarouge (Armarouge) can't learn Bitter Malice.": 1,
           "farigiraf (Farigiraf) can't learn Will-O-Wisp.": 4,
           "talonflame (Talonflame) can't learn Icy Wind.": 3,
-          "jolteon (Jolteon) can't learn Double Shock.": 1,
           "ampharos (Ampharos) can't learn Snarl.": 1,
           "arcaninehisui (Arcanine-Hisui) can't learn Icy Wind.": 4,
           "sneasler (Sneasler) can't learn Hyper Voice.": 9,
           "tsareena (Tsareena) can't learn Will-O-Wisp.": 4,
-          "gardevoir's ability Aura Guard does not exist in Gen 9.": 5,
           "farigiraf (Farigiraf) can't learn Icy Wind.": 5,
-          "alakazammega's ability Aura Guard does not exist in Gen 9.": 4,
           "gholdengo (Gholdengo) can't learn Sludge Bomb.": 1,
           "hatterene (Hatterene) can't learn Knock Off.": 1,
-          "squawkabillywhite (Squawkabilly-White) can't learn Infestation.": 1,
           "baxcalibur (Baxcalibur) can't learn Bitter Malice.": 5,
           "farigiraf (Farigiraf) can't learn Bitter Malice.": 4,
-          "hatterene (Hatterene) can't learn Taunt.": 8,
-          "hatterene (Hatterene) can't learn Sleep Powder.": 5,
           "rillaboom (Rillaboom) can't learn Flamethrower.": 3,
           "basculegion (Basculegion) can't learn Flamethrower.": 2,
           "lopunny (Lopunny) can't learn Nasty Plot.": 3,
-          "liepard (Liepard) can't learn Acrobatics.": 1,
           "farigiraf (Farigiraf) can't learn Round.": 8,
           "kingambit (Kingambit) can't learn Icy Wind.": 2,
           "reuniclus (Reuniclus) can't learn Flamethrower.": 1,
@@ -15978,22 +16045,17 @@
           "whimsicott (Whimsicott) can't learn Hyper Voice.": 7,
           "raichu (Raichu) can't learn Bitter Malice.": 3,
           "slowkinggalar (Slowking-Galar) can't learn Hyper Voice.": 1,
-          "kingambit (Kingambit) can't learn Shadow Ball.": 7,
+          "kingambit (Kingambit) can't learn Shadow Ball.": 8,
           "sinistcha (Sinistcha) can't learn Sludge Bomb.": 1,
           "golisopod (Golisopod) can't learn Bitter Malice.": 6,
           "ampharos (Ampharos) can't learn Trick.": 1,
           "ampharos (Ampharos) can't learn Bitter Malice.": 1,
           "noivern (Noivern) can't learn Trick.": 1,
-          "hatterene (Hatterene) can't learn Fake Tears.": 1,
-          "espeon (Espeon) can't learn Sweet Scent.": 1,
           "golisopod (Golisopod) can't learn Hyper Voice.": 6,
           "milotic (Milotic) can't learn Bitter Malice.": 1,
           "pelipper (Pelipper) can't learn Bitter Malice.": 2,
           "rillaboom (Rillaboom) can't learn Bitter Malice.": 4,
-          "hatterene (Hatterene) can't learn Roar.": 5,
           "baxcalibur (Baxcalibur) can't learn Taunt.": 2,
-          "vaporeon (Vaporeon) can't learn Final Gambit.": 2,
-          "vaporeon (Vaporeon) can't learn Shadow Claw.": 1,
           "whimsicott (Whimsicott) can't learn Trick.": 3,
           "basculegion (Basculegion) can't learn Will-O-Wisp.": 12,
           "alakazam (Alakazam) can't learn Bitter Malice.": 2,
@@ -16001,39 +16063,27 @@
           "alcremierubyswirl (Alcremie-Ruby-Swirl) can't learn Night Daze.": 1,
           "whimsicott (Whimsicott) can't learn Icy Wind.": 6,
           "rotomwash (Rotom-Wash) can't learn Icy Wind.": 2,
-          "hatterene (Hatterene) can't learn Will-O-Wisp.": 2,
           "toxicroak (Toxicroak) can't learn Bitter Malice.": 1,
           "lopunny (Lopunny) can't learn Will-O-Wisp.": 2,
-          "liepard (Liepard) can't learn Trick Room.": 2,
           "mausholdfour (Maushold-Four) can't learn Shadow Ball.": 2,
-          "delphoxmega (Delphox-Mega) can't learn Superpower.": 1,
-          "delphoxmega (Delphox-Mega) can't learn Eruption.": 2,
           "meowscarada (Meowscarada) can't learn Psychic.": 1,
           "gardevoir (Gardevoir) can't learn Flamethrower.": 2,
           "baxcaliburmega (Baxcalibur-Mega) can't learn Hyper Voice.": 1,
-          "hatterene (Hatterene) can't learn Encore.": 9,
           "kingambit (Kingambit) can't learn Nasty Plot.": 3,
           "raichu (Raichu) can't learn Hyper Voice.": 2,
-          "lucariomegaz (Lucario-Mega-Z) can't learn Make It Rain.": 6,
           "weavile (Weavile) can't learn Hyper Voice.": 2,
           "slowbro (Slowbro) can't learn Memento.": 1,
           "lucario (Lucario) can't learn Icy Wind.": 1,
           "ceruledge (Ceruledge) can't learn Hyper Voice.": 1,
           "charizard (Charizard) can't learn Psychic.": 2,
-          "espeon (Espeon) can't learn Parting Shot.": 1,
           "golisopod (Golisopod) can't learn Nasty Plot.": 5,
           "sinistcha (Sinistcha) can't learn Hyper Voice.": 1,
-          "clefablemega (Clefable-Mega) can't learn Sleep Powder.": 1,
           "golisopodmega (Golisopod-Mega) can't learn Hyper Voice.": 3,
-          "absolmega (Absol-Mega) can't learn Parting Shot.": 1,
-          "sableyemega (Sableye-Mega) can't learn Sleep Powder.": 1,
           "hatterene (Hatterene) can't learn Nasty Plot.": 4,
           "basculegion (Basculegion) can't learn Hyper Voice.": 3,
-          "lucariomegaz (Lucario-Mega-Z) can't learn Icy Wind.": 1,
           "garchomp (Garchomp) can't learn Icy Wind.": 4,
           "grimmsnarl (Grimmsnarl) can't learn Psychic.": 1,
           "sylveon (Sylveon) can't learn Icy Wind.": 1,
-          "lucariomegaz (Lucario-Mega-Z) can't learn Quiver Dance.": 1,
           "farigiraf (Farigiraf) can't learn Focus Blast.": 2,
           "grimmsnarl (Grimmsnarl) can't learn Sludge Bomb.": 1,
           "tsareena (Tsareena) can't learn Curse.": 1,
@@ -16064,7 +16114,6 @@
           "pikachu (Pikachu) can't learn Psychic.": 1,
           "charizard (Charizard) can't learn Night Daze.": 1,
           "golurkmega (Golurk-Mega) can't learn Flamethrower.": 1,
-          "hatterene (Hatterene) can't learn Hypnosis.": 5,
           "hatterene (Hatterene) can't learn Burning Jealousy.": 1,
           "mimikyu (Mimikyu) can't learn Bitter Malice.": 1,
           "toxtricity (Toxtricity) can't learn Flamethrower.": 1,
@@ -16091,29 +16140,21 @@
           "heatran (Heatran) does not exist in Gen 9.": 1,
           "gengar (Gengar) can't learn Hyper Voice.": 2,
           "swampert (Swampert) can't learn Psychic.": 1,
-          "hatterene (Hatterene) can't learn Yawn.": 1,
           "tsareena (Tsareena) can't learn Bitter Malice.": 2,
           "gholdengo (Gholdengo) can't learn Bitter Malice.": 1,
           "snorlax (Snorlax) can't learn Sludge Bomb.": 1,
-          "clefablemega (Clefable-Mega) can't learn Taunt.": 2,
           "charizard (Charizard) can't learn Bitter Malice.": 7,
           "indeedeef (Indeedee-F) can't learn Icy Wind.": 3,
           "slowkinggalar (Slowking-Galar) can't learn Will-O-Wisp.": 1,
           "kangaskhan (Kangaskhan) can't learn Bitter Malice.": 1,
-          "clefablemega (Clefable-Mega) can't learn Hypnosis.": 1,
-          "clefablemega (Clefable-Mega) can't learn Will-O-Wisp.": 1,
           "mausholdfour (Maushold-Four) can't learn Bitter Malice.": 2,
           "ampharos (Ampharos) can't learn Shadow Ball.": 1,
           "floettemega (Floette-Mega) can't learn Bitter Malice.": 3,
           "alakazam (Alakazam) can't learn Icy Wind.": 1,
           "altaria (Altaria) can't learn Shadow Ball.": 1,
-          "clefablemega (Clefable-Mega) can't learn Parting Shot.": 2,
-          "sylveon (Sylveon) can't learn Light of Ruin.": 1,
           "rotomwash (Rotom-Wash) can't learn Night Daze.": 1,
           "whimsicott (Whimsicott) can't learn Bitter Malice.": 3,
-          "delphox (Delphox) can't learn Psycho Cut.": 1,
           "kingambit (Kingambit) can't learn Bitter Malice.": 4,
-          "slurpuff (Slurpuff) can't learn Light of Ruin.": 1,
           "incineroar (Incineroar) can't learn Icy Wind.": 3,
           "beedrillmega (Beedrill-Mega) can't learn Bitter Malice.": 3,
           "tapulele (Tapu Lele) does not exist in Gen 9.": 6,
@@ -16129,8 +16170,6 @@
           "cinderace (Cinderace) can't learn Hyper Voice.": 1,
           "archaludon (Archaludon) can't learn Bitter Malice.": 5,
           "annihilape (Annihilape) can't learn Icy Wind.": 1,
-          "mausholdfour (Maushold-Four) can't learn Ice Beam.": 1,
-          "meowsticfmega's ability Aura Guard does not exist in Gen 9.": 1,
           "blastoise (Blastoise) can't learn Poltergeist.": 1,
           "gardevoir (Gardevoir) can't learn Snarl.": 1,
           "camerupt (Camerupt) can't learn Bitter Malice.": 1,
@@ -16152,8 +16191,6 @@
           "incineroar (Incineroar) can't learn Bitter Malice.": 3,
           "aerodactyl (Aerodactyl) can't learn Will-O-Wisp.": 1,
           "primarina (Primarina) can't learn Snarl.": 1,
-          "hatterene (Hatterene) can't learn Toxic.": 5,
-          "sylveon (Sylveon) can't learn Boomburst.": 2,
           "lucario (Lucario) can't learn Will-O-Wisp.": 1,
           "raichu (Raichu) can't learn Icy Wind.": 2,
           "blaziken (Blaziken) can't learn Bitter Malice.": 1,
@@ -16165,24 +16202,19 @@
           "milotic (Milotic) can't learn Shadow Ball.": 1,
           "mausholdfour (Maushold-Four) can't learn Nasty Plot.": 1,
           "glimmoramega (Glimmora-Mega) can't learn Hyper Voice.": 1,
-          "hatterene (Hatterene) can't learn Feather Dance.": 1,
-          "squawkabillywhite (Squawkabilly-White) can't learn Will-O-Wisp.": 1,
           "scovillain (Scovillain) can't learn Trick.": 2,
           "malamar (Malamar) can't learn Will-O-Wisp.": 2,
           "emboar (Emboar) can't learn Hyper Voice.": 1,
           "gholdengo (Gholdengo) can't learn Taunt.": 1,
           "metagross (Metagross) can't learn Hyper Voice.": 1,
           "basculegionf (Basculegion-F) can't learn Hyper Voice.": 1,
-          "liepard (Liepard) can't learn Ice Beam.": 1,
-          "rotomwash's item Lagging Tail does not exist in Gen 9.": 1,
+          "gliscor's item Toxic Orb does not exist in Gen 9.": 2,
           "annihilape (Annihilape) can't learn Grass Knot.": 1,
-          "lucariomegaz (Lucario-Mega-Z) can't learn Eruption.": 2,
-          "kingambit (Kingambit) can't learn Will-O-Wisp.": 4,
+          "kingambit (Kingambit) can't learn Will-O-Wisp.": 6,
           "metagrossmega (Metagross-Mega) can't learn Extrasensory.": 1,
           "chesnaught (Chesnaught) can't learn Shadow Ball.": 3,
           "basculegion (Basculegion) can't learn Taunt.": 3,
           "whimsicott (Whimsicott) can't learn Rain Dance.": 1,
-          "umbreon (Umbreon) can't learn Trick Room.": 3,
           "taurospaldeablaze (Tauros-Paldea-Blaze) can't learn Throat Chop.": 1,
           "espathra (Espathra) can't learn Bitter Malice.": 1,
           "raichu (Raichu) can't learn Detect.": 1,
@@ -16210,9 +16242,8 @@
           "kingambit (Kingambit) can't learn Psychic.": 2,
           "salamence (Salamence) can't learn Icy Wind.": 2,
           "emolga (Emolga) can't learn Flamethrower.": 1,
-          "sableyemega (Sableye-Mega) can't learn Yawn.": 1,
           "charizardmegay (Charizard-Mega-Y) can't learn Bitter Malice.": 2,
-          "metagross (Metagross) can't learn Nasty Plot.": 1,
+          "metagross (Metagross) can't learn Nasty Plot.": 2,
           "toxapex (Toxapex) can't learn Flamethrower.": 1,
           "golisopod (Golisopod) can't learn Shadow Ball.": 2,
           "garchomp (Garchomp) can't learn Bitter Malice.": 6,
@@ -16230,7 +16261,6 @@
           "meganium (Meganium) can't learn Shadow Ball.": 1,
           "drampa (Drampa) can't learn Will-O-Wisp.": 1,
           "staraptor (Staraptor) can't learn Icy Wind.": 1,
-          "mausholdfour (Maushold-Four) can't learn Coil.": 1,
           "samurotthisui (Samurott-Hisui) can't learn Bitter Malice.": 1,
           "pelipper (Pelipper) can't learn Psychic.": 1,
           "toxtricity (Toxtricity) can't learn Icy Wind.": 1,
@@ -16247,7 +16277,6 @@
           "clefable (Clefable) can't learn Will-O-Wisp.": 1,
           "metagrossmega (Metagross-Mega) can't learn Hyper Voice.": 1,
           "crabominable (Crabominable) can't learn Memento.": 1,
-          "lucariomegaz (Lucario-Mega-Z) can't learn Strength Sap.": 1,
           "lucario (Lucario) can't learn Memento.": 1,
           "liepard (Liepard) can't learn Flamethrower.": 1,
           "golisopod (Golisopod) can't learn Will-O-Wisp.": 2,
@@ -16255,7 +16284,6 @@
           "glalie (Glalie) can't learn Bitter Malice.": 1,
           "sneasler (Sneasler) can't learn Round.": 2,
           "lycanrocdusk (Lycanroc-Dusk) can't learn Bitter Malice.": 1,
-          "hatterene (Hatterene) can't learn Whirlwind.": 1,
           "indeedeef (Indeedee-F) can't learn Bitter Malice.": 2,
           "floetteeternal (Floette-Eternal) can't learn Focus Blast.": 1,
           "heliolisk (Heliolisk) can't learn Icy Wind.": 1,
@@ -16266,19 +16294,16 @@
           "gholdengo (Gholdengo) can't learn Icy Wind.": 1,
           "garchomp (Garchomp) can't learn Fake Tears.": 1,
           "volcarona (Volcarona) can't learn Snarl.": 1,
-          "sableyemega (Sableye-Mega) can't learn Strength Sap.": 1,
           "reuniclus (Reuniclus) can't learn Bitter Malice.": 1,
           "arcaninehisui (Arcanine-Hisui) can't learn Dark Pulse.": 1,
           "goodrahisui (Goodra-Hisui) can't learn Icy Wind.": 1,
           "politoed (Politoed) can't learn Snarl.": 1,
-          "jolteon (Jolteon) can't learn Parting Shot.": 1,
           "aegislash (Aegislash) can't learn Flamethrower.": 1,
           "kingambit (Kingambit) can't learn Flamethrower.": 1,
           "blaziken (Blaziken) can't learn Nasty Plot.": 1,
           "staraptor (Staraptor) can't learn Shadow Ball.": 1,
           "staraptormega (Staraptor-Mega) can't learn Hyper Voice.": 1,
           "toxtricity (Toxtricity) can't learn Focus Blast.": 1,
-          "liepard (Liepard) can't learn Aurora Veil.": 1,
           "annihilape (Annihilape) can't learn Dark Pulse.": 1,
           "tapulele (Tapu Lele)'s move Thunderbolt can't be transferred from Gen 8 to 9.": 2,
           "charizard (Charizard) can't learn Dark Pulse.": 1,
@@ -16296,7 +16321,6 @@
           "lopunny (Lopunny) can't learn Bitter Malice.": 1,
           "arcaninehisui (Arcanine-Hisui) can't learn Shadow Ball.": 1,
           "kleavor (Kleavor) can't learn Hyper Voice.": 1,
-          "squawkabillyblue (Squawkabilly-Blue) can't learn Light Screen.": 1,
           "garchomp (Garchomp) can't learn Trick.": 1,
           "baxcalibur (Baxcalibur) can't learn Flamethrower.": 1,
           "milotic (Milotic) can't learn Sludge Bomb.": 1,
@@ -16313,9 +16337,7 @@
           "farigiraf (Farigiraf) can't learn Taunt.": 1,
           "goodrahisui (Goodra-Hisui) can't learn Bitter Malice.": 1,
           "steelix (Steelix) can't learn Sludge Bomb.": 1,
-          "mrmime (Mr. Mime) can't learn Eruption.": 1,
           "rhyperior (Rhyperior) can't learn Nasty Plot.": 1,
-          "hatterene (Hatterene) can't learn Disable.": 1,
           "scrafty (Scrafty) can't learn Bitter Malice.": 1,
           "farigiraf (Farigiraf) can't learn Snarl.": 1,
           "aerodactyl (Aerodactyl) can't learn Snarl.": 1,
@@ -16323,7 +16345,7 @@
           "noivern (Noivern) can't learn Snowscape.": 1,
           "drampa (Drampa) can't learn Memento.": 1,
           "sneasler (Sneasler) can't learn Night Daze.": 1,
-          "Kangaskhan has multiple copies of Fake Out.": 1,
+          "Kangaskhan has multiple copies of Fake Out.": 2,
           "latiosmega's move Luster Purge does not exist in Gen 9.": 1,
           "gholdengo's item Choice Specs does not exist in Gen 9.": 1,
           "swampert (Swampert) can't learn Shadow Ball.": 1,
@@ -16345,23 +16367,18 @@
           "garchomp (Garchomp) can't learn Will-O-Wisp.": 1,
           "charizard (Charizard) can't learn Hyper Voice.": 1,
           "tyranitar (Tyranitar) can't learn Psych Up.": 1,
-          "lucariomegaz (Lucario-Mega-Z) can't learn Electro Shot.": 1,
           "steelix (Steelix) can't learn Hyper Voice.": 1,
           "sceptile's item Throat Spray does not exist in Gen 9.": 1,
           "clawitzer (Clawitzer) can't learn Hyper Voice.": 1,
-          "delphoxmega (Delphox-Mega) can't learn Discharge.": 1,
           "floetteeternal (Floette-Eternal) can't learn Sludge Bomb.": 1,
           "farigiraf (Farigiraf) can't learn Flamethrower.": 1,
-          "maushold (Maushold) can't learn Hurricane.": 1,
           "talonflame (Talonflame) can't learn Nasty Plot.": 1,
-          "hatterene (Hatterene) can't learn Swagger.": 1,
           "dragonitemega (Dragonite-Mega) can't learn Hyper Voice.": 1,
           "lopunny (Lopunny) can't learn Flamethrower.": 1,
           "samurotthisui (Samurott-Hisui) can't learn Nasty Plot.": 2,
           "dragapult (Dragapult) can't learn Bitter Malice.": 2,
           "raichu (Raichu) can't learn Flamethrower.": 1,
           "malamar (Malamar) can't learn Memento.": 1,
-          "clefablemega (Clefable-Mega) can't learn Yawn.": 1,
           "excadrill (Excadrill) can't learn Hyper Voice.": 1,
           "aegislash (Aegislash) can't learn Snarl.": 1,
           "electrodehisui (Electrode-Hisui) does not exist in Gen 9.": 3,
@@ -16385,10 +16402,9 @@
           "tapufini (Tapu Fini)'s move Nature's Madness can't be transferred from Gen 8 to 9.": 1,
           "eldegoss (Eldegoss)'s move Protect can't be transferred from Gen 8 to 9.": 1,
           "glimmora (Glimmora) can't learn Taunt.": 1,
-          "hatterene (Hatterene) can't learn Soak.": 1,
           "salamence (Salamence) can't learn Snarl.": 1,
-          "sableyemega (Sableye-Mega) can't learn Parting Shot.": 1,
           "archaludon (Archaludon) can't learn Taunt.": 1,
+          "liepard (Liepard) can't learn Dragon Pulse.": 1,
           "kommoo (Kommo-o) can't learn Shadow Ball.": 1,
           "runerigus (Runerigus) can't learn Bitter Malice.": 1,
           "manectricmega (Manectric-Mega) can't learn Dark Pulse.": 1,
@@ -16405,10 +16421,15 @@
           "cryogonal (Cryogonal) does not exist in Gen 9.": 1,
           "bisharp (Bisharp) does not exist in Gen 9.": 1,
           "bisharp (Bisharp) can't learn Sucker Punch.": 1,
-          "hatterene (Hatterene) can't learn Spikes.": 1,
           "feraligatr (Feraligatr) can't learn Nasty Plot.": 1,
           "chesnaught (Chesnaught) can't learn Icy Wind.": 1,
-          "sylveon (Sylveon) can't learn Flamethrower.": 1
+          "sylveon (Sylveon) can't learn Flamethrower.": 1,
+          "chesnaught (Chesnaught) can't learn Encore.": 1,
+          "pawmot (Pawmot) can't learn Flamethrower.": 1,
+          "garganacl (Garganacl) can't learn Taunt.": 1,
+          "pyroar (Pyroar) can't learn Extrasensory.": 1,
+          "garchomp (Garchomp) can't learn Snarl.": 1,
+          "kingambit (Kingambit) can't learn Memento.": 1
         },
         "examples": [
           {
@@ -16503,16 +16524,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2678118067",
-            "date": "2026-09-09 15:45",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Parting Shot."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2678113725",
             "date": "2026-09-09 15:34",
             "classes": [
@@ -16540,16 +16551,6 @@
             ],
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2678110603",
-            "date": "2026-09-09 15:31",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Parting Shot."
             ]
           },
           {
@@ -16820,16 +16821,6 @@
             ],
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2677963350",
-            "date": "2026-09-09 09:33",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "clefablemega (Clefable-Mega) can't learn Disable."
             ]
           },
           {
@@ -17155,16 +17146,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2678373330",
-            "date": "2026-09-10 00:06",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Parting Shot."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2678371515",
             "date": "2026-09-10 00:04",
             "classes": [
@@ -17182,16 +17163,6 @@
             ],
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2678370610",
-            "date": "2026-09-10 00:02",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Leech Seed."
             ]
           },
           {
@@ -17355,16 +17326,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2678471925",
-            "date": "2026-09-10 04:05",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Parting Shot."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2678471123",
             "date": "2026-09-10 04:03",
             "classes": [
@@ -17382,16 +17343,6 @@
             ],
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2678466567",
-            "date": "2026-09-10 03:50",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "jolteon (Jolteon) can't learn Double Shock."
             ]
           },
           {
@@ -17465,16 +17416,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2678439845",
-            "date": "2026-09-10 02:44",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Parting Shot."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2678436068",
             "date": "2026-09-10 02:36",
             "classes": [
@@ -17535,16 +17476,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2678541931",
-            "date": "2026-09-10 07:59",
-            "classes": [
-              "ability"
-            ],
-            "reasons": [
-              "gardevoir's ability Aura Guard does not exist in Gen 9."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2678540262",
             "date": "2026-09-10 07:49",
             "classes": [
@@ -17552,16 +17483,6 @@
             ],
             "reasons": [
               "farigiraf (Farigiraf) can't learn Icy Wind."
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2678535107",
-            "date": "2026-09-10 07:31",
-            "classes": [
-              "ability"
-            ],
-            "reasons": [
-              "alakazammega's ability Aura Guard does not exist in Gen 9."
             ]
           },
           {
@@ -17635,16 +17556,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2678561779",
-            "date": "2026-09-10 08:56",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Parting Shot."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2678556158",
             "date": "2026-09-10 08:40",
             "classes": [
@@ -17652,16 +17563,6 @@
             ],
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2678556273",
-            "date": "2026-09-10 08:38",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "squawkabillywhite (Squawkabilly-White) can't learn Infestation."
             ]
           },
           {
@@ -17805,16 +17706,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2678626067",
-            "date": "2026-09-10 12:05",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Parting Shot."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2678621433",
             "date": "2026-09-10 11:54",
             "classes": [
@@ -17925,16 +17816,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2678710835",
-            "date": "2026-09-10 14:48",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Taunt."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2678709302",
             "date": "2026-09-10 14:43",
             "classes": [
@@ -18002,16 +17883,6 @@
             ],
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2678684236",
-            "date": "2026-09-10 13:59",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Sleep Powder."
             ]
           },
           {
@@ -18172,7 +18043,6 @@
               "move"
             ],
             "reasons": [
-              "liepard (Liepard) can't learn Acrobatics.",
               "farigiraf (Farigiraf) can't learn Round."
             ]
           },
@@ -18500,16 +18370,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2678916267",
-            "date": "2026-09-10 20:30",
-            "classes": [
-              "ability"
-            ],
-            "reasons": [
-              "alakazammega's ability Aura Guard does not exist in Gen 9."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2678912610",
             "date": "2026-09-10 20:24",
             "classes": [
@@ -18811,16 +18671,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2679086257",
-            "date": "2026-09-11 02:35",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Fake Tears."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2679074727",
             "date": "2026-09-11 02:11",
             "classes": [
@@ -18828,16 +18678,6 @@
             ],
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2679068471",
-            "date": "2026-09-11 01:59",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Parting Shot."
             ]
           },
           {
@@ -18888,16 +18728,6 @@
             ],
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2679148559",
-            "date": "2026-09-11 05:29",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "espeon (Espeon) can't learn Sweet Scent."
             ]
           },
           {
@@ -19014,11 +18844,9 @@
             "id": "gen9championsvgc2026regmc-2679244158",
             "date": "2026-09-11 10:29",
             "classes": [
-              "move",
               "other"
             ],
             "reasons": [
-              "hatterene (Hatterene) can't learn Roar.",
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
             ]
           },
@@ -19093,16 +18921,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2679225945",
-            "date": "2026-09-11 09:39",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Parting Shot."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2679223025",
             "date": "2026-09-11 09:24",
             "classes": [
@@ -19173,16 +18991,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2679205981",
-            "date": "2026-09-11 08:30",
-            "classes": [
-              "ability"
-            ],
-            "reasons": [
-              "alakazammega's ability Aura Guard does not exist in Gen 9."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2679202616",
             "date": "2026-09-11 08:19",
             "classes": [
@@ -19213,16 +19021,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2679197741",
-            "date": "2026-09-11 08:03",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "vaporeon (Vaporeon) can't learn Final Gambit."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2679194545",
             "date": "2026-09-11 07:53",
             "classes": [
@@ -19240,26 +19038,6 @@
             ],
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2679192997",
-            "date": "2026-09-11 07:47",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "vaporeon (Vaporeon) can't learn Shadow Claw."
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2679191238",
-            "date": "2026-09-11 07:43",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "vaporeon (Vaporeon) can't learn Final Gambit."
             ]
           },
           {
@@ -19476,11 +19254,9 @@
             "id": "gen9championsvgc2026regmc-2679368677",
             "date": "2026-09-11 14:55",
             "classes": [
-              "move",
               "other"
             ],
             "reasons": [
-              "hatterene (Hatterene) can't learn Parting Shot.",
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
             ]
           },
@@ -19551,7 +19327,6 @@
               "move"
             ],
             "reasons": [
-              "hatterene (Hatterene) can't learn Roar.",
               "salazzle (Salazzle) can't learn Extrasensory."
             ]
           },
@@ -19746,16 +19521,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2679512098",
-            "date": "2026-09-11 18:58",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Parting Shot."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2679511539",
             "date": "2026-09-11 18:58",
             "classes": [
@@ -19926,16 +19691,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2679450011",
-            "date": "2026-09-11 17:07",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Parting Shot."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2679441142",
             "date": "2026-09-11 16:57",
             "classes": [
@@ -19943,16 +19698,6 @@
             ],
             "reasons": [
               "golisopod (Golisopod) can't learn Bitter Malice."
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2679441294",
-            "date": "2026-09-11 16:56",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Will-O-Wisp."
             ]
           },
           {
@@ -20032,7 +19777,6 @@
               "move"
             ],
             "reasons": [
-              "liepard (Liepard) can't learn Trick Room.",
               "mausholdfour (Maushold-Four) can't learn Shadow Ball."
             ]
           },
@@ -20057,16 +19801,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2679560537",
-            "date": "2026-09-11 20:39",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "delphoxmega (Delphox-Mega) can't learn Superpower."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2679556370",
             "date": "2026-09-11 20:21",
             "classes": [
@@ -20084,26 +19818,6 @@
             ],
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2679550754",
-            "date": "2026-09-11 20:09",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "delphoxmega (Delphox-Mega) can't learn Eruption."
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2679549223",
-            "date": "2026-09-11 20:03",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "delphoxmega (Delphox-Mega) can't learn Eruption."
             ]
           },
           {
@@ -20208,16 +19922,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2679586843",
-            "date": "2026-09-11 21:16",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Encore."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2679584440",
             "date": "2026-09-11 21:13",
             "classes": [
@@ -20235,16 +19939,6 @@
             ],
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2679582893",
-            "date": "2026-09-11 21:08",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Sleep Powder."
             ]
           },
           {
@@ -20288,16 +19982,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2679682325",
-            "date": "2026-09-12 00:55",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Parting Shot."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2679667106",
             "date": "2026-09-12 00:16",
             "classes": [
@@ -20305,16 +19989,6 @@
             ],
             "reasons": [
               "raichu (Raichu) can't learn Hyper Voice."
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2679664043",
-            "date": "2026-09-12 00:11",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "lucariomegaz (Lucario-Mega-Z) can't learn Make It Rain."
             ]
           },
           {
@@ -20518,16 +20192,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2679711346",
-            "date": "2026-09-12 02:00",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "lucariomegaz (Lucario-Mega-Z) can't learn Make It Rain."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2679709409",
             "date": "2026-09-12 02:00",
             "classes": [
@@ -20555,26 +20219,6 @@
             ],
             "reasons": [
               "charizard (Charizard) can't learn Psychic."
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2679702421",
-            "date": "2026-09-12 01:42",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Parting Shot."
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2679778641",
-            "date": "2026-09-12 05:06",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "espeon (Espeon) can't learn Parting Shot."
             ]
           },
           {
@@ -20658,16 +20302,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2679840242",
-            "date": "2026-09-12 08:48",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "clefablemega (Clefable-Mega) can't learn Sleep Powder."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2679835142",
             "date": "2026-09-12 08:27",
             "classes": [
@@ -20706,16 +20340,6 @@
             ],
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2679820772",
-            "date": "2026-09-12 07:36",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "absolmega (Absol-Mega) can't learn Parting Shot."
             ]
           },
           {
@@ -20789,26 +20413,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2679915383",
-            "date": "2026-09-12 13:03",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Parting Shot."
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2679908020",
-            "date": "2026-09-12 12:42",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Encore."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2679906593",
             "date": "2026-09-12 12:38",
             "classes": [
@@ -20869,26 +20473,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2679975150",
-            "date": "2026-09-12 15:26",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "sableyemega (Sableye-Mega) can't learn Sleep Powder."
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2679970920",
-            "date": "2026-09-12 15:22",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Sleep Powder."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2679969333",
             "date": "2026-09-12 15:17",
             "classes": [
@@ -20926,16 +20510,6 @@
             ],
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2679953578",
-            "date": "2026-09-12 14:39",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Parting Shot."
             ]
           },
           {
@@ -21046,16 +20620,6 @@
             ],
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2680075952",
-            "date": "2026-09-12 19:02",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "lucariomegaz (Lucario-Mega-Z) can't learn Icy Wind."
             ]
           },
           {
@@ -21176,16 +20740,6 @@
             ],
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
-            ]
-          },
-          {
-            "id": "gen9championsvgc2026regmc-2680080564",
-            "date": "2026-09-12 19:11",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "hatterene (Hatterene) can't learn Taunt."
             ]
           },
           {
@@ -21379,16 +20933,6 @@
             ]
           },
           {
-            "id": "gen9championsvgc2026regmc-2680189363",
-            "date": "2026-09-12 23:21",
-            "classes": [
-              "move"
-            ],
-            "reasons": [
-              "lucariomegaz (Lucario-Mega-Z) can't learn Quiver Dance."
-            ]
-          },
-          {
             "id": "gen9championsvgc2026regmc-2680184888",
             "date": "2026-09-12 23:12",
             "classes": [
@@ -21427,17 +20971,526 @@
             "reasons": [
               "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
             ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680169188",
+            "date": "2026-09-12 22:35",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680221408",
+            "date": "2026-09-13 00:41",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680215666",
+            "date": "2026-09-13 00:25",
+            "classes": [
+              "move"
+            ],
+            "reasons": [
+              "farigiraf (Farigiraf) can't learn Focus Blast."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680307709",
+            "date": "2026-09-13 04:21",
+            "classes": [
+              "move"
+            ],
+            "reasons": [
+              "basculegion (Basculegion) can't learn Will-O-Wisp."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680305202",
+            "date": "2026-09-13 04:14",
+            "classes": [
+              "move"
+            ],
+            "reasons": [
+              "tsareena (Tsareena) can't learn Will-O-Wisp."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680302890",
+            "date": "2026-09-13 04:08",
+            "classes": [
+              "move"
+            ],
+            "reasons": [
+              "grimmsnarl (Grimmsnarl) can't learn Sludge Bomb."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680302568",
+            "date": "2026-09-13 04:05",
+            "classes": [
+              "move"
+            ],
+            "reasons": [
+              "tsareena (Tsareena) can't learn Will-O-Wisp."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680299877",
+            "date": "2026-09-13 03:59",
+            "classes": [
+              "move"
+            ],
+            "reasons": [
+              "tsareena (Tsareena) can't learn Curse."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680295710",
+            "date": "2026-09-13 03:49",
+            "classes": [
+              "item",
+              "move",
+              "species"
+            ],
+            "reasons": [
+              "ogerponcornerstone needs to hold Cornerstone Mask to be in its Cornerstone forme.",
+              "(It will revert to its Teal forme if you remove the item or give it a different item.)",
+              "ogerponcornerstone (Ogerpon-Cornerstone) does not exist in Gen 9.",
+              "ogerponcornerstone's move Ivy Cudgel does not exist in Gen 9.",
+              "togedemaru (Togedemaru) does not exist in Gen 9.",
+              "togedemaru (Togedemaru)'s move Protect can't be transferred from Gen 8 to 9.",
+              "barraskewda (Barraskewda) does not exist in Gen 9."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680296063",
+            "date": "2026-09-13 03:48",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680295559",
+            "date": "2026-09-13 03:47",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680293434",
+            "date": "2026-09-13 03:44",
+            "classes": [
+              "item",
+              "move",
+              "species"
+            ],
+            "reasons": [
+              "togedemaru (Togedemaru) does not exist in Gen 9.",
+              "togedemaru (Togedemaru)'s move Fake Out can't be transferred from Gen 8 to 9.",
+              "ogerponcornerstone needs to hold Cornerstone Mask to be in its Cornerstone forme.",
+              "(It will revert to its Teal forme if you remove the item or give it a different item.)",
+              "ogerponcornerstone (Ogerpon-Cornerstone) does not exist in Gen 9.",
+              "ogerponcornerstone's move Ivy Cudgel does not exist in Gen 9.",
+              "barraskewda (Barraskewda) does not exist in Gen 9."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680291188",
+            "date": "2026-09-13 03:38",
+            "classes": [
+              "item",
+              "move",
+              "species"
+            ],
+            "reasons": [
+              "togedemaru (Togedemaru) does not exist in Gen 9.",
+              "togedemaru (Togedemaru)'s move Fake Out can't be transferred from Gen 8 to 9.",
+              "ogerponcornerstone needs to hold Cornerstone Mask to be in its Cornerstone forme.",
+              "(It will revert to its Teal forme if you remove the item or give it a different item.)",
+              "ogerponcornerstone (Ogerpon-Cornerstone) does not exist in Gen 9.",
+              "ogerponcornerstone's move Ivy Cudgel does not exist in Gen 9.",
+              "barraskewda (Barraskewda) does not exist in Gen 9."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680290425",
+            "date": "2026-09-13 03:35",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680284219",
+            "date": "2026-09-13 03:18",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680270699",
+            "date": "2026-09-13 02:44",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680264975",
+            "date": "2026-09-13 02:29",
+            "classes": [
+              "item",
+              "move",
+              "species"
+            ],
+            "reasons": [
+              "ironvaliant (Iron Valiant) does not exist in Gen 9.",
+              "ogerponwellspring needs to hold Wellspring Mask to be in its Wellspring forme.",
+              "(It will revert to its Teal forme if you remove the item or give it a different item.)",
+              "ogerponwellspring (Ogerpon-Wellspring) does not exist in Gen 9.",
+              "ogerponwellspring's move Ivy Cudgel does not exist in Gen 9.",
+              "ironmoth (Iron Moth) does not exist in Gen 9.",
+              "barraskewda (Barraskewda) does not exist in Gen 9."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680263764",
+            "date": "2026-09-13 02:27",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680263333",
+            "date": "2026-09-13 02:24",
+            "classes": [
+              "item",
+              "species"
+            ],
+            "reasons": [
+              "murkrow (Murkrow) does not exist in Gen 9.",
+              "ironvaliant (Iron Valiant) does not exist in Gen 9.",
+              "ironvaliant's item Booster Energy does not exist in Gen 9.",
+              "ogerponwellspring needs to hold Wellspring Mask to be in its Wellspring forme.",
+              "(It will revert to its Teal forme if you remove the item or give it a different item.)",
+              "ogerponwellspring (Ogerpon-Wellspring) does not exist in Gen 9.",
+              "barraskewda (Barraskewda) does not exist in Gen 9."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680258466",
+            "date": "2026-09-13 02:16",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680257392",
+            "date": "2026-09-13 02:11",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680253720",
+            "date": "2026-09-13 02:01",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680248444",
+            "date": "2026-09-13 01:47",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680240290",
+            "date": "2026-09-13 01:33",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680237653",
+            "date": "2026-09-13 01:21",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680233885",
+            "date": "2026-09-13 01:13",
+            "classes": [
+              "move"
+            ],
+            "reasons": [
+              "grimmsnarl (Grimmsnarl) can't learn Flamethrower."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680227448",
+            "date": "2026-09-13 00:56",
+            "classes": [
+              "move"
+            ],
+            "reasons": [
+              "crabominable (Crabominable) can't learn Dark Pulse."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680321334",
+            "date": "2026-09-13 05:00",
+            "classes": [
+              "move"
+            ],
+            "reasons": [
+              "basculegion (Basculegion) can't learn Will-O-Wisp."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680336104",
+            "date": "2026-09-13 05:53",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680337290",
+            "date": "2026-09-13 05:52",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680336342",
+            "date": "2026-09-13 05:49",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680336042",
+            "date": "2026-09-13 05:49",
+            "classes": [
+              "move"
+            ],
+            "reasons": [
+              "whimsicott (Whimsicott) can't learn Icy Wind."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680328561",
+            "date": "2026-09-13 05:27",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680413496",
+            "date": "2026-09-13 10:32",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680405579",
+            "date": "2026-09-13 10:06",
+            "classes": [
+              "move"
+            ],
+            "reasons": [
+              "altariamega (Altaria-Mega) can't learn Shadow Ball."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680406499",
+            "date": "2026-09-13 10:05",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680402515",
+            "date": "2026-09-13 09:50",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680394399",
+            "date": "2026-09-13 09:25",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680392740",
+            "date": "2026-09-13 09:15",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680387211",
+            "date": "2026-09-13 08:54",
+            "classes": [
+              "move"
+            ],
+            "reasons": [
+              "sylveon (Sylveon) can't learn Taunt."
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680378083",
+            "date": "2026-09-13 08:22",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680376695",
+            "date": "2026-09-13 08:16",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680374621",
+            "date": "2026-09-13 08:09",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680370004",
+            "date": "2026-09-13 07:53",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680369586",
+            "date": "2026-09-13 07:49",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680351086",
+            "date": "2026-09-13 06:43",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
+          },
+          {
+            "id": "gen9championsvgc2026regmc-2680350720",
+            "date": "2026-09-13 06:38",
+            "classes": [
+              "other"
+            ],
+            "reasons": [
+              "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.)"
+            ]
           }
         ]
       },
       "declared": {
-        "lines": 63048,
-        "judged_games": 2390,
-        "no_ruler_input": 60658,
+        "lines": 64797,
+        "judged_games": 2439,
+        "no_ruler_input": 62358,
         "unreadable_lines": 0,
-        "sets_judged": 28680,
+        "sets_judged": 29268,
         "flagged_games": 74,
-        "flagged_rate_pct": 3.0962,
+        "flagged_rate_pct": 3.034,
         "by_class_games": {
           "other": 74
         },

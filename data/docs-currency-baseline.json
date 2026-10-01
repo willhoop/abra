@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-01T05:14:21.510Z",
+  "generated": "2026-10-01T19:36:30.880Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
   "changelog_top_at_baseline": "7.0.0",
@@ -193,7 +193,7 @@
     ],
     "untraceable_by_doc": {
       "docs/ARCHITECTURE.md": 1,
-      "docs/TAG-COVERAGE.md": 8
+      "docs/TAG-COVERAGE.md": 7
     },
     "untraceable_figures": [
       "docs/ARCHITECTURE.md|200,004",
@@ -203,8 +203,7 @@
       "docs/TAG-COVERAGE.md|29,790",
       "docs/TAG-COVERAGE.md|30,107",
       "docs/TAG-COVERAGE.md|6,829",
-      "docs/TAG-COVERAGE.md|7,958",
-      "docs/TAG-COVERAGE.md|7,965"
+      "docs/TAG-COVERAGE.md|7,958"
     ],
     "untraced_grandfathered": {
       "docs/ADR-002-showdown-is-the-authority.md": [
