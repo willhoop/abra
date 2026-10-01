@@ -57,6 +57,14 @@ State is printed, never typed: `solver/PLAN.md` §2 is the registry of what is b
 records each landing, and the measured figures live in `docs/MODELS.md` under *The Reg M-C models*.
 This section says only what a division agent needs before it starts.
 
+- **Direction from 2026-10-01 (Will; `solver/PLAN.md` 0.3.0, abra/regmc 1.51.0).** One learned policy+value net
+  (PORYGON2 v3) trained by self-play and searched several turns deep, on MEDICHAM; the pipeline keeps playing until the
+  net wins its SPRT. Local and small first, built to scale out; a MEDICHAM speed pass (ENGINE) before any cloud spend.
+  HYPNO best-responds to the population by rating band, equilibrium where the habit gate fails. **The ladder is the
+  scoreboard** (residual `S − E` without forfeit wins); the arena is a sanity check. Standing approval: up to 20 series
+  a day with the auto-stops, launched by the coordinator; SOLVER prepares the command. Milestones N0–N9 in
+  `solver/PLAN.md` §3.0; compute and prices in §6a. Account: `docs/_reports/2026-10-01-plan-revision.md`. The
+  "May not launch a ladder series" line above still binds SOLVER itself.
 - **Engine.** The Reg M-C MEDICHAM gate is OPEN, 10 of 10, on release `eaa5becc54eb`
   (`docs/_reports/2026-09-24-regmc-gate-final.md`). The solver API (`engine/medicham_api.js`) is merged:
   `clone`, `legalActions`, `step`, the terminal check and lean playouts. The mid-turn-choice callback

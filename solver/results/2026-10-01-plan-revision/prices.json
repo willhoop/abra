@@ -1,0 +1,61 @@
+{
+  "what": "Cloud prices read for the compute estimate in solver/PLAN.md §6a and docs/_reports/2026-10-01-plan-revision.md. Prices are as fetched on the date below; they move, and none of them is a quote. USD, per hour, on-demand, before tax.",
+  "fetched_utc": "2026-10-01T04:44Z..04:51Z",
+  "fetched_by": "SOLVER, curl/Node fetch from this machine; read only, no account, no spend",
+  "gpu": [
+    { "provider": "RunPod", "url": "https://www.runpod.io/pricing", "read_from": "the page's own structured data (schema.org Offer per GPU)",
+      "rows": [
+        { "gpu": "RTX 4090 24 GB", "community_usd_h": 0.34, "secure_usd_h": 0.74 },
+        { "gpu": "RTX 3090 24 GB", "community_usd_h": 0.22, "secure_usd_h": 0.50 },
+        { "gpu": "L4 24 GB", "community_usd_h": 0.44, "secure_usd_h": 0.49 },
+        { "gpu": "L40S 48 GB", "community_usd_h": 0.79, "secure_usd_h": 1.09 }
+      ] },
+    { "provider": "Vast.ai", "url": "https://vast.ai/pricing", "read_from": "https://console.vast.ai/api/v0/bundles/ (the public offer search behind the pricing page); filter: 1 GPU, rentable, verified, on-demand; field dph_total",
+      "fetched_utc": "2026-10-01T04:46Z",
+      "rows": [
+        { "gpu": "RTX 4090", "offers": 57, "min": 0.330, "p25": 0.442, "median": 0.470, "p75": 0.642 },
+        { "gpu": "RTX 3090", "offers": 35, "min": 0.143, "p25": 0.180, "median": 0.229, "p75": 0.339 },
+        { "gpu": "RTX 5090", "offers": 59, "min": 0.410, "p25": 0.509, "median": 0.604, "p75": 0.802 },
+        { "gpu": "A10", "offers": 3, "min": 0.235, "median": 0.243 },
+        { "gpu": "L4", "offers": 1, "min": 0.335 }
+      ] },
+    { "provider": "Lambda", "url": "https://lambda.ai/service/gpu-cloud", "read_from": "the on-demand 1x GPU table on the page",
+      "rows": [
+        { "gpu": "A10 24 GB (30 vCPU, 226 GiB)", "usd_h": 1.29 },
+        { "gpu": "Quadro RTX 6000 24 GB (14 vCPU)", "usd_h": 0.69 },
+        { "gpu": "A6000 48 GB (14 vCPU)", "usd_h": 1.09 },
+        { "gpu": "A100 PCIe 40 GB (30 vCPU)", "usd_h": 1.99 }
+      ],
+      "note": "Lambda lists no RTX 4090. Prices are plus applicable sales tax/VAT." }
+  ],
+  "cpu": [
+    { "provider": "Hetzner Cloud", "url": "https://www.hetzner.com/cloud/general-purpose",
+      "read_from": "https://www.hetzner.com/_resources/app/data/app/live_data_prices.json (the page's live price data); product keys read from the page",
+      "rows": [
+        { "plan": "CCX63", "vcpu": 48, "vcpu_kind": "dedicated vCPU, AMD", "ram_gb": 192, "product": "CLOUD_120", "usd_h_de_fi": 1.6138, "eur_h_de_fi": 1.3678, "usd_h_us": 1.6258 },
+        { "plan": "CCX53", "vcpu": 32, "vcpu_kind": "dedicated vCPU, AMD", "ram_gb": 128, "product": "CLOUD_119", "usd_h_de_fi": 1.0088, "eur_h_de_fi": 0.8550 },
+        { "plan": "IPv4 add-on", "product": "CLOUD_21", "usd_h": 0.0010 }
+      ] },
+    { "provider": "AWS EC2 (us-east-1, Linux, on-demand)", "url": "https://aws.amazon.com/ec2/pricing/on-demand/",
+      "read_from": "https://b0.p.awsstatic.com/pricing/2.0/meteredUnitMaps/ec2/USD/current/ec2-ondemand-without-sec-sel/US%20East%20(N.%20Virginia)/Linux/index.json (the data behind the on-demand pricing page)",
+      "fetched_utc": "2026-10-01T04:51Z",
+      "rows": [
+        { "type": "c7a.16xlarge", "vcpu": 64, "ram_gib": 128, "usd_h": 3.28448 },
+        { "type": "c7a.24xlarge", "vcpu": 96, "ram_gib": 192, "usd_h": 4.92672 },
+        { "type": "c7a.48xlarge", "vcpu": 192, "ram_gib": 384, "usd_h": 9.85344 },
+        { "type": "c7i.16xlarge", "vcpu": 64, "ram_gib": 128, "usd_h": 2.856 }
+      ],
+      "note": "c7a has no simultaneous multithreading, so one vCPU is one physical core (AWS c7a documentation; not re-read here — confirm before relying on it). Spot prices are lower and were not read." },
+    { "provider": "Vast.ai (a GPU host with many cores)", "url": "https://vast.ai/pricing",
+      "read_from": "https://console.vast.ai/api/v0/bundles/ filter cpu_cores_effective >= 64, rentable, verified, on-demand",
+      "fetched_utc": "2026-10-01T04:46Z",
+      "rows": [
+        { "cpu": "AMD Ryzen Threadripper PRO 7995WX (96 cores)", "threads_offered": 192, "gpu": "RTX 3090", "usd_h": 0.9363 },
+        { "cpu": "AMD EPYC 9754 (128 cores)", "threads_offered": 512, "gpu": "RTX 3060 Ti", "usd_h": 1.6037 },
+        { "cpu": "AMD EPYC 7Y83 (64 cores)", "threads_offered": 128, "gpu": "RTX PRO 4000", "usd_h": 0.5370 }
+      ],
+      "hosts_found": 64,
+      "median_usd_per_thread_h": 0.01253,
+      "note": "Single marketplace listings: availability and reliability are not guaranteed, and a listing can disappear. A 'core' here is a hardware thread as the host reports it." }
+  ]
+}
