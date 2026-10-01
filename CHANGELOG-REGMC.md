@@ -28,6 +28,43 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.74.0] — 2026-10-01
+
+**MINOR: the PORYGON2 v3 student's full SPRT is pre-registered, before its first game.** Will approved the SPRT of the
+fast student as gen5's leaf against gen5's own net at the 14 s adaptive ladder clock, after its screen passed (1.68.0).
+It runs on main at 1.69.0 or later, so both arms search with the corrected bodies. The ladder has priority: the run
+starts only on a free machine, and a ladder process seen mid-run makes it VOID.
+
+### Added
+- `solver/results/2026-10-01-student-sprt/preregistration.json`.
+  - Arms: X `solver/porygon2/v3/screen-14s-student.json`, Y `solver/results/2026-09-30-human-regularised/screen-14s-off.json`.
+  - Release `df172ccd2aaf`, `--info honest`, `--spreads role-v1`, the frozen Reg M-C team store, `--cap 50`, 3 workers.
+  - SPRT: elo0 0, elo1 20, alpha = beta = 0.05, at most 2,000 games, new seed 34101.
+  - VOID bars: prior fallbacks at most 5% per arm; at least 636 playouts per searched decision per arm; clock ratio at
+    most 1.10; at most 1% errored pairs; the student's leaf counter above 0 with 0 errors and gen5's leaf above 0;
+    no spreads warnings; and the run reached its own stop, with no ladder or re-parse process seen.
+- `read.js` applies the bars once, at the stop. It sums the per-arm counters from the last counted line of each shard,
+  because `sprt.js` does not. It was shown VOID on a starved fixture (X at 300 playouts per decision) and on a fixture
+  where the guard saw a ladder process.
+- `launch.js` waits for 30 ladder-free minutes, or takes `--now`. It runs the pre-registered command through an argument
+  vector to `cmd.exe /c tools\lownode.cmd`, and samples every 60 s. On a ladder process it stops only this run's own
+  processes, by pid.
+
+### Changed
+- **Addendum 1, written before the first game: the spread mode is `observed-v1`, not `role-v1`.** Will switched the
+  arena's default to the real Smogon spreads, which are the spreads the ladder plays, and a leaf headed for the ladder
+  should be tested on the ladder's bodies. The run's base is the main that carries `observed-v1` (1.73.0 or later).
+  Everything else stays as registered, including the 636 floor. `launch.js` uses the addendum's flags, refuses a tree
+  without the mode, and logs the HEAD it launched from. `read.js` voids a run that did not play the registered mode;
+  this was shown VOID on a fixture with no mode.
+- Renumbered from 1.70.0 on the merge of main, where 1.70.0 is the store re-parse.
+
+### Record
+- **Measured.** NO FIGURE. A pre-registration only; no game has been played.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** None until the SPRT is read. `docs/SOLVER.md`: the restamp by `node engine/status.js --write` from the main checkout after the merge.
+
 ## [1.73.0] — 2026-10-01
 
 **MINOR. The arena now plays the ladder's spreads by default: `observed-v1` (Will, 2026-10-01).** Practice games,
