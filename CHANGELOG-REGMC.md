@@ -21,6 +21,38 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.56.0] — 2026-10-01
+
+**MINOR: no published figure moves.** It adds a tournament store, its weekly ingest, a fifth ladder rotation built from
+real top-cut teams, and a tournament source in the spread hook. Nothing was played.
+
+### Added
+- **The tournament store** `data/tournaments/regmc/` (`solver/tournaments/`): every published team of every Reg M-C
+  open-team-list event, raw paste bytes kept, append-only `events.jsonl` and one write-once shard per event. Seeded with
+  Baltimore, Frankfurt, Brisbane and Victory Road's two September Challenges: 537 Masters teams, plus 2 Replica Teams
+  pastes. 537 of 539 pass the format's TeamValidator; the 2 that do not are kept and flagged (`validation.json`).
+- **Discovery by the regulation tag, weekly.** `solver/tournaments/ingest.js --discover` reads Victory Road's calendar
+  Format column and Limitless VGC's event headers. `.github/workflows/tournament-ingest.yml` runs it on Tuesdays at
+  06:43 UTC in the `ingest` concurrency group and commits `data/tournaments/` only.
+- **The tournament rotation** `solver/rotom/teams/ladder-rotation-tour.json` and the arm
+  `solver/rotom/arms/gen5-chomp-tour.json` (gen5-chomp-top's arm A, byte for byte). Five real top-cut teams, each with
+  its event, placing, player and paste URL in every series row's `team_meta.source`.
+- `solver/tests/test-tournaments.js`: GREEN 44/44, and RED 42/44 under `TOURNAMENT_BREAK=idempotency`.
+
+### Changed
+- `solver/rotom/spreads.js` asks the tournament store first: a published Stat Point spread for the same species, item and
+  nature. The arena's role-v1 path (`observed: null`) turns it off, so no arena figure can move.
+- `solver/rotom/ladder.js` writes `team_meta.source` for a tournament team. Store-built rotations are unchanged.
+- `solver/tests/test-rotom-spreads.js` ROLE and TIER judge derived spreads only. Its REPRODUCE check turns the hook
+  off. `test-arena-spreads.js` PARITY counts a published spread instead of comparing it. For a rotation built after
+  the role-v1 table, a mismatch is reported NOT CHECKED by name. Three tournament-rotation sets get this. `test-rotom-ladder.js`
+  accepts a tournament source instead of a ladder rating.
+
+### Notes
+- **Open team sheets carry no spreads.** None of the 537 tournament pastes publish Stat Points. The only published
+  Reg M-C spreads are 2 Replica Teams pastes (12 sets). Against them, our derived spread matches on 0 of 12 sets, and
+  Speed matches on 1 of 12. `docs/_reports/2026-10-01-tournament-rotation.md`.
+
 ## [1.50.0] — 2026-09-30
 
 **MINOR: no published figure moves.** It adds two SPRT results and a per-model leaf counter.

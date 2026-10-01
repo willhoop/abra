@@ -6,6 +6,17 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ---
 
+## 2026-10-01
+
+### A tournament store and a tournament rotation (abra/regmc 1.56.0)
+- Store: `data/tournaments/regmc/`. It holds 537 Masters teams from Baltimore, Frankfurt, Brisbane and VR's two
+  September Challenges, and 2 Replica Teams pastes. The raw paste is kept with each team. 537 of 539 validate.
+  Discovery is by the regulation tag. A weekly workflow is on this branch, not on main.
+- Rotation: `ladder-rotation-tour.json`, arm `gen5-chomp-tour.json`. Five real top-cut teams, each with its source.
+  Not launched.
+- Spreads: open team sheets publish none (0 of 537). On the 12 published Replica sets, our derived spread matches on 0
+  and Speed matches on 1. `docs/_reports/2026-10-01-tournament-rotation.md`.
+
 ## 2026-09-30
 
 ### Two SPRTs, both H0 (abra/regmc 1.50.0)

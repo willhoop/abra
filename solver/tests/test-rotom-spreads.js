@@ -59,9 +59,13 @@ for (const f of fs.readdirSync(path.join(ROOT, 'solver', 'rotom', 'arms'))) {
 const ROTS = [...rotFiles].sort().map(f => [f, JSON.parse(fs.readFileSync(path.join(ROOT, f), 'utf8'))]);
 
 /* ---------------- the checks, pure functions of a rotation ---------------- */
+/* a set whose recorded spread is OBSERVED (a published tournament spread, solver/rotom/spreads.js hook 0, or a Smogon
+ * moveset file) plays what a player chose, not the derivation: ROLE and TIER judge the DERIVED rule only (2026-10-01). */
+const observedAt = (t, i) => !!(t.spreads && t.spreads[i] && /^observed:/.test(t.spreads[i].source || ''));
 function checkRole(name, rot, tally) {
   const bad = [];
-  for (const t of rot.teams) for (const s of Teams.unpack(t.packed)) {
+  for (const t of rot.teams) for (const [i, s] of Teams.unpack(t.packed).entries()) {
+    if (observedAt(t, i)) continue;
     const r = SP.role(s);
     if (r.role !== 'fast' && r.role !== 'trickroom') continue;
     const f = SP.forme(s);
@@ -87,7 +91,8 @@ function checkTier(name, rot, tally) {
   const eq = rot.spread_source && rot.spread_source.speed_equilibrium;
   if (!(eq && Array.isArray(eq.tiers) && eq.tiers.length && eq.top_speed > 0)) return [name + ' spread_source.speed_equilibrium records no tiers / top_speed'];
   _spe.eq = eq;
-  for (const t of rot.teams) for (const s of Teams.unpack(t.packed)) {
+  for (const t of rot.teams) for (const [i, s] of Teams.unpack(t.packed).entries()) {
+    if (observedAt(t, i)) continue;
     if (SP.role(s).role !== 'other') continue;
     const eff = _spe.speeds(s);
     const want = _spe.speedFor(s, eq.median_speed);
@@ -198,7 +203,9 @@ if (!BREAK) {
   if (!shaOk) { notChecked++; console.log('  NOT CHECKED [REPRODUCE] the store the spreads were derived from (' + ss.store + ' @ ' + String(ss.store_sha256).slice(0, 12) + ') is not on disk at that sha256'); }
   else {
     const B = require('../rotom/build_top_rotation.js');
-    const { D } = B.spreadDeriver(B.readStore(sf));
+    /* the tournament hook off: this reproduces the DERIVATION the file recorded (the top rotation predates the hook, and a
+     * published spread for the same set would otherwise be served instead — which is the hook working, not a re-derive) */
+    const { D } = B.spreadDeriver(B.readStore(sf), { tournament: null });
     ok('REPRODUCE', D.eq.median_speed === ss.speed_equilibrium.median_speed, 'the speed benchmark re-derives: ' + D.eq.median_speed + ' vs ' + ss.speed_equilibrium.median_speed);
     const pick = [];
     for (const want of ['fast', 'trickroom', 'other']) for (const t of rot.teams) { const i = t.spreads.findIndex(z => z.role === want); if (i >= 0) { pick.push(t.spreads[i]); break; } }
