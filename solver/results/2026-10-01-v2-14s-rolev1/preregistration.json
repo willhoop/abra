@@ -1,0 +1,51 @@
+{
+ "what": "Run 1 (2026-10-01): gen5 with PORYGON2 v2 as its leaf against gen5 on its own net, BOTH on ROTOM's adaptive clock at the ladder target (14 s). Written BEFORE the first game and never revised after one. Will delegated the choice of runs to the coordinator ('u choose', 2026-09-30); the coordinator chose this one.",
+ "why": "1.50.0 (docs/_reports/2026-09-30-sprt-pikl-and-v2.md): at the 1 s clock v2 was H0, 0.480 [0.441, 0.520] over 612 games, and reached only 0.39x as many leaves as gen5's net. That report lists the 14 s run as owed: at 14 s the playout count may matter less than the value's quality.",
+ "series": "THE NEW ARENA SERIES. This plays the arena after abra/regmc 1.49.0: every TRUE body carries the role-v1 Stat Points (solver/arena/spread_source.js, table solver/arena/spreads/role-v1.json). It is NOT comparable with the 1 s run (1.50.0, xatu-random truth) or any arena figure before 1.49.0. The difference between this result and the 1 s one is the clock AND the spread mode, not the clock alone.",
+ "code": "worktree branch off main e6e901a3 (abra/regmc 1.50.0, which includes 1.49.0 role-v1 and 1.50.0's per-model leaf counter). main is NOT merged during the runs.",
+ "engine_release": "eaa5becc54eb (the gate also passes on 97451d5fbf40; eaa5becc54eb is kept for comparability with every post-gate arena run and with v2's own features, computed on it)",
+ "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc, TEST pairs (solver/mew/pairs.js), pair-seed 1",
+ "information": "honest",
+ "spreads": "role-v1 (passed explicitly as --spreads role-v1; it is also the default). Table file sha256 on this checkout 145edf083369524e5540fa14284deb56bb2b7310e8010de89ed7f8f9017eec17 (CRLF working copy); the run stamps its own digest in the spreads block.",
+ "arms": {
+  "x": { "file": "solver/results/2026-10-01-v2-14s-rolev1/gen5-p2v2-adaptive-14s.json", "sha256": "07e173352dc0ba1415a4081c5d955da20b27a9887e5c4ca1706be31206ec5477", "name": "gen5-p2v2-adaptive-14s",
+         "leaf_model": { "file": "solver/porygon2/v2/model/porygon2-v2-k1.json", "sha256": "d5409446cb6ff77667253a22fd921ace259201bbcda46285002f7d67052e76b1", "rating_query": "[1600, 1600] (solver/porygon2/v2/leaf.js default)" } },
+  "y": { "file": "solver/results/2026-09-30-human-regularised/screen-14s-off.json", "sha256": "da5e50f43bf101759faf8104068882cf3768bec0501c11af67076317dac7dd8b", "name": "gen5-adaptive-14s",
+         "leaf_model": { "file": "solver/machamp/models/gen5/porygon2-gen5.json", "sha256": "cf8ad3f7bd0d4a33d87d9b9e891154800cf27540e7d4a93ef85b2513b713f3c6" } },
+  "difference": "ONLY the pory2 field (and the name). Checked by deleting name and pory2 from both specs and comparing: identical. Both: gen5 MAG/DODUO, k 4x4, depth 0, 1 reserved switch row, budgetMs 5000 cap, adaptive { targetMs 14000, credit0Ms 4667 } = the clock of the piKL SPRT (1.50.0)."
+ },
+ "path_choice": {
+  "rule_from_the_brief": "If a 14 s SPRT at 2,000 games would take more than about 30 h, run the pre-registered 200-game not-lose screen at 14 s first (the same 100 test pairs, pair-seed 1), and continue to the SPRT only if the screen's point score is >= 0.5.",
+  "estimate": "the 14 s piKL SPRT (1.50.0) took 23,104 s for 428 games played on 3 workers = 54.0 s a game; 2,000 games = 108,000 s = 30.0 h before the games played past the stop. Its pre-registration estimated 'up to about 31 h'. The 14 s screen took 8,440 s for 200 games on 4 workers (42 s a game, ~56 s a game on 3).",
+  "decision": "SCREEN FIRST. The worst case is at or just over 30 h, and v2's evidence so far points the other way (gate (a) failed; H0 at 1 s). This is a judgement at the line and is stated as one."
+ },
+ "screen": {
+  "command": "node solver/machamp/gate.js (through tools\\lownode.cmd, BELOWNORMAL) --release eaa5becc54eb --x solver/results/2026-10-01-v2-14s-rolev1/gen5-p2v2-adaptive-14s.json --y solver/results/2026-09-30-human-regularised/screen-14s-off.json --pairs 100 --pair-seed 1 --seed 31001 --workers 4 --cap 50 --rule notlose --info honest --spreads role-v1 --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --out solver/out/v2-14s-rolev1/screen-14s-p2v2.json",
+  "games": 200,
+  "seed": 31001,
+  "seed_note": "NEW: 31001 appears as a seed nowhere else in solver/ or docs/_reports/.",
+  "read": "ONCE at 200 games. Reported: score with Wilson 95%, gate.js notlose verdict, paired view, clock ratio = decision_ms.x.mean / decision_ms.y.mean, the v2 leaf counters (summed over each shard's last line: ctr.leaf_own['porygon2-v2-k1.json'].evals vs ctr.leaf_by_model['porygon2-v2-k1.json'], errors; ctr.leaf_by_model['porygon2-gen5.json']), fallbacks, warnings, the spreads block.",
+  "continue_rule": "Continue to the SPRT iff ALL of: (1) the screen's point score of X >= 0.5 (the brief's rule; stricter than gate.js notlose); (2) clock ratio <= 1.10; (3) the v2 leaf proved it ran (evals > 0, = calls, errors 0, and gen5's net > 0). (2) or (3) false = the screen is VOID and is reported, not re-read. A screen is a license, not a strength claim.",
+  "on_stop": "If the screen does not license the SPRT, Run 1 ends at the screen. The verdict is 'not continued to SPRT', with the score; no strength claim either way."
+ },
+ "sprt": {
+  "command": "node solver/machamp/sprt.js (through tools\\lownode.cmd, BELOWNORMAL) --release eaa5becc54eb --x solver/results/2026-10-01-v2-14s-rolev1/gen5-p2v2-adaptive-14s.json --y solver/results/2026-09-30-human-regularised/screen-14s-off.json --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 2000 --seed 31002 --workers 3 --cap 50 --info honest --spreads role-v1 --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --out solver/out/v2-14s-rolev1/sprt-14s-p2v2.json",
+  "elo0": 0, "elo1": 20, "alpha": 0.05, "beta": 0.05, "max_games": 2000,
+  "unit": "pair of games on one battle seed, seats swapped; normal-approximation GSPRT on pair scores, pair-index order",
+  "seed": 31002,
+  "seed_note": "NEW, and different from the screen's so the SPRT's games are not the screen's games.",
+  "workers": "3 (the sprt.js maximum)",
+  "reading_rule": {
+   "when": "ONCE, after sprt.js stops (a bound crossed or the game budget spent). sprt.js prints no interim LLR. A run stopped by anything else (a pause, a crash, a kill) is VOID and is re-run from this file with the same seed.",
+   "verdict": "H1 (X stronger by elo1 accepted), H0, or INCONCLUSIVE (2,000 games, no bound).",
+   "clock": "solver/machamp/sprt_read.js: clock ratio = clock.x_ms.mean / clock.y_ms.mean over counted games; must be <= 1.10. Above 1.10 an H1 is VOID-BY-CLOCK, not a strength claim.",
+   "capability": "as the screen's (3), summed over each worker's last shard line. Any false = VOID.",
+   "errors": "errored pairs excluded by sprt.js and counted; VOID if over 5% of the pairs used. Fallbacks stated.",
+   "also_read_not_bars": "per-arm leaf calls; Protect counters (solver/arena/protect_read.js); ladder clock-rule breaches (55 s per turn, 420 s bank).",
+   "ci_caption": "the Wilson 95% interval at the stop is conditional on a data-dependent stopping time and slightly optimistic."
+  }
+ },
+ "order": "Run 1 (screen, then the SPRT if licensed) first, then Run 2 (solver/results/2026-10-01-rolev1-baselines/preregistration.json). One game-playing job at a time.",
+ "on_H1": "report only. v2 goes onto no ladder arm and no league default; that is Will's call. An H1 does not retro-pass gate (a).",
+ "on_H0_or_inconclusive_or_screen_stop": "report only; v2 stays off every arm."
+}

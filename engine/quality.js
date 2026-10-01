@@ -501,7 +501,7 @@ function bothSheetsShown(g) {
   return !!(s && Array.isArray(s.p1) && Array.isArray(s.p2) && s.p1.length && s.p2.length);
 }
 /* ============================================================================================
- * TWO ANSWERS, ONE CLASSIFIER. Will, 2026-10-01 (second pair of decisions, after abra/regmc 1.65.0).
+ * TWO ANSWERS, ONE CLASSIFIER. Will, 2026-10-01 (second pair of decisions, after abra/regmc 1.64.0).
  *
  *   isOpenSheetTurnPlay(g)  WITHIN-GAME play with both sheets visible. For TURN-LEVEL models: value nets, human
  *                           move/policy/habit models, PORYGON2 datasets, DODUO, GARY. Admits the bo3 format, and any
@@ -509,7 +509,7 @@ function bothSheetsShown(g) {
  *                           whatever the series length, provided no rule other than a sheet or best-of rule applies.
  *   isOpenSheetBo3(g)       SERIES play with both sheets visible. For SERIES-LEVEL uses: bo3 preview and series
  *                           adaptation, CHOMP's bo3 rates, rotation selection by series. Admits the bo3 format, the
- *                           bo1 room under exactly Force Open Team Sheets + Best of = 3 (1.65.0), and the bo1 room set
+ *                           bo1 room under exactly Force Open Team Sheets + Best of = 3 (1.64.0), and the bo1 room set
  *                           to Best of = 3 in which both players ACCEPTED the offered sheets (open-sheet bo3 by consent).
  *
  * isOpenSheetBo3(g) implies isOpenSheetTurnPlay(g). Both are derived from the room's rule text and the stored sheets,

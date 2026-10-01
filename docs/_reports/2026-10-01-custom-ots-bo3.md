@@ -1,6 +1,6 @@
 # Open-sheet bo3 play is one classifier: the custom OTS + Bo3 rooms, every other custom room, our own accounts — 2026-10-01
 
-MEASURE, abra/regmc 1.65.0. Streaming store reads, one custom-rule scan, one TeamValidator pass, one usage-model
+MEASURE, abra/regmc 1.64.0. Streaming store reads, one custom-rule scan, one TeamValidator pass, one usage-model
 regeneration and one human-dataset build to a scratch directory. No simulator, no games played, no gate run.
 
 ## Verdict

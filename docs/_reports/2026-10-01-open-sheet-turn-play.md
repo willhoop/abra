@@ -1,6 +1,6 @@
 # Two open-sheet answers: turn play for turn-level models, bo3 for series uses, and the consent bo3 room — 2026-10-01
 
-MEASURE, abra/regmc 1.66.0 (number to be confirmed at merge; built on the 1.65.0 classifier branch, `f18711ec`).
+MEASURE, abra/regmc 1.66.0 (number to be confirmed at merge; built on the 1.64.0 classifier branch, `f18711ec`).
 Streaming store reads, one custom-rule scan, one usage-model regeneration. No simulator, no games played, no gate run,
 the frozen pool untouched. Every process ran at BelowNormal priority.
 
@@ -11,11 +11,11 @@ the frozen pool untouched. Every process ran at BelowNormal priority.
    the game itself shows both sheets (`bothSheetsShown(g)`: the stored `sheets.p1` and `sheets.p2`, or `sheetsShown` from
    a caller holding only the raw log). No id list. `isOpenSheetBo3` implies `isOpenSheetTurnPlay`.
 2. **Decision 1 (bo1 games where both accepted sheets count for turn-level models):** on the same stores, open-sheet
-   turn play is **41,935 games, 28,713 clean**, against 39,852 / 27,332 under the 1.65.0 rule (+2,083 / +1,381).
+   turn play is **41,935 games, 28,713 clean**, against 39,852 / 27,332 under the 1.64.0 rule (+2,083 / +1,381).
    **Clean open-sheet games rated 1500+ for turn-level models: 0 → 14** (18 games in all). For series uses it stays **0**.
 3. **Decision 2 (bo1 `Best of = 3` rooms where both accepted sheets are open-sheet bo3):** **205 rooms, 147 clean, all
    unrated**, 2026-09-09 17:47 to 2026-10-01 07:26. Open-sheet bo3: 40,057 / 27,479 against 39,852 / 27,332. The usage
-   model `data/meta-usage-regmc.json` reads **27,479 usable** (27,106 at 1.65.0; the difference mixes store growth with
+   model `data/meta-usage-regmc.json` reads **27,479 usable** (27,106 at 1.64.0; the difference mixes store growth with
    the 147).
 4. **The custom-rule charge now asks the game.** A room whose rules touch only the sheets and the series length
    (`Best of = 3`, `Force Open Team Sheets`, `force open team sheets, !open team sheets`) is no longer excluded by its
@@ -47,12 +47,12 @@ logs, 0 store ids untestable, 2,608 detected rooms joined to the store: 120 `ids
 
 Census: a scratch script that streams both stores and calls `engine/quality.js` for every verdict (`reasons()`,
 `behaviouralBots()` per store, `openSheetRegime()`) and `engine/regmc_pool_predicate.js` `keep()` (both sheets, minus
-the Eject Button rule). Nothing reimplemented. **"Before" is the 1.65.0 rule expressed with the same primitives on the
+the Eject Button rule). Nothing reimplemented. **"Before" is the 1.64.0 rule expressed with the same primitives on the
 same stores and the same scan:** `custom_ruleset` for every scanned room that is not open-sheet bo3 by its text, and
 open-sheet = the rule-text verdict alone (no consent path, no turn class; turn-level consumers read the bo3 class).
 
 Band = the lower-rated player's rating; a game with either rating missing is `unrated`. Clean = no `quality.js`
-reason. Every row below is also inside the pool predicate (both sheets shown, Eject rule applied), as in the 1.65.0
+reason. Every row below is also inside the pool predicate (both sheets shown, Eject rule applied), as in the 1.64.0
 report.
 
 ## 2. Open-sheet bo3 (series-level uses), by rating band
@@ -95,7 +95,7 @@ its rating is the bo1 ladder's, not the bo3 ladder's.
 | `Force Open Team Sheets, +Metagross + Heavy Slam` | 2 | out (changes play) | — |
 | `force open team sheets, !open team sheets, max move count=7` | 1 | out (changes play) | — |
 
-With the 205 consent rooms this is the decision's 2,068 (on the 1.65.0 store) at 2,106 on today's.
+With the 205 consent rooms this is the decision's 2,068 (on the 1.64.0 store) at 2,106 on today's.
 
 ## 5. Which consumer uses which answer
 
@@ -136,7 +136,7 @@ fixtures or the stores by format, not the open-sheet population).
 ## OWED, NOT RUN
 
 - **SOLVER: rebuild `solver/out/human` (`solver/human/build_dataset.js`), `solver/porygon2/v2/extract.js --fmt bo3` and
-  `solver/meta/extract.js` on the main checkout.** Their outputs still hold the 1.65.0 population. Not built here: a
+  `solver/meta/extract.js` on the main checkout.** Their outputs still hold the 1.64.0 population. Not built here: a
   SOLVER agent is playing screens, and these builds hold every raw shard in memory.
 - **SOLVER's call: the PORYGON2 v2 bo1 stream (`--fmt bo1`) already holds the 991 no-rule bo1 games with sheets
   accepted** (it excludes every custom room, so not the 880 forced ones). Once the bo3 stream is rebuilt, those games
@@ -149,6 +149,6 @@ fixtures or the stores by format, not the open-sheet population).
 - **The legality verdict (`data/store-validation-regmc.json`) was not re-run.** The usage regeneration printed
   `[corpus only]` illegal entities from bo3 games newer than the verdict; they are excluded by the dataset builders'
   own entity checks, not by the store verdict.
-- **The frozen pool's `ots` half** was cut under the pre-1.65.0 scope. Not re-cut; a re-cut is a new measurement series
+- **The frozen pool's `ots` half** was cut under the pre-1.64.0 scope. Not re-cut; a re-cut is a new measurement series
   and is Will's call.
 - **Re-run the scan as the stores grow.** It is a snapshot of the stores above.

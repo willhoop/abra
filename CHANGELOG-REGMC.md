@@ -39,7 +39,7 @@ rewritten; what changed and why is stated.
   excludes the room. `engine/quality.py` mirrors it (bo1 1,187 and bo3 15 charged by both).
 - Turn-level datasets take open-sheet turn play (Will's decision 1): `solver/human/build_dataset.js` (every game carries
   `open_sheet_bo3`) and `solver/porygon2/v2/extract.js --fmt bo3`. Open-sheet turn play on the same stores: 41,935
-  games, 28,713 clean (27,332 under 1.65.0); clean 1500+ 0 → 14.
+  games, 28,713 clean (27,332 under 1.64.0); clean 1500+ 0 → 14.
 - Series-level readers keep open-sheet bo3 only: `solver/chomp/data.js`, `solver/xatu/eval_bring.js`,
   `solver/rotom/build_assets.js` team candidates, `solver/arena/teams.js`, `solver/mew/pairs.js`, `solver/meta/extract.js`.
 - `data/meta-usage-regmc.json` regenerated: usable 27,479 (27,106; store growth included).
@@ -48,7 +48,7 @@ rewritten; what changed and why is stated.
 - The frozen pool is not re-cut. SOLVER owes the dataset rebuilds on main. Report:
   `docs/_reports/2026-10-01-open-sheet-turn-play.md`.
 
-## [1.65.0] — 2026-10-01
+## [1.64.0] — 2026-10-01
 
 **MINOR: a published figure moves** (`data/meta-usage-regmc.json`, usable games 27,063 to 27,106 on a newer store).
 The question is unchanged (usage in the game we play); its population is now defined by one classifier, and the
@@ -77,6 +77,136 @@ before and after are stated in the report.
 ### Notes
 - **The frozen pool `data/team-pool-frozen-regmc` is not re-cut.** Measurements pin it.
 - Counts, the per-rule-string verdicts and what a pool re-cut would change: `docs/_reports/2026-10-01-custom-ots-bo3.md`.
+
+## [1.63.0] — 2026-10-01
+
+**MINOR: a published figure moves under an unchanged basis.** A re-parse, still owed, would change `sets` in 83% of
+sampled bo1 rows and 69% of sampled bo3 rows. The question each `sets` figure answers is unchanged: what each Pokemon
+brought. It is answered better.
+
+### Added
+- `engine/store_sets_check.js`. It compares the parsed store's `sets`, and a fresh `extract()` of the same raw log,
+  against `solver/porygon2/v2/reveal.js` (the reference, reused as is), and classifies every mismatch by cause.
+  Receipts: `docs/_reports/2026-10-01-store-set-attribution/check-bo{1,3}.json`.
+- `engine/reparse_store.js`. It re-derives a parsed `.jsonl.gz` store from its raw shards in a streaming pass. It writes
+  only `<store>.reparsed`, keeps the store's ids and order, carries over unchanged any row with no raw log, and refuses
+  on a lost id. The three older rebuild paths read one plain raw file, which for Reg M-C stopped growing on 2026-09-09.
+- `mirrorSets` on a store row: `{species: {p1, p2}}` for a species on both sides. The merged `sets` entry gains
+  `mirror: true`.
+- `tests/test-parse.js`: nine `CAUSE` cases (42 to 66 checks). Each is RED with its own fix reverted.
+
+### Fixed
+- **`engine/durable-ingest.js` `extract()` attributed set facts to the wrong Pokemon.** On a 1-in-10 bo1 sample
+  (37,964 members), the stored sets held 539 wrong values and 6,616 misses. After the fix a fresh extract agrees with
+  the reference on 100% of moves and items and 99.93% of abilities, and the 12 that disagree are the reference's error.
+  The nine causes:
+  - `|cant|` moves;
+  - called moves and Struggle;
+  - transformed bodies;
+  - Trick-family items;
+  - Traced, Entrained and Skill-Swapped abilities;
+  - Ally Switch;
+  - items and abilities named only on other lines (Life Orb, Leftovers, Rough Skin, Hospitality …);
+  - mirror species.
+
+### Notes
+- **Not re-parsed.** The commands, the order and the growth budget are under OWED in
+  `docs/_reports/2026-10-01-store-set-attribution.md`. The frozen pool `data/team-pool-frozen-regmc/` is not touched.
+- Bo1 item usage counted from `sets` under-counted every self-silent item. On the sample Life Orb was 90 against
+  2,764.
+
+## [1.62.0] — 2026-10-01
+
+**MINOR: no published figure moves.** A design, a frozen evaluation harness, and a distilled student that fails its
+pre-registered bar. No game was played.
+
+### Added
+- **PORYGON2 v3 design** (`solver/porygon2/v3/DESIGN.md`, milestone N4 of `solver/PLAN.md` 0.3.0). Every citation was
+  re-read at its source. Six premises of the brief are corrected:
+  - MuZero's n-step targets are Atari-only.
+  - KataGo's search values are auxiliary heads, not a blend.
+  - Playout-cap randomisation records full-search turns only.
+  - piKL anchors to a human policy.
+  - "λ 0.03 is harmless" is not shown.
+  - Quiescence is built but unmeasured in games.
+- **The frozen v3 harness** (`solver/porygon2/v3/evalset.js`, `positions.js`, `deep.js`).
+  - 2,778 positions in 383 games: ladder 1,339; bo1 TEST games with both players rated 1500 or more, 831; bo3 TEST games
+    v1 never saw, rated 1300 or more, 608. Positions sha256 `c2428b1dbf77…`.
+  - 1,300 positions are labelled by MILTANK's root with every cell played to the end by gen5's prior, with no value net:
+    166,144 playouts.
+  - It reports ranking (τ-b, top-1, regret), calibration by source and band, and the cost per evaluation.
+- **The step-C student** (`student.py`, `infer.js`, `leaf.js`, `model/porygon2-v3-student.json`). It is v2 distilled
+  into a 39,892-parameter set network on v2's own inputs. It is served for arch `v3-student` by `solver/porygon2/leaf.js`,
+  with league spec `gen5-p2v3s.json` and 14 s spec `screen-14s-student.json`. No arm names it.
+- `solver/tests/test-porygon2-v3-evalset.js` (GREEN 12/12): FROZEN, LEAK (0 of 383 games in v2's or v1's training data),
+  ORIENT, CRN, LEAN. RED under `P2V3_TEST_BREAK=leak` and `P2V3_DEEP_BREAK=orient`.
+- `solver/tests/test-porygon2-v3-student.js` (GREEN 14/14): parity 2.2e-15, antisymmetry, order, and the leaf counter on
+  one MILTANK decision. RED under `PORY2V3_INFER_BREAK=pool`.
+
+### Notes
+- **The nets cannot be told apart on ranking.** Every paired CI against gen5's net spans 0.
+- **Calibration.** ECE: gen5 0.0652, v1 0.0718, v2 0.0577, student 0.0523.
+- **Cost against gen5's net, on the same fresh boards:** v1 1.22×, v2 2.62×, student 0.91×.
+- **The student fails its pre-registered rule.**
+  - Ranking: Δτ +0.0051 [−0.0067, +0.0168].
+  - ECE: CI upper bound +0.0060 against a bar of +0.005.
+  - No screen or SPRT is pre-registered. The commands are listed as owed.
+- **The ladder overconfidence is in the raw net.** gen5's net is +0.183 [0.100, 0.272] in [0.5, 0.9) on our ladder
+  positions, and calibrated on strong human positions.
+- **The answer map is an offline auxiliary target only** (the coordinator's instruction, after
+  `docs/_reports/2026-10-01-lost-last-answer.md`). No second implementation is landed.
+- Report: `docs/_reports/2026-10-01-porygon2-v3.md`.
+
+## [1.61.0] — 2026-10-01
+
+**MINOR: no published figure moves.** It adds a tournament store, its weekly ingest, a fifth ladder rotation built from
+real top-cut teams, and a tournament source in the spread hook. Nothing was played.
+
+### Added
+- **The tournament store** `data/tournaments/regmc/` (`solver/tournaments/`): every published team of every Reg M-C
+  open-team-list event, raw paste bytes kept, append-only `events.jsonl` and one write-once shard per event. Seeded with
+  Baltimore, Frankfurt, Brisbane and Victory Road's two September Challenges: 537 Masters teams, plus 2 Replica Teams
+  pastes. 537 of 539 pass the format's TeamValidator; the 2 that do not are kept and flagged (`validation.json`).
+- **Discovery by the regulation tag, weekly.** `solver/tournaments/ingest.js --discover` reads Victory Road's calendar
+  Format column and Limitless VGC's event headers. `.github/workflows/tournament-ingest.yml` runs it on Tuesdays at
+  06:43 UTC in the `ingest` concurrency group and commits `data/tournaments/` only.
+- **The tournament rotation** `solver/rotom/teams/ladder-rotation-tour.json` and the arm
+  `solver/rotom/arms/gen5-chomp-tour.json` (gen5-chomp-top's arm A, byte for byte). Five real top-cut teams, each with
+  its event, placing, player and paste URL in every series row's `team_meta.source`.
+- `solver/tests/test-tournaments.js`: GREEN 44/44, and RED 42/44 under `TOURNAMENT_BREAK=idempotency`.
+
+### Changed
+- `solver/rotom/spreads.js` asks the tournament store first: a published Stat Point spread for the same species, item and
+  nature. The arena's role-v1 path (`observed: null`) turns it off, so no arena figure can move.
+- `solver/rotom/ladder.js` writes `team_meta.source` for a tournament team. Store-built rotations are unchanged.
+- `solver/tests/test-rotom-spreads.js` ROLE and TIER judge derived spreads only. Its REPRODUCE check turns the hook
+  off. `test-arena-spreads.js` PARITY counts a published spread instead of comparing it. For a rotation built after
+  the role-v1 table, a mismatch is reported NOT CHECKED by name. Three tournament-rotation sets get this. `test-rotom-ladder.js`
+  accepts a tournament source instead of a ladder rating.
+
+### Notes
+- **Open team sheets carry no spreads.** None of the 537 tournament pastes publish Stat Points. The only published
+  Reg M-C spreads are 2 Replica Teams pastes (12 sets). Against them, our derived spread matches on 0 of 12 sets, and
+  Speed matches on 1 of 12. `docs/_reports/2026-10-01-tournament-rotation.md`.
+
+## [1.60.0] — 2026-10-01
+
+**MINOR: no published figure moves.** It adds four arena results in the role-v1 series. No code changed.
+
+### Notes
+- **The runs.** Will delegated the choice ("u choose"). All four were pre-registered before the first game, on
+  release `eaa5becc54eb`, honest, with `role-v1` true bodies (the new arena series). None can be compared with a
+  pre-1.49.0 arena figure. Details: `docs/_reports/2026-10-01-v2-14s-and-role-v1-baselines.md`.
+  - **PORYGON2 v2 as gen5's leaf vs gen5's own net, 14 s adaptive clock: stopped at the screen; no SPRT.** 200 games,
+    0.495 [0.426, 0.564]. The clock ratio is 1.104 (over 1.10, so VOID by its rule), and the point score is below
+    0.5. v2 served 805,441 leaf calls with 0 errors.
+  - **gen5 vs gen0-r2, a re-run on seed 9001: H0, DEGRADED.** 1,098 games, 0.497 [0.468, 0.527]. The search was
+    starved by machine load for about the first 40%: 24.3% prior fallbacks, 45.5 playouts a decision against 213 at
+    1 s. It does not measure gen5 against its predecessor. A re-run is owed.
+  - **gen5 1 s vs the human clone, a re-run on seed 26001: H1.** 90 games, 0.711 [0.610, 0.795], 0 fallbacks.
+  - **gen5 5 s vs the human clone, a re-run on seed 26005: H1.** 102 games, 0.667 [0.571, 0.751], 0 fallbacks.
+- Nothing is on a ladder arm.
+
 ## [1.59.0] — 2026-10-01
 
 **MINOR: no published figure moves.** It adds standing counters and a read-only analysis; no game was played.

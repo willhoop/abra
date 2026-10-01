@@ -1,4 +1,4 @@
-/* test-open-sheet-turn-play.js — THE TWO OPEN-SHEET ANSWERS (Will, 2026-10-01, the decisions after abra/regmc 1.65.0)
+/* test-open-sheet-turn-play.js — THE TWO OPEN-SHEET ANSWERS (Will, 2026-10-01, the decisions after abra/regmc 1.64.0)
  *
  *   node tests/test-open-sheet-turn-play.js
  *
@@ -41,7 +41,7 @@ ok(!T(G(BO1, null), null) && !B(G(BO1, null), null), 'bo1, no sheets: neither cl
 ok(!T(G(BO1, oneSide), null), 'bo1, one sheet only: not turn play (both players must accept)');
 // bo1 + Force Open Team Sheets alone: turn play (sheets forced), one game
 ok(T(G(BO1, shown), 'Force Open Team Sheets') && !B(G(BO1, shown), 'Force Open Team Sheets'), 'bo1 + Force OTS: turn play, not bo3');
-// bo1 + Force OTS + Best of = 3: both (1.65.0), even when the caller has no sheets to show
+// bo1 + Force OTS + Best of = 3: both (1.64.0), even when the caller has no sheets to show
 ok(B({ id: BO1 + '-1' }, 'Force Open Team Sheets, Best of = 3') && T({ id: BO1 + '-1' }, 'Force Open Team Sheets, Best of = 3'), 'bo1 + Force OTS + Bo3: both, by rule');
 // DECISION 2: bo1 + Best of = 3, both accepted the offered sheets: open-sheet bo3 by consent
 const consent = Q.openSheetRegime(G(BO1, shown), 'Best of = 3');

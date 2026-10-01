@@ -1,0 +1,103 @@
+{
+ "what": "PORYGON2 v3 deep labels (solver/porygon2/v3/evalset.js label)",
+ "engine_release": "eaa5becc54eb",
+ "flags": {
+  "k": 4,
+  "r": 8,
+  "cap": 30,
+  "workers": 8,
+  "deadline": "2026-10-01T09:00:00Z",
+  "policy": "gen5 MAG+DODUO prior argmax, both sides, to the end"
+ },
+ "labelled": 1300,
+ "forced": 0,
+ "errors": 0,
+ "deep": {
+  "candidates": 1300,
+  "forced": 0,
+  "leanPlayouts": 148501,
+  "deepPlayouts": 166144,
+  "deepTurns": 626352,
+  "deepCapped": 30,
+  "deepErrors": 0,
+  "netCells": 0,
+  "policyCalls": 1247556,
+  "policyUnmatched": 223
+ },
+ "exits": [
+  {
+   "shard": 0,
+   "code": 0,
+   "pid": 24812
+  },
+  {
+   "shard": 1,
+   "code": 0,
+   "pid": 19760
+  },
+  {
+   "shard": 2,
+   "code": 0,
+   "pid": 8444
+  },
+  {
+   "shard": 3,
+   "code": 0,
+   "pid": 6820
+  },
+  {
+   "shard": 4,
+   "code": 0,
+   "pid": 22824
+  },
+  {
+   "shard": 5,
+   "code": 0,
+   "pid": 21264
+  },
+  {
+   "shard": 6,
+   "code": 0,
+   "pid": 22416
+  },
+  {
+   "shard": 7,
+   "code": 0,
+   "pid": 26020
+  }
+ ],
+ "files": [
+  {
+   "path": "solver/out/p2v3/evalset/labels-0.jsonl",
+   "sha256": "cb5d974c1769c08628c331e0793b0a46f136e8dac8e0ed98101352e998d7c392"
+  },
+  {
+   "path": "solver/out/p2v3/evalset/labels-1.jsonl",
+   "sha256": "7a391b900f411b0d2e785483a97b17af1e531113ea387fba6dff52bb4f3aac5e"
+  },
+  {
+   "path": "solver/out/p2v3/evalset/labels-2.jsonl",
+   "sha256": "934bea836c84d2421f904d796ddb8692f8e69ed24dd5b5d6ee6d6b2bb5ec1344"
+  },
+  {
+   "path": "solver/out/p2v3/evalset/labels-3.jsonl",
+   "sha256": "479221167f9f34ef3f874ef14edcd0ccedb99e38668b59584a16dbc970a0e2b4"
+  },
+  {
+   "path": "solver/out/p2v3/evalset/labels-4.jsonl",
+   "sha256": "cb6d0d42f552ab07b05d1dbb191896446d896bf2d4ead09cd55a2d47d52e26bd"
+  },
+  {
+   "path": "solver/out/p2v3/evalset/labels-5.jsonl",
+   "sha256": "0b93583fe6fea58c1f6550c16dd15c0186ccfe4c7714fdaa64b3dba3b48da0f8"
+  },
+  {
+   "path": "solver/out/p2v3/evalset/labels-6.jsonl",
+   "sha256": "01e3f6e0da00bbae909b71c94705f5b25cfe587d16f420da2a06806d3c8dc074"
+  },
+  {
+   "path": "solver/out/p2v3/evalset/labels-7.jsonl",
+   "sha256": "f952055adf48758e99907873943db3721756480f81b6ba8a66f8aa1a87107ab6"
+  }
+ ]
+}

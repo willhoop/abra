@@ -412,7 +412,7 @@ every run for exactly this reason. Full account:
 
 ### WILL'S DECISION, 2026-10-01: THE OPEN-SHEET BO3 CUSTOM ROOM IS OUR GAME, AND NO OTHER CUSTOM ROOM IS
 
-*(abra/regmc 1.65.0. The judgement the two paragraphs above leave open is taken. They are left as written.)*
+*(abra/regmc 1.64.0. The judgement the two paragraphs above leave open is taken. They are left as written.)*
 
 - **A bo1-format room under the custom rules `Force Open Team Sheets, Best of = 3` IS open-sheet bo3 data,
   the game we play.** The Eject Button / U-turn date-and-item rule (`engine/regmc_pool_predicate.js`
@@ -435,7 +435,7 @@ Counts and the per-rule-string verdicts: [`docs/_reports/2026-10-01-custom-ots-b
 
 ### WILL'S DECISIONS, 2026-10-01 (SECOND PAIR): TURN PLAY AND SERIES PLAY ARE TWO ANSWERS, AND A CONSENT BO3 ROOM IS BO3
 
-*(abra/regmc 1.66.0. They extend the 1.65.0 decision above, which is left as written; its bullet "a bo1 game whose sheets
+*(abra/regmc 1.66.0. They extend the 1.64.0 decision above, which is left as written; its bullet "a bo1 game whose sheets
 were offered and accepted ... is out of the open-sheet views" now holds for SERIES uses only.)*
 
 - **Decision 1. A bo1 game in which both players accepted open team sheets COUNTS for turn-level models** (value

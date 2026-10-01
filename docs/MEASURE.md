@@ -44,7 +44,7 @@ _stamped 2026-10-01 06:14_
 
 ## TURN PLAY AND SERIES PLAY ARE TWO OPEN-SHEET ANSWERS; A CONSENT BEST-OF-3 ROOM IS BO3. 2026-10-01 (abra/regmc 1.66.0)
 
-Will's two decisions after 1.65.0.
+Will's two decisions after 1.64.0.
 
 - **`isOpenSheetTurnPlay(g)`** (turn-level models) and **`isOpenSheetBo3(g)`** (series-level uses), one classifier
   (`openSheetRegime()`), from the rule text and the game's stored sheets. The bo1 game with both sheets shown is turn
@@ -56,7 +56,31 @@ Will's two decisions after 1.65.0.
 Counts by band and the consumer routing: `docs/_reports/2026-10-01-open-sheet-turn-play.md`. **Owed:** SOLVER rebuilds
 its datasets on main; `status.js --write` from main.
 
-## OPEN-SHEET BO3 PLAY IS ONE CLASSIFIER. THE bo1 OTS + Bo3 ROOM COUNTS; EVERY OTHER CUSTOM ROOM, AND OUR OWN ACCOUNTS, ARE OUT. 2026-10-01 (abra/regmc 1.65.0)
+## THE STORE'S `sets` CREDITED SET FACTS TO THE WRONG POKEMON BY NINE CAUSES. THE EXTRACTOR IS FIXED; THE RE-PARSE IS OWED. 2026-10-01 (abra/regmc 1.63.0)
+
+- **The check.** `engine/store_sets_check.js` compares the stored `sets`, and a fresh `extract()` of the same raw log,
+  against `solver/porygon2/v2/reveal.js`. It reuses that file and is not a third parser. It classifies every mismatch
+  by cause.
+- **Stored rows, 1-in-10 bo1 sample, 37,964 members.** Moves / items / abilities agree at 99.69% / 98.97% / 97.54%:
+  539 wrong values and 6,616 misses. A further 5,865 members are mirror species merged into one entry.
+- **The nine causes, fixed one batch at a time, each measured on the same sample:**
+  - `|cant|` moves;
+  - called moves and Struggle;
+  - transformed bodies;
+  - Trick-family items;
+  - replaced abilities (Trace, Entrainment, Skill Swap);
+  - Ally Switch;
+  - items named only on other lines;
+  - abilities named only on other lines;
+  - mirror species (`mirrorSets`, additive).
+- **After the fix.** A fresh extract agrees at 100% / 100% / 99.93%. The 12 that disagree are Hospitality holders that
+  the reference misses: SOLVER's `reveal.js`.
+- **Owed.** The re-parse, `engine/reparse_store.js`. The exact commands, the order, the growth budget and the
+  downstream list are under OWED in `docs/_reports/2026-10-01-store-set-attribution.md`. The frozen pool cannot be
+  changed by it.
+- **Instrument note.** `engine/provenance.js --graph` lists no Reg M-C store as an input of any `-regmc` artifact,
+  because those paths are built at run time. So a re-parse will not be flagged there on its own.
+## OPEN-SHEET BO3 PLAY IS ONE CLASSIFIER. THE bo1 OTS + Bo3 ROOM COUNTS; EVERY OTHER CUSTOM ROOM, AND OUR OWN ACCOUNTS, ARE OUT. 2026-10-01 (abra/regmc 1.64.0)
 
 Will's decision, and the judgement the 1.36.0 entry below left open.
 

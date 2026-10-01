@@ -1,0 +1,57 @@
+{
+ "what": "Run 2 (2026-10-01): the gen5 baseline RE-RUNS under role-v1 spreads, owed by abra/regmc 1.49.0 (docs/_reports/2026-09-30-arena-real-spreads.md, OWED 1 and 2). Written BEFORE the first game of any of them and never revised after one. Will delegated the choice of runs to the coordinator ('u choose', 2026-09-30).",
+ "these_are_re_runs": "Each is a RE-RUN of an earlier pre-registered SPRT, on its old seed, with its original statistical parameters, so pair i is the same team pair on the same battle seed as in the original. What differs is named per run below. Each original stays true of its own arena and is not retracted; the re-run is THE NEW ARENA SERIES (role-v1 true bodies) and is not compared with the original as a before/after of one quantity.",
+ "code": "worktree branch off main e6e901a3 (abra/regmc 1.50.0, includes 1.49.0 role-v1). main is NOT merged during the runs.",
+ "engine_release": "eaa5becc54eb (kept for comparability; 97451d5fbf40 also passes the gate)",
+ "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc, TEST pairs cycled (solver/mew/pairs.js)",
+ "information": "honest (all three)",
+ "spreads": "role-v1, passed explicitly as --spreads role-v1; each run stamps the table digest and the fielded digest.",
+ "sprt_common": { "elo0": 0, "elo1": 20, "alpha": 0.05, "beta": 0.05, "max_games": 2000, "workers": 3, "cap": 50, "statistic": "normal-approximation GSPRT on pair scores (solver/machamp/sprt.js), pair-index order, bounds +-2.944" },
+ "runs": [
+  {
+   "id": "R2a",
+   "order": 1,
+   "question": "gen5 against its predecessor gen0-r2 (the series' starting point), on role-v1 bodies under honest information.",
+   "original": "MACHAMP round 3 G_beats_previous, solver/machamp/preregistration-r3.json (commit 02156176): H1 at 1,268 games, 0.528 [0.501, 0.556]. Seed 9001 (pair i on battle seed 9001 x 100000 + i), 1000 ms both sides, 3 workers, release eaa5becc54eb.",
+   "differs_from_original": "TWO things, both stated: (1) spreads: original FLAT bodies (no Stat Points), now role-v1; (2) information: the original ran OMNISCIENT (sprt.js had no honest mode until 2026-09-26), now HONEST, as the brief requires for both runs and as every post-gate ladder-facing figure is. So this re-run answers 'is gen5 still stronger than gen0-r2 on the bodies and the view the ladder gives', not a byte re-run. The 1.49.0 report's OWED command named seed 30001; that seed has since been used by the piKL SPRT (1.50.0), so the ORIGINAL seed 9001 is used.",
+   "x": { "file": "solver/machamp/league/gen5.json", "sha256": "f00664df6285b2e5f739344d95c773f15c2904a7212f887b3be92f7066663862" },
+   "y": { "file": "solver/machamp/league/gen0-r2.json", "sha256": "94d0c138459ea33d4c9f8aeb9f437281119017bcee0579228cac7372d5b81bbf" },
+   "seed": 9001,
+   "command": "node solver/machamp/sprt.js (through tools\\lownode.cmd, BELOWNORMAL) --release eaa5becc54eb --x solver/machamp/league/gen5.json --y solver/machamp/league/gen0-r2.json --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 2000 --seed 9001 --workers 3 --cap 50 --info honest --spreads role-v1 --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --out solver/out/spreads-v1/sprt-gen5-vs-gen0r2-rolev1.json",
+   "expected_wall": "the original took 114 min to its bound at 1,268 games; up to ~3 h at 2,000"
+  },
+  {
+   "id": "R2b",
+   "order": 2,
+   "question": "gen5 at 1 s against the human clone (DODUO-greedy), honest, role-v1.",
+   "original": "solver/results/2026-09-26-gen5-honest/preregistration.json, seed 26001 (H1, 0.71), xatu-random truth.",
+   "differs_from_original": "ONE thing: the true bodies' spreads (xatu-random -> role-v1). Same seed, same information mode, same parameters.",
+   "x": { "file": "solver/machamp/league/gen5.json", "sha256": "f00664df6285b2e5f739344d95c773f15c2904a7212f887b3be92f7066663862" },
+   "y": { "file": "solver/machamp/league/human-clone.json", "sha256": "ce0d4d7fb5814d1bd39582f775c806981cff88718cd3ba4bed7901953eba155a" },
+   "seed": 26001,
+   "command": "node solver/machamp/sprt.js (through tools\\lownode.cmd, BELOWNORMAL) --release eaa5becc54eb --x solver/machamp/league/gen5.json --y solver/machamp/league/human-clone.json --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 2000 --seed 26001 --workers 3 --cap 50 --info honest --spreads role-v1 --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --out solver/out/spreads-v1/sprt-gen5-1s-honest-rolev1.json",
+   "if_time_allows": true
+  },
+  {
+   "id": "R2c",
+   "order": 3,
+   "question": "gen5 at 5 s against the human clone, honest, role-v1.",
+   "original": "solver/results/2026-09-26-gen5-honest/preregistration.json, seed 26005 (H1, 0.71), xatu-random truth.",
+   "differs_from_original": "ONE thing: spreads (xatu-random -> role-v1).",
+   "x": { "file": "solver/results/2026-09-26-champ-vs-doduo/gen5-5s.json", "sha256": "0d7ef12bacd5af83f118a9434e583e39d7bcf06248092b6eb6eb29010fcb88af" },
+   "y": { "file": "solver/machamp/league/human-clone.json", "sha256": "ce0d4d7fb5814d1bd39582f775c806981cff88718cd3ba4bed7901953eba155a" },
+   "seed": 26005,
+   "command": "node solver/machamp/sprt.js (through tools\\lownode.cmd, BELOWNORMAL) --release eaa5becc54eb --x solver/results/2026-09-26-champ-vs-doduo/gen5-5s.json --y solver/machamp/league/human-clone.json --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 2000 --seed 26005 --workers 3 --cap 50 --info honest --spreads role-v1 --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --out solver/out/spreads-v1/sprt-gen5-5s-honest-rolev1.json",
+   "if_time_allows": true
+  }
+ ],
+ "reading_rule": {
+  "when": "Each ONCE, after its sprt.js stops. No interim read. A run stopped by a pause, crash or kill is VOID and is re-run from this file on the same seed.",
+  "verdict": "H1 / H0 / INCONCLUSIVE from sprt.js.",
+  "clock": "R2a: equal budgets (1000 ms both); clock ratio from solver/machamp/sprt_read.js is reported and must be <= 1.10 for an H1 to be a strength claim. R2b/R2c: Y does not search (DODUO-greedy), so the clock is reported, not barred, as in the originals; the ladder clock rule (no X decision over 55 s, no game over 420 s of X time) is read and stated.",
+  "capability": "the PORYGON2 leaf served > 0 evaluations for every MILTANK arm (ctr.leaf_by_model, each worker's last line); the spreads block shows role-v1 with bodies dressed > 0 and derived_at_play / flat_fallback stated. Zero = VOID.",
+  "errors": "errored pairs counted; VOID over 5% of pairs used. Fallbacks stated.",
+  "ci_caption": "the Wilson 95% interval at the stop is conditional on the stop and slightly optimistic."
+ },
+ "on_any_verdict": "report only. Nothing goes onto a ladder arm or changes a league default."
+}

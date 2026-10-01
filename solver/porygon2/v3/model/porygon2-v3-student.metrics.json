@@ -1,0 +1,227 @@
+{
+ "what": "PORYGON2 v3 student (distilled from v2)",
+ "flags": {
+  "cmd": "train",
+  "data": "solver/out/p2v3/v2data",
+  "teacher": "solver/out/p2v3/v2data/runs/k1/B/model.pt",
+  "teacher_cache": "solver/out/p2v3/teacher",
+  "out": "solver/out/p2v3/student",
+  "model": "",
+  "fixture": "",
+  "rows": 24,
+  "epochs": 12,
+  "lr": 0.002,
+  "wd": 0.0001,
+  "bs": 1024,
+  "aux": 0.25,
+  "seed": 1,
+  "threads": 4,
+  "hidden": 32,
+  "patience": 3,
+  "max_rows": 0
+ },
+ "params": 39892,
+ "release": "eaa5becc54eb",
+ "teacher": {
+  "path": "solver/out/p2v3/v2data/runs/k1/B/model.pt",
+  "sha256": "2eb775e74a042887c0b52cf0704ffd0263c29dc9b5e7e2104b359d7e0709e1a3"
+ },
+ "teacher_cache": {
+  "what": "PORYGON2 v2 teacher outputs (solver/porygon2/v3/student.py teacher), TRAIN and VAL rows only",
+  "teacher": {
+   "path": "solver/out/p2v3/v2data/runs/k1/B/model.pt",
+   "sha256": "2eb775e74a042887c0b52cf0704ffd0263c29dc9b5e7e2104b359d7e0709e1a3"
+  },
+  "release": "eaa5becc54eb",
+  "inputs": {
+   "bo1": "deb2d205350d59c312292dcacaeda5304b7c5273dfdd900c7f4998295c60d1ea",
+   "bo3": "8993a422f4df938fb2ed23930d35a722aef33791496618671e8c45900e33f59d"
+  },
+  "counts": {
+   "bo1/s0": {
+    "rows": 71415,
+    "scored": 57180,
+    "test_rows_skipped": 14235
+   },
+   "bo1/s1": {
+    "rows": 71918,
+    "scored": 57639,
+    "test_rows_skipped": 14279
+   },
+   "bo1/s2": {
+    "rows": 71462,
+    "scored": 57278,
+    "test_rows_skipped": 14184
+   },
+   "bo1/s3": {
+    "rows": 71975,
+    "scored": 56797,
+    "test_rows_skipped": 15178
+   },
+   "bo3/s0": {
+    "rows": 63228,
+    "scored": 51643,
+    "test_rows_skipped": 11585
+   },
+   "bo3/s1": {
+    "rows": 62825,
+    "scored": 50912,
+    "test_rows_skipped": 11913
+   },
+   "bo3/s2": {
+    "rows": 62479,
+    "scored": 50981,
+    "test_rows_skipped": 11498
+   },
+   "bo3/s3": {
+    "rows": 63228,
+    "scored": 51207,
+    "test_rows_skipped": 12021
+   }
+  },
+  "seconds": 449
+ },
+ "train_rows": 343052,
+ "val_rows": 48000,
+ "selected_epoch": 11,
+ "history": [
+  {
+   "epoch": 0,
+   "train_distill": 0.5217405711078927,
+   "seconds": 498.9,
+   "distill_bce": 0.505868777513504,
+   "kl": 0.0051547987393112836,
+   "logit_mse": 0.12495021035052982,
+   "ll_student": 0.5301519153016012,
+   "ll_teacher": 0.5261316304813743,
+   "n": 48000
+  },
+  {
+   "epoch": 1,
+   "train_distill": 0.5036988609603473,
+   "seconds": 526.7,
+   "distill_bce": 0.5042603482405345,
+   "kl": 0.0035463760287418934,
+   "logit_mse": 0.08240003590093636,
+   "ll_student": 0.5289789139231318,
+   "ll_teacher": 0.5261316304813743,
+   "n": 48000
+  },
+  {
+   "epoch": 2,
+   "train_distill": 0.5026675080437035,
+   "seconds": 553.2,
+   "distill_bce": 0.5044068153699239,
+   "kl": 0.0036928420688824323,
+   "logit_mse": 0.08656017657935514,
+   "ll_student": 0.5294199247603318,
+   "ll_teacher": 0.5261316304813743,
+   "n": 48000
+  },
+  {
+   "epoch": 3,
+   "train_distill": 0.5024145157741648,
+   "seconds": 352.4,
+   "distill_bce": 0.5031497548421224,
+   "kl": 0.0024357795016297494,
+   "logit_mse": 0.05453430403138846,
+   "ll_student": 0.5271316577081984,
+   "ll_teacher": 0.5261316304813743,
+   "n": 48000
+  },
+  {
+   "epoch": 4,
+   "train_distill": 0.5021511705680972,
+   "seconds": 368.3,
+   "distill_bce": 0.5035931913057963,
+   "kl": 0.0028792145847120706,
+   "logit_mse": 0.05788847852226612,
+   "ll_student": 0.5273181469829493,
+   "ll_teacher": 0.5261316304813743,
+   "n": 48000
+  },
+  {
+   "epoch": 5,
+   "train_distill": 0.5024189748579547,
+   "seconds": 468.9,
+   "distill_bce": 0.5029481276671092,
+   "kl": 0.0022341615148741252,
+   "logit_mse": 0.04809429574899344,
+   "ll_student": 0.5278095534120905,
+   "ll_teacher": 0.5261316304813743,
+   "n": 48000
+  },
+  {
+   "epoch": 6,
+   "train_distill": 0.5019232917222238,
+   "seconds": 439.0,
+   "distill_bce": 0.5026693011124929,
+   "kl": 0.001955319102225153,
+   "logit_mse": 0.046994245484101416,
+   "ll_student": 0.5269574541704033,
+   "ll_teacher": 0.5261316304813743,
+   "n": 48000
+  },
+  {
+   "epoch": 7,
+   "train_distill": 0.502007249654049,
+   "seconds": 487.5,
+   "distill_bce": 0.502680512269338,
+   "kl": 0.001966528373481357,
+   "logit_mse": 0.04662595388139993,
+   "ll_student": 0.5265614819989978,
+   "ll_teacher": 0.5261316304813743,
+   "n": 48000
+  },
+  {
+   "epoch": 8,
+   "train_distill": 0.5013541239535525,
+   "seconds": 480.8,
+   "distill_bce": 0.5025834911664327,
+   "kl": 0.001869521556154106,
+   "logit_mse": 0.04529532945245065,
+   "ll_student": 0.5267823291802339,
+   "ll_teacher": 0.5261316304813743,
+   "n": 48000
+  },
+  {
+   "epoch": 9,
+   "train_distill": 0.5016286216144051,
+   "seconds": 373.0,
+   "distill_bce": 0.5025152359803517,
+   "kl": 0.0018012592350549598,
+   "logit_mse": 0.04240060746042792,
+   "ll_student": 0.5271142588915788,
+   "ll_teacher": 0.5261316304813743,
+   "n": 48000
+  },
+  {
+   "epoch": 10,
+   "train_distill": 0.5017560771001237,
+   "seconds": 373.6,
+   "distill_bce": 0.5025037570794424,
+   "kl": 0.0017897938931663445,
+   "logit_mse": 0.0425926246819283,
+   "ll_student": 0.5271710740537857,
+   "ll_teacher": 0.5261316304813743,
+   "n": 48000
+  },
+  {
+   "epoch": 11,
+   "train_distill": 0.5018312727056798,
+   "seconds": 266.8,
+   "distill_bce": 0.5024813088575999,
+   "kl": 0.0017673406768255054,
+   "logit_mse": 0.042639535628011996,
+   "ll_student": 0.5269407049443104,
+   "ll_teacher": 0.5261316304813743,
+   "n": 48000
+  }
+ ],
+ "model": {
+  "path": "solver/out/p2v3/student/model.pt",
+  "sha256": "80ea59625e2f59764d68a6ed99744b20cf74711bb8a40a457342652f678f3390"
+ },
+ "seconds": 5301,
+ "torch": "2.14.0+cpu"
+}

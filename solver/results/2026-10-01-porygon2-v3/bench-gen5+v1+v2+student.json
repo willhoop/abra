@@ -1,0 +1,93 @@
+{
+ "what": "leaf cost per evaluation, microseconds (solver/porygon2/v3/evalset.js bench): every net on a fresh copy of the same boards, rotated order, one process, one thread; the ratio to the first net is the figure",
+ "engine_release": "eaa5becc54eb",
+ "boards": 300,
+ "reps": 3,
+ "measured": "2026-10-01T07:38:27.670Z",
+ "nets": [
+  {
+   "name": "gen5",
+   "file": "solver/machamp/models/gen5/porygon2-gen5.json",
+   "sha256": "cf8ad3f7bd0d4a33d87d9b9e891154800cf27540e7d4a93ef85b2513b713f3c6",
+   "value_us": {
+    "median": 4863.8,
+    "mean": 10704.4,
+    "p95": 29172.3
+   },
+   "encode_us": {
+    "median": 4381.8,
+    "mean": 9894.8,
+    "p95": 27021
+   },
+   "forward_us": {
+    "median": 387.1,
+    "mean": 809.6,
+    "p95": 2208.8
+   },
+   "ratio_to_first": 1
+  },
+  {
+   "name": "v1",
+   "file": "solver/porygon2/model/porygon2-v1.json",
+   "sha256": "01bb559ef0e7e8e22f098466ac8ad5a1782c7cc029cb83838797fa0dd1b4d3f5",
+   "value_us": {
+    "median": 5939.9,
+    "mean": 14572.6,
+    "p95": 36844.4
+   },
+   "encode_us": {
+    "median": 3704.2,
+    "mean": 8585.7,
+    "p95": 22495.5
+   },
+   "forward_us": {
+    "median": 2150.4,
+    "mean": 5987,
+    "p95": 14759.9
+   },
+   "ratio_to_first": 1.221
+  },
+  {
+   "name": "v2",
+   "file": "solver/porygon2/v2/model/porygon2-v2-k1.json",
+   "sha256": "d5409446cb6ff77667253a22fd921ace259201bbcda46285002f7d67052e76b1",
+   "value_us": {
+    "median": 12738.6,
+    "mean": 30806.7,
+    "p95": 90233.6
+   },
+   "encode_us": {
+    "median": 3868.2,
+    "mean": 8087.5,
+    "p95": 24274.8
+   },
+   "forward_us": {
+    "median": 8558.7,
+    "mean": 22719.2,
+    "p95": 69789.5
+   },
+   "ratio_to_first": 2.619
+  },
+  {
+   "name": "student",
+   "file": "solver/porygon2/v3/model/porygon2-v3-student.json",
+   "sha256": "1b4ae59fcff530a214f977283de6262df405c13a5a5be1d3e26d785e8e207fee",
+   "value_us": {
+    "median": 4423.7,
+    "mean": 9481.1,
+    "p95": 25301.2
+   },
+   "encode_us": {
+    "median": 3881.1,
+    "mean": 8293.6,
+    "p95": 22390.4
+   },
+   "forward_us": {
+    "median": 491.1,
+    "mean": 1187.5,
+    "p95": 2917.4
+   },
+   "ratio_to_first": 0.91
+  }
+ ]
+}

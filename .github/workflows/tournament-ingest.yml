@@ -1,0 +1,85 @@
+name: tournament-ingest
+# Add every new open-team-list tournament of the active Champions regulation to the tournament store, once a week.
+#
+# WHAT IT DOES. `node solver/tournaments/ingest.js --discover` reads Victory Road's event calendar (the Format column
+# tags each event with its regulation and "OTS") and Limitless VGC's tournament index (each event page names its
+# regulation), and stores every COMPLETED event tagged with the regulation that data/tournaments/<regulation>/ does not
+# hold yet: one write-once shard of teams plus one appended events.jsonl row. Discovery is by the regulation tag, never a
+# typed event list (docs/REGULATION-ROTATION.md).
+#
+# WHY WEEKLY (Will, 2026-10-01: "regionals come every couple of weeks to a month"). Unlike the replay pool, a tournament
+# page does not age out: an event missed this week is read next week. Weekly keeps the store at most seven days behind and
+# costs about one request per new team. TUESDAY 06:43 UTC: events finish on a Sunday in some time zone, and the sites post
+# the team lists over the following day or two. An off-minute, and never the ingest's or the collector's minute.
+#
+# POLITE. One request at a time, >= 1.5 s apart per host (more if robots.txt asks), robots.txt checked before the first
+# request to a host, an honest User-Agent (solver/tournaments/http.js). Both sites' robots.txt allow what is read
+# (victoryroad.pro disallows only /wp-admin/; vrpastes.com allows all with Crawl-delay 1; limitlessvgc.com allows all).
+#
+# LOUD. Any fetch error, robots refusal, malformed team or a page layout the parser no longer reads fails the job, and an
+# event is written only after all of its teams were read — so a failure never commits a partial event, and a quiet week
+# commits nothing at all (no empty commit). An event whose lists are not posted yet is PENDING and is retried next week.
+#
+# WHAT IT DOES NOT DO. It does not validate the teams against the format: that needs the regulation's Showdown checkout,
+# which the runner does not have. `node solver/tournaments/validate.js` and `summary.js` are run locally after a pull;
+# summary.json says when validation is stale. Nothing here reads or writes the replay stores.
+#
+# WHO MAY COMMIT (CLAUDE.md "WHO MAY WRITE"): abra-bot, into data/ only — and this job refuses to commit anything outside
+# data/tournaments/. Same `ingest` concurrency group as ingest.yml and next-regulation.yml, so it never races them.
+on:
+  schedule:
+    - cron: '43 6 * * 2'       # weekly, Tuesday 06:43 UTC
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Fetch and parse only; write and commit nothing'
+        required: false
+        default: 'false'
+permissions:
+  contents: write
+concurrency:
+  group: ingest
+  cancel-in-progress: false
+jobs:
+  tournaments:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+
+      - name: Ingest new tournament events (fails the job on any error)
+        run: |
+          set -eu
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            node solver/tournaments/ingest.js --discover --dry-run
+          else
+            node solver/tournaments/ingest.js --discover
+          fi
+
+      - name: Commit the new events (data/tournaments/ only, never an empty commit)
+        if: github.event.inputs.dry_run != 'true'
+        run: |
+          set -eu
+          git config user.name  "abra-bot"
+          git config user.email "abra-bot@users.noreply.github.com"
+          if [ -z "$(git status --porcelain -- data/tournaments)" ]; then
+            echo "no new tournament events this week — nothing to commit"
+            exit 0
+          fi
+          # NEVER `git add -A`. Only the tournament store, and refuse if anything else is staged.
+          git add -- data/tournaments
+          outside=$(git diff --cached --name-only | grep -v '^data/tournaments/' || true)
+          if [ -n "$outside" ]; then echo "::error::refusing to commit outside data/tournaments/: $outside"; exit 1; fi
+          n=$(git diff --cached --name-only -- 'data/tournaments/*/teams/*' | wc -l)
+          git commit -m "tournament-ingest: $n new event shard(s) $(date -u +%Y-%m-%dT%H:%MZ)"
+          # The store files are written by this job alone, so a rebase onto a moved origin cannot conflict; three tries,
+          # then a loud failure (a push that never lands is silent data loss).
+          for i in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then exit 0; fi
+            sleep $((i * 15))
+          done
+          echo "::error::push failed three times"; exit 1

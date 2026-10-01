@@ -25,6 +25,33 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
   switches 1.06, mega 0.98). Costs: the foe's speed control (−0.22 win; humans −0.03) and switch-ins KO'd that turn
   (15.4% vs 10.0%). Speed control not used when the foe was faster: 50 of 109 absent from the table (coverage), 59
   present but ranked lower. `docs/_reports/2026-10-01-speed-mega-switch.md`.
+### v2 at 14 s stops at its screen; gen5's role-v1 baselines (abra/regmc 1.60.0)
+- **v2 leaf vs gen5's net at 14 s: stopped at the screen.** 0.495, and clock ratio 1.104 makes it VOID. v2's slower
+  leaf takes about 10% more adaptive clock and still does not win. No SPRT.
+- **gen5 vs the human clone under role-v1: H1 at both clocks.** 1 s 0.711 (90 games); 5 s 0.667 (102 games).
+- **gen5 vs gen0-r2: H0, DEGRADED.** 0.497 over 1,098 games. 24% prior fallbacks from machine load. Re-run owed, with
+  a capability bar.
+- `docs/_reports/2026-10-01-v2-14s-and-role-v1-baselines.md`.
+### A tournament store and a tournament rotation (abra/regmc 1.61.0)
+- Store: `data/tournaments/regmc/`. It holds 537 Masters teams from Baltimore, Frankfurt, Brisbane and VR's two
+  September Challenges, and 2 Replica Teams pastes. The raw paste is kept with each team. 537 of 539 validate.
+  Discovery is by the regulation tag. A weekly workflow is on this branch, not on main.
+- Rotation: `ladder-rotation-tour.json`, arm `gen5-chomp-tour.json`. Five real top-cut teams, each with its source.
+  Not launched.
+- Spreads: open team sheets publish none (0 of 537). On the 12 published Replica sets, our derived spread matches on 0
+  and Speed matches on 1. `docs/_reports/2026-10-01-tournament-rotation.md`.
+### PORYGON2 v3 steps A–C: design, frozen harness, distilled student (abra/regmc 1.62.0)
+- `solver/porygon2/v3/DESIGN.md`. Six premises of the brief are corrected at their sources: MuZero, KataGo's blending
+  and playout caps, the piKL anchor, "λ 0.03 harmless", and quiescence "fixes".
+- Frozen set: 2,778 positions (ladder, bo1 rated 1500 or more, bo3 rated 1300 or more), 1,300 labelled by MILTANK's root
+  with cells played to the end by gen5's prior.
+- Ranking: gen5, v1, v2 and the student are indistinguishable; every CI spans 0. ECE: student 0.052, v2 0.058, gen5
+  0.065, v1 0.072.
+- Cost against gen5: student 0.91×, v2 2.62×.
+- gen5's raw net is +0.183 too high in [0.5, 0.9) on our ladder positions and calibrated on strong human positions.
+- The student (v2 distilled, 39,892 parameters) fails its pre-registered bar: the ranking CI spans 0, and the ECE CI
+  upper bound is +0.006 against +0.005. No screen or SPRT is pre-registered.
+- Answer map: an offline auxiliary target only, by the coordinator's instruction. `docs/_reports/2026-10-01-porygon2-v3.md`.
 
 ### The search's uncovered blind spots; four world fields fixed (abra/regmc 1.52.0)
 - Opponent coverage is 57.7% with targets (636 ladder decisions). DODUO ranks the actual joint top-4 in 57.1% and

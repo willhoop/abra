@@ -546,6 +546,7 @@ const NOT_A_CHECK = {
   'engine/million_run.js':            'RATE RUNNER — plays MEDICHAM at volume against data/million-targets.json. Hours. The PROVENANCE of every target it checks is gated by tests/test-target-provenance.js, which IS discovered.',
   'engine/opponent_calibration.js':   'MEASUREMENT — is MAG a usable sampler of the opponent. Writes data/opponent-calibration.json.',
   'engine/rebuild_records.js':        'REBUILD TOOL — regenerates store records from the raw protocol logs. It WRITES the store.',
+  'engine/reparse_store.js':          'REBUILD TOOL — re-derives a parsed .jsonl.gz store from its raw shards (abra/regmc 1.52.0). It writes <store>.reparsed and exits 1 only to refuse a rebuild that would lose an id; it asserts no contract. The extractor it runs is pinned by tests/test-parse.js.',
   'engine/redirect_audit.js':         'MEASUREMENT — how much of the joint fit\'s drop rate is redirection. Writes data/redirect-audit.json.',
   'engine/replay_differential.js':    'MEASUREMENT DRIVER — replays real stored games through the engine and counts divergences against what actually happened.',
   'engine/reprocess.js':              'REBUILD TOOL — rebuilds a game store from the raw logs. It WRITES the store, and declares RAW-STORE-OK for reading dirty records.',
