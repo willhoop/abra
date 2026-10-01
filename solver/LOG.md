@@ -8,7 +8,7 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-10-01
 
-### v2 at 14 s stops at its screen; gen5's role-v1 baselines (abra/regmc 1.55.0)
+### v2 at 14 s stops at its screen; gen5's role-v1 baselines (abra/regmc 1.60.0)
 - **v2 leaf vs gen5's net at 14 s: stopped at the screen.** 0.495, and clock ratio 1.104 makes it VOID. v2's slower
   leaf takes about 10% more adaptive clock and still does not win. No SPRT.
 - **gen5 vs the human clone under role-v1: H1 at both clocks.** 1 s 0.711 (90 games); 5 s 0.667 (102 games).

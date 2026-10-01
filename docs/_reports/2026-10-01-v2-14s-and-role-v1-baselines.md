@@ -1,4 +1,4 @@
-# PORYGON2 v2 at the 14 s clock, and the gen5 baselines under `role-v1` (2026-10-01, abra/regmc 1.55.0)
+# PORYGON2 v2 at the 14 s clock, and the gen5 baselines under `role-v1` (2026-10-01, abra/regmc 1.60.0)
 
 SOLVER. Will delegated the choice of runs to the coordinator ("u choose", 2026-09-30), and the coordinator chose these
 two. Branch `worktree-agent-a29208774c274090e`, run on main `e6e901a3` (1.50.0, which includes 1.49.0's `role-v1`

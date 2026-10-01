@@ -53,7 +53,7 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
-## [abra/regmc 1.55.0] — 2026-10-01 — **v2 at 14 s stops at its screen (0.495, clock ratio 1.104); gen5 still beats the human clone under role-v1 (1 s 0.711, 5 s 0.667, both H1); gen5 vs gen0-r2 is H0 but DEGRADED by a starved search**
+## [abra/regmc 1.60.0] — 2026-10-01 — **v2 at 14 s stops at its screen (0.495, clock ratio 1.104); gen5 still beats the human clone under role-v1 (1 s 0.711, 5 s 0.667, both H1); gen5 vs gen0-r2 is H0 but DEGRADED by a starved search**
 - **What changed.** Four arena runs, pre-registered before the first game (`solver/results/2026-10-01-v2-14s-rolev1/preregistration.json`, `solver/results/2026-10-01-rolev1-baselines/preregistration.json` plus `addendum-r2c.json`). Common settings: release `eaa5becc54eb`, frozen-regmc store, TEST pairs, honest, `--spreads role-v1`, cap 50. The SPRTs used elo0 0, elo1 20, α = β = 0.05, max 2,000. No code changed. This is the NEW arena series (role-v1), not comparable with any pre-1.49.0 figure.
 - **Measured.**
   - v2 leaf vs gen5, 14 s adaptive, screen (seed 31001): 0.495 [0.426, 0.564]. The clock ratio is 1.104, so the screen is VOID by its rule; the point is < 0.5; the SPRT was not run.

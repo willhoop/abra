@@ -133,7 +133,7 @@ This section says only what a division agent needs before it starts.
   top 8 71.1%. Sucker Punch failed 17 of 36: the engine is right on all 17; 9 had no alternative row, 8 were leaf ties.
   World fixes: identity (formes, nicknames), Unburden, Flash Fire, added type; `solver/tests/test-rotom-world-fields.js`.
   No series has played on them. `docs/_reports/2026-10-01-search-blind-spots.md`.
-- **v2 at 14 s and the gen5 role-v1 baselines (2026-10-01, abra/regmc 1.55.0).** Every run is honest, on role-v1 true
+- **v2 at 14 s and the gen5 role-v1 baselines (2026-10-01, abra/regmc 1.60.0).** Every run is honest, on role-v1 true
   bodies, and on release `eaa5becc54eb`.
   - v2 as gen5's leaf vs gen5's net, 14 s adaptive: the screen gives 0.495 [0.426, 0.564]. The clock ratio is 1.104,
     so it is VOID, and there is no SPRT.

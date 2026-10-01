@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.55.0] — 2026-10-01
+## [1.60.0] — 2026-10-01
 
 **MINOR: no published figure moves.** It adds four arena results in the role-v1 series. No code changed.
 
