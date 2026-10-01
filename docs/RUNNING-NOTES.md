@@ -53,6 +53,13 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.51.0] — 2026-10-01 — **A forme change recomputes the stat line from the set, HP SP included: the mega road could not see an HP-invested spread, and Palafin-Hero's road never recomputed**
+- **What changed.** `engine/medicham2-browser.js`: `setLineL50` (`l50` plus the HP SP). `megaEvolveNow` checks and recomputes with it. `formeSwap` (Zero to Hero, Stance Change, their reverts) now recomputes the five battle stats from `_sp` instead of carrying a three-truncation delta. Knobs `MEDI_MEGA_SPREAD_HP_BLIND=1` and `MEDI_FORME_SWAP_STAT_DELTA=1`. New probe `tests/probe_forme_spread_hp.js`. Filed by SOLVER in 1.49.0.
+- **Measured.** `tests/probe_forme_spread_hp.js` (Reg M-C, staged): before the fix, MEGA-HP 318 of 3,132 lines off the authority and SWAP (Palafin) 572 of 2,640; the 0-HP control 0 of 3,132. After the fix, 0 / 0 / 0. Each knob restores exactly its own road's count. A real Showdown mega witnesses the oracle. Census 1027 live / 1027 probed / 0 missing, unmoved (`data/mechanics-census-regmc.json`). NO gate figure: the gate was not re-run (owed). `docs/_reports/2026-10-01-mega-hp-spread.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published. The gate's figures stand on release `97451d5fbf40`, which holds the old bytes. The re-run on a new release is owed (report, `## OWED, NOT RUN`).
+- **Owed to the next major.** none. SOLVER owes the `_sp` stamp in `solver/xatu/worlds.js` `applySpread` before the arena takes the fix.
+
 ## [abra/regmc 1.50.0] — 2026-09-30 — **Two SPRTs, both H0: piKL λ 0.03 is not stronger than gen5 at 14 s; PORYGON2 v2 as gen5's leaf is not stronger than gen5's own net at equal clock**
 - **What changed.** Will approved both SPRTs (2026-09-30, "1 2"), and they ran back to back. Pre-registrations: `solver/results/2026-09-30-sprt-pikl-v2/preregistration-sprt{1-pikl,2-p2v2}.json`, committed before the first game. Shared settings: release `eaa5becc54eb`, frozen-regmc store, TEST pairs, honest, elo0 0, elo1 20, α = β = 0.05, max 2,000, seeds 30001 and 30002. Both were played on the arena as it stood before 1.49.0 (XATU-random spreads). New: per-model leaf counters (`rollout.js` `leafByModel`/`leafOwn`, `play.js` `ctr.leaf_by_model`/`ctr.leaf_own`), the X spec `solver/porygon2/v2/gen5-p2v2.json`, and `solver/tests/test-porygon2-v2-arena.js` (GREEN 8/8, RED under `MILTANK_BREAK=leaf`). SPRT 2 ran outside v2's pre-registration, by Will's decision, because gate (a) failed.
 - **Measured.**

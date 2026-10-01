@@ -21,6 +21,30 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.51.0] — 2026-10-01
+
+**MINOR: a simulator fix.** No published figure moves yet. The gate re-run on a new release is owed.
+
+### Fixed
+- **A mega evolution recomputes an HP-invested spread (filed by SOLVER, 1.49.0).** `megaEvolveNow` gated its recompute
+  on `l50`, which has no HP term, while Champions' `statModify` adds the SP to HP. So every HP-invested body took the
+  additive delta. That delta truncates the nature multiply three times where the authority truncates once. 318 of
+  3,132 staged lines were one point off, Speed among them. Now `setLineL50` (`l50` plus the HP SP) is used for the
+  check and for the recompute.
+- **The mid-battle forme road recomputes too (the class check).** `formeSwap` had never recomputed. A natured,
+  invested Palafin-Hero was one point off on Def, SpA or SpD with or without HP: 572 of 2,640 staged lines. It now
+  recomputes the five battle stats from `_sp`, gated as the mega road is. HP keeps the exact delta. Aegislash is exact
+  by arithmetic. No other legal forme change moves a stat.
+
+### Added
+- `tests/probe_forme_spread_hp.js`: RED before the fix and GREEN after. `MEDI_MEGA_SPREAD_HP_BLIND=1` and
+  `MEDI_FORME_SWAP_STAT_DELTA=1` each restore one road. Receipts: `MEDSEEN.formeSwapStatFromSpread`,
+  `MEDFAILS.formeSwapStatDelta`, `MEDFAILS.formeSwapSpreadStale`.
+
+### Notes
+- Census unmoved at 1027 live / 0 missing. Details: `docs/_reports/2026-10-01-mega-hp-spread.md`.
+- The arena takes the fix only once SOLVER stamps `_sp` in `solver/xatu/worlds.js` `applySpread`.
+
 ## [1.50.0] — 2026-09-30
 
 **MINOR: no published figure moves.** It adds two SPRT results and a per-model leaf counter.
