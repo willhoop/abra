@@ -53,7 +53,7 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
-## [abra/regmc 1.55.0] — 2026-10-01 — **Speed control, mega and switches are tracked on every ROTOM game and arena row; like with like, the bot matches strong humans on all three**
+## [abra/regmc 1.59.0] — 2026-10-01 — **Speed control, mega and switches are tracked on every ROTOM game and arena row; like with like, the bot matches strong humans on all three**
 - **What changed.** New `solver/arena/tactics.js`: standing per-side counters for speed control (available, used, turn, mattered or wasted, answers), mega (capable, used, turn, slot) and switches (voluntary, forced, pivot, double; into a KO, a resist or immunity). The speed-control set is derived from the format: 34 moves. It is wired into ROTOM's game record and summary (`solver/rotom/rotom.js`), `report.js ladder <dir>` (per arm, won and lost), and every `solver/mew/play.js` match row and summary. New: `solver/tests/test-tactics.js` (GREEN 28/28, RED under `TACTICS_BREAK=blind`) and a live-client check in `test-rotom-endings-live.js` (GREEN 20/20). New read-only analysis: `solver/results/2026-10-01-speed-mega-switch/analyze.js`. No game was played.
 - **Measured.** From `solver/results/2026-10-01-speed-mega-switch/measured.json`.
   - Inputs: 126 search-arm ladder games (gen5ab A 41, chomp1 50, chomptop 35 while live) and 98 prior-arm games, release `eaa5becc54eb`. 27,143 human games (281 raw shards; the bo3 store sha256 `7c15d94eab4a`; `engine/quality.js` `reasons()`): 1400+ 588 sides, 1200–1399 10,073.

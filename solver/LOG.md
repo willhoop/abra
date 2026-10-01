@@ -8,7 +8,7 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-10-01
 
-### Speed control, mega and switches: tracked on every game; the bot beside humans (abra/regmc 1.55.0)
+### Speed control, mega and switches: tracked on every game; the bot beside humans (abra/regmc 1.59.0)
 - New standing counters `solver/arena/tactics.js` (one log reader, one engine reader; the speed-control set derived
   from the format, 34 moves). On every ROTOM game record (`tactics`), printed by `report.js ladder <dir>` per arm and
   won/lost, and on every arena match row (`tactics.x/.y`). `solver/tests/test-tactics.js` GREEN 28/28, RED under

@@ -1,4 +1,4 @@
-# Speed control, mega and switching: the ladder bot beside its opponents and the open-sheet humans (abra/regmc 1.55.0)
+# Speed control, mega and switching: the ladder bot beside its opponents and the open-sheet humans (abra/regmc 1.59.0)
 
 2026-10-01. SOLVER. Read only: no game was played and no ladder run was touched. The bot's games are read from the
 main checkout's `solver/out/rotom/` room logs. The humans are read from the tracked raw-log shards, filtered through the

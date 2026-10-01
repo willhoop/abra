@@ -21,7 +21,7 @@ rewritten; what changed and why is stated.
 
 ---
 
-## [1.55.0] — 2026-10-01
+## [1.59.0] — 2026-10-01
 
 **MINOR: no published figure moves.** It adds standing counters and a read-only analysis; no game was played.
 
