@@ -53,6 +53,21 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.58.0] — 2026-10-01 — **Lost the last answer: real, tied to losing, not a separate cause; the live answer map predicts and adds nothing over the search's value**
+- **What changed.** A read-only analysis, with no play and no engine change. `solver/results/2026-10-01-lost-last-answer/`: `answer_map.js` (P(i beats j) from 16 MEDICHAM one-on-ones per pair on the live position, release `eaa5becc54eb`); `maps.js` (every move decision of the saved ladder games, through ROTOM's world rebuilt from the log, with the back line taken from the whole log); `analyze.js`; `maps/` (1,131 positions, 1.4 MB); `results.json`. Test: `solver/tests/test-answer-map.js`, GREEN 6/6, RED under `ANSWER_MAP_BREAK=fullhp`.
+- **Measured** (`results.json`).
+  - Coverage: 158 games (chomp1 49, gen5ab 41 search and 33 prior, chomptop 35), 1,131 positions, 0 build failures.
+  - A contested last-answer faint is in 31 of 90 losses and 9 of 68 wins.
+  - Its residual against other faints at the same value is −0.092 [−0.225, +0.059]. The value then falls 0.108 more [−0.214, −0.006].
+  - It is the turning point in 6 of 26 post-mortem losses: OUTSPED 2, UNSEEN_ACTION, SPEED_CONTROL, BEHIND_FROM_PREVIEW and SUCKER_PUNCH 1 each.
+  - In 33 events with a table, a preserving row was searched and not chosen in 18, and absent in 14.
+  - A threat with fewer than 0.5 answers left: we lost 0.829.
+  - Leave-one-game-out log-loss, value vs value + map: −0.0045 [−0.0187, +0.0063].
+  - Report: `docs/_reports/2026-10-01-lost-last-answer.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** `docs/MODELS.md` (ROTOM's ladder record): one line, saying the last-answer hypothesis was tested and is not a separate cause.
+
 ## [abra/regmc 1.57.0] — 2026-10-01 — **Reg M-C gate re-run on release `df172ccd2aaf` (forme change recomputes HP Stat Points): OPEN, 10 of 10, nothing moved**
 - **What changed.** No code. New release `df172ccd2aaf` (force-tracked), cut after abra/regmc 1.51.0 changed
   `engine/medicham2-browser.js` (forme change recomputes the stat line from the set, HP Stat Points included). It is

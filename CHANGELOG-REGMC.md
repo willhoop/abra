@@ -21,6 +21,31 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.58.0] — 2026-10-01
+
+**MINOR: no published figure moves.** It adds a read-only analysis, its tooling and a test.
+
+### Added
+- **The live answer map** (`solver/results/2026-10-01-lost-last-answer/answer_map.js`). For each live pair (our i, their
+  j), P(i beats j) comes from 16 one-on-ones played from the live position on `medicham_api` (release `eaa5becc54eb`).
+  HP, boosts, field clocks, priority, items, rolls, accuracy, crits and ties all come from the engine. The answers left to
+  each threat are the sums.
+- `maps.js` maps every move decision of a saved ladder game, using ROTOM's world rebuilt from the log. `analyze.js`
+  tests Will's hypothesis that the bot loses by giving away its last answer.
+- The 1,131 mapped positions are tracked in `maps/`, and `results.json` holds the results.
+- `solver/tests/test-answer-map.js`: GREEN 6/6, and RED under `ANSWER_MAP_BREAK=fullhp`.
+
+### Notes
+- **Run.** 158 ladder games and 1,131 positions (chomp1, gen5ab both arms, chomptop). 0 build failures, 183,648 duels,
+  220 capped. Details: `docs/_reports/2026-10-01-lost-last-answer.md`.
+- **Contested last-answer faints.** One occurs in 31 of 90 losses and 9 of 68 wins. Against any other faint at the same
+  search value, the residual is −0.092 [−0.225, +0.059]: not a separate cause.
+  - It is the turning point in 6 of the post-mortem's 26 losses.
+  - The search's value falls 0.108 more afterwards [−0.214, −0.006].
+- **Threats with fewer than 0.5 answers left.** We lost 82.9% of those games.
+- **As a value-net input.** The map adds nothing to the search's root value: log-loss −0.0045 [−0.0187, +0.0063]. It is
+  not recommended as a live input; use it as an offline label instead.
+
 ## [1.57.0] — 2026-10-01
 
 ### Notes

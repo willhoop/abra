@@ -128,6 +128,11 @@ This section says only what a division agent needs before it starts.
   0.525 [0.456, 0.593], clock ratios 0.99-1.00. At 14 s the Protect fail rate is 10.1% vs 16.9%. λ 0.1 fails (0.405). λ 0.01
   is VOID by its capability clause (1 uniform-anchor decision). No SPRT; the flag is off.
   `docs/_reports/2026-09-30-human-regularised-phase-b.md`.
+- **Lost the last answer (2026-10-01, abra/regmc 1.58.0).** The live answer map is MEDICHAM one-on-ones on the
+  rebuilt position, 1,131 ladder positions. A contested last-answer faint is in 31 of 90 losses and 9 of 68 wins. At
+  equal value it costs no more than any other faint (−0.092 [−0.225, +0.059]), and it is the turning point in 6 of 26.
+  The map adds nothing over the root value (log-loss −0.0045 [−0.0187, +0.0063]), so it is not a live net input.
+  `docs/_reports/2026-10-01-lost-last-answer.md`.
 - **The search's uncovered blind spots; four world fields (2026-10-01, abra/regmc 1.52.0).** Read-only over the finished
   ladder runs. Opponent coverage 57.7% with targets (636 decisions); the gen5 prior's top 4 holds the actual joint 57.1%,
   top 8 71.1%. Sucker Punch failed 17 of 36: the engine is right on all 17; 9 had no alternative row, 8 were leaf ties.
