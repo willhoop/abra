@@ -96,6 +96,12 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Supersedes.** Nothing. Every gate figure reads the same as on `97451d5fbf40`. The lattices cannot see the 1.51.0
   fix: `spreadFor` in `engine/game_differential.js` puts 0 Stat Points into HP on every body.
 - **Owed to the next major.** none.
+## [abra/regmc 1.65.0] — 2026-10-01 — **Open-sheet bo3 play is one classifier: the bo1 OTS + Bo3 custom room counts, every other custom room and our own accounts are out**
+- **What changed.** Will's decision. `engine/quality.js` `customRuleRegime()` / `isOpenSheetBo3()` decide, from the room's own rule text, whether a game is the game we play; `rules.exclude_own_accounts` in `data/quality-filter.json` 1.7.0 declares our accounts. The usage model, the human dataset, the PORYGON2 v2 bo3 dataset, the meta extract, the top-meta rotation and CHOMP's reader call it. The frozen pool is not re-cut.
+- **Measured.** Custom-rule rooms: 296 kept as open-sheet bo3, all under `Force Open Team Sheets, Best of = 3` (`data/custom-ruleset-ids-regmc.json`). Usage model usable games 27,106 (`data/meta-usage-regmc.json`). The before and after by rule and by rating band, the Eject Button count, and our accounts' games are in the report: `docs/_reports/2026-10-01-custom-ots-bo3.md`.
+- **Basis.** unchanged. The question is the same; the population is narrowed and the before and after are given in the report.
+- **Supersedes.** Nothing retracted. The 1.36.0 row's "2,388 information-regime rooms published, not excluded" is now decided: all but the open-sheet bo3 rooms are excluded.
+- **Owed to the next major.** `docs/MODELS.md` and the white paper: state the open-sheet population as isOpenSheetBo3().
 
 ## [abra/regmc 1.54.0] — 2026-10-01 — **DUSK designed, not built: an on-the-fly endgame solver with a certified band, not tables; endgames are common and cost us little directly**
 - **What changed.** `solver/dusk/DESIGN.md` (the design), four measurement scripts (`measure_endgames.js`, `lib.js`, `measure_ladder.js`, `combine.js`), the Smogon hook `smogon_foldin.js`, the tracked summary `solver/dusk/endgames-summary.json`, and `solver/tests/test-dusk-measure.js` (GREEN 42/42; RED under both `DUSK_BREAK` breaks). The `solver/PLAN.md` DUSK row now says what DUSK is. No engine loaded, no game played.

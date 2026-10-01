@@ -43,8 +43,10 @@ const BA = require('./build_assets.js');
 const { cosine } = require('./build_ladder_teams.js');
 
 const RULE = { FLOOR_PCT: 0.99, MIN_PLAYERS: 2, MIN_GAMES: 8, MIN_SPECIES_SHARE: 0.03, NEAR_SAME: 5, MAX_TEAMS: 5, MIN_TEAMS: 3 };
-/* our own accounts: the same set the meta extractor excludes (solver/meta/extract.js OWN) */
-const OWN = new Set(['medicham32', 'willhoop', 'mag', 'mag2', 'miltank', 'miltank2']);
+/* our own accounts: declared once in data/quality-filter.json rules.exclude_own_accounts, read through engine/quality.js
+ * (2026-10-01). Excluded PER SIDE here, as before: our side of a game is not a human team, the opponent's side is. */
+const QO = require('../../engine/quality.js');
+const isOwn = n => QO.isOwnAccount(n);
 const HARD_EXCLUDE = new Set(['bot', 'behavioural_bot', 'illegal_team', 'corrupt_winner', 'nonstandard_ruleset', 'custom_ruleset']);
 const toID = X.toID;
 const ROOT = path.join(__dirname, '..', '..');
@@ -69,10 +71,12 @@ function rowOf(r) {
 function sidesOf(games, drop) {
   const out = [];
   for (const g of games) {
-    if (!g.openSheet || (drop && drop.has(g.id))) continue;
+    /* open-sheet bo3 play only (engine/quality.js isOpenSheetBo3, Will 2026-10-01). This reads the bo3 store, so the bo1
+     * store's OTS + Bo3 rooms are not read: all of them are unrated custom rooms and rule 1 needs both ratings. */
+    if (!g.openSheet || !QO.isOpenSheetBo3(g) || (drop && drop.has(g.id))) continue;
     for (const [s, o] of [['p1', 'p2'], ['p2', 'p1']]) {
       const p = g[s], q = g[o];
-      if (!p || p.bot || !p.rating || OWN.has(toID(p.name))) continue;
+      if (!p || p.bot || !p.rating || isOwn(p.name)) continue;
       const six = g.six && g.six[s];
       const decided = !!g.winner && !!q && !!q.rating && !(g.forfeit && turnsOf(g) <= 1) && (g.winner === p.name || g.winner === q.name);
       out.push({ g, s, r: p.rating, player: toID(p.name), six: six && six.length === 6 ? six : null, decided,

@@ -410,6 +410,29 @@ That is not *"M-C is nearly clean"*; it is *"M-C has barely been asked"*. The sc
 every run for exactly this reason. Full account:
 [`docs/_reports/2026-09-21-custom-ruleset-filter.md`](_reports/2026-09-21-custom-ruleset-filter.md).
 
+### WILL'S DECISION, 2026-10-01: THE OPEN-SHEET BO3 CUSTOM ROOM IS OUR GAME, AND NO OTHER CUSTOM ROOM IS
+
+*(abra/regmc 1.65.0. The judgement the two paragraphs above leave open is taken. They are left as written.)*
+
+- **A bo1-format room under the custom rules `Force Open Team Sheets, Best of = 3` IS open-sheet bo3 data,
+  the game we play.** The Eject Button / U-turn date-and-item rule (`engine/regmc_pool_predicate.js`
+  `oldRule`) still applies to it.
+- **Every other custom-rule room is excluded from every analysis and dataset** (Will: *"the only custom rule
+  set allowed is the open-sheet bo3 one"*). That includes bo1 rooms that only force sheets (one game) and bo1
+  rooms that only set `Best of = 3` (sheets offered, not forced).
+- **One classifier decides it:** `engine/quality.js` `customRuleRegime()` / `isOpenSheetBo3()`, from the
+  room's own rule text (the raw log's infobox, carried by `data/custom-ruleset-ids-regmc.json`). It is not an
+  id list, so a later room of the same kind is caught. `tests/test-open-sheet-bo3.js` checks it against
+  Showdown's own rule table for every rule string the scan has seen.
+- **A bo1 game whose sheets were offered and accepted, with no custom rule, is bo1 play and is out of the
+  open-sheet views.** It was in scope under the pool predicate above.
+- **Our own accounts are excluded wherever human play is modelled**, from one declared list:
+  `data/quality-filter.json` `rules.exclude_own_accounts`.
+- **The frozen pool `data/team-pool-frozen-regmc` is NOT re-cut.** Measurements pin it. Its `ots` half was cut
+  under the older scope; what a re-cut would change is in the report.
+
+Counts and the per-rule-string verdicts: [`docs/_reports/2026-10-01-custom-ots-bo3.md`](_reports/2026-10-01-custom-ots-bo3.md).
+
 **One thing found on the way, not fixed here, OPS's:**
 `data/games.gen9championsvgc2026regmc.jsonl` on disk is a stale snapshot of 2026-09-09 while
 `data/games.gen9championsvgc2026regmc.jsonl.gz` beside it is current and far larger.

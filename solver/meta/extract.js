@@ -11,11 +11,15 @@
  * POPULATION RULES, in the order a game is charged (first matching reason is the one counted; the
  * overlap of every reason is also counted):
  *   closed_sheet        bo1 game without open sheets — out of scope (Will: open team sheets only)
- *   own_account         either player is one of ours (OWN below)
+ *   not_open_sheet_bo3  not open-sheet bo3 play by engine/quality.js isOpenSheetBo3() (Will, 2026-10-01): the bo3 format,
+ *                       or a bo1-format room under exactly Force Open Team Sheets + Best of = 3. A bo1 game whose sheets
+ *                       were offered and accepted is bo1 play and is charged here.
+ *   own_account         either player is one of ours (data/quality-filter.json rules.exclude_own_accounts)
  *   bot_flag, behavioural_bot, quality:<code>
  *                       engine/quality.js reasons(), with its behaviouralBots() over both stores (since 2026-09-30;
  *                       the bot rules used to be copied here and missed the Reg M-C tempo clause)
- *   custom_ruleset      the raw log carries Showdown's `N custom rule(s):` infobox
+ *   custom_ruleset      the raw log carries Showdown's `N custom rule(s):` infobox, and its rules are not the open-sheet
+ *                       bo3 game (the only custom rule set allowed, Will 2026-10-01)
  *   illegal_entity      a species/item/ability/move/nature on either sheet is not legal in M-C
  *   validator_reject    Showdown's M-C TeamValidator rejects a sheet for a reason other than the
  *                       zero-Stat-Point clause (a reconstruction artifact: the store keeps no SP)
@@ -27,7 +31,8 @@ const zlib = require('zlib');
 const L = require('./lib.js');
 const LEG = require('./legality.js');
 
-const OWN = new Set(['medicham32', 'willhoop', 'mag', 'mag2', 'miltank', 'miltank2']);
+/* OUR OWN ACCOUNTS: declared once in data/quality-filter.json rules.exclude_own_accounts and read through engine/quality.js
+ * (2026-10-01); the typed list that stood here named mag2, miltank and miltank2, which no file shows we used. */
 /* THE STORE'S QUALITY RULES ARE engine/quality.js's, CALLED, NEVER COPIED (2026-09-30). This file used to hard-code the
  * bot-name regex and the behavioural-bot thresholds (50 games / 1 team), so MEASURE's Reg M-C tempo clause
  * (abra/regmc 1.36.0) never reached it. Each store row now keeps the fields quality.js reads, the bot set is
@@ -146,7 +151,7 @@ async function main() {
   /* ---- charge each game ------------------------------------------------------------------- */
   const GAME_SHAPE = new Set(['forfeit_no_action', 'short', 'partial_bring']);
   const shapeNotCharged = {};
-  const REASONS = ['closed_sheet', 'own_account', 'bot_flag', 'behavioural_bot', 'quality:illegal_team', 'quality:corrupt_winner', 'quality:nonstandard_ruleset', 'quality:custom_ruleset',
+  const REASONS = ['closed_sheet', 'not_open_sheet_bo3', 'own_account', 'bot_flag', 'behavioural_bot', 'quality:illegal_team', 'quality:corrupt_winner', 'quality:nonstandard_ruleset', 'quality:custom_ruleset',
     'custom_ruleset', 'illegal_entity', 'validator_reject'];
   const first = Object.fromEntries(REASONS.map(r => [r, { bo1: 0, bo3: 0 }]));
   const any = Object.fromEntries(REASONS.map(r => [r, { bo1: 0, bo3: 0 }]));
@@ -158,15 +163,19 @@ async function main() {
     const rf = raw.get(g.id) || null;
     const hits = [];
     if (!g.sheets) hits.push('closed_sheet');
+    /* the raw log's own infobox when we hold it; the scan's text otherwise (engine/quality.js customRulesOf) */
+    const osb3 = Q.isOpenSheetBo3({ id: g.id }, rf ? (rf.custom || null) : undefined);
+    if (!osb3) hits.push('not_open_sheet_bo3');
+    g.open_sheet_bo3 = osb3;
     const names = g.p.map(p => L.toID(p.n));
-    if (names.some(n => OWN.has(n))) { hits.push('own_account'); names.filter(n => OWN.has(n)).forEach(n => { ownSeen[n] = (ownSeen[n] || 0) + 1; }); }
-    const qr = Q.reasons(g.q, qcfg, behavBots);
+    if (names.some(n => Q.isOwnAccount(n))) { hits.push('own_account'); names.filter(n => Q.isOwnAccount(n)).forEach(n => { ownSeen[n] = (ownSeen[n] || 0) + 1; }); }
+    const qr = Q.reasons(g.q, qcfg, behavBots).filter(c => c !== 'own_account');   /* charged above under its own name */
     /* game-shape codes (forfeit before any action, short, partial bring) are COUNTED, NOT CHARGED: this analysis never
      * applied them and a sheet is evidence of what was built whatever the game's length (solver/human/build_dataset.js
      * GAME_SHAPE, same reasoning) */
     for (const code of qr) { if (GAME_SHAPE.has(code)) { slot(shapeNotCharged, code)[g.fmt]++; continue; } hits.push(QUALITY_NAME(code)); }
     if (qr.includes('behavioural_bot')) g.p.map(p => p.n).filter(n => behavBots.has(n)).forEach(n => { const k = L.toID(n); behavSeen[k] = (behavSeen[k] || 0) + 1; });
-    if (rf && rf.custom) hits.push('custom_ruleset');
+    if (rf && rf.custom && !Q.customRuleRegime(Q.formatOfId(g.id), rf.custom).open_sheet_bo3) hits.push('custom_ruleset');
     if (g.sheets) {
       let ill = false;
       for (const sh of g.sheets) for (const m of sh) {
@@ -205,7 +214,8 @@ async function main() {
     kept: { total: kept.length, bo1: kept.filter(g => g.fmt === 'bo1').length, bo3: kept.filter(g => g.fmt === 'bo3').length,
       first_date: kept.length ? kept[0].date : null, last_date: kept.length ? kept[kept.length - 1].date : null },
     exclusions: { order: REASONS, charged_first: first, any_overlap: any },
-    own_accounts_listed: [...OWN], own_accounts_seen: ownSeen,
+    own_accounts_listed: [...Q.ownAccounts()], own_accounts_from: 'data/quality-filter.json rules.exclude_own_accounts', own_accounts_seen: ownSeen,
+    open_sheet_bo3: 'engine/quality.js isOpenSheetBo3(): the bo3 format plus bo1-format rooms under exactly Force Open Team Sheets + Best of = 3 (Will, 2026-10-01). A kept bo1 row is one of those rooms; `open_sheet_bo3` is on every row.',
     behavioural_bots: { rule: qcfg.rules.exclude_behavioural_bots, via: 'engine/quality.js behaviouralBots() over both stores, charged by reasons()',
       quality_config_version: qcfg.version || null, quality_js_sha256: L.sha256File(path.join(L.ROOT, 'engine', 'quality.js')), accounts: behavSeen,
       game_shape_codes_counted_not_charged: [...GAME_SHAPE], game_shape_not_charged_counts: shapeNotCharged },
