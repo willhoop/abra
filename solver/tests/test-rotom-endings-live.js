@@ -168,7 +168,10 @@ async function main() {
       const G = recs().filter(x => x.series === s.bo).sort((a, b) => a.game - b.game);
       ok(s.tag, G.length === 2 && G[0].end_reason === 'normal' && G[1].end_reason === 'forfeit_opp' && G[1].end_by === 'estrellitapor' && G[1].end_turn === 2 && G[1].end_raw === '|-message|estrellitapor forfeited.',
          'game records: ' + JSON.stringify(G.map(x => ({ g: x.game, e: x.end_reason, by: x.end_by, t: x.end_turn }))));
-      ok(s.tag, !mine(s).length, 'no self quit and no halt from this series: ' + JSON.stringify(mine(s))); }
+      ok(s.tag, !mine(s).length, 'no self quit and no halt from this series: ' + JSON.stringify(mine(s)));
+      /* THE TACTICS COUNTERS ride on every game record (solver/arena/tactics.js, abra/regmc 1.55.0): both sides, read from the room's lines */
+      ok(s.tag, G.length === 2 && G.every(x => x.tactics && x.tactics.mine && x.tactics.opp && x.tactics.mine.turns > 0 && x.tactics.mine.switch && x.tactics.mine.mega && x.tactics.mine.speed),
+         'game records carry tactics: ' + JSON.stringify(G.map(x => x.tactics ? { turns: x.tactics.mine && x.tactics.mine.turns, mega: x.tactics.mine && x.tactics.mine.mega.megaed, vol: x.tactics.mine && x.tactics.mine.switch.voluntary } : null))); }
     /* WALKAWAY */
     { const s = S[1];
       ok(s.tag, await waitFor(() => rows().some(r => r.series === s.bo) && H.searches.length >= 3, 60000), 'the series row is written and the client searches again');

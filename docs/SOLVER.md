@@ -133,6 +133,12 @@ This section says only what a division agent needs before it starts.
   top 8 71.1%. Sucker Punch failed 17 of 36: the engine is right on all 17; 9 had no alternative row, 8 were leaf ties.
   World fixes: identity (formes, nicknames), Unburden, Flash Fire, added type; `solver/tests/test-rotom-world-fields.js`.
   No series has played on them. `docs/_reports/2026-10-01-search-blind-spots.md`.
+- **Speed control, mega and switches tracked; the bot beside humans (2026-10-01, abra/regmc 1.55.0).** Standing per-game
+  counters (`solver/arena/tactics.js`) on every ROTOM game record, in `report.js ladder`, and on every arena match row.
+  Over 126 search-arm ladder games, like with like against 1400+ humans: speed control 0.88 [0.69, 1.12], switch-outs
+  1.06 [0.92, 1.22], mega 0.98 [0.81, 1.18]. What costs games is the foe's speed control (win −0.22 [−0.39, −0.05];
+  humans −0.03) and switch-ins KO'd that turn (15.4% vs 10.0%). Our fours rarely carry Trick Room.
+  `docs/_reports/2026-10-01-speed-mega-switch.md`.
 - **Two SPRTs, both H0 (2026-09-30, abra/regmc 1.50.0).**
   - piKL λ 0.03 vs gen5 at the 14 s clock: 416 games, 0.469 [0.421, 0.517], clock ratio 0.976. The Protect fail rate
     is 9.8% vs 15.8%, with no strength gain.

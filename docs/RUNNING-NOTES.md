@@ -53,6 +53,19 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.55.0] — 2026-10-01 — **Speed control, mega and switches are tracked on every ROTOM game and arena row; like with like, the bot matches strong humans on all three**
+- **What changed.** New `solver/arena/tactics.js`: standing per-side counters for speed control (available, used, turn, mattered or wasted, answers), mega (capable, used, turn, slot) and switches (voluntary, forced, pivot, double; into a KO, a resist or immunity). The speed-control set is derived from the format: 34 moves. It is wired into ROTOM's game record and summary (`solver/rotom/rotom.js`), `report.js ladder <dir>` (per arm, won and lost), and every `solver/mew/play.js` match row and summary. New: `solver/tests/test-tactics.js` (GREEN 28/28, RED under `TACTICS_BREAK=blind`) and a live-client check in `test-rotom-endings-live.js` (GREEN 20/20). New read-only analysis: `solver/results/2026-10-01-speed-mega-switch/analyze.js`. No game was played.
+- **Measured.** From `solver/results/2026-10-01-speed-mega-switch/measured.json`.
+  - Inputs: 126 search-arm ladder games (gen5ab A 41, chomp1 50, chomptop 35 while live) and 98 prior-arm games, release `eaa5becc54eb`. 27,143 human games (281 raw shards; the bo3 store sha256 `7c15d94eab4a`; `engine/quality.js` `reasons()`): 1400+ 588 sides, 1200–1399 10,073.
+  - Bot vs 1400+ humans: mega when capable 94.1% vs 95.4%; voluntary switches per game 1.65 vs 1.66; speed-control uses per game 0.55 vs 0.71.
+  - Like with like (observed / expected at 1400+): speed control 0.88 [0.69, 1.12], switch-outs 1.06 [0.92, 1.22], mega 0.98 [0.81, 1.18].
+  - Costs. The win rate when the foe used speed control moves −0.22 [−0.39, −0.05]; for 1400+ humans, −0.03. Switch-ins KO'd that turn: 15.4% vs 10.0%.
+  - Table check, 919 decisions: speed control not used while the foe was faster, 109; 50 had no speed-control row in the table, 59 had one ranked lower. A mega not taken was always in the table (27 of 27).
+  - `docs/_reports/2026-10-01-speed-mega-switch.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** `docs/MODELS.md` (ROTOM): the tactics counters and the like-with-like comparison.
+
 ## [abra/regmc 1.54.0] — 2026-10-01 — **DUSK designed, not built: an on-the-fly endgame solver with a certified band, not tables; endgames are common and cost us little directly**
 - **What changed.** `solver/dusk/DESIGN.md` (the design), four measurement scripts (`measure_endgames.js`, `lib.js`, `measure_ladder.js`, `combine.js`), the Smogon hook `smogon_foldin.js`, the tracked summary `solver/dusk/endgames-summary.json`, and `solver/tests/test-dusk-measure.js` (GREEN 42/42; RED under both `DUSK_BREAK` breaks). The `solver/PLAN.md` DUSK row now says what DUSK is. No engine loaded, no game played.
 - **Measured.** Store-only, every `engine/quality.js` `reasons()` code charged (`endgames-summary.json` `meta`): bo3 26,945 clean games, E2 (both sides ≤ 2 alive) reached 62.9% [62.3, 63.5]; every real game (sensitivity arm, 38,534) 44.0%; bo1 64.3% / 42.4%. About 2 decisions remain (mean 2.19). E2 material: 2v2 59.0%, 2v1 38.1%, 1v1 2.9%; 2v1 won by the side ahead 88.8% [88.0, 89.6]; 2v2 won by the HP leader 64.1%. Chronological table hit rate: species pair 17.0%, + sets 1.0%, + HP quarters 0.8%. Sheet-bound 2v2 joint menu median 6,000 cells. Ours (`meta.ladder`, aa1 + aa2 + gen5ab + chomp1, release `eaa5becc54eb`): E2 in 88 of 189 games; 35 of 108 losses passed through an E2 entered even, none from ahead; conversion vs humans from the same material and HP lead −3.7 wins [−10.8, +3.6] over 88; bank at E2 entry median 419.9 s; XATU worlds at E2 decisions median 7,755. `docs/_reports/2026-10-01-dusk-design.md`.

@@ -21,6 +21,36 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.55.0] — 2026-10-01
+
+**MINOR: no published figure moves.** It adds standing counters and a read-only analysis; no game was played.
+
+### Added
+- **The tactics counters (`solver/arena/tactics.js`).** Speed control, mega and switches, per side per game, with one
+  definition and two readers: `fromLog()` for a battle log and `game(API)` for the arena's engine state. The
+  speed-control set is derived from `Dex.forFormat` (legal only): 34 moves, plus weather and terrain moves for a side
+  with the matching speed ability. 19 speed abilities feed the estimate. Will (2026-10-01): *"i just want to have that
+  info tracked."*
+- ROTOM writes `tactics: { mine, opp }` into every game record and `tactics` totals into the summary
+  (`solver/rotom/rotom.js`). `node solver/rotom/report.js ladder <dir>` prints the counters beside the record, per arm,
+  for all, won and lost games, read from the run's own room logs (`tacticsOfRun`).
+- Arena: every match row of `solver/mew/play.js` carries `tactics.x` and `tactics.y`, every self-play record carries
+  `tactics`, and the shard summary has `tactics.by_agent`.
+- `solver/tests/test-tactics.js`: GREEN 28/28, and RED under `TACTICS_BREAK=blind`. `test-rotom-endings-live.js` checks
+  that the real client's game records carry `tactics` (GREEN 20/20).
+- `solver/results/2026-10-01-speed-mega-switch/analyze.js` and `measured.json`: the bot against its opponents and the
+  open-sheet humans (27,143 games after `engine/quality.js` `reasons()`).
+
+### Notes
+- Over 126 search-arm ladder games, like with like against 1400+ humans (observed / expected): speed control 0.88
+  [0.69, 1.12], switch-outs 1.06 [0.92, 1.22], mega 0.98 [0.81, 1.18]. The mega rate is 94.1% against 95.4% for
+  1400+ humans.
+- Two things are associated with lost games beyond what humans show:
+  - The foe's speed control: the win rate moves −0.22 [−0.39, −0.05]; for 1400+ humans, −0.03.
+  - A voluntary switch-in KO'd the same turn: 15.4% of switch-ins, against 10.0% for 1400+ humans.
+- Our fours used Trick Room 3 times in 126 games; the opponents used it 31 times.
+- Details: `docs/_reports/2026-10-01-speed-mega-switch.md`.
+
 ## [1.54.0] — 2026-10-01
 
 **MINOR: no published figure moves.** A design and its measurements; nothing is built and no game was played.
