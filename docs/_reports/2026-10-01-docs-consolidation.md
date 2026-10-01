@@ -228,6 +228,88 @@ node engine/notes_to_changelog.js row.md --entry    # a whole entry (### Changed
 frozen page) and keep the branch's row text aside in a file. Then run
 `node engine/notes_to_changelog.js <that file> --entry`, or `--apply` against the ref.
 
+## 8. Merge with main at 1.64.0 (coordinator's second brief)
+
+**Merged.** `origin/main` was at abra/regmc 1.64.0 and is now merged into this branch (merge commit
+`9f373f03`). The only conflict was the top of `CHANGELOG-REGMC.md`. In the resolution my entry sits
+above main's entries.
+
+**Renumbered.** My entry moved from 1.60.0 to **1.65.0**, along with its mentions. Main's own 1.60.0
+entry is untouched. The commit subjects `5b47e879` and `fff77da3` still say 1.60.0; they are history
+and are not rewritten.
+
+**The cut moved to 1.64.0. Nothing was migrated.** The masthead now reads
+`<!-- FROZEN: abra/regmb=7.0.0; abra/regmc=1.64.0 -->`. Main merged 1.51.0–1.64.0 in the old format:
+each version has a notes row AND a changelog entry. Migrating them would have meant appending
+`### Record` sections to 14 released changelog entries and deleting 14 dated rows from the page. That
+edits released records twice over, for no gain, because both copies already exist. Moving the cut
+leaves every row and every entry byte-for-byte as main wrote it, and those versions are still checked
+by 5d and still counted by the backlog through the archive. Every mention of the cut was moved with it:
+the CHANGELOG-REGMC masthead, the frozen page's header, `solver/LOG.md`, `solver/PLAN.md`,
+`docs/SOLVER.md`, `docs/ORIENTATION.md`, the technical docs, `build/build_pdfs.js` and a
+`docs_scan.js` comment. `solver/LOG.md` also gained main's lines after my freeze header; its header
+now says it ends with the lines written up to 1.64.0.
+
+**Backlog:**
+
+| reader | regmc owed |
+|---|---|
+| main's `docs_scan.js` on main's rows | **75 of 165** |
+| new reader, cut 1.64.0, with this entry | **76 of 165** |
+
+The difference of 1 is this entry. regmb is 0 under both readers. 5d matched 225 of 227 regmc rows,
+with the top 1.65.0 read as a minor bump.
+
+**A history defect from main, repaired.** Main's 1.64.0 renumber (`44eb852e`) ran an unescaped
+`1.65.0 → 1.64.0` pattern. It rewrote release id `1a6550ea5ec6` to `1.64.0ea5ec6` in 7 places, in
+dated 6.58.0 / 6.59.x rows of `docs/RUNNING-NOTES.md`. Those bytes are restored to what they were at
+`eece3fc8`; the count is 7 = 7. **Renumber scripts must escape the dots.**
+
+**An orient defect from main, fixed.** `tests/test-orient.js` was RED on main itself, with
+`THE MODELS derived 0 models`. Main's `solver/PLAN.md` rewrite put a "what changes" table at the top of
+§2, and `engine/orient.js` read the first table's header. Orient now takes the first table whose header
+names `Name` and `Role`. The test is GREEN with 26 models, and `ORIENT_BREAK=models` still fails.
+
+**LINE marker.** Line 3 of `CHANGELOG-REGMC.md` now ends with `; docs=major`. `versionLines()` ignores
+unknown keys, and `--lines` still parses the line.
+
+**Gates after the merge commit:**
+- `tests/test-docs-current.js`: **41 passed, 0 failed**, covering 5a, 5b (last record move
+  `9f373f03`), 5c, 5d and 5e.
+- `--owed`: exit 0.
+- The hook passed on the merge commit.
+- `--note-check engine/orient.js`: exit 1. `--note-check engine/orient.js CHANGELOG-REGMC.md`: exit 0.
+- `test-orient`: GREEN.
+- `sanity_check.py`: 0 FAIL lines, with the PORY/README clause ok. It still dies afterwards in a worktree
+  on the absent `data/games.ladder.jsonl`. That is pre-existing and does not happen on main.
+
+### What a new entry must contain under the new format (from abra/regmc 1.66.0 on)
+
+Write ONE entry at the top of `CHANGELOG-REGMC.md`. Write nothing in `docs/RUNNING-NOTES.md`; it is
+frozen, and a row there fails clause 2 as `row_after_freeze`.
+
+```
+## [1.66.0] — 2026-10-01
+
+**One line naming what moved.** MINOR/PATCH: whether a published figure moves.
+
+### Changed            (or Added / Fixed / Removed, as they apply)
+- ...
+
+### Record
+- **Measured.** <figure> — `data/<artifact>.json`, n=<sample>, against <baseline>.  Or: NO FIGURE.
+- **Basis.** unchanged.  Or: CHANGED — <what a reader can no longer be told>  (only on an X.0.0)
+- **Supersedes.** Nothing.  Or: ~~<old figure>~~ retracted — and DELETED from the doc that stated it.
+- **Owed to the next major.** the living document that must absorb this, or none.
+```
+
+- All four Record bullets are required (clause 5e).
+- A figure attributed to an artifact must be in that artifact (3b(b)).
+- A struck figure in `Supersedes.` registers as retracted, so no living document may restate it (3b(a)).
+- The commit must stage `CHANGELOG-REGMC.md`; the hook's `--note-check` enforces it.
+- A branch that still wrote an old-style row: after merging it, run
+  `node engine/notes_to_changelog.js --migrate`.
+
 ## OWED, NOT RUN
 
 ```bash
