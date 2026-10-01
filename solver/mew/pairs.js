@@ -102,7 +102,7 @@ function load(o) {
   const fd = fs.openSync(file, 'r');
   const chunk = Buffer.alloc(1 << 22);
   let buf = '', pos = 0;
-  const counts = { scanned: 0, bring_incomplete: 0, custom_rules: 0, sheet_not_six: 0, unbuildable: 0, mixed_split: 0, train: 0, val: 0, test: 0 };
+  const counts = { scanned: 0, bring_incomplete: 0, not_open_sheet_bo3: 0, custom_rules: 0, sheet_not_six: 0, unbuildable: 0, mixed_split: 0, train: 0, val: 0, test: 0 };
   const out = { train: [], val: [], test: [] };
   try {
     for (;;) {
@@ -117,6 +117,7 @@ function load(o) {
         const cut = line.indexOf(',"turns":');
         const g = JSON.parse(cut > 0 ? line.slice(0, cut) + '}' : line).game;
         if (!g.bring_complete || !g.bring_complete.p1 || !g.bring_complete.p2) { counts.bring_incomplete++; continue; }
+        if (g.open_sheet_bo3 === false) { counts.not_open_sheet_bo3++; continue; }   /* series pool only (Will, 2026-10-01) */
         if (g.custom_rules) { counts.custom_rules++; continue; }
         if ((g.sheets.p1 || []).length !== 6 || (g.sheets.p2 || []).length !== 6) { counts.sheet_not_six++; continue; }
         const brought = {};

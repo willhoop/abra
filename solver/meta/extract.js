@@ -164,7 +164,10 @@ async function main() {
     const hits = [];
     if (!g.sheets) hits.push('closed_sheet');
     /* the raw log's own infobox when we hold it; the scan's text otherwise (engine/quality.js customRulesOf) */
-    const osb3 = Q.isOpenSheetBo3({ id: g.id }, rf ? (rf.custom || null) : undefined);
+    /* SERIES-LEVEL (bo3 rates, bring and lead, the set library): open-sheet bo3 only, Will 2026-10-01. A bo1-format
+     * Best of = 3 room counts when both players accepted the sheets, so the classifier is told whether they were shown. */
+    const sheetsShown = !!(g.sheets && g.sheets.length === 2 && g.sheets.every(s => s && s.length));
+    const osb3 = Q.isOpenSheetBo3({ id: g.id, sheetsShown }, rf ? (rf.custom || null) : undefined);
     if (!osb3) hits.push('not_open_sheet_bo3');
     g.open_sheet_bo3 = osb3;
     const names = g.p.map(p => L.toID(p.n));
@@ -175,7 +178,8 @@ async function main() {
      * GAME_SHAPE, same reasoning) */
     for (const code of qr) { if (GAME_SHAPE.has(code)) { slot(shapeNotCharged, code)[g.fmt]++; continue; } hits.push(QUALITY_NAME(code)); }
     if (qr.includes('behavioural_bot')) g.p.map(p => p.n).filter(n => behavBots.has(n)).forEach(n => { const k = L.toID(n); behavSeen[k] = (behavSeen[k] || 0) + 1; });
-    if (rf && rf.custom && !Q.customRuleRegime(Q.formatOfId(g.id), rf.custom).open_sheet_bo3) hits.push('custom_ruleset');
+    /* a rule other than a sheet or best-of rule; the series judgement itself is not_open_sheet_bo3 above */
+    if (rf && rf.custom && !Q.sheetRulesOnly(Q.customRuleRegime(Q.formatOfId(g.id), rf.custom))) hits.push('custom_ruleset');
     if (g.sheets) {
       let ill = false;
       for (const sh of g.sheets) for (const m of sh) {

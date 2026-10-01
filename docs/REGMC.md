@@ -433,6 +433,27 @@ every run for exactly this reason. Full account:
 
 Counts and the per-rule-string verdicts: [`docs/_reports/2026-10-01-custom-ots-bo3.md`](_reports/2026-10-01-custom-ots-bo3.md).
 
+### WILL'S DECISIONS, 2026-10-01 (SECOND PAIR): TURN PLAY AND SERIES PLAY ARE TWO ANSWERS, AND A CONSENT BO3 ROOM IS BO3
+
+*(abra/regmc 1.66.0. They extend the 1.65.0 decision above, which is left as written; its bullet "a bo1 game whose sheets
+were offered and accepted ... is out of the open-sheet views" now holds for SERIES uses only.)*
+
+- **Decision 1. A bo1 game in which both players accepted open team sheets COUNTS for turn-level models** (value
+  nets, human move/policy and habit models, PORYGON2 datasets, DODUO, GARY), because both sheets were visible and play
+  within a game is the same. **It is EXCLUDED from series-level uses** (bo3 preview, series adaptation, CHOMP's bo3
+  rates, rotation selection by series). Two answers from one classifier: `engine/quality.js` `isOpenSheetTurnPlay(g)`
+  and `isOpenSheetBo3(g)`, both from the room's rule text and the game's stored sheets, never an id list.
+  `isOpenSheetBo3` implies `isOpenSheetTurnPlay`.
+- **Decision 2. A bo1-format room set to `Best of = 3` in which both players accepted the sheets IS open-sheet bo3**
+  (open-sheet bo3 by consent). A `Best of = 3` room with no sheets shown is neither.
+- **A room whose rules touch only the sheets and the series length is decided by its sheets, not excluded by its
+  text.** Any other rule still excludes the room. The `Force Open Team Sheets`-only bo1 room (one game, sheets forced)
+  is turn play; that reading is MEASURE's, stated in the report, and is one line to reverse.
+- **The frozen pool is not re-cut.**
+
+Counts by rating band before and after, and which consumer reads which answer:
+[`docs/_reports/2026-10-01-open-sheet-turn-play.md`](_reports/2026-10-01-open-sheet-turn-play.md).
+
 **One thing found on the way, not fixed here, OPS's:**
 `data/games.gen9championsvgc2026regmc.jsonl` on disk is a stale snapshot of 2026-09-09 while
 `data/games.gen9championsvgc2026regmc.jsonl.gz` beside it is current and far larger.

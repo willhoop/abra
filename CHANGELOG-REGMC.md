@@ -21,6 +21,33 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.66.0] — 2026-10-01
+
+### Added
+- `engine/quality.js` `isOpenSheetTurnPlay(g)`, `openSheetRegime(g, rulesText)`, `bothSheetsShown(g)` and
+  `sheetRulesOnly(regime)`: the turn-level answer beside the series answer, from the rule text and the game's stored
+  sheets (Will, 2026-10-01). `isOpenSheetBo3` implies `isOpenSheetTurnPlay`.
+- `tests/test-open-sheet-turn-play.js`: every class on a fixture, and the custom-rule charge on real scanned rooms;
+  GREEN 27/27, RED on two deliberate breaks.
+- `data/custom-ruleset-ids-regmc.json` `ids_sheet_rules_only`: rooms whose rules touch only the sheets and the series
+  length.
+
+### Changed
+- A bo1-format `Best of = 3` room in which both players accepted the sheets is open-sheet bo3 (Will's decision 2):
+  205 rooms, 147 clean, all unrated.
+- A sheet-rules-only room is charged `custom_ruleset` only when its sheets were not shown; any other rule still
+  excludes the room. `engine/quality.py` mirrors it (bo1 1,187 and bo3 15 charged by both).
+- Turn-level datasets take open-sheet turn play (Will's decision 1): `solver/human/build_dataset.js` (every game carries
+  `open_sheet_bo3`) and `solver/porygon2/v2/extract.js --fmt bo3`. Open-sheet turn play on the same stores: 41,935
+  games, 28,713 clean (27,332 under 1.65.0); clean 1500+ 0 → 14.
+- Series-level readers keep open-sheet bo3 only: `solver/chomp/data.js`, `solver/xatu/eval_bring.js`,
+  `solver/rotom/build_assets.js` team candidates, `solver/arena/teams.js`, `solver/mew/pairs.js`, `solver/meta/extract.js`.
+- `data/meta-usage-regmc.json` regenerated: usable 27,479 (27,106; store growth included).
+
+### Notes
+- The frozen pool is not re-cut. SOLVER owes the dataset rebuilds on main. Report:
+  `docs/_reports/2026-10-01-open-sheet-turn-play.md`.
+
 ## [1.65.0] — 2026-10-01
 
 **MINOR: a published figure moves** (`data/meta-usage-regmc.json`, usable games 27,063 to 27,106 on a newer store).
