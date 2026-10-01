@@ -159,6 +159,13 @@ This section says only what a division agent needs before it starts.
     v2 served 485,334 evaluations with 0 errors and 0.39× gen5's leaf calls. This ran outside v2's
     pre-registration (Will).
   - Both used the pre-1.49.0 arena. Neither is on an arm. `docs/_reports/2026-09-30-sprt-pikl-and-v2.md`.
+- **Tournament store and tournament rotation, prepared and not launched (2026-10-01, abra/regmc 1.61.0).**
+  - Store: `data/tournaments/regmc/`, built by `solver/tournaments/ingest.js` (weekly workflow `tournament-ingest.yml`).
+    It holds 537 Masters teams from 5 open-team-list events, and 2 Replica pastes. 537 of 539 validate.
+  - Rotation: `solver/rotom/teams/ladder-rotation-tour.json`, arm `gen5-chomp-tour.json`. It holds five real
+    top-cut teams, and each series row carries the team's event, placing and paste.
+  - Open team sheets publish no spreads. On the 12 published sets, our derived spread matches on 0, and Speed matches
+    on 1. The command for Will is in `docs/_reports/2026-10-01-tournament-rotation.md`.
 - **Human-regularised search (piKL), phase A (2026-09-30, abra/regmc 1.34.0).** Spec flag `kl` (lambda; off, on no
   arm): SLOWKING solves the KL-regularised root game with gen5's DODUO as the anchor (`solveKL`). On 579 held-out human
   decisions and the same recorded tables, top-1 agreement is 0.216 at lambda 0 and 0.268 at 0.1 (+0.052 [0.021, 0.083]).

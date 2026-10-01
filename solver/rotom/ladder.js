@@ -295,7 +295,10 @@ function create(o) {
       rec = { k: p.k, arm: p.arm, arm_config: o.arms.arms[p.arm], team: p.team, team_meta: { archetype: team.archetype && team.archetype.label, from_game: team.from_game, rating: team.rating,
                  /* the Stat Points played (solver/rotom/spreads.js, 2026-09-30): hp/atk/def/spa/spd/spe per slot, and where each came from */
                  spreads: team.spreads ? team.spreads.map(z => ['hp', 'atk', 'def', 'spa', 'spd', 'spe'].map(k => z.evs[k]).join('/')) : null,
-                 spread_source: team.spreads ? [...new Set(team.spreads.map(z => z.source))].join(',') : null },
+                 spread_source: team.spreads ? [...new Set(team.spreads.map(z => z.source))].join(',') : null,
+                 /* a TOURNAMENT rotation team (2026-10-01, build_tour_rotation.js) names where it was published: the event, the
+                  * placing, the player and the paste / team-list URL. Absent on the store-built rotations, so their rows are unchanged. */
+                 source: team.source || undefined },
               started: new Date(now()).toISOString(), counters_before: o.counters() };
       o.bookSet(room, { ladder: rec, team: p.team, policy: rec.arm_config.policy, arm: p.arm });
     }

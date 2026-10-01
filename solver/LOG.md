@@ -32,6 +32,14 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 - **gen5 vs gen0-r2: H0, DEGRADED.** 0.497 over 1,098 games. 24% prior fallbacks from machine load. Re-run owed, with
   a capability bar.
 - `docs/_reports/2026-10-01-v2-14s-and-role-v1-baselines.md`.
+### A tournament store and a tournament rotation (abra/regmc 1.61.0)
+- Store: `data/tournaments/regmc/`. It holds 537 Masters teams from Baltimore, Frankfurt, Brisbane and VR's two
+  September Challenges, and 2 Replica Teams pastes. The raw paste is kept with each team. 537 of 539 validate.
+  Discovery is by the regulation tag. A weekly workflow is on this branch, not on main.
+- Rotation: `ladder-rotation-tour.json`, arm `gen5-chomp-tour.json`. Five real top-cut teams, each with its source.
+  Not launched.
+- Spreads: open team sheets publish none (0 of 537). On the 12 published Replica sets, our derived spread matches on 0
+  and Speed matches on 1. `docs/_reports/2026-10-01-tournament-rotation.md`.
 
 ### The search's uncovered blind spots; four world fields fixed (abra/regmc 1.52.0)
 - Opponent coverage is 57.7% with targets (636 ladder decisions). DODUO ranks the actual joint top-4 in 57.1% and
