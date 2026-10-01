@@ -2,7 +2,7 @@
  *
  *   cmd.exe /c tools\lownode.cmd solver\mew\run.js --release <id> --league <league.json> --games N --seed S
  *        --workers 4 --out solver/out/selfplay/<release>/<gen> [--cap 50] [--human <games.jsonl>]
- *        [--spreads role-v1|xatu-random|flat]   the bodies' Stat Points (solver/arena/spread_source.js); default role-v1
+ *        [--spreads observed-v1|role-v1|xatu-random|flat]   the bodies' Stat Points (solver/arena/spread_source.js); default observed-v1 (1.73.0)
  *        since abra/regmc 1.49.0 — every generation before it self-played at `flat`
  *
  * Forks --workers shards of solver/mew/play.js (process-level parallelism only; each worker loads its own

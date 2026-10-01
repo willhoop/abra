@@ -28,6 +28,56 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.73.0] — 2026-10-01
+
+**MINOR. The arena now plays the ladder's spreads by default: `observed-v1` (Will, 2026-10-01).** Practice games,
+SPRTs, the gate and self-play field what ROTOM fields on all 90 rotation sets. `role-v1`, `flat` and `xatu-random` stay
+selectable with `--spreads`, so an old figure can be re-run. CHOMP v2's spread rule is pinned, so its table cannot move
+silently.
+
+### Changed
+- **`solver/arena/spread_source.js`**: `DEFAULT` is `observed-v1` (was `role-v1`). Deliberate break:
+  `SPREADS_SOURCE_BREAK=default` puts it back to role-v1. This is the ONE place the default lives. Every caller reads
+  `SS.DEFAULT`:
+  - `solver/arena/arena.js` (`--spreads`, else the plan's own, else the default);
+  - `solver/arena/teams.js` `defaultSpreads` (env `ARENA_SPREADS`, else the default);
+  - `solver/mew/play.js`, `solver/mew/run.js`;
+  - `solver/machamp/sprt.js`, `solver/machamp/gate.js`;
+  - `solver/chomp/plan.js`, `solver/chomp/v1/gen.js`.
+
+  Their usage text now names the new default. Every artifact still stamps its mode, its table file and the table's
+  sha256 (`stamp().table`).
+- **`solver/chomp/v2/build_spreads.js`**: every Deriver it makes takes `HOOKS = { observed: null, tournament: null }`.
+  CHOMP v2's table stays the derived rule, and the provenance says so.
+
+### Added
+- Tests:
+  - `test-arena-spreads` RULE asserts the default is observed-v1 and the three other modes stay selectable. RED under
+    `SPREADS_SOURCE_BREAK=default`.
+  - `test-arena-spreads` PARITY now reads the default mode and compares every rotation set: 90/90.
+  - `test-arena-spreads` RECORD plays the default (observed-v1, at its table's sha256) and `--spreads role-v1`.
+  - `test-body-parity` DEFAULT clause, RED under the same break.
+  - `test-chomp2` PIN clause: every CHOMP v2 Deriver is pinned, with a control on an unpinned copy.
+
+### Record
+- **Measured.** NO FIGURE (no games). Tests GREEN:
+  - `test-arena-spreads` 24/24 (reds: scarf → PARITY and OBSERVED, stamp → RECORD, default → RULE);
+  - `test-body-parity` 8/8 at the default (reds: FRESH, MEGA, DEFAULT);
+  - `test-machamp` 112/112;
+  - `test-miltank` 3992/3992;
+  - `test-honest-info` 1954/1954;
+  - `test-chomp2` 32/32 on `eaa5becc54eb`.
+
+  Account: `docs/_reports/2026-10-01-smogon-sept.md` §9.
+- **Basis.** unchanged for every PUBLISHED figure. Arena strength is withheld from the living documents, so no
+  published figure moves. This is a MINOR under the declared-public-API rule, following the 1.49.0 precedent. **A NEW
+  ARENA SERIES STARTS AT THIS VERSION.** An arena, gate, SPRT or self-play figure measured at `role-v1`
+  (1.49.0–1.72.0) is not comparable with one measured at `observed-v1` (1.73.0 on). The bodies differ: 10,244 of
+  14,247 table sets, 6,695 of them in Speed. Re-run an old figure with `--spreads role-v1`.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** `docs/MODELS.md` and the white paper's arena section: the default spread mode and the
+  series break.
+
 ## [1.72.0] — 2026-10-01
 
 **MINOR. Smogon's September 2026 Reg M-C stats are archived and folded into the spread hook, and the three ladder

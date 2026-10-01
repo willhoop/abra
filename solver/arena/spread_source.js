@@ -3,7 +3,7 @@
  * docs/_reports/2026-09-30-arena-real-spreads.md.)
  *
  *   const SS = require('./solver/arena/spread_source.js');
- *   const src = SS.open(mode, { M })     mode: 'role-v1' (DEFAULT) | 'observed-v1' | 'xatu-random' | 'flat'
+ *   const src = SS.open(mode, { M })     mode: 'observed-v1' (DEFAULT since 1.73.0) | 'role-v1' | 'xatu-random' | 'flat'
  *   src.spreadsFor(G, seed)              -> { p1: [evs|null x6], p2: [...] }  one per SHEET row (seed: xatu-random only)
  *   src.dress(team, rows, evsBySheet)    lays each body's spread on it (the body's `_solverSheet` picks the row)
  *   src.bodyBuilder(buildBody[, { view }])  THE FRESH-BODY BUILDER: a buildBody whose body is laid by the same two functions
@@ -38,7 +38,10 @@
  *                set the table has never seen is asked the Smogon chain AT PLAY TIME (the pinned files; counted
  *                `observed_at_play`), else derived as role-v1 does (`derived_at_play`); the tournament hook is not asked
  *                at play time (the store moves). The table refuses to open if the rule text, a pinned Smogon file or the
- *                role-v1 base has moved. NOT the default: switching the arena default is Will's call.
+ *                role-v1 base has moved. THE DEFAULT SINCE abra/regmc 1.73.0 (Will, 2026-10-01): practice, SPRTs and the
+ *                gate field what the ladder fields on every rotation set. A NEW ARENA SERIES starts there: a figure at
+ *                role-v1 (1.49.0 - 1.72.0) and one at observed-v1 are not comparable; re-run an old one with
+ *                --spreads role-v1.
  *   xatu-random  the pre-1.49.0 HONEST match truth, byte for byte: solver/xatu/worlds.js truthSpreads(sheets, seed).
  *                For re-running a figure measured before this change with --info honest.
  *   flat         the pre-1.49.0 omniscient / arena.js body: the engine table's line (buildMon), no spread, no nature.
@@ -60,7 +63,9 @@ const POP_FILE = path.join(DIR, 'population-role-v1.json');
 const OBS_TABLE_FILE = path.join(DIR, 'observed-v1.json');
 const TABLES = { 'role-v1': TABLE_FILE, 'observed-v1': OBS_TABLE_FILE };   // the table-backed modes
 const MODES = ['role-v1', 'observed-v1', 'xatu-random', 'flat'];
-const DEFAULT = 'role-v1';
+/* THE DEFAULT (1.73.0, Will's call): observed-v1. DELIBERATE BREAK (env SPREADS_SOURCE_BREAK=default): the default
+ * reverts to role-v1 — solver/tests/test-arena-spreads.js RULE and RECORD must go red. */
+const DEFAULT = ((process.env && process.env.SPREADS_SOURCE_BREAK) || '') === 'default' ? 'role-v1' : 'observed-v1';
 const STATS = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
 const sha = b => crypto.createHash('sha256').update(b).digest('hex');
 /* DELIBERATE BREAK (env SPREADS_SOURCE_BREAK=scarf): a role-v1 body holding Choice Scarf loses its Speed SP to HP (the

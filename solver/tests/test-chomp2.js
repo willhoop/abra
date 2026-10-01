@@ -152,6 +152,22 @@ if (haveModel && want('WIRING')) {
   ok('WIRING', PV.COUNTERS.chomp2Cached === 1, 'arm chomp2 re-solved a cached (pair, side)');
 }
 
+/* ---------------- PIN (abra/regmc 1.73.0) ---------------- */
+/* CHOMP v2's spread table is the DERIVED rule only: solver/chomp/v2/build_spreads.js passes HOOKS = { observed: null,
+ * tournament: null } to every Deriver it makes, so a new Smogon month or tournament paste cannot silently move it.
+ * Checked on the source; the check must refuse a copy with one call unpinned (the control below). */
+if (want('PIN')) {
+  const src = fs.readFileSync(path.join(__dirname, '..', 'chomp', 'v2', 'build_spreads.js'), 'utf8');
+  const pinned = s => {
+    const calls = s.match(/(S2\.make\([^)]*\)|new SPR\.Deriver\([^)]*\))/g) || [];
+    return { calls: calls.length, unpinned: calls.filter(c => !/,\s*HOOKS\)$/.test(c)), hooks: /const HOOKS = \{ observed: null, tournament: null \};/.test(s) };
+  };
+  const P = pinned(src);
+  ok('PIN', P.hooks && P.calls >= 4 && P.unpinned.length === 0, 'every Deriver in chomp/v2/build_spreads.js takes HOOKS (observed and tournament off): ' + P.calls + ' calls, unpinned ' + JSON.stringify(P.unpinned));
+  const C = pinned(src.replace(/S2\.make\(ENGINE\.API, pop, HOOKS\)/, 'S2.make(ENGINE.API, pop)'));
+  ok('PIN', C.unpinned.length === 1, 'CONTROL: the check refuses a copy with one call unpinned');
+}
+
 /* ---------------- ABILITY ---------------- */
 if (want('ABILITY')) {
   const legalOf = sp => [...new Set(Object.values(X.D.species.get(sp).abilities || {}).map(toID))];

@@ -250,17 +250,48 @@ The `test-rotom-throttle` failure:
 - **Client crash.** One rerun crashed the client at start with exit 3221226505 (0xC0000409). It did not reproduce on
   the next run.
 
+## 9. Addendum (abra/regmc 1.73.0): the arena default is now `observed-v1`
+
+Will approved this on 2026-10-01.
+
+**The default lives in one place.** `spread_source.js` `DEFAULT` is now `observed-v1`. Every caller reads it:
+
+- `arena.js` and `teams.js` `defaultSpreads`;
+- `mew/play.js` and `mew/run.js`;
+- `machamp/sprt.js` and `machamp/gate.js`;
+- `chomp/plan.js` and `chomp/v1/gen.js`.
+
+Their usage strings were updated. `role-v1`, `flat` and `xatu-random` stay selectable. `chomp/v1/gen.js` keeps games of
+each mode in their own directory and refuses to resume a file of another mode.
+
+**This is a MINOR.** Arena strength is withheld from the living documents, so the declared basis is not a published
+figure, as in the 1.49.0 precedent. The Record states that a new arena series starts at 1.73.0.
+
+**CHOMP v2 is pinned.** `chomp/v2/build_spreads.js` passes `{ observed: null, tournament: null }` to every Deriver.
+`test-chomp2` PIN checks it.
+
+**Tests**, all GREEN, with every deliberate break going red:
+
+| test | result |
+|---|---|
+| `test-arena-spreads` | 24/24; RULE red under `SPREADS_SOURCE_BREAK=default` |
+| `test-body-parity` | 8/8 at the default; DEFAULT red under the same break |
+| `test-machamp` | 112/112 |
+| `test-miltank` | 3992/3992 |
+| `test-honest-info` | 1954/1954 |
+| `test-chomp2` | 32/32 |
+
+`test-honest-info` needs the frozen store, which this worktree does not hold. I hardlinked main's files in for the run
+and removed the links afterwards.
+
 ## OWED, NOT RUN
 
 - **Restart the ladder on a NEW `--out` after merging.** The rotation bytes changed and the team ids did not.
   `solver/rotom/ladder.js` records `rotation_sha256` in the plan, but its restart check compares only the digest (seed,
   arms, team ids). A resumed batch on the old `--out` would mix role-derived and observed spreads in one series with no
   refusal. Teaching the plan check to refuse a rotation-sha change is owed. It was not done here, with a batch live.
-- **Arena default.** Whether to switch to `observed-v1` is Will's call. Until then, arena, SPRT and gate bodies differ
-  from the ladder's on 88 of 90 rotation sets.
-- **CHOMP v2.** `solver/chomp/v2/build_spreads.js` builds its MediDeriver with the observed hook at its default. Its
-  next rebuild will pick up the Smogon chain, and its table will move. Pin it (`observed: null`) or rebuild it as a new
-  version on purpose.
+- **Arena default.** Switched to `observed-v1` at 1.73.0 (§9).
+- **CHOMP v2.** Pinned at 1.73.0 (§9).
 - **XATU / ROTOM opponent belief** still draws opponent spreads without this prior. Using the Smogon chain as the
   spread prior for hidden opponent bodies is the natural next use and was not attempted.
 - **The derivation itself is biased** (§3). It over-invests Speed on bulky sets and under-invests it on fast attackers.

@@ -62,6 +62,9 @@ const rots = fs.readdirSync(dir).filter(f => /^ladder-rotation.*\.json$/.test(f)
   .filter(([, J]) => Array.isArray(J.teams) && J.teams.every(t => Array.isArray(t.spreads)));
 if (!rots.length) { console.log('CANNOT ANSWER: no ladder rotation with recorded spreads'); process.exit(2); }
 console.log('test-body-parity: release ' + REL + ', spread mode ' + T.defaultSpreads(M).mode + ', ' + rots.length + ' rotation files');
+/* DEFAULT (1.73.0): with no ARENA_SPREADS override the searcher's bodies are built at observed-v1, the ladder's spreads.
+ * SPREADS_SOURCE_BREAK=default (the default back at role-v1) must turn this red. */
+if (want('DEFAULT') && !process.env.ARENA_SPREADS) ok('DEFAULT', T.defaultSpreads(M).mode === 'observed-v1', 'the default spread mode is observed-v1 (it is ' + T.defaultSpreads(M).mode + ')');
 
 const sets = [];
 for (const [f, J] of rots) for (const t of J.teams) {
@@ -145,7 +148,7 @@ if (want('MEGA')) {
     if (!a || !b) continue;
     const S = API.newBattle(a.team, b.team, { rng: API.makeRng(1) });
     const m = S.sfA.team.find(y => y._solverSheet === x.s);
-    /* the spread the team body actually carries (role-v1's for this set; a set ROTOM plays at a PUBLISHED tournament
+    /* the spread the team body actually carries (the default mode's: observed-v1 since 1.73.0, ROTOM's own; role-v1 before, when a set ROTOM plays at a PUBLISHED tournament
      * spread is fielded at role-v1's in the arena, by design — test-arena-spreads PARITY) */
     if (!m || !m._sp || !(m._sp.hp > 0)) continue;
     n++;
@@ -166,7 +169,7 @@ if (want('MEGA')) {
 /* ---------------- RED ---------------- */
 let blind = false;
 if (!NO_RED && !ONLY) {
-  for (const [env, val, clause] of [['SPREAD_FRESH_BREAK', 'flat', 'FRESH'], ['SPREAD_SP_BREAK', '1', 'MEGA']]) {
+  for (const [env, val, clause] of [['SPREAD_FRESH_BREAK', 'flat', 'FRESH'], ['SPREAD_SP_BREAK', '1', 'MEGA'], ['SPREADS_SOURCE_BREAK', 'default', 'DEFAULT']]) {
     const r = cp.spawnSync(process.execPath, [__filename, '--no-red', '--only', clause, '--release', REL], { cwd: ROOT, encoding: 'utf8', env: Object.assign({}, process.env, { [env]: val }), maxBuffer: 1 << 26 });
     const red = r.status === 1 && new RegExp('FAIL \\[' + clause + '\\]').test(r.stdout);
     console.log(`  RED ${env}=${val}: ${red ? clause + ' went red, as it must' : 'STAYED GREEN (exit ' + r.status + ') — the test is blind'}`);

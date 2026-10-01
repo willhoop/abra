@@ -10,7 +10,7 @@
  *        [--plan <solver/out/chomp/.../plan.json>]  play exactly the plan's pre-registered team pairs, and read CHOMP's
  *        solved tables from beside it; the plan's SPRT is evaluated ONCE at the end and written into the artifact
  *        [--blind]   progress lines print the game count only — no interim score (never read an interim SPRT)
- *        [--spreads role-v1|observed-v1|xatu-random|flat]   the bodies' Stat Points (solver/arena/spread_source.js). Default role-v1
+ *        [--spreads role-v1|observed-v1|xatu-random|flat]   the bodies' Stat Points (solver/arena/spread_source.js). Default observed-v1 since abra/regmc 1.73.0 (role-v1 1.49.0-1.72.0)
  *        (the ladder's rule per set) since abra/regmc 1.49.0; every arena figure before it played `flat`. A --plan's own
  *        `spreads` is used when the flag is absent (a pre-1.49.0 plan has none, so it re-plays flat).
  *
@@ -68,7 +68,7 @@ const MR = require('./mega_rate.js');
 const MTIME = require('./mega_timing.js');
 const PA = require('../miltank/prior_adapter.js').create(API, require('../prior/infer.js').load());
 /* THE SPREAD MODE (abra/regmc 1.49.0, solver/arena/spread_source.js): --spreads, else the --plan's own `spreads`, else
- * role-v1. A plan written before 1.49.0 carries none and its games were played flat, so it re-plays `flat` unless told. */
+ * spread_source.DEFAULT (observed-v1 since 1.73.0; role-v1 1.49.0-1.72.0). A plan written before 1.49.0 carries none and its games were played flat, so it re-plays `flat` unless told. */
 const SS = require('./spread_source.js');
 const PLAN_SPREADS = (() => { const f = flag('--plan', null); if (!f) return null; try { return JSON.parse(fs.readFileSync(path.resolve(f), 'utf8')).spreads || 'flat'; } catch (e) { return null; } })();
 const SPREADS = flag('--spreads', PLAN_SPREADS || SS.DEFAULT);

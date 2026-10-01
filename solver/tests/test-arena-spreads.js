@@ -18,6 +18,8 @@
  *            role-v1 as its base; it is NOT the default; and for EVERY set ROTOM plays — the Smogon- and tournament-observed
  *            ones included — the body the arena builds at --spreads observed-v1 carries exactly ROTOM's line (all six
  *            stats at the recorded Stat Points and the sheet nature). At least one Smogon-observed set, or it asks nothing.
+ *   DEFAULT  (1.73.0) RULE asserts the arena default is observed-v1 and the other three modes stay selectable;
+ *            SPREADS_SOURCE_BREAK=default (the default back at role-v1) must turn RULE red. PARITY reads the default mode.
  *   RECORD   a 1-pair match through solver/mew/play.js (two greedy human-clone agents, --cap 3): with no --spreads every
  *            line says role-v1, the summary's stamp names the table file at its sha256 and a fielded digest, and all 16
  *            bodies were dressed; with --spreads flat every line says flat and 0 bodies were dressed; with
@@ -66,7 +68,10 @@ if (want('RULE')) {
   for (const v of vals) { const e = SS.decode(v).evs; const tot = STATS.reduce((a, s) => a + e[s], 0); if (tot > SD.SP_TOTAL || STATS.some(s => e[s] > SD.SP_CAP || e[s] < 0)) bad++; }
   ok('RULE', vals.length > 1000 && bad === 0, `every table spread is within the format's total ${SD.SP_TOTAL} and cap ${SD.SP_CAP} (${bad} of ${vals.length} outside)`);
   ok('RULE', J.provenance.rule === SPR.RULE_TEXT, 'the table was built by solver/rotom/spreads.js\'s current rule');
-  ok('RULE', SS.DEFAULT === 'role-v1' && ['flat', 'xatu-random', 'role-v1', 'observed-v1'].every(m => SS.MODES.includes(m)), 'default role-v1; observed-v1, flat and xatu-random available');
+  /* THE DEFAULT (1.73.0, Will's call): observed-v1; the older modes stay selectable to re-run old figures.
+   * SPREADS_SOURCE_BREAK=default (the default back at role-v1) must turn this red. */
+  ok('RULE', SS.DEFAULT === 'observed-v1', 'the arena default is observed-v1 (it is ' + SS.DEFAULT + ')');
+  ok('RULE', ['flat', 'xatu-random', 'role-v1', 'observed-v1'].every(m => SS.MODES.includes(m)), 'role-v1, flat and xatu-random stay selectable beside observed-v1');
   console.log(`  RULE: ${vals.length} table sets, SP total ${SD.SP_TOTAL}, cap ${SD.SP_CAP}`);
 }
 
@@ -77,7 +82,7 @@ if (want('PARITY')) {
     .filter(([, J]) => Array.isArray(J.teams) && J.teams.every(t => Array.isArray(t.spreads)));
   let sets = 0, lineSame = 0, scarf = 0, scarfMax = 0, tr = 0, trMin = 0, flatOk = 0, flatN = 0, observedTour = 0, offTable = 0;
   const diffs = [], observedList = [], offTableDiff = [];
-  const TABLE = JSON.parse(fs.readFileSync(SS.TABLE_FILE, 'utf8'));
+  const TABLE = JSON.parse(fs.readFileSync(SS.TABLES[SS.DEFAULT] || SS.TABLE_FILE, 'utf8'));   // the DEFAULT mode's table
   const builtAt = Date.parse(TABLE.provenance.built);
   const covered = J => Date.parse((J.respread && J.respread.at) || J.generated) <= builtAt;
   for (const [f, J] of rots) for (const t of J.teams) {
@@ -103,7 +108,8 @@ if (want('PARITY')) {
          * the arena fields the derived spread for it. Counted and printed, never compared — and never silently.
          * 1.72.0: the same holds for a set ROTOM plays at a Smogon-observed spread; observed-v1 is the version that fields
          * it, and OBSERVED below checks its parity. */
-        if (/^observed:/.test(z.source || '')) { observedTour++; if (observedList.length < 8) observedList.push(f + ' ' + t.id + ' ' + row.species); return; }
+        /* 1.73.0: at the observed-v1 default the arena fields the observed spreads too, so they are compared like any other */
+        if (SS.DEFAULT === 'role-v1' && /^observed:/.test(z.source || '')) { observedTour++; if (observedList.length < 8) observedList.push(f + ' ' + t.id + ' ' + row.species); return; }
         const want = {}; for (const st of STATS) want[st] = SD.statValue(row.species, row.nature, st, z.evs[st]);
         const same = STATS.every(st => want[st] === have[st]);
         /* A ROTATION THE role-v1 TABLE PREDATES (2026-10-01: the tournament rotation was built after the table). The table
@@ -125,7 +131,7 @@ if (want('PARITY')) {
   for (const d of diffs) console.log('    ' + d);
   console.log(`  PARITY: ${sets} rotation sets, line identical ${lineSame}; Scarf ${scarfMax}/${scarf} at max Speed; Trick Room ${trMin}/${tr} at min`);
   if (observedTour) console.log(`  PARITY: ${observedTour} set(s) play an OBSERVED spread (tournament or Smogon) on the ladder and the role-v1 derived one in the arena at the default (by design, not compared here; OBSERVED checks them at observed-v1): ${observedList.slice(0, 4).join('; ')}${observedList.length > 4 ? '; ...' : ''}`);
-  for (const d of offTableDiff) { notChecked++; console.log('  NOT CHECKED [PARITY] the role-v1 table (built ' + TABLE.provenance.built + ') predates this rotation and its line differs from ROTOM\'s (cover the rotation in a new table version): ' + d); }
+  for (const d of offTableDiff) { notChecked++; console.log('  NOT CHECKED [PARITY] the ' + SS.DEFAULT + ' table (built ' + TABLE.provenance.built + ') predates this rotation and its line differs from ROTOM\'s (cover the rotation in a new table version): ' + d); }
 }
 
 /* ---------------- OBSERVED (observed-v1) ---------------- */
@@ -141,7 +147,7 @@ if (want('OBSERVED')) {
       'observed-v1 was built by the current rule and observed rule on the current role-v1');
     const pinned = J.provenance.observed.files.filter(f => fs.existsSync(path.join(ROOT, f.file)) && sha(path.join(ROOT, f.file)) === f.sha256).length;
     ok('OBSERVED', J.provenance.observed.files.length > 0 && pinned === J.provenance.observed.files.length, `every Smogon file observed-v1 pins is on disk at its sha256 (${pinned} of ${J.provenance.observed.files.length})`);
-    ok('OBSERVED', SS.DEFAULT !== 'observed-v1', 'observed-v1 is not the arena default (switching it is Will\'s call)');
+    ok('OBSERVED', SS.DEFAULT === 'observed-v1', 'observed-v1 is the arena default (Will, 2026-10-01; abra/regmc 1.73.0)');
     const dir = path.join(ROOT, 'solver', 'rotom', 'teams');
     const rots = fs.readdirSync(dir).filter(f => /^ladder-rotation.*\.json$/.test(f)).map(f => [f, JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'))])
       .filter(([, R]) => Array.isArray(R.teams) && R.teams.every(t => Array.isArray(t.spreads)));
@@ -187,10 +193,15 @@ if (want('RECORD')) {
     };
     const d = play('default', []);
     if (d) {
-      ok('RECORD', d.lines.length === 2 && d.lines.every(l => l.spreads === 'role-v1'), 'no --spreads: every match line says role-v1 (' + d.lines.map(l => l.spreads).join(',') + ')');
-      ok('RECORD', d.s.spreads && d.s.spreads.spreads === 'role-v1' && d.s.spreads.table && d.s.spreads.table.sha256 === sha(SS.TABLE_FILE) && d.s.spreads.fielded && d.s.spreads.fielded.sets > 0,
-        'the summary stamps role-v1, the table at its sha256 and a fielded digest (' + JSON.stringify(d.s.spreads && { spreads: d.s.spreads.spreads, table: d.s.spreads.table && d.s.spreads.table.sha256.slice(0, 12), fielded: d.s.spreads.fielded }) + ')');
-      ok('RECORD', d.s.spreads && d.s.spreads.counters.bodies_dressed === 16 && !d.s.spreads.counters.flat_fallback, 'all 16 bodies dressed at role-v1 (' + JSON.stringify(d.s.spreads && d.s.spreads.counters) + ')');
+      ok('RECORD', d.lines.length === 2 && d.lines.every(l => l.spreads === 'observed-v1'), 'no --spreads: every match line says observed-v1 (' + d.lines.map(l => l.spreads).join(',') + ')');
+      ok('RECORD', d.s.spreads && d.s.spreads.spreads === 'observed-v1' && d.s.spreads.table && d.s.spreads.table.sha256 === sha(SS.OBS_TABLE_FILE) && d.s.spreads.fielded && d.s.spreads.fielded.sets > 0,
+        'the summary stamps observed-v1, its table at its sha256 and a fielded digest (' + JSON.stringify(d.s.spreads && { spreads: d.s.spreads.spreads, table: d.s.spreads.table && d.s.spreads.table.sha256.slice(0, 12), fielded: d.s.spreads.fielded }) + ')');
+      ok('RECORD', d.s.spreads && d.s.spreads.counters.bodies_dressed === 16 && !d.s.spreads.counters.flat_fallback, 'all 16 bodies dressed at observed-v1 (' + JSON.stringify(d.s.spreads && d.s.spreads.counters) + ')');
+    }
+    const rv = play('rolev1', ['--spreads', 'role-v1']);
+    if (rv) {
+      ok('RECORD', rv.lines.every(l => l.spreads === 'role-v1') && rv.s.spreads.spreads === 'role-v1' && rv.s.spreads.table && rv.s.spreads.table.sha256 === sha(SS.TABLE_FILE) && rv.s.spreads.counters.bodies_dressed === 16,
+        '--spreads role-v1 still plays (to re-run a 1.49.0-1.72.0 figure): the lines and stamp say role-v1 at its table sha256, 16 bodies dressed');
     }
     const f = play('flat', ['--spreads', 'flat']);
     if (f) {
@@ -207,7 +218,7 @@ if (want('RECORD')) {
 /* ---------------- RED ---------------- */
 let blind = false;
 if (!NO_RED && !ONLY) {
-  for (const [brk, clause] of [['scarf', 'PARITY'], ['stamp', 'RECORD'], ['scarf', 'OBSERVED']]) {
+  for (const [brk, clause] of [['scarf', 'PARITY'], ['stamp', 'RECORD'], ['scarf', 'OBSERVED'], ['default', 'RULE']]) {
     const r = cp.spawnSync(process.execPath, [__filename, '--no-red', '--only', clause, '--release', REL], { cwd: ROOT, encoding: 'utf8', env: Object.assign({}, process.env, { SPREADS_SOURCE_BREAK: brk }), maxBuffer: 1 << 26 });
     const red = r.status === 1 && new RegExp('FAIL \\[' + clause + '\\]').test(r.stdout);
     console.log(`  RED SPREADS_SOURCE_BREAK=${brk}: ${red ? clause + ' went red, as it must' : 'STAYED GREEN (exit ' + r.status + ') — the test is blind'}`);

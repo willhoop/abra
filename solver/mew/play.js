@@ -4,7 +4,7 @@
  *
  *   node solver/mew/play.js --mode selfplay --release <id> --league <league.json> --games N --seed S
  *                           --shard i --shards n --out <shard.jsonl.gz> [--cap 50] [--human <games.jsonl> | --team-store <dir>]
- *                           [--spreads role-v1|xatu-random|flat]   default role-v1 (solver/arena/spread_source.js; 1.49.0)
+ *                           [--spreads observed-v1|role-v1|xatu-random|flat]   default observed-v1 (solver/arena/spread_source.js; 1.73.0)
  *   node solver/mew/play.js --mode match    --release <id> --x <spec.json> --y <spec.json> --pairs N --pair-seed S
  *                           --seed S --shard i --shards n --out <shard.jsonl> [--cap 50] [--human <games.jsonl>]
  *
@@ -31,7 +31,7 @@
  * INFORMATION (--info honest | omniscient; 2026-09-26, docs/_reports/2026-09-26-gen5-honest-and-ladder-prep.md).
  *   honest      THE DEFAULT FOR A MATCH, and so for every strength claim (sprt.js, gate.js). The true battle has hidden
  *               spreads: every body on both sides carries a Stat Point spread under its sheet's nature: since abra/regmc
- *               1.49.0 the --spreads mode's (default role-v1, the ladder's rule per set; solver/arena/spread_source.js),
+ *               1.49.0 the --spreads mode's (default observed-v1 since 1.73.0, role-v1 before: the ladder's spreads per set; solver/arena/spread_source.js),
  *               until then one drawn per team pair from XATU's self-play generator (solver/xatu/worlds.js truthSpreads,
  *               seeded by the battle seed — still available as --spreads xatu-random). Each decision is taken on a PUBLIC VIEW of that battle
  *               (honestView below): the decider's own side exact; the opponent's unrevealed back line replaced by
