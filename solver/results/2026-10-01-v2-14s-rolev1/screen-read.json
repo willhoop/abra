@@ -1,0 +1,86 @@
+{
+ "result": "solver/out/v2-14s-rolev1/screen-14s-p2v2.json",
+ "flags": {
+  "release": "eaa5becc54eb",
+  "x": "solver/results/2026-10-01-v2-14s-rolev1/gen5-p2v2-adaptive-14s.json",
+  "y": "solver/results/2026-09-30-human-regularised/screen-14s-off.json",
+  "pairs": 100,
+  "games": 200,
+  "pair_seed": 1,
+  "seed": 31001,
+  "workers": 4,
+  "cap": 50,
+  "rule": "notlose",
+  "human": null,
+  "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+  "info": "honest",
+  "spreads": "role-v1"
+ },
+ "engine_release": "eaa5becc54eb",
+ "score": {
+  "W": 99,
+  "D": 0,
+  "L": 101,
+  "errors": 0,
+  "capped": 0,
+  "unbuildable": 0,
+  "played": 200,
+  "score_x": 0.495,
+  "ci95_x": [
+   0.4264572195415849,
+   0.5637312405175984
+  ]
+ },
+ "paired": {
+  "team_pairs": 100,
+  "both": 18,
+  "split": 63,
+  "lost": 19,
+  "incomplete": 0
+ },
+ "pass_notlose": true,
+ "point_ge_half": false,
+ "clock_ratio": 1.1040617836714584,
+ "decision_ms": {
+  "x": {
+   "n": 1593,
+   "mean": 10307.3,
+   "p50": 8461,
+   "p99": 27762,
+   "max": 30532
+  },
+  "y": {
+   "n": 1593,
+   "mean": 9335.8,
+   "p50": 4629,
+   "p99": 27748,
+   "max": 32295
+  }
+ },
+ "leaf_by_model": {
+  "porygon2-v2-k1.json": 805441,
+  "porygon2-gen5.json": 1893120
+ },
+ "leaf_own": {
+  "porygon2-v2-k1.json": {
+   "evals": 805441,
+   "errors": 0,
+   "fallbacks": 0
+  }
+ },
+ "fallbacks": 0,
+ "warnings": [],
+ "wall_s": 8952.059,
+ "spreads": {
+  "counters": {
+   "games": 200,
+   "bodies_dressed": 1600,
+   "table_hits": 2400,
+   "derived_at_play": 0,
+   "flat_fallback": 0,
+   "bodies_flat": 0
+  },
+  "warnings": []
+ },
+ "per_game_sha256": "d7013b693336b19b"
+}
