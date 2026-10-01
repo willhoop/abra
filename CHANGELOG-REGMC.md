@@ -21,6 +21,22 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.57.0] — 2026-10-01
+
+### Notes
+- **Reg M-C gate re-run on a new release, `df172ccd2aaf`: OPEN, 10 of 10. No figure moved.** 1.51.0 changed the
+  simulator (a forme change recomputes the stat line from the set, HP Stat Points included), so the gate artifacts
+  stamped on `97451d5fbf40` described a different engine. `engine/medicham2-browser.js` is the only frozen file that
+  differs.
+  - Census 1027 live / 0 missing, pin `census-pin-regmc-9ad4bf9cc3a2.json`; pool `data/team-pool-frozen-regmc`.
+  - Lattices (`--games` 1200 / 1600 / 1900): 0 board-material and 0 narration of 955, 1266 and 1497; the same pools,
+    and every content field identical to the `97451d5fbf40` run. The lattices give every body 0 HP Stat Points, so
+    they cannot exercise the 1.51.0 fix.
+  - Damage 0 of 6000 at every corner; roster 166/166, 210/214, 510/511; mechanics staged 0 diverge over 4,867 games.
+  - The release directory is force-tracked so the artifacts re-open from a clone.
+  - MINOR by the number the coordinator assigned; no published figure moves.
+    `docs/_reports/2026-10-01-regmc-gate-rerun-mega.md`.
+
 ## [1.54.0] — 2026-10-01
 
 **MINOR: no published figure moves.** A design and its measurements; nothing is built and no game was played.

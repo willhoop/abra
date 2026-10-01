@@ -53,6 +53,22 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [abra/regmc 1.57.0] — 2026-10-01 — **Reg M-C gate re-run on release `df172ccd2aaf` (forme change recomputes HP Stat Points): OPEN, 10 of 10, nothing moved**
+- **What changed.** No code. New release `df172ccd2aaf` (force-tracked), cut after abra/regmc 1.51.0 changed
+  `engine/medicham2-browser.js` (forme change recomputes the stat line from the set, HP Stat Points included). It is
+  the only frozen file that differs from `97451d5fbf40`. The gate artifacts are re-run on it.
+- **Measured.** Release `df172ccd2aaf`, census pin `data/verification/census-pin-regmc-9ad4bf9cc3a2.json` (1027 live,
+  0 missing), `data/team-pool-frozen-regmc`. Lattices `--games` 1200 / 1600 / 1900: board-material and narration 0 of
+  955 / 1266 / 1497, same pools (3c60452ad2c5 / 2d8e6931a914 / ede5538f9153); every content field of the three
+  artifacts is identical to the `97451d5fbf40` run except the stamps. Damage 0 of 6000 at every corner
+  (`data/engine-diff-regmc.json`); roster 166/166, 210/214, 510/511; mechanics staged 0 diverge over 4,867 games
+  (`data/all-mechanics-fire-regmc.json`). `node engine/quarantine.js` (Reg M-C): **OPEN, 10 of 10.**
+  `docs/_reports/2026-10-01-regmc-gate-rerun-mega.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing. Every gate figure reads the same as on `97451d5fbf40`. The lattices cannot see the 1.51.0
+  fix: `spreadFor` in `engine/game_differential.js` puts 0 Stat Points into HP on every body.
+- **Owed to the next major.** none.
+
 ## [abra/regmc 1.54.0] — 2026-10-01 — **DUSK designed, not built: an on-the-fly endgame solver with a certified band, not tables; endgames are common and cost us little directly**
 - **What changed.** `solver/dusk/DESIGN.md` (the design), four measurement scripts (`measure_endgames.js`, `lib.js`, `measure_ladder.js`, `combine.js`), the Smogon hook `smogon_foldin.js`, the tracked summary `solver/dusk/endgames-summary.json`, and `solver/tests/test-dusk-measure.js` (GREEN 42/42; RED under both `DUSK_BREAK` breaks). The `solver/PLAN.md` DUSK row now says what DUSK is. No engine loaded, no game played.
 - **Measured.** Store-only, every `engine/quality.js` `reasons()` code charged (`endgames-summary.json` `meta`): bo3 26,945 clean games, E2 (both sides ≤ 2 alive) reached 62.9% [62.3, 63.5]; every real game (sensitivity arm, 38,534) 44.0%; bo1 64.3% / 42.4%. About 2 decisions remain (mean 2.19). E2 material: 2v2 59.0%, 2v1 38.1%, 1v1 2.9%; 2v1 won by the side ahead 88.8% [88.0, 89.6]; 2v2 won by the HP leader 64.1%. Chronological table hit rate: species pair 17.0%, + sets 1.0%, + HP quarters 0.8%. Sheet-bound 2v2 joint menu median 6,000 cells. Ours (`meta.ladder`, aa1 + aa2 + gen5ab + chomp1, release `eaa5becc54eb`): E2 in 88 of 189 games; 35 of 108 losses passed through an E2 entered even, none from ahead; conversion vs humans from the same material and HP lead −3.7 wins [−10.8, +3.6] over 88; bank at E2 entry median 419.9 s; XATU worlds at E2 decisions median 7,755. `docs/_reports/2026-10-01-dusk-design.md`.

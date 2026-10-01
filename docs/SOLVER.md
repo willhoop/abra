@@ -27,7 +27,7 @@ resolves here.)*
 SOLVER (was SEARCH) — the retired Reg M-B rollout rows; the Reg M-C solver is solver/PLAN.md
   R1 leaf accuracy: WITHHELD — engine/provenance.js calls data/rollout-r1-explore1.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    pinned to engine release 3932186b59ef — engine/medicham2-browser.js matches the frozen copy; live is 33219d25bdf1 now (a PRE-CHANGE measurement of that release, not corruption)
+    pinned to engine release 3932186b59ef — engine/medicham2-browser.js matches the frozen copy; live is bf5efb8fafee now (a PRE-CHANGE measurement of that release, not corruption)
     (+20 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/rollout_r1_artifact.js
   R2 leaf cost: WITHHELD — engine/provenance.js calls data/rollout-cost.json UNSAFE.
@@ -39,7 +39,7 @@ SOLVER (was SEARCH) — the retired Reg M-B rollout rows; the Reg M-C solver is 
   R4 does it win: WITHHELD — engine/provenance.js calls data/rollout-r4.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     it becomes quotable again when this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-09-26 10:30):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-10-01 02:00):
     PRE-CHANGE games.r4c-shipped2.jsonl  2026-08-14 22:28
     PRE-CHANGE games.r4c-shipped.jsonl  2026-08-14 17:21
     PRE-CHANGE games.r4b-search.jsonl  2026-08-14 13:02
@@ -47,7 +47,7 @@ SOLVER (was SEARCH) — the retired Reg M-B rollout rows; the Reg M-C solver is 
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
 ```
 
-_stamped 2026-09-30 08:46_
+_stamped 2026-10-01 06:14_
 
 <!-- /GENERATED -->
 
