@@ -21,6 +21,28 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.50.0] — 2026-09-30
+
+**MINOR: no published figure moves.** It adds two SPRT results and a per-model leaf counter.
+
+### Added
+- **Per-model PORYGON2 leaf counters.** `solver/miltank/rollout.js` has `COUNTERS.leafByModel` and `leafOwn()`, and
+  `solver/mew/play.js` writes them on every shard line as `ctr.leaf_by_model` and `ctr.leaf_own`. `leafPory2` sums
+  every arm in a worker, so it could not prove which net served.
+- `solver/tests/test-porygon2-v2-arena.js`: GREEN 8/8, and RED under `MILTANK_BREAK=leaf`.
+- `solver/porygon2/v2/gen5-p2v2.json`: a league spec, not a ladder arm.
+
+### Notes
+- **Two SPRTs ran, approved by Will 2026-09-30 ("1 2"), both H0.** Both were pre-registered before the first game, on
+  release `eaa5becc54eb`, honest, and on the arena from before 1.49.0 (XATU-random spreads), so they are not comparable
+  with `role-v1` figures. Details: `docs/_reports/2026-09-30-sprt-pikl-and-v2.md`.
+  - **piKL λ 0.03 vs gen5 at the 14 s adaptive clock: H0.** 416 games, 0.469 [0.421, 0.517], clock ratio 0.976,
+    missMe 0. The Protect fail rate is 9.8% vs 15.8%.
+  - **gen5 with PORYGON2 v2 as its leaf vs gen5's own net, at equal 1 s clock: H0.** 612 games,
+    0.480 [0.441, 0.520], clock ratio 1.009. There were 485,334 v2 evaluations with 0 errors, and v2 reached 0.39× gen5's
+    leaf calls. **This ran outside v2's pre-registration, by Will's decision, because gate (a) failed.**
+- Neither SPRT goes onto any arm. That is Will's call.
+
 ## [1.49.0] — 2026-09-30
 
 **MINOR: no published figure moves** (`docs/MODELS.md` withholds arena strength), so under the declared-public-API

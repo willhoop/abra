@@ -8,6 +8,13 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
 
 ## 2026-09-30
 
+### Two SPRTs, both H0 (abra/regmc 1.50.0)
+- piKL λ 0.03 vs gen5 at 14 s: H0 at 416 games, 0.469 [0.421, 0.517], clock ratio 0.976. The Protect fail rate fell from
+  15.8% to 9.8%, with no strength gain.
+- gen5 with PORYGON2 v2 as its leaf vs gen5's own net at 1 s: H0 at 612 games, 0.480 [0.441, 0.520], clock ratio 1.009.
+  There were 485,334 v2 evaluations, and v2 reached 0.39× the leaf calls. This ran outside v2's pre-registration
+  (Will's call). `docs/_reports/2026-09-30-sprt-pikl-and-v2.md`.
+
 ### The arena fields real per-set spreads (abra/regmc Unreleased; proposed 2.0.0)
 - Every arena game (self-play, gates, SPRTs, `arena.js`) now plays `role-v1` by default: the ladder's spread rule per
   set, from `solver/arena/spreads/role-v1.json` (14,247 sets). It used to play the flat table line (omniscient) or a

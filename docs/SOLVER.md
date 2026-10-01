@@ -120,6 +120,13 @@ This section says only what a division agent needs before it starts.
   0.525 [0.456, 0.593], clock ratios 0.99-1.00. At 14 s the Protect fail rate is 10.1% vs 16.9%. λ 0.1 fails (0.405). λ 0.01
   is VOID by its capability clause (1 uniform-anchor decision). No SPRT; the flag is off.
   `docs/_reports/2026-09-30-human-regularised-phase-b.md`.
+- **Two SPRTs, both H0 (2026-09-30, abra/regmc 1.50.0).**
+  - piKL λ 0.03 vs gen5 at the 14 s clock: 416 games, 0.469 [0.421, 0.517], clock ratio 0.976. The Protect fail rate
+    is 9.8% vs 15.8%, with no strength gain.
+  - gen5 with PORYGON2 v2 as its leaf vs gen5's own net at 1 s: 612 games, 0.480 [0.441, 0.520], clock ratio 1.009.
+    v2 served 485,334 evaluations with 0 errors and 0.39× gen5's leaf calls. This ran outside v2's
+    pre-registration (Will).
+  - Both used the pre-1.49.0 arena. Neither is on an arm. `docs/_reports/2026-09-30-sprt-pikl-and-v2.md`.
 - **Human-regularised search (piKL), phase A (2026-09-30, abra/regmc 1.34.0).** Spec flag `kl` (lambda; off, on no
   arm): SLOWKING solves the KL-regularised root game with gen5's DODUO as the anchor (`solveKL`). On 579 held-out human
   decisions and the same recorded tables, top-1 agreement is 0.216 at lambda 0 and 0.268 at 0.1 (+0.052 [0.021, 0.083]).
