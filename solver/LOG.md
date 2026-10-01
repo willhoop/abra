@@ -40,6 +40,18 @@ Roadmap page: https://claude.ai/artifact/3Xd2MvVhdE3xdZqsFDbmDG
   Not launched.
 - Spreads: open team sheets publish none (0 of 537). On the 12 published Replica sets, our derived spread matches on 0
   and Speed matches on 1. `docs/_reports/2026-10-01-tournament-rotation.md`.
+### PORYGON2 v3 steps A–C: design, frozen harness, distilled student (abra/regmc 1.62.0)
+- `solver/porygon2/v3/DESIGN.md`. Six premises of the brief are corrected at their sources: MuZero, KataGo's blending
+  and playout caps, the piKL anchor, "λ 0.03 harmless", and quiescence "fixes".
+- Frozen set: 2,778 positions (ladder, bo1 rated 1500 or more, bo3 rated 1300 or more), 1,300 labelled by MILTANK's root
+  with cells played to the end by gen5's prior.
+- Ranking: gen5, v1, v2 and the student are indistinguishable; every CI spans 0. ECE: student 0.052, v2 0.058, gen5
+  0.065, v1 0.072.
+- Cost against gen5: student 0.91×, v2 2.62×.
+- gen5's raw net is +0.183 too high in [0.5, 0.9) on our ladder positions and calibrated on strong human positions.
+- The student (v2 distilled, 39,892 parameters) fails its pre-registered bar: the ranking CI spans 0, and the ECE CI
+  upper bound is +0.006 against +0.005. No screen or SPRT is pre-registered.
+- Answer map: an offline auxiliary target only, by the coordinator's instruction. `docs/_reports/2026-10-01-porygon2-v3.md`.
 
 ### The search's uncovered blind spots; four world fields fixed (abra/regmc 1.52.0)
 - Opponent coverage is 57.7% with targets (636 ladder decisions). DODUO ranks the actual joint top-4 in 57.1% and

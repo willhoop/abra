@@ -21,6 +21,48 @@ rewritten; what changed and why is stated.
 
 ---
 
+## [1.62.0] — 2026-10-01
+
+**MINOR: no published figure moves.** A design, a frozen evaluation harness, and a distilled student that fails its
+pre-registered bar. No game was played.
+
+### Added
+- **PORYGON2 v3 design** (`solver/porygon2/v3/DESIGN.md`, milestone N4 of `solver/PLAN.md` 0.3.0). Every citation was
+  re-read at its source. Six premises of the brief are corrected:
+  - MuZero's n-step targets are Atari-only.
+  - KataGo's search values are auxiliary heads, not a blend.
+  - Playout-cap randomisation records full-search turns only.
+  - piKL anchors to a human policy.
+  - "λ 0.03 is harmless" is not shown.
+  - Quiescence is built but unmeasured in games.
+- **The frozen v3 harness** (`solver/porygon2/v3/evalset.js`, `positions.js`, `deep.js`).
+  - 2,778 positions in 383 games: ladder 1,339; bo1 TEST games with both players rated 1500 or more, 831; bo3 TEST games
+    v1 never saw, rated 1300 or more, 608. Positions sha256 `c2428b1dbf77…`.
+  - 1,300 positions are labelled by MILTANK's root with every cell played to the end by gen5's prior, with no value net:
+    166,144 playouts.
+  - It reports ranking (τ-b, top-1, regret), calibration by source and band, and the cost per evaluation.
+- **The step-C student** (`student.py`, `infer.js`, `leaf.js`, `model/porygon2-v3-student.json`). It is v2 distilled
+  into a 39,892-parameter set network on v2's own inputs. It is served for arch `v3-student` by `solver/porygon2/leaf.js`,
+  with league spec `gen5-p2v3s.json` and 14 s spec `screen-14s-student.json`. No arm names it.
+- `solver/tests/test-porygon2-v3-evalset.js` (GREEN 12/12): FROZEN, LEAK (0 of 383 games in v2's or v1's training data),
+  ORIENT, CRN, LEAN. RED under `P2V3_TEST_BREAK=leak` and `P2V3_DEEP_BREAK=orient`.
+- `solver/tests/test-porygon2-v3-student.js` (GREEN 14/14): parity 2.2e-15, antisymmetry, order, and the leaf counter on
+  one MILTANK decision. RED under `PORY2V3_INFER_BREAK=pool`.
+
+### Notes
+- **The nets cannot be told apart on ranking.** Every paired CI against gen5's net spans 0.
+- **Calibration.** ECE: gen5 0.0652, v1 0.0718, v2 0.0577, student 0.0523.
+- **Cost against gen5's net, on the same fresh boards:** v1 1.22×, v2 2.62×, student 0.91×.
+- **The student fails its pre-registered rule.**
+  - Ranking: Δτ +0.0051 [−0.0067, +0.0168].
+  - ECE: CI upper bound +0.0060 against a bar of +0.005.
+  - No screen or SPRT is pre-registered. The commands are listed as owed.
+- **The ladder overconfidence is in the raw net.** gen5's net is +0.183 [0.100, 0.272] in [0.5, 0.9) on our ladder
+  positions, and calibrated on strong human positions.
+- **The answer map is an offline auxiliary target only** (the coordinator's instruction, after
+  `docs/_reports/2026-10-01-lost-last-answer.md`). No second implementation is landed.
+- Report: `docs/_reports/2026-10-01-porygon2-v3.md`.
+
 ## [1.61.0] — 2026-10-01
 
 **MINOR: no published figure moves.** It adds a tournament store, its weekly ingest, a fifth ladder rotation built from

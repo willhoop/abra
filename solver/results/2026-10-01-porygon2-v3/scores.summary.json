@@ -1,0 +1,397 @@
+{
+ "what": "per-shard summaries of evalset.js score (leaf counters per net)",
+ "shards": [
+  {
+   "shard": 0,
+   "n": 348,
+   "seconds": 778.373,
+   "nets": [
+    {
+     "name": "gen5",
+     "file": "solver/machamp/models/gen5/porygon2-gen5.json",
+     "sha256": "cf8ad3f7bd0d4a33d87d9b9e891154800cf27540e7d4a93ef85b2513b713f3c6"
+    },
+    {
+     "name": "v1",
+     "file": "solver/porygon2/model/porygon2-v1.json",
+     "sha256": "01bb559ef0e7e8e22f098466ac8ad5a1782c7cc029cb83838797fa0dd1b4d3f5"
+    },
+    {
+     "name": "v2",
+     "file": "solver/porygon2/v2/model/porygon2-v2-k1.json",
+     "sha256": "d5409446cb6ff77667253a22fd921ace259201bbcda46285002f7d67052e76b1"
+    },
+    {
+     "name": "student",
+     "file": "solver/porygon2/v3/model/porygon2-v3-student.json",
+     "sha256": "1b4ae59fcff530a214f977283de6262df405c13a5a5be1d3e26d785e8e207fee"
+    }
+   ],
+   "leaf_own": {
+    "gen5": {
+     "evals": 9811,
+     "unkIds": 642
+    },
+    "v1": {
+     "evals": 9811,
+     "unkIds": 327
+    },
+    "v2": {
+     "evals": 9811,
+     "errors": 0,
+     "fallbacks": 0
+    },
+    "student": {
+     "evals": 9811,
+     "errors": 0,
+     "fallbacks": 0
+    }
+   },
+   "rnet": 4,
+   "engine_release": "eaa5becc54eb"
+  },
+  {
+   "shard": 1,
+   "n": 348,
+   "seconds": 814.906,
+   "nets": [
+    {
+     "name": "gen5",
+     "file": "solver/machamp/models/gen5/porygon2-gen5.json",
+     "sha256": "cf8ad3f7bd0d4a33d87d9b9e891154800cf27540e7d4a93ef85b2513b713f3c6"
+    },
+    {
+     "name": "v1",
+     "file": "solver/porygon2/model/porygon2-v1.json",
+     "sha256": "01bb559ef0e7e8e22f098466ac8ad5a1782c7cc029cb83838797fa0dd1b4d3f5"
+    },
+    {
+     "name": "v2",
+     "file": "solver/porygon2/v2/model/porygon2-v2-k1.json",
+     "sha256": "d5409446cb6ff77667253a22fd921ace259201bbcda46285002f7d67052e76b1"
+    },
+    {
+     "name": "student",
+     "file": "solver/porygon2/v3/model/porygon2-v3-student.json",
+     "sha256": "1b4ae59fcff530a214f977283de6262df405c13a5a5be1d3e26d785e8e207fee"
+    }
+   ],
+   "leaf_own": {
+    "gen5": {
+     "evals": 9893,
+     "unkIds": 594
+    },
+    "v1": {
+     "evals": 9893,
+     "unkIds": 330
+    },
+    "v2": {
+     "evals": 9893,
+     "errors": 0,
+     "fallbacks": 0
+    },
+    "student": {
+     "evals": 9893,
+     "errors": 0,
+     "fallbacks": 0
+    }
+   },
+   "rnet": 4,
+   "engine_release": "eaa5becc54eb"
+  },
+  {
+   "shard": 2,
+   "n": 347,
+   "seconds": 707.131,
+   "nets": [
+    {
+     "name": "gen5",
+     "file": "solver/machamp/models/gen5/porygon2-gen5.json",
+     "sha256": "cf8ad3f7bd0d4a33d87d9b9e891154800cf27540e7d4a93ef85b2513b713f3c6"
+    },
+    {
+     "name": "v1",
+     "file": "solver/porygon2/model/porygon2-v1.json",
+     "sha256": "01bb559ef0e7e8e22f098466ac8ad5a1782c7cc029cb83838797fa0dd1b4d3f5"
+    },
+    {
+     "name": "v2",
+     "file": "solver/porygon2/v2/model/porygon2-v2-k1.json",
+     "sha256": "d5409446cb6ff77667253a22fd921ace259201bbcda46285002f7d67052e76b1"
+    },
+    {
+     "name": "student",
+     "file": "solver/porygon2/v3/model/porygon2-v3-student.json",
+     "sha256": "1b4ae59fcff530a214f977283de6262df405c13a5a5be1d3e26d785e8e207fee"
+    }
+   ],
+   "leaf_own": {
+    "gen5": {
+     "evals": 9210,
+     "unkIds": 625
+    },
+    "v1": {
+     "evals": 9210,
+     "unkIds": 266
+    },
+    "v2": {
+     "evals": 9210,
+     "errors": 0,
+     "fallbacks": 0
+    },
+    "student": {
+     "evals": 9210,
+     "errors": 0,
+     "fallbacks": 0
+    }
+   },
+   "rnet": 4,
+   "engine_release": "eaa5becc54eb"
+  },
+  {
+   "shard": 3,
+   "n": 347,
+   "seconds": 718.184,
+   "nets": [
+    {
+     "name": "gen5",
+     "file": "solver/machamp/models/gen5/porygon2-gen5.json",
+     "sha256": "cf8ad3f7bd0d4a33d87d9b9e891154800cf27540e7d4a93ef85b2513b713f3c6"
+    },
+    {
+     "name": "v1",
+     "file": "solver/porygon2/model/porygon2-v1.json",
+     "sha256": "01bb559ef0e7e8e22f098466ac8ad5a1782c7cc029cb83838797fa0dd1b4d3f5"
+    },
+    {
+     "name": "v2",
+     "file": "solver/porygon2/v2/model/porygon2-v2-k1.json",
+     "sha256": "d5409446cb6ff77667253a22fd921ace259201bbcda46285002f7d67052e76b1"
+    },
+    {
+     "name": "student",
+     "file": "solver/porygon2/v3/model/porygon2-v3-student.json",
+     "sha256": "1b4ae59fcff530a214f977283de6262df405c13a5a5be1d3e26d785e8e207fee"
+    }
+   ],
+   "leaf_own": {
+    "gen5": {
+     "evals": 9384,
+     "unkIds": 580
+    },
+    "v1": {
+     "evals": 9384,
+     "unkIds": 250
+    },
+    "v2": {
+     "evals": 9384,
+     "errors": 0,
+     "fallbacks": 0
+    },
+    "student": {
+     "evals": 9384,
+     "errors": 0,
+     "fallbacks": 0
+    }
+   },
+   "rnet": 4,
+   "engine_release": "eaa5becc54eb"
+  },
+  {
+   "shard": 4,
+   "n": 347,
+   "seconds": 819.354,
+   "nets": [
+    {
+     "name": "gen5",
+     "file": "solver/machamp/models/gen5/porygon2-gen5.json",
+     "sha256": "cf8ad3f7bd0d4a33d87d9b9e891154800cf27540e7d4a93ef85b2513b713f3c6"
+    },
+    {
+     "name": "v1",
+     "file": "solver/porygon2/model/porygon2-v1.json",
+     "sha256": "01bb559ef0e7e8e22f098466ac8ad5a1782c7cc029cb83838797fa0dd1b4d3f5"
+    },
+    {
+     "name": "v2",
+     "file": "solver/porygon2/v2/model/porygon2-v2-k1.json",
+     "sha256": "d5409446cb6ff77667253a22fd921ace259201bbcda46285002f7d67052e76b1"
+    },
+    {
+     "name": "student",
+     "file": "solver/porygon2/v3/model/porygon2-v3-student.json",
+     "sha256": "1b4ae59fcff530a214f977283de6262df405c13a5a5be1d3e26d785e8e207fee"
+    }
+   ],
+   "leaf_own": {
+    "gen5": {
+     "evals": 9836,
+     "unkIds": 424
+    },
+    "v1": {
+     "evals": 9836,
+     "unkIds": 111
+    },
+    "v2": {
+     "evals": 9836,
+     "errors": 0,
+     "fallbacks": 0
+    },
+    "student": {
+     "evals": 9836,
+     "errors": 0,
+     "fallbacks": 0
+    }
+   },
+   "rnet": 4,
+   "engine_release": "eaa5becc54eb"
+  },
+  {
+   "shard": 5,
+   "n": 347,
+   "seconds": 734.114,
+   "nets": [
+    {
+     "name": "gen5",
+     "file": "solver/machamp/models/gen5/porygon2-gen5.json",
+     "sha256": "cf8ad3f7bd0d4a33d87d9b9e891154800cf27540e7d4a93ef85b2513b713f3c6"
+    },
+    {
+     "name": "v1",
+     "file": "solver/porygon2/model/porygon2-v1.json",
+     "sha256": "01bb559ef0e7e8e22f098466ac8ad5a1782c7cc029cb83838797fa0dd1b4d3f5"
+    },
+    {
+     "name": "v2",
+     "file": "solver/porygon2/v2/model/porygon2-v2-k1.json",
+     "sha256": "d5409446cb6ff77667253a22fd921ace259201bbcda46285002f7d67052e76b1"
+    },
+    {
+     "name": "student",
+     "file": "solver/porygon2/v3/model/porygon2-v3-student.json",
+     "sha256": "1b4ae59fcff530a214f977283de6262df405c13a5a5be1d3e26d785e8e207fee"
+    }
+   ],
+   "leaf_own": {
+    "gen5": {
+     "evals": 9449,
+     "unkIds": 805
+    },
+    "v1": {
+     "evals": 9449,
+     "unkIds": 364
+    },
+    "v2": {
+     "evals": 9449,
+     "errors": 0,
+     "fallbacks": 0
+    },
+    "student": {
+     "evals": 9449,
+     "errors": 0,
+     "fallbacks": 0
+    }
+   },
+   "rnet": 4,
+   "engine_release": "eaa5becc54eb"
+  },
+  {
+   "shard": 6,
+   "n": 347,
+   "seconds": 726.748,
+   "nets": [
+    {
+     "name": "gen5",
+     "file": "solver/machamp/models/gen5/porygon2-gen5.json",
+     "sha256": "cf8ad3f7bd0d4a33d87d9b9e891154800cf27540e7d4a93ef85b2513b713f3c6"
+    },
+    {
+     "name": "v1",
+     "file": "solver/porygon2/model/porygon2-v1.json",
+     "sha256": "01bb559ef0e7e8e22f098466ac8ad5a1782c7cc029cb83838797fa0dd1b4d3f5"
+    },
+    {
+     "name": "v2",
+     "file": "solver/porygon2/v2/model/porygon2-v2-k1.json",
+     "sha256": "d5409446cb6ff77667253a22fd921ace259201bbcda46285002f7d67052e76b1"
+    },
+    {
+     "name": "student",
+     "file": "solver/porygon2/v3/model/porygon2-v3-student.json",
+     "sha256": "1b4ae59fcff530a214f977283de6262df405c13a5a5be1d3e26d785e8e207fee"
+    }
+   ],
+   "leaf_own": {
+    "gen5": {
+     "evals": 9565,
+     "unkIds": 477
+    },
+    "v1": {
+     "evals": 9565,
+     "unkIds": 201
+    },
+    "v2": {
+     "evals": 9565,
+     "errors": 0,
+     "fallbacks": 0
+    },
+    "student": {
+     "evals": 9565,
+     "errors": 0,
+     "fallbacks": 0
+    }
+   },
+   "rnet": 4,
+   "engine_release": "eaa5becc54eb"
+  },
+  {
+   "shard": 7,
+   "n": 347,
+   "seconds": 796.749,
+   "nets": [
+    {
+     "name": "gen5",
+     "file": "solver/machamp/models/gen5/porygon2-gen5.json",
+     "sha256": "cf8ad3f7bd0d4a33d87d9b9e891154800cf27540e7d4a93ef85b2513b713f3c6"
+    },
+    {
+     "name": "v1",
+     "file": "solver/porygon2/model/porygon2-v1.json",
+     "sha256": "01bb559ef0e7e8e22f098466ac8ad5a1782c7cc029cb83838797fa0dd1b4d3f5"
+    },
+    {
+     "name": "v2",
+     "file": "solver/porygon2/v2/model/porygon2-v2-k1.json",
+     "sha256": "d5409446cb6ff77667253a22fd921ace259201bbcda46285002f7d67052e76b1"
+    },
+    {
+     "name": "student",
+     "file": "solver/porygon2/v3/model/porygon2-v3-student.json",
+     "sha256": "1b4ae59fcff530a214f977283de6262df405c13a5a5be1d3e26d785e8e207fee"
+    }
+   ],
+   "leaf_own": {
+    "gen5": {
+     "evals": 9889,
+     "unkIds": 440
+    },
+    "v1": {
+     "evals": 9889,
+     "unkIds": 200
+    },
+    "v2": {
+     "evals": 9889,
+     "errors": 0,
+     "fallbacks": 0
+    },
+    "student": {
+     "evals": 9889,
+     "errors": 0,
+     "fallbacks": 0
+    }
+   },
+   "rnet": 4,
+   "engine_release": "eaa5becc54eb"
+  }
+ ]
+}
