@@ -1,0 +1,27 @@
+{
+ "what": "A not-lose SCREEN of POOLED against IN-PROCESS search at equal wall-clock (2026-10-02, docs/_reports/2026-10-02-parallelism.md): gen5 with its MILTANK cells filled by a pool of 4 worker processes (solver/miltank/pool.js through solver/mew/agent.js spec.pool, the same code path ROTOM --search-workers runs) against gen5 filling them in its own process. Same nets, same k 4x4, depth 0, 1 reserved switch row, same adaptive 2 s clock, same honest information. Written BEFORE the first screen game, committed with it, and never revised after one. Read ONCE, at 200 games, by read.js. No SPRT.",
+ "engine_release": "74972dd2db89",
+ "why_this_release": "The newest release that passed the Reg M-C gate: OPEN 10 of 10 on the speed-pass engine (abra/regmc 1.77.4, main ff00d1cd). Both arms play it inside one run.",
+ "pool_size": 4,
+ "why_pool_4": "Three game shards x a 4-worker pool = 12 busy pool processes at most, plus the three shard parents (idle while their pool fills), inside the dedicated cap of 14 (solver/arena/cores.js). A 12- or 14-worker pool would allow one shard only and about 2 h for 200 games; the screen asks whether the POOLED PATH plays at least as well as the in-process one at equal wall-clock, which a pool of 4 answers. The ladder's pool size is chosen from the ladbench (playouts per decision at 14 s), not from this screen.",
+ "x": "solver/results/2026-10-02-pool-screen/x-pool4-2s.json (solver/results/2026-09-30-human-regularised/screen-2s-off.json plus pool 4; name gen5-pool4-adaptive-2s)",
+ "y": "solver/results/2026-09-30-human-regularised/screen-2s-off.json (gen5, in-process; name gen5-adaptive-2s)",
+ "both": "gen5 MAG/DODUO/PORYGON2, k 4x4, depth 0, 1 reserved switch row, budgetMs 5000 cap, adaptive { targetMs 2000, credit0Ms 667 }: equal wall-clock is the adaptive clock's mean, and the clock-ratio bar checks it. The pooled arm's adaptive stop reads the same complete passes in pass order (pool.js hooks.onPass).",
+ "seed": 33001,
+ "out": "solver/out/screens/screen-pool4-2s.json",
+ "command": "node solver/machamp/gate.js --release 74972dd2db89 --x solver/results/2026-10-02-pool-screen/x-pool4-2s.json --y solver/results/2026-09-30-human-regularised/screen-2s-off.json --pairs 100 --pair-seed 1 --seed 33001 --workers 3 --cap 50 --rule notlose --info honest --spreads observed-v1 --machine dedicated --team-store C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc --out solver/out/screens/screen-pool4-2s.json  (BELOWNORMAL, through the lownode equivalent)",
+ "games": 200,
+ "rule": "gate.js notlose, read ONCE at 200 games: PASS iff the Wilson 95% UPPER bound of X's score is >= 0.5 (X is not shown to lose); FAIL otherwise. VOID, whatever the score, if ANY capability bar fails. A PASS is a not-lose screen, not a strength claim.",
+ "bars": {
+  "max_fallback_share": 0.05,
+  "max_clock_ratio": 1.10,
+  "min_scored": 190,
+  "max_idle_share": 0.05,
+  "text": "Per arm (solver/mew/play.js ARMS, summed by gate.js): (1) prior-fallback share <= 0.05; (2) playouts per searched decision >= playouts_floor; (3) clock ratio decision_ms.x.mean / decision_ms.y.mean <= 1.10; (4) at least 190 of 200 games scored. THE POOL RAN (X's ctr.pool on the last line of every shard): pooled decisions >= 0.95 x X's searched decisions; idle workers / (pooled decisions x 4) <= 0.05; each of the 4 pool slots delivered playouts; agent fallbacks (a thrown search, which a dead pool is) == 0; Y never pooled. Any failure = VOID."
+ },
+ "playouts_floor": 161,
+ "why_this_floor": "The 2026-10-01 screens' 2 s floor, 0.5 x 323.2 (the lower arm of the quiet gen5-vs-gen5 reference at the same clock, solver/results/2026-10-01-screens/ref-2s.result.json, release df172ccd2aaf). No new reference was run (the ladder is waiting); the speed pass made a playout ~7% cheaper (docs/_reports/2026-10-02-medicham-speed-pass.md), so the old floor is, if anything, low.",
+ "expected_direction": "X above 0.5 and X's playouts per searched decision above Y's. Stated now; neither is a bar.",
+ "on_pass": "A PASS (with the ladbench) licenses ROTOM --search-workers on the ladder; it is not a strength claim, and an equal-clock SPRT would need its own pre-registration.",
+ "machine": "Will's PC, quiet (the coordinator holds the ladder until this finishes). Nothing else of this agent's runs while the screen plays."
+}
