@@ -95,6 +95,15 @@ request, and never more than the turn less 8 s. Under that line the move is `pri
 the clock's fixed share as before. The arena measurement and the SPRT against a fixed 5 s are in
 `docs/_reports/2026-09-27-adaptive-clock.md`. No arms file uses it yet: switching arm A to it is a new pre-registration.
 
+**`--search-workers N` (added 2026-10-02, abra/regmc 1.78.0).** The searching client forks N MILTANK worker processes,
+warms each with a pooled gen5 search before it connects, and fills every miltank-gen5 decision's cells across them: the
+same passes, the same XATU worlds, more of them inside the same clock (bit-identical to the in-process search at a pass
+cap, `solver/tests/test-search-pool.js`). **Use 4 on this machine:** ×2.89 playouts per 14 s decision at the ladder's
+duty cycle; 8 or 14 trip the CPU's thermal throttle (12.5% of its clock for up to a minute) and then search LESS than
+one process (`docs/_reports/2026-10-02-parallelism.md`). Every decision row carries `pool` (workers, playouts per worker,
+idle workers); a dead pool is a counted in-process fallback (summary `pool.fallback`) and is replaced off the clock.
+Without the flag (0) the client searches in-process, as before. Run nothing else heavy beside a pooled ladder client.
+
 Optional flags: `--max-hours H` (no new search after H hours), `--max-errors N` (default 3),
 `--max-mismatches N` (default 3; see below), `--send-gap-ms MS` (default 650),
 `--guard willhoop[,other]`, `--guard-mode online|battle` (default `online`), `--out <dir>` (resume a run).

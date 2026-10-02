@@ -28,6 +28,7 @@ const crypto = require('crypto');
 const argv = process.argv.slice(2);
 const flag = (k, d) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : d; };
 const ROOT = path.join(__dirname, '..', '..');
+const CORES = require('../arena/cores.js');
 
 async function forkShards(script, n, argsOf, label) {
   const t0 = Date.now();
@@ -46,9 +47,11 @@ const sha = f => { const h = crypto.createHash('sha256'); h.update(fs.readFileSy
 
 async function main() {
   const rel = flag('--release'), league = flag('--league'), N = +flag('--games', 100), seed = +flag('--seed', 1);
-  const W = +flag('--workers', 4), cap = +flag('--cap', 50), out = path.resolve(ROOT, flag('--out'));
+  const machine = CORES.profile(argv);
+  const W = +flag('--workers', CORES.defaultWorkers('mew', machine)), cap = +flag('--cap', 50), out = path.resolve(ROOT, flag('--out'));
   if (!rel || !league || !flag('--out')) throw new Error('usage: --release <id> --league <json> --games N --seed S --workers W --out <dir>');
-  if (W > 4) throw new Error('mew/run: at most 4 workers on this machine (other agents share it)');
+  /* "at most 4 workers on this machine (other agents share it)" is now the SHARED profile (solver/arena/cores.js, --machine shared) */
+  const cores = CORES.check('mew', W, machine, 1);
   fs.mkdirSync(out, { recursive: true });
   const human = flag('--human', null), store = flag('--team-store', null);
   const spreads = flag('--spreads', require('../arena/spread_source.js').DEFAULT);   // solver/arena/spread_source.js (1.49.0)
@@ -104,7 +107,7 @@ async function main() {
   const manifest = {
     what: 'MEW self-play shards (solver/mew/run.js)', started, finished: new Date().toISOString(),
     engine_release: first.engine_release || rel, release_stamp: first.release_stamp || null,
-    flags: { release: rel, league: path.relative(ROOT, path.resolve(ROOT, league)).split(path.sep).join('/'), games: N, seed, workers: W, cap, human, team_store: store, spreads,
+    flags: { release: rel, league: path.relative(ROOT, path.resolve(ROOT, league)).split(path.sep).join('/'), games: N, seed, workers: W, machine, cores, cap, human, team_store: store, spreads,
       info: info || 'omniscient (play.js self-play default)', n7, pcr: pcr ? JSON.parse(pcr) : null, am_rate: amRate == null ? null : +amRate, am_n: amN == null ? null : +amN },
     n7: n7c,
     spreads: SPREADS,

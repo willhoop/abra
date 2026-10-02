@@ -2,7 +2,7 @@
  * seeds, a frozen release, stopped by the test and never by a person.
  *
  *   cmd.exe /c tools\lownode.cmd solver\machamp\sprt.js --release <id> --x <spec.json> --y <spec.json>
- *        --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 2000 --seed S --workers 3
+ *        --elo0 0 --elo1 20 --alpha 0.05 --beta 0.05 --max-games 2000 --seed S --workers 3 [--machine dedicated|shared]
  *        --team-store <dir> --out <result.json> [--info honest|omniscient] [--spreads observed-v1|role-v1|xatu-random|flat]
  *
  * SPREADS (abra/regmc 1.49.0). --spreads (default observed-v1 since 1.73.0, role-v1 1.49.0-1.72.0: the ladder's spreads per set, solver/arena/spread_source.js) is
@@ -39,7 +39,8 @@ const cp = require('child_process');
 const argv = process.argv.slice(2);
 const flag = (k, d) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : d; };
 const ROOT = path.join(__dirname, '..', '..');
-const { wilson } = require('./gate.js');
+const { wilson, poolOfSpec } = require('./gate.js');
+const CORES = require('../arena/cores.js');
 
 /* DELIBERATE BREAK (env MACHAMP_BREAK=sprtsign): the LLR's sign is flipped, so a stronger X is accepted as H0.
  * solver/tests/test-machamp.js SPRT must go red. */
@@ -88,12 +89,14 @@ function decide(pairScores, o) {
 async function main() {
   const o = { release: flag('--release'), x: flag('--x'), y: flag('--y'), elo0: +flag('--elo0', 0), elo1: +flag('--elo1', 20),
     alpha: +flag('--alpha', 0.05), beta: +flag('--beta', 0.05), maxGames: +flag('--max-games', 2000), seed: +flag('--seed', 1),
-    workers: +flag('--workers', 3), store: flag('--team-store', null), out: path.resolve(ROOT, flag('--out')), cap: +flag('--cap', 50),
+    workers: +flag('--workers', CORES.defaultWorkers('sprt', CORES.profile(argv))), machine: CORES.profile(argv), store: flag('--team-store', null), out: path.resolve(ROOT, flag('--out')), cap: +flag('--cap', 50),
     info: flag('--info', 'honest'), spreads: flag('--spreads', require('../arena/spread_source.js').DEFAULT) };
   if (!require('../arena/spread_source.js').MODES.includes(o.spreads)) throw new Error('sprt: --spreads must be one of ' + require('../arena/spread_source.js').MODES.join(', '));
   if (!['honest', 'omniscient'].includes(o.info)) throw new Error('sprt: --info must be honest or omniscient');
   if (!o.release || !o.x || !o.y || !flag('--out')) throw new Error('usage: --release --x --y --out');
-  if (o.workers > 3) throw new Error('sprt: at most 3 workers');
+  /* the worker cap is a MACHINE PROFILE (solver/arena/cores.js): --machine shared keeps the old 3, dedicated allows every core
+   * but two; a pooled spec counts its pool's processes per game worker. The profile and the cap are in flags.cores. */
+  o.cores = CORES.check('sprt', o.workers, o.machine, poolOfSpec(o.x, o.y));
   const NP = Math.floor(o.maxGames / 2);
   const dir = o.out.replace(/\.json$/, '') + '.shards';
   fs.mkdirSync(dir, { recursive: true });

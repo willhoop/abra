@@ -1,0 +1,260 @@
+{
+ "screen": "pooled vs in-process",
+ "result": "solver/out/screens/screen-pool4-2s.json",
+ "read_at": "2026-10-02T12:00:35.483Z",
+ "preregistration_sha": "fc40f31c9912badb",
+ "engine_release": "74972dd2db89",
+ "flags": {
+  "release": "74972dd2db89",
+  "x": "solver/results/2026-10-02-pool-screen/x-pool4-2s.json",
+  "y": "solver/results/2026-09-30-human-regularised/screen-2s-off.json",
+  "pairs": 100,
+  "games": 200,
+  "pair_seed": 1,
+  "seed": 33001,
+  "workers": 3,
+  "machine": "dedicated",
+  "cores": {
+   "profile": "dedicated",
+   "cap": 14,
+   "workers": 3,
+   "per_worker": 4,
+   "logical_cores": 16,
+   "headroom": 2
+  },
+  "cap": 50,
+  "rule": "notlose",
+  "human": null,
+  "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+  "info": "honest",
+  "spreads": "observed-v1"
+ },
+ "x": "gen5-pool4-adaptive-2s",
+ "y": "gen5-adaptive-2s",
+ "score": {
+  "W": 96,
+  "D": 0,
+  "L": 104,
+  "errors": 0,
+  "capped": 0,
+  "unbuildable": 0,
+  "played": 200,
+  "score_x": 0.48,
+  "ci95_x": [
+   0.4117904407948983,
+   0.5489633994418346
+  ]
+ },
+ "paired": {
+  "team_pairs": 100,
+  "both": 11,
+  "split": 74,
+  "lost": 15,
+  "incomplete": 0
+ },
+ "rule": "notlose: Wilson 95% upper bound of X score >= 0.5",
+ "clock_ratio": 0.9861,
+ "decision_ms": {
+  "x": {
+   "n": 1695,
+   "mean": 1714.5,
+   "p50": 1369,
+   "p99": 3780,
+   "max": 14121
+  },
+  "y": {
+   "n": 1695,
+   "mean": 1738.6,
+   "p50": 1668,
+   "p99": 3774,
+   "max": 3791
+  }
+ },
+ "bars": [
+  {
+   "name": "games scored",
+   "pass": true,
+   "value": 200,
+   "limit": ">= 190"
+  },
+  {
+   "name": "x prior-fallback share",
+   "pass": true,
+   "value": 0,
+   "limit": "<= 0.05"
+  },
+  {
+   "name": "x playouts per searched decision",
+   "pass": true,
+   "value": 942,
+   "limit": ">= 161"
+  },
+  {
+   "name": "y prior-fallback share",
+   "pass": true,
+   "value": 0,
+   "limit": "<= 0.05"
+  },
+  {
+   "name": "y playouts per searched decision",
+   "pass": true,
+   "value": 320.6,
+   "limit": ">= 161"
+  },
+  {
+   "name": "clock ratio x/y",
+   "pass": true,
+   "value": 0.9861,
+   "limit": "<= 1.1"
+  },
+  {
+   "name": "x pooled decisions >= 0.95 x searched",
+   "pass": true,
+   "value": {
+    "pooled": 1694,
+    "searched": 1694
+   },
+   "limit": ">= 0.95"
+  },
+  {
+   "name": "x idle-worker share",
+   "pass": true,
+   "value": 0,
+   "limit": "<= 0.05"
+  },
+  {
+   "name": "every x pool worker delivered playouts",
+   "pass": true,
+   "value": [
+    402080,
+    399838,
+    397497,
+    396319
+   ],
+   "limit": "all > 0"
+  },
+  {
+   "name": "agent fallbacks (thrown search, dead pool)",
+   "pass": true,
+   "value": 0,
+   "limit": "== 0"
+  },
+  {
+   "name": "y never pooled",
+   "pass": true,
+   "value": 0,
+   "limit": "== 0"
+  }
+ ],
+ "capability_ok": true,
+ "verdict": "PASS",
+ "reported": {
+  "playouts_ratio_x_over_y": 2.938,
+  "pool_x": {
+   "decisions": 1694,
+   "playouts": 1595734,
+   "idle_workers": 0,
+   "late": 5274,
+   "playouts_by_worker": [
+    402080,
+    399838,
+    397497,
+    396319
+   ]
+  }
+ },
+ "arms": {
+  "x": {
+   "decisions": 1695,
+   "forced": 1,
+   "searched": 1694,
+   "playouts": 1595734,
+   "zero_playouts": 0,
+   "cells": 27072,
+   "rows_sum": 6775,
+   "cols_sum": 6769,
+   "cols_hist": {
+    "1": 1,
+    "3": 4,
+    "4": 1689
+   },
+   "fallback": {
+    "empty": 0,
+    "sparse": 0,
+    "low_bank": 0,
+    "threw": 0,
+    "other": 0
+   },
+   "fallback_decisions": 0,
+   "ms_sum": 2867792,
+   "cov": {
+    "n": 1694,
+    "target": 1435,
+    "move": 1489
+   },
+   "cov_nf": {
+    "n": 1693,
+    "target": 1434,
+    "move": 1488
+   },
+   "derived": {
+    "non_forced": 1694,
+    "playouts_per_searched": 942,
+    "fallback_share": 0,
+    "cols_mean": 4,
+    "rows_mean": 4,
+    "coverage_target": 0.8471,
+    "coverage_move": 0.879,
+    "coverage_target_nf": 0.847,
+    "coverage_move_nf": 0.8789
+   }
+  },
+  "y": {
+   "decisions": 1695,
+   "forced": 1,
+   "searched": 1694,
+   "playouts": 543151,
+   "zero_playouts": 0,
+   "cells": 27072,
+   "rows_sum": 6772,
+   "cols_sum": 6772,
+   "cols_hist": {
+    "1": 1,
+    "3": 1,
+    "4": 1692
+   },
+   "fallback": {
+    "empty": 0,
+    "sparse": 0,
+    "low_bank": 0,
+    "threw": 0,
+    "other": 0
+   },
+   "fallback_decisions": 0,
+   "ms_sum": 2942440,
+   "cov": {
+    "n": 1694,
+    "target": 1419,
+    "move": 1474
+   },
+   "cov_nf": {
+    "n": 1693,
+    "target": 1418,
+    "move": 1473
+   },
+   "derived": {
+    "non_forced": 1694,
+    "playouts_per_searched": 320.6,
+    "fallback_share": 0,
+    "cols_mean": 4,
+    "rows_mean": 4,
+    "coverage_target": 0.8377,
+    "coverage_move": 0.8701,
+    "coverage_target_nf": 0.8376,
+    "coverage_move_nf": 0.8701
+   }
+  }
+ },
+ "warnings": [],
+ "wall_s": 2007.836
+}

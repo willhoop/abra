@@ -87,7 +87,9 @@ for (const k of ['release', 'arms', 'ladder-seed', 'sets']) if (!flag(k, '')) { 
 const PASS = ['release', 'arms', 'sets', 'max-errors', 'max-hours', 'guard', 'guard-mode', 'seed', 'margin', 'reserve', 'min-search-ms', 'rotation', 'priority', 'series-idle-ms', 'series-probe-ms', 'series-max-probes', 'max-mismatches', 'send-gap-ms',
               /* client flags that change what is CLICKED are forwarded too. Until 2026-09-29 `--preview chomp` given to this
                * supervisor never reached the client, which played the team's own bring and reported nothing wrong */
-              'preview', 'preview-max-ms', 'adaptive-target-ms']
+              'preview', 'preview-max-ms', 'adaptive-target-ms',
+              /* the search pool's size (rotom.js --search-workers, 2026-10-02): forwarded, or the client searches in-process */
+              'search-workers']
   .filter(k => flag(k, null) != null).flatMap(k => ['--' + k, flag(k)]);
 const KILLF = path.resolve(flag('kill-file', DRY ? path.join(OUT, 'KILL') : path.join(LIVE_DIR, 'KILL')));
 const MAX_RESTARTS = +flag('max-restarts', 5);

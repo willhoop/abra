@@ -77,7 +77,9 @@ const SRC = SS.open(SPREADS, { M });
 /* THE SEARCHER'S FRESH BODIES (abra/regmc 1.69.0, docs/_reports/2026-10-01-rollout-body-spreads.md): omniscient = the truth
  * at this mode (the body buildTeam fields); honest = PUBLIC (zero SP under the sheet's nature), which XATU's spread belief
  * then re-spreads in every world (solver/xatu/worlds.js). Until 1.69.0 the honest rollout built the table's flat line. */
-const AG = require('./agent.js').create(API, { buildBody: SRC.bodyBuilder(T.buildBody, { view: INFO === 'omniscient' ? 'truth' : 'public' }) });
+/* poolEnv (2026-10-02): a spec with `pool` fills its cells in worker processes; they build their fresh bodies as this R does */
+const AG = require('./agent.js').create(API, { buildBody: SRC.bodyBuilder(T.buildBody, { view: INFO === 'omniscient' ? 'truth' : 'public' }),
+                                              poolEnv: { MILTANK_BODIES: (INFO === 'omniscient' ? 'truth' : 'public') + ':' + SPREADS } });
 const PA0 = require('../miltank/prior_adapter.js').create(API, null);   // the game's history recorder (model-free)
 /* DELIBERATE BREAK (env MACHAMP_BREAK=seat): in a match, X sits on side A in both games of a pair — the paired
  * seating is gone. solver/tests/test-machamp.js GATE must go red.
@@ -377,7 +379,7 @@ async function match() {
                  clicks: r.clicks ? { x: r.clicks[xIsA ? 'A' : 'B'], y: r.clicks[xIsA ? 'B' : 'A'] } : null,
                  protect: r.protect ? { x: r.protect[xIsA ? 'A' : 'B'], y: r.protect[xIsA ? 'B' : 'A'] } : null,
                  tactics: r.tactics ? { x: r.tactics[xIsA ? 'A' : 'B'], y: r.tactics[xIsA ? 'B' : 'A'] } : null,
-                 ctr: Object.assign({ spreads: Object.assign({}, SRC.COUNTERS), fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0, stall_dropped: AG.COUNTERS.stallDropped || 0, quiet_held: AG.R.COUNTERS.quietHeld || 0, quiesced: AG.R.COUNTERS.quiesced || 0, gates: JSON.parse(JSON.stringify(AG.COUNTERS.gates || {})), kl: AG.COUNTERS.kl ? JSON.parse(JSON.stringify(AG.COUNTERS.kl)) : undefined, hypno: AG.COUNTERS.hypno ? JSON.parse(JSON.stringify(AG.COUNTERS.hypno)) : undefined, policy: AG.COUNTERS.policy ? JSON.parse(JSON.stringify(AG.COUNTERS.policy)) : undefined, leaf_by_model: Object.assign({}, AG.R.COUNTERS.leafByModel || {}), leaf_own: AG.R.leafOwn ? AG.R.leafOwn() : undefined, arms: JSON.parse(JSON.stringify(ARMS)), pre169: AG.COUNTERS.pre169 ? Object.assign({}, AG.COUNTERS.pre169) : undefined, form_stats: formStats() }, RUN,
+                 ctr: Object.assign({ spreads: Object.assign({}, SRC.COUNTERS), fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0, stall_dropped: AG.COUNTERS.stallDropped || 0, quiet_held: AG.R.COUNTERS.quietHeld || 0, quiesced: AG.R.COUNTERS.quiesced || 0, gates: JSON.parse(JSON.stringify(AG.COUNTERS.gates || {})), kl: AG.COUNTERS.kl ? JSON.parse(JSON.stringify(AG.COUNTERS.kl)) : undefined, hypno: AG.COUNTERS.hypno ? JSON.parse(JSON.stringify(AG.COUNTERS.hypno)) : undefined, policy: AG.COUNTERS.policy ? JSON.parse(JSON.stringify(AG.COUNTERS.policy)) : undefined, leaf_by_model: Object.assign({}, AG.R.COUNTERS.leafByModel || {}), leaf_own: AG.R.leafOwn ? AG.R.leafOwn() : undefined, arms: JSON.parse(JSON.stringify(ARMS)), pre169: AG.COUNTERS.pre169 ? Object.assign({}, AG.COUNTERS.pre169) : undefined, pool: AG.COUNTERS.pool ? JSON.parse(JSON.stringify(AG.COUNTERS.pool)) : undefined, form_stats: formStats() }, RUN,
                    INFO === 'honest' ? { hon_views: HON.views, hon_back_xatu: HON.back_xatu, hon_back_error: HON.back_error, xw: Object.assign({}, XW.COUNTERS) } : {}) });
     }
     if (OUT) fs.writeFileSync(OUT, per.map(p => JSON.stringify(p)).join('\n') + '\n');

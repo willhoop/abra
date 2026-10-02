@@ -4,9 +4,19 @@
  *   const r = await P.fill({ S, side, opp, rows, cols, belief:{sheet, revealed:Set}, depth, baseSeed, deadline | budgetMs, maxPasses });
  *     -> { sum:[m][n], cnt:[m][n], passes, playouts, workers, cut, late }
  *     deadline = an absolute Date.now() instant (search.js passes one); budgetMs = ms from now (older callers)
- *   P.fillRaw(job) -> [{ p, v }] every pass played, in pass order
+ *   P.fillRaw(job[, hooks]) -> [{ p, v }] every pass played, in pass order
  *   P.counters     the workers' rollout counters, summed (worlds, playouts, bodiesSwapped, …)
+ *   P.alive()      false once a worker has exited (every later fill rejects; the caller falls back, COUNTED)
  *   P.close();
+ *
+ * hooks.onPass(vs) (2026-10-02, ROTOM's adaptive clock through the pool, docs/_reports/2026-10-02-parallelism.md): called
+ * whenever the run of COMPLETE passes 0..k that has arrived grows, with those passes in pass order — the argument the
+ * serial loop's onPass gets after pass k. A true return resolves the fill at once with EVERY pass that has arrived
+ * (complete or not, as at the deadline), cancels the workers and is counted (`adaptResolves`).
+ * The result carries `byWorker` = [{ passes, playouts }] per worker: what each worker actually delivered to this fill —
+ * the per-decision proof that the pool ran (ROTOM writes it on every decision record).
+ * job.world (optional, plain data) selects the worker's world sampler: { kind:'xatu', back, oppP, sheets } is XATU's
+ * honest sampler (solver/xatu/worlds.js rollout) with the spread prior rebuilt from the sheets — see pool_worker.js.
  * The job's shape and the pass itself are solver/miltank/cells.js — the serial loop runs the same code.
  *
  * WHY PROCESSES. engine/medicham_api.js is one-battle-steps-at-a-time PER PROCESS: the engine keeps module
@@ -40,7 +50,8 @@
  *
  * DELIBERATE BREAK (env MILTANK_POOL_BREAK=stride, read by the worker): every worker plays passes 0,1,2,…
  * instead of its own stride, so the pool repeats worlds instead of adding new ones. The IDENTITY clause of
- * solver/tests/test-playout-speed.js must go red under it.
+ * solver/tests/test-playout-speed.js must go red under it. MILTANK_POOL_BREAK=noworld: the worker ignores job.world
+ * and draws the uniform world — solver/tests/test-search-pool.js IDENTITY must go red.
  */
 'use strict';
 const path = require('path');
@@ -83,7 +94,8 @@ async function create(o) {
   await Promise.all(procs.map(c => ping(c)));
 
   /* one fill: every worker gets the job; passes stream back; resolve when all are done OR at the deadline */
-  function fillRaw(job) {
+  function fillRaw(job, hooks) {
+    const onPass = hooks && typeof hooks.onPass === 'function' ? hooks.onPass : null;
     const deadline = job.deadline != null ? job.deadline : Date.now() + job.budgetMs;
     return new Promise((resolve, reject) => {
       if (dead) return reject(new Error(dead));
@@ -93,6 +105,8 @@ async function create(o) {
        * the same pass is a striding bug, and a key on p alone would hide it (the POOL clause's stride break). */
       const got = new Map();
       const done = new Array(N).fill(false);
+      const finals = new Map();   // pass -> its final snapshot (the adaptive stop reads complete passes only)
+      let prefix = 0;
       let nDone = 0, timer = null, over = false, stoppedAny = false;
       const finish = (why, err) => {
         if (over) return;
@@ -102,14 +116,31 @@ async function create(o) {
         if (err) return reject(err);
         let late = 0;
         procs.forEach((c, w) => { if (!done[w]) { late++; try { c.send({ id, type: 'cancel' }); } catch (e) {} } });
-        if (late) { bump('lateWorkers', late); bump('deadlineResolves'); }
-        const all = [...got.values()].sort((a, b) => a.p - b.p);
-        resolve(Object.assign(all, { late, why, stopped: stoppedAny || why === 'deadline' }));
+        if (late && why !== 'adapt') { bump('lateWorkers', late); bump('deadlineResolves'); }   // an adaptive stop cancels on purpose: not late
+        if (why === 'adapt') bump('adaptResolves');
+        const all = [...got.entries()].map(([k, x]) => Object.assign({ w: +k.split(':')[0] }, x)).sort((a, b) => a.p - b.p);
+        const byWorker = Array.from({ length: N }, () => ({ passes: 0, playouts: 0 }));
+        for (const x of all) { const b = byWorker[x.w]; b.passes++; for (let i = 0; i < x.v.length; i++) if (x.v[i] === x.v[i]) b.playouts++; }
+        resolve(Object.assign(all, { late, why, byWorker, stopped: stoppedAny || why === 'deadline' }));
       };
       pending.set(id, {
         onMsg(m, w) {
           if (m.error) return finish('error', new Error('pool worker: ' + m.error));
-          if (m.type === 'pass') { got.set(w + ':' + m.p, { p: m.p, v: m.v }); return; }
+          if (m.type === 'pass') {
+            got.set(w + ':' + m.p, { p: m.p, v: m.v });
+            if (onPass && m.final) {
+              finals.set(m.p, m.v);
+              let grew = false;
+              while (finals.has(prefix)) { prefix++; grew = true; }
+              if (grew && !over) {
+                const vs = []; for (let q = 0; q < prefix; q++) vs.push(finals.get(q));
+                let stop = false;
+                try { stop = !!onPass(vs); } catch (e) { return finish('error', e); }
+                if (stop) return finish('adapt');
+              }
+            }
+            return;
+          }
           if (m.type === 'done') {
             for (const k in m.counters) bump(k, m.counters[k]);
             if (m.stopped) stoppedAny = true;
@@ -124,12 +155,13 @@ async function create(o) {
       if (!DEADLINE_BREAK && Number.isFinite(wait) && wait < 2 ** 31 - 1) timer = setTimeout(() => finish('deadline'), Math.max(0, wait));
     });
   }
-  async function fill(job) {
-    const all = await fillRaw(job);
-    return Object.assign(accumulate(job.rows.length, job.cols.length, all.map(x => x.v)), { workers: N, cut: !!all.stopped, late: all.late });
+  async function fill(job, hooks) {
+    const all = await fillRaw(job, hooks);
+    return Object.assign(accumulate(job.rows.length, job.cols.length, all.map(x => x.v)),
+      { workers: N, cut: !!all.stopped, late: all.late, adapted: all.why === 'adapt', byWorker: all.byWorker });
   }
   function close() { closing = true; for (const c of procs) { try { c.kill(); } catch (e) {} } }
-  return { fill, fillRaw, close, counters, workers: N, pids: procs.map(c => c.pid) };
+  return { fill, fillRaw, close, counters, workers: N, pids: procs.map(c => c.pid), alive: () => !dead && !closing, why: () => dead };
 }
 
 module.exports = { create, WORKER };

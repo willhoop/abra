@@ -49,6 +49,11 @@
  *   (worst-case cost on the table, summed) and hypnoWorstMax, hypnoGainPred (summed), hypnoBandMissing, hypnoCells
  *   ({ cell: decisions }) and hypnoTrustedCells. DELIBERATE BREAK MILTANK_BREAK=hypnoignored: the response is computed
  *   and counted but the solve's mix plays - solver/tests/test-hypno.js must go red.
+ *   world = { kind:'xatu', back, oppP, sheets }: the world sampler a POOL WORKER uses (solver/miltank/pool_worker.js); the
+ *   in-process path ignores it and uses deps.rollout, which must be the same sampler (XW.rollout of the same hb) — asserted
+ *   by solver/tests/test-search-pool.js. onJob(job): a read-only tap on the job both paths fill. decideAsync honours
+ *   onPass through the pool (pool.js hooks) and puts info.pool = { workers, passes_by_worker, playouts_by_worker,
+ *   idle_workers, late, adapted } on every pooled decision (2026-10-02, docs/_reports/2026-10-02-parallelism.md).
  *   leafModel = a PORYGON2 model file for the pory2 leaf (a self-play generation's net; default v0). record = true puts
  *   the root (rows, cols, both mixes, the mean matrix, the per-cell playout counts) in info.rec.
  *   The leaf defaults to env MILTANK_LEAF, else the heuristic. `pory2` = PORYGON2 v0 (PRE-GATE), solver/porygon2/leaf.js.
@@ -324,6 +329,8 @@ function create(API, deps) {
     if (d.forced) { COUNTERS.forced++; return { done: { joint: d.forced, info: { forced: true, ms: Date.now() - t0 } } }; }
     /* the coin is drawn in the same order in both paths: baseSeed now, the mix sample after the solve */
     d.job.baseSeed = Math.floor(coin() * 1e9);
+    if (o.world) d.job.world = o.world;   // the pool worker's world sampler (solver/miltank/pool_worker.js); the serial path's is deps.rollout
+    if (typeof o.onJob === 'function') o.onJob(d.job);   // a read-only tap (ROTOM's payoff table): the job both paths fill
     const fillBy = fillByOf(o, t0, budget);
     /* an in-flight playout is abandoned half-way through the reserve, so the other half is left for the solve */
     if (!DEADLINE_BREAK) d.job.abortAt = fillBy + Math.floor((t0 + budget - fillBy) / 2);
@@ -346,9 +353,15 @@ function create(API, deps) {
     if (!o.pool) return decide(S, side, ctx, o);
     const b = begin(S, side, ctx, o);
     if (b.done) return b.done;
-    const acc = await o.pool.fill(Object.assign({}, b.job, { deadline: b.fillBy, maxPasses: b.job.chanceOnePass ? 1 : (o.maxPasses || 0) }));
+    /* o.onPass through the pool: called on the run of COMPLETE passes 0..k as it grows, in pass order (pool.js hooks) —
+     * the serial loop's argument after pass k. A true return resolves the fill with every pass that has arrived. */
+    const hooks = o.onPass ? { onPass: vs => o.onPass(vs, b.job, b.t0) } : undefined;
+    const acc = await o.pool.fill(Object.assign({}, b.job, { deadline: b.fillBy, maxPasses: b.job.chanceOnePass ? 1 : (o.maxPasses || 0) }), hooks);
     COUNTERS.pooled = (COUNTERS.pooled || 0) + 1;
-    return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin, { workers: acc.workers, late_workers: acc.late || 0 }, b.priorTop, b.tau);
+    /* THE PROOF THE POOL RAN, per decision: how many workers, and what each delivered (passes, playouts) */
+    const pool = { workers: acc.workers, passes_by_worker: (acc.byWorker || []).map(x => x.passes), playouts_by_worker: (acc.byWorker || []).map(x => x.playouts),
+                   idle_workers: (acc.byWorker || []).filter(x => !x.playouts).length, late: acc.late || 0, adapted: !!acc.adapted };
+    return finishDecision(b.job, acc, o, b.t0, b.budget, b.coin, { workers: acc.workers, late_workers: acc.late || 0, pool, adapt_stop: acc.adapted || undefined }, b.priorTop, b.tau);
   }
 
   return { COUNTERS, decide, decideAsync, rank, collectIdle, BROKEN: DEADLINE_BREAK || (['flat', 'megabundle', 'klignored', 'hypnoignored'].includes(SEARCH_BREAK) ? SEARCH_BREAK : null) };

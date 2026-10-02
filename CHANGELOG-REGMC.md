@@ -28,6 +28,52 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.78.0] — 2026-10-02
+
+**MINOR: ROTOM's live search runs through MILTANK's worker pool (`--search-workers N`); the worker caps become a machine profile; and the machine, not the code, is what limits parallel search here.**
+
+### Added
+- `solver/rotom/rotom.js --search-workers N` (forwarded by `run_ladder.js`): N MILTANK worker processes, warmed with a
+  pooled gen5 search before connecting, fill every miltank-gen5 decision's cells (`solver/rotom/policy.js`
+  `gen5MovePooled`; a pooled forced switch scores its candidates there too). `pool` on every decision record (workers,
+  passes and playouts per worker, idle and late workers) and in the summary; a dead or throwing pool is a COUNTED
+  in-process fallback on what is left of the budget and is replaced off the clock; a request superseded during the fill
+  is never answered with the stale choice (`pool.stale`). Default 0 = in-process, unchanged.
+- `solver/miltank/pool.js` `hooks.onPass` (the adaptive clock's stop through the pool, on complete passes in pass order)
+  and `byWorker`; `pool_worker.js` `job.world` (XATU's honest sampler rebuilt in the worker) and exit on parent
+  disconnect; `search.js` `decideAsync` honours `onPass`, `world`, `onJob` and writes `info.pool`.
+- `solver/mew/agent.js` `spec.pool` (the arena's pooled arm, honest only; `ctr.pool` on every match line).
+- `solver/arena/cores.js`: the worker cap as a profile, `--machine dedicated` (up to 14 busy processes) or `shared` (the
+  old 3 / 4 / 4), used by `sprt.js`, `gate.js`, `mew/run.js` and recorded in their artifacts.
+- `solver/bench/ladbench.js` (playouts per live decision vs pool size, `--gap-ms` for the ladder's duty cycle) and
+  `solver/bench/throughput.js` (games per hour vs workers through the real drivers).
+- `solver/tests/test-search-pool.js`: IDENTITY, COUNTER, ADAPT, SWITCH, AGENT, FALLBACK; red under
+  `MILTANK_POOL_BREAK=noworld` and `ROTOM_POOL_BREAK=nocount`.
+- The pre-registered 2 s not-lose screen, pool 4 against in-process (`solver/results/2026-10-02-pool-screen/`).
+
+### Changed
+- `rotom.js` `decide()` is async; an unhandled rejection is caught and counted like an uncaught exception.
+- The sprt.js 3-cap (`02156176`, no reason in the code; its pre-registration fixed 3 workers) and the gate.js /
+  mew/run.js 4-caps ("other agents share it") are the `shared` profile. The defaults on this machine are UNCHANGED:
+  measured, more workers do not add search here (below).
+
+### Record
+- **Measured.** Release `74972dd2db89`, BELOW_NORMAL, nothing else heavy running. Ladbench, 14 s fixed budget, gen5
+  honest decision, 8 paired positions, 14 s idle between decisions: in-process 9,142 playouts per decision; pool 4
+  26,395 (×2.89, min 23,487, 0 late, 0 fallbacks); pool 8 19,286 and pool 14 16,959, both bimodal (~28,000-43,000 cool,
+  ~3,200-4,800 throttled). Back to back: pool 4 16,593, pool 14 13,155. **The CPU throttles to 12.5% of its clock under
+  sustained load on more than ~3 cores** (`% Processor Performance`: 83 of 165 five-second samples at 12.5% during the
+  throughput runs; on AC, High performance plan). Match throughput at the 2 s clock, 3 / 6 / 10 / 14 workers: 353 /
+  521 / 743 / 990 games per hour at 1,059 / 504 / 325 / 208 playouts per searched decision, Σ over workers ~3,000 at
+  every count; 14 workers left 840 MB free. Artifacts `solver/out/parallelism/` (gitignored). The pre-registered 2 s not-lose screen, pool 4 against in-process: PASS, X 0.480 [0.412, 0.549], 200
+  games, 942 against 320.6 playouts per searched decision, clock ratio 0.986, 0 fallbacks, every bar green
+  (`solver/results/2026-10-02-pool-screen/screen-pool4-2s.read.json`); no gain shown from the extra search.
+  Report `docs/_reports/2026-10-02-parallelism.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing. (`solver/PLAN.md` §6a's local compute estimate assumed per-worker scaling; it is owed a note.)
+- **Owed to the next major.** `solver/PLAN.md` §6a (this machine's sustained throughput is ~3 cores, not 16);
+  `docs/SOLVER.md` carries the bullet now.
+
 ## [1.77.4] — 2026-10-02
 
 **PATCH: the Reg M-C gate on the speed-pass engine (release `74972dd2db89`): OPEN, 10 of 10. No figure moved.**

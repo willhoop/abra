@@ -35,12 +35,19 @@
 const RQ = require('./request.js');
 const T = require('../arena/teams.js');
 
+/* DELIBERATE BREAKS (env ROTOM_POOL_BREAK, solver/tests/test-search-pool.js): `nocount` = a pool fallback is taken but not
+ * counted (FALLBACK must go red); `throw` = every pooled move decision takes the fallback path (counted) */
+const BREAK_POOL = (typeof process !== 'undefined' && process.env && process.env.ROTOM_POOL_BREAK) || '';
+
 function create(deps) {
   const { API, PA, R, tables } = deps;
   const M = API.M;
   const SK_MT = require('../miltank/search.js');
   const COUNTERS = { move: {}, forceSwitch: {}, preview: {}, unmappedJoints: 0, unmappedBy: {}, unmappedSamples: [], rootFiltered: 0, xatuWorlds: 0, xatuFallback: 0, previewPlayouts: 0, chompSolves: 0,
-                     gen5: { decisions: 0, searched: 0, forced: 0, fallbackEmpty: 0, fallbackSparse: 0, noBack: 0, hpLaid: 0, switchScored: 0 } };
+                     gen5: { decisions: 0, searched: 0, forced: 0, fallbackEmpty: 0, fallbackSparse: 0, noBack: 0, hpLaid: 0, switchScored: 0 },
+                     /* the search pool (d.pool, ROTOM --search-workers): pooled decisions and switch scorings, what they played, and every
+                      * fallback to the in-process search (a dead or throwing pool), with the first errors */
+                     pool: { decisions: 0, switchScored: 0, playouts: 0, passes: 0, idleWorkers: 0, late: 0, fallback: 0, errors: [] } };
   const bump = (k, n) => { COUNTERS[k][n] = (COUNTERS[k][n] || 0) + 1; };
 
   /* the read-only tap on MILTANK's internals (see payoffTable) — installed once per process */
@@ -248,13 +255,61 @@ function create(deps) {
     const hy = hyCfg ? { hypno: Object.assign({}, hyCfg === true ? {} : hyCfg, d.oppRating != null ? { oppRating: d.oppRating } : {},
                                               d.bestof && HY_SERIES.has(d.bestof) ? { series: HY_SERIES.get(d.bestof), gn: d.gnum || 1 } : {}) } : {};
     if (hyCfg) COUNTERS.hypno.decisions++;
-    try { r = MT.decide(w.S, w.side, w.ctx, gen5Opts(d.budgetMs, d.coin, Object.assign({}, d.onPass ? { onPass: d.onPass } : {}, d.record ? { record: true } : {}, hy))); }   // d.onPass: the adaptive clock's early stop (solver/rotom/adaptive.js); d.record (2026-09-30, replay probes): the root in r.info.rec
+    const opts = gen5Opts(d.budgetMs, d.coin, Object.assign({}, d.onPass ? { onPass: d.onPass } : {}, d.record ? { record: true } : {}, d.maxPasses ? { maxPasses: d.maxPasses } : {}, hy));   // d.onPass: the adaptive clock's early stop (solver/rotom/adaptive.js); d.record (2026-09-30, replay probes): the root in r.info.rec
+    if (d.pool) { TAP.on = false; return gen5MovePooled(d, w, g, hb, MT, opts); }
+    try { r = MT.decide(w.S, w.side, w.ctx, opts); }
     finally { TAP.on = false; }
+    return gen5Finish(d, w, g, hb, MT, r, payoffTable(d, w, r));
+  }
+  /* THE POOLED gen5 DECISION (2026-10-02, docs/_reports/2026-10-02-parallelism.md): the same search, its cells filled by
+   * d.pool's worker processes (solver/miltank/pool.js) on the same world sampler (job.world: XATU's honest sampler with this
+   * hb, rebuilt in each worker). The payoff table is read from the search's own root record (o.record), not the module tap,
+   * because a tap left on across an await could catch another decision's solve. A pool that is dead or throws is a COUNTED
+   * fallback (COUNTERS.pool.fallback) to the in-process search on what is left of the budget; d.onPoolDead(why) lets the
+   * caller replace the pool off the clock. Returns a Promise. */
+  async function gen5MovePooled(d, w, g, hb, MT, opts) {
+    const t0 = Date.now(), PC = COUNTERS.pool;
+    let r = null, err = null;
+    if (BREAK_POOL === 'throw') err = 'deliberate break (ROTOM_POOL_BREAK=throw)';
+    else if (!d.pool.alive()) err = 'pool not alive: ' + (d.pool.why() || 'closed');
+    else {
+      try { r = await MT.decideAsync(w.S, w.side, w.ctx, Object.assign({}, opts, { pool: d.pool, world: worldOf(hb, w.ctx), record: true })); }
+      catch (e) { err = String(e && e.message || e).slice(0, 200); }
+    }
+    if (err != null) {
+      if (BREAK_POOL !== 'nocount') PC.fallback++;
+      if (PC.errors.length < 10) PC.errors.push(err);
+      if (typeof d.onPoolDead === 'function') d.onPoolDead(err);
+      const left = Math.max(0, d.budgetMs - (Date.now() - t0));
+      TAP.on = true; TAP.job = null; TAP.A = null; TAP.sol = null;
+      try { r = MT.decide(w.S, w.side, w.ctx, Object.assign({}, opts, { budgetMs: left })); }
+      finally { TAP.on = false; }
+      r.info = Object.assign({}, r.info, { pool: { workers: 0, fallback: err } });
+      return gen5Finish(d, w, g, hb, MT, r, payoffTable(d, w, r));
+    }
+    PC.decisions++;
+    if (r.info && r.info.pool) { PC.playouts += r.info.playouts || 0; PC.passes += r.info.passes || 0; PC.idleWorkers += r.info.pool.idle_workers || 0; PC.late += r.info.pool.late || 0; }
+    const table = tableFromRec(d, w, r);
+    if (!d.record && r.info) delete r.info.rec;
+    return gen5Finish(d, w, g, hb, MT, r, table);
+  }
+  /* the world a pool worker samples, as plain data: XATU's back posterior and the two sheets (its spread prior is rebuilt) */
+  function worldOf(hb, ctx) { return { kind: 'xatu', back: hb.back || null, oppP: hb.oppP, sheets: ctx.G.sheets }; }
+  function tableFromRec(d, w, r) {
+    const rec = r.info && r.info.rec;
+    if (!rec) return r.info && r.info.forced ? { forced: true } : null;
+    const r3 = v => Math.round(v * 1000) / 1000;
+    const rowLabel = j => { const m = RQ.fromEngine(d.req, j, w.posOfTeam); return m.some(x => !x) ? engLabel(j) : RQ.joinChoice(m); };
+    return { rows: rec.rows.map(rowLabel), cols: rec.cols.map(engLabel), A: rec.A.map(row => Array.from(row, r3)), mix: rec.x.map(r3),
+             row_mean: rec.A.map(row => r3(Array.from(row).reduce((s, v) => s + v, 0) / Math.max(1, row.length))),
+             value: r.info.value == null ? null : r3(r.info.value), gap: r.info.gap == null ? null : r3(r.info.gap), pick: r.info.pick };
+  }
+  function gen5Finish(d, w, g, hb, MT, r, table) {
     if (r.info && r.info.forced) COUNTERS.gen5.forced++; else COUNTERS.gen5.searched++;
     COUNTERS.gen5.fallbackEmpty += MT.COUNTERS.fallbackEmpty; COUNTERS.gen5.fallbackSparse += MT.COUNTERS.fallbackSparse;
     const mapped = RQ.fromEngine(d.req, r.joint, w.posOfTeam);
     if (mapped.some(x => !x)) throw new Error('miltank-gen5: chosen joint does not map');
-    return { choice: RQ.joinChoice(mapped), info: Object.assign({ counters: MT.COUNTERS, gen5: g.digests, honest: { back: !!hb.back, worlds: g.XW.COUNTERS.worlds } }, r.info, { table: payoffTable(d, w, r) }) };
+    return { choice: RQ.joinChoice(mapped), info: Object.assign({ counters: MT.COUNTERS, gen5: g.digests, honest: { back: !!hb.back, worlds: g.XW.COUNTERS.worlds } }, r.info, { table }) };
   }
 
   function move(name, d) {
@@ -283,7 +338,7 @@ function create(deps) {
     const g5 = name === 'miltank-gen5' && d.world && d.budgetMs > 300 && per >= 150 ? gen5Root(d, d.world) : null;
     if ((name === 'miltank' || g5) && d.world && d.budgetMs > 300 && per >= 150) {
       /* each candidate replacement: put it in the slot, ask MILTANK for the value of the next turn */
-      const scored = [];
+      const scored = [], jobs = [];
       for (const j of J) {
         const W = API.clone(d.world.S);
         const act = d.world.side === 'A' ? W.actA : W.actB, bench = d.world.side === 'A' ? W.benchA : W.benchB, sf = d.world.side === 'A' ? W.sfA : W.sfB;
@@ -298,23 +353,58 @@ function create(deps) {
           act[i] = b; if (bi >= 0) bench[bi] = out;
         });
         if (!ok) continue;
+        jobs.push({ j, W });
+      }
+      const ctx = d.world.ctx;
+      const mk = () => (g5 ? SK_MT.create(API, { prior: gen5().PA, rollout: gen5().XW.rollout(g5.hb) }) : SK_MT.create(API, { prior: PA, rollout: xatuRollout(d) }));
+      const optsOf = () => (g5 ? gen5Opts(per, d.coin) : { budgetMs: per, k1: 6, k2: 6, depth: 2, coin: d.coin });
+      const pick = extra => {
+        if (!scored.length) return null;
+        scored.sort((a, b) => b.v - a.v);
+        return { choice: RQ.joinChoice(scored[0].j), info: Object.assign({ values: scored.map(s => ({ c: RQ.joinChoice(s.j), v: +s.v.toFixed(3) })) }, extra || {}) };
+      };
+      /* POOLED (gen5 only, d.pool): each candidate's search fills its cells in the pool, one after another; a failure is the
+       * counted in-process fallback for that candidate and every later one. Returns a Promise. */
+      if (g5 && d.pool) return (async () => {
+        let pooled = !!d.pool.alive() && BREAK_POOL !== 'throw', fell = pooled ? null : (BREAK_POOL === 'throw' ? 'deliberate break (ROTOM_POOL_BREAK=throw)' : 'pool not alive: ' + (d.pool.why() || 'closed'));
+        if (fell) { if (BREAK_POOL !== 'nocount') COUNTERS.pool.fallback++; if (COUNTERS.pool.errors.length < 10) COUNTERS.pool.errors.push(fell); if (typeof d.onPoolDead === 'function') d.onPoolDead(fell); }
+        const byWorker = [];
+        for (const { j, W } of jobs) {
+          try {
+            const MT = mk();
+            let r = null;
+            if (pooled) {
+              try { r = await MT.decideAsync(W, d.world.side, ctx, Object.assign(optsOf(), { pool: d.pool, world: worldOf(g5.hb, ctx) })); }
+              catch (e) { pooled = false; fell = String(e && e.message || e).slice(0, 200); if (BREAK_POOL !== 'nocount') COUNTERS.pool.fallback++; if (COUNTERS.pool.errors.length < 10) COUNTERS.pool.errors.push(fell); if (typeof d.onPoolDead === 'function') d.onPoolDead(fell); }
+            }
+            if (!r) r = MT.decide(W, d.world.side, ctx, optsOf());
+            else { COUNTERS.pool.switchScored++; COUNTERS.pool.playouts += r.info.playouts || 0; COUNTERS.pool.passes += r.info.passes || 0; if (r.info.pool) byWorker.push(r.info.pool.playouts_by_worker); }
+            COUNTERS.gen5.switchScored++;
+            scored.push({ j, v: r.info.value != null ? r.info.value : 0.5 });
+          } catch (e) { scored.push({ j, v: -1, err: String(e.message || e).slice(0, 120) }); }
+        }
+        const sumBy = byWorker.length ? byWorker[0].map((_, k) => byWorker.reduce((s, a) => s + (a[k] || 0), 0)) : [];
+        const out = pick({ pool: { workers: fell && !byWorker.length ? 0 : d.pool.workers, scored_pooled: byWorker.length, playouts_by_worker: sumBy, fallback: fell || undefined } });
+        return out || healthiest();
+      })();
+      for (const { j, W } of jobs) {
         try {
-          const ctx = d.world.ctx;
-          const MT = g5 ? SK_MT.create(API, { prior: gen5().PA, rollout: gen5().XW.rollout(g5.hb) }) : SK_MT.create(API, { prior: PA, rollout: xatuRollout(d) });
-          const r = MT.decide(W, d.world.side, ctx, g5 ? gen5Opts(per, d.coin) : { budgetMs: per, k1: 6, k2: 6, depth: 2, coin: d.coin });
+          const MT = mk();
+          const r = MT.decide(W, d.world.side, ctx, optsOf());
           if (g5) COUNTERS.gen5.switchScored++;
           scored.push({ j, v: r.info.value != null ? r.info.value : 0.5 });
         } catch (e) { scored.push({ j, v: -1, err: String(e.message || e).slice(0, 120) }); }
       }
-      if (scored.length) {
-        scored.sort((a, b) => b.v - a.v);
-        return { choice: RQ.joinChoice(scored[0].j), info: { values: scored.map(s => ({ c: RQ.joinChoice(s.j), v: +s.v.toFixed(3) })) } };
-      }
+      const out = pick();
+      if (out) return out;
     }
-    /* prior (and the miltank floor): the healthiest bench bodies */
-    const sc = j => j.reduce((s, o) => s + (o.kind === 'switch' ? 1 + hpFrac(mons[o.pos - 1]) : 0), 0);
-    let best = J[0]; for (const j of J) if (sc(j) > sc(best)) best = j;
-    return { choice: RQ.joinChoice(best), info: { rule: 'healthiest bench' } };
+    return healthiest();
+    function healthiest() {
+      /* prior (and the miltank floor): the healthiest bench bodies */
+      const sc = j => j.reduce((s, o) => s + (o.kind === 'switch' ? 1 + hpFrac(mons[o.pos - 1]) : 0), 0);
+      let best = J[0]; for (const j of J) if (sc(j) > sc(best)) best = j;
+      return { choice: RQ.joinChoice(best), info: { rule: 'healthiest bench' } };
+    }
   }
 
   /* ---- team preview ---- */

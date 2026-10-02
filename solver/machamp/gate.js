@@ -2,7 +2,7 @@
  * a frozen release, a fixed game count read ONCE at the end.
  *
  *   cmd.exe /c tools\lownode.cmd solver\machamp\gate.js --release <id> --x <spec.json> --y <spec.json>
- *        --pairs 100 --pair-seed S --seed S --workers 4 --out <result.json> [--cap 50] [--rule beats|notlose]
+ *        --pairs 100 --pair-seed S --seed S --workers 4 --out <result.json> [--cap 50] [--rule beats|notlose] [--machine dedicated|shared]
  *        [--info honest|omniscient]   default HONEST (solver/mew/play.js); recorded in flags.info (2026-09-26)
  *        [--spreads observed-v1|role-v1|xatu-random|flat]   the TRUE bodies' Stat Points (solver/arena/spread_source.js); default
  *        observed-v1 since abra/regmc 1.73.0, role-v1 1.49.0-1.72.0 (not comparable); recorded in flags.spreads and the `spreads` block. A gate before 1.49.0 played
@@ -27,6 +27,13 @@ const { forkShards } = require('../mew/run.js');
 const argv = process.argv.slice(2);
 const flag = (k, d) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : d; };
 const ROOT = path.join(__dirname, '..', '..');
+const CORES = require('../arena/cores.js');
+/* the pool processes one game worker keeps busy: the larger `pool` of the two specs (solver/mew/agent.js spec.pool), else 1 */
+function poolOfSpec(...files) {
+  let p = 1;
+  for (const f of files) { try { const s = JSON.parse(fs.readFileSync(path.resolve(ROOT, f), 'utf8')); if (s && s.pool > p) p = s.pool | 0; } catch (e) { /* the run itself reports a bad spec */ } }
+  return p;
+}
 
 function wilson(k, n, z = 1.96) {
   if (!n) return [0, 1];
@@ -60,13 +67,15 @@ function merge(per) {
 
 async function main() {
   const rel = flag('--release'), X = flag('--x'), Y = flag('--y'), NP = +flag('--pairs', 100), PS = +flag('--pair-seed', 1);
-  const seed = +flag('--seed', 1), W = +flag('--workers', 4), cap = +flag('--cap', 50), rule = flag('--rule', 'beats');
+  const machine = CORES.profile(argv);
+  const seed = +flag('--seed', 1), W = +flag('--workers', CORES.defaultWorkers('gate', machine)), cap = +flag('--cap', 50), rule = flag('--rule', 'beats');
   const info = flag('--info', 'honest');
   if (!['honest', 'omniscient'].includes(info)) throw new Error('machamp/gate: --info must be honest or omniscient');
   const out = path.resolve(ROOT, flag('--out'));
   if (!rel || !X || !Y || !flag('--out')) throw new Error('usage: --release --x --y --pairs --out');
   if (!RULES[rule]) throw new Error('unknown rule ' + rule);
-  if (W > 4) throw new Error('machamp/gate: at most 4 workers');
+  /* the worker cap is a MACHINE PROFILE (solver/arena/cores.js): --machine shared keeps the old 4 */
+  const cores = CORES.check('gate', W, machine, poolOfSpec(X, Y));
   const dir = out.replace(/\.json$/, '') + '.shards';
   fs.mkdirSync(dir, { recursive: true });
   const human = flag('--human', null), store = flag('--team-store', null);
@@ -111,7 +120,7 @@ async function main() {
   const result = {
     what: 'MACHAMP gate (solver/machamp/gate.js)', started, finished: new Date().toISOString(),
     engine_release: first.engine_release || rel, release_stamp: first.release_stamp || null,
-    flags: { release: rel, x: X, y: Y, pairs: NP, games: 2 * NP, pair_seed: PS, seed, workers: W, cap, rule, human, team_store: store, info, spreads },
+    flags: { release: rel, x: X, y: Y, pairs: NP, games: 2 * NP, pair_seed: PS, seed, workers: W, machine, cores, cap, rule, human, team_store: store, info, spreads },
     spreads: SPREADS,
     x: first.x || null, y: first.y || null, pool: first.pool || null,
     result: { ...m.res, played: m.n, score_x: m.score, ci95_x: m.ci95 }, paired: { team_pairs: NP, ...m.pairs },
@@ -128,4 +137,4 @@ async function main() {
 }
 
 if (require.main === module) main().then(c => process.exit(c), e => { console.error(e); process.exit(1); });
-module.exports = { wilson, merge, RULES };
+module.exports = { wilson, merge, RULES, poolOfSpec };

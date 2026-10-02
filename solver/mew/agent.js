@@ -136,6 +136,28 @@ function create(API, opts) {
       MT = MTmod.create(API, { prior: PA, rollout: R });
     } else if (spec.kind !== 'greedy') throw new Error('mew/agent: unknown kind ' + spec.kind);
 
+    /* spec.pool = N (2026-10-02, docs/_reports/2026-10-02-parallelism.md): this agent's MILTANK cells are filled by N worker
+     * processes (solver/miltank/pool.js), forked on first use and shared by every bot of this spec in the process. Honest
+     * information only (the worker's world sampler is XATU's; the omniscient path is not pooled) and not with bodies
+     * pre-1.69 (that arm edits each world in this process). The workers' fresh bodies are opts.poolEnv's MILTANK_BODIES,
+     * which the caller sets to its own R's builder (solver/mew/play.js). Counted per agent in COUNTERS.pool[name]. */
+    const POOLN = spec.kind === 'miltank' && spec.pool ? spec.pool | 0 : 0;
+    if (spec.pool != null && !(POOLN >= 1)) throw new Error('mew/agent: spec.pool must be a worker count >= 1');
+    if (POOLN && spec.bodies === 'pre-1.69') throw new Error('mew/agent: spec.pool and bodies pre-1.69 are not combined');
+    if (POOLN && !opts.poolEnv) throw new Error('mew/agent: spec.pool needs the caller\'s poolEnv (MILTANK_BODIES), so the workers build the same bodies');
+    let POOLP = null;
+    const PC = POOLN ? ((COUNTERS.pool = COUNTERS.pool || {})[spec.name] = { workers: POOLN, decisions: 0, playouts: 0, idle_workers: 0, late: 0, playouts_by_worker: new Array(POOLN).fill(0), pids: [] }) : null;
+    function poolOf() {
+      if (!POOLP) POOLP = require('../miltank/pool.js').create({ workers: POOLN, env: opts.poolEnv }).then(p => { PC.pids = p.pids; return p; });
+      return POOLP;
+    }
+    function poolCount(r) {
+      const q = r && r.info && r.info.pool;
+      if (!q) return;
+      PC.decisions++; PC.playouts += r.info.playouts || 0; PC.idle_workers += q.idle_workers || 0; PC.late += q.late || 0;
+      q.playouts_by_worker.forEach((v, k) => { PC.playouts_by_worker[k] += v; });
+    }
+
     function argmax(S, side, ctx) {
       const la = API.legalActions(S, side);
       if (la.joint.length === 1) return { joint: la.joint[0], info: { forced: true } };
@@ -175,6 +197,7 @@ function create(API, opts) {
           if (!hb) throw new Error('mew/agent: bodies pre-1.69 needs the honest view (--info honest); it would edit the true battle');
           stripSp(S); PRE169.views++; COUNTERS.pre169 = PRE169;
         }
+        if (POOLN && !hb) throw new Error('mew/agent: spec.pool needs the honest view (--info honest)');
         const tIn = Date.now();
         let oo = o, rec = null, pcrKind = null;
         if (PCR) {
@@ -192,7 +215,14 @@ function create(API, opts) {
         try {
           let RH = hb ? XW.rollout(hb) : null;
           if (RH && spec.bodies === 'pre-1.69') { const R0 = RH; RH = Object.assign({}, R0, { sampleWorld(...a) { const W = R0.sampleWorld(...a); stripSp(W); PRE169.worlds++; return W; } }); }
-          const r = (hb ? MTmod.create(API, { prior: PA, rollout: RH }) : MT).decide(S, side, ctx, oo);
+          const MTd = hb ? MTmod.create(API, { prior: PA, rollout: RH }) : MT;
+          /* spec.pool (2026-10-02): the cells are filled by this agent's worker pool, on the same honest world sampler
+           * (job.world: XATU's back posterior + the spread prior rebuilt from the sheets in each worker). A Promise. */
+          if (POOLN) return poolOf().then(pool => MTd.decideAsync(S, side, ctx, Object.assign({}, oo, { pool, world: { kind: 'xatu', back: hb.back || null, oppP: hb.oppP, sheets: ctx.G.sheets } })))
+            .then(r => { poolCount(r); return after(r); }).catch(fail);
+          return after(MTd.decide(S, side, ctx, oo));
+        } catch (e) { return fail(e); }
+        function after(r) {
           if (hb) COUNTERS.honest = (COUNTERS.honest || 0) + 1;
           if (r.info && r.info.forced) COUNTERS.forced++; else COUNTERS.searched++;
           if (pcrKind && r.info) {
@@ -232,7 +262,8 @@ function create(API, opts) {
             if (q.reason === 'played') { Hc.tvSum += q.tv; Hc.worstSum += q.worst; if (q.worst > Hc.worstMax) Hc.worstMax = q.worst; Hc.gainSum += q.gain; }
           }
           return r;
-        } catch (e) {
+        }
+        function fail(e) {
           COUNTERS.fallbacks++;
           if (COUNTERS.fallback_errors.length < 10) COUNTERS.fallback_errors.push(String(e && e.message || e).slice(0, 200));
           const r = argmax(S, side, ctx); r.info = Object.assign({}, r.info, { fallback: true }, pcrKind ? { pcr: pcrKind } : {}); return r;

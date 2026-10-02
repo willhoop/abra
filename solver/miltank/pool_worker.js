@@ -25,6 +25,23 @@ const R = require('./rollout.js').create(API, { buildBody: BODIES === 'flat' ? T
   : T.bodyBuilder(API.M, { view: BODIES.split(':')[0], spreads: BODIES.split(':')[1] || undefined }) });
 const C = require('./cells.js');
 const BREAK = process.env.MILTANK_POOL_BREAK || '';
+/* THE WORLD SAMPLER (2026-10-02, docs/_reports/2026-10-02-parallelism.md). job.world = { kind:'xatu', back, oppP, sheets }
+ * plays the pass on XATU's honest sampler, solver/xatu/worlds.js rollout(hb) — the module ROTOM's miltank-gen5 and the
+ * honest arena call in-process — with hb = { back, oppP, spreads: XW.spreadPrior(sheets) }. The parent's SpreadBelief is
+ * not shipped: v1 feeds it no observations (worlds.js header), so it is a pure function of the two sheets and the
+ * worker rebuilds the same one. The identity is ASSERTED (solver/tests/test-search-pool.js IDENTITY: a pass-capped pooled
+ * decision equals the in-process one bit for bit), not assumed. No job.world = the plain rollout, as before. */
+let XW = null;
+const XR = new Map();
+function rolloutFor(job) {
+  const w = job.world;
+  if (!w || BREAK === 'noworld') return R;
+  if (w.kind !== 'xatu') throw new Error('pool_worker: unknown world kind ' + w.kind);
+  if (!XW) XW = require('../xatu/worlds.js').create(API, { R });
+  const key = JSON.stringify([w.back || null, w.oppP]) + '|' + JSON.stringify(['p1', 'p2'].map(p => ((w.sheets || {})[p] || []).map(r => [r.species, r.nature, r.item, r.ability])));
+  if (!XR.has(key)) { if (XR.size > 32) XR.clear(); XR.set(key, XW.rollout({ back: w.back || null, oppP: w.oppP, spreads: XW.spreadPrior(w.sheets) })); }
+  return XR.get(key);
+}
 const threadCpu = () => { const u = process.threadCpuUsage ? process.threadCpuUsage() : process.cpuUsage(); return u.user + u.system; };
 
 const DEADLINE_BREAK = process.env.MILTANK_DEADLINE_BREAK || '';
@@ -41,6 +58,9 @@ function warm() {
   for (const k of ['species', 'moves', 'items', 'abilities']) X.D[k].all();
   warmed = true;
 }
+
+/* the parent went away (it exited or was killed): a worker never outlives the process that forked it */
+process.on('disconnect', () => process.exit(0));
 
 process.on('message', msg => {
   try {
@@ -64,6 +84,8 @@ function runFill(id, job) {
   const counters = {};
   const step = BREAK === 'stride' ? 1 : job.workers;
   let p = BREAK === 'stride' ? 0 : job.worker, played = 0, stopped = false, run = null;
+  const RJ = rolloutFor(job);
+  if (job.world && RJ !== R) counters.worldsXatuFills = 1;
   const next = () => {
     try {
       if (!run) {
@@ -74,7 +96,7 @@ function runFill(id, job) {
           process.send({ id, type: 'done', counters, stopped: stopped || late, bodies: BODIES });
           return;
         }
-        run = C.passRunner(API, R, job, p);
+        run = C.passRunner(API, RJ, job, p);
       }
       if (cancelled.has(id)) { stopped = true; run = null; return setImmediate(next); }
       const before = Object.assign({}, R.COUNTERS), cpu0 = threadCpu();

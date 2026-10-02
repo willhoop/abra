@@ -48,6 +48,16 @@
  * plus walkaway_opp / walkaway_me (somebody left between games). OUR OWN forfeit_me / timeout_me / inactivity /
  * walkaway_me must be ZERO: each one is an error (ST.selfQuits, event `self_quit`) and HALTS the ladder (ladder.js onSelfQuit).
  *
+ * THE SEARCH POOL (`--search-workers N`, 2026-10-02, docs/_reports/2026-10-02-parallelism.md). N > 0 forks N MILTANK
+ * worker processes (solver/miltank/pool.js) at start-up, warms each one with a pooled gen5 search BEFORE connecting, and
+ * fills every miltank-gen5 decision's cells across them (policy.js gen5MovePooled: the same passes, the same XATU world
+ * sampler, rebuilt in each worker). Every decision record carries `pool`: { workers, passes_by_worker, playouts_by_worker,
+ * idle_workers, late } when the pool ran, { workers: 0, why } when it did not. A dead or throwing pool is a COUNTED
+ * fallback to the in-process search on what is left of the budget (summary `pool.fallback`), and the pool is replaced off
+ * the clock (summary `pool.respawns`). 0 (the default until the ladbench measured otherwise) = in-process, as before.
+ * The decision is async when pooled: a request that is superseded or a game that ends during the fill is never answered
+ * with the stale choice (summary `pool.stale`); the request is decided afresh.
+ *
  * SAFETY: a lock file (lock.js) refuses a second client; reconnect with backoff, rejoin every open game from
  * |updatesearch|, re-read the request the server re-sends and answer it (the same choice if that rqid was already
  * answered); the drill flags `--drill drop@S.G.T` / `--drill crash@S.G.T` kill the socket / the process at set S,
@@ -94,6 +104,8 @@ const ADAPT_TARGET_MS = +flag('adaptive-target-ms', 0);
 const ADAPT = require('./adaptive.js');
 const TIMER = flag('timer', 'on');
 const DRILL = flag('drill', '');                     // drop@S.G.T | crash@S.G.T  (set, game, turn; 1-based)
+const SEARCH_WORKERS = Math.max(0, Math.floor(+flag('search-workers', 0) || 0));   // the search pool's size (see the header); 0 = in-process
+const SPOOL = { pool: null, state: 'off', warmMs: null, counters: { respawns: 0, stale: 0, notReady: 0, deaths: 0, errors: [] } };
 const DUMP_REQ = +flag('dump-requests', 0);          // write the first N requests (+ the public log so far) as test fixtures
 /* THE ARM NAMES ITS ROTATION (2026-09-30). An arms file may carry `rotation`: a repo-relative path to the team rotation it
  * is played with. In ladder mode that is the rotation, so the record (the plan's rotation file + sha256, every series row's
@@ -278,6 +290,9 @@ const ST = { decisions: 0, byKind: {}, ms: { preview: [], move: [], switch: [] }
              applied: new APPLIED.Tally(), verifyCost: { runs: 0, decisions: 0, ms: 0, max_ms: 0 } };
 const fb = (k) => { ST.fallbacks[k] = (ST.fallbacks[k] || 0) + 1; };
 process.on('uncaughtException', e => { ST.crashesCaught.push(String(e && e.stack || e).slice(0, 400)); event('uncaught', { err: String(e && e.message || e) }); say('UNCAUGHT ' + (e && e.stack || e)); });
+/* decide() is async since the search pool (2026-10-02): a throw inside it is a rejected promise, caught and counted exactly as an
+ * uncaught exception was, never the process-ending default */
+process.on('unhandledRejection', e => { ST.crashesCaught.push(String(e && e.stack || e).slice(0, 400)); event('uncaught', { err: String(e && e.message || e), rejection: true }); say('UNHANDLED REJECTION ' + (e && e.stack || e)); });
 
 /* ---------------- ladder mode (solver/rotom/ladder.js) ---------------- */
 let LADDER = null;
@@ -1100,7 +1115,7 @@ function parseRow(B, kind) {
   catch (e) { if (kind === 'switch') { try { return parseGame({ id: B.id, log: B.lines.join('\n') }); } catch (e2) { /* fall through */ } } throw e; }
 }
 
-function decide(B) {
+async function decide(B) {
   const req = B.req;
   if (!req || B.sent.has(req.rqid) || B.ended) return;
   if (!B.me) B.me = req.side && req.side.id;
@@ -1133,10 +1148,10 @@ function decide(B) {
   let choice = null, used = null, info = null;
   const opp = B.me === 'p1' ? 'p2' : 'p1';
   const coin = () => coinBase();
-  const tryPolicy = (name, fn) => {
+  const tryPolicy = async (name, fn) => {
     if (choice) return;
     try {
-      const r = fn();
+      const r = await fn();   // a pooled search answers with a Promise (policy.js gen5MovePooled); the rest answer at once
       if (r && r.choice && RQ.isLegal(req, r.choice)) { choice = r.choice; used = name; info = r.info; }
       else { rec.chain.push({ policy: name, fail: r && r.choice ? 'not legal: ' + r.choice : 'no choice' }); fb(name + ':illegal'); }
     } catch (e) { rec.chain.push({ policy: name, fail: String(e && e.message || e).slice(0, 200) }); fb(name + ':threw'); }
@@ -1161,15 +1176,15 @@ function decide(B) {
     const d = { req, coin, sheets: B.sheets, me: B.me, budgetMs: Math.min(bud.ms, ARM && ARM.preview_max_ms > 0 ? ARM.preview_max_ms : PREVIEW_MAX_MS), teamBring: team ? team.bring : null,
                 series: { oppLast: B.bestof ? BOOK.oppLast(B.bestof, B.gnum || 1, B.me) : null } };
     /* --preview chomp: CHOMP (v1 unless CHOMP_VERSION=v0) first; a throw or an over-budget table falls down the usual chain, COUNTED (chomp:threw) */
-    if (PV === 'chomp') tryPolicy('chomp', () => { const r = P.previewChomp(d); return { choice: RQ.previewChoice(r.order.map(x => posOfSheet(x - 1))), info: r.info }; });
-    tryPolicy(first, () => {
+    if (PV === 'chomp') await tryPolicy('chomp', () => { const r = P.previewChomp(d); return { choice: RQ.previewChoice(r.order.map(x => posOfSheet(x - 1))), info: r.info }; });
+    await tryPolicy(first, () => {
       let r = P.preview(first, d);
       if (r.search) { if (!(B.sheets.p1 && B.sheets.p2)) throw new Error('no sheets for the preview search'); r = P.previewSearch(d, r.human); r.order = r.order.map(x => posOfSheet(x - 1)); }
       else if (first !== 'random') r.order = r.order.map(x => posOfSheet(x - 1));
       return { choice: RQ.previewChoice(r.order), info: r.info };
     });
-    if (first !== 'prior') tryPolicy('prior', () => { const r = P.preview('prior', d); return { choice: RQ.previewChoice(r.order.map(x => posOfSheet(x - 1))), info: r.info }; });
-    tryPolicy('heuristic', () => ({ choice: RQ.previewChoice([1, 2, 3, 4]) }));
+    if (first !== 'prior') await tryPolicy('prior', () => { const r = P.preview('prior', d); return { choice: RQ.previewChoice(r.order.map(x => posOfSheet(x - 1))), info: r.info }; });
+    await tryPolicy('heuristic', () => ({ choice: RQ.previewChoice([1, 2, 3, 4]) }));
   } else {
     let world = null;
     const needWorld = first !== 'random';
@@ -1187,11 +1202,22 @@ function decide(B) {
     const d = () => ({ req, world, coin, budgetMs: Math.max(0, bud.ms - (Date.now() - t0)), xatuBack: world && world.xatuBack,
                        oppRating: B.ratingsBefore && B.ratingsBefore[opp] != null ? B.ratingsBefore[opp] : null,   // HYPNO's band (2026-10-01): the |player| line's rating
                        bestof: B.bestof, gnum: B.gnum, hypno: ARM && ARM.hypno ? ARM.hypno : null,                  // HYPNO's series memory and the arm's own config
-                       onPass: adRec && kind === 'move' ? B.adapt.stopper(adRec.plan, adRec) : undefined });
+                       onPass: adRec && kind === 'move' ? B.adapt.stopper(adRec.plan, adRec) : undefined,
+                       pool: SPOOL.pool && SPOOL.pool.alive() ? SPOOL.pool : undefined, onPoolDead: poolDied });
+    if (SEARCH_WORKERS > 0 && first === 'miltank-gen5' && !(SPOOL.pool && SPOOL.pool.alive())) { SPOOL.counters.notReady++; rec.pool = { workers: 0, why: SPOOL.state }; }
     const run = (name) => () => (kind === 'switch' ? P.forceSwitch(name, d()) : P.move(name, d()));
-    tryPolicy(first, run(first));
-    if (SEARCHES.includes(first)) tryPolicy('prior', run('prior'));
-    tryPolicy('heuristic', () => ({ choice: RQ.heuristic(req) }));
+    await tryPolicy(first, run(first));
+    if (SEARCHES.includes(first)) await tryPolicy('prior', run('prior'));
+    await tryPolicy('heuristic', () => ({ choice: RQ.heuristic(req) }));
+  }
+  /* A POOLED DECISION AWAITED ITS WORKERS, and the room moved meanwhile: the game ended, or the server sent a new request.
+   * The stale choice is never sent; the new request (if any) is decided afresh. Counted. */
+  if (B.ended || !B.req || B.req.rqid !== req.rqid) {
+    SPOOL.counters.stale++;
+    event('decision_stale', { room: B.id, rqid: req.rqid, ended: !!B.ended, newRqid: B.req && B.req.rqid });
+    B.deciding = false;
+    if (!B.ended) scheduleDecide(B);
+    return;
   }
   if (!choice) { choice = 'default'; used = 'default'; fb('default'); }
   /* CHOMP answering a preview it was asked to answer is the plan, not a fallback (it read `used:chomp` on every preview
@@ -1221,6 +1247,9 @@ function decide(B) {
   rec.used = used; rec.choice = choice; rec.ms = ms; rec.sinceRequest_ms = since; rec.queued = ok;   // QUEUED on an open socket; applied is checked from the server's lines
   rec.bank_before_s = bud.bank; rec.bank_after_s = +(bud.bank - since / 1000).toFixed(1);
   if (info) rec.info = compact(info);
+  /* THE POOL'S PROOF, on every decision record: what the pool did for this decision, or why it did not run */
+  if (info && info.pool) rec.pool = info.pool;
+  else if (!rec.pool) rec.pool = { workers: 0, why: SEARCH_WORKERS > 0 ? (SEARCHES.includes(used) ? (info && info.forced ? 'forced' : 'not pooled') : 'not a search: ' + used) : 'search-workers 0' };
   B.decisions++;
   const line = JSON.stringify(rec) + '\n';
   try { fs.appendFileSync(LOGF, line); } catch (e) { /* never fatal */ }
@@ -1254,7 +1283,7 @@ function stats(a) {
   return { n: a.length, mean: Math.round(a.reduce((x, y) => x + y, 0) / a.length), p50: q(0.5), p95: q(0.95), p99: q(0.99), max: s[s.length - 1] };
 }
 function writeSummary() {
-  const out = { name: NAME, policy: POLICY, server: SERVER, pid: process.pid, restarts: STATE.restarts, flags: { send_gap_ms: SEND_GAP_MS, max_mismatches: +flag('max-mismatches', 3), max_ms: MAX_MS, preview: PREVIEW, preview_max_ms: PREVIEW_MAX_MS, margin_s: MARGIN_S, reserve_s: RESERVE_S, min_search_ms: MIN_SEARCH_MS, timer: TIMER, seed: SEED, drill: DRILL || null, priority: PRIORITY, priority_set: PRIORITY_SET }, idle_gc: ST.idleGc || { n: 0, ms: 0, max: 0, refused: 0 }, adaptive: ST.adapt || null, adaptive_target_ms: ADAPT_TARGET_MS || null,
+  const out = { name: NAME, policy: POLICY, server: SERVER, pid: process.pid, restarts: STATE.restarts, flags: { search_workers: SEARCH_WORKERS, send_gap_ms: SEND_GAP_MS, max_mismatches: +flag('max-mismatches', 3), max_ms: MAX_MS, preview: PREVIEW, preview_max_ms: PREVIEW_MAX_MS, margin_s: MARGIN_S, reserve_s: RESERVE_S, min_search_ms: MIN_SEARCH_MS, timer: TIMER, seed: SEED, drill: DRILL || null, priority: PRIORITY, priority_set: PRIORITY_SET }, idle_gc: ST.idleGc || { n: 0, ms: 0, max: 0, refused: 0 }, adaptive: ST.adapt || null, adaptive_target_ms: ADAPT_TARGET_MS || null,
     clock_rule: new Clock(Object.assign({ format: FORMAT_ID }, clockOpts)).rule,
     sets: STATE.setsDone, decisions: ST.decisions, by_kind: ST.byKind,
     decision_ms: { preview: stats(ST.ms.preview), move: stats(ST.ms.move), switch: stats(ST.ms.switch) }, budget_ms: stats(ST.budget),
@@ -1274,6 +1303,10 @@ function writeSummary() {
     timer_on_seen: ST.timerOnSeen, games: ST.games, game_records: ST.gameRecords || 0, games_file: GAMES_FILE, replays: SAVER.COUNTERS, world_errors: ST.worldErrors, decisions_without_time_line: ST.noTimerLine,
     preview_sheet_wait_ms: stats(ST.previewSheetWaitMs),
     counters: { policy: P.COUNTERS, world: WB.COUNTERS, prior: PA.COUNTERS, rollout: R.COUNTERS, api: API.COUNTERS },
+    pool: { search_workers: SEARCH_WORKERS, state: SPOOL.state, pids: SPOOL.pool ? SPOOL.pool.pids : [], warm_ms: SPOOL.warmMs, respawns: SPOOL.counters.respawns,
+            stale: SPOOL.counters.stale, not_ready: SPOOL.counters.notReady, deaths: SPOOL.counters.deaths, errors: SPOOL.counters.errors,
+            fallback: P.COUNTERS.pool.fallback, decisions: P.COUNTERS.pool.decisions, switch_scored: P.COUNTERS.pool.switchScored,
+            playouts: P.COUNTERS.pool.playouts, idle_workers: P.COUNTERS.pool.idleWorkers, late: P.COUNTERS.pool.late, worker_counters: SPOOL.pool ? SPOOL.pool.counters : null },
     provenance: PROV,
     ladder: LADDER ? { plan: LADDER.plan(), state: (({ k, consecErrors, errors, guard, incidents, halted, searches, done, starts, orphans }) => ({ k, consecErrors, errors: errors.slice(-10), guard, incidents, halted, searches, done, starts, orphans }))(LADDER.state()), series_file: LADDER.seriesFile } : null,
     netguard: NETGUARD ? require('./netguard.js').stats() : null };
@@ -1289,4 +1322,51 @@ process.on('SIGINT', () => {
 });
 setInterval(writeSummary, 30000).unref();
 
-connect();
+/* ---------------- the search pool (see the header) ---------------- */
+async function startPool(why) {
+  if (SEARCH_WORKERS <= 0) { SPOOL.state = 'off'; return; }
+  const t = Date.now();
+  SPOOL.state = 'starting';
+  let pool = null;
+  try {
+    /* the workers' fresh bodies are this process's R (PUBLIC, see above); their engine is this process's release (SOLVER_RELEASE) */
+    pool = await require('../miltank/pool.js').create({ workers: SEARCH_WORKERS, env: { MILTANK_BODIES: 'public' } });
+    /* warm every worker with a pooled gen5 search on a built position (the nets, the PORYGON2 leaf, XATU's spread prior):
+     * a pass cap of 2 per worker and a long budget, so every worker plays and loads before the first clock runs */
+    const G = { id: 'warm-pool', sheets: { p1: parseShowteam(POOL.teams[0].packed), p2: parseShowteam(POOL.teams[1 % POOL.teams.length].packed) },
+                brought: { p1: POOL.teams[0].bring, p2: POOL.teams[1 % POOL.teams.length].bring } };
+    const a = T.buildTeam(API.M, G, 'p1'), b = T.buildTeam(API.M, G, 'p2');
+    const S = API.newBattle(a.team, b.team, { rng: API.makeRng(2) });
+    const g = P.gen5();
+    const MT = SEARCH_MOD.create(API, { prior: g.PA, rollout: g.XW.rollout({ back: null, spreads: g.XW.spreadPrior(G.sheets), oppP: 'p2' }) });
+    const r = await MT.decideAsync(S, 'A', PA.newGame(G), { budgetMs: 60000, k1: g.spec.k1, k2: g.spec.k2, depth: g.spec.depth, reserveSwitch: g.spec.reserveSwitch,
+      leaf: 'pory2', leafModel: g.leafModel, coin: API.M.rngStreams({ seed: 7 }).any, pool, maxPasses: 2 * SEARCH_WORKERS,
+      world: { kind: 'xatu', back: null, oppP: 'p2', sheets: G.sheets } });
+    const idle = r.info && r.info.pool ? r.info.pool.idle_workers : SEARCH_WORKERS;
+    if (idle) throw new Error('warm-up: ' + idle + ' of ' + SEARCH_WORKERS + ' workers played nothing');
+    SPOOL.pool = pool; SPOOL.state = 'ready'; SPOOL.warmMs = Date.now() - t;
+    say('search pool: ' + SEARCH_WORKERS + ' workers ready in ' + SPOOL.warmMs + ' ms' + (why ? ' (' + why + ')' : '') + '; pids ' + pool.pids.join(','));
+    event('pool_ready', { workers: SEARCH_WORKERS, ms: SPOOL.warmMs, pids: pool.pids, why: why || 'start' });
+  } catch (e) {
+    if (pool) pool.close();
+    SPOOL.pool = null; SPOOL.state = 'failed: ' + String(e && e.message || e).slice(0, 160);
+    if (SPOOL.counters.errors.length < 10) SPOOL.counters.errors.push(SPOOL.state);
+    say('search pool FAILED to start (' + SPOOL.state + '): decisions search IN-PROCESS, counted per decision');
+    event('pool_failed', { err: SPOOL.state });
+  }
+}
+/* a pooled decision found the pool dead or throwing (policy.js counted the fallback): replace it OFF the clock, once */
+function poolDied(why) {
+  if (SPOOL.state === 'starting') return;
+  SPOOL.counters.deaths++;
+  if (SPOOL.counters.errors.length < 10) SPOOL.counters.errors.push('died: ' + String(why).slice(0, 160));
+  const old = SPOOL.pool; SPOOL.pool = null; SPOOL.state = 'respawning';
+  if (old) old.close();
+  event('pool_died', { why: String(why).slice(0, 200) });
+  if (SPOOL.counters.respawns >= 5) { SPOOL.state = 'given up after 5 respawns'; say('search pool: ' + SPOOL.state + '; in-process from here'); return; }
+  SPOOL.counters.respawns++;
+  setImmediate(() => { startPool('respawn ' + SPOOL.counters.respawns).catch(() => {}); });
+}
+process.on('exit', () => { if (SPOOL.pool) SPOOL.pool.close(); });
+
+startPool().then(() => connect(), e => { say('search pool start threw: ' + (e && e.message)); connect(); });

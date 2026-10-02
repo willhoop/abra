@@ -67,6 +67,14 @@ This section says only what a division agent needs before it starts.
   a day with the auto-stops, launched by the coordinator; SOLVER prepares the command. Milestones N0–N9 in
   `solver/PLAN.md` §3.0; compute and prices in §6a. Account: `docs/_reports/2026-10-01-plan-revision.md`. The
   "May not launch a ladder series" line above still binds SOLVER itself.
+- **Parallelism (2026-10-02, abra/regmc 1.78.0).** ROTOM's live search runs through MILTANK's worker pool
+  (`rotom.js --search-workers N`, forwarded by `run_ladder.js`; `pool` on every decision record; a dead pool is a counted
+  in-process fallback). Bit-identical to in-process at a pass cap (`solver/tests/test-search-pool.js`). **This laptop
+  throttles to 12.5% of its clock under sustained load on more than ~3 cores**, so the machine's search throughput is flat
+  in the worker count: the ladder gets `--search-workers 4` (×2.89 playouts per 14 s decision), and the timed SPRT / gate /
+  self-play defaults stay 3 / 4 / 4. The caps are a machine profile (`solver/arena/cores.js`, `--machine
+  dedicated|shared`). Benches `solver/bench/ladbench.js`, `solver/bench/throughput.js`. Account:
+  `docs/_reports/2026-10-02-parallelism.md`.
 - **GARY v1 and HYPNO v1 (N1, N2; 2026-10-01, abra/regmc 1.71.0).** `solver/gary/` (store-only): DODUO v1 tilted per
   (situation bucket × rating band), fitted on the dataset rebuilt after the 1.70.0 re-parse. Held-out (TEST players)
   log-loss Δ −0.0211 [−0.0238, −0.0184] against DODUO v1, most of it a recalibration of DODUO; **27 of 48 cells pass**
