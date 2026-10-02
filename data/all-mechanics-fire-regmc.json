@@ -1,11 +1,11 @@
 {
- "generated": "2026-10-01T09:36:54.004Z",
- "engine_release": "df172ccd2aaf",
- "engine_release_cut": "2026-10-01T09:21:44.066Z",
- "engine_release_cuts": 2,
+ "generated": "2026-10-02T09:53:18.521Z",
+ "engine_release": "74972dd2db89",
+ "engine_release_cut": "2026-10-02T07:19:07.438Z",
+ "engine_release_cuts": 13,
  "showdown_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
  "source_digests": {
-  "engine/medicham2-browser.js": "bf5efb8fafee",
+  "engine/medicham2-browser.js": "95e441775d9e",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "eacf05ff8d30",
   "engine/position_features.js": "bb71676d3669",
@@ -17,14 +17,14 @@
   "engine/lookup.js": "17f49e5aed43",
   "engine/set_priors.js": "f8a81445ee3a",
   "engine/smogon_priors.js": "ebd062f756c8",
-  "engine/quality.js": "9b168679e3e9",
+  "engine/quality.js": "e492d84b4c4f",
   "engine/showdown_path.js": "46646401ede2",
   "engine/regulation.js": "c00dcf435c9d",
   "data/move-effects.js": "f35ecd91ba86",
   "data/ability-blocks.json": "86741fd35452",
   "data/smogon-priors.json": "f2dc78cea6c5",
   "data/regulations.json": "6c7c3e3dd06c",
-  "data/quality-filter.json": "c74b46002e2d",
+  "data/quality-filter.json": "00381a9dc7ce",
   "data/engine-data.js": "bbc417dfae0e",
   "data/abra-tags.js": "fc30f9a9392e",
   "data/tags.json": "26ee107ce6a8",
@@ -33,13 +33,13 @@
   "data/move-priors.json": "e667fe8ab457",
   "engine/pp.js": "30b12a4ef623",
   "data/rollout-switch-census.json": "b8a5cee2f0a9",
-  "engine/medicham_api.js": "f0264a11558b",
+  "engine/medicham_api.js": "5c1626e424b2",
   "data/engine-data-regmc.js": "a6ad04e92d4e",
   "data/tags-regmc.json": "87cbb3889809",
   "data/move-priors-regmc.json": "eab0c9b023df",
   "data/move-effects-regmc.js": "8c57407e7641"
  },
- "release": "df172ccd2aaf",
+ "release": "74972dd2db89",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmc",
  "red": [
@@ -152501,7 +152501,7 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 78
    },
-   "seconds": 70.4
+   "seconds": 26.4
   },
   "abilities": {
    "exist": 317,
@@ -152598,7 +152598,7 @@
    "diverged_including_shelved": 1,
    "shelved_by_owner": 1,
    "shelved_by_owner_diverging": 1,
-   "seconds": 18.4,
+   "seconds": 11.9,
    "board_only": {
     "rows": 1,
     "staged": 1,
@@ -152648,7 +152648,7 @@
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 6,
    "board_state_fired": 5,
-   "seconds": 7.2,
+   "seconds": 8,
    "stones": {
     "rows": 0,
     "staged": 0,
@@ -152851,9 +152851,9 @@
  },
  "planner": {
   "meta": {
-   "generated": "2026-10-01T09:36:53.641Z",
+   "generated": "2026-10-02T09:53:18.384Z",
    "by": "engine/stage_planner.js",
-   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\df172ccd2aaf\\data\\tags-regmc.json",
+   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\74972dd2db89\\data\\tags-regmc.json",
    "tags_digest": "87cbb38898098fb8",
    "showdown": "C:\\Users\\willj\\Projects\\Pokemon\\pokemon-showdown-mc",
    "validator": {
@@ -152899,7 +152899,7 @@
     "stench: secondary (the handler assigns move.secondaries)",
     "kingsrock: secondary (the handler assigns move.secondaries)"
    ],
-   "ms": 23888
+   "ms": 16034
   },
   "summary": {
    "mechanics": 998,
@@ -152954,7 +152954,7 @@
    }
   },
   "played": {
-   "plan_ms": 23945,
+   "plan_ms": 16093,
    "rows": 380,
    "fixtures": 900,
    "variants": 2068,

@@ -8,6 +8,9 @@
 - **Batch 2 (1.77.2), `sideWiped`:** no arrays built to count live bodies. ×1.03 turns per second (block median).
 - **Batch 3 (1.77.3), `legalActions`' counter restore:** ~5× cheaper menu reads; ×3.2 on a game loop that reads the menu every turn.
 - Hand list: unchanged. No mechanic moved; no census row can. Report `docs/_reports/2026-10-02-medicham-speed-pass.md`.
+- **Gate-certified (1.77.4):** release `74972dd2db89` (HEAD's engine after batch 3), Reg M-C gate OPEN 10 of 10, every
+  gate artifact identical to the `df172ccd2aaf` run in all but its stamps. Lean mode, MILTANK, body parity and playout
+  speed green on it. Report `docs/_reports/2026-10-02-gate-speedpass.md`.
 
 ## A FORME CHANGE RECOMPUTES THE LINE FROM THE SET, HP SP INCLUDED, ON BOTH ROADS. THE MEGA ROAD COULD NOT SEE AN HP-INVESTED SPREAD; THE MID-BATTLE ROAD NEVER RECOMPUTED AT ALL. 2026-10-01 (abra/regmc 1.51.0)
 
@@ -2389,19 +2392,20 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  census: WITHHELD — engine/provenance.js calls data/mechanics-census.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    older than its input tags.json
-    it becomes quotable again when this is re-run: node tests/test-mechanics.js
-  differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    pinned to engine release fb8073869b72 — engine/medicham2-browser.js matches the frozen copy; live is bf5efb8fafee now (a PRE-CHANGE measurement of that release, not corruption)
-    (+6 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node tests/test-engine-diff.js
+  1027/1027 probed mechanics live, 0 missing   (census 2026-10-02 05:37)
+    the census probes what somebody thought to probe: 305 of 307 in-scope tags carry a probe, 2 carry none (20 of 327
+    tags have no in-scope carrier); 0 of 381 in-scope mechanics have never fired in the staged harness
+    (all-mechanics-fire.json, 44 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-10-02 05:50)
+    seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
+    the volley loop IS damage-compared in this draw: 150 of 6000 rows ran as volleys (132 multi-hit move, 18 Parental
+    Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 10 of the 14 moves carrying the
+    multiHit tag were drawn; 4 were never drawn at all (bonerush, doublehit, scaleshot, tailslap) — never drawn is a
+    SAMPLING gap, not an exclusion.
+    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
+    a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    older than its input engine-data.js
-    (+1 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -2413,7 +2417,7 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-10-01 15:50_
+_stamped 2026-10-02 06:36_
 
 <!-- /GENERATED -->
 

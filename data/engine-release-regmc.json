@@ -1,10 +1,10 @@
 {
-  "current": "df172ccd2aaf",
-  "cut": "2026-10-01T09:21:44.066Z",
-  "why": "forme change recomputes from the set, HP SP included (abra/regmc 1.51.0): gate re-run",
-  "cuts": 21,
-  "latest_cut": "2026-10-01T10:09:17.270Z",
+  "current": "74972dd2db89",
+  "cut": "2026-10-02T07:19:07.438Z",
+  "why": "MEDICHAM speed pass N3, batches 1-3 (abra/regmc 1.77.1-1.77.3): gate re-run",
+  "cuts": 31,
+  "latest_cut": "2026-10-02T10:22:12.158Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-10-01T10:09:17.287Z",
+  "pointer_written": "2026-10-02T10:22:12.202Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

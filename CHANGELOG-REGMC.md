@@ -28,6 +28,31 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.77.4] — 2026-10-02
+
+**PATCH: the Reg M-C gate on the speed-pass engine (release `74972dd2db89`): OPEN, 10 of 10. No figure moved.**
+
+### Notes
+- 1.77.1-1.77.3 changed `engine/medicham2-browser.js` and `engine/medicham_api.js`, so the gate artifacts stamped on
+  `df172ccd2aaf` described different bytes. A cut over HEAD reproduced `74972dd2db89` (already frozen by the stopped
+  run), so it was reused; the release directory is force-tracked.
+  - Census 1027 live / 0 missing, pin `census-pin-regmc-9bda05fa4930.json`; pool `data/team-pool-frozen-regmc`.
+  - Lattices (`--games` 1200 / 1600 / 1900): 0 board-material and 0 narration of 955, 1266 and 1497; same pools.
+  - Damage 0 of 6000 at every corner; roster 166/166, 210/214, 510/511; mechanics staged 0 diverge over 4,867 games.
+  - `solver/tests/test-lean-mode.js` (on the release), `test-miltank.js`, `test-body-parity.js`,
+    `test-playout-speed.js` green.
+  - register_reality 53 / 14 / 18 (was 52): row #471 now PREMATURE CLOSE because `tests/test-quality.js` is red on a
+    store-filter rule with no funnel stage (OPS). Does not gate. `docs/_reports/2026-10-02-gate-speedpass.md`.
+
+### Record
+- **Measured.** `node engine/quarantine.js --regulation regmc`: OPEN, 10 of 10, on `74972dd2db89`. Every gate artifact
+  (`data/game-differential{,.g1600,.g1900}-regmc.json`, `data/engine-diff-regmc.json`, `data/roster.*-regmc.json`,
+  `data/all-mechanics-fire-regmc.json`, `data/mechanics-census-regmc.json`) differs from the `df172ccd2aaf` version in
+  stamps and timings only.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** None. `docs/ENGINE.md`: the speed-pass section.
+
 ## [1.77.3] — 2026-10-02
 
 **PATCH: the MEDICHAM speed pass, batch 3. A menu read (`legalActions`) costs about a fifth of what it did; the same answers, the same restored counters.**
