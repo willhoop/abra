@@ -12441,6 +12441,16 @@ function residualShadowVolPresent(id,m){
   if(rd)return !!rd(m);
   return !!(m._vol&&m._vol[id]>0);
 }
+/* SPEED PASS 2026-10-02 (docs/_reports/2026-10-02-medicham-speed-pass.md, batch 1) -- THE ARTIFACT'S VOLATILE ROWS WITH
+ * THEIR READER RESOLVED ONCE, AT LOAD. `volSeqSync` asked `residualShadowVolPresent` for all 43 rows of every active body
+ * at every Update pass, and each ask re-read the reader table by a string key: ~11% of a turn. Both tables are consts
+ * built above and never written after load, so the pair (row, reader) is the same pair every time it is asked; the
+ * presence test below is `residualShadowVolPresent`'s body, line for line. Same rows, same order, same answers. */
+const RESIDUAL_SHADOW_VOL_ROWS=RESIDUAL_SHADOW_ROWS.volatile.map(r=>({r,id:r.id,rd:RESIDUAL_SHADOW_VOL[r.id]||null}));
+/* row id -> its index (the first, if an id were ever repeated: a repeated id has one reader, so one answer), and one
+ * presence flag per row, reused by every `volSeqSync` call (no reader re-enters it). */
+const RESIDUAL_SHADOW_VOL_INDEX=new Map(); RESIDUAL_SHADOW_VOL_ROWS.forEach((x,i)=>{ if(!RESIDUAL_SHADOW_VOL_INDEX.has(x.id))RESIDUAL_SHADOW_VOL_INDEX.set(x.id,i); });
+const _VOL_SEQ_ON=new Uint8Array(RESIDUAL_SHADOW_VOL_ROWS.length);
 /* ---- 2026-09-19 -- DECLARED APPROXIMATION (1) ABOVE, REMOVED: THE VOLATILES' INSERTION ORDER ---------------------
  *
  * `findPokemonEventHandlers` walks `for (const id in pokemon.volatiles)` (sim/battle.ts), and a JS object's string
@@ -12469,10 +12479,21 @@ let _VOL_SEQ_N=0;
 function volSeqSync(m){
   if(!m||VOL_ARTIFACT_ORDER)return;
   let seq=m._volSeq; if(!seq)seq=m._volSeq={};
-  for(const r of RESIDUAL_SHADOW_ROWS.volatile){
-    const on=residualShadowVolPresent(r.id,m);
-    if(on){ if(seq[r.id]==null){ seq[r.id]=++_VOL_SEQ_N; MEDSEEN.volSeqStamped++; } }
-    else if(seq[r.id]!=null) delete seq[r.id];
+  /* SPEED PASS 2026-10-02, batch 1: the same writes in two passes. A stamp is appended in row order, so the sequence
+   * numbers and the object's key order are what the one-pass walk gave; a drop is a `delete` of a key already there,
+   * which moves nobody else. The drop pass reads only the keys the body holds (usually none) instead of probing the
+   * object for all 43 rows -- the probe of an absent key on this delete-churned object was the hot line. */
+  const R=RESIDUAL_SHADOW_VOL_ROWS, ON=_VOL_SEQ_ON;
+  for(let i=0;i<R.length;i++){
+    const x=R[i], rd=x.rd;
+    const on=rd?!!rd(m):!!(m._vol&&m._vol[x.id]>0);
+    ON[i]=on?1:0;
+    if(on&&seq[x.id]==null){ seq[x.id]=++_VOL_SEQ_N; MEDSEEN.volSeqStamped++; }
+  }
+  for(const k of Object.keys(seq)){
+    const j=RESIDUAL_SHADOW_VOL_INDEX.get(k);
+    if(j===undefined||ON[j])continue;
+    if(seq[k]!=null) delete seq[k];
   }
 }
 function volSeqSyncAll(actA,actB){
@@ -12483,8 +12504,8 @@ function volSeqSyncAll(actA,actB){
  * index breaking a same-sync tie (and ordering any row the clock has not seen, which is counted). */
 function volShadowRowsInOrder(m){
   const rows=[];
-  const R=RESIDUAL_SHADOW_ROWS.volatile;
-  for(let i=0;i<R.length;i++)if(residualShadowVolPresent(R[i].id,m))rows.push({r:R[i],i});
+  const R=RESIDUAL_SHADOW_VOL_ROWS;
+  for(let i=0;i<R.length;i++){ const x=R[i]; if(x.rd?!!x.rd(m):!!(m._vol&&m._vol[x.id]>0))rows.push({r:x.r,i}); }
   if(VOL_ARTIFACT_ORDER||rows.length<2)return rows.map(x=>x.r);
   const seq=m._volSeq||{};
   const key=x=>{ const s=seq[x.r.id]; if(s==null){ MEDSEEN.volSeqUnseenAtBuild=(MEDSEEN.volSeqUnseenAtBuild|0)+1; return Infinity; } return s; };

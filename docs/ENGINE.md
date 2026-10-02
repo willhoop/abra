@@ -1,3 +1,12 @@
+## THE MEDICHAM SPEED PASS (N3): THE SAME BYTES, LESS CPU PER TURN. 2026-10-02 (abra/regmc 1.77.1 onward)
+
+- Will approved the pass 2026-10-02. Every batch is board-identical by construction and by check: a paired
+  same-process A/B against the pre-pass tree with the whole-battle digest compared after every turn (full and lean),
+  the counters' play-phase deltas compared, and the MILTANK bench hashes. One batch per commit.
+- **Batch 1 (1.77.1), `volSeqSync`:** rows resolved once at load; the drop pass reads the held keys only. ×1.076 turns
+  per second (block median).
+- Hand list: unchanged. No mechanic moved; no census row can. Report `docs/_reports/2026-10-02-medicham-speed-pass.md`.
+
 ## A FORME CHANGE RECOMPUTES THE LINE FROM THE SET, HP SP INCLUDED, ON BOTH ROADS. THE MEGA ROAD COULD NOT SEE AN HP-INVESTED SPREAD; THE MID-BATTLE ROAD NEVER RECOMPUTED AT ALL. 2026-10-01 (abra/regmc 1.51.0)
 
 - **Filed by SOLVER on 2026-09-30** (abra/regmc 1.49.0): 114 of the role-v1 table's 3,293 mega sets landed one point

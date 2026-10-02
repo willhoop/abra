@@ -28,6 +28,29 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.77.1] — 2026-10-02
+
+**PATCH: the MEDICHAM speed pass (solver/PLAN.md N3), batch 1. A turn is ~7.6% cheaper and plays the same bytes.**
+
+### Changed
+- `engine/medicham2-browser.js` `volSeqSync` (the volatile insertion clock, run for every active body at every Update
+  pass): the 43 artifact volatile rows carry their presence reader resolved once at load
+  (`RESIDUAL_SHADOW_VOL_ROWS`), and the drop pass reads only the keys a body's `_volSeq` holds instead of probing the
+  delete-churned object for every row. Stamps are still appended in row order, so the sequence numbers and the key
+  order are the one-pass walk's. `volShadowRowsInOrder` reads the same resolved rows. No knob: nothing to restore.
+
+### Record
+- **Measured.** Paired same-process A/B (base = `2b0e43e3` in a worktree, patch = this tree), 300 Reg M-C human-sheet
+  games at observed-v1 spreads, uniform seeded play, lean turns, wall time summed around `stepInPlace` only: turns per
+  second ×1.078 whole-run, block median ×1.076 (q25–q75 1.061–1.093). Identity on the same 300 games, full AND lean:
+  5,624 turns, the whole-battle digest after every turn equal, winners and per-stream draw counts equal, and the
+  play-phase deltas of MEDSEEN, MEDFAILS and the tag `hits`/`asked` counters equal (`9efb59cf8f96fef7` both arms).
+  `solver/bench/playout_bench.js --games 4 --passes 2`: `values_sha 425043f33589e093`, `decide_sha 8d7c15e09e8410cf`
+  before and after. Report `docs/_reports/2026-10-02-medicham-speed-pass.md` (written at the end of the pass).
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** None (a speed change; no published figure moves). `docs/ENGINE.md`: the speed-pass section.
+
 ## [1.77.0] — 2026-10-02
 
 **MINOR: the N7 self-play loop is built, smoke-tested beside the live ladder, and generation 1 is pre-registered. No
