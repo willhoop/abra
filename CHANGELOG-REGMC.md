@@ -28,6 +28,23 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.77.2] — 2026-10-02
+
+**PATCH: the MEDICHAM speed pass, batch 2. `sideWiped` stops building four arrays to count them; a turn is ~3% cheaper and plays the same bytes.**
+
+### Changed
+- `engine/medicham2-browser.js` `sideWiped` (asked by the residual walk once per body per group, and by 24 other
+  sites): the same predicate, asked of each array in place (`_anyLive`) instead of `_live(arr).length` four times.
+
+### Record
+- **Measured.** Paired same-process A/B against 1.77.1 (the method of 1.77.1: 300 Reg M-C human-sheet games, observed-v1
+  spreads, lean turns, wall time around `stepInPlace`): turns per second block median ×1.032 and ×1.031 in two runs
+  (q25–q75 1.009–1.050, 0.992–1.074). Identity, full and lean: 5,624 turns, every whole-battle digest, winner and
+  per-stream draw count equal; counter deltas equal (`9efb59cf8f96fef7`, unchanged from 1.77.1).
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** None (a speed change; no published figure moves). `docs/ENGINE.md`: the speed-pass section.
+
 ## [1.77.1] — 2026-10-02
 
 **PATCH: the MEDICHAM speed pass (solver/PLAN.md N3), batch 1. A turn is ~7.6% cheaper and plays the same bytes.**

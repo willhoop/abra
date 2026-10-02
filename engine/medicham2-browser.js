@@ -31888,8 +31888,13 @@ function battleInit(teamA,teamB,opts){
  * The distinction is real and it is NOT what caused this defect: the differential packs four bodies
  * and picks `team 1234`, so both engines hold four either way. What was wrong was WHEN, not WHO. */
 function sideWiped(S){
-  return _live(S.actA).length+_live(S.benchA).length===0
-      || _live(S.actB).length+_live(S.benchB).length===0;
+  /* SPEED PASS 2026-10-02 (batch 2): the same predicate without building four arrays to count them. `_live(arr).length`
+   * is 0 exactly when no member is truthy, unfainted and above 0 HP; that is asked of each array in place. */
+  return !(_anyLive(S.actA)||_anyLive(S.benchA)) || !(_anyLive(S.actB)||_anyLive(S.benchB));
+}
+function _anyLive(arr){
+  for(let i=0;i<arr.length;i++){ const m=arr[i]; if(m&&!m.fainted&&m.curHP>0)return true; }
+  return false;
 }
 function battleOver(S){
   return S.turn>=(S.maxTurns||20)||sideWiped(S);
