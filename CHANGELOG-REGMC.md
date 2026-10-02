@@ -28,6 +28,16 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.78.1] — 2026-10-02
+### Changed
+- Restamped the generated blocks in the five division ledgers and `data/provenance-stamp.json`
+  with `node engine/status.js --write` after merging 1.78.0. Housekeeping only.
+### Record
+- **Measured.** Nothing. The generated blocks were re-read from existing artifacts.
+- **Basis.** unchanged
+- **Supersedes.** Nothing.
+- **Owed to the next major.** Nothing.
+
 ## [1.78.0] — 2026-10-02
 
 **MINOR: ROTOM's live search runs through MILTANK's worker pool (`--search-workers N`); the worker caps become a machine profile; and the machine, not the code, is what limits parallel search here.**
