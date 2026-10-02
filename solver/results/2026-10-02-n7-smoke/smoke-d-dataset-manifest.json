@@ -1,0 +1,134 @@
+{
+ "what": "N7 dataset (solver/machamp/n7/build.js): one row per self-play position with a FULL search decision",
+ "built": "2026-10-02T05:19:25.382Z",
+ "engine_release": "df172ccd2aaf",
+ "inputs": [
+  {
+   "dir": "solver/out/n7/smoke-2026-10-02d/gen1/selfplay/chunk-00",
+   "manifest_sha256": "b3748e1bc3b8b7c6070020aebd3a6ca899f9b5b7e8f50d0995c5f95885e16687",
+   "games": 10,
+   "flags": {
+    "release": "df172ccd2aaf",
+    "league": "solver/out/n7/smoke-2026-10-02d/gen1/league.json",
+    "games": 10,
+    "seed": 41901,
+    "workers": 2,
+    "cap": 50,
+    "human": null,
+    "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+    "spreads": "observed-v1",
+    "info": "honest",
+    "n7": true,
+    "pcr": {
+     "p": 0.25,
+     "full": {
+      "maxPasses": 24,
+      "budgetMs": 15000
+     },
+     "fast": {
+      "maxPasses": 4,
+      "budgetMs": 5000
+     }
+    },
+    "am_rate": 0.1,
+    "am_n": 8,
+    "out_final": "solver/out/n7/smoke-2026-10-02d/gen1/selfplay/chunk-00"
+   },
+   "shards": [
+    {
+     "file": "solver/out/n7/smoke-2026-10-02d/gen1/selfplay/chunk-00/shard-0.jsonl.gz",
+     "sha256": "9a87c16b1535befce2b673ad79dcbcac89489abf6c295e86ba18eb62c3c0b0d6"
+    },
+    {
+     "file": "solver/out/n7/smoke-2026-10-02d/gen1/selfplay/chunk-00/shard-1.jsonl.gz",
+     "sha256": "611598b05dc2c943c616be0db58687963d334aecac0b59f30ff38ce0ac927d33"
+    }
+   ]
+  },
+  {
+   "dir": "solver/out/n7/smoke-2026-10-02d/gen1/selfplay/chunk-01",
+   "manifest_sha256": "124cea0d4f3d4520d5e0e0ec03e69ba84f4488083115161d31a94dc4ba0c0f55",
+   "games": 10,
+   "flags": {
+    "release": "df172ccd2aaf",
+    "league": "solver/out/n7/smoke-2026-10-02d/gen1/league.json",
+    "games": 10,
+    "seed": 41902,
+    "workers": 2,
+    "cap": 50,
+    "human": null,
+    "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+    "spreads": "observed-v1",
+    "info": "honest",
+    "n7": true,
+    "pcr": {
+     "p": 0.25,
+     "full": {
+      "maxPasses": 24,
+      "budgetMs": 15000
+     },
+     "fast": {
+      "maxPasses": 4,
+      "budgetMs": 5000
+     }
+    },
+    "am_rate": 0.1,
+    "am_n": 8,
+    "out_final": "solver/out/n7/smoke-2026-10-02d/gen1/selfplay/chunk-01"
+   },
+   "shards": [
+    {
+     "file": "solver/out/n7/smoke-2026-10-02d/gen1/selfplay/chunk-01/shard-0.jsonl.gz",
+     "sha256": "1df6ac683219e5cd37d611a141707e102b95826d101d2f71214012f64b0ba1db"
+    },
+    {
+     "file": "solver/out/n7/smoke-2026-10-02d/gen1/selfplay/chunk-01/shard-1.jsonl.gz",
+     "sha256": "3d858566de5b827ea3b12831690228ef30c346cc61b65dcd1f181d81ef9933bc"
+    }
+   ]
+  }
+ ],
+ "split": {
+  "unit": "game",
+  "rule": "sha256(\"n7val:\" + gid) mod 10 == 0 -> val",
+  "val_mod": 10,
+  "seed": "n7val",
+  "break": null
+ },
+ "labels": {
+  "z": "p1 outcome (vA); capped games carry the engine HP rule",
+  "aux": "mat = alive p1 - p2 + 4 (0..8); hpd = HP fraction p1 - p2; tl = turns-left bin 0,1,2,3-4,5+ (turn number t + 1)",
+  "sv": "lambda-returns over later root values then z, lambda = h/(h+1), h = 1, 3",
+  "am": "amSummary of answer_map.js (offline target, never an input)",
+  "dec": "policy target: the search row mix on DODUO valid cells (solver/machamp/n7/policy.js target)"
+ },
+ "counts": {
+  "games": 20,
+  "games_error": 0,
+  "games_capped": 0,
+  "games_no_feats": 0,
+  "positions": 80,
+  "positions_val": 9,
+  "decisions": 80,
+  "decisions_val": 9,
+  "am": 6,
+  "pt_unmapped_mass": 0,
+  "games_val": 2,
+  "games_train": 18,
+  "vt": 330,
+  "z_mean": 0.5
+ },
+ "output": {
+  "file": "rows.jsonl.gz",
+  "sha256": "40478dd3d5b2af3c37c907a7b6f430ea1b4ce522e05bd7cc4e335bb1d32429d7",
+  "bytes": 90283
+ },
+ "code": {
+  "solver/machamp/n7/build.js": "c6fbcf50330a1ec6",
+  "solver/machamp/n7/policy.js": "16328065e7019562",
+  "solver/mew/play.js": "0d88572826679b7a",
+  "solver/mew/agent.js": "4a44fef6b0c54f8e",
+  "solver/porygon2/v2/features.js": "f7382164fc7b61e0",
+  "solver/gary/situation.js": "e6cc955f3efb3dce"
+ }
+}

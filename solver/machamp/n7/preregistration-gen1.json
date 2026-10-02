@@ -1,0 +1,136 @@
+{
+ "what": "PLAN N7, the local Expert Iteration loop for the PORYGON2 v3 policy+value net: GENERATION 1, pre-registered before its first game. Self-play with the current champion and playout-cap randomisation, then the learner, then the offline gate (the v3 harness and the policy head's held-out test), then a not-lose screen and an SPRT against the champion, read once each, with capability bars. Promotion on SPRT H1 only. Driven end to end by solver/machamp/n7/loop.js, which hashes this file into its state and refuses to resume under a different one. Written and committed BEFORE any generation-1 game; never revised after one. Nothing goes on a ladder arm whatever it reads: that is Will's call.",
+ "written_at_utc": "2026-10-02T05:30Z",
+ "status": "PRE-REGISTERED, NOT RUN. The generation runs in ladder gaps on the coordinator's say (the ladder has priority).",
+ "tag": "n7g1",
+ "generation": 1,
+ "engine_release": "df172ccd2aaf",
+ "why_this_release": "The newest release that passed the Reg M-C gate (OPEN 10/10, abra/regmc 1.57.0), the release of the 2026-10-01 screens and of the pre-registered student SPRT, whose 2 s and 14 s reference floors were measured on it. Self-play, the screen and the SPRT all play it; nothing is compared across releases.",
+ "harness_release": "eaa5becc54eb",
+ "why_harness_release": "The frozen v3 evaluation set was built, labelled and scored on eaa5becc54eb (abra/regmc 1.62.0); its worlds are serialised on it, so it is scored on it. It reads no game played by this loop.",
+ "team_store": "C:/Users/willj/Projects/Pokemon/ABRA/data/team-pool-frozen-regmc",
+ "champion": {
+  "spec": "solver/machamp/league/gen5.json",
+  "net": "solver/machamp/models/gen5/porygon2-gen5.json",
+  "why": "gen5 is the current champion (MACHAMP gen5, SPRT H1 at 1,268 games, abra/regmc 1.8.0) and gen5's own net is its leaf. The student-as-leaf SPRT (1.74.0) is registered and unread, so the student is not the champion leaf. If that SPRT reads H1 before generation 1 starts, an addendum switches champion.spec to solver/porygon2/v3/gen5-p2v3s.json and champion.net to the student, and changes nothing else."
+ },
+ "init_net": "solver/porygon2/v3/model/porygon2-v3-student.json",
+ "why_init": "The v3 student is the starting architecture and the starting weights (the brief; DESIGN §4.2): 39,892 parameters, 0.91x gen5's leaf cost offline and 0.95x its playouts at equal clock (1.62.0, 1.68.0). The policy head starts at zero, i.e. at gen5's DODUO.",
+ "clone_spec": "solver/machamp/league/human-clone.json",
+ "selfplay": {
+  "games": 10000,
+  "chunks": 10,
+  "seed_base": 41001,
+  "workers": 3,
+  "cap": 50,
+  "info": "honest",
+  "spreads": "observed-v1",
+  "league_weights": { "current": 0.8, "previous": 0.0, "clone": 0.2 },
+  "pcr": { "p": 0.25, "full": { "maxPasses": 24, "budgetMs": 15000 }, "fast": { "maxPasses": 4, "budgetMs": 5000 } },
+  "am_rate": 0.1,
+  "am_n": 8,
+  "why": "PLAYOUT-CAP RANDOMISATION (Wu 2019, arXiv 1902.10565, §3.1, p = 0.25): a random quarter of decisions get the FULL search and only those are recorded as targets; the rest get a FAST search so more games are played. Pass caps, not a clock, so a decision's search does not depend on machine load. FULL = 24 passes of the 4x4 table = 384 playouts, the 2 s gate clock's own search (the 2 s reference arm: 382.4 playouts per searched decision, solver/results/2026-10-01-screens/screen2-k2x8-2s.read.json, arms.y); FAST = 4 passes = 64 playouts. budgetMs is a ceiling that should not bind: a search cut short of its pass cap is counted (pcr full_cut / fast_cut) and barred below, because a cut makes the corpus depend on machine load. The first practice smoke showed why: one of 20 games diverged from turn 0 between two runs on the same seeds, the first game of a cold worker, at ceilings of 6,000 / 2,000 ms; the ceilings are 15,000 / 5,000 ms here. HONEST information, the information every gate, SPRT and the ladder play (fitting and playing environments must match). Self-play vs the human clone (DODUO v1 greedy) 20% of games, as MACHAMP v0. The answer map on a seeded 10% of the recorded positions at 8 duels a pair: the offline auxiliary target of abra/regmc 1.58.0, never an input.",
+  "bars": {
+   "max_error_share": 0.01,
+   "max_fallback_share": 0.05,
+   "max_unfilled_share": 0.01,
+   "min_feats": 1,
+   "min_pt": 1,
+   "max_pt_null_share": 0.02,
+   "pcr_full_share_tolerance": 0.05,
+   "max_pass_cut_share": 0.01,
+   "text": "The corpus is refused (the generation stops before training) if: errored games > 1% of games; fallback decisions (MILTANK's too-empty table or a thrown search) > 5% of searched decisions; unfilled cells > 1% of cells; no encoded position or no policy target recorded; full decisions without a policy target > 2%; the FULL share of decisions outside p +- 0.05; or more than 1% of searches cut short of their pass cap. Each chunk's shards must hash to its manifest."
+  }
+ },
+ "build": { "val_mod": 10, "seed": "n7val", "replay_generations": 5,
+  "why": "VAL = a seeded tenth of GAMES (a game's positions share one outcome). The training window is this generation's self-play plus the previous four generations' of the same run and release (the 2026-09-25 lesson: one generation's data against 119k human positions did not move anything; docs/_reports/2026-09-25-selfplay-v0.md §11 item 4). Generation 1 has only its own." },
+ "train": {
+  "epochs": 5,
+  "lr": 0.001,
+  "bs": 256,
+  "threads": 4,
+  "patience": 2,
+  "weights": { "z": 1.0, "aux": 0.25, "sv": 0.5, "am": 0.25, "pol": 1.0, "l2": 0.01, "anchor": 1.0, "anchor_aux": 0.25 },
+  "anchor": {
+   "required": true,
+   "data": "solver/out/p2v3/v2data",
+   "teacher": "solver/out/p2v3/teacher",
+   "teacher_manifest_sha256": "6cc5a7c87b20a9fa6900cf22002b362823ea5bbf1422efdbad53f5361670f125",
+   "pin": "The anchor is the student's OWN distillation data: the v2 tensors (bo1 input deb2d205…, bo3 input 8993a422…, release eaa5becc54eb) and the v2 k1 teacher cache (teacher model 2eb775e7…) the student was trained on (abra/regmc 1.62.0), pinned by the cache manifest's sha256 above; loop.js refuses another. They predate the 1.76.0 stream dedupe (851 games were in both streams): for distillation on TRAIN rows that only counts those games twice, and re-encoding the 1.76.0 streams would need a new teacher cache, so it is not done for generation 1.",
+   "why": "PLAN N7: the human anchor is not optional (three refits that added self-play did not improve the human half: 1.26.0, 1.46.0, 1.47.0). Every step also distils the v2 teacher on human TRAIN positions exactly as the student was trained (solver/porygon2/v3/student.py). The paths are the main checkout's solver/out/p2v3/ (gitignored). On 2026-10-02 they exist only in the worktree that built the student; copying them is the first OWED step."
+  },
+  "why": "Value on z only (AlphaZero; DESIGN §3, correction 2), one position per game per epoch (DESIGN §2); the short-horizon search values (KataGo's auxiliary form, horizons 1 and 3 turns), the answer map and the student's material / HP / turns-left heads as auxiliaries; the policy head on the search's root mix (AlphaZero's pi). Selection on VAL z log-loss + VAL policy cross-entropy."
+ },
+ "offline_gate": {
+  "release": "eaa5becc54eb",
+  "harness": { "src": "solver/out/p2v3/evalset", "positions_sha256": "c2428b1dbf77e32c0e4248544bbcfd4105d11edf5d8bf2bf04c0c993f8441bbf", "positions": 2778, "labelled": 1300 },
+  "workers": 3,
+  "rnet": 4,
+  "bench_positions": 300,
+  "bench_reps": 3,
+  "bars": {
+   "tau_ci_lo_min": -0.024,
+   "regret_ci_hi_max": 0.0062,
+   "ece_ci_hi_max": 0.031,
+   "human_logloss_max_delta": { "bo1hi": 0.01, "bo3hi": 0.01 },
+   "cost_ratio_max": 1.10,
+   "text": "NON-INFERIORITY against the champion's net on the frozen set (the SPRT, not this harness, decides improvement). Margins = 2 x the 95% CI half-widths measured for the student against gen5 on this set (1.62.0: tau [-0.0067, +0.0168] -> 0.0118; regret [-0.0055, +0.0007] -> 0.0031; ECE [-0.0247, +0.0060] -> 0.0154): the candidate's paired tau-b CI lower bound >= -0.024, its paired regret CI upper bound <= +0.0062, its paired ECE CI upper bound <= +0.031. THE HUMAN ANCHOR CLAUSE: on the strong human positions (bo1 rated 1500 or more, bo3 rated 1300 or more) its log-loss is no more than +0.01 above the champion's (a declared tolerance, not measured). COST: the median microseconds per leaf evaluation <= 1.10 x the champion's (the clock-ratio bar's tolerance; the student read 0.91). CAPABILITY: the candidate's leaf served every evaluation with 0 errors. Any failure = the generation is rejected before any game."
+  },
+  "policy_head": {
+   "min_decisions": 200,
+   "rule": "The candidate carries its policy head (spec policyNet) iff, on the held-out self-play decisions, the head's cross-entropy to the search's root mix minus its DODUO base's has a game-clustered 95% CI (2,000 resamples) entirely below 0, on at least 200 decisions. Otherwise the candidate plays the DODUO prior untilted and the generation tests the value net alone; that is recorded, not a failure. The pruner coverage test of DESIGN §3 is this cross-entropy on the search's own target."
+  }
+ },
+ "gate_clock": {
+  "budgetMs": 5000, "k1": 4, "k2": 4, "depth": 0, "reserveSwitch": 1, "adaptive": { "targetMs": 2000, "credit0Ms": 667 },
+  "why": "ROTOM's adaptive clock at a 2 s target, the clock of the 2026-10-01 2 s screen and its measured floor. A generation gate at the 14 s ladder clock would cost about 7x the CPU per game (screen 1: 7,428 s for 200 games at 14 s against 1,479 s at 2 s, both 4 workers). The net's SPRT against the pipeline champion at the ladder clock (the N7 exit) is a separate test, not registered here."
+ },
+ "arms": {
+  "x": "<gen dir>/specs/cand-2s.json, written by loop.js before the screen: the champion's MAG and DODUO, the candidate net as the leaf (pory2), policyNet = the candidate net iff the offline gate turned the head ON, and gate_clock",
+  "y": "<gen dir>/specs/champ-2s.json: the champion spec with gate_clock (for gen5 this is solver/results/2026-09-30-human-regularised/screen-2s-off.json renamed)",
+  "equal_wall_clock": "both arms run the same adaptive 2 s clock; the clock-ratio bar checks that it held"
+ },
+ "screen": {
+  "games": 200,
+  "pairs": 100,
+  "pair_seed": 1,
+  "seed": 41101,
+  "workers": 3,
+  "cap": 50,
+  "rule": "notlose",
+  "flags": { "info": "honest", "spreads": "observed-v1" },
+  "bars": { "max_fallback_share": 0.05, "playouts_floor": 161, "max_clock_ratio": 1.10, "min_scored": 190 },
+  "read": "solver/machamp/n7/read.js --kind screen, ONCE at 200 games: PASS iff the Wilson 95% upper bound of X's score >= 0.5; VOID if any bar fails (the bars of read.js: fallback share and the playouts floor per arm, the clock ratio, games scored, X's leaf served the candidate with 0 errors, Y's leaf served the champion, X's policy head served when it carries one, no spreads warning and the registered mode played, and the guard sampled with no ladder process seen). Floor 161 = 0.5 x 323.2, the lower arm of the quiet 2 s gen5-vs-gen5 reference on this release (solver/results/2026-10-01-screens/preregistration.json floors.ref_2s)."
+ },
+ "sprt": {
+  "elo0": 0,
+  "elo1": 20,
+  "alpha": 0.05,
+  "beta": 0.05,
+  "max_games": 2000,
+  "seed": 41201,
+  "workers": 3,
+  "cap": 50,
+  "flags": { "info": "honest", "spreads": "observed-v1" },
+  "bars": { "max_fallback_share": 0.05, "playouts_floor": 161, "max_clock_ratio": 1.10, "max_errored_pair_share": 0.01 },
+  "read": "Only after a screen PASS. solver/machamp/sprt.js (pairs on one battle seed with seats swapped, the normal-approximation GSPRT on pair scores, walked in index order, no interim LLR printed), read ONCE at its stop by solver/machamp/n7/read.js --kind sprt with the bars above plus the same capability, spreads and guard bars. H1 at LLR >= ln(0.95/0.05); H0 at LLR <= ln(0.05/0.95); no bound by 1,000 pairs = INCONCLUSIVE.",
+  "seed_note": "41001-41010 (self-play chunks), 41101 (screen) and 41201 (SPRT) appear in no earlier run in CHANGELOG-REGMC.md, docs/_reports or solver/ (checked by grep before this file was written); 31001, 31002, 32001, 33001 and 34101 are taken."
+ },
+ "promotion": {
+  "rule": "The candidate becomes the champion ONLY if the SPRT read's verdict_code is H1, every bar passed (capability_ok), the read names THIS pre-registration's sha256, and the read's X spec carries the candidate's own leaf digest. H0, INCONCLUSIVE, VOID, a failed screen or a failed offline gate leave the champion unchanged. solver/machamp/n7/loop.js promote() refuses otherwise, and solver/tests/test-n7-loop.js PROMOTE holds it (RED under N7_LOOP_BREAK=promote).",
+  "on_h1": "The net and its metrics are copied to solver/machamp/models/n7-gen<g>/ (tracked, about 0.23 MB) and the next generation self-plays with it. H1 licenses nothing on the ladder: an arm needs an SPRT pass against the PIPELINE champion at the ladder clock (the N7 exit) or Will's OK."
+ },
+ "machine": "The ladder has priority (Will, 2026-10-01). loop.js checks for run_ladder.js, rotom.js or reparse_store.js before every stage and exits 3 (PAUSED, resumable) if one runs; while a stage runs it samples every 60 s and, on a ladder process, stops THIS run's own processes by pid (taskkill /PID <child> /T), never by image name, and exits 3. A screen or SPRT stopped that way is VOID and is re-run from its first game with the same seed on the coordinator's say (--retry-void). Through cmd.exe /c tools\\lownode.cmd (BELOWNORMAL); every child inherits it, and the workers lower themselves too.",
+ "smoke": {
+  "what": "A TINY smoke of the whole loop's machinery (2026-10-02), allowed beside the live ladder at <= 2 workers. It proves the stages run and the counters fire; none of its figures is a result.",
+  "games": 20,
+  "chunks": 2,
+  "seed_base": 41901,
+  "workers": 2,
+  "epochs": 1,
+  "max_steps": 0,
+  "subsample": 10,
+  "stop_after": "offline",
+  "anchor": "on if the anchor data are reachable, else --no-anchor (recorded)"
+ }
+}

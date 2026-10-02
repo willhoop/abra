@@ -6,7 +6,10 @@
  *   AG.XW                            solver/xatu/worlds.js on this agent set's rollout (honest information)
  *   AG.COUNTERS                      fallbacks (the search threw and the prior's top legal joint was played), …
  *
- *   spec = { name, kind: 'miltank', mag, doduo, pory2, budgetMs, k1, k2, depth, reserveSwitch[, gates][, quiesce] }
+ *   spec = { name, kind: 'miltank', mag, doduo, pory2, budgetMs, k1, k2, depth, reserveSwitch[, gates][, quiesce][, policyNet] }
+ *   policyNet (2026-10-02, PLAN N7): an N7 net file whose POLICY HEAD tilts the ranking prior by the board
+ *   (solver/machamp/n7/policy.js); its base DODUO is pinned to the spec's. a.bot(seed, { pcr }) turns on PLAYOUT-CAP
+ *   RANDOMISATION for self-play (each decision FULL or FAST by a seeded draw; info.pcr names which).
  *   quiesce (2026-09-27): true | 'all' = every search playout plays one extension turn; 'held' = only after a protect held
  *   (solver/miltank/rollout.js QUIESCENCE); flatEps: a flat table plays the prior's top joint; reserveNoRepeat: the mega row
  *   repeats no Protect when it can (solver/miltank/search.js; docs/_reports/2026-09-27-protect-repeat-fix.md); kl (2026-09-30): lambda of the
@@ -116,6 +119,16 @@ function create(API, opts) {
       for (const f of GATE_FILES) h.update(fs.readFileSync(abs(f)));
       digests.gates = h.digest('hex').slice(0, 16);
     }
+    /* spec.policyNet (2026-10-02, solver/machamp/n7/policy.js; PLAN N7): the N7 net's POLICY HEAD tilts the ranking prior's
+     * scores (MILTANK's candidates and its fallback joint) by the board. Off when absent. The base prior the head was fitted
+     * on is pinned: policy.js refuses an agent whose MAG/DODUO files differ from the file's base_prior. Counters per agent
+     * in COUNTERS.policy[name]. */
+    if (spec.policyNet) {
+      const POLW = require('../machamp/n7/policy.js').create(API, { net: abs(spec.policyNet), prior, priorFiles: { mag: abs(spec.mag), doduo: abs(spec.doduo) } });
+      PA = POLW.wrap(PA);
+      (COUNTERS.policy = COUNTERS.policy || {})[spec.name] = POLW.COUNTERS;
+      digests.policy = sha(spec.policyNet);
+    }
     let MT = null;
     if (spec.kind === 'miltank') {
       if (!spec.pory2) throw new Error('mew/agent: a miltank agent needs a pory2 leaf model');
@@ -132,17 +145,30 @@ function create(API, opts) {
     }
     function bot(seed, extra) {
       const coin = coinOf(seed);
-      if (spec.kind === 'greedy') return { name: spec.name, kind: 'greedy', PA, choose(S, side, ctx) { COUNTERS.decisions++; return argmax(S, side, ctx); } };
+      if (spec.kind === 'greedy') return { name: spec.name, kind: 'greedy', PA, prior, choose(S, side, ctx) { COUNTERS.decisions++; return argmax(S, side, ctx); } };
+      /* PLAYOUT-CAP RANDOMISATION (extra.pcr, 2026-10-02, PLAN N7; Wu 2019 arXiv 1902.10565 §3.1): each decision draws, from
+       * this bot's own seeded hash, FULL with probability pcr.p or FAST otherwise, and searches at that setting's pass cap
+       * ({ maxPasses, budgetMs }) instead of the spec's clock. Only a FULL decision is a training target (solver/mew/play.js
+       * records info.pcr === 'full' only); FAST decisions exist to play more games. Counted in COUNTERS.pcr. Self-play only:
+       * refused beside the adaptive clock, which it replaces. */
+      const PCR = extra && extra.pcr ? extra.pcr : null;
+      if (PCR && spec.adaptive) throw new Error('mew/agent: playout-cap randomisation replaces the clock; the spec carries an adaptive clock');
+      if (PCR && !(PCR.p >= 0 && PCR.p <= 1 && PCR.full && PCR.fast)) throw new Error('mew/agent: pcr needs { p, full, fast }');
+      let pcrN = 0;
+      /* a 32-bit integer mix (Math.imul: a float product of two 32-bit numbers loses its low bits above 2^53) */
+      const pcrDraw = () => { let h = (Math.imul(seed >>> 0, 0x9E3779B1) ^ Math.imul(((++pcrN) + 0x7F4A7C15) >>> 0, 0x85EBCA77)) >>> 0;
+        h ^= h >>> 16; h = Math.imul(h, 0x85EBCA6B) >>> 0; h ^= h >>> 13; h = Math.imul(h, 0xC2B2AE35) >>> 0; h ^= h >>> 16; return (h >>> 0) / 4294967296 < PCR.p; };
       /* spec.maxPasses (2026-09-26, PORYGON2 v1's corpus): a PASS CAP instead of a clock — every decision fills exactly
        * that many passes (unless the budget runs out first), so a cheap self-play game is as fast as the cap allows and
        * replays the same playouts whatever the machine load. Absent = the clock alone, exactly as before. */
+      const ex = extra ? Object.assign({}, extra) : {}; delete ex.pcr;
       const o = Object.assign({ budgetMs: spec.budgetMs, k1: spec.k1, k2: spec.k2, depth: spec.depth, reserveSwitch: spec.reserveSwitch,
-                                leaf: 'pory2', leafModel: abs(spec.pory2), coin }, searchExtras(spec), spec.maxPasses ? { maxPasses: spec.maxPasses } : {}, extra || {});
+                                leaf: 'pory2', leafModel: abs(spec.pory2), coin }, searchExtras(spec), spec.maxPasses ? { maxPasses: spec.maxPasses } : {}, ex);
       /* spec.adaptive (2026-09-27): ROTOM's adaptive clock (solver/rotom/adaptive.js) plans each decision on a simulated
        * VGC bank — the rule read from the checkout (solver/rotom/clock.js readRule), charged with this bot's own wall ms per
        * decision — instead of spec.budgetMs. One allocator per bot, and a bot plays one game. */
       const AD = spec.adaptive ? adaptiveFor(spec.adaptive) : null;
-      return { name: spec.name, kind: 'miltank', PA, MT, choose(S, side, ctx, hb) {
+      return { name: spec.name, kind: 'miltank', PA, MT, prior, choose(S, side, ctx, hb) {
         COUNTERS.decisions++;
         if (spec.view_drops_stall) dropStall(S, hb);
         if (spec.bodies === 'pre-1.69') {
@@ -150,7 +176,12 @@ function create(API, opts) {
           stripSp(S); PRE169.views++; COUNTERS.pre169 = PRE169;
         }
         const tIn = Date.now();
-        let oo = o, rec = null;
+        let oo = o, rec = null, pcrKind = null;
+        if (PCR) {
+          pcrKind = pcrDraw() ? 'full' : 'fast';
+          oo = Object.assign({}, o, PCR[pcrKind]);
+          const P0 = COUNTERS.pcr || (COUNTERS.pcr = { full: 0, fast: 0 }); P0[pcrKind]++;
+        }
         if (AD) {
           const pl = AD.plan(S);
           if (pl.lowBank) { COUNTERS.adapt_low_bank = (COUNTERS.adapt_low_bank || 0) + 1; const r = argmax(S, side, ctx); AD.charge(Date.now() - tIn, false, null); r.info = Object.assign({}, r.info, { adapt: pl, fallback: 'low_bank' }); return r; }
@@ -164,6 +195,15 @@ function create(API, opts) {
           const r = (hb ? MTmod.create(API, { prior: PA, rollout: RH }) : MT).decide(S, side, ctx, oo);
           if (hb) COUNTERS.honest = (COUNTERS.honest || 0) + 1;
           if (r.info && r.info.forced) COUNTERS.forced++; else COUNTERS.searched++;
+          if (pcrKind && r.info) {
+            r.info.pcr = pcrKind;
+            /* a pass cap that was NOT reached (the budgetMs ceiling cut the fill: a cold process, a loaded machine) is a FULL
+             * search that was not full, and it is load-dependent: counted per kind (pcr full_cut / fast_cut), barred by the loop */
+            /* DELIBERATE BREAK (env N7_PCR_BREAK=nocut): the cut is not counted; solver/tests/test-n7-loop.js PCR must go red */
+            if (!r.info.forced && r.info.passes != null && r.info.passes < PCR[pcrKind].maxPasses && process.env.N7_PCR_BREAK !== 'nocut') {
+              const P0 = COUNTERS.pcr; P0[pcrKind + '_cut'] = (P0[pcrKind + '_cut'] || 0) + 1; r.info.pcr_cut = true;
+            }
+          }
           if (AD) {
             const searched = !(r.info && r.info.forced);
             if (searched && rec.stop === 'none') rec.stop = 'hard';
@@ -195,7 +235,7 @@ function create(API, opts) {
         } catch (e) {
           COUNTERS.fallbacks++;
           if (COUNTERS.fallback_errors.length < 10) COUNTERS.fallback_errors.push(String(e && e.message || e).slice(0, 200));
-          const r = argmax(S, side, ctx); r.info = Object.assign({}, r.info, { fallback: true }); return r;
+          const r = argmax(S, side, ctx); r.info = Object.assign({}, r.info, { fallback: true }, pcrKind ? { pcr: pcrKind } : {}); return r;
         }
       } };
     }

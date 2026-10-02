@@ -1,0 +1,8 @@
+{
+ "rows": 9,
+ "max_abs_logit_n7net": 1.7763568394002505e-15,
+ "max_abs_logit_v3infer": 1.7763568394002505e-15,
+ "max_abs_tilt": 2.7755575615628914e-17,
+ "pass": true,
+ "fixture_names_file": true
+}

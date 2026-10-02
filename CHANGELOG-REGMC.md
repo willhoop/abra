@@ -28,6 +28,86 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.77.0] — 2026-10-02
+
+**MINOR: the N7 self-play loop is built, smoke-tested beside the live ladder, and generation 1 is pre-registered. No
+generation was run and no gate game was played.** `solver/machamp/n7/loop.js` is one resumable script:
+1. self-play with playout-cap randomisation;
+2. the policy+value learner;
+3. the offline gate;
+4. a not-lose screen and an SPRT, each read once with capability bars;
+5. promotion on H1 only;
+6. the next generation.
+
+A kill or a ladder pause never corrupts a generation. Every corpus and model is sha256-recorded and re-hashed on resume.
+
+### Added
+- `solver/machamp/n7/loop.js` — the loop.
+  - It also has `--dry-run` (the preflight, every stage's argument vector, the estimate), `--estimate [--measured <run>]`,
+    `--status`, `--smoke` (the pre-registration's smoke block) and `--allow-beside-ladder` (smoke only, at most 2
+    workers, never a screen or SPRT).
+  - Exit 3 = PAUSED: a ladder process was present before a stage, or appeared during one. In that case its own child
+    tree is stopped by pid.
+  - Exit 4 = a VOID screen or SPRT, replayed only with `--retry-void`.
+  - Each generation runs under its own pre-registration (`"generation": g`), hashed into the state.
+- `solver/machamp/n7/build.js` — the dataset: one row per recorded FULL decision, holding the decider's encoded view, z,
+  the material / HP / turns-left labels, two short-horizon search λ-returns, the answer-map summary and the policy
+  target. Splits are by game, and the shard hashes are verified. `verify` checks a finished dataset.
+- `solver/machamp/n7/train.py` — the learner.
+  - The v3 student trunk, warm-started; value on z, one position per game per epoch.
+  - Auxiliary heads: material, HP, turns left, the search values and the answer map.
+  - A **tilt-v1 policy head** over DODUO's valid cells (`exp(β)·lp + θ·bits`, from the deciding chair's hidden),
+    trained on the search's root mix.
+  - The **human anchor**: distillation of the v2 teacher on human TRAIN rows, pinned by its cache manifest.
+  - Epoch checkpoints with resume; export as a `v3-student` file plus a `policy` block; a float64 parity fixture.
+- `solver/machamp/n7/net.js` (the Node forward with each chair's hidden and the head) and
+  `solver/machamp/n7/policy.js` (the head at play time wraps the prior adapter, pinned to its DODUO; one implementation
+  for the recorded targets and the served tilt).
+- `solver/machamp/n7/offline_gate.js` — the v3 harness copied, verified, scored, benched and reported, plus the head's
+  held-out test.
+- `solver/machamp/n7/read.js` — the screen and SPRT reader, generalised from the two 2026-10-01 readers.
+- `solver/machamp/n7/preregistration-gen1.json` — generation 1, written before its first game:
+  - 10,000 honest self-play games on `df172ccd2aaf`, PCR p 0.25 (FULL 24 passes, FAST 4), answer map on 10%.
+  - Corpus bars, including at most 1% of searches cut short of their pass cap (ceilings 15,000 / 5,000 ms).
+  - A replay window of 5 generations.
+  - Offline non-inferiority margins of 2× the 1.62.0 CI half-widths, a human-source clause and cost ≤ 1.10×.
+  - A 200-game not-lose screen and an SPRT (elo 0/20, α = β = 0.05, ≤ 2,000 games) at the 2 s clock against gen5.
+    Floor 161, clock ratio ≤ 1.10, fallbacks ≤ 5%.
+  - Seeds 41001–41010, 41101 and 41201.
+- `solver/tests/test-n7-loop.js` — RESUME (a real kill mid-chunk, then the resume), MANIFEST, PROMOTE, NET, POLICY, PCR,
+  PCRCUT and PAUSE.
+
+### Changed
+- `solver/mew/agent.js`, `play.js` and `run.js`, opt-in only; the defaults are unchanged (`test-machamp` 106/106 and
+  `test-col-coverage` 13/13 GREEN).
+  - The spec field `policyNet`.
+  - `bot(seed, { pcr })`, with a cut counter for a search stopped short of its pass cap.
+  - `--n7` recording, `--pcr`, `--am-rate` and `--am-n`.
+  - `--info` passed through by `run.js`.
+  - `ctr.policy` on match lines.
+
+### Record
+- **Measured.** NO RESULT FIGURE. Machinery receipts only:
+  - `test-n7-loop`: every clause GREEN and every one of its 10 breaks RED, across four runs (report §5). The last full
+    run with the breaks predates three small changes; it is OWED in a ladder gap.
+  - The recorded smoke `smoke-2026-10-02d` (20 games, 2 workers, beside the live ladder):
+    - 80 FULL and 250 FAST searches, 0 cut, 0 errors, 0 fallbacks, every corpus bar passed;
+    - parity 1.8e-15;
+    - 7,124 harness evaluations, 0 errors;
+    - the offline gate on a 10% subsample read FAIL (a smoke reading, not a gate).
+  - **The live ladder's search was thinned while the smokes ran:** median 966 playouts per move decision inside the
+    windows, against 2,493 outside (turns 5+: 270 against 3,576). Its clock held (0 timeouts, 0 over budget). So
+    BelowNormal with 2 workers does not protect the ladder's search; run nothing beside a rated batch
+    (`solver/results/2026-10-02-n7-smoke/ladder-during-smokes.json`).
+  - Estimate for generation 1 on 3 local workers: 11.9–17.8 h derived, 19.2–23.5 h at the smoke's beside-the-ladder rate
+    (18.2 worker-s a game); self-play is 9–17 h of it.
+  - Report: `docs/_reports/2026-10-02-selfplay-loop.md`. Small receipts: `solver/results/2026-10-02-n7-smoke/`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** `docs/MODELS.md` (MEW, MACHAMP, PORYGON2 v3): the N7 loop and the tilt-v1 head. White
+  paper: the Expert Iteration loop as built (PCR, z-only value, KataGo-form auxiliaries, the human anchor, promotion on
+  H1). `docs/SOLVER.md`: the restamp.
+
 ## [1.76.0] — 2026-10-02
 
 **MINOR: the SOLVER datasets owed after the 2026-10-01 store work are rebuilt. The PORYGON2 v2 streams no longer share

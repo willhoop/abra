@@ -4,6 +4,9 @@
  *        --workers 4 --out solver/out/selfplay/<release>/<gen> [--cap 50] [--human <games.jsonl>]
  *        [--spreads observed-v1|role-v1|xatu-random|flat]   the bodies' Stat Points (solver/arena/spread_source.js); default observed-v1 (1.73.0)
  *        since abra/regmc 1.49.0 — every generation before it self-played at `flat`
+ *        [--info honest|omniscient]   passed to every worker (solver/mew/play.js; self-play's default stays omniscient)
+ *        [--n7] [--pcr '<json>'] [--am-rate p] [--am-n n]   the N7 loop's recording and playout-cap randomisation
+ *        (solver/mew/play.js N7 RECORDING; solver/machamp/n7/loop.js). Off when absent: the run is exactly what it was.
  *
  * Forks --workers shards of solver/mew/play.js (process-level parallelism only; each worker loads its own
  * engine once and plays games g = shard, shard + workers, …). Children inherit BELOWNORMAL from lownode and
@@ -49,10 +52,13 @@ async function main() {
   fs.mkdirSync(out, { recursive: true });
   const human = flag('--human', null), store = flag('--team-store', null);
   const spreads = flag('--spreads', require('../arena/spread_source.js').DEFAULT);   // solver/arena/spread_source.js (1.49.0)
+  const info = flag('--info', null), n7 = argv.includes('--n7'), pcr = flag('--pcr', null), amRate = flag('--am-rate', null), amN = flag('--am-n', null);
+  if (pcr) JSON.parse(pcr);   // refuse a malformed --pcr here, before any worker starts
   const started = new Date().toISOString();
   const { res, wall_s } = await forkShards(path.join(__dirname, 'play.js'), W, i => ['--mode', 'selfplay', '--release', rel, '--league', path.resolve(ROOT, league),
     '--games', String(N), '--seed', String(seed), '--shard', String(i), '--shards', String(W), '--cap', String(cap),
-    '--out', path.join(out, `shard-${i}.jsonl.gz`), ...(human ? ['--human', human] : []), ...(store ? ['--team-store', store] : []), '--spreads', spreads], 'mew');
+    '--out', path.join(out, `shard-${i}.jsonl.gz`), ...(human ? ['--human', human] : []), ...(store ? ['--team-store', store] : []), '--spreads', spreads,
+    ...(info ? ['--info', info] : []), ...(n7 ? ['--n7'] : []), ...(pcr ? ['--pcr', pcr] : []), ...(amRate ? ['--am-rate', amRate] : []), ...(amN ? ['--am-n', amN] : [])], 'mew');
   const shards = res.map(r => {
     const f = path.join(out, `shard-${r.shard}.jsonl.gz`);
     let s = null; try { s = JSON.parse(fs.readFileSync(f + '.summary.json', 'utf8')); } catch (e) {}
@@ -66,9 +72,25 @@ async function main() {
   for (const s of ok) for (const k in s.summary.counts.current_score) { const c = counts.current_score[k] || [0, 0]; c[0] += s.summary.counts.current_score[k][0]; c[1] += s.summary.counts.current_score[k][1]; counts.current_score[k] = c; }
   const addObj = key => { const o = {}; for (const s of ok) for (const k in s.summary[key]) if (typeof s.summary[key][k] === 'number') o[k] = (o[k] || 0) + s.summary[key][k]; return o; };
   const agent = addObj('agent_counters'), rollout = addObj('rollout');
+  /* the nested agent counters the N7 loop reads: playout-cap randomisation and each policy head's own counter */
+  agent.pcr = {}; agent.policy = {};
+  for (const s of ok) { const ac = s.summary.agent_counters || {};
+    for (const [k, v] of Object.entries(ac.pcr || {})) agent.pcr[k] = (agent.pcr[k] || 0) + v;
+    for (const [nm, c] of Object.entries(ac.policy || {})) { const d = agent.policy[nm] || (agent.policy[nm] = {}); for (const [k, v] of Object.entries(c)) if (typeof v === 'number') d[k] = (d[k] || 0) + v; } }
   const searchDec = ok.reduce((a, s) => a + (s.summary.search ? s.summary.search.decisions : 0), 0);
   const wmean = key => ok.reduce((a, s) => a + (s.summary.search ? s.summary.search[key] * s.summary.search.decisions : 0), 0) / Math.max(1, searchDec);
   const warnings = [];
+  /* N7 counters (solver/mew/play.js N7 RECORDING) summed over shards; a zero where the capability should fire is a WARNING */
+  const n7c = n7 ? (() => { const o = {}; for (const s of ok) for (const [k, v] of Object.entries((s.summary.n7 && s.summary.n7.counters) || {})) o[k] = (o[k] || 0) + v; return o; })() : null;
+  if (n7) {
+    if (!n7c.feats) warnings.push('N7: 0 encoded positions (feats) recorded');
+    if (!n7c.pt) warnings.push('N7: 0 policy targets recorded');
+    if (n7c.pt_null) warnings.push(`N7: ${n7c.pt_null} full decisions had no policy target (no DODUO cell for any row)`);
+    if (amRate && +amRate > 0 && !n7c.am) warnings.push('N7: --am-rate > 0 and 0 answer maps computed');
+    if (n7c.am_errors) warnings.push(`N7: ${n7c.am_errors} answer maps threw`);
+  }
+  if (pcr && !(agent.pcr && agent.pcr.full)) warnings.push('PCR: 0 full-search decisions');
+  if (pcr && !(agent.pcr && agent.pcr.fast) && JSON.parse(pcr).p < 1) warnings.push('PCR: 0 fast decisions');
   if (res.some(r => r.code !== 0)) warnings.push('a worker exited non-zero: ' + JSON.stringify(res.filter(r => r.code !== 0)));
   if (!rollout.leafPory2) warnings.push('PORYGON2 leaf served 0 evaluations');
   if (!rollout.playouts) warnings.push('0 playouts');
@@ -82,7 +104,9 @@ async function main() {
   const manifest = {
     what: 'MEW self-play shards (solver/mew/run.js)', started, finished: new Date().toISOString(),
     engine_release: first.engine_release || rel, release_stamp: first.release_stamp || null,
-    flags: { release: rel, league: path.relative(ROOT, path.resolve(ROOT, league)).split(path.sep).join('/'), games: N, seed, workers: W, cap, human, team_store: store, spreads },
+    flags: { release: rel, league: path.relative(ROOT, path.resolve(ROOT, league)).split(path.sep).join('/'), games: N, seed, workers: W, cap, human, team_store: store, spreads,
+      info: info || 'omniscient (play.js self-play default)', n7, pcr: pcr ? JSON.parse(pcr) : null, am_rate: amRate == null ? null : +amRate, am_n: amN == null ? null : +amN },
+    n7: n7c,
     spreads: SPREADS,
     league: first.agents || null, league_weights: first.weights || null, league_file_sha256: sha(path.resolve(ROOT, league)),
     pool: first.pool ? { source: first.pool.pool_source, file: first.pool.file, train_pairs: first.pool.train_pairs, counts: first.pool.counts } : null,

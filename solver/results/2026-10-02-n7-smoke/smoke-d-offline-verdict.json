@@ -1,0 +1,408 @@
+{
+ "what": "N7 offline gate (solver/machamp/n7/offline_gate.js)",
+ "at": "2026-10-02T05:20:15.630Z",
+ "smoke": true,
+ "reading": "SMOKE: a 10% subsample of the frozen set; NOT a gate verdict",
+ "preregistration_sha256": "de13163dc7bceaba7fc898d1c3ca1404343fc239efe3a90007e9900b7bcb90ea",
+ "harness": {
+  "source": "C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\.claude\\worktrees\\agent-aadbc255e960b0c50\\solver\\out\\p2v3\\evalset",
+  "parent_sha256": "c2428b1dbf77e32c0e4248544bbcfd4105d11edf5d8bf2bf04c0c993f8441bbf",
+  "positions_sha256": "85a2d2e073c63d98e9f20de1e3b0f698bea233bb5baa32a4fdd809b947b52e19",
+  "positions": 256,
+  "labelled": 116,
+  "labels": {
+   "labels-0.jsonl": "cb5d974c1769c08628c331e0793b0a46f136e8dac8e0ed98101352e998d7c392",
+   "labels-1.jsonl": "7a391b900f411b0d2e785483a97b17af1e531113ea387fba6dff52bb4f3aac5e",
+   "labels-2.jsonl": "934bea836c84d2421f904d796ddb8692f8e69ed24dd5b5d6ee6d6b2bb5ec1344",
+   "labels-3.jsonl": "479221167f9f34ef3f874ef14edcd0ccedb99e38668b59584a16dbc970a0e2b4",
+   "labels-4.jsonl": "cb6d0d42f552ab07b05d1dbb191896446d896bf2d4ead09cd55a2d47d52e26bd",
+   "labels-5.jsonl": "0b93583fe6fea58c1f6550c16dd15c0186ccfe4c7714fdaa64b3dba3b48da0f8",
+   "labels-6.jsonl": "01e3f6e0da00bbae909b71c94705f5b25cfe587d16f420da2a06806d3c8dc074",
+   "labels-7.jsonl": "f952055adf48758e99907873943db3721756480f81b6ba8a66f8aa1a87107ab6",
+   "labels.summary.json": "4dbc7e33eb4ab798638eb6ff111f9a255fdde7d8f33cf12ce69cfce45bc93436"
+  },
+  "subsample": 10
+ },
+ "harness_release": "eaa5becc54eb",
+ "nets": {
+  "champ": {
+   "file": "solver/machamp/models/gen5/porygon2-gen5.json",
+   "sha256": "cf8ad3f7bd0d4a33d87d9b9e891154800cf27540e7d4a93ef85b2513b713f3c6"
+  },
+  "cand": {
+   "file": "solver/out/n7/smoke-2026-10-02d/gen1/train/net.json",
+   "sha256": "b8c058bd0de07e36daeac2f19b63dc2e7cd7b0a44555d78ce201fc7894d354b7"
+  }
+ },
+ "bars": [
+  {
+   "name": "ranking: tau-b vs champion, CI lower bound",
+   "pass": false,
+   "value": {
+    "diff": -0.0098,
+    "ci": [
+     -0.0396,
+     0.0224
+    ]
+   },
+   "limit": ">= -0.024"
+  },
+  {
+   "name": "ranking: regret vs champion, CI upper bound",
+   "pass": true,
+   "value": {
+    "diff": -0.0188,
+    "ci": [
+     -0.042,
+     -0.0034
+    ]
+   },
+   "limit": "<= 0.0062"
+  },
+  {
+   "name": "calibration: ECE vs champion, CI upper bound",
+   "pass": false,
+   "value": {
+    "diff": -0.0186,
+    "ci": [
+     -0.0481,
+     0.0325
+    ]
+   },
+   "limit": "<= 0.031"
+  },
+  {
+   "name": "human anchor: bo1hi log-loss vs champion",
+   "pass": true,
+   "value": {
+    "cand": 0.5489,
+    "champ": 0.5917,
+    "diff": -0.0428,
+    "n": 65
+   },
+   "limit": "<= +0.01"
+  },
+  {
+   "name": "human anchor: bo3hi log-loss vs champion",
+   "pass": true,
+   "value": {
+    "cand": 0.5717,
+    "champ": 0.5681,
+    "diff": 0.0036,
+    "n": 60
+   },
+   "limit": "<= +0.01"
+  },
+  {
+   "name": "cost: median us per evaluation, cand / champ",
+   "pass": true,
+   "value": {
+    "ratio": 0.921,
+    "cand_us": 1114.7,
+    "champ_us": 1209.7
+   },
+   "limit": "<= 1.1"
+  },
+  {
+   "name": "capability: the candidate leaf served, 0 errors",
+   "pass": true,
+   "value": {
+    "evals": 7124,
+    "errors": 0
+   },
+   "limit": "> 0 evals, 0 errors"
+  }
+ ],
+ "value": "FAIL",
+ "policy_head": {
+  "decisions": 9,
+  "games": 2,
+  "ce_head": 1.99914,
+  "ce_base": 2.05373,
+  "diff": -0.05459,
+  "ci95": [
+   -0.06511,
+   -0.05159
+  ],
+  "on": false,
+  "rule": "ON iff decisions >= 200 and the CI upper bound < 0",
+  "why": "too few held-out decisions"
+ },
+ "report": {
+  "file": "solver/out/n7/smoke-2026-10-02d/gen1/offline/harness/report-champ+cand.json",
+  "sha256": "02df5f2ae5b5818f60d398bd6c565acf5f5afd4ac3bba39e596782c597aa08b9",
+  "ranking_all": {
+   "champ": {
+    "positions": 116,
+    "games": 98,
+    "tau": 0.3113,
+    "top1": 0.8276,
+    "regret": 0.0482,
+    "cell_tau": 0.4212
+   },
+   "cand": {
+    "positions": 116,
+    "games": 98,
+    "tau": 0.2984,
+    "top1": 0.8276,
+    "regret": 0.0294,
+    "cell_tau": 0.4098,
+    "vs_base": {
+     "base": "champ",
+     "tau": {
+      "diff": -0.0098,
+      "ci": [
+       -0.0396,
+       0.0224
+      ]
+     },
+     "top1": {
+      "diff": 0,
+      "ci": [
+       -0.0342,
+       0.0351
+      ]
+     },
+     "regret": {
+      "diff": -0.0188,
+      "ci": [
+       -0.042,
+       -0.0034
+      ]
+     }
+    }
+   }
+  },
+  "informative": {
+   "champ": {
+    "positions": 85,
+    "games": 76,
+    "tau": 0.3333,
+    "top1": 0.7647,
+    "regret": 0.0658,
+    "cell_tau": 0.443
+   },
+   "cand": {
+    "positions": 85,
+    "games": 76,
+    "tau": 0.3199,
+    "top1": 0.7647,
+    "regret": 0.0401,
+    "cell_tau": 0.4224,
+    "vs_base": {
+     "base": "champ",
+     "tau": {
+      "diff": -0.0134,
+      "ci": [
+       -0.0544,
+       0.0304
+      ]
+     },
+     "top1": {
+      "diff": 0,
+      "ci": [
+       -0.046,
+       0.0471
+      ]
+     },
+     "regret": {
+      "diff": -0.0257,
+      "ci": [
+       -0.0552,
+       -0.0049
+      ]
+     }
+    }
+   }
+  },
+  "calibration_all": {
+   "champ": {
+    "n": 256,
+    "games": 197,
+    "logloss": 0.585,
+    "brier": 0.204,
+    "ece": 0.0932,
+    "gap_05_09": 0.1347,
+    "gap_05_09_n": 102,
+    "gap_05_09_ci": [
+     0.0265,
+     0.2429
+    ],
+    "reliability": [
+     {
+      "bin": "0.0-0.1",
+      "n": 34,
+      "mean_value": 0.036,
+      "win_rate": 0.147
+     },
+     {
+      "bin": "0.1-0.2",
+      "n": 17,
+      "mean_value": 0.152,
+      "win_rate": 0.235
+     },
+     {
+      "bin": "0.2-0.3",
+      "n": 21,
+      "mean_value": 0.253,
+      "win_rate": 0.238
+     },
+     {
+      "bin": "0.3-0.4",
+      "n": 24,
+      "mean_value": 0.354,
+      "win_rate": 0.375
+     },
+     {
+      "bin": "0.4-0.5",
+      "n": 33,
+      "mean_value": 0.448,
+      "win_rate": 0.545
+     },
+     {
+      "bin": "0.5-0.6",
+      "n": 30,
+      "mean_value": 0.542,
+      "win_rate": 0.433
+     },
+     {
+      "bin": "0.6-0.7",
+      "n": 31,
+      "mean_value": 0.64,
+      "win_rate": 0.548
+     },
+     {
+      "bin": "0.7-0.8",
+      "n": 29,
+      "mean_value": 0.744,
+      "win_rate": 0.621
+     },
+     {
+      "bin": "0.8-0.9",
+      "n": 12,
+      "mean_value": 0.84,
+      "win_rate": 0.5
+     },
+     {
+      "bin": "0.9-1.0",
+      "n": 25,
+      "mean_value": 0.964,
+      "win_rate": 1
+     }
+    ]
+   },
+   "cand": {
+    "n": 256,
+    "games": 197,
+    "logloss": 0.5793,
+    "brier": 0.1987,
+    "ece": 0.0746,
+    "gap_05_09": 0.1077,
+    "gap_05_09_n": 99,
+    "gap_05_09_ci": [
+     -0.0078,
+     0.2229
+    ],
+    "reliability": [
+     {
+      "bin": "0.0-0.1",
+      "n": 36,
+      "mean_value": 0.027,
+      "win_rate": 0.111
+     },
+     {
+      "bin": "0.1-0.2",
+      "n": 17,
+      "mean_value": 0.147,
+      "win_rate": 0.176
+     },
+     {
+      "bin": "0.2-0.3",
+      "n": 19,
+      "mean_value": 0.249,
+      "win_rate": 0.263
+     },
+     {
+      "bin": "0.3-0.4",
+      "n": 33,
+      "mean_value": 0.349,
+      "win_rate": 0.364
+     },
+     {
+      "bin": "0.4-0.5",
+      "n": 26,
+      "mean_value": 0.456,
+      "win_rate": 0.615
+     },
+     {
+      "bin": "0.5-0.6",
+      "n": 38,
+      "mean_value": 0.551,
+      "win_rate": 0.526
+     },
+     {
+      "bin": "0.6-0.7",
+      "n": 28,
+      "mean_value": 0.653,
+      "win_rate": 0.571
+     },
+     {
+      "bin": "0.7-0.8",
+      "n": 16,
+      "mean_value": 0.761,
+      "win_rate": 0.563
+     },
+     {
+      "bin": "0.8-0.9",
+      "n": 17,
+      "mean_value": 0.84,
+      "win_rate": 0.588
+     },
+     {
+      "bin": "0.9-1.0",
+      "n": 26,
+      "mean_value": 0.962,
+      "win_rate": 0.962
+     }
+    ],
+    "ece_vs_base": {
+     "diff": -0.0186,
+     "ci": [
+      -0.0481,
+      0.0325
+     ]
+    },
+    "absgap_vs_base": {
+     "diff": -0.027,
+     "ci": [
+      -0.0853,
+      0.0351
+     ]
+    }
+   }
+  }
+ },
+ "bench": {
+  "file": "solver/out/n7/smoke-2026-10-02d/gen1/offline/harness/bench-champ+cand.json",
+  "nets": [
+   {
+    "name": "champ",
+    "ratio": 1,
+    "value_us": {
+     "median": 1209.7,
+     "mean": 1194.3,
+     "p95": 1885.9
+    }
+   },
+   {
+    "name": "cand",
+    "ratio": 0.921,
+    "value_us": {
+     "median": 1114.7,
+     "mean": 1103.6,
+     "p95": 1592.4
+    }
+   }
+  ]
+ }
+}

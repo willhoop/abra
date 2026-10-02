@@ -1,0 +1,67 @@
+{
+ "per_generation": {
+  "games": 10000,
+  "decision_s": {
+   "full": 1.76,
+   "fast": 0.29,
+   "mean": 0.66
+  },
+  "decisions_per_game": 14.52,
+  "recorded_positions_per_game": 3.63,
+  "worker_s_per_game": 10.06,
+  "worker_s_per_game_basis": "derived from the measured rates below",
+  "selfplay_worker_hours": 27.95,
+  "training_positions": 36293,
+  "wall_hours_at_workers": 3,
+  "wall_hours": {
+   "selfplay": 9.32,
+   "train": null,
+   "offline": 0.41,
+   "screen": 0.55,
+   "sprt_typical": [
+    1.14,
+    3.47
+   ],
+   "sprt_max": 5.48
+  },
+  "total_wall_hours": {
+   "low": 11.91,
+   "high": 17.75,
+   "note": "self-play + training + offline gate + screen + SPRT (typical stop to the 2,000-game budget). A generation rejected at the offline gate still pays for its self-play, which is most of the cost; it saves only the screen and the SPRT."
+  }
+ },
+ "cloud_note": "Scale-out prices are solver/PLAN.md §6a; N8 needs N3 (the speed pass) and Will first. No spending.",
+ "rates": {
+  "ms_per_playout": {
+   "value": 4.57897489539749,
+   "source": "the 2 s reference arm on df172ccd2aaf: 382.4 playouts per searched decision at 1,751 ms mean (solver/results/2026-10-01-screens/screen2-k2x8-2s.read.json, arms.y)"
+  },
+  "cells_per_pass": {
+   "value": 16,
+   "source": "rows 4.00 x columns 3.99 in the same arm"
+  },
+  "decisions_per_side_per_game": {
+   "value": 8.065,
+   "source": "1,613 decisions in 200 games, the same arm"
+  },
+  "answer_map_s_per_position_n16": {
+   "value": 3,
+   "source": "about 3 s of CPU per position at 16 duels a pair (docs/_reports/2026-10-01-lost-last-answer.md, abra/regmc 1.58.0)"
+  },
+  "gate_worker_s_per_game_2s": {
+   "value": 29.58,
+   "source": "200 games in 1,479 s on 4 workers at the 2 s clock (screen 2, 1.68.0)"
+  },
+  "harness_worker_min_per_net": {
+   "value": 28,
+   "source": "four nets scored in about 14 min on 8 workers (solver/out/p2v3/evalset score files, 2026-10-01 03:51-04:05)"
+  },
+  "sprt_stops_games": {
+   "value": [
+    416,
+    1268
+   ],
+   "source": "the SPRTs of the week to 2026-10-01 stopped at 416-1,268 games (solver/PLAN.md §6a)"
+  }
+ }
+}

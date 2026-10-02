@@ -1,0 +1,161 @@
+{
+ "what": "N7 learner (solver/machamp/n7/train.py)",
+ "flags": {
+  "cmd": "train",
+  "data": "solver/out/n7/smoke-2026-10-02d/gen1/data",
+  "init": "solver/porygon2/v3/model/porygon2-v3-student.json",
+  "out": "solver/out/n7/smoke-2026-10-02d/gen1/train",
+  "anchor_data": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-aadbc255e960b0c50/solver/out/p2v3/v2data",
+  "anchor_teacher": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-aadbc255e960b0c50/solver/out/p2v3/teacher",
+  "no_anchor": false,
+  "base_mag": "solver/machamp/models/gen5/mag-gen5.json",
+  "base_doduo": "solver/machamp/models/gen5/doduo-gen5.json",
+  "epochs": 1,
+  "lr": 0.001,
+  "wd": 0.0001,
+  "bs": 256,
+  "w_z": 1.0,
+  "w_aux": 0.25,
+  "w_sv": 0.5,
+  "w_am": 0.25,
+  "w_pol": 1.0,
+  "w_l2": 0.01,
+  "w_anchor": 1.0,
+  "anchor_aux": 0.25,
+  "seed": 1,
+  "threads": 2,
+  "patience": 2,
+  "max_steps": 0,
+  "fixture_rows": 24
+ },
+ "params": 41257,
+ "value_params_exported": 38397,
+ "init": {
+  "path": "solver/porygon2/v3/model/porygon2-v3-student.json",
+  "sha256": "1b4ae59fcff530a214f977283de6262df405c13a5a5be1d3e26d785e8e207fee"
+ },
+ "data": {
+  "dir": "solver/out/n7/smoke-2026-10-02d/gen1/data",
+  "sha256": "40478dd3d5b2af3c37c907a7b6f430ea1b4ce522e05bd7cc4e335bb1d32429d7",
+  "counts": {
+   "games": 20,
+   "games_error": 0,
+   "games_capped": 0,
+   "games_no_feats": 0,
+   "positions": 80,
+   "positions_val": 9,
+   "decisions": 80,
+   "decisions_val": 9,
+   "am": 6,
+   "pt_unmapped_mass": 0,
+   "games_val": 2,
+   "games_train": 18,
+   "vt": 330,
+   "z_mean": 0.5
+  }
+ },
+ "anchor": {
+  "on": true,
+  "data": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-aadbc255e960b0c50/solver/out/p2v3/v2data",
+  "teacher_cache": {
+   "what": "PORYGON2 v2 teacher outputs (solver/porygon2/v3/student.py teacher), TRAIN and VAL rows only",
+   "teacher": {
+    "path": "solver/out/p2v3/v2data/runs/k1/B/model.pt",
+    "sha256": "2eb775e74a042887c0b52cf0704ffd0263c29dc9b5e7e2104b359d7e0709e1a3"
+   },
+   "release": "eaa5becc54eb",
+   "inputs": {
+    "bo1": "deb2d205350d59c312292dcacaeda5304b7c5273dfdd900c7f4998295c60d1ea",
+    "bo3": "8993a422f4df938fb2ed23930d35a722aef33791496618671e8c45900e33f59d"
+   },
+   "counts": {
+    "bo1/s0": {
+     "rows": 71415,
+     "scored": 57180,
+     "test_rows_skipped": 14235
+    },
+    "bo1/s1": {
+     "rows": 71918,
+     "scored": 57639,
+     "test_rows_skipped": 14279
+    },
+    "bo1/s2": {
+     "rows": 71462,
+     "scored": 57278,
+     "test_rows_skipped": 14184
+    },
+    "bo1/s3": {
+     "rows": 71975,
+     "scored": 56797,
+     "test_rows_skipped": 15178
+    },
+    "bo3/s0": {
+     "rows": 63228,
+     "scored": 51643,
+     "test_rows_skipped": 11585
+    },
+    "bo3/s1": {
+     "rows": 62825,
+     "scored": 50912,
+     "test_rows_skipped": 11913
+    },
+    "bo3/s2": {
+     "rows": 62479,
+     "scored": 50981,
+     "test_rows_skipped": 11498
+    },
+    "bo3/s3": {
+     "rows": 63228,
+     "scored": 51207,
+     "test_rows_skipped": 12021
+    }
+   },
+   "seconds": 449
+  }
+ },
+ "positions": {
+  "train": 71,
+  "val": 9
+ },
+ "decisions": {
+  "train": 71,
+  "val": 9
+ },
+ "oov_ids": 19,
+ "selected_epoch": 0,
+ "history": [
+  {
+   "epoch": 0,
+   "steps": 1,
+   "seconds": 1.2,
+   "train": {
+    "z": 0.5191556811332703,
+    "aux": 5.561059474945068,
+    "sv": 0.7917291522026062,
+    "am": 0.6579704284667969,
+    "pol": 1.9871941804885864,
+    "l2": 0.0,
+    "anchor": 2.425766944885254
+   },
+   "val_z_ll": 0.25674909353256226,
+   "val_z_ll_init": 0.252433180809021,
+   "val_aux": 4.480590343475342,
+   "val_sv": 0.6210809946060181,
+   "val_am": 0.8613229990005493,
+   "val_positions": 9,
+   "val_pol_ce": 1.9991393089294434,
+   "val_pol_ce_base": 2.0537328720092773,
+   "val_decisions": 9,
+   "anchor_val_distill": 0.5028645992279053,
+   "anchor_val_distill_init": 0.5024732351303101,
+   "anchor_val_rows": 24000,
+   "select": 2.2558884024620056
+  }
+ ],
+ "model": {
+  "path": "solver/out/n7/smoke-2026-10-02d/gen1/train/model.pt",
+  "sha256": "7e18953e9a722adea5f518e5ca68338f19d55e49c4701856a7b4d8aa76fe4f50"
+ },
+ "seconds": 5,
+ "torch": "2.14.0+cpu"
+}

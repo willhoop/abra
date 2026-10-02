@@ -1,0 +1,413 @@
+{
+ "what": "N7 loop state (solver/machamp/n7/loop.js)",
+ "tag": "smoke-2026-10-02d",
+ "created": "2026-10-02T05:16:20.577Z",
+ "smoke": true,
+ "beside_ladder": true,
+ "first_prereg": {
+  "file": "solver/machamp/n7/preregistration-gen1.json",
+  "sha256": "de13163dc7bceaba7fc898d1c3ca1404343fc239efe3a90007e9900b7bcb90ea"
+ },
+ "engine_release": "df172ccd2aaf",
+ "harness_release": "eaa5becc54eb",
+ "champion": {
+  "spec": {
+   "name": "gen5",
+   "kind": "miltank",
+   "mag": "solver/machamp/models/gen5/mag-gen5.json",
+   "doduo": "solver/machamp/models/gen5/doduo-gen5.json",
+   "pory2": "solver/machamp/models/gen5/porygon2-gen5.json",
+   "budgetMs": 1000,
+   "k1": 4,
+   "k2": 4,
+   "depth": 0,
+   "reserveSwitch": 1
+  },
+  "spec_file": "solver/machamp/league/gen5.json",
+  "net": "solver/machamp/models/gen5/porygon2-gen5.json",
+  "digests": {
+   "mag": "65e76caf2423b28bdd72f782ef0bd77476427c4bb5d1a86967b8bf9d437c8f42",
+   "doduo": "abb0b88dd573b7280bfbaab05df7eca25ad567b55c048c02976f41a6aaae2cc3",
+   "pory2": "cf8ad3f7bd0d4a33d87d9b9e891154800cf27540e7d4a93ef85b2513b713f3c6"
+  },
+  "since": "prereg"
+ },
+ "gens": [
+  {
+   "g": 1,
+   "status": "running",
+   "started": "2026-10-02T05:16:20.582Z",
+   "prereg": {
+    "file": "solver/machamp/n7/preregistration-gen1.json",
+    "sha256": "de13163dc7bceaba7fc898d1c3ca1404343fc239efe3a90007e9900b7bcb90ea"
+   },
+   "champion_at_start": {
+    "spec": {
+     "name": "gen5",
+     "kind": "miltank",
+     "mag": "solver/machamp/models/gen5/mag-gen5.json",
+     "doduo": "solver/machamp/models/gen5/doduo-gen5.json",
+     "pory2": "solver/machamp/models/gen5/porygon2-gen5.json",
+     "budgetMs": 1000,
+     "k1": 4,
+     "k2": 4,
+     "depth": 0,
+     "reserveSwitch": 1
+    },
+    "spec_file": "solver/machamp/league/gen5.json",
+    "net": "solver/machamp/models/gen5/porygon2-gen5.json",
+    "digests": {
+     "mag": "65e76caf2423b28bdd72f782ef0bd77476427c4bb5d1a86967b8bf9d437c8f42",
+     "doduo": "abb0b88dd573b7280bfbaab05df7eca25ad567b55c048c02976f41a6aaae2cc3",
+     "pory2": "cf8ad3f7bd0d4a33d87d9b9e891154800cf27540e7d4a93ef85b2513b713f3c6"
+    },
+    "since": "prereg"
+   },
+   "stages": {
+    "selfplay": {
+     "chunks": [
+      {
+       "done": true,
+       "at": "2026-10-02T05:17:04.711Z",
+       "seconds": 44,
+       "dir": "solver/out/n7/smoke-2026-10-02d/gen1/selfplay/chunk-00",
+       "games": 10,
+       "games_per_hour": 825.3,
+       "started": "2026-10-02T05:16:21.072Z",
+       "warnings": [],
+       "digests": {
+        "solver/out/n7/smoke-2026-10-02d/gen1/selfplay/chunk-00/manifest.json": "b3748e1bc3b8b7c6070020aebd3a6ca899f9b5b7e8f50d0995c5f95885e16687",
+        "solver/out/n7/smoke-2026-10-02d/gen1/selfplay/chunk-00/shard-0.jsonl.gz": "9a87c16b1535befce2b673ad79dcbcac89489abf6c295e86ba18eb62c3c0b0d6",
+        "solver/out/n7/smoke-2026-10-02d/gen1/selfplay/chunk-00/shard-1.jsonl.gz": "611598b05dc2c943c616be0db58687963d334aecac0b59f30ff38ce0ac927d33"
+       }
+      },
+      {
+       "done": true,
+       "at": "2026-10-02T05:19:23.848Z",
+       "seconds": 139,
+       "dir": "solver/out/n7/smoke-2026-10-02d/gen1/selfplay/chunk-01",
+       "games": 10,
+       "games_per_hour": 259.7,
+       "started": "2026-10-02T05:17:05.167Z",
+       "warnings": [],
+       "digests": {
+        "solver/out/n7/smoke-2026-10-02d/gen1/selfplay/chunk-01/manifest.json": "124cea0d4f3d4520d5e0e0ec03e69ba84f4488083115161d31a94dc4ba0c0f55",
+        "solver/out/n7/smoke-2026-10-02d/gen1/selfplay/chunk-01/shard-0.jsonl.gz": "1df6ac683219e5cd37d611a141707e102b95826d101d2f71214012f64b0ba1db",
+        "solver/out/n7/smoke-2026-10-02d/gen1/selfplay/chunk-01/shard-1.jsonl.gz": "3d858566de5b827ea3b12831690228ef30c346cc61b65dcd1f181d81ef9933bc"
+       }
+      }
+     ],
+     "corpus": {
+      "games": 20,
+      "searched": 330,
+      "n7": {
+       "feats": 80,
+       "decisions_full": 80,
+       "fast_skipped": 250,
+       "pt": 80,
+       "pt_null": 0,
+       "pt_unmapped_mass": 0,
+       "vt": 330,
+       "am": 6,
+       "am_ms": 1928,
+       "am_errors": 0,
+       "end": 20
+      },
+      "pcr": {
+       "full": 80,
+       "fast": 250,
+       "full_cut": 0,
+       "fast_cut": 0
+      },
+      "bars": [
+       {
+        "name": "errored games share",
+        "pass": true,
+        "value": {
+         "errors": 0,
+         "games": 20
+        },
+        "limit": "<= 0.01"
+       },
+       {
+        "name": "fallback decisions share",
+        "pass": true,
+        "value": {
+         "fallbacks": 0,
+         "searched": 330
+        },
+        "limit": "<= 0.05"
+       },
+       {
+        "name": "unfilled cell share",
+        "pass": true,
+        "value": 0,
+        "limit": "<= 0.01"
+       },
+       {
+        "name": "encoded positions recorded",
+        "pass": true,
+        "value": 80,
+        "limit": ">= 1"
+       },
+       {
+        "name": "policy targets recorded",
+        "pass": true,
+        "value": 80,
+        "limit": ">= 1"
+       },
+       {
+        "name": "full decisions without a policy target",
+        "pass": true,
+        "value": {
+         "pt_null": 0,
+         "full": 80
+        },
+        "limit": "<= 0.02"
+       },
+       {
+        "name": "FULL share of decisions near p",
+        "pass": true,
+        "value": {
+         "full": 80,
+         "fast": 250,
+         "share": 0.2424
+        },
+        "limit": "0.25 +- 0.05"
+       },
+       {
+        "name": "searches cut short of their pass cap (the budgetMs ceiling bound)",
+        "pass": true,
+        "value": {
+         "full_cut": 0,
+         "fast_cut": 0,
+         "searched": 330
+        },
+        "limit": "<= 0.01"
+       },
+       {
+        "name": "answer maps computed",
+        "pass": true,
+        "value": {
+         "am": 6,
+         "errors": 0
+        },
+        "limit": "> 0, 0 errors"
+       }
+      ],
+      "pass": true,
+      "games_per_hour": 542.5,
+      "worker_s_per_game": 18.22
+     },
+     "done": true,
+     "at": "2026-10-02T05:19:23.864Z"
+    },
+    "build": {
+     "replay": [
+      {
+       "g": 1,
+       "chunks": 2,
+       "games": 20
+      }
+     ],
+     "done": true,
+     "at": "2026-10-02T05:19:26.543Z",
+     "counts": {
+      "games": 20,
+      "games_error": 0,
+      "games_capped": 0,
+      "games_no_feats": 0,
+      "positions": 80,
+      "positions_val": 9,
+      "decisions": 80,
+      "decisions_val": 9,
+      "am": 6,
+      "pt_unmapped_mass": 0,
+      "games_val": 2,
+      "games_train": 18,
+      "vt": 330,
+      "z_mean": 0.5
+     },
+     "rows_sha256": "40478dd3d5b2af3c37c907a7b6f430ea1b4ce522e05bd7cc4e335bb1d32429d7",
+     "digests": {
+      "solver/out/n7/smoke-2026-10-02d/gen1/data/manifest.json": "ccc9b7460f664c854e01b4a6b9160e9382cb0c2cd95b50046910a4c30573c4ba",
+      "solver/out/n7/smoke-2026-10-02d/gen1/data/rows.jsonl.gz": "40478dd3d5b2af3c37c907a7b6f430ea1b4ce522e05bd7cc4e335bb1d32429d7"
+     }
+    },
+    "train": {
+     "anchor": {
+      "data": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-aadbc255e960b0c50/solver/out/p2v3/v2data",
+      "teacher": "C:/Users/willj/Projects/Pokemon/ABRA/.claude/worktrees/agent-aadbc255e960b0c50/solver/out/p2v3/teacher"
+     },
+     "done": true,
+     "at": "2026-10-02T05:19:44.827Z",
+     "net": "solver/out/n7/smoke-2026-10-02d/gen1/train/net.json",
+     "net_sha256": "b8c058bd0de07e36daeac2f19b63dc2e7cd7b0a44555d78ce201fc7894d354b7",
+     "init": {
+      "file": "solver/porygon2/v3/model/porygon2-v3-student.json",
+      "sha256": "1b4ae59fcff530a214f977283de6262df405c13a5a5be1d3e26d785e8e207fee"
+     },
+     "selected_epoch": 0,
+     "history": [
+      {
+       "epoch": 0,
+       "steps": 1,
+       "seconds": 1.2,
+       "train": {
+        "z": 0.5191556811332703,
+        "aux": 5.561059474945068,
+        "sv": 0.7917291522026062,
+        "am": 0.6579704284667969,
+        "pol": 1.9871941804885864,
+        "l2": 0,
+        "anchor": 2.425766944885254
+       },
+       "val_z_ll": 0.25674909353256226,
+       "val_z_ll_init": 0.252433180809021,
+       "val_aux": 4.480590343475342,
+       "val_sv": 0.6210809946060181,
+       "val_am": 0.8613229990005493,
+       "val_positions": 9,
+       "val_pol_ce": 1.9991393089294434,
+       "val_pol_ce_base": 2.0537328720092773,
+       "val_decisions": 9,
+       "anchor_val_distill": 0.5028645992279053,
+       "anchor_val_distill_init": 0.5024732351303101,
+       "anchor_val_rows": 24000,
+       "select": 2.2558884024620056
+      }
+     ],
+     "parity": {
+      "rows": 9,
+      "max_abs_logit_n7net": 1.7763568394002505e-15,
+      "max_abs_logit_v3infer": 1.7763568394002505e-15,
+      "max_abs_tilt": 2.7755575615628914e-17,
+      "pass": true,
+      "fixture_names_file": true
+     },
+     "digests": {
+      "solver/out/n7/smoke-2026-10-02d/gen1/train/net.json": "b8c058bd0de07e36daeac2f19b63dc2e7cd7b0a44555d78ce201fc7894d354b7",
+      "solver/out/n7/smoke-2026-10-02d/gen1/train/fixture.json": "d749bd1f277c6c9bec4811c5b5208d912a0c2ea17052e08374e1b79727df6760",
+      "solver/out/n7/smoke-2026-10-02d/gen1/train/metrics.json": "db0e9963117e88633c8b450e307652b8cc241a37f5825dfa3b0bdb18f297c424",
+      "solver/out/n7/smoke-2026-10-02d/gen1/train/val_policy.jsonl": "15942703d7e5bfa875be3e40d8bc46e52bd8b660bbe673147eb2746736be780b",
+      "solver/out/n7/smoke-2026-10-02d/gen1/train/model.pt": "7e18953e9a722adea5f518e5ca68338f19d55e49c4701856a7b4d8aa76fe4f50",
+      "solver/out/n7/smoke-2026-10-02d/gen1/train/parity.json": "76043463fedb8893bcfe9ecbcb94d7baee1af375163ab731ee0649b4650eae2e"
+     }
+    },
+    "offline": {
+     "done": true,
+     "at": "2026-10-02T05:20:15.645Z",
+     "verdict": {
+      "value": "FAIL",
+      "smoke": true,
+      "policy_head": {
+       "decisions": 9,
+       "games": 2,
+       "ce_head": 1.99914,
+       "ce_base": 2.05373,
+       "diff": -0.05459,
+       "ci95": [
+        -0.06511,
+        -0.05159
+       ],
+       "on": false,
+       "rule": "ON iff decisions >= 200 and the CI upper bound < 0",
+       "why": "too few held-out decisions"
+      },
+      "bars": [
+       {
+        "name": "ranking: tau-b vs champion, CI lower bound",
+        "pass": false,
+        "value": {
+         "diff": -0.0098,
+         "ci": [
+          -0.0396,
+          0.0224
+         ]
+        },
+        "limit": ">= -0.024"
+       },
+       {
+        "name": "ranking: regret vs champion, CI upper bound",
+        "pass": true,
+        "value": {
+         "diff": -0.0188,
+         "ci": [
+          -0.042,
+          -0.0034
+         ]
+        },
+        "limit": "<= 0.0062"
+       },
+       {
+        "name": "calibration: ECE vs champion, CI upper bound",
+        "pass": false,
+        "value": {
+         "diff": -0.0186,
+         "ci": [
+          -0.0481,
+          0.0325
+         ]
+        },
+        "limit": "<= 0.031"
+       },
+       {
+        "name": "human anchor: bo1hi log-loss vs champion",
+        "pass": true,
+        "value": {
+         "cand": 0.5489,
+         "champ": 0.5917,
+         "diff": -0.0428,
+         "n": 65
+        },
+        "limit": "<= +0.01"
+       },
+       {
+        "name": "human anchor: bo3hi log-loss vs champion",
+        "pass": true,
+        "value": {
+         "cand": 0.5717,
+         "champ": 0.5681,
+         "diff": 0.0036,
+         "n": 60
+        },
+        "limit": "<= +0.01"
+       },
+       {
+        "name": "cost: median us per evaluation, cand / champ",
+        "pass": true,
+        "value": {
+         "ratio": 0.921,
+         "cand_us": 1114.7,
+         "champ_us": 1209.7
+        },
+        "limit": "<= 1.1"
+       },
+       {
+        "name": "capability: the candidate leaf served, 0 errors",
+        "pass": true,
+        "value": {
+         "evals": 7124,
+         "errors": 0
+        },
+        "limit": "> 0 evals, 0 errors"
+       }
+      ]
+     },
+     "digests": {
+      "solver/out/n7/smoke-2026-10-02d/gen1/offline/verdict.json": "f97cf6f75c5c4d40a1497d167f8d7f173c2eda2e821c3e70188e08ae18691441"
+     }
+    }
+   }
+  }
+ ],
+ "promotions": [],
+ "events": [
+  {
+   "t": "2026-10-02T05:16:20.581Z",
+   "kind": "created",
+   "smoke": true
+  }
+ ],
+ "updated": "2026-10-02T05:20:15.646Z"
+}

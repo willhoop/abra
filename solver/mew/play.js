@@ -84,6 +84,48 @@ const PA0 = require('../miltank/prior_adapter.js').create(API, null);   // the g
  * DELIBERATE BREAK (env MACHAMP_BREAK=fallback): a search fallback is not recorded (the pre-2026-09-25 behaviour).
  * solver/tests/test-machamp.js FALLBACK must go red. */
 const BREAK = process.env.MACHAMP_BREAK || '';
+/* N7 RECORDING (--n7, 2026-10-02; solver/machamp/n7/loop.js, PLAN N7; self-play only). Adds to each game record what the N7
+ * learner trains on, all of it written at play time, so nothing is re-featurised later:
+ *   feats  [{ t, side, X }]  the student's encoding (solver/porygon2/v2/features.js fromEngine -> encode at the leaf's ratings
+ *                      [1600, 1600], p1's frame) of the DECIDER'S OWN VIEW (SV: under honest information the public view the
+ *                      search was handed, its own side exact, the opponent's hidden fields UNK and its bodies public) at
+ *                      every recorded FULL decision — the board the policy head reads at play (solver/machamp/n7/policy.js),
+ *                      so fitting and playing environments match; the outcome z and the answer map are labels, read from
+ *                      the TRUE battle
+ *   vt     [{ t, side, v, full }]  every searched decision's root value (the deciding side's frame), fast ones included:
+ *                      the short-horizon search-value targets (KataGo's auxiliary form) are built from it
+ *   pt     on each recorded decision: the search's row mix laid on the DODUO decision's valid cells with their
+ *          log-probabilities and class bits (solver/machamp/n7/policy.js target, the same code the head is served by)
+ *   am     [{ t, y, counters }]  the LIVE ANSWER MAP (solver/results/2026-10-01-lost-last-answer/answer_map.js, the one
+ *          implementation; an OFFLINE auxiliary target, never an input: abra/regmc 1.58.0) on a seeded --am-rate share of the
+ *          feats turns, --am-n duels per pair, summarised p1-first (solver/machamp/n7/build.js amSummary)
+ *   end    { A: { alive, hp, n }, B: ... } the final board (the material and HP-difference auxiliary targets)
+ * --pcr '<json>' turns on PLAYOUT-CAP RANDOMISATION in every MILTANK bot (solver/mew/agent.js): only FULL decisions are
+ * recorded as targets ("only turns with a full search are recorded for training", Wu 2019 §3.1); fast ones are counted.
+ * DELIBERATE BREAK (env N7_RECORD_BREAK=fast): fast decisions are recorded as targets too. test-n7-loop.js PCR must go red. */
+const N7 = argv.includes('--n7');
+const PCR = flag('--pcr', null) ? JSON.parse(flag('--pcr')) : null;
+const AM_RATE = +flag('--am-rate', 0), AM_N = +flag('--am-n', 8);
+const N7_BREAK = process.env.N7_RECORD_BREAK || '';
+const N7C = { feats: 0, decisions_full: 0, fast_skipped: 0, pt: 0, pt_null: 0, pt_unmapped_mass: 0, vt: 0, am: 0, am_ms: 0, am_errors: 0, end: 0 };
+let N7F = null, N7POL = null, N7AM = null;
+if (N7) {
+  N7F = require('../porygon2/v2/features.js').create(API);
+  if (N7F.BROKEN) { console.error('mew/play: refusing to record N7 features with PORY2V2_FEAT_BREAK=' + N7F.BROKEN); process.exit(2); }
+  N7POL = require('../machamp/n7/policy.js');
+  if (N7POL.BREAK) { console.error('mew/play: refusing to record N7 targets with N7_POLICY_BREAK=' + N7POL.BREAK); process.exit(2); }
+  if (AM_RATE > 0) N7AM = require('../results/2026-10-01-lost-last-answer/answer_map.js').create(API);
+}
+const r6 = v => (typeof v === 'number' ? +v.toFixed(6) : v);
+const n7Encode = (S, sheets) => { const X = N7F.encode(N7F.fromEngine(S, sheets), { p1: 1600, p2: 1600 });
+  for (const sd of ['p1', 'p2']) { X.tok[sd] = X.tok[sd].map(t => t.map(r6)); X.side[sd] = X.side[sd].map(r6); X.facts[sd] = X.facts[sd].map(r6); }
+  X.field = X.field.map(r6); X.base = X.base.map(r6); return X; };
+const liveB = m => !!(m && !m.fainted && m.curHP > 0);
+/* a 32-bit integer mix for the answer-map draw (hash32 above multiplies floats past 2^53 and keeps few useful low bits) */
+const mix32 = (a, b) => { let h = (Math.imul(a >>> 0, 0x9E3779B1) ^ Math.imul(((b >>> 0) + 0x7F4A7C15) >>> 0, 0x85EBCA77)) >>> 0;
+  h ^= h >>> 16; h = Math.imul(h, 0x85EBCA6B) >>> 0; h ^= h >>> 13; h = Math.imul(h, 0xC2B2AE35) >>> 0; h ^= h >>> 16; return h >>> 0; };
+const endOf = S => Object.fromEntries([['A', S.sfA], ['B', S.sfB]].map(([k, sf]) => { const T = sf.team.filter(Boolean);
+  return [k, { alive: T.filter(liveB).length, hp: +(T.reduce((a, m) => a + (liveB(m) ? m.curHP / m.st.hp : 0), 0) / Math.max(1, T.length)).toFixed(4), n: T.length }]; }));
 const SHARD = +flag('--shard', 0), SHARDS = +flag('--shards', 1);
 const SEED = +flag('--seed', 1), CAP = +flag('--cap', 50);
 const OUT = flag('--out', null);
@@ -176,9 +218,11 @@ async function playGame(G, botA, botB, seed, recordFor) {
   const ms = { A: [], B: [] }, srch = { A: 0, B: 0 }, stops = { A: {}, B: {} };   // searched decisions and adaptive-clock stops per side
   const clicks = { A: CR.tally(), B: CR.tally() };
   const tg = TAC.game(API);
+  const n7 = N7 && recordFor ? { feats: [], vt: [], am: [] } : null;
   try {
     while (!API.isTerminal(S) && S.turn < CAP) {
       const ch = {};
+      let fullHere = false;
       for (const [side, bot] of [['A', botA], ['B', botB]]) {
         const t = Date.now();
         const hv = H ? XW.arenaView(H, G, S, side, PA0) : null;
@@ -191,7 +235,9 @@ async function playGame(G, botA, botB, seed, recordFor) {
         if (info.playouts != null) { decStats.push({ playouts: info.playouts, cells: info.m * info.n, unfilled: info.unfilled, ms: info.ms });
           RUN.searched++; RUN.playouts += info.playouts; RUN.cells += info.m * info.n; RUN.unfilled += info.unfilled || 0; if (!info.playouts) RUN.zero_playouts++; }
         if (info.fallback) { RUN.fallback_decisions++; RUN['fallback_' + info.fallback] = (RUN['fallback_' + info.fallback] || 0) + 1; }   // MILTANK's too-empty-to-solve prior fallback (search.js), per kind
-        if (recordFor && recordFor[side] && info.rec) {
+        if (n7 && info.playouts != null && info.value != null) { n7.vt.push({ t: ctx.hist.length, side, v: +(+info.value).toFixed(5), full: info.pcr !== 'fast' }); N7C.vt++; }
+        if (recordFor && recordFor[side] && info.rec && info.pcr === 'fast' && N7_BREAK !== 'fast') { N7C.fast_skipped++; }
+        else if (recordFor && recordFor[side] && info.rec) {
           const rec = info.rec;
           const jc = bot.PA.jointCells(ctx, SV, side, side, rec.rows);
           const bs = PA0.row(ctx, SV, side).game.brought_seen;
@@ -199,6 +245,13 @@ async function playGame(G, botA, botB, seed, recordFor) {
             cells: jc ? jc.cells : null, keys: jc ? jc.keys : null, n: jc ? jc.n : null, m: info.m, nc: info.n, playouts: info.playouts,
             unfilled: info.unfilled, pick: info.pick, ms: info.ms, agent: bot.name,
             A: rec.A.map(r => r.map(z => +z.toFixed(4))) });
+          if (n7) {
+            const D = decisions[decisions.length - 1];
+            D.pcr = info.pcr || null; fullHere = true; N7C.decisions_full++;
+            const pt = N7POL.target(bot.prior, bot.PA, ctx, SV, side, rec.rows, rec.x);
+            if (pt) { D.pt = pt; N7C.pt++; N7C.pt_unmapped_mass += pt.unmapped_mass; } else N7C.pt_null++;
+            n7.feats.push({ t: ctx.hist.length, side, X: n7Encode(SV, G.sheets) }); N7C.feats++;
+          }
         } else if (recordFor && recordFor[side] && info.fallback && !info.forced && BREAK !== 'fallback') {
           /* THE SEARCH FELL BACK (the table was too empty to solve, or the search threw) and played the ranking prior's
            * top legal joint. Until 2026-09-25 these decisions were not recorded at all, so the training data held no
@@ -210,6 +263,16 @@ async function playGame(G, botA, botB, seed, recordFor) {
           fallbacks.push({ t: ctx.hist.length, side, bs, fb: info.fallback === true ? 'threw' : String(info.fallback), x: [1],
             cells: jc ? jc.cells : null, keys: jc ? jc.keys : null, n: jc ? jc.n : null, m: 1, nc: info.n || 1,
             playouts: info.playouts == null ? null : info.playouts, unfilled: 0, ms: info.ms == null ? null : info.ms, agent: bot.name });
+        }
+      }
+      if (n7 && fullHere) {
+        const t = ctx.hist.length;
+        if (N7AM && mix32(seed, t + 7919) / 4294967296 < AM_RATE) {
+          const ta = Date.now();
+          try { const map = N7AM.answerMap(S, 'A', { n: AM_N, seed: (seed + t) >>> 0 });
+            n7.am.push({ t, y: require('../machamp/n7/build.js').amSummary(map), n: AM_N, counters: map.counters }); N7C.am++; }
+          catch (e) { N7C.am_errors++; }
+          N7C.am_ms += Date.now() - ta;
         }
       }
       armCount('A', botA, ch.A, ch.B); armCount('B', botB, ch.B, ch.A);
@@ -229,7 +292,8 @@ async function playGame(G, botA, botB, seed, recordFor) {
   if (!err) { if (API.isTerminal(S)) vA = API.winner(S); else { vA = API.horizonScore(S); capped = true; } }
   const tactics = tg.out();
   if (!err) for (const [sd, bot] of [['A', botA], ['B', botB]]) (TACT[bot.name] = TACT[bot.name] || []).push({ t: tactics[sd], won: vA == null ? null : (sd === 'A' ? vA > 0.5 : vA < 0.5) });
-  return { vA, capped, err, turns: S.turn, hist: ctx.hist, decisions, fallbacks, ms, srch, stops, mega: mg.detail(), clicks, protect: pg.out(), tactics };
+  if (n7 && !err) { n7.end = endOf(S); N7C.end++; }
+  return { vA, capped, err, turns: S.turn, hist: ctx.hist, decisions, fallbacks, ms, srch, stops, mega: mg.detail(), clicks, protect: pg.out(), tactics, n7 };
 }
 
 async function selfplay() {
@@ -251,8 +315,8 @@ async function selfplay() {
     const u = (hash32(SEED + 17, g) / 4294967296) * wsum;
     const oppKey = u < w.current ? 'current' : u < w.current + w.previous ? 'previous' : 'clone';
     const curA = (g & 1) === 0;
-    const cur = agents.current.bot(SEED * 7919 + g * 2 + 1, { record: true });
-    const opp = agents[oppKey].bot(SEED * 7919 + g * 2 + 2, { record: true });
+    const cur = agents.current.bot(SEED * 7919 + g * 2 + 1, Object.assign({ record: true }, PCR ? { pcr: PCR } : {}));
+    const opp = agents[oppKey].bot(SEED * 7919 + g * 2 + 2, Object.assign({ record: true }, PCR && agents[oppKey].spec.kind === 'miltank' ? { pcr: PCR } : {}));
     const [bA, bB] = curA ? [cur, opp] : [opp, cur];
     const recordFor = { A: bA.kind === 'miltank', B: bB.kind === 'miltank' };
     let r = await playGame(G, bA, bB, SEED * 1000003 + g, recordFor);
@@ -264,7 +328,8 @@ async function selfplay() {
     for (const d of r.decisions) { counts.rows += d.m; if (d.cells) counts.decisions_unmapped_rows += d.cells.filter(c => !c).length; }
     if (r.vA != null) { const vCur = curA ? r.vA : 1 - r.vA; counts.current_score[oppKey][0] += vCur; counts.current_score[oppKey][1]++; }
     const rec = { g, id: G.id, release: ENGINE.id, spreads: SRC.mode, run_seed: SEED, battle_seed: SEED * 1000003 + g, agents: { A: bA.name, B: bB.name }, opp: oppKey, cur_side: curA ? 'A' : 'B',
-      sheets: G.sheets, brought: G.brought, vA: r.vA, capped: r.capped, err: r.err, turns: r.turns, hist: r.hist, decisions: r.decisions, fallbacks: r.fallbacks, tactics: r.tactics };
+      sheets: G.sheets, brought: G.brought, vA: r.vA, capped: r.capped, err: r.err, turns: r.turns, hist: r.hist, decisions: r.decisions, fallbacks: r.fallbacks, tactics: r.tactics,
+      ...(r.n7 ? { n7: { info: INFO, pcr: PCR, feats: r.n7.feats, vt: r.n7.vt, am: r.n7.am, end: r.n7.end || null } } : {}) };
     if (OUT) fs.appendFileSync(OUT, zlib.gzipSync(JSON.stringify(rec) + '\n'));
     if (counts.games % 10 === 0) console.log(`  [shard ${SHARD}] ${counts.games} games  ${counts.decisions} decisions  errors ${counts.errors}  fallbacks ${AG.COUNTERS.fallbacks}  ${((Date.now() - t0) / 1000).toFixed(0)}s`);
   }
@@ -312,7 +377,7 @@ async function match() {
                  clicks: r.clicks ? { x: r.clicks[xIsA ? 'A' : 'B'], y: r.clicks[xIsA ? 'B' : 'A'] } : null,
                  protect: r.protect ? { x: r.protect[xIsA ? 'A' : 'B'], y: r.protect[xIsA ? 'B' : 'A'] } : null,
                  tactics: r.tactics ? { x: r.tactics[xIsA ? 'A' : 'B'], y: r.tactics[xIsA ? 'B' : 'A'] } : null,
-                 ctr: Object.assign({ spreads: Object.assign({}, SRC.COUNTERS), fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0, stall_dropped: AG.COUNTERS.stallDropped || 0, quiet_held: AG.R.COUNTERS.quietHeld || 0, quiesced: AG.R.COUNTERS.quiesced || 0, gates: JSON.parse(JSON.stringify(AG.COUNTERS.gates || {})), kl: AG.COUNTERS.kl ? JSON.parse(JSON.stringify(AG.COUNTERS.kl)) : undefined, hypno: AG.COUNTERS.hypno ? JSON.parse(JSON.stringify(AG.COUNTERS.hypno)) : undefined, leaf_by_model: Object.assign({}, AG.R.COUNTERS.leafByModel || {}), leaf_own: AG.R.leafOwn ? AG.R.leafOwn() : undefined, arms: JSON.parse(JSON.stringify(ARMS)), pre169: AG.COUNTERS.pre169 ? Object.assign({}, AG.COUNTERS.pre169) : undefined, form_stats: formStats() }, RUN,
+                 ctr: Object.assign({ spreads: Object.assign({}, SRC.COUNTERS), fallbacks: AG.COUNTERS.fallbacks, decisions: AG.COUNTERS.decisions, forced: AG.COUNTERS.forced, honest: AG.COUNTERS.honest || 0, stall_dropped: AG.COUNTERS.stallDropped || 0, quiet_held: AG.R.COUNTERS.quietHeld || 0, quiesced: AG.R.COUNTERS.quiesced || 0, gates: JSON.parse(JSON.stringify(AG.COUNTERS.gates || {})), kl: AG.COUNTERS.kl ? JSON.parse(JSON.stringify(AG.COUNTERS.kl)) : undefined, hypno: AG.COUNTERS.hypno ? JSON.parse(JSON.stringify(AG.COUNTERS.hypno)) : undefined, policy: AG.COUNTERS.policy ? JSON.parse(JSON.stringify(AG.COUNTERS.policy)) : undefined, leaf_by_model: Object.assign({}, AG.R.COUNTERS.leafByModel || {}), leaf_own: AG.R.leafOwn ? AG.R.leafOwn() : undefined, arms: JSON.parse(JSON.stringify(ARMS)), pre169: AG.COUNTERS.pre169 ? Object.assign({}, AG.COUNTERS.pre169) : undefined, form_stats: formStats() }, RUN,
                    INFO === 'honest' ? { hon_views: HON.views, hon_back_xatu: HON.back_xatu, hon_back_error: HON.back_error, xw: Object.assign({}, XW.COUNTERS) } : {}) });
     }
     if (OUT) fs.writeFileSync(OUT, per.map(p => JSON.stringify(p)).join('\n') + '\n');
@@ -324,7 +389,7 @@ async function match() {
 
 (async () => {
   const r = MODE === 'match' ? await match() : await selfplay();
-  const summary = { mode: MODE, info: INFO, spreads: SRC.stamp(), honest: INFO === 'honest' ? Object.assign({}, HON, { worlds: XW.COUNTERS }) : null, break: BREAK || null, shard: SHARD, shards: SHARDS, seed: SEED, cap: CAP, engine_release: ENGINE.id, release_stamp: ENGINE.stamp, argv, wall_s: (Date.now() - t0) / 1000,
+  const summary = { mode: MODE, info: INFO, n7: N7 ? { counters: N7C, pcr: PCR, am_rate: AM_RATE, am_n: AM_N, break: N7_BREAK || null } : null, spreads: SRC.stamp(), honest: INFO === 'honest' ? Object.assign({}, HON, { worlds: XW.COUNTERS }) : null, break: BREAK || null, shard: SHARD, shards: SHARDS, seed: SEED, cap: CAP, engine_release: ENGINE.id, release_stamp: ENGINE.stamp, argv, wall_s: (Date.now() - t0) / 1000,
     agent_counters: AG.COUNTERS, arms: ARMS, rollout: AG.R.COUNTERS, api: API.COUNTERS, preview_arms: PREVIEW_ARMS ? PREVIEW_ARMS.COUNTERS : null,
     mega: { by_agent: Object.fromEntries(Object.entries(MEGA).map(([k, t]) => [k, MR.summary(t)])), human_rate: MR.HUMAN_RATE, floor: MR.floor() },
     tactics: { by_agent: Object.fromEntries(Object.entries(TACT).map(([k, L]) => { const S = TAC.summarize(L); return [k, { games: S.games, won: S.won, rates: S.rates, speed: S.speed, mega: S.mega, switch: S.switch }]; })) },

@@ -77,6 +77,16 @@ This section says only what a division agent needs before it starts.
   579 recorded roots its realised gain is +0.13 [−0.48, +0.73] points after the selection bias: **no gain shown**; −0.32
   against equilibrium. The 2 s not-lose screen is pre-registered and NOT RUN (command in the report's *OWED, NOT RUN*).
   `docs/_reports/2026-10-01-gary-hypno.md`.
+- **The N7 self-play loop (2026-10-02, abra/regmc 1.77.0): built, smoke-tested, generation 1 pre-registered and NOT
+  RUN.** `solver/machamp/n7/loop.js` is one resumable script: MEW self-play with playout-cap randomisation (only FULL
+  searches are targets), the learner (the v3 student trunk, value on z, a tilt-v1 policy head over DODUO's cells, search
+  values, the answer map and the human anchor as auxiliaries), the offline gate (the v3 harness, non-inferiority, a human
+  clause, cost), a 2 s screen and an SPRT read with capability bars, promotion on H1 only. A ladder process pauses it
+  (exit 3); every corpus and model is sha256-recorded and re-hashed on resume. `solver/tests/test-n7-loop.js` GREEN, each
+  break RED. Generation 1 (10,000 games, about 12–24 h local) waits for a ladder gap and the coordinator's say; the
+  commands are in `docs/_reports/2026-10-02-selfplay-loop.md` *OWED, NOT RUN*. **The smoke beside the live ladder
+  thinned the ladder's search** (median 966 playouts per move decision against 2,493 outside the windows, with the clock
+  intact): BelowNormal and two workers do not protect it, so nothing heavy runs beside a rated batch.
 - **Engine.** The Reg M-C MEDICHAM gate is OPEN, 10 of 10, on release `eaa5becc54eb`
   (`docs/_reports/2026-09-24-regmc-gate-final.md`). The solver API (`engine/medicham_api.js`) is merged:
   `clone`, `legalActions`, `step`, the terminal check and lean playouts. The mid-turn-choice callback
