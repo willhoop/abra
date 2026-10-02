@@ -6,6 +6,7 @@
 - **Batch 1 (1.77.1), `volSeqSync`:** rows resolved once at load; the drop pass reads the held keys only. ×1.076 turns
   per second (block median).
 - **Batch 2 (1.77.2), `sideWiped`:** no arrays built to count live bodies. ×1.03 turns per second (block median).
+- **Batch 3 (1.77.3), `legalActions`' counter restore:** ~5× cheaper menu reads; ×3.2 on a game loop that reads the menu every turn.
 - Hand list: unchanged. No mechanic moved; no census row can. Report `docs/_reports/2026-10-02-medicham-speed-pass.md`.
 
 ## A FORME CHANGE RECOMPUTES THE LINE FROM THE SET, HP SP INCLUDED, ON BOTH ROADS. THE MEGA ROAD COULD NOT SEE AN HP-INVESTED SPREAD; THE MID-BATTLE ROAD NEVER RECOMPUTED AT ALL. 2026-10-01 (abra/regmc 1.51.0)

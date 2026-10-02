@@ -28,6 +28,29 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.77.3] — 2026-10-02
+
+**PATCH: the MEDICHAM speed pass, batch 3. A menu read (`legalActions`) costs about a fifth of what it did; the same answers, the same restored counters.**
+
+### Changed
+- `engine/medicham_api.js` `snapCounters` / `restoreCounters` (the restore that makes `legalActions` a pure read):
+  the snapshot is held as key and value arrays and clones only non-primitive values (a primitive's `structuredClone`
+  is the primitive). The restore's fast path covers the usual case -- the counters hold exactly the snapshot's keys in
+  its order -- and re-assigns a primitive only if it moved and every cloned value as before; any other case runs the
+  old two loops verbatim over the rebuilt snapshot object. ~85% of a menu read was this snapshot and restore of ~1,900
+  counter keys (`MEDSEEN` 1,104, `MEDFAILS` 794).
+
+### Record
+- **Measured.** Paired same-process A/B against 1.77.2, 300 Reg M-C human-sheet games, the whole game loop timed (two
+  `legalActions` and one `stepInPlace` a turn): ×3.21 per turn lean (block median; q25–q75 3.10–3.28) and ×2.15 full
+  (2.06–2.22). Identity, full and lean: 5,624 turns, digests, winners and draw counts equal; counter deltas equal
+  (`9efb59cf8f96fef7`). `tests/test-medicham-api.js --regulation regmc` GREEN, its three breaks red. Where it matters:
+  every search decision reads the menu twice at the root (`solver/miltank/search.js`), so the gain is per decision, not
+  per playout.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** None (a speed change; no published figure moves). `docs/ENGINE.md`: the speed-pass section.
+
 ## [1.77.2] — 2026-10-02
 
 **PATCH: the MEDICHAM speed pass, batch 2. `sideWiped` stops building four arrays to count them; a turn is ~3% cheaper and plays the same bytes.**

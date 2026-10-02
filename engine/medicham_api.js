@@ -209,8 +209,30 @@ function bind(M) {
    * and every key of MEDSEEN / MEDFAILS. tests/test-medicham-api.js asserts the digest of every sampled
    * position is unchanged by a call, and the differential probe (MEDI_API_LEGAL_PROBE) asserts the whole
    * game stream is. */
-  function snapCounters(o) { const s = {}; for (const k of Object.keys(o)) s[k] = structuredClone(o[k]); return s; }
-  function restoreCounters(o, s) {
+  /* SPEED PASS 2026-10-02 (batch 3; docs/_reports/2026-10-02-medicham-speed-pass.md). The snapshot and the restore of
+   * the ~1,900 counter keys were ~85% of a menu read. The same snapshot, held as two arrays: `structuredClone` of a
+   * primitive is that primitive, so only a non-primitive value is cloned (exactly the values the old per-key clone
+   * changed). The restore has a FAST PATH for the usual case -- the object holds exactly the snapshot's keys in the
+   * snapshot's order -- where the old two loops deleted nothing and re-assigned every key: a primitive is re-assigned
+   * only if it moved (assigning an equal primitive to an existing key changes nothing), and every cloned value is
+   * assigned as before. Any other case (a key added, dropped, or re-added at the end) takes the old two loops verbatim,
+   * over the old snapshot object rebuilt from the arrays, so its key set, order and values are the old ones. */
+  const isPrim = (v) => v === null || (typeof v !== 'object' && typeof v !== 'function' && typeof v !== 'symbol');
+  function snapCounters(o) {
+    const keys = Object.keys(o), vals = new Array(keys.length), cloned = new Uint8Array(keys.length);
+    for (let i = 0; i < keys.length; i++) { const v = o[keys[i]]; if (isPrim(v)) vals[i] = v; else { vals[i] = structuredClone(v); cloned[i] = 1; } }
+    return { keys, vals, cloned };
+  }
+  function restoreCounters(o, snap) {
+    const { keys, vals, cloned } = snap;
+    const now = Object.keys(o);
+    let same = now.length === keys.length;
+    for (let i = 0; same && i < keys.length; i++) if (now[i] !== keys[i]) same = false;
+    if (same) {
+      for (let i = 0; i < keys.length; i++) { const k = keys[i]; if (cloned[i] || o[k] !== vals[i] || Object.is(vals[i], -0) !== Object.is(o[k], -0)) o[k] = vals[i]; }
+      return;
+    }
+    const s = {}; for (let i = 0; i < keys.length; i++) s[keys[i]] = vals[i];
     for (const k of Object.keys(o)) if (!(k in s)) delete o[k];
     for (const k of Object.keys(s)) o[k] = s[k];
   }
