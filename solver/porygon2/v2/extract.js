@@ -11,7 +11,7 @@
  * behaviouralBots) — the rules loadGames() applies, bot rules included. The parsed store has no per-turn item or
  * ability events, so the positions are rebuilt from the raw replay log (solver/porygon2/v2/reveal.js), joined on id.
  *
- * FURTHER EXCLUSIONS, in this order after quality: own_account; no_raw_log; wrong_format; illusion_possible (a preview
+ * FURTHER EXCLUSIONS, in this order after quality: own_account; (bo1 only) open-sheet turn play, which the bo3 stream takes; no_raw_log; wrong_format; illusion_possible (a preview
  * species that can hold Illusion in the Reg M-C dex — the log shows the disguise, the project's declared exclusion;
  * checked on the preview BEFORE the parse, because a disguise can surface as a parse error); parse_error; custom_rules
  * (Showdown's own infobox in the raw log: quality's custom-rule list keys on Reg M-B ids and removes nothing here);
@@ -146,6 +146,8 @@ function main() {
    * rather than a rebuild. Bots, illegal teams and custom-rule games stay excluded. */
   const GAME_SHAPE = new Set(['forfeit_no_action', 'short', 'partial_bring']);
   const qShape = {};
+  let movedToBo3 = 0;
+  const movedIds = [];                           /* written to <out>/left-to-bo3.txt, so the overlap can be checked by id */
   for (const g of games) {
     const all = Q.reasons(g, cfg, botsOf.get(g.id) || bots);
     const rs = all.filter(r => !GAME_SHAPE.has(r));
@@ -154,10 +156,17 @@ function main() {
     const names = [g.p1 && g.p1.name, g.p2 && g.p2.name].filter(Boolean);
     if (names.some(isOwn) && !rs.includes('own_account')) rs.push('own_account');
     if (rs.length) { inc(qFirst, rs[0]); for (const r of rs) inc(qAll, r); continue; }
+    /* ONE GAME, ONE STREAM (2026-10-02). A bo1-format game in which both players accepted the sheets is open-sheet turn
+     * play, and the bo3 stream takes it (the promotion above, same classifier, same call). Kept here as well it was in
+     * both streams: drawn twice in stage B (the bo3 draw and the bo1 replay), and in both validation sets. It is an
+     * open-sheet position (no UNK on any sheet field), so it leaves the closed-sheet stream and stays in the open one. */
+    if (FMT === 'bo1' && Q.isOpenSheetTurnPlay(g)) { movedToBo3++; movedIds.push(g.id); continue; }
     want.set(g.id, g);
   }
+  funnel.bo1_open_sheet_turn_play_left_to_bo3_stream = FMT === 'bo1' ? movedToBo3 : 'n/a';
+  if (FMT === 'bo1') fs.writeFileSync(path.join(OUT, 'left-to-bo3.txt'), movedIds.join('\n') + '\n');
   funnel.quality_clean = games.length - Object.entries(qFirst).filter(([k]) => k !== 'own_account').reduce((a, [, v]) => a + v, 0);
-  funnel.after_own_account = want.size;
+  funnel.after_own_account = want.size + movedToBo3;
   funnel.game_shape_codes_recorded_not_charged = { codes: [...GAME_SHAPE], store_games_carrying: qShape };
   const behaviouralBotAccounts = [...bots].sort();
   if (LIMIT) { const keep = [...want.keys()].slice(0, LIMIT); for (const id of [...want.keys()]) if (!keep.includes(id)) want.delete(id); }
@@ -320,7 +329,7 @@ function main() {
     showdown: { path: X.SHOWDOWN_PATH.replace(/\\/g, '/'), commit: X.checkoutCommit(), pinned: X.PINNED_COMMIT },
     code, inputs, quality: { config_version: cfg.version || null, behavioural_bot_accounts: behaviouralBotAccounts.length, behavioural_bot_names: behaviouralBotAccounts,
       excluded_first_reason: qFirst, excluded_any_reason: qAll },
-    filters: { order: ['quality reasons() incl. bot + behavioural_bot (game-shape codes forfeit_no_action / short / partial_bring recorded in quality_reasons, not charged)', 'own_account', 'no_raw_log', 'wrong_format', 'illusion_possible (preview)', 'parse_error', 'custom_rules', 'illegal_entity', 'pre_ejectbutton_fix', 'no_result', 'no_position'],
+    filters: { order: ['quality reasons() incl. bot + behavioural_bot (game-shape codes forfeit_no_action / short / partial_bring recorded in quality_reasons, not charged)', 'own_account', 'bo1 only: open-sheet turn play (engine/quality.js isOpenSheetTurnPlay) leaves for the bo3 stream', 'no_raw_log', 'wrong_format', 'illusion_possible (preview)', 'parse_error', 'custom_rules', 'illegal_entity', 'pre_ejectbutton_fix', 'no_result', 'no_position'],
       own_accounts: [...Q.ownAccounts()], own_accounts_from: 'data/quality-filter.json rules.exclude_own_accounts',
       open_sheet_bo3: FMT === 'bo3' ? 'per row: engine/quality.js isOpenSheetBo3() (the bo3 format, bo1-format OTS + Bo3 rooms, bo1-format Best of = 3 rooms where both accepted sheets)' : 'n/a',
       open_sheet_turn_play: FMT === 'bo3' ? 'the admission rule of this stream: engine/quality.js isOpenSheetTurnPlay(), open-sheet bo3 plus every bo1-format game with both sheets shown and no rule other than a sheet or best-of rule (Will, 2026-10-01)' : 'n/a', illusion_species: [...ILLUSION], eject_boundary: '2026-09-14T00:00:00Z',

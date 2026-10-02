@@ -4,7 +4,12 @@
  * Reads the two Reg M-C stores (bo1 ladder + bo3), their raw logs, and the M-C Showdown checkout;
  * applies the population rules; writes a compact per-game extract plus a manifest of every byte read.
  *
- *   cmd.exe /c tools\lownode.cmd solver/meta/extract.js
+ *   cmd.exe /c tools\lownode.cmd solver/meta/extract.js [--data-root <checkout>] [--gz-only]
+ *
+ *   --data-root  the checkout whose data/ is READ (default: this one). A worktree build names the main checkout, so it
+ *                reads the main stores read-only and writes only under its own solver/out/meta (2026-10-02: the live
+ *                ladder bot reads the MAIN checkout's solver/out/meta/bo3.json while it plays).
+ *   --gz-only    read only the tracked .gz parsed stores, by name, and not the ignored plain files beside them.
  *
  * Writes ONLY under solver/out/meta/. Reads data/ and never writes it.
  *
@@ -41,8 +46,13 @@ const LEG = require('./legality.js');
 const Q = require('../../engine/quality.js');
 const QUALITY_NAME = code => code === 'bot' ? 'bot_flag' : code === 'behavioural_bot' ? 'behavioural_bot' : 'quality:' + code;
 /* the fields engine/quality.js reasons() and behaviouralBots() read, and no more: turns keep their count and whether an
- * action happened (the first move or switch), as solver/porygon2/v2/extract.js keeps them */
-const qualityRow = o => ({ id: o.id, date: o.date, p1: o.p1, p2: o.p2, six: o.six, forfeit: o.forfeit, brought: o.brought,
+ * action happened (the first move or switch), as solver/porygon2/v2/extract.js keeps them.
+ * `sheetsShown` IS ONE OF THOSE FIELDS (2026-10-02). reasons() excludes a sheet-rules-only custom room (`Best of = 3`
+ * alone, `Force Open Team Sheets` alone) as custom_ruleset unless engine/quality.js bothSheetsShown(g) says both sheets
+ * appeared, and that reads `g.sheets` or `g.sheetsShown`. This row carried neither, so every bo1 `Best of = 3` room whose
+ * players had accepted the sheets (open-sheet bo3 by consent) was charged quality:custom_ruleset: 211 rooms on the
+ * 2026-10-02 store, all of them rooms isOpenSheetBo3() admits. */
+const qualityRow = o => ({ id: o.id, date: o.date, p1: o.p1, p2: o.p2, six: o.six, forfeit: o.forfeit, brought: o.brought, sheetsShown: Q.bothSheetsShown(o),
   turns: (o.turns || []).map(t => ({ ev: (t.ev || []).filter(e => e.t === 'm' || e.t === 's').slice(0, 1) })) });
 
 async function main() {
@@ -50,15 +60,20 @@ async function main() {
   fs.mkdirSync(L.OUT, { recursive: true });
   const leg = LEG.open();
   const FMT = { bo1: leg.co.bo1, bo3: leg.co.bo3 };
-  const D = p => path.join(L.ROOT, 'data', p);
+  const argv = process.argv.slice(2);
+  const DATA_ROOT = path.resolve(argv.includes('--data-root') ? argv[argv.indexOf('--data-root') + 1] : L.ROOT);
+  const GZ_ONLY = argv.includes('--gz-only');
+  const D = p => path.join(DATA_ROOT, 'data', p);
+  /* a receipt names its file relative to the data root it was read from */
+  const receipt = abs => Object.assign(L.fileReceipt(abs), { path: path.relative(DATA_ROOT, abs).split(path.sep).join('/') });
 
   /* ---- receipts BEFORE reading ------------------------------------------------------------ */
   const inputs = [];
   const storeFiles = [];
   for (const k of ['bo1', 'bo3']) {
-    for (const suffix of ['.jsonl.gz', '.jsonl']) {   // .gz first: it is the tracked copy and first-wins
+    for (const suffix of GZ_ONLY ? ['.jsonl.gz'] : ['.jsonl.gz', '.jsonl']) {   // .gz first: it is the tracked copy and first-wins
       const abs = D('games.' + FMT[k] + suffix);
-      if (fs.existsSync(abs)) { storeFiles.push({ k, abs }); inputs.push({ role: 'store:' + k, ...L.fileReceipt(abs) }); }
+      if (fs.existsSync(abs)) { storeFiles.push({ k, abs }); inputs.push({ role: 'store:' + k, ...receipt(abs) }); }
     }
   }
   const rawFiles = [];
@@ -68,7 +83,7 @@ async function main() {
     const flat = D('games.' + FMT[k] + '.raw-logs.jsonl');
     if (fs.existsSync(flat)) rawFiles.push({ k, abs: flat });
   }
-  for (const r of rawFiles) inputs.push({ role: 'raw:' + r.k, ...L.fileReceipt(r.abs) });
+  for (const r of rawFiles) inputs.push({ role: 'raw:' + r.k, ...receipt(r.abs) });
   console.log(`receipts: ${inputs.length} files (${storeFiles.length} store, ${rawFiles.length} raw)`);
 
   /* ---- stores ----------------------------------------------------------------------------- */
@@ -83,11 +98,11 @@ async function main() {
       games.set(o.id, c);
       added++;
     });
-    perFile.push({ path: L.rel(abs), rows: r.rows, bad_lines: r.bad, added, already_had: dup });
+    perFile.push({ path: path.relative(DATA_ROOT, abs).split(path.sep).join('/'), rows: r.rows, bad_lines: r.bad, added, already_had: dup });
     console.log(`  ${L.rel(abs)}: ${r.rows} rows, +${added}, ${dup} already had`);
   }
   // Re-stat: did anything grow while we read it?
-  const moved = inputs.filter(i => i.role.startsWith('store:')).filter(i => fs.statSync(path.join(L.ROOT, i.path)).size !== i.bytes).map(i => i.path);
+  const moved = inputs.filter(i => i.role.startsWith('store:')).filter(i => fs.statSync(path.join(DATA_ROOT, i.path)).size !== i.bytes).map(i => i.path);
 
   /* ---- raw logs --------------------------------------------------------------------------- */
   const raw = new Map();
@@ -207,6 +222,7 @@ async function main() {
   const manifest = {
     by: 'solver/meta/extract.js',
     generated: new Date().toISOString(),
+    data_root: DATA_ROOT.split(path.sep).join('/'), gz_only: GZ_ONLY, argv,
     checkout: leg.co,
     checkout_matches_pin: leg.co.head === leg.co.pinned,
     legal_counts_in_format: leg.legalCounts(),

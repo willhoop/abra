@@ -1,0 +1,3808 @@
+{
+ "generated": "2026-10-02T04:18:30.063Z",
+ "generator": "solver/human/build_dataset.js",
+ "schema_version": 1,
+ "format": "gen9championsvgc2026regmcbo3",
+ "source": {
+  "kind": "raw-log shards (tracked, written by the next-regulation collector)",
+  "data_root": "C:/Users/willj/Projects/Pokemon/ABRA",
+  "dir": "data/raw/games.gen9championsvgc2026regmcbo3",
+  "dir_bo1": "data/raw/games.gen9championsvgc2026regmc",
+  "shards_from": null,
+  "shards": 578,
+  "rows": 44087,
+  "rows_used": 44087,
+  "limit": null,
+  "bo1_stream": {
+   "rows_read": 66314,
+   "open_sheet_bo3_rooms_kept": 2472
+  },
+  "inputs": [
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260909T1850-00.jsonl.gz",
+    "bytes": 480106,
+    "sha256": "7b011c61d73aa88e9f35117414129343c5a370de5ddca16114fa4b498fcc4586",
+    "rows": 571
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260909T2055-00.jsonl.gz",
+    "bytes": 140234,
+    "sha256": "b3059fc2ec304c931d625acd629c3bbca183693db5a44bbd48033c81ff3983da",
+    "rows": 156
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260909T2324-00.jsonl.gz",
+    "bytes": 222644,
+    "sha256": "d607d4097677e293b0bfab37f81655757ca0cf04300579fd01a86c6b8ca63bdd",
+    "rows": 249
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260910T0100-00.jsonl.gz",
+    "bytes": 111598,
+    "sha256": "9e778670d388a6f53cea7fce180e4c00f24f2704bd1d4c4aa3828da8cb14d252",
+    "rows": 110
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260910T0233-00.jsonl.gz",
+    "bytes": 104376,
+    "sha256": "b1fa9d8ba1cd796fc8860945092e7d2a4efc7e73f20c04d518582f98583b47c3",
+    "rows": 111
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260910T0450-00.jsonl.gz",
+    "bytes": 127486,
+    "sha256": "7f528f8e9b907ae85033e6175f1d37ad94e1e79e86d529a84a38ef99f3aa652e",
+    "rows": 141
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260910T0551-00.jsonl.gz",
+    "bytes": 35469,
+    "sha256": "1b47e4db774961d8258048f4435184c288cb06a0b68c01774a9248929ed089cd",
+    "rows": 38
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260910T0823-00.jsonl.gz",
+    "bytes": 83697,
+    "sha256": "be94b10530924d582dd781fe589ce88a29388be058c3d84ec83c0e660055e489",
+    "rows": 95
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260910T1015-00.jsonl.gz",
+    "bytes": 88881,
+    "sha256": "dd67549fae08a4bb9f625c8c2c6673dfd97d35495497c1fc7dce7c223d3478b1",
+    "rows": 100
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260910T1109-00.jsonl.gz",
+    "bytes": 48294,
+    "sha256": "c30257e7cdd9889ee70efc739da12771d2f88bf1d40825f832b0145af3a40b61",
+    "rows": 50
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260910T1126-00.jsonl.gz",
+    "bytes": 14162,
+    "sha256": "d09884ac6cff480a6f0632c67ea71883b06cabea6ed138202986acab5da095f5",
+    "rows": 15
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260910T1306-00.jsonl.gz",
+    "bytes": 128785,
+    "sha256": "3d320af885723ca670eca63258c71f1f9014eaf2436c52bb3ba77fbc5b5b1ae0",
+    "rows": 144
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260910T1618-00.jsonl.gz",
+    "bytes": 256544,
+    "sha256": "0916524caa095bc35f16a4332307ecf714d6e7b268f526d598a2c5a561e46a00",
+    "rows": 274
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260910T1631-00.jsonl.gz",
+    "bytes": 9154,
+    "sha256": "d4b0ea1999d48a04a5e29c5f11986a23de23960ba2081fc5a4af6bff1a264076",
+    "rows": 7
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260910T1709-00.jsonl.gz",
+    "bytes": 44000,
+    "sha256": "3afa6f03741969552bd2b1ad0e20c43e9a416216ee79ec295efb2fafe6691e0e",
+    "rows": 47
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260910T1933-00.jsonl.gz",
+    "bytes": 157171,
+    "sha256": "62ed167a71ae72e056788855a47ca22e71163f427bc9ace717588d876cdc78ad",
+    "rows": 169
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260910T2001-00.jsonl.gz",
+    "bytes": 38031,
+    "sha256": "535eb17f60b9324ab214885c5a0225901d3bf02d7ae9e2d0b969898c911d5f55",
+    "rows": 40
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260910T2059-00.jsonl.gz",
+    "bytes": 115840,
+    "sha256": "29ef0be8d25cec10cbe4dc36a4dde14df6643e6920364f3cc4aa4c8dd07ce7bd",
+    "rows": 115
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260910T2228-00.jsonl.gz",
+    "bytes": 195376,
+    "sha256": "43778d2cfc33e8344c0d025e3f0e2cdb2e09a6a1c6825f6b69517268626f578d",
+    "rows": 210
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260910T2246-00.jsonl.gz",
+    "bytes": 23929,
+    "sha256": "ba566b0d475b36df1648f23459e76deb459eb0e47313577982dacb6201ab26b7",
+    "rows": 23
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260911T0057-00.jsonl.gz",
+    "bytes": 255205,
+    "sha256": "e658f5ab46e7fcc75d7d2977d67081c22afb1c548be54b33ba2f3fddf9639c1e",
+    "rows": 259
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260911T0126-00.jsonl.gz",
+    "bytes": 48894,
+    "sha256": "15d7e02533c56ea36db9f2041ba463f2973f84abeb8203a51f0c7a4be86cf42b",
+    "rows": 52
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260911T0448-00.jsonl.gz",
+    "bytes": 250594,
+    "sha256": "a66a0485be74102464aecf8f28749dd86b7fe075498e2ab76818c58fcdd38a91",
+    "rows": 273
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260911T0550-00.jsonl.gz",
+    "bytes": 46763,
+    "sha256": "5efcd3f8fc07c24c82d8f5e3e52e6a0be7f20301e41c204274291d8c93c69922",
+    "rows": 56
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260911T0637-00.jsonl.gz",
+    "bytes": 22184,
+    "sha256": "c7050d8e905e710aec6e304eea6d1a11fee7867f1d94461166f09160882e20d8",
+    "rows": 26
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260911T1109-00.jsonl.gz",
+    "bytes": 242388,
+    "sha256": "a52b25653f7edb3121c85c84194da66363a4d3d8cf562df788a03e119f1270ad",
+    "rows": 272
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260911T1127-00.jsonl.gz",
+    "bytes": 17580,
+    "sha256": "8791defc4bb4edfeab89855985a7a56ccefe32dc8df761c6114877f3389fdfd7",
+    "rows": 17
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260911T1149-00.jsonl.gz",
+    "bytes": 17777,
+    "sha256": "59218a8f53b9f72f9b83d8e3777b7935a3380832f54527e9820b2ca2bee3fd37",
+    "rows": 19
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260911T1623-00.jsonl.gz",
+    "bytes": 358583,
+    "sha256": "c3d591a204bdc17a0a8a8f23d2b711e845bf7fc9fad6470d30a8ce1b8aef814f",
+    "rows": 380
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260911T1635-00.jsonl.gz",
+    "bytes": 12923,
+    "sha256": "f377a26b0a8df11833e6f61f18dca43c401610106a2480a8e548718522abb899",
+    "rows": 13
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260911T1645-00.jsonl.gz",
+    "bytes": 21404,
+    "sha256": "bf2557db43057145999131a473c1491a385b070a4d41a31415e9098f29a80209",
+    "rows": 24
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260911T1935-00.jsonl.gz",
+    "bytes": 239675,
+    "sha256": "a012f758ee707f32f509e600daa4e3cb7fd661fe27b2a528314abff0dd4ba240",
+    "rows": 261
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260911T2000-00.jsonl.gz",
+    "bytes": 38214,
+    "sha256": "d56f7e0f43b8408f8c882ef2ca962e3a166791127a2397272dbaf5f0c98b335a",
+    "rows": 38
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260911T2104-00.jsonl.gz",
+    "bytes": 115537,
+    "sha256": "4caad94da4942f684e9198442cd2e32805252caf060fd434e3b38fcf41b8429c",
+    "rows": 124
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260911T2229-00.jsonl.gz",
+    "bytes": 141679,
+    "sha256": "d05b456638a8ee3dcf9071d6d0f62f1f73b31d0d067e0a22080ced3934614881",
+    "rows": 151
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260911T2246-00.jsonl.gz",
+    "bytes": 52543,
+    "sha256": "e370a9884da7780034cc5a69f55a01dd4f949568b49fa9114cb67e8bd3a8b407",
+    "rows": 55
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T0103-00.jsonl.gz",
+    "bytes": 234244,
+    "sha256": "87d87bb37af43ced27ec0f0b55fb96be550bc7394acd602a9952a0a4b303f2f2",
+    "rows": 245
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T0131-00.jsonl.gz",
+    "bytes": 36735,
+    "sha256": "4d3d57b2e4dd78fa39b998b702d6e6b8386965a51e714297472ecb301ade888a",
+    "rows": 38
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T0441-00.jsonl.gz",
+    "bytes": 293660,
+    "sha256": "6765e5e3624d1b4523418298e7eca50b2038e0208fe2e20cc6a20b3c1776ae6b",
+    "rows": 319
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T0539-00.jsonl.gz",
+    "bytes": 58454,
+    "sha256": "eaea4af8718863e747726ad47c0d0d38b3f2b79ae842f8da11ee655d3a655bbb",
+    "rows": 61
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T0628-00.jsonl.gz",
+    "bytes": 44135,
+    "sha256": "629fc616dcf2e02ad57fcecfc4a5a136e43238fecb6903714195de848a0ed387",
+    "rows": 49
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T1038-00.jsonl.gz",
+    "bytes": 140572,
+    "sha256": "c4973cccdd0621d8fad243c20c450810e06f483ca4fd9e26a90a8c7f113bc817",
+    "rows": 159
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T1054-00.jsonl.gz",
+    "bytes": 14280,
+    "sha256": "7b7e9285983389fbb1b0975210b5f0cfea5127cb84cab5d886009c4df342e9e3",
+    "rows": 14
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T1114-00.jsonl.gz",
+    "bytes": 17245,
+    "sha256": "1b849945ba9c70c3a5340d6d7ba826057666cb946cc08057dab412c551204134",
+    "rows": 20
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T1401-00.jsonl.gz",
+    "bytes": 141932,
+    "sha256": "1563462e57fdb8f3740a1fea8310af3b43f7f4fd51ad50f32ffd76285a99d8de",
+    "rows": 160
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T1421-00.jsonl.gz",
+    "bytes": 24095,
+    "sha256": "d4508d181b9359d87dd49668c0f3a054581ae5e48da8adff55f3db6dd375477a",
+    "rows": 23
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T1538-00.jsonl.gz",
+    "bytes": 64174,
+    "sha256": "f05811d074ed086e613a4c09723604699a7e34cd34fa24821749680486b72da1",
+    "rows": 69
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T1658-00.jsonl.gz",
+    "bytes": 144719,
+    "sha256": "6626294ff33a54d0b7b9d938396cc30c93eef50ed9560177c96f59c7a6cdfed5",
+    "rows": 160
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T1726-00.jsonl.gz",
+    "bytes": 58909,
+    "sha256": "da6272f926e3b99f16ddb93b0de89209de65b1882ed7456ab40eddc6fe384009",
+    "rows": 67
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T1911-00.jsonl.gz",
+    "bytes": 136072,
+    "sha256": "fe40867bc9e4b34638248c83f8cd55138dbd841725fbe56cb9d1ea786483283b",
+    "rows": 150
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T1938-00.jsonl.gz",
+    "bytes": 43909,
+    "sha256": "50d25240efe29b2403591809d281081f594dd385ca271efb43eca84e0d611df9",
+    "rows": 48
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T2044-00.jsonl.gz",
+    "bytes": 127128,
+    "sha256": "3c33b117f118c258e19799a03a5f9201c01247b3c6a88c28d6e68152ce851cb0",
+    "rows": 125
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T2212-00.jsonl.gz",
+    "bytes": 91314,
+    "sha256": "88fb91879094e58919d2b4b24647ce3ca20f76c6c229102f184b4761f04f3aae",
+    "rows": 99
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260912T2232-00.jsonl.gz",
+    "bytes": 30816,
+    "sha256": "2cd27082ac2e81c0f6291c7988f0f4cef40c9b1e30a2551ccf3b0c1dc96bc2af",
+    "rows": 33
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260913T0016-00.jsonl.gz",
+    "bytes": 119049,
+    "sha256": "159c026c9baeec60e9cf535613fda839f852cf13e5c76f3b15b8135150499a27",
+    "rows": 124
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260913T0051-00.jsonl.gz",
+    "bytes": 38946,
+    "sha256": "ec3bce3cac376b10a72ff8103cfd79d7d257f98824d2056020e8f3d652802fd0",
+    "rows": 43
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260913T0455-00.jsonl.gz",
+    "bytes": 289327,
+    "sha256": "e6b936c70d6a5599a71a1f2fe5d8303baf85e34852dcef963b21c747dc81055b",
+    "rows": 308
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260913T0520-00.jsonl.gz",
+    "bytes": 40572,
+    "sha256": "854aa2b631ce424b2682cce19d81fdcd78bd06763de2d06972cdae30997c7d1c",
+    "rows": 45
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260913T0559-00.jsonl.gz",
+    "bytes": 27532,
+    "sha256": "e8847852a8866778a038a70fc7cd2e6f845c612775c65efd7317f5416d10ca87",
+    "rows": 34
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260913T1036-00.jsonl.gz",
+    "bytes": 190317,
+    "sha256": "9d22eef83277b3d0f24772bf64e8697b3bbbf7d101b78336afb52f3ab7e9a3c8",
+    "rows": 226
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260913T1141-00.jsonl.gz",
+    "bytes": 28426,
+    "sha256": "478d0aece31aaf4577fcf05464bcf2f099634b3946d5ba04916c49e3d4e48eeb",
+    "rows": 30
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260913T1159-00.jsonl.gz",
+    "bytes": 9922,
+    "sha256": "0fd22f140ccfa921a3a83c42c71c785aa5a4f3eec81c2cdc1292c44afbf94074",
+    "rows": 8
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260913T1441-00.jsonl.gz",
+    "bytes": 188982,
+    "sha256": "57b2f9c4a9ff6fc7fb692e2f557dac81e8350a2fd80512cf4cc5a0e2bebfa6cc",
+    "rows": 194
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260913T1609-00.jsonl.gz",
+    "bytes": 130425,
+    "sha256": "acec6f37639658a755cbc3b85d71730b5f76fc93e80045c24deb138b8642c3b1",
+    "rows": 132
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260913T1624-00.jsonl.gz",
+    "bytes": 10194,
+    "sha256": "a8eb7a6ba9561cd2d75745ac5943794be11227fcd767f00fc0ab4adee41a1726",
+    "rows": 11
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260913T1821-00.jsonl.gz",
+    "bytes": 184547,
+    "sha256": "98dff9c5f4c4ba873a2fe2cc841e096c768054f755b0e74f013764eea36423c3",
+    "rows": 193
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260913T1921-00.jsonl.gz",
+    "bytes": 76219,
+    "sha256": "d3d7a8d0920c2fec29050b8ff3e1f20a309c46b33d3f34e1a67c5d5c2ad96a89",
+    "rows": 81
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260913T2057-00.jsonl.gz",
+    "bytes": 133144,
+    "sha256": "daad6bda3b434fb00b8a4beb2ae10f89ea1f2d85a1fdee73142232729604a43c",
+    "rows": 140
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260913T2108-00.jsonl.gz",
+    "bytes": 18952,
+    "sha256": "eac76bfced82a9fd99d77b1a24ded3e51a6833bfe65f777ad9c853687ad3e32b",
+    "rows": 18
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260913T2221-00.jsonl.gz",
+    "bytes": 97228,
+    "sha256": "421e2122c86c4d4adcec4ecfd6c431d65543e8f6027127beb8ad8efc31044efa",
+    "rows": 105
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260913T2328-00.jsonl.gz",
+    "bytes": 69577,
+    "sha256": "6b657d33a8d4d950a5f4ea177f7b2d640239af7a58026b97ab850d142b5a35c5",
+    "rows": 76
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260914T0058-00.jsonl.gz",
+    "bytes": 138040,
+    "sha256": "11f297855e361a56470128c6b40433dabf647997f5052e602aaf271f7262ae99",
+    "rows": 150
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260914T0136-00.jsonl.gz",
+    "bytes": 78592,
+    "sha256": "b830db3b37a324fe38cb2a092d1a9442afe56c102654f4ced0130af49dabd46d",
+    "rows": 79
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260914T0503-00.jsonl.gz",
+    "bytes": 268036,
+    "sha256": "bb191a838c33c1048301fd6c6959f3752329fa775ab8cf63a5b44746dde0a1bb",
+    "rows": 297
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260914T0606-00.jsonl.gz",
+    "bytes": 46537,
+    "sha256": "fb6f8c1275fe5a7f73e88afa1a6ab0a1cc6e05eb822b17a9d8c59c17001ad2e9",
+    "rows": 49
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260914T0705-00.jsonl.gz",
+    "bytes": 36289,
+    "sha256": "cc479ba0a519bf16784dd7bce21d20d0ec4582e174524fc9fd6a99a31c791061",
+    "rows": 38
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260914T1237-00.jsonl.gz",
+    "bytes": 215462,
+    "sha256": "4ff690cfff8bc657ebd5dfda065722883a17bfc6a7802885d37bb18754bbead6",
+    "rows": 235
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260914T1255-00.jsonl.gz",
+    "bytes": 15351,
+    "sha256": "b3fdb4b19c0df27ff50ac7194ab08c7ec33814d34ab6e2e0cab48012733ee4e3",
+    "rows": 15
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260914T1425-00.jsonl.gz",
+    "bytes": 135953,
+    "sha256": "ed5da0c2b185f17e4a73bfebc7834fd0b1c3a949f863241dc429acad2c278757",
+    "rows": 141
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260914T1833-00.jsonl.gz",
+    "bytes": 541632,
+    "sha256": "e2f46f75975899d8d2d908e68a35f448b4e8d6586e4cb41f9812b85ad263c16f",
+    "rows": 572
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260914T1936-00.jsonl.gz",
+    "bytes": 173291,
+    "sha256": "3ed14d65bdac42bdd28850c95ab63402956b6a9579f8836c125b84fdd8086b51",
+    "rows": 180
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260914T2156-00.jsonl.gz",
+    "bytes": 330498,
+    "sha256": "8c8cd0415c8009feb800f4c4098c85d0aaadb08380313ebc7790117261f0a435",
+    "rows": 346
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260914T2226-00.jsonl.gz",
+    "bytes": 61994,
+    "sha256": "7d194b03fe6d32041e5ccfb7c78535158b8b49ffbe0692c7b808cd86d9191eec",
+    "rows": 63
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260914T2245-00.jsonl.gz",
+    "bytes": 45080,
+    "sha256": "a493bd045f809e5f67b4bea09045fde3fc2e49eb80bef5f150c30b838822e4a4",
+    "rows": 43
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260915T0124-00.jsonl.gz",
+    "bytes": 374620,
+    "sha256": "89c0979cf218cfde33a08084226b45cab2047892fc224efa8c81a2d7e41d1756",
+    "rows": 386
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260915T0154-00.jsonl.gz",
+    "bytes": 81086,
+    "sha256": "822c7171f933d5cd2f2ad4d2235dc4533c439d543f52f102e8aff6555912f32d",
+    "rows": 85
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260915T0502-00.jsonl.gz",
+    "bytes": 342972,
+    "sha256": "cbac81c82cf61b2d4fda041cdf6416fda6531ce4931e292d1ef69e5414bdd491",
+    "rows": 372
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260915T0739-00.jsonl.gz",
+    "bytes": 147683,
+    "sha256": "4e6d135ab7070e0347e18641c91c32abd639d7ea40042fd69f9849b65033e8b2",
+    "rows": 169
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260915T0802-00.jsonl.gz",
+    "bytes": 31964,
+    "sha256": "c885b702a560ddd4b01730b60e25b12386e316a2e33bec9fdeef1f65bf5065b8",
+    "rows": 30
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260915T1151-00.jsonl.gz",
+    "bytes": 210226,
+    "sha256": "a8ffad058dbaa4a7a200004a0b229604c1f4c2d63594d15469a02b62444bcdba",
+    "rows": 233
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260915T1328-00.jsonl.gz",
+    "bytes": 156594,
+    "sha256": "d0e59465403690326f4945b90ff6283c13814a8a9e02f3f85b1867df61789a28",
+    "rows": 169
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260915T1352-00.jsonl.gz",
+    "bytes": 55732,
+    "sha256": "f4d163f3d32b0c30f903d662e98f976d91d0a602ac15124b25bf4ed87277e8aa",
+    "rows": 57
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260915T1707-00.jsonl.gz",
+    "bytes": 400665,
+    "sha256": "f78743e2ad33bf5d33767d974d2aa7f40c0e23d3150140f026d6413f07037e52",
+    "rows": 428
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260915T1808-00.jsonl.gz",
+    "bytes": 205328,
+    "sha256": "1915a86e7295499aad0a0d584118f23226527a7c08a8b4dfd82e97d381e91406",
+    "rows": 215
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260915T1829-00.jsonl.gz",
+    "bytes": 60717,
+    "sha256": "739a6028c94cbc4032934a7eab7853aff469b48a034cc8a976171249addcfdc0",
+    "rows": 62
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260915T2117-00.jsonl.gz",
+    "bytes": 381064,
+    "sha256": "e88bc004384dbd317aef70f15e4c787d04afcdcd90316921df45bf6f3d7eebc0",
+    "rows": 402
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260915T2127-00.jsonl.gz",
+    "bytes": 15268,
+    "sha256": "7040a65de8024d493b5762174bbb755bfe540e6480874fc7c77a7ec937033fd4",
+    "rows": 17
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260915T2145-00.jsonl.gz",
+    "bytes": 52343,
+    "sha256": "01820ce8d05cb84c336e6a16c0056732dd29355ae6cb523c0fa243eca83ef53a",
+    "rows": 57
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260916T0011-00.jsonl.gz",
+    "bytes": 348770,
+    "sha256": "ef5a08543ef2fd151783ab0426fab925a2802fb6a653ea1f478db19035e2d1a9",
+    "rows": 355
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260916T0047-00.jsonl.gz",
+    "bytes": 91561,
+    "sha256": "ba21d57cfe5dea83ac8d93736ea6e9c896fba7878d8b758bc89076a35e828f3f",
+    "rows": 93
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260916T0455-00.jsonl.gz",
+    "bytes": 568253,
+    "sha256": "a06dc998d6c5dc9c8e3244981b0cd18c00e3fb151adc63ffb6134264c875aeba",
+    "rows": 583
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260916T0556-00.jsonl.gz",
+    "bytes": 73422,
+    "sha256": "2007c4143c4a571f34a620c3788c895512b0c62e1124e08023a8fd3563b7174e",
+    "rows": 74
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260916T0642-00.jsonl.gz",
+    "bytes": 27988,
+    "sha256": "5172b1f5241ce249f6d0af8d4821dbc543d7ad62673172ef44453d68615f9131",
+    "rows": 32
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260916T1125-00.jsonl.gz",
+    "bytes": 281935,
+    "sha256": "4565d418edde8160b4555a3b6f8f4a3293bd8abdfe9b53d54d7209002d6fb5ea",
+    "rows": 318
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260916T1142-00.jsonl.gz",
+    "bytes": 9496,
+    "sha256": "d2754e9bf183ef13fb13aabe586f5b4945cab554a88df0491a58d65aa9885d1f",
+    "rows": 10
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260916T1250-00.jsonl.gz",
+    "bytes": 92391,
+    "sha256": "ec6f13f9f952c42f58b933d4c286590390662d7c871af75449c1b9edba5e9aa2",
+    "rows": 97
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260916T1645-00.jsonl.gz",
+    "bytes": 414461,
+    "sha256": "8337b5dcde60964ead639a6f03a2db5496e9e1cfca1e3c5c894bba7adebe8fa2",
+    "rows": 446
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260916T1703-00.jsonl.gz",
+    "bytes": 19866,
+    "sha256": "1fceebeba4a8befa557c55800218c7bb5b3acd212bf419f39fba571514a65fbd",
+    "rows": 22
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260916T1745-00.jsonl.gz",
+    "bytes": 115616,
+    "sha256": "ee7605b218bbe71dc682e101207ba140238260d7713b37918ab9fb19c1d8c192",
+    "rows": 122
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260916T2002-00.jsonl.gz",
+    "bytes": 305454,
+    "sha256": "08690ebbd9af016a443d372e470574ca8d0645981391904034136e93b82120d7",
+    "rows": 333
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260916T2126-00.jsonl.gz",
+    "bytes": 217615,
+    "sha256": "6d5e69ec8404c7ba624f11b5b3985ac2dd7ee71afb4fbe7b90a9e0cc69fc9760",
+    "rows": 235
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260916T2142-00.jsonl.gz",
+    "bytes": 74463,
+    "sha256": "d833fe1deb4ec3eced4b75c44a38327f252a66b2bbbe1a107674f7307320d9d4",
+    "rows": 78
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260916T2253-00.jsonl.gz",
+    "bytes": 131850,
+    "sha256": "74ee5d97bf574810b56e53d940a497ac9a9c856ba1872162cca00815f7e0b7ad",
+    "rows": 142
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260917T0053-00.jsonl.gz",
+    "bytes": 195975,
+    "sha256": "3c05491bc0cf467c592209a4fb306f0eda2c4b72a00461dd18cf564aaee1f4a9",
+    "rows": 215
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260917T0120-00.jsonl.gz",
+    "bytes": 67014,
+    "sha256": "c78390193f2ef31cc3c9870517e400096432db11aa1f9dae7fdfb65fabe00e54",
+    "rows": 68
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260917T0501-00.jsonl.gz",
+    "bytes": 444214,
+    "sha256": "a61bd38b86ba6f49e1f24965d4c96ac189bd8c93b331f62562bef6286d95bef7",
+    "rows": 458
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260917T0638-00.jsonl.gz",
+    "bytes": 91255,
+    "sha256": "2bb0cbc315310fcc2eb220a0d5fed740cb582bb417d19365c69e710d3a98ee4c",
+    "rows": 93
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260917T0735-00.jsonl.gz",
+    "bytes": 19599,
+    "sha256": "eb014eb9b4b975d59abcae72523838a61d2e6d6c61632f06711e81c0f3ebdb05",
+    "rows": 22
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260917T1149-00.jsonl.gz",
+    "bytes": 213112,
+    "sha256": "3a4ee1696fd14d4a5b5753c52b196e90cad6c399b677c18023f9d986821a6157",
+    "rows": 238
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260917T1206-00.jsonl.gz",
+    "bytes": 33194,
+    "sha256": "a88f2ec6e178bf3ec5c31490ab5e2b984742d188c467c040576c79150ead9856",
+    "rows": 32
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260917T1324-00.jsonl.gz",
+    "bytes": 109854,
+    "sha256": "6c88b5ee4618e4007c52c60d685d13b4dca15e693d809a4b93d77c08a969d016",
+    "rows": 128
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260917T1708-00.jsonl.gz",
+    "bytes": 464128,
+    "sha256": "be5a8e77b4e83bc6de3e741b7c93fe738ae5a874a23548764bab5e3cfb49eb08",
+    "rows": 488
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260917T1717-00.jsonl.gz",
+    "bytes": 43708,
+    "sha256": "8bece27fce1454c5354e4a798c8d7a33a55dc70e2686cac404d3101664166f69",
+    "rows": 42
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260917T1810-00.jsonl.gz",
+    "bytes": 130358,
+    "sha256": "b60b69c5e24e10cfca34d185157f2567752ed37bf7603ffe247ebe39d94e1ef8",
+    "rows": 139
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260917T2034-00.jsonl.gz",
+    "bytes": 345455,
+    "sha256": "9abf4b74fd9c703e75dc3fee386b415fa15c583878986cb39d5e11307c64fe84",
+    "rows": 358
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260917T2130-00.jsonl.gz",
+    "bytes": 132777,
+    "sha256": "fca24a57322d76eb17ea8e29aa380bae1a44936493c2320c496fe0a514ae0b9c",
+    "rows": 134
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260917T2207-00.jsonl.gz",
+    "bytes": 94384,
+    "sha256": "eb6ce1ef8dbd6a41a199ff46d73ac4317bb1777e83f080693a4f17a546eb7f44",
+    "rows": 101
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260917T2305-00.jsonl.gz",
+    "bytes": 115502,
+    "sha256": "b34ca1fc770f501daca05cd0267d6b97e8dd183d8dbc119781a0dce29df288f5",
+    "rows": 127
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260918T0011-00.jsonl.gz",
+    "bytes": 124656,
+    "sha256": "b3169cc2b9302d55a6340d29515ae513905afbff962018a1477050fbcc26b1f4",
+    "rows": 127
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260918T0128-00.jsonl.gz",
+    "bytes": 117845,
+    "sha256": "5be5869315904846f542129967a1ee869c98384c36f1bc5505c7e54949c694fb",
+    "rows": 131
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260918T0451-00.jsonl.gz",
+    "bytes": 297786,
+    "sha256": "aa42f85f9ad6235faedd2f0e95dd58e34d2742e40ec1af0953ca46333d2bdc2b",
+    "rows": 323
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260918T0550-00.jsonl.gz",
+    "bytes": 46775,
+    "sha256": "18a1ed87873f939727d08fcc6c42a1a04e76e67feee55e23582d696c82e81695",
+    "rows": 51
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260918T0638-00.jsonl.gz",
+    "bytes": 18903,
+    "sha256": "ea58730f1643f45fa91b34624f34832daef84ab48cd5c15583295f9cdc251a5e",
+    "rows": 21
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260918T1106-00.jsonl.gz",
+    "bytes": 156107,
+    "sha256": "f89964e87ae3c652c5a2e5ca453883a52868c89999ca7b088cdbd2f6c435f011",
+    "rows": 174
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260918T1123-00.jsonl.gz",
+    "bytes": 13898,
+    "sha256": "a98db6a037d687447bb2b6067f2ad870397ab1c93f71739c97873a4b3f4c458d",
+    "rows": 15
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260918T1150-00.jsonl.gz",
+    "bytes": 33965,
+    "sha256": "c2d9c8efef4c8e0dafb945a3810b106b5e9bb1a236cb70cdd6c88b77b3eac55c",
+    "rows": 36
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260918T1457-00.jsonl.gz",
+    "bytes": 350120,
+    "sha256": "fe1d8e40ea1f7197daf6d9560ff4de447cf9e072ef72b2b9c0978bc6d7eaf29e",
+    "rows": 373
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260918T1632-00.jsonl.gz",
+    "bytes": 167995,
+    "sha256": "cbba8ddeca1e0deea1b011b86c3be9b4a1d5f6db32da0345913663ac87c877f2",
+    "rows": 174
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260918T1644-00.jsonl.gz",
+    "bytes": 32919,
+    "sha256": "11dcf39887ff0f14eee8155c7d9012884f046f57a5793f1fe4b25769c680de99",
+    "rows": 32
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260918T1821-00.jsonl.gz",
+    "bytes": 173584,
+    "sha256": "3093459e51c9c08f006634c09ac3f4daa1dd9bd4fc589777ac3444f02ecc57c6",
+    "rows": 187
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260918T1958-00.jsonl.gz",
+    "bytes": 185341,
+    "sha256": "fcf278f15b696bb1ed9f81367b9abcc96815f027328d96993539745f39ca867c",
+    "rows": 201
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260918T2101-00.jsonl.gz",
+    "bytes": 122135,
+    "sha256": "2809bc6a73119d5c34e916eedd224749f658d93763a0061c272267c616376156",
+    "rows": 132
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260918T2138-00.jsonl.gz",
+    "bytes": 80909,
+    "sha256": "7534ad64dc7a7c981da110381a27f1a13c213a65503372eea4c0c21cd99dfe54",
+    "rows": 80
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260918T2250-00.jsonl.gz",
+    "bytes": 116413,
+    "sha256": "27399229c857ad5ec6b46b9b53badca2aa66168488fe6b5b5a5ca5de932fe440",
+    "rows": 125
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T0012-00.jsonl.gz",
+    "bytes": 107159,
+    "sha256": "f9132869d9408c2cd36b1e31ce735a86982d429f8d517a956eb2b63de4b8a3f1",
+    "rows": 114
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T0134-00.jsonl.gz",
+    "bytes": 112141,
+    "sha256": "1bbbedc457eefd5a1c834b9818ec78d74f96d3644bc1b8fc56b5f81730355f89",
+    "rows": 120
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T0445-00.jsonl.gz",
+    "bytes": 124832,
+    "sha256": "0cdecfd5b46d4d77e8b9870ca482422a27fc7c93c90aef5ed39a051fe9775d4a",
+    "rows": 137
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T0546-00.jsonl.gz",
+    "bytes": 51044,
+    "sha256": "31d3e23ae90d44862dbe2b6d133457970fb21f1fbdbeb5803ecd224fa1aae4b7",
+    "rows": 57
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T0636-00.jsonl.gz",
+    "bytes": 17326,
+    "sha256": "03037a9339a0207c5cc97882f4fa0aa7e019d3736fb4442a4f2f1eeb53e2db91",
+    "rows": 18
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T1051-00.jsonl.gz",
+    "bytes": 170615,
+    "sha256": "b2a9e050bbc8187102256e44fa7c8eaef561ce4eeb19e9249a9262c3cbe55fa3",
+    "rows": 191
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T1108-00.jsonl.gz",
+    "bytes": 5482,
+    "sha256": "bb8f0bef04d208768ecc68266cbae26008882ebfb6007d6947ecc76bc3898a4a",
+    "rows": 6
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T1131-00.jsonl.gz",
+    "bytes": 15755,
+    "sha256": "7abb30f121b7c6e66fa03c93a2a68ae456bb0582d4859b98c506be9594df0464",
+    "rows": 15
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T1421-00.jsonl.gz",
+    "bytes": 119003,
+    "sha256": "ffae24cd60de9ea34bec1c10e1dedabb1e68be209eb0c6b7ee2502add105e327",
+    "rows": 138
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T1447-00.jsonl.gz",
+    "bytes": 10099,
+    "sha256": "230480eaa6ee094817ae56a51141c5efc5b93d142310ba581bfa2c107f8b95a1",
+    "rows": 9
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T1600-00.jsonl.gz",
+    "bytes": 42238,
+    "sha256": "47b20eed2a4cfa9647a7aa0edcfcd7eecbf0125b2eab499c3e8d2d3749ff9791",
+    "rows": 49
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T1758-00.jsonl.gz",
+    "bytes": 140522,
+    "sha256": "47128184a98e5a22ff2fcc41ce20038d9c2cca23588a4a6ace3f3e0b5c5bfdf1",
+    "rows": 156
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T1814-00.jsonl.gz",
+    "bytes": 17630,
+    "sha256": "ac3f96c8ae9cd1e0c8bcf0f8512a4707d537355e38a3c16c8349397790836a63",
+    "rows": 17
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T2033-00.jsonl.gz",
+    "bytes": 192719,
+    "sha256": "27c6b6754dec5bfe6cdbd15ae876a5f363a99ba4c04f8c76fe06eac7a4ccab08",
+    "rows": 192
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T2047-00.jsonl.gz",
+    "bytes": 19495,
+    "sha256": "a9006c8390f568f208c076c08886bec73f283e5b7d1f2f530a5e0aede982354f",
+    "rows": 20
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T2100-00.jsonl.gz",
+    "bytes": 30268,
+    "sha256": "9dafc9c57b302da416beebddc9e9a7125674ebdc6a199cddd7806a2dab0ddeee",
+    "rows": 32
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T2256-00.jsonl.gz",
+    "bytes": 138879,
+    "sha256": "61a7a30a458db0803bf0e442b20296aa7af1c6a99334dab556370cb7fbc26a6a",
+    "rows": 145
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260919T2330-00.jsonl.gz",
+    "bytes": 38392,
+    "sha256": "766182f7bf7501cc70395f760d85ac316be4544b8b4e8d5cdc1510da87d11527",
+    "rows": 41
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260920T0101-00.jsonl.gz",
+    "bytes": 68680,
+    "sha256": "a9c46671838c41c165c2658da9f90b41413e81825a95cf63f57e56d969915e16",
+    "rows": 77
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260920T0136-00.jsonl.gz",
+    "bytes": 30944,
+    "sha256": "1d55fdbeafc80b7fabf6c15c5a79a1a625634b67c83c2c6d6636d51a5a4db820",
+    "rows": 32
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260920T0502-00.jsonl.gz",
+    "bytes": 150640,
+    "sha256": "652926e51f17e6eb877230d0d6dfac5e9d54ea9f629c97944fc9b981dfefd33f",
+    "rows": 174
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260920T0605-00.jsonl.gz",
+    "bytes": 33336,
+    "sha256": "3efd6ee2bfae27c7e3b1055034e8eaa7fb668663480a4a684354f5faa735a446",
+    "rows": 41
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260920T0659-00.jsonl.gz",
+    "bytes": 10370,
+    "sha256": "d3fdf050841a6f0bf39d0a1177bb4bfd6f0101210cd489b24ca5e59cb881fd1b",
+    "rows": 10
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260920T1115-00.jsonl.gz",
+    "bytes": 94664,
+    "sha256": "5cba3c33512eed87d5c89cd8f4b01087ee9ff6339cc838187a375a04bcd0efb8",
+    "rows": 108
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260920T1132-00.jsonl.gz",
+    "bytes": 5531,
+    "sha256": "34c00c403ccc0ec690b702c520845d3cef922189fd94aac92ece60a1d37c2033",
+    "rows": 5
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260920T1238-00.jsonl.gz",
+    "bytes": 43726,
+    "sha256": "83175e41f3ec37e28edda99e521ae6e20a92aac4159fa5edec5ce9a96832db9d",
+    "rows": 50
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260920T1600-00.jsonl.gz",
+    "bytes": 237875,
+    "sha256": "5b1c60eee5fe836d9a29b5e39b8acc0a64c2c4cfb29d6eeeef0664edd772a7a5",
+    "rows": 257
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260920T1613-00.jsonl.gz",
+    "bytes": 14723,
+    "sha256": "a46ab6df043ddff2a706f29a6ca183611c2774a0fcea2f4936362327f5596cff",
+    "rows": 15
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260920T1630-00.jsonl.gz",
+    "bytes": 33777,
+    "sha256": "13b6f3cb74aea0a1bfaf80b426b560f550ffdcdeac350d87eda7799453f48d43",
+    "rows": 38
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260920T1844-00.jsonl.gz",
+    "bytes": 173367,
+    "sha256": "dd44b1047af6042b5990a927c4a4148fe90bf2ac71522711188e9156eb00f0c1",
+    "rows": 182
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260920T1904-00.jsonl.gz",
+    "bytes": 23018,
+    "sha256": "01a8ec12093241a2274d9c2200234ea6c9e3e89b9c64b70aebca4b0baf7d37fc",
+    "rows": 23
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260920T2056-00.jsonl.gz",
+    "bytes": 133411,
+    "sha256": "6627473cb981ad51b0c11ccc5498053cb44bb5a2e4fe4cebf26ca00ad4497f92",
+    "rows": 138
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260920T2129-00.jsonl.gz",
+    "bytes": 33768,
+    "sha256": "18969542961fb5cc274b76dda6e13c779effcbdda9d3a5acea1b1f00fab1a514",
+    "rows": 38
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260920T2149-00.jsonl.gz",
+    "bytes": 23619,
+    "sha256": "76c36fdc371cb5c4948ce97bffbefb66dce2c241899dd758a0e2c184168d86d9",
+    "rows": 24
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260921T0010-00.jsonl.gz",
+    "bytes": 155399,
+    "sha256": "e976bf1bc9b3cd104f1451f7dd8f4d590d6b0969bd13c1130fa223be5121aa52",
+    "rows": 171
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260921T0030-00.jsonl.gz",
+    "bytes": 22206,
+    "sha256": "8964d6293fd24aac8a7304dfbf3473b030b882d3733a818013bc0120d7f39519",
+    "rows": 21
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260921T0527-00.jsonl.gz",
+    "bytes": 195134,
+    "sha256": "faeae089f63c0b2be3c0c6cdae6546055bf47433c89e55a55f02b7fc9c7a46a2",
+    "rows": 220
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260921T0612-00.jsonl.gz",
+    "bytes": 26169,
+    "sha256": "c29ab6180288c90e59c87fe87992f9e519313d508386af8f32a37597c518ba7e",
+    "rows": 28
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260921T1107-00.jsonl.gz",
+    "bytes": 212403,
+    "sha256": "c22d902a174a80cad09a190b922436a81ecd5e48f124369c55f046230834701b",
+    "rows": 245
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260921T1358-00.jsonl.gz",
+    "bytes": 205250,
+    "sha256": "ecc346e98b134f65693b8d7586be80424daf65426b1ab0304f7c5348129c6fd9",
+    "rows": 217
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260921T1713-00.jsonl.gz",
+    "bytes": 309116,
+    "sha256": "c96fd4e4eeb8503ce06ccaa6dacf640de02d8ba455964aece57df1b8f94b3e84",
+    "rows": 318
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260921T1920-00.jsonl.gz",
+    "bytes": 272496,
+    "sha256": "6b3deb196414b7e754bc9565b9b1aef9e0174954f82ed087dbfe6920a03e0a0d",
+    "rows": 280
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260921T2116-00.jsonl.gz",
+    "bytes": 285364,
+    "sha256": "f3b52e212f63f117787a9d8ded33145146560b936d1f38d8aa6ecf2f4286bc13",
+    "rows": 299
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260921T2314-00.jsonl.gz",
+    "bytes": 188214,
+    "sha256": "13790b8cc81994016db24f9b04ad558bd7452093a7d16986a69078b5b68e4111",
+    "rows": 193
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260922T0018-00.jsonl.gz",
+    "bytes": 87805,
+    "sha256": "64f010091fa0f822ec442eb82cb5b0940d0ae7ff93069ed8cbb392b2ae70a65c",
+    "rows": 94
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260922T0444-00.jsonl.gz",
+    "bytes": 308021,
+    "sha256": "1b061240c483025776c6a8469e0c012bb7445a1d534a563388b310c2cfb07fa5",
+    "rows": 345
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260922T0522-00.jsonl.gz",
+    "bytes": 9861,
+    "sha256": "dae1bc3010dcd534446838a10cd9c91cb337dbb7430088721db4a1ef55081860",
+    "rows": 10
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260922T0953-00.jsonl.gz",
+    "bytes": 187703,
+    "sha256": "beee75b0551e3e3e30cf88b3fe01930ee65c5192ec7ab64293e266e2114ee5bf",
+    "rows": 212
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260922T1019-00.jsonl.gz",
+    "bytes": 22970,
+    "sha256": "93b9797f081da567ec05fce489bf55073f651dfa54dc53934f7c6dff425c2329",
+    "rows": 24
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260922T1443-00.jsonl.gz",
+    "bytes": 426863,
+    "sha256": "a3a7d3c573662c0babc6b8408b9ee5859f10f1dff2d9d87d61ced505c1f5cdf4",
+    "rows": 460
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260922T1512-00.jsonl.gz",
+    "bytes": 62760,
+    "sha256": "ebe4785e0a99f72467b04864a7bf4149df2a115dddbf149cfbab1050acf3c8fb",
+    "rows": 69
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260922T1848-00.jsonl.gz",
+    "bytes": 484275,
+    "sha256": "8b37ec9cf1e4be0a94b602a397b28a3aa8998e46f00619ac82251ce662cc6aee",
+    "rows": 502
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260922T1908-00.jsonl.gz",
+    "bytes": 45540,
+    "sha256": "f0d9686a11065200b3388ad74f1712418721b60b9cd592ea26ae231fe724d6c2",
+    "rows": 42
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260922T2202-00.jsonl.gz",
+    "bytes": 278034,
+    "sha256": "08cb5f407b7b1d7661d902fcb96e7c42459e27f8bb2a427ed85de8b84ce52bb0",
+    "rows": 283
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260922T2226-00.jsonl.gz",
+    "bytes": 36286,
+    "sha256": "4da2e3d4874c72aa2303539941cb55d32f3cb31bbf9d8e330f0dfc94055d2e32",
+    "rows": 38
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260923T0022-00.jsonl.gz",
+    "bytes": 199302,
+    "sha256": "3a305ce177a4352fe0087d07b33f4c31c3cf3a1f3746cdb2c59c7415bec17c90",
+    "rows": 203
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260923T0056-00.jsonl.gz",
+    "bytes": 38320,
+    "sha256": "2372ecdce37706533ce1d81b897d18ea1246b2c82d65757809f99e8a5394e082",
+    "rows": 38
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260923T0553-00.jsonl.gz",
+    "bytes": 296724,
+    "sha256": "cd258ea05d6a55f085e38eceed3b4761bca5ae66544b2acf057d9fafa1c07a38",
+    "rows": 325
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260923T0640-00.jsonl.gz",
+    "bytes": 28752,
+    "sha256": "ee1b799b2ed48a3d4b1b936e37a1fb348b56b955616ee4c501b56518ec74acb1",
+    "rows": 30
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260923T1126-00.jsonl.gz",
+    "bytes": 204394,
+    "sha256": "751b3d390cba089b2500fe1020c4dd60226099c37eed3bcaa09ea3568dc02445",
+    "rows": 232
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260923T1211-00.jsonl.gz",
+    "bytes": 62082,
+    "sha256": "3bf4a50b7a1b7e3c4e6ba2b7ca418d716290cc6361be0f4f908501b68ea62105",
+    "rows": 63
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260923T1649-00.jsonl.gz",
+    "bytes": 362500,
+    "sha256": "6b7f3187e7fc3cac909a59d5f5505e32212f35888b6a9d147c8d99d96d51431d",
+    "rows": 383
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260923T1729-00.jsonl.gz",
+    "bytes": 78649,
+    "sha256": "f5de96622133c4c4592939190b8d5a324677b795e41e10b8ed254b12bcdb7aae",
+    "rows": 82
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260923T2014-00.jsonl.gz",
+    "bytes": 351703,
+    "sha256": "f738fbc00e5338fa615ca94aa977e660fb49eb1046b2de11899d6567ce71882d",
+    "rows": 380
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260923T2043-00.jsonl.gz",
+    "bytes": 44814,
+    "sha256": "c361c5668c440a274c8889739387e48f62fb14f8f4ff9fe2a839bc3e0440d9e6",
+    "rows": 47
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260923T2338-00.jsonl.gz",
+    "bytes": 281077,
+    "sha256": "463d41b9e4e2437db71760705bcc66f708802d58cd607ed89fbb54ecdebdd843",
+    "rows": 302
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260923T2359-00.jsonl.gz",
+    "bytes": 47466,
+    "sha256": "5ad8ffefff5e7ab7b602f426c7784b730169e85dfb2b07ae04d06c49bd887b0b",
+    "rows": 51
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260924T0437-00.jsonl.gz",
+    "bytes": 292810,
+    "sha256": "156a4a9cced8bedbf910458e48fd30bc579b97031fa8ffa7bac153caf448e278",
+    "rows": 306
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260924T0522-00.jsonl.gz",
+    "bytes": 23030,
+    "sha256": "b046503656ce8e3e924cc1606865d7faa9bb1450e75c1fb5ba75ac286088e0eb",
+    "rows": 25
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260924T0957-00.jsonl.gz",
+    "bytes": 160983,
+    "sha256": "6041065f43457abf2d2858236be08e167bd90f25e5a3018eb6ca9caaf61b2c5b",
+    "rows": 175
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260924T1031-00.jsonl.gz",
+    "bytes": 25621,
+    "sha256": "2c389d1d27c32cbc7c34b955920270b4dfba580bd7e8504ffbfc01d70eb97d7a",
+    "rows": 26
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260924T1458-00.jsonl.gz",
+    "bytes": 300780,
+    "sha256": "2ab418c6780441a82231b41340ef80aeb9d89dd2984817d778be6b59519678e9",
+    "rows": 332
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260924T1532-00.jsonl.gz",
+    "bytes": 43769,
+    "sha256": "7c1edde2671d15a276e610f353e2c5a0e81a4ef64d699e5809b5d383e3495843",
+    "rows": 42
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260924T1905-00.jsonl.gz",
+    "bytes": 389238,
+    "sha256": "3c94dd3b38290c80b88e6c575ce97323ec347ef30f54f7f353ba7d2359d9b0bb",
+    "rows": 422
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260924T1934-00.jsonl.gz",
+    "bytes": 45110,
+    "sha256": "9696f10c32ef536ecd884cd0c87f37759ab88caa14960a497dd1e2886180b723",
+    "rows": 44
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260924T2217-00.jsonl.gz",
+    "bytes": 268309,
+    "sha256": "37bcc10b8f0f0c0f73d309bf497dcdbba1eafee72a7acb004b620d7da9ce83fb",
+    "rows": 279
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260924T2246-00.jsonl.gz",
+    "bytes": 15579,
+    "sha256": "bd47fb9a3660c463697f774ee9a678f26280e64a2ecbda4de224628c7000e9a0",
+    "rows": 16
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260925T0126-00.jsonl.gz",
+    "bytes": 232816,
+    "sha256": "8573552704a82db74ddfa51d0a59eac59cd40ad90820888de9a5152f7938ae1c",
+    "rows": 243
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260925T0155-00.jsonl.gz",
+    "bytes": 26583,
+    "sha256": "55249400967e009616c06e4437ed2b81ddc39ce05092af8a6a18c2d57de64844",
+    "rows": 29
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260925T0742-00.jsonl.gz",
+    "bytes": 217510,
+    "sha256": "6d4e7d0808d29ad6ab9ec2632f737caeadaf37c4016dfcd0f87a6466f4f7b233",
+    "rows": 234
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260925T0812-00.jsonl.gz",
+    "bytes": 16481,
+    "sha256": "78a7fdcd5cffc9cf6304296590b3841c71c0b15c9467fe65db32f830235c9ca7",
+    "rows": 18
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260925T1341-00.jsonl.gz",
+    "bytes": 153571,
+    "sha256": "d8198f45c4ef261e63f87516bb7165975652963f6b26486ec9ee588b9085c5b0",
+    "rows": 180
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260925T1411-00.jsonl.gz",
+    "bytes": 20072,
+    "sha256": "03c6e66e524fd5bdd55e2a287706d5faa247de6fbe322bd643be7cf71a26c04a",
+    "rows": 20
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260925T1832-00.jsonl.gz",
+    "bytes": 232115,
+    "sha256": "41a18bd30f36e2ed6e2746b3a0907d7b41d69f1c956d9dfa53bebc8a750e5559",
+    "rows": 253
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260925T1854-00.jsonl.gz",
+    "bytes": 20096,
+    "sha256": "01cb226181a4ffbdcbdd1d03163ca821e54209eefba64fec217e3228c974c521",
+    "rows": 18
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260925T2216-00.jsonl.gz",
+    "bytes": 136109,
+    "sha256": "9180b6ce4767cfe0f5b68d2d62fff58cddb021488c1eec0d7f9f63c6021534f5",
+    "rows": 143
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260925T2250-00.jsonl.gz",
+    "bytes": 30024,
+    "sha256": "7a018182e73bd711b1881a757a0c8c253cb3ca7732114c128211bbd4281b2ed0",
+    "rows": 30
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260926T0129-00.jsonl.gz",
+    "bytes": 120992,
+    "sha256": "ef0e92b26501d799f35b04437ba48a8663620f62cbaef7551b2d7e375fd8d6d2",
+    "rows": 133
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260926T0159-00.jsonl.gz",
+    "bytes": 18893,
+    "sha256": "3ec4b86a0e4b61995acb60e17ac56381f0759a6b588e6be1e051ae23dcf2532e",
+    "rows": 21
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260926T0734-00.jsonl.gz",
+    "bytes": 163241,
+    "sha256": "4af01ca1ff7a3b1daf2a34c28c80109af9902f7a6f73c48098f3580cfcb9b28d",
+    "rows": 194
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260926T0802-00.jsonl.gz",
+    "bytes": 8310,
+    "sha256": "4a98f6aa9c39777557cb1940616cc80acf56b4c136b84a2569352373bc3ca25d",
+    "rows": 9
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260926T1302-00.jsonl.gz",
+    "bytes": 38394,
+    "sha256": "e92add4328f7bd114a9eb9ef0f0f3478449d01f8b9067ae7fa17a7a1352920d2",
+    "rows": 45
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260926T1325-00.jsonl.gz",
+    "bytes": 7608,
+    "sha256": "f5d77528af41441631f088659b26361b8b6d152cbd51c2cf83c27fc8c6674862",
+    "rows": 8
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260926T1707-00.jsonl.gz",
+    "bytes": 174441,
+    "sha256": "27ef00ef0000bb28d2acc15c823816e6f258cce497ee469123530333af8bd5a0",
+    "rows": 194
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260926T1726-00.jsonl.gz",
+    "bytes": 24839,
+    "sha256": "a4569787bf9e20d9efbb293538f5637d3bb37c6ef33466aa71bce5c60a9a1624",
+    "rows": 23
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260926T1948-00.jsonl.gz",
+    "bytes": 137344,
+    "sha256": "754b80b6776cfeab28a98f86f56c8f9247c856788b113196c0cd634670517054",
+    "rows": 146
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260926T2010-00.jsonl.gz",
+    "bytes": 4430,
+    "sha256": "875af1e13cb7d0253dd1c7f97a9cf772e14b244df26c05ee74a0d53351b816b3",
+    "rows": 4
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260926T2243-00.jsonl.gz",
+    "bytes": 88327,
+    "sha256": "121fe39b0b30efd4a6d524b6b6d7a92c9b966a065c770de9e13ad32cb8e92a5b",
+    "rows": 90
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260926T2311-00.jsonl.gz",
+    "bytes": 21799,
+    "sha256": "9d51a5741d9c2a1e2873432c43dd6ff8637e61fd50b057a8aa08b986bcda3169",
+    "rows": 22
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260927T0122-00.jsonl.gz",
+    "bytes": 110362,
+    "sha256": "5348f617a8f3c7504c1cb68aaf66d7ab525d25acd548504e3c12aa3f5790e29b",
+    "rows": 113
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260927T0147-00.jsonl.gz",
+    "bytes": 9465,
+    "sha256": "9305de17490312c29cfaf6210d5536075651f690f04934974fbfa4e5a7cf693d",
+    "rows": 7
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260927T0803-00.jsonl.gz",
+    "bytes": 149869,
+    "sha256": "1287fcf31b0491ea07d87ff071fa65d6c28fbd11b98d8f9fb2959ad0ef2b2aae",
+    "rows": 172
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260927T0835-00.jsonl.gz",
+    "bytes": 8393,
+    "sha256": "fc0866101adae03b3e2ef6a7c3be2d6e1aa99ab7e7cdf8c2768dfcc1ad69c1b1",
+    "rows": 6
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260927T1354-00.jsonl.gz",
+    "bytes": 97306,
+    "sha256": "1baa0666d51f871cf749e552ff3cda9311dfb9f62b03f8fdd56c6e82186c4cc1",
+    "rows": 115
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260927T1419-00.jsonl.gz",
+    "bytes": 23706,
+    "sha256": "c08562c1376b3ff0323486b5d66ebc4dd23ff5cdcaf2a77e271987cf21375913",
+    "rows": 21
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260927T1820-00.jsonl.gz",
+    "bytes": 166863,
+    "sha256": "00f8a23df008c2c9a66b9b481db29145cb648372ca534a367e3cd6a726a70c0f",
+    "rows": 181
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260927T1841-00.jsonl.gz",
+    "bytes": 16350,
+    "sha256": "b3b68d27dd4cec6fdd7da32e1e23618deac1ed6e74ef3362933fe32a3ff849bd",
+    "rows": 15
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260927T2204-00.jsonl.gz",
+    "bytes": 102795,
+    "sha256": "104691da6f27345655aa434765f95a87f9127510a1ebd9dd88631575a684cd4c",
+    "rows": 116
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260927T2235-00.jsonl.gz",
+    "bytes": 24290,
+    "sha256": "6bad90b0e7231984bcd195e9ccf909fd1bc13277226628efa6e71de1e5409afb",
+    "rows": 30
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260928T0036-00.jsonl.gz",
+    "bytes": 82055,
+    "sha256": "270780414f3b47f8d5344886fc477be3a3e9a9ac9f230fa4a92da343ed7ea067",
+    "rows": 88
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260928T0112-00.jsonl.gz",
+    "bytes": 23144,
+    "sha256": "6d49f16e42e689b9cb7aaf9fe6c6dffe27c6c658a842351498f2ea596c553bae",
+    "rows": 25
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260928T0644-00.jsonl.gz",
+    "bytes": 165914,
+    "sha256": "e95c9f0e3d7b0314462e3b64eb77c3f2ac0639093ce0d4370ec943aef8d2ea6f",
+    "rows": 189
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260928T0737-00.jsonl.gz",
+    "bytes": 12355,
+    "sha256": "1649266fd2a359f49873f3e3905c0f68d38999e9a4243329402ab033b38cfeb2",
+    "rows": 14
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260928T1522-00.jsonl.gz",
+    "bytes": 333741,
+    "sha256": "a04882d103f402fd6c76518d840bc4fefd3600d7906fa52f6a1493cd60b7caec",
+    "rows": 386
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260928T1559-00.jsonl.gz",
+    "bytes": 49649,
+    "sha256": "798c88dea3f81af1e77aec7dc7f3d9a10ddca45758decced2afd71350c20331c",
+    "rows": 55
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260928T2154-00.jsonl.gz",
+    "bytes": 512617,
+    "sha256": "a2f2ef69caa097bf76435ae142b93aa1f55a1e0fe56a61212ac08b450688adbe",
+    "rows": 533
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260928T2219-00.jsonl.gz",
+    "bytes": 70722,
+    "sha256": "a3057e6d54731ccf1d75abdc1f2ca8da4fa587722129592ee0affe950d10e3c3",
+    "rows": 68
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260929T0151-00.jsonl.gz",
+    "bytes": 299776,
+    "sha256": "38aa02a630ea276648de39d24ad544b083b98ec904da281bfb24386077513366",
+    "rows": 303
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260929T0219-00.jsonl.gz",
+    "bytes": 57631,
+    "sha256": "d11a9ea94334cdd8ee1ccdd5c5b8fc952a0980f0a7eeffdadbcb50cabd188e3b",
+    "rows": 62
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260929T0823-00.jsonl.gz",
+    "bytes": 179415,
+    "sha256": "416c17f732824099da4442c932f7ced04b080c7dcaf118d84e505ae0bc1385d0",
+    "rows": 193
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260929T0903-00.jsonl.gz",
+    "bytes": 16699,
+    "sha256": "0b12e31163342c95e43ad6e17a47e902eb02007d8fc03cda34c649aa6c5aedba",
+    "rows": 17
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260929T1544-00.jsonl.gz",
+    "bytes": 326657,
+    "sha256": "ce679ba6ea1e7e7f2c3177333d6ae322e23dff4ac23b31892264b613ef872c1a",
+    "rows": 373
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260929T1610-00.jsonl.gz",
+    "bytes": 17295,
+    "sha256": "92ca2f1008c30c6e92ba70a60758445ca71acf27ff50b8409f3add42757a54f5",
+    "rows": 18
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260929T2044-00.jsonl.gz",
+    "bytes": 465956,
+    "sha256": "04e8a288c28d551f158f159d2171e700e07600035686223db309f81518398a26",
+    "rows": 494
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260929T2104-00.jsonl.gz",
+    "bytes": 24213,
+    "sha256": "573569163e9bad05815656de4ade7e500b58968d7eaba3c1b25ec7dbe23b7051",
+    "rows": 24
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260930T0021-00.jsonl.gz",
+    "bytes": 318754,
+    "sha256": "6e3fd737ccd102f28c67c05000ca6111011dcd998be456462de5e22623d62f21",
+    "rows": 326
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260930T0047-00.jsonl.gz",
+    "bytes": 36479,
+    "sha256": "fb69e3eba3e2ed5e9870048ba008790fe8fb0f5c5b06c325b5a0e2fba611158d",
+    "rows": 35
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260930T0639-00.jsonl.gz",
+    "bytes": 328440,
+    "sha256": "a19e8829330e7e8b7c125ccf50a621a534cecbd9bbfbcb632daf97b93459e963",
+    "rows": 345
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260930T0725-00.jsonl.gz",
+    "bytes": 9027,
+    "sha256": "2e7ce9ffd395753cc2b841f032ef64984ca6edf91160c16dfc57b76f1e58cbff",
+    "rows": 10
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260930T1339-00.jsonl.gz",
+    "bytes": 242550,
+    "sha256": "1ac53b6bd5cff7d36fae5f8bccf22fbdcf2ef880025cac7b28b7aa7806342450",
+    "rows": 277
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260930T1416-00.jsonl.gz",
+    "bytes": 35932,
+    "sha256": "615d5a2272da2d763d207e31a09aac64f1b73e6816f6a010f92cf3a950b10d22",
+    "rows": 40
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260930T1911-00.jsonl.gz",
+    "bytes": 558121,
+    "sha256": "8b5045bdaf0ba0e17efbf4e87450766153d0fc1ec4737074c0b79be89029d332",
+    "rows": 596
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260930T1939-00.jsonl.gz",
+    "bytes": 42890,
+    "sha256": "b15dfd4e62de341ad2ed0c2ca6fdf3393e660fae4ade223fb88ecf559a8f1d7c",
+    "rows": 43
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260930T2302-00.jsonl.gz",
+    "bytes": 349986,
+    "sha256": "fd555661ba1db74c90e282b5fd106794671c0dc2ae86af911624f69999b14604",
+    "rows": 371
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20260930T2316-00.jsonl.gz",
+    "bytes": 14670,
+    "sha256": "0ea4ac71c0cf938d3b92bd8f18f4da6b20937c86721feb2737d112f414762bd3",
+    "rows": 14
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20261001T0205-00.jsonl.gz",
+    "bytes": 282778,
+    "sha256": "dd26fcd082e4041fc736e1273342e4dd4555b521b5619dc997773aba38cc5157",
+    "rows": 289
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20261001T0226-00.jsonl.gz",
+    "bytes": 30892,
+    "sha256": "875cd9b88ea50769abfeac4ca1cc92ddeaacf92441f36a450f60bd844de3e1dd",
+    "rows": 30
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20261001T0848-00.jsonl.gz",
+    "bytes": 292952,
+    "sha256": "6ac439e33706c8db0dd8a9b26e2ffea1d0ba7235b923b2871fbdfbdff8197d71",
+    "rows": 320
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20261001T0928-00.jsonl.gz",
+    "bytes": 40320,
+    "sha256": "b80f3df8df6b0b5b211c5da5029713b5e457e30b3d568c44d437ebda3652c861",
+    "rows": 47
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20261001T1623-00.jsonl.gz",
+    "bytes": 441975,
+    "sha256": "f0484cb0c8c0b667bef30d2ad92964f42454cb54feaaaed0b28dc469295aae65",
+    "rows": 480
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20261001T1645-00.jsonl.gz",
+    "bytes": 65339,
+    "sha256": "4b974fe0d3acb86c22e9af7faadfb62971f771febbbd7f7a2eaa77d759fbbe1f",
+    "rows": 64
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20261001T2150-00.jsonl.gz",
+    "bytes": 717844,
+    "sha256": "61405ec909b44effdb9d1bd2a18e73ec93357a7d26a9c10135c04540e83b6057",
+    "rows": 745
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20261001T2203-00.jsonl.gz",
+    "bytes": 28773,
+    "sha256": "75b4f94f8300ecfc46c010e09fc66eb49a8f21a26489bb355e2111cc3f628583",
+    "rows": 28
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20261002T0139-00.jsonl.gz",
+    "bytes": 351238,
+    "sha256": "ce2ea8bc685f267de98b5a1054980856dcf2ba76889238fc2dbc64b635c0e11e",
+    "rows": 359
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmcbo3/20261002T0152-00.jsonl.gz",
+    "bytes": 30637,
+    "sha256": "d53011ed66394939df6f3fb4f25f6f1837ec18b11c1890b9bf9c49a34fc9dce7",
+    "rows": 31
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260909T1850-00.jsonl.gz",
+    "bytes": 843452,
+    "sha256": "16d45df05191a4c225eebf37095bf50a021b956d16bc4d8d030bc55275823ef6",
+    "rows": 41
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260909T2055-00.jsonl.gz",
+    "bytes": 292681,
+    "sha256": "ca8ac935cc951c6522ea529741c2febd1322dcb5a92dc2e9fcd6f99de4eecfc8",
+    "rows": 28
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260909T2324-00.jsonl.gz",
+    "bytes": 253039,
+    "sha256": "f8ea80e0d645d6f74354cfc00cc4830c56923b0b263e7384a2e35eadf1000372",
+    "rows": 5
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260910T0100-00.jsonl.gz",
+    "bytes": 199561,
+    "sha256": "c3059d60ff7d75ccecf9a1d18613c7519b90ea5ee4bacf41a904b197d64b8e87",
+    "rows": 8
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260910T0233-00.jsonl.gz",
+    "bytes": 161926,
+    "sha256": "bbbb96f2bce1352cfa119cccbba494989b2ef672272dc224144697c0fcb35cb8",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260910T0450-00.jsonl.gz",
+    "bytes": 281645,
+    "sha256": "50a8778e89794e964c895e59911197ef5901328bf4c59ea7d9727041ae198a96",
+    "rows": 17
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260910T0551-00.jsonl.gz",
+    "bytes": 105931,
+    "sha256": "3ba38a6acddb4f080e31d7d95e3ebeba24f68f3ac32b77d41108c7413d1b63dc",
+    "rows": 6
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260910T0823-00.jsonl.gz",
+    "bytes": 208515,
+    "sha256": "a243864d3588676f80a9f1ad487716fc4272ccbf2937cf32d6a447dfe7ebf9de",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260910T1015-00.jsonl.gz",
+    "bytes": 154044,
+    "sha256": "d94f6135f1f3a379ba19ab6209a8dea797d499dcae020e0fd8eb946b44bb7193",
+    "rows": 6
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260910T1109-00.jsonl.gz",
+    "bytes": 76838,
+    "sha256": "f04f3434a9ab30f89e44e5fb16b14b3b10ae60a88134975c4f6561f66e4c976a",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260910T1126-00.jsonl.gz",
+    "bytes": 24737,
+    "sha256": "38d06475855e4455b00b3c8544ea9491dc0d4e0a0b490f3352eb13323fdb7938",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260910T1306-00.jsonl.gz",
+    "bytes": 224235,
+    "sha256": "d1cb0a38fa3d0789b1439571a23fc10c1ac0f20289f4449da085d311348b2d61",
+    "rows": 11
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260910T1618-00.jsonl.gz",
+    "bytes": 473215,
+    "sha256": "0b83f65c4481588b69c03a6bba00a13237c492be8acfd77c926ec34a22fe96a6",
+    "rows": 20
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260910T1631-00.jsonl.gz",
+    "bytes": 13920,
+    "sha256": "51cda18618fa402aaf4f5543a7e44fa808ede6c2d65bce59d4287efcffaa0733",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260910T1709-00.jsonl.gz",
+    "bytes": 109983,
+    "sha256": "09e623a8502e438890f125fccaa78a0941b78796dc04de84dc8dd733b7edf75d",
+    "rows": 12
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260910T1933-00.jsonl.gz",
+    "bytes": 402986,
+    "sha256": "0fa5366420964578e19101312be1f323c36cc40b139f7b46f395367b6b3a99a3",
+    "rows": 6
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260910T2001-00.jsonl.gz",
+    "bytes": 82155,
+    "sha256": "817d3365b6ef4a7e8776150ed7b9f6e331eada0f795fdb1de2e6d906956a85a7",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260910T2059-00.jsonl.gz",
+    "bytes": 163539,
+    "sha256": "7f94f67fa37528a5621d7e8d091af42bf06afd5aaade6bb0a66eac5b5b0106b2",
+    "rows": 12
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260910T2228-00.jsonl.gz",
+    "bytes": 206494,
+    "sha256": "9789a86f22036d7f0d2bcb1ba5f9b332287e1fbda23475bb9e6ef006b3a97732",
+    "rows": 3
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260910T2246-00.jsonl.gz",
+    "bytes": 36762,
+    "sha256": "6156a7df038caadd8af0dad637f55a0725af6f1e9f6380e02fe7fe9503f33e75",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260911T0057-00.jsonl.gz",
+    "bytes": 263479,
+    "sha256": "8ce27132f1175fbebfc1469e219ae9b88d0d9978385703200a1f7da08231a836",
+    "rows": 7
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260911T0126-00.jsonl.gz",
+    "bytes": 69759,
+    "sha256": "6bed2ca7f0e32d4d3732afb66a6c3c15bdbe2a548fb3d222a87328a85a1a08ab",
+    "rows": 7
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260911T0448-00.jsonl.gz",
+    "bytes": 435178,
+    "sha256": "5375b74a06d663e35deb93313fd84d58553163182ad6f71b4c16d72bf8227108",
+    "rows": 56
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260911T0550-00.jsonl.gz",
+    "bytes": 82035,
+    "sha256": "c1ac0e0d3b2eefe7e2eaada4f69c6e04741882b8f6b278f3b48c864889ee1097",
+    "rows": 4
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260911T0637-00.jsonl.gz",
+    "bytes": 64082,
+    "sha256": "b36a4c646acea9c54ea43aa14507108cc30ce6910a270c61d8add566234de1f3",
+    "rows": 3
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260911T1109-00.jsonl.gz",
+    "bytes": 386302,
+    "sha256": "5364f37e53575bfde3c96bfe1a374550f97e116a0422f831dd6ff5835698fe88",
+    "rows": 15
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260911T1127-00.jsonl.gz",
+    "bytes": 39582,
+    "sha256": "373913e3d01e72ce87df038fa6637349f479880380c553d01a684b5f50b6e8dd",
+    "rows": 4
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260911T1149-00.jsonl.gz",
+    "bytes": 65094,
+    "sha256": "d398cf806b0261f09cf981c5e6526487b5435440a651975c7ff4a47d8268362d",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260911T1623-00.jsonl.gz",
+    "bytes": 594518,
+    "sha256": "d8372c3ac962fd641ce33241349472173a27b33b50929d48b7afb6adf94ef78f",
+    "rows": 29
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260911T1635-00.jsonl.gz",
+    "bytes": 12139,
+    "sha256": "d28a11a8ccca4a52c1dba54f58c8bd20a41796afd78ea3f24f9fc61bf99639f5",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260911T1645-00.jsonl.gz",
+    "bytes": 34927,
+    "sha256": "169f24da5fa74d96955e054135d1a3795414d4cae4d48f7383e0e721ba4d4fcf",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260911T1935-00.jsonl.gz",
+    "bytes": 346660,
+    "sha256": "3ae94ce8eb243531e9b7751755a3a7abfd1ffbd74a8e85b4b2b877533ad0ff70",
+    "rows": 11
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260911T2000-00.jsonl.gz",
+    "bytes": 58563,
+    "sha256": "8e926e4144c3d170609af378b4ac872fe120df197c63fedf1e391d94838dbb49",
+    "rows": 4
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260911T2104-00.jsonl.gz",
+    "bytes": 148450,
+    "sha256": "5a860c0c3d482e0914ed3d5c62ac9807761112c87851deca9fc8de4ad0b5cfbe",
+    "rows": 17
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260911T2229-00.jsonl.gz",
+    "bytes": 210016,
+    "sha256": "cf7edd1e64fdd149325d7233845e133cb07a47ccb980320a8e433f67fb0d13f3",
+    "rows": 5
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260911T2246-00.jsonl.gz",
+    "bytes": 28858,
+    "sha256": "aaa4bde2b6329a3e6e43d93fac14626c69eb9937ef11def2af692cde0b60d9b9",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T0103-00.jsonl.gz",
+    "bytes": 230817,
+    "sha256": "2549d6fc13af07af679c53ee2b793690e83e08daf82423091e6e139dbecf7d25",
+    "rows": 16
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T0131-00.jsonl.gz",
+    "bytes": 51980,
+    "sha256": "1057e8c70bdc7717abb1f9e545fa45410420c64fcbfdc51884e94a7733e17055",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T0441-00.jsonl.gz",
+    "bytes": 328128,
+    "sha256": "e42f2c70d1b67fc192b5de0e04ef983bef1318ffe63e56398a006612272ee4b2",
+    "rows": 24
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T0539-00.jsonl.gz",
+    "bytes": 87527,
+    "sha256": "8bcfe3267b07d5c35e59683b67ec12829f8d50b6ad7f50faea7b9882af737901",
+    "rows": 8
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T0628-00.jsonl.gz",
+    "bytes": 76567,
+    "sha256": "2ccaf25dde3c8c1ecb6b0f91d7245dd71d2125e28b1455a74e2ec3b9309fad52",
+    "rows": 6
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T1038-00.jsonl.gz",
+    "bytes": 301326,
+    "sha256": "0139e614e68e6651bf502c4fd0710e9401a7c6805400bf79cd46c2f1a83dd39c",
+    "rows": 26
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T1054-00.jsonl.gz",
+    "bytes": 18828,
+    "sha256": "449203e4bdbbfd4ce98c004a2211eb3b1579826f0a4478b67feacee8224ac445",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T1114-00.jsonl.gz",
+    "bytes": 36304,
+    "sha256": "2e430b45f97c9cc75137e070741d512e58915f6bbe06c5cc9252e7342eeb0950",
+    "rows": 4
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T1401-00.jsonl.gz",
+    "bytes": 240213,
+    "sha256": "9036e32e6ded0da7a2d131029584a9fbb36e6fecab602072431805d541d37f44",
+    "rows": 22
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T1421-00.jsonl.gz",
+    "bytes": 37597,
+    "sha256": "99339a17c263c293c197a88d68d2b00f8f239a1500b067ca2a4683367405ad6d",
+    "rows": 4
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T1538-00.jsonl.gz",
+    "bytes": 127868,
+    "sha256": "54317d5af343c9904b069cb7b90a0aa7f222313524aee417dd298b35e4f0296b",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T1658-00.jsonl.gz",
+    "bytes": 121624,
+    "sha256": "e46e1146a197b94bd7ad88b46690ead56e658c906e1a8330b667fbd9cce08324",
+    "rows": 10
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T1726-00.jsonl.gz",
+    "bytes": 41447,
+    "sha256": "403b3282479509131e82ace3895d87580099518499c119b200c1057f5a49b993",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T1911-00.jsonl.gz",
+    "bytes": 172612,
+    "sha256": "e3e227b14a3f7b00cc9331b9aae881a07fc7595a8d9bb10870940bed097e46a3",
+    "rows": 14
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T1938-00.jsonl.gz",
+    "bytes": 51139,
+    "sha256": "49521606d9b8f30daa56ec09a7aeded0c8958bd16c9b95fa383a9029eaa2467b",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T2044-00.jsonl.gz",
+    "bytes": 118978,
+    "sha256": "7003542c0360f9047bba75a17037a49ccbb35586d33271e27bcdb6948fdf60de",
+    "rows": 7
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T2212-00.jsonl.gz",
+    "bytes": 168218,
+    "sha256": "a447fb28b2115b74fed95ddee70aaa65eb5b5e1b3e6c1a54daec420335081392",
+    "rows": 15
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260912T2232-00.jsonl.gz",
+    "bytes": 45238,
+    "sha256": "376c6f23452ca2065d6a9fcfa2c390c32360a3ebe4ac775117268426f7840b64",
+    "rows": 3
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260913T0016-00.jsonl.gz",
+    "bytes": 203254,
+    "sha256": "f878c30087f625e53497cdb9dbb270e0abe5258d24dc965ffb0330548d649469",
+    "rows": 9
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260913T0051-00.jsonl.gz",
+    "bytes": 54690,
+    "sha256": "e559ad4fd4a99933f715b7ec8146105d61ea660b8a94ba4025fe8cfaa69ddac6",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260913T0455-00.jsonl.gz",
+    "bytes": 404488,
+    "sha256": "5f646db1704001583faad602382fd416acfe0da90c6f6705f3c7259d2f4909d1",
+    "rows": 23
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260913T0520-00.jsonl.gz",
+    "bytes": 45408,
+    "sha256": "884d81f0ce14705ff3e8cee149af41871d0641b026e67a9755eadfd09a0a0cf7",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260913T0559-00.jsonl.gz",
+    "bytes": 60659,
+    "sha256": "8e2ad4988f219a70aa4a677dd5e6aa157153ad3057ccb013ee0b1e4ed55ecc29",
+    "rows": 3
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260913T1036-00.jsonl.gz",
+    "bytes": 328469,
+    "sha256": "b52d672d8f4cbd4eb8b30f6229f7dd529f2c50bef9e6f550ee1724e31d417d14",
+    "rows": 12
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260913T1141-00.jsonl.gz",
+    "bytes": 83210,
+    "sha256": "bef27088bb5d761382b6417f945746ae212009d51adeced39a412063a3347f44",
+    "rows": 3
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260913T1159-00.jsonl.gz",
+    "bytes": 21921,
+    "sha256": "c24bf4e38df45b1b27dfce9bfc5b3cac12a6650174ea5def15e72132e46cad49",
+    "rows": 3
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260913T1441-00.jsonl.gz",
+    "bytes": 192150,
+    "sha256": "96e50b9c625d24206e459a946cb3cb24577d89b0c8ba1e04a63801f40c5f885a",
+    "rows": 4
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260913T1609-00.jsonl.gz",
+    "bytes": 123241,
+    "sha256": "d6de052bbc14af00581b25babd46e4990949264655161da1cb062b9cb45fa957",
+    "rows": 5
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260913T1624-00.jsonl.gz",
+    "bytes": 21093,
+    "sha256": "28af4cb622a28ce8cd8eb245baebbda3723ca7a8ea5370fdb29f76a339402223",
+    "rows": 3
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260913T1821-00.jsonl.gz",
+    "bytes": 236871,
+    "sha256": "5f8d339b1523f5155ffe092200e7e9e2973caddfc06d8171287922dad4a3f6d7",
+    "rows": 16
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260913T1921-00.jsonl.gz",
+    "bytes": 110496,
+    "sha256": "e468e9e8b428d4270f6af2ae7dd552bb7e546beda9e97bf2d02e9cd4f39ceded",
+    "rows": 8
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260913T2057-00.jsonl.gz",
+    "bytes": 147094,
+    "sha256": "cd18a3740a636e1fa452867e9bc0cadba61c84e6748f79c355671431c54b9d2c",
+    "rows": 8
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260913T2108-00.jsonl.gz",
+    "bytes": 20952,
+    "sha256": "8bcbc73fe36e96fc3a3b96a610eacbbb2754ea35105360dc6faab513ca87c7e9",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260913T2221-00.jsonl.gz",
+    "bytes": 135949,
+    "sha256": "1f31977de4ced72c94217b35d3d324af48decdc1bdbea250e502313fc0b83c0d",
+    "rows": 8
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260913T2328-00.jsonl.gz",
+    "bytes": 106649,
+    "sha256": "916f234d5da8afcd7aa081cbd0ca7de5198e4717979392e0db11f2b5e1108be6",
+    "rows": 13
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260914T0058-00.jsonl.gz",
+    "bytes": 138201,
+    "sha256": "1a492860d565ab6d2bfcfd77d6a19952e189c4dddfe9166aa465b4ec5e025d47",
+    "rows": 5
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260914T0136-00.jsonl.gz",
+    "bytes": 60755,
+    "sha256": "d4b07c9dbc89e387406f8226090921f3a5776531f68b314e1e58a185e4db5721",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260914T0503-00.jsonl.gz",
+    "bytes": 248748,
+    "sha256": "3295541e77b61171e3b5a3262c56e3fe41a2728f388d52752dbec9555b06508d",
+    "rows": 18
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260914T0606-00.jsonl.gz",
+    "bytes": 81988,
+    "sha256": "d56391a8a8aa559696bd936e6b5be2c0b42ccd01d3452b71e8910b06000eeb9f",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260914T0705-00.jsonl.gz",
+    "bytes": 71058,
+    "sha256": "e557db87f6a2bfec69dded0ea4c566daf403467cec67b7ae2f24ad85e8cb8baf",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260914T1237-00.jsonl.gz",
+    "bytes": 405076,
+    "sha256": "49fb9665066aa2df610cff47418de0c751bd6f4ce6dd3b000b9a16befd374e73",
+    "rows": 19
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260914T1255-00.jsonl.gz",
+    "bytes": 30109,
+    "sha256": "3b7f8771d67522d5d7e97a633a034d301841b0e23d349b2a8ea1a3a377a256f0",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260914T1425-00.jsonl.gz",
+    "bytes": 180882,
+    "sha256": "2e975c65efe254f94317859a5234711a72fd6d27bebd1163692e1daacd6b8c57",
+    "rows": 8
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260914T1833-00.jsonl.gz",
+    "bytes": 543769,
+    "sha256": "087a066bf45c1f0c570f72a2e9d43add5406d6dc84fba9066e577af5fc03502a",
+    "rows": 35
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260914T1936-00.jsonl.gz",
+    "bytes": 93290,
+    "sha256": "24121eed3d0daf156f296ddf9b980432e56dd2c3b6cf16fbbe596acffa5cfc3c",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260914T2156-00.jsonl.gz",
+    "bytes": 284609,
+    "sha256": "1dce0cca2c0dbfb92569194381261495b48b8c909a1288e63d0e2c366c23a5ee",
+    "rows": 16
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260914T2226-00.jsonl.gz",
+    "bytes": 78561,
+    "sha256": "e5647457b4bf75bbe8b68805d0679633cfe1eaa6a600873c45c7b4fb8e1c6656",
+    "rows": 3
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260914T2245-00.jsonl.gz",
+    "bytes": 37618,
+    "sha256": "58203bfeaecf7910aa65c716aaef691ee1579d97be0ff237a7370e52966eb273",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260915T0124-00.jsonl.gz",
+    "bytes": 344976,
+    "sha256": "bbea337b7ebb167422d3a45a0c5a0a3a0a9e4b68603192f0f02e069127c9b1c4",
+    "rows": 16
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260915T0154-00.jsonl.gz",
+    "bytes": 51223,
+    "sha256": "117f0de1d5e8ad0dd0f5b1d7e8388c319f456203194c325e61b3c929e871467a",
+    "rows": 4
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260915T0502-00.jsonl.gz",
+    "bytes": 310241,
+    "sha256": "60c4c042f3ef291dfbd016da4b0933c6c67a065eee3d3191165d0e415cfc653c",
+    "rows": 25
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260915T0739-00.jsonl.gz",
+    "bytes": 221804,
+    "sha256": "bad1756f86527aaa11557447197e2f9d26e5d012657bc086f90013b855796a81",
+    "rows": 9
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260915T0802-00.jsonl.gz",
+    "bytes": 27596,
+    "sha256": "8111c37bf9df502361c7b365c6452a533a00e2bc55417013e9eb1124dd9fca17",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260915T1151-00.jsonl.gz",
+    "bytes": 243851,
+    "sha256": "70c6b0c49812cc01a53b6c17b14e75cbae09f9ae37270e447ecb03ea8e905722",
+    "rows": 5
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260915T1328-00.jsonl.gz",
+    "bytes": 153130,
+    "sha256": "5bcffe6c9318bd0520b7d3214a899c471363a5507e30995009dbfa4011d330cd",
+    "rows": 19
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260915T1352-00.jsonl.gz",
+    "bytes": 52028,
+    "sha256": "cb18fb60a59bf8daf616d641a25903fd792084608577646bb703bd6e81110ea1",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260915T1707-00.jsonl.gz",
+    "bytes": 425369,
+    "sha256": "3ecb740722f1f8459716536cea4b533ce144853a150f62417588ce04840ef786",
+    "rows": 24
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260915T1808-00.jsonl.gz",
+    "bytes": 157569,
+    "sha256": "1bc3a81f5aec03aa9f22906d09fc9f033b7a6508824a300412c24092573d0871",
+    "rows": 11
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260915T1829-00.jsonl.gz",
+    "bytes": 38120,
+    "sha256": "dc5e4ad8a6135150a9ac43513e66fd260652aff2472d2bb57fdd5e476d9858d9",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260915T2117-00.jsonl.gz",
+    "bytes": 363072,
+    "sha256": "be977c34d5a03b60ebea18c8dd341c8176e2897ca783c19fcaebde74f08af55a",
+    "rows": 31
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260915T2127-00.jsonl.gz",
+    "bytes": 15677,
+    "sha256": "d5d2320e1dea991a0ab26eb200cdb2accac641b7d3aff47f8a187a68a2a15ac7",
+    "rows": 3
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260915T2145-00.jsonl.gz",
+    "bytes": 32782,
+    "sha256": "e615da831a257270491fe84459c5e72b2c18df0cbcf3f768c9a23bff300287d0",
+    "rows": 4
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260916T0011-00.jsonl.gz",
+    "bytes": 281134,
+    "sha256": "04d9c53849d21005f73fc9fc84501cdbec32d2324885f23c79ea43ce5c5991d3",
+    "rows": 7
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260916T0047-00.jsonl.gz",
+    "bytes": 58105,
+    "sha256": "e4cd9fd6f27eb210f25cd5a5de283f125c703c985c1d76af4bc78ace49abb4e8",
+    "rows": 7
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260916T0455-00.jsonl.gz",
+    "bytes": 299176,
+    "sha256": "44194f998411be91f0187668ec1b4564df67f705fd504ebce558cba480996766",
+    "rows": 14
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260916T0556-00.jsonl.gz",
+    "bytes": 49662,
+    "sha256": "40e1277ffd350c2c58099ea2c2de6f5690cdaf9cf9e2d11dcb209c011a0ffd5e",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260916T0642-00.jsonl.gz",
+    "bytes": 47751,
+    "sha256": "bdc3a622ce853997a74ddab20a95b5e2c04af8bd10b4fa47f135aa66a4040ede",
+    "rows": 5
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260916T1125-00.jsonl.gz",
+    "bytes": 296034,
+    "sha256": "c5175b873d76bc63c18663658696a0ad0fe752f703994d17498e9523b56f7341",
+    "rows": 33
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260916T1142-00.jsonl.gz",
+    "bytes": 16097,
+    "sha256": "4e4494450ebef8353ec04e1bb971459682a47d3fa43c1c5e10b1e57847ead593",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260916T1250-00.jsonl.gz",
+    "bytes": 121068,
+    "sha256": "8292a9965fb75648b23848f2be6c3ea099dbba46f2835d782fcb92acbef42b94",
+    "rows": 3
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260916T1645-00.jsonl.gz",
+    "bytes": 506816,
+    "sha256": "68f1b1fe6ff49f195d3a8ca348a55513ccac0b8092aa7484b7625df6cbdec584",
+    "rows": 9
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260916T1703-00.jsonl.gz",
+    "bytes": 28406,
+    "sha256": "78a8ce3c4da571e0f6cb20871cbc681313876756c2681b281f59c35851fd5b3e",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260916T1745-00.jsonl.gz",
+    "bytes": 110762,
+    "sha256": "89724912ccd2a9c2cc7453c4ae9e59a44061bfa7b5de1fba44cc1e3a52a5f788",
+    "rows": 13
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260916T2002-00.jsonl.gz",
+    "bytes": 270461,
+    "sha256": "c83d4b9a66d545da78ad15e546d10ab14b05e9bb581739b7e5508c17391bb429",
+    "rows": 14
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260916T2126-00.jsonl.gz",
+    "bytes": 159091,
+    "sha256": "eb65c159c399070a79ab61161272d15f4b6094713712c181e1fe7df59d536657",
+    "rows": 7
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260916T2142-00.jsonl.gz",
+    "bytes": 36226,
+    "sha256": "4824c2416a5c44eac1e6cbca6b0bed564c4e47f7f844a10af48ed99caa0f5a80",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260916T2253-00.jsonl.gz",
+    "bytes": 131881,
+    "sha256": "671f30273f5d2938ff15be4b7107cbde4ac5288b0a2493529a23515377343197",
+    "rows": 4
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260917T0053-00.jsonl.gz",
+    "bytes": 175951,
+    "sha256": "419aefa83e3beb0cefa918a6ab7e75c9606bc4c4d11ed898cf468f413bf54b35",
+    "rows": 10
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260917T0120-00.jsonl.gz",
+    "bytes": 40457,
+    "sha256": "ac2a139a86bc485fc4a020263d87ac00ddbe7a482c0c8902b20c0b96811a21ab",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260917T0501-00.jsonl.gz",
+    "bytes": 265561,
+    "sha256": "74e3007b2eb6ea8ec9c88eeb25c8f3b19e61ad98d873cfd643f1fb2e975570f7",
+    "rows": 11
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260917T0638-00.jsonl.gz",
+    "bytes": 123432,
+    "sha256": "58dd31e3975c42754ea22ac38468dbc6a626620ad10b26ba273e1ce98f92e3ea",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260917T0735-00.jsonl.gz",
+    "bytes": 51951,
+    "sha256": "445d767a3401e223a37cc2392b182503f37f5ca67cbe132107a1846f31087b63",
+    "rows": 9
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260917T1149-00.jsonl.gz",
+    "bytes": 239078,
+    "sha256": "18b3267a48772af034aef749802e2dc4d205371df715bf09d5e240a5661b8189",
+    "rows": 9
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260917T1206-00.jsonl.gz",
+    "bytes": 23912,
+    "sha256": "1523b7ab5ed2763fe0591882cf7f3fa3056a7fd3f1be075a27535b1a1c6857a9",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260917T1324-00.jsonl.gz",
+    "bytes": 92965,
+    "sha256": "f95ffe0f447d9e740ebb9eb50a56273e35dbba771a25ae48cd28dee4708a71d5",
+    "rows": 6
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260917T1708-00.jsonl.gz",
+    "bytes": 327472,
+    "sha256": "a022dd76e3a33fd0545e7aa511ef7ae88ab9e86be8facd8de02d59aa851cb771",
+    "rows": 18
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260917T1717-00.jsonl.gz",
+    "bytes": 21452,
+    "sha256": "e998ba3515c505f1700db3d3f6995a71759c933988d42a5d3a92ef03560e5b6a",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260917T1810-00.jsonl.gz",
+    "bytes": 82104,
+    "sha256": "29f2f98bb6eda9150eb8e186c291dbf4e803cf2476bc464f291b24d3811c52b8",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260917T2034-00.jsonl.gz",
+    "bytes": 269044,
+    "sha256": "8f12de01e86dff9b27e70ac003d715cdb9d5e3947ec98065111b2d0ec5974c8c",
+    "rows": 11
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260917T2130-00.jsonl.gz",
+    "bytes": 92245,
+    "sha256": "29676dd0e5586649f2ae5895ebebe7576b67d48fde14011c7ac7403bfafad18a",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260917T2207-00.jsonl.gz",
+    "bytes": 63215,
+    "sha256": "3a21cff3045bcd90620099033efb2306e02fee774c2a6b239781471476486894",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260917T2305-00.jsonl.gz",
+    "bytes": 114948,
+    "sha256": "7cd2fdae4a541ab545152b7e1ce7576e360100a32218c50438a38fcb64cc2cb2",
+    "rows": 16
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260918T0011-00.jsonl.gz",
+    "bytes": 110027,
+    "sha256": "e733500c8ec5a3b869ed9e44f787c013e559c5baedb3ec0d5b1389f4e690716b",
+    "rows": 9
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260918T0128-00.jsonl.gz",
+    "bytes": 117206,
+    "sha256": "aad94807dfc5778949e1069281dd5219a26cf9be6803add07ab170b7f03cfd08",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260918T0451-00.jsonl.gz",
+    "bytes": 246759,
+    "sha256": "53861a52e8207c788357e95814a1d0cffbb7067fc41266c6858c0f1abffd2a3d",
+    "rows": 11
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260918T0550-00.jsonl.gz",
+    "bytes": 117975,
+    "sha256": "ac92b46489678d15f870e8525488f0fef419cd41fe2571dba68454ddb579e00f",
+    "rows": 8
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260918T0638-00.jsonl.gz",
+    "bytes": 95619,
+    "sha256": "d98fef1ed9f20d34c0dd0da4d3eb0c2138f0155d4dd2cb8b9b0cc8ea8710b831",
+    "rows": 6
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260918T1106-00.jsonl.gz",
+    "bytes": 468045,
+    "sha256": "833652337500609f73c2159dd823c14f2f9a83fb3d0266354b890c58526ff93f",
+    "rows": 9
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260918T1123-00.jsonl.gz",
+    "bytes": 22161,
+    "sha256": "f91a881afeaffe1587293f0404a7c0dda311f567e41f1f8cf725c31203d88a53",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260918T1150-00.jsonl.gz",
+    "bytes": 69201,
+    "sha256": "61ec9e7dc11df0be8f0dc19d52a528d7b7f10858a7d45cf84513b93ae4104071",
+    "rows": 5
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260918T1457-00.jsonl.gz",
+    "bytes": 266932,
+    "sha256": "d7cb3db1ae87fb62a52ebfbec982bd47533fd5afd8dcdc84576a281ae3ac2647",
+    "rows": 7
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260918T1632-00.jsonl.gz",
+    "bytes": 178074,
+    "sha256": "0e3e6b6147ad0007ec173dfbc68aad5a605ff8caac62b9f2e00d6188094f0e6a",
+    "rows": 7
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260918T1644-00.jsonl.gz",
+    "bytes": 31319,
+    "sha256": "248acff751dde34a5b2f1a98f9787384a8abf9434d280a9d95562e41a6bf2486",
+    "rows": 3
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260918T1821-00.jsonl.gz",
+    "bytes": 223797,
+    "sha256": "5f274f8af20494998c581c720922cdfa127b70dd87fbc320f74cc764d9964a1f",
+    "rows": 8
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260918T1958-00.jsonl.gz",
+    "bytes": 155529,
+    "sha256": "9eaad2a9c17908d87f178860281d71f8ddc19025f6f4ab70c56f40405187f4f8",
+    "rows": 5
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260918T2101-00.jsonl.gz",
+    "bytes": 100765,
+    "sha256": "ac19532b591c383086c8a0c4bae892b7445fead2b2d73126eed55af2a425ca57",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260918T2138-00.jsonl.gz",
+    "bytes": 92272,
+    "sha256": "195f47219718ed6dc4847d0016b13c3fb4b841c65049f931e7b96140f2379636",
+    "rows": 8
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260918T2250-00.jsonl.gz",
+    "bytes": 129794,
+    "sha256": "be4bc7ab459033c0b3e6813e246a2c1a716c1be73798efd8a6bbb51bd474c27b",
+    "rows": 10
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T0012-00.jsonl.gz",
+    "bytes": 116518,
+    "sha256": "4199b0a1f920d0c1932766875c274ea2255c52d91ee3d03ef386c5a7c0af69e9",
+    "rows": 9
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T0134-00.jsonl.gz",
+    "bytes": 96774,
+    "sha256": "8ee4957c6b38b0c9a17fea0d8e00210a00f27a8478ba24a0089f16ba26952426",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T0445-00.jsonl.gz",
+    "bytes": 182180,
+    "sha256": "e2523f9829619f8bda90782d4afb530b69188503b94880bccc43491778c76046",
+    "rows": 5
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T0546-00.jsonl.gz",
+    "bytes": 92002,
+    "sha256": "472d23fe72238a1173ad8185b6e8761f96204cb0c8e520ca2e3c1840c19dd400",
+    "rows": 5
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T0636-00.jsonl.gz",
+    "bytes": 59863,
+    "sha256": "d290aef0fe6e43ada7b744c7f1b7d85035c0ab1f00724e8f76adf2691072b8f9",
+    "rows": 7
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T1051-00.jsonl.gz",
+    "bytes": 236681,
+    "sha256": "d86a495016db497f1d9f87092df3778349f7535dcfb0fc4459bf08cc04e9b7cb",
+    "rows": 11
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T1108-00.jsonl.gz",
+    "bytes": 12366,
+    "sha256": "f664ceca97c43fd88fabff676b09f7a3b38b4d1a3d3ad6639a4fa558cdc0f057",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T1131-00.jsonl.gz",
+    "bytes": 15287,
+    "sha256": "3e76576219fd05eb7753bb284382f3d120aca7a183bc2ba0c847907fbf008d7a",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T1421-00.jsonl.gz",
+    "bytes": 155476,
+    "sha256": "b3b8d5349cb626a8fba090420dc5e1ca3f703db3c39f598367478d6426b57f31",
+    "rows": 6
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T1447-00.jsonl.gz",
+    "bytes": 31402,
+    "sha256": "ceebc43fa9e94244959e6ed78723d2716e41371e9b5b4423ce46a83254f1d241",
+    "rows": 3
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T1600-00.jsonl.gz",
+    "bytes": 76488,
+    "sha256": "7bb1c2c9386f5001d79d7425f8b7c6ed33099336a9b29655ac6619b0a03c72a2",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T1758-00.jsonl.gz",
+    "bytes": 212126,
+    "sha256": "ac6bc163cfa492042c471a09d4b17118da5f5c0cec3bf14907172128d2f9f182",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T1814-00.jsonl.gz",
+    "bytes": 18302,
+    "sha256": "64a10744218c37773918a5c0c12b984ec5b96ad89288bfbde723e845fec91d19",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T2033-00.jsonl.gz",
+    "bytes": 257374,
+    "sha256": "8fe589357028daa38fd03f8e75fa0b43cb9e73fac5c93c612be5f50f3a880e4c",
+    "rows": 7
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T2047-00.jsonl.gz",
+    "bytes": 14692,
+    "sha256": "a03a88c95358c6bd265360140ab0e3f3f293c59ef99591cf2816573dfc29bdde",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T2100-00.jsonl.gz",
+    "bytes": 22738,
+    "sha256": "828d1b6af022be97c18543c998c8cbdf4f891c0634b45ac7ef72b62768c16bd9",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T2256-00.jsonl.gz",
+    "bytes": 148967,
+    "sha256": "261255c680399a0cbc2e582e676118bb702b8d0f3bac59976063199a4706bccd",
+    "rows": 7
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260919T2330-00.jsonl.gz",
+    "bytes": 60374,
+    "sha256": "434b7cf5b0bc514f43e49f1b5089deec6c586361fa5f0002948d6cb77595018e",
+    "rows": 12
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260920T0101-00.jsonl.gz",
+    "bytes": 124230,
+    "sha256": "5825c3f94e96bc4ec9eeca4faaddc15b6f45b4f5614f09b792fe7989be7a8222",
+    "rows": 6
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260920T0136-00.jsonl.gz",
+    "bytes": 58386,
+    "sha256": "7ce55883a000569c2493fb251aadef9f0790833f30cc17357d57ec1804e03659",
+    "rows": 7
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260920T0502-00.jsonl.gz",
+    "bytes": 227243,
+    "sha256": "40a2cfd321123600c9969a822b4a663a8fbe022f0f2bfd88a6c46e6af9db6d38",
+    "rows": 18
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260920T0605-00.jsonl.gz",
+    "bytes": 69219,
+    "sha256": "7da5858ef6e806f6abb0e1e6f175773b76d9e24beefd6ffbd1fb41d69adc956b",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260920T0659-00.jsonl.gz",
+    "bytes": 36708,
+    "sha256": "3f93e3a88fa4a71d9dadb0ba5eea71eba9a4f0e6b3cb3a89ebb33c29a1e27c1c",
+    "rows": 6
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260920T1115-00.jsonl.gz",
+    "bytes": 181555,
+    "sha256": "2714e7c433a6f6b36c100d7ca5cc38046c892a0b20c269c343a8e7918034a74e",
+    "rows": 3
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260920T1132-00.jsonl.gz",
+    "bytes": 17519,
+    "sha256": "b4eef46e69240ec758d816268ae56d077ad43f3e4fdcf7e011f8622c4d077603",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260920T1238-00.jsonl.gz",
+    "bytes": 83891,
+    "sha256": "f196608dc83ce147eafb186aaeef9f0ad191b2753787104679d1d163955a37a8",
+    "rows": 7
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260920T1559-00.jsonl.gz",
+    "bytes": 214383,
+    "sha256": "bb08c550fd247e7c0f97d5383d72f5c9329d7a2c52013fe4db2cf821a30af5be",
+    "rows": 19
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260920T1613-00.jsonl.gz",
+    "bytes": 8884,
+    "sha256": "2859f4696e1769cab01bbe6a75deeb45d5b171f146eb2b1c3edd80c2ba7db72c",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260920T1630-00.jsonl.gz",
+    "bytes": 30975,
+    "sha256": "4b0c5fe84cd4a286e33ccd1cd225bc867d37344ca8c42ac39f8ffc10df61fc9b",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260920T1844-00.jsonl.gz",
+    "bytes": 153340,
+    "sha256": "b177b9976138f2280852f75cc4c84dd40a49a4e03d1590aefa81ee72cdcc05f5",
+    "rows": 4
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260920T1904-00.jsonl.gz",
+    "bytes": 28201,
+    "sha256": "6c0240dd340ff9323843cc130eb9cefebf6d21105932492a59d6dfc94985cd89",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260920T2056-00.jsonl.gz",
+    "bytes": 123334,
+    "sha256": "a49ddbe84f35ca674073351211f21b6710b9c34887396b35621cf5c9190c9a6b",
+    "rows": 10
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260920T2129-00.jsonl.gz",
+    "bytes": 43009,
+    "sha256": "448e042054455578bd5e1eda001c05d5c639b7ecc4cc015b8927fba639a453be",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260920T2149-00.jsonl.gz",
+    "bytes": 21925,
+    "sha256": "c2fe9c7231f96f654e9a689cbb6c675f4683d314f359ddac61de80718738631b",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260921T0010-00.jsonl.gz",
+    "bytes": 197477,
+    "sha256": "f5c24582846ca0da1fe688f1e9350f1b0f2559af98ce1372e316d94ccd0aaf26",
+    "rows": 9
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260921T0030-00.jsonl.gz",
+    "bytes": 27881,
+    "sha256": "5858592d2dcea7b1287ec1cbbe95f7d286a11b1e1ff30d67f9ad0dd5427473ff",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260921T0527-00.jsonl.gz",
+    "bytes": 380319,
+    "sha256": "135404b8add59f0864145869ccbb3ff8513b128878271a857cdadbab6f2bc1aa",
+    "rows": 13
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260921T0612-00.jsonl.gz",
+    "bytes": 26607,
+    "sha256": "f0e3989de9094fd5946c61e917f81a291f717a15a3f74c93f1eee5cc1ab4ca32",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260921T1107-00.jsonl.gz",
+    "bytes": 222270,
+    "sha256": "f5c616edb0e28f27b8b43051b3d36aeff6b50495fc087281197f69c233abb880",
+    "rows": 9
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260921T1358-00.jsonl.gz",
+    "bytes": 183594,
+    "sha256": "aabdfd07658c65a7d539c4d68a5803d3808c8473a90c6c75c7155cfc255fb372",
+    "rows": 13
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260921T1713-00.jsonl.gz",
+    "bytes": 359462,
+    "sha256": "f52e65da8965d4f453bb20225709023da610d322ce1ba90cb707ac20c7996c50",
+    "rows": 23
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260921T1920-00.jsonl.gz",
+    "bytes": 241228,
+    "sha256": "e7f8a7c524e6cd6039fd6849cddd7a2e52a29cddaf2bdbe57d9ee537292049fd",
+    "rows": 9
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260921T2116-00.jsonl.gz",
+    "bytes": 233973,
+    "sha256": "43e85f8928e86e62095bd6a39c66f1394fb2da5919a5982067fcd2c854e56dd9",
+    "rows": 11
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260921T2314-00.jsonl.gz",
+    "bytes": 194469,
+    "sha256": "58140cb6569cd3896fb48a84803e3ea8ca95b15ed198ecefbd9cbc638681fea1",
+    "rows": 14
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260922T0018-00.jsonl.gz",
+    "bytes": 90881,
+    "sha256": "e859d927a9e647455e22fca484c6ea7ebf6af7944a428508fe150af5de9fcc22",
+    "rows": 6
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260922T0444-00.jsonl.gz",
+    "bytes": 372925,
+    "sha256": "641703090ed9d6421f706ceeeb88e7f55c726ec5189e2a348a04e7c7c164faa8",
+    "rows": 21
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260922T0522-00.jsonl.gz",
+    "bytes": 62265,
+    "sha256": "b2a38f80013721665efcb4f5cefca8ca38c7bdc46f8c48db3bbaf787c835f3cc",
+    "rows": 4
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260922T0953-00.jsonl.gz",
+    "bytes": 272142,
+    "sha256": "7a51319057f6ed13246fbafa262318cbbdf9e45365a5cfe902ceef7f5c14739a",
+    "rows": 4
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260922T1019-00.jsonl.gz",
+    "bytes": 26556,
+    "sha256": "17b357a3f30277b946f1505c9adaf75323026da3c17ed9078acbbe4db79c67b5",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260922T1443-00.jsonl.gz",
+    "bytes": 366832,
+    "sha256": "845f874ba0004fedb7a79f4329d15950c70b1a58fe70f4877d76b8bb11c308eb",
+    "rows": 17
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260922T1512-00.jsonl.gz",
+    "bytes": 47113,
+    "sha256": "88b7f56c653a8efd5a018cd4cf54508e5ae1c4891b3db7205aed8df9f2ea1d59",
+    "rows": 4
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260922T1848-00.jsonl.gz",
+    "bytes": 401698,
+    "sha256": "dbdbe6b29f66a3b70255d09500e1175c4c3cc458e70362e9701699a414688cd0",
+    "rows": 13
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260922T1908-00.jsonl.gz",
+    "bytes": 42631,
+    "sha256": "f61f1c98d467c354ad0f069202abbe6f234152024f52fc37d73e1866887fb4c2",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260922T2202-00.jsonl.gz",
+    "bytes": 352894,
+    "sha256": "592626009c0257a97b9a2c977e9d069ec94255ab4b18bd51c84357aea9eb0766",
+    "rows": 14
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260922T2226-00.jsonl.gz",
+    "bytes": 44946,
+    "sha256": "85c217b508b7aea9fba9b7e5fef28e017f72cec27591c18347d33b24383dcae9",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260923T0022-00.jsonl.gz",
+    "bytes": 211576,
+    "sha256": "fea58f4e28f49e75cf7945613f10adf1fc9653316364e6f10fa5a627e8e5f252",
+    "rows": 5
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260923T0056-00.jsonl.gz",
+    "bytes": 65308,
+    "sha256": "08adfb091783764ce6ff08973c383374d42a5e72612a482ae78b5c3527737047",
+    "rows": 8
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260923T0553-00.jsonl.gz",
+    "bytes": 450399,
+    "sha256": "18127000ec69d4d992139df414308d8877c2023ddde36a6734610149ceaffd85",
+    "rows": 22
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260923T0639-00.jsonl.gz",
+    "bytes": 52285,
+    "sha256": "8ca43a1e39257d93fcafbafa1fdf6bcb75e724cd30f994d15b483f7f236fe558",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260923T1126-00.jsonl.gz",
+    "bytes": 303451,
+    "sha256": "da81ab629a5b1985c503e0b278f6664bd77b40e6640549c309dc59fb70af9637",
+    "rows": 38
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260923T1211-00.jsonl.gz",
+    "bytes": 50893,
+    "sha256": "d91938730309c3113060655d3f22dfd5a5832307aedcc0cb91dbf492102c9f39",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260923T1649-00.jsonl.gz",
+    "bytes": 398258,
+    "sha256": "8b59d7d957c9db36ae05e5b2a56e9d339b5c962005e8c7c5a8ecc72e65b91cc3",
+    "rows": 17
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260923T1729-00.jsonl.gz",
+    "bytes": 86912,
+    "sha256": "85b2254aa18092ef9aa2b2d556939cb535f88bf196016a05d28fb66cfa86dda5",
+    "rows": 7
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260923T2014-00.jsonl.gz",
+    "bytes": 371631,
+    "sha256": "6ae32dfe0b29fe075f1370a8ec8f1e50de8a38c3a1a7d9033e2bde64f27bc9a5",
+    "rows": 19
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260923T2043-00.jsonl.gz",
+    "bytes": 79286,
+    "sha256": "f8c8e185d63ae68a56c3beb88ac308ed5cdfa4e4d309a2b52a8245651512a5b2",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260923T2338-00.jsonl.gz",
+    "bytes": 321519,
+    "sha256": "6f86bd6ef031b426eb93053ad799dbd1c630cbabf9720320490778b6efec944d",
+    "rows": 8
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260923T2359-00.jsonl.gz",
+    "bytes": 42024,
+    "sha256": "6117d04af0389b8dbe4174048cfcc54493bf7b9d43a7646b27000bafc81c3940",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260924T0437-00.jsonl.gz",
+    "bytes": 471530,
+    "sha256": "6080bf254d937bc868612b5ddc713845b071153ea9742bed34f362c23d3dee37",
+    "rows": 20
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260924T0522-00.jsonl.gz",
+    "bytes": 73599,
+    "sha256": "11cfffc3ffb9b9b2be706bed8f1e451411eb014cf4f51f1fbe196b8c13abb521",
+    "rows": 3
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260924T0957-00.jsonl.gz",
+    "bytes": 257037,
+    "sha256": "d9e004d32a4e369ce5e662be31e8c26b06af55db56259c42296ca11f33b04e6e",
+    "rows": 10
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260924T1031-00.jsonl.gz",
+    "bytes": 34849,
+    "sha256": "654246a53cfd1fae803caece285fa54d53aa8403e72fcce763f6f76c2d5ff3a0",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260924T1458-00.jsonl.gz",
+    "bytes": 371901,
+    "sha256": "a7816055add9ab15d2d7d9d37f553d684ba60ea7a8fa94254ec37aaca15d27bf",
+    "rows": 11
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260924T1532-00.jsonl.gz",
+    "bytes": 65798,
+    "sha256": "5ce69976810a2d2ceb4d0c8578d87e132a4b0099adf3da848544636597d9fd07",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260924T1905-00.jsonl.gz",
+    "bytes": 405930,
+    "sha256": "6c2ce79e092e17b55f304dc024db0297d1b39d297194640ec4ab9865e80bb0c3",
+    "rows": 11
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260924T1934-00.jsonl.gz",
+    "bytes": 61315,
+    "sha256": "846a558b804c23765c05040846403e000dccf39c3ac9f6397b9453fb8fee23a8",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260924T2217-00.jsonl.gz",
+    "bytes": 431719,
+    "sha256": "1977eb588f0d30c65a8afdbb4eff4d7531e1f5f28fedd513d2d4df5da2d692db",
+    "rows": 17
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260924T2246-00.jsonl.gz",
+    "bytes": 74297,
+    "sha256": "444d255c6a92522f3bbd88803e44b75011dc8b10d45c29654cdbe4de7ca1c44d",
+    "rows": 4
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260925T0126-00.jsonl.gz",
+    "bytes": 309584,
+    "sha256": "0392436b52bb56bf33b456b25265ea36ab4746bc667299c59b9fccc921d9bb08",
+    "rows": 20
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260925T0155-00.jsonl.gz",
+    "bytes": 33510,
+    "sha256": "bd7843a9d92165d6b4f59e37bbdcafe1f25bbe8893d3880e76ce16c061cf18b8",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260925T0742-00.jsonl.gz",
+    "bytes": 589068,
+    "sha256": "26f633fe57cdd042a8f8850ec64f622a49211ab661df75b9baaf9248d7770b34",
+    "rows": 30
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260925T0812-00.jsonl.gz",
+    "bytes": 49422,
+    "sha256": "f2a1e3300cab302085e1262257e83f49f633c608a56f94f5702d4be768884de3",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260925T1341-00.jsonl.gz",
+    "bytes": 476192,
+    "sha256": "090d49ff686603b93e802fe03a7b363162b5536071b5f74ffa939852b6207b4a",
+    "rows": 10
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260925T1411-00.jsonl.gz",
+    "bytes": 46928,
+    "sha256": "619ce1dca923f3783a8cdca167331f1baf40e8ff913c2921dd9f35cd41ed1661",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260925T1832-00.jsonl.gz",
+    "bytes": 512902,
+    "sha256": "2cf7800e9624c8d6cb571563095add2dd63f34ae8dc645102b215cb34e4d33c7",
+    "rows": 22
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260925T1854-00.jsonl.gz",
+    "bytes": 52383,
+    "sha256": "1532686ed53d2aaea51d0d0a65047e0668e255d22418d6dc945a2961fba7a850",
+    "rows": 3
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260925T2216-00.jsonl.gz",
+    "bytes": 416906,
+    "sha256": "bd43c81d7eeef387535e53323666ea35846382cd1e24c5cb6e4f134cdb17163b",
+    "rows": 11
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260925T2250-00.jsonl.gz",
+    "bytes": 56098,
+    "sha256": "8fc9bb8aed97884d2bb22253b32c39e21e04d9132c0ce208a6c3266f136810bc",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260926T0129-00.jsonl.gz",
+    "bytes": 267008,
+    "sha256": "ba3dba5464f3878dd5b6abcc6f887410720aff3b95da58998e69b808a420e69b",
+    "rows": 9
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260926T0159-00.jsonl.gz",
+    "bytes": 42423,
+    "sha256": "c86febb8bb63e21a4fa236f7c25c24af63ae01de03628322280987991946e1c5",
+    "rows": 4
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260926T0734-00.jsonl.gz",
+    "bytes": 506368,
+    "sha256": "54bb68880a57a7a4eb9666a92bfe9a4338196d1f8794fbffaa440e86b510659a",
+    "rows": 40
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260926T0802-00.jsonl.gz",
+    "bytes": 38280,
+    "sha256": "0edf7c874936e6fdaa678e99801ca00b6f201b7e92161b749a27f6a532133a8c",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260926T1302-00.jsonl.gz",
+    "bytes": 335476,
+    "sha256": "fbc8940211bc676ffadca6f03feb7d864c4e087158a27c16b97fd05b0e1681e7",
+    "rows": 8
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260926T1325-00.jsonl.gz",
+    "bytes": 32093,
+    "sha256": "adc06724e71808d867da5cf5f21993161c3b18006fd205684189c3693dcf8503",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260926T1707-00.jsonl.gz",
+    "bytes": 376564,
+    "sha256": "f12443b643eca7b1cebdf4289cb86557f31c285c8f3c3b939a6444d4d6418745",
+    "rows": 10
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260926T1726-00.jsonl.gz",
+    "bytes": 40594,
+    "sha256": "a363c7a2ae592747ec856ae17e511a6eeb9a047e97a02b736018c89677e9f018",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260926T1948-00.jsonl.gz",
+    "bytes": 264196,
+    "sha256": "495c022c6a0cc358518677dd7a7ae6ff4c980a9a2bec3f1302d6c0036b557701",
+    "rows": 6
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260926T2010-00.jsonl.gz",
+    "bytes": 50040,
+    "sha256": "0c7984c133d24b2a6132ff01d36576f97607773cb4635f1edaaffe17c02fd5aa",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260926T2243-00.jsonl.gz",
+    "bytes": 292654,
+    "sha256": "dc59ad3f5eec79e9daf3ac504e909c8d9b47bd2b01f3ce582009a85f3c6e832c",
+    "rows": 12
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260926T2311-00.jsonl.gz",
+    "bytes": 59191,
+    "sha256": "49689df05824cd0ee52f629d3092cdc810b478c6e76c5276ccaa66f1cd27db92",
+    "rows": 8
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260927T0122-00.jsonl.gz",
+    "bytes": 222652,
+    "sha256": "c1e99358dbc735ce3f6493abda3caae51bf884bb8d678a68c9787446ab7a0577",
+    "rows": 7
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260927T0147-00.jsonl.gz",
+    "bytes": 40820,
+    "sha256": "b0a4fc945670fb51f9711df9540ade7ac30e7b397d112be4700bf90f7f4678e8",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260927T0803-00.jsonl.gz",
+    "bytes": 497653,
+    "sha256": "8744f62a5035ffc39fa51d02272c57f803a6a6651bbade7b33a1332bc8483fec",
+    "rows": 18
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260927T0835-00.jsonl.gz",
+    "bytes": 39318,
+    "sha256": "56dced77dc178e51ee4d2c05d9bfeded2a098ec19bb57135fe6b6cc776ac0be4",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260927T1354-00.jsonl.gz",
+    "bytes": 407655,
+    "sha256": "e40a01a16d8d158c88a767ab483cc9f6e6bde6567625ac25458ce5146a6a129e",
+    "rows": 16
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260927T1419-00.jsonl.gz",
+    "bytes": 38985,
+    "sha256": "9a106b7c4b913bdb822b28fcd705d4c818179bd62ac820afddd98fb6999ec97f",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260927T1820-00.jsonl.gz",
+    "bytes": 382400,
+    "sha256": "bf942e2aa50662bc43f344b0c4c3e59b8ee7e5a1280234cb94c926408a9f80db",
+    "rows": 17
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260927T1841-00.jsonl.gz",
+    "bytes": 34311,
+    "sha256": "3a3ab970fc7d633a7df61e6e770b99d1411c419499f88bafc352d3ca3e2f894b",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260927T2204-00.jsonl.gz",
+    "bytes": 446801,
+    "sha256": "73eb366cf4da24a7c8dbe3df19f66d017d8f7736ae016b008641d11364570c83",
+    "rows": 19
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260927T2235-00.jsonl.gz",
+    "bytes": 63407,
+    "sha256": "21fc66c5d5749522ebacd169ee1fc7103c9ae4f546f3504455962f53f9418316",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260928T0036-00.jsonl.gz",
+    "bytes": 234225,
+    "sha256": "1efb29c175fff83f9869f40bb91bbcce53ccc0cca8c20741ba0a09d7098048e0",
+    "rows": 12
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260928T0112-00.jsonl.gz",
+    "bytes": 73724,
+    "sha256": "f8534a4b9cf71e5b98c8e064674379419b8a7bb20d064c36e8826bb7a597128b",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260928T0644-00.jsonl.gz",
+    "bytes": 561802,
+    "sha256": "88d52ecfeb7422809e9ddd48cd134bffaa4cd0caab036dd38bf1fbe6998db4a5",
+    "rows": 14
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260928T0737-00.jsonl.gz",
+    "bytes": 70928,
+    "sha256": "15679e94a73d139bfb4632b3bcadac3c83106e1062c694604f36472a823996cf",
+    "rows": 3
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260928T1522-00.jsonl.gz",
+    "bytes": 740958,
+    "sha256": "5979aa86fca85bcfafe6f2ab2888491e0e33beebfcd5f29155be3f949bb064c4",
+    "rows": 34
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260928T1559-00.jsonl.gz",
+    "bytes": 90883,
+    "sha256": "9a3b226b75bbeee3fd0963342226877a1ce84a30c2d54e3792967e6e6a53ae42",
+    "rows": 5
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260928T2154-00.jsonl.gz",
+    "bytes": 823762,
+    "sha256": "11aeb1483ee4635061b7ae54c058de69f0c1a1398671da268d6b78cf6e8c2f45",
+    "rows": 40
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260928T2219-00.jsonl.gz",
+    "bytes": 61813,
+    "sha256": "683cc312152223fc8352aa26fb20c5f5d81660f8df7473103afa423692c96f37",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260929T0151-00.jsonl.gz",
+    "bytes": 373029,
+    "sha256": "5edb4c19c827bb348c0213e451727bed5283b8642ca4fdf4f41df5bed2d75cce",
+    "rows": 15
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260929T0219-00.jsonl.gz",
+    "bytes": 48275,
+    "sha256": "e5d798c5e045fde6968ac7188b51f6b56c7b896821208b3e4e5b4e50b1f5d3b6",
+    "rows": 3
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260929T0823-00.jsonl.gz",
+    "bytes": 568750,
+    "sha256": "978ebd34ea6357614a0e077f3787187d627be8d6a50fb8f26c80112eaf5ea96a",
+    "rows": 21
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260929T0903-00.jsonl.gz",
+    "bytes": 43993,
+    "sha256": "7c80bfd3102f5185170621b9404270d821a2d9c075b30788d8af64c94733b133",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260929T1544-00.jsonl.gz",
+    "bytes": 609979,
+    "sha256": "1b10d853d8fe0d00bfc7720ab4c0040638866e2b05dea8d107bbf1726b998cd6",
+    "rows": 41
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260929T1610-00.jsonl.gz",
+    "bytes": 64185,
+    "sha256": "6158032f64f40f309b61671d25a9479fa7056322fe54f6dc00eddf7e8114cc11",
+    "rows": 5
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260929T2044-00.jsonl.gz",
+    "bytes": 590635,
+    "sha256": "43bdb0882444989de1904711643eac2a529e3c0ee1d7f7066fbbec838aa236c7",
+    "rows": 29
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260929T2104-00.jsonl.gz",
+    "bytes": 55450,
+    "sha256": "cacc9a54b4e558fbad77be22e6b3e7681bf6733dd3a9db115c74fa6b7e36f2cc",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260930T0021-00.jsonl.gz",
+    "bytes": 391213,
+    "sha256": "8076d791dbce8cf7be757e6efe88fdbaef62000d7f142d67b4c27c9e783be99e",
+    "rows": 15
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260930T0047-00.jsonl.gz",
+    "bytes": 48449,
+    "sha256": "815f92c77be6fe08910735bdeb036beb65358687f5dc4fa7ea0aaf12a5304250",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260930T0639-00.jsonl.gz",
+    "bytes": 616592,
+    "sha256": "289db5cc334bdcefcc5de52810cb40c6a0915c63fc6be67b4862265a2bb8ad0b",
+    "rows": 38
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260930T0725-00.jsonl.gz",
+    "bytes": 53455,
+    "sha256": "31963592912509c7beb6049b30752a48b9eb87ecead2c280cb8a1e164a1be575",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260930T1339-00.jsonl.gz",
+    "bytes": 430971,
+    "sha256": "e89cee222831433590498cacbe0642fea3a52f354d55f5d03d59116ef61aeb03",
+    "rows": 6
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260930T1416-00.jsonl.gz",
+    "bytes": 46123,
+    "sha256": "36247bc89b5aa5b1632a1c48691282903511a490516964e7d29d6c29cd622d68",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260930T1911-00.jsonl.gz",
+    "bytes": 610427,
+    "sha256": "1ba2ec7b09e4ff47b8ad0faf5463a3f9a51adf7bc7ac2f0e71ed41bcc8f9ac4b",
+    "rows": 31
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260930T1939-00.jsonl.gz",
+    "bytes": 58703,
+    "sha256": "08c3326097ade62139c2a650520cbc150577a2b8216ff74b427abbfd05273ea7",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260930T2302-00.jsonl.gz",
+    "bytes": 421986,
+    "sha256": "e69ff913a4681905b6cbad0306a7052258df2e60608bf0bd1f7843c2b198f588",
+    "rows": 8
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20260930T2316-00.jsonl.gz",
+    "bytes": 24960,
+    "sha256": "e5d56e90568c146cc816d18aa79ba7be5549fc082f4be0db1be314c8a7304230",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20261001T0205-00.jsonl.gz",
+    "bytes": 321595,
+    "sha256": "479b42f7269b30a74fac7aae951d99a7b655b624fd86e14c6fed1d859dc3310d",
+    "rows": 14
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20261001T0226-00.jsonl.gz",
+    "bytes": 37611,
+    "sha256": "4add7e6e7e776cc3b9452c6e3bae280e0cf6a2a3c694e4f190ba4f9380c935fe",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20261001T0848-00.jsonl.gz",
+    "bytes": 598777,
+    "sha256": "4e5746d44a49c86840624b4939e969fb0a60a4028290adf1421b404ab2b5bcda",
+    "rows": 17
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20261001T0928-00.jsonl.gz",
+    "bytes": 43742,
+    "sha256": "a4d2dd71fdf35f43ab9750992954376f57a412bdd0566bd8b9c1f26c24aa4f38",
+    "rows": 1
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20261001T1623-00.jsonl.gz",
+    "bytes": 696775,
+    "sha256": "ba332b0f5a850bc6bcdf087a4d343290362d7504e6c6188fbea9c44ec75af62c",
+    "rows": 29
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20261001T1645-00.jsonl.gz",
+    "bytes": 54865,
+    "sha256": "31d202b5e0e9074a5eed22b2d78cff9f0645d7584394b8a3638336398e67ec74",
+    "rows": 2
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20261001T2150-00.jsonl.gz",
+    "bytes": 729259,
+    "sha256": "34e67e9bc006df5b345b1e398986db44d9e0e5ec26cb320c71ef5a228e91b26c",
+    "rows": 21
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20261001T2203-00.jsonl.gz",
+    "bytes": 36853,
+    "sha256": "cee0d2ea95e2d38afa913eb54c0400b5055e2841bb1a731061599a3b558e5b01",
+    "rows": 0
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20261002T0139-00.jsonl.gz",
+    "bytes": 423489,
+    "sha256": "2c196c6a603d4b47c22d9d5eef90ec1aa91a2f3e12ad5992c310a0bb7266d7b9",
+    "rows": 13
+   },
+   {
+    "path": "data/raw/games.gen9championsvgc2026regmc/20261002T0152-00.jsonl.gz",
+    "bytes": 22500,
+    "sha256": "958409fd285a0be89b8132c140e6534d879e172a7dda503ca5afe9fa6e8c66e9",
+    "rows": 2
+   }
+  ]
+ },
+ "open_sheet_bo3": "engine/quality.js isOpenSheetBo3(), carried per game as game.open_sheet_bo3: the bo3 format, bo1-format rooms under exactly Force Open Team Sheets + Best of = 3, and bo1-format Best of = 3 rooms where both players accepted the sheets (Will, 2026-10-01)",
+ "open_sheet_turn_play": "engine/quality.js isOpenSheetTurnPlay(), the admission rule of this dataset: open-sheet bo3 plus every bo1-format game with both sheets shown under no rule other than a sheet or best-of rule (Will, 2026-10-01). Series-level readers keep game.open_sheet_bo3 only.",
+ "showdown": {
+  "path": "C:/Users/willj/Projects/Pokemon/pokemon-showdown-mc",
+  "head_commit": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a",
+  "pinned_commit_in_regulations_json": "f10d6798f2ba5af92e55892c8c7063ca7b53c18a"
+ },
+ "filters": {
+  "order": [
+   "duplicate_id",
+   "wrong_format",
+   "no_open_sheet",
+   "custom_rules",
+   "own_account",
+   "named_bot",
+   "behavioural_bot",
+   "quality:illegal_team",
+   "quality:corrupt_winner",
+   "quality:nonstandard_ruleset",
+   "quality:custom_ruleset",
+   "quality:unreadable",
+   "illegal_entity",
+   "pre_ejectbutton_fix",
+   "illusion_on_sheet",
+   "no_result",
+   "no_action",
+   "parse_error"
+  ],
+  "own_accounts": [
+   "medicham32",
+   "willhoop",
+   "mag"
+  ],
+  "own_accounts_from": "data/quality-filter.json rules.exclude_own_accounts",
+  "quality": {
+   "rule": "engine/quality.js reasons(g, cfg, behaviouralBots(...)) on the durable-ingest extract() row of every game; bot -> named_bot, behavioural_bot -> behavioural_bot, any other code -> quality:<code>",
+   "config_version": "1.7.0",
+   "quality_js_sha256": "e492d84b4c4fbbf4199346843bd9f24b910b10f5e197f90a8f26bb2e3e72756f",
+   "quality_filter_sha256": "00381a9dc7ced489ed826b76c09f760a6c890dcd90fb6fbb2455fd4d416c70f3",
+   "behavioural_bot_rule": {
+    "on": true,
+    "test": "either player's account played >= min_games in the window AND used exactly one distinct team",
+    "min_games": 50,
+    "max_distinct_teams": 1,
+    "min_games_in_one_day": 100,
+    "tempo_applies_id_pattern": "^gen9championsvgc2026regm[c-z]",
+    "tempo_clause": "ADDED 2026-09-30 (MEASURE, abra/regmc 1.36.0). An account with a game whose id matches tempo_applies_id_pattern (Reg M-C and later) is flagged only if it ALSO played >= min_games_in_one_day games on one calendar day. On Reg M-C the 50-game / one-team test flagged 15 bo1 and 8 bo3 accounts. Seven of them form a separate cluster, 120-600 games in one day: Thornlace48812, kevdan42, Scorecard-Pokemon, SC-SME, SC-Control, AI_Paku, Crituvyn72957. None forfeited more than 0.6% of their games, and all are absent from the live top 500. The other 16 (monfish counted once per store) sit at 12-48 games on their busiest day. Eleven of them lost 1-33% of their games by forfeit, which is a human act. Two hold live top-500 ranks: Novicebest, bo1 #290, and Afmoad, bo3 #109, both fetched 2026-09-30 01:33Z. The gap between the clusters is 48 to 120 games in one day, and the cut sits inside it. On a Reg M-B corpus no id matches the pattern, so Reg M-B's bot set is unchanged. docs/_reports/2026-09-30-regmc-store-quality.md",
+    "rationale": "Name-based detection only catches accounts that announce themselves. These five did not, and they appeared in 52.2% of the games the name filter called clean. The decisive signal is team invariance: Carchdraw84172 played 459 games with exactly one team, 367 of them in a single day - a game every four minutes for twenty-four hours without changing a slot. Active human accounts (15-60 games) reuse their most-common team about 64% of the time, never 100%.",
+    "evidence": {
+     "caught": [
+      "Carchdraw84172 (459 games, 1 team)",
+      "Natsitimer52906 (426, 1)",
+      "Ironbough29517 (294, 1)",
+      "Duskglade57204 (267, 1)",
+      "Scoobsicle40912 (147, 1)",
+      "HospitalityCheck (55, 1) - crossed the threshold on 2026-07-25 as the store grew to 8,356. Unlike the other five its name is NOT machine-shaped, so the corroborating evidence below does not extend to it."
+     ],
+     "false_positive_check": "No account with >=50 games in this store has more than one distinct team, so the rule separates cleanly. It is stable for thresholds between 50 and 100 games.",
+     "corroborating": "The original five share a machine-shaped name (Word+5 digits), forfeit 16-23% of games against a human median of 42%, and run the same two-day burst pattern. HospitalityCheck matches the team-invariance rule (55 games, 1 team) but not the naming pattern, and sits just above the 50-game threshold - it is the weakest of the six and the one to re-examine first if the rule is ever loosened."
+    },
+    "known_limitation": "Threshold-based, so a bot playing under 50 games or varying its team escapes. This raises the floor on bot detection; it does not establish one. The remaining set must still be described as 'no bot detected', never as 'human'."
+   },
+   "computed_over": "every unique game in this stream (41615 readable, 0 unreadable)",
+   "behavioural_bot_accounts": [],
+   "bo1_rooms_judged_by_bots_of": {
+    "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/games.gen9championsvgc2026regmc.jsonl.gz",
+    "bytes": 51274873,
+    "sha256": "c073a0e7ab05c60e3a3beed75b4b9b2d07da53b5cb2f8855caeb87d7736be7d4"
+   },
+   "bo1_behavioural_bot_accounts": [
+    "AI_Paku",
+    "Crituvyn72957",
+    "SC-Control",
+    "SC-SME",
+    "Scorecard-Pokemon",
+    "Thornlace48812",
+    "kevdan42"
+   ],
+   "game_shape_codes_counted_not_charged": [
+    "forfeit_no_action",
+    "short",
+    "partial_bring"
+   ],
+   "game_shape_not_charged_counts": {
+    "partial_bring": 13437,
+    "short": 2901,
+    "forfeit_no_action": 256
+   }
+  },
+  "custom_rules": "Showdown infobox `N custom rule(s):` in the raw log",
+  "illegal_entity": "any sheet species/item/ability/move with isNonstandard or tier Illegal under Dex.forFormat(gen9championsvgc2026regmcbo3) — learnsets NOT checked",
+  "pre_ejectbutton_fix": "uploadtime < 2026-09-14T00:00Z AND Eject Button on either sheet (data/team-pool-frozen-regmc/FROZEN.md)",
+  "illusion_on_sheet": "an Illusion ability on either sheet — the log shows the disguise, so switch decisions and state would be wrong (Illusion is the declared exclusion)",
+  "no_result": "no |win| and no |tie|",
+  "no_action": "no observed move/switch/locked action in any turn"
+ },
+ "counts": {
+  "rows_in": 44087,
+  "unique_games": 44087,
+  "duplicate_rows": 0,
+  "duplicate_conflicting_logs": 0,
+  "games_kept": 42235,
+  "games_excluded": 1852,
+  "excluded_by_primary_reason": {
+   "named_bot": 235,
+   "pre_ejectbutton_fix": 363,
+   "no_action": 433,
+   "illusion_on_sheet": 339,
+   "no_result": 49,
+   "wrong_format": 51,
+   "own_account": 245,
+   "parse_error": 2,
+   "behavioural_bot": 135
+  },
+  "excluded_any_reason": {
+   "named_bot": 235,
+   "pre_ejectbutton_fix": 363,
+   "no_action": 484,
+   "illusion_on_sheet": 345,
+   "parse_error": 227,
+   "no_result": 50,
+   "wrong_format": 51,
+   "custom_rules": 23,
+   "quality:illegal_team": 23,
+   "quality:custom_ruleset": 15,
+   "illegal_entity": 11,
+   "own_account": 245,
+   "no_open_sheet": 12,
+   "behavioural_bot": 139
+  },
+  "parse_error_codes": {
+   "illusion_replace": 45,
+   "move_not_on_sheet": 149,
+   "switch_in_active": 19,
+   "no_sheet": 12,
+   "second_decision": 2
+  },
+  "distinct_accounts_kept": 9833,
+  "turns": 296485,
+  "side_turn_decisions": 592970,
+  "slot_actions": 1133986,
+  "by_kind": {
+   "move": 843380,
+   "hidden": 172738,
+   "switch": 115929,
+   "locked": 1939
+  },
+  "hidden_reasons": {
+   "cant:flinch": 28596,
+   "fainted_before_acting": 91489,
+   "game_ended": 43671,
+   "cant:par": 1647,
+   "cant:slp": 5929,
+   "cant:Throat Chop": 220,
+   "confusion_self_hit": 243,
+   "cant:frz": 534,
+   "forced_out_before_acting": 405,
+   "cant:Attract": 4
+  },
+  "locked_reasons": {
+   "lockedmove": 1163,
+   "recharge": 776
+  },
+  "joint_fully_observed": 441967,
+  "joint_with_hidden": 149265,
+  "target_uncertain": 51265,
+  "targeted_moves": 513472,
+  "mega_actions": 72323,
+  "midturn_switch_choices": 21773,
+  "midturn_by_reason": {
+   "U-turn": 5076,
+   "Parting Shot": 12634,
+   "Flip Turn": 1743,
+   "Baton Pass": 191,
+   "Volt Switch": 449,
+   "eject": 1605,
+   "drag": 253,
+   "Shed Tail": 36,
+   "Chilly Reception": 23,
+   "Revival Blessing": 16
+  },
+  "forced_replacements": 126756,
+  "aux_moves": 141,
+  "target_filled_from_anim": 10379,
+  "midturn_switch_unattributed": 0,
+  "terminal_turns": 42235,
+  "open_sheet_bo3": 40476,
+  "open_sheet_turn_play_only": 1759,
+  "open_sheet_bo3_by_consent": 199,
+  "rated": 37918,
+  "unrated": 4317,
+  "end": {
+   "forfeit": 16194,
+   "normal": 25500,
+   "inactivity": 541
+  },
+  "with_series": 40476,
+  "extract_crosscheck": {
+   "games": 42235,
+   "leads_agree": 42235,
+   "brought_agree": 42235,
+   "disagree_examples": []
+  }
+ },
+ "parse_error_examples": {
+  "illusion_replace": [
+   {
+    "id": "gen9championsvgc2026regmcbo3-2677988476",
+    "detail": "p1b: Zoroark"
+   },
+   {
+    "id": "gen9championsvgc2026regmcbo3-2678820180",
+    "detail": "p1b: Zoroark"
+   },
+   {
+    "id": "gen9championsvgc2026regmcbo3-2679145198",
+    "detail": "p1a: Reagan"
+   },
+   {
+    "id": "gen9championsvgc2026regmcbo3-2679499831",
+    "detail": "p2a: Zoroark"
+   },
+   {
+    "id": "gen9championsvgc2026regmcbo3-2679565831",
+    "detail": "p2a: Zoroark"
+   }
+  ],
+  "move_not_on_sheet": [
+   {
+    "id": "gen9championsvgc2026regmcbo3-2677987163",
+    "detail": "Araquanid used Snarl"
+   },
+   {
+    "id": "gen9championsvgc2026regmcbo3-2678944640",
+    "detail": "Tsareena used Bitter Malice"
+   },
+   {
+    "id": "gen9championsvgc2026regmcbo3-2678948148",
+    "detail": "Whimsicott used Icy Wind"
+   },
+   {
+    "id": "gen9championsvgc2026regmcbo3-2679144272",
+    "detail": "Toxapex used Sludge Bomb"
+   },
+   {
+    "id": "gen9championsvgc2026regmcbo3-2679514657",
+    "detail": "Floette-Eternal used Psychic"
+   }
+  ],
+  "switch_in_active": [
+   {
+    "id": "gen9championsvgc2026regmcbo3-2678817999",
+    "detail": "p1a: Lucario"
+   },
+   {
+    "id": "gen9championsvgc2026regmcbo3-2679706178",
+    "detail": "p1b: BLUE FLAME"
+   },
+   {
+    "id": "gen9championsvgc2026regmcbo3-2681796105",
+    "detail": "p2b: Skeledirge"
+   },
+   {
+    "id": "gen9championsvgc2026regmcbo3-2682040772",
+    "detail": "p2a: Sneasler"
+   },
+   {
+    "id": "gen9championsvgc2026regmcbo3-2682563945",
+    "detail": "p1a: Banette"
+   }
+  ],
+  "no_sheet": [
+   {
+    "id": "gen9championsvgc2026regmcbo3-2689350586",
+    "detail": "p1"
+   },
+   {
+    "id": "gen9championsvgc2026regmcbo3-2689344884",
+    "detail": "p1"
+   },
+   {
+    "id": "gen9championsvgc2026regmcbo3-2690754933",
+    "detail": "p1"
+   },
+   {
+    "id": "gen9championsvgc2026regmcbo3-2690752097",
+    "detail": "p1"
+   },
+   {
+    "id": "gen9championsvgc2026regmcbo3-2691100074",
+    "detail": "p1"
+   }
+  ],
+  "second_decision": [
+   {
+    "id": "gen9championsvgc2026regmcbo3-2691291932",
+    "detail": "p1a Sleep Talk turn 6"
+   },
+   {
+    "id": "gen9championsvgc2026regmc-2690800984",
+    "detail": "p2a Sleep Talk turn 5"
+   }
+  ]
+ },
+ "outputs": [
+  {
+   "path": "solver/out/human-20261002/games.jsonl",
+   "bytes": 796628124,
+   "sha256": "7ef6b56b9e5fe0e2c1ef7b16d0dfa40a9527d5a8067f2582f61a173764c2a2a8"
+  },
+  {
+   "path": "solver/out/human-20261002/exclusions.jsonl",
+   "bytes": 266857,
+   "sha256": "1db835974d5ff7225259ce026f135daba542f7e5927a85ab17ce5e0857bdc7f2"
+  }
+ ],
+ "seconds": 132
+}

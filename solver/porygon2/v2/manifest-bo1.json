@@ -1,11 +1,13 @@
 {
  "what": "PORYGON2 v2 position dataset, bo1 (gen9championsvgc2026regmc): the public state at the start of every turn, per-field reveal state, both pre-game ratings, outcome and auxiliary labels",
- "built": "2026-09-30T08:00:52.363Z",
- "seconds": 378,
+ "built": "2026-10-02T04:23:01.731Z",
+ "seconds": 53,
  "node": "v24.15.0",
  "argv": [
   "--fmt",
-  "bo1"
+  "bo1",
+  "--root",
+  "C:/Users/willj/Projects/Pokemon/ABRA"
  ],
  "format": "gen9championsvgc2026regmc",
  "mode": "bo1",
@@ -17,19 +19,19 @@
  },
  "code": {
   "solver/porygon2/v2/reveal.js": "b1cc88db672d8c31aeae740923b61983bd85ffc1969e24de2a587406ad2f3a29",
-  "solver/porygon2/v2/extract.js": "502d30983e032072e362ca0ebff796ec5603c4aec6ffe1f75aa4dff61dbbd72a",
-  "engine/quality.js": "9b168679e3e91ba7b4ca84841741a3176bda6ef7471831209e10f254100ed351",
-  "data/quality-filter.json": "c74b46002e2da1429fc15d7bb9caa918c3195e1cf96a0674a525661194d2aacc",
+  "solver/porygon2/v2/extract.js": "b4d25131c657cd9531616977620219107eb122930a1866a347e9c7ece9f7fb20",
+  "engine/quality.js": "e492d84b4c4fbbf4199346843bd9f24b910b10f5e197f90a8f26bb2e3e72756f",
+  "data/quality-filter.json": "00381a9dc7ced489ed826b76c09f760a6c890dcd90fb6fbb2455fd4d416c70f3",
   "solver/human/dex.js": "765e33ab28deb013e41a6c69cd60c83fd7b0710f46dea42877eff9811f3c3a86"
  },
  "inputs": [
   {
    "role": "parsed_store",
    "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/games.gen9championsvgc2026regmc.jsonl.gz",
-   "bytes": 45361472,
-   "sha256": "341e5953c4c7037ee37ffe936a7721f5a4e4f5143cbc8243e95eb8db3112f46f",
-   "git_blob": "76ef2de74102d8836141e3a7acab58bb41039bec",
-   "mtime": "2026-09-30T01:45:40.448Z"
+   "bytes": 51274873,
+   "sha256": "c073a0e7ab05c60e3a3beed75b4b9b2d07da53b5cb2f8855caeb87d7736be7d4",
+   "git_blob": "7d1640c77296a3aced284f6c3069c21011a7b1d5",
+   "mtime": "2026-10-02T03:54:16.403Z"
   },
   {
    "role": "raw_log",
@@ -1930,6 +1932,132 @@
   },
   {
    "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260930T0639-00.jsonl.gz",
+   "bytes": 616592,
+   "sha256": "289db5cc334bdcefcc5de52810cb40c6a0915c63fc6be67b4862265a2bb8ad0b",
+   "rows": 766
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260930T0725-00.jsonl.gz",
+   "bytes": 53455,
+   "sha256": "31963592912509c7beb6049b30752a48b9eb87ecead2c280cb8a1e164a1be575",
+   "rows": 68
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260930T1339-00.jsonl.gz",
+   "bytes": 430971,
+   "sha256": "e89cee222831433590498cacbe0642fea3a52f354d55f5d03d59116ef61aeb03",
+   "rows": 576
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260930T1416-00.jsonl.gz",
+   "bytes": 46123,
+   "sha256": "36247bc89b5aa5b1632a1c48691282903511a490516964e7d29d6c29cd622d68",
+   "rows": 60
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260930T1911-00.jsonl.gz",
+   "bytes": 610427,
+   "sha256": "1ba2ec7b09e4ff47b8ad0faf5463a3f9a51adf7bc7ac2f0e71ed41bcc8f9ac4b",
+   "rows": 749
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260930T1939-00.jsonl.gz",
+   "bytes": 58703,
+   "sha256": "08c3326097ade62139c2a650520cbc150577a2b8216ff74b427abbfd05273ea7",
+   "rows": 74
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260930T2302-00.jsonl.gz",
+   "bytes": 421986,
+   "sha256": "e69ff913a4681905b6cbad0306a7052258df2e60608bf0bd1f7843c2b198f588",
+   "rows": 534
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20260930T2316-00.jsonl.gz",
+   "bytes": 24960,
+   "sha256": "e5d56e90568c146cc816d18aa79ba7be5549fc082f4be0db1be314c8a7304230",
+   "rows": 31
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20261001T0205-00.jsonl.gz",
+   "bytes": 321595,
+   "sha256": "479b42f7269b30a74fac7aae951d99a7b655b624fd86e14c6fed1d859dc3310d",
+   "rows": 392
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20261001T0226-00.jsonl.gz",
+   "bytes": 37611,
+   "sha256": "4add7e6e7e776cc3b9452c6e3bae280e0cf6a2a3c694e4f190ba4f9380c935fe",
+   "rows": 46
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20261001T0848-00.jsonl.gz",
+   "bytes": 598777,
+   "sha256": "4e5746d44a49c86840624b4939e969fb0a60a4028290adf1421b404ab2b5bcda",
+   "rows": 757
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20261001T0928-00.jsonl.gz",
+   "bytes": 43742,
+   "sha256": "a4d2dd71fdf35f43ab9750992954376f57a412bdd0566bd8b9c1f26c24aa4f38",
+   "rows": 57
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20261001T1623-00.jsonl.gz",
+   "bytes": 696775,
+   "sha256": "ba332b0f5a850bc6bcdf087a4d343290362d7504e6c6188fbea9c44ec75af62c",
+   "rows": 870
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20261001T1645-00.jsonl.gz",
+   "bytes": 54865,
+   "sha256": "31d202b5e0e9074a5eed22b2d78cff9f0645d7584394b8a3638336398e67ec74",
+   "rows": 65
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20261001T2150-00.jsonl.gz",
+   "bytes": 729259,
+   "sha256": "34e67e9bc006df5b345b1e398986db44d9e0e5ec26cb320c71ef5a228e91b26c",
+   "rows": 919
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20261001T2203-00.jsonl.gz",
+   "bytes": 36853,
+   "sha256": "cee0d2ea95e2d38afa913eb54c0400b5055e2841bb1a731061599a3b558e5b01",
+   "rows": 41
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20261002T0139-00.jsonl.gz",
+   "bytes": 423489,
+   "sha256": "2c196c6a603d4b47c22d9d5eef90ec1aa91a2f3e12ad5992c310a0bb7266d7b9",
+   "rows": 528
+  },
+  {
+   "role": "raw_log",
+   "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/raw/games.gen9championsvgc2026regmc/20261002T0152-00.jsonl.gz",
+   "bytes": 22500,
+   "sha256": "958409fd285a0be89b8132c140e6534d879e172a7dda503ca5afe9fa6e8c66e9",
+   "rows": 28
+  },
+  {
+   "role": "raw_log",
    "path": "C:/Users/willj/Projects/Pokemon/ABRA/data/games.gen9championsvgc2026regmc.raw-logs.jsonl",
    "bytes": 7830139,
    "sha256": "daea9452a4f060122157326209e6ddc22bdb077989378e7453a35ba61ddd9826",
@@ -1937,7 +2065,7 @@
   }
  ],
  "quality": {
-  "config_version": "1.6.0",
+  "config_version": "1.7.0",
   "behavioural_bot_accounts": 7,
   "behavioural_bot_names": [
    "AI_Paku",
@@ -1949,24 +2077,25 @@
    "kevdan42"
   ],
   "excluded_first_reason": {
-   "bot": 6264,
+   "custom_ruleset": 1144,
+   "bot": 6954,
    "own_account": 8,
-   "behavioural_bot": 7384,
-   "illegal_team": 35,
-   "custom_ruleset": 40
+   "behavioural_bot": 8970,
+   "illegal_team": 43
   },
   "excluded_any_reason": {
-   "bot": 6264,
+   "custom_ruleset": 1187,
+   "bot": 6954,
    "own_account": 8,
-   "behavioural_bot": 7426,
-   "illegal_team": 35,
-   "custom_ruleset": 75
+   "behavioural_bot": 9043,
+   "illegal_team": 43
   }
  },
  "filters": {
   "order": [
    "quality reasons() incl. bot + behavioural_bot (game-shape codes forfeit_no_action / short / partial_bring recorded in quality_reasons, not charged)",
    "own_account",
+   "bo1 only: open-sheet turn play (engine/quality.js isOpenSheetTurnPlay) leaves for the bo3 stream",
    "no_raw_log",
    "wrong_format",
    "illusion_possible (preview)",
@@ -1980,11 +2109,11 @@
   "own_accounts": [
    "medicham32",
    "willhoop",
-   "mag",
-   "mag2",
-   "miltank",
-   "miltank2"
+   "mag"
   ],
+  "own_accounts_from": "data/quality-filter.json rules.exclude_own_accounts",
+  "open_sheet_bo3": "n/a",
+  "open_sheet_turn_play": "n/a",
   "illusion_species": [
    "Zoroark"
   ],
@@ -1992,12 +2121,13 @@
   "split": "player split sha256(\"abra-prior-v0:\" + toID(name)) mod 100 (<80 train, <90 val, else test), lifted to the game: test if either player is test, else val if either is val, else train"
  },
  "funnel": {
-  "store_rows": 59752,
+  "store_rows": 66313,
   "store_bad_json": 0,
   "store_duplicate_ids": 0,
-  "store_games": 59752,
-  "quality_clean": 46029,
-  "after_own_account": 46021,
+  "store_games": 66313,
+  "bo1_open_sheet_turn_play_left_to_bo3_stream": 2330,
+  "quality_clean": 49202,
+  "after_own_account": 49194,
   "game_shape_codes_recorded_not_charged": {
    "codes": [
     "forfeit_no_action",
@@ -2005,280 +2135,272 @@
     "partial_bring"
    ],
    "store_games_carrying": {
-    "partial_bring": 20651,
-    "short": 5073,
-    "forfeit_no_action": 383
+    "partial_bring": 22875,
+    "short": 5598,
+    "forfeit_no_action": 412
    }
   },
-  "raw_rows_read": 61165,
-  "raw_duplicate_ids": 1409,
+  "raw_rows_read": 67726,
+  "raw_duplicate_ids": 1329,
   "raw_duplicate_conflicting_logs": 0,
   "excluded_after_quality": {
-   "illusion_possible": 1112,
-   "custom_rules": 2312,
-   "no_position": 218,
-   "pre_ejectbutton_fix": 340,
-   "no_result": 50
+   "illusion_possible": 1138,
+   "no_position": 229,
+   "pre_ejectbutton_fix": 332,
+   "no_result": 50,
+   "custom_rules": 51
   },
-  "kept": 41989
+  "kept": 45064
  },
  "parse_errors": {},
  "parse_examples": {},
  "counts": {
-  "games": 41989,
-  "positions": 286770,
+  "games": 45064,
+  "positions": 307845,
   "split": {
    "train": {
-    "games": 26266,
-    "positions": 179553
+    "games": 28309,
+    "positions": 193561
    },
    "val": {
-    "games": 7231,
-    "positions": 49341
+    "games": 7672,
+    "positions": 52292
    },
    "test": {
-    "games": 8492,
-    "positions": 57876
+    "games": 9083,
+    "positions": 61992
    }
   },
   "by_band_min": {
    "<1100": {
-    "games": 15789,
-    "positions": 106050,
-    "test_games": 3012,
-    "test_positions": 20349
+    "games": 16436,
+    "positions": 110320,
+    "test_games": 3135,
+    "test_positions": 21142
    },
    "1200-1299": {
-    "games": 5992,
-    "positions": 41217,
-    "test_games": 1246,
-    "test_positions": 8538
+    "games": 6532,
+    "positions": 44841,
+    "test_games": 1339,
+    "test_positions": 9178
    },
    "1100-1199": {
-    "games": 10459,
-    "positions": 71168,
-    "test_games": 2156,
-    "test_positions": 14702
+    "games": 11183,
+    "positions": 75961,
+    "test_games": 2293,
+    "test_positions": 15610
    },
    "1300-1399": {
-    "games": 4242,
-    "positions": 29196,
-    "test_games": 951,
-    "test_positions": 6592
+    "games": 4730,
+    "positions": 32882,
+    "test_games": 1028,
+    "test_positions": 7156
    },
    "unrated": {
-    "games": 3314,
-    "positions": 23906,
-    "test_games": 645,
-    "test_positions": 4478
+    "games": 3478,
+    "positions": 24985,
+    "test_games": 692,
+    "test_positions": 4880
    },
    "1400-1499": {
-    "games": 1650,
-    "positions": 11424,
-    "test_games": 365,
-    "test_positions": 2386
+    "games": 1984,
+    "positions": 13784,
+    "test_games": 444,
+    "test_positions": 2934
    },
    "1500-1599": {
-    "games": 495,
-    "positions": 3478,
-    "test_games": 110,
-    "test_positions": 783
+    "games": 635,
+    "positions": 4474,
+    "test_games": 137,
+    "test_positions": 991
    },
    ">=1600": {
-    "games": 48,
-    "positions": 331,
-    "test_games": 7,
-    "test_positions": 48
+    "games": 86,
+    "positions": 598,
+    "test_games": 15,
+    "test_positions": 101
    }
   },
   "by_band_max": {
    "<1100": {
-    "games": 9018,
-    "positions": 60418,
-    "test_games": 1711,
-    "test_positions": 11634
+    "games": 9319,
+    "positions": 62513,
+    "test_games": 1764,
+    "test_positions": 11969
    },
    "1200-1299": {
-    "games": 7310,
-    "positions": 50209,
-    "test_games": 1513,
-    "test_positions": 10358
+    "games": 7902,
+    "positions": 54017,
+    "test_games": 1615,
+    "test_positions": 11007
    },
    "1100-1199": {
-    "games": 12917,
-    "positions": 87350,
-    "test_games": 2552,
-    "test_positions": 17230
+    "games": 13645,
+    "positions": 92124,
+    "test_games": 2703,
+    "test_positions": 18256
    },
    "1300-1399": {
-    "games": 5377,
-    "positions": 36756,
-    "test_games": 1151,
-    "test_positions": 7911
+    "games": 5935,
+    "positions": 40805,
+    "test_games": 1233,
+    "test_positions": 8497
    },
    "unrated": {
-    "games": 3314,
-    "positions": 23906,
-    "test_games": 645,
-    "test_positions": 4478
+    "games": 3478,
+    "positions": 24985,
+    "test_games": 692,
+    "test_positions": 4880
    },
    "1400-1499": {
-    "games": 2737,
-    "positions": 19005,
-    "test_games": 659,
-    "test_positions": 4492
+    "games": 3119,
+    "positions": 21735,
+    "test_games": 745,
+    "test_positions": 5089
    },
    "1500-1599": {
-    "games": 1025,
-    "positions": 7063,
-    "test_games": 206,
-    "test_positions": 1363
+    "games": 1247,
+    "positions": 8667,
+    "test_games": 247,
+    "test_positions": 1687
    },
    ">=1600": {
-    "games": 291,
-    "positions": 2063,
-    "test_games": 55,
-    "test_positions": 410
+    "games": 419,
+    "positions": 2999,
+    "test_games": 84,
+    "test_positions": 607
    }
   },
   "min_at_least": {
    "1300": {
-    "games": 6435,
-    "positions": 44429,
-    "test_games": 1433
+    "games": 7435,
+    "positions": 51738,
+    "test_games": 1624
    },
    "1400": {
-    "games": 2193,
-    "positions": 15233,
-    "test_games": 482
+    "games": 2705,
+    "positions": 18856,
+    "test_games": 596
    },
    "1500": {
-    "games": 543,
-    "positions": 3809,
-    "test_games": 117
+    "games": 721,
+    "positions": 5072,
+    "test_games": 152
    },
    "1600": {
-    "games": 48,
-    "positions": 331,
-    "test_games": 7
+    "games": 86,
+    "positions": 598,
+    "test_games": 15
    }
   },
   "max_at_least": {
    "1300": {
-    "games": 9430,
-    "positions": 64887,
-    "test_games": 2071
+    "games": 10720,
+    "positions": 74206,
+    "test_games": 2309
    },
    "1400": {
-    "games": 4053,
-    "positions": 28131,
-    "test_games": 920
+    "games": 4785,
+    "positions": 33401,
+    "test_games": 1076
    },
    "1500": {
-    "games": 1316,
-    "positions": 9126,
-    "test_games": 261
+    "games": 1666,
+    "positions": 11666,
+    "test_games": 331
    },
    "1600": {
-    "games": 291,
-    "positions": 2063,
-    "test_games": 55
+    "games": 419,
+    "positions": 2999,
+    "test_games": 84
    }
   },
-  "both_rated": 38675,
+  "both_rated": 41586,
   "end": {
-   "normal": 22834,
-   "forfeit": 18470,
-   "inactivity": 685
+   "normal": 24434,
+   "forfeit": 19875,
+   "inactivity": 755
   },
   "z": {
-   "0": 20979,
-   "1": 21010
-  },
-  "sheets_public": 768
+   "0": 22523,
+   "1": 22541
+  }
  },
  "reveal_counters": {
-  "lines": 7283436,
+  "lines": 7810510,
   "ability_refused": 9,
-  "ability_unattributed": 65,
-  "item_reveals": 195872,
-  "ability_reveals": 124641,
-  "move_reveals": 528629,
-  "skill_swap": 983,
+  "ability_unattributed": 68,
+  "item_reveals": 213392,
+  "ability_reveals": 135880,
+  "move_reveals": 578508,
+  "skill_swap": 1105,
   "moves_overflow": 0,
-  "dex_deduced_ability": 40414
+  "dex_deduced_ability": 43764
  },
  "reveal_at_game_end": {
-  "brought_members": 311510,
-  "moves_known": 551922,
-  "item_orig_known": 167417,
-  "ability_base_known": 155398,
-  "ability_by_dex": 24931,
+  "brought_members": 334263,
+  "moves_known": 578508,
+  "item_orig_known": 176662,
+  "ability_base_known": 162831,
+  "ability_by_dex": 26951,
   "by_turn": {
    "t1": {
-    "positions": 41989,
-    "members_on_field_so_far": 167956,
-    "moves_known": 12287,
-    "item_orig_known": 11694,
-    "ability_base_known": 70861
+    "positions": 45064,
+    "members_on_field_so_far": 180256,
+    "moves_known": 2,
+    "item_orig_known": 9279,
+    "ability_base_known": 73380
    },
    "t2": {
-    "positions": 41102,
-    "members_on_field_so_far": 196733,
-    "moves_known": 146566,
-    "item_orig_known": 63436,
-    "ability_base_known": 91112
+    "positions": 44111,
+    "members_on_field_so_far": 210962,
+    "moves_known": 144404,
+    "item_orig_known": 65302,
+    "ability_base_known": 94869
    },
    "t3": {
-    "positions": 39373,
-    "members_on_field_so_far": 229892,
-    "moves_known": 243337,
-    "item_orig_known": 88032,
-    "ability_base_known": 110196
+    "positions": 42268,
+    "members_on_field_so_far": 246551,
+    "moves_known": 247256,
+    "item_orig_known": 91416,
+    "ability_base_known": 115027
    },
    "t4-5": {
-    "positions": 69691,
-    "members_on_field_so_far": 480498,
-    "moves_known": 650294,
-    "item_orig_known": 213136,
-    "ability_base_known": 235265
+    "positions": 74779,
+    "members_on_field_so_far": 515188,
+    "moves_known": 670144,
+    "item_orig_known": 222608,
+    "ability_base_known": 245651
    },
    "t6-8": {
-    "positions": 63631,
-    "members_on_field_so_far": 485424,
-    "moves_known": 850728,
-    "item_orig_known": 249344,
-    "ability_base_known": 245792
+    "positions": 68302,
+    "members_on_field_so_far": 520816,
+    "moves_known": 887899,
+    "item_orig_known": 261886,
+    "ability_base_known": 256962
    },
    "t9+": {
-    "positions": 30984,
-    "members_on_field_so_far": 244772,
-    "moves_known": 548252,
-    "item_orig_known": 142083,
-    "ability_base_known": 131804
+    "positions": 33321,
+    "members_on_field_so_far": 263220,
+    "moves_known": 578518,
+    "item_orig_known": 150234,
+    "ability_base_known": 138090
    }
   },
-  "moves_known_per_brought_member": 1.772,
-  "item_orig_known_share": 0.5374,
-  "ability_base_known_share": 0.4989
+  "moves_known_per_brought_member": 1.731,
+  "item_orig_known_share": 0.5285,
+  "ability_base_known_share": 0.4871
  },
  "crosscheck_vs_store_sets": {
-  "members": 263246,
-  "moves_equal": 259279,
-  "moves_subset_of_store": 259688,
-  "store_subset_of_moves": 262834,
-  "item_compared": 47347,
-  "item_equal": 46190,
-  "ability_compared": 91595,
-  "ability_equal": 88901,
+  "members": 288095,
+  "moves_equal": 284698,
+  "moves_subset_of_store": 284698,
+  "store_subset_of_moves": 288095,
+  "item_compared": 85236,
+  "item_equal": 85236,
+  "ability_compared": 116349,
+  "ability_equal": 116255,
   "disagree_examples": [
-   {
-    "id": "gen9championsvgc2026regmc-2678206804",
-    "species": "Gardevoir",
-    "field": "ability",
-    "store": "Inner Focus",
-    "ours": "Trace"
-   },
    {
     "id": "gen9championsvgc2026regmc-2678204065",
     "species": "Floette-Eternal",
@@ -2292,18 +2414,11 @@
     ]
    },
    {
-    "id": "gen9championsvgc2026regmc-2678203913",
-    "species": "Gardevoir",
+    "id": "gen9championsvgc2026regmc-2678194714",
+    "species": "Toxapex",
     "field": "ability",
-    "store": "Pixilate",
-    "ours": "Trace"
-   },
-   {
-    "id": "gen9championsvgc2026regmc-2678202953",
-    "species": "Gardevoir",
-    "field": "ability",
-    "store": "Emergency Exit",
-    "ours": "Trace"
+    "store": "Mummy",
+    "ours": "<UNK>"
    },
    {
     "id": "gen9championsvgc2026regmc-2678196186",
@@ -2312,15 +2427,6 @@
     "store": [],
     "ours": [
      "Protect"
-    ]
-   },
-   {
-    "id": "gen9championsvgc2026regmc-2678194322",
-    "species": "Farigiraf",
-    "field": "moves",
-    "store": [],
-    "ours": [
-     "Trick Room"
     ]
    },
    {
@@ -2358,13 +2464,6 @@
     ]
    },
    {
-    "id": "gen9championsvgc2026regmc-2678184190",
-    "species": "Annihilape",
-    "field": "item",
-    "store": "Colbur Berry",
-    "ours": "<UNK>"
-   },
-   {
     "id": "gen9championsvgc2026regmc-2678187497",
     "species": "Floette-Eternal",
     "field": "moves",
@@ -2374,15 +2473,65 @@
     ]
    },
    {
-    "id": "gen9championsvgc2026regmc-2678185870",
-    "species": "Emboar",
+    "id": "gen9championsvgc2026regmc-2678186371",
+    "species": "Palafin",
     "field": "moves",
     "store": [
-     "Flare Blitz"
+     "Flip Turn"
     ],
     "ours": [
-     "Flare Blitz",
-     "Drain Punch"
+     "Flip Turn",
+     "Bulk Up"
+    ]
+   },
+   {
+    "id": "gen9championsvgc2026regmc-2678184783",
+    "species": "Aegislash",
+    "field": "moves",
+    "store": [
+     "Substitute",
+     "King's Shield"
+    ],
+    "ours": [
+     "Substitute",
+     "Sacred Sword",
+     "King's Shield"
+    ]
+   },
+   {
+    "id": "gen9championsvgc2026regmc-2678183991",
+    "species": "Floette-Eternal",
+    "field": "moves",
+    "store": [],
+    "ours": [
+     "Calm Mind",
+     "Protect"
+    ]
+   },
+   {
+    "id": "gen9championsvgc2026regmc-2678177336",
+    "species": "Floette-Eternal",
+    "field": "moves",
+    "store": [],
+    "ours": [
+     "Light of Ruin",
+     "Protect",
+     "Dazzling Gleam",
+     "Moonblast"
+    ]
+   },
+   {
+    "id": "gen9championsvgc2026regmc-2678175658",
+    "species": "Palafin",
+    "field": "moves",
+    "store": [
+     "Flip Turn"
+    ],
+    "ours": [
+     "Flip Turn",
+     "Throat Chop",
+     "Jet Punch",
+     "Close Combat"
     ]
    }
   ]
@@ -2390,10 +2539,10 @@
  "outputs": [
   {
    "path": "solver/out/porygon2-v2/bo1/games.jsonl.gz",
-   "bytes": 41771362,
-   "sha256": "deb2d205350d59c312292dcacaeda5304b7c5273dfdd900c7f4998295c60d1ea",
-   "games": 41989,
-   "positions": 286770
+   "bytes": 44730397,
+   "sha256": "b1db27cc3772fb9e6d802d75f507f9212f95a7e475805e01671c66a8e1b5a1d2",
+   "games": 45064,
+   "positions": 307845
   }
  ]
 }

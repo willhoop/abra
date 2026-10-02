@@ -1,6 +1,13 @@
 /* solver/human/build_dataset.js — the Reg M-C open-sheet HUMAN DECISION dataset.
  *
  *   cmd.exe /c tools\lownode.cmd solver\human\build_dataset.js [--limit N] [--out solver/out/human]
+ *          [--data-root <checkout>] [--bo1-store <file.jsonl.gz>] [--shards-from <manifest.json>]
+ *
+ *   --data-root    the checkout whose data/ is READ (default: this one). A worktree build names the main checkout, so
+ *                  it reads the main stores read-only and writes only under its own solver/out (2026-10-02).
+ *   --bo1-store    the bo1 parsed store whose behavioural-bot set judges the bo1 rooms. Default: the .gz under
+ *                  --data-root, NAMED EXPLICITLY (engine/quality.js storePath() would prefer a plain file beside it).
+ *   --shards-from  read only the raw shards an earlier manifest lists (by file name), to reproduce that build.
  *
  * Reads the tracked raw-log shards of the Reg M-C bo3 stream (the open-sheet ladder), parses every
  * game with solver/human/parse_game.js, filters, and writes:
@@ -32,7 +39,12 @@ const rel = p => path.relative(ROOT, p).replace(/\\/g, '/');
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i >= 0 ? process.argv[i + 1] : d; };
 const LIMIT = +arg('limit', 0) || 0;
 const OUT = path.resolve(ROOT, arg('out', 'solver/out/human'));
-const RAWDIR = path.join(ROOT, 'data', 'raw', 'games.' + X.FORMAT);
+const DATA_ROOT = path.resolve(arg('data-root', ROOT));
+const slash = p => String(p).split(path.sep).join('/');
+const relD = p => slash(path.relative(DATA_ROOT, p));     /* input paths are named relative to the data root */
+const RAWDIR = path.join(DATA_ROOT, 'data', 'raw', 'games.' + X.FORMAT);
+const SHARDS_FROM = arg('shards-from', null);
+const SHARD_SET = SHARDS_FROM ? new Set(JSON.parse(fs.readFileSync(path.resolve(SHARDS_FROM), 'utf8')).source.inputs.map(x => path.basename(x.path))) : null;
 /* OPEN-SHEET BO3 PLAY, NOT THE bo3 FORMAT ALONE (Will, 2026-10-01). engine/quality.js isOpenSheetBo3() admits the bo3
  * format and bo1-format rooms whose custom rules are exactly `Force Open Team Sheets` + `Best of = 3`. So the bo1 raw
  * shards are read too, and a bo1 row is kept at read time only when its own infobox makes it that game; every other
@@ -44,7 +56,8 @@ const RAWDIR = path.join(ROOT, 'data', 'raw', 'games.' + X.FORMAT);
  * rule. Every kept game carries `open_sheet_bo3` (isOpenSheetBo3) so a SERIES-LEVEL reader (CHOMP, XATU's bring model,
  * the arena's sheet pool, ROTOM's team candidates) keeps only the series games. */
 const BO1_FORMAT = X.SINGLES_FORMAT;               // misnamed in dex.js: the bo1 DOUBLES format id, read from regulations.json
-const RAWDIR_BO1 = path.join(ROOT, 'data', 'raw', 'games.' + BO1_FORMAT);
+const RAWDIR_BO1 = path.join(DATA_ROOT, 'data', 'raw', 'games.' + BO1_FORMAT);
+const BO1_STORE = path.resolve(arg('bo1-store', path.join(DATA_ROOT, 'data', 'games.' + BO1_FORMAT + '.jsonl.gz')));
 const CUSTOM_BOX = /<strong>\s*(\d+)\s+custom rules?:<\/strong>\s*<\/summary>\s*([^<]*)/i;
 
 /* Our own accounts are declared once, in data/quality-filter.json rules.exclude_own_accounts (2026-10-01), and read
@@ -76,11 +89,11 @@ function readShards() {
   const inputs = [], rows = [];
   let bo1Read = 0, bo1Kept = 0;
   for (const [dir, bo1] of [[RAWDIR, false], [RAWDIR_BO1, true]]) {
-    if (bo1 && !fs.existsSync(dir)) { console.error('build_dataset: no bo1 raw shards at ' + rel(dir) + '; its open-sheet bo3 rooms are NOT read'); continue; }
-    for (const f of fs.readdirSync(dir).filter(f => f.endsWith('.jsonl.gz')).sort()) {
+    if (bo1 && !fs.existsSync(dir)) { console.error('build_dataset: no bo1 raw shards at ' + relD(dir) + '; its open-sheet bo3 rooms are NOT read'); continue; }
+    for (const f of fs.readdirSync(dir).filter(f => f.endsWith('.jsonl.gz') && (!SHARD_SET || SHARD_SET.has(f))).sort()) {
       const abs = path.join(dir, f);
       const buf = fs.readFileSync(abs);
-      inputs.push({ path: rel(abs), bytes: buf.length, sha256: sha256(buf) });
+      inputs.push({ path: relD(abs), bytes: buf.length, sha256: sha256(buf) });
       const txt = zlib.gunzipSync(buf).toString('utf8');
       let n = 0;
       for (const line of txt.split('\n')) {
@@ -163,9 +176,10 @@ function main() {
   /* the bo1 store's own bot set, for the bo1 rooms (an account property, judged over the store the room sits in) */
   let bo1Bots = new Set(), bo1BotsFrom = null;
   if (uniq.some(r => r._bo1)) {
-    const p = path.join(ROOT, 'data', 'games.' + BO1_FORMAT + '.jsonl');
-    bo1BotsFrom = rel(Q.storePath(p));
-    bo1Bots = Q.behaviouralBots(Q.readStore(p), cfg);
+    /* the .gz, by name: storePath() of a path that ends in .gz resolves to that file (there is no `<file>.gz.gz`) */
+    const b = fs.readFileSync(BO1_STORE);
+    bo1BotsFrom = { path: slash(BO1_STORE), bytes: b.length, sha256: sha256(b) };
+    bo1Bots = Q.behaviouralBots(Q.readStore(BO1_STORE), cfg);
   }
 
   // ---- pass 2: filter + parse + write
@@ -284,7 +298,8 @@ function main() {
     generator: 'solver/human/build_dataset.js',
     schema_version: 1,
     format: X.FORMAT,
-    source: { kind: 'raw-log shards (tracked, written by the next-regulation collector)', dir: rel(RAWDIR), dir_bo1: rel(RAWDIR_BO1), shards: inputs.length,
+    source: { kind: 'raw-log shards (tracked, written by the next-regulation collector)', data_root: slash(DATA_ROOT), dir: relD(RAWDIR), dir_bo1: relD(RAWDIR_BO1),
+              shards_from: SHARDS_FROM ? slash(path.resolve(SHARDS_FROM)) : null, shards: inputs.length,
               rows: allRows.length, rows_used: rows.length, limit: LIMIT || null, bo1_stream: bo1Stream, inputs },
     open_sheet_bo3: 'engine/quality.js isOpenSheetBo3(), carried per game as game.open_sheet_bo3: the bo3 format, bo1-format rooms under exactly Force Open Team Sheets + Best of = 3, and bo1-format Best of = 3 rooms where both players accepted the sheets (Will, 2026-10-01)',
     open_sheet_turn_play: 'engine/quality.js isOpenSheetTurnPlay(), the admission rule of this dataset: open-sheet bo3 plus every bo1-format game with both sheets shown under no rule other than a sheet or best-of rule (Will, 2026-10-01). Series-level readers keep game.open_sheet_bo3 only.',

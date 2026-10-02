@@ -25,6 +25,13 @@ ok(G.every(g => g.sheets && g.sheets.length === 2 && g.sheets.every(s => s.lengt
 // exclusions + kept = store
 const exTot = Object.values(man.exclusions.charged_first).reduce((a, v) => a + v.bo1 + v.bo3, 0);
 ok(exTot + man.kept.total === man.games.distinct_ids, `exclusions (${exTot}) + kept (${man.kept.total}) = store ids (${man.games.distinct_ids})`);
+/* ONE CLASSIFIER, TWO CALLS, ONE ANSWER (2026-10-02). A game charged a custom-rule reason FIRST has already passed
+ * closed_sheet and not_open_sheet_bo3, so engine/quality.js isOpenSheetBo3() admitted it; reasons() refusing it as a
+ * custom ruleset is the two calls disagreeing. They did on 211 bo1 consent rooms while extract.js's quality row carried
+ * no sheets. */
+const crFirst = ['quality:custom_ruleset', 'custom_ruleset'].map(r => man.exclusions.charged_first[r] || { bo1: 0, bo3: 0 });
+const crN = crFirst.reduce((a, v) => a + v.bo1 + v.bo3, 0);
+ok(crN === 0, `${crN} games isOpenSheetBo3() admits were charged a custom-rule reason first (the quality row lost the sheets?)`);
 
 // legality: nothing illegal survived
 const illegal = new Set(['species', 'item', 'ability', 'move', 'nature'].flatMap(k => man.legality[k].illegal.map(x => k + ':' + x.id)));

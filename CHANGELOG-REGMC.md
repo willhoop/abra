@@ -28,6 +28,45 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.76.0] — 2026-10-02
+
+**MINOR: the SOLVER datasets owed after the 2026-10-01 store work are rebuilt. The PORYGON2 v2 streams no longer share
+a game, and GURU no longer drops the bo1 consent bo3 rooms.** These builds are store-only, read the main checkout
+read-only, and write their outputs untracked in the worktree. No game was played.
+
+### Changed
+- `solver/porygon2/v2/extract.js`: in bo1 mode, a game that `engine/quality.js` `isOpenSheetTurnPlay` admits is held
+  out of the bo1 (closed-sheet) stream, because the bo3 stream takes it through the same call. The count is in
+  `funnel.bo1_open_sheet_turn_play_left_to_bo3_stream` and the ids are in `<out>/bo1/left-to-bo3.txt`. The tracked
+  `manifest-bo{1,3}.json` now describe the rebuilt streams. k1's receipts stay at `d53258e3` and in its metrics.
+- `solver/human/build_dataset.js`: new flags `--data-root`, `--bo1-store` (the `.gz`, named explicitly) and
+  `--shards-from` (reproduce an earlier build). The default behaviour is unchanged.
+- `solver/meta/extract.js`: new flags `--data-root` and `--gz-only`. Receipts name each file relative to the data root.
+
+### Fixed
+- `solver/meta/extract.js`: the quality row did not carry the sheets. So `reasons()` charged every bo1 `Best of = 3`
+  room whose players had accepted the sheets as `quality:custom_ruleset`: 211 rooms that `isOpenSheetBo3()` admits.
+  The row now carries `sheetsShown`. `solver/tests/test-meta-artifacts.js` fails if any game is charged a custom-rule
+  reason first. It is GREEN 22/22, and RED (211) on the unfixed run.
+
+### Record
+- **Measured.**
+  - **Human dataset:** 42,235 games (40,476 open-sheet bo3 + 1,759 turn-play-only), sha256 `7ef6b56b…`.
+  - **GARY's 1.71.0 dataset reproduces byte for byte** (`b36bd0fe…`) from its 570 shards and its bo1 store. It is a
+    strict subset of the new dataset, which adds 1,097 games.
+  - **PORYGON2 v2 streams:** bo1 45,064 games (`b1db27cc…`), bo3 42,380 (`3b2a8b92…`), overlap 0. Without the
+    dedupe, 851 games would have been in both. bo1 store cross-check: items 97.6% → 100%, abilities 97.1% → 99.92%.
+    Leak test GREEN 222,895/222,895.
+  - **GURU:** 41,641 games kept (live set: 28,274). CHOMP's bo3 inputs move by at most 0.0052 (same_four.lost
+    0.2966 → 0.3018). archetypes k\* goes from 8 to 6.
+  - Counts by rating band are in the report. Report: `docs/_reports/2026-10-02-dataset-rebuild.md`. Manifests:
+    `solver/results/2026-10-02-dataset-rebuild/`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published. The live `solver/out/meta` (2026-09-23) stays in place until the coordinator
+  swaps it between ladder batches (report §4).
+- **Owed to the next major.** `docs/MODELS.md` (GURU, PORYGON2): one game is in one stream; GURU admits consent bo3
+  rooms; the meta counts. `docs/SOLVER.md`: the restamp.
+
 ## [1.75.0] — 2026-10-01
 
 **MINOR: an opponent forfeit while we are ahead on Pokémon is a real win.** Will, 2026-10-01: *"lets count forfeits where
