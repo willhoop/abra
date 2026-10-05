@@ -1,8 +1,8 @@
 {
- "generated": "2026-10-05T22:33:01.351Z",
+ "generated": "2026-10-05T23:22:23.930Z",
  "mode": "scheduled",
  "detection": {
-  "generated": "2026-10-05T22:33:01.349Z",
+  "generated": "2026-10-05T23:22:23.929Z",
   "authorities": {
    "live": {
     "url": "https://play.pokemonshowdown.com/data/formats.js",
@@ -74,7 +74,7 @@
     "known": true,
     "later_than_active": false,
     "classification": "known",
-    "recent_replays": 0,
+    "recent_replays": 1,
     "simulatable": false,
     "collectable": true
    },
@@ -148,7 +148,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 8,
+    "recent_replays": 14,
     "simulatable": false,
     "collectable": true
    }
@@ -199,7 +199,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 8,
+    "recent_replays": 14,
     "simulatable": false,
     "collectable": true
    }
@@ -216,48 +216,49 @@
   "superseded": 0,
   "collectable_not_simulatable": 4,
   "replay_only": 0,
-  "problems": 1,
+  "problems": 3,
   "formats_collected": 2,
-  "games_appended": 1439,
-  "stores_written": 2
+  "games_appended": 232,
+  "stores_written": 1
  },
  "collected": [
   {
    "format": "gen9championsvgc2026regmc",
    "store": "games.gen9championsvgc2026regmc.jsonl",
-   "before": 80143,
-   "after": 80961,
-   "appended": 818,
-   "ingest_said": "coverage: gen9championsvgc2026regmc pages=25 offered=1275 unique=1251 new=818 held=433 oldest_offered=2026-10-05T14:47:35Z newest_offered=2026-10-05T22:32:50Z newest_stored=2026-10-05T17:25:00Z"
+   "before": 80966,
+   "after": 81114,
+   "appended": 148,
+   "ingest_said": "coverage: gen9championsvgc2026regmc pages=25 offered=1275 unique=1251 new=148 held=1103 oldest_offered=2026-10-05T15:35:11Z newest_offered=2026-10-05T23:22:52Z newest_stored=2026-10-05T22:35:00Z"
   },
   {
    "format": "gen9championsvgc2026regmcbo3",
    "store": "games.gen9championsvgc2026regmcbo3.jsonl",
-   "before": 47491,
-   "after": 48112,
-   "appended": 621,
-   "ingest_said": "coverage: gen9championsvgc2026regmcbo3 pages=25 offered=1275 unique=1251 new=621 held=630 oldest_offered=2026-10-05T04:00:03Z newest_offered=2026-10-05T22:33:19Z newest_stored=2026-10-05T17:25:00Z"
+   "before": 48115,
+   "after": 48199,
+   "appended": 84,
+   "ingest_said": "coverage: gen9championsvgc2026regmcbo3 pages=25 offered=1275 unique=1250 new=84 held=1166 oldest_offered=2026-10-05T06:23:25Z newest_offered=2026-10-05T23:22:30Z newest_stored=2026-10-05T22:35:00Z"
   }
  ],
  "reconciled": [
   {
    "store": "games.gen9championsvgc2026regmc.jsonl",
-   "rows": 80961,
-   "before": 80961,
-   "from_gz": 80143,
-   "from_plain": 818,
-   "wrote": true
+   "rows": 81114,
+   "before": 81114,
+   "wrote": false,
+   "reason": "shrink refused"
   },
   {
    "store": "games.gen9championsvgc2026regmcbo3.jsonl",
-   "rows": 48112,
-   "before": 48112,
-   "from_gz": 47491,
-   "from_plain": 621,
+   "rows": 48199,
+   "before": 48199,
+   "from_gz": 48115,
+   "from_plain": 84,
    "wrote": true
   }
  ],
  "problems": [
+  "read games.gen9championsvgc2026regmc.jsonl while reconciling: Cannot create a string longer than 0x1fffffe8 characters",
+  "reconcile games.gen9championsvgc2026regmc.jsonl: would SHRINK 81114 -> 80966; refusing to write",
   "locate a pokemon-showdown checkout: SHOWDOWN_PATH unset and no sibling checkout"
  ],
  "by": "engine/next_regulation_ingest.js",
@@ -269,5 +270,5 @@
   "note": "Content, not mtime. A checkout moves an mtime without moving code."
  },
  "note": "Rewritten only when the detection changes. engine/next_regulation_ingest.js runs every six hours; an old `generated` means the answer has not moved, NOT that the check stopped. The run log is the record that it ran.",
- "signature": "{\"formats\":[[\"gen9championsvgc2026regmb\",\"known\",\"live\"],[\"gen9championsvgc2026regmbbo3\",\"known\",\"live\"],[\"gen9championsvgc2026regmc\",\"candidate\",\"live\"],[\"gen9championsvgc2026regmcbo3\",\"candidate\",\"live\"]],\"candidates\":2,\"unknown\":2,\"lagging\":4,\"collected\":2,\"problems\":1}"
+ "signature": "{\"formats\":[[\"gen9championsvgc2026regmb\",\"known\",\"live\"],[\"gen9championsvgc2026regmbbo3\",\"known\",\"live\"],[\"gen9championsvgc2026regmc\",\"candidate\",\"live\"],[\"gen9championsvgc2026regmcbo3\",\"candidate\",\"live\"]],\"candidates\":2,\"unknown\":2,\"lagging\":4,\"collected\":2,\"problems\":3}"
 }
