@@ -40,6 +40,14 @@
    "players": 222,
    "regulation_label": "M-C",
    "classified": "2026-10-06"
+  },
+  "limitless:445": {
+   "url": "https://limitlessvgc.com/tournaments/445",
+   "name": "Regional Lousville, KY",
+   "start": "2026-10-10",
+   "players": 1013,
+   "regulation_label": "M-C",
+   "classified": "2026-10-13"
   }
  }
 }
