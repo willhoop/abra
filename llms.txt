@@ -1,0 +1,35 @@
+# ABRA
+
+> An AI for competitive Pokémon, trained on real ladder battles. It calculates damage, reads what the opponent is likely hiding, and estimates who is winning mid-battle.
+
+ABRA (Automated Battle Replay Analyzer) builds a player for Pokémon Champions VGC doubles, Regulation M-C, open team sheets, on the Pokémon Showdown ladder. Its own doubles simulator (MEDICHAM) is the foundation; a per-turn search and solver plays on it. Every published figure lives in the white paper; this file carries none.
+
+Keywords: Pokémon, competitive Pokémon, VGC, Pokémon Showdown, game AI, machine learning, damage calculator, win probability, metagame analysis
+
+## Start here
+
+- [Live app](https://willhoop.github.io/abra/app/): ABRA WORLD, the site that renders what the artifacts say
+- [White paper](https://github.com/willhoop/abra/blob/main/docs/ABRA-whitepaper.md): the results, the math and the sources; the one home for every figure
+- [Plain-English deck](https://github.com/willhoop/abra/blob/main/docs/ABRA-deck-plain-english.md): the same story for a non-specialist
+- [Technical documentation](https://github.com/willhoop/abra/blob/main/docs/ABRA-technical-docs.md): install, run and maintain
+- [Source](https://github.com/willhoop/abra): the GitHub repository
+
+## Key documents
+
+- [README](https://github.com/willhoop/abra/blob/main/README.md): project summary and a table of every component
+- [Orientation](https://github.com/willhoop/abra/blob/main/docs/ORIENTATION.md): the entry point; what each model does and the plan
+- [Models](https://github.com/willhoop/abra/blob/main/docs/MODELS.md): what each solver model is and where its measurements live
+- [Solver plan](https://github.com/willhoop/abra/blob/main/solver/PLAN.md): the model registry, milestones and how a version is judged
+- [Reg M-C line](https://github.com/willhoop/abra/blob/main/docs/REGMC.md): the current regulation and the version scheme
+- [Changelog](https://github.com/willhoop/abra/blob/main/CHANGELOG-REGMC.md): one record per change on the current line
+- [Glossary](https://github.com/willhoop/abra/blob/main/docs/GLOSSARY.md): the project's terms and model names
+
+## Entry points in code
+
+- [engine/medicham_api.js](https://github.com/willhoop/abra/blob/main/engine/medicham_api.js): the simulator's solver API (clone, legal actions, step, playouts)
+- [engine/status.js](https://github.com/willhoop/abra/blob/main/engine/status.js): prints the project's current state, each figure with its source artifact
+
+## Related
+
+- [Portfolio](https://willhoop.github.io/): all projects by Will Hooper ([llms.txt](https://willhoop.github.io/llms.txt))
+- [CHOMP](https://github.com/willhoop/chomp): ABRA's team-preview tool as a Pokémon Showdown userscript

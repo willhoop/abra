@@ -28,6 +28,18 @@ without all four. A row written in the old shape converts with `node engine/note
 
 ---
 
+## [1.78.2] — 2026-10-13
+### Added
+- `llms.txt` at the repository root, in the llmstxt.org format: a one-line summary, key terms, and
+  absolute links to the live app, the white paper, the deck, the technical docs, the key documents,
+  the source and the portfolio. AI agents and search tools can now find and read ABRA by its key terms.
+  It carries no figure; every figure stays in the white paper. `README.md` links it.
+### Record
+- **Measured.** No figure changed.
+- **Basis.** unchanged
+- **Supersedes.** Nothing.
+- **Owed to the next major.** Nothing.
+
 ## [1.78.1] — 2026-10-02
 ### Changed
 - Restamped the generated blocks in the five division ledgers and `data/provenance-stamp.json`

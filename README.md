@@ -3,6 +3,8 @@
 
 > **New here? Read [docs/ORIENTATION.md](docs/ORIENTATION.md) first.** It is the entry point: what
 > the project is, the plan, what each model does, and the failure mode this project keeps hitting.
+>
+> **AI agents and search tools:** [`llms.txt`](llms.txt) is the machine-readable index of this project.
 
 **ABRA builds a player for Pokémon Champions VGC, Reg M-C, open team sheets, and takes it up the
 Showdown ladder.** The engine is the foundation; the search is the point:
