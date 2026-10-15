@@ -1,8 +1,8 @@
 {
- "generated": "2026-10-15T17:20:21.153Z",
+ "generated": "2026-10-15T19:04:10.516Z",
  "mode": "scheduled",
  "detection": {
-  "generated": "2026-10-15T17:20:21.152Z",
+  "generated": "2026-10-15T19:04:10.515Z",
   "authorities": {
    "live": {
     "url": "https://play.pokemonshowdown.com/data/formats.js",
@@ -74,7 +74,7 @@
     "known": true,
     "later_than_active": false,
     "classification": "known",
-    "recent_replays": 1,
+    "recent_replays": 0,
     "simulatable": false,
     "collectable": true
    },
@@ -99,7 +99,7 @@
     "known": true,
     "later_than_active": false,
     "classification": "known",
-    "recent_replays": 2,
+    "recent_replays": 0,
     "simulatable": false,
     "collectable": true
    },
@@ -123,7 +123,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 6,
+    "recent_replays": 10,
     "simulatable": false,
     "collectable": true
    },
@@ -148,7 +148,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 6,
+    "recent_replays": 13,
     "simulatable": false,
     "collectable": true
    }
@@ -174,7 +174,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 6,
+    "recent_replays": 10,
     "simulatable": false,
     "collectable": true
    },
@@ -199,7 +199,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 6,
+    "recent_replays": 13,
     "simulatable": false,
     "collectable": true
    }
@@ -218,7 +218,7 @@
   "replay_only": 0,
   "problems": 5,
   "formats_collected": 2,
-  "games_appended": 2502,
+  "games_appended": 2501,
   "stores_written": 0
  },
  "collected": [
@@ -226,9 +226,9 @@
    "format": "gen9championsvgc2026regmc",
    "store": "games.gen9championsvgc2026regmc.jsonl",
    "before": 80966,
-   "after": 82217,
-   "appended": 1251,
-   "ingest_said": "GAP: gen9championsvgc2026regmc — search window oldest 2026-10-15T08:11:51Z is newer than store newest 2026-10-05T22:35:00Z; ~30867 games unreachable (225.61 h unheld at 137 games/h measured over this window's 9.14 h). The pool is rolling; these cannot be re-fetched."
+   "after": 82216,
+   "appended": 1250,
+   "ingest_said": "GAP: gen9championsvgc2026regmc — search window oldest 2026-10-15T10:57:36Z is newer than store newest 2026-10-05T22:35:00Z; ~35187 games unreachable (228.38 h unheld at 154 games/h measured over this window's 8.11 h). The pool is rolling; these cannot be re-fetched."
   },
   {
    "format": "gen9championsvgc2026regmcbo3",
@@ -236,14 +236,14 @@
    "before": 50284,
    "after": 51535,
    "appended": 1251,
-   "ingest_said": "GAP: gen9championsvgc2026regmcbo3 — search window oldest 2026-10-14T22:54:16Z is newer than store newest 2026-10-06T21:55:00Z; ~13088 games unreachable (192.99 h unheld at 68 games/h measured over this window's 18.45 h). The pool is rolling; these cannot be re-fetched."
+   "ingest_said": "GAP: gen9championsvgc2026regmcbo3 — search window oldest 2026-10-15T01:14:29Z is newer than store newest 2026-10-06T21:55:00Z; ~13704 games unreachable (195.32 h unheld at 70 games/h measured over this window's 17.83 h). The pool is rolling; these cannot be re-fetched."
   }
  ],
  "reconciled": [
   {
    "store": "games.gen9championsvgc2026regmc.jsonl",
-   "rows": 82217,
-   "before": 82217,
+   "rows": 82216,
+   "before": 82216,
    "wrote": false,
    "reason": "shrink refused"
   },
@@ -257,7 +257,7 @@
  ],
  "problems": [
   "read games.gen9championsvgc2026regmc.jsonl while reconciling: Cannot create a string longer than 0x1fffffe8 characters",
-  "reconcile games.gen9championsvgc2026regmc.jsonl: would SHRINK 82217 -> 80966; refusing to write",
+  "reconcile games.gen9championsvgc2026regmc.jsonl: would SHRINK 82216 -> 80966; refusing to write",
   "read games.gen9championsvgc2026regmcbo3.jsonl while reconciling: Cannot create a string longer than 0x1fffffe8 characters",
   "reconcile games.gen9championsvgc2026regmcbo3.jsonl: would SHRINK 51535 -> 50284; refusing to write",
   "locate a pokemon-showdown checkout: SHOWDOWN_PATH unset and no sibling checkout"
