@@ -1,8 +1,8 @@
 {
- "generated": "2026-10-27T02:00:16.434Z",
+ "generated": "2026-10-27T06:51:03.238Z",
  "mode": "scheduled",
  "detection": {
-  "generated": "2026-10-27T02:00:16.433Z",
+  "generated": "2026-10-27T06:51:03.236Z",
   "authorities": {
    "live": {
     "url": "https://play.pokemonshowdown.com/data/formats.js",
@@ -18,7 +18,7 @@
    },
    "replays": {
     "url": "https://replay.pokemonshowdown.com/search.json?page=1",
-    "sample": 51
+    "reached": false
    },
    "replay_search": {
     "url": "https://replay.pokemonshowdown.com/search.json?format=<id>",
@@ -30,10 +30,7 @@
      "gen9championsvgc2026regme",
      "gen9championsvgc2026regmebo3"
     ],
-    "hits": [
-     "gen9championsvgc2026regmc",
-     "gen9championsvgc2026regmcbo3"
-    ],
+    "hits": [],
     "vgc_reg_rows": 0
    }
   },
@@ -51,7 +48,7 @@
    "superseded": 0,
    "collectable_not_simulatable": 4,
    "replay_only": 0,
-   "problems": 1
+   "problems": 8
   },
   "formats": [
    {
@@ -74,7 +71,7 @@
     "known": true,
     "later_than_active": false,
     "classification": "known",
-    "recent_replays": 0,
+    "recent_replays": null,
     "simulatable": false,
     "collectable": true
    },
@@ -99,7 +96,7 @@
     "known": true,
     "later_than_active": false,
     "classification": "known",
-    "recent_replays": 0,
+    "recent_replays": null,
     "simulatable": false,
     "collectable": true
    },
@@ -123,7 +120,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 13,
+    "recent_replays": null,
     "simulatable": false,
     "collectable": true
    },
@@ -148,7 +145,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 7,
+    "recent_replays": null,
     "simulatable": false,
     "collectable": true
    }
@@ -174,7 +171,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 13,
+    "recent_replays": null,
     "simulatable": false,
     "collectable": true
    },
@@ -199,13 +196,20 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 7,
+    "recent_replays": null,
     "simulatable": false,
     "collectable": true
    }
   ],
   "problems": [
-   "locate a pokemon-showdown checkout: SHOWDOWN_PATH unset and no sibling checkout"
+   "locate a pokemon-showdown checkout: SHOWDOWN_PATH unset and no sibling checkout",
+   "read recent replays https://replay.pokemonshowdown.com/search.json?page=1: timeout",
+   "search replays for gen9championsvgc2026regmc: timeout",
+   "search replays for gen9championsvgc2026regmcbo3: timeout",
+   "search replays for gen9championsvgc2026regmd: timeout",
+   "search replays for gen9championsvgc2026regmdbo3: timeout",
+   "search replays for gen9championsvgc2026regme: timeout",
+   "search replays for gen9championsvgc2026regmebo3: timeout"
   ]
  },
  "counters": {
@@ -216,51 +220,58 @@
   "superseded": 0,
   "collectable_not_simulatable": 4,
   "replay_only": 0,
-  "problems": 5,
+  "problems": 10,
   "formats_collected": 2,
-  "games_appended": 2502,
-  "stores_written": 0
+  "games_appended": 0,
+  "stores_written": 2
  },
  "collected": [
   {
    "format": "gen9championsvgc2026regmc",
    "store": "games.gen9championsvgc2026regmc.jsonl",
    "before": 80966,
-   "after": 82217,
-   "appended": 1251,
-   "ingest_said": "GAP: gen9championsvgc2026regmc — search window oldest 2026-10-26T18:13:21Z is newer than store newest 2026-10-05T22:35:00Z; ~80355 games unreachable (499.64 h unheld at 161 games/h measured over this window's 7.78 h). The pool is rolling; these cannot be re-fetched."
+   "after": 80966,
+   "appended": 0,
+   "ingest_said": "ZERO-GAIN: the search endpoint offered NO ids for gen9championsvgc2026regmc. The replay pool is a rolling ~1,250 per format, so a live format always fills page one. This is the search failing, not a quiet ladder."
   },
   {
    "format": "gen9championsvgc2026regmcbo3",
    "store": "games.gen9championsvgc2026regmcbo3.jsonl",
    "before": 50284,
-   "after": 51535,
-   "appended": 1251,
-   "ingest_said": "GAP: gen9championsvgc2026regmcbo3 — search window oldest 2026-10-26T12:11:23Z is newer than store newest 2026-10-06T21:55:00Z; ~42732 games unreachable (470.27 h unheld at 91 games/h measured over this window's 13.77 h). The pool is rolling; these cannot be re-fetched."
+   "after": 50284,
+   "appended": 0,
+   "ingest_said": "ZERO-GAIN: the search endpoint offered NO ids for gen9championsvgc2026regmcbo3. The replay pool is a rolling ~1,250 per format, so a live format always fills page one. This is the search failing, not a quiet ladder."
   }
  ],
  "reconciled": [
   {
    "store": "games.gen9championsvgc2026regmc.jsonl",
-   "rows": 82217,
-   "before": 82217,
-   "wrote": false,
-   "reason": "shrink refused"
+   "rows": 80966,
+   "before": 80966,
+   "from_gz": 80966,
+   "from_plain": 0,
+   "wrote": true
   },
   {
    "store": "games.gen9championsvgc2026regmcbo3.jsonl",
-   "rows": 51535,
-   "before": 51535,
-   "wrote": false,
-   "reason": "shrink refused"
+   "rows": 50284,
+   "before": 50284,
+   "from_gz": 50284,
+   "from_plain": 0,
+   "wrote": true
   }
  ],
  "problems": [
-  "read games.gen9championsvgc2026regmc.jsonl while reconciling: Cannot create a string longer than 0x1fffffe8 characters",
-  "reconcile games.gen9championsvgc2026regmc.jsonl: would SHRINK 82217 -> 80966; refusing to write",
-  "read games.gen9championsvgc2026regmcbo3.jsonl while reconciling: Cannot create a string longer than 0x1fffffe8 characters",
-  "reconcile games.gen9championsvgc2026regmcbo3.jsonl: would SHRINK 51535 -> 50284; refusing to write",
-  "locate a pokemon-showdown checkout: SHOWDOWN_PATH unset and no sibling checkout"
+  "run durable-ingest.js for gen9championsvgc2026regmc: exit 1; ZERO-GAIN: the search endpoint offered NO ids for gen9championsvgc2026regmc. The replay pool is a rolling ~1,250 per format, so a live format always fills page one. This is the search failing, not a quiet ladder.",
+  "run durable-ingest.js for gen9championsvgc2026regmcbo3: exit 1; ZERO-GAIN: the search endpoint offered NO ids for gen9championsvgc2026regmcbo3. The replay pool is a rolling ~1,250 per format, so a live format always fills page one. This is the search failing, not a quiet ladder.",
+  "locate a pokemon-showdown checkout: SHOWDOWN_PATH unset and no sibling checkout",
+  "read recent replays https://replay.pokemonshowdown.com/search.json?page=1: timeout",
+  "search replays for gen9championsvgc2026regmc: timeout",
+  "search replays for gen9championsvgc2026regmcbo3: timeout",
+  "search replays for gen9championsvgc2026regmd: timeout",
+  "search replays for gen9championsvgc2026regmdbo3: timeout",
+  "search replays for gen9championsvgc2026regme: timeout",
+  "search replays for gen9championsvgc2026regmebo3: timeout"
  ],
  "by": "engine/next_regulation_ingest.js",
  "source_digests": {
@@ -271,5 +282,5 @@
   "note": "Content, not mtime. A checkout moves an mtime without moving code."
  },
  "note": "Rewritten only when the detection changes. engine/next_regulation_ingest.js runs every six hours; an old `generated` means the answer has not moved, NOT that the check stopped. The run log is the record that it ran.",
- "signature": "{\"formats\":[[\"gen9championsvgc2026regmb\",\"known\",\"live\"],[\"gen9championsvgc2026regmbbo3\",\"known\",\"live\"],[\"gen9championsvgc2026regmc\",\"candidate\",\"live\"],[\"gen9championsvgc2026regmcbo3\",\"candidate\",\"live\"]],\"candidates\":2,\"unknown\":2,\"lagging\":4,\"collected\":2,\"problems\":5}"
+ "signature": "{\"formats\":[[\"gen9championsvgc2026regmb\",\"known\",\"live\"],[\"gen9championsvgc2026regmbbo3\",\"known\",\"live\"],[\"gen9championsvgc2026regmc\",\"candidate\",\"live\"],[\"gen9championsvgc2026regmcbo3\",\"candidate\",\"live\"]],\"candidates\":2,\"unknown\":2,\"lagging\":4,\"collected\":2,\"problems\":10}"
 }
