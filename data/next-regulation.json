@@ -1,8 +1,8 @@
 {
- "generated": "2026-10-27T06:51:03.238Z",
+ "generated": "2026-10-27T13:33:28.414Z",
  "mode": "scheduled",
  "detection": {
-  "generated": "2026-10-27T06:51:03.236Z",
+  "generated": "2026-10-27T13:33:28.413Z",
   "authorities": {
    "live": {
     "url": "https://play.pokemonshowdown.com/data/formats.js",
@@ -18,7 +18,7 @@
    },
    "replays": {
     "url": "https://replay.pokemonshowdown.com/search.json?page=1",
-    "reached": false
+    "sample": 51
    },
    "replay_search": {
     "url": "https://replay.pokemonshowdown.com/search.json?format=<id>",
@@ -30,7 +30,10 @@
      "gen9championsvgc2026regme",
      "gen9championsvgc2026regmebo3"
     ],
-    "hits": [],
+    "hits": [
+     "gen9championsvgc2026regmc",
+     "gen9championsvgc2026regmcbo3"
+    ],
     "vgc_reg_rows": 0
    }
   },
@@ -48,7 +51,7 @@
    "superseded": 0,
    "collectable_not_simulatable": 4,
    "replay_only": 0,
-   "problems": 8
+   "problems": 1
   },
   "formats": [
    {
@@ -71,7 +74,7 @@
     "known": true,
     "later_than_active": false,
     "classification": "known",
-    "recent_replays": null,
+    "recent_replays": 0,
     "simulatable": false,
     "collectable": true
    },
@@ -96,7 +99,7 @@
     "known": true,
     "later_than_active": false,
     "classification": "known",
-    "recent_replays": null,
+    "recent_replays": 0,
     "simulatable": false,
     "collectable": true
    },
@@ -120,7 +123,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": null,
+    "recent_replays": 5,
     "simulatable": false,
     "collectable": true
    },
@@ -145,7 +148,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": null,
+    "recent_replays": 9,
     "simulatable": false,
     "collectable": true
    }
@@ -171,7 +174,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": null,
+    "recent_replays": 5,
     "simulatable": false,
     "collectable": true
    },
@@ -196,20 +199,13 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": null,
+    "recent_replays": 9,
     "simulatable": false,
     "collectable": true
    }
   ],
   "problems": [
-   "locate a pokemon-showdown checkout: SHOWDOWN_PATH unset and no sibling checkout",
-   "read recent replays https://replay.pokemonshowdown.com/search.json?page=1: timeout",
-   "search replays for gen9championsvgc2026regmc: timeout",
-   "search replays for gen9championsvgc2026regmcbo3: timeout",
-   "search replays for gen9championsvgc2026regmd: timeout",
-   "search replays for gen9championsvgc2026regmdbo3: timeout",
-   "search replays for gen9championsvgc2026regme: timeout",
-   "search replays for gen9championsvgc2026regmebo3: timeout"
+   "locate a pokemon-showdown checkout: SHOWDOWN_PATH unset and no sibling checkout"
   ]
  },
  "counters": {
@@ -220,7 +216,7 @@
   "superseded": 0,
   "collectable_not_simulatable": 4,
   "replay_only": 0,
-  "problems": 10,
+  "problems": 3,
   "formats_collected": 2,
   "games_appended": 0,
   "stores_written": 2
@@ -232,7 +228,7 @@
    "before": 80966,
    "after": 80966,
    "appended": 0,
-   "ingest_said": "ZERO-GAIN: the search endpoint offered NO ids for gen9championsvgc2026regmc. The replay pool is a rolling ~1,250 per format, so a live format always fills page one. This is the search failing, not a quiet ladder."
+   "ingest_said": "ZERO-GAIN: 101 of 101 log requests did not complete (>50%). The log endpoint is failing; the ids were found but the logs were not fetched."
   },
   {
    "format": "gen9championsvgc2026regmcbo3",
@@ -262,16 +258,9 @@
   }
  ],
  "problems": [
-  "run durable-ingest.js for gen9championsvgc2026regmc: exit 1; ZERO-GAIN: the search endpoint offered NO ids for gen9championsvgc2026regmc. The replay pool is a rolling ~1,250 per format, so a live format always fills page one. This is the search failing, not a quiet ladder.",
+  "run durable-ingest.js for gen9championsvgc2026regmc: exit 1; ZERO-GAIN: 101 of 101 log requests did not complete (>50%). The log endpoint is failing; the ids were found but the logs were not fetched.",
   "run durable-ingest.js for gen9championsvgc2026regmcbo3: exit 1; ZERO-GAIN: the search endpoint offered NO ids for gen9championsvgc2026regmcbo3. The replay pool is a rolling ~1,250 per format, so a live format always fills page one. This is the search failing, not a quiet ladder.",
-  "locate a pokemon-showdown checkout: SHOWDOWN_PATH unset and no sibling checkout",
-  "read recent replays https://replay.pokemonshowdown.com/search.json?page=1: timeout",
-  "search replays for gen9championsvgc2026regmc: timeout",
-  "search replays for gen9championsvgc2026regmcbo3: timeout",
-  "search replays for gen9championsvgc2026regmd: timeout",
-  "search replays for gen9championsvgc2026regmdbo3: timeout",
-  "search replays for gen9championsvgc2026regme: timeout",
-  "search replays for gen9championsvgc2026regmebo3: timeout"
+  "locate a pokemon-showdown checkout: SHOWDOWN_PATH unset and no sibling checkout"
  ],
  "by": "engine/next_regulation_ingest.js",
  "source_digests": {
@@ -282,5 +271,5 @@
   "note": "Content, not mtime. A checkout moves an mtime without moving code."
  },
  "note": "Rewritten only when the detection changes. engine/next_regulation_ingest.js runs every six hours; an old `generated` means the answer has not moved, NOT that the check stopped. The run log is the record that it ran.",
- "signature": "{\"formats\":[[\"gen9championsvgc2026regmb\",\"known\",\"live\"],[\"gen9championsvgc2026regmbbo3\",\"known\",\"live\"],[\"gen9championsvgc2026regmc\",\"candidate\",\"live\"],[\"gen9championsvgc2026regmcbo3\",\"candidate\",\"live\"]],\"candidates\":2,\"unknown\":2,\"lagging\":4,\"collected\":2,\"problems\":10}"
+ "signature": "{\"formats\":[[\"gen9championsvgc2026regmb\",\"known\",\"live\"],[\"gen9championsvgc2026regmbbo3\",\"known\",\"live\"],[\"gen9championsvgc2026regmc\",\"candidate\",\"live\"],[\"gen9championsvgc2026regmcbo3\",\"candidate\",\"live\"]],\"candidates\":2,\"unknown\":2,\"lagging\":4,\"collected\":2,\"problems\":3}"
 }
