@@ -64,6 +64,14 @@
    "players": 333,
    "regulation_label": "M-C",
    "classified": "2026-10-27"
+  },
+  "limitless:448": {
+   "url": "https://limitlessvgc.com/tournaments/448",
+   "name": "Regional Gdańsk",
+   "start": "2026-10-31",
+   "players": 758,
+   "regulation_label": "M-C",
+   "classified": "2026-11-03"
   }
  }
 }
