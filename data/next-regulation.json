@@ -1,8 +1,8 @@
 {
- "generated": "2026-11-04T07:59:00.789Z",
+ "generated": "2026-11-04T14:20:45.213Z",
  "mode": "scheduled",
  "detection": {
-  "generated": "2026-11-04T07:59:00.788Z",
+  "generated": "2026-11-04T14:20:45.212Z",
   "authorities": {
    "live": {
     "url": "https://play.pokemonshowdown.com/data/formats.js",
@@ -123,7 +123,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 6,
+    "recent_replays": 13,
     "simulatable": false,
     "collectable": true
    },
@@ -174,7 +174,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 6,
+    "recent_replays": 13,
     "simulatable": false,
     "collectable": true
    },
@@ -228,7 +228,7 @@
    "before": 81017,
    "after": 82268,
    "appended": 1251,
-   "ingest_said": "GAP: gen9championsvgc2026regmc — search window oldest 2026-11-03T08:39:42Z is newer than store newest 2026-10-27T14:22:00Z; ~8715 games unreachable (162.29 h unheld at 54 games/h measured over this window's 23.30 h). The pool is rolling; these cannot be re-fetched."
+   "ingest_said": "GAP: gen9championsvgc2026regmc — search window oldest 2026-11-03T14:34:13Z is newer than store newest 2026-10-27T14:22:00Z; ~8855 games unreachable (168.20 h unheld at 53 games/h measured over this window's 23.76 h). The pool is rolling; these cannot be re-fetched."
   },
   {
    "format": "gen9championsvgc2026regmcbo3",
@@ -236,7 +236,7 @@
    "before": 50452,
    "after": 51703,
    "appended": 1251,
-   "ingest_said": "GAP: gen9championsvgc2026regmcbo3 — search window oldest 2026-11-03T01:27:37Z is newer than store newest 2026-10-27T04:09:00Z; ~6777 games unreachable (165.31 h unheld at 41 games/h measured over this window's 30.51 h). The pool is rolling; these cannot be re-fetched."
+   "ingest_said": "GAP: gen9championsvgc2026regmcbo3 — search window oldest 2026-11-03T06:28:11Z is newer than store newest 2026-10-27T04:09:00Z; ~6683 games unreachable (170.32 h unheld at 39 games/h measured over this window's 31.88 h). The pool is rolling; these cannot be re-fetched."
   }
  ],
  "reconciled": [
