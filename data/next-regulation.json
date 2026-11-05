@@ -1,8 +1,8 @@
 {
- "generated": "2026-11-04T22:10:06.625Z",
+ "generated": "2026-11-05T02:16:22.544Z",
  "mode": "scheduled",
  "detection": {
-  "generated": "2026-11-04T22:10:06.623Z",
+  "generated": "2026-11-05T02:16:22.543Z",
   "authorities": {
    "live": {
     "url": "https://play.pokemonshowdown.com/data/formats.js",
@@ -123,7 +123,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 5,
+    "recent_replays": 11,
     "simulatable": false,
     "collectable": true
    },
@@ -148,7 +148,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 11,
+    "recent_replays": 8,
     "simulatable": false,
     "collectable": true
    }
@@ -174,7 +174,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 5,
+    "recent_replays": 11,
     "simulatable": false,
     "collectable": true
    },
@@ -199,7 +199,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 11,
+    "recent_replays": 8,
     "simulatable": false,
     "collectable": true
    }
@@ -218,7 +218,7 @@
   "replay_only": 0,
   "problems": 5,
   "formats_collected": 2,
-  "games_appended": 2501,
+  "games_appended": 2502,
   "stores_written": 0
  },
  "collected": [
@@ -228,15 +228,15 @@
    "before": 81017,
    "after": 82268,
    "appended": 1251,
-   "ingest_said": "GAP: gen9championsvgc2026regmc — search window oldest 2026-11-03T21:03:53Z is newer than store newest 2026-10-27T14:22:00Z; ~8705 games unreachable (174.70 h unheld at 50 games/h measured over this window's 25.11 h). The pool is rolling; these cannot be re-fetched."
+   "ingest_said": "GAP: gen9championsvgc2026regmc — search window oldest 2026-11-04T01:24:23Z is newer than store newest 2026-10-27T14:22:00Z; ~9010 games unreachable (179.04 h unheld at 50 games/h measured over this window's 24.86 h). The pool is rolling; these cannot be re-fetched."
   },
   {
    "format": "gen9championsvgc2026regmcbo3",
    "store": "games.gen9championsvgc2026regmcbo3.jsonl",
    "before": 50452,
-   "after": 51702,
-   "appended": 1250,
-   "ingest_said": "GAP: gen9championsvgc2026regmcbo3 — search window oldest 2026-11-03T17:46:15Z is newer than store newest 2026-10-27T04:09:00Z; ~7999 games unreachable (181.62 h unheld at 44 games/h measured over this window's 28.38 h). The pool is rolling; these cannot be re-fetched."
+   "after": 51703,
+   "appended": 1251,
+   "ingest_said": "GAP: gen9championsvgc2026regmcbo3 — search window oldest 2026-11-03T21:01:21Z is newer than store newest 2026-10-27T04:09:00Z; ~7902 games unreachable (184.87 h unheld at 43 games/h measured over this window's 29.27 h). The pool is rolling; these cannot be re-fetched."
   }
  ],
  "reconciled": [
@@ -249,8 +249,8 @@
   },
   {
    "store": "games.gen9championsvgc2026regmcbo3.jsonl",
-   "rows": 51702,
-   "before": 51702,
+   "rows": 51703,
+   "before": 51703,
    "wrote": false,
    "reason": "shrink refused"
   }
@@ -259,7 +259,7 @@
   "read games.gen9championsvgc2026regmc.jsonl while reconciling: Cannot create a string longer than 0x1fffffe8 characters",
   "reconcile games.gen9championsvgc2026regmc.jsonl: would SHRINK 82268 -> 81017; refusing to write",
   "read games.gen9championsvgc2026regmcbo3.jsonl while reconciling: Cannot create a string longer than 0x1fffffe8 characters",
-  "reconcile games.gen9championsvgc2026regmcbo3.jsonl: would SHRINK 51702 -> 50452; refusing to write",
+  "reconcile games.gen9championsvgc2026regmcbo3.jsonl: would SHRINK 51703 -> 50452; refusing to write",
   "locate a pokemon-showdown checkout: SHOWDOWN_PATH unset and no sibling checkout"
  ],
  "by": "engine/next_regulation_ingest.js",
