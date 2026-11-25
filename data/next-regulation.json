@@ -1,8 +1,8 @@
 {
- "generated": "2026-11-24T23:15:40.801Z",
+ "generated": "2026-11-25T02:15:44.276Z",
  "mode": "scheduled",
  "detection": {
-  "generated": "2026-11-24T23:15:40.800Z",
+  "generated": "2026-11-25T02:15:44.275Z",
   "authorities": {
    "live": {
     "url": "https://play.pokemonshowdown.com/data/formats.js",
@@ -123,7 +123,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 11,
+    "recent_replays": 19,
     "simulatable": false,
     "collectable": true
    },
@@ -148,7 +148,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 7,
+    "recent_replays": 5,
     "simulatable": false,
     "collectable": true
    }
@@ -174,7 +174,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 11,
+    "recent_replays": 19,
     "simulatable": false,
     "collectable": true
    },
@@ -199,7 +199,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 7,
+    "recent_replays": 5,
     "simulatable": false,
     "collectable": true
    }
@@ -228,7 +228,7 @@
    "before": 81017,
    "after": 82268,
    "appended": 1251,
-   "ingest_said": "GAP: gen9championsvgc2026regmc — search window oldest 2026-11-24T11:49:46Z is newer than store newest 2026-10-27T14:22:00Z; ~73245 games unreachable (669.46 h unheld at 109 games/h measured over this window's 11.43 h). The pool is rolling; these cannot be re-fetched."
+   "ingest_said": "GAP: gen9championsvgc2026regmc — search window oldest 2026-11-24T15:07:50Z is newer than store newest 2026-10-27T14:22:00Z; ~75582 games unreachable (672.76 h unheld at 112 games/h measured over this window's 11.14 h). The pool is rolling; these cannot be re-fetched."
   },
   {
    "format": "gen9championsvgc2026regmcbo3",
@@ -236,7 +236,7 @@
    "before": 50452,
    "after": 51703,
    "appended": 1251,
-   "ingest_said": "GAP: gen9championsvgc2026regmcbo3 — search window oldest 2026-11-23T23:11:49Z is newer than store newest 2026-10-27T04:09:00Z; ~34655 games unreachable (667.05 h unheld at 52 games/h measured over this window's 24.08 h). The pool is rolling; these cannot be re-fetched."
+   "ingest_said": "GAP: gen9championsvgc2026regmcbo3 — search window oldest 2026-11-24T01:23:26Z is newer than store newest 2026-10-27T04:09:00Z; ~33642 games unreachable (669.24 h unheld at 50 games/h measured over this window's 24.89 h). The pool is rolling; these cannot be re-fetched."
   }
  ],
  "reconciled": [
